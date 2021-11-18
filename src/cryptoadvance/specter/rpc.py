@@ -341,6 +341,11 @@ class BitcoinRPC:
         timeout = self.timeout
         if "timeout" in kwargs:
             timeout = kwargs["timeout"]
+
+        if kwargs.get("no_wait"):
+            # Zero is treated like None, i.e. infinite wait
+            timeout = 0.001
+
         url = self.url
         if "wallet" in kwargs:
             url = url + "/wallet/{}".format(kwargs["wallet"])
@@ -354,6 +359,11 @@ class BitcoinRPC:
             # ConnectTimeout: The request timed out while trying to connect to the remote server
             # ReadTimeout: The server did not send any data in the allotted amount of time.
             # ReadTimeoutError: Raised when a socket timeout occurs while receiving data from a server
+            if kwargs.get("no_wait"):
+                # Used for rpc calls that don't immediately return (e.g. rescanblockchain) so we don't
+                # expect any data back anyway. __getattr__ expects a list of formatted json.
+                return [{"error": None, "result": None}]
+
             logger.error(
                 "Timeout after {} secs while {} call({: <28}) payload:{} Exception: {}".format(
                     timeout,
