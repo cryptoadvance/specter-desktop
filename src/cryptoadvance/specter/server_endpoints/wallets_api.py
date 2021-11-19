@@ -21,7 +21,7 @@ from ..rpc import RpcError
 from ..specter_error import SpecterError, handle_exception
 from ..util.base43 import b43_decode
 from ..util.descriptor import Descriptor
-from ..util.fee_estimation import get_fees
+from ..util.fee_estimation import FeeEstimationResultEncoder, get_fees
 from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
 
@@ -33,7 +33,7 @@ wallets_endpoint_api = Blueprint("wallets_endpoint_api", __name__)
 @wallets_endpoint_api.route("/fees", methods=["GET"])
 @login_required
 def fees():
-    return json.dumps(get_fees(app.specter, app.config))
+    return json.dumps(get_fees(app.specter, app.config), cls=FeeEstimationResultEncoder)
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/combine/", methods=["POST"])
