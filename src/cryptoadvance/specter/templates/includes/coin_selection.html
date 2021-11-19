@@ -1,5 +1,5 @@
-<template id="file-upload">
-    <span class="toggle_coinselection" style="cursor: pointer;">{{ _("Coinselection") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
+<template id="coin-selection">
+    <span class="toggle_coinselection" style="cursor: pointer;">{{ _("Coin selection") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
     <br>
     <div class="coinselection_div" style="margin: auto; max-width: 90%; display: none;">
         <div class="errorMessagesDiv">
@@ -22,8 +22,8 @@
         constructor() {
             super();
             var shadow = this.attachShadow({mode: 'open'});
-            var style = document.getElementById('file-upload').content;
-            var clone = style.cloneNode(true);
+            var template_content = document.getElementById('coin-selection').content;
+            var clone = template_content.cloneNode(true);
             
             this.coinselectionDiv = clone.querySelector(".coinselection_div")
             this.txtable = clone.querySelector(".txtable")
