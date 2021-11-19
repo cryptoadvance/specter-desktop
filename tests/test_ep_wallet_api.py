@@ -1,5 +1,6 @@
 import logging
 import pytest
+import json
 
 
 def test_fees(caplog, client):
@@ -9,10 +10,9 @@ def test_fees(caplog, client):
     login(client, "secret")
     result = client.get("/wallets/fees")
     assert result.status_code == 200
-    assert (
-        result.data
-        == b'{"fastestFee": 6, "halfHourFee": 1, "hourFee": 1, "minimumFee": 1}'
-    )
+    my_dict = json.loads(result.data)
+    assert my_dict["result"]["fastestFee"] == 1
+    assert my_dict["error_messages"] == []
     logout(client)
 
 
