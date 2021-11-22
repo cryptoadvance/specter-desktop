@@ -89,30 +89,30 @@
 					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="ui_option" value="ui" onclick="toggleSendUIType(this)" {% if ui_option == 'ui' %}checked{% endif %} id="ui-radio-btn">UI</label>
 					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="ui_option" value="text" onclick="toggleSendUIType(this);" {% if ui_option != 'ui' %}checked{% endif %}>text</label>
 				</div><br>
-				{% with subtract=subtract, subtract_from=subtract_from, fee_options=fee_options, fee_rate=fee_rate, rbf=rbf %}
-					{% include "wallet/send/new/components/fee_selection.jinja" %}
-				{% endwith %}
+				{% include "includes/fee-selection.html" %}
+				<fee-selection id="fee-selection-component"></fee-selection>
+				<br><br><br><br><br><br><br>
+
 				<br>
 				<br>
 				<div class="row break-row-mobile" id="coin-selection-row" style="margin-top: 30px;">
 					<button id="add-recipient" style="width: 200px; height: 38px;" type="button" class="btn" onclick="addRecipient('', 0, 'btc', '')"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> {{ _("Add recipient") }} </button>
-				{% if wallet.utxo | length > 0 %}
-					{% if not specter.is_liquid %}
-					<button style="width: 200px; height: 38px; margin-left: 10px;" id="coinselect" type="button" class="btn" onclick="toggleExpand()">{{ _("Select coins") }}<span class="optional">&nbsp;{{ _("manually") }}</span></button>
-					{% endif %}
-				{% endif %}
 				</div><br>
 			</div>
-			{% include "includes/tx-row.html" %}
-			{% include "includes/tx-data.html" %}
-			{% include "includes/explorer-link.html" %}
-			{% include "includes/tx-table.html" %}
-			{% include "includes/coin_selection.html" %}
-			<coin-selection  
-				id="coinselection-webcomponent"
-				wallet-alias="{{wallet.alias}}"
-				spendable-amount='{{ wallet.full_available_balance | btcamount }}'>
-			</coin-selection>
+			{% if wallet.utxo | length > 0 %}
+				{% if not specter.is_liquid %}
+					{% include "includes/tx-row.html" %}
+					{% include "includes/tx-data.html" %}
+					{% include "includes/explorer-link.html" %}
+					{% include "includes/tx-table.html" %}
+					{% include "includes/coin_selection.html" %}
+					<coin-selection  
+						id="coinselection-webcomponent"
+						wallet-alias="{{wallet.alias}}"
+						spendable-amount='{{ wallet.full_available_balance | btcamount }}'>
+					</coin-selection>
+				{% endif %}
+			{% endif %}
 			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">{{ _('Create <span class="optional">&nbsp;unsigned&nbsp;</span>transaction') }}</button>
 		</div>
 	</form>
@@ -249,13 +249,9 @@
 			});
 			if (amounts.length == 1) {
 				document.getElementById('remove-recipient').style.display = 'none';
-				document.getElementById('subtract_from').style.display = 'none';
 				document.getElementById('coin-selection-row').style['margin-top'] = '30px';
 			} else {
 				document.getElementById('remove-recipient').style.display = 'block';
-				if (document.getElementById('subtract').checked) {
-					document.getElementById('subtract_from').style.display = 'block';
-				}
 				document.getElementById('coin-selection-row').style['margin-top'] = '90px';
 			}
 			calculateConvertedUnit(i);
@@ -357,7 +353,7 @@
 			subtract.checked = (units[i] == 'sat' || units[i] == 'btc');
 			if (amounts.length > 1) {
 				document.getElementById('subtract_from').style.display = 'block';
-				document.getElementById('subtract_from_input').value = i + 1;
+				document.getElementById('substract_from_input').value = i + 1;
 			}
 			let othersAmount = 0;
 			for(let j in amounts) {
@@ -553,15 +549,8 @@
 			}
 			try {
 				let feeOptionManual = document.getElementById('fee_option_manual')
-				if (!feeOptionManual.checked) {
-					feeOptionManual.checked = true;
-					showFeeOption(feeOptionManual);
-					let manualRate = Math.round(document.getElementById('fee_rate_dynamic').value / FEE_RATE_STEP) * FEE_RATE_STEP;
-					if (manualRate < MIN_FEE_RATE) {
-						manualRate = MIN_FEE_RATE;
-					}
-					document.getElementById('fee_rate').value = manualRate;
-				}
+				let FeeSelectionComponent = document.getElementById('fee-selection-component')
+				FeeSelectionComponent.selectedFee() // Will also set the relevant input 
 				var formData = new FormData(document.getElementById('send-form'));
 				formData.append("estimate_fee", true);
 				formData.append("action", "createpsbt");
@@ -574,6 +563,11 @@
 						body: formData
 					}
 				);
+				if(response.status != 200){
+                    showError(await response.text());
+                    console.log("Error while fetching fees")
+                    return
+                }
 				let result = await response.json();
 				console.log(result);
 				if (result.success) {
