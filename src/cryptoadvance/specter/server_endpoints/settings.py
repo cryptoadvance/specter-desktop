@@ -165,13 +165,10 @@ def general():
                             wallet["blockheight"]
                             if "blockheight" in wallet
                             else get_startblock_by_chain(app.specter),
-                            timeout=1,
+                            no_wait=True,
                         )
                         app.logger.info("Rescanning Blockchain ...")
                         rescanning = True
-                    except requests.exceptions.ReadTimeout:
-                        # this is normal behavior in our usecase
-                        pass
                     except Exception as e:
                         app.logger.error(
                             "Exception while rescanning blockchain for wallet {}: {}".format(
