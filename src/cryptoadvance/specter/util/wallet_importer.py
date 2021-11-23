@@ -210,11 +210,8 @@ class WalletImporter:
                         f"Using pruned node - we will only rescan from block {newstartblock}"
                     )
                     startblock = newstartblock
-            self.wallet.rpc.rescanblockchain(startblock, timeout=1)
+            self.wallet.rpc.rescanblockchain(startblock, no_wait=True)
             logger.info("Rescanning Blockchain ...")
-        except requests.exceptions.ReadTimeout:
-            # this is normal behavior in our usecase
-            pass
         except Exception as e:
             logger.error("Exception while rescanning blockchain: %r" % e)
             if potential_errors:
