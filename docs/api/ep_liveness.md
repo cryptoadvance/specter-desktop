@@ -1,4 +1,4 @@
-## Liveness
+## Liveness Endpoint
 
 This endpoint works as healthz-check. See e.g. here:
 https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/

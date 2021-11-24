@@ -1,4 +1,4 @@
-# Specter Object endpoint
+# Specter Object Endpoint
 
 That's a bit of a leaky abstraction. Most of the internals within specter are stored in the specter-object. 
 This endpoint provides general information from Specter server and Node Status.
