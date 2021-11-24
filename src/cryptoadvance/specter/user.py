@@ -114,6 +114,10 @@ class User(UserMixin):
             return ""
         return f"_{self.id}"
 
+    @property
+    def is_user_secret_decrypted(self):
+        return self.plaintext_user_secret is not None
+
     def _encrypt_user_secret(self, plaintext_password):
         """
         Implementation taken from the pyca/cryptography docs:

@@ -136,14 +136,14 @@ class BaseConfig(object):
     RTL_LANGUAGES = ["he"]
 
     # One of "prod", "beta" or "alpha". Every Service below will be not available
-    SERVICES_DEVSTATUS_TRESHOLD = os.getenv("SERVICES_DEVSTATUS_TRESHOLD", "prod")
+    SERVICES_DEVSTATUS_THRESHOLD = os.getenv("SERVICES_DEVSTATUS_THRESHOLD", "prod")
 
 
 class DevelopmentConfig(BaseConfig):
     # https://stackoverflow.com/questions/22463939/demystify-flask-app-secret-key
     SECRET_KEY = "development key"
 
-    EXPLAIN_TEMPLATE_LOADING = os.getenv("EXPLAIN_TEMPLATE_LOADING", "False")
+    # EXPLAIN_TEMPLATE_LOADING = os.getenv("EXPLAIN_TEMPLATE_LOADING", "False")
 
     SPECTER_DATA_FOLDER = os.path.expanduser(
         os.getenv("SPECTER_DATA_FOLDER", "~/.specter_dev")
@@ -152,7 +152,7 @@ class DevelopmentConfig(BaseConfig):
     SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "True")
 
     # One of "prod", "beta" or "alpha". Every Service below will be not available
-    SERVICES_DEVSTATUS_TRESHOLD = os.getenv("SERVICES_DEVSTATUS_TRESHOLD", "alpha")
+    SERVICES_DEVSTATUS_THRESHOLD = os.getenv("SERVICES_DEVSTATUS_THRESHOLD", "beta")
 
 
 class TestConfig(BaseConfig):

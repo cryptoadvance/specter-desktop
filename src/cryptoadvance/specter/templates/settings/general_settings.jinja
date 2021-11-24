@@ -83,32 +83,6 @@
 			<div class="row" style="margin-top: 5px;">
 				<button onsubmit="showPacman()" type="submit" class="btn hidden" name="action" value="restore" id="restore" style="margin-bottom: 5px;">{{ _("Load Specter backup") }}</button>
 			</div><br><br>
-			{% if current_user.is_admin %}
-				<h1 id="services-title">Services</h1>
-				<div class="note">
-					You can opt-in to use these services. All Services are multi-user
-					capable and can be used individual by users.<br>
-					<b>Some services might not respect the Tor-only policy.</b>
-				</div>
-				<br>
-				{% for _, service in services.items() %}
-					<div class="row" style="margin-bottom: 10px;">
-						<label class="switch" style="margin-right: 30px">
-							<input type="checkbox" id="service_{{service.id}}" name="service_{{service.id}}" {% if service.active %}checked{% endif %}>
-							<span class="slider"></span>
-						</label>
-						{% if service.logo %}
-							<img src="{{ url_for(service.id + '_endpoint' + '.static', filename=service.logo) }}" height="25px">
-						{% else %}
-							{{ service.name }}
-						{% endif %}
-						<tool-tip title="{{service.name}}" style="float: right;">
-							{{ service.desc }}
-						</tool-tip>
-					</div>
-				{% endfor %}
-				<br>
-			{% endif %}
 
 			<h1>{{ _("Miscellaneous") }} </h1>
 			{{ _("Bitcoin unit to use") }} (BTC/sats):

@@ -7,14 +7,16 @@ from functools import wraps
 
 import requests
 from flask import Flask, Response, redirect, render_template, request, url_for, flash
-from flask_login import login_required
+from flask import current_app as app
+from flask_login import current_user, login_required
 
 from cryptoadvance.specter.services.service_apikey_storage import (
     ServiceApiKeyStorageError,
 )
-from ..service_settings_manager import ServiceSettingsManager
 from .manifest import SwanService
 from .swan_client import get_wallets, get_automatic_withdrawal
+from ..controller import user_secret_decrypted_required
+from ..service_settings_manager import ServiceSettingsManager
 
 client_id = "specter-dev"
 client_secret = "BcetcVcmueWf5P3UPJnHhCBMQ49p38fhzYwM7t3DJGzsXSjm89dDR5URE46SY69j"
@@ -44,12 +46,13 @@ def accesstoken_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
-            if SwanService._.get_sec_data().get("access_token") is None:
-                logger.info(f"No access token, redirecting to {SwanService.id}.index")
-                return redirect(url_for(f"{SwanService._.bp_name}.oauth2_start"))
-        except ServiceApiKeyStorageError:
+            if SwanService.get_current_user_api_data().get("access_token") is None:
+                logger.debug(f"No access token, redirecting to {SwanService.id}.index")
+                return redirect(url_for(f"{SwanService.get_blueprint_name()}.oauth2_start"))
+        except ServiceApiKeyStorageError as e:
+            logger.debug(repr(e))
             flash(
-                "Accessing the Swan Sevice needs relogin to get access to the access-key"
+                "Re-login required to access your protected services data"
             )
             return redirect(url_for(f"auth_endpoint.logout"))
         return func(*args, **kwargs)
@@ -59,18 +62,23 @@ def accesstoken_required(func):
 
 @swan_endpoint.route("/")
 @login_required
-@accesstoken_required
+@user_secret_decrypted_required
 def index():
-    return redirect(url_for(f"{SwanService._.bp_name}.balances"))
+    if SwanService.get_current_user_api_data().get("access_token") is not None:
+        return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
+    return render_template(
+        "swan/index.jinja",
+    )
 
 
 @swan_endpoint.route("/oauth2/start")
 @login_required
+@user_secret_decrypted_required
 def oauth2_start():
     # Do we have a token already?
-    if SwanService._.get_sec_data().get("access_token"):
-        logger.info(f"No access token, redirecting to {SwanService.id}.index")
-        return redirect(url_for(f"{SwanService._.bp_name}.balances"))
+    if SwanService.get_current_user_api_data().get("access_token"):
+        return redirect(url_for(f"{SwanService.get_blueprint_name()}.settings"))
+
     # Let's start the PKCE-flow
     global code_verifier
     code_verifier, code_challenge = calc_code_challenge()
@@ -87,10 +95,13 @@ def oauth2_start():
         "scope=openid v1 write:vendor_wallet read:vendor_wallet write:automatic_withdrawal read:automatic_withdrawal",
     ]
     flow_url = flow_url + "&".join(query_params)
-    return render_template("swan/index.jinja", flow_url=flow_url)
+
+    print(f"current_user: {current_user}")
+    return render_template("swan/oauth2_start.jinja", flow_url=flow_url)
 
 
 @swan_endpoint.route("/oauth2/callback")
+@login_required
 def oauth2_auth():
     if request.args.get("error"):
         logger.error(
@@ -120,7 +131,9 @@ def oauth2_auth():
     )
     resp = json.loads(response.text)
     if resp.get("access_token"):
-        SwanService._.set_sec_data({"access_token": resp["access_token"]})
+        print(f"current_user: {current_user}")
+        SwanService.set_current_user_api_data({"access_token": resp["access_token"]})
+        return redirect(url_for(".oauth2_success"))
     else:
         return render_template(
             "error.html",
@@ -129,61 +142,28 @@ def oauth2_auth():
             error_description=request.args.get("error_description"),
             cookies=request.cookies,
         )
-    return redirect(url_for(f"{SwanService._.bp_name}.balances"))
 
 
-@swan_endpoint.route("/oauth2/delete-token", methods=["POST"])
-def oauth2_delete_token():
-    SwanService._.set_sec_data({})
-    return redirect(url_for(f"{SwanService._.bp_name}.oauth2_start"))
-
-
-@swan_endpoint.route("/balances")
+@swan_endpoint.route("/oauth2/success")
 @login_required
-@accesstoken_required
-def balances():
-    return render_template("swan/balances.jinja", wallets=get_wallets())
-
-
-@swan_endpoint.route("/trade")
-@login_required
-@accesstoken_required
-def trade():
+def oauth2_success():
+    """
+        The redirect from the oauth2 callback has to land on an endpoint that does not
+        have the @login_required filter set. Once we're back we can proceed to login-
+        protected pages as usual.
+    """
+    print(f"current_user: {current_user}")
     return render_template(
-        "swan/dashboard.html",
-        tokens=tokens,
-        wallets=wallets,
-        me=me,
-        cookies=request.cookies,
+        "swan/oauth2_success.jinja",
     )
 
 
-@swan_endpoint.route("/resources")
+@swan_endpoint.route("/withdrawals")
 @login_required
 @accesstoken_required
-def resources():
-    return render_template("swan/resources.html")
-
-
-@swan_endpoint.route("/deposit")
-@login_required
-@accesstoken_required
-def deposit():
+def withdrawals():
     return render_template(
-        "swan/resources.html",
-        tokens=tokens,
-        wallets=None,
-        me=None,
-        cookies=request.cookies,
-    )
-
-
-@swan_endpoint.route("/withdraw")
-@login_required
-@accesstoken_required
-def withdraw():
-    return render_template(
-        "swan/withdrawal.jinja",
+        "swan/withdrawals.jinja",
         wallets=get_automatic_withdrawal(),
     )
 
@@ -195,7 +175,24 @@ def settings():
     return render_template(
         "swan/settings.jinja",
         tokens=tokens,
-        wallets=None,
-        me=None,
+        wallet_manager=current_user.wallet_manager,
         cookies=request.cookies,
     )
+
+
+@swan_endpoint.route("/settings/autowithdrawal", methods=["POST"])
+@login_required
+@accesstoken_required
+def update_autowithdrawal():
+    print(request.form)
+    return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
+
+
+@swan_endpoint.route("/oauth2/delete-token", methods=["POST"])
+@login_required
+@accesstoken_required
+def oauth2_delete_token():
+    SwanService.set_current_user_api_data({})
+    return redirect(url_for(f"{SwanService.get_blueprint_name()}.oauth2_start"))
+
+

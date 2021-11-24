@@ -38,6 +38,7 @@ from .rpc import (
     get_default_datadir,
 )
 from .services.service_manager import ServiceManager
+from .services.service import devstatus_alpha, devstatus_beta, devstatus_prod
 from .specter_error import ExtProcTimeoutException, SpecterError
 from .tor_daemon import TorDaemonController
 from .user import User
@@ -62,7 +63,7 @@ class Specter:
         data_folder="./data",
         config={},
         internal_bitcoind_version="",
-        service_devstatus_treshold="prod",
+        service_devstatus_threshold=devstatus_prod,
     ):
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)
@@ -77,6 +78,11 @@ class Specter:
         self.user_manager = UserManager(
             self
         )  # has to come before calling VersionChecker()
+
+        self.service_manager = ServiceManager(
+            specter=self,
+            devstatus_threshold=service_devstatus_threshold
+        )
 
         # version checker
         # checks for new versions once per hour

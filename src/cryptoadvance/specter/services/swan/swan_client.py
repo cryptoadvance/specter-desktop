@@ -57,6 +57,6 @@ def _calc_url(path):
 
 def _get_headers(path):
     """return the VTOKEN, the Content-type and maybe specter-version and -destination"""
-    token = SwanService._.get_sec_data().get("access_token")
+    token = SwanService.get_current_user_api_data().get("access_token")
     headers = {"Authorization": f"Bearer {token}", "Content-type": "application/json"}
     return headers

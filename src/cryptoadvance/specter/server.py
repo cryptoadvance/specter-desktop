@@ -121,7 +121,7 @@ def init_app(app, hwibridge=False, specter=None):
             data_folder=app.config["SPECTER_DATA_FOLDER"],
             config=app.config["DEFAULT_SPECTER_CONFIG"],
             internal_bitcoind_version=app.config["INTERNAL_BITCOIND_VERSION"],
-            service_devstatus_treshold=app.config["SERVICES_DEVSTATUS_TRESHOLD"],
+            service_devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"],
         )
 
     login_manager = LoginManager()
@@ -136,7 +136,7 @@ def init_app(app, hwibridge=False, specter=None):
 
     def login(id, password: str = None):
         user = user_loader(id)
-        login_user(user)
+        login_user(user, remember=True, force=True)
 
         if password:
             # Use the password while we have it to decrypt any protected

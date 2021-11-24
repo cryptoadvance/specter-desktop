@@ -33,10 +33,14 @@ from .setup import setup_endpoint
 from .wallets import wallets_endpoint
 from ..rpc import RpcError
 
+# Services live in their own separate path
+from cryptoadvance.specter.services.controller import services_endpoint 
+
 app.register_blueprint(auth_endpoint, url_prefix="/auth")
 app.register_blueprint(devices_endpoint, url_prefix="/devices")
 app.register_blueprint(nodes_endpoint, url_prefix="/nodes")
 app.register_blueprint(price_endpoint, url_prefix="/price")
+app.register_blueprint(services_endpoint, url_prefix="/services")
 app.register_blueprint(settings_endpoint, url_prefix="/settings")
 app.register_blueprint(setup_endpoint, url_prefix="/setup")
 app.register_blueprint(wallets_endpoint, url_prefix="/wallets")
