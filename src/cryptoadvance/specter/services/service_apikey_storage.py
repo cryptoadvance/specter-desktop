@@ -72,7 +72,7 @@ class ServiceApiKeyStorageManager(ConfigurableSingleton):
     """ Singleton that manages access to users' ServiceApiKeyStorage; context-aware so it
         knows who the current_user is for the given request context.
 
-        Requires a one-time configuration call on startup in the Specter instance.
+        Requires a one-time configuration call on startup in the ServiceManager.
     """
     @classmethod
     def configure_instance(cls, specter):
