@@ -100,7 +100,7 @@
 				</div><br>
 			</div>
 			{% if wallet.utxo | length > 0 %}
-				{% if not specter.is_liquid %}
+				
 					{% include "includes/tx-row.html" %}
 					{% include "includes/tx-data.html" %}
 					{% include "includes/explorer-link.html" %}
@@ -109,9 +109,10 @@
 					<coin-selection  
 						id="coinselection-webcomponent"
 						wallet-alias="{{wallet.alias}}"
-						spendable-amount='{{ wallet.full_available_balance | btcamount }}'>
+						spendable-amount='{{ wallet.full_available_balance | btcamount }}'
+						is-liquid="{{specter.is_liquid}}">
 					</coin-selection>
-				{% endif %}
+				
 			{% endif %}
 			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">{{ _('Create <span class="optional">&nbsp;unsigned&nbsp;</span>transaction') }}</button>
 		</div>
@@ -149,6 +150,8 @@
 			},
 		{% endfor %}
 		};
+		var spendableAmount = {{ wallet.full_available_balance | btcamount }}
+		var coinselectionWebcomponent = document.getElementById('coinselection-webcomponent');
 
 		function addRecipient(addr, amount, amount_unit, label) {
 			let i = amounts.length;
@@ -373,7 +376,7 @@
 					}
 				}
 			}
-			let maxAmount = (getSpendableAmount(units[i]) - (units[i] == 'sat' ? othersAmount * 1e8 : othersAmount));
+			let maxAmount = (coinselectionWebcomponent.getSpendableAmount(units[i]) - (units[i] == 'sat' ? othersAmount * 1e8 : othersAmount));
 			if (units[i] == 'sat') {
 				maxAmount = Math.round(maxAmount);
 			} else {
@@ -389,7 +392,6 @@
 
 		// Form validation
 		function validateAmount(unit, amount, i, allowZero=false) {
-			coinselectionWebcomponent = document.getElementById('coinselection-webcomponent');
 			if (isNaN(amount)) {
 				setVisibility('amount_errors_container', 'block');
 				document.getElementById('amount_errors_container')
@@ -398,7 +400,11 @@
 			}
 			if (i) {
 				let amountInput = document.getElementById('amount_' + i);
-				amountInput.max = coinselectionWebcomponent.getSpendableAmount(unit);
+				if (coinselectionWebcomponent != null) {
+					amountInput.max = coinselectionWebcomponent.getSpendableAmount(unit);
+				} else {
+					amountInput.max = spendableAmount
+				}
 			}
 			if (!amount && !allowZero) {
 				return false;

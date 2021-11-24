@@ -3,7 +3,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <div class="fee_container">
         <div>
-            <label><input type="checkbox" class="inline" name="subtract" id="subtract" {% if subtract %}checked{% endif %} onchange="toggleSubtractFrom(this)"> {{ _("Subtract fees from amount") }}</label>
+            <label><input type="checkbox" class="inline" name="subtract" id="subtract" {% if subtract %}checked{% endif %}> {{ _("Subtract fees from amount") }}</label>
             <div class="tool-tip" style="text-align: center;">
                 <i class="tool-tip__icon">i</i>
                 <p class="tool-tip__info">
@@ -15,7 +15,10 @@
                 </p>
             </div>
         </div>
-        <span id="subtract_from" class="hidden"><br>{{ _("Subtract from recipient number:") }} <input id="subtract_from_input" name="subtract_from" type="number" min="1" value="{{ subtract_from }}" step="1" style="width: 80px; min-width: 80px;"><br></span>
+        <span id="subtract_from" class="hidden">
+            <br>{{ _("Subtract from recipient number:") }} 
+            <input id="subtract_from_input" name="subtract_from" type="number" min="1" value="{{ subtract_from }}" step="1" style="width: 80px; min-width: 80px;"><br>
+        </span>
         <br>
         <div>
             {{ _("Fees:") }} 
@@ -47,7 +50,16 @@
 </template>
 
 <script type="module">
-
+    /**
+     * A WebComponent to enable the user to manage the fees
+     * The API for this component works in a way that it manages 5 hidden inputs which will expose the
+     * choice of the user.
+     * * <input type="checkbox" class="rbf-checkbox inline hidden" name="rbf" id="rbf">
+     * * <input id="subtract_from_input" name="subtract_from" type="number" class="hidden">
+     * * <input type="hidden" value="dynamic" name="fee_option">
+     * * <input type="number" class="fee_rate hidden" name="fee_rate" id="fee_rate" value="0.1">
+     * * <input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="0.1" class="hidden">
+     */
     class FeeSelection extends HTMLElement {
         constructor() {
             super();
@@ -56,7 +68,12 @@
             var clone = template_content.cloneNode(true);
 
             // substract
-            this.substractFromInput = clone.querySelector("#subtract_from_input")
+            this.subtract = clone.querySelector("#subtract")
+            this.subtract.addEventListener("change", (event) => {
+                this.toggleSubtractFrom()
+            })
+            this.subtractFrom = clone.querySelector("#subtract_from")
+            this.subtractFromInput = clone.querySelector("#subtract_from_input")
 
             // The radio-button for manual
             this.fee_option_manual =  clone.querySelector("#fee_option_manual")
@@ -120,9 +137,12 @@
             this.ld.rbfCheckbox.classList.add("hidden")
             this.appendChild(this.ld.rbfCheckbox)
 
-            this.ld.substractFromInput = this.substractFromInput.cloneNode(true)
-            this.ld.substractFromInput.classList.add("hidden")
-            this.appendChild(this.ld.substractFromInput)
+            this.ld.subtract = this.subtract.cloneNode(true)
+            this.ld.subtract.classList.add("hidden")
+            this.appendChild(this.ld.subtract)
+            this.ld.subtractFromInput = this.subtractFromInput.cloneNode(true)
+            this.ld.subtractFromInput.classList.add("hidden")
+            this.appendChild(this.ld.subtractFromInput)
             
             //this.ld.substract = this.substract.cloneNode(true)
             //this.appendChild(this.ld.substractFromInput)
@@ -250,14 +270,15 @@
             }
         }
 
-        toggleSubtractFrom(checkbox) {
-            if (checkbox.checked && (amounts.length > 1 || !document.getElementById('ui-radio-btn').checked)) {
-                document.getElementById('subtract_from').style.display = 'block';
+        toggleSubtractFrom() {
+            if (this.subtract.checked && (amounts.length > 1 || !document.getElementById('ui-radio-btn').checked)) {
+                this.subtractFrom.style.display = 'block';
                 document.getElementById('coin-selection-row').style['margin-top'] = '90px';
             } else {
-                document.getElementById('subtract_from').style.display = 'none';
+                this.subtractFrom.style.display = 'none';
                 document.getElementById('coin-selection-row').style['margin-top'] = '30px';
             }
+            this.ld.subtract.checked = this.subtract.checked
         }
 
         /**

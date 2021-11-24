@@ -17,7 +17,20 @@
 
 
 <script type="module">
-
+    /**
+     * Custom element for showing the coin-selection-dialog
+       attributes:
+       * wallet-alias
+       * spendable-amount
+       Example:
+       		<coin-selection  
+				id="coinselection-webcomponent"
+				wallet-alias="{{wallet.alias}}"
+				spendable-amount='{{ wallet.full_available_balance | btcamount }}'>
+			</coin-selection>
+        Internally, a tx-table is used which is customizable in oder to be usefull here.
+        We're using here the asset_balance endpoint to get Liquid assets
+     */
     class CoinSelection extends HTMLElement {
         constructor() {
             super();
@@ -45,9 +58,12 @@
          * (can be called many times if an element is repeatedly added/removed)
         */
         connectedCallback() {
-            this.wallet_alias_name = this.getAttribute('wallet-alias');
+            this.walletAlias = this.getAttribute('wallet-alias');
             this.spendableAmount = this.getAttribute("spendable-amount") ?? 0
             this.assetBalances = this.fetchAssetBalances()
+            if (this.getAttribute("is-liquid")) {
+                this.classList.add("hidden")
+            }
         }
     
         handleError(errorText) {
@@ -124,7 +140,7 @@
         * Fetches assetBalance from the Specter API 
         */
         async fetchAssetBalances(wallet_alias) {
-            let url = `{{ url_for('wallets_endpoint_api.addressinfo', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+            let url = `{{ url_for('wallets_endpoint_api.asset_balances', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.walletAlias);
             var formData = new FormData();
             formData.append('address', this.address);
             formData.append('csrf_token', '{{ csrf_token() }}');
