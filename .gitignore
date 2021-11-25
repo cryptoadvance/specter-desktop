@@ -33,3 +33,5 @@ token.sh
 src/cryptoadvance/specter/translations/**/messages.mo
 tests/elements
 signing_dir
+site
+docs/README.md

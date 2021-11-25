@@ -1,10 +1,10 @@
-# Context
+# Build System
 Ideally, a software-project has a build-system and a continuous-integration-system. The build-system takes care of being able to build the artifacts on your local (developer-) machine.
 The continuous-integration-system takes care of using the build-system to do the same in a release-context on build-runners/-agents.
 
 This document addresses the build-system part. For the continuous-integration-part, please have a look at [continuous-integration.md](./continuous-integration.md).
 
-# pip-packages
+## pip-packages
 ```
 # in the case of a release, the version needs to be adapted:
 # sed -i "s/version=\".*/version=\"$CI_COMMIT_TAG\",/" setup.py
@@ -14,15 +14,15 @@ cryptoadvance.specter-vx.y.z-get-replaced-by-release-script.tar.gz
 ```
 This process is the same for all platforms. The result unfortunately is not stable in terms of identically sh256-hashes, though.
 
-# Electron
+## Electron
 The electron build is assuming a node-installation. So make sure you have `node` and `npm` available.
 
 The electron-app is built in a way that it's running the `specterd` (specter-demon) internally. It's not bundled with the electron-binary but downloaded with the first start (including sha256- and gpg-verification). 
 If someone does not want the download, he can manually choose a specterd-binary from the `preferences/Advanced` menu. Nevertheless the Electron-App is tied, at buildtime, to a specific specterd-binary via a sha256-version. This probably doesn't make so much sense if you build outside of a release but we need it anyway.
 
-So let's cover the build of the specterd-binary first.
+So let's cover the build of the specterd-binary first. Below is a manual description of the build-process. There are acripts which are doing this but they are partially optimized for the CI-system. Check the `pyinstaller/build-*` scripts for details.
 
-## specterd Linux and MacOS
+### specterd Linux and MacOS
 
 ```
 cd pyinstaller
@@ -36,7 +36,7 @@ pyinstaller specterd.spec
 ls dist
 ```
 
-## specterd Windows
+### specterd Windows
 The windows build for specterd is quite similiar:
 ```
 pip3 install -r requirements.txt  --require-hashes
@@ -48,7 +48,7 @@ rmdir /s /q .\electron\dist\
 pyinstaller.exe specterd.spec
 ```
 
-## Electron Linux
+### Electron Linux
 The prerequisite for an electron build is a successfull specterd-build above. So now we need to bake the hash and a way how to retrieve the specterd-file when the electron-app is started:
 ```
 cd electron
@@ -77,7 +77,7 @@ Fetching specter binary from the server failed, could not reach the server or th
 ```
 So now you can open the preferences/Advanced and choose your local specterd which will get checked against the hash calculated above and copied into `~/.specter/specterd-binaries`.
 
-## Electron MacOS
+### Electron MacOS
 The Electron build for MacOS is a bit more complex as there is some signing involved. You can do the build via the script:
 ```
 cd electron
@@ -98,7 +98,7 @@ create-dmg 'electron/dist/mac/Specter.app' --identity="Developer ID Application:
 ls -l ./release/*.dmg
 ```
 
-## Electron Windows
+### Electron Windows
 ```
 cd electron
 call npm ci

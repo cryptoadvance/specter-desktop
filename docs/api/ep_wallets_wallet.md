@@ -1,5 +1,5 @@
 
-## Wallet
+## Wallet Endpoint
 
 This API will return wallet balance details as well as transactions.
 

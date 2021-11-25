@@ -228,7 +228,11 @@
 					{{ _("Rescan blockchain from block:") }}<br>
 					<div class="row aligned">
 						{% if specter.info.chain == "main" %}
-							{% set startblock=(481824 if not specter.info['pruned'] or specter.info['pruneheight'] < 481824 else specter.info['pruneheight']) %}
+							{% if wallet.is_taproot %}
+								{% set startblock=(709632 if not specter.info['pruned'] or specter.info['pruneheight'] < 709632 else specter.info['pruneheight']) %}
+							{% else %}
+								{% set startblock=(481824 if not specter.info['pruned'] or specter.info['pruneheight'] < 481824 else specter.info['pruneheight']) %}
+							{% endif %}
 						{% else %}
 							{% set startblock=(0 if not specter.info['pruned'] else specter.info['pruneheight']) %}
 						{% endif %}
@@ -238,7 +242,11 @@
 					{% if specter.info['pruned']  %}
 						<div class="note center full-width">{{ _("Note: You are using a pruned node. Rescan is limited by the pruned height to block:") }} {{specter.info['pruneheight']}}</div>
 					{% endif %}
-					<div class="note center"><b>481824</b> {{ _("was the first Segwit block.") }}</div>
+					{% if wallet.is_taproot %}
+						<div class="note center"><b>709632</b> {{ _("was the first Taproot block.") }}</div>
+					{% else %}
+						<div class="note center"><b>481824</b> {{ _("was the first Segwit block.") }}</div>
+					{% endif %}
 				{% endif %}
 			</form>
 			<form action="." method="POST" class="padded" style="max-width: 500px">
