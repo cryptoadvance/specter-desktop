@@ -319,10 +319,7 @@ def new_wallet(wallet_type):
                     app.logger.info("Rescanning Blockchain ...")
                     startblock = int(request.form["startblock"])
                     try:
-                        wallet.rpc.rescanblockchain(startblock, timeout=1)
-                    except requests.exceptions.ReadTimeout:
-                        # this is normal behavior in our usecase
-                        pass
+                        wallet.rpc.rescanblockchain(startblock, no_wait=True)
                     except Exception as e:
                         handle_exception(e)
                         err = "%r" % e
@@ -754,10 +751,9 @@ def settings(wallet_alias):
             try:
                 delete_file(wallet._transactions.path)
                 wallet.fetch_transactions()
-                res = wallet.rpc.rescanblockchain(startblock, timeout=1)
-            except requests.exceptions.ReadTimeout:
-                # this is normal behaviour in our usecase
-                pass
+
+                # This rpc call does not seem to return a result; use no_wait to ignore timeout errors
+                wallet.rpc.rescanblockchain(startblock, no_wait=True)
             except Exception as e:
                 handle_exception(e)
                 error = "%r" % e

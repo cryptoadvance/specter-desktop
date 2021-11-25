@@ -282,6 +282,7 @@ def get_scantxoutset_status():
 
 @app.route("/toggle_hide_sensitive_info/", methods=["POST"])
 @login_required
+@app.csrf.exempt  # might get called by a timeout in the browser --> csrf-issues
 def toggle_hide_sensitive_info():
     try:
         app.specter.update_hide_sensitive_info(

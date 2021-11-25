@@ -9,4 +9,4 @@ See also the Contributors to each specific release in the release-notes.
 
 The maintainers are the ones who are able to merge PRs and create tags/releases. They are listed as "authors" in setup.py.
 
-For practical considerations of a dev-setup, please have a look in the [development.md](./development.md). If you need support, join our  [Telegram group](https://t.me/spectersupport). 
+For practical considerations of a dev-setup, please have a look in the [development.md](development.md). If you need support, join our  [Telegram group](https://t.me/spectersupport). 
