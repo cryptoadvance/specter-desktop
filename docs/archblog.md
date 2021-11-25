@@ -1,7 +1,7 @@
 # Purpose
 Let's find a place to docoment non straightforward design decisions.
 
-## 02nd Oct 2020 - Kim
+## 02nd Oct 2020 - k9ert
 It's already mentioned in Development.md. I spend far too much time figuring out that we have created a nasty workaround in server.py.
 So the problem looks like this: The fixtures are creating the app anew for each test in test_controller. For some reason hwi-view-endpoints are somehow treated differently then the normal endpoints. As a result, the second test gets a app-object which, for some reason doesn't have the normal endpoints, but just the hwi-endpoint. A healthy app.view_functions looks like this:
 ```
@@ -15,7 +15,7 @@ An unhelathy like this:
 
 Feel free to beat me for the brittle if-clause in server.py but please solve the issue in the first place for this as well :-).
 
-## 19nd Feb 2020 - Kim
+## 19nd Feb 2020 - k9ert
 The ApplicationFactory-pattern is not that straightforward. There are loads of pifalls and different ways to go. While finding a proper way to do it, one thing became clear: You need to separate the instantiation and the initialisation of the Application.
 
 (from singleton.py)
