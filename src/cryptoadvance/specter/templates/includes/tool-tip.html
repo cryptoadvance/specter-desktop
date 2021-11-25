@@ -1,4 +1,11 @@
-<template id="tooltip">
+<!--
+  ### Usage ###
+  - Insert like a regular HTML tag
+  - Title and text of tool tip can be set:
+  <tool-tip title="your_tool_tip_title">Your tool tip text in here</tool-tip> 
+-->
+
+<template id="tool-tip-template-id">
     <style>
         .tool-tip {
             display: inline-block;
@@ -53,7 +60,7 @@
             display: inline-block;
         }
 
-        a:focus + .tool-tip .tool-tip__info {
+        a:focus + .tool-tip_basic .tool-tip__info {
             display: inline-block;
         }
         @media (hover: none) {
@@ -65,37 +72,27 @@
     <div class="tool-tip">
         <i class="tool-tip__icon">i</i>
         <p class="tool-tip__info">
-        <span class="info">
-            <span class="info__title"></span><br><br>
-            <slot></slot>
-        </span>
+            <span>
+                <span class="info__title"></span><br><br>
+                <slot></slot>
+            </span>
         </p>
     </div>
-  </template>
+    
+</template>
   
-  <script type="text/javascript">
+<script type="module">
   class TooltipElement extends HTMLElement {
     constructor() {
         super();
         // Create a shadow root
         var shadow = this.attachShadow({mode: 'open'});
-        var style = document.getElementById('tooltip').content;
+        var style = document.getElementById('tool-tip-template-id').content;
         var clone = style.cloneNode(true);
-
-        this.titleText = clone.querySelector(".info__title");
-
+        clone.querySelector('.info__title').innerText = this.getAttribute('title');
         // Attach the created element to the shadow dom
         shadow.appendChild(clone);
     }
-
-    static get observedAttributes() {
-        return ['title'];
-    }
-
-    attributeChangedCallback(attrName, oldValue, newValue) {
-      let title = this.getAttribute('title');
-      this.titleText.innerHTML = title;
-    }
   }
-  customElements.define('tool-tip', TooltipElement);
-  </script>
+customElements.define('tool-tip', TooltipElement);
+</script>

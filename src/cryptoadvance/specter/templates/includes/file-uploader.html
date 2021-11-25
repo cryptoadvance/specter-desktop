@@ -1,0 +1,102 @@
+<!--
+  ### Usage ###
+  - Insert like a regular HTML tag
+  - Image source, image size and TODO width of button can be set
+  - 
+<file-uploader image_src="your_path" image_size=some_size_in_px>
+	<span slot="description">Your description of the file uploader</span>
+	<tool-tip slot="tool-tip" title="your_tool_tip_title">Your tool tip text in here</tool-tip>
+</file-uploader>
+-->
+
+<template id="file-uploader">
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+
+	<style>
+		input {
+			    width: 400px;
+			    height: 400px;
+			    opacity: 0;
+			    overflow: hidden;
+			    position: fixed;
+			    z-index: -1;
+		}
+		label {
+		    background: var(--cmap-border);
+		    border: 1px solid transparent;
+		    border-radius: 4px;
+		    padding: 8px 15px 8px 10px;
+		    color: #fff;
+		    font-size: 0.85em;
+		    text-align: center;
+		    display: flex;
+		    align-items: center;
+		    justify-content: center;
+		    cursor: pointer;
+		    flex-grow: 1;
+		    min-height: 33px;
+		    margin: 8px;
+		    width: 250px;
+		}
+
+		img {
+			width: 26px; 
+			margin: 0px;
+			filter: invert(100%) sepia(0%) saturate(1%) hue-rotate(304deg) brightness(102%) contrast(101%);
+		}
+		:host,slot{
+      		padding: 0;
+      		margin: 0;
+    }
+	</style>
+
+	<input type="file" id="input-file"/>
+	<label for="input-file">
+		<img>
+		<slot name="description">Choose file!</slot>
+		<slot name="tool-tip"></slot>
+	</label> 
+</template>
+
+<script type="module">
+
+class FileUploaderElement extends HTMLElement {
+	constructor() {
+		super();
+		const shadowRoot = this.attachShadow({mode: 'open'});
+		const template = document.getElementById('file-uploader').content;
+		const clone = template.cloneNode(true);
+		clone.querySelector('img').src = this.getAttribute("image_src");
+		clone.querySelector('img').style.width = this.getAttribute("image_size");
+
+		let el = clone.getElementById("input-file");
+		el.addEventListener("change", (e) => {
+			// Only one file can selected
+			let file = e.currentTarget.files[0];
+			console.log(file);
+			var result
+			console.log(file.name);
+            let reader = new FileReader();
+            reader.onload = (e) => {
+                result = reader.result;
+                console.log(`Reader onload result: ${result}`);
+                // if raw bytes
+                if(reader.result.startsWith("psbt") || reader.result.startsWith("pset")){
+                    result = btoa(reader.result);
+                }
+                this.triggerResult(result);
+            }
+            reader.readAsBinaryString(file);
+		})
+
+		shadowRoot.appendChild(clone);
+	}
+	triggerResult(result) {
+		let event = new CustomEvent('upload', { detail: { result } });
+		console.log(event)
+		this.dispatchEvent(event);
+	}
+}	
+customElements.define('file-uploader', FileUploaderElement);
+</script>
