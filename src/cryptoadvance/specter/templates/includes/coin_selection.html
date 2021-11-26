@@ -9,7 +9,7 @@
             class="txtable"
             btc-unit="{{ specter.unit }}"
             hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
-            type="utxo" hide-columns="category txid time confirmations action" 
+            type="utxo" hide-columns="category time confirmations action" 
             blockhash="true" hide-switcher="true">
         </tx-table>
     </div> 
@@ -23,11 +23,13 @@
        * wallet-alias
        * spendable-amount
        Example:
-       		<coin-selection  
-				id="coinselection-webcomponent"
-				wallet-alias="{{wallet.alias}}"
-				spendable-amount='{{ wallet.full_available_balance | btcamount }}'>
-			</coin-selection>
+        <coin-selection  
+            id="coinselection-webcomponent"
+            wallet-alias="{{wallet.alias}}"
+            spendable-amount='{{ wallet.full_available_balance | btcamount }}'
+            is-liquid="{{specter.is_liquid}}"
+            selected-coins="{{ selected_coins }}">
+        </coin-selection>
         Internally, a tx-table is used which is customizable in oder to be usefull here.
         We're using here the asset_balance endpoint to get Liquid assets
      */
@@ -40,6 +42,13 @@
             
             this.coinselectionDiv = clone.querySelector(".coinselection_div")
             this.txtable = clone.querySelector(".txtable")
+            this.txtable.addEventListener("CustomSelected", (event) => {
+                this.updateLd()
+                this.fireChangeEvent();
+            } )
+
+            this.selectedCoins = JSON.parse(this.getAttribute('selected-coins').replace(/'/g, '"'));
+            this.txtable.select_those
 
             // ErrorMessages
             this.errorMessagesDiv = clone.querySelector(".errorMessagesDiv");
@@ -49,6 +58,8 @@
             this.toggler.addEventListener('click', (event) => {
                 this.toggleCoinselection()
 			});
+
+            this.createLighterDOMNodes()
 
             // Attach the created element to the shadow dom
             shadow.appendChild(clone);
@@ -61,9 +72,33 @@
             this.walletAlias = this.getAttribute('wallet-alias');
             this.spendableAmount = this.getAttribute("spendable-amount") ?? 0
             this.assetBalances = this.fetchAssetBalances()
-            if (this.getAttribute("is-liquid")) {
+            if (this.getAttribute("is-liquid") == "True") {
                 this.classList.add("hidden")
             }
+
+            this.txtable.setAttribute("wallet", this.walletAlias)
+            if (this.selectedCoins) {
+                this.txtable.setAttribute("selected-coins", JSON.stringify(this.selectedCoins))
+            }
+
+        }
+
+        /**
+         * here, we create some kind of mirror-nodes in the lighterDOM so that the outer form can 
+         * pick the values up. They are all hidden and we'll clone them from their "peer" from the shadowDOM
+         * Check https://stackoverflow.com/a/38667839/330964 for details
+         */
+        createLighterDOMNodes() {
+            this.ld = {} // in order to separate clearly, we store all of them here
+            // We won't mirror fee_options, that's too much overhead. We create a textfield there:
+            this.ld.div = document.createElement("div");
+            this.ld.div.type = "hidden";
+            this.appendChild(this.ld.div);
+        }
+
+        fireChangeEvent() {
+            let event = new CustomEvent('change', {});
+            this.dispatchEvent(event);
         }
     
         handleError(errorText) {
@@ -95,6 +130,24 @@
             }
     
             return (unit == 'sat' ? spendableAmount * 100000000 : spendableAmount);
+        }
+
+        /**
+         * Updates the lightDOM: It creates one hidden input-element for each tx which is selected in the shadowDOM
+         */
+        updateLd() {
+            while (this.ld.div.lastChild) {
+                this.ld.div.removeChild(this.ld.div.lastChild);
+            }
+            this.txtable.getSelectedTxs().forEach( (tx) => {
+                var element = document.createElement("input");
+                element.type = "hidden";
+                element.name = "coinselect"
+                element.classList.add("coinselect-hidden") // for cypress-tests
+                element.value= tx.txid + "," + tx.vout
+
+                this.ld.div.appendChild(element)
+            })
         }
 
         getCoinSelectedAmount() {
@@ -133,7 +186,7 @@
                     coins[i].checked = false;
                 }
             }
-            validateForm();
+            this.fireChangeEvent();
         }
 
         /**
@@ -175,19 +228,4 @@
     customElements.define('coin-selection', CoinSelection);
 
     
-</script>
-
-
-
-<script>
-    
-    /** 
-     * This will get called whenever someone un-/checks a checkbox in the first column of the tx-table
-     * Don't know how to pass a callback and putting this in the <script type="module"> tag didn't work
-     */
-    function updateCoinSelect(coin, amount) {
-        // Simply calling validateForm from the wallet_send template
-        validateForm();
-    }
-
 </script>

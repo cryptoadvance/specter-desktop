@@ -110,7 +110,8 @@
 						id="coinselection-webcomponent"
 						wallet-alias="{{wallet.alias}}"
 						spendable-amount='{{ wallet.full_available_balance | btcamount }}'
-						is-liquid="{{specter.is_liquid}}">
+						is-liquid="{{specter.is_liquid}}"
+						selected-coins="{{ selected_coins }}">
 					</coin-selection>
 				
 			{% endif %}
@@ -152,6 +153,9 @@
 		};
 		var spendableAmount = {{ wallet.full_available_balance | btcamount }}
 		var coinselectionWebcomponent = document.getElementById('coinselection-webcomponent');
+		coinselectionWebcomponent.addEventListener("change", (event) => {
+			validateForm()
+		})
 
 		function addRecipient(addr, amount, amount_unit, label) {
 			let i = amounts.length;

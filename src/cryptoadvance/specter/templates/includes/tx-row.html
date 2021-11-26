@@ -20,11 +20,6 @@
     <tr class="tx-row">
         <td id="column-callbackaction" class="callbackaction">
             <input class="checkbox coin_select_checkbox" type="checkbox" name="coinselect" value="" >
-                <script>
-                    document.addEventListener("DOMContentLoaded", function(){
-                        updateCoinSelect(document.getElementById("coin_{{ [txid, vout] | join(', ') }}"), "{{ amount }}")
-                    });
-                </script>
         </td>
         <td id="column-category">
             <img class="category" style="vertical-align: middle; margin-right: 10px;"/>
@@ -91,7 +86,15 @@
             // Set data for customaction
             this.callbackaction.childNodes[1].value=`${this.tx['txid']},${this.tx['vout']}`
             this.callbackaction.childNodes[1].amount = `${this.tx['amount']}` // a bit hackish, doing that to have access via this in next line
-            this.callbackaction.childNodes[1].onchange = function() { updateCoinSelect(this, this.amount) }
+            this.callbackaction.childNodes[1].addEventListener("change", (e) => {
+                let event = new CustomEvent('txRowCustomSelected', { detail: {
+                        txid: this.tx.txid,
+                        vout: this.tx.vout,
+                        amount: this.amount
+                    } }
+                );
+                this.dispatchEvent(event);
+            })
             
             // Set category image
             this.category.src = this.getCategoryImg(this.tx.category, this.tx.confirmations > 0);
@@ -277,6 +280,10 @@
 
         unselect() {
             this.callbackaction.childNodes[1].checked = false
+        }
+
+        select() {
+            this.callbackaction.childNodes[1].checked = true
         }
 
         rbfPopup(rbfType) {

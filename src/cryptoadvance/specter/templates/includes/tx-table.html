@@ -287,6 +287,9 @@
             this.freezeTxForm = clone.querySelector(".freeze-tx-form");
             this.freezeTxBtn = clone.querySelector(".freeze-tx-btn");
             this.selectedRows = [];
+
+            // CustomAction Preselection default
+            this.selectedCoins = []
             
 			this.txlistViewBtn.onclick = () => {
 				if (!this.txlistViewBtn.classList.contains("checked")) {
@@ -433,7 +436,7 @@
         }
 
         static get observedAttributes() {
-            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'hide-sensitive-info', 'wallet'];
+            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'hide-sensitive-info', 'wallet', 'selected-coins'];
         }
 
         connectedCallback() {
@@ -465,9 +468,32 @@
             return selectedTxs
         }
 
+        getTxRowByTxid(txid) {
+            console.log(this.shadowRoot.querySelectorAll(".txrowitem"))
+            this.shadowRoot.querySelectorAll(".txrowitem").forEach((txRow) => {
+                console.log("checking this txRow for txid "+txid)
+                console.log(txRow)
+                if (txRow.tx.txid == txid) {
+                    console.log("Found txRow!!!!")
+                    return txRow
+                }
+            })
+        }
+
         unselect_all() {
             this.shadowRoot.querySelectorAll(".txrowitem").forEach((item) => {
                 item.unselect()
+            })
+        }
+
+        select_coins(selected_coins) {
+            this.shadowRoot.querySelectorAll(".txrowitem").forEach((item) => {
+                selected_coins.forEach((selected_coin) => {
+                    selected_coin.split(/,/)
+                    if (item.isSelected()) {
+
+                    }
+                })
             })
         }
 
@@ -482,36 +508,64 @@
          * - wallet: The wallet alias (null to get all wallets combined)
         */
         attributeChangedCallback(attrName, oldValue, newValue) {
-            if (this.getAttribute('blockhash') == 'true' && this.getAttribute('type') == "txlist" && this.getAttribute('wallet')) {
-                    this.blockhashHeader.classList.remove('hidden');
-                    this.blockhashEmpty.classList.remove('hidden');
-                    this.blockhashSummary.classList.remove('hidden');
-            } else {
-                this.blockhashHeader.classList.add('hidden');
-                this.blockhashEmpty.classList.add('hidden');
-                this.blockhashSummary.classList.add('hidden');
-            }
-            if (
-                this.blockhash != this.getAttribute('blockhash') ||
-                this.btcUnit != this.getAttribute('btc-unit') ||
-                this.price != this.getAttribute('price') ||
-                this.symbol != this.getAttribute('symbol') ||
-                this.listType != this.getAttribute('type') ||
-                this.hideSensitiveInfo != this.getAttribute('hide-sensitive-info') ||
-                this.wallet != this.getAttribute('wallet')
-            ) {
-                this.blockhash = this.getAttribute('blockhash');
-                this.btcUnit = this.getAttribute('btc-unit');
-                this.price = this.getAttribute('price');
-                this.symbol = this.getAttribute('symbol');
-                this.listType = this.getAttribute('type');
-                this.hideSensitiveInfo = this.getAttribute('hide-sensitive-info') == 'true';
-                this.wallet = this.getAttribute('wallet');
-                if (!this.listType) {
-                    return
+            if (attrName != "selected-coins") {
+                if (this.getAttribute('blockhash') == 'true' && this.getAttribute('type') == "txlist" && this.getAttribute('wallet')) {
+                        this.blockhashHeader.classList.remove('hidden');
+                        this.blockhashEmpty.classList.remove('hidden');
+                        this.blockhashSummary.classList.remove('hidden');
+                } else {
+                    this.blockhashHeader.classList.add('hidden');
+                    this.blockhashEmpty.classList.add('hidden');
+                    this.blockhashSummary.classList.add('hidden');
                 }
-                this.fetchTxItems();
+                if (
+                    this.blockhash != this.getAttribute('blockhash') ||
+                    this.btcUnit != this.getAttribute('btc-unit') ||
+                    this.price != this.getAttribute('price') ||
+                    this.symbol != this.getAttribute('symbol') ||
+                    this.listType != this.getAttribute('type') ||
+                    this.hideSensitiveInfo != this.getAttribute('hide-sensitive-info') ||
+                    this.wallet != this.getAttribute('wallet')
+                ) {
+                    this.blockhash = this.getAttribute('blockhash');
+                    this.btcUnit = this.getAttribute('btc-unit');
+                    this.price = this.getAttribute('price');
+                    this.symbol = this.getAttribute('symbol');
+                    this.listType = this.getAttribute('type');
+                    this.hideSensitiveInfo = this.getAttribute('hide-sensitive-info') == 'true';
+                    this.wallet = this.getAttribute('wallet');
+                    if (!this.listType) {
+                        return
+                    }
+                    this.fetchTxItems();
+                }
             }
+            if (attrName == "selected-coins") {
+                let selectedCoins = JSON.parse(this.getAttribute("selected-coins"))
+                this.selectedCoins = selectedCoins.map((txid_vout) => {
+                    let txid = txid_vout.split(/,/)[0]
+                    return txid
+                })
+                console.log(this.selectedCoins)
+            }
+        }
+
+        /**
+         * searches this.selectedCoin for a transactionId and removes that if found and returns True in that case
+         */
+        checkForSelectedCoin(txid) {
+           if (this.selectedCoins != []) {
+               let filtered = this.selectedCoins.filter((value, index, arr) => {
+                   return value != txid
+               })
+               if (filtered.length == this.selectedCoins.length) {
+                   return false
+               } else {
+                   console.log("Found txid"+txid)
+                   this.selectedCoins = filtered
+                   return true
+               }
+           } 
         }
 
         /**
@@ -612,7 +666,6 @@
                                 data-mode="${this.getAttribute('type') + (this.wallet ? "" : "-overview")}"
                                 data-hide-sensitive-info="${this.hideSensitiveInfo}"
                                 hide-columns="${this.hideColumns}">
-                                <slot name="customaction" slot="customaction"></slot>
                                 </tx-row>
                             `)
                             this.tbody.append(txRow);
@@ -674,7 +727,22 @@
                         this.selectedRows = [];
                         this.selectedRowsActionBox.classList.add('hidden');
 
+                        // if preselectedCoins are there, we need to dispatch an event
+                        let dispatchLater = false
                         for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) {
+                            // Preselect if necessary
+                            if (this.checkForSelectedCoin(txRow.tx.txid)) {
+                                txRow.select()
+                                dispatchLater = true
+                            }
+                            txRow.addEventListener('txRowCustomSelected', (e) => {
+                                let event = new CustomEvent('CustomSelected', { detail: {
+                                    txs: this.getSelectedTxs()
+                                } }
+                                );
+                                this.dispatchEvent(event);
+                            })
+                            
                             txRow.addEventListener('txRowSelected', e=>{
                                 let selectedRow = e.target;
                                 if (e.detail.selected) {
@@ -692,6 +760,13 @@
                                     this.selectedRowsActionBox.classList.remove('hidden');
                                 }
                             });
+                        }
+                        if (dispatchLater) {
+                            let event = new CustomEvent('CustomSelected', { detail: {
+                                txs: this.getSelectedTxs()
+                            } }
+                            );
+                            this.dispatchEvent(event);
                         }
                     }
                     return
