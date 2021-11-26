@@ -1,4 +1,5 @@
-# Why a certificate is important
+# SSL Certificate
+## Why a certificate is important
 
 Browsers require secure communication with the server to use camera API. Without it we can't use QR code scanning.
 
@@ -6,14 +7,14 @@ If you are running a VPS it's easy - you just [issue a new certificate](./revers
 
 If you are only using the node at home and want to use it from your local network and via camera, you need to run it via SSL.
 
-# Easy solution
+## Easy solution
 
 The easiest solution is to simply add `--ssl` to the serve-command and the certificate will get created automatically in the specter-home-folder.
 ```
 python3 -m cryptoadance.specter server --ssl
 ```
 
-# Manual creation
+## Manual creation
 
 
 A second way, which provides more customization, is to run the [`gen-certificate.sh`](gen-certificate.sh) script in this folder with your node's IP address as an argument:
@@ -24,7 +25,7 @@ gen-certificate.sh <your-node-local-ip-address>
 
 It will create two files - `cert.pem` and `key.pem`.
 
-## Bare Specter over HTTPS
+### Bare Specter over HTTPS
 
 Provide these files to Specter as arguments:
 
@@ -34,7 +35,7 @@ python -m cryptoadvance.specter server --cert=./cert.pem --key=./key.pem
 
 *Note:* Adding `--tor=your-tor-password` will create a tor hidden service with https.
 
-## Specter with Nginx
+### Specter with Nginx
 
 Assuming you copied the files to `/etc/ssl/certs` and `/etc/ssl/private` add the following lines to server config (`/etc/nginx/sites-enabled/default`):
 
@@ -65,7 +66,7 @@ server{
 }
 ```
 
-## Adding certificate to trusted
+### Adding certificate to trusted
 
 With these certificates you should be able to navigate to your node using https, but you will see a scary warning.
 

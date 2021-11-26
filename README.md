@@ -24,8 +24,8 @@
 
     "A specter is haunting the modern world, the specter of crypto anarchy."
     The Crypto Anarchist Manifesto - Timothy C. May - Sun, 22 Nov 92 12:11:24 PST
- 
-[![Build Status](https://travis-ci.org/cryptoadvance/specter-desktop.svg?branch=master)](https://travis-ci.org/cryptoadvance/specter-desktop)
+
+[![Build Status](https://api.cirrus-ci.com/github/cryptoadvance/specter-desktop.svg)](https://cirrus-ci.com/github/cryptoadvance/specter-desktop)
 [![Support the project](https://img.shields.io/badge/btcpay-support%20project-orange.svg)](https://btcpay.benkaufman.info/apps/2NBJqJ9GMmy1SPqEtg49bEcKUZqd/pos)
 
 ## DISCLAIMER
@@ -124,7 +124,7 @@ If you are using Bitcoin Core with GUI, set `server=1` in `bitcoin.conf`. This s
 
 If you use Specter from a remote machine and want to use it with hardware wallets connected via USB, please read [this guide on setting up HWIBridge](docs/hwibridge.md) to facilitate such connection to hardware wallets. 
 
-Have a look at [DEVELOPMENT.md](DEVELOPMENT.md) for further information about hacking on Specter-desktop.
+Have a look at [development.md](docs/development.md) for further information about hacking on Specter-desktop.
 
 ## Tips and tricks (detailed instructions)
 
