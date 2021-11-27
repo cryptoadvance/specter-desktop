@@ -75,7 +75,7 @@
 
             this.txtable.setAttribute("wallet", this.walletAlias)
 
-            selectedCoins = JSON.parse(this.getAttribute('selected-coins').replace(/'/g, '"'));
+            let selectedCoins = JSON.parse(this.getAttribute('selected-coins').replace(/'/g, '"'));
             if (selectedCoins.length > 0) {
                 this.txtable.setAttribute("selected-coins", JSON.stringify(this.selectedCoins))
                 // unfold if we have preselected coins
