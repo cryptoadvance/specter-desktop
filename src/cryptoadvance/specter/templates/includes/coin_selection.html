@@ -9,7 +9,7 @@
             class="txtable"
             btc-unit="{{ specter.unit }}"
             hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
-            type="utxo" hide-columns="category time confirmations action" 
+            type="utxo" hide-columns="category time txid confirmations action" 
             blockhash="true" hide-switcher="true">
         </tx-table>
     </div> 
@@ -47,9 +47,6 @@
                 this.fireChangeEvent();
             } )
 
-            this.selectedCoins = JSON.parse(this.getAttribute('selected-coins').replace(/'/g, '"'));
-            this.txtable.select_those
-
             // ErrorMessages
             this.errorMessagesDiv = clone.querySelector(".errorMessagesDiv");
 
@@ -77,8 +74,12 @@
             }
 
             this.txtable.setAttribute("wallet", this.walletAlias)
-            if (this.selectedCoins) {
+
+            selectedCoins = JSON.parse(this.getAttribute('selected-coins').replace(/'/g, '"'));
+            if (selectedCoins.length > 0) {
                 this.txtable.setAttribute("selected-coins", JSON.stringify(this.selectedCoins))
+                // unfold if we have preselected coins
+                this.toggleCoinselection()
             }
 
         }

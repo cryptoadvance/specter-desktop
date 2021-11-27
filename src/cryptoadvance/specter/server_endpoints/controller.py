@@ -165,7 +165,11 @@ def after_request(response):
         treshold = app.config["REQUEST_TIME_WARNING_TRESHOLD"]
         if diff > treshold:
             flash(
-                f"The request before this one took {int(diff)} seconds which is longer than the threshold ({treshold}). Checkout the perfomance-improvement-hints in the documentation",
+                _(
+                    "The request before this one took {} seconds which is longer than the threshold ({}). Checkout the perfomance-improvement-hints in the documentation".format(
+                        int(diff), treshold
+                    )
+                ),
                 "warning",
             )
     return response

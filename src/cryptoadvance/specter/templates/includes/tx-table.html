@@ -468,18 +468,6 @@
             return selectedTxs
         }
 
-        getTxRowByTxid(txid) {
-            console.log(this.shadowRoot.querySelectorAll(".txrowitem"))
-            this.shadowRoot.querySelectorAll(".txrowitem").forEach((txRow) => {
-                console.log("checking this txRow for txid "+txid)
-                console.log(txRow)
-                if (txRow.tx.txid == txid) {
-                    console.log("Found txRow!!!!")
-                    return txRow
-                }
-            })
-        }
-
         unselect_all() {
             this.shadowRoot.querySelectorAll(".txrowitem").forEach((item) => {
                 item.unselect()
@@ -543,15 +531,19 @@
             if (attrName == "selected-coins") {
                 let selectedCoins = JSON.parse(this.getAttribute("selected-coins"))
                 this.selectedCoins = selectedCoins.map((txid_vout) => {
+                    // For easier comparison, we're removing the vout
                     let txid = txid_vout.split(/,/)[0]
                     return txid
                 })
-                console.log(this.selectedCoins)
             }
         }
 
         /**
-         * searches this.selectedCoin for a transactionId and removes that if found and returns True in that case
+         * searches this.selectedCoin for a transactionId and removes that if found and returns True in that case.
+         * Explanation: An initial pre-ticking the checkboxes is not that easy as the state of the component is
+         * created dynamically. This also involves the preselected checkboxes which get set by setAttribute("selected-coins",...)
+         * In order to solve this, this.selectedCoins is an array of txids which nedd to be checked and they get "consumed" when the 
+         * the check is positive.
          */
         checkForSelectedCoin(txid) {
            if (this.selectedCoins != []) {
@@ -566,10 +558,11 @@
                    return true
                }
            } 
+           return false
         }
 
         /**
-         * Fetches txlist from the Specter API and loads the result into TxRowElement
+         * Fetches txlist from the Specter API and loads the result into TxRowElements
         */
         async fetchTxItems() {
             this.callId++;
@@ -736,11 +729,7 @@
                                 dispatchLater = true
                             }
                             txRow.addEventListener('txRowCustomSelected', (e) => {
-                                let event = new CustomEvent('CustomSelected', { detail: {
-                                    txs: this.getSelectedTxs()
-                                } }
-                                );
-                                this.dispatchEvent(event);
+                                this.fireCustomSelectedEvent()
                             })
                             
                             txRow.addEventListener('txRowSelected', e=>{
@@ -762,11 +751,7 @@
                             });
                         }
                         if (dispatchLater) {
-                            let event = new CustomEvent('CustomSelected', { detail: {
-                                txs: this.getSelectedTxs()
-                            } }
-                            );
-                            this.dispatchEvent(event);
+                            this.fireCustomSelectedEvent()
                         }
                     }
                     return
@@ -777,7 +762,18 @@
                 showError(`{{ _("Failed to fetch transactions list.") }}: ${e}`);
             }
         }
+            /** 
+        * Is this event fired, then some row got ticked/unticked in the custom-selection-column
+        */
+        fireCustomSelectedEvent() {
+            let event = new CustomEvent('CustomSelected', { detail: {
+                txs: this.getSelectedTxs()
+            } }
+            );
+            this.dispatchEvent(event);
+        }
     }
+
 
 
     /**
