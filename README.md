@@ -24,8 +24,8 @@
 
     "A specter is haunting the modern world, the specter of crypto anarchy."
     The Crypto Anarchist Manifesto - Timothy C. May - Sun, 22 Nov 92 12:11:24 PST
- 
-[![Build Status](https://travis-ci.org/cryptoadvance/specter-desktop.svg?branch=master)](https://travis-ci.org/cryptoadvance/specter-desktop)
+
+[![Build Status](https://api.cirrus-ci.com/github/cryptoadvance/specter-desktop.svg)](https://cirrus-ci.com/github/cryptoadvance/specter-desktop)
 [![Support the project](https://img.shields.io/badge/btcpay-support%20project-orange.svg)](https://btcpay.benkaufman.info/apps/2NBJqJ9GMmy1SPqEtg49bEcKUZqd/pos)
 
 ## DISCLAIMER
@@ -89,6 +89,25 @@ pip3 install cryptoadvance.specter --upgrade
 
 After that, Specter will be available at [http://127.0.0.1:25441/](http://127.0.0.1:25441/).
 
+The above installation-method is quite easy but you have to trust pypi. If you want to verify the software completely yourself while still installing via pip3, you can do something like this (adjust yourself for other versions):
+```
+wget https://github.com/cryptoadvance/specter-desktop/releases/download/v1.7.0/cryptoadvance.specter-1.7.0.tar.gz
+wget https://github.com/cryptoadvance/specter-desktop/releases/download/v1.7.0/SHA256SUMS
+sha256sum --ignore-missing --check SHA256SUMS
+wget https://github.com/cryptoadvance/specter-desktop/releases/download/v1.7.0/SHA256SUMS.asc
+gpg --verify SHA256SUMS.asc
+# Now, let's extract the requirements-file and install all requirements with require-hashes
+tar -xvzf cryptoadvance.specter-1.7.0.tar.gz cryptoadvance.specter-1.7.0/requirements.txt
+# create your ususal virtualenv
+virtualenv --python=python3 .env
+# activate
+pip3 install -r cryptoadvance.specter-1.7.0/requirements.txt --require-hashes --upgrade
+# The package cryptoadvance.specter itself cannot be included into requirements.txt
+# But we have checked the checksum before so it's safe to install without checking it's hash
+pip3 install cryptoadvance.specter-1.7.0.tar.gz
+```
+
+
 You can also run it using Tor, provide SSL certificates to run over https. Https is especially important because browsers don't allow the website to access the camera without secure connection, and we need camera access to scan QR codes.
 
 An example how to run Specter server with SSL certificates (`--key`, `--cert`) over Tor (make sure to walk through the [Tor-document](docs/tor.md) ):
@@ -105,7 +124,7 @@ If you are using Bitcoin Core with GUI, set `server=1` in `bitcoin.conf`. This s
 
 If you use Specter from a remote machine and want to use it with hardware wallets connected via USB, please read [this guide on setting up HWIBridge](docs/hwibridge.md) to facilitate such connection to hardware wallets. 
 
-Have a look at [DEVELOPMENT.md](DEVELOPMENT.md) for further information about hacking on Specter-desktop.
+Have a look at [development.md](docs/development.md) for further information about hacking on Specter-desktop.
 
 ## Tips and tricks (detailed instructions)
 

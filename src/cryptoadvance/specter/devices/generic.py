@@ -8,6 +8,8 @@ class GenericDevice(Device):
 
     sd_card_support = True
     qr_code_support = True
+    liquid_support = True
+    taproot_support = True
 
     def create_psbts(self, base64_psbt, wallet):
         # in QR codes keep only xpubs

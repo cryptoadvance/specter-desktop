@@ -20,15 +20,15 @@
                             {{ _("Scan QR code") }}
                         </a>
                     </qr-scanner>
-                    <button {% if device.device_type not in ['electrum', 'other'] %}class="hidden"{% endif %} type="button" onclick="showPageOverlay('paste-xpub-popup')" class="btn centered" id="xpub-paste" style="max-width: 250px; width: 250px; margin: 20px auto;">
+                    <button {% if device.device_type not in ['electrum', 'other'] %}class="hidden"{% endif %} type="button" onclick="showPageOverlay('paste-mbk-popup')" class="btn centered" id="mbk-paste" style="max-width: 250px; width: 250px; margin: 20px auto;">
                         <img src="{{ url_for('static', filename='img/copy.svg') }}" style="width: 22px; margin: 0px;" class="svg-white">
-                        {{ _("Paste xpub") }}
+                        {{ _("Paste blinding key") }}
                     </button>
-                    <div class="hidden" id="paste-xpub-popup">
-                        <h1>{{ _("Paste xpub") }}</h1>
-                        <input type="text" id="paste-xpub-text" placeholder="Paste your xpub here">
+                    <div class="hidden" id="paste-mbk-popup">
+                        <h1>{{ _("Paste blinding key") }}</h1>
+                        <input type="text" id="paste-mbk-text" placeholder="Paste your master blinding key here">
                         <br><br>
-                        <button type="button" onclick="addXpubs(document.getElementById('paste-xpub-text').value);hidePageOverlay();document.getElementById('paste-xpub-text').value='';" class="btn centered">{{ _("Add xpub") }}</button>
+                        <button type="button" onclick="addBlindingKey(document.getElementById('paste-mbk-text').value);hidePageOverlay();document.getElementById('paste-mbk-text').value='';" class="btn centered">{{ _("Add blinding key") }}</button>
                     </div>
                 </div>
             </div>
@@ -54,7 +54,7 @@
             }
             // this shouldn't happen actually
             if(devices.length == 0){
-                showError("No devices found :(");
+                showError(`{{ _("No devices found :(") }}`);    // that's an old-school frown emoji -- ":(" -- not a weird typo
                 return;
             }
 
@@ -96,6 +96,13 @@
                 document.getElementById('blinding_key').value = masterBlindingKey;
                 document.form.submit();
             });
+        }
+        function addBlindingKey(masterBlindingKey){
+            if (masterBlindingKey == null) {
+                return;
+            }
+            document.getElementById('blinding_key').value = masterBlindingKey;
+            document.form.submit();
         }
     </script>
 {% endblock %}

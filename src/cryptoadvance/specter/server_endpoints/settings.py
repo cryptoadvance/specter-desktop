@@ -27,7 +27,6 @@ from ..helpers import (
 )
 from ..persistence import write_devices, write_wallet
 from ..specter_error import ExtProcTimeoutException, handle_exception
-from ..user import hash_password
 from ..util.sha256sum import sha256sum
 from ..util.shell import get_last_lines_from_file
 from ..util.tor import start_hidden_service, stop_hidden_services
@@ -58,6 +57,31 @@ def general():
     unit = app.specter.unit
     if request.method == "POST":
         action = request.form["action"]
+
+        autohide_sensitive_info_timeout = request.form[
+            "autohide_sensitive_info_timeout"
+        ]
+        if autohide_sensitive_info_timeout == "NEVER":
+            autohide_sensitive_info_timeout = None
+        elif autohide_sensitive_info_timeout == "CUSTOM":
+            autohide_sensitive_info_timeout = int(
+                request.form["custom_autohide_sensitive_info_timeout"]
+            )
+        else:
+            autohide_sensitive_info_timeout = int(autohide_sensitive_info_timeout)
+
+        if "autologout_timeout" in request.form:
+            # Is only in the form if specter.config.auth.method != "none"
+            autologout_timeout = request.form["autologout_timeout"]
+            if autologout_timeout == "NEVER":
+                autologout_timeout = None
+            elif autologout_timeout == "CUSTOM":
+                autologout_timeout = int(request.form["custom_autologout_timeout"])
+            else:
+                autologout_timeout = int(autologout_timeout)
+        else:
+            autologout_timeout = None
+
         explorer_id = request.form["explorer"]
         explorer_data = app.config["EXPLORERS_LIST"][explorer_id]
         if explorer_id == "CUSTOM":
@@ -74,6 +98,13 @@ def general():
             if current_user.is_admin:
                 set_loglevel(app, loglevel)
 
+            app.specter.config_manager.update_autohide_sensitive_info_timeout(
+                autohide_sensitive_info_timeout, current_user
+            )
+            app.specter.config_manager.update_autologout_timeout(
+                autologout_timeout, current_user
+            )
+
             app.specter.update_explorer(explorer_id, explorer_data, current_user)
             app.specter.update_unit(unit, current_user)
             app.specter.update_merkleproof_settings(
@@ -85,6 +116,7 @@ def general():
                 user=current_user,
             )
             app.specter.check()
+
         elif action == "restore":
             restore_devices = []
             restore_wallets = []
@@ -114,7 +146,11 @@ def general():
                             ),
                             "error",
                         )
+                        handle_exception(e)
                         continue
+                    logger.debug(
+                        f"Wallet {wallet['alias']} already exists, skipping creation"
+                    )
                 write_wallet(wallet)
                 app.specter.wallet_manager.update(use_threading=False)
 
@@ -130,13 +166,10 @@ def general():
                             wallet["blockheight"]
                             if "blockheight" in wallet
                             else get_startblock_by_chain(app.specter),
-                            timeout=1,
+                            no_wait=True,
                         )
                         app.logger.info("Rescanning Blockchain ...")
                         rescanning = True
-                    except requests.exceptions.ReadTimeout:
-                        # this is normal behavior in our usecase
-                        pass
                     except Exception as e:
                         app.logger.error(
                             "Exception while rescanning blockchain for wallet {}: {}".format(
@@ -148,10 +181,11 @@ def general():
                             "error",
                         )
                     wallet_obj.getdata()
-                except Exception:
+                except Exception as e:
                     flash(
                         _("Failed to import wallet {}").format(wallet["name"]), "error"
                     )
+                    handle_exception(e)
             flash(_("Specter data was successfully loaded from backup"), "info")
             if rescanning:
                 flash(
@@ -289,8 +323,7 @@ def tor():
                 requests_session.proxies["http"] = proxy_url
                 requests_session.proxies["https"] = proxy_url
                 res = requests_session.get(
-                    # "http://expyuzz4wqqyqhjn.onion",  # Tor Project onion website (seems to be down)
-                    "https://protonirockerxow.onion",  # Proton mail onion website
+                    "http://2gzyxa5ihm7nsggfxnu52rck2vv4rvmdlkiu3zzui5du4xyclen53wid.onion/",  # Tor Project onion v3 website
                     timeout=30,
                 )
                 tor_connectable = res.status_code == 200
@@ -362,10 +395,12 @@ def auth():
             else:
                 specter_username = None
                 specter_password = None
+
             if current_user.is_admin:
                 method = request.form["method"]
                 rate_limit = request.form["rate_limit"]
                 registration_link_timeout = request.form["registration_link_timeout"]
+
             min_chars = int(auth["password_min_chars"])
             if specter_username:
                 if current_user.username != specter_username:
@@ -403,34 +438,37 @@ def auth():
                             current_version=current_version,
                             rand=rand,
                         )
-                    current_user.password = hash_password(specter_password)
+                    current_user.set_password(specter_password)
                 current_user.save_info()
             if current_user.is_admin:
                 app.specter.update_auth(method, rate_limit, registration_link_timeout)
                 if method in ["rpcpasswordaspin", "passwordonly", "usernamepassword"]:
                     if method == "passwordonly":
-                        new_password = request.form.get("specter_password_only", "")
-                        if new_password:
-                            if len(new_password) < min_chars:
-                                flash(
-                                    _(
-                                        "Please enter a password of a least {} characters"
-                                    ).format(min_chars),
-                                    "error",
-                                )
-                                return render_template(
-                                    "settings/auth_settings.jinja",
-                                    method=method,
-                                    rate_limit=rate_limit,
-                                    registration_link_timeout=registration_link_timeout,
-                                    users=users,
-                                    specter=app.specter,
-                                    current_version=current_version,
-                                    rand=rand,
-                                )
+                        new_password = request.form.get("specter_password_only")
+                        if new_password and len(new_password) < min_chars:
+                            flash(
+                                _(
+                                    "Please enter a password of a least {} characters"
+                                ).format(min_chars),
+                                "error",
+                            )
+                            return render_template(
+                                "settings/auth_settings.jinja",
+                                method=method,
+                                rate_limit=rate_limit,
+                                registration_link_timeout=registration_link_timeout,
+                                users=users,
+                                specter=app.specter,
+                                current_version=current_version,
+                                rand=rand,
+                            )
+                        elif not new_password:
+                            # Set to the default
+                            new_password = "admin"
 
-                            current_user.password = hash_password(new_password)
-                            current_user.save_info()
+                        current_user.set_password(new_password)
+                        current_user.save_info()
+
                     if method == "usernamepassword":
                         users = [
                             user
@@ -445,6 +483,7 @@ def auth():
                     app.config["LOGIN_DISABLED"] = True
 
             app.specter.check()
+
         elif action == "adduser":
             if current_user.is_admin:
                 new_otp = secrets.token_urlsafe(16)
@@ -474,10 +513,12 @@ def auth():
                     _("Error: Only the admin account can issue new registration links"),
                     "error",
                 )
+
         elif action == "deleteuser":
             delete_user = request.form["deleteuser"]
             user = app.specter.user_manager.get_user(delete_user)
             if current_user.is_admin:
+                # TODO: delete should be done by UserManager
                 app.specter.delete_user(user)
                 users.remove(user)
                 flash(
@@ -485,6 +526,7 @@ def auth():
                 )
             else:
                 flash(_("Error: Only the admin account can delete users"), "error")
+
     return render_template(
         "settings/auth_settings.jinja",
         method=method,

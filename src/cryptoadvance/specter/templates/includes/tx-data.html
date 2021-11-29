@@ -65,7 +65,7 @@
             } catch(e) {
                 this.note.innerText = '{{ _("Failed to load transaction details...") }}';
                 console.log("Caught error fetching decoded transaction: ", e);
-                showError('{{ _("Failed to fetch data. Please refresh the page and retry.") }}');
+                showError(`{{ _("Failed to fetch data. Please refresh the page and retry.") }}`);
             }
             return null;
         }
@@ -278,7 +278,7 @@
                     return jsonResponse.isMine;
                 }
             }  catch(e) {
-                showError('{{ _("Failed to load address data...") }}');
+                showError(`{{ _("Failed to load address data...") }}`);
                 showError(e);
             }
             return false;

@@ -47,15 +47,15 @@
         let assetLabelField = document.getElementById('new_asset_label');
         let assetsList = document.getElementById('liquid-assets-list');
         if (!isHex(assetIDField.value) || assetIDField.value.length !== 64) {
-            showError('{{_("Asset ID is invalid, must be 64 hex characters")}}', 5000);
+            showError(`{{_("Asset ID is invalid, must be 64 hex characters")}}`, 5000);
             return false;
         }
         if (existingAssets.indexOf(assetIDField.value) != -1) {
-            showError('{{_("This asset is already in the registry.")}}', 5000);
+            showError(`{{_("This asset is already in the registry.")}}`, 5000);
             return false;
         }
         if (assetLabelField.value == '') {
-            showError('{{_("Asset label must not be empty.")}}', 5000);
+            showError(`{{_("Asset label must not be empty.")}}`, 5000);
             return false;
         }
         formData.append('asset', assetIDField.value);
@@ -97,7 +97,7 @@
 
     async function removeAsset(asset) {
         if (existingAssets.indexOf(asset) == -1) {
-            showError('{{_("Asset ID does not exist")}}', 5000);
+            showError(`{{_("Asset ID does not exist")}}`, 5000);
             return false;
         }
         let url = `{{ url_for('settings_endpoint.set_asset_label') }}`;

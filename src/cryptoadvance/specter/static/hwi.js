@@ -179,7 +179,7 @@ class HWIBridge {
         if(!('passphrase' in device)){
             device.passphrase = passphrase;
         }
-        return await hwi.fetch('display_address', {
+        return await this.fetch('display_address', {
             device_type: device.type,
             path: device.path,
             passphrase: device.passphrase,

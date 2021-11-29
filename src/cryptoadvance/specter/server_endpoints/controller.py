@@ -1,17 +1,15 @@
-import random, traceback, socket, threading, os
-from datetime import datetime
+import random, traceback
 from binascii import unhexlify
 from flask import make_response
 from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import MethodNotAllowed
-from flask import render_template, request, redirect, url_for, flash, Markup
+from flask import render_template, request, redirect, url_for, flash
 from flask_babel import lazy_gettext as _
 from flask_login import login_required, current_user
 from ..helpers import (
     generate_mnemonic,
     notify_upgrade,
 )
-from ..specter import Specter
 from ..specter_error import SpecterError, ExtProcTimeoutException
 from pathlib import Path
 
@@ -65,13 +63,17 @@ def server_rpc_error(rpce):
 
 @app.errorhandler(SpecterError)
 def server_specter_error(se):
-    """Specific EpecterErrors get passed on to the User as flash"""
+    """Specific SpecterErrors get passed on to the User as flash"""
     flash(str(se), "error")
     try:
         app.specter.wallet_manager.update()
     except SpecterError as se:
         flash(str(se), "error")
-    return redirect(url_for("about"))
+    if request.method == "POST":
+        return redirect(request.url)
+    # potentially avoiding http loops. Might be improvable but how?
+    else:
+        return redirect(url_for("about"))
 
 
 @app.errorhandler(Exception)
@@ -254,6 +256,7 @@ def get_scantxoutset_status():
 
 @app.route("/toggle_hide_sensitive_info/", methods=["POST"])
 @login_required
+@app.csrf.exempt  # might get called by a timeout in the browser --> csrf-issues
 def toggle_hide_sensitive_info():
     try:
         app.specter.update_hide_sensitive_info(

@@ -16,6 +16,9 @@ class ElementsCore(BitcoinCore):
     bitcoin_core_support = False
     liquid_support = True
 
+    # default sighash to use
+    SIGHASH = "ALL|RANGEPROOF"
+
     def add_hot_wallet_keys(
         self,
         mnemonic,

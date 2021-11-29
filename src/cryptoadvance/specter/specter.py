@@ -43,6 +43,7 @@ from .specter_error import ExtProcTimeoutException, SpecterError
 from .tor_daemon import TorDaemonController
 from .user import User
 from .util.checker import Checker
+from .util.version import VersionChecker
 from .util.price_providers import update_price
 from .util.setup_states import SETUP_STATES
 from .util.tor import get_tor_daemon_suffix
@@ -68,7 +69,14 @@ class Specter:
 
         self.data_folder = data_folder
 
-        self.user_manager = UserManager(self)
+        self.user_manager = UserManager(
+            self
+        )  # has to come before calling VersionChecker()
+
+        # version checker
+        # checks for new versions once per hour
+        self.version = VersionChecker(specter=self)
+        self.version.start()
 
         self._config_manager = ConfigManager(self.data_folder, config)
 
@@ -538,7 +546,7 @@ class Specter:
 
     @property
     def fee_estimator(self):
-        return self.user_config.get("fee_estimator", "mempool")
+        return self.user_config.get("fee_estimator", "bitcoin_core")
 
     @property
     def tor_type(self):
@@ -617,6 +625,14 @@ class Specter:
     @property
     def hide_sensitive_info(self):
         return self.user_config.get("hide_sensitive_info", False)
+
+    @property
+    def autohide_sensitive_info_timeout(self):
+        return self.user_config.get("autohide_sensitive_info_timeout_minutes", 20)
+
+    @property
+    def autologout_timeout(self):
+        return self.user_config.get("autologout_timeout_hours", 4)
 
     def requests_session(self, force_tor=False):
         requests_session = requests.Session()

@@ -194,9 +194,9 @@
     <script>
         async function togglePriceCheck(showPrice) {
             if (showPrice) {
-                showNotification('{{ _("Turning on show price mode...") }}', 0)
+                showNotification(`{{ _("Turning on show price mode...") }}`, 0)
             } else {
-                showNotification('{{ _("Turning off show price mode...") }}', 0)
+                showNotification(`{{ _("Turning off show price mode...") }}`, 0)
             }
             let url = `{{ url_for('price_endpoint.toggle') }}`;
             var formData = new FormData(document.getElementById('price-form'));
@@ -217,7 +217,7 @@
                     location.reload();
                     return
                 };
-                showError('{{ _("Failed to toggle price mode...") }}')
+                showError(`{{ _("Failed to toggle price mode...") }}`)
             } catch(e) {
                 console.log("Caught error: ", e);
                 showError(e);
@@ -225,7 +225,7 @@
         }
 
         async function savePriceData(reload) {
-            showNotification('{{ _("Updating price data...") }}', 0)
+            showNotification(`{{ _("Updating price data...") }}`, 0)
             let url = `{{ url_for('price_endpoint.update') }}`;
             var formData = new FormData(document.getElementById('price-form'));
             try {
@@ -245,7 +245,7 @@
                     location.reload();
                     return
                 };
-                showError('{{ _("Failed to fetch price data from selected provider, please try again or select another provider.") }}')
+                showError(`{{ _("Failed to fetch price data from selected provider, please try again or select another provider.") }}`)
             } catch(e) {
                 console.log("Caught error: ", e);
                 showError(e);

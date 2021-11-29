@@ -16,6 +16,12 @@ def ascii20(context, name):
 
 
 @contextfilter
+@filters_bp.app_template_filter("unique_len")
+def unique_len(context, arr):
+    return len(set(arr))
+
+
+@contextfilter
 @filters_bp.app_template_filter("datetime")
 def timedatetime(context, s):
     return format(datetime.fromtimestamp(s), "%d.%m.%Y %H:%M")

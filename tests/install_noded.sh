@@ -79,7 +79,8 @@ function maybe_update {
 function calc_pytestinit_nodeimpl_version {
 
     # returns the version of $node_impl from pytest.ini from a line which looks like:
-    # addopts = --bitcoind-version v0.21.1 --elementsd-version v0.20.99
+    # addopts = --bitcoind-version v22.0 --elementsd-version v0.20.99
+    # special treatments for bitcoin and elements necessary, see below
     local node_impl=$1
     if cat ../pytest.ini | grep -q "addopts = --${node_impl}d-version" ; then
         # in this case, we use the expected version from the test also as the tag to be checked out
@@ -89,6 +90,10 @@ function calc_pytestinit_nodeimpl_version {
         if [ "$node_impl" = "elements" ]; then
             # in the case of elements, the tags have a "elements-" prefix
             PINNED=$(echo "$PINNED" | sed 's/v//' | sed 's/^/elements-/')
+        fi
+        if [ "$node_impl" = "bitcoin" ]; then
+            # in the case of bitcoin, the binary-version-artifacts are missing a ".0" at the end which we remove here
+            PINNED=$(echo "$PINNED" | sed 's/..$//')
         fi
     fi
     echo $PINNED
@@ -104,7 +109,12 @@ function build_node_impl {
         cd contrib
         # This is hopefully fullfilles (via .travis.yml most relevantly)
         # sudo apt install make automake cmake curl g++-multilib libtool binutils-gold bsdmainutils pkg-config python3 patch
-        echo "    --> Building db4"
+        
+        if [ $(uname) = "Darwin" ]; then
+            brew install berkeley-db@4
+            brew link berkeley-db4 --force || :
+        fi
+		echo "    --> Building db4"
         ./install_db4.sh $(pwd)
         echo "    --> Finishing db4"
         ls -l
@@ -146,35 +156,44 @@ function sub_help {
     echo "$ ./install_node.sh --bitcoin compile"
     echo "$ ./install_node.sh --elements compile"
     echo "$ ./install_node.sh binary # only works for bitcoind currently, no binaries for elements"
-    echo "For more context, see https://github.com/cryptoadvance/specter-desktop/blob/master/DEVELOPMENT.md#how-to-run-the-tests"
+    echo "For more context, see https://github.com/cryptoadvance/specter-desktop/blob/master/docs/development.md#how-to-run-the-tests"
 }
 
 function check_compile_prerequisites {
-    REQUIRED_PKGS="build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 autoconf"
-    REQUIRED_PKGS="$REQUIRED_PKGS libevent-dev libevent-dev libboost-dev libboost-system-dev libboost-filesystem-dev libboost-test-dev bc nodejs npm libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb"
-    REQUIRED_PKGS="$REQUIRED_PKGS wget"
-    for REQUIRED_PKG in $REQUIRED_PKGS; do
-        PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
-        echo Checking for $REQUIRED_PKG: $PKG_OK
-        if [ "" = "$PKG_OK" ]; then
-            echo "No $REQUIRED_PKG. Setting up $REQUIRED_PKG."
-            echo "WARNING: THIS SHOULD NOT BE NECESSARY, PLEASE FIX!"
-            apt-get --yes install $REQUIRED_PKG 
-        fi
-    done
+    if [ $(uname) = "Darwin" ]; then
+        echo "    --> No binary prerequisites checking for MacOS, GOOD LUCK!"
+	#brew install automake berkeley-db4 libtool boost miniupnpc pkg-config python qt libevent qrencode sqlite
+    else
+	    REQUIRED_PKGS="build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 autoconf"
+	    REQUIRED_PKGS="$REQUIRED_PKGS libevent-dev libevent-dev libboost-dev libboost-system-dev libboost-filesystem-dev libboost-test-dev bc nodejs npm libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb"
+	    REQUIRED_PKGS="$REQUIRED_PKGS wget"
+	    for REQUIRED_PKG in $REQUIRED_PKGS; do
+	        PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+	        echo Checking for $REQUIRED_PKG: $PKG_OK
+	        if [ "" = "$PKG_OK" ]; then
+	            echo "No $REQUIRED_PKG. Setting up $REQUIRED_PKG."
+	            echo "WARNING: THIS SHOULD NOT BE NECESSARY, PLEASE FIX!"
+	            apt-get --yes install $REQUIRED_PKG 
+	        fi
+	    done
+    fi
 }
 
 function check_binary_prerequisites {
-    REQUIRED_PKGS="wget"
-    for REQUIRED_PKG in $REQUIRED_PKGS; do
-        PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
-        echo Checking for $REQUIRED_PKG: $PKG_OK
-        if [ "" = "$PKG_OK" ]; then
-            echo "No $REQUIRED_PKG. Setting up $REQUIRED_PKG."
-            echo "WARNING: THIS SHOULD NOT BE NECESSARY, PLEASE FIX!"
-            apt-get --yes install $REQUIRED_PKG 
-        fi
-    done
+    if [ $(uname) = "Darwin" ]; then
+        echo "    --> No binary prerequisites checking for MacOS, GOOD LUCK!"
+    else
+        REQUIRED_PKGS="wget"
+        for REQUIRED_PKG in $REQUIRED_PKGS; do
+            PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+            echo Checking for $REQUIRED_PKG: $PKG_OK
+            if [ "" = "$PKG_OK" ]; then
+                echo "No $REQUIRED_PKG. Setting up $REQUIRED_PKG."
+                echo "WARNING: THIS SHOULD NOT BE NECESSARY, PLEASE FIX!"
+                apt-get --yes install $REQUIRED_PKG 
+            fi
+        done
+    fi
 }
 
 function sub_compile {
@@ -189,7 +208,11 @@ function sub_compile {
     update=$?
     build_node_impl $node_impl $update
     echo "    --> Listing binaries"
-    find tests/${node_impl}/src -maxdepth 1 -type f -executable -exec ls -ld {} \;
+    if [ $(uname) = "Darwin" ]; then
+    	find tests/${node_impl}/src -maxdepth 1 -type f -perm +111 -exec ls -ld {} \;
+    else
+	find tests/${node_impl}/src -maxdepth 1 -type f -executable -exec ls -ld {} \;
+    fi
     END=$(date +%s.%N)
     DIFF=$(echo "$END - $START" | bc)
     echo "    --> install_node.sh End $(date) took $DIFF"
@@ -202,17 +225,22 @@ function sub_binary {
         exit 2
     fi
     echo "    --> install_noded.sh Start $(date) (binary) for node_impl $node_impl"
-    START=$(date +%s.%N)
+    START=$(date +%s)
     check_binary_prerequisites
     # todo: Parametrize this
     version=$(calc_pytestinit_nodeimpl_version $node_impl)
     echo "    --> install version $version"
     # remove the v-prefix
     version=$(echo $version | sed -e 's/v//')
-    if [[ ! -f bitcoin-${version}-x86_64-linux-gnu.tar.gz ]]; then
-        wget https://bitcoincore.org/bin/bitcoin-core-${version}/bitcoin-${version}-x86_64-linux-gnu.tar.gz
+    if [ $(uname) = "Darwin" ]; then
+        binary_file=bitcoin-${version}-osx64.tar.gz
+    else
+        binary_file=bitcoin-${version}-x86_64-linux-gnu.tar.gz
     fi
-    tar -xzf bitcoin-${version}-x86_64-linux-gnu.tar.gz
+    if [[ ! -f $binary_file ]]; then
+        wget https://bitcoincore.org/bin/bitcoin-core-${version}/${binary_file}
+    fi
+    tar -xzf ${binary_file}
     if [[ -d ./bitcoin ]]; then
         if [[ -d ./bitcoin/src ]]; then
             mv ./bitcoin ./bitcoin-src
@@ -222,13 +250,17 @@ function sub_binary {
     fi
     ln -s ./bitcoin-${version} bitcoin
     echo "    --> Listing binaries"
-    find ./bitcoin/bin -maxdepth 1 -type f -executable -exec ls -ld {} \;
+    if [ $(uname) = "Darwin" ]; then
+        find ./bitcoin/bin -maxdepth 1 -type f -perm +111 -exec ls -ld {} \;
+    else
+        find ./bitcoin/bin -maxdepth 1 -type f -executable -exec ls -ld {} \;
+    fi
     echo "    --> checking for bitcoind"
-    test -x ./bitcoin/bin/bitcodind || (echo "not found" && exit 2)
+    test -x ./bitcoin/bin/bitcoind || exit 2
     echo "    --> Finished installing bitcoind binary"
-    END=$(date +%s.%N)
+    END=$(date +%s)
     DIFF=$(echo "$END - $START" | bc)
-    echo "    --> install_noded.sh End $(date) took $DIFF"
+    echo "    --> install_noded.sh End $(date) took $DIFF seconds"
 }
 
 
