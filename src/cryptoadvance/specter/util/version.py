@@ -60,6 +60,8 @@ class VersionChecker:
             current = VersionChecker._version_txt_content()
         else:
             current = importlib_metadata.version(self.name)
+            if current == None:
+                current = "custom"
         if current == "vx.y.z-get-replaced-by-release-script":
             current = "custom"
         return current
@@ -76,22 +78,7 @@ class VersionChecker:
             logger.warning(
                 "We're checking here for a different binary than specter-desktop. We're hopefully in a pytest"
             )
-        try:
-            if self.specter:
-                requests_session = self.specter.requests_session(force_tor=False)
-            else:
-                requests_session = requests.Session()
-            releases = requests_session.get(
-                f"https://api.github.com/repos/cryptoadvance/specter-desktop/releases"
-            ).json()
-            for release in releases:
-                if release["prerelease"] or release["draft"]:
-                    continue
-                latest = release["name"]
-                break
-        except Exception as e:
-            logger.exception(e)
-            latest = "unknown"
+        latest = VersionChecker._get_latest_version_from_github(self.specter)
         return current, latest
 
     def _get_pip_version(self):
@@ -148,6 +135,25 @@ class VersionChecker:
         else:
             self.stop()
         return current, latest, False
+
+    @classmethod
+    def _get_latest_version_from_github(cls, specter):
+        try:
+            if specter:
+                requests_session = specter.requests_session(force_tor=False)
+            else:
+                requests_session = requests.Session()
+
+            releases = (
+                requests_session.get(f"https://pypi.org/pypi/{self.name}/json")
+                .json()["releases"]
+                .keys()
+            )
+            latest = list(releases)[-1]
+        except Exception as e:
+            logger.exception(e)
+            latest = "unknown"
+        return latest
 
     @classmethod
     def _version_txt_content(cls):

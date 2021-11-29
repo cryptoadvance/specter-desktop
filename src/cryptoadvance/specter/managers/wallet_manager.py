@@ -74,7 +74,7 @@ class WalletManager:
                 data_folder = os.path.expanduser(data_folder)
             # creating folders if they don't exist
             if not os.path.isdir(data_folder):
-                os.mkdir(data_folder)
+                os.makedirs(data_folder, exist_ok=True)
         self.working_folder = None
         if self.chain is not None and self.data_folder is not None:
             self.working_folder = os.path.join(self.data_folder, self.chain)
