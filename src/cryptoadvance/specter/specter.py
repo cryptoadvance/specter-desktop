@@ -19,6 +19,8 @@ from requests.exceptions import ConnectionError
 from stem.control import Controller
 from urllib3.exceptions import NewConnectionError
 
+from cryptoadvance.specter.devices.device_types import DeviceTypes
+
 from .helpers import clean_psbt, deep_update, is_liquid, is_testnet, get_asset_label
 from .internal_node import InternalNode
 from .liquid.rpc import LiquidRPC
@@ -67,12 +69,14 @@ class Specter:
 
         self.data_folder = data_folder
 
+        self.user_manager = UserManager(
+            self
+        )  # has to come before calling VersionChecker()
+
         # version checker
         # checks for new versions once per hour
         self.version = VersionChecker(specter=self)
         self.version.start()
-
-        self.user_manager = UserManager(self)
 
         self._config_manager = ConfigManager(self.data_folder, config)
 
@@ -663,8 +667,12 @@ class Specter:
                     data = zipfile.ZipInfo("{}.json".format(device.alias))
                     data.date_time = time.localtime(time.time())[:6]
                     data.compress_type = zipfile.ZIP_DEFLATED
+                    device = device.json
+                    # Exporting the bitcoincore hot wallet as watchonly
+                    if device["type"] == DeviceTypes.BITCOINCORE:
+                        device["type"] = DeviceTypes.BITCOINCORE_WATCHONLY
                     zf.writestr(
-                        "devices/{}.json".format(device.alias), json.dumps(device.json)
+                        "devices/{}.json".format(device["alias"]), json.dumps(device)
                     )
         memory_file.seek(0)
         return memory_file

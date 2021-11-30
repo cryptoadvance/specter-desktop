@@ -200,7 +200,7 @@ function start_specter {
   specter_pid=$!
   # Simulate slower machines with uncommenting this (-l 10 means using 10% cpu):
   #cpulimit -p $specter_pid -l 10 -b
-  $(npm bin)/wait-on http://localhost:${PORT}
+  $(npm bin)/wait-on http://127.0.0.1:${PORT}
 }
 
 function stop_specter {

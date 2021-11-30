@@ -152,7 +152,8 @@ def general():
                         f"Wallet {wallet['alias']} already exists, skipping creation"
                     )
                 write_wallet(wallet)
-                app.specter.wallet_manager.update(allow_threading=False)
+                app.specter.wallet_manager.update(use_threading=False)
+
                 try:
                     wallet_obj = app.specter.wallet_manager.get_by_alias(
                         wallet["alias"]
@@ -165,13 +166,10 @@ def general():
                             wallet["blockheight"]
                             if "blockheight" in wallet
                             else get_startblock_by_chain(app.specter),
-                            timeout=1,
+                            no_wait=True,
                         )
                         app.logger.info("Rescanning Blockchain ...")
                         rescanning = True
-                    except requests.exceptions.ReadTimeout:
-                        # this is normal behavior in our usecase
-                        pass
                     except Exception as e:
                         app.logger.error(
                             "Exception while rescanning blockchain for wallet {}: {}".format(

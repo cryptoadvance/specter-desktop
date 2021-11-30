@@ -60,6 +60,8 @@ class VersionChecker:
             current = VersionChecker._version_txt_content()
         else:
             current = importlib_metadata.version(self.name)
+            if current == None:
+                current = "custom"
         if current == "vx.y.z-get-replaced-by-release-script":
             current = "custom"
         return current
