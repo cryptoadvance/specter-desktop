@@ -1,9 +1,10 @@
 [TOC]
 
-## v1.7.2 November 29, 2021
+## v1.7.2 November 30, 2021
 - Feature: Default blockchain rescan to first Taproot block for Taproot wallets #1479 (kdmukai)
 - Feature: Encrypted user data storage #1453 (kdmukai)
 - Feature: More options for address labels imports #1470 (Manolis)
+- Feature: Improved export and restore hot wallet process #1495 (singlatushar07)
 - Bugfix: Adds `no_wait` option to rpc calls #1485 (kdmukai)
 - Bugfix: Adjust build-badge to Cirrus #1464 (Kim Neunert)
 - Bugfix: csrf-exempt for /toggle_hide_sensitive_info endpoint #1478 (Kim Neunert)
