@@ -125,7 +125,8 @@ class DeviceManager:
                 for device_class in device_classes
                 if device_class.bitcoin_core_support
             ]
-        devices.remove(BitcoinCoreWatchOnly)
+        if BitcoinCoreWatchOnly in devices:
+            devices.remove(BitcoinCoreWatchOnly)
         return devices
 
     def delete(self, specter):
