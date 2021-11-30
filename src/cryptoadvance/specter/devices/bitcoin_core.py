@@ -272,6 +272,7 @@ class BitcoinCoreWatchOnly(BitcoinCore):
 
     device_type = DeviceTypes.BITCOINCORE_WATCHONLY
     name = "Bitcoin Core (watch only)"
+    hot_wallet = False
 
     def sign_psbt(self, base64_psbt, wallet, file_password=None):
         raise SpecterError("Cannot sign with a watch-only wallet. Convert")
