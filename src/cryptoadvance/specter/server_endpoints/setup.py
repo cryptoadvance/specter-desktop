@@ -1,32 +1,25 @@
-import copy, random, json, os, threading, shutil, logging
+import copy
+import json
+import logging
+import os
+import platform
+import random
+import shutil
+import sys
+import threading
 
-from flask import (
-    Flask,
-    Blueprint,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    jsonify,
-    flash,
-)
-from flask_babel import lazy_gettext as _
-from flask_login import login_required, current_user
+from flask import Blueprint
 from flask import current_app as app
-from mnemonic import Mnemonic
-from ..helpers import alias, is_testnet, generate_mnemonic
-from ..key import Key
-from ..managers.device_manager import get_device_class
-from ..devices.bitcoin_core import BitcoinCore
-from ..managers.wallet_manager import purposes
-from ..specter_error import handle_exception
+from flask import render_template, request
+from flask_babel import lazy_gettext as _
+from flask_login import login_required
+
+from ..helpers import alias
 from ..util.bitcoind_setup_tasks import (
-    setup_bitcoind_thread,
     setup_bitcoind_directory_thread,
+    setup_bitcoind_thread,
 )
-from ..util.tor_setup_tasks import (
-    setup_tor_thread,
-)
+from ..util.tor_setup_tasks import setup_tor_thread
 
 logger = logging.getLogger(__name__)
 
@@ -120,6 +113,19 @@ def setup_tor():
         not os.path.isfile(app.specter.torbrowser_path)
         and app.specter.setup_status["torbrowser"]["stage_progress"] == -1
     ):
+        # There is no Tor Browser binary for Raspberry Pi 4 (armv7l)
+        if platform.system() == "Linux" and "armv" in platform.machine():
+            return {
+                "error": _(
+                    "Linux ARM devices (e.g. Raspberry Pi) must manually install Tor"
+                )
+            }
+        if not (getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")):
+            return {
+                "error": _(
+                    "Sorry, Internal Tor Setup is only supported in Application-Image installations."
+                )
+            }
         t = threading.Thread(target=setup_tor_thread, args=(app.specter,))
         t.start()
     elif os.path.isfile(app.specter.torbrowser_path):
