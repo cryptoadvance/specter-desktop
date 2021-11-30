@@ -12,7 +12,7 @@ from .passport import Passport
 from .jade import Jade
 from .generic import GenericDevice
 from .electrum import Electrum
-from .bitcoin_core import BitcoinCore
+from .bitcoin_core import BitcoinCore, BitcoinCoreWatchOnly
 from .elements_core import ElementsCore
 from .seedsigner import SeedSignerDevice
 
@@ -31,6 +31,7 @@ __all__ = [
     SeedSignerDevice,
     Electrum,
     BitcoinCore,
+    BitcoinCoreWatchOnly,
     ElementsCore,
     GenericDevice,
 ]
