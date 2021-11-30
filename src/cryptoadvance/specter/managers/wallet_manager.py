@@ -1,36 +1,18 @@
-import json
 import logging
 import os
 import pathlib
 import shutil
 import threading
 import traceback
-import hashlib
-from collections import OrderedDict
-from io import BytesIO
 
-from ..helpers import alias, load_jsons, is_liquid, add_dicts
-from ..persistence import delete_file, delete_folder
+from flask_babel import lazy_gettext as _
+
+from ..helpers import add_dicts, alias, is_liquid, load_jsons
+from ..liquid.wallet import LWallet
+from ..persistence import delete_folder
 from ..rpc import RpcError, get_default_datadir
 from ..specter_error import SpecterError
-from ..util.descriptor import AddChecksum
-from ..wallet import Wallet, purposes
-from ..liquid.wallet import LWallet
-
-from embit import ec
-from embit.descriptor import Descriptor
-from embit.liquid.descriptor import LDescriptor
-from embit.descriptor.checksum import add_checksum
-
-from embit import ec
-from embit.descriptor import Descriptor
-from embit.liquid.descriptor import LDescriptor
-from embit.descriptor.checksum import add_checksum
-
-from embit import ec
-from embit.descriptor import Descriptor
-from embit.liquid.descriptor import LDescriptor
-from embit.descriptor.checksum import add_checksum
+from ..wallet import Wallet
 
 logger = logging.getLogger(__name__)
 
@@ -287,6 +269,7 @@ class WalletManager:
             ]
         except:
             walletsindir = []
+        self._check_duplicate_keys(keys)
         wallet_alias = alias(name)
         i = 2
         while (
@@ -417,3 +400,21 @@ class WalletManager:
             wallet = self.wallets[w]
             self.delete_wallet(wallet, specter.bitcoin_datadir, specter.chain)
         delete_folder(self.data_folder)
+
+    @classmethod
+    def _check_duplicate_keys(cls, keys):
+        """raise a SpecterError when a key in the passed KeyList is listed twice. Should prevent MultisigWallets where
+        keys are used twice.
+        """
+        print("--------------------")
+        print(keys)
+        unique_keys = []
+        for key in keys:
+            if len(unique_keys) == 0:
+                unique_keys.append(key)
+            else:
+                for pot_dup in unique_keys:
+                    if pot_dup == key:
+                        raise SpecterError(
+                            _(f"Key {key} seem to be used at least twice!")
+                        )
