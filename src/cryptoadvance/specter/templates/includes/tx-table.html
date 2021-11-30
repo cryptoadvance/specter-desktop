@@ -117,6 +117,11 @@
         </div>
         <!--Middle part of the toolbar-->
         <input class="search" type="text" placeholder="Search..." />
+        <tool-tip title="Search options">
+            {{ _("anything in the address, tx, label, confirmations or amount") }}<br>
+            {{ _('search like') }} <code>%d.%m.%Y %H:%M</code> {{ _('if you want to search in the time field') }}<br>
+            {{ _("<code> 1</code> for anything more than 1 BTC and likewise <code>< 1</code> (don't forget the space)") }}<br>
+        </tool-tip>
         <!--Placeholder for right part of the toolbar-->
         <div style="flex: 1;"></div>
     </div>
