@@ -18,7 +18,7 @@ from ..helpers import alias, is_testnet, generate_mnemonic
 from ..key import Key
 from ..managers.device_manager import get_device_class
 from ..devices.bitcoin_core import BitcoinCore
-from ..managers.wallet_manager import purposes
+from ..wallet import purposes
 from ..specter_error import handle_exception
 from ..util.bitcoind_setup_tasks import (
     setup_bitcoind_thread,
