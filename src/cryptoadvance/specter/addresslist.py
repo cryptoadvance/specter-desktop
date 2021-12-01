@@ -19,10 +19,11 @@ def to_bool(v):
 class Address(dict):
     columns = [
         "address",  # str, address itself
-        "index",  # int, derivation index
-        "change",  # bool, change or receive
-        "label",  # str, address label
-        "used",  # bool, does this address have a transaction?
+        "index",    # int, derivation index
+        "change",   # bool, change or receive
+        "label",    # str, address label
+        "used",     # bool, does this address have a transaction?
+        "service_id",  # str, reserved for or used by Service.id
     ]
     type_converter = [
         str,
@@ -30,6 +31,7 @@ class Address(dict):
         to_bool,
         str,
         to_bool,
+        str,
     ]
 
     def __init__(self, rpc, **kwargs):
@@ -94,6 +96,14 @@ class Address(dict):
     @property
     def is_labeled(self):
         return bool(self["label"])
+
+    @property
+    def is_reserved(self):
+        return bool(self["service_id"])
+    
+    @property
+    def service_id(self):
+        return self["service_id"]
 
     def __str__(self):
         return self.address

@@ -136,7 +136,7 @@ def init_app(app, hwibridge=False, specter=None):
 
     def login(id, password: str = None):
         user = user_loader(id)
-        login_user(user, remember=True, force=True)
+        login_user(user)
 
         if password:
             # Use the password while we have it to decrypt any protected

@@ -52,8 +52,16 @@ class ServiceApiKeyStorage(GenericDataManager):
         return os.path.join(self.data_folder, f"{self.user.username}_services.json")
 
     def set_api_data(self, service_id: str, api_data: dict, autosave: bool = True):
-        # Store the api_data json blob as a string
+        # Store the api_data json blob as a string; completely overwrites previous state
         self.data[service_id] = json.dumps(api_data)
+        if autosave:
+            self._save()
+
+    def update_api_data(self, service_id: str, api_data: dict, autosave: bool = True):
+        # Add or update fields; does not remove existing fields
+        cur_data = json.loads(self.data[service_id])
+        cur_data.update(api_data)
+        self.data[service_id] = json.dumps(cur_data)
         if autosave:
             self._save()
 
@@ -94,6 +102,10 @@ class ServiceApiKeyStorageManager(ConfigurableSingleton):
 
     def set_current_user_api_data(self, service_id: str, api_data: dict):
         self._get_current_user_api_key_storage().set_api_data(service_id, api_data)
+
+    def update_current_user_api_data(self, service_id: str, api_data: dict):
+        # Add or update fields; does not remove existing fields
+        self._get_current_user_api_key_storage().update_api_data(service_id, api_data)
 
     def get_current_user_api_data(self, service_id: str) -> dict:
         return self._get_current_user_api_key_storage().get_api_data(service_id)

@@ -1,14 +1,16 @@
 import base64
+import datetime
 import hashlib
 import json
 import logging
-import secrets
-from functools import wraps
-
+import pytz
 import requests
+import secrets
+
 from flask import Flask, Response, redirect, render_template, request, url_for, flash
 from flask import current_app as app
 from flask_login import current_user, login_required
+from functools import wraps
 
 from cryptoadvance.specter.services.service_apikey_storage import (
     ServiceApiKeyStorageError,
@@ -17,6 +19,7 @@ from .manifest import SwanService
 from .swan_client import get_wallets, get_automatic_withdrawal
 from ..controller import user_secret_decrypted_required
 from ..service_settings_manager import ServiceSettingsManager
+
 
 client_id = "specter-dev"
 client_secret = "BcetcVcmueWf5P3UPJnHhCBMQ49p38fhzYwM7t3DJGzsXSjm89dDR5URE46SY69j"
@@ -40,6 +43,7 @@ def calc_code_challenge(code_verifier=None):
     return code_verifier, code_challenge
 
 
+# TODO: Change this to refreshtoken_required
 def accesstoken_required(func):
     """Access token needed for this function"""
 
@@ -75,6 +79,10 @@ def index():
 @login_required
 @user_secret_decrypted_required
 def oauth2_start():
+    """
+    Set up the Swan API integration by requesting our initial access_token and
+    refresh_token.
+    """
     # Do we have a token already?
     if SwanService.get_current_user_api_data().get("access_token"):
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.settings"))
@@ -92,7 +100,7 @@ def oauth2_start():
         f"code_challenge={code_challenge}",
         "code_challenge_method=S256",
         "state=kjkmdskdmsmmsmdslmdlsm",
-        "scope=openid v1 write:vendor_wallet read:vendor_wallet write:automatic_withdrawal read:automatic_withdrawal",
+        "scope=offline_access v1 write:vendor_wallet read:vendor_wallet write:automatic_withdrawal read:automatic_withdrawal",
     ]
     flow_url = flow_url + "&".join(query_params)
 
@@ -101,7 +109,6 @@ def oauth2_start():
 
 
 @swan_endpoint.route("/oauth2/callback")
-@login_required
 def oauth2_auth():
     if request.args.get("error"):
         logger.error(
@@ -115,37 +122,90 @@ def oauth2_auth():
             ),  # Slightly misusing the traceback field
         )
     code = request.args.get("code")
+    logger.debug(f"request.args: {request.args}")
     logger.debug(f"looks good, we got a code: {code}")
     logger.debug(f"try to get an access-token: ")
     logger.debug(f"client_secret : {client_secret}")
     logger.debug(f"code_verifier: {code_verifier}")
-    response = requests.post(
-        "https://dev-api.swanbitcoin.com/oidc/token",
-        data={
+
+    try:
+        get_access_token(code=code, code_verifier=code_verifier)
+        return redirect(url_for(".oauth2_success"))
+    except Exception as e:
+        return render_template(
+            "error.html",
+            response=None,
+            error=str(e),
+            error_description=None,
+            cookies=request.cookies,
+        )
+
+
+def get_access_token(code: str = None, code_verifier: str = None):
+    """
+    If code and code_verifier are specified, this is our initial request for an 
+    access_token and, more importantly, the refresh_token.
+
+    If code is None, use the refresh_token to get a new short-lived access_token.
+    """
+    if code:
+        payload = {
             "client_id": "specter-dev",
             "client_secret": client_secret,
             "code_verifier": code_verifier,
             "grant_type": "authorization_code",
             "code": code,
+        }
+    else:
+        api_data = SwanService.get_current_user_api_data()
+        if "refresh_token" not in api_data:
+            # TODO: Better Exception handling
+            raise Exception("Required service integration data not found")
+    
+        print("api_data: " + json.dumps(api_data, indent=4))
+        
+        data={
+            "grant_type": "refresh_token",
+            # "redirect_uri":   # Necessary?
+            "refresh_token": api_data["refresh_token"],
+            "scope": "offline_access",      # Possibly get an updated refresh_token back
         },
+
+    response = requests.post(
+        "https://dev-api.swanbitcoin.com/oidc/token",
+        data=payload,
     )
     resp = json.loads(response.text)
+    """
+        {
+            "access_token": "eyJhbGciOiJ[...]K1Sun9bA",
+            "token_type": "Bearer",
+            "expires_in": 3600,
+            "scope": "offline_access",
+            "refresh_token": "MIOf-U1zQbyfa3MUfJHhvnUqIut9ClH0xjlDXGJAyqo",
+            "id_token": "eyJraWQiO[...]hMEJQX6WRQ"
+        }
+    """
+    logger.debug(json.dumps(resp, indent=4))
     if resp.get("access_token"):
         print(f"current_user: {current_user}")
-        SwanService.set_current_user_api_data({"access_token": resp["access_token"]})
-        return redirect(url_for(".oauth2_success"))
+        new_api_data = {
+            "access_token": resp["access_token"],
+            "expires": (datetime.datetime.now(tz=pytz.utc) + datetime.timedelta(seconds=resp["expires_in"])).timestamp(),
+        }
+        if "refresh_token" in resp:
+            new_api_data["refresh_token"] = resp["refresh_token"]
+
+        SwanService.update_current_user_api_data(new_api_data)
+
+        print(json.dumps(SwanService.get_current_user_api_data(), indent=4))
+        return
     else:
-        return render_template(
-            "error.html",
-            response=response.text,
-            error=request.args.get("error"),
-            error_description=request.args.get("error_description"),
-            cookies=request.cookies,
-        )
+        print(response)
+        raise Exception(response.text)
 
 
 @swan_endpoint.route("/oauth2/success")
-@login_required
 def oauth2_success():
     """
         The redirect from the oauth2 callback has to land on an endpoint that does not
@@ -162,9 +222,12 @@ def oauth2_success():
 @login_required
 @accesstoken_required
 def withdrawals():
+    if not SwanService.is_access_token_valid:
+        get_access_token()
+
     return render_template(
         "swan/withdrawals.jinja",
-        wallets=get_automatic_withdrawal(),
+        wallets=get_wallets(),
     )
 
 
@@ -185,6 +248,11 @@ def settings():
 @accesstoken_required
 def update_autowithdrawal():
     print(request.form)
+    threshold = request.form["threshold"]
+    destination_wallet = request.form["destination_wallet"]
+    wallet = current_user.wallet_manager.get_by_alias(destination_wallet)
+    SwanService.reserve_addresses(wallet=wallet)
+
     return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
 
 
