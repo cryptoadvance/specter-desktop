@@ -50,6 +50,18 @@ class Address(dict):
             return
         self["label"] = label
         self.rpc.setlabel(self.address, label)
+    
+    def reserve_for_service(self, service_id: str, label: str = None):
+        # Declares that this Address is reserved for a Service
+        self["service_id"] = service_id
+        if label:
+            self.set_label(label)
+    
+    def unreserve(self):
+        # Frees a reserved Address
+        self["service_id"] = None
+        if not self.used and self["label"]:
+            self.set_label(None)
 
     @property
     def is_external(self):
@@ -189,10 +201,14 @@ class AddressList(dict):
                 )
         self.save()
 
-    def set_label(self, address, label):
+    def get_address(self, address: str) -> Address:
         if address not in self:
-            self[address] = self.AddressCls(self.rpc, address=address, label=label)
-        self[address].set_label(label)
+            self[address] = self.AddressCls(self.rpc, address=address)
+        return self[address]
+
+    def set_label(self, address, label):
+        addr_obj = self.get_address(address)
+        addr_obj.set_label(label)
         self.save()
 
     def get_labels(self):
@@ -202,6 +218,18 @@ class AddressList(dict):
             if lbl:
                 labels[lbl] = labels.get(lbl, []) + [addr.address]
         return labels
+    
+    def reserve_for_service(self, address: str, service_id: str, label: str, autosave: bool = True):
+        addr_obj = self.get_address(address)
+        addr_obj.reserve_for_service(service_id=service_id, label=label)
+        if autosave:
+            self.save()
+    
+    def unreserve(self, address: str, autosave: bool = True):
+        addr_obj = self.get_address(address)
+        addr_obj.unreserve()
+        if autosave:
+            self.save()
 
     def set_used(self, addresses):
         need_save = False

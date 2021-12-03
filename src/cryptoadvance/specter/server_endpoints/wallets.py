@@ -1178,7 +1178,7 @@ def wallets_overview_utxo_list():
 def addresses_list(wallet_alias):
     """Return a JSON with keys:
         addressesList: list of addresses with the properties
-                       (index, address, label, used, utxo, amount)
+                       (index, address, label, used, utxo, amount, service_id)
         pageCount: total number of pages
     POST parameters:
         idx: pagination index (current page)
@@ -1196,6 +1196,9 @@ def addresses_list(wallet_alias):
     address_type = request.form.get("addressType", "receive")
 
     addresses_list = wallet.addresses_info(address_type == "change")
+
+    # Enrich the address data with Services info, where applicable
+    app.specter.service_manager.inject_services_data(addresses_list)
 
     result = process_addresses_list(
         addresses_list, idx=idx, limit=limit, sortby=sortby, sortdir=sortdir

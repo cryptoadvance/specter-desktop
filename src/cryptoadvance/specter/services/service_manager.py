@@ -1,12 +1,14 @@
+import json
 import logging
 import os
+
+from flask import current_app as app, url_for
+from flask.blueprints import Blueprint
 from importlib import import_module
 from inspect import isclass
 from pathlib import Path
 from pkgutil import iter_modules
-
-from flask import current_app as app, url_for
-from flask.blueprints import Blueprint
+from typing import List
 
 from .service import Service
 from .service_apikey_storage import ServiceApiKeyStorageManager
@@ -65,7 +67,7 @@ class ServiceManager:
     @property
     def services(self):
         return self._services
-
+    
     def _initialize_services(self):
         self._services = {}
         for clazz in self.get_service_classes():
@@ -96,3 +98,20 @@ class ServiceManager:
             )
             service.active = service.id in service_names_active
 
+    def get_service(self, service_id: str) -> Service:
+        if service_id not in self._services:
+            # TODO: better error handling?
+            raise Exception(f"No such Service: '{service_id}'")
+        return self._services[service_id]
+
+    def inject_services_data(self, addresses_list: List[dict]):
+        """
+            addresses_list comes from Wallet.addresses_info()
+        """
+        for addr_dict in addresses_list:
+            if addr_dict.get("service_id") is not None:
+                # Inject Service.name and icon
+                Service_cls = self.get_service(addr_dict["service_id"])
+                addr_dict["service_name"] = Service_cls.name
+                addr_dict["service_icon"] = Service_cls.icon
+                print(json.dumps(addr_dict, indent=4))

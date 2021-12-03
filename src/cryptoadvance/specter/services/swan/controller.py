@@ -68,6 +68,7 @@ def accesstoken_required(func):
 @login_required
 @user_secret_decrypted_required
 def index():
+    print("index")
     if SwanService.get_current_user_api_data().get("access_token") is not None:
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
     return render_template(
@@ -251,6 +252,11 @@ def update_autowithdrawal():
     threshold = request.form["threshold"]
     destination_wallet = request.form["destination_wallet"]
     wallet = current_user.wallet_manager.get_by_alias(destination_wallet)
+
+    # Remove any unused reserved addresses for this service in this wallet first
+    SwanService.unreserve_addresses(wallet=wallet)
+
+    # Now claim new ones
     SwanService.reserve_addresses(wallet=wallet)
 
     return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
@@ -260,7 +266,13 @@ def update_autowithdrawal():
 @login_required
 @accesstoken_required
 def oauth2_delete_token():
+    # TODO: Separate deleting the token from removing service integration altogether?
+    for wallet_name, wallet in current_user.wallet_manager.wallets.items():
+        SwanService.unreserve_addresses(wallet=wallet)
+    
     SwanService.set_current_user_api_data({})
-    return redirect(url_for(f"{SwanService.get_blueprint_name()}.oauth2_start"))
+
+    url = url_for(f"{SwanService.get_blueprint_name()}.index")
+    return redirect(url_for(f"{SwanService.get_blueprint_name()}.index"))
 
 

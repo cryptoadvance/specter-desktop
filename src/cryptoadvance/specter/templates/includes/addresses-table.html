@@ -454,7 +454,7 @@
                         let addressesList = JSON.parse(jsonResponse.addressesList);
 
                         for (let addr of addressesList) {
-
+                            // Address data is embedded into each row as stringified JSON in the "data-address" attr.
                             let addrRow = document.createRange().createContextualFragment(`
                             <address-row 
                                 data-verify-qr="{{ supports_qr_code_verify != [] }}"
@@ -464,7 +464,7 @@
                                 data-symbol="${this.symbol ? this.symbol : ''}"
                                 data-address='${JSON.stringify(addr).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
                                 data-hide-sensitive-info="${this.hideSensitiveInfo}"
-                                data-wallet="${this.wallet}"> 
+                                data-wallet="${this.wallet}">
                             </<address-row>`);
 
                             this.tbody.append(addrRow);
@@ -542,6 +542,9 @@
             data-amount="${amount}"
             data-amount-price="${amountPrice}"
             data-address="${addressData.address}"
+            data-service-id="${addressData.service_id}"
+            data-service-name="${addressData.service_name}"
+            data-service-icon="${addressData.service_icon}"
             data-address-wallet="${wallet}">
             </address-data>`;
             showPageOverlay('address-popup');

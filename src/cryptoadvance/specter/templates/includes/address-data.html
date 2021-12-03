@@ -40,6 +40,9 @@
             this.amount = this.getAttribute('data-amount');
             this.amountPrice = this.getAttribute('data-amount-price');
             this.address = this.getAttribute('data-address');
+            this.serviceId = this.getAttribute('data-service-id');
+            this.serviceName = this.getAttribute('data-service-name');
+            this.serviceIcon = this.getAttribute('data-service-icon');
             this.wallet = this.getAttribute('data-address-wallet');
             this.note.innerText = `{{ _("Loading address") }}: ${this.address} {{ _("details") }}...`;
             this.fetchAddressData();
@@ -85,7 +88,11 @@
                     <tr><td>{{ _("Is change address") }}:</td><td>${isChange ? '{{ _("Yes") }}' : '{{ _("No") }}'}</td></tr>
                     <tr><td>{{ _("Used") }}:</td><td>${this.used ? 'Yes' : 'No'}</td></tr>
                     <tr><td>{{ _("UTXO count") }}:</td><td>${this.utxo}</td></tr>
-                    <tr><td>{{ _("Amount") }}:</td><td>${this.amount} <span class="amount-price note ${this.amountPrice ? '' : 'hidden'}">${this.amountPrice}</span></td></tr>
+                    <tr><td>{{ _("Amount") }}:</td><td>${this.amount} <span class="amount-price note ${this.amountPrice ? '' : 'hidden'}">${this.amountPrice}</span></td></tr>`
+                    if (this.serviceId != "null") {
+                        addressInfoHTML += `<tr><td>{{ _("Service") }}:</td><td>${this.serviceId}</td></tr>`
+                    }
+                    addressInfoHTML += `
                     </tbody>
                     </table>
                     `

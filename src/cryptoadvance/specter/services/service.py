@@ -7,6 +7,7 @@ from pkgutil import iter_modules
 
 from flask import current_app as app, url_for
 from flask.blueprints import Blueprint
+from cryptoadvance.specter.wallet import Wallet
 from flask_babel import lazy_gettext as _
 
 from .service_apikey_storage import ServiceApiKeyStorageManager
@@ -21,8 +22,14 @@ devstatus_prod = "prod"
 
 
 class Service:
-    """A BaseClass for Services"""
+    """A base class for Services"""
 
+    # These should be overrided in implementation classes
+    id = None
+    name = None
+    icon = None
+    logo = None
+    desc = None
     has_blueprint = True  # the default
     devstatus = devstatus_alpha
 
@@ -65,7 +72,7 @@ class Service:
         return f"{cls.id}_endpoint"
 
     @classmethod
-    def reserve_addresses(cls, wallet, label: str = None, num_addresses: int = 5):
+    def reserve_addresses(cls, wallet: Wallet, label: str = None, num_addresses: int = 5):
         """
         Reserve n addresses but leave a gap between each one so that this reserved range
         never causes an address gap in the wallet (e.g. if you reserve ten in a row it's
@@ -80,17 +87,31 @@ class Service:
         )
 
         if not label:
-            label = str(_(f"Reserved for {cls.name}"))
+            label = str(_(f"Reserved for {cls.name}"))      # can't pass a LazyString to json serializer
         start_index = wallet.address_index + 1
         for i in range(start_index, start_index + (2 * num_addresses), 2):
             address = wallet.get_address(i)
 
-            # TODO: Mark an Address in a persistent way as being reserved by a Service
-            wallet.setlabel(address=address, label=label)
+            # Mark an Address in a persistent way as being reserved by a Service
+            wallet.reserve_address_for_service(address=address, service_id=cls.id, label=label)
         
             # TODO: What annotations do we want to save? Date reserved?
             annotations_storage.set_addr_annotations(addr=address, annotations={}, autosave=False)
-        
+        annotations_storage.save()
+    
+    @classmethod
+    def unreserve_addresses(cls, wallet: Wallet):
+        """
+        Clear out Services-related data from any unused Addresses, but leave already-used
+        Addresses as-is.
+        """
+        annotations_storage = ServiceAnnotationsStorage(
+            service_id=cls.id, wallet=wallet
+        )
+        addrs = wallet.get_reserved_addresses(service_id=cls.id, unused_only=True)
+        for addr_obj in addrs:
+            wallet.unreserve_address(addr_obj["address"])
+            annotations_storage.remove_addr_annotations(addr_obj.address, autosave=False)
         annotations_storage.save()
 
     def init_controller(self):

@@ -22,7 +22,6 @@ class ServiceAnnotationsStorage(GenericDataManager):
         #   property will have the proper member vars.
         self.service_id = service_id
         self.wallet = wallet
-        print(f"wallet.manager.data_folder: {wallet.manager.data_folder}")
 
         super().__init__(wallet.manager.data_folder)
 
@@ -34,6 +33,7 @@ class ServiceAnnotationsStorage(GenericDataManager):
 
     @property
     def data_file(self):
+        # TODO: currently saving in the wallets/ dir but not in the main vs regtest subdir
         return os.path.join(
             self.wallet.manager.data_folder,
             f"{self.wallet.alias}_{self.service_id}.json",
@@ -45,6 +45,11 @@ class ServiceAnnotationsStorage(GenericDataManager):
 
     def set_addr_annotations(self, addr: str, annotations: dict, autosave: bool = True):
         self.data["addrs"][addr] = annotations
+        if autosave:
+            self._save()
+
+    def remove_addr_annotations(self, addr: str, autosave: bool = True):
+        self.data["addrs"].pop(addr, None)
         if autosave:
             self._save()
 

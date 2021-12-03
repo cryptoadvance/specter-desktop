@@ -1,31 +1,31 @@
-import copy, hashlib, json, logging, os, re, csv
-from csv import Error
-from io import StringIO
+import json, logging, os, re, csv
+import requests
+import threading
 import time
+
 from collections import OrderedDict
+from csv import Error
+from embit import bip32
+from embit.descriptor import Descriptor
+from embit.descriptor.checksum import add_checksum
+from embit.ec import PublicKey
+from embit.liquid.networks import get_network
+from embit.psbt import DerivationPath
+from embit.transaction import Transaction
+from io import StringIO
+from typing import List
+
+from .addresslist import Address, AddressList
 from .device import Device
 from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
-from .helpers import der_to_bytes, get_address_from_dict
-from embit import base58, bip32
-from embit.descriptor import Descriptor
-from embit.descriptor.checksum import add_checksum
-from embit.liquid.networks import get_network
-from embit.psbt import PSBT, DerivationPath
-from embit.transaction import Transaction
-from embit.ec import PublicKey
-
-from .util.xpub import get_xpub_fingerprint
-from .util.tx import decoderawtransaction
+from .helpers import get_address_from_dict
 from .persistence import write_json_file, delete_file, delete_folder
-from io import BytesIO
 from .specter_error import SpecterError
-import threading
-import requests
-from math import ceil
-from .addresslist import AddressList
 from .txlist import TxList
 from .util.psbt import SpecterPSBT
+from .util.tx import decoderawtransaction
+from .util.xpub import get_xpub_fingerprint
 
 logger = logging.getLogger(__name__)
 LISTTRANSACTIONS_BATCH_SIZE = 1000
@@ -1576,6 +1576,20 @@ class Wallet:
 
         self.save_to_file()
         return end
+    
+    def reserve_address_for_service(self, address: str, service_id: str, label: str, autosave: bool = True):
+        self._addresses.reserve_for_service(address=address, service_id=service_id, label=label, autosave=autosave)
+
+    def unreserve_address(self, address: str, autosave: bool = True):
+        self._addresses.unreserve(address=address, autosave=autosave)
+    
+    def get_reserved_addresses(self, service_id: str, unused_only: bool = False) -> List[Address]:
+        addrs = []
+        for addr, addr_obj in self._addresses.items():
+            if addr_obj["service_id"] == service_id:
+                if not unused_only or not addr_obj["used"]:
+                    addrs.append(addr_obj)
+        return addrs        
 
     def setlabel(self, address, label):
         self._addresses.set_label(address, label)
@@ -1622,8 +1636,8 @@ class Wallet:
 
     def createpsbt(
         self,
-        addresses: [str],
-        amounts: [float],
+        addresses: List[str],
+        amounts: List[float],
         subtract: bool = False,
         subtract_from: int = 0,
         fee_rate: float = 0,  # fee rate to use, if less than MIN_FEE_RATE will use MIN_FEE_RATE, 0 for automatic
@@ -1983,6 +1997,7 @@ class Wallet:
                     "used": bool(addr.used),
                     "utxo": addr_utxo,
                     "type": "change" if is_change else "receive",
+                    "service_id": addr.service_id,
                 }
             )
 

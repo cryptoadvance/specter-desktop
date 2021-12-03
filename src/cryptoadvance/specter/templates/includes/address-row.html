@@ -69,15 +69,18 @@
             this.hideSensitiveInfo = this.getAttribute('data-hide-sensitive-info') == 'true';
 
             this.index.innerText = `#${this.addressData.index}`;
-            this.address.innerText = this.hideSensitiveInfo ? '###########################' : this.addressData.address;
+            this.address.innerText = this.hideSensitiveInfo ? '###########################' : this.addressData.address.substring(0, 10) + "...";
             if (!this.hideSensitiveInfo) {
                 this.address.onclick = () => {
                     showAddressData(this.amountText.innerText, this.amountPrice.innerText, this.addressData, this.wallet);
                 }
             }
 
-            this.label.innerHTML = this.hideSensitiveInfo ? '############' : `<address-label data-address="${this.addressData.address}" ${this.addressData.label ? `data-label="${this.addressData.label}"` : ''} data-wallet="${this.wallet}"></address-label>`;
-
+            if  (this.hideSensitiveInfo) {
+                this.label.innerHTML = '############'
+            } else {
+                this.label.innerHTML = `<address-label data-address="${this.addressData.address}" ${this.addressData.label ? `data-label="${this.addressData.label}"` : ''} ${this.addressData.service_id ? `data-service-id="${this.addressData.service_id}"` : ''} ${this.addressData.service_icon ? `data-service-icon="${this.addressData.service_icon}"` : ''} data-wallet="${this.wallet}"></address-label>`;
+            }
             this.used.innerText = this.hideSensitiveInfo ? '###' : `${this.addressData.used ? 'Yes' : 'No'}`;
 
             this.utxo.innerText = this.hideSensitiveInfo ? '###' : this.addressData.utxo;
