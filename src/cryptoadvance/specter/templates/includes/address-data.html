@@ -13,6 +13,12 @@
             word-wrap: break-word;
             margin: auto;
         }
+        .service-icon {
+            margin-top: -5px;
+            margin-right: 0.5em;
+            height:24px;
+            vertical-align: middle;
+        }
     </style>
     <div class="address-data">
         <h1>{{ _("Address details") }}</h1><br>
@@ -22,8 +28,11 @@
 </template>
   
 <script type="text/javascript">
+    // TODO: Should not be generating html as strings. Formatting should all be in the
+    //  "address-data" template above with placeholder values replaced via DOM selectors.
     class AddressDataElement extends HTMLElement {
         constructor() {
+            // TODO: Documentation. What is the "this" in this context?
             super();
             // Create a shadow root
             var shadow = this.attachShadow({mode: 'open'});
@@ -90,11 +99,25 @@
                     <tr><td>{{ _("UTXO count") }}:</td><td>${this.utxo}</td></tr>
                     <tr><td>{{ _("Amount") }}:</td><td>${this.amount} <span class="amount-price note ${this.amountPrice ? '' : 'hidden'}">${this.amountPrice}</span></td></tr>`
                     if (this.serviceId != "null") {
-                        addressInfoHTML += `<tr><td>{{ _("Service") }}:</td><td>${this.serviceId}</td></tr>`
+                        addressInfoHTML += `
+                            <tr>
+                                <td>{{ _("Service") }}:</td>
+                                <td>
+                                    <img class="service-icon" src='/svc/${this.serviceId}/static/${this.serviceIcon}'>${this.serviceName}
+                                </td>
+                            </tr>`
+                    } else {
+                        addressInfoHTML += `
+                            <tr>
+                                <td>{{ _("Service") }}:</td>
+                                <td>
+                                    <button type="button" class="btn" onclick="location.href='{{ url_for('services_endpoint.associate_addr', wallet_alias='WALLET_ALIAS', address='ADDRESS') }}`.replace('WALLET_ALIAS', this.wallet).replace('ADDRESS', address) + `';">{{ _("Associate with a service") }}</button>
+                                </td>
+                            </tr>`
                     }
                     addressInfoHTML += `
-                    </tbody>
-                    </table>
+                        </tbody>
+                        </table>
                     `
 
                     if (this.isVerifyHwi) { 

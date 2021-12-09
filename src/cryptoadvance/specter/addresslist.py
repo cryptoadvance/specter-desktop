@@ -61,7 +61,7 @@ class Address(dict):
         # Frees a reserved Address
         self["service_id"] = None
         if not self.used and self["label"]:
-            self.set_label(None)
+            self.set_label("")
 
     @property
     def is_external(self):

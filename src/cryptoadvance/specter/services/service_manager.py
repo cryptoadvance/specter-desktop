@@ -106,7 +106,8 @@ class ServiceManager:
 
     def inject_services_data(self, addresses_list: List[dict]):
         """
-            addresses_list comes from Wallet.addresses_info()
+            Enrich the addresses_list with info for any associated Services.
+            * addresses_list comes from Wallet.addresses_info()
         """
         for addr_dict in addresses_list:
             if addr_dict.get("service_id") is not None:

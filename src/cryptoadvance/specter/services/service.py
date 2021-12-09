@@ -70,6 +70,18 @@ class Service:
     @classmethod
     def get_blueprint_name(cls):
         return f"{cls.id}_endpoint"
+    
+    @classmethod
+    def default_address_label(cls):
+        # Have to str() it; can't pass a LazyString to json serializer
+        return str(_(f"Reserved for {cls.name}"))
+
+    @classmethod
+    def reserve_address(cls, wallet: Wallet, address: str, label: str = None):
+        # Mark an Address in a persistent way as being reserved by a Service
+        if not label:
+            label = cls.default_address_label()
+        wallet.reserve_address_for_service(address=address, service_id=cls.id, label=label)
 
     @classmethod
     def reserve_addresses(cls, wallet: Wallet, label: str = None, num_addresses: int = 5):
@@ -80,22 +92,19 @@ class Service:
 
         If `label` is not provided, we'll use "Reserved for {Service.name}"
         """
-        print(f"Service cls.id: {cls.id}")
         # Track Service-related addresses in ServiceAnnotationsStorage
         annotations_storage = ServiceAnnotationsStorage(
             service_id=cls.id, wallet=wallet
         )
 
-        if not label:
-            label = str(_(f"Reserved for {cls.name}"))      # can't pass a LazyString to json serializer
         start_index = wallet.address_index + 1
         for i in range(start_index, start_index + (2 * num_addresses), 2):
             address = wallet.get_address(i)
 
             # Mark an Address in a persistent way as being reserved by a Service
-            wallet.reserve_address_for_service(address=address, service_id=cls.id, label=label)
+            cls.reserve_address(address=address, service_id=cls.id)
         
-            # TODO: What annotations do we want to save? Date reserved?
+            # TODO: What annotations do we want to save? Date reserved? Nothing yet?
             annotations_storage.set_addr_annotations(addr=address, annotations={}, autosave=False)
         annotations_storage.save()
     

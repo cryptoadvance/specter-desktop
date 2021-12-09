@@ -3,6 +3,17 @@
 {% set tab = 'withdraw' %}
 {% block content %}
 
+    <h2>Total Withdrawn from Swan</h2>
+    <div>
+        0 BTC
+    </div>
 
+    <h2>Reserved Withdrawal Addresses</h2>
+
+    <div class="reserved_address_container">
+    {% for addr_obj in reserved_addrs %}
+        <div class="reserved_address">{{ addr_obj.address }}</div>
+    {% endfor %}
+    </div>
 
 {% endblock %}

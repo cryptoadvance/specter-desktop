@@ -225,10 +225,15 @@ def oauth2_success():
 def withdrawals():
     if not SwanService.is_access_token_valid:
         get_access_token()
+    
+    reserved_addrs = []
+    for wallet_alias, wallet in app.specter.wallet_manager.wallets.items():
+        reserved_addrs.extend(wallet.get_reserved_addresses(service_id=SwanService.id, unused_only=True))
 
     return render_template(
         "swan/withdrawals.jinja",
         wallets=get_wallets(),
+        reserved_addrs=reserved_addrs,
     )
 
 
@@ -253,8 +258,9 @@ def update_autowithdrawal():
     destination_wallet = request.form["destination_wallet"]
     wallet = current_user.wallet_manager.get_by_alias(destination_wallet)
 
-    # Remove any unused reserved addresses for this service in this wallet first
-    SwanService.unreserve_addresses(wallet=wallet)
+    # Remove any unused reserved addresses for this service in all of this User's wallets
+    for wallet_alias, cur_wallet in app.specter.wallet_manager.wallets.items():
+        SwanService.unreserve_addresses(wallet=cur_wallet)
 
     # Now claim new ones
     SwanService.reserve_addresses(wallet=wallet)

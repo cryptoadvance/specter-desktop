@@ -1349,7 +1349,7 @@ class Wallet:
             self.save_to_file()
         return address
 
-    def get_address(self, index, change=False, check_keypool=True):
+    def get_address(self, index, change=False, check_keypool=True) -> str:
         if check_keypool:
             pool = self.change_keypool if change else self.keypool
             if pool < index + self.GAP_LIMIT:
@@ -1357,6 +1357,9 @@ class Wallet:
         return self.descriptor.derive(index, branch_index=int(change)).address(
             self.network
         )
+    
+    def get_address_obj(self, address: str) -> Address:
+        return self._addresses.get(address)
 
     def derive_descriptor(self, index: int, change: bool, keep_xpubs=False):
         """
