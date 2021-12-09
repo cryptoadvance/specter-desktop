@@ -683,3 +683,50 @@ def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
 
     # We restored the wallet's utxos
     assert wallet.update_balance()["trusted"] > 0.0
+
+
+@pytest.mark.slow
+def test_taproot_wallet(caplog, specter_regtest_configured):
+    """
+    Taproot m/86h/ derivation path xpubs should be able to create wallets and
+    receive funds
+    """
+    caplog.set_level(logging.INFO)
+
+    device_manager = specter_regtest_configured.device_manager
+    wallet_manager = specter_regtest_configured.wallet_manager
+
+    taproot_device = device_manager.add_device(
+        name="hot_key", device_type=DeviceTypes.BITCOINCORE, keys=[]
+    )
+    taproot_device.setup_device(file_password=None, wallet_manager=wallet_manager)
+    taproot_device.add_hot_wallet_keys(
+        mnemonic=generate_mnemonic(strength=128),
+        passphrase="",
+        paths=["m/86h/1h/0h"],  # Taproot for testnet/regtest
+        file_password=None,
+        wallet_manager=wallet_manager,
+        testnet=True,
+        keys_range=[0, 1000],
+        keys_purposes=[],
+    )
+
+    taproot_wallet = wallet_manager.create_wallet(
+        name="my_test_wallet",
+        sigs_required=1,
+        key_type=taproot_device.keys[0].key_type,
+        keys=[taproot_device.keys[0]],
+        devices=[taproot_device],
+    )
+
+    # Fund the wallet
+    address = taproot_wallet.getnewaddress()
+
+    # Taproot test addrs are bcrt1p vs native segwit bcrt1q
+    assert address.startswith("bcrt1p")
+
+    taproot_wallet.rpc.generatetoaddress(101, address)
+
+    # update the wallet data
+    balance = taproot_wallet.update_balance()
+    assert balance["trusted"] > 0.0

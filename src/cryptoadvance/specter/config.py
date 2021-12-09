@@ -166,8 +166,8 @@ class TestConfig(BaseConfig):
     SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "True")
 
     # See #1316 since Bitcoin v0.21.1 (not only) the importmulti-call takes longer than 10 seconds on cirrus
-    BITCOIN_RPC_TIMEOUT = 20
-    LIQUID_RPC_TIMEOUT = 30
+    BITCOIN_RPC_TIMEOUT = 60
+    LIQUID_RPC_TIMEOUT = 60
 
 
 class CypressTestConfig(TestConfig):

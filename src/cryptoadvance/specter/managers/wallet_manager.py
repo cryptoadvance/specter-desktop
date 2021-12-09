@@ -62,7 +62,7 @@ class WalletManager:
         self.WalletClass = LWallet if is_liquid(chain) else Wallet
         self.update(data_folder, rpc, chain)
 
-    def update(self, data_folder=None, rpc=None, chain=None, allow_threading=True):
+    def update(self, data_folder=None, rpc=None, chain=None, use_threading=True):
         if self.is_loading:
             return
         self.is_loading = True
@@ -74,7 +74,7 @@ class WalletManager:
                 data_folder = os.path.expanduser(data_folder)
             # creating folders if they don't exist
             if not os.path.isdir(data_folder):
-                os.mkdir(data_folder)
+                os.makedirs(data_folder, exist_ok=True)
         self.working_folder = None
         if self.chain is not None and self.data_folder is not None:
             self.working_folder = os.path.join(self.data_folder, self.chain)
@@ -102,7 +102,7 @@ class WalletManager:
             for k in list(self.wallets.keys()):
                 if k not in self.wallets_update_list:
                     self.wallets.pop(k)
-            if allow_threading and self.allow_threading:
+            if self.allow_threading and use_threading:
                 t = threading.Thread(
                     target=self._update,
                     args=(

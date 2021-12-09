@@ -4,6 +4,8 @@ import logging
 import pathlib
 from flask_babel import lazy_gettext as _
 
+from cryptoadvance.specter.devices.bitcoin_core import BitcoinCoreWatchOnly
+
 from ..helpers import alias, load_jsons
 from ..rpc import get_default_datadir
 
@@ -101,25 +103,31 @@ class DeviceManager:
         return device_classes
 
     def supported_devices_for_chain(self, specter):
+        """Devices which you can create via the UI. BitcoinCoreWatchonly is not among them
+        and if we have no node, hot-wallets neither. Liquid support is limited as well.
+        """
         if not specter.chain:
-            return [
+            devices = [
                 device_class
                 for device_class in device_classes
                 if device_class.device_type != "bitcoincore"
                 and device_class.device_type != "elementscore"
             ]
         elif specter.is_liquid:
-            return [
+            devices = [
                 device_class
                 for device_class in device_classes
                 if device_class.liquid_support
             ]
         else:
-            return [
+            devices = [
                 device_class
                 for device_class in device_classes
                 if device_class.bitcoin_core_support
             ]
+        if BitcoinCoreWatchOnly in devices:
+            devices.remove(BitcoinCoreWatchOnly)
+        return devices
 
     def delete(self, specter):
         """Deletes all the devices"""
