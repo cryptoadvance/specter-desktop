@@ -22,7 +22,43 @@
     </style>
     <div class="address-data">
         <h1>{{ _("Address details") }}</h1><br>
-        <div class="address-data-info"></div>
+        <qr-code style="margin: auto;" class="address-qr-code" width="256"></qr-code><br>
+        <table class="address-data-table">
+            <tbody>
+                <tr><td>{{ _("Address") }}:</td><td style="word-break: break-all;" class="address-explorer-link"></td></tr>
+                <tr><td>{{ _("Label") }}:</td><td class="address-label"></td></tr>
+                <tr><td>{{ _("From wallet") }}:</td><td><a class="wallet-link" href=${walletLink}>${jsonResponse.walletName}<a></td></tr>
+                <tr><td>{{ _("Address index") }}:</td><td class="address-index"></td></tr>
+                <tr><td>{{ _("Is change address") }}:</td><td class="is-change-address"></td></tr>
+                <tr><td>{{ _("Used") }}:</td><td class="is-used-address"></td></tr>
+                <tr><td>{{ _("UTXO count") }}:</td><td class="utxo-count"></td></tr>
+                <tr><td>{{ _("Amount") }}:</td><td><span class="address-amount"></span>&nbsp;<span class="address-amount-price note"></span></td></tr>
+                <tr><td>{{ _("Service") }}:</td><td class="address-service"></td></tr>
+            </tbody>
+        </table>
+
+        <div class="verify-hwi hidden">
+            <button type="button" class="btn" style="min-width:200px; max-width:300px; margin: auto;">{{ _("Verify address on device") }}</button>`;
+        </div>
+
+        <div class="verify-qr hidden">
+            <p>{{ _("Or scan this QR code") }}:</p>
+            <qr-code value="bitcoin:${jsonResponse.address}?index=${jsonResponse.index}" width="256" scalable></qr-code>           
+        </div>
+
+
+        <br>
+        <h2>{{ _("Address descriptor") }}</h2>
+        <br>
+        <div>
+            <span class="switch-text">{{ _("Show raw public keys") }}&nbsp;</span>
+            <label class="switch">
+                <input type="checkbox" class="descriptor-switch" checked>
+                <span class="slider"></span>
+            </label><br><br>
+        </div>
+        <pre class="descriptor"></pre>
+
         <div class="note"></div>
     </div>
 </template>
@@ -32,16 +68,31 @@
     //  "address-data" template above with placeholder values replaced via DOM selectors.
     class AddressDataElement extends HTMLElement {
         constructor() {
-            // TODO: Documentation. What is the "this" in this context?
             super();
             // Create a shadow root
             var shadow = this.attachShadow({mode: 'open'});
             var style = document.getElementById('address-data').content;
             var clone = style.cloneNode(true);
 
-            this.el = clone.querySelector(".address-data");
+            // Map template DOM elements to js vars that we'll populate and manipulate below
+            this.qrCode = clone.querySelector(".address-qr-code");
+            this.explorerLink = clone.querySelector(".address-explorer-link");
+            this.addressLabel = clone.querySelector(".address-label");
+            this.walletLink = clone.querySelector(".wallet-link");
+            this.addressIndex = clone.querySelector(".address-index");
+            this.isChangeAddress = clone.querySelector(".is-change-address");
+            this.isUsedAddress = clone.querySelector(".is-used-address");
+            this.utxoCount = clone.querySelector(".utxo-count");
+            this.addressAmount = clone.querySelector(".address-amount");
+            this.addressAmountPrice = clone.querySelector(".address-amount-price");
+            this.addressService = clone.querySelector(".address-service");
+            this.verifyHwi = clone.querySelector(".verify-hwi");
+            this.verifyQr = clone.querySelector(".verify-qr");
+            this.descriptorSwitch = clone.querySelector(".descriptor-switch");
+            this.descriptor = clone.querySelector(".descriptor");
             this.note = clone.querySelector(".note");
-            this.info = clone.querySelector(".address-data-info");
+
+            // Read input "data-*" attributes
             this.isVerifyQR = this.getAttribute('data-verify-qr') == 'True';
             this.isVerifyHwi = this.getAttribute('data-verify-hwi') == 'True';
             this.used = (this.getAttribute('data-used') == 'true');
@@ -53,6 +104,7 @@
             this.serviceName = this.getAttribute('data-service-name');
             this.serviceIcon = this.getAttribute('data-service-icon');
             this.wallet = this.getAttribute('data-address-wallet');
+
             this.note.innerText = `{{ _("Loading address") }}: ${this.address} {{ _("details") }}...`;
             this.fetchAddressData();
         
@@ -80,82 +132,58 @@
                 const jsonResponse = await response.json();
                 if (jsonResponse.success) {
                     console.log(jsonResponse);
-                    let descriptor = jsonResponse.descriptor;
-                    let addressIndex = jsonResponse.index;
-                    let isChange = jsonResponse.change;
-                    let walletName = jsonResponse.walletName;
-                    let address = jsonResponse.address;
-                    let walletLink = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
-                    let addressInfoHTML = `
-                    <qr-code style="margin: auto;" value="bitcoin:${address}" width="256"></qr-code><br>
-                    <table class="address-data-table">
-                    <tbody>
-                    <tr><td>{{ _("Address") }}:</td><td style="word-break: break-all;"><explorer-link data-type="address" data-value="${address}"></explorer-link></td></tr>
-                    <tr><td>{{ _("Label") }}:</td><td><address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}"></address-label><br></td></tr>
-                    <tr><td>{{ _("From wallet") }}:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
-                    <tr><td>{{ _("Address index") }}:</td><td>${addressIndex}</td></tr>
-                    <tr><td>{{ _("Is change address") }}:</td><td>${isChange ? '{{ _("Yes") }}' : '{{ _("No") }}'}</td></tr>
-                    <tr><td>{{ _("Used") }}:</td><td>${this.used ? 'Yes' : 'No'}</td></tr>
-                    <tr><td>{{ _("UTXO count") }}:</td><td>${this.utxo}</td></tr>
-                    <tr><td>{{ _("Amount") }}:</td><td>${this.amount} <span class="amount-price note ${this.amountPrice ? '' : 'hidden'}">${this.amountPrice}</span></td></tr>`
-                    if (this.serviceId != "null") {
-                        addressInfoHTML += `
-                            <tr>
-                                <td>{{ _("Service") }}:</td>
-                                <td>
-                                    <img class="service-icon" src='/svc/${this.serviceId}/static/${this.serviceIcon}'>${this.serviceName}
-                                </td>
-                            </tr>`
-                    } else {
-                        addressInfoHTML += `
-                            <tr>
-                                <td>{{ _("Service") }}:</td>
-                                <td>
-                                    <button type="button" class="btn" onclick="location.href='{{ url_for('services_endpoint.associate_addr', wallet_alias='WALLET_ALIAS', address='ADDRESS') }}`.replace('WALLET_ALIAS', this.wallet).replace('ADDRESS', address) + `';">{{ _("Associate with a service") }}</button>
-                                </td>
-                            </tr>`
-                    }
-                    addressInfoHTML += `
-                        </tbody>
-                        </table>
-                    `
 
+                    // Insert values into the html template
+                    this.qrCode.setAttribute("value", `bitcoin:${jsonResponse.address}`);
+                    this.explorerLink.innerHTML = `<explorer-link data-type="address" data-value='${jsonResponse.address}'></explorer-link>`;
+                    this.addressLabel.innerHTML = `<address-label data-copy-hidden="true" data-address="${jsonResponse.address}" data-wallet="${this.wallet}"></address-label>`;
+                    let walletUrl = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+                    this.walletLink.setAttribute("href", walletUrl);
+                    this.walletLink.innerText = jsonResponse.walletName;
+                    this.addressIndex.innerHTML = jsonResponse.index;
+                    this.isChangeAddress.innerHTML = jsonResponse.change ? '{{ _("Yes") }}' : '{{ _("No") }}';
+                    this.isUsedAddress.innerHTML = this.used ? 'Yes' : 'No';
+                    this.utxoCount.innerText = this.utxo;
+                    this.addressAmount.innerText = this.amount;
+                    this.addressAmountPrice.innerText = this.amountPrice;
+                    if (this.amountPrice == '') {
+                        this.addressAmountPrice.classList.add('hidden');
+                    }
+
+                    if (this.serviceId != "null") {
+                        this.addressService.innerHTML = `<img class="service-icon" src='/svc/${this.serviceId}/static/${this.serviceIcon}'>${this.serviceName}`;
+                    } else {
+                        let associateServiceUrl = `{{ url_for('services_endpoint.associate_addr', wallet_alias='WALLET_ALIAS', address='ADDRESS') }}`.replace('WALLET_ALIAS', this.wallet).replace('ADDRESS', jsonResponse.address);
+                        this.addressService.innerHTML = `<button type="button" class="btn" onclick="location.href='${associateServiceUrl}';">{{ _("Associate with a service") }}</button>`
+                    }
+
+                    let descriptor = jsonResponse.descriptor;
                     if (this.isVerifyHwi) { 
-                        addressInfoHTML += `
-                        <br>
-                        <button type="button" onclick='hidePageOverlay();displayAddressOnDevice("${address}", unescape("${escape(JSON.stringify(descriptor))}"))' class="btn" style="min-width:200px; max-width:300px; margin: auto;">{{ _("Verify address on device") }}</button>`;
+                        this.verifyHwi.classList.remove("hidden");
+                        this.verifyHwi.setAttribute("onclick", `hidePageOverlay();displayAddressOnDevice("${jsonResponse.address}", unescape("${escape(JSON.stringify(descriptor))}"))`);
                     }
 
                     if (this.isVerifyQR) { 
-                        addressInfoHTML += `
-                        <p>{{ _("Or scan this QR code") }}:</p>
-                        <qr-code value="bitcoin:${address}?index=${addressIndex}" width="256" scalable></qr-code><br>`;
+                        this.verifyHwi.classList.remove("hidden");
+                        this.verifyHwi.querySelector("qr-code").setAttribute("value", `bitcoin:${jsonResponse.address}?index=${jsonResponse.index}`);
                     }
 
-                    addressInfoHTML += `
-                    <br>
-                    <h2>{{ _("Address descriptor") }}</h2>
-                    <br>
-                    <div>
-                        <span class="switch-text">{{ _("Show raw public keys") }}&nbsp;</span>
-                        <label class="switch">
-                            <input type="checkbox" class="descriptor-switch" checked>
-                            <span class="slider"></span>
-                        </label><br><br>
-                    </div>
-                    <pre class="descriptor"><code class="explorer-link" onclick='copyText(unescape("${escape(descriptor.descriptor)}"), "{{ _("Copied address descriptor") }}")'>${descriptor.descriptor}</code></pre>
-                    `;
-                    this.info.innerHTML = addressInfoHTML;
-                    this.note.innerText = "";
+                    // Utility to swap descriptor format
+                    function setCurDescriptor(self, curDescriptor) {
+                        self.descriptor.innerHTML = `<code class="explorer-link" onclick='copyText(unescape("${curDescriptor}"), "{{ _("Copied address descriptor") }}")'>${curDescriptor}</code>`;
+                    }
+                    setCurDescriptor(this, descriptor.descriptor);
 
-                    this.info.querySelector('.descriptor-switch').onchange = (e) => {
+                    // Handle "Show raw public keys" switch
+                    this.descriptorSwitch.onchange = (e) => {
                         if (e.target.checked) {
-                            this.info.querySelector(".descriptor").innerHTML = `<code class="explorer-link" onclick='copyText(unescape("${escape(descriptor.descriptor)}"), "{{ _("Copied address descriptor") }}")'>${descriptor.descriptor}</code>`;
+                            setCurDescriptor(this, descriptor.descriptor);
                         } else {
-                            this.info.querySelector(".descriptor").innerHTML = `<code class="explorer-link" onclick='copyText(unescape("${escape(descriptor.xpubs_descriptor)}"), "{{ _("Copied address descripto") }}")'>${descriptor.xpubs_descriptor}</code>`;
+                            setCurDescriptor(this, descriptor.xpubs_descriptor);
                         }
                     }
 
+                    this.note.innerText = "";
                     return;
                 }
                 this.note.innerText = '{{ _("Failed to load address details...") }}';
