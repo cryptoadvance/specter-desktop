@@ -1,3 +1,12 @@
+{#
+    The <template> defines the styling and structure of the web component.
+    
+    When it is instantiated it is populated with various `data-*` attributes which are
+    read in for initial configuration data.
+
+    In the JS constructor additional data is fetched from the server and then populated
+    into the <template>.
+#}
 <template id="tx-data">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <style>
@@ -14,8 +23,44 @@
     </style>
     <div class="tx-data">
         <h2>{{ _("Transaction details") }}</h2><br>
-        <div class="tx-data-info"></div>
-        <div class="note"></div>
+        <table class="tx-data-table">
+            <tbody>
+                <tr>
+                    <td><span class="optional">{{ _("Transaction id") }}:</span><span class="mobile-only">TxID:</span></td>
+                    <td style="word-break: break-all;" class="tx-explorer-link"></td>
+                </tr>
+                <tr><td>{{ _("From wallet:") }}</td><td><a class="tx-wallet-link"></a></td></tr>
+                <tr><td>{{ _("Size:") }}</td><td><span class="tx-vbsize"></span> vbytes <span class="note">(<span class="tx-size"></span> bytes)</span></td></tr>
+                <tr class="tx-fee-row"><td>{{ _("Fee:") }}</td><td><span class="tx-fee"></span> sats</td></tr>
+                <tr class="tx-fee-rate-row"><td>{{ _("Fee rate:") }}</td><td><span class="tx-fee-rate"></span> sat/vbyte</td></tr>
+                <tr class="tx-mined-row1"><td>{{ _("Mined at block:") }}</td><td class="tx-blockheight"></td></tr>
+                <tr class="tx-mined-row2"><td>{{ _("Block hash:") }}</td><td style="word-break: break-all;" class="tx-blockhash"></td></tr>
+                <tr class="tx-mined-row3"><td>{{ _("Block time:") }}</td><td><span class="tx-blocktime"></span> <span style="font-size: 0.9em;color: #ccc;" class="tx-blocktime-epoch"></span></td></tr>
+                <tr><td>{{ _("Inputs count:") }}</td><td class="tx-inputs-count"></td></tr>
+                <tr><td>{{ _("Outputs count:") }}</td><td class="tx-outputs-count"></td></tr>
+            </tbody>
+        </table>
+        <div class="tx-data-info">
+        </div>
+        <div class="message"></div>
+
+        <div class="abandon-tx-container hidden">
+            <div class="warning">
+                <p><b>{{ _( "This transaction (aka \"tx\") could not be found in your node's mempool!") }}</b></p>
+                <p style="text-align:left;">{{ _( "If the bitcoin network is very busy, nodes will start purging the pending txs with the lowest fees. Txs older than two weeks are also purged.") }}</p>
+                <p style="text-align:left;">{{ _( "A purged tx will never complete. Abandoning this tx will clear it from your wallet, making those funds spendable once again.") }}</p>
+                <p style="text-align:left;">{{ _( "But first verify that other nodes have also purged your tx! Enter the tx id into a public block explorer (warning: slight privacy leak). If the tx cannot be found, it is safe to abandon this tx.") }}</p>
+
+                <br/><br/>
+                <form method="POST" class="abandon-tx-form">
+                    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <input type="hidden" name="action" value="abandon_tx"/>
+                    <input type="hidden" name="txid" class="abandon-tx-txid"/>
+                    <button type="submit" name="action" value="abandontx" class="btn danger centered" style="max-width: 160px;">{{ _("Abandon transaction") }}</button>
+                </form>
+            </div>
+        </div>
+
     </div>
 </template>
   
@@ -27,16 +72,40 @@
             var shadow = this.attachShadow({mode: 'open'});
             var style = document.getElementById('tx-data').content;
             var clone = style.cloneNode(true);
-
             this.el = clone.querySelector(".tx-data");
-            this.note = clone.querySelector(".note");
+
             this.info = clone.querySelector(".tx-data-info");
+            this.message = clone.querySelector(".message");
+            this.abandonTxContainer = clone.querySelector(".abandon-tx-container");
+            this.abandonTxForm = clone.querySelector(".abandon-tx-form");
+            this.abandonTxTxid = clone.querySelector(".abandon-tx-txid");
+
+            this.txExplorerLink = clone.querySelector(".tx-explorer-link");
+            this.txWalletLink = clone.querySelector(".tx-wallet-link");
+            this.txVbsize = clone.querySelector(".tx-vbsize");
+            this.txSize = clone.querySelector(".tx-size");
+            this.txFeeRow = clone.querySelector(".tx-fee-row");
+            this.txFee = clone.querySelector(".tx-fee");
+            this.txFeeRateRow = clone.querySelector(".tx-fee-rate-row");
+            this.txFeeRate = clone.querySelector(".tx-fee-rate");
+            this.txMinedRow1 = clone.querySelector(".tx-mined-row1");
+            this.txMinedRow2 = clone.querySelector(".tx-mined-row2");
+            this.txMinedRow3 = clone.querySelector(".tx-mined-row3");
+            this.txBlockheight = clone.querySelector(".tx-blockheight");
+            this.txBlockhash = clone.querySelector(".tx-blockhash");
+            this.txBlocktime = clone.querySelector(".tx-blocktime");
+            this.txBlocktimeEpoch = clone.querySelector(".tx-blocktime-epoch");
+            this.txInputsCounts = clone.querySelector(".tx-inputs-count");
+            this.txOutputsCounts = clone.querySelector(".tx-outputs-count");
+
+            // Copy data from the component's `data-*` attributes
             this.txid = this.getAttribute('data-txid');
             this.wallet = this.getAttribute('data-tx-wallet');
             this.btcUnit = this.getAttribute('data-btc-unit');
             this.price = this.getAttribute('data-price');
             this.symbol = this.getAttribute('data-symbol');
-            this.note.innerText = `{{ _("Loading transaction details...\n\nTransaction ID:") }}" ${this.txid}`;
+
+            this.message.innerText = `{{ _("Loading transaction details...\n\nTransaction ID:") }}" ${this.txid}`;
             this.fetchTxData();
         
             // Attach the created element to the shadow dom
@@ -63,7 +132,7 @@
                 const jsonResponse = await response.json();
                 return jsonResponse;
             } catch(e) {
-                this.note.innerText = '{{ _("Failed to load transaction details...") }}';
+                this.message.innerText = '{{ _("Failed to load transaction details...") }}';
                 console.log("Caught error fetching decoded transaction: ", e);
                 showError(`{{ _("Failed to fetch data. Please refresh the page and retry.") }}`);
             }
@@ -75,35 +144,23 @@
             if (jsonResponse !== null && jsonResponse.success) {
                 console.log(jsonResponse);
                 let rawtx = jsonResponse.rawtx;
-                let walletName = jsonResponse.walletName;
                 let tx = jsonResponse.tx;
-                let walletLink = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
-                let rawtxHTML = "";
-                if(tx.is_purged) {
-                    rawtxHTML += `
-                    <div class="warning">
-                        <p><b>{{ _( "This transaction (aka \"tx\") could not be found in your node's mempool!") }}</b></p>
-                        <p style="text-align:left;">{{ _( "If the bitcoin network is very busy, nodes will start purging the pending txs with the lowest fees. Txs older than two weeks are also purged.") }}</p>
-                        <p style="text-align:left;">{{ _( "A purged tx will never complete. Abandoning this tx will clear it from your wallet, making those funds spendable once again.") }}</p>
-                        <p style="text-align:left;">{{ _( "But first verify that other nodes have also purged your tx! Enter the tx id into a public block explorer (warning: slight privacy leak). If the tx cannot be found, it is safe to abandon this tx.") }}</p>
+                let walletUrl = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
 
-                        <br/><br/>
-                        <form method="POST" action="${walletLink}history/">
-                            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <input type="hidden" name="action" value="abandon_tx"/>
-                            <input type="hidden" name="txid" value="${this.txid}"/>
-                            <button type="submit" name="action" value="abandontx" class="btn danger centered" style="max-width: 160px;">{{ _("Abandon transaction") }}</button>
-                        </form>
-                    </div>
-                    `;
+                if (tx.is_purged) {
+                    this.message.classList.add("hidden");
+                    this.abandonTxContainer.classList.remove("hidden");
+                    this.abandonTxForm.setAttribute("action", `${walletUrl}history/`);
+                    this.abandonTxTxid.value = this.txid;
                 }
-                rawtxHTML += `
-                <table class="tx-data-table">
-                <tbody>
-                <tr><td><span class="optional">{{ _("Transaction id") }}:</span><span class="mobile-only">TxID:</span></td><td style="word-break: break-all;"><explorer-link data-type="tx" data-value="${this.txid}"></explorer-link></td></tr>
-                <tr><td>From wallet:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
-                <tr><td>Size:</td><td>${rawtx.vsize} vbytes <span class="note">(${rawtx.size} bytes)</span></td></tr>
-                `;
+
+                this.txExplorerLink.innerHTML = `<explorer-link data-type="tx" data-value="${this.txid}"></explorer-link>`;
+                this.txWalletLink.setAttribute("href", walletUrl);
+                this.txWalletLink.innerText = jsonResponse.walletName;
+                this.txVbsize.innerText = rawtx.vsize;
+                this.txSize.innerText = rawtx.size;
+
+                let rawtxHTML = "";
                 if (tx.fee) {
                     let fee = tx.fee;
                     if(typeof tx.fee == "object"){
@@ -111,26 +168,27 @@
                             fee = tx.fee.bitcoin;
                         }
                     }
-                    rawtxHTML += `
-                        <tr><td>{{ _("Fee") }}:</td><td>${parseInt(-1e8 * fee)} sats</td></tr>
-                        <tr><td>{{ _("Fee rate") }}:</td><td>${parseFloat((-1e8 * fee / rawtx.vsize).toFixed(2)).toString()} sat/vbyte</td></tr>
-                    `;
+                    this.txFee.innerText = parseInt(-1e8 * fee);
+                    this.txFeeRate.innerText = parseFloat((-1e8 * fee / rawtx.vsize).toFixed(2)).toString();
+                } else {
+                    this.txFeeRow.classList.add("hidden");
+                    this.txFeeRateRow.classList.add("hidden");
                 }
+
                 if (tx.confirmations && tx.confirmations > 0) {
-                    rawtxHTML += `
-                        <tr><td>{{ _("Mined at block") }}:</td><td>${tx.blockheight}</td></tr>
-                        <tr><td>{{ _("Block hash") }}:</td><td style="word-break: break-all;">${tx.blockhash}</td></tr>
-                        <tr><td>{{ _("Block time") }}:</td><td>${new Date(tx.blocktime * 1000)} <span style="font-size: 0.9em;color: #ccc;">(${tx.blocktime})</span></td></tr>
-                    `;
+                    this.txBlockheight.innerText = tx.blockheight;
+                    this.txBlockhash.innerText = tx.blockhash;
+                    this.txBlocktime.innerText = new Date(tx.blocktime * 1000);
+                    this.txBlocktimeEpoch.innerText = `(${tx.blocktime})`;
+                } else {
+                    this.txMinedRow1.classList.add("hidden");
+                    this.txMinedRow2.classList.add("hidden");
+                    this.txMinedRow3.classList.add("hidden");
                 }
-                rawtxHTML += `
-                    <tr><td>{{ _("Inputs count") }}:</td><td>${rawtx.vin.length}</td></tr>
-                    <tr><td>{{ _("Outputs count") }}:</td><td>${rawtx.vout.length}</td></tr>
-                `;
-                rawtxHTML += `
-                </tbody>
-                </table>
-                `;
+
+                this.txInputsCounts.innerText = rawtx.vin.length;
+                this.txOutputsCounts.innerText = rawtx.vout.length;
+
                 rawtxHTML += `<h3>Inputs</h3>`;
                 for (let i in rawtx.vin) {
                     let bgColor = '#131a24';
@@ -194,7 +252,7 @@
                         <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
                             <b>{{ _("Input #") }}${i}</b><br><br>
                             {{ _("Transaction id") }}: <explorer-link style="word-break: break-all;" data-type="tx" data-value="${rawtx.vin[i].txid}"></explorer-link><br>
-                            {{ _("Output #") }}" ${rawtx.vin[i].vout}
+                            {{ _("Output #") }}: ${rawtx.vin[i].vout}
                             ${addressAndValue}
                         </p>
                     `;
@@ -250,10 +308,10 @@
                 }
                 
                 this.info.innerHTML = rawtxHTML;
-                this.note.innerText = "";
+                this.message.innerText = "";
                 return;
             };
-            this.note.innerText = '{{ _("Failed to load transaction details...") }}';
+            this.message.innerText = '{{ _("Failed to load transaction details...") }}';
         }
         
         async fetchAddressIsMine(address) {

@@ -117,7 +117,11 @@
             if (Array.isArray(this.tx.address)) {
                 this.address.innerText = this.hideSensitiveInfo ? '#########' : `${this.tx.address.length} {{ _("Recipients") }}`;
             } else {
-                this.address.innerHTML = this.hideSensitiveInfo ? '#########' : `<address-label data-address="${this.tx.address}" ${this.tx.label ? `data-label="${this.tx.label}"` : ''} data-wallet="${this.wallet ? this.wallet : this.tx.wallet_alias}"></address-label>`
+                if (this.hideSensitiveInfo) {
+                    this.address.innerHTML = '#########';
+                } else {
+                    this.address.innerHTML = `<address-label data-address="${this.tx.address}" ${this.tx.label ? `data-label="${this.tx.label}"` : ''} data-wallet="${this.wallet ? this.wallet : this.tx.wallet_alias}" ${this.tx.service_id ? `data-service-id="${this.tx.service_id}"` : ''} ${this.tx.service_icon ? `data-service-icon="${this.tx.service_icon}"` : ''}></address-label>`
+                }
             }
             
             // Set amount

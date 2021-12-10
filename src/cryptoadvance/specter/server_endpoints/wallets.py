@@ -1108,6 +1108,10 @@ def txlist(wallet_alias):
         validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs", False),
         current_blockheight=app.specter.info["blocks"],
     )
+
+    # Add Service name, icon, etc metadata to relevant entries
+    app.specter.service_manager.inject_services_data(txlist)
+
     return process_txlist(
         txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
     )

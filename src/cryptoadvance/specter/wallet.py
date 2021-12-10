@@ -1067,7 +1067,11 @@ class Wallet:
 
                 if isinstance(tx["address"], str):
                     tx["label"] = self.getlabel(tx["address"])
+                    addr_obj = self.get_address_obj(tx["address"], add_if_missing=False)
+                    if addr_obj and addr_obj.get("service_id"):
+                        tx["service_id"] = addr_obj["service_id"]
                 elif isinstance(tx["address"], list):
+                    # TODO: Handle services integration w/batch txs
                     tx["label"] = [self.getlabel(address) for address in tx["address"]]
                 else:
                     tx["label"] = None
@@ -1358,8 +1362,8 @@ class Wallet:
             self.network
         )
     
-    def get_address_obj(self, address: str) -> Address:
-        return self._addresses.get(address)
+    def get_address_obj(self, address: str, add_if_missing: bool = True) -> Address:
+        return self._addresses.get(address, add_if_missing)
 
     def derive_descriptor(self, index: int, change: bool, keep_xpubs=False):
         """

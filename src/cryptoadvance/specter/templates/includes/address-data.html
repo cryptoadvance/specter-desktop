@@ -1,3 +1,12 @@
+{#
+    The <template> defines the styling and structure of the web component.
+    
+    When it is instantiated it is populated with various `data-*` attributes which are
+    read in for initial configuration data.
+
+    In the JS constructor additional data is fetched from the server and then populated
+    into the <template>.
+#}
 <template id="address-data">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <style>
@@ -62,10 +71,10 @@
         <div class="note"></div>
     </div>
 </template>
-  
+
+
+
 <script type="text/javascript">
-    // TODO: Should not be generating html as strings. Formatting should all be in the
-    //  "address-data" template above with placeholder values replaced via DOM selectors.
     class AddressDataElement extends HTMLElement {
         constructor() {
             super();
