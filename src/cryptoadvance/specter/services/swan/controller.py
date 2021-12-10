@@ -7,8 +7,9 @@ import pytz
 import requests
 import secrets
 
-from flask import Flask, Response, redirect, render_template, request, url_for, flash
+from flask import redirect, render_template, request, url_for, flash
 from flask import current_app as app
+from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from functools import wraps
 
@@ -21,32 +22,15 @@ from ..controller import user_secret_decrypted_required
 from ..service_settings_manager import ServiceSettingsManager
 
 
-client_id = "specter-dev"
-client_secret = "BcetcVcmueWf5P3UPJnHhCBMQ49p38fhzYwM7t3DJGzsXSjm89dDR5URE46SY69j"
-code_verifier = "64fRjTuy6SKqdC1wSoInUNxX65dQUhVVKTqZXuQ7dqw"
-tokens = {}
-
-
 logger = logging.getLogger(__name__)
 
 swan_endpoint = SwanService.blueprint
 
 
-def calc_code_challenge(code_verifier=None):
-    if code_verifier is None:
-        code_verifier = secrets.token_urlsafe(43)
-    # see specification: https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
-    # and example impl: https://github.com/RomeoDespres/pkce/blob/master/pkce/__init__.py#L94-L96
-    hashed = hashlib.sha256(code_verifier.encode("ascii")).digest()
-    encoded = base64.urlsafe_b64encode(hashed)
-    code_challenge = encoded.decode("ascii")[:-1]
-    return code_verifier, code_challenge
-
-
 # TODO: Change this to refreshtoken_required
+# TODO: Generalize this to work for all Services?
 def accesstoken_required(func):
     """Access token needed for this function"""
-
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
@@ -68,12 +52,192 @@ def accesstoken_required(func):
 @login_required
 @user_secret_decrypted_required
 def index():
-    print("index")
     if SwanService.get_current_user_api_data().get("access_token") is not None:
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
     return render_template(
         "swan/index.jinja",
     )
+
+
+@swan_endpoint.route("/withdrawals")
+@login_required
+@accesstoken_required
+def withdrawals():
+    if not SwanService.is_access_token_valid:
+        get_access_token()
+    
+    reserved_addrs = []
+    for wallet_alias, wallet in app.specter.wallet_manager.wallets.items():
+        reserved_addrs.extend(wallet.get_reserved_addresses(service_id=SwanService.id, unused_only=True))
+
+    return render_template(
+        "swan/withdrawals.jinja",
+        wallets=get_wallets(),
+        reserved_addrs=reserved_addrs,
+    )
+
+
+@swan_endpoint.route("/settings")
+@login_required
+@accesstoken_required
+def settings():
+    return render_template(
+        "swan/settings.jinja",
+        wallet_manager=current_user.wallet_manager,
+        cookies=request.cookies,
+    )
+
+
+@swan_endpoint.route("/settings/autowithdrawal", methods=["POST"])
+@login_required
+@accesstoken_required
+def update_autowithdrawal():
+    print(request.form)
+    threshold = request.form["threshold"]
+    destination_wallet = request.form["destination_wallet"]
+    wallet = current_user.wallet_manager.get_by_alias(destination_wallet)
+
+    # Remove any unused reserved addresses for this service in all of this User's wallets
+    for wallet_alias, cur_wallet in app.specter.wallet_manager.wallets.items():
+        SwanService.unreserve_addresses(wallet=cur_wallet)
+
+    # Now claim new ones; returns a list of (address:str, index:int) tuples.
+    addresses = SwanService.reserve_addresses(wallet=wallet, num_addresses=10)
+
+    # Swan endpoint specifies "path" (derivation path) but can be omitted
+    addr_list = [{"address": addr} for addr in addresses]
+
+    resp = authenticated_request(
+        endpoint="/apps/v20210824/wallets",
+        method="POST",
+        data={
+            "btcAddresses": addr_list,
+            "displayName": _("Specter autowithdrawal to {}".format(wallet.name))
+        }
+    )
+
+    print(resp)
+
+    return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
+
+
+
+""" ***************************************************************************
+                                API / OAuth2
+*************************************************************************** """
+client_id = "specter-dev"
+client_secret = "BcetcVcmueWf5P3UPJnHhCBMQ49p38fhzYwM7t3DJGzsXSjm89dDR5URE46SY69j"
+code_verifier = "64fRjTuy6SKqdC1wSoInUNxX65dQUhVVKTqZXuQ7dqw"
+api_url = "https://dev-api.swanbitcoin.com"
+
+
+def calc_code_challenge(code_verifier=None):
+    if code_verifier is None:
+        code_verifier = secrets.token_urlsafe(43)
+    # see specification: https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
+    # and example impl: https://github.com/RomeoDespres/pkce/blob/master/pkce/__init__.py#L94-L96
+    hashed = hashlib.sha256(code_verifier.encode("ascii")).digest()
+    encoded = base64.urlsafe_b64encode(hashed)
+    code_challenge = encoded.decode("ascii")[:-1]
+    return code_verifier, code_challenge
+
+
+def get_access_token(code: str = None, code_verifier: str = None):
+    """
+    If code and code_verifier are specified, this is our initial request for an 
+    access_token and, more importantly, the refresh_token.
+
+    If code is None, use the refresh_token to get a new short-lived access_token.
+    """
+    if code:
+        # Requesting initial refresh_token and access_token
+        payload = {
+            "client_id": "specter-dev",
+            "client_secret": client_secret,
+            "code_verifier": code_verifier,
+            "grant_type": "authorization_code",
+            "code": code,
+        }
+    else:
+        api_data = SwanService.get_current_user_api_data()
+        if "access_token" in api_data and api_data["expires"] > datetime.datetime.now(tz=pytz.utc).timestamp():
+            # Current access_token is still valid!
+            return api_data["access_token"]
+
+        # Use the refresh_token to get a new access_token
+        if "refresh_token" not in api_data:
+            # TODO: Better Exception handling
+            raise Exception("Required service integration data not found")
+    
+        print("api_data: " + json.dumps(api_data, indent=4))
+        
+        data={
+            "grant_type": "refresh_token",
+            # "redirect_uri":   # Necessary?
+            "refresh_token": api_data["refresh_token"],
+            "scope": "offline_access",      # Possibly get an updated refresh_token back
+        },
+
+    response = requests.post(
+        f"{api_url}/oidc/token",
+        data=payload,
+    )
+    resp = json.loads(response.text)
+    """
+        {
+            "access_token": "eyJhbGciOiJ[...]K1Sun9bA",
+            "token_type": "Bearer",
+            "expires_in": 3600,
+            "scope": "offline_access",
+            "refresh_token": "MIOf-U1zQbyfa3MUfJHhvnUqIut9ClH0xjlDXGJAyqo",
+            "id_token": "eyJraWQiO[...]hMEJQX6WRQ"
+        }
+    """
+    logger.debug(json.dumps(resp, indent=4))
+    if resp.get("access_token"):
+        print(f"current_user: {current_user}")
+        new_api_data = {
+            "access_token": resp["access_token"],
+            "expires": (datetime.datetime.now(tz=pytz.utc) + datetime.timedelta(seconds=resp["expires_in"])).timestamp(),
+        }
+        if "refresh_token" in resp:
+            new_api_data["refresh_token"] = resp["refresh_token"]
+
+        SwanService.update_current_user_api_data(new_api_data)
+
+        print(json.dumps(SwanService.get_current_user_api_data(), indent=4))
+        return resp["access_token"]
+    else:
+        logger.debug(response)
+        raise Exception(response.text)
+
+
+def authenticated_request(endpoint: str, method: str = "GET", data: dict = None):
+    access_token = get_access_token()
+
+    auth_header = {
+        "Authorization": f"Bearer {access_token}",
+    }
+    try:
+        if method == "GET":
+            response = requests.get(api_url + endpoint, headers=auth_header)
+        elif method == "POST":
+            response = requests.post(
+                url=api_url + endpoint,
+                headers=auth_header,
+                data=data,
+            )
+        elif method == "PUT":
+            response = requests.put(
+                url=api_url + endpoint,
+                headers=auth_header,
+                data=data,
+            )
+        resp = json.loads(response.text)
+    except Exception as e:
+        # TODO: tighten up expected Exceptions
+        logger.exception(e)
+        raise e
 
 
 @swan_endpoint.route("/oauth2/start")
@@ -142,70 +306,6 @@ def oauth2_auth():
         )
 
 
-def get_access_token(code: str = None, code_verifier: str = None):
-    """
-    If code and code_verifier are specified, this is our initial request for an 
-    access_token and, more importantly, the refresh_token.
-
-    If code is None, use the refresh_token to get a new short-lived access_token.
-    """
-    if code:
-        payload = {
-            "client_id": "specter-dev",
-            "client_secret": client_secret,
-            "code_verifier": code_verifier,
-            "grant_type": "authorization_code",
-            "code": code,
-        }
-    else:
-        api_data = SwanService.get_current_user_api_data()
-        if "refresh_token" not in api_data:
-            # TODO: Better Exception handling
-            raise Exception("Required service integration data not found")
-    
-        print("api_data: " + json.dumps(api_data, indent=4))
-        
-        data={
-            "grant_type": "refresh_token",
-            # "redirect_uri":   # Necessary?
-            "refresh_token": api_data["refresh_token"],
-            "scope": "offline_access",      # Possibly get an updated refresh_token back
-        },
-
-    response = requests.post(
-        "https://dev-api.swanbitcoin.com/oidc/token",
-        data=payload,
-    )
-    resp = json.loads(response.text)
-    """
-        {
-            "access_token": "eyJhbGciOiJ[...]K1Sun9bA",
-            "token_type": "Bearer",
-            "expires_in": 3600,
-            "scope": "offline_access",
-            "refresh_token": "MIOf-U1zQbyfa3MUfJHhvnUqIut9ClH0xjlDXGJAyqo",
-            "id_token": "eyJraWQiO[...]hMEJQX6WRQ"
-        }
-    """
-    logger.debug(json.dumps(resp, indent=4))
-    if resp.get("access_token"):
-        print(f"current_user: {current_user}")
-        new_api_data = {
-            "access_token": resp["access_token"],
-            "expires": (datetime.datetime.now(tz=pytz.utc) + datetime.timedelta(seconds=resp["expires_in"])).timestamp(),
-        }
-        if "refresh_token" in resp:
-            new_api_data["refresh_token"] = resp["refresh_token"]
-
-        SwanService.update_current_user_api_data(new_api_data)
-
-        print(json.dumps(SwanService.get_current_user_api_data(), indent=4))
-        return
-    else:
-        print(response)
-        raise Exception(response.text)
-
-
 @swan_endpoint.route("/oauth2/success")
 def oauth2_success():
     """
@@ -219,58 +319,9 @@ def oauth2_success():
     )
 
 
-@swan_endpoint.route("/withdrawals")
-@login_required
-@accesstoken_required
-def withdrawals():
-    if not SwanService.is_access_token_valid:
-        get_access_token()
-    
-    reserved_addrs = []
-    for wallet_alias, wallet in app.specter.wallet_manager.wallets.items():
-        reserved_addrs.extend(wallet.get_reserved_addresses(service_id=SwanService.id, unused_only=True))
-
-    return render_template(
-        "swan/withdrawals.jinja",
-        wallets=get_wallets(),
-        reserved_addrs=reserved_addrs,
-    )
-
-
-@swan_endpoint.route("/settings")
-@login_required
-@accesstoken_required
-def settings():
-    return render_template(
-        "swan/settings.jinja",
-        tokens=tokens,
-        wallet_manager=current_user.wallet_manager,
-        cookies=request.cookies,
-    )
-
-
-@swan_endpoint.route("/settings/autowithdrawal", methods=["POST"])
-@login_required
-@accesstoken_required
-def update_autowithdrawal():
-    print(request.form)
-    threshold = request.form["threshold"]
-    destination_wallet = request.form["destination_wallet"]
-    wallet = current_user.wallet_manager.get_by_alias(destination_wallet)
-
-    # Remove any unused reserved addresses for this service in all of this User's wallets
-    for wallet_alias, cur_wallet in app.specter.wallet_manager.wallets.items():
-        SwanService.unreserve_addresses(wallet=cur_wallet)
-
-    # Now claim new ones
-    SwanService.reserve_addresses(wallet=wallet)
-
-    return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
-
-
 @swan_endpoint.route("/oauth2/delete-token", methods=["POST"])
 @login_required
-@accesstoken_required
+@user_secret_decrypted_required
 def oauth2_delete_token():
     # TODO: Separate deleting the token from removing service integration altogether?
     for wallet_name, wallet in current_user.wallet_manager.wallets.items():
@@ -280,5 +331,3 @@ def oauth2_delete_token():
 
     url = url_for(f"{SwanService.get_blueprint_name()}.index")
     return redirect(url_for(f"{SwanService.get_blueprint_name()}.index"))
-
-

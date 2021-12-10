@@ -15,6 +15,21 @@
         .svg-cancelled {
             filter: invert(20%) sepia(32%) saturate(4838%) hue-rotate(332deg) brightness(81%) contrast(97%);
         }
+
+        .tx-row {
+        }
+        .tx-row:hover {
+            background-color: var(--cmap-bg-lightest);
+        }
+        .address {
+            overflow: auto;
+        }
+        .service-icon {
+            margin-top: -5px;
+            margin-right: 0.5em;
+            height:24px;
+            vertical-align: middle;
+        }
     </style>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <tr class="tx-row">
@@ -25,7 +40,7 @@
         <td class="tx scroll optional txid">
             <span class="explorer-link"></span>
         </td>
-        <td class="tx scroll optional address"></td>
+        <td class="tx optional address"></td>
         <td><span class="amount"></span> <span class="amount-price note hidden">()</span></td>
         <td class="time"></td>
         <td>
@@ -50,6 +65,7 @@
             this.category = clone.querySelector(".category");
             this.txid = clone.querySelector(".txid .explorer-link");
             this.address = clone.querySelector(".address");
+            this.serviceIcon = clone.querySelector(".service-icon");
             this.amountText = clone.querySelector(".amount");
             this.amountPrice = clone.querySelector(".amount-price");
             this.time = clone.querySelector(".time");
@@ -88,7 +104,7 @@
 
 
             // Set txid
-            this.txid.innerText = this.hideSensitiveInfo ? '############################################' : this.tx.txid;
+            this.txid.innerText = this.hideSensitiveInfo ? '############################################' : this.tx.txid.slice(0,9) + '...';
             if (!this.hideSensitiveInfo) {
                 this.txid.onclick = () => {
                     showTxData(
@@ -120,7 +136,16 @@
                 if (this.hideSensitiveInfo) {
                     this.address.innerHTML = '#########';
                 } else {
-                    this.address.innerHTML = `<address-label data-address="${this.tx.address}" ${this.tx.label ? `data-label="${this.tx.label}"` : ''} data-wallet="${this.wallet ? this.wallet : this.tx.wallet_alias}" ${this.tx.service_id ? `data-service-id="${this.tx.service_id}"` : ''} ${this.tx.service_icon ? `data-service-icon="${this.tx.service_icon}"` : ''}></address-label>`
+                    console.log(this.tx)
+                    console.log("service_id" in this.tx)
+                    if ("service_id" in this.tx) {
+                        this.address.innerHTML = `<img class="service-icon" src="/svc/${this.tx.service_id}/static/${this.tx.service_icon}">`;
+                    }
+                    if (this.tx.label !== undefined) {
+                        this.address.innerHTML += this.tx.label;
+                    } else {
+                        this.address.innerHTML += this.tx.address;
+                    }
                 }
             }
             
@@ -173,7 +198,7 @@
 
             // Set confirmations
             if (this.tx.confirmations > 0) {
-                this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `${this.tx.confirmations}<span class="optional"> {{ _("Confirmations") }}</span>`;
+                this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `${this.tx.confirmations}`;
             } else if (this.tx.confirmations == 0) {
                 this.el.classList.add('unconfirmed');
                 this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `{{ _("Unconfirmed") }}`;

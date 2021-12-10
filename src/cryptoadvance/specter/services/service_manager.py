@@ -115,4 +115,3 @@ class ServiceManager:
                 Service_cls = self.get_service(addr_dict["service_id"])
                 addr_dict["service_name"] = Service_cls.name
                 addr_dict["service_icon"] = Service_cls.icon
-                print(json.dumps(addr_dict, indent=4))

@@ -9,6 +9,7 @@ from flask_login import current_user, UserMixin
 logger = logging.getLogger(__name__)
 
 
+# TODO: This is outdated/unused now that we have the encrypted ServiceApiKeyStorage
 class ServiceSettingsManager(GenericDataManager):
     """
     The ServiceSettingsManager manages settings for services

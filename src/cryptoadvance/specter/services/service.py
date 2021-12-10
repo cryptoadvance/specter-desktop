@@ -1,17 +1,18 @@
 import logging
 import os
 from importlib import import_module
-from inspect import isclass
-from pathlib import Path
-from pkgutil import iter_modules
 
-from flask import current_app as app, url_for
+from flask import current_app as app
 from flask.blueprints import Blueprint
 from cryptoadvance.specter.wallet import Wallet
 from flask_babel import lazy_gettext as _
+from typing import List
 
 from .service_apikey_storage import ServiceApiKeyStorageManager
 from .service_annotations_storage import ServiceAnnotationsStorage
+
+from cryptoadvance.specter.addresslist import Address
+
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,9 @@ class Service:
                 return dict(specter=app.specter, service=self)
 
             self.__class__.blueprint.context_processor(inject_stuff)
-            self.init_controller()
+            # Import the controller for this service
+            import_module(f"cryptoadvance.specter.services.{self.id}.controller")
+            app.register_blueprint(self.__class__.blueprint, url_prefix=f"/svc/{self.id}")
 
     @classmethod
     def set_current_user_api_data(cls, api_data: dict):
@@ -71,10 +74,12 @@ class Service:
     def get_blueprint_name(cls):
         return f"{cls.id}_endpoint"
     
+
     @classmethod
     def default_address_label(cls):
         # Have to str() it; can't pass a LazyString to json serializer
         return str(_(f"Reserved for {cls.name}"))
+
 
     @classmethod
     def reserve_address(cls, wallet: Wallet, address: str, label: str = None):
@@ -83,31 +88,39 @@ class Service:
             label = cls.default_address_label()
         wallet.reserve_address_for_service(address=address, service_id=cls.id, label=label)
 
+
     @classmethod
-    def reserve_addresses(cls, wallet: Wallet, label: str = None, num_addresses: int = 5):
+    def reserve_addresses(cls, wallet: Wallet, label: str = None, num_addresses: int = 5) -> List[tuple]:
         """
         Reserve n addresses but leave a gap between each one so that this reserved range
         never causes an address gap in the wallet (e.g. if you reserve ten in a row it's
         possible that some wallet software will miss a new tx on the 11th address).
 
-        If `label` is not provided, we'll use "Reserved for {Service.name}"
+        If `label` is not provided, we use Service.default_address_label().
+
+        Returns a list of (address:str, index:int) tuples.
         """
         # Track Service-related addresses in ServiceAnnotationsStorage
         annotations_storage = ServiceAnnotationsStorage(
             service_id=cls.id, wallet=wallet
         )
 
+        addresses = []
         start_index = wallet.address_index + 1
         for i in range(start_index, start_index + (2 * num_addresses), 2):
             address = wallet.get_address(i)
 
             # Mark an Address in a persistent way as being reserved by a Service
-            cls.reserve_address(address=address, service_id=cls.id)
+            cls.reserve_address(wallet=wallet, address=address)
+
+            addresses.append((address, i))
         
             # TODO: What annotations do we want to save? Date reserved? Nothing yet?
             annotations_storage.set_addr_annotations(addr=address, annotations={}, autosave=False)
         annotations_storage.save()
-    
+        return addresses
+
+
     @classmethod
     def unreserve_addresses(cls, wallet: Wallet):
         """
@@ -123,13 +136,10 @@ class Service:
             annotations_storage.remove_addr_annotations(addr_obj.address, autosave=False)
         annotations_storage.save()
 
-    def init_controller(self):
-        """This is importing the controller for this service"""
-        module = import_module(f"cryptoadvance.specter.services.{self.id}.controller")
-        app.register_blueprint(self.__class__.blueprint, url_prefix=f"/svc/{self.id}")
 
     def is_active(self):
         return self.active
+
 
     def set_active(self, value):
         self.active = value
