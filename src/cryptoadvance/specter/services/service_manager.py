@@ -103,15 +103,3 @@ class ServiceManager:
             # TODO: better error handling?
             raise Exception(f"No such Service: '{service_id}'")
         return self._services[service_id]
-
-    def inject_services_data(self, addresses_list: List[dict]):
-        """
-            Enrich the addresses_list with info for any associated Services.
-            * addresses_list comes from Wallet.addresses_info()
-        """
-        for addr_dict in addresses_list:
-            if addr_dict.get("service_id") is not None:
-                # Inject Service.name and icon
-                Service_cls = self.get_service(addr_dict["service_id"])
-                addr_dict["service_name"] = Service_cls.name
-                addr_dict["service_icon"] = Service_cls.icon

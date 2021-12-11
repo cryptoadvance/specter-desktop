@@ -136,10 +136,8 @@
                 if (this.hideSensitiveInfo) {
                     this.address.innerHTML = '#########';
                 } else {
-                    console.log(this.tx)
-                    console.log("service_id" in this.tx)
                     if ("service_id" in this.tx) {
-                        this.address.innerHTML = `<img class="service-icon" src="/svc/${this.tx.service_id}/static/${this.tx.service_icon}">`;
+                        this.address.innerHTML = `<img class="service-icon" src="/svc/${this.tx.service_id}/static/${services[this.tx.service_id].icon}">`;
                     }
                     if (this.tx.label !== undefined) {
                         this.address.innerHTML += this.tx.label;

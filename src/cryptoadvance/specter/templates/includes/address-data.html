@@ -110,8 +110,6 @@
             this.amountPrice = this.getAttribute('data-amount-price');
             this.address = this.getAttribute('data-address');
             this.serviceId = this.getAttribute('data-service-id');
-            this.serviceName = this.getAttribute('data-service-name');
-            this.serviceIcon = this.getAttribute('data-service-icon');
             this.wallet = this.getAttribute('data-address-wallet');
 
             this.note.innerText = `{{ _("Loading address") }}: ${this.address} {{ _("details") }}...`;
@@ -160,7 +158,8 @@
                     }
 
                     if (this.serviceId != "null") {
-                        this.addressService.innerHTML = `<img class="service-icon" src='/svc/${this.serviceId}/static/${this.serviceIcon}'>${this.serviceName}`;
+                        // `services` obj made globally available in services-data.html
+                        this.addressService.innerHTML = `<img class="service-icon" src='/svc/${this.serviceId}/static/${services[this.serviceId].icon}'>${services[this.serviceId].name}`;
                     } else {
                         let associateServiceUrl = `{{ url_for('services_endpoint.associate_addr', wallet_alias='WALLET_ALIAS', address='ADDRESS') }}`.replace('WALLET_ALIAS', this.wallet).replace('ADDRESS', jsonResponse.address);
                         this.addressService.innerHTML = `<button type="button" class="btn" onclick="location.href='${associateServiceUrl}';">{{ _("Associate with a service") }}</button>`

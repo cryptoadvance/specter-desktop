@@ -30,7 +30,7 @@ class Service:
     name = None
     icon = None
     logo = None
-    desc = None
+    desc = None     # TODO: rename to "description" to be explicit
     has_blueprint = True  # the default
     devstatus = devstatus_alpha
 

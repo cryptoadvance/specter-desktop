@@ -152,6 +152,8 @@
                     this.abandonTxContainer.classList.remove("hidden");
                     this.abandonTxForm.setAttribute("action", `${walletUrl}history/`);
                     this.abandonTxTxid.value = this.txid;
+                } else {
+                    this.abandonTxContainer.remove();
                 }
 
                 this.txExplorerLink.innerHTML = `<explorer-link data-type="tx" data-value="${this.txid}"></explorer-link>`;

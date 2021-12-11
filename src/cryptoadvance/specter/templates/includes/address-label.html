@@ -99,13 +99,13 @@
             this.wallet = this.getAttribute('data-wallet');
             this.labelValue = this.getAttribute('data-label');
             this.serviceId = this.getAttribute('data-service-id');
-            this.serviceIcon = this.getAttribute('data-service-icon');
             this.explorer = '{{ specter.explorer }}';
             this.label.title = this.address;
             this.isEditing = false;
 
             if (this.serviceId) {
-                this.serviceIconImg.src = "/svc/" + this.serviceId + "/static/" + this.serviceIcon;
+                // `services` globally injected via includes/services-data.html
+                this.serviceIconImg.src = "/svc/" + this.serviceId + "/static/" + services[this.serviceId].icon;
             }
 
             // Set the label - fetch if not specified

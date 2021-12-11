@@ -415,6 +415,7 @@ def history(wallet_alias):
         tx_list_type=tx_list_type,
         specter=app.specter,
         rand=rand,
+        services=app.specter.service_manager.services,
     )
 
 
@@ -759,6 +760,7 @@ def addresses(wallet_alias):
         wallet=wallet,
         specter=app.specter,
         rand=rand,
+        services=app.specter.service_manager.services,
     )
 
 
@@ -1109,9 +1111,6 @@ def txlist(wallet_alias):
         current_blockheight=app.specter.info["blocks"],
     )
 
-    # Add Service name, icon, etc metadata to relevant entries
-    app.specter.service_manager.inject_services_data(txlist)
-
     return process_txlist(
         txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
     )
@@ -1151,6 +1150,7 @@ def wallets_overview_txlist():
         validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs", False),
         current_blockheight=app.specter.info["blocks"],
     )
+    
     return process_txlist(
         txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
     )
@@ -1167,6 +1167,7 @@ def wallets_overview_utxo_list():
     sortdir = request.form.get("sortdir", "asc")
     fetch_transactions = request.form.get("fetch_transactions", False)
     txlist = app.specter.wallet_manager.full_utxo()
+
     return process_txlist(
         txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
     )
@@ -1196,9 +1197,6 @@ def addresses_list(wallet_alias):
     address_type = request.form.get("addressType", "receive")
 
     addresses_list = wallet.addresses_info(address_type == "change")
-
-    # Enrich the address data with Services info, where applicable
-    app.specter.service_manager.inject_services_data(addresses_list)
 
     result = process_addresses_list(
         addresses_list, idx=idx, limit=limit, sortby=sortby, sortdir=sortdir
@@ -1682,6 +1680,7 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
                     ]
                 else:
                     tx["assetlabel"] = app.specter.asset_label(tx["asset"])
+
     return {"txlist": json.dumps(txlist), "pageCount": page_count}
 
 
