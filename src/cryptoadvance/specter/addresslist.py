@@ -51,17 +51,15 @@ class Address(dict):
         self["label"] = label
         self.rpc.setlabel(self.address, label)
     
-    def reserve_for_service(self, service_id: str, label: str = None):
-        # Declares that this Address is reserved for a Service
-        self["service_id"] = service_id
-        if label:
-            self.set_label(label)
-    
-    def unreserve(self):
-        # Frees a reserved Address
-        self["service_id"] = None
-        if not self.used and self["label"]:
-            self.set_label("")
+    def set_service_id(self, service_id: str):
+        if service_id:
+            # Declares that this Address is associated with a Service
+            self["service_id"] = service_id
+        else:
+            # Frees a reserved Address; reset its label
+            self["service_id"] = None
+            if not self.used and self["label"]:
+                self.set_label("")
 
     @property
     def is_external(self):
@@ -221,15 +219,24 @@ class AddressList(dict):
                 labels[lbl] = labels.get(lbl, []) + [addr.address]
         return labels
     
-    def reserve_for_service(self, address: str, service_id: str, label: str, autosave: bool = True):
+    def associate_with_service(self, address: str, service_id: str, label: str, autosave: bool = True):
+        """
+            Associates the Address (i.e. sets Address.service_id) with the specified
+            Service.id.
+        """
         addr_obj = self.get_address(address)
-        addr_obj.reserve_for_service(service_id=service_id, label=label)
+        addr_obj.set_service_id(service_id)
+        addr_obj.set_label(label)
         if autosave:
             self.save()
     
-    def unreserve(self, address: str, autosave: bool = True):
+    def deassociate(self, address: str, autosave: bool = True):
+        """
+            Removes the Address's association with a Service (i.e. sets
+            Address.service_id to None and resets Address.label).
+        """
         addr_obj = self.get_address(address)
-        addr_obj.unreserve()
+        addr_obj.set_service_id(None)
         if autosave:
             self.save()
 

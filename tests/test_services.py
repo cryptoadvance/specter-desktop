@@ -1,7 +1,7 @@
 from flask_login.utils import login_user
 import pytest
-from cryptoadvance.specter.services.service_apikey_storage import (
-    ServiceApiKeyStorage,
+from cryptoadvance.specter.services.service_encrypted_storage import (
+    ServiceEncryptedStorage,
     ServiceApiKeyStorageUserAware,
 )
 from cryptoadvance.specter.services.service_manager import ServiceManager
@@ -65,15 +65,15 @@ def test_ServiceApiKeyStorage(empty_data_folder):
         specter=specter_mock,
     )
     someuser._generate_user_secret("muh")
-    saks = ServiceApiKeyStorage(empty_data_folder, someuser)
-    saks.set_api_data("a_service_id", {"somekey": "green"})
-    assert saks.get_api_data("a_service_id") == {"somekey": "green"}
-    assert saks.get_api_data("another_service_id") == None
-    saks.set_api_data("another_service_id", {"somekey": "red"})
-    assert saks.get_api_data("another_service_id") == {"somekey": "red"}
-    saks.set_api_data("a_service_id", {"somekey": "blue"})
-    assert saks.get_api_data("a_service_id") == {"somekey": "blue"}
-    assert saks.get_api_data("another_service_id") == {"somekey": "red"}
+    saks = ServiceEncryptedStorage(empty_data_folder, someuser)
+    saks.set_service_data("a_service_id", {"somekey": "green"})
+    assert saks.get_service_data("a_service_id") == {"somekey": "green"}
+    assert saks.get_service_data("another_service_id") == None
+    saks.set_service_data("another_service_id", {"somekey": "red"})
+    assert saks.get_service_data("another_service_id") == {"somekey": "red"}
+    saks.set_service_data("a_service_id", {"somekey": "blue"})
+    assert saks.get_service_data("a_service_id") == {"somekey": "blue"}
+    assert saks.get_service_data("another_service_id") == {"somekey": "red"}
 
 
 def test_ServiceApiKeyStorageUserAware(app, empty_data_folder, user_manager):

@@ -13,12 +13,30 @@
         .tx-data-table td {
             text-align: left;
         }
-        .tx_info {
+        .tx-info {
             padding: 1em;
             border: 1px solid #506072;
             border-radius: 4px;
-            text-align: center;
+            background-color: #131a24;
+            text-align: left;
             margin-bottom: 2em;
+        }
+        .spending-utxo-is-mine {
+            background-color: #925d07;
+        }
+        .addr-is-mine {
+            background-color: #154984;
+        }
+        .above_label {
+            font-size: 1em;
+            color: #999;
+        }
+        .spending-utxo-is-mine .above_label {
+            color: black;
+        }
+        .input-txid {
+            overflow-wrap: anywhere;
+            margin-bottom: 1em;
         }
     </style>
     <div class="tx-data">
@@ -40,9 +58,32 @@
                 <tr><td>{{ _("Outputs count:") }}</td><td class="tx-outputs-count"></td></tr>
             </tbody>
         </table>
-        <div class="tx-data-info">
-        </div>
         <div class="message"></div>
+
+        <div class="inputs-list"><h3>{{ _("Inputs") }}</h3></div>
+        <div class="outputs-list"><h3>{{ _("Outputs") }}</h3></div>
+
+        <div class="input-template tx-info hidden">
+            <b class="input-number"></b><br><br>
+            <div class="input-coinbase-row">{{ _("Coinbase transaction") }}</div>
+            <div class="input-utxo-spend">
+                <div class="input-txid-row">
+                    <div class="above_label">{{ _("Transaction id:") }}</div>
+                    <div class="input-txid"></div>
+                </div>
+                <div class="input-output-number-row">{{ _("Output #:") }} <span class="input-output-number"></span></div>
+                <div class="input-label-row hidden">{{ _("Label:") }} <span class="input-label"></span></div>
+                <div class="input-addr-row hidden">{{ _("Address:") }} <span class="input-addr"></span></div>
+                <div class="input-value-row hidden">{{ _("Value:") }} <span class="input-value"></span></div>
+            </div>
+        </div>
+
+        <div class="output-template tx-info hidden">
+            <b class="output-number"></b><br><br>
+            <div class="output-label-row">{{ _("Label:") }} <span class="output-label"></span></div>
+            <div class="output-addr-row">{{ _("Address:") }} <span class="output-addr"></span></div>
+            <div class="output-value-row">{{ _("Value:") }} <span class="output-value"></span></div>
+        </div>
 
         <div class="abandon-tx-container hidden">
             <div class="warning">
@@ -74,7 +115,6 @@
             var clone = style.cloneNode(true);
             this.el = clone.querySelector(".tx-data");
 
-            this.info = clone.querySelector(".tx-data-info");
             this.message = clone.querySelector(".message");
             this.abandonTxContainer = clone.querySelector(".abandon-tx-container");
             this.abandonTxForm = clone.querySelector(".abandon-tx-form");
@@ -97,6 +137,12 @@
             this.txBlocktimeEpoch = clone.querySelector(".tx-blocktime-epoch");
             this.txInputsCounts = clone.querySelector(".tx-inputs-count");
             this.txOutputsCounts = clone.querySelector(".tx-outputs-count");
+
+            this.inputsList = clone.querySelector(".inputs-list");
+            this.inputTemplate = clone.querySelector(".input-template");
+
+            this.outputsList = clone.querySelector(".outputs-list");
+            this.outputTemplate = clone.querySelector(".output-template");
 
             // Copy data from the component's `data-*` attributes
             this.txid = this.getAttribute('data-txid');
@@ -148,7 +194,7 @@
                 let walletUrl = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
 
                 if (tx.is_purged) {
-                    this.message.classList.add("hidden");
+                    this.message.remove();
                     this.abandonTxContainer.classList.remove("hidden");
                     this.abandonTxForm.setAttribute("action", `${walletUrl}history/`);
                     this.abandonTxTxid.value = this.txid;
@@ -191,77 +237,81 @@
                 this.txInputsCounts.innerText = rawtx.vin.length;
                 this.txOutputsCounts.innerText = rawtx.vout.length;
 
-                rawtxHTML += `<h3>Inputs</h3>`;
                 for (let i in rawtx.vin) {
-                    let bgColor = '#131a24';
-                    let addressAndValue = '';
+                    // Initialize our input utxo template
+                    let curInput = this.inputTemplate.cloneNode(true);
+                    curInput.classList.remove("input-template");
+                    curInput.classList.remove("hidden");
+
+                    curInput.querySelector(".input-number").innerText = `{{ _("Input #${i}") }}`;
+                    curInput.querySelector(".input-output-number").innerText = i;
+                    curInput.querySelector(".input-txid").innerText = rawtx.vin[i].txid;
+
+                    console.log(curInput);
+
+                    // TODO: Fetch the Input utxo data in the initial fetchRawTx above
                     let jsonResponse = await this.fetchRawTx(rawtx.vin[i].txid);
-                    if (jsonResponse !== null && jsonResponse.success) {
-                        let spentOutput = jsonResponse.rawtx.vout[rawtx.vin[i].vout];
-                        let address = (spentOutput.addresses && spentOutput.addresses.length == 1) ? spentOutput.addresses[0] : 'Unknown';
-                        if (address == 'Unknown') {
-                            address = (spentOutput.scriptPubKey.addresses && spentOutput.scriptPubKey.addresses.length == 1) ? spentOutput.scriptPubKey.addresses[0] : 'Unknown';
-                        }
-                        if (address == 'Unknown') {
-                            address = spentOutput.scriptPubKey.address ? spentOutput.scriptPubKey.address : 'Unknown';
-                        }
-                        if (address == 'Unknown') {
-                            address = spentOutput.address ? spentOutput.address : 'Unknown';
-                        }
-                        let isMine = await this.fetchAddressIsMine(address);
-                        if (isMine) {
-                            bgColor = '#925d07';
-                        }
-
-
-                        let value = "Confidential";
-                        let price = '';
-                        let assetlabel = "";
-                        if("assetlabel" in spentOutput){
-                            assetlabel = spentOutput.assetlabel;
-                        }
-                        if (spentOutput.value) {
-                            value = parseFloat(spentOutput.value.toFixed(8));
-                            if(assetlabel == "LBTC" || assetlabel == ""){
-                                if (this.price && this.symbol) {
-                                    price = `<span class="note">(${this.symbol}${numberWithCommas((parseFloat(this.price) * value).toFixed(2))})</span>`;
-                                }
-
-                                if (this.btcUnit == 'sat') {
-                                    assetlabel = "sat";
-                                    value = parseInt(value * 1e8);
-                                }
-                            }
-                            value = `${numberWithCommas(value.toString())}`;
-                        }
-
-                        addressAndValue = `<br>
-                            {{ _("Address:") }} <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}"></address-label><br>
-                            {{ _("Value:") }} ${value} ${assetlabel} ${price}`;
-                    }
+                    console.log(jsonResponse);
 
                     if ('coinbase' in rawtx.vin[i]) {
-                        rawtxHTML += `
-                        <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
-                            <b>{{ _("Input #") }}${i}</b><br><br>
-                            <b>{{ _("Coinbase transaction") }}</b>
-                            <br>
-                        </p>
-                        `;
-                        continue;
+                        curInput.querySelector(".input-utxo-spend").remove();
+                    } else {
+                        curInput.querySelector(".input-coinbase-row").remove();
+                        if (jsonResponse !== null && jsonResponse.success) {
+                            let spentOutput = jsonResponse.rawtx.vout[rawtx.vin[i].vout];
+                            let address = (spentOutput.addresses && spentOutput.addresses.length == 1) ? spentOutput.addresses[0] : 'Unknown';
+                            if (address == 'Unknown') {
+                                address = (spentOutput.scriptPubKey.addresses && spentOutput.scriptPubKey.addresses.length == 1) ? spentOutput.scriptPubKey.addresses[0] : 'Unknown';
+                            }
+                            if (address == 'Unknown') {
+                                address = spentOutput.scriptPubKey.address ? spentOutput.scriptPubKey.address : 'Unknown';
+                            }
+                            if (address == 'Unknown') {
+                                address = spentOutput.address ? spentOutput.address : 'Unknown';
+                            }
+                            if ("index" in spentOutput) {
+                                // UTXOs from our own Wallet will have an `index`.
+                                curInput.classList.add("spending-utxo-is-mine");
+                            }
+
+                            let value = "Confidential";
+                            let price = '';
+                            let assetlabel = "";
+                            if ("assetlabel" in spentOutput) {
+                                assetlabel = spentOutput.assetlabel;
+                            }
+                            if (spentOutput.value) {
+                                value = parseFloat(spentOutput.value.toFixed(8));
+                                if (assetlabel == "LBTC" || assetlabel == "") {
+                                    if (this.price && this.symbol) {
+                                        price = `<span class="note">(${this.symbol}${numberWithCommas((parseFloat(this.price) * value).toFixed(2))})</span>`;
+                                    }
+
+                                    if (this.btcUnit == 'sat') {
+                                        assetlabel = "sat";
+                                        value = parseInt(value * 1e8);
+                                    }
+                                }
+                                value = `${numberWithCommas(value.toString())}`;
+                            }
+                            curInput.querySelector(".input-label-row").classList.remove("hidden");
+                            curInput.querySelector(".input-value-row").classList.remove("hidden");
+                            curInput.querySelector(".input-label").innerHTML = `<address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}"></address-label>`;
+                            curInput.querySelector(".input-value").innerHTML = `${value} ${assetlabel} ${price}`;
+                        }
+
                     }
-                    rawtxHTML += `
-                        <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
-                            <b>{{ _("Input #") }}${i}</b><br><br>
-                            {{ _("Transaction id") }}: <explorer-link style="word-break: break-all;" data-type="tx" data-value="${rawtx.vin[i].txid}"></explorer-link><br>
-                            {{ _("Output #") }}: ${rawtx.vin[i].vout}
-                            ${addressAndValue}
-                        </p>
-                    `;
+                    curInput.querySelector(".input-output-number").innerText = rawtx.vin[i].vout;
+                    this.inputsList.append(curInput);
                 }
 
-                rawtxHTML += `<h3>{{ _("Outputs") }}</h3>`;
                 for (let i in rawtx.vout) {
+                    let curOutput = this.outputTemplate.cloneNode(true);
+                    curOutput.classList.remove("output-template");
+                    curOutput.classList.remove("hidden");
+
+                    curOutput.querySelector(".output-number").innerText = `{{ _("Output #${i}") }}`;
+
                     let address = rawtx.vout[i].addresses && rawtx.vout[i].addresses.length == 1 ? rawtx.vout[i].addresses[0] : 'Unknown';
                     if (address == 'Unknown') {
                         address = rawtx.vout[i].scriptPubKey.addresses && rawtx.vout[i].scriptPubKey.addresses.length == 1 ? rawtx.vout[i].scriptPubKey.addresses[0] : 'Unknown';
@@ -273,6 +323,12 @@
                     if (address == 'Unknown') {
                         address = rawtx.vout[i].address ? rawtx.vout[i].address : 'Unknown';
                     }
+
+                    let label = address;
+                    if ("label" in rawtx.vout[i]) {
+                        label = rawtx.vout[i].label;
+                    }
+
                     let value = "Confidential";
                     let price = '';
                     let assetlabel = "";
@@ -294,54 +350,28 @@
                         value = `${numberWithCommas(value.toString())}`;
                     }
 
-                    let bgColor = '#131a24';
-                    let isMine = await this.fetchAddressIsMine(address);
-                    if (isMine) {
-                        bgColor = '#154984';
+                    if (address != label) {
+                        curOutput.querySelector(".output-label").innerHTML = `<address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}" data-label="${label}"></address-label>`;
+                        curOutput.querySelector(".output-addr").innerText = address;
+                    } else {
+                        curOutput.querySelector(".output-label").innerHTML = `<address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}" data-label="${label}"></address-label>`;
+                        curOutput.querySelector(".output-addr-row").remove();
                     }
 
-                    rawtxHTML += `
-                    <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
-                        <b>{{ _("Output #${i}") }}</b><br><br>
-                        {{ _("Address:") }} <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}"></address-label><br>
-                        {{ _("Value:") }} ${value} ${assetlabel} ${price}
-                    </p>
-                    `;
+                    if ("index" in rawtx.vout[i]) {
+                        // Entries with "index" mean they come from our Wallet
+                        curOutput.classList.add("addr-is-mine");
+                    }
+
+                    curOutput.querySelector(".output-value").innerHTML = `${value} ${assetlabel} ${price}`;
+
+                    this.outputsList.append(curOutput);
                 }
                 
-                this.info.innerHTML = rawtxHTML;
                 this.message.innerText = "";
                 return;
             };
             this.message.innerText = '{{ _("Failed to load transaction details...") }}';
-        }
-        
-        async fetchAddressIsMine(address) {
-            let url = `{{ url_for('wallets_endpoint.addressinfo', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
-            var formData = new FormData();
-            formData.append('address', address)
-            formData.append('csrf_token', '{{ csrf_token() }}');
-            try {
-                const response = await fetch(
-                    url,
-                    {
-                        method: 'POST',
-                        body: formData
-                    }
-                );
-                if(response.status != 200){
-                    showError(await response.text());
-                    return false;
-                }
-                const jsonResponse = await response.json();
-                if (jsonResponse.success) {
-                    return jsonResponse.isMine;
-                }
-            }  catch(e) {
-                showError(`{{ _("Failed to load address data...") }}`);
-                showError(e);
-            }
-            return false;
         }
     }
     customElements.define('tx-data', TxDataElement);

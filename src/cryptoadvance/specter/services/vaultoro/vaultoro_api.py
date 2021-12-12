@@ -4,7 +4,7 @@ import json
 import logging
 from flask import current_app as app
 
-from cryptoadvance.specter.services.vaultoro.manifest import VaultoroService
+from cryptoadvance.specter.services.vaultoro.service import VaultoroService
 
 logger = logging.getLogger(__name__)
 

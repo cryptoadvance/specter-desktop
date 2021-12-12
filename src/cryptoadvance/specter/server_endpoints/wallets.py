@@ -23,6 +23,7 @@ from werkzeug.wrappers import Response
 from cryptoadvance.specter.util.psbt_creator import PsbtCreator
 
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
+from cryptoadvance.specter.wallet import Wallet
 
 from ..helpers import (
     bcur2base64,
@@ -82,6 +83,7 @@ def wallets_overview():
         "wallet/wallets_overview.jinja",
         specter=app.specter,
         rand=rand,
+        services=app.specter.service_manager.services,
     )
 
 
@@ -996,7 +998,7 @@ def broadcast_blockexplorer(wallet_alias):
 @app.csrf.exempt
 def decoderawtx(wallet_alias):
     try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
         txid = request.form.get("txid", "")
         if txid:
             tx = wallet.rpc.gettransaction(txid)
@@ -1027,6 +1029,18 @@ def decoderawtx(wallet_alias):
 
             try:
                 rawtx = decoderawtransaction(tx["hex"], app.specter.chain)
+
+                # Enrich utxo data with address_info if the addr is from our Wallet
+                for utxo in rawtx.get("vout", []):
+                    address = utxo.get("address")
+                    addr_obj = wallet.get_address_info(address)
+                    if addr_obj:
+                        utxo.update(addr_obj)
+                        if not utxo.get("label"):
+                            utxo["label"] = addr_obj.label
+                
+                # TODO: Fetch the relevant Input utxo details so the JS doesn't have to
+                #   make a separate call.
             except:
                 rawtx = wallet.rpc.decoderawtransaction(tx["hex"])
             # add assets
@@ -1041,8 +1055,16 @@ def decoderawtx(wallet_alias):
                 rawtx=rawtx,
                 walletName=wallet.name,
             )
+    except RpcError as e:
+        if "Invalid or non-wallet transaction id" in str(e):
+            # Expected failure when looking up a txid that didn't originate from the
+            #   user's Wallet.
+            pass
+        else:
+            app.logger.warning("Failed to fetch transaction data. Exception: {}".format(e))
     except Exception as e:
         app.logger.warning("Failed to fetch transaction data. Exception: {}".format(e))
+
     return jsonify(success=False)
 
 
@@ -1068,7 +1090,7 @@ def rescan_progress(wallet_alias):
 @login_required
 def get_label(wallet_alias):
     try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
         address = request.form.get("address", "")
         label = wallet.getlabel(address)
         return jsonify(
@@ -1213,11 +1235,13 @@ def addresses_list(wallet_alias):
 @app.csrf.exempt
 def addressinfo(wallet_alias):
     try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
         address = request.form.get("address", "")
+        print(f"address {address}")
         if address:
             descriptor = wallet.get_descriptor(address=address)
             address_info = wallet.get_address_info(address=address)
+            print(f"address_info: {json.dumps(address_info, indent=2)}")
             return {
                 "success": True,
                 "address": address,
@@ -1227,6 +1251,8 @@ def addressinfo(wallet_alias):
                 **address_info,
             }
     except Exception as e:
+        app.logger.warning(wallet)
+        app.logger.warning(address)
         app.logger.warning("Failed to fetch address data. Exception: {}".format(e))
     return jsonify(success=False)
 

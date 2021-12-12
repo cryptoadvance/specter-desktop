@@ -4,31 +4,35 @@ import os
 
 from cryptoadvance.specter.managers.genericdata_manager import GenericDataManager
 from cryptoadvance.specter.managers.singleton import ConfigurableSingleton
-from cryptoadvance.specter.managers.user_manager import UserManager
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.user import User
 
 logger = logging.getLogger("__name__")
 
 
-class ServiceApiKeyStorageError(Exception):
+class ServiceEncryptedStorageError(Exception):
     pass
 
 
-class ServiceApiKeyStorage(GenericDataManager):
+class ServiceEncryptedStorage(GenericDataManager):
     """
-    Encrypted storage class for *ALL* Services-related API secrets for a given user.
+    Encrypted storage class for *ALL* Services-related secrets and config for a given user.
     The json file is stored as: <username>_services.json
+
+    Each Service may specify its own json data format.
 
     Data is stored internally as a json string for easier encryption handling to disk.
 
-    Each `service_type` that is passed in should come from:
-        cryptoadvance.specter.services.ALL_SERVICE_TYPES
+    Note that this is storage is separate from the un-encrypted ServiceAnnotationsStorage.
+    This storage is meant for secrets that must be encrypted and any Service-related config
+    that the User might need to store (e.g. which Wallet is attached to the Service). This
+    config data doesn't need to be encrypted, but we may as well store it here rather than
+    adding data bloat to the User json.
     """
 
     def __init__(self, data_folder: str, user: User):
         if not user.plaintext_user_secret:
-            raise ServiceApiKeyStorageError(
+            raise ServiceEncryptedStorageError(
                 f"User {user} must be authenticated with password before encrypted service data can be loaded"
             )
 
@@ -51,21 +55,21 @@ class ServiceApiKeyStorage(GenericDataManager):
     def data_file(self):
         return os.path.join(self.data_folder, f"{self.user.username}_services.json")
 
-    def set_api_data(self, service_id: str, api_data: dict, autosave: bool = True):
+    def set_service_data(self, service_id: str, data: dict, autosave: bool = True):
         # Store the api_data json blob as a string; completely overwrites previous state
-        self.data[service_id] = json.dumps(api_data)
+        self.data[service_id] = json.dumps(data)
         if autosave:
             self._save()
 
-    def update_api_data(self, service_id: str, api_data: dict, autosave: bool = True):
+    def update_service_data(self, service_id: str, data: dict, autosave: bool = True):
         # Add or update fields; does not remove existing fields
         cur_data = json.loads(self.data[service_id])
-        cur_data.update(api_data)
+        cur_data.update(data)
         self.data[service_id] = json.dumps(cur_data)
         if autosave:
             self._save()
 
-    def get_api_data(self, service_id: str) -> dict:
+    def get_service_data(self, service_id: str) -> dict:
         api_data = self.data.get(service_id, None)
         if api_data:
             # Convert string back into json blob
@@ -76,7 +80,7 @@ class ServiceApiKeyStorage(GenericDataManager):
 
 
 
-class ServiceApiKeyStorageManager(ConfigurableSingleton):
+class ServiceEncryptedStorageManager(ConfigurableSingleton):
     """ Singleton that manages access to users' ServiceApiKeyStorage; context-aware so it
         knows who the current_user is for the given request context.
 
@@ -89,7 +93,7 @@ class ServiceApiKeyStorageManager(ConfigurableSingleton):
         cls._instance.user_manager = specter.user_manager
         cls._instance.storage_by_user = {}
 
-    def _get_current_user_api_key_storage(self) -> ServiceApiKeyStorage:
+    def _get_current_user_service_storage(self) -> ServiceEncryptedStorage:
         """Returns the storage-class for the current_user. Lazy_init if necessary"""
         user = self.user_manager.get_user()
         if user is None:
@@ -97,18 +101,18 @@ class ServiceApiKeyStorageManager(ConfigurableSingleton):
 
         if self.storage_by_user.get(user) is None:
             logger.info(f"Loaded ServiceApiKeyStorage for user {user}")
-            self.storage_by_user[user] = ServiceApiKeyStorage(self.data_folder, user)
+            self.storage_by_user[user] = ServiceEncryptedStorage(self.data_folder, user)
         return self.storage_by_user[user]
 
-    def set_current_user_api_data(self, service_id: str, api_data: dict):
-        self._get_current_user_api_key_storage().set_api_data(service_id, api_data)
+    def set_current_user_service_data(self, service_id: str, service_data: dict):
+        self._get_current_user_service_storage().set_service_data(service_id, service_data)
 
-    def update_current_user_api_data(self, service_id: str, api_data: dict):
+    def update_current_user_service_data(self, service_id: str, service_data: dict):
         # Add or update fields; does not remove existing fields
-        self._get_current_user_api_key_storage().update_api_data(service_id, api_data)
+        self._get_current_user_service_storage().update_service_data(service_id, service_data)
 
-    def get_current_user_api_data(self, service_id: str) -> dict:
-        return self._get_current_user_api_key_storage().get_api_data(service_id)
+    def get_current_user_service_data(self, service_id: str) -> dict:
+        return self._get_current_user_service_storage().get_service_data(service_id)
     
     def unload_current_user(self):
         """ Clear user's ServiceApiKeyStorage from memory (but it remains safely on disk) """

@@ -2,12 +2,8 @@ import logging
 from flask import Flask, Response, redirect, render_template, request, url_for, flash
 from flask_login import login_required
 
-from cryptoadvance.specter.services.service_apikey_storage import (
-    ServiceApiKeyStorageError,
-)
 from ..controller import user_secret_decrypted_required
-from ..service_settings_manager import ServiceSettingsManager
-from .manifest import BitcoinReserveService
+from .service import BitcoinReserveService
 
 
 """

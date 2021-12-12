@@ -19,7 +19,7 @@ from flask import (
 from flask_login import current_user, login_required
 
 from ..service_settings_manager import ServiceSettingsManager
-from .manifest import VaultoroService
+from .service import VaultoroService
 from .vaultoro_api import VaultoroApi
 
 logger = logging.getLogger(__name__)

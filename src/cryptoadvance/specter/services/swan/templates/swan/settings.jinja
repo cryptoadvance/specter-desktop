@@ -30,28 +30,28 @@
 
     <div class="card">
         <h1>{{ _("Configure Auto-Withdrawal") }}</h1>
-        <div>
-            When do you want your Bitcoin?<br>
-            Withdrawing your Bitcoin once it reaches a threshold reduces future fees and improves your privacy.<br>
-        </div>
         <br>
         
         <form action="{{ url_for(service.get_blueprint_name() + '.update_autowithdrawal') }}" method="POST" role="form">
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             
-            <div class="css-yn7azs"><div class="css-10heydn"><div class="css-1im0k5g"><div class="css-vurnku">0 BTC</div><div class="css-r7xp1a">weekly</div><div class="css-joto2y"></div></div></div><div class="css-10heydn"><div class="css-1a7rrre"><div class="css-vurnku">0.01 BTC</div><div class="css-r7xp1a">≈ <span class="css-7tgjic"></span>204<div class="css-1ddofgy"> USD</div></div><div class="css-4i9zit"></div></div></div><div class="css-10heydn"><div class="css-1a7rrre"><div class="css-vurnku">0.025 BTC</div><div class="css-r7xp1a">≈ <span class="css-7tgjic"></span>510<div class="css-1ddofgy"> USD</div></div><div class="css-4i9zit"></div></div></div><div class="css-10heydn"><div class="css-1a1yeyh"><div class="css-vurnku">0.05 BTC</div><div class="css-r7xp1a">≈ <span class="css-7tgjic"></span>1020<div class="css-1ddofgy"> USD</div></div><div class="css-1en436m"></div></div></div></div>
-
-
-            <input type="range" name="threshold" id="thresholdSlider" min="0" max="3" aria-valuemin="0" aria-valuemax="0.05" aria-valuenow="0.01" class="css-w3x6xz" value="1"><br/>
-
-            <br/>
-			</label>&nbsp;{{ _("Withdraw to Wallet") }}:<br>
+			</label>&nbsp;{{ _("Withdraw to wallet") }}:<br>
 			<select name="destination_wallet">
                 {% for (wallet_name, wallet) in wallet_manager.wallets.items() %}
                     <option value="{{ wallet.alias }}">{{ wallet.name }} ({{ wallet.address_type }})</option>
                 {% endfor %}
 			</select>
             <br/>
+            <br/>
+            <br/>
+
+            <div>
+                When do you want your Bitcoin?<br>
+                Withdrawing your Bitcoin once it reaches a threshold reduces future fees and improves your privacy.<br>
+            </div>
+            <div class="css-yn7azs"><div class="css-10heydn"><div class="css-1im0k5g"><div class="css-vurnku">0 BTC</div><div class="css-r7xp1a">weekly</div><div class="css-joto2y"></div></div></div><div class="css-10heydn"><div class="css-1a7rrre"><div class="css-vurnku">0.01 BTC</div><div class="css-r7xp1a">≈ <span class="css-7tgjic"></span>204<div class="css-1ddofgy"> USD</div></div><div class="css-4i9zit"></div></div></div><div class="css-10heydn"><div class="css-1a7rrre"><div class="css-vurnku">0.025 BTC</div><div class="css-r7xp1a">≈ <span class="css-7tgjic"></span>510<div class="css-1ddofgy"> USD</div></div><div class="css-4i9zit"></div></div></div><div class="css-10heydn"><div class="css-1a1yeyh"><div class="css-vurnku">0.05 BTC</div><div class="css-r7xp1a">≈ <span class="css-7tgjic"></span>1020<div class="css-1ddofgy"> USD</div></div><div class="css-1en436m"></div></div></div></div>
+
+            <input type="range" name="threshold" id="thresholdSlider" min="0" max="3" aria-valuemin="0" aria-valuemax="0.05" aria-valuenow="0.01" class="css-w3x6xz" value="1"><br/>
             <br/>
             <br/>
             

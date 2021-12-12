@@ -11,7 +11,7 @@ from pkgutil import iter_modules
 from typing import List
 
 from .service import Service
-from .service_apikey_storage import ServiceApiKeyStorageManager
+from .service_encrypted_storage import ServiceEncryptedStorageManager
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class ServiceManager:
         self._initialize_services()
 
         # Configure and instantiate the one and only ServiceApiKeyStorageManager
-        ServiceApiKeyStorageManager.configure_instance(specter=specter)
+        ServiceEncryptedStorageManager.configure_instance(specter=specter)
 
         print(f"ServiceManager.__init()__: {devstatus_threshold}")
 
@@ -47,11 +47,11 @@ class ServiceManager:
                 continue
             try:
                 module = import_module(
-                    f"cryptoadvance.specter.services.{item}.manifest"
+                    f"cryptoadvance.specter.services.{item}.service"
                 )
             except ModuleNotFoundError:
                 logger.error(
-                    f"Service Directory cryptoadvance.specter.services.{item} does not have a manifest file! Skipping!"
+                    f"Service Directory cryptoadvance.specter.services.{item} does not have a service implementation file! Skipping!"
                 )
                 continue
             for attribute_name in dir(module):

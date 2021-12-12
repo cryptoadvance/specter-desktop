@@ -1424,7 +1424,8 @@ class Wallet:
             ),
         }
 
-    def get_address_info(self, address):
+    def get_address_info(self, address) -> Address:
+        # TODO: This is a misleading name. This is really fetching an Address obj
         return self._addresses.get(address)
 
     def is_address_mine(self, address):
@@ -1584,13 +1585,22 @@ class Wallet:
         self.save_to_file()
         return end
     
-    def reserve_address_for_service(self, address: str, service_id: str, label: str, autosave: bool = True):
-        self._addresses.reserve_for_service(address=address, service_id=service_id, label=label, autosave=autosave)
+    def associate_address_with_service(self, address: str, service_id: str, label: str, autosave: bool = True):
+        """
+            Links the Address to the specified Service.id
+        """
+        self._addresses.associate_with_service(address=address, service_id=service_id, label=label, autosave=autosave)
 
-    def unreserve_address(self, address: str, autosave: bool = True):
-        self._addresses.unreserve(address=address, autosave=autosave)
+    def deassociate_address(self, address: str, autosave: bool = True):
+        """
+            Clears any Service associations on the Address.
+        """
+        self._addresses.deassociate(address=address, autosave=autosave)
     
-    def get_reserved_addresses(self, service_id: str, unused_only: bool = False) -> List[Address]:
+    def get_associated_addresses(self, service_id: str, unused_only: bool = False) -> List[Address]:
+        """
+            Return the Wallet's Address objs that are associated with the specified Service.id
+        """
         addrs = []
         for addr, addr_obj in self._addresses.items():
             if addr_obj["service_id"] == service_id:
@@ -1602,6 +1612,8 @@ class Wallet:
         self._addresses.set_label(address, label)
 
     def getlabel(self, address):
+        # TODO: This is confusing. The Address["label"] attr may be blank but the
+        # Address.label property will auto-populate a value (e.g. "Address #4").
         if address in self._addresses:
             return self._addresses[address].label
         else:
