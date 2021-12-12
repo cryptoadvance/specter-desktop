@@ -178,20 +178,35 @@ def read_csv(fname, cls=dict, *args):
             return [cls(*args, **row) for row in csv_reader]
 
 
+def storage_callback_function(cmd_list):
+    """This is executing the callback-script, either directly or via threading"""
+    logger.debug(f"Executing {cmd_list}")
+    result = run_shell(cmd_list)
+    if result["code"] != 0:
+        logger.error("callback failed ")
+        logger.error("stderr: {}".format(result["err"]))
+        logger.error("stdout: {}".format(result["out"]))
+    else:
+        logger.info("Successfully executed {}".format(" ".join(cmd_list)))
+        logger.debug("result: {}".format(result))
+
+
 def storage_callback(mode="write", path=None):
+    """Call this whenever anything in the .specter directory changes. Be aware that we might store node-data in the specter-folder"""
     # Might be usefull to figure out why the callback has been triggered:
     # traceback.print_stack()
     logger.info(f"Storage Callback called mode {mode} with path {path}")
-    if os.getenv("SPECTER_PERSISTENCE_CALLBACK"):
+    if os.getenv("SPECTER_PERSISTENCE_CALLBACK_ASYNC"):
+        cmd_list = os.getenv("SPECTER_PERSISTENCE_CALLBACK_ASYNC").split(" ")
+        cmd_list.append(mode)
+        cmd_list.append(path)
+        t = threading.Thread(
+            target=storage_callback_function,
+            args=(cmd_list,),
+        )
+        t.start()
+    elif os.getenv("SPECTER_PERSISTENCE_CALLBACK"):
         cmd_list = os.getenv("SPECTER_PERSISTENCE_CALLBACK").split(" ")
         cmd_list.append(mode)
         cmd_list.append(path)
-        logger.debug(f"Executing {cmd_list}")
-        result = run_shell(cmd_list)
-        if result["code"] != 0:
-            logger.error("callback failed ")
-            logger.error("stderr: {}".format(result["err"]))
-            logger.error("stdout: {}".format(result["out"]))
-        else:
-            logger.info("Successfully executed {}".format(" ".join(cmd_list)))
-            logger.debug("result: {}".format(result))
+        storage_callback_function(cmd_list)
