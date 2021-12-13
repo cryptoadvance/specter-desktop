@@ -9,6 +9,9 @@
                 max-width: 160px;
             }
         }
+        .address-row:hover {
+            background-color: var(--cmap-bg-lightest);
+        }
     </style>
     <tr class="address-row">
         <td class="index"></td>
@@ -79,7 +82,11 @@
             if  (this.hideSensitiveInfo) {
                 this.label.innerHTML = '############'
             } else {
-                this.label.innerHTML = `<address-label data-address="${this.addressData.address}" ${this.addressData.label ? `data-label="${this.addressData.label}"` : ''} ${this.addressData.service_id ? `data-service-id="${this.addressData.service_id}"` : ''} data-wallet="${this.wallet}"></address-label>`;
+                this.label.innerHTML = `<address-label \
+                    data-address="${this.addressData.address}" \
+                    ${this.addressData.label ? `data-label="${this.addressData.label}"` : ''} \
+                    ${this.addressData.service_id ? `data-service-id="${this.addressData.service_id}"` : ''} \
+                    data-wallet="${this.wallet}"></address-label>`;
             }
             this.used.innerText = this.hideSensitiveInfo ? '###' : `${this.addressData.used ? 'Yes' : 'No'}`;
 

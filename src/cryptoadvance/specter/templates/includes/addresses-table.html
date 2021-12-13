@@ -535,18 +535,17 @@
             let addressDataPopup = document.getElementById('address-popup');
             addressDataPopup.innerHTML = `
             <address-data
-            data-verify-qr="{{ supports_qr_code_verify != [] }}"
-            data-verify-hwi="{{ supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) }}"
-            data-used="${addressData.used}"
-            data-utxo="${addressData.utxo}"
-            data-amount="${amount}"
-            data-amount-price="${amountPrice}"
-            data-address="${addressData.address}"
-            data-service-id="${addressData.service_id}"
-            data-service-name="${addressData.service_name}"
-            data-service-icon="${addressData.service_icon}"
-            data-address-wallet="${wallet}">
-            </address-data>`;
+                data-verify-qr="{{ supports_qr_code_verify != [] }}"
+                data-verify-hwi="{{ supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) }}"
+                data-used="${addressData.used}"
+                data-utxo="${addressData.utxo}"
+                data-amount="${amount}"
+                data-amount-price="${amountPrice}"
+                data-address="${addressData.address}"
+                data-service-id="${addressData.service_id}"
+                data-label="${addressData.label}"
+                data-address-wallet="${wallet}"
+            />`;
             showPageOverlay('address-popup');
         } else {
             copyText(address, `{{ _("Copied address") }}: ${ address }`);
