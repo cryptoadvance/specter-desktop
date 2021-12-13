@@ -528,8 +528,9 @@
                     this.fetchTxItems();
                 }
             }
-            if (attrName == "selected-coins") {
-                let selectedCoins = JSON.parse(this.getAttribute("selected-coins"))
+            if (attrName == "selected-coins" && newValue != undefined && newValue != "undefined") {
+                
+                let selectedCoins = JSON.parse(newValue)
                 this.selectedCoins = selectedCoins.map((txid_vout) => {
                     // For easier comparison, we're removing the vout
                     let txid = txid_vout.split(/,/)[0]

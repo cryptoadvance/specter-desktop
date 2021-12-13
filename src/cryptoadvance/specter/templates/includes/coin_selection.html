@@ -77,7 +77,7 @@
 
             let selectedCoins = JSON.parse(this.getAttribute('selected-coins').replace(/'/g, '"'));
             if (selectedCoins.length > 0) {
-                this.txtable.setAttribute("selected-coins", JSON.stringify(this.selectedCoins))
+                this.txtable.setAttribute("selected-coins", JSON.stringify(selectedCoins))
                 // unfold if we have preselected coins
                 this.toggleCoinselection()
             }
