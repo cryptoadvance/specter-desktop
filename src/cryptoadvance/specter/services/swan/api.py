@@ -162,7 +162,6 @@ def authenticated_request(endpoint: str, method: str = "GET", data: dict = None)
         raise e
 
 
-
 def update_autowithdrawal_addresses(addresses: List[str], label: str):
     # Swan endpoint specifies "path" (derivation path) but can be omitted
     addr_list = [{"address": addr} for addr in addresses]
