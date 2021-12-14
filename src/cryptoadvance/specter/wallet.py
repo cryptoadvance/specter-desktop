@@ -590,7 +590,7 @@ class Wallet:
         arr = [
             {"address": address, "label": label}
             for address, label in labeled_addresses.items()
-            if address in self._addresses  
+            if address in self._addresses
         ]
         logger.info(f"Array for set_labels is: {arr}")
         self._addresses.set_labels(arr)
