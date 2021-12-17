@@ -1,5 +1,20 @@
 [TOC]
 
+## v1.7.2 November 30, 2021
+- Feature: Default blockchain rescan to first Taproot block for Taproot wallets #1479 (kdmukai)
+- Feature: Encrypted user data storage #1453 (kdmukai)
+- Feature: More options for address labels imports #1470 (Manolis)
+- Feature: Improved export and restore hot wallet process #1495 (singlatushar07)
+- Bugfix: Adds `no_wait` option to rpc calls #1485 (kdmukai)
+- Bugfix: Adjust build-badge to Cirrus #1464 (Kim Neunert)
+- Bugfix: csrf-exempt for /toggle_hide_sensitive_info endpoint #1478 (Kim Neunert)
+- Bugfix: Custom autohide bugfix #1468 (kdmukai)
+- Bugfix: Default state for left nav "Devices" should be hidden #1481 (kdmukai)
+- Bugfix: 'Specter' object has no attribute 'user_manager' #1476 (Manolis)
+- Bugfix: tests on master #1465 (Kim Neunert)
+- Documentation: hosted at docs.specter.solutions #1463 (Kim Neunert)
+- Chore: Taproot test case #1482 (kdmukai)
+
 ## v1.7.1 November 05, 2021
 - Bugfix: Bitcoin Core as default for fee estimation, error handling improvements #1408 (Kim Neunert)
 - Bugfix: fix unknown version bug in pip-installs fixes #1442 #1450 (Kim Neunert)
