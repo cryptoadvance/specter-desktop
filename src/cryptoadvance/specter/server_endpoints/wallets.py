@@ -463,12 +463,6 @@ def send_new(wallet_alias):
     rbf_utxo = []
     rbf_tx_id = ""
     selected_coins = request.form.getlist("coinselect")
-    fee_estimation = get_fees(app.specter, app.config)
-    fee_estimation_data = fee_estimation.result
-    if fee_estimation.error_message:
-        [flash(message, "error") for message in fee_estimation.error_messages]
-
-    fee_rate = fee_estimation_data["hourFee"]
 
     if request.method == "POST":
         action = request.form.get("action")
@@ -607,7 +601,6 @@ def send_new(wallet_alias):
         ui_option != "ui"
         or subtract
         or fee_options != "dynamic"
-        or fee_estimation_data["hourFee"] != fee_rate
         or not rbf
         or selected_coins
     )
@@ -625,15 +618,12 @@ def send_new(wallet_alias):
         subtract=subtract,
         subtract_from=subtract_from,
         fee_options=fee_options,
-        fee_rate=fee_rate,
         rbf=rbf,
         selected_coins=selected_coins,
         show_advanced_settings=show_advanced_settings,
         rbf_utxo=rbf_utxo,
         rbf_tx_id=rbf_tx_id,
         wallet_utxo=wallet_utxo,
-        fee_estimation=fee_rate,
-        fee_estimation_data=fee_estimation_data,
         wallet_alias=wallet_alias,
         wallet=wallet,
         specter=app.specter,

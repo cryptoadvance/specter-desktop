@@ -29,14 +29,14 @@
         <div id = "fee_manual" style="display: none">
             {{ _("Fee rate:") }}<br>
             {% set min_fee = 0.1 if specter.is_liquid else 1 %}
-            <input type="number" class="fee_rate" name="fee_rate" id="fee_rate" min="{{min_fee}}" step="any" autocomplete="off" {% if not fee_options_dynamic %}value="{{ fee_rate }}"{% endif %}> sat/vbyte
+            <input type="number" class="fee_rate" name="fee_rate" id="fee_rate" min="{{min_fee}}" step="any" autocomplete="off"> sat/vbyte
             <div class="note">
                 {{ _("leave blank to set automatically, {} sat/vbyte is the minimal fee rate.".format(min_fee)) }}
             </div>
         </div>
         <div id ="fee_dynamic" style="display: {% if fee_options_dynamic %}block{% else %}none{% endif %}">
             <div id="blocks"></div>
-            <input type="range" style="width: 12em" min="" max="" value="{{ fee_estimation }}" step="1" id="fees_slider">
+            <input type="range" style="width: 12em" min="" max="" value="" step="1" id="fees_slider">
             <input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="0">
             <div>
                 {{ _("Estimated speed:") }} <span id="fee_rate_speed_text"></span>
@@ -198,6 +198,10 @@
          * (can be called many times if an element is repeatedly added/removed)
          */
         connectedCallback() {
+            this.feeRate.addEventListener("change", (event) => {
+                this.manualFeeUpdated()
+            })
+
             // fetch the fees which looks like ...
             this.fetchFees()
             // this: {"result": {"fastestFee": 8, "halfHourFee": 8, "hourFee": 8, "minimumFee": 1}, "error_messages": []}
@@ -210,10 +214,6 @@
                     this.rbfCheckbox.checked = true
                 }
             }
-
-            this.feeRate.addEventListener("change", (event) => {
-                this.manualFeeUpdated()
-            })
         }
 
         /** Will get executed after fee initialisation
@@ -221,6 +221,7 @@
         initWithFees() {
             this.feesSlider.max = this.fees["fastestFee"] * 1.4
             this.feesSlider.min = this.fees["minimumFee"]
+            this.feeRate.value = this.feesSlider.value
             this.dynamicFeeUpdated()
         }
 
@@ -235,6 +236,8 @@
                 this.fee_dynamic.style.display = 'none'
                 this.ld.feeOption.value = "manual"
                 this.fee_option_manual.checked = true
+                this.feeRate.value = this.feesSlider.value
+                this.manualFeeUpdated()
             }
         }
 
