@@ -20,6 +20,7 @@ from cryptoadvance.specter.util.psbt_creator import PsbtCreator
 
 from ..helpers import bcur2base64
 from ..rpc import RpcError
+from ..server_endpoints.filters import assetlabel
 from ..specter_error import SpecterError, handle_exception
 from ..util.base43 import b43_decode
 from ..util.descriptor import Descriptor
@@ -604,7 +605,7 @@ def asset_balances(wallet_alias):
                 "balance": wallet.balance.get("assets", {})
                 .get(asset, {})
                 .get("trusted", 0),
-                "label": "{{{% endfor %} asset | assetlabel }}",
+                "label": assetlabel(None, asset),
             }
         return asset_balances
     except Exception as e:
