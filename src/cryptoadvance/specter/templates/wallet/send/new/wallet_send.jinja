@@ -561,10 +561,8 @@
 				let FeeSelectionComponent = document.getElementById('fee-selection-component')
 				FeeSelectionComponent.selectedFee() // Will also set the relevant input 
 				var formData = new FormData(document.getElementById('send-form'));
-				formData.append("estimate_fee", true);
-				formData.append("action", "createpsbt");
-
-				let url="{{ url_for('wallets_endpoint.send_new', wallet_alias=wallet.alias) }}"
+				let url="{{ url_for('wallets_endpoint_api.estimate_fee', wallet_alias=wallet.alias) }}"
+				formData.append("estimate_fee", true)
 				const response = await fetch(
 					url,
 					{

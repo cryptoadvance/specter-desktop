@@ -476,26 +476,16 @@ def send_new(wallet_alias):
                 recipients_txt=request.form["recipients"],
                 recipients_amount_unit=request.form.get("amount_unit_text"),
             )
-            try:
-                psbt = psbt_creator.create_psbt(wallet)
-            except SpecterError as se:
-                err = str(se)
-                app.logger.error(se)
-                if "estimate_fee" in request.form:
-                    return jsonify(success=False, error=str(err))
-
-            if err is None:
-                if "estimate_fee" in request.form:
-                    return jsonify(success=True, psbt=psbt)
-                return render_template(
-                    "wallet/send/sign/wallet_send_sign_psbt.jinja",
-                    psbt=psbt,
-                    labels=labels,
-                    wallet_alias=wallet_alias,
-                    wallet=wallet,
-                    specter=app.specter,
-                    rand=rand,
-                )
+            psbt = psbt_creator.create_psbt(wallet)
+            return render_template(
+                "wallet/send/sign/wallet_send_sign_psbt.jinja",
+                psbt=psbt,
+                labels=labels,
+                wallet_alias=wallet_alias,
+                wallet=wallet,
+                specter=app.specter,
+                rand=rand,
+            )
 
         elif action in ["rbf", "rbf_cancel"]:
             try:

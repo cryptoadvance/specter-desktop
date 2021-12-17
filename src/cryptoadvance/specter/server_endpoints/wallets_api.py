@@ -16,6 +16,8 @@ from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
 
+from cryptoadvance.specter.util.psbt_creator import PsbtCreator
+
 from ..helpers import bcur2base64
 from ..rpc import RpcError
 from ..specter_error import SpecterError, handle_exception
@@ -539,6 +541,38 @@ def utxo_csv(wallet_alias):
     except Exception as e:
         handle_exception(e)
         return _("Failed to export wallet utxo. Error: {}").format(e), 500
+
+
+@wallets_endpoint_api.route("/wallet/<wallet_alias>/send/estimatefee", methods=["POST"])
+@login_required
+def estimate_fee(wallet_alias):
+    """Returns a json-representation of a psbt which did not get persisted. Kind of a draft-run."""
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    # update balances in the wallet
+    wallet.update_balance()
+    # update utxo list for coin selection
+    wallet.check_utxo()
+    if request.form.get("estimate_fee") != "true":
+        # Very critical as this form-value will prevent persisting the PSBT
+        return jsonify(
+            success=False,
+            error="Your Form did not specify estimate_fee = false. This call is not allowed",
+        )
+    psbt_creator = PsbtCreator(
+        app.specter,
+        wallet,
+        request.form.get("ui_option", "ui"),
+        request_form=request.form,
+        recipients_txt=request.form["recipients"],
+        recipients_amount_unit=request.form.get("amount_unit_text"),
+    )
+    try:
+        # Won't get persisted
+        psbt = psbt_creator.create_psbt(wallet)
+        return jsonify(success=True, psbt=psbt)
+    except SpecterError as se:
+        app.logger.error(se)
+        return jsonify(success=False, error=str(se))
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/asset_balances")
