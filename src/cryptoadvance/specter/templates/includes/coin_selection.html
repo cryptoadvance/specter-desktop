@@ -68,7 +68,6 @@
         connectedCallback() {
             this.walletAlias = this.getAttribute('wallet-alias');
             this.spendableAmount = this.getAttribute("spendable-amount") ?? 0
-            this.assetBalances = this.fetchAssetBalances()
             if (this.getAttribute("is-liquid") == "True") {
                 this.classList.add("hidden")
             }
@@ -119,10 +118,10 @@
             if (!this.isCoinSelectionActive()) {
                 if(unit == 'btc' || unit == 'sat'){
                     spendableAmount = '{{ wallet.full_available_balance | btcamount }}';
-                }else{
-                    if(unit in assetBalances){
+                } else {        
+                    if (unit in assetBalances){
                         return assetBalances[unit].balance;
-                    }else{
+                    } else {
                         return 0;
                     }
                 }
@@ -190,29 +189,6 @@
             this.fireChangeEvent();
         }
 
-        /**
-        * Fetches assetBalance from the Specter API 
-        */
-        async fetchAssetBalances(wallet_alias) {
-            let url = `{{ url_for('wallets_endpoint_api.asset_balances', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.walletAlias);
-            try {
-                const response = await fetch(
-                    url,
-                    {
-                        method: 'GET'
-                    }
-                );
-                if(response.status != 200){
-                    showError(await response.text());
-                    return;
-                }
-                const jsonResponse = await response.json();
-            } catch(e) {
-                console.log("Caught error: ", e);
-                showError(`{{ _("Failed to fetch transactions list.") }}: ${e}`);
-            }
-        }
-        
         shouldSelectMoreCoins(unit, amount) {
             return (unit == 'sat' ? amount / 100000000 : amount) > this.getCoinSelectedAmount() && this.isCoinSelectionActive()
         }

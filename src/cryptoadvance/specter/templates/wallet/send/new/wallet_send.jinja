@@ -152,6 +152,8 @@
 		};
 		var spendableAmount = {{ wallet.full_available_balance | btcamount }}
 		var coinselectionWebcomponent = document.getElementById('coinselection-webcomponent');
+		console.log("Setting attribute")
+		coinselectionWebcomponent.assetBalances = assetBalances
 		coinselectionWebcomponent.addEventListener("change", (event) => {
 			validateForm()
 		})
