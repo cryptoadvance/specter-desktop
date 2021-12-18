@@ -21,7 +21,7 @@ from cryptoadvance.specter.process_controller.elementsd_controller import (
     ElementsPlainController,
 )
 from cryptoadvance.specter.rpc import BitcoinRPC
-from cryptoadvance.specter.server import create_app, init_app
+from cryptoadvance.specter.server import SpecterFlask, create_app, init_app
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.user import User, hash_password
@@ -370,7 +370,7 @@ def device_manager(devices_filled_data_folder):
 
 
 @pytest.fixture
-def user_manager(empty_data_folder):
+def user_manager(empty_data_folder) -> UserManager:
     """A UserManager having users alice, bob and eve"""
     specter = Specter(data_folder=empty_data_folder)
     user_manager = UserManager(specter=specter)
@@ -476,7 +476,7 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
 
 
 @pytest.fixture
-def app(specter_regtest_configured):
+def app(specter_regtest_configured) -> SpecterFlask:
     """the Flask-App, but uninitialized"""
     app = create_app(config="cryptoadvance.specter.config.TestConfig")
     app.app_context().push()

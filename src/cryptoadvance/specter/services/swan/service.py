@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 import pytz
 
@@ -30,13 +31,12 @@ class SwanService(Service):
     MIN_PENDING_AUTOWITHDRAWAL_ADDRS = 10
 
 
-    @property
-    def is_access_token_valid(self):
-        api_data = self.get_current_user_service_data()
+    @classmethod
+    def is_access_token_valid(cls):
+        api_data = cls.get_current_user_service_data()
         if not api_data or not api_data.get("expires"):
             return False
-        
-        return datetime.fromtimestamp(api_data["expires"]) > datetime.datetime.now(tz=pytz.utc)
+        return api_data["expires"] > datetime.datetime.now(tz=pytz.utc).timestamp()
 
     @classmethod
     def get_associated_wallet(cls) -> Wallet:
@@ -92,21 +92,13 @@ class SwanService(Service):
     @classmethod
     def reserve_addresses(cls, wallet: Wallet, label: str = None, num_addresses: int = 10) -> List[str]:
         """
-            Overrides base classmethod to add Swan-specific Wallet management and Swan
-            API call.
+            Overrides base classmethod to add Swan-specific Wallet management.
         """
-        # Import here to avoid circular import issues
-        from . import api as swan_api
-
         # Update Addresses as reserved/associated with Swan in our Wallet
         addresses = super().reserve_addresses(wallet=wallet, label=label, num_addresses=num_addresses)
 
         # Set the wallet as the currently configured Wallet for Swan; Also clears out any
         #   prior unused reserved addresses if this is a different Wallet. 
         cls.set_associated_wallet(wallet)
-
-        # Send the address list update to the Swan API
-        swan_label = _("Specter autowithdrawal to {}".format(wallet.name))
-        swan_api.update_autowithdrawal_addresses(addresses=addresses, label=swan_label)
 
         return addresses

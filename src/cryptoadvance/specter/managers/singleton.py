@@ -14,6 +14,11 @@ class Singleton:
 
 
 
+class ConfigurableSingletonException(Exception):
+    pass
+
+
+
 class ConfigurableSingleton(Singleton):
     @classmethod
     def get_instance(cls):
@@ -21,14 +26,14 @@ class ConfigurableSingleton(Singleton):
         if cls._instance:
             return cls._instance
         else:
-            raise Exception("Must call %s.configure_instance(config) first" % cls.__name__)
+            raise ConfigurableSingletonException(f"Must call {cls.__name__}.configure_instance(config) first")
 
 
     @classmethod
     def configure_instance(cls, **kwargs):
         # Must be called before the first get_instance() call
         if cls._instance:
-            raise Exception("Instance already configured")
+            raise ConfigurableSingletonException(f"{cls.__name__} already configured")
 
         # Instantiate the one and only instance
         cls._instance = cls.__new__(cls)

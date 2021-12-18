@@ -3,8 +3,6 @@ import logging
 import requests
 from .service import SwanService
 
-SWAN_API_URL = "https://dev-api.swanbitcoin.com/apps/v20210824"
-
 
 logger = logging.getLogger(__name__)
 

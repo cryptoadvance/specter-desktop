@@ -35,9 +35,15 @@
             font-style: italic;
         }
     </style>
+
+    re_link: {{ is_relink }}
     <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" width="300"/>
     <div class="card center" style="width: auto; min-width: 90%; margin: 40px;">
-        <h1>Enable Swan Integration</h1>
+        {% if is_relink %}
+            <h1>{{ _("Re-Link Swan Account") }}</h1>
+        {% else %}
+            <h1>{{ _("Enable Swan Integration") }}</h1>
+        {% endif %}
         <br/>
 
         <div class="big_option" onclick="location.href='{{ flow_url }}';">
@@ -47,7 +53,11 @@
         </div>
 
         <div class="instructions">
-            Click to sign into your Swan account and authorize Specter integration
+            {% if is_relink %}
+                {{ _("Specter's link to Swan expires after an hour during Beta testing") }}
+            {% else %}
+                {{ _("Click to sign into your Swan account and authorize Specter integration") }}
+            {% endif %}
         </div>
         <br/>
     </div>

@@ -78,7 +78,7 @@ class Service:
     @classmethod
     def default_address_label(cls):
         # Have to str() it; can't pass a LazyString to json serializer
-        return str(_(f"Reserved for {cls.name}"))
+        return str(_("Reserved for {}").format(cls.name))
 
 
     @classmethod

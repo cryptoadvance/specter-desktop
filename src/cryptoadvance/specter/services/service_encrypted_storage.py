@@ -70,13 +70,13 @@ class ServiceEncryptedStorage(GenericDataManager):
             self._save()
 
     def get_service_data(self, service_id: str) -> dict:
-        api_data = self.data.get(service_id, None)
-        if api_data:
+        service_data = self.data.get(service_id, None)
+        if service_data:
             # Convert string back into json blob
-            api_data = json.loads(api_data)
+            service_data = json.loads(service_data)
         else:
-            api_data = {}
-        return api_data
+            service_data = {}
+        return service_data
 
 
 

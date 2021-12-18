@@ -1,62 +1,51 @@
-from flask_login.utils import login_user
 import pytest
+
+from flask_login import current_user
+from flask_login.utils import login_user
+from mock import patch, Mock
+from tempfile import TemporaryDirectory
+from unittest.mock import MagicMock
+
+from cryptoadvance.specter.managers.user_manager import UserManager
+from cryptoadvance.specter.server import SpecterFlask
+from cryptoadvance.specter.services.service import Service
 from cryptoadvance.specter.services.service_encrypted_storage import (
     ServiceEncryptedStorage,
-    ServiceApiKeyStorageUserAware,
+    ServiceEncryptedStorageManager
 )
 from cryptoadvance.specter.services.service_manager import ServiceManager
-from cryptoadvance.specter.services.service_settings_manager import (
-    ServiceSettingsManager,
-)
-from mock import patch, Mock
-
 from cryptoadvance.specter.user import User, hash_password
 
 
-def test_ServiceSettingsManager(specter_regtest_configured):
-    # A DeviceManager manages devices, specifically the persistence
-    # of them via json-files in an empty data folder
-    um = ServiceSettingsManager(specter_regtest_configured.data_folder, "vaultoro")
-
-    with pytest.raises(Exception):
-        assert um.get_key("admin", "wurstbrot")
-    um.set_key("admin", "wurstbrot", "lecker")
-    assert um.get_key("admin", "wurstbrot") == "lecker"
-    um.set_key("admin", "other_key", {"yet_a_key": "yet_a_value"})
-    assert um.get_key("admin", "other_key") == {"yet_a_key": "yet_a_value"}
-    assert um.get_key("admin", "wurstbrot") == "lecker"
+class TestService(Service):
+    # A dummy Service just used by the test suite
+    id = "test_service"
+    name = "Test Service"
+    has_blueprint = False
 
 
 @patch("cryptoadvance.specter.services.service_manager.app")
 def test_ServiceManager(empty_data_folder, app):
-    print(app)
-    app.config = Mock()
-    app.config.get.return_value = "prod"
-    specter_mock = Mock()
-    specter_mock.config = Mock()
-    specter_mock.config.get.return_value = ["dummyservice"]
-    assert specter_mock.config.get("services", []) == ["dummyservice"]
+    # app.config = MagicMock()
+    # app.config.get.return_value = "prod"
+    specter_mock = MagicMock()
     specter_mock.data_folder.return_value = empty_data_folder
 
-    sm = ServiceManager(specter_mock, "alpha")
-    scls = sm.get_service_classes()
-    assert len(scls) == 3
-    assert scls[0].id == "dummyservice"
-    assert scls[1].id == "swan"
-    assert scls[2].id == "vaultoro"
-    # assert False
+    service_manager = ServiceManager(specter=specter_mock, devstatus_threshold="alpha")
+    services = service_manager.services
+    assert "swan" in services
 
 
-def test_ServiceApiKeyStorage(empty_data_folder):
+def test_ServiceEncryptedStorage(empty_data_folder):
     specter_mock = Mock()
     specter_mock.config = {"uid": ""}
     specter_mock.user_manager = Mock()
     specter_mock.user_manager.users = [""]
 
-    someuser = User.from_json(
+    user1 = User.from_json(
         user_dict={
-            "id": "someuser",
-            "username": "someuser",
+            "id": "user1",
+            "username": "user1",
             "password": hash_password("somepassword"),
             "config": {},
             "is_admin": False,
@@ -64,32 +53,43 @@ def test_ServiceApiKeyStorage(empty_data_folder):
         },
         specter=specter_mock,
     )
-    someuser._generate_user_secret("muh")
-    saks = ServiceEncryptedStorage(empty_data_folder, someuser)
-    saks.set_service_data("a_service_id", {"somekey": "green"})
-    assert saks.get_service_data("a_service_id") == {"somekey": "green"}
-    assert saks.get_service_data("another_service_id") == None
-    saks.set_service_data("another_service_id", {"somekey": "red"})
-    assert saks.get_service_data("another_service_id") == {"somekey": "red"}
-    saks.set_service_data("a_service_id", {"somekey": "blue"})
-    assert saks.get_service_data("a_service_id") == {"somekey": "blue"}
-    assert saks.get_service_data("another_service_id") == {"somekey": "red"}
+    user2 = User.from_json(
+        user_dict={
+            "id": "user2",
+            "username": "user2",
+            "password": hash_password("somepassword"),
+            "config": {},
+            "is_admin": False,
+            "services": None,
+        },
+        specter=specter_mock,
+    )
+    user1._generate_user_secret("muh")
+    service_storage = ServiceEncryptedStorage(empty_data_folder, user1)
+    service_storage.set_service_data("a_service_id", {"somekey": "green"})
+    assert service_storage.get_service_data("a_service_id") == {"somekey": "green"}
+    assert service_storage.get_service_data("another_service_id") == {}
+
+    service_storage.set_service_data("another_service_id", {"somekey": "red"})
+    assert service_storage.get_service_data("another_service_id") == {"somekey": "red"}
+
+    service_storage.set_service_data("a_service_id", {"somekey": "blue"})
+    assert service_storage.get_service_data("a_service_id") == {"somekey": "blue"}
+    assert service_storage.get_service_data("another_service_id") == {"somekey": "red"}
+
+    # # We expect a call for a user that isn't logged in to fail
+    # service_storage = ServiceEncryptedStorage(empty_data_folder, user2)
 
 
-def test_ServiceApiKeyStorageUserAware(app, empty_data_folder, user_manager):
-    saksua = ServiceApiKeyStorageUserAware(empty_data_folder, user_manager)
+
+def test_ServiceEncryptedStorageManager(app: SpecterFlask, empty_data_folder: TemporaryDirectory, user_manager: UserManager):
     with app.app_context():
-        saksua.set_api_data("a_service_id", {"somekey": "green"})
-        assert saksua.get_api_data("a_service_id") == {"somekey": "green"}
-        assert saksua.get_api_data("another_service_id") == None
-        saksua.set_api_data("another_service_id", {"somekey": "red"})
-        assert saksua.get_api_data("another_service_id") == {"somekey": "red"}
-        saksua.set_api_data("a_service_id", {"somekey": "blue"})
-        assert saksua.get_api_data("a_service_id") == {"somekey": "blue"}
-        assert saksua.get_api_data("another_service_id") == {"somekey": "red"}
+        storage_manager = ServiceEncryptedStorageManager.get_instance()
 
         with app.test_request_context():
             login_user(user_manager.get_user("bob"))
-            assert saksua.get_api_data("a_service_id") == None
-            saksua.set_api_data("a_service_id", {"someotherkey": "green"})
-            assert saksua.get_api_data("a_service_id") == {"someotherkey": "green"}
+            current_user
+            service_data = storage_manager.get_current_user_service_data(service_id=TestService.id)
+            assert service_data == {}
+            storage_manager.update_current_user_service_data(service_id=TestService.id, service_data={"somekey": "green"})
+            assert storage_manager.get_current_user_service_data(service_id=TestService.id) == {"somekey": "green"}

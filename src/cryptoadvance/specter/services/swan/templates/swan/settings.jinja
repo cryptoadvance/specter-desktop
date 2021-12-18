@@ -37,7 +37,7 @@
             
 			</label>&nbsp;{{ _("Withdraw to wallet") }}:<br>
 			<select name="destination_wallet">
-                {% for (wallet_name, wallet) in wallet_manager.wallets.items() %}
+                {% for wallet in wallet_data %}
                     <option value="{{ wallet.alias }}">{{ wallet.name }} ({{ wallet.address_type }})</option>
                 {% endfor %}
 			</select>
