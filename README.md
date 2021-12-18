@@ -59,7 +59,7 @@ As a small team on a tiny budget we are working hard to make Specter better ever
 We are quite overwhelmed with the response, the guides and shout-outs. Thank you!
 Stepan, Ben, Kim, all the fellow Specter-Builders & Moritz
 
-[Donations are welcome](https://btcpay.benkaufman.info/apps/2NBJqJ9GMmy1SPqEtg49bEcKUZqd/pos)
+[Donations are welcome](https://donate.specter.solutions/apps/3k77BAT6zshCGNd3i7gw9WKwXQy1/pos)
 
 ## How to run
 
