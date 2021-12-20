@@ -62,7 +62,22 @@ class NodeManager:
                 default_fullpath=fullpath,
             )
         if not nodes:
+            if os.environ.get("ELM_RPC_USER"):
+                self.add_node(
+                    node_type="ELM",
+                    name="Blockstream Liquid",
+                    autodetect=True,
+                    datadir=get_default_datadir(node_type="ELM"),
+                    user="",
+                    password="",
+                    port=7041,
+                    host="localhost",
+                    protocol="http",
+                    external_node=True,
+                    default_alias=self.DEFAULT_ALIAS,
+                )
             self.add_node(
+                node_type="BTC",
                 name="Bitcoin Core",
                 autodetect=True,
                 datadir=get_default_datadir(),
@@ -118,6 +133,7 @@ class NodeManager:
 
     def add_node(
         self,
+        node_type,
         name,
         autodetect,
         datadir,
@@ -129,6 +145,10 @@ class NodeManager:
         external_node,
         default_alias=None,
     ):
+        """Adding a node. Params:
+        :param node_type: only valid for autodetect. Either BTC or ELM
+
+        """
         if not default_alias:
             node_alias = alias(name)
         else:
@@ -152,6 +172,7 @@ class NodeManager:
             protocol,
             external_node,
             fullpath,
+            node_type,
             self,
         )
         logger.info(f"persisting {node} in add_node")
