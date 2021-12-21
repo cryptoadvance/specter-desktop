@@ -43,11 +43,27 @@
                 <div class="service_desc">{{ service.desc }}</div>
             </div>
         {% endfor %}
+        <div class="service_container">
+            <img src="{{ url_for('static', filename='img/ghost_3d.png') }}" height="80px"><br/>
+            <div class="service_name">???</div>
+            <div class="service_desc">More integrations coming soon!</div>
+        </div>
+        <div class="service_container">
+            <img src="{{ url_for('static', filename='img/ghost.png') }}" height="80px"><br/>
+            <div class="service_name">???</div>
+            <div class="service_desc">More integrations coming soon!</div>
+        </div>
+        <div class="service_container">
+            <img src="{{ url_for('static', filename='img/icon.png') }}" height="80px"><br/>
+            <div class="service_name">???</div>
+            <div class="service_desc">More integrations coming soon!</div>
+        </div>
+
 
         <div class="note endnote">
-            You can opt-in to use these services. All Services are multi-user
-            capable and can be used individual by users.<br>
-            <b>Some services might not respect the Tor-only policy.</b>
+            {{ _("You can opt-in to use these services. All Services are multi-user
+            capable and can be used individual by users.") }}<br>
+            <b>{{ _("Some services might not respect the Tor-only policy.") }}</b>
         </div>
     </div>
 {% endblock %}

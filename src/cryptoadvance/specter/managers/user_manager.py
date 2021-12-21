@@ -80,9 +80,16 @@ class UserManager:
         # get by string
         if user is None:
             user = current_user
+            print(f"current_user: {user}")
+            print(type(user))
         if isinstance(user, str):
             return self.get_by_uid(user)
+
+        if user:
+            print(f"is_anonymous: {user.is_anonymous}")
+
         if user and not user.is_anonymous:
+            print(f"user in self.users: {user in self.users}")
             if user in self.users:
                 return self.get_by_uid(user.id)
         return self.admin

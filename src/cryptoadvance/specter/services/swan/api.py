@@ -143,7 +143,7 @@ def handle_oauth2_auth_callback(request):
     get_access_token(code=code, code_verifier=code_verifier)
 
 
-def authenticated_request(endpoint: str, method: str = "GET", json_payload: dict = None) -> dict:
+def authenticated_request(endpoint: str, method: str = "GET", json_payload: dict = {}) -> dict:
     logger.debug(f"{method} endpoint: {endpoint}")
     if json_payload:
         logger.debug(f"data:\n{json.dumps(json_payload, indent=4)}")
@@ -156,14 +156,9 @@ def authenticated_request(endpoint: str, method: str = "GET", json_payload: dict
     try:
         if method == "GET":
             response = requests.get(api_url + endpoint, headers=auth_header)
-        elif method == "POST":
-            response = requests.post(
-                url=api_url + endpoint,
-                headers=auth_header,
-                json=json_payload,
-            )
-        elif method == "PUT":
-            response = requests.put(
+        elif method in ["POST", "PATCH", "DELETE"]:
+            response = requests.request(
+                method=method,
                 url=api_url + endpoint,
                 headers=auth_header,
                 json=json_payload,
@@ -177,9 +172,46 @@ def authenticated_request(endpoint: str, method: str = "GET", json_payload: dict
 
 
 def update_autowithdrawal_addresses(wallet: Wallet, addresses: List[str]) -> dict:
+    service_data = SwanService.get_current_user_service_data()
+    swan_wallet_id = service_data.get("swan_wallet_id")
+
+    if swan_wallet_id:
+        # We already have a Swan walletId. DEL the existing unused addresses...
+        resp = authenticated_request(
+            endpoint=f"/apps/v20210824/wallets/{swan_wallet_id}/addresses",
+            method="DELETE",
+        )
+        """
+            response:
+            {
+                "entity": "wallet",
+                "item": {
+                    "id": "*****",
+                    "isConfirmed": false,
+                    "displayName": "Specter Desktop \"Demo Wallet\"",
+                    "metadata": {
+                        "oidc": {
+                            "clientId": "specter-dev"
+                        },
+                        "specter_wallet_alias": "demo_wallet"
+                    },
+                    "btcAddresses": []
+                }
+            }
+        """
+        print(json.dumps(resp, indent=4))
+
+        # ...and then submit the new ones.
+        endpoint=f"/apps/v20210824/wallets/{swan_wallet_id}/addresses"
+        method = "PATCH"
+    else:
+        # We don't yet have a Swan walletId. POST to create one.
+        endpoint="/apps/v20210824/wallets"
+        method = "POST"
+
     resp = authenticated_request(
-        endpoint="/apps/v20210824/wallets",
-        method="POST",
+        endpoint=endpoint,
+        method=method,
         json_payload={
             "btcAddresses": [{"address": addr} for addr in addresses],
             "displayName": str(_("Specter Desktop \"{}\"").format(wallet.name)),      # Can't pass a LazyString into json
@@ -280,7 +312,8 @@ def get_wallet_autowithdrawal_addresses(wallet_id: str) -> dict:
             "metadata": {
                 "oidc": {
                     "clientId": "specter-dev"
-                }
+                },
+                "specter_wallet_alias": "seedsigner_demo"
             },
             "btcAddresses": []
         }
@@ -291,5 +324,42 @@ def get_wallet_autowithdrawal_addresses(wallet_id: str) -> dict:
         method="GET",
     )
 
-    print(json.dumps(resp, indent=2))
+    print(json.dumps(resp, indent=4))
+    return resp
+
+
+def get_wallet_details(wallet_id: str) -> dict:
+    """
+    {
+        "entity": "wallet",
+        "item": {
+            "id": "c47e1e83-90a0-45da-ae25-6a0d324b9f29",
+            "isConfirmed": false,
+            "displayName": "Specter autowithdrawal to SeedSigner demo",
+            "metadata": {
+                "oidc": {
+                    "clientId": "specter-dev"
+                },
+                "specter_wallet_alias": "seedsigner_demo"
+            },
+            "btcAddresses": []
+        }
+    }
+    """
+    resp = authenticated_request(
+        endpoint=f"/apps/v20210824/wallets/{wallet_id}",
+        method="GET",
+    )
+
+    print(json.dumps(resp, indent=4))
+    return resp
+
+
+def get_wallets() -> dict:
+    resp = authenticated_request(
+        endpoint=f"/apps/v20210824/wallets",
+        method="GET",
+    )
+
+    print(json.dumps(resp, indent=4))
     return resp

@@ -5,32 +5,13 @@ import pathlib
 import shutil
 import threading
 import traceback
-import hashlib
-from collections import OrderedDict
-from io import BytesIO
 
 from ..helpers import alias, load_jsons, is_liquid, add_dicts
-from ..persistence import delete_file, delete_folder
+from ..persistence import delete_folder
 from ..rpc import RpcError, get_default_datadir
 from ..specter_error import SpecterError
-from ..util.descriptor import AddChecksum
-from ..wallet import Wallet, purposes
+from ..wallet import Wallet, purposes   # TODO: `purposes` unused here, but other files rely on this import
 from ..liquid.wallet import LWallet
-
-from embit import ec
-from embit.descriptor import Descriptor
-from embit.liquid.descriptor import LDescriptor
-from embit.descriptor.checksum import add_checksum
-
-from embit import ec
-from embit.descriptor import Descriptor
-from embit.liquid.descriptor import LDescriptor
-from embit.descriptor.checksum import add_checksum
-
-from embit import ec
-from embit.descriptor import Descriptor
-from embit.liquid.descriptor import LDescriptor
-from embit.descriptor.checksum import add_checksum
 
 logger = logging.getLogger(__name__)
 
@@ -368,22 +349,29 @@ class WalletManager:
         fetch_transactions=True,
         validate_merkle_proofs=False,
         current_blockheight=None,
+        service_id=None,
     ):
         """Returns a list of all transactions in all wallets loaded in the wallet_manager.
         #Parameters:
         #    fetch_transactions (bool): Update the TxList CSV caching by fetching transactions from the Bitcoin RPC
         #    validate_merkle_proofs (bool): Return transactions with validated_blockhash
         #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
+        #    service_id (str): Filters results for just the specified Service
         """
+        # Nested comprehensions:
         txlists = [
             [
+                # Inner comprehension: Return each tx and all its attrs as a list of dicts...
+                # TODO: Simplify this by adding an `as_dict` option to `Wallet.txlist()`?
                 {**tx, "wallet_alias": wallet.alias}
                 for tx in wallet.txlist(
                     fetch_transactions=fetch_transactions,
                     validate_merkle_proofs=validate_merkle_proofs,
                     current_blockheight=current_blockheight,
+                    service_id=service_id
                 )
             ]
+            # Outer comprehension: ...from each wallet, each returning their own tx list.
             for wallet in self.wallets.values()
         ]
         result = []
@@ -410,6 +398,17 @@ class WalletManager:
             for tx in txlist:
                 result.append(tx)
         return list(reversed(sorted(result, key=lambda tx: tx["time"])))
+
+    def full_addresses_info(self, is_change: bool = False, service_id: str = None):
+        """ Mimics full_txlist in concept, but is really only expected to be used for
+            retrieving all addresses across all Wallets that are associated with a
+            Service.
+            
+            Not currently used yet. """
+        addresses_info = []
+        for wallet_alias, wallet in self.wallets.items():
+            addresses_info.extend(wallet.addresses_info(is_change=is_change, service_id=service_id, include_wallet_alias=True))
+        return addresses_info
 
     def delete(self, specter):
         """Deletes all the wallets"""

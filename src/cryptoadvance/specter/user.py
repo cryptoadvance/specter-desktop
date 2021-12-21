@@ -63,7 +63,7 @@ class User(UserMixin):
         specter,
         encrypted_user_secret=None,
         is_admin=False,
-        services=None,
+        services=[],
     ):
         self.id = id
         self.username = username
@@ -95,7 +95,7 @@ class User(UserMixin):
                 "config": {},
                 "specter": specter,
                 "encrypted_user_secret": user_dict.get("encrypted_user_secret", None),
-                "services": user_dict.get("services", None),
+                "services": user_dict.get("services", []),
             }
             if not user_dict["is_admin"]:
                 user_args["config"] = user_dict["config"]

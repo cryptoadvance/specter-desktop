@@ -999,6 +999,7 @@ class Wallet:
         fetch_transactions=True,
         validate_merkle_proofs=False,
         current_blockheight=None,
+        service_id: str = None,
     ):
         """Returns a list of all transactions in the wallet's CSV cache - processed with information to display in the UI in the transactions list
         #Parameters:
@@ -1075,6 +1076,10 @@ class Wallet:
                     tx["label"] = [self.getlabel(address) for address in tx["address"]]
                 else:
                     tx["label"] = None
+                
+                if service_id and ("service_id" not in tx or tx["service_id"] != service_id):
+                    # We only want `service_id`-related txs returned
+                    continue
 
                 # TODO: validate for unique txids only
                 tx["validated_blockhash"] = ""  # default is assume unvalidated
@@ -1984,10 +1989,14 @@ class Wallet:
         self.save_pending_psbt(psbt)
         return psbt.to_dict()
 
-    def addresses_info(self, is_change):
+    def addresses_info(self, is_change: bool = False, service_id: str = None, include_wallet_alias: bool = False):
         """Create a list of (receive or change) addresses from cache and retrieve the
         related UTXO and amount.
-        Parameters: is_change: if true, return the change addresses else the receive ones.
+        Parameters: 
+            * is_change: if true, return the change addresses else the receive ones.
+            * service_id: just return addresses associated for the given Service
+            * include_wallet_alias: adds `wallet_alias` to each output (useful when this
+                is called by WalletManager.full_addresses_info() across all Wallets)
         """
 
         addresses_info = []
@@ -1997,7 +2006,6 @@ class Wallet:
         ]
 
         for addr in addresses_cache:
-
             addr_utxo = 0
             addr_amount = 0
 
@@ -2006,19 +2014,25 @@ class Wallet:
             ]:
                 addr_amount = addr_amount + utxo["amount"]
                 addr_utxo = addr_utxo + 1
+            
+            if service_id and ("service_id" not in addr or addr["service_id"] != service_id):
+                # Filter this address out
+                continue
 
-            addresses_info.append(
-                {
-                    "index": addr.index,
-                    "address": addr.address,
-                    "label": addr.label,
-                    "amount": addr_amount,
-                    "used": bool(addr.used),
-                    "utxo": addr_utxo,
-                    "type": "change" if is_change else "receive",
-                    "service_id": addr.service_id,
-                }
-            )
+            addr_info = {
+                "index": addr.index,
+                "address": addr.address,
+                "label": addr.label,
+                "amount": addr_amount,
+                "used": bool(addr.used),
+                "utxo": addr_utxo,
+                "type": "change" if is_change else "receive",
+                "service_id": addr.service_id,
+            }
+            if include_wallet_alias:
+                addr_info["wallet_alias"] = self.alias
+
+            addresses_info.append(addr_info)
 
         return addresses_info
 

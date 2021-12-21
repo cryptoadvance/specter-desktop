@@ -1,19 +1,49 @@
 {% extends "swan/components/swan_tab.jinja" %}
 {% block title %}Balances{% endblock %}
-{% set tab = 'withdraw' %}
+{% set tab = 'withdrawals' %}
 {% block content %}
 
-    <h2>Total Withdrawn from Swan</h2>
-    <div>
-        0 BTC
+    <style>
+        h1 {
+            margin-top: 1em;
+        }
+        .linked_wallet {
+            margin-bottom: 3em;
+        }
+        .footnote {
+            margin-top: 2em;
+            font-style: italic;
+            font-size: 0.85em;
+            color: #999;
+        }
+    </style>
+
+    <h1>Swan Auto-Withdrawals to Specter</h1>
+
+    <div class="linked_wallet">Linked wallet: <a class="explorer-link" href="{{ url_for('wallets_endpoint.addresses', wallet_alias=wallet.alias) }}">{{ wallet.name }}</a></div>
+
+    <div class="table-holder">
+        {% include "includes/services-data.html" %}
+        {% include "includes/address-label.html" %}
+        {% include "includes/tx-row.html" %}
+        {% include "includes/tx-data.html" %}
+        {% include "includes/explorer-link.html" %}
+        {% include "includes/tx-table.html" %}
+        <tx-table
+            {% if specter.price_check and (specter.alt_rate and specter.alt_symbol) %}
+                price="{{ specter.alt_rate }}"
+                symbol="{{ specter.alt_symbol }}"
+            {% endif %}
+            btc-unit="{{ specter.unit }}"
+            hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
+            service-id="{{ swan_id }}"
+            type="txlist"
+        />
     </div>
+    <div id="tx-popup" class="hidden"></div>
 
-    <h2>Reserved Withdrawal Addresses</h2>
-
-    <div class="reserved_address_container">
-    {% for addr_obj in reserved_addrs %}
-        <div class="reserved_address">{{ addr_obj.address }}</div>
-    {% endfor %}
+    <div class="footnote">
+        {{ _("<sup>*</sup>Only shows the withdrawals that this Specter instance is aware of.") }}
     </div>
 
 {% endblock %}

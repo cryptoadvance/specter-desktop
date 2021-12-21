@@ -33,10 +33,10 @@ class SwanService(Service):
 
     @classmethod
     def is_access_token_valid(cls):
-        api_data = cls.get_current_user_service_data()
-        if not api_data or not api_data.get("expires"):
+        service_data = cls.get_current_user_service_data()
+        if not service_data or not service_data.get("expires"):
             return False
-        return api_data["expires"] > datetime.datetime.now(tz=pytz.utc).timestamp()
+        return service_data["expires"] > datetime.datetime.now(tz=pytz.utc).timestamp()
 
     @classmethod
     def get_associated_wallet(cls) -> Wallet:
@@ -46,6 +46,7 @@ class SwanService(Service):
             return
         
         return app.specter.wallet_manager.get_by_alias(service_data["wallet"])
+
 
 
     @classmethod
@@ -92,6 +93,9 @@ class SwanService(Service):
     @classmethod
     def reserve_addresses(cls, wallet: Wallet, label: str = None, num_addresses: int = 10) -> List[str]:
         """
+            Reserves addresses for the Service, sets the associated Wallet, and
+            removes any prior reserved addresses in the previous associated Wallet.
+
             Overrides base classmethod to add Swan-specific Wallet management.
         """
         # Update Addresses as reserved/associated with Swan in our Wallet
@@ -102,3 +106,52 @@ class SwanService(Service):
         cls.set_associated_wallet(wallet)
 
         return addresses
+
+
+    @classmethod
+    def sync_swan_data(cls):
+        from . import api as swan_api
+        """
+        Called when the user completes the OAuth2 link with Swan.
+
+        Specter data:
+        * ServiceEncryptedStorage:
+            - "swan_wallet_id": Swan API's internal notion of a wallet, keyed on `walletId`
+            - "wallet": Specter Wallet.alias that's currently configured to receive auto-withdrawals
+        
+        Swan API data:
+        * `/wallets`
+            - "walletId": Should be the same as "swan_wallet_id" above.
+            - "metadata: {
+                "specter_wallet_alias": Should be the same as "wallet" (Specter Wallet.alias) above
+            }
+
+        User could be:
+        * A first-time Specter-Swan integration (so no local or Swan API wallet data)
+        * Re-linking on a previously linked Specter instance (some/all existing data)
+        * Linking a new Specter instance but had previously linked on a different Specter instance; the previously linked Specter wallet may or may not be present (need to resync data)
+        """
+        service_data = cls.get_current_user_service_data()
+        if "swan_wallet_id" in service_data:
+            # This user has previously/currently linked to Swan on this instance
+            swan_wallet_id = service_data.get("swan_wallet_id")
+
+            # Confirm that the Swan walletId exists
+            details = swan_api.get_wallet_details(swan_wallet_id)
+            if details and "item" in details and "metadata" in details["item"] and "specter_wallet_alias" in details["item"]["metadata"]:
+                wallet_alias = details["item"]["metadata"]["specter_wallet_alias"]
+                if wallet_alias in app.specter.wallet_manager.wallets:
+                    # All is good; we've matched Swan's wallet data with a Specter Wallet that we recognize.
+                    return
+                else:
+                    # Swan is out of sync with Specter; the Wallet.alias we had been using no longer exists.
+                    # TODO: Alert the user and route them to settings to select a new Wallet?
+                    raise Exception(f"Swan configured to send to unknown wallet: {wallet_alias}")
+            else:
+                # Specter's `swan_wallet_id` is out of sync; doesn't exist on Swan's side
+                del service_data["swan_wallet_id"]
+                cls.set_current_user_service_data(service_data)
+        else:
+            # This Specter instance has no idea if there might already be Wallet data on the Swan side
+            pass
+

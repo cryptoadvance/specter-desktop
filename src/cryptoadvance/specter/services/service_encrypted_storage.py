@@ -63,6 +63,9 @@ class ServiceEncryptedStorage(GenericDataManager):
 
     def update_service_data(self, service_id: str, data: dict, autosave: bool = True):
         # Add or update fields; does not remove existing fields
+        if service_id not in self.data:
+            # Initialize a blank entry for this new service
+            self.set_service_data(service_id, data={})
         cur_data = json.loads(self.data[service_id])
         cur_data.update(data)
         self.data[service_id] = json.dumps(cur_data)

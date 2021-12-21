@@ -85,20 +85,31 @@
                     let address = jsonResponse.address;
                     let walletLink = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
                     let addressInfoHTML = `
-                    <qr-code style="margin: auto;" value="bitcoin:${address}" width="256"></qr-code><br>
-                    <table class="address-data-table">
-                    <tbody>
-                    <tr><td>{{ _("Address") }}:</td><td style="word-break: break-all;"><explorer-link data-type="address" data-value="${address}"></explorer-link></td></tr>
-                    <tr><td>{{ _("Label") }}:</td><td><address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}" data-label="${this.label}" data-service-id="${this.serviceId}"></address-label><br></td></tr>
-                    <tr><td>{{ _("From wallet") }}:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
-                    <tr><td>{{ _("Address index") }}:</td><td>${addressIndex}</td></tr>
-                    <tr><td>{{ _("Is change address") }}:</td><td>${isChange ? '{{ _("Yes") }}' : '{{ _("No") }}'}</td></tr>
-                    <tr><td>{{ _("Used") }}:</td><td>${this.used ? 'Yes' : 'No'}</td></tr>
-                    <tr><td>{{ _("UTXO count") }}:</td><td>${this.utxo}</td></tr>
-                    <tr><td>{{ _("Amount") }}:</td><td>${this.amount} <span class="amount-price note ${this.amountPrice ? '' : 'hidden'}">${this.amountPrice}</span></td></tr>
-                    </tbody>
-                    </table>
-                    `
+                        <qr-code style="margin: auto;" value="bitcoin:${address}" width="256"></qr-code><br>
+                        <table class="address-data-table">
+                        <tbody>
+                        <tr><td>{{ _("Address") }}:</td><td style="word-break: break-all;"><explorer-link data-type="address" data-value="${address}"></explorer-link></td></tr>
+                        <tr><td>{{ _("Label") }}:</td><td><address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}" data-label="${this.label}" data-service-id="${this.serviceId}"></address-label><br></td></tr>
+                        <tr><td>{{ _("From wallet") }}:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
+                        <tr><td>{{ _("Address index") }}:</td><td>${addressIndex}</td></tr>
+                        <tr><td>{{ _("Is change address") }}:</td><td>${isChange ? '{{ _("Yes") }}' : '{{ _("No") }}'}</td></tr>
+                        <tr><td>{{ _("Used") }}:</td><td>${this.used ? 'Yes' : 'No'}</td></tr>
+                        <tr><td>{{ _("UTXO count") }}:</td><td>${this.utxo}</td></tr>
+                        <tr><td>{{ _("Amount") }}:</td><td>${this.amount} <span class="amount-price note ${this.amountPrice ? '' : 'hidden'}">${this.amountPrice}</span></td></tr>
+                        <tr><td>{{ _("Service") }}:</td><td>
+                    `;
+                    if (this.serviceId != "null") {
+                        // `services` obj made globally available in services-data.html
+                        addressInfoHTML += `<img class="service-icon" src='/svc/${this.serviceId}/static/${services[this.serviceId].icon}'>${services[this.serviceId].name}`;
+                    } else {
+                        let associateServiceUrl = `{{ url_for('services_endpoint.associate_addr', wallet_alias='WALLET_ALIAS', address='ADDRESS') }}`.replace('WALLET_ALIAS', this.wallet).replace('ADDRESS', jsonResponse.address);
+                        addressInfoHTML += `<button type="button" class="btn" onclick="location.href='${associateServiceUrl}';">{{ _("Associate with a service") }}</button>`
+                    }
+                    addressInfoHTML += `
+                        </td></tr>
+                        </tbody>
+                        </table>
+                    `;
 
                     if (this.isVerifyHwi) { 
                         addressInfoHTML += `

@@ -1120,7 +1120,7 @@ def set_label(wallet_alias):
 @login_required
 @app.csrf.exempt
 def txlist(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     idx = int(request.form.get("idx", 0))
     limit = int(request.form.get("limit", 100))
     search = request.form.get("search", None)
@@ -1167,10 +1167,12 @@ def wallets_overview_txlist():
     sortby = request.form.get("sortby", None)
     sortdir = request.form.get("sortdir", "asc")
     fetch_transactions = request.form.get("fetch_transactions", False)
+    service_id = request.form.get("service_id")
     txlist = app.specter.wallet_manager.full_txlist(
         fetch_transactions=fetch_transactions,
         validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs", False),
         current_blockheight=app.specter.info["blocks"],
+        service_id=service_id,
     )
     
     return process_txlist(
@@ -1210,7 +1212,7 @@ def addresses_list(wallet_alias):
                 (index, address, label, used, utxo, amount)
         sortdir: 'asc' (ascending) or 'desc' (descending) order
         addressType: the current tab address type ('receive' or 'change')"""
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
 
     idx = int(request.form.get("idx", 0))
     limit = int(request.form.get("limit", 100))

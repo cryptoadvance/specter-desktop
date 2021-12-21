@@ -1,12 +1,7 @@
-import base64
-import datetime
-import hashlib
 import json
 import logging
-import pytz
-import requests
-import secrets
 
+from decimal import Decimal
 from flask import redirect, render_template, request, url_for, flash
 from flask import current_app as app
 from flask_babel import lazy_gettext as _
@@ -64,22 +59,19 @@ def index():
 @login_required
 @accesstoken_required
 def withdrawals():
-    # Gather Specter's internal info 
+    # The wallet currently configured for ongoing autowithdrawals
     wallet: Wallet = SwanService.get_associated_wallet()
-    print(wallet)
-    reserved_addrs = []
-    if wallet:
-        reserved_addrs = wallet.get_associated_addresses(service_id=SwanService.id, unused_only=True)
-        print(reserved_addrs)
     
     return render_template(
         "swan/withdrawals.jinja",
-        wallets=[wallet],
-        reserved_addrs=reserved_addrs,
+        # txlist=swan_txs,
+        wallet=wallet,
+        services=app.specter.service_manager.services,
+        swan_id=SwanService.id,
     )
 
 
-@swan_endpoint.route("/settings")
+@swan_endpoint.route("/settings", methods=["GET"])
 @login_required
 @accesstoken_required
 def settings():
@@ -87,14 +79,17 @@ def settings():
     if not SwanService.is_access_token_valid():
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.oauth2_start", is_relink=1))
 
+    associated_wallet: Wallet = SwanService.get_associated_wallet()
+
+    # Get the user's Wallet objs, sorted by Wallet.name
     wallet_names = sorted(current_user.wallet_manager.wallets.keys())
-    print(wallet_names)
     wallets = [current_user.wallet_manager.wallets[name] for name in wallet_names]
-    print(wallets)
-    wallet_data = [{"alias": w.alias, "name": w.name, "address_type": w.address_type} for w in wallets]
+    # wallet_data = [{"alias": w.alias, "name": w.name, "address_type": w.address_type} for w in wallets]
+
     return render_template(
         "swan/settings.jinja",
-        wallet_data=wallet_data,
+        associated_wallet=associated_wallet,
+        wallets=wallets,
         cookies=request.cookies,
     )
 
@@ -105,14 +100,10 @@ def settings():
 def update_autowithdrawal():
     print(request.form)
     threshold = request.form["threshold"]
-    destination_wallet = request.form["destination_wallet"]
-    wallet = current_user.wallet_manager.get_by_alias(destination_wallet)
+    destination_wallet_alias = request.form["destination_wallet"]
+    wallet = current_user.wallet_manager.get_by_alias(destination_wallet_alias)
 
-    # Remove any unused reserved addresses for this service in all of this User's wallets
-    for wallet_alias, cur_wallet in app.specter.wallet_manager.wallets.items():
-        SwanService.unreserve_addresses(wallet=cur_wallet)
-
-    # Now claim new ones
+    # Reserve auto-withdrawal addresses for this Wallet
     addr_list = SwanService.reserve_addresses(wallet=wallet, num_addresses=10)
 
     try:
@@ -163,7 +154,13 @@ def oauth2_start(is_relink=0):
     )
 
 
+"""
+    Note: the callback from Swan will be treated by Flask as an AnonymousUserMixin request
+    but we need the user logged in and their user_secret decrypted. So we must require
+    @login_required here which will interrupt the return flow with the login prompt.
+"""
 @swan_endpoint.route("/oauth2/callback")
+@login_required
 def oauth2_auth():
     if request.args.get("error"):
         logger.error(
@@ -177,14 +174,19 @@ def oauth2_auth():
             ),  # Slightly misusing the traceback field
         )
     
+    user = app.specter.user_manager.get_user()
+
     try:
         from . import api as swan_api
         swan_api.handle_oauth2_auth_callback(request)
 
+        # Add the Service to the User's profile (will now appear in sidebar)
         user = app.specter.user_manager.get_user()
-
         if SwanService.id not in user.services:
             user.services.append(SwanService.id)
+
+        # Sync Specter with any previous Swan-Specter integrations
+
 
         return redirect(url_for(".oauth2_success"))
     except Exception as e:
@@ -221,7 +223,8 @@ def oauth2_delete_token():
     
     SwanService.set_current_user_service_data({})
 
-    current_user.services.remove(SwanService.id)
+    if SwanService.id in current_user.services:
+        current_user.services.remove(SwanService.id)
 
     url = url_for(f"{SwanService.get_blueprint_name()}.index")
     return redirect(url_for(f"{SwanService.get_blueprint_name()}.index"))
