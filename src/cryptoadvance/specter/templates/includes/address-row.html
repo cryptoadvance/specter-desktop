@@ -72,7 +72,7 @@
             this.hideSensitiveInfo = this.getAttribute('data-hide-sensitive-info') == 'true';
 
             this.index.innerText = `#${this.addressData.index}`;
-            this.address.innerText = this.hideSensitiveInfo ? '###########################' : this.addressData.address.substring(0, 10) + "...";
+            this.address.innerHTML = this.hideSensitiveInfo ? '###########################' : this.addressData.address.substring(0, 10) + "&hellip;";
             if (!this.hideSensitiveInfo) {
                 this.address.onclick = () => {
                     showAddressData(this.amountText.innerText, this.amountPrice.innerText, this.addressData, this.wallet);

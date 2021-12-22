@@ -1,4 +1,6 @@
-import random, time
+import random
+import time
+
 from flask import (
     Flask,
     Blueprint,
@@ -196,6 +198,20 @@ def redirect_login(request):
         response = redirect(request.form["next"])
     else:
         response = redirect(url_for("index"))
+    
+    # Check the user's Service integrations
+    # TODO: Can these be done in a background process so we don't slow down the user experience?    
+    from cryptoadvance.specter.services.swan.api import SwanApiRefreshTokenException  # TODO: Remove this import after Swan exits Beta testing
+    for service_id in app.specter.user_manager.get_user().services:
+        try:
+            service_cls = app.specter.service_manager.get_service(service_id)
+            service_cls.update()
+        except SwanApiRefreshTokenException as e:  # TODO: Remove after Swan exits Beta
+            # Expected failure during Beta testing since we have no refresh_token; remove after Swan exits Beta
+            flash(_("Swan auto-withdrawal needs more addresses. Go to Services -> Swan -> Settings"), "error")
+        except Exception as e:
+            app.logger.exception(e)
+
     return response
 
 

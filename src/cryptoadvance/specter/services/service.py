@@ -141,14 +141,15 @@ class Service:
         annotations_storage.save()
 
 
-    def is_active(self):
-        return self.active
+    # def is_active(self):
+    #     return self.active
 
 
-    def set_active(self, value):
-        self.active = value
+    # def set_active(self, value):
+    #     self.active = value
 
 
+    @classmethod
     def update(self):
         """
             Called by backend periodic process to keep Service in sync with any remote

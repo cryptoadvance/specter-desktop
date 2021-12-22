@@ -4,6 +4,42 @@
 {% block content %}
     <br/>
     <style>
+        {# TODO: Remove these classes after Swan exits Beta #}
+        .big_option {
+            display: inline-block;
+            width: 14em;
+            padding: 1em;
+            vertical-align: middle;
+            height: 3.5em;
+            border: 4px solid var(--cmap-border);
+            border-radius: 0.5em;
+            background-color: var(--cmap-bg-lighter);
+            font-size: 1.5em;
+            margin: 1em;
+            position: relative;
+            
+        }
+        .big_option:hover {
+            background-color: var(--cmap-bg-lightest);
+            border: 4px solid var(--main-color);
+            cursor: pointer;
+        }
+
+        .big_option_text {
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            -ms-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+        }
+
+        .instructions {
+            color: #999;
+            font-style: italic;
+        }
+        {# TODO: End Remove #}
+
         .css-1rbd7t8 {
             box-sizing: border-box;
             margin: 60px 0px 24px;
@@ -25,9 +61,21 @@
             font-size: 16px;
             display: flex;
         }
-
     </style>
 
+    {# TODO: Remove `if` logic after Swan exits Beta #}
+    {% if relink_url %}
+        <div class="card center" style="width: auto; margin: 40px;">
+            <div>Re-link your Swan account in order to enable auto-withdrawal changes.</div>
+            <div class="big_option" onclick="location.href='{{ relink_url }}';">
+                <div class="big_option_text">
+                    Relink&nbsp;your&nbsp;account
+                </div>
+            </div>
+
+            <div class="instructions">{{ _("Specter's link to Swan expires after an hour during Beta testing") }}</div>
+        </div>
+    {% else %}
     <div class="card">
         <h1>{{ _("Configure Auto-Withdrawal") }}</h1>
         <br>
@@ -65,6 +113,9 @@
     <br/>
     <br/>
     <br/>
+
+    {% endif %} {# TODO: Remove `if` logic after Swan exits Beta #}
+
 
     <div class="card">
         <h1>{{ _("Remove Swan Integration") }}</h1>

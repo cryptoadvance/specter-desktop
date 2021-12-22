@@ -73,24 +73,24 @@ def withdrawals():
 
 @swan_endpoint.route("/settings", methods=["GET"])
 @login_required
-@accesstoken_required
 def settings():
     # TODO: Remove this check after refresh_token support is added
+    relink_url = None
     if not SwanService.is_access_token_valid():
-        return redirect(url_for(f"{SwanService.get_blueprint_name()}.oauth2_start", is_relink=1))
+        relink_url = swan_api.get_oauth2_start_url()
 
     associated_wallet: Wallet = SwanService.get_associated_wallet()
 
     # Get the user's Wallet objs, sorted by Wallet.name
     wallet_names = sorted(current_user.wallet_manager.wallets.keys())
     wallets = [current_user.wallet_manager.wallets[name] for name in wallet_names]
-    # wallet_data = [{"alias": w.alias, "name": w.name, "address_type": w.address_type} for w in wallets]
 
     return render_template(
         "swan/settings.jinja",
         associated_wallet=associated_wallet,
         wallets=wallets,
         cookies=request.cookies,
+        relink_url=relink_url,
     )
 
 
@@ -103,16 +103,8 @@ def update_autowithdrawal():
     destination_wallet_alias = request.form["destination_wallet"]
     wallet = current_user.wallet_manager.get_by_alias(destination_wallet_alias)
 
-    # Reserve auto-withdrawal addresses for this Wallet
-    addr_list = SwanService.reserve_addresses(wallet=wallet, num_addresses=10)
-
     try:
-        # Send the new list to Swan
-        swan_api.update_autowithdrawal_addresses(wallet=wallet, addresses=addr_list)
-
-        # TODO: Send the autowithdrawal settings with the Swan walletId
-
-
+        SwanService.set_autowithdrawal_settings(wallet=wallet, btc_threshold=threshold)
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
     except swan_api.SwanServiceApiException as e:
         logger.exception(e)
@@ -136,8 +128,6 @@ def oauth2_start(is_relink=0):
     Set up the Swan API integration by requesting our initial access_token and
     refresh_token.
     """
-    from . import api as swan_api
-
     # Do we have a token already?
     if SwanService.is_access_token_valid():
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.settings"))
@@ -177,7 +167,6 @@ def oauth2_auth():
     user = app.specter.user_manager.get_user()
 
     try:
-        from . import api as swan_api
         swan_api.handle_oauth2_auth_callback(request)
 
         # Add the Service to the User's profile (will now appear in sidebar)

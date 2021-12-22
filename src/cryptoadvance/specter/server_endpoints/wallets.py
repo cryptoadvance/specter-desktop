@@ -428,7 +428,7 @@ def history(wallet_alias):
 @login_required
 @check_wallet
 def receive(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if request.method == "POST":
         action = request.form["action"]
         if action == "newaddress":

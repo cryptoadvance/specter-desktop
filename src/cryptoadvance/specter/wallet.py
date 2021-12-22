@@ -1353,6 +1353,10 @@ class Wallet:
         if change:
             self.change_address = address
         else:
+            addr_obj = self.get_address_obj(address)
+            if addr_obj["service_id"]:
+                # Skip addresses reserved for a Service
+                return self.getnewaddress(change, save)
             self.address = address
         if save:
             self.save_to_file()

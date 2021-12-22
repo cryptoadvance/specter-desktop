@@ -132,7 +132,6 @@ def init_app(app, hwibridge=False, specter=None):
 
     @login_manager.user_loader
     def user_loader(id):
-        print(f"user_loader: id: {id}")
         return specter.user_manager.get_user(id)
 
     def login(id, password: str = None):

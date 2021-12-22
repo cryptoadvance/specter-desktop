@@ -20,7 +20,8 @@
             background-color: var(--cmap-bg-lightest);
         }
         .address {
-            overflow: auto;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .service-icon {
             margin-top: -5px;
@@ -102,7 +103,7 @@
 
 
             // Set txid
-            this.txid.innerText = this.hideSensitiveInfo ? '############################################' : this.tx.txid.slice(0,9) + '...';
+            this.txid.innerHTML = this.hideSensitiveInfo ? '############################################' : this.tx.txid.slice(0,11) + '&hellip;';
             if (!this.hideSensitiveInfo) {
                 this.txid.onclick = () => {
                     showTxData(
