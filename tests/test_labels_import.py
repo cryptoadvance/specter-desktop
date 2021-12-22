@@ -119,6 +119,7 @@ def test_import_address_labels(
         assert wallet._addresses[test_address]["label"] is None
         assert len(wallet._addresses) == number_of_addresses
 
+        # Test it with a txid label
         wallet.import_address_labels(json.dumps({txid: "txid label"}))
         assert wallet._addresses[test_address]["label"] == "txid label"
 
