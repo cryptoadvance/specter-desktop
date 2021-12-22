@@ -175,7 +175,8 @@ def oauth2_auth():
             user.services.append(SwanService.id)
 
         # Sync Specter with any previous Swan-Specter integrations
-
+        # TODO: This still needs more testing; it's irrelevant for first-time Swan authorizations anyway
+        # SwanService.sync_swan_data()
 
         return redirect(url_for(".oauth2_success"))
     except Exception as e:
