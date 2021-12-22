@@ -57,6 +57,15 @@ from .service_encrypted_storage import ServiceEncryptedStorageManager
 ServiceEncryptedStorageManager.get_instance().get_current_user_service_data(service_id=some_service_id)
 ```
 
+As a further convenience, the `Service` base class itself encapsulates `Service`-aware access to this per-`User` encrypted storage:
+```
+@classmethod
+def get_current_user_service_data(cls) -> dict:
+    return ServiceEncryptedStorageManager.get_instance().get_current_user_service_data(service_id=cls.id)
+```
+
+Whenever possible, external code should not directly access these `Service`-related support classes but rather should ask for them through the `Service` class.
+
 
 ### `ServiceAnnotationsStorage`
 Annotations are any address-specific or transaction-specific data from a `Service` that we might want to present to the user. Example: a `Service` that integrates with a onchain storefront would have product/order data associated with a utxo. That additional data could be imported by the `Service` and stored as an annotation. This annotation data could then be displayed to the user when viewing the details for that particular address or tx.
@@ -68,3 +77,40 @@ _Note: current `Service` implementations have not yet needed this feature so dis
 
 ### `controller.py`
 The minimal url routes for `Service` selection and management.
+
+
+## Implementation Class Structure
+Child implementation classes (e.g. `SwanService`) should be self-contained within their own subdirectory in `services`. e.g.:
+```
+cryptoadvance.specter.services.swan
+```
+
+Each implementation must have the following required components:
+```
+/static
+/templates/<service_id>
+controller.py
+service.py
+```
+
+This makes each implementation its own Flask `Blueprint`.
+
+### `/static`
+Because of Flask `Blueprint` imports, you can just add static files here and reference them (e.g. "static/img/blah.png") as if they were in the main `/static` files root dir.
+
+### `/templates/<service_id>`
+Again, Flask `Blueprint`s import the `/templates` directory as-is, but to avoid namespace collisions on the template files (e.g. `/templates/index.html`) they should be contained within a subdirectory named with the `Service.id` (e.g. `/templates/swan/index.html`)
+
+### `Service` Implementation Class
+Must inherit from `Service` and provide any additional functionality needed. The `Service` implementation class is meant to be the main hub for all things related to that particular `Service`. In general, external code would ideally only interact with the `Service` implementation class (e.g. )
+
+### `controller.py`
+Flask `Blueprint` for any endpoints required by this `Service`.
+
+The coding philosophy should be to keep this code as simple as possible and keep most or all of the actual logic in the `Service` implementation class.
+
+### Additional Files
+The `SwanService` also includes an `api.py` to separate its back-end API calls from the user-facing `controller.py` endpoints. In general this is recommended to provide a clear separation.
+
+An individual `Service` implementation may add whatever additional files or classes it needs.
+
