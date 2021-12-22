@@ -30,7 +30,7 @@
 					</qr-scanner>
 					<file-uploader id="psbt-uploader" image_src="{{ url_for('static', filename='img/file.svg') }}">
 						<span slot="description">Upload file</span>
-						<tool-tip slot="tool-tip" title="{{ _("Using a file") }}">{{ _("The file should contain either base64 or binary encoded PSBT.") }}</tool-tip>
+						<tool-tip slot="tool-tip" title="{{ _('Using a file') }}">{{ _("The file should contain either base64 or binary encoded PSBT.") }}</tool-tip>
 					</file-uploader>
 				</div>
 				<button type="submit" name="action" value="importpsbt" class="btn centered" style="margin-top: 20px;">{{ _("Import transaction") }}</button>
