@@ -152,7 +152,8 @@ def general():
                         f"Wallet {wallet['alias']} already exists, skipping creation"
                     )
                 write_wallet(wallet)
-                app.specter.wallet_manager.update(allow_threading=False)
+                app.specter.wallet_manager.update(use_threading=False)
+
                 try:
                     wallet_obj = app.specter.wallet_manager.get_by_alias(
                         wallet["alias"]
