@@ -46,6 +46,7 @@ class ServiceManager:
                     f"Service Directory cryptoadvance.specter.services.{item} does not have a service implementation file! Skipping!"
                 )
                 continue
+            service_id = item
             for attribute_name in dir(module):
                 attribute = getattr(module, attribute_name)
 
@@ -60,7 +61,7 @@ class ServiceManager:
                             <= compare_map[clazz.devstatus]
                         ):
                             # First configure the service
-                            self.configure_service_for_module(module)
+                            self.configure_service_for_module(service_id)
                             # Now activate it
                             self._services[clazz.id] = clazz(
                                 active=clazz.id
@@ -84,30 +85,49 @@ class ServiceManager:
         logger.info("----> finished service discovery <----")
 
     @classmethod
-    def configure_service_for_module(cls, module):
+    def configure_service_for_module(cls, service_id):
         """searches for ConfigClasses in the module-Directory and merges its config in the global config"""
-        current_config_clazz = app.config.get(
-            "SPECTER_CONFIGURATION_CLASS_FULLNAME"
-        ).split(".")[-1]
+        module = import_module(f"cryptoadvance.specter.services.{service_id}.config")
+        config_clazz_name = app.config.get("SPECTER_CONFIGURATION_CLASS_FULLNAME")
+        config_clazz_slug = config_clazz_name.split(".")[-1]
         found_config = False
+        potential_config_classes = []
         for attribute_name in dir(module):
             attribute = getattr(module, attribute_name)
             if isclass(attribute):
                 clazz = attribute
+                potential_config_classes.append(clazz)
                 if clazz.__name__.endswith(
-                    current_config_clazz
+                    config_clazz_slug
                 ):  # e.g. BaseConfig or DevelopmentConfig
-                    logger.info(f"Loading Service-specific configuration from {clazz}")
                     found_config = True
-                    for key in dir(clazz):
-                        if key.isupper():
-                            if app.config.get(key):
-                                raise Exception(
-                                    f"Service {module} tries to override existing key {key}"
-                                )
-                            app.config[key] = getattr(clazz, key)
+                    cls.import_config(clazz)
+
         if not found_config:
-            logger.warning(f"Could not found a configuration for Service {module}")
+            logger.warning(
+                f"Could not find a configuration for Service {module} ... trying parent-classes of main-config"
+            )
+            config_module = import_module(".".join(config_clazz_name.split(".")[0:-1]))
+            config_clazz = getattr(config_module, config_clazz_slug)
+            config_candidate_class = config_clazz.__bases__[0]
+            while config_candidate_class != object:
+                for clazz in potential_config_classes:
+                    if clazz.__name__.endswith(config_candidate_class.__name__):
+                        cls.import_config(clazz)
+                config_candidate_class = config_candidate_class.__bases__[0]
+            logger.warning(f"Could not find a configuration for Service {module}")
+
+    @classmethod
+    def import_config(cls, clazz):
+        logger.info(f"Loading Service-specific configuration from {clazz}")
+        for key in dir(clazz):
+            if key.isupper():
+                if app.config.get(key):
+                    raise Exception(
+                        f"Config {clazz} tries to override existing key {key}"
+                    )
+                app.config[key] = getattr(clazz, key)
+                logger.debug(f"setting {key} = {app.config[key]}")
 
     @property
     def services(self):
