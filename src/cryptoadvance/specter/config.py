@@ -138,6 +138,10 @@ class BaseConfig(object):
     # One of "prod", "beta" or "alpha". Every Service below will be not available
     SERVICES_DEVSTATUS_THRESHOLD = os.getenv("SERVICES_DEVSTATUS_THRESHOLD", "prod")
 
+    # This is just a placeholder in order to be aware that you cannot set this
+    # It'll be filled up with the fully qualified Classname the Config is derived from
+    SPECTER_CONFIGURATION_CLASS_FULLNAME = None
+
 
 class DevelopmentConfig(BaseConfig):
     # https://stackoverflow.com/questions/22463939/demystify-flask-app-secret-key

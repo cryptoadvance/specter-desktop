@@ -1,10 +1,11 @@
 import logging
-
-from flask import Blueprint, render_template, redirect, url_for, flash
-from flask import current_app as app, request
-from flask_login import current_user, login_required
 from functools import wraps
 
+from flask import Blueprint
+from flask import current_app as app
+from flask import flash, redirect, render_template, request, url_for
+from flask_babel import lazy_gettext as _
+from flask_login import current_user, login_required
 
 logger = logging.getLogger(__name__)
 
@@ -23,16 +24,20 @@ services_endpoint = Blueprint(
 def user_secret_decrypted_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if not current_user.is_user_secret_decrypted:
+        if app.config.get("LOGIN_DISABLED"):
             flash(
-                "Must login again to enable protected Services-related data"
+                _(
+                    'User Authentication is mandatory to use Services. Please switch to "Password Protection"'
+                )
             )
+            return redirect(url_for(f"settings_endpoint.auth"))
+        if not current_user.is_user_secret_decrypted:
+            flash(_("Must login again to enable protected Services-related data"))
             return redirect(url_for(f"auth_endpoint.logout"))
         else:
             return func(*args, **kwargs)
 
     return wrapper
-
 
 
 @services_endpoint.route("/choose", methods=["GET"])
@@ -46,8 +51,9 @@ def choose():
     )
 
 
-
-@services_endpoint.route("/associate_addr/<wallet_alias>/<address>", methods=["GET", "POST"])
+@services_endpoint.route(
+    "/associate_addr/<wallet_alias>/<address>", methods=["GET", "POST"]
+)
 @login_required
 @user_secret_decrypted_required
 def associate_addr(wallet_alias, address):
@@ -58,7 +64,9 @@ def associate_addr(wallet_alias, address):
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
         service_cls = app.specter.service_manager.get_service(service_id)
         service_cls.reserve_address(wallet=wallet, address=address)
-        return redirect(url_for('wallets_endpoint.addresses', wallet_alias=wallet_alias))
+        return redirect(
+            url_for("wallets_endpoint.addresses", wallet_alias=wallet_alias)
+        )
 
     addr_obj = wallet.get_address_obj(address=address)
 
@@ -72,6 +80,5 @@ def associate_addr(wallet_alias, address):
         specter=app.specter,
         services=services,
         wallet=wallet,
-        addr_obj=addr_obj
+        addr_obj=addr_obj,
     )
-

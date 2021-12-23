@@ -28,6 +28,16 @@ Defines the base `Service` class that all service integrations must inherit from
 
 Each `Service` must specify a unique `Service.id` that is just a short string (e.g. "swan"). This is the main identifier throughout the code.
 
+### `Service` Configuration
+In order to separate the service-configuration from the main-configuration, you can specify your config in a file called e.g. `config.py`. It's structure is very similiar to the specter-wide `config.py`, e.g.:
+```
+class BaseConfig():
+    SWAN_API_URL="https://dev-api.swanbitcoin.com"
+
+class ProductionConfig(BaseConfig):
+    SWAN_API_URL="https://api.swanbitcoin.com"
+```
+In your code, you can access the correct value as in any other flask-code, like `api_url = app.config.get("SWAN_API_URL")`.
 
 ### `ServiceManager`
 Simple manager that contains all `Service`s. Performs the `Service` auto-discovery at startup and filters availability by each `Service`'s release level (i.e. alpha, beta, etc).

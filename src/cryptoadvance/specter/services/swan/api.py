@@ -8,6 +8,7 @@ import requests
 import secrets
 
 from decimal import Decimal
+from flask import current_app as app
 from flask_babel import lazy_gettext as _
 from typing import List
 
@@ -22,9 +23,8 @@ logger = logging.getLogger(__name__)
 client_id = "specter-dev"
 client_secret = "BcetcVcmueWf5P3UPJnHhCBMQ49p38fhzYwM7t3DJGzsXSjm89dDR5URE46SY69j"
 code_verifier = "64fRjTuy6SKqdC1wSoInUNxX65dQUhVVKTqZXuQ7dqw"
-api_url = "https://dev-api.swanbitcoin.com"
+api_url = app.config.get("SWAN_API_URL")
 # api_url = "https://pblsw-api.ngrok.io"
-
 
 
 class SwanApiException(Exception):
@@ -54,7 +54,7 @@ def get_oauth2_start_url():
     flow_url = f"{api_url}/oidc/auth?"
     query_params = [
         "client_id=specter-dev",
-        "redirect_uri=http://localhost:25441/svc/swan/oauth2/callback",     # TODO: Will localhost work in all usage contexts (e.g. standalone app)?
+        "redirect_uri=http://localhost:25441/svc/swan/oauth2/callback",  # TODO: Will localhost work in all usage contexts (e.g. standalone app)?
         "response_type=code",
         "response_mode=query",
         f"code_challenge={code_challenge}",
@@ -69,7 +69,7 @@ def get_oauth2_start_url():
 
 def get_access_token(code: str = None, code_verifier: str = None):
     """
-    If code and code_verifier are specified, this is our initial request for an 
+    If code and code_verifier are specified, this is our initial request for an
     access_token and, more importantly, the refresh_token.
 
     If code is None, use the refresh_token to get a new short-lived access_token.
@@ -92,14 +92,18 @@ def get_access_token(code: str = None, code_verifier: str = None):
 
         # Use the refresh_token to get a new access_token
         if SwanService.REFRESH_TOKEN not in service_data:
-            raise SwanApiRefreshTokenException("access_token is expired but we don't have a refresh_token")
-        
-        payload = {
-            "grant_type": "refresh_token",
-            # "redirect_uri":   # Necessary?
-            "refresh_token": service_data[SwanService.REFRESH_TOKEN],
-            "scope": "offline_access",      # Possibly get an updated refresh_token back
-        },
+            raise SwanApiRefreshTokenException(
+                "access_token is expired but we don't have a refresh_token"
+            )
+
+        payload = (
+            {
+                "grant_type": "refresh_token",
+                # "redirect_uri":   # Necessary?
+                "refresh_token": service_data[SwanService.REFRESH_TOKEN],
+                "scope": "offline_access",  # Possibly get an updated refresh_token back
+            },
+        )
 
     response = requests.post(
         f"{api_url}/oidc/token",
@@ -120,7 +124,10 @@ def get_access_token(code: str = None, code_verifier: str = None):
     if resp.get("access_token"):
         new_api_data = {
             SwanService.ACCESS_TOKEN: resp["access_token"],
-            SwanService.ACCESS_TOKEN_EXPIRES: (datetime.datetime.now(tz=pytz.utc) + datetime.timedelta(seconds=resp["expires_in"])).timestamp(),
+            SwanService.ACCESS_TOKEN_EXPIRES: (
+                datetime.datetime.now(tz=pytz.utc)
+                + datetime.timedelta(seconds=resp["expires_in"])
+            ).timestamp(),
         }
         if "refresh_token" in resp:
             new_api_data[SwanService.REFRESH_TOKEN] = resp["refresh_token"]
@@ -141,7 +148,9 @@ def handle_oauth2_auth_callback(request):
     get_access_token(code=code, code_verifier=code_verifier)
 
 
-def authenticated_request(endpoint: str, method: str = "GET", json_payload: dict = {}) -> dict:
+def authenticated_request(
+    endpoint: str, method: str = "GET", json_payload: dict = {}
+) -> dict:
     logger.debug(f"{method} endpoint: {endpoint}")
     if json_payload:
         logger.debug(f"data:\n{json.dumps(json_payload, indent=4)}")
@@ -188,7 +197,9 @@ def get_autowithdrawal_addresses(swan_wallet_id: str = None) -> dict:
     }
     """
     if not swan_wallet_id:
-        swan_wallet_id = SwanService.get_current_user_service_data().get(SwanService.SWAN_WALLET_ID)
+        swan_wallet_id = SwanService.get_current_user_service_data().get(
+            SwanService.SWAN_WALLET_ID
+        )
 
     resp = authenticated_request(
         endpoint=f"/apps/v20210824/wallets/{swan_wallet_id}?full=true",
@@ -199,24 +210,28 @@ def get_autowithdrawal_addresses(swan_wallet_id: str = None) -> dict:
     return resp
 
 
-def update_autowithdrawal_addresses(specter_wallet_name: str, specter_wallet_alias: str, addresses: List[str]) -> dict:
+def update_autowithdrawal_addresses(
+    specter_wallet_name: str, specter_wallet_alias: str, addresses: List[str]
+) -> dict:
     """
-        * If SWAN_WALLET_ID is known, any existing unused addresses are cleared.
-        * If there is no known SWAN_WALLET_ID, we `POST` to create an initial Swan wallet and store the resulting SWAN_WALLET_ID.
-        * Sends the list of new addresses for SWAN_WALLET_ID.
+    * If SWAN_WALLET_ID is known, any existing unused addresses are cleared.
+    * If there is no known SWAN_WALLET_ID, we `POST` to create an initial Swan wallet and store the resulting SWAN_WALLET_ID.
+    * Sends the list of new addresses for SWAN_WALLET_ID.
     """
-    swan_wallet_id = SwanService.get_current_user_service_data().get(SwanService.SWAN_WALLET_ID)
+    swan_wallet_id = SwanService.get_current_user_service_data().get(
+        SwanService.SWAN_WALLET_ID
+    )
 
     if swan_wallet_id:
         # We already have a Swan walletId. DELETE the existing unused addresses...
         delete_autowithdrawal_addresses(swan_wallet_id)
 
         # ...and then append the new ones.
-        endpoint=f"/apps/v20210824/wallets/{swan_wallet_id}/addresses"
+        endpoint = f"/apps/v20210824/wallets/{swan_wallet_id}/addresses"
         method = "PATCH"
     else:
         # We don't yet have a Swan walletId. POST to create one.
-        endpoint="/apps/v20210824/wallets"
+        endpoint = "/apps/v20210824/wallets"
         method = "POST"
 
     resp = authenticated_request(
@@ -224,11 +239,13 @@ def update_autowithdrawal_addresses(specter_wallet_name: str, specter_wallet_ali
         method=method,
         json_payload={
             "btcAddresses": [{"address": addr} for addr in addresses],
-            "displayName": str(_("Specter Desktop \"{}\"").format(specter_wallet_name)),      # Can't pass a LazyString into json
+            "displayName": str(
+                _('Specter Desktop "{}"').format(specter_wallet_name)
+            ),  # Can't pass a LazyString into json
             "metadata": {
                 "specter_wallet_alias": specter_wallet_alias,
             },
-        }
+        },
     )
 
     """
@@ -257,14 +274,18 @@ def update_autowithdrawal_addresses(specter_wallet_name: str, specter_wallet_ali
 
             # Save the swan_wallet_id in the user's persistent Service settings
             logger.debug(f"Updating the Swan wallet id to {swan_wallet_id}")
-            SwanService.update_current_user_service_data({SwanService.SWAN_WALLET_ID: swan_wallet_id})
+            SwanService.update_current_user_service_data(
+                {SwanService.SWAN_WALLET_ID: swan_wallet_id}
+            )
     else:
-        raise SwanApiException(f"No 'id' returned for the new/updated wallet: {json.dumps(resp, indent=4)}")
+        raise SwanApiException(
+            f"No 'id' returned for the new/updated wallet: {json.dumps(resp, indent=4)}"
+        )
 
 
 def delete_autowithdrawal_addresses(swan_wallet_id: str):
     """
-        Deletes all unused autowithdrawal addresses from the specified SWAN_WALLET_ID
+    Deletes all unused autowithdrawal addresses from the specified SWAN_WALLET_ID
     """
     resp = authenticated_request(
         endpoint=f"/apps/v20210824/wallets/{swan_wallet_id}/addresses",
@@ -276,7 +297,7 @@ def delete_autowithdrawal_addresses(swan_wallet_id: str):
 
 def get_autowithdrawal_info() -> dict:
     """
-        Not currently used
+    Not currently used
     """
     resp = authenticated_request(
         endpoint="/apps/v20210824/automatic-withdrawal",
@@ -288,22 +309,20 @@ def get_autowithdrawal_info() -> dict:
 
 def set_autowithdrawal(btc_threshold: Decimal) -> dict:
     """
-        0 == Weekly
+    0 == Weekly
     """
-    swan_wallet_id = SwanService.get_current_user_service_data().get(SwanService.SWAN_WALLET_ID)
+    swan_wallet_id = SwanService.get_current_user_service_data().get(
+        SwanService.SWAN_WALLET_ID
+    )
 
     resp = authenticated_request(
         endpoint="/apps/v20210824/automatic-withdrawal",
         method="POST",
-        json_payload={
-            "walletId": swan_wallet_id,
-            "btcThreshold": btc_threshold
-        }
+        json_payload={"walletId": swan_wallet_id, "btcThreshold": btc_threshold},
     )
     logger.debug(json.dumps(resp, indent=4))
 
     return resp
-
 
 
 def get_wallet_details(swan_wallet_id: str) -> dict:
@@ -333,11 +352,10 @@ def get_wallet_details(swan_wallet_id: str) -> dict:
     return resp
 
 
-
 def get_wallets() -> dict:
     """
-        Return all Swan wallet entries. Should only be one per Specter-Swan user combo (but can be more due
-        to testing/debugging, calling `/wallets` POST more than once, etc.)
+    Return all Swan wallet entries. Should only be one per Specter-Swan user combo (but can be more due
+    to testing/debugging, calling `/wallets` POST more than once, etc.)
     """
     resp = authenticated_request(
         endpoint=f"/apps/v20210824/wallets",
