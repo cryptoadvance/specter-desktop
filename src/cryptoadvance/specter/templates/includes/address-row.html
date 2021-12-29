@@ -15,7 +15,7 @@
     </style>
     <tr class="address-row">
         <td class="index"></td>
-        <td class="scroll address">
+        <td class="address">
             <span class="explorer-link"></span>
         </td>
         <td class="label optional"></td>
@@ -72,7 +72,7 @@
             this.hideSensitiveInfo = this.getAttribute('data-hide-sensitive-info') == 'true';
 
             this.index.innerText = `#${this.addressData.index}`;
-            this.address.innerHTML = this.hideSensitiveInfo ? '###########################' : this.addressData.address.substring(0, 10) + "&hellip;";
+            this.address.innerHTML = this.hideSensitiveInfo ? '###########################' : this.addressData.address.substring(0, 7) + "&hellip;" + this.addressData.address.substring(this.addressData.address.length - 7);
             if (!this.hideSensitiveInfo) {
                 this.address.onclick = () => {
                     showAddressData(this.amountText.innerText, this.amountPrice.innerText, this.addressData, this.wallet);
