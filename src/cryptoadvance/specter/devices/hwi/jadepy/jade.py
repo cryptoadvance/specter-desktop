@@ -1,11 +1,14 @@
 import cbor
+import hashlib
 import json
 import time
 import logging
 import collections
+import collections.abc
 import traceback
-import requests
 import random
+import sys
+
 
 # JadeError
 from .jade_error import JadeError
@@ -14,10 +17,7 @@ from .jade_error import JadeError
 from .jade_serial import JadeSerialImpl
 from .jade_tcp import JadeTCPImpl
 
-# Not used in HWI
-# Removed to reduce transitive dependencies
 # from .jade_ble import JadeBleImpl
-
 
 # Default serial connection
 DEFAULT_SERIAL_DEVICE = "/dev/ttyUSB0"
@@ -32,6 +32,57 @@ DEFAULT_BLE_SCAN_TIMEOUT = 60
 # 'jade' logger
 logger = logging.getLogger("jade")
 device_logger = logging.getLogger("jade-device")
+
+
+# Helper to map bytes-like types into hex-strings
+# to make for prettier message-logging
+def _hexlify(data):
+    if data is None:
+        return None
+    elif isinstance(data, bytes) or isinstance(data, bytearray):
+        return data.hex()
+    elif isinstance(data, list):
+        return [_hexlify(item) for item in data]
+    elif isinstance(data, dict):
+        return {k: _hexlify(v) for k, v in data.items()}
+    else:
+        return data
+
+
+# Simple http request function which can be used when a Jade response
+# requires an external http call.
+# The default implementation used in JadeAPI._jadeRpc() below.
+# NOTE: Only available if the 'requests' dependency is available.
+try:
+    import requests
+
+    def _http_request(params):
+        logger.debug("_http_request: {}".format(params))
+
+        # Use the first non-onion url
+        url = [url for url in params["urls"] if not url.endswith(".onion")][0]
+        if params["method"] == "GET":
+            assert "data" not in params, "Cannot pass body to requests.get"
+            f = requests.get(url)
+        elif params["method"] == "POST":
+            data = json.dumps(params["data"])
+            f = requests.post(url, data)
+
+        logger.debug("http_request received reply: {}".format(f.text))
+
+        if f.status_code != 200:
+            logger.error("http error {} : {}".format(f.status_code, f.text))
+            raise ValueError(f.status_code)
+
+        assert params["accept"] == "json"
+        f = f.json()
+
+        return {"body": f}
+
+
+except ImportError as e:
+    logger.warn(e)
+    logger.warn("Default _http_requests() function will not be available")
 
 
 #
@@ -88,33 +139,6 @@ class JadeAPI:
     def drain(self):
         self.jade.drain()
 
-    # Simple http request function which can be used when a Jade response requires
-    # an external http call.
-    # The default implementation used in _jadeRpc() below.
-    @staticmethod
-    def _http_request(params):
-        logger.debug("_http_request: {}".format(params))
-
-        # Use the first non-onion url
-        url = [url for url in params["urls"] if not url.endswith(".onion")][0]
-        if params["method"] == "GET":
-            assert "data" not in params, "Cannot pass body to requests.get"
-            f = requests.get(url)
-        elif params["method"] == "POST":
-            data = json.dumps(params["data"])
-            f = requests.post(url, data)
-
-        logger.debug("http_request received reply: {}".format(f.text))
-
-        if f.status_code != 200:
-            logger.error("http error {} : {}".format(f.status_code, f.text))
-            raise ValueError(f.status_code)
-
-        assert params["accept"] == "json"
-        f = f.json()
-
-        return {"body": f}
-
     # Raise any returned error as an exception
     @staticmethod
     def _get_result_or_raise_error(reply):
@@ -143,9 +167,14 @@ class JadeAPI:
         # code below acts as a dumb proxy and simply makes the http request and
         # forwards the response back to the Jade.
         # Note: the function called to make the http-request can be passed in,
-        # or defaults to the simple _http_request() function above.
-        if isinstance(result, collections.Mapping) and "http_request" in result:
-            make_http_request = http_request_fn or self._http_request
+        # or it can default to the simple _http_request() function above, if available.
+        if isinstance(result, collections.abc.Mapping) and "http_request" in result:
+            this_module = sys.modules[__name__]
+            make_http_request = http_request_fn or getattr(
+                this_module, "_http_request", None
+            )
+            assert make_http_request, "Default _http_request() function not available"
+
             http_request = result["http_request"]
             http_response = make_http_request(http_request["params"])
             return self._jadeRpc(
@@ -169,18 +198,21 @@ class JadeAPI:
     # OTA new firmware
     def ota_update(self, fwcmp, fwlen, chunksize, cb):
 
-        compressed_size = len(fwcmp)
+        cmphasher = hashlib.sha256()
+        cmphasher.update(fwcmp)
+        cmphash = cmphasher.digest()
+        cmplen = len(fwcmp)
 
         # Initiate OTA
-        params = {"fwsize": fwlen, "cmpsize": compressed_size}
+        params = {"fwsize": fwlen, "cmpsize": cmplen, "cmphash": cmphash}
 
         result = self._jadeRpc("ota", params)
         assert result is True
 
         # Write binary chunks
         written = 0
-        while written < compressed_size:
-            remaining = compressed_size - written
+        while written < cmplen:
+            remaining = cmplen - written
             length = min(remaining, chunksize)
             chunk = bytes(fwcmp[written : written + length])
             result = self._jadeRpc("ota_data", chunk)
@@ -188,23 +220,27 @@ class JadeAPI:
             written += length
 
             if cb:
-                cb(written, compressed_size)
+                cb(written, cmplen)
 
         # All binary data uploaded
         return self._jadeRpc("ota_complete")
 
     # Run (debug) healthcheck on the hw
     def run_remote_selfcheck(self):
-        return self._jadeRpc("debug_selfcheck")
+        return self._jadeRpc("debug_selfcheck", long_timeout=True)
 
     # Set the (debug) mnemonic
-    def set_mnemonic(self, mnemonic):
-        params = {"mnemonic": mnemonic}
+    def set_mnemonic(self, mnemonic, passphrase=None, temporary_wallet=False):
+        params = {
+            "mnemonic": mnemonic,
+            "passphrase": passphrase,
+            "temporary_wallet": temporary_wallet,
+        }
         return self._jadeRpc("debug_set_mnemonic", params)
 
     # Set the (debug) seed
-    def set_seed(self, seed):
-        params = {"seed": seed}
+    def set_seed(self, seed, temporary_wallet=False):
+        params = {"seed": seed, "temporary_wallet": temporary_wallet}
         return self._jadeRpc("debug_set_mnemonic", params)
 
     # Override the pinserver details on the hww
@@ -240,11 +276,35 @@ class JadeAPI:
         params = {"network": network, "path": path}
         return self._jadeRpc("get_xpub", params)
 
+    # Get registered multisig wallets
+    def get_registered_multisigs(self):
+        return self._jadeRpc("get_registered_multisigs")
+
+    # Register a multisig wallet
+    def register_multisig(
+        self, network, multisig_name, variant, sorted_keys, threshold, signers
+    ):
+        params = {
+            "network": network,
+            "multisig_name": multisig_name,
+            "descriptor": {
+                "variant": variant,
+                "sorted": sorted_keys,
+                "threshold": threshold,
+                "signers": signers,
+            },
+        }
+        return self._jadeRpc("register_multisig", params)
+
     # Get receive-address for parameters
     def get_receive_address(
-        self, *args, recovery_xpub=None, csv_blocks=0, variant=None
+        self, *args, recovery_xpub=None, csv_blocks=0, variant=None, multisig_name=None
     ):
-        if variant is not None:
+        if multisig_name is not None:
+            assert len(args) == 2
+            keys = ["network", "paths", "multisig_name"]
+            args += (multisig_name,)
+        elif variant is not None:
             assert len(args) == 2
             keys = ["network", "path", "variant"]
             args += (variant,)
@@ -300,9 +360,13 @@ class JadeAPI:
 
     # Get the shared secret to unblind a tx, given the receiving script on
     # our side and the pubkey of the sender (sometimes called "nonce" in
-    # Liquid)
-    def get_shared_nonce(self, script, their_pubkey):
-        params = {"script": script, "their_pubkey": their_pubkey}
+    # Liquid).  Optionally fetch our blinding pubkey also.
+    def get_shared_nonce(self, script, their_pubkey, include_pubkey=False):
+        params = {
+            "script": script,
+            "their_pubkey": their_pubkey,
+            "include_pubkey": include_pubkey,
+        }
         return self._jadeRpc("get_shared_nonce", params)
 
     # Get a "trusted" blinding factor to blind an output. Normally the blinding
@@ -424,6 +488,7 @@ class JadeAPI:
             "use_ae_signatures": use_ae_signatures,
             "change": change,
         }
+
         reply = self._jadeRpc("sign_liquid_tx", params, str(base_id))
         assert reply
 
@@ -442,6 +507,7 @@ class JadeAPI:
             "use_ae_signatures": use_ae_signatures,
             "change": change,
         }
+
         reply = self._jadeRpc("sign_tx", params, str(base_id))
         assert reply
 
@@ -497,15 +563,15 @@ class JadeInterface:
             )
         return JadeInterface(impl)
 
-    @staticmethod
-    def create_ble(device_name=None, serial_number=None, scan_timeout=None, loop=None):
-        impl = JadeBleImpl(
-            device_name or DEFAULT_BLE_DEVICE_NAME,
-            serial_number or DEFAULT_BLE_SERIAL_NUMBER,
-            scan_timeout or DEFAULT_BLE_SCAN_TIMEOUT,
-            loop=loop,
-        )
-        return JadeInterface(impl)
+    #    @staticmethod
+    #    def create_ble(device_name=None, serial_number=None, scan_timeout=None, loop=None):
+    #        impl = JadeBleImpl(
+    #            device_name or DEFAULT_BLE_DEVICE_NAME,
+    #            serial_number or DEFAULT_BLE_SERIAL_NUMBER,
+    #            scan_timeout or DEFAULT_BLE_SCAN_TIMEOUT,
+    #            loop=loop,
+    #        )
+    #        return JadeInterface(impl)
 
     def connect(self):
         self.impl.connect()
@@ -557,7 +623,9 @@ class JadeInterface:
             )
             logger.info(msg)
         else:
-            logger.info("Sending: {} as cbor of size {}".format(request, len_dump))
+            logger.info(
+                "Sending: {} as cbor of size {}".format(_hexlify(request), len_dump)
+            )
         return dump
 
     def write(self, bytes_):
@@ -586,7 +654,7 @@ class JadeInterface:
 
             # A message response (to a prior request)
             if "id" in message:
-                logger.info("Received msg: {}".format(message))
+                logger.info("Received msg: {}".format(_hexlify(message)))
                 return message
 
             # A log message - handle as normal
