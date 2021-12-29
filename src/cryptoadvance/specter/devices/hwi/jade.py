@@ -22,7 +22,7 @@ from hwilib.common import (
     AddressType,
     Chain,
 )
-from hwilib.key import ExtendedKey, parse_path
+from hwilib.key import ExtendedKey, parse_path, KeyOriginInfo, is_hardened
 from hwilib.psbt import PSBT
 from hwilib.tx import CTransaction
 from hwilib._script import (
@@ -30,6 +30,7 @@ from hwilib._script import (
     is_p2wpkh,
     is_p2wsh,
     is_witness,
+    parse_multisig,
 )
 
 import logging
@@ -125,7 +126,8 @@ class JadeClient(HardwareWalletClient):
     ) -> str:
         # Concatenate script-type, threshold, and all signers fingerprints and derivation paths
         summary = type + "|" + str(threshold) + "|"
-        for fingerprint, path in signers:
+        # sort by fingerprint
+        for fingerprint, path in sorted(signers, key=lambda s: s[0]):
             summary += fingerprint.hex() + "|" + str(path) + "|"
 
         # Hash it, get the first 6-bytes as hex, prepend with 'hwi'
@@ -176,104 +178,296 @@ class JadeClient(HardwareWalletClient):
     def sign_tx(self, tx: PSBT) -> PSBT:
         """
         Sign a transaction with the Blockstream Jade.
-
-        - Jade can only be used to sign single-key inputs at this time.   It cannot sign multisig or arbitrary scripts.
         """
+        # Helper to get multisig record for change output
+        def _parse_signers(
+            hd_keypath_origins: List[KeyOriginInfo],
+        ) -> Tuple[List[Tuple[bytes, Sequence[int]]], List[Sequence[int]]]:
+            # Split the path at the last hardened path element
+            def _split_at_last_hardened_element(
+                path: Sequence[int],
+            ) -> Tuple[Sequence[int], Sequence[int]]:
+                for i in range(len(path), 0, -1):
+                    if is_hardened(path[i - 1]):
+                        return (path[:i], path[i:])
+                return ([], path)
+
+            signers = []
+            paths = []
+            for origin in hd_keypath_origins:
+                prefix, suffix = _split_at_last_hardened_element(origin.path)
+                signers.append((origin.fingerprint, prefix))
+                paths.append(suffix)
+            return signers, paths
 
         c_txn = CTransaction(tx.tx)
         master_fp = self.get_master_fingerprint()
-        signing_pubkeys = [None] * len(tx.inputs)
+        signing_singlesigs = False
+        signing_multisigs = {}
+        need_to_sign = True
 
-        # Signing input details
-        jade_inputs = []
-        for n_vin, (txin, psbtin) in py_enumerate(zip(c_txn.vin, tx.inputs)):
-            # Get bip32 path to use to sign, if required for this input
-            path = None
-            for pubkey, origin in psbtin.hd_keypaths.items():
-                if origin.fingerprint == master_fp and len(origin.path) > 0:
-                    # Our input
-                    if (
-                        pubkey not in psbtin.partial_sigs
-                        or not psbtin.partial_sigs[pubkey]
-                    ):
-                        # hw to sign this input - it is not already signed
-                        signing_pubkeys[n_vin] = pubkey
-                        path = origin.path
+        while need_to_sign:
+            signing_pubkeys: List[Optional[bytes]] = [None] * len(tx.inputs)
+            need_to_sign = False
 
-            # Get the tx and prevout/scriptcode
-            utxo = None
-            input_txn_bytes = None
-            if psbtin.witness_utxo:
-                utxo = psbtin.witness_utxo
-            if psbtin.non_witness_utxo:
-                if txin.prevout.hash != psbtin.non_witness_utxo.sha256:
-                    raise BadArgumentError(
-                        "Input {} has a non_witness_utxo with the wrong hash".format(
-                            n_vin
-                        )
+            # Signing input details
+            jade_inputs = []
+            for n_vin, (txin, psbtin) in py_enumerate(zip(c_txn.vin, tx.inputs)):
+                # Get bip32 path to use to sign, if required for this input
+                path = None
+                multisig_input = len(psbtin.hd_keypaths) > 1
+                for pubkey, origin in psbtin.hd_keypaths.items():
+                    if origin.fingerprint == master_fp and len(origin.path) > 0:
+                        if not multisig_input:
+                            signing_singlesigs = True
+
+                        if psbtin.partial_sigs.get(pubkey, None) is None:
+                            # hw to sign this input - it is not already signed
+                            if signing_pubkeys[n_vin] is None:
+                                signing_pubkeys[n_vin] = pubkey
+                                path = origin.path
+                            else:
+                                # Additional signature needed for this input - ie. a multisig where this wallet is
+                                # multiple signers?  Clumsy, but just loop and go through the signing procedure again.
+                                need_to_sign = True
+
+                # Get the tx and prevout/scriptcode
+                utxo = None
+                p2sh = False
+                input_txn_bytes = None
+                if psbtin.witness_utxo:
+                    utxo = psbtin.witness_utxo
+                if psbtin.non_witness_utxo:
+                    utxo = psbtin.non_witness_utxo.vout[txin.prevout.n]
+                    input_txn_bytes = (
+                        psbtin.non_witness_utxo.serialize_without_witness()
                     )
-                utxo = psbtin.non_witness_utxo.vout[txin.prevout.n]
-                input_txn_bytes = psbtin.non_witness_utxo.serialize_without_witness()
+                if utxo is None:
+                    raise Exception(
+                        "PSBT is missing input utxo information, cannot sign"
+                    )
+                scriptcode = utxo.scriptPubKey
 
-            scriptcode = utxo.scriptPubKey
+                if is_p2sh(scriptcode):
+                    scriptcode = psbtin.redeem_script
+                    p2sh = True
 
-            if is_p2sh(scriptcode):
-                scriptcode = psbtin.redeem_script
+                witness_input, witness_version, witness_program = is_witness(scriptcode)
 
-            witness_input, witness_version, witness_program = is_witness(scriptcode)
+                if witness_input:
+                    if is_p2wsh(scriptcode):
+                        scriptcode = psbtin.witness_script
+                    elif is_p2wpkh(scriptcode):
+                        scriptcode = b"\x76\xa9\x14" + witness_program + b"\x88\xac"
+                    else:
+                        continue
 
-            if witness_input:
-                if is_p2wsh(scriptcode):
-                    scriptcode = psbtin.witness_script
-                elif is_p2wpkh(scriptcode):
-                    scriptcode = b"\x76\xa9\x14" + witness_program + b"\x88\xac"
-                else:
-                    scriptcode = None
+                # If we are signing a multisig input, deduce the potential
+                # registration details and cache as a potential change wallet
+                if multisig_input and path and scriptcode and (p2sh or witness_input):
+                    parsed = parse_multisig(scriptcode)
+                    if parsed:
+                        addr_type = (
+                            AddressType.LEGACY
+                            if not witness_input
+                            else AddressType.WIT
+                            if not p2sh
+                            else AddressType.SH_WIT
+                        )
+                        script_variant = self._convertAddrType(addr_type, multisig=True)
+                        threshold = parsed[0]
 
-            # Build the input and add to the list
-            jade_inputs.append(
-                {
-                    "is_witness": witness_input,
-                    "input_tx": input_txn_bytes,
-                    "script": scriptcode,
-                    "path": path,
+                        pubkeys = parsed[1]
+                        hd_keypath_origins = [
+                            psbtin.hd_keypaths[pubkey] for pubkey in pubkeys
+                        ]
+
+                        signers, paths = _parse_signers(hd_keypath_origins)
+                        multisig_name = self._get_multisig_name(
+                            script_variant, threshold, signers
+                        )
+                        signing_multisigs[multisig_name] = (
+                            script_variant,
+                            threshold,
+                            signers,
+                        )
+
+                # Build the input and add to the list - include some host entropy for AE sigs (although we won't verify)
+                jade_inputs.append(
+                    {
+                        "is_witness": witness_input,
+                        "input_tx": input_txn_bytes,
+                        "script": scriptcode,
+                        "path": path,
+                        "ae_host_entropy": os.urandom(32),
+                        "ae_host_commitment": os.urandom(32),
+                    }
+                )
+
+            # Change output details
+            # This is optional, in that if we send it Jade validates the change output script
+            # and the user need not confirm that ouptut.  If not passed the change output must
+            # be confirmed by the user on the hwwallet screen, like any other spend output.
+            change: List[Optional[Dict[str, Any]]] = [None] * len(tx.outputs)
+
+            # If signing multisig inputs, get registered multisigs details in case we
+            # see any multisig outputs which may be change which we can auto-validate.
+            # ie. filter speculative 'signing multisigs' to ones actually registered on the hw
+            candidate_multisigs = {}
+
+            if signing_multisigs:
+                # register multisig if xpubs are known
+                if tx.xpub and len(signing_multisigs) == 1:
+                    msigname = list(signing_multisigs.keys())[0]
+                    signers = []
+                    origins = []
+                    for xpub in tx.xpub:
+                        hd = bip32.HDKey.parse(xpub)
+                        origin = tx.xpub[xpub]
+                        origins.append((origin.fingerprint, origin.path))
+
+                        signers.append(
+                            {
+                                "fingerprint": origin.fingerprint,
+                                "derivation": origin.path,
+                                "xpub": str(hd),
+                                "path": [],
+                            }
+                        )
+
+                    # Get a deterministic name for this multisig wallet
+                    script_variant = signing_multisigs[msigname][0]
+                    thresh = signing_multisigs[msigname][1]
+                    num_signers = signing_multisigs[msigname][2]
+                    multisig_name = self._get_multisig_name(
+                        script_variant, thresh, origins
+                    )
+                    # stupid sanity check of the fingerprints and origins
+                    if multisig_name == msigname:
+                        # Need to ensure this multisig wallet is registered first
+                        # (Note: 're-registering' is a no-op)
+                        self.jade.register_multisig(
+                            self._network(),
+                            multisig_name,
+                            script_variant,
+                            True,  # always use sorted
+                            thresh,
+                            signers,
+                        )
+                #
+                registered_multisigs = self.jade.get_registered_multisigs()
+                signing_multisigs = {
+                    k: v
+                    for k, v in signing_multisigs.items()
+                    if k in registered_multisigs
+                    and registered_multisigs[k]["variant"] == v[0]
+                    and registered_multisigs[k]["threshold"] == v[1]
+                    and registered_multisigs[k]["num_signers"] == len(v[2])
                 }
+
+            # Look at every output...
+            for n_vout, (txout, psbtout) in py_enumerate(zip(c_txn.vout, tx.outputs)):
+                num_signers = len(psbtout.hd_keypaths)
+
+                if num_signers == 1 and signing_singlesigs:
+                    # Single-sig output - since we signed singlesig inputs this could be our change
+                    for pubkey, origin in psbtout.hd_keypaths.items():
+                        # Considers 'our' outputs as potential change as far as Jade is concerned
+                        # ie. can be verified and auto-confirmed.
+                        # Is this ok, or should check path also, assuming bip44-like ?
+                        if origin.fingerprint == master_fp and len(origin.path) > 0:
+                            change_addr_type = None
+                            if txout.is_p2pkh():
+                                change_addr_type = AddressType.LEGACY
+                            elif txout.is_witness()[0] and not txout.is_p2wsh():
+                                change_addr_type = AddressType.WIT  # ie. p2wpkh
+                            elif (
+                                txout.is_p2sh() and is_witness(psbtout.redeem_script)[0]
+                            ):
+                                change_addr_type = AddressType.SH_WIT
+                            else:
+                                continue
+
+                            script_variant = self._convertAddrType(
+                                change_addr_type, multisig=False
+                            )
+                            change[n_vout] = {
+                                "path": origin.path,
+                                "variant": script_variant,
+                            }
+
+                elif num_signers > 1 and signing_multisigs:
+                    # Multisig output - since we signed multisig inputs this could be our change
+                    candidate_multisigs = {
+                        k: v
+                        for k, v in signing_multisigs.items()
+                        if len(v[2]) == num_signers
+                    }
+                    if not candidate_multisigs:
+                        continue
+
+                    for pubkey, origin in psbtout.hd_keypaths.items():
+                        if origin.fingerprint == master_fp and len(origin.path) > 0:
+                            change_addr_type = None
+                            if (
+                                txout.is_p2sh()
+                                and not is_witness(psbtout.redeem_script)[0]
+                            ):
+                                change_addr_type = AddressType.LEGACY
+                                scriptcode = psbtout.redeem_script
+                            elif txout.is_p2wsh() and not txout.is_p2sh():
+                                change_addr_type = AddressType.WIT
+                                scriptcode = psbtout.witness_script
+                            elif (
+                                txout.is_p2sh() and is_witness(psbtout.redeem_script)[0]
+                            ):
+                                change_addr_type = AddressType.SH_WIT
+                                scriptcode = psbtout.witness_script
+                            else:
+                                continue
+
+                            parsed = parse_multisig(scriptcode)
+                            if parsed:
+                                script_variant = self._convertAddrType(
+                                    change_addr_type, multisig=True
+                                )
+                                threshold = parsed[0]
+
+                                pubkeys = parsed[1]
+                                hd_keypath_origins = [
+                                    psbtout.hd_keypaths[pubkey] for pubkey in pubkeys
+                                ]
+
+                                signers, paths = _parse_signers(hd_keypath_origins)
+                                multisig_name = self._get_multisig_name(
+                                    script_variant, threshold, signers
+                                )
+
+                                matched_multisig = candidate_multisigs.get(
+                                    multisig_name
+                                ) == (script_variant, threshold, signers)
+                                if matched_multisig:
+                                    change[n_vout] = {
+                                        "paths": paths,
+                                        "multisig_name": multisig_name,
+                                    }
+
+            # The txn itself
+            txn_bytes = c_txn.serialize_without_witness()
+
+            # Request Jade generate the signatures for our inputs.
+            # Change details are passed to be validated on the hw (user does not confirm)
+            signatures = self.jade.sign_tx(
+                self._network(), txn_bytes, jade_inputs, change, True
             )
 
-        # Change output details
-        # This is optional, in that if we send it Jade validates the change output script
-        # and the user need not confirm that ouptut.  If not passed the change output must
-        # be confirmed by the user on the hwwallet screen, like any other spend output.
-        change = [None] * len(tx.outputs)
-        for n_vout, (txout, psbtout) in py_enumerate(zip(c_txn.vout, tx.outputs)):
-            for pubkey, origin in psbtout.hd_keypaths.items():
-                # Considers 'our' outputs as change as far as Jade is concerned
-                # ie. can be auto-confirmed.
-                # Is this ok, or should check path also, assuming bip44-like ?
-                if origin.fingerprint == master_fp and len(origin.path) > 0:
-                    addr_type = None
-                    if txout.is_p2pkh():
-                        addr_type = AddressType.LEGACY
-                    elif txout.is_witness()[0] and not txout.is_p2wsh():
-                        addr_type = AddressType.WIT
-                    elif txout.is_p2sh():
-                        addr_type = AddressType.SH_WIT  # is it really though ?
-
-                    if addr_type:
-                        addr_type = self._convertAddrType(addr_type)
-                        change[n_vout] = {"path": origin.path, "variant": addr_type}
-
-        # The txn itself
-        txn_bytes = c_txn.serialize_without_witness()
-
-        # Request Jade generate the signatures for our inputs.
-        # Change details are passed to be validated on the hw (user does not confirm)
-        signatures = self.jade.sign_tx(self._network(), txn_bytes, jade_inputs, change)
-
-        # Push sigs into PSBT structure as appropriate
-        for psbtin, pubkey, sig in zip(tx.inputs, signing_pubkeys, signatures):
-            if pubkey and sig:
-                psbtin.partial_sigs[pubkey] = sig
+            # Push sigs into PSBT structure as appropriate
+            for psbtin, signer_pubkey, sigdata in zip(
+                tx.inputs, signing_pubkeys, signatures
+            ):
+                signer_commitment, sig = sigdata
+                if signer_pubkey and sig:
+                    psbtin.partial_sigs[signer_pubkey] = sig
 
         # Return the updated psbt
         return tx
@@ -352,7 +546,7 @@ class JadeClient(HardwareWalletClient):
             self._network(),
             multisig_name,
             script_variant,
-            True,
+            True,  # always use sorted
             multisig.thresh,
             signers,
         )
