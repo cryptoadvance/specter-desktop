@@ -49,40 +49,31 @@ def _hexlify(data):
         return data
 
 
-# Simple http request function which can be used when a Jade response
-# requires an external http call.
-# The default implementation used in JadeAPI._jadeRpc() below.
-# NOTE: Only available if the 'requests' dependency is available.
-try:
-    import requests
-
-    def _http_request(params):
-        logger.debug("_http_request: {}".format(params))
-
-        # Use the first non-onion url
-        url = [url for url in params["urls"] if not url.endswith(".onion")][0]
-        if params["method"] == "GET":
-            assert "data" not in params, "Cannot pass body to requests.get"
-            f = requests.get(url)
-        elif params["method"] == "POST":
-            data = json.dumps(params["data"])
-            f = requests.post(url, data)
-
-        logger.debug("http_request received reply: {}".format(f.text))
-
-        if f.status_code != 200:
-            logger.error("http error {} : {}".format(f.status_code, f.text))
-            raise ValueError(f.status_code)
-
-        assert params["accept"] == "json"
-        f = f.json()
-
-        return {"body": f}
+import requests
 
 
-except ImportError as e:
-    logger.warn(e)
-    logger.warn("Default _http_requests() function will not be available")
+def _http_request(params):
+    logger.debug("_http_request: {}".format(params))
+
+    # Use the first non-onion url
+    url = [url for url in params["urls"] if not url.endswith(".onion")][0]
+    if params["method"] == "GET":
+        assert "data" not in params, "Cannot pass body to requests.get"
+        f = requests.get(url)
+    elif params["method"] == "POST":
+        data = json.dumps(params["data"])
+        f = requests.post(url, data)
+
+    logger.debug("http_request received reply: {}".format(f.text))
+
+    if f.status_code != 200:
+        logger.error("http error {} : {}".format(f.status_code, f.text))
+        raise ValueError(f.status_code)
+
+    assert params["accept"] == "json"
+    f = f.json()
+
+    return {"body": f}
 
 
 #
