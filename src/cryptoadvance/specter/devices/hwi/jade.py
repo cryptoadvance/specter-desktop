@@ -6,8 +6,8 @@ Blockstream Jade Devices
 from .jadepy.jade import JadeAPI, JadeError
 from serial.tools import list_ports
 
-from typing import List, Union
-from hwilib.descriptor import PubkeyProvider
+from typing import List, Union, Tuple, Sequence
+from hwilib.descriptor import PubkeyProvider, MultisigDescriptor
 from hwilib.hwwclient import HardwareWalletClient
 from hwilib.errors import (
     ActionCanceledError,
@@ -34,6 +34,7 @@ from hwilib._script import (
 
 import logging
 import os
+import hashlib
 
 # embit-related things
 from embit import ec, bip32
@@ -86,7 +87,11 @@ def jade_exception(f):
 # This class extends the HardwareWalletClient for Blockstream Jade specific things
 class JadeClient(HardwareWalletClient):
 
-    NETWORKS = {Chain.MAIN: "mainnet", Chain.TEST: "testnet", Chain.REGTEST: "regtest"}
+    NETWORKS = {
+        Chain.MAIN: "mainnet",
+        Chain.TEST: "testnet",
+        Chain.REGTEST: "localtest",
+    }
     liquid_network = None
 
     def set_liquid_network(self, chain):
@@ -102,10 +107,30 @@ class JadeClient(HardwareWalletClient):
         AddressType.WIT: "wpkh(k)",
         AddressType.SH_WIT: "sh(wpkh(k))",
     }
+    MULTI_ADDRTYPES = {
+        AddressType.LEGACY: "sh(multi(k))",
+        AddressType.WIT: "wsh(multi(k))",
+        AddressType.SH_WIT: "sh(wsh(multi(k)))",
+    }
 
     @staticmethod
-    def _convertAddrType(addrType):
+    def _convertAddrType(addrType, multisig=False):
+        if multisig:
+            return JadeClient.MULTI_ADDRTYPES[addrType]
         return JadeClient.ADDRTYPES[addrType]
+
+    @staticmethod
+    def _get_multisig_name(
+        type: str, threshold: int, signers: List[Tuple[bytes, Sequence[int]]]
+    ) -> str:
+        # Concatenate script-type, threshold, and all signers fingerprints and derivation paths
+        summary = type + "|" + str(threshold) + "|"
+        for fingerprint, path in signers:
+            summary += fingerprint.hex() + "|" + str(path) + "|"
+
+        # Hash it, get the first 6-bytes as hex, prepend with 'hwi'
+        hash_summary = hashlib.sha256(summary.encode()).digest().hex()
+        return "hwi" + hash_summary[:12]
 
     def __init__(self, path: str, password: str = "", expert: bool = False) -> None:
         super(JadeClient, self).__init__(path, password, expert)
@@ -273,16 +298,69 @@ class JadeClient(HardwareWalletClient):
         return address
 
     def display_multisig_address(
-        self, threshold: int, pubkeys: List[PubkeyProvider], addr_type: AddressType
+        self,
+        addr_type: AddressType,
+        multisig: MultisigDescriptor,
     ) -> str:
-        """
-        The Blockstream Jade does not support multisig addresses.
+        signer_origins = []
+        signers = []
+        paths = []
+        for pubkey in multisig.pubkeys:
+            if pubkey.extkey is None:
+                raise BadArgumentError(
+                    "Blockstream Jade can only generate addresses for multisigs with full extended keys"
+                )
+            if pubkey.origin is None:
+                raise BadArgumentError(
+                    "Blockstream Jade can only generate addresses for multisigs with key origin information"
+                )
+            if pubkey.deriv_path is None:
+                raise BadArgumentError(
+                    "Blockstream Jade can only generate addresses for multisigs with key origin derivation path information"
+                )
 
-        :raises UnavailableActionError: Always, this function is unavailable
-        """
-        raise UnavailableActionError(
-            "The Blockstream Jade does not support generic multisig P2SH address display"
+            # Tuple to derive deterministic name for the registrtion
+            signer_origins.append((pubkey.origin.fingerprint, pubkey.origin.path))
+
+            #  We won't include the additional path in the multisig registration
+            signers.append(
+                {
+                    "fingerprint": pubkey.origin.fingerprint,
+                    "derivation": pubkey.origin.path,
+                    "xpub": pubkey.pubkey,
+                    "path": [],
+                }
+            )
+
+            # Instead hold it as the address path
+            path = (
+                pubkey.deriv_path[1:]
+                if pubkey.deriv_path[0] == "/"
+                else pubkey.deriv_path
+            )
+            paths.append(parse_path(path))
+
+        # Get a deterministic name for this multisig wallet
+        script_variant = self._convertAddrType(addr_type, multisig=True)
+        multisig_name = self._get_multisig_name(
+            script_variant, multisig.thresh, signer_origins
         )
+
+        # Need to ensure this multisig wallet is registered first
+        # (Note: 're-registering' is a no-op)
+        self.jade.register_multisig(
+            self._network(),
+            multisig_name,
+            script_variant,
+            True,
+            multisig.thresh,
+            signers,
+        )
+        address = self.jade.get_receive_address(
+            self._network(), paths, multisig_name=multisig_name
+        )
+
+        return str(address)
 
     # Setup a new device
     def setup_device(self, label="", passphrase=""):
