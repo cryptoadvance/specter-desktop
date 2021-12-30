@@ -28,10 +28,15 @@ class ServiceEncryptedStorage(GenericDataManager):
     that the User might need to store (e.g. which Wallet is attached to the Service). This
     config data doesn't need to be encrypted, but we may as well store it here rather than
     adding data bloat to the User json.
+
+    * `disable_decrypt`: Allows the ServiceEncryptedStorageManager to see which Services
+        have data but without attempting to decrypt the values. This allows us to check
+        if there is encrypted Service data even when we don't have the
+        plaintext_user_secret.
     """
 
-    def __init__(self, data_folder: str, user: User):
-        if not user.plaintext_user_secret:
+    def __init__(self, data_folder: str, user: User, disable_decrypt: bool = False):
+        if not user.plaintext_user_secret and not disable_decrypt:
             raise ServiceEncryptedStorageError(
                 f"User {user} must be authenticated with password before encrypted service data can be loaded"
             )
@@ -40,7 +45,10 @@ class ServiceEncryptedStorage(GenericDataManager):
         #   which then calls data_file below.
         self.user = user
 
-        super().__init__(data_folder, encryption_key=user.plaintext_user_secret)
+        if disable_decrypt:
+            super().__init__(data_folder, encryption_key=None)
+        else:
+            super().__init__(data_folder, encryption_key=user.plaintext_user_secret)
 
     @property
     def encrypted_fields(self):
@@ -96,14 +104,18 @@ class ServiceEncryptedStorageManager(ConfigurableSingleton):
         cls._instance.user_manager = specter.user_manager
         cls._instance.storage_by_user = {}
 
+    def get_raw_encrypted_data(self, user: User) -> dict:
+        """ Doesn't attempt to decrypt the ServiceEncryptedStorage, just returns the
+            user's full encrypted Service data json as-is. """
+        return ServiceEncryptedStorage(self.data_folder, user, disable_decrypt=True).data
+
     def _get_current_user_service_storage(self) -> ServiceEncryptedStorage:
         """Returns the storage-class for the current_user. Lazy_init if necessary"""
         user = self.user_manager.get_user()
         if user is None:
-            raise SpecterError(f"User {user} not existing")
+            raise SpecterError(f"User {user} doesn't exist")
 
         if self.storage_by_user.get(user) is None:
-            logger.info(f"Loaded ServiceApiKeyStorage for user {user}")
             self.storage_by_user[user] = ServiceEncryptedStorage(self.data_folder, user)
         return self.storage_by_user[user]
 
@@ -115,10 +127,22 @@ class ServiceEncryptedStorageManager(ConfigurableSingleton):
         self._get_current_user_service_storage().update_service_data(service_id, service_data)
 
     def get_current_user_service_data(self, service_id: str) -> dict:
-        return self._get_current_user_service_storage().get_service_data(service_id)
+        service_storage = self._get_current_user_service_storage()
+        if service_storage:
+            return service_storage.get_service_data(service_id)
     
     def unload_current_user(self):
-        """ Clear user's ServiceApiKeyStorage from memory (but it remains safely on disk) """
+        """ Clear user's ServiceEncryptedStorage from memory (but it remains safely on disk) """
         user = self.user_manager.get_user()
         if user and user in self.storage_by_user:
             self.storage_by_user[user] = None
+
+    def delete_all_service_data(self, user: User):
+        """ Completely removes all data in the User's ServiceEncryptedStorage from memory and on-disk. """
+        # Clear it from memory...
+        self.storage_by_user[user] = None
+
+        # ...and wipe the on-disk storage
+        encrypted_storage = ServiceEncryptedStorage(self.data_folder, user, disable_decrypt=True)
+        encrypted_storage.data = {}
+        encrypted_storage._save()

@@ -80,7 +80,7 @@ class SwanService(Service):
 
             Overrides base classmethod to add Swan-specific functionality & data management.
         """
-        from . import api as swan_api
+        from . import client as swan_client
         # Update Addresses as reserved (aka "associated") with Swan in our Wallet
         addresses = super().reserve_addresses(wallet=wallet, label=label, num_addresses=num_addresses)
 
@@ -93,7 +93,7 @@ class SwanService(Service):
         cls.set_associated_wallet(wallet)
 
         # Send the new list to Swan (DELETES any unused ones; creates a new SWAN_WALLET_ID if needed)
-        swan_api.update_autowithdrawal_addresses(specter_wallet_name=wallet.name, specter_wallet_alias=wallet.alias, addresses=addresses)
+        swan_client.update_autowithdrawal_addresses(specter_wallet_name=wallet.name, specter_wallet_alias=wallet.alias, addresses=addresses)
 
         return addresses
 
@@ -107,13 +107,13 @@ class SwanService(Service):
             internal data in sync (e.g. resetting previously reserved addresses) and the same
             in the api to keep Swan's notion of a wallet and list of addrs in sync.
         """
-        from . import api as swan_api
+        from . import client as swan_client
 
         # Reserve auto-withdrawal addresses for this Wallet; clear out an unused ones in a prior wallet
         cls.reserve_addresses(wallet=wallet, num_addresses=cls.MIN_PENDING_AUTOWITHDRAWAL_ADDRS)
 
         # Send the autowithdrawal threshold
-        swan_api.set_autowithdrawal(btc_threshold=btc_threshold)
+        swan_client.set_autowithdrawal(btc_threshold=btc_threshold)
 
 
 
@@ -127,7 +127,7 @@ class SwanService(Service):
         * Re-linking on a previously linked Specter instance (some/all existing data)
         * Linking a new Specter instance but had previously linked on a different Specter instance; the previously linked Specter wallet may or may not be present (need to resync data)
         """
-        from . import api as swan_api
+        from . import client as swan_client
 
         service_data = cls.get_current_user_service_data()
         if cls.SWAN_WALLET_ID in service_data:
@@ -135,7 +135,7 @@ class SwanService(Service):
             swan_wallet_id = service_data.get(SwanService.SWAN_WALLET_ID)
 
             # Confirm that the Swan walletId exists
-            details = swan_api.get_wallet_details(swan_wallet_id)
+            details = swan_client.get_wallet_details(swan_wallet_id)
             if details and "item" in details and "metadata" in details["item"] and "specter_wallet_alias" in details["item"]["metadata"]:
                 wallet_alias = details["item"]["metadata"]["specter_wallet_alias"]
                 if wallet_alias in app.specter.wallet_manager.wallets:
@@ -156,7 +156,7 @@ class SwanService(Service):
 
         # This Specter instance has no idea if there might already be wallet data on the Swan side.
         # Fetch all Swan wallets, if any exist. 
-        wallet_entries = swan_api.get_wallets().get("list")
+        wallet_entries = swan_client.get_wallets().get("list")
         if not wallet_entries:
             # No Swan data at all yet. Nothing to do.
             return
@@ -212,12 +212,12 @@ class SwanService(Service):
         
         num_pending_autowithdrawal_addrs = len([addr_obj for addr_obj in reserved_addresses if not addr_obj["used"]])
         if num_pending_autowithdrawal_addrs < cls.MIN_PENDING_AUTOWITHDRAWAL_ADDRS:
-            from . import api as swan_api
+            from . import client as swan_client
             logger.debug("Need to send more addrs to Swan")
 
             # TODO: In Beta we can't assume we have a refresh_token; remove these two lines once we have a refresh_token
             if not cls.has_refresh_token() and num_pending_autowithdrawal_addrs <= 2:
-                raise swan_api.SwanApiRefreshTokenException("We don't have a refresh_token")
+                raise swan_client.SwanApiRefreshTokenException("We don't have a refresh_token")
 
             cls.reserve_addresses(wallet=wallet, num_addresses=cls.MIN_PENDING_AUTOWITHDRAWAL_ADDRS)
 

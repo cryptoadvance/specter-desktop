@@ -153,6 +153,7 @@ def init_app(app, hwibridge=False, specter=None):
         app.config["LOGIN_DISABLED"] = True
     else:
         app.logger.info("Login enabled")
+        app.config["LOGIN_DISABLED"] = False
     app.logger.info("Initializing Controller ...")
     app.register_blueprint(hwi_server, url_prefix="/hwi")
     csrf.exempt(hwi_server)

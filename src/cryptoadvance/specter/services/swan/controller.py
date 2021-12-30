@@ -12,7 +12,7 @@ from cryptoadvance.specter.wallet import Wallet
 from cryptoadvance.specter.services.service_encrypted_storage import (
     ServiceEncryptedStorageError,
 )
-from . import api as swan_api
+from . import client as swan_client
 from .service import SwanService
 from ..controller import user_secret_decrypted_required
 
@@ -77,7 +77,7 @@ def settings():
     # TODO: Remove this check after refresh_token support is added
     relink_url = None
     if not SwanService.is_access_token_valid():
-        relink_url = swan_api.get_oauth2_start_url()
+        relink_url = swan_client.get_oauth2_start_url()
 
     associated_wallet: Wallet = SwanService.get_associated_wallet()
 
@@ -106,7 +106,7 @@ def update_autowithdrawal():
     try:
         SwanService.set_autowithdrawal_settings(wallet=wallet, btc_threshold=threshold)
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
-    except swan_api.SwanServiceApiException as e:
+    except swan_client.SwanServiceApiException as e:
         logger.exception(e)
         flash(
             _("Error communicating with Swan API")
@@ -133,7 +133,7 @@ def oauth2_start(is_relink=0):
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.settings"))
 
     # Let's start the PKCE-flow
-    flow_url = swan_api.get_oauth2_start_url()
+    flow_url = swan_client.get_oauth2_start_url()
 
     print(f"current_user: {current_user}")
     print(f"is_relink: {is_relink}")
@@ -167,7 +167,7 @@ def oauth2_auth():
     user = app.specter.user_manager.get_user()
 
     try:
-        swan_api.handle_oauth2_auth_callback(request)
+        swan_client.handle_oauth2_auth_callback(request)
 
         # Add the Service to the User's profile (will now appear in sidebar)
         user = app.specter.user_manager.get_user()

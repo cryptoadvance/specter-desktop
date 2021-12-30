@@ -201,7 +201,7 @@ def redirect_login(request):
     
     # Check the user's Service integrations
     # TODO: Can these be done in a background process so we don't slow down the user experience?    
-    from cryptoadvance.specter.services.swan.api import SwanApiRefreshTokenException  # TODO: Remove this import after Swan exits Beta testing
+    from cryptoadvance.specter.services.swan.client import SwanApiRefreshTokenException  # TODO: Remove this import after Swan exits Beta testing
     for service_id in app.specter.user_manager.get_user().services:
         try:
             service_cls = app.specter.service_manager.get_service(service_id)

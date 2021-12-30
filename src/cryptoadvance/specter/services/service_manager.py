@@ -8,7 +8,8 @@ from importlib import import_module
 from inspect import isclass
 from pathlib import Path
 from pkgutil import iter_modules
-from typing import List
+from typing import Dict, List
+from cryptoadvance.specter.user import User
 
 from cryptoadvance.specter.managers.singleton import ConfigurableSingletonException
 
@@ -24,7 +25,9 @@ class ServiceManager:
     def __init__(self, specter, devstatus_threshold):
         self.specter = specter
         self.devstatus_threshold = devstatus_threshold
-        self._services = {}
+
+        # Each Service class is stored here, keyed on its Service.id str
+        self._services: Dict[str, Service] = {}
 
         # Discover all subclasses of Service by listing the path where all the services are located:
         package_dir = str(Path(Path(__file__).resolve().parent).resolve())
@@ -75,8 +78,8 @@ class ServiceManager:
                             logger.info(
                                 f"Service {clazz.__name__} not activated due to devstatus ( {self.devstatus_threshold} > {clazz.devstatus} )"
                             )
-
-        # Configure and instantiate the one and only ServiceApiKeyStorageManager
+    
+        # Configure and instantiate the one and only ServiceEncryptedStorageManager
         try:
             ServiceEncryptedStorageManager.configure_instance(specter=specter)
         except ConfigurableSingletonException as e:
@@ -137,7 +140,7 @@ class ServiceManager:
                 logger.debug(f"setting {key} = {app.config[key]}")
 
     @property
-    def services(self):
+    def services(self) -> Dict[str, Service]:
         return self._services
 
     @property
@@ -146,6 +149,23 @@ class ServiceManager:
             self._services, key=lambda s: self._services[s].sort_priority
         )
         return [self._services[s] for s in service_names]
+
+    
+    def user_has_encrypted_storage(self, user: User) -> bool:
+        """ Looks for any data for any service in the User's ServiceEncryptedStorage.
+            This check works even if the user doesn't have their plaintext_user_secret
+            available. """
+        logger.debug("ServiceManager.user_has_encrypted_storage()")
+        encrypted_data = ServiceEncryptedStorageManager.get_instance().get_raw_encrypted_data(user)
+        for service_id in self._services.keys():
+            if service_id in encrypted_data:
+                return True
+        return False
+    
+
+    def delete_user_encrypted_storage(self, user: User):
+        ServiceEncryptedStorageManager.get_instance().delete_all_service_data(user)
+
 
     def set_active_services(self, service_names_active):
         logger.debug(f"Setting these services active: {service_names_active}")

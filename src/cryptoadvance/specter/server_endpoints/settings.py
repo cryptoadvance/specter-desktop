@@ -1,3 +1,4 @@
+import cryptography
 import json
 import logging
 import os
@@ -18,6 +19,9 @@ from flask import current_app as app
 from flask import flash, jsonify, redirect, render_template, request, send_file, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
+from cryptoadvance.specter.services.service import Service
+
+from cryptoadvance.specter.user import User, UserSecretException
 
 from ..helpers import (
     get_loglevel,
@@ -383,6 +387,9 @@ def tor():
 @settings_endpoint.route("/auth", methods=["GET", "POST"])
 @login_required
 def auth():
+    #TODO: Simplify this endpoint. Separate out setting the Authentication mode from all
+    # the other options here: updating admin username/password, adding users, deleting
+    # users, etc. Do those in simple separate screens with their own endpoints. 
     current_version = notify_upgrade(app, flash)
     auth = app.specter.config["auth"]
     method = auth["method"]
@@ -409,6 +416,7 @@ def auth():
 
             min_chars = int(auth["password_min_chars"])
             if specter_username:
+
                 if current_user.username != specter_username:
                     if app.specter.user_manager.get_user_by_username(specter_username):
                         flash(
@@ -425,7 +433,8 @@ def auth():
                             current_version=current_version,
                             rand=rand,
                         )
-                current_user.username = specter_username
+                    current_user.username = specter_username
+
                 if specter_password:
                     if len(specter_password) < min_chars:
                         flash(
@@ -445,13 +454,15 @@ def auth():
                             rand=rand,
                         )
                     current_user.set_password(specter_password)
+
                 current_user.save_info()
+
             if current_user.is_admin:
                 app.specter.update_auth(method, rate_limit, registration_link_timeout)
                 if method in ["rpcpasswordaspin", "passwordonly", "usernamepassword"]:
                     if method == "passwordonly":
-                        new_password = request.form.get("specter_password_only")
-                        if new_password and len(new_password) < min_chars:
+                        specter_password = request.form.get("specter_password_only")
+                        if specter_password and len(specter_password) < min_chars:
                             flash(
                                 _(
                                     "Please enter a password of a least {} characters"
@@ -468,11 +479,11 @@ def auth():
                                 current_version=current_version,
                                 rand=rand,
                             )
-                        elif not new_password:
+                        elif not specter_password:
                             # Set to the default
-                            new_password = "admin"
+                            specter_password = "admin"
 
-                        current_user.set_password(new_password)
+                        current_user.set_password(specter_password)
                         current_user.save_info()
 
                     if method == "usernamepassword":
@@ -483,10 +494,22 @@ def auth():
                         ]
                     else:
                         users = None
+                    
                     app.config["LOGIN_DISABLED"] = False
                 else:
                     users = None
                     app.config["LOGIN_DISABLED"] = True
+
+                    # Don't show any Services on the sidebar for the admin user
+                    current_user.remove_all_services()
+
+                    # Reset as if we never had any encrypted storage
+                    current_user.delete_user_secret()
+
+                    if current_user.has_encrypted_service_data:
+                        # Encrypted Service data is now orphaned since there is no
+                        # password so wipe it from the disk.
+                        app.specter.service_manager.delete_user_encrypted_storage(current_user)
 
             app.specter.check()
 
@@ -543,6 +566,7 @@ def auth():
         current_version=current_version,
         rand=rand,
     )
+
 
 
 @settings_endpoint.route("/hwi", methods=["GET", "POST"])

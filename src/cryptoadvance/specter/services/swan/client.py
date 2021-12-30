@@ -20,11 +20,11 @@ from .service import SwanService
 logger = logging.getLogger(__name__)
 
 
+# TODO: Update with prod values
 client_id = "specter-dev"
 client_secret = "BcetcVcmueWf5P3UPJnHhCBMQ49p38fhzYwM7t3DJGzsXSjm89dDR5URE46SY69j"
 code_verifier = "64fRjTuy6SKqdC1wSoInUNxX65dQUhVVKTqZXuQ7dqw"
 api_url = app.config.get("SWAN_API_URL")
-# api_url = "https://pblsw-api.ngrok.io"
 
 
 class SwanApiException(Exception):
@@ -120,6 +120,7 @@ def get_access_token(code: str = None, code_verifier: str = None):
             "id_token": "eyJraWQiO[...]hMEJQX6WRQ"
         }
     """
+    # TODO: Remove debugging
     logger.debug(json.dumps(resp, indent=4))
     if resp.get("access_token"):
         new_api_data = {
@@ -134,10 +135,11 @@ def get_access_token(code: str = None, code_verifier: str = None):
 
         SwanService.update_current_user_service_data(new_api_data)
 
+        # TODO: Remove debugging
         logger.debug(json.dumps(SwanService.get_current_user_service_data(), indent=4))
         return resp["access_token"]
     else:
-        logger.debug(response)
+        logger.warning(response)
         raise Exception(response.text)
 
 

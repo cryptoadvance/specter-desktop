@@ -1,11 +1,10 @@
 import logging
-from functools import wraps
 
-from flask import Blueprint
-from flask import current_app as app
-from flask import flash, redirect, render_template, request, url_for
+from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import current_app as app, request
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
+from functools import wraps
 
 logger = logging.getLogger(__name__)
 
@@ -24,11 +23,15 @@ services_endpoint = Blueprint(
 def user_secret_decrypted_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if app.config.get("LOGIN_DISABLED"):
+        if app.config["LOGIN_DISABLED"]:
+            # No logins means no password so no user_secret is possible
             flash(
-                _(
-                    'User Authentication is mandatory to use Services. Please switch to "Password Protection"'
-                )
+                _("Service integration requires an authentication method that includes a password")
+            )
+            return redirect(url_for(f"auth_endpoint.logout"))
+        elif not current_user.is_user_secret_decrypted:
+            flash(
+                _("Must login again to enable protected Services-related data")
             )
             return redirect(url_for(f"settings_endpoint.auth"))
         if not current_user.is_user_secret_decrypted:
@@ -41,11 +44,10 @@ def user_secret_decrypted_required(func):
 
 
 @services_endpoint.route("/choose", methods=["GET"])
-@login_required
-@user_secret_decrypted_required
 def choose():
     return render_template(
         "services/choose.jinja",
+        is_login_disabled=app.config["LOGIN_DISABLED"],
         specter=app.specter,
         services=app.specter.service_manager.services_sorted,
     )
