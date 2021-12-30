@@ -155,17 +155,12 @@ class ServiceManager:
         """ Looks for any data for any service in the User's ServiceEncryptedStorage.
             This check works even if the user doesn't have their plaintext_user_secret
             available. """
-        logger.debug("ServiceManager.user_has_encrypted_storage()")
         encrypted_data = ServiceEncryptedStorageManager.get_instance().get_raw_encrypted_data(user)
         for service_id in self._services.keys():
             if service_id in encrypted_data:
                 return True
         return False
     
-
-    def delete_user_encrypted_storage(self, user: User):
-        ServiceEncryptedStorageManager.get_instance().delete_all_service_data(user)
-
 
     def set_active_services(self, service_names_active):
         logger.debug(f"Setting these services active: {service_names_active}")
@@ -176,8 +171,28 @@ class ServiceManager:
             )
             service.active = service.id in service_names_active
 
+
     def get_service(self, service_id: str) -> Service:
         if service_id not in self._services:
             # TODO: better error handling?
             raise Exception(f"No such Service: '{service_id}'")
         return self._services[service_id]
+
+
+    def remove_all_services_from_user(self, user: User):
+        """
+            Clears User.services and `user_secret`; wipes the User's
+            ServiceEncryptedStorage.
+        """
+        # Don't show any Services on the sidebar for the admin user
+        user.services.clear()
+
+        # Reset as if we never had any encrypted storage
+        user.delete_user_secret(autosave=False)
+        user.save_info()
+
+        if self.user_has_encrypted_storage(user=user):
+            # Encrypted Service data is now orphaned since there is no
+            # password so wipe it from the disk.
+            ServiceEncryptedStorageManager.get_instance().delete_all_service_data(user)
+

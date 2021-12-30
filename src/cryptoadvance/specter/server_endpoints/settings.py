@@ -387,7 +387,7 @@ def tor():
 @settings_endpoint.route("/auth", methods=["GET", "POST"])
 @login_required
 def auth():
-    #TODO: Simplify this endpoint. Separate out setting the Authentication mode from all
+    # TODO: Simplify this endpoint. Separate out setting the Authentication mode from all
     # the other options here: updating admin username/password, adding users, deleting
     # users, etc. Do those in simple separate screens with their own endpoints. 
     current_version = notify_upgrade(app, flash)
@@ -432,6 +432,7 @@ def auth():
                             specter=app.specter,
                             current_version=current_version,
                             rand=rand,
+                            has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(current_user),
                         )
                     current_user.username = specter_username
 
@@ -452,6 +453,7 @@ def auth():
                             specter=app.specter,
                             current_version=current_version,
                             rand=rand,
+                            has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(current_user),
                         )
                     current_user.set_password(specter_password)
 
@@ -478,13 +480,46 @@ def auth():
                                 specter=app.specter,
                                 current_version=current_version,
                                 rand=rand,
+                                has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(current_user),
                             )
                         elif not specter_password:
                             # Set to the default
                             specter_password = "admin"
 
-                        current_user.set_password(specter_password)
+                        try:
+                            current_user.set_password(specter_password)
+                        except UserSecretException as e:
+                            # Most likely the admin User is logged in but the
+                            # plaintext_user_secret is not available in memory (happens
+                            # when the server restarts).
+                            logger.warn(e)
+                            flash(
+                                _(
+                                    "Error re-encrypting Service data. Log out and log back in before trying again."
+                                ),
+                                "error",
+                            )
+                            return render_template(
+                                "settings/auth_settings.jinja",
+                                method=method,
+                                rate_limit=rate_limit,
+                                registration_link_timeout=registration_link_timeout,
+                                users=users,
+                                specter=app.specter,
+                                current_version=current_version,
+                                rand=rand,
+                                has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(current_user),
+                            )
+
                         current_user.save_info()
+
+                        flash(
+                            _(
+                                "Admin password successfully updated"
+                            ),
+                            "info",
+                        )
+                        
 
                     if method == "usernamepassword":
                         users = [
@@ -500,16 +535,10 @@ def auth():
                     users = None
                     app.config["LOGIN_DISABLED"] = True
 
-                    # Don't show any Services on the sidebar for the admin user
-                    current_user.remove_all_services()
-
-                    # Reset as if we never had any encrypted storage
-                    current_user.delete_user_secret()
-
-                    if current_user.has_encrypted_service_data:
-                        # Encrypted Service data is now orphaned since there is no
-                        # password so wipe it from the disk.
-                        app.specter.service_manager.delete_user_encrypted_storage(current_user)
+                    # Cannot support Services if there's no password (admin was already
+                    # warned about this in the UI). Remove User.services, clear the
+                    # `user_secret`, and wipe the ServiceEncryptedStorage.
+                    app.specter.service_manager.remove_all_services_from_user(current_user)
 
             app.specter.check()
 
@@ -565,6 +594,7 @@ def auth():
         specter=app.specter,
         current_version=current_version,
         rand=rand,
+        has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(current_user),
     )
 
 

@@ -10,6 +10,18 @@
         .linked_wallet {
             margin-bottom: 3em;
         }
+        .no_linked_wallet {
+            background-color: var(--cmap-bg-lighter);
+            border: 2px solid yellow;
+            border-radius: 0.5em;
+            padding: 2em 3em 2em 3em;
+            margin-bottom: 3em;
+        }
+        .no_linked_wallet .headline {
+            text-align: center;
+            font-size: 1.1em;
+            margin-bottom: 1em;
+        }
         .footnote {
             margin-top: 2em;
             font-style: italic;
@@ -20,7 +32,20 @@
 
     <h1>Swan Auto-Withdrawals to Specter</h1>
 
-    <div class="linked_wallet">Linked wallet: <a class="explorer-link" href="{{ url_for('wallets_endpoint.addresses', wallet_alias=wallet.alias) }}">{{ wallet.name }}</a></div>
+    {% if wallet %}
+        <div class="linked_wallet">Linked wallet:
+            <a class="explorer-link" href="{{ url_for('wallets_endpoint.addresses', wallet_alias=wallet.alias) }}">{{ wallet.name }}</a>
+        </div>
+    {% else %}
+        <div class="no_linked_wallet">
+            <div class="headline">{{ _("Auto-Withdrawal Not Configured") }}</div>
+            <div class="note">
+                {{ _("Go to Settings to set up auto-withdrawal to one of your Specter wallets") }}
+            </div>
+        </div>
+    {% endif %}
+
+    {# TODO: List total withdrawal value? Or just current value of withdrawn utxos? #}
 
     <div class="table-holder">
         {% include "includes/services-data.html" %}

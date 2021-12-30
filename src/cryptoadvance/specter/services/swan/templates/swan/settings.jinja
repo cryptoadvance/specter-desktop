@@ -79,7 +79,15 @@
     <div class="card">
         <h1>{{ _("Configure Auto-Withdrawal") }}</h1>
         <br>
-        
+
+        <div class="note">
+            {{ _("- Specter will send {} unused addresses to Swan").format(num_reserved_addrs) }}<br/>
+            {{ _("- Your wallet will show them pre-labeled as \"reserved\" for Swan") }}<br/>
+            {{ _("- Specter will check these addresses each time you log in to Specter") }}<br/>
+            {{ _("- Specter will send more unused addresses to Swan as needed") }}<br/>
+        </div>
+        <br/>
+
         <form action="{{ url_for(service.get_blueprint_name() + '.update_autowithdrawal') }}" method="POST" role="form">
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             

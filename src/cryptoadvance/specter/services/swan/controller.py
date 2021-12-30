@@ -7,6 +7,7 @@ from flask import current_app as app
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from functools import wraps
+from cryptoadvance.specter.user import User
 from cryptoadvance.specter.wallet import Wallet
 
 from cryptoadvance.specter.services.service_encrypted_storage import (
@@ -91,6 +92,7 @@ def settings():
         wallets=wallets,
         cookies=request.cookies,
         relink_url=relink_url,
+        num_reserved_addrs=SwanService.MIN_PENDING_AUTOWITHDRAWAL_ADDRS,
     )
 
 
@@ -164,19 +166,17 @@ def oauth2_auth():
             ),  # Slightly misusing the traceback field
         )
     
-    user = app.specter.user_manager.get_user()
+    user: User = app.specter.user_manager.get_user()
 
     try:
         swan_client.handle_oauth2_auth_callback(request)
 
         # Add the Service to the User's profile (will now appear in sidebar)
         user = app.specter.user_manager.get_user()
-        if SwanService.id not in user.services:
-            user.services.append(SwanService.id)
+        user.add_service(SwanService.id)
 
         # Sync Specter with any previous Swan-Specter integrations
-        # TODO: This still needs more testing; it's irrelevant for first-time Swan authorizations anyway
-        # SwanService.sync_swan_data()
+        SwanService.sync_swan_data()
 
         return redirect(url_for(".oauth2_success"))
     except Exception as e:

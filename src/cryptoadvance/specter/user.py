@@ -189,20 +189,22 @@ class User(UserMixin):
         self.save_info()
         logger.debug("Generated user_secret")
 
-    def set_password(self, plaintext_password, regenerate_user_secret: bool = False):
+    def delete_user_secret(self, autosave: bool = True):
+        self.encrypted_user_secret = None
+        self.plaintext_user_secret = None
+        if autosave:
+            self.save_info()
+
+    def set_password(self, plaintext_password):
         """ Hash the incoming plaintext password and update the encrypted user_secret as
             needed.
 
             Remember that the underlying user_secret doesn't change if the user changes
             their password; it's the same user_secret but it just needs to be
             re-encrypted using the new password.
-
-            * regenerate_user_secret: option to discard the current user_secret. Should
-                only be used when the calling code is sure there's no encrypted data that
-                will get permanently orphaned if we change the user_secret.
         """
         # Check the encrypted_user_secret before saving password change!
-        if self.encrypted_user_secret is None or regenerate_user_secret:
+        if self.encrypted_user_secret is None:
             # First time this user is initializing their user_secret
             self._generate_user_secret(plaintext_password)
         else:
@@ -225,11 +227,6 @@ class User(UserMixin):
                 self._encrypt_user_secret(plaintext_password)
 
         self.password_hash = hash_password(plaintext_password)
-
-    def delete_user_secret(self):
-        self.encrypted_user_secret = None
-        self.plaintext_user_secret = None
-        self.save_info()
 
     @property
     def json(self):
@@ -316,16 +313,6 @@ class User(UserMixin):
         if autosave:
             self.save_info()
     
-    def remove_all_services(self, autosave: bool = True):
-        """ Clears all Services from the User. Only updates what is listed in the sidebar. """
-        self.services.clear()
-        if autosave:
-            self.save_info()
-
-    @property
-    def has_encrypted_service_data(self) -> bool:
-        logger.debug("has_encrypted_service_data")
-        return self.specter.service_manager.user_has_encrypted_storage(user=self)
 
     # TODO: Refactor calling code to explicitly call User.save() rather than embedding
     #   self.save_info() on every update and setter. It ends up saving to disk multiple

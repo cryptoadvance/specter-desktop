@@ -1,5 +1,15 @@
 {% extends "base.jinja" %}
 {% block main %}
+	<style>
+		.hasencryptedservicedata {
+            background-color: var(--cmap-bg-lighter);
+			border: 2px solid yellow;
+			border-radius: 0.5em;
+			padding: 1em;
+			text-align: center;
+			margin-bottom: 4em !important;
+		}
+	</style>
 	<form action="?" method="POST">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<h1 id="title" class="settings-title">Settings</h1>
@@ -16,9 +26,8 @@
 				</select>
 				<br><br>
 			{% endif %}
-			<div id="hasencryptedservicedata" style="display: none" class="note">
-				<p>{{ _("Note: If you revert to no authentication, your existing encrypted data for connecting to each Service will be removed.") }}</p>
-				<br/>
+			<div id="hasencryptedservicedata" style="display: none" class="hasencryptedservicedata note">
+				<p>{{ _("Note: If you set Authentication to \"None\", your existing encrypted data for connecting to each Service will be removed.") }}</p>
 			</div>
 			<div id="ratelimit" class="{% if method == 'none' or not current_user.is_admin %}hidden{% endif %}">
 				{{ _("Rate Limiting (seconds between login/register attempts)") }}:<br><input id="rate_limit" type="number" name="rate_limit" min="0" step="1" value="{{ rate_limit }}"><br><br>
@@ -77,7 +86,7 @@
 					hasEncryptedServiceData.style.display = 'none';
 				} else {
 					ratelimitDiv.style.display = 'none';
-					{% if method != "none" and current_user.is_admin and current_user.has_encrypted_service_data %}
+					{% if method != "none" and current_user.is_admin and has_service_encrypted_storage %}
 						hasEncryptedServiceData.style.display = 'block';
 					{% endif %}
 				}
