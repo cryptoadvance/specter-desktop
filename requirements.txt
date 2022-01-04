@@ -181,7 +181,8 @@ hidapi==0.10.1 \
     # via
     #   bitbox02
     #   hwi
-hwi==2.0.1 \
+hwi==2.0.2 \
+    --hash=sha256:1a49ec86d4770239408e74c87acdd15b9f72271fbdddf66acd935f068bbf115d \
     --hash=sha256:1a49ec86d4770239408e74c87acdd15b9f72271fbdddf66acd935f068bbf115d \
     --hash=sha256:cba5e254fcf7ae1b523ec1f0eab693b401d4b3cd949b35a4557a106a98065c23
     # via -r requirements.in
