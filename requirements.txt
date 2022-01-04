@@ -182,9 +182,8 @@ hidapi==0.10.1 \
     #   bitbox02
     #   hwi
 hwi==2.0.2 \
-    --hash=sha256:1a49ec86d4770239408e74c87acdd15b9f72271fbdddf66acd935f068bbf115d \
-    --hash=sha256:1a49ec86d4770239408e74c87acdd15b9f72271fbdddf66acd935f068bbf115d \
-    --hash=sha256:cba5e254fcf7ae1b523ec1f0eab693b401d4b3cd949b35a4557a106a98065c23
+    --hash=sha256:70b83e9905d3ae7057cae516e7b26547a934cdaf1feee5ef26fe65f0ddeda058 \
+    --hash=sha256:762d5f46c31bc291dc0453530958af7f1a70854a1428b0376139c9c4aabf8c73
     # via -r requirements.in
 idna==2.10 \
     --hash=sha256:b307872f855b18632ce0c21c5e45be78c0ea7ae4c15c828c20788b26921eb3f6 \
