@@ -12,6 +12,7 @@
 	</style>
 	<form action="?" method="POST">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+		<input type="hidden" name="next" value="{{ next }}">
 		<h1 id="title" class="settings-title">Settings</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('auth', current_user) }}

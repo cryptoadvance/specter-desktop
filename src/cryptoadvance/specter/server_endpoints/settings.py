@@ -389,7 +389,7 @@ def tor():
 def auth():
     # TODO: Simplify this endpoint. Separate out setting the Authentication mode from all
     # the other options here: updating admin username/password, adding users, deleting
-    # users, etc. Do those in simple separate screens with their own endpoints. 
+    # users, etc. Do those in simple separate screens with their own endpoints.
     current_version = notify_upgrade(app, flash)
     auth = app.specter.config["auth"]
     method = auth["method"]
@@ -432,7 +432,9 @@ def auth():
                             specter=app.specter,
                             current_version=current_version,
                             rand=rand,
-                            has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(current_user),
+                            has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(
+                                current_user
+                            ),
                         )
                     current_user.username = specter_username
 
@@ -453,7 +455,9 @@ def auth():
                             specter=app.specter,
                             current_version=current_version,
                             rand=rand,
-                            has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(current_user),
+                            has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(
+                                current_user
+                            ),
                         )
                     current_user.set_password(specter_password)
 
@@ -480,7 +484,9 @@ def auth():
                                 specter=app.specter,
                                 current_version=current_version,
                                 rand=rand,
-                                has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(current_user),
+                                has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(
+                                    current_user
+                                ),
                             )
                         elif not specter_password:
                             # Set to the default
@@ -508,18 +514,17 @@ def auth():
                                 specter=app.specter,
                                 current_version=current_version,
                                 rand=rand,
-                                has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(current_user),
+                                has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(
+                                    current_user
+                                ),
                             )
 
                         current_user.save_info()
 
                         flash(
-                            _(
-                                "Admin password successfully updated"
-                            ),
+                            _("Admin password successfully updated"),
                             "info",
                         )
-                        
 
                     if method == "usernamepassword":
                         users = [
@@ -529,7 +534,7 @@ def auth():
                         ]
                     else:
                         users = None
-                    
+
                     app.config["LOGIN_DISABLED"] = False
                 else:
                     users = None
@@ -538,8 +543,13 @@ def auth():
                     # Cannot support Services if there's no password (admin was already
                     # warned about this in the UI). Remove User.services, clear the
                     # `user_secret`, and wipe the ServiceEncryptedStorage.
-                    app.specter.service_manager.remove_all_services_from_user(current_user)
+                    app.specter.service_manager.remove_all_services_from_user(
+                        current_user
+                    )
 
+            # Redirect if a URL was given via the next variable
+            if request.form.get("next") and request.form.get("next") != "":
+                return redirect(request.form.get("next"))
             app.specter.check()
 
         elif action == "adduser":
@@ -594,9 +604,11 @@ def auth():
         specter=app.specter,
         current_version=current_version,
         rand=rand,
-        has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(current_user),
+        has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(
+            current_user
+        ),
+        next=request.args.get("next", ""),
     )
-
 
 
 @settings_endpoint.route("/hwi", methods=["GET", "POST"])

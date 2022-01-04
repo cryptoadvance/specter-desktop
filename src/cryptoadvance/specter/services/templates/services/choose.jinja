@@ -52,7 +52,7 @@
             <p>{{ _("Service integrations require secure per-user storage. This is only possible with a user authentication method that is password protected (any method other than \"None\").") }}</p>
             <br/>
             <p>{{ _("Select a new method in:") }}<br/>
-            <a class="btn" href="{{ url_for('settings_endpoint.auth') }}">{{ _("Settings") }}</a></p>
+            <a class="btn" href="{{ url_for('settings_endpoint.auth', next=url_for('services_endpoint.choose')) }}">{{ _("Settings") }}</a></p>
         </div>
     {% endif %}
 
