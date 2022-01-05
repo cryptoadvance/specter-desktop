@@ -64,8 +64,11 @@ class ServiceEncryptedStorage(GenericDataManager):
         return os.path.join(self.data_folder, f"{self.user.username}_services.json")
 
     def set_service_data(self, service_id: str, data: dict, autosave: bool = True):
-        # Store the api_data json blob as a string; completely overwrites previous state
-        self.data[service_id] = json.dumps(data)
+        """Store the api_data json blob as a string; completely overwrites previous state"""
+        if data == {}:
+            del self.data[service_id]
+        else:
+            self.data[service_id] = json.dumps(data)
         if autosave:
             self._save()
 
@@ -90,13 +93,13 @@ class ServiceEncryptedStorage(GenericDataManager):
         return service_data
 
 
-
 class ServiceEncryptedStorageManager(ConfigurableSingleton):
-    """ Singleton that manages access to users' ServiceApiKeyStorage; context-aware so it
-        knows who the current_user is for the given request context.
+    """Singleton that manages access to users' ServiceApiKeyStorage; context-aware so it
+    knows who the current_user is for the given request context.
 
-        Requires a one-time configuration call on startup in the ServiceManager.
+    Requires a one-time configuration call on startup in the ServiceManager.
     """
+
     @classmethod
     def configure_instance(cls, specter):
         super().configure_instance()
@@ -105,9 +108,11 @@ class ServiceEncryptedStorageManager(ConfigurableSingleton):
         cls._instance.storage_by_user = {}
 
     def get_raw_encrypted_data(self, user: User) -> dict:
-        """ Doesn't attempt to decrypt the ServiceEncryptedStorage, just returns the
-            user's full encrypted Service data json as-is. """
-        return ServiceEncryptedStorage(self.data_folder, user, disable_decrypt=True).data
+        """Doesn't attempt to decrypt the ServiceEncryptedStorage, just returns the
+        user's full encrypted Service data json as-is."""
+        return ServiceEncryptedStorage(
+            self.data_folder, user, disable_decrypt=True
+        ).data
 
     def _get_current_user_service_storage(self) -> ServiceEncryptedStorage:
         """Returns the storage-class for the current_user. Lazy_init if necessary"""
@@ -118,29 +123,35 @@ class ServiceEncryptedStorageManager(ConfigurableSingleton):
         return self.storage_by_user[user]
 
     def set_current_user_service_data(self, service_id: str, service_data: dict):
-        self._get_current_user_service_storage().set_service_data(service_id, service_data)
+        self._get_current_user_service_storage().set_service_data(
+            service_id, service_data
+        )
 
     def update_current_user_service_data(self, service_id: str, service_data: dict):
         # Add or update fields; does not remove existing fields
-        self._get_current_user_service_storage().update_service_data(service_id, service_data)
+        self._get_current_user_service_storage().update_service_data(
+            service_id, service_data
+        )
 
     def get_current_user_service_data(self, service_id: str) -> dict:
         service_storage = self._get_current_user_service_storage()
         if service_storage:
             return service_storage.get_service_data(service_id)
-    
+
     def unload_current_user(self):
-        """ Clear user's ServiceEncryptedStorage from memory (but it remains safely on disk) """
+        """Clear user's ServiceEncryptedStorage from memory (but it remains safely on disk)"""
         user = self.user_manager.get_user()
         if user and user in self.storage_by_user:
             self.storage_by_user[user] = None
 
     def delete_all_service_data(self, user: User):
-        """ Completely removes all data in the User's ServiceEncryptedStorage from memory and on-disk. """
+        """Completely removes all data in the User's ServiceEncryptedStorage from memory and on-disk."""
         # Clear it from memory...
         self.storage_by_user.pop(user, None)
 
         # ...and wipe the on-disk storage
-        encrypted_storage = ServiceEncryptedStorage(self.data_folder, user, disable_decrypt=True)
+        encrypted_storage = ServiceEncryptedStorage(
+            self.data_folder, user, disable_decrypt=True
+        )
         encrypted_storage.data = {}
         encrypted_storage._save()

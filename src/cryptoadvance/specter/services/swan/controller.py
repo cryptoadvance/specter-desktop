@@ -220,14 +220,7 @@ def oauth2_success():
 @login_required
 @user_secret_decrypted_required
 def oauth2_delete_token():
-    # TODO: Separate deleting the token from removing service integration altogether?
-    for wallet_name, wallet in current_user.wallet_manager.wallets.items():
-        SwanService.unreserve_addresses(wallet=wallet)
-
-    SwanService.set_current_user_service_data({})
-
-    if SwanService.id in current_user.services:
-        current_user.remove_service(SwanService.id)
+    SwanService.remove_swan_integration(current_user)
 
     url = url_for(f"{SwanService.get_blueprint_name()}.index")
     return redirect(url_for(f"{SwanService.get_blueprint_name()}.index"))

@@ -127,10 +127,17 @@
 
     <div class="card">
         <h1>{{ _("Remove Swan Integration") }}</h1>
+        <br/>
+        <div class="note">
+            {{ _("- Halts Swan auto-withdrawals to your Specter wallet") }}<br/>
+            {{ _("- Clears Swan data from Specter") }}<br/>
+        </div>
+        <br/>
+
         <form action="{{ url_for(service.get_blueprint_name() + '.oauth2_delete_token') }}" method="POST" role="form">
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="row">
-                <button type="submit" class="btn danger">{{ _("Delete Swan API Token") }}</button>
+                <button type="submit" class="btn danger">{{ _("Remove Swan Integration") }}</button>
             </div>
         </form>
     </div>

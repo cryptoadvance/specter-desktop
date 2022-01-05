@@ -30,7 +30,7 @@ class Service:
     name = None
     icon = None
     logo = None
-    desc = None     # TODO: rename to "description" to be explicit
+    desc = None  # TODO: rename to "description" to be explicit
     has_blueprint = True  # the default
     devstatus = devstatus_alpha
 
@@ -56,41 +56,56 @@ class Service:
             self.__class__.blueprint.context_processor(inject_stuff)
             # Import the controller for this service
             import_module(f"cryptoadvance.specter.services.{self.id}.controller")
-            app.register_blueprint(self.__class__.blueprint, url_prefix=f"/svc/{self.id}")
+            app.register_blueprint(
+                self.__class__.blueprint, url_prefix=f"/svc/{self.id}"
+            )
 
     @classmethod
     def set_current_user_service_data(cls, service_data: dict):
-        ServiceEncryptedStorageManager.get_instance().set_current_user_service_data(service_id=cls.id, service_data=service_data)
+        ServiceEncryptedStorageManager.get_instance().set_current_user_service_data(
+            service_id=cls.id, service_data=service_data
+        )
 
     @classmethod
     def update_current_user_service_data(cls, service_data: dict):
-        ServiceEncryptedStorageManager.get_instance().update_current_user_service_data(service_id=cls.id, service_data=service_data)
+        ServiceEncryptedStorageManager.get_instance().update_current_user_service_data(
+            service_id=cls.id, service_data=service_data
+        )
 
     @classmethod
     def get_current_user_service_data(cls) -> dict:
-        return ServiceEncryptedStorageManager.get_instance().get_current_user_service_data(service_id=cls.id)
+        return (
+            ServiceEncryptedStorageManager.get_instance().get_current_user_service_data(
+                service_id=cls.id
+            )
+        )
 
     @classmethod
     def get_blueprint_name(cls):
         return f"{cls.id}_endpoint"
-    
 
     @classmethod
     def default_address_label(cls):
         # Have to str() it; can't pass a LazyString to json serializer
         return str(_("Reserved for {}").format(cls.name))
 
-
     @classmethod
     def reserve_address(cls, wallet: Wallet, address: str, label: str = None):
         # Mark an Address in a persistent way as being reserved by a Service
         if not label:
             label = cls.default_address_label()
-        wallet.associate_address_with_service(address=address, service_id=cls.id, label=label)
-
+        wallet.associate_address_with_service(
+            address=address, service_id=cls.id, label=label
+        )
 
     @classmethod
-    def reserve_addresses(cls, wallet: Wallet, label: str = None, num_addresses: int = 10, annotations: dict = None) -> List[str]:
+    def reserve_addresses(
+        cls,
+        wallet: Wallet,
+        label: str = None,
+        num_addresses: int = 10,
+        annotations: dict = None,
+    ) -> List[str]:
         """
         Reserve n unused addresses but leave a gap between each one so that this reserved
         range never causes an address gap in the wallet (e.g. if you reserve ten in a
@@ -116,14 +131,15 @@ class Service:
             cls.reserve_address(wallet=wallet, address=address)
 
             addresses.append(address)
-        
+
             if annotations:
-                annotations_storage.set_addr_annotations(addr=address, annotations=annotations, autosave=False)
+                annotations_storage.set_addr_annotations(
+                    addr=address, annotations=annotations, autosave=False
+                )
         if annotations:
             annotations_storage.save()
 
         return addresses
-
 
     @classmethod
     def unreserve_addresses(cls, wallet: Wallet):
@@ -137,22 +153,29 @@ class Service:
         addrs = wallet.get_associated_addresses(service_id=cls.id, unused_only=True)
         for addr_obj in addrs:
             wallet.deassociate_address(addr_obj["address"])
-            annotations_storage.remove_addr_annotations(addr_obj.address, autosave=False)
+            annotations_storage.remove_addr_annotations(
+                addr_obj.address, autosave=False
+            )
         annotations_storage.save()
-
 
     # def is_active(self):
     #     return self.active
 
-
     # def set_active(self, value):
     #     self.active = value
-
 
     @classmethod
     def update(self):
         """
-            Called by backend periodic process to keep Service in sync with any remote
-            data (e.g. fetching the latest data from an external API).
+        Called by backend periodic process to keep Service in sync with any remote
+        data (e.g. fetching the latest data from an external API).
         """
         logger.info(f"update() not implemented / not necessary for Service {self.id}")
+
+    """ ***********************************************************************
+                                    Update hooks
+    *********************************************************************** """
+
+    @classmethod
+    def on_user_login(cls):
+        pass
