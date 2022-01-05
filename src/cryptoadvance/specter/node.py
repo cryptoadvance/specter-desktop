@@ -12,7 +12,6 @@ from .rpc import (
     BitcoinRPC,
     RpcError,
     autodetect_rpc_confs,
-    detect_rpc_confs,
     get_default_datadir,
 )
 
@@ -41,6 +40,7 @@ class Node:
         protocol,
         external_node,
         fullpath,
+        node_type,
         manager,
     ):
         """Constructor for your Node.
@@ -56,6 +56,7 @@ class Node:
         :param protocol: Usually https or http
         :param external_node: should be True for Node and False for InternalNode
         :param fullpath: it's assumed that you want to store it on disk AND decide about the fullpath upfront
+        :param node_type: either "ELM" or "BTC", will impact autodetection (datadir and Env-vars)
         :param manager: A NodeManager instance which will get notified if the Node's name changes, the proxy_url will get copied from the manager as well
         """
         self.name = name
@@ -69,12 +70,12 @@ class Node:
         self.protocol = protocol
         self.external_node = external_node
         self.fullpath = fullpath
+        self._node_type = node_type
         self.manager = manager
         self.proxy_url = manager.proxy_url
         self.only_tor = manager.only_tor
         self.rpc = self.get_rpc()
         self._asset_labels = None
-
         self.check_info()
 
     @classmethod
@@ -83,7 +84,8 @@ class Node:
         name = node_dict.get("name", "")
         alias = node_dict.get("alias", default_alias)
         autodetect = node_dict.get("autodetect", True)
-        datadir = node_dict.get("datadir", get_default_datadir())
+        node_type = node_dict.get("node_type", "BTC")
+        datadir = node_dict.get("datadir", get_default_datadir(node_type=node_type))
         user = node_dict.get("user", "")
         password = node_dict.get("password", "")
         port = node_dict.get("port", None)
@@ -104,6 +106,7 @@ class Node:
             protocol,
             external_node,
             fullpath,
+            node_type,
             manager,
         )
 
@@ -122,6 +125,7 @@ class Node:
             "protocol": self.protocol,
             "external_node": self.external_node,
             "fullpath": self.fullpath,
+            "node_type": self.node_type,
         }
 
     def get_rpc(self):
@@ -136,11 +140,13 @@ class Node:
         if self.autodetect:
             if self.port:
                 rpc_conf_arr = autodetect_rpc_confs(
-                    datadir=os.path.expanduser(self.datadir), port=self.port
+                    self.node_type,
+                    datadir=os.path.expanduser(self.datadir),
+                    port=self.port,
                 )
             else:
                 rpc_conf_arr = autodetect_rpc_confs(
-                    datadir=os.path.expanduser(self.datadir)
+                    self.node_type, datadir=os.path.expanduser(self.datadir)
                 )
             if len(rpc_conf_arr) > 0:
                 rpc = BitcoinRPC(
@@ -471,6 +477,13 @@ class Node:
             return None
         else:
             return self._rpc
+
+    @property
+    def node_type(self):
+        """either BTC or ELM. This is (only) used to enable autodetection and should get specified with the Constructor"""
+        if hasattr(self, "_node_type"):
+            return self._node_type
+        return "BTC"
 
     @rpc.setter
     def rpc(self, value):

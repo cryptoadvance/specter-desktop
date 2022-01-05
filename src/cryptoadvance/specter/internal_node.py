@@ -55,6 +55,7 @@ class InternalNode(Node):
             protocol,
             False,
             fullpath,
+            "BTC",
             manager,
         )
 
