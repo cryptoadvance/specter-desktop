@@ -140,7 +140,7 @@ def get_access_token(code: str = None, code_verifier: str = None):
         return resp["access_token"]
     else:
         logger.warning(response)
-        raise Exception(response.text)
+        raise SwanApiException(response.text)
 
 
 def handle_oauth2_auth_callback(request):
@@ -154,8 +154,6 @@ def authenticated_request(
     endpoint: str, method: str = "GET", json_payload: dict = {}
 ) -> dict:
     logger.debug(f"{method} endpoint: {endpoint}")
-    if json_payload:
-        logger.debug(f"data:\n{json.dumps(json_payload, indent=4)}")
 
     access_token = get_access_token()
 
@@ -172,7 +170,6 @@ def authenticated_request(
                 headers=auth_header,
                 json=json_payload,
             )
-        print(response)
         return response.json()
     except Exception as e:
         # TODO: tighten up expected Exceptions
@@ -320,7 +317,7 @@ def set_autowithdrawal(btc_threshold: Decimal) -> dict:
     resp = authenticated_request(
         endpoint="/apps/v20210824/automatic-withdrawal",
         method="POST",
-        json_payload={"walletId": swan_wallet_id, "btcThreshold": btc_threshold},
+        json_payload={"walletId": swan_wallet_id, "minBtcThreshold": btc_threshold},
     )
     logger.debug(json.dumps(resp, indent=4))
 
@@ -332,7 +329,7 @@ def get_wallet_details(swan_wallet_id: str) -> dict:
     {
         "entity": "wallet",
         "item": {
-            "id": "c47e1e83-90a0-45da-ae25-6a0d324b9f29",
+            "id": "********",
             "isConfirmed": false,
             "displayName": "Specter autowithdrawal to SeedSigner demo",
             "metadata": {

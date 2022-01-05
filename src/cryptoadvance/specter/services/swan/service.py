@@ -133,48 +133,79 @@ class SwanService(Service):
         if cls.SWAN_WALLET_ID in service_data:
             # This user has previously/currently linked to Swan on this instance
             swan_wallet_id = service_data.get(SwanService.SWAN_WALLET_ID)
+            logger.debug(f"swan_wallet_id: {swan_wallet_id}")
 
-            # Confirm that the Swan walletId exists
+            # Confirm that the Swan walletId exists on the Swan side
             details = swan_client.get_wallet_details(swan_wallet_id)
-            if details and "item" in details and "metadata" in details["item"] and "specter_wallet_alias" in details["item"]["metadata"]:
+            """
+            {
+                "entity": "wallet",
+                "item": {
+                    "id": "*******",
+                    "isConfirmed": false,
+                    "displayName": "Specter autowithdrawal to SeedSigner demo",
+                    "metadata": {
+                        "oidc": {
+                            "clientId": "specter-dev"
+                        },
+                        "specter_wallet_alias": "seedsigner_demo"
+                    },
+                    "btcAddresses": []
+                }
+            }
+            """
+            if not details:
+                # Specter's `swan_wallet_id` is out of sync; doesn't exist on Swan's side.
+                # Clear the local SPECTER_WALLET_ALIAS and continue below to try to find one.
+                logger.debug(f"swan_wallet_id {swan_wallet_id} not found on Swan")
+                del service_data[SwanService.SWAN_WALLET_ID]
+                cls.set_current_user_service_data(service_data)
+
+            elif "item" in details and "metadata" in details["item"] and "specter_wallet_alias" in details["item"]["metadata"]:
                 wallet_alias = details["item"]["metadata"]["specter_wallet_alias"]
+                logger.debug(f"swan_wallet_id exists on Swan side")
                 if wallet_alias in app.specter.wallet_manager.wallets:
                     # All is good; we've matched Swan's wallet data with a Specter `Wallet` that we recognize.
+                    logger.debug(f"Found wallet_alias {wallet_alias} in Specter")
                     if wallet_alias != service_data.get(SwanService.SPECTER_WALLET_ALIAS):
+                        # Our local `service_data` is out of sync; update with the
+                        # current Specter wallet_alias Swan is expecting.
+                        logger.debug(f"Updating service_data to use wallet_alias {wallet_alias}")
                         cls.update_current_user_service_data({SwanService.SPECTER_WALLET_ALIAS: wallet_alias})
                     return
                 else:
                     # Swan is out of sync with Specter; the SPECTER_WALLET_ALIAS we had
                     # been using doesn't exist on this Specter instance.
-                    # TODO: Alert the user and route them to settings to select a new Wallet?
-                    raise Exception(f"Swan configured to send to unknown wallet: {wallet_alias}.")
-            else:
-                # Specter's `swan_wallet_id` is out of sync; doesn't exist on Swan's side.
-                # Clear the local SPECTER_WALLET_ALIAS and continue below to try to find one.
-                del service_data[SwanService.SWAN_WALLET_ID]
-                cls.set_current_user_service_data(service_data)
+                    logger.warn("Swan referenced an unknown wallet_alias {wallet_alias}")
+                    if SwanService.SPECTER_WALLET_ALIAS in service_data:
+                        # Clear the local reference to that unknown SPECTER_WALLET_ALIAS
+                        del service_data[SwanService.SPECTER_WALLET_ALIAS]
+                        cls.set_current_user_service_data(service_data)
 
         # This Specter instance has no idea if there might already be wallet data on the Swan side.
         # Fetch all Swan wallets, if any exist. 
         wallet_entries = swan_client.get_wallets().get("list")
         if not wallet_entries:
             # No Swan data at all yet. Nothing to do.
+            logger.debug("No wallets on the Swan side yet")
             return
 
         swan_wallet_id = None
         for wallet_entry in wallet_entries:
             swan_wallet_id = wallet_entry["id"]
             specter_wallet_alias = wallet_entry["metadata"].get("specter_wallet_alias")
-            if specter_wallet_alias in app.specter.wallet_manager.wallets:
+            if specter_wallet_alias in [w.alias for w in app.specter.wallet_manager.wallets.values()]:
                 # All is good; we've matched Swan's wallet data with a Specter `Wallet` that we recognize.
                 # Use this Swan walletId going forward.
                 cls.update_current_user_service_data({
                     SwanService.SWAN_WALLET_ID: swan_wallet_id,
                     SwanService.SPECTER_WALLET_ALIAS: specter_wallet_alias,
                 })
+                logger.debug(f"Found a Specter wallet that we recognize: {specter_wallet_alias}")
                 return
-        
+
         # We didn't find a matching Specter `Wallet`. Clear out any nonsense settings in our local data.
+        logger.debug("Did not find any matching Specter wallets in the Swan wallet metadata")
         if SwanService.SPECTER_WALLET_ALIAS in service_data:
             del service_data[SwanService.SPECTER_WALLET_ALIAS]
             SwanService.set_current_user_service_data(service_data)
@@ -184,6 +215,7 @@ class SwanService(Service):
             cls.update_current_user_service_data({
                 SwanService.SWAN_WALLET_ID: swan_wallet_id,
             })
+            logger.debug(f"Setting swan_wallet_id to {swan_wallet_id}")
 
 
 

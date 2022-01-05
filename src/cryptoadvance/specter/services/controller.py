@@ -28,15 +28,13 @@ def user_secret_decrypted_required(func):
             flash(
                 _("Service integration requires an authentication method that includes a password")
             )
-            return redirect(url_for(f"auth_endpoint.logout"))
+            return redirect(url_for(f"settings_endpoint.auth"))
         elif not current_user.is_user_secret_decrypted:
             flash(
                 _("Must login again to enable protected Services-related data")
             )
-            return redirect(url_for(f"settings_endpoint.auth"))
-        if not current_user.is_user_secret_decrypted:
-            flash(_("Must login again to enable protected Services-related data"))
-            return redirect(url_for(f"auth_endpoint.logout"))
+            # Force re-login; automatically redirects back to calling page
+            return app.login_manager.unauthorized()
         else:
             return func(*args, **kwargs)
 

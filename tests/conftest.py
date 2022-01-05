@@ -369,32 +369,32 @@ def device_manager(devices_filled_data_folder):
     return DeviceManager(os.path.join(devices_filled_data_folder, "devices"))
 
 
-@pytest.fixture
-def user_manager(empty_data_folder) -> UserManager:
-    """A UserManager having users alice, bob and eve"""
-    specter = Specter(data_folder=empty_data_folder)
-    user_manager = UserManager(specter=specter)
-    config = {}
-    user_manager.get_user("admin").decrypt_user_secret("admin")
-    user_manager.create_user(
-        user_id="alice",
-        username="alice",
-        plaintext_password="plain_pass_alice",
-        config=config,
-    )
-    user_manager.create_user(
-        user_id="bob",
-        username="bob",
-        plaintext_password="plain_pass_bob",
-        config=config,
-    )
-    user_manager.create_user(
-        user_id="eve",
-        username="eve",
-        plaintext_password="plain_pass_eve",
-        config=config,
-    )
-    return user_manager
+# @pytest.fixture
+# def user_manager(empty_data_folder) -> UserManager:
+#     """A UserManager having users alice, bob and eve"""
+#     specter = Specter(data_folder=empty_data_folder)
+#     user_manager = UserManager(specter=specter)
+#     config = {}
+#     user_manager.get_user("admin").decrypt_user_secret("admin")
+#     user_manager.create_user(
+#         user_id="alice",
+#         username="alice",
+#         plaintext_password="plain_pass_alice",
+#         config=config,
+#     )
+#     user_manager.create_user(
+#         user_id="bob",
+#         username="bob",
+#         plaintext_password="plain_pass_bob",
+#         config=config,
+#     )
+#     user_manager.create_user(
+#         user_id="eve",
+#         username="eve",
+#         plaintext_password="plain_pass_eve",
+#         config=config,
+#     )
+#     return user_manager
 
 
 @pytest.fixture
@@ -485,6 +485,19 @@ def app(specter_regtest_configured) -> SpecterFlask:
     app.tor_service_id = None
     app.tor_enabled = False
     init_app(app, specter=specter_regtest_configured)
+    return app
+
+
+@pytest.fixture
+def app_no_node(empty_data_folder) -> SpecterFlask:
+    specter = Specter(data_folder=empty_data_folder)
+    app = create_app(config="cryptoadvance.specter.config.TestConfig")
+    app.app_context().push()
+    app.config["TESTING"] = True
+    app.testing = True
+    app.tor_service_id = None
+    app.tor_enabled = False
+    init_app(app, specter=specter)
     return app
 
 

@@ -112,10 +112,8 @@ class ServiceEncryptedStorageManager(ConfigurableSingleton):
     def _get_current_user_service_storage(self) -> ServiceEncryptedStorage:
         """Returns the storage-class for the current_user. Lazy_init if necessary"""
         user = self.user_manager.get_user()
-        if user is None:
-            raise SpecterError(f"User {user} doesn't exist")
 
-        if self.storage_by_user.get(user) is None:
+        if user not in self.storage_by_user:
             self.storage_by_user[user] = ServiceEncryptedStorage(self.data_folder, user)
         return self.storage_by_user[user]
 
@@ -140,7 +138,7 @@ class ServiceEncryptedStorageManager(ConfigurableSingleton):
     def delete_all_service_data(self, user: User):
         """ Completely removes all data in the User's ServiceEncryptedStorage from memory and on-disk. """
         # Clear it from memory...
-        self.storage_by_user[user] = None
+        self.storage_by_user.pop(user, None)
 
         # ...and wipe the on-disk storage
         encrypted_storage = ServiceEncryptedStorage(self.data_folder, user, disable_decrypt=True)

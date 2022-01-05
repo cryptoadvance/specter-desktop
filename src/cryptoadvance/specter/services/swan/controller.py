@@ -38,7 +38,8 @@ def accesstoken_required(func):
             flash(
                 "Re-login required to access your protected services data"
             )
-            return redirect(url_for(f"auth_endpoint.logout"))
+            # Force re-login; automatically redirects back to calling page
+            return app.login_manager.unauthorized()
         return func(*args, **kwargs)
 
     return wrapper
@@ -74,12 +75,13 @@ def withdrawals():
 
 @swan_endpoint.route("/settings", methods=["GET"])
 @login_required
+@accesstoken_required
 def settings():
     # TODO: Remove this check after refresh_token support is added
     relink_url = None
+
     if not SwanService.is_access_token_valid():
         relink_url = swan_client.get_oauth2_start_url()
-
     associated_wallet: Wallet = SwanService.get_associated_wallet()
 
     # Get the user's Wallet objs, sorted by Wallet.name
@@ -100,7 +102,6 @@ def settings():
 @login_required
 @accesstoken_required
 def update_autowithdrawal():
-    print(request.form)
     threshold = request.form["threshold"]
     destination_wallet_alias = request.form["destination_wallet"]
     wallet = current_user.wallet_manager.get_by_alias(destination_wallet_alias)
@@ -122,10 +123,9 @@ def update_autowithdrawal():
                                 OAuth2 endpoints
 *************************************************************************** """
 @swan_endpoint.route("/oauth2/start")
-@swan_endpoint.route("/oauth2/start/<is_relink>")
 @login_required
 @user_secret_decrypted_required
-def oauth2_start(is_relink=0):
+def oauth2_start():
     """
     Set up the Swan API integration by requesting our initial access_token and
     refresh_token.
@@ -137,12 +137,9 @@ def oauth2_start(is_relink=0):
     # Let's start the PKCE-flow
     flow_url = swan_client.get_oauth2_start_url()
 
-    print(f"current_user: {current_user}")
-    print(f"is_relink: {is_relink}")
     return render_template(
         "swan/oauth2_start.jinja",
         flow_url=flow_url,
-        is_relink=int(is_relink) == 1,
     )
 
 
@@ -167,27 +164,41 @@ def oauth2_auth():
         )
     
     user: User = app.specter.user_manager.get_user()
+    error = None
 
     try:
         swan_client.handle_oauth2_auth_callback(request)
-
-        # Add the Service to the User's profile (will now appear in sidebar)
-        user = app.specter.user_manager.get_user()
-        user.add_service(SwanService.id)
-
-        # Sync Specter with any previous Swan-Specter integrations
-        SwanService.sync_swan_data()
-
-        return redirect(url_for(".oauth2_success"))
-    except Exception as e:
+    except swan_client.SwanApiException as e:
         logger.exception(e)
-        return render_template(
-            "error.html",
-            response=None,
-            error=str(e),
-            error_description=None,
-            cookies=request.cookies,
-        )
+        error = e
+
+    if not error:
+        try:
+            # Add the Service to the User's profile (will now appear in sidebar)
+            user = app.specter.user_manager.get_user()
+            user.add_service(SwanService.id)
+
+            # Sync this Specter instance with any previous Swan-Specter integrations
+            SwanService.sync_swan_data()
+
+            service_data = SwanService.get_current_user_service_data()
+            if service_data.get(SwanService.SPECTER_WALLET_ALIAS):
+                # We've re-synced with an existing auto-withdrawal setup. Redirect
+                # straight to the auto-withdrawals page.
+                return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
+
+            return redirect(url_for(".oauth2_success"))
+        except Exception as e:
+            logger.exception(e)
+            error = e
+
+    return render_template(
+        "error.html",
+        response=None,
+        error=str(error),
+        error_description=None,
+        cookies=request.cookies,
+    )
 
 
 @swan_endpoint.route("/oauth2/success")
@@ -197,7 +208,6 @@ def oauth2_success():
         have the @login_required filter set. Once we're back we can proceed to login-
         protected pages as usual.
     """
-    print(f"current_user: {current_user}")
     return render_template(
         "swan/oauth2_success.jinja",
     )

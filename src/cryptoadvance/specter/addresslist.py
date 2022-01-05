@@ -199,10 +199,8 @@ class AddressList(dict):
                 )
         self.save()
 
-    def get_address(self, address: str, add_if_missing: bool = True) -> Address:
+    def get_address(self, address: str) -> Address:
         if address not in self:
-            if not add_if_missing:
-                return
             self[address] = self.AddressCls(self.rpc, address=address)
         return self[address]
 

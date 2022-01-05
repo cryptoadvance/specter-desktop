@@ -617,6 +617,7 @@ def send_new(wallet_alias):
                 rand=rand,
             )
         elif action == "fillform":
+            # TODO: Not yet used. Remove if the use case doesn't happen.
             # can be used to recommend a transaction from a service (goind to an exchange or so)
             addresses = request.form.getlist("addresses[]")
             labels = request.form.getlist("labels[]")
@@ -1239,11 +1240,9 @@ def addressinfo(wallet_alias):
     try:
         wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
         address = request.form.get("address", "")
-        print(f"address {address}")
         if address:
             descriptor = wallet.get_descriptor(address=address)
             address_info = wallet.get_address_info(address=address)
-            print(f"address_info: {json.dumps(address_info, indent=2)}")
             return {
                 "success": True,
                 "address": address,

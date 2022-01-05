@@ -28,7 +28,7 @@
 				<br><br>
 			{% endif %}
 			<div id="hasencryptedservicedata" style="display: none" class="hasencryptedservicedata note">
-				<p>{{ _("Note: If you set Authentication to \"None\", your existing encrypted data for connecting to each Service will be removed.") }}</p>
+				<p>{{ _("Note: If you set Authentication to \"None\", Specter will unlink your Service integrations as a security precaution.") }}</p>
 			</div>
 			<div id="ratelimit" class="{% if method == 'none' or not current_user.is_admin %}hidden{% endif %}">
 				{{ _("Rate Limiting (seconds between login/register attempts)") }}:<br><input id="rate_limit" type="number" name="rate_limit" min="0" step="1" value="{{ rate_limit }}"><br><br>
