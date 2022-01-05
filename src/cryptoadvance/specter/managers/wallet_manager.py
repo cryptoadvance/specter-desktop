@@ -406,9 +406,6 @@ class WalletManager:
         """raise a SpecterError when a key in the passed KeyList is listed twice. Should prevent MultisigWallets where
         keys are used twice.
         """
-        print("--------------------")
-        print(keys)
-        unique_keys = []
         for key in keys:
             if keys.count(key) > 1:
                 raise SpecterError(_(f"Key {key} seem to be used at least twice!"))
