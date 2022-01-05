@@ -258,9 +258,8 @@ class SwanService(Service):
         if service_data.get(cls.SPECTER_WALLET_ALIAS) and service_data.get(
             cls.SWAN_WALLET_ID
         ):
-            from . import (
-                client as swan_client,
-            )  # Import here to prevent circular dependency
+            # Import here to prevent circular dependency
+            from . import client as swan_client
 
             swan_client.delete_autowithdrawal_addresses(
                 service_data[cls.SWAN_WALLET_ID]
@@ -270,8 +269,7 @@ class SwanService(Service):
         SwanService.set_current_user_service_data({})
 
         # Remove Swan from User's list of active Services
-        if SwanService.id in user.services:
-            user.services.remove(SwanService.id)
+        user.remove_service(SwanService.id)
 
     """ ***********************************************************************
                                 Update hooks overrides
