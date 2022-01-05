@@ -82,7 +82,7 @@ def test_ServiceEncryptedStorage(empty_data_folder):
 
 
 
-def test_access_encrypted_storage_after_login(app_no_node: SpecterFlask, empty_data_folder):    
+def test_access_encrypted_storage_after_login(app_no_node: SpecterFlask):    
     """ ServiceEncryptedStorage should be accessible (decryptable) after user login """
     # Create test users; automatically generates their `user_secret` and kept decrypted
     # in memory.
@@ -100,12 +100,17 @@ def test_access_encrypted_storage_after_login(app_no_node: SpecterFlask, empty_d
         config={},
     )
 
+    # The ServiceEncryptedStorageManager singleton creates a mess in the test suite. Have
+    # to override its (potentially) already-set values with references to this test's
+    # new instances and temp storage dir.
     storage_manager = ServiceEncryptedStorageManager.get_instance()
+    storage_manager.data_folder = user_manager.data_folder
+    storage_manager.user_manager = user_manager
+    storage_manager.storage_by_user = {}
 
     # Need a simulated request context to enable `current_user` lookup
     with app_no_node.test_request_context():
         login_user(user_manager.get_user("bob"))
-        print(f"data_file: {storage_manager._get_current_user_service_storage().data_file}")
 
         # Test user's service_data should be decryptable but initially empty
         service_data = storage_manager.get_current_user_service_data(service_id=FakeService.id)
@@ -126,11 +131,6 @@ def test_access_encrypted_storage_after_login(app_no_node: SpecterFlask, empty_d
         service_data = storage_manager.get_current_user_service_data(service_id=FakeService.id)
         assert storage_manager.get_current_user_service_data(service_id=FakeService.id) == {"somekey": "green"}
 
-        # TODO: Shouldn't have to clean up here to avoid artifacts in the next test
-        storage_manager.set_current_user_service_data(service_id=FakeService.id, service_data={})
-        user_manager.delete_user(user_manager.get_user("bob"))
-        user_manager.delete_user(user_manager.get_user("alice"))
-
 
 
 def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_folder):    
@@ -145,20 +145,18 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
         config={},
     )
 
+    # The ServiceEncryptedStorageManager singleton creates a mess in the test suite. Have
+    # to override its (potentially) already-set values with references to this test's
+    # new instances and temp storage dir.
     storage_manager = ServiceEncryptedStorageManager.get_instance()
-
-    # We have to overwrite the UserManager to the instance we just altered above.
+    storage_manager.data_folder = user_manager.data_folder
     storage_manager.user_manager = user_manager
-
-    print(f"storage_manager.user_manager.users: {storage_manager.user_manager.users}")
+    storage_manager.storage_by_user = {}
 
     # Need a simulated request context to enable `current_user` lookup
     with app_no_node.test_request_context():
         user = user_manager.get_user("bob")
         login_user(user)
-
-        print(storage_manager._get_current_user_service_storage().data_file)
-        print(empty_data_folder)
 
         # Test user's service_data should be decryptable but initially empty
         service_data = storage_manager.get_current_user_service_data(service_id=FakeService.id)
