@@ -35,8 +35,6 @@ from .process_controller.bitcoind_controller import BitcoindPlainController
 from .rpc import (
     BitcoinRPC,
     RpcError,
-    autodetect_rpc_confs,
-    detect_rpc_confs,
     get_default_datadir,
 )
 from .services.service_manager import ServiceManager
@@ -743,6 +741,7 @@ class Specter:
                 old_rpc.get("protocol", "http"),
                 True,
                 os.path.join(os.path.join(self.data_folder, "nodes"), "default.json"),
+                "BTC",
                 self,
             )
             logger.info(f"persisting {node} in migrate_old_node_format")
