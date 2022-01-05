@@ -23,7 +23,6 @@ from .helpers import deep_update
 logger = logging.getLogger(__name__)
 
 
-
 def hash_password(plaintext_password):
     """Hash a password for storing."""
     salt = binascii.b2a_base64(hashlib.sha256(os.urandom(60)).digest()).strip()
@@ -180,7 +179,7 @@ class User(UserMixin):
         """
         Generates and stores the user_secret in memory. Also stores it encrypted
         to disk.
-        
+
         Encryption using the user_secret uses a Fernet key. But the Fernet
         key itself will be encrypted with the user's password.
         """
@@ -196,12 +195,12 @@ class User(UserMixin):
             self.save_info()
 
     def set_password(self, plaintext_password):
-        """ Hash the incoming plaintext password and update the encrypted user_secret as
-            needed.
+        """Hash the incoming plaintext password and update the encrypted user_secret as
+        needed.
 
-            Remember that the underlying user_secret doesn't change if the user changes
-            their password; it's the same user_secret but it just needs to be
-            re-encrypted using the new password.
+        Remember that the underlying user_secret doesn't change if the user changes
+        their password; it's the same user_secret but it just needs to be
+        re-encrypted using the new password.
         """
         # Check the encrypted_user_secret before saving password change!
         if self.encrypted_user_secret is None:
@@ -221,7 +220,9 @@ class User(UserMixin):
                     # encrypted data for this user (admin) because it's no longer
                     # decryptable).
                     logger.warn(e)
-                    raise UserSecretException("Cannot decrypt existing encrypted_user_secret with the provided password")
+                    raise UserSecretException(
+                        "Cannot decrypt existing encrypted_user_secret with the provided password"
+                    )
             else:
                 # Must keep re-encrypt encrypted_user_secret with the new password.
                 self._encrypt_user_secret(plaintext_password)
@@ -298,21 +299,20 @@ class User(UserMixin):
         if existing and delete:
             self.specter.delete_user(self)
         self.manager.save()
-    
+
     def add_service(self, service_id: str, autosave: bool = True):
-        """ Add a Service to the User. Only updates what is listed in the sidebar. """
+        """Add a Service to the User. Only updates what is listed in the sidebar."""
         if service_id not in self.services:
             self.services.append(service_id)
         if autosave:
             self.save_info()
 
     def remove_service(self, service_id: str, autosave: bool = True):
-        """ Remove a Service from the User. Only updates what is listed in the sidebar. """
+        """Remove a Service from the User. Only updates what is listed in the sidebar."""
         if service_id in self.services:
-            self.services.remove(service_id, autosave=False)
+            self.services.remove(service_id)
         if autosave:
             self.save_info()
-    
 
     # TODO: Refactor calling code to explicitly call User.save() rather than embedding
     #   self.save_info() on every update and setter. It ends up saving to disk multiple

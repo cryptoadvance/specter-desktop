@@ -27,17 +27,18 @@ swan_endpoint = SwanService.blueprint
 # TODO: Generalize this to work for all Services?
 def accesstoken_required(func):
     """Access token needed for this function"""
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
             if SwanService.get_current_user_service_data().get("access_token") is None:
                 logger.debug(f"No access token, redirecting to {SwanService.id}.index")
-                return redirect(url_for(f"{SwanService.get_blueprint_name()}.oauth2_start"))
+                return redirect(
+                    url_for(f"{SwanService.get_blueprint_name()}.oauth2_start")
+                )
         except ServiceEncryptedStorageError as e:
             logger.debug(repr(e))
-            flash(
-                "Re-login required to access your protected services data"
-            )
+            flash("Re-login required to access your protected services data")
             # Force re-login; automatically redirects back to calling page
             return app.login_manager.unauthorized()
         return func(*args, **kwargs)
@@ -63,7 +64,7 @@ def index():
 def withdrawals():
     # The wallet currently configured for ongoing autowithdrawals
     wallet: Wallet = SwanService.get_associated_wallet()
-    
+
     return render_template(
         "swan/withdrawals.jinja",
         # txlist=swan_txs,
@@ -111,17 +112,15 @@ def update_autowithdrawal():
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
     except swan_client.SwanServiceApiException as e:
         logger.exception(e)
-        flash(
-            _("Error communicating with Swan API")
-        )
+        flash(_("Error communicating with Swan API"))
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.settings"))
-
-
 
 
 """ ***************************************************************************
                                 OAuth2 endpoints
 *************************************************************************** """
+
+
 @swan_endpoint.route("/oauth2/start")
 @login_required
 @user_secret_decrypted_required
@@ -148,6 +147,8 @@ def oauth2_start():
     but we need the user logged in and their user_secret decrypted. So we must require
     @login_required here which will interrupt the return flow with the login prompt.
 """
+
+
 @swan_endpoint.route("/oauth2/callback")
 @login_required
 def oauth2_auth():
@@ -162,7 +163,7 @@ def oauth2_auth():
                 "error_description"
             ),  # Slightly misusing the traceback field
         )
-    
+
     user: User = app.specter.user_manager.get_user()
     error = None
 
@@ -185,7 +186,9 @@ def oauth2_auth():
             if service_data.get(SwanService.SPECTER_WALLET_ALIAS):
                 # We've re-synced with an existing auto-withdrawal setup. Redirect
                 # straight to the auto-withdrawals page.
-                return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
+                return redirect(
+                    url_for(f"{SwanService.get_blueprint_name()}.withdrawals")
+                )
 
             return redirect(url_for(".oauth2_success"))
         except Exception as e:
@@ -204,9 +207,9 @@ def oauth2_auth():
 @swan_endpoint.route("/oauth2/success")
 def oauth2_success():
     """
-        The redirect from the oauth2 callback has to land on an endpoint that does not
-        have the @login_required filter set. Once we're back we can proceed to login-
-        protected pages as usual.
+    The redirect from the oauth2 callback has to land on an endpoint that does not
+    have the @login_required filter set. Once we're back we can proceed to login-
+    protected pages as usual.
     """
     return render_template(
         "swan/oauth2_success.jinja",
@@ -220,11 +223,11 @@ def oauth2_delete_token():
     # TODO: Separate deleting the token from removing service integration altogether?
     for wallet_name, wallet in current_user.wallet_manager.wallets.items():
         SwanService.unreserve_addresses(wallet=wallet)
-    
+
     SwanService.set_current_user_service_data({})
 
     if SwanService.id in current_user.services:
-        current_user.services.remove(SwanService.id)
+        current_user.remove_service(SwanService.id)
 
     url = url_for(f"{SwanService.get_blueprint_name()}.index")
     return redirect(url_for(f"{SwanService.get_blueprint_name()}.index"))
