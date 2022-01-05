@@ -410,11 +410,5 @@ class WalletManager:
         print(keys)
         unique_keys = []
         for key in keys:
-            if len(unique_keys) == 0:
-                unique_keys.append(key)
-            else:
-                for pot_dup in unique_keys:
-                    if pot_dup == key:
-                        raise SpecterError(
-                            _(f"Key {key} seem to be used at least twice!")
-                        )
+            if keys.count(key) > 1:
+                raise SpecterError(_(f"Key {key} seem to be used at least twice!"))
