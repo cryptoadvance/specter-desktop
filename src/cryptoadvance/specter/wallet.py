@@ -1076,8 +1076,10 @@ class Wallet:
                     tx["label"] = [self.getlabel(address) for address in tx["address"]]
                 else:
                     tx["label"] = None
-                
-                if service_id and ("service_id" not in tx or tx["service_id"] != service_id):
+
+                if service_id and (
+                    "service_id" not in tx or tx["service_id"] != service_id
+                ):
                     # We only want `service_id`-related txs returned
                     continue
 
@@ -1373,7 +1375,7 @@ class Wallet:
         return self.descriptor.derive(index, branch_index=int(change)).address(
             self.network
         )
-    
+
     def get_address_obj(self, address: str) -> Address:
         return self._addresses.get(address)
 
@@ -1599,29 +1601,35 @@ class Wallet:
 
         self.save_to_file()
         return end
-    
-    def associate_address_with_service(self, address: str, service_id: str, label: str, autosave: bool = True):
+
+    def associate_address_with_service(
+        self, address: str, service_id: str, label: str, autosave: bool = True
+    ):
         """
-            Links the Address to the specified Service.id
+        Links the Address to the specified Service.id
         """
-        self._addresses.associate_with_service(address=address, service_id=service_id, label=label, autosave=autosave)
+        self._addresses.associate_with_service(
+            address=address, service_id=service_id, label=label, autosave=autosave
+        )
 
     def deassociate_address(self, address: str, autosave: bool = True):
         """
-            Clears any Service associations on the Address.
+        Clears any Service associations on the Address.
         """
         self._addresses.deassociate(address=address, autosave=autosave)
-    
-    def get_associated_addresses(self, service_id: str, unused_only: bool = False) -> List[Address]:
+
+    def get_associated_addresses(
+        self, service_id: str, unused_only: bool = False
+    ) -> List[Address]:
         """
-            Return the Wallet's Address objs that are associated with the specified Service.id
+        Return the Wallet's Address objs that are associated with the specified Service.id
         """
         addrs = []
         for addr, addr_obj in self._addresses.items():
             if addr_obj["service_id"] == service_id:
                 if not unused_only or not addr_obj["used"]:
                     addrs.append(addr_obj)
-        return addrs        
+        return addrs
 
     def setlabel(self, address, label):
         self._addresses.set_label(address, label)
@@ -1999,10 +2007,15 @@ class Wallet:
         self.save_pending_psbt(psbt)
         return psbt.to_dict()
 
-    def addresses_info(self, is_change: bool = False, service_id: str = None, include_wallet_alias: bool = False):
+    def addresses_info(
+        self,
+        is_change: bool = False,
+        service_id: str = None,
+        include_wallet_alias: bool = False,
+    ):
         """Create a list of (receive or change) addresses from cache and retrieve the
         related UTXO and amount.
-        Parameters: 
+        Parameters:
             * is_change: if true, return the change addresses else the receive ones.
             * service_id: just return addresses associated for the given Service
             * include_wallet_alias: adds `wallet_alias` to each output (useful when this
@@ -2024,8 +2037,10 @@ class Wallet:
             ]:
                 addr_amount = addr_amount + utxo["amount"]
                 addr_utxo = addr_utxo + 1
-            
-            if service_id and ("service_id" not in addr or addr["service_id"] != service_id):
+
+            if service_id and (
+                "service_id" not in addr or addr["service_id"] != service_id
+            ):
                 # Filter this address out
                 continue
 
