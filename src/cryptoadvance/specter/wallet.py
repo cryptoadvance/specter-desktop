@@ -580,17 +580,20 @@ class Wallet:
                 reader = csv.DictReader(f, delimiter=dialect.delimiter)
                 reader.fieldnames = [name.lower() for name in reader.fieldnames]
                 for row in reader:
-                    labeled_addresses[row["address"]] = row["label"]
+                    if not row["label"].startswith(
+                        "Address #"
+                    ):  # Avoids importing addresses with standard "Address #X" description
+                        labeled_addresses[row["address"]] = row["label"]
                 logger.info(f"Specter label CSV was converted to {labeled_addresses}.")
             except (Error, KeyError) as e:
                 raise SpecterError(
                     f"Labels import failed. Check the import info box for the expected formats. Error: {e}"
                 )
-        # convert labeled_addresses to arr (for AddressList.set_labels), only allow existing addresses for which a label had been set
+        # Convert labeled_addresses to arr (for AddressList.set_labels)
         arr = [
             {"address": address, "label": label}
             for address, label in labeled_addresses.items()
-            if address in self._addresses and self._addresses[address].is_labeled
+            if address in self._addresses
         ]
         logger.info(f"Array for set_labels is: {arr}")
         self._addresses.set_labels(arr)
