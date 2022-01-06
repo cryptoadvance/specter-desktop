@@ -2,15 +2,17 @@ import json
 import logging
 import os
 import tarfile
-import time
 
 import pytest
+import requests
 from cryptoadvance.specter.util.specter_migrator import (
     MigDataManager,
     SpecterMigration,
     SpecterMigrator,
 )
 from mock import Mock, patch
+from urllib3.exceptions import NewConnectionError
+from requests.exceptions import ConnectionError
 
 logger = logging.getLogger(__name__)
 
@@ -73,9 +75,20 @@ def test_SpecterMigrator_versioning2(empty_data_folder, caplog):
         assert "Skipping class SpecterMigration_0001" not in caplog.text
 
 
+def _check_port_free(port=8332):
+    # For external nodes, we assume that there are already running
+    try:
+        result = requests.get(f"http://localhost:{port}")
+        return False
+    except (ConnectionRefusedError, ConnectionError, NewConnectionError):
+        pass
+    return True
+
+
 def test_SpecterMigrator(empty_data_folder, caplog):
 
     caplog.set_level(logging.DEBUG)
+    assert _check_port_free()
     assert MigDataManager.initial_data()["events"] == []
     assert MigDataManager.initial_data()["migration_executions"] == []
     assert len(os.listdir(empty_data_folder)) == 0
@@ -117,6 +130,16 @@ def test_SpecterMigrator(empty_data_folder, caplog):
         assert "Setting execution log status of 1 to completed" in caplog.text
 
         assert mm.mig.migration_executions[0]["migration_id"] == 1
+        print(
+            os.listdir(
+                os.path.join(
+                    empty_data_folder,
+                    "nodes",
+                    "specter_bitcoin",
+                    ".bitcoin-main",
+                )
+            )
+        )
         assert os.path.isdir(
             os.path.join(
                 empty_data_folder,

@@ -10,6 +10,7 @@ import os
 import shutil
 import threading
 
+
 from flask import current_app as app
 
 from .specter_error import SpecterError
@@ -90,20 +91,17 @@ def _write_json_file(content, path, lock=None):
 
 def write_json_file(content, path, lock=None):
     _write_json_file(content, path, lock)
-    storage_callback()
+    storage_callback(path=path)
 
 
 def delete_files(paths):
     """deletes multiple files and calls storage callback once"""
-    need_callback = False
     for path in paths:
         try:
             os.remove(path)
-            need_callback = True
+            storage_callback(mode="delete", path=path)
         except FileNotFoundError:
             pass
-    if need_callback:
-        storage_callback()
 
 
 def delete_file(path):
@@ -113,13 +111,11 @@ def delete_file(path):
 def write_devices(devices_json):
     """interpret a json as a list of devices and write them in the devices subfolder inside the specter-folder"""
     for device_json in devices_json:
-        _write_json_file(
-            device_json,
-            os.path.join(
-                app.specter.device_manager.data_folder, "%s.json" % device_json["alias"]
-            ),
+        path = os.path.join(
+            app.specter.device_manager.data_folder, "%s.json" % device_json["alias"]
         )
-    storage_callback()
+        _write_json_file(device_json, path)
+        storage_callback(path=path)
 
 
 def write_wallet(wallet_json):
@@ -130,28 +126,28 @@ def write_wallet(wallet_json):
         app.specter.wallet_manager.working_folder, "%s.json" % wallet_json["alias"]
     )
     _write_json_file(wallet_json, fpath)
-    storage_callback()
+    storage_callback(path=fpath)
 
 
 def write_device(device, fullpath):
     _write_json_file(device.json, fullpath)
-    storage_callback()
+    storage_callback(path=fullpath)
 
 
 def write_node(node, fullpath):
     _write_json_file(node.json, fullpath)
-    storage_callback()
+    storage_callback(path=fullpath)
 
 
 def delete_folder(path):
     _delete_folder(path)
-    storage_callback()
+    storage_callback(mode="delete", path=path)
 
 
 def delete_folders(paths):
     for path in paths:
         _delete_folder(path)
-    storage_callback()
+        storage_callback(mode="delete", path=path)
 
 
 def _write_csv(fname, objs, cls=dict):
@@ -172,7 +168,7 @@ def _write_csv(fname, objs, cls=dict):
 
 def write_csv(fname, objs, cls=dict):
     _write_csv(fname, objs, cls)
-    storage_callback()
+    storage_callback(path=fname)
 
 
 def read_csv(fname, cls=dict, *args):
@@ -182,16 +178,35 @@ def read_csv(fname, cls=dict, *args):
             return [cls(*args, **row) for row in csv_reader]
 
 
-def storage_callback():
-    if os.getenv("SPECTER_PERSISTENCE_CALLBACK"):
-        result = run_shell(os.getenv("SPECTER_PERSISTENCE_CALLBACK").split(" "))
-        if result["code"] != 0:
-            logger.error("callback failed stdout: {}".format(result["out"]))
-            logger.error("stderr {}".format(result["err"]))
-        else:
-            logger.info(
-                "Successfully executed {}".format(
-                    os.getenv("SPECTER_PERSISTENCE_CALLBACK")
-                )
-            )
-            logger.debug("result: {}".format(result))
+def storage_callback_function(cmd_list):
+    """This is executing the callback-script, either directly or via threading"""
+    logger.debug(f"Executing {cmd_list}")
+    result = run_shell(cmd_list)
+    if result["code"] != 0:
+        logger.error("callback failed ")
+        logger.error("stderr: {}".format(result["err"]))
+        logger.error("stdout: {}".format(result["out"]))
+    else:
+        logger.info("Successfully executed {}".format(" ".join(cmd_list)))
+        logger.debug("result: {}".format(result))
+
+
+def storage_callback(mode="write", path=None):
+    """Call this whenever anything in the .specter directory changes. Be aware that we might store node-data in the specter-folder"""
+    # Might be usefull to figure out why the callback has been triggered:
+    # traceback.print_stack()
+    logger.info(f"Storage Callback called mode {mode} with path {path}")
+    if os.getenv("SPECTER_PERSISTENCE_CALLBACK_ASYNC"):
+        cmd_list = os.getenv("SPECTER_PERSISTENCE_CALLBACK_ASYNC").split(" ")
+        cmd_list.append(mode)
+        cmd_list.append(path)
+        t = threading.Thread(
+            target=storage_callback_function,
+            args=(cmd_list,),
+        )
+        t.start()
+    elif os.getenv("SPECTER_PERSISTENCE_CALLBACK"):
+        cmd_list = os.getenv("SPECTER_PERSISTENCE_CALLBACK").split(" ")
+        cmd_list.append(mode)
+        cmd_list.append(path)
+        storage_callback_function(cmd_list)
