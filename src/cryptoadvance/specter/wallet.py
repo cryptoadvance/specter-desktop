@@ -1355,6 +1355,9 @@ class Wallet:
     def get_address(self, index, change=False, check_keypool=True):
         if check_keypool:
             pool = self.change_keypool if change else self.keypool
+            logger.debug(
+                f"get_address index={index} pool={pool} gapLIMIT={self.GAP_LIMIT} change={change} will_keypoolrefill={pool < index + self.GAP_LIMIT}"
+            )
             if pool < index + self.GAP_LIMIT:
                 self.keypoolrefill(pool, index + self.GAP_LIMIT, change=change)
         return self.descriptor.derive(index, branch_index=int(change)).address(
@@ -1537,6 +1540,9 @@ class Wallet:
         if end is None:
             # end is ignored for descriptor wallets
             end = start + self.GAP_LIMIT
+        if end - start < self.GAP_LIMIT:
+            # avoid too many calls
+            end = start + self.GAP_LIMIT * 2
 
         desc = self.recv_descriptor if not change else self.change_descriptor
         args = [
