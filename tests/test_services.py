@@ -14,7 +14,7 @@ from cryptoadvance.specter.services.service import Service
 from cryptoadvance.specter.services.service_encrypted_storage import (
     ServiceEncryptedStorage,
     ServiceEncryptedStorageError,
-    ServiceEncryptedStorageManager
+    ServiceEncryptedStorageManager,
 )
 from cryptoadvance.specter.services.service_manager import ServiceManager
 from cryptoadvance.specter.user import User, hash_password
@@ -81,9 +81,8 @@ def test_ServiceEncryptedStorage(empty_data_folder):
     assert "must be authenticated with password" in str(execinfo.value)
 
 
-
-def test_access_encrypted_storage_after_login(app_no_node: SpecterFlask):    
-    """ ServiceEncryptedStorage should be accessible (decryptable) after user login """
+def test_access_encrypted_storage_after_login(app_no_node: SpecterFlask):
+    """ServiceEncryptedStorage should be accessible (decryptable) after user login"""
     # Create test users; automatically generates their `user_secret` and kept decrypted
     # in memory.
     user_manager: UserManager = app_no_node.specter.user_manager
@@ -113,28 +112,40 @@ def test_access_encrypted_storage_after_login(app_no_node: SpecterFlask):
         login_user(user_manager.get_user("bob"))
 
         # Test user's service_data should be decryptable but initially empty
-        service_data = storage_manager.get_current_user_service_data(service_id=FakeService.id)
+        service_data = storage_manager.get_current_user_service_data(
+            service_id=FakeService.id
+        )
         assert service_data == {}
-        storage_manager.update_current_user_service_data(service_id=FakeService.id, service_data={"somekey": "green"})
+        storage_manager.update_current_user_service_data(
+            service_id=FakeService.id, service_data={"somekey": "green"}
+        )
 
         logout_user()
 
         # Meanwhile Alice's account storage will still be blank...
         login_user(user_manager.get_user("alice"))
-        service_data = storage_manager.get_current_user_service_data(service_id=FakeService.id)
-        assert storage_manager.get_current_user_service_data(service_id=FakeService.id) == {}
+        service_data = storage_manager.get_current_user_service_data(
+            service_id=FakeService.id
+        )
+        assert (
+            storage_manager.get_current_user_service_data(service_id=FakeService.id)
+            == {}
+        )
 
         logout_user()
 
         # ...while Bob's can be retrieved when he's logged in.
         login_user(user_manager.get_user("bob"))
-        service_data = storage_manager.get_current_user_service_data(service_id=FakeService.id)
-        assert storage_manager.get_current_user_service_data(service_id=FakeService.id) == {"somekey": "green"}
+        service_data = storage_manager.get_current_user_service_data(
+            service_id=FakeService.id
+        )
+        assert storage_manager.get_current_user_service_data(
+            service_id=FakeService.id
+        ) == {"somekey": "green"}
 
 
-
-def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_folder):    
-    """ ServiceEncryptedStorage should be accessible (decryptable) after user login """
+def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_folder):
+    """ServiceEncryptedStorage should be accessible (decryptable) after user login"""
     # Create test users; automatically generates their `user_secret` and kept decrypted
     # in memory.
     user_manager: UserManager = app_no_node.specter.user_manager
@@ -159,12 +170,18 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
         login_user(user)
 
         # Test user's service_data should be decryptable but initially empty
-        service_data = storage_manager.get_current_user_service_data(service_id=FakeService.id)
+        service_data = storage_manager.get_current_user_service_data(
+            service_id=FakeService.id
+        )
         assert service_data == {}
-        storage_manager.update_current_user_service_data(service_id=FakeService.id, service_data={"somekey": "green"})
+        storage_manager.update_current_user_service_data(
+            service_id=FakeService.id, service_data={"somekey": "green"}
+        )
 
         # Check on disk. The <user>_services.json should now have our data.
-        service_encrypted_storage_file = storage_manager._get_current_user_service_storage().data_file
+        service_encrypted_storage_file = (
+            storage_manager._get_current_user_service_storage().data_file
+        )
         with open(service_encrypted_storage_file, "r") as storage_json_file:
             data_on_disk = json.load(storage_json_file)
 
@@ -199,4 +216,3 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
         with open(service_encrypted_storage_file, "r") as storage_json_file:
             data_on_disk = json.load(storage_json_file)
         assert data_on_disk == {}
-

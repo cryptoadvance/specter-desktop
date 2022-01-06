@@ -80,8 +80,7 @@ class Specter:
         )  # has to come before calling VersionChecker()
 
         self.service_manager = ServiceManager(
-            specter=self,
-            devstatus_threshold=service_devstatus_threshold
+            specter=self, devstatus_threshold=service_devstatus_threshold
         )
 
         # version checker

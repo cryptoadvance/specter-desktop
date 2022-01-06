@@ -1039,7 +1039,7 @@ def decoderawtx(wallet_alias):
                         utxo.update(addr_obj)
                         if not utxo.get("label"):
                             utxo["label"] = addr_obj.label
-                
+
                 # TODO: Fetch the relevant Input utxo details so the JS doesn't have to
                 #   make a separate call.
             except:
@@ -1062,7 +1062,9 @@ def decoderawtx(wallet_alias):
             #   user's Wallet.
             pass
         else:
-            app.logger.warning("Failed to fetch transaction data. Exception: {}".format(e))
+            app.logger.warning(
+                "Failed to fetch transaction data. Exception: {}".format(e)
+            )
     except Exception as e:
         app.logger.warning("Failed to fetch transaction data. Exception: {}".format(e))
 
@@ -1175,7 +1177,7 @@ def wallets_overview_txlist():
         current_blockheight=app.specter.info["blocks"],
         service_id=service_id,
     )
-    
+
     return process_txlist(
         txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
     )

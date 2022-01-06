@@ -10,7 +10,10 @@ from ..helpers import alias, load_jsons, is_liquid, add_dicts
 from ..persistence import delete_folder
 from ..rpc import RpcError, get_default_datadir
 from ..specter_error import SpecterError
-from ..wallet import Wallet, purposes   # TODO: `purposes` unused here, but other files rely on this import
+from ..wallet import (
+    Wallet,
+    purposes,
+)  # TODO: `purposes` unused here, but other files rely on this import
 from ..liquid.wallet import LWallet
 
 logger = logging.getLogger(__name__)
@@ -368,7 +371,7 @@ class WalletManager:
                     fetch_transactions=fetch_transactions,
                     validate_merkle_proofs=validate_merkle_proofs,
                     current_blockheight=current_blockheight,
-                    service_id=service_id
+                    service_id=service_id,
                 )
             ]
             # Outer comprehension: ...from each wallet, each returning their own tx list.
@@ -400,14 +403,20 @@ class WalletManager:
         return list(reversed(sorted(result, key=lambda tx: tx["time"])))
 
     def full_addresses_info(self, is_change: bool = False, service_id: str = None):
-        """ Mimics full_txlist in concept, but is really only expected to be used for
-            retrieving all addresses across all Wallets that are associated with a
-            Service.
-            
-            Not currently used yet. """
+        """Mimics full_txlist in concept, but is really only expected to be used for
+        retrieving all addresses across all Wallets that are associated with a
+        Service.
+
+        Not currently used yet."""
         addresses_info = []
         for wallet_alias, wallet in self.wallets.items():
-            addresses_info.extend(wallet.addresses_info(is_change=is_change, service_id=service_id, include_wallet_alias=True))
+            addresses_info.extend(
+                wallet.addresses_info(
+                    is_change=is_change,
+                    service_id=service_id,
+                    include_wallet_alias=True,
+                )
+            )
         return addresses_info
 
     def delete(self, specter):

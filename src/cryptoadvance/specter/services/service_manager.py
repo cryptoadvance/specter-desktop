@@ -78,7 +78,7 @@ class ServiceManager:
                             logger.info(
                                 f"Service {clazz.__name__} not activated due to devstatus ( {self.devstatus_threshold} > {clazz.devstatus} )"
                             )
-    
+
         # Configure and instantiate the one and only ServiceEncryptedStorageManager
         try:
             ServiceEncryptedStorageManager.configure_instance(specter=specter)
@@ -150,15 +150,15 @@ class ServiceManager:
         )
         return [self._services[s] for s in service_names]
 
-    
     def user_has_encrypted_storage(self, user: User) -> bool:
-        """ Looks for any data for any service in the User's ServiceEncryptedStorage.
-            This check works even if the user doesn't have their plaintext_user_secret
-            available. """
-        encrypted_data = ServiceEncryptedStorageManager.get_instance().get_raw_encrypted_data(user)
+        """Looks for any data for any service in the User's ServiceEncryptedStorage.
+        This check works even if the user doesn't have their plaintext_user_secret
+        available."""
+        encrypted_data = (
+            ServiceEncryptedStorageManager.get_instance().get_raw_encrypted_data(user)
+        )
         print(f"encrypted_data: {encrypted_data} for {user}")
         return encrypted_data != {}
-
 
     def set_active_services(self, service_names_active):
         logger.debug(f"Setting these services active: {service_names_active}")
@@ -169,18 +169,16 @@ class ServiceManager:
             )
             service.active = service.id in service_names_active
 
-
     def get_service(self, service_id: str) -> Service:
         if service_id not in self._services:
             # TODO: better error handling?
             raise Exception(f"No such Service: '{service_id}'")
         return self._services[service_id]
 
-
     def remove_all_services_from_user(self, user: User):
         """
-            Clears User.services and `user_secret`; wipes the User's
-            ServiceEncryptedStorage.
+        Clears User.services and `user_secret`; wipes the User's
+        ServiceEncryptedStorage.
         """
         # Don't show any Services on the sidebar for the admin user
         user.services.clear()
@@ -193,4 +191,3 @@ class ServiceManager:
             # Encrypted Service data is now orphaned since there is no
             # password. So wipe it from the disk.
             ServiceEncryptedStorageManager.get_instance().delete_all_service_data(user)
-

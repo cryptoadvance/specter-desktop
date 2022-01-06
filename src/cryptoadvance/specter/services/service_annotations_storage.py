@@ -17,6 +17,7 @@ class ServiceAnnotationsStorage(GenericDataManager):
         }
     }
     """
+
     def __init__(self, service_id: str, wallet: Wallet):
         # Must set these before calling parent's __init__() so that the data_file
         #   property will have the proper member vars.
