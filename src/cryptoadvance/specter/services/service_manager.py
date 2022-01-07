@@ -12,6 +12,7 @@ from typing import Dict, List
 from cryptoadvance.specter.user import User
 
 from cryptoadvance.specter.managers.singleton import ConfigurableSingletonException
+from ..util.reflection import get_subclasses_for_class
 
 from .service import Service
 from .service_encrypted_storage import ServiceEncryptedStorageManager
@@ -28,56 +29,22 @@ class ServiceManager:
 
         # Each Service class is stored here, keyed on its Service.id str
         self._services: Dict[str, Service] = {}
-
-        # Discover all subclasses of Service by listing the path where all the services are located:
-        package_dir = str(Path(Path(__file__).resolve().parent).resolve())
         logger.info("----> starting service discovery <----")
-        for item in os.listdir(package_dir):
-            # We're looking for the subdirs for each Service; skip anything else.
-            #   ".DS_Store" is a macOS artifact.
-            if item.endswith(".py") or item in [
-                "templates",
-                "static",
-                "__pycache__",
-                ".DS_Store",
-            ]:
-                continue
-            try:
-                module = import_module(f"cryptoadvance.specter.services.{item}.service")
-            except ModuleNotFoundError:
-                logger.warning(
-                    f"Service Directory cryptoadvance.specter.services.{item} does not have a service implementation file! Skipping!"
+        for clazz in get_subclasses_for_class(Service):
+            compare_map = {"alpha": 1, "beta": 2, "prod": 3}
+            if compare_map[self.devstatus_threshold] <= compare_map[clazz.devstatus]:
+                # First configure the service
+                self.configure_service_for_module(clazz.id)
+                # Now activate it
+                self._services[clazz.id] = clazz(
+                    active=clazz.id in self.specter.config.get("services", []),
+                    specter=self.specter,
                 )
-                continue
-            service_id = item
-            for attribute_name in dir(module):
-                attribute = getattr(module, attribute_name)
-
-                if isclass(attribute):
-                    clazz = attribute
-                    if issubclass(clazz, Service) and not clazz.__name__ == "Service":
-                        # Found a Service subclass!
-                        # Activate based on devstatus
-                        compare_map = {"alpha": 1, "beta": 2, "prod": 3}
-                        if (
-                            compare_map[self.devstatus_threshold]
-                            <= compare_map[clazz.devstatus]
-                        ):
-                            # First configure the service
-                            self.configure_service_for_module(service_id)
-                            # Now activate it
-                            self._services[clazz.id] = clazz(
-                                active=clazz.id
-                                in self.specter.config.get("services", []),
-                                specter=self.specter,
-                            )
-                            logger.info(
-                                f"Service {clazz.__name__} activated ({clazz.devstatus})"
-                            )
-                        else:
-                            logger.info(
-                                f"Service {clazz.__name__} not activated due to devstatus ( {self.devstatus_threshold} > {clazz.devstatus} )"
-                            )
+                logger.info(f"Service {clazz.__name__} activated ({clazz.devstatus})")
+            else:
+                logger.info(
+                    f"Service {clazz.__name__} not activated due to devstatus ( {self.devstatus_threshold} > {clazz.devstatus} )"
+                )
 
         # Configure and instantiate the one and only ServiceEncryptedStorageManager
         try:
