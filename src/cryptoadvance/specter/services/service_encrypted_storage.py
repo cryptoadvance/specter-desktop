@@ -65,7 +65,7 @@ class ServiceEncryptedStorage(GenericDataManager):
 
     def set_service_data(self, service_id: str, data: dict, autosave: bool = True):
         """Store the api_data json blob as a string; completely overwrites previous state"""
-        if data == {}:
+        if data == {} and service_id in self.data:
             del self.data[service_id]
         else:
             self.data[service_id] = json.dumps(data)
