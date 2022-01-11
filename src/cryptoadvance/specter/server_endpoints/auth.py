@@ -202,23 +202,10 @@ def redirect_login(request):
     else:
         response = redirect(url_for("index"))
 
-    # Check the user's Service integrations
-    from cryptoadvance.specter.services.swan.client import (
-        SwanApiRefreshTokenException,
-    )  # TODO: Remove this import after Swan exits Beta testing
-
     for service_id in app.specter.user_manager.get_user().services:
         try:
             service_cls = app.specter.service_manager.get_service(service_id)
             service_cls.on_user_login()
-        except SwanApiRefreshTokenException as e:  # TODO: Remove after Swan exits Beta
-            # Expected failure during Beta testing since we have no refresh_token; remove after Swan exits Beta
-            flash(
-                _(
-                    "Swan auto-withdrawal needs more addresses. Go to Services -> Swan -> Settings"
-                ),
-                "error",
-            )
         except Exception as e:
             app.logger.exception(e)
 

@@ -63,19 +63,6 @@
         }
     </style>
 
-    {# TODO: Remove `if` logic after Swan exits Beta #}
-    {% if relink_url %}
-        <div class="card center" style="width: auto; margin: 40px;">
-            <div>Re-link your Swan account in order to enable auto-withdrawal changes.</div>
-            <div class="big_option" onclick="location.href='{{ relink_url }}';">
-                <div class="big_option_text">
-                    Relink&nbsp;your&nbsp;account
-                </div>
-            </div>
-
-            <div class="instructions">{{ _("Specter's link to Swan expires after an hour during Beta testing") }}</div>
-        </div>
-    {% else %}
     <div class="card">
         <h1>{{ _("Configure Auto-Withdrawal") }}</h1>
         <br>
@@ -121,8 +108,6 @@
     <br/>
     <br/>
     <br/>
-
-    {% endif %} {# TODO: Remove `if` logic after Swan exits Beta #}
 
 
     <div class="card">

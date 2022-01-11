@@ -14,6 +14,7 @@ from cryptoadvance.specter.services.service_encrypted_storage import (
     ServiceEncryptedStorageError,
 )
 from . import client as swan_client
+from .client import SwanApiException
 from .service import SwanService
 from ..controller import user_secret_decrypted_required
 
@@ -23,23 +24,22 @@ logger = logging.getLogger(__name__)
 swan_endpoint = SwanService.blueprint
 
 
-# TODO: Change this to refreshtoken_required
-# TODO: Generalize this to work for all Services?
-def accesstoken_required(func):
-    """Access token needed for this function"""
+def refreshtoken_required(func):
+    """Refresh token needed for any endpoint that interacts with Swan API"""
 
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
-            if SwanService.get_current_user_service_data().get("access_token") is None:
-                logger.debug(f"No access token, redirecting to {SwanService.id}.index")
+            if not SwanService.has_refresh_token():
+                logger.debug(f"No refresh token, redirecting to relink Swan account")
                 return redirect(
                     url_for(f"{SwanService.get_blueprint_name()}.oauth2_start")
                 )
         except ServiceEncryptedStorageError as e:
             logger.debug(repr(e))
             flash("Re-login required to access your protected services data")
-            # Force re-login; automatically redirects back to calling page
+
+            # Use Flask's built-in re-login w/automatic redirect back to calling page
             return app.login_manager.unauthorized()
         return func(*args, **kwargs)
 
@@ -50,7 +50,7 @@ def accesstoken_required(func):
 @login_required
 @user_secret_decrypted_required
 def index():
-    if SwanService.get_current_user_service_data().get("access_token") is not None:
+    if SwanService.has_refresh_token():
         # User has already completed Swan integration; skip ahead
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
     return render_template(
@@ -60,7 +60,7 @@ def index():
 
 @swan_endpoint.route("/withdrawals")
 @login_required
-@accesstoken_required
+@refreshtoken_required
 def withdrawals():
     # The wallet currently configured for ongoing autowithdrawals
     wallet: Wallet = SwanService.get_associated_wallet()
@@ -71,18 +71,16 @@ def withdrawals():
         wallet=wallet,
         services=app.specter.service_manager.services,
         swan_id=SwanService.id,
+        autowithdrawal_threshold=SwanService.get_current_user_service_data().get(
+            SwanService.AUTOWITHDRAWAL_THRESHOLD
+        ),
     )
 
 
 @swan_endpoint.route("/settings", methods=["GET"])
 @login_required
-@accesstoken_required
+@refreshtoken_required
 def settings():
-    # TODO: Remove this check after refresh_token support is added
-    relink_url = None
-
-    if not SwanService.is_access_token_valid():
-        relink_url = swan_client.get_oauth2_start_url()
     associated_wallet: Wallet = SwanService.get_associated_wallet()
 
     # Get the user's Wallet objs, sorted by Wallet.name
@@ -94,14 +92,13 @@ def settings():
         associated_wallet=associated_wallet,
         wallets=wallets,
         cookies=request.cookies,
-        relink_url=relink_url,
         num_reserved_addrs=SwanService.MIN_PENDING_AUTOWITHDRAWAL_ADDRS,
     )
 
 
 @swan_endpoint.route("/settings/autowithdrawal", methods=["POST"])
 @login_required
-@accesstoken_required
+@refreshtoken_required
 def update_autowithdrawal():
     threshold = request.form["threshold"]
     destination_wallet_alias = request.form["destination_wallet"]
@@ -110,7 +107,7 @@ def update_autowithdrawal():
     try:
         SwanService.set_autowithdrawal_settings(wallet=wallet, btc_threshold=threshold)
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
-    except swan_client.SwanServiceApiException as e:
+    except SwanApiException as e:
         logger.exception(e)
         flash(_("Error communicating with Swan API"))
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.settings"))
@@ -130,7 +127,7 @@ def oauth2_start():
     refresh_token.
     """
     # Do we have a token already?
-    if SwanService.is_access_token_valid():
+    if SwanService.has_refresh_token():
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.settings"))
 
     # Let's start the PKCE-flow
@@ -218,7 +215,7 @@ def oauth2_success():
 
 @swan_endpoint.route("/oauth2/delete-token", methods=["POST"])
 @login_required
-@user_secret_decrypted_required
+@refreshtoken_required
 def oauth2_delete_token():
     SwanService.remove_swan_integration(current_user)
 
