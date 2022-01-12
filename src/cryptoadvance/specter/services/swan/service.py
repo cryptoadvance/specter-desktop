@@ -37,6 +37,7 @@ class SwanService(Service):
     ACCESS_TOKEN = "access_token"
     ACCESS_TOKEN_EXPIRES = "expires"
     REFRESH_TOKEN = "refresh_token"
+    AUTOWITHDRAWAL_ID = "autowithdrawal_id"
     AUTOWITHDRAWAL_THRESHOLD = "withdrawal_threshold"
 
     @classmethod
@@ -49,7 +50,6 @@ class SwanService(Service):
             > datetime.datetime.now(tz=pytz.utc).timestamp()
         )
 
-    # TODO: Shouldn't need to check this after exiting Beta
     @classmethod
     def has_refresh_token(cls):
         return cls.REFRESH_TOKEN in cls.get_current_user_service_data()
@@ -125,22 +125,84 @@ class SwanService(Service):
         # Send the autowithdrawal threshold
         swan_client.set_autowithdrawal(btc_threshold=btc_threshold)
 
+        # Store the threshold setting in the User's service data
+        cls.update_current_user_service_data(
+            {SwanService.AUTOWITHDRAWAL_THRESHOLD: btc_threshold}
+        )
+
     @classmethod
     def sync_swan_data(cls):
         """
         Called when the user completes the OAuth2 link with Swan.
 
         User could be:
-        * A first-time Specter-Swan integration (so no local or Swan API wallet data)
-        * Re-linking on a previously linked Specter instance (some/all existing data)
-        * Linking a new Specter instance but had previously linked on a different Specter instance; the previously linked Specter wallet may or may not be present (need to resync data)
+        * A first-time Specter-Swan integration (so no local or Swan API wallet data).
+        * Re-linking on a previously linked Specter instance (some/all existing data).
+        * Linking a new Specter instance but had previously linked on a different Specter
+            instance; the previously linked Specter wallet may or may not be present
+            (need to resync data).
         """
         from . import client as swan_client
 
+        def sync_autowithdrawal_settings(service_data):
+            """
+            Retrieve the autowithdrawal objs from Swan. We only care if we find one
+            that matches our SWAN_WALLET_ID and has `isActive: true`.
+
+            Otherwise clear any local autowithdrawal data.
+            """
+            autowithdrawal_info = swan_client.get_autowithdrawal_info()
+            """
+                {
+                    "entity": "automaticWithdrawal",
+                    "list": [
+                        {
+                            "id": "2026d75b-baf0-45c3-a1c6-9e17d4f7e90f",
+                            "minBtcThreshold": "0.01",
+                            "isActive": false,
+                            "isCanceled": false,
+                            "createdAt": "2022-01-07T02:14:56.070Z",
+                            "walletId": "e26132e7-2e03-49b7-807b-9067aa3a8507",
+                            "walletAddressId": null
+                        },
+                        ...,
+                        { ... }
+                    ]
+                }
+            """
+            if autowithdrawal_info and "list" in autowithdrawal_info:
+                swan_wallet_id = service_data.get(SwanService.SWAN_WALLET_ID)
+                for entry in autowithdrawal_info["list"]:
+                    if entry.get("wallet_id") == swan_wallet_id and entry.get(
+                        "isActive"
+                    ):
+                        # Found our swan_wallet_id's active autowithdrawal!
+                        logger.debug(
+                            "Found swan_wallet_id's active autowithdrawal entry"
+                        )
+                        SwanService.update_current_user_service_data(
+                            {
+                                SwanService.AUTOWITHDRAWAL_ID: entry["id"],
+                                SwanService.AUTOWITHDRAWAL_THRESHOLD: entry[
+                                    "minBtcThreshold"
+                                ],
+                            }
+                        )
+                        return
+
+            # Did not find a matching and/or active autowithdrawal
+            logger.debug("No active autowithdrawal with swan_wallet_id found")
+
+            # Clear the autowithdrawal fields from local storage and move on
+            service_data.pop(SwanService.AUTOWITHDRAWAL_ID, None)
+            service_data.pop(SwanService.AUTOWITHDRAWAL_THRESHOLD, None)
+            SwanService.set_current_user_service_data(service_data)
+            return
+
         service_data = cls.get_current_user_service_data()
-        if cls.SWAN_WALLET_ID in service_data:
+        if SwanService.SWAN_WALLET_ID in service_data:
             # This user has previously/currently linked to Swan on this instance
-            swan_wallet_id = service_data.get(SwanService.SWAN_WALLET_ID)
+            swan_wallet_id = service_data[SwanService.SWAN_WALLET_ID]
             logger.debug(f"swan_wallet_id: {swan_wallet_id}")
 
             # Confirm that the Swan walletId exists on the Swan side
@@ -163,8 +225,8 @@ class SwanService(Service):
             }
             """
             if not details:
-                # Specter's `swan_wallet_id` is out of sync; doesn't exist on Swan's side.
-                # Clear the local SPECTER_WALLET_ALIAS and continue below to try to find one.
+                # Specter's SWAN_WALLET_ID is out of sync; doesn't exist on Swan's side.
+                # Clear the local SWAN_WALLET_ID and continue below to try to find one.
                 logger.debug(f"swan_wallet_id {swan_wallet_id} not found on Swan")
                 del service_data[SwanService.SWAN_WALLET_ID]
                 cls.set_current_user_service_data(service_data)
@@ -176,7 +238,9 @@ class SwanService(Service):
             ):
                 wallet_alias = details["item"]["metadata"]["specter_wallet_alias"]
                 logger.debug(f"swan_wallet_id exists on Swan side")
-                if wallet_alias in app.specter.wallet_manager.wallets:
+                if wallet_alias in [
+                    w.alias for w in app.specter.wallet_manager.wallets.values()
+                ]:
                     # All is good; we've matched Swan's wallet data with a Specter `Wallet` that we recognize.
                     logger.debug(f"Found wallet_alias {wallet_alias} in Specter")
                     if wallet_alias != service_data.get(
@@ -190,12 +254,15 @@ class SwanService(Service):
                         cls.update_current_user_service_data(
                             {SwanService.SPECTER_WALLET_ALIAS: wallet_alias}
                         )
+
+                    sync_autowithdrawal_settings(service_data)
+
                     return
                 else:
                     # Swan is out of sync with Specter; the SPECTER_WALLET_ALIAS we had
                     # been using doesn't exist on this Specter instance.
                     logger.warn(
-                        "Swan referenced an unknown wallet_alias {wallet_alias}"
+                        f"Swan referenced an unknown wallet_alias {wallet_alias}"
                     )
                     if SwanService.SPECTER_WALLET_ALIAS in service_data:
                         # Clear the local reference to that unknown SPECTER_WALLET_ALIAS
@@ -228,6 +295,9 @@ class SwanService(Service):
                 logger.debug(
                     f"Found a Specter wallet that we recognize: {specter_wallet_alias}"
                 )
+
+                sync_autowithdrawal_settings(service_data)
+
                 return
 
         # We didn't find a matching Specter `Wallet`. Clear out any nonsense settings in our local data.
@@ -254,16 +324,20 @@ class SwanService(Service):
             SwanService.unreserve_addresses(wallet=wallet)
 
         # If an autowithdrawal setup is active, remove pending addrs from Swan
-        service_data = SwanService.get_current_user_service_data()
-        if service_data.get(cls.SPECTER_WALLET_ALIAS) and service_data.get(
-            cls.SWAN_WALLET_ID
-        ):
-            # Import here to prevent circular dependency
-            from . import client as swan_client
+        try:
+            service_data = SwanService.get_current_user_service_data()
+            if service_data.get(cls.SPECTER_WALLET_ALIAS) and service_data.get(
+                cls.SWAN_WALLET_ID
+            ):
+                # Import here to prevent circular dependency
+                from . import client as swan_client
 
-            swan_client.delete_autowithdrawal_addresses(
-                service_data[cls.SWAN_WALLET_ID]
-            )
+                swan_client.delete_autowithdrawal_addresses(
+                    service_data[cls.SWAN_WALLET_ID]
+                )
+        except Exception as e:
+            # Note the exception but proceed with clearing local data
+            logger.exception(e)
 
         # Wipe the on-disk encrypted service data (refresh_token, etc)
         SwanService.set_current_user_service_data({})
@@ -313,12 +387,6 @@ class SwanService(Service):
             )  # Import here to avoid circular dependency
 
             logger.debug("Need to send more addrs to Swan")
-
-            # TODO: In Beta we can't assume we have a refresh_token; remove these two lines once we have a refresh_token
-            if not cls.has_refresh_token() and num_pending_autowithdrawal_addrs <= 2:
-                raise swan_client.SwanApiRefreshTokenException(
-                    "We don't have a refresh_token"
-                )
 
             cls.reserve_addresses(
                 wallet=wallet, num_addresses=cls.MIN_PENDING_AUTOWITHDRAWAL_ADDRS

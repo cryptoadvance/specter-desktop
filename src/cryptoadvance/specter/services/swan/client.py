@@ -61,6 +61,7 @@ def get_oauth2_start_url():
         "code_challenge_method=S256",
         "state=kjkmdskdmsmmsmdslmdlsm",
         "scope=offline_access v1 write:vendor_wallet read:vendor_wallet write:automatic_withdrawal read:automatic_withdrawal",
+        "prompt=consent",
     ]
     flow_url += "&".join(query_params)
 
@@ -85,6 +86,7 @@ def get_access_token(code: str = None, code_verifier: str = None):
             "grant_type": "authorization_code",
             "code": code,
         }
+        auth_header = None
     else:
         service_data = SwanService.get_current_user_service_data()
         if SwanService.is_access_token_valid():
@@ -96,28 +98,40 @@ def get_access_token(code: str = None, code_verifier: str = None):
                 "access_token is expired but we don't have a refresh_token"
             )
 
-        payload = (
-            {
-                "grant_type": "refresh_token",
-                # "redirect_uri":   # Necessary?
-                "refresh_token": service_data[SwanService.REFRESH_TOKEN],
-                "scope": "offline_access",  # Possibly get an updated refresh_token back
-            },
-        )
+        payload = {
+            "grant_type": "refresh_token",
+            # "redirect_uri":   # Necessary?
+            "refresh_token": service_data[SwanService.REFRESH_TOKEN],
+            "scope": "offline_access v1 write:vendor_wallet read:vendor_wallet write:automatic_withdrawal read:automatic_withdrawal",
+        }
+
+        auth_hash = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
+        auth_header = {
+            "Authorization": f"Basic {auth_hash}",
+        }
+        logger.debug(f"auth_hash: {auth_hash}")
+        logger.debug("Using the refresh_token to request an access_token")
+        logger.debug(f"payload: {json.dumps(payload, indent=4)}")
+
+    logger.debug(payload)
+    logger.debug(auth_header)
 
     response = requests.post(
         f"{api_url}/oidc/token",
         data=payload,
+        headers=auth_header,
     )
+    logger.debug(f"api_url: {api_url}")
+    logger.debug(response)
+    logger.debug(response.text)
     resp = json.loads(response.text)
     """
         {
-            "access_token": "eyJhbGciOiJ[...]K1Sun9bA",
-            "token_type": "Bearer",
+            "access_token": "***************",
             "expires_in": 3600,
-            "scope": "offline_access",
-            "refresh_token": "MIOf-U1zQbyfa3MUfJHhvnUqIut9ClH0xjlDXGJAyqo",
-            "id_token": "eyJraWQiO[...]hMEJQX6WRQ"
+            "refresh_token": "***************",
+            "scope": "offline_access v1 write:vendor_wallet read:vendor_wallet write:automatic_withdrawal read:automatic_withdrawal",
+            "token_type": "Bearer"
         }
     """
     # TODO: Remove debugging
@@ -136,7 +150,9 @@ def get_access_token(code: str = None, code_verifier: str = None):
         SwanService.update_current_user_service_data(new_api_data)
 
         # TODO: Remove debugging
-        logger.debug(json.dumps(SwanService.get_current_user_service_data(), indent=4))
+        logger.debug(
+            f"service_data: {json.dumps(SwanService.get_current_user_service_data(), indent=4)}"
+        )
         return resp["access_token"]
     else:
         logger.warning(response)
@@ -163,17 +179,23 @@ def authenticated_request(
     try:
         if method == "GET":
             response = requests.get(api_url + endpoint, headers=auth_header)
-        elif method in ["POST", "PATCH", "DELETE"]:
+        elif method in ["POST", "PATCH", "PUT", "DELETE"]:
             response = requests.request(
                 method=method,
                 url=api_url + endpoint,
                 headers=auth_header,
                 json=json_payload,
             )
+        if response.status_code != 200:
+            raise SwanApiException(f"{response.status_code}: {response.text}")
         return response.json()
     except Exception as e:
         # TODO: tighten up expected Exceptions
         logger.exception(e)
+        logger.error(
+            f"endpoint: {endpoint} | method: {method} | payload: {json.dumps(json_payload, indent=4)}"
+        )
+        logger.error(f"{response.status_code}: {response.text}")
         raise e
 
 
@@ -296,7 +318,8 @@ def delete_autowithdrawal_addresses(swan_wallet_id: str):
 
 def get_autowithdrawal_info() -> dict:
     """
-    Not currently used
+    See note in set_autowithdrawal. This returns all autowithdrawal objs from the Swan
+    side.
     """
     resp = authenticated_request(
         endpoint="/apps/v20210824/automatic-withdrawal",
@@ -308,18 +331,110 @@ def get_autowithdrawal_info() -> dict:
 
 def set_autowithdrawal(btc_threshold: Decimal) -> dict:
     """
-    0 == Weekly
-    """
-    swan_wallet_id = SwanService.get_current_user_service_data().get(
-        SwanService.SWAN_WALLET_ID
-    )
+    0 == Weekly; other float values = BTC threshold
 
+    The Swan api generates a new autowithdrawal id each time but there is no support to
+    update an existing autowithdrawal, other than activating or deactivating it.
+
+    New autowithdrawals are initialized as `isActive: false` and require the user to
+    complete a Swan-side email verification step.
+
+    We save the resulting autowithdrawal_id even though it isn't clear at the moment if
+    it's desirable to ever call the `deactivate/` or `activate/` endpoints.
+    """
+    service_data = SwanService.get_current_user_service_data()
+    swan_wallet_id = service_data.get(SwanService.SWAN_WALLET_ID)
+
+    endpoint = "/apps/v20210824/automatic-withdrawal"
+    method = "POST"
     resp = authenticated_request(
-        endpoint="/apps/v20210824/automatic-withdrawal",
-        method="POST",
-        json_payload={"walletId": swan_wallet_id, "minBtcThreshold": btc_threshold},
+        endpoint=endpoint,
+        method=method,
+        json_payload={
+            "walletId": swan_wallet_id,
+            "minBtcThreshold": btc_threshold,
+        },
     )
     logger.debug(json.dumps(resp, indent=4))
+
+    """
+        {
+            "entity": "automaticWithdrawal",
+            "item": {
+                "id": "******************",
+                "minBtcThreshold": "0.01",
+                "isActive": false,
+                "isCanceled": false,
+                "createdAt": "2022-01-07T02:14:56.070Z",
+                "walletId": "******************",
+                "walletAddressId": null
+            }
+        }
+    """
+    if "item" in resp and "id" in resp["item"]:
+        autowithdrawal_id = resp["item"]["id"]
+        if autowithdrawal_id != service_data.get(SwanService.AUTOWITHDRAWAL_ID):
+            SwanService.update_current_user_service_data(
+                {
+                    SwanService.AUTOWITHDRAWAL_ID: autowithdrawal_id,
+                }
+            )
+    else:
+        raise SwanApiException(
+            f"No 'id' returned for the new/updated autowithdrawal: {json.dumps(resp, indent=4)}"
+        )
+
+    return resp
+
+
+def activate_autowithdrawal() -> dict:
+    """
+    Activates the autowithdrawal specified in SwanService.AUTOWITHDRAWAL_ID.
+
+    If the automatic withdrawal was just created, this will generate a 400 error:
+    "Cannot activate an automatic withdrawal before withdrawal address is confirmed".
+
+    The user must first confirm the first withdrawal addr via Swan-side email flow.
+    After they confirm, the autowithdrawal should then return `isActive: true`.
+
+    NOT CURRENTLY USED; remove if we don't ever enable disable/activate flows.
+    """
+    service_data = SwanService.get_current_user_service_data()
+    autowithdrawal_id = service_data.get(SwanService.AUTOWITHDRAWAL_ID)
+    if not autowithdrawal_id:
+        raise SwanApiException(
+            f"AUTOWITHDRAWAL_ID ({SwanService.AUTOWITHDRAWAL_ID}) not found in service data"
+        )
+
+    endpoint = f"/apps/v20210824/automatic-withdrawal/{autowithdrawal_id}/activate"
+    method = "POST"
+    resp = authenticated_request(
+        endpoint=endpoint,
+        method=method,
+    )
+    logger.debug(json.dumps(resp, indent=4))
+
+    """
+        {
+            "entity": "automaticWithdrawal",
+            "item": {
+                "id": "******************",
+                "minBtcThreshold": "0.01",
+                "isActive": true,
+                "isCanceled": false,
+                "createdAt": "2022-01-07T02:14:56.070Z",
+                "walletId": "******************",
+                "walletAddressId": null
+            }
+        }
+    """
+    if "item" in resp and "id" in resp["item"]:
+        if resp["item"]["id"] != service_data[SwanService.AUTOWITHDRAWAL_ID]:
+            autowithdrawal_id = resp["item"]["id"]
+    else:
+        raise SwanApiException(
+            f"No 'id' returned for the new/updated autowithdrawal: {json.dumps(resp, indent=4)}"
+        )
 
     return resp
 
