@@ -48,7 +48,9 @@ class ServiceManager:
 
         # Configure and instantiate the one and only ServiceEncryptedStorageManager
         try:
-            ServiceEncryptedStorageManager.configure_instance(specter=specter)
+            ServiceEncryptedStorageManager.configure_instance(
+                specter.data_folder, specter.user_manager
+            )
         except ConfigurableSingletonException as e:
             # Test suite triggers multiple calls; ignore for now.
             pass
