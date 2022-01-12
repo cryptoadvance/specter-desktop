@@ -162,8 +162,8 @@
                 <th value="time"     class="column-time time-header">{{ _("Time") }}<div class="time-arrow up-arrow"></div></th>
                 <th value="confirmations" class="column-confirmations confirmations-header">{{ _("Confirmations") }}<div class="confirmations-arrow"></div></th>
                 <th value="blockhash" class="column-blockhash optional hidden blockhash-header">
-                    {% include "includes/merkletooltip.html" %}
                     {{ _("Block Hash") }}
+                    {% include "includes/merkletooltip.html" %}
                 </th>
                 <th class="column-action" style="width: 50px; padding: 10px;">
                     <button type="button" class="export-btn btn" style="width: 50px;">
@@ -171,7 +171,7 @@
                     </button>
                 </th>
             </tr>
-    </thead>
+        </thead>
     <tr class="empty">
         <td class="column-callbackaction"></td>
         <td class="column-category"></td>
@@ -764,7 +764,7 @@
             }
         }
             /** 
-        * Is this event fired, then some row got ticked/unticked in the custom-selection-column
+        * If this event is fired, then some row got ticked/unticked in the custom-selection-column
         */
         fireCustomSelectedEvent() {
             let event = new CustomEvent('CustomSelected', { detail: {

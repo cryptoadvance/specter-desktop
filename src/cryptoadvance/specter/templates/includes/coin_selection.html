@@ -30,8 +30,8 @@
             is-liquid="{{specter.is_liquid}}"
             selected-coins="{{ selected_coins }}">
         </coin-selection>
-        Internally, a tx-table is used which is customizable in oder to be usefull here.
-        We're using here the asset_balance endpoint to get Liquid assets
+        Internally, a tx-table is used which is customizable in order to be usefull here.
+        We're using the asset_balance endpoint to get Liquid assets.
      */
     class CoinSelection extends HTMLElement {
         constructor() {
@@ -43,7 +43,7 @@
             this.coinselectionDiv = clone.querySelector(".coinselection_div")
             this.txtable = clone.querySelector(".txtable")
             this.txtable.addEventListener("CustomSelected", (event) => {
-                this.updateLd()
+                this.updateLd();
                 this.fireChangeEvent();
             } )
 
@@ -161,13 +161,13 @@
         toggleCoinselection() {
             if (this.coinselectionDiv.style.display === 'block') {
                 this.coinselectionDiv.style.display = 'none';
-                this.toggler.innerHTML = `{{ _("Coinselection") }} &#9654;`;
+                this.toggler.innerHTML = `{{ _("Coin selection") }} &#9654;`;
                 if (this.isCoinSelectionActive()) {
                     toggleExpand();
                 }
             } else {
                 this.coinselectionDiv.style.display = 'block';
-                this.toggler.innerHTML = `{{ _("Coinselection") }} &#9660;`;
+                this.toggler.innerHTML = `{{ _("Coin selection") }} &#9660;`;
             }
         }
 

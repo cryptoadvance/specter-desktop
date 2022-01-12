@@ -1,4 +1,3 @@
-
 <template id="fee-selection">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <div class="fee_container">
@@ -10,7 +9,7 @@
                     <span class="info">
                         <span class="info__title">{{ _("Subtract fees from amount") }}<br><br></span>
                         {{ _("If checked, the transaction fees will be paid off from the transaction amount.") }}<br><br>
-                        {{ _("Otherwise, the fees will be paid as an added cost in addition to the amount sent.") }}
+                        {{ _("Otherwise, the fees will be paid in addition to the amount sent.") }}
                     </span>
                 </p>
             </div>
@@ -67,7 +66,7 @@
             var template_content = document.getElementById('fee-selection').content;
             var clone = template_content.cloneNode(true);
 
-            // substract
+            // subtract
             this.subtract = clone.querySelector("#subtract")
             this.subtract.addEventListener("change", (event) => {
                 this.toggleSubtractFrom()
@@ -99,15 +98,8 @@
 
             this.feeRateDynamic = clone.querySelector("#fee_rate_dynamic")
             this.feeRateDynamicText = clone.querySelector("#fee_rate_dynamic_text")
-            
-            this.fee_manual = clone.querySelector("#fee_manual")
-            this.fee_manual.addEventListener("click", (event) => {
-                this.showFeeOption("manual")
-            })
+            this.fee_manual = clone.querySelector("#fee_manual") 
             this.fee_dynamic = clone.querySelector("#fee_dynamic")
-            this.fee_dynamic.addEventListener("click", (event) => {
-                this.showFeeOption("dynamic")
-            })
 
             // A text explaining the rate like: "Fast (30 minutes)"
             this.fee_rate_speed_text = clone.querySelector("#fee_rate_speed_text")
@@ -144,9 +136,6 @@
             this.ld.subtractFromInput.classList.add("hidden")
             this.appendChild(this.ld.subtractFromInput)
             
-            //this.ld.substract = this.substract.cloneNode(true)
-            //this.appendChild(this.ld.substractFromInput)
-            
             // We need to expose:
             // * fee_options (either manual or dynamic)
             // * fee_rate_dynamic 
@@ -161,15 +150,18 @@
 
             this.ld.feeRate = this.feeRate.cloneNode(true)
             this.ld.feeRate.classList.add("hidden")
+            this.ld.feeRate.type = "hidden"
             this.appendChild(this.ld.feeRate)
 
             this.ld.feeRateDynamic = this.feeRateDynamic.cloneNode(true)
             this.ld.feeRateDynamic.classList.add("hidden")
+            this.ld.feeRateDynamic.type = "hidden"
             this.appendChild(this.ld.feeRateDynamic)
         }
 
         /** 
          * Call this to figure out what the user has chosen
+         * returns fees and also updates Light DOM
          */
         selectedFee() {
             if (this.ld.feeOption == "manual") {
@@ -182,13 +174,12 @@
                 const MIN_FEE_RATE = 1;
                 const FEE_RATE_STEP = 0.5;
                 {% endif %}
-                this.showFeeOption("manual");
                 let manualRate = Math.round(this.feeRateDynamic.value / FEE_RATE_STEP) * FEE_RATE_STEP;
                 if (manualRate < MIN_FEE_RATE) {
                     manualRate = MIN_FEE_RATE;
                 }
+                // This triggers update of ld.feeRate (because of event listener in connectedCallback)
                 this.feeRate.value = manualRate;
-                
                 return this.feeRate.value
             }
         }
@@ -208,7 +199,7 @@
             
             this.showFeeOption(this.feeOptionPreset)
 
-            if (!this.rbfEnabled) {
+            if (this.rbfEnabled) {
                 this.rbfLabel.style.display = "block" 
                 if (this.rbfCheckboxChecked) {
                     this.rbfCheckbox.checked = true
@@ -219,10 +210,15 @@
         /** Will get executed after fee initialisation
          */
         initWithFees() {
-            this.feesSlider.max = this.fees["fastestFee"] * 1.4
             this.feesSlider.min = this.fees["minimumFee"]
+            this.feesSlider.max = this.fees["fastestFee"] * 1.4
+            // Attributes are strings not numbers
+            let sliderMin = parseInt(this.feesSlider.min)
+            let sliderMax = parseInt(this.feesSlider.max)
+            let average = Math.floor((sliderMin + sliderMax) / 2)
+            this.feesSlider.value = average
             this.feeRate.value = this.feesSlider.value
-            this.dynamicFeeUpdated()
+            this.dynamicFeeUpdated() // otherwise no text next to estimated speed
         }
 
         showFeeOption(option) {
@@ -236,14 +232,10 @@
                 this.fee_dynamic.style.display = 'none'
                 this.ld.feeOption.value = "manual"
                 this.fee_option_manual.checked = true
-                this.feeRate.value = this.feesSlider.value
-                this.manualFeeUpdated()
             }
         }
 
-        /** 
-         * Transport shadowDOM value to lightDOM
-         */
+        // Transport shadowDOM value to lightDOM
         manualFeeUpdated() {
             this.ld.feeRate.value = this.feeRate.value
         }
@@ -300,13 +292,13 @@
                 if(response.status != 200){
                     showError(await response.text());
                     console.log("Error while fetching fees")
-                    return {"result": {"fastestFee": 8, "halfHourFee": 8, "hourFee": 8, "minimumFee": 1}, "error_messages": ["Couldn't fetch fees from server. Replaced with assumtions"]};
+                    return {"result": {"fastestFee": 8, "halfHourFee": 8, "hourFee": 8, "minimumFee": 1}, "error_messages": ["Couldn't fetch fees from server. Replaced with assumptions"]};
                 }
                 const fees = await response.json();
                 this.fees = fees["result"]
                 this.initWithFees()
             } catch(e) {
-                console.log( e);
+                console.log(e);
                 showError(`{{ _("Failed to fetch fees") }}: ${e}`);
             }
         }

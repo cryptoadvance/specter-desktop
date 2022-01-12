@@ -135,9 +135,9 @@ class BaseConfig(object):
     # Babel integration. List of languages written from right to left for RTL support in the UI
     RTL_LANGUAGES = ["he"]
 
-    # The user will get a warning if a request takes longer than this treshold
-    REQUEST_TIME_WARNING_TRESHOLD = int(
-        os.getenv("REQUEST_TIME_WARNING_TRESHOLD", "20")
+    # The user will get a warning if a request takes longer than this threshold
+    REQUEST_TIME_WARNING_THRESHOLD = int(
+        os.getenv("REQUEST_TIME_WARNING_THRESHOLD", "20")
     )
 
 

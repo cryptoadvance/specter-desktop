@@ -162,12 +162,12 @@ def after_request(response):
         and (200 <= response.status_code < 300)
         and (response.content_type.startswith("text/html"))
     ):
-        treshold = app.config["REQUEST_TIME_WARNING_TRESHOLD"]
-        if diff > treshold:
+        threshold = app.config["REQUEST_TIME_WARNING_THRESHOLD"]
+        if diff > threshold:
             flash(
                 _(
                     "The request before this one took {} seconds which is longer than the threshold ({}). Checkout the perfomance-improvement-hints in the documentation".format(
-                        int(diff), treshold
+                        int(diff), threshold
                     )
                 ),
                 "warning",
