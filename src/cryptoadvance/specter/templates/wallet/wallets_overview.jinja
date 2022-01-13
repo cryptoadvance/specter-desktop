@@ -1,35 +1,36 @@
 {% extends "base.jinja" %}
 {% block main %}
     <style>
-		.arrow {
-			text-decoration: none;
-			display: inline-block;
-			margin: 0px 16px 16px;
-			border-radius: 50%;
-			color: #fff;
-			font-size: 1.5em;
-		}
+        .arrow {
+            text-decoration: none;
+            display: inline-block;
+            margin: 0px 16px 16px;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 1.5em;
+        }
 
-		.disabled {
-			visibility: hidden;
-		}
-	</style>
-	{% include "includes/address-label.html" %}
+        .disabled {
+            visibility: hidden;
+        }
+    </style>
+    {% include "includes/services-data.html" %}
+    {% include "includes/address-label.html" %}
     <h1 id="title">{{ _("Wallets Overview") }}</h1>
-	<p style="width: 80%; text-align: center; margin-left: auto; margin-right: auto;">{{ _("Here you can see the combined balance and transactions history of all your Specter wallets.") }}</p>
+    <p style="width: 80%; text-align: center; margin-left: auto; margin-right: auto;">{{ _("Here you can see the combined balance and transactions history of all your Specter wallets.") }}</p>
     <h1>
         <small style="line-height:30px">Total balance:</small><br>
         <span style="color: #fff">
-			{% set fullbalance = specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') %}
-			{% set balance = specter.wallet_manager.joined_balance() %}
+            {% set fullbalance = specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') %}
+            {% set balance = specter.wallet_manager.joined_balance() %}
             <span id="fullbalance_amount">{{ fullbalance | btcunitamount }}</span>
             {% if specter.unit == 'sat' %}
-				sats
-			{% else %}
-				{% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
-			{% endif %}
+                sats
+            {% else %}
+                {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
+            {% endif %}
         </span><br>
-		<span class="note">{{ fullbalance | altunit }}</span>
+        <span class="note">{{ fullbalance | altunit }}</span>
         {% if balance.get("untrusted_pending", 0) or balance.get("immature", 0) %}<br>
             <small>( {{ balance.get("trusted", 0) | btcunitamount }} {{ _("confirmed") }},
                      {% if balance.get("untrusted_pending", 0) %}
@@ -61,18 +62,18 @@
     </h1>
     <div class="table-holder">
         {% include "includes/tx-row.html" %}
-		{% include "includes/tx-data.html" %}
-		{% include "includes/explorer-link.html" %}
-		{% include "includes/tx-table.html" %}
-		<tx-table
-		{% if specter.price_check and (specter.alt_rate and specter.alt_symbol) %}
-		price="{{ specter.alt_rate }}"
-		symbol="{{ specter.alt_symbol }}"
-		{% endif %}
-		btc-unit="{{ specter.unit }}"
-		hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
-		type="txlist">
-		</tx-table>
+        {% include "includes/tx-data.html" %}
+        {% include "includes/explorer-link.html" %}
+        {% include "includes/tx-table.html" %}
+        <tx-table
+            {% if specter.price_check and (specter.alt_rate and specter.alt_symbol) %}
+                price="{{ specter.alt_rate }}"
+                symbol="{{ specter.alt_symbol }}"
+            {% endif %}
+            btc-unit="{{ specter.unit }}"
+            hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
+            type="txlist">
+        </tx-table>
     </div>
     <div id="tx-popup" class="hidden"></div>
 {% endblock %}

@@ -37,7 +37,7 @@
                 let walletRescanActive = true;
                 async function fetchWalletRescanProgress() {
                     try {
-                        let url="{{ url_for('wallets_endpoint.rescan_progress', wallet_alias=wallet.alias) }}"
+                        let url="{{ url_for('wallets_endpoint_api.rescan_progress', wallet_alias=wallet.alias) }}"
                         const response = await fetch(
                             url,
                             {

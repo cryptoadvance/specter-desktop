@@ -29,7 +29,7 @@ def test_PsbtCreator_ui(caplog):
         "amount_unit_1": "sat",
         "amount_unit_text": "btc",
         "subtract_from": "1",
-        "fee_options": "dynamic",
+        "fee_option": "dynamic",
         "fee_rate": "",
         "fee_rate_dynamic": "64",
         "rbf": "on",
@@ -73,7 +73,7 @@ def test_PsbtCreator_text(caplog):
     request_form_data = {
         "rbf_tx_id": "",
         "subtract_from": "1",
-        "fee_options": "dynamic",
+        "fee_option": "dynamic",
         "fee_rate": "",
         "fee_rate_dynamic": "64",
         "rbf": "on",

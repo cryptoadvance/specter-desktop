@@ -23,6 +23,7 @@ class Address(dict):
         "change",  # bool, change or receive
         "label",  # str, address label
         "used",  # bool, does this address have a transaction?
+        "service_id",  # str, reserved for or used by Service.id
     ]
     type_converter = [
         str,
@@ -30,6 +31,7 @@ class Address(dict):
         to_bool,
         str,
         to_bool,
+        str,
     ]
 
     def __init__(self, rpc, **kwargs):
@@ -48,6 +50,16 @@ class Address(dict):
             return
         self["label"] = label
         self.rpc.setlabel(self.address, label)
+
+    def set_service_id(self, service_id: str):
+        if service_id:
+            # Declares that this Address is associated with a Service
+            self["service_id"] = service_id
+        else:
+            # Frees a reserved Address; reset its label
+            self["service_id"] = None
+            if not self.used and self["label"]:
+                self.set_label("")
 
     @property
     def is_external(self):
@@ -94,6 +106,14 @@ class Address(dict):
     @property
     def is_labeled(self):
         return bool(self["label"])
+
+    @property
+    def is_reserved(self):
+        return bool(self["service_id"])
+
+    @property
+    def service_id(self):
+        return self["service_id"]
 
     def __str__(self):
         return self.address
@@ -179,10 +199,14 @@ class AddressList(dict):
                 )
         self.save()
 
-    def set_label(self, address, label):
+    def get_address(self, address: str) -> Address:
         if address not in self:
-            self[address] = self.AddressCls(self.rpc, address=address, label=label)
-        self[address].set_label(label)
+            self[address] = self.AddressCls(self.rpc, address=address)
+        return self[address]
+
+    def set_label(self, address, label):
+        addr_obj = self.get_address(address)
+        addr_obj.set_label(label)
         self.save()
 
     def get_labels(self):
@@ -192,6 +216,29 @@ class AddressList(dict):
             if lbl:
                 labels[lbl] = labels.get(lbl, []) + [addr.address]
         return labels
+
+    def associate_with_service(
+        self, address: str, service_id: str, label: str, autosave: bool = True
+    ):
+        """
+        Associates the Address (i.e. sets Address.service_id) with the specified
+        Service.id.
+        """
+        addr_obj = self.get_address(address)
+        addr_obj.set_service_id(service_id)
+        addr_obj.set_label(label)
+        if autosave:
+            self.save()
+
+    def deassociate(self, address: str, autosave: bool = True):
+        """
+        Removes the Address's association with a Service (i.e. sets
+        Address.service_id to None and resets Address.label).
+        """
+        addr_obj = self.get_address(address)
+        addr_obj.set_service_id(None)
+        if autosave:
+            self.save()
 
     def set_used(self, addresses):
         need_save = False

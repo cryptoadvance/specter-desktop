@@ -140,6 +140,7 @@ def node_settings(node_alias):
                 protocol,
                 node.external_node,
                 node.fullpath,
+                "BTC",
                 node.manager,
             )
             test = node.test_rpc()
@@ -170,6 +171,7 @@ def node_settings(node_alias):
                         rand=rand,
                     )
                 node = app.specter.node_manager.add_node(
+                    "BTC",
                     node.name,
                     autodetect,
                     datadir,

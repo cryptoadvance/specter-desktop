@@ -91,6 +91,9 @@ class MessageBoxElement extends HTMLElement {
       this.main.style.display = "none";
     }, 200);
   }
+  setType(mytype) {
+    this.main.classList.add("error");
+  }
   connectedCallback(){
     this.main.style.opacity = 0;
     this.main.style["animation-name"]="appear";
@@ -101,7 +104,7 @@ class MessageBoxElement extends HTMLElement {
     var timeout = parseInt(this.getAttribute('timeout'));
     this.main.classList.remove("error");
     if(type=="error"){
-      this.main.classList.add("error");
+      this.setType("error");
     }
     if(timeout > 0){
       setTimeout(()=>{
