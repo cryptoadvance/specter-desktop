@@ -123,7 +123,7 @@ def setup_tor():
         if not (getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")):
             return {
                 "error": _(
-                    "Sorry, Internal Tor Setup is only supported in Application-Image installations."
+                    "Sorry, Internal Tor Setup is not possible with Pip-installations."
                 )
             }
         t = threading.Thread(target=setup_tor_thread, args=(app.specter,))
