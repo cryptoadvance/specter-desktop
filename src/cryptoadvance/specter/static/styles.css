@@ -11,7 +11,7 @@ html, body{
     --cmap-red:           #A12737;
     --cmap-red-darker:    #951E2D;
     --cmap-bg:            #192432;
-    --cmap-bg-ligher:     #263044;
+    --cmap-bg-lighter:    #263044;
     --cmap-bg-lightest:   #313E50;
     --cmap-border:        #506072;
     --cmap-border-darker: #405062;
@@ -95,7 +95,7 @@ ul, li{
     align-items: center;
 }
 .settings-bar-btn:hover {
-    background: var(--cmap-bg-ligher);
+    background: var(--cmap-bg-lighter);
 }
 .logout{
     position: relative;
@@ -110,7 +110,7 @@ ul, li{
     border-radius: 0 0 0 5px;
 }
 .logout:hover{
-    background: var(--cmap-bg-ligher);
+    background: var(--cmap-bg-lighter);
 }
 .logout img{
     margin-right: 10px;
@@ -197,7 +197,7 @@ nav.side{
     width: 250px;
 }
 #side-content{
-    background: var(--cmap-bg-ligher);
+    background: var(--cmap-bg-lighter);
     border-right: 1px solid var(--cmap-bg-lightest);
     padding-top: 10px;
     display: flex;
@@ -684,7 +684,7 @@ td, th{
     border-bottom: 1px solid var(--cmap-bg-lightest);
 }
 tr, thead{
-    background: var(--cmap-bg-ligher);
+    background: var(--cmap-bg-lighter);
 }
 th{
     text-align: left;
@@ -992,7 +992,7 @@ nav.collapse-on-mobile a.mobile-nav-icon {
     bottom: 0;
     right: 0;
     width: 20px;
-    background: var(--cmap-bg-ligher);
+    background: var(--cmap-bg-lighter);
   }
   td.xpub{
     max-width: 230px;

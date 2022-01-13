@@ -40,6 +40,7 @@ def test_Node_btc(bitcoin_regtest):
             "port": 18543,
             "host": "localhost",
             "protocol": "http",
+            "node_type": "BTC",
             "external_node": True,  # 'fullpath': ''
         }
 
@@ -99,6 +100,7 @@ def test_Node_elm(elements_elreg):
             "port": 18643,
             "host": "localhost",
             "protocol": "http",
+            "node_type": "BTC",
             "external_node": True,  # 'fullpath': ''
         }
 
