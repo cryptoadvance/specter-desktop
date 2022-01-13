@@ -13,6 +13,7 @@ nav:
     - Operating Guide:
       - connect-your-node.md
       - daemon.md
+      - performance.md
       - reverse-proxy.md
       - self-signed-certificates.md
       - hwibridge.md
