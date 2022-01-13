@@ -1,0 +1,83 @@
+{% extends "base.jinja" %}
+
+{% block main %}
+    <style>
+        .info {
+        }
+        .bullets {
+            margin-top: 1em;
+            text-align: left;
+        }
+        .bullets li {
+            list-style-type: disc;
+            list-style-position: inside;
+        }
+        .form_container {
+            margin-top: 2em;
+            border-top: 1px solid var(--cmap-border);
+            padding-top: 1em;
+            text-align: left;
+        }
+        .form_container .row {
+            display: block;
+            margin-top: 1em;
+            margin-bottom: 1em;
+        }
+        .form_container .label {
+            font-size: 0.85em;
+            color: #999;
+            display: block;
+        }
+        .form_container select {
+            display: block;
+        }
+        .form_container button {
+            margin: auto;
+            margin-top: 3em;
+        }
+    </style>
+    <h1 style="font-size: 2em;">{{ _("Associate Address") }}</h1>
+    <div class="card center" style="width: auto; margin: 10px;">
+        <div class="info">Associating an address with a service will:
+            <div class="bullets">
+                <ul>
+                    <li>Display the service's icon with the address label</li>
+                    <li>Include the address' UTXOs in the service's transaction totals</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="form_container">
+            <form method="post">
+        		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="row">
+                    <div class="label">Address:</div>
+                    {{addr_obj.address}}
+                </div>
+
+                <div class="row">
+                    <div class="label">Wallet:</div>
+                    {{ wallet.name }}
+                </div>
+
+                <div class="row">
+                    <div class="label">Service:</div>
+                    <select name="service_id">
+                        {% for service in services %}
+                            <option value="{{ service.id }}">{{ service.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button class="btn">Submit</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+
+
+{% block scripts %}
+    <script>
+    </script>
+{% endblock %}

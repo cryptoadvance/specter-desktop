@@ -216,7 +216,7 @@ class WalletImporter:
             logger.error("Exception while rescanning blockchain: %r" % e)
             if potential_errors:
                 potential_errors = SpecterError(
-                    potential_errors
+                    str(potential_errors)
                     + " and "
                     + "Failed to perform rescan for wallet: %r" % e
                 )

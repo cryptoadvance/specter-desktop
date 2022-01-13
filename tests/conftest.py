@@ -10,6 +10,7 @@ import time
 import docker
 import pytest
 from cryptoadvance.specter.managers.device_manager import DeviceManager
+from cryptoadvance.specter.managers.user_manager import UserManager
 from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
 )
@@ -20,7 +21,7 @@ from cryptoadvance.specter.process_controller.elementsd_controller import (
     ElementsPlainController,
 )
 from cryptoadvance.specter.rpc import BitcoinRPC
-from cryptoadvance.specter.server import create_app, init_app
+from cryptoadvance.specter.server import SpecterFlask, create_app, init_app
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.user import User, hash_password
@@ -368,6 +369,34 @@ def device_manager(devices_filled_data_folder):
     return DeviceManager(os.path.join(devices_filled_data_folder, "devices"))
 
 
+# @pytest.fixture
+# def user_manager(empty_data_folder) -> UserManager:
+#     """A UserManager having users alice, bob and eve"""
+#     specter = Specter(data_folder=empty_data_folder)
+#     user_manager = UserManager(specter=specter)
+#     config = {}
+#     user_manager.get_user("admin").decrypt_user_secret("admin")
+#     user_manager.create_user(
+#         user_id="alice",
+#         username="alice",
+#         plaintext_password="plain_pass_alice",
+#         config=config,
+#     )
+#     user_manager.create_user(
+#         user_id="bob",
+#         username="bob",
+#         plaintext_password="plain_pass_bob",
+#         config=config,
+#     )
+#     user_manager.create_user(
+#         user_id="eve",
+#         username="eve",
+#         plaintext_password="plain_pass_eve",
+#         config=config,
+#     )
+#     return user_manager
+
+
 @pytest.fixture
 def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
     assert bitcoin_regtest.get_rpc().test_connection()
@@ -447,7 +476,7 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
 
 
 @pytest.fixture
-def app(specter_regtest_configured):
+def app(specter_regtest_configured) -> SpecterFlask:
     """the Flask-App, but uninitialized"""
     app = create_app(config="cryptoadvance.specter.config.TestConfig")
     app.app_context().push()
@@ -456,6 +485,19 @@ def app(specter_regtest_configured):
     app.tor_service_id = None
     app.tor_enabled = False
     init_app(app, specter=specter_regtest_configured)
+    return app
+
+
+@pytest.fixture
+def app_no_node(empty_data_folder) -> SpecterFlask:
+    specter = Specter(data_folder=empty_data_folder)
+    app = create_app(config="cryptoadvance.specter.config.TestConfig")
+    app.app_context().push()
+    app.config["TESTING"] = True
+    app.testing = True
+    app.tor_service_id = None
+    app.tor_enabled = False
+    init_app(app, specter=specter)
     return app
 
 
