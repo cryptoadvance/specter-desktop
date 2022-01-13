@@ -408,9 +408,9 @@
                 return
             }
 
-            const url = `{{ url_for('wallets_endpoint.addresses_list', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+            const url = `{{ url_for('wallets_endpoint_api.addresses_list', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
 
-            this.export.href = `{{ url_for('wallets_endpoint.addresses_list_csv', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+            this.export.href = `{{ url_for('wallets_endpoint_api.addresses_list_csv', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
             this.export.href += `?onlyCurrentType=${this.onlyCurrentTypeSwitch.checked}&addressType=${this.listType}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
 
             if (this.listType == "receive") {
