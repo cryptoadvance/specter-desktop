@@ -3,6 +3,12 @@
         .address-label-form {
             display: inline;
         }
+        .service-icon {
+            margin-top: -5px;
+            margin-right: 0.25em;
+            height:24px;
+            vertical-align: middle;
+        }
         .label {
             word-break: break-all;
             background: none;
@@ -60,6 +66,7 @@
     </style>
     <form class="address-label-form">
         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+        <img class="service-icon"/>
         <a target="_blank" class="explorer-link"><span class="label" autocomplete="off" spellcheck="false">{{ _("Fetching address label...") }}</span></a>
         <button type="button" class="btn edit" title="Edit label"><img src="{{ url_for('static', filename='img/edit.svg') }}" style="width: 22px; margin-bottom:-5px;" class="svg-white"/></button>
         <button type="button" class="btn update hidden">{{ _("Update") }}</button>
@@ -76,6 +83,7 @@
             var style = document.getElementById('address-label').content;
             var clone = style.cloneNode(true);
             this.el = clone.querySelector(".address-label-form");
+            this.serviceIconImg = clone.querySelector(".service-icon");
             this.label = clone.querySelector(".label");
             this.update = clone.querySelector(".update");
             this.cancel = clone.querySelector(".cancel");
@@ -90,9 +98,15 @@
             this.address = this.getAttribute('data-address');
             this.wallet = this.getAttribute('data-wallet');
             this.labelValue = this.getAttribute('data-label');
+            this.serviceId = this.getAttribute('data-service-id');
             this.explorer = '{{ specter.explorer }}';
             this.label.title = this.address;
             this.isEditing = false;
+
+            if (this.serviceId && this.serviceId != "null") {
+                // `services` globally injected via includes/services-data.html
+                this.serviceIconImg.src = "/svc/" + this.serviceId + "/static/" + services[this.serviceId].icon;
+            }
 
             // Set the label - fetch if not specified
             if (this.labelValue) {

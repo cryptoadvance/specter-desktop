@@ -4,6 +4,7 @@
 
 	<div class="table-holder">
 
+		{% include "includes/services-data.html" %}
 		{% include "includes/hwi/hwi.jinja" %}
 		{% include "includes/explorer-link.html" %}
 		{% include "includes/address-data.html" %}
@@ -12,8 +13,8 @@
         
 		<addresses-table
 			{% if specter.price_check and (specter.alt_rate and specter.alt_symbol) %}
-			price="{{ specter.alt_rate }}"
-			symbol="{{ specter.alt_symbol }}"
+				price="{{ specter.alt_rate }}"
+				symbol="{{ specter.alt_symbol }}"
 			{% endif %}
 			btc-unit="{{ specter.unit }}"
 			hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"

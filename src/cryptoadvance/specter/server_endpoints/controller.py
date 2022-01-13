@@ -3,7 +3,7 @@ from time import time
 from binascii import unhexlify
 from flask import make_response
 from flask_wtf.csrf import CSRFError
-from werkzeug.exceptions import MethodNotAllowed
+from werkzeug.exceptions import MethodNotAllowed, NotFound
 from flask import render_template, request, redirect, url_for, flash, g
 from flask_babel import lazy_gettext as _
 from flask_login import login_required, current_user
@@ -35,10 +35,14 @@ from .wallets import wallets_endpoint
 from .wallets_api import wallets_endpoint_api
 from ..rpc import RpcError
 
+# Services live in their own separate path
+from cryptoadvance.specter.services.controller import services_endpoint
+
 app.register_blueprint(auth_endpoint, url_prefix="/auth")
 app.register_blueprint(devices_endpoint, url_prefix="/devices")
 app.register_blueprint(nodes_endpoint, url_prefix="/nodes")
 app.register_blueprint(price_endpoint, url_prefix="/price")
+app.register_blueprint(services_endpoint, url_prefix="/services")
 app.register_blueprint(settings_endpoint, url_prefix="/settings")
 app.register_blueprint(setup_endpoint, url_prefix="/setup")
 app.register_blueprint(wallets_endpoint, url_prefix="/wallets")
@@ -77,6 +81,14 @@ def server_specter_error(se):
     # potentially avoiding http loops. Might be improvable but how?
     else:
         return redirect(url_for("about"))
+
+
+@app.errorhandler(NotFound)
+def server_notFound_error(e):
+    """Unspecific Exceptions get a 404 Error-Page"""
+    # if rpc is not available
+    app.logger.error("Could not find Resource (404): %s" % request.url)
+    return render_template("500.jinja", error=e), 500
 
 
 @app.errorhandler(Exception)

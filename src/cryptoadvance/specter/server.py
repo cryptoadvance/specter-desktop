@@ -93,6 +93,8 @@ def create_app(config=None):
     app.jinja_env.autoescape = select_autoescape(default_for_string=True, default=True)
     logger.info(f"Configuration: {config}")
     app.config.from_object(config)
+    # Might be convenient to know later where it came from (see Service configuration)
+    app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"] = config
     app.wsgi_app = ProxyFix(
         app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1
     )
@@ -121,6 +123,7 @@ def init_app(app, hwibridge=False, specter=None):
             data_folder=app.config["SPECTER_DATA_FOLDER"],
             config=app.config["DEFAULT_SPECTER_CONFIG"],
             internal_bitcoind_version=app.config["INTERNAL_BITCOIND_VERSION"],
+            service_devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"],
         )
 
     login_manager = LoginManager()
@@ -150,12 +153,14 @@ def init_app(app, hwibridge=False, specter=None):
         app.config["LOGIN_DISABLED"] = True
     else:
         app.logger.info("Login enabled")
+        app.config["LOGIN_DISABLED"] = False
     app.logger.info("Initializing Controller ...")
     app.register_blueprint(hwi_server, url_prefix="/hwi")
     csrf.exempt(hwi_server)
     if not hwibridge:
         with app.app_context():
             from cryptoadvance.specter.server_endpoints import controller
+            from cryptoadvance.specter.services import controller as serviceController
 
             if app.config.get("TESTING") and len(app.view_functions) <= 20:
                 # Need to force a reload as otherwise the import is skipped
@@ -165,7 +170,9 @@ def init_app(app, hwibridge=False, specter=None):
                 # see archblog for more about this nasty workaround
                 import importlib
 
+                logger.info("Reloading controllers")
                 importlib.reload(controller)
+                importlib.reload(serviceController)
     else:
 
         @app.route("/", methods=["GET"])

@@ -195,7 +195,7 @@ def storage_callback(mode="write", path=None):
     """Call this whenever anything in the .specter directory changes. Be aware that we might store node-data in the specter-folder"""
     # Might be usefull to figure out why the callback has been triggered:
     # traceback.print_stack()
-    logger.info(f"Storage Callback called mode {mode} with path {path}")
+    # logger.debug(f"Storage Callback called mode {mode} with path {path}")
     if os.getenv("SPECTER_PERSISTENCE_CALLBACK_ASYNC"):
         cmd_list = os.getenv("SPECTER_PERSISTENCE_CALLBACK_ASYNC").split(" ")
         cmd_list.append(mode)

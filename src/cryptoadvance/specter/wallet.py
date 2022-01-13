@@ -1,31 +1,31 @@
-import copy, hashlib, json, logging, os, re, csv
-from csv import Error
-from io import StringIO
+import json, logging, os, re, csv
+import requests
+import threading
 import time
+
 from collections import OrderedDict
+from csv import Error
+from embit import bip32
+from embit.descriptor import Descriptor
+from embit.descriptor.checksum import add_checksum
+from embit.ec import PublicKey
+from embit.liquid.networks import get_network
+from embit.psbt import DerivationPath
+from embit.transaction import Transaction
+from io import StringIO
+from typing import List
+
+from .addresslist import Address, AddressList
 from .device import Device
 from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
-from .helpers import der_to_bytes, get_address_from_dict
-from embit import base58, bip32
-from embit.descriptor import Descriptor
-from embit.descriptor.checksum import add_checksum
-from embit.liquid.networks import get_network
-from embit.psbt import PSBT, DerivationPath
-from embit.transaction import Transaction
-from embit.ec import PublicKey
-
-from .util.xpub import get_xpub_fingerprint
-from .util.tx import decoderawtransaction
+from .helpers import get_address_from_dict
 from .persistence import write_json_file, delete_file, delete_folder
-from io import BytesIO
 from .specter_error import SpecterError
-import threading
-import requests
-from math import ceil
-from .addresslist import AddressList
 from .txlist import TxList
 from .util.psbt import SpecterPSBT
+from .util.tx import decoderawtransaction
+from .util.xpub import get_xpub_fingerprint
 
 logger = logging.getLogger(__name__)
 LISTTRANSACTIONS_BATCH_SIZE = 1000
@@ -1002,6 +1002,7 @@ class Wallet:
         fetch_transactions=True,
         validate_merkle_proofs=False,
         current_blockheight=None,
+        service_id: str = None,
     ):
         """Returns a list of all transactions in the wallet's CSV cache - processed with information to display in the UI in the transactions list
         #Parameters:
@@ -1070,10 +1071,20 @@ class Wallet:
 
                 if isinstance(tx["address"], str):
                     tx["label"] = self.getlabel(tx["address"])
+                    addr_obj = self.get_address_obj(tx["address"])
+                    if addr_obj and addr_obj.get("service_id"):
+                        tx["service_id"] = addr_obj["service_id"]
                 elif isinstance(tx["address"], list):
+                    # TODO: Handle services integration w/batch txs
                     tx["label"] = [self.getlabel(address) for address in tx["address"]]
                 else:
                     tx["label"] = None
+
+                if service_id and (
+                    "service_id" not in tx or tx["service_id"] != service_id
+                ):
+                    # We only want `service_id`-related txs returned
+                    continue
 
                 # TODO: validate for unique txids only
                 tx["validated_blockhash"] = ""  # default is assume unvalidated
@@ -1347,12 +1358,16 @@ class Wallet:
         if change:
             self.change_address = address
         else:
+            addr_obj = self.get_address_obj(address)
+            if addr_obj["service_id"]:
+                # Skip addresses reserved for a Service
+                return self.getnewaddress(change, save)
             self.address = address
         if save:
             self.save_to_file()
         return address
 
-    def get_address(self, index, change=False, check_keypool=True):
+    def get_address(self, index, change=False, check_keypool=True) -> str:
         if check_keypool:
             pool = self.change_keypool if change else self.keypool
             logger.debug(
@@ -1363,6 +1378,9 @@ class Wallet:
         return self.descriptor.derive(index, branch_index=int(change)).address(
             self.network
         )
+
+    def get_address_obj(self, address: str) -> Address:
+        return self._addresses.get(address)
 
     def derive_descriptor(self, index: int, change: bool, keep_xpubs=False):
         """
@@ -1423,7 +1441,8 @@ class Wallet:
             ),
         }
 
-    def get_address_info(self, address):
+    def get_address_info(self, address) -> Address:
+        # TODO: This is a misleading name. This is really fetching an Address obj
         return self._addresses.get(address)
 
     def is_address_mine(self, address):
@@ -1586,10 +1605,41 @@ class Wallet:
         self.save_to_file()
         return end
 
+    def associate_address_with_service(
+        self, address: str, service_id: str, label: str, autosave: bool = True
+    ):
+        """
+        Links the Address to the specified Service.id
+        """
+        self._addresses.associate_with_service(
+            address=address, service_id=service_id, label=label, autosave=autosave
+        )
+
+    def deassociate_address(self, address: str, autosave: bool = True):
+        """
+        Clears any Service associations on the Address.
+        """
+        self._addresses.deassociate(address=address, autosave=autosave)
+
+    def get_associated_addresses(
+        self, service_id: str, unused_only: bool = False
+    ) -> List[Address]:
+        """
+        Return the Wallet's Address objs that are associated with the specified Service.id
+        """
+        addrs = []
+        for addr, addr_obj in self._addresses.items():
+            if addr_obj["service_id"] == service_id:
+                if not unused_only or not addr_obj["used"]:
+                    addrs.append(addr_obj)
+        return addrs
+
     def setlabel(self, address, label):
         self._addresses.set_label(address, label)
 
     def getlabel(self, address):
+        # TODO: This is confusing. The Address["label"] attr may be blank but the
+        # Address.label property will auto-populate a value (e.g. "Address #4").
         if address in self._addresses:
             return self._addresses[address].label
         else:
@@ -1631,8 +1681,8 @@ class Wallet:
 
     def createpsbt(
         self,
-        addresses: [str],
-        amounts: [float],
+        addresses: List[str],
+        amounts: List[float],
         subtract: bool = False,
         subtract_from: int = 0,
         fee_rate: float = 0,  # fee rate to use, if less than MIN_FEE_RATE will use MIN_FEE_RATE, 0 for automatic
@@ -1960,10 +2010,19 @@ class Wallet:
         self.save_pending_psbt(psbt)
         return psbt.to_dict()
 
-    def addresses_info(self, is_change):
+    def addresses_info(
+        self,
+        is_change: bool = False,
+        service_id: str = None,
+        include_wallet_alias: bool = False,
+    ):
         """Create a list of (receive or change) addresses from cache and retrieve the
         related UTXO and amount.
-        Parameters: is_change: if true, return the change addresses else the receive ones.
+        Parameters:
+            * is_change: if true, return the change addresses else the receive ones.
+            * service_id: just return addresses associated for the given Service
+            * include_wallet_alias: adds `wallet_alias` to each output (useful when this
+                is called by WalletManager.full_addresses_info() across all Wallets)
         """
 
         addresses_info = []
@@ -1973,7 +2032,6 @@ class Wallet:
         ]
 
         for addr in addresses_cache:
-
             addr_utxo = 0
             addr_amount = 0
 
@@ -1983,17 +2041,26 @@ class Wallet:
                 addr_amount = addr_amount + utxo["amount"]
                 addr_utxo = addr_utxo + 1
 
-            addresses_info.append(
-                {
-                    "index": addr.index,
-                    "address": addr.address,
-                    "label": addr.label,
-                    "amount": addr_amount,
-                    "used": bool(addr.used),
-                    "utxo": addr_utxo,
-                    "type": "change" if is_change else "receive",
-                }
-            )
+            if service_id and (
+                "service_id" not in addr or addr["service_id"] != service_id
+            ):
+                # Filter this address out
+                continue
+
+            addr_info = {
+                "index": addr.index,
+                "address": addr.address,
+                "label": addr.label,
+                "amount": addr_amount,
+                "used": bool(addr.used),
+                "utxo": addr_utxo,
+                "type": "change" if is_change else "receive",
+                "service_id": addr.service_id,
+            }
+            if include_wallet_alias:
+                addr_info["wallet_alias"] = self.alias
+
+            addresses_info.append(addr_info)
 
         return addresses_info
 

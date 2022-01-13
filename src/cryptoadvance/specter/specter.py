@@ -37,6 +37,8 @@ from .rpc import (
     RpcError,
     get_default_datadir,
 )
+from .services.service_manager import ServiceManager
+from .services.service import devstatus_alpha, devstatus_beta, devstatus_prod
 from .specter_error import ExtProcTimeoutException, SpecterError
 from .tor_daemon import TorDaemonController
 from .user import User
@@ -56,7 +58,13 @@ class Specter:
     lock = threading.Lock()
     _default_asset = None
 
-    def __init__(self, data_folder="./data", config={}, internal_bitcoind_version=""):
+    def __init__(
+        self,
+        data_folder="./data",
+        config={},
+        internal_bitcoind_version="",
+        service_devstatus_threshold=devstatus_prod,
+    ):
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)
         data_folder = os.path.abspath(data_folder)
@@ -70,6 +78,10 @@ class Specter:
         self.user_manager = UserManager(
             self
         )  # has to come before calling VersionChecker()
+
+        self.service_manager = ServiceManager(
+            specter=self, devstatus_threshold=service_devstatus_threshold
+        )
 
         # version checker
         # checks for new versions once per hour
@@ -426,7 +438,11 @@ class Specter:
     def update_alt_symbol(self, alt_symbol, user):
         self.config_manager.update_alt_symbol(alt_symbol, user)
 
-    # mark logic!
+    def update_services(self, services):
+        """takes a list of service_names which should be activated"""
+        self.config["services"] = services
+        self._save()
+
     def update_merkleproof_settings(self, validate_bool):
         if validate_bool is True and self.info.get("pruned") is True:
             validate_bool = False

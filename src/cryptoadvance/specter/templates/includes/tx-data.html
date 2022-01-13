@@ -138,6 +138,7 @@
                     let jsonResponse = await this.fetchRawTx(rawtx.vin[i].txid);
                     if (jsonResponse !== null && jsonResponse.success) {
                         let spentOutput = jsonResponse.rawtx.vout[rawtx.vin[i].vout];
+
                         let address = (spentOutput.addresses && spentOutput.addresses.length == 1) ? spentOutput.addresses[0] : 'Unknown';
                         if (address == 'Unknown') {
                             address = (spentOutput.scriptPubKey.addresses && spentOutput.scriptPubKey.addresses.length == 1) ? spentOutput.scriptPubKey.addresses[0] : 'Unknown';
@@ -175,8 +176,23 @@
                             value = `${numberWithCommas(value.toString())}`;
                         }
 
+                        let labelAttr = "";
+                        if ("label" in spentOutput) {
+                            labelAttr = `data-label="${spentOutput.label}"`;
+                        }
+                        let serviceIdAttr = "";
+                        if ("service_id" in spentOutput) {
+                            serviceIdAttr = `data-service-id="${spentOutput.service_id}"`;
+                        }
+
                         addressAndValue = `<br>
-                            {{ _("Address:") }} <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}"></address-label><br>
+                            {{ _("Address:") }} <address-label 
+                                data-copy-hidden="true"
+                                data-address="${address}"
+                                data-wallet="${this.wallet}"
+                                ${labelAttr}
+                                ${serviceIdAttr}
+                            /><br>
                             {{ _("Value:") }} ${value} ${assetlabel} ${price}`;
                     }
 
@@ -235,15 +251,32 @@
                     }
 
                     let bgColor = '#131a24';
-                    let isMine = await this.fetchAddressIsMine(address);
-                    if (isMine) {
+                    if ("index" in rawtx.vout[i]) {
+                        // Only addresses from this wallet will have an index; isMine = True
                         bgColor = '#154984';
+                    }
+
+                    let labelAttr = "";
+                    if ("label" in rawtx.vout[i]) {
+                        labelAttr = `data-label="${rawtx.vout[i].label}"`;
+                    } else if (address != "Unknown") {
+                        labelAttr = `data-label="${address}"`;
+                    }
+                    let serviceIdAttr = "";
+                    if ("service_id" in rawtx.vout[i]) {
+                        serviceIdAttr = `data-service-id="${rawtx.vout[i].service_id}"`;
                     }
 
                     rawtxHTML += `
                     <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
                         <b>{{ _("Output #${i}") }}</b><br><br>
-                        {{ _("Address:") }} <address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}"></address-label><br>
+                        {{ _("Address:") }} <address-label
+                            data-copy-hidden="true"
+                            data-address="${address}"
+                            data-wallet="${this.wallet}"
+                            ${labelAttr}
+                            ${serviceIdAttr}
+                        /><br/>
                         {{ _("Value:") }} ${value} ${assetlabel} ${price}
                     </p>
                     `;

@@ -6,13 +6,15 @@ from functools import wraps
 import requests
 from cryptoadvance.specter.util.psbt_creator import PsbtCreator
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
+from cryptoadvance.specter.wallet import Wallet
 from flask import Blueprint
 from flask import current_app as app
 from flask import flash, jsonify, redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import login_required
 
-from ..helpers import get_devices_with_keys_by_type
+from ..helpers import bcur2base64, get_devices_with_keys_by_type, get_txid
+from ..key import Key
 from ..managers.wallet_manager import purposes
 from ..persistence import delete_file
 from ..specter_error import SpecterError, handle_exception
@@ -61,6 +63,7 @@ def wallets_overview():
         "wallet/wallets_overview.jinja",
         specter=app.specter,
         rand=rand,
+        services=app.specter.service_manager.services,
     )
 
 
@@ -395,6 +398,7 @@ def history(wallet_alias):
         tx_list_type=tx_list_type,
         specter=app.specter,
         rand=rand,
+        services=app.specter.service_manager.services,
     )
 
 
@@ -405,7 +409,7 @@ def history(wallet_alias):
 @login_required
 @check_wallet
 def receive(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if request.method == "POST":
         action = request.form["action"]
         if action == "newaddress":
@@ -456,6 +460,7 @@ def send_new(wallet_alias):
     err = None
     ui_option = "ui"
     recipients_txt = ""
+    fillform = False
     subtract = False
     subtract_from = 1
     fee_options = "dynamic"
@@ -579,6 +584,13 @@ def send_new(wallet_alias):
                 specter=app.specter,
                 rand=rand,
             )
+        elif action == "fillform":
+            # TODO: Not yet used. Remove if the use case doesn't happen.
+            # can be used to recommend a transaction from a service (goind to an exchange or so)
+            addresses = request.form.getlist("addresses[]")
+            labels = request.form.getlist("labels[]")
+            amounts = request.form.getlist("amounts[]")
+            fillform = True
 
     if rbf_tx_id:
         try:
@@ -604,6 +616,10 @@ def send_new(wallet_alias):
         psbt=psbt,
         ui_option=ui_option,
         recipients_txt=recipients_txt,
+        addresses=addresses,
+        labels=labels,
+        amounts=amounts,
+        fillform=fillform,
         recipients=list(zip(addresses, amounts, amount_units, labels)),
         subtract=subtract,
         subtract_from=subtract_from,
@@ -713,6 +729,7 @@ def addresses(wallet_alias):
         wallet=wallet,
         specter=app.specter,
         rand=rand,
+        services=app.specter.service_manager.services,
     )
 
 

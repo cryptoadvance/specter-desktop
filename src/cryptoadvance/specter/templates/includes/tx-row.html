@@ -15,6 +15,20 @@
         .svg-cancelled {
             filter: invert(20%) sepia(32%) saturate(4838%) hue-rotate(332deg) brightness(81%) contrast(97%);
         }
+
+        .tx-row:hover {
+            background-color: var(--cmap-bg-lightest);
+        }
+        .address {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .service-icon {
+            margin-top: -5px;
+            margin-right: 0.5em;
+            height:24px;
+            vertical-align: middle;
+        }
     </style>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <tr class="tx-row">
@@ -58,6 +72,7 @@
             this.category = clone.querySelector(".category");
             this.txid = clone.querySelector(".txid .explorer-link");
             this.address = clone.querySelector(".address");
+            this.serviceIcon = clone.querySelector(".service-icon");
             this.amountText = clone.querySelector(".amount");
             this.amountPrice = clone.querySelector(".amount-price");
             this.time = clone.querySelector(".time");
@@ -109,7 +124,7 @@
 
 
             // Set txid
-            this.txid.innerText = this.hideSensitiveInfo ? '############################################' : this.tx.txid;
+            this.txid.innerHTML = this.hideSensitiveInfo ? '############################################' : this.tx.txid.slice(0,11) + '&hellip;';
             if (!this.hideSensitiveInfo) {
                 this.txid.onclick = () => {
                     showTxData(
@@ -138,7 +153,18 @@
             if (Array.isArray(this.tx.address)) {
                 this.address.innerText = this.hideSensitiveInfo ? '#########' : `${this.tx.address.length} {{ _("Recipients") }}`;
             } else {
-                this.address.innerHTML = this.hideSensitiveInfo ? '#########' : `<address-label data-address="${this.tx.address}" ${this.tx.label ? `data-label="${this.tx.label}"` : ''} data-wallet="${this.wallet ? this.wallet : this.tx.wallet_alias}"></address-label>`
+                if (this.hideSensitiveInfo) {
+                    this.address.innerHTML = '#########';
+                } else {
+                    if ("service_id" in this.tx) {
+                        this.address.innerHTML = `<img class="service-icon" src="/svc/${this.tx.service_id}/static/${services[this.tx.service_id].icon}">`;
+                    }
+                    if (this.tx.label !== undefined) {
+                        this.address.innerHTML += this.tx.label;
+                    } else {
+                        this.address.innerHTML += this.tx.address;
+                    }
+                }
             }
             
             // Set amount
@@ -190,7 +216,7 @@
 
             // Set confirmations
             if (this.tx.confirmations > 0) {
-                this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `${this.tx.confirmations}<span class="optional"> {{ _("Confirmations") }}</span>`;
+                this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `${this.tx.confirmations}`;
             } else if (this.tx.confirmations == 0) {
                 this.el.classList.add('unconfirmed');
                 this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `{{ _("Unconfirmed") }}`;
