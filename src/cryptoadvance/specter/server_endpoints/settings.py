@@ -1,3 +1,4 @@
+import cryptography
 import json
 import logging
 import os
@@ -18,6 +19,9 @@ from flask import current_app as app
 from flask import flash, jsonify, redirect, render_template, request, send_file, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
+from cryptoadvance.specter.services.service import Service
+
+from cryptoadvance.specter.user import User, UserSecretException
 
 from ..helpers import (
     get_loglevel,
@@ -50,11 +54,11 @@ def settings():
 def general():
     current_version = notify_upgrade(app, flash)
     explorer_id = app.specter.explorer_id
-    explorer = ""
     fee_estimator = app.specter.fee_estimator
     fee_estimator_custom_url = app.specter.config.get("fee_estimator_custom_url", "")
     loglevel = get_loglevel(app)
     unit = app.specter.unit
+    services = app.specter.service_manager.services
     if request.method == "POST":
         action = request.form["action"]
 
@@ -90,8 +94,12 @@ def general():
         fee_estimator_custom_url = request.form["fee_estimator_custom_url"]
         unit = request.form["unit"]
         validate_merkleproof_bool = request.form.get("validatemerkleproof") == "on"
-
         if current_user.is_admin:
+            active_services = []
+            for service_name in services:
+                if request.form.get(f"service_{service_name}"):
+                    active_services.append(service_name)
+
             loglevel = request.form["loglevel"]
 
         if action == "save":
@@ -110,6 +118,7 @@ def general():
             app.specter.update_merkleproof_settings(
                 validate_bool=validate_merkleproof_bool
             )
+            app.specter.service_manager.set_active_services(active_services)
             app.specter.update_fee_estimator(
                 fee_estimator=fee_estimator,
                 custom_url=fee_estimator_custom_url,
@@ -198,6 +207,7 @@ This may take a few hours to complete."
 
     return render_template(
         "settings/general_settings.jinja",
+        services=services,
         fee_estimator=fee_estimator,
         fee_estimator_custom_url=fee_estimator_custom_url,
         loglevel=loglevel,
@@ -377,6 +387,9 @@ def tor():
 @settings_endpoint.route("/auth", methods=["GET", "POST"])
 @login_required
 def auth():
+    # TODO: Simplify this endpoint. Separate out setting the Authentication mode from all
+    # the other options here: updating admin username/password, adding users, deleting
+    # users, etc. Do those in simple separate screens with their own endpoints.
     current_version = notify_upgrade(app, flash)
     auth = app.specter.config["auth"]
     method = auth["method"]
@@ -403,6 +416,7 @@ def auth():
 
             min_chars = int(auth["password_min_chars"])
             if specter_username:
+
                 if current_user.username != specter_username:
                     if app.specter.user_manager.get_user_by_username(specter_username):
                         flash(
@@ -418,8 +432,12 @@ def auth():
                             specter=app.specter,
                             current_version=current_version,
                             rand=rand,
+                            has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(
+                                current_user
+                            ),
                         )
-                current_user.username = specter_username
+                    current_user.username = specter_username
+
                 if specter_password:
                     if len(specter_password) < min_chars:
                         flash(
@@ -437,15 +455,20 @@ def auth():
                             specter=app.specter,
                             current_version=current_version,
                             rand=rand,
+                            has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(
+                                current_user
+                            ),
                         )
                     current_user.set_password(specter_password)
+
                 current_user.save_info()
+
             if current_user.is_admin:
                 app.specter.update_auth(method, rate_limit, registration_link_timeout)
                 if method in ["rpcpasswordaspin", "passwordonly", "usernamepassword"]:
                     if method == "passwordonly":
-                        new_password = request.form.get("specter_password_only")
-                        if new_password and len(new_password) < min_chars:
+                        specter_password = request.form.get("specter_password_only")
+                        if specter_password and len(specter_password) < min_chars:
                             flash(
                                 _(
                                     "Please enter a password of a least {} characters"
@@ -461,13 +484,47 @@ def auth():
                                 specter=app.specter,
                                 current_version=current_version,
                                 rand=rand,
+                                has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(
+                                    current_user
+                                ),
                             )
-                        elif not new_password:
+                        elif not specter_password:
                             # Set to the default
-                            new_password = "admin"
+                            specter_password = "admin"
 
-                        current_user.set_password(new_password)
+                        try:
+                            current_user.set_password(specter_password)
+                        except UserSecretException as e:
+                            # Most likely the admin User is logged in but the
+                            # plaintext_user_secret is not available in memory (happens
+                            # when the server restarts).
+                            logger.warn(e)
+                            flash(
+                                _(
+                                    "Error re-encrypting Service data. Log out and log back in before trying again."
+                                ),
+                                "error",
+                            )
+                            return render_template(
+                                "settings/auth_settings.jinja",
+                                method=method,
+                                rate_limit=rate_limit,
+                                registration_link_timeout=registration_link_timeout,
+                                users=users,
+                                specter=app.specter,
+                                current_version=current_version,
+                                rand=rand,
+                                has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(
+                                    current_user
+                                ),
+                            )
+
                         current_user.save_info()
+
+                        flash(
+                            _("Admin password successfully updated"),
+                            "info",
+                        )
 
                     if method == "usernamepassword":
                         users = [
@@ -477,11 +534,22 @@ def auth():
                         ]
                     else:
                         users = None
+
                     app.config["LOGIN_DISABLED"] = False
                 else:
                     users = None
                     app.config["LOGIN_DISABLED"] = True
 
+                    # Cannot support Services if there's no password (admin was already
+                    # warned about this in the UI). Remove User.services, clear the
+                    # `user_secret`, and wipe the ServiceEncryptedStorage.
+                    app.specter.service_manager.remove_all_services_from_user(
+                        current_user
+                    )
+
+            # Redirect if a URL was given via the next variable
+            if request.form.get("next") and request.form.get("next") != "":
+                return redirect(request.form.get("next"))
             app.specter.check()
 
         elif action == "adduser":
@@ -536,6 +604,10 @@ def auth():
         specter=app.specter,
         current_version=current_version,
         rand=rand,
+        has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(
+            current_user
+        ),
+        next=request.args.get("next", ""),
     )
 
 

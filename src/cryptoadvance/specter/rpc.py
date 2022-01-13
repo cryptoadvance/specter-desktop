@@ -1,6 +1,13 @@
+import datetime
+import errno
+import json
 import logging
-import requests, urllib3, json, os
-import os, sys, errno
+import os
+import sys
+
+import requests
+import urllib3
+
 from .helpers import is_ip_private
 from .specter_error import SpecterError
 
@@ -18,21 +25,30 @@ RPC_PORTS = {
 }
 
 
-def get_default_datadir():
+def get_default_datadir(node_type="BTC"):
     """Get default Bitcoin directory depending on the system"""
     datadir = None
+    if node_type == "BTC":
+        last_part = "Bitcoin"
+    elif node_type == "ELM":
+        last_part = "Elements"
+    else:
+        raise SpecterError(f"Unknown node_type {node_type}")
+
     if sys.platform == "darwin":
+        # Not tested yet!
         datadir = os.path.join(
-            os.environ["HOME"], "Library/Application Support/Bitcoin/"
+            os.environ["HOME"], f"Library/Application Support/{last_part}/"
         )
     elif sys.platform == "win32":
-        datadir = os.path.join(os.environ["APPDATA"], "Bitcoin")
+        # Not tested yet!
+        datadir = os.path.join(os.environ["APPDATA"], last_part)
     else:
-        datadir = os.path.join(os.environ["HOME"], ".bitcoin")
+        datadir = os.path.join(os.environ["HOME"], f".{last_part.lower()}")
     return datadir
 
 
-def get_rpcconfig(datadir=get_default_datadir()):
+def _get_rpcconfig(datadir=get_default_datadir()):
     """returns the bitcoin.conf configurations (multiple) in a datastructure
     for all networks of a specific datadir.
     """
@@ -82,9 +98,9 @@ def get_rpcconfig(datadir=get_default_datadir()):
     return config
 
 
-def get_configs(config=None, datadir=get_default_datadir()):
+def _detect_rpc_confs_via_datadir(config=None, datadir=get_default_datadir()):
     if config is None:
-        config = get_rpcconfig(datadir=datadir)
+        config = _get_rpcconfig(datadir=datadir)
     confs = []
     default = {}
     for network in config["bitcoin.conf"]:
@@ -113,39 +129,33 @@ def get_configs(config=None, datadir=get_default_datadir()):
     return confs
 
 
-def detect_rpc_confs(config=None, datadir=get_default_datadir()):
-    rpcconfs = get_configs(config, datadir)
-    rpc_arr = []
-    for conf in rpcconfs:
-        rpc_arr.append(conf)
-    return rpc_arr
-
-
-def detect_rpc_confs_via_env():
+def _detect_rpc_confs_via_env(prefix):
     """returns an array which might contain one configmap derived from Env-Vars
-    Env-Vars: BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT
+    Env-Vars for prefix=BTC: BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT
     configmap: {"user":"user","password":"password","host":"host","port":"port","protocol":"https"}
     """
     rpc_arr = []
     if (
-        os.getenv("BTC_RPC_USER")
-        and os.getenv("BTC_RPC_PASSWORD")
-        and os.getenv("BTC_RPC_HOST")
-        and os.getenv("BTC_RPC_PORT")
+        os.getenv(f"{prefix}_RPC_USER")
+        and os.getenv(f"{prefix}_RPC_PASSWORD")
+        and os.getenv(f"{prefix}_RPC_HOST")
+        and os.getenv(f"{prefix}_RPC_PORT")
+        and os.getenv(f"{prefix}_RPC_PROTOCOL")
     ):
-        logger.info("Detected RPC-Config on Environment-Variables")
+        logger.info(f"Detected RPC-Config on Environment-Variables for prefix {prefix}")
         env_conf = {
-            "user": os.getenv("BTC_RPC_USER"),
-            "password": os.getenv("BTC_RPC_PASSWORD"),
-            "host": os.getenv("BTC_RPC_HOST"),
-            "port": os.getenv("BTC_RPC_PORT"),
-            "protocol": os.getenv("BTC_RPC_PROTOCOL", "https"),  # https by default
+            "user": os.getenv(f"{prefix}_RPC_USER"),
+            "password": os.getenv(f"{prefix}_RPC_PASSWORD"),
+            "host": os.getenv(f"{prefix}_RPC_HOST"),
+            "port": os.getenv(f"{prefix}_RPC_PORT"),
+            "protocol": os.getenv(f"{prefix}_RPC_PROTOCOL"),
         }
         rpc_arr.append(env_conf)
     return rpc_arr
 
 
 def autodetect_rpc_confs(
+    node_type,
     datadir=get_default_datadir(),
     port=None,
     proxy_url="socks5h://localhost:9050",
@@ -160,8 +170,8 @@ def autodetect_rpc_confs(
     if port is not None:
         port = int(port)
     conf_arr = []
-    conf_arr.extend(detect_rpc_confs_via_env())
-    conf_arr.extend(detect_rpc_confs(datadir=datadir))
+    conf_arr.extend(_detect_rpc_confs_via_env(node_type))
+    conf_arr.extend(_detect_rpc_confs_via_datadir(datadir=datadir))
     available_conf_arr = []
     if len(conf_arr) > 0:
         for conf in conf_arr:
@@ -349,7 +359,7 @@ class BitcoinRPC:
         url = self.url
         if "wallet" in kwargs:
             url = url + "/wallet/{}".format(kwargs["wallet"])
-        self.trace_call(url, payload)
+        ts = self.trace_call_before(url, payload)
         try:
             r = self.session.post(
                 url, data=json.dumps(payload), headers=headers, timeout=timeout
@@ -381,6 +391,7 @@ class BitcoinRPC:
                     payload,
                 )
             )
+        self.trace_call_after(url, payload, ts)
         self.r = r
         if r.status_code != 200:
             logger.debug(f"last call FAILED: {r.text} (raising RpcError)")
@@ -391,11 +402,18 @@ class BitcoinRPC:
         return r
 
     @classmethod
-    def trace_call(cls, url, payload):
-        """logs out the call and its payload, reduces noise by suppressing repeated calls"""
-        if False:  # noise-reduction
-            logger.debug(f"call({url}) payload:{payload}")
-        else:
+    def trace_call_before(cls, url, payload):
+        """get a timestamp if needed in order to measure how long the call takes"""
+        if logger.level == logging.DEBUG:
+            return datetime.datetime.now()
+
+    @classmethod
+    def trace_call_after(cls, url, payload, timestamp):
+        """logs out the call and its payload (if necessary), reduces noise by suppressing repeated calls"""
+        if logger.level == logging.DEBUG:
+            timediff_ms = int(
+                (datetime.datetime.now() - timestamp).total_seconds() * 1000
+            )
             current_hash = hash(
                 json.dumps({"url": url, "payload": payload}, sort_keys=True)
             )
@@ -413,7 +431,9 @@ class BitcoinRPC:
                 else:
                     cls.last_call_hash = current_hash
             logger.debug(
-                "call({: <28}) payload:{}".format("/".join(url.split("/")[3:]), payload)
+                "call({: <28})({: >5}ms)  payload:{}".format(
+                    "/".join(url.split("/")[3:]), timediff_ms, payload
+                )
             )
 
     def __getattr__(self, method):

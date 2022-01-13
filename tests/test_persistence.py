@@ -29,12 +29,12 @@ def test_write_devices(app, monkeypatch, caplog):
     assert count_files_in(app.specter.device_manager.data_folder) == 2
     write_devices(devices_json)
     assert count_files_in(app.specter.device_manager.data_folder) == 5
-    assert not "callback failed stdout:" in caplog.text
+    assert not "callback failed" in caplog.text
     os.remove(os.path.join(app.specter.device_manager.data_folder, "fsedf.json"))
     monkeypatch.setenv("SPECTER_PERSISTENCE_CALLBACK", "ThisWillFail")
     write_devices(devices_json)
     assert count_files_in(app.specter.device_manager.data_folder) == 5
-    assert "callback failed stdout:" in caplog.text
+    assert "callback failed" in caplog.text
 
 
 def test_write_wallet(app, monkeypatch, caplog):
@@ -47,14 +47,14 @@ def test_write_wallet(app, monkeypatch, caplog):
     assert count_files_in(app.specter.wallet_manager.working_folder) == 0
     write_wallet(wallet_json)
     assert count_files_in(app.specter.wallet_manager.working_folder) == 1
-    assert not "callback failed stdout:" in caplog.text
+    assert not "callback failed" in caplog.text
     os.remove(
         os.path.join(app.specter.wallet_manager.working_folder, "myotherwallet.json")
     )
     monkeypatch.setenv("SPECTER_PERSISTENCE_CALLBACK", "ThisWillFail")
     write_wallet(wallet_json)
     assert count_files_in(app.specter.wallet_manager.working_folder) == 1
-    assert "callback failed stdout:" in caplog.text
+    assert "callback failed" in caplog.text
 
 
 def test_write_device(app):

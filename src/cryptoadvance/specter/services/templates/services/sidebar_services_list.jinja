@@ -1,0 +1,13 @@
+<div class="separator">
+    <span id="toggle_services_list" style="cursor: pointer;">Services &nbsp; &#9660;</span>
+</div>
+<div id="services_list">
+    {% for _,service in specter.service_manager.services.items() %}
+        {% if service.id in current_user.services %}
+        <a href="{{ url_for(service.id +'_endpoint.index') }}" class="item service">
+            <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.icon) }}" height="30px">&nbsp;{{ service.name }}
+        </a>
+        <br>
+        {% endif %}
+    {% endfor %}
+</div>
