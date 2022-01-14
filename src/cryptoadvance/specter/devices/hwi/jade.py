@@ -3,10 +3,21 @@ Blockstream Jade Devices
 ************************
 """
 
+from .jadepy import jade
 from .jadepy.jade import JadeAPI, JadeError
 from serial.tools import list_ports
 
-from typing import List, Union, Tuple, Sequence
+from functools import wraps
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Union
+)
 from hwilib.descriptor import PubkeyProvider, MultisigDescriptor
 from hwilib.hwwclient import HardwareWalletClient
 from hwilib.errors import (
@@ -46,8 +57,11 @@ from embit import hashes
 from embit.util import secp256k1
 from embit.liquid.finalizer import finalize_psbt
 
-JADE_VENDOR_ID = 0x10C4
-JADE_DEVICE_ID = 0xEA60
+# The test emulator port
+SIMULATOR_PATH = 'tcp:127.0.0.1:2222'
+
+JADE_DEVICE_IDS = [(0x10c4, 0xea60), (0x1a86, 0x55d4)]
+HAS_NETWORKING = hasattr(jade, '_http_request')
 
 py_enumerate = (
     enumerate  # To use the enumerate built-in, since the name is overridden below
@@ -56,32 +70,28 @@ py_enumerate = (
 logger = logging.getLogger(__name__)
 
 
-def jade_exception(f):
-    def func(*args, **kwargs):
+def jade_exception(f: Callable[..., Any]) -> Any:
+    @wraps(f)
+    def func(*args: Any, **kwargs: Any) -> Any:
         try:
             return f(*args, **kwargs)
         except ValueError as e:
             raise BadArgumentError(str(e))
         except JadeError as e:
-            if e.code == -32000:  # CBOR_RPC_USER_CANCELLED
-                raise ActionCanceledError("{} canceled by user".format(f.__name__))
-            elif e.code == -32602:  # CBOR_RPC_BAD_PARAMETERS
+            if e.code == JadeError.USER_CANCELLED:
+                raise ActionCanceledError(f'{f.__name__} canceled by user')
+            elif e.code == JadeError.BAD_PARAMETERS:
                 raise BadArgumentError(e.message)
-            elif e.code == -32603:  # CBOR_RPC_INTERNAL_ERROR
+            elif e.code == JadeError.INTERNAL_ERROR:
                 raise DeviceFailureError(e.message)
-            elif e.code == -32002:  # CBOR_RPC_HW_LOCKED
-                raise DeviceConnectionError("Device is locked")
-            elif e.code == -32003:  # CBOR_RPC_NETWORK_MISMATCH
-                raise DeviceConnectionError("Network/chain selection error")
-            elif e.code in [
-                -32600,
-                -32601,
-                -32001,
-            ]:  # CBOR_RPC_INVALID_REQUEST, CBOR_RPC_UNKNOWN_METHOD, CBOR_RPC_PROTOCOL_ERROR
-                raise DeviceConnectionError("Messaging/communiciation error")
+            elif e.code == JadeError.HW_LOCKED:
+                raise DeviceConnectionError('Device is locked')
+            elif e.code == JadeError.NETWORK_MISMATCH:
+                raise DeviceConnectionError('Network/chain selection error')
+            elif e.code in [JadeError.INVALID_REQUEST, JadeError.UNKNOWN_METHOD, JadeError.PROTOCOL_ERROR]:
+                raise DeviceConnectionError('Messaging/communiciation error')
             else:
                 raise e
-
     return func
 
 
@@ -803,28 +813,45 @@ class JadeClient(HardwareWalletClient):
         return None
 
 
-def enumerate(password=""):
+def enumerate(password: str = '') -> List[Dict[str, Any]]:
     results = []
+
+    def _get_device_entry(device_model: str, device_path: str) -> Dict[str, Any]:
+        d_data: Dict[str, Any] = {}
+        d_data['type'] = 'jade'
+        d_data['model'] = device_model
+        d_data['path'] = device_path
+        d_data['needs_pin_sent'] = False
+        d_data['needs_passphrase_sent'] = False
+
+        client = None
+        with handle_errors(common_err_msgs['enumerate'], d_data):
+            client = JadeClient(device_path, password, timeout=1)
+            d_data['fingerprint'] = client.get_master_fingerprint().hex()
+
+        if client:
+            client.close()
+
+        return d_data
 
     # Jade is not really an HID device, it shows as a serial/com port device.
     # Scan com ports looking for the relevant vid and pid, and use 'path' to
     # hold the path to the serial port device, eg. /dev/ttyUSB0
     for devinfo in list_ports.comports():
-        if devinfo.vid == JADE_VENDOR_ID and devinfo.pid == JADE_DEVICE_ID:
-            d_data = {}
-            d_data["type"] = "jade"
-            d_data["path"] = devinfo.device
-            d_data["needs_pin_sent"] = False
-            d_data["needs_passphrase_sent"] = False
+        if (devinfo.vid, devinfo.pid) in JADE_DEVICE_IDS:
+            results.append(_get_device_entry('jade', devinfo.device))
 
-            client = None
-            with handle_errors(common_err_msgs["enumerate"], d_data):
-                client = JadeClient(devinfo.device, password)
-                d_data["fingerprint"] = client.get_master_fingerprint().hex()
+    # If we can connect to the simulator, add it too
+    try:
+        with JadeAPI.create_serial(SIMULATOR_PATH, timeout=1) as jade:
+            verinfo = jade.get_version_info()
 
-            if client:
-                client.close()
+        if verinfo is not None:
+            results.append(_get_device_entry('jade_simulator', SIMULATOR_PATH))
 
-            results.append(d_data)
+    except Exception as e:
+        # If we get any sort of error do not add the simulator
+        logging.debug(f'Failed to connect to Jade simulator at {SIMULATOR_PATH}')
+        logging.debug(e)
 
     return results
