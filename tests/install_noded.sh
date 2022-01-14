@@ -153,9 +153,10 @@ function build_node_impl {
 function sub_help {
     echo "This script will result in having bitcoind or elementsd binaries, either by binary download or via compilation"
     echo "Do one of these:"
+    echo "$ ./install_node.sh --bitcoin binary"
     echo "$ ./install_node.sh --bitcoin compile"
+    echo "$ ./install_node.sh --elements binary"
     echo "$ ./install_node.sh --elements compile"
-    echo "$ ./install_node.sh binary # only works for bitcoind currently, no binaries for elements"
     echo "For more context, see https://github.com/cryptoadvance/specter-desktop/blob/master/docs/development.md#how-to-run-the-tests"
 }
 
@@ -266,7 +267,7 @@ function sub_binary {
 
 function parse_and_execute() {
   if [[ $# = 0 ]]; then
-    sub_default
+    sub_help
     exit 0
   fi 
 

@@ -9,9 +9,11 @@ nav:
       - faq.md
       - multisig-security-tradeoffs.md
       - 'Using Tor': tor.md
+      - 'Signing messages': sign-message.md
     - Operating Guide:
       - connect-your-node.md
       - daemon.md
+      - performance.md
       - reverse-proxy.md
       - self-signed-certificates.md
       - hwibridge.md
@@ -23,6 +25,7 @@ nav:
       - build-instructions.md
       - 'Continuous Integration': continuous-integration.md
       - cypress-testing.md
+      - services/services.md
       - 'Some Random Dev Thoughts': archblog.md
     - API:
       - api/README.md
