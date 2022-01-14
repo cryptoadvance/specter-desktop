@@ -130,10 +130,9 @@ class JadeClient(HardwareWalletClient):
     def _get_multisig_name(
         type: str, threshold: int, signers: List[Tuple[bytes, Sequence[int]]]
     ) -> str:
-        # Concatenate script-type, threshold, and all signers fingerprints and derivation paths
+        # Concatenate script-type, threshold, and all signers fingerprints and derivation paths (sorted)
         summary = type + "|" + str(threshold) + "|"
-        # sort by fingerprint
-        for fingerprint, path in sorted(signers, key=lambda s: s[0]):
+        for fingerprint, path in sorted(signers):
             summary += fingerprint.hex() + "|" + str(path) + "|"
 
         # Hash it, get the first 6-bytes as hex, prepend with 'hwi'
@@ -204,6 +203,9 @@ class JadeClient(HardwareWalletClient):
                 prefix, suffix = _split_at_last_hardened_element(origin.path)
                 signers.append((origin.fingerprint, prefix))
                 paths.append(suffix)
+            # sort signers and paths like in multisig registration
+            signers, paths = [list(a) for a in zip(*sorted(zip(signers, paths)))]
+
             return signers, paths
 
         c_txn = CTransaction(tx.tx)
@@ -289,6 +291,7 @@ class JadeClient(HardwareWalletClient):
                         ]
 
                         signers, paths = _parse_signers(hd_keypath_origins)
+
                         multisig_name = self._get_multisig_name(
                             script_variant, threshold, signers
                         )
@@ -340,6 +343,11 @@ class JadeClient(HardwareWalletClient):
                                 "path": [],
                             }
                         )
+
+                    # sort origins and signers together
+                    origins, signers = [
+                        list(a) for a in zip(*sorted(zip(origins, signers)))
+                    ]
 
                     # Get a deterministic name for this multisig wallet
                     script_variant = signing_multisigs[msigname][0]
@@ -445,6 +453,7 @@ class JadeClient(HardwareWalletClient):
                                 ]
 
                                 signers, paths = _parse_signers(hd_keypath_origins)
+
                                 multisig_name = self._get_multisig_name(
                                     script_variant, threshold, signers
                                 )
@@ -539,6 +548,11 @@ class JadeClient(HardwareWalletClient):
                 else pubkey.deriv_path
             )
             paths.append(parse_path(path))
+
+        # sort origins, signers and paths according to origins (like in _get_multisig_name)
+        signer_origins, signers, paths = [
+            list(a) for a in zip(*sorted(zip(signer_origins, signers, paths)))
+        ]
 
         # Get a deterministic name for this multisig wallet
         script_variant = self._convertAddrType(addr_type, multisig=True)
