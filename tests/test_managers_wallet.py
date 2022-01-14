@@ -194,6 +194,28 @@ def test_wallet_createpsbt(docker, request, devices_filled_data_folder, device_m
         bitcoind_controller.stop_bitcoind()
 
 
+def test_WalletManager_check_duplicate_keys(empty_data_folder):
+    wm = WalletManager(
+        200100,
+        empty_data_folder,
+        None,
+        "regtest",
+        None,
+        allow_threading=False,
+    )
+    key1 = Key(
+        "[f3e6eaff/84h/0h/0h]xpub6C5cCQfycZrPJnNg6cDdUU5efJrab8thRQDBxSSB4gP2J3xGdWu8cqiLvPZkejtuaY9LursCn6Es9PqHgLhBktW8217BomGDVBAJjUms8iG",
+        "f3e6eaff",
+        "84h/0h/0h",
+        "",
+        None,
+        "xpub6C5cCQfycZrPJnNg6cDdUU5efJrab8thRQDBxSSB4gP2J3xGdWu8cqiLvPZkejtuaY9LursCn6Es9PqHgLhBktW8217BomGDVBAJjUms8iG",
+    )
+    keys = [key1, key1]
+    with pytest.raises(SpecterError) as execinfo:
+        wm._check_duplicate_keys(keys)
+
+
 def test_wallet_sortedmulti(
     bitcoin_regtest, devices_filled_data_folder, device_manager
 ):
