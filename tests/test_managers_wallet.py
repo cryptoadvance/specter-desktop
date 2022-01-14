@@ -211,9 +211,24 @@ def test_WalletManager_check_duplicate_keys(empty_data_folder):
         None,
         "xpub6C5cCQfycZrPJnNg6cDdUU5efJrab8thRQDBxSSB4gP2J3xGdWu8cqiLvPZkejtuaY9LursCn6Es9PqHgLhBktW8217BomGDVBAJjUms8iG",
     )
+    key2 = Key(
+        "[1ef4e492/49h/0h/0h]xpub6CRWp2zfwRYsVTuT2p96hKE2UT4vjq9gwvW732KWQjwoG7v6NCXyaTdz7NE5yDxsd72rAGK7qrjF4YVrfZervsJBjsXxvTL98Yhc7poBk7K",
+        "1ef4e492",
+        "m/49h/0h/0h",
+        "sh-wpkh",
+        None,
+        "xpub6CRWp2zfwRYsVTuT2p96hKE2UT4vjq9gwvW732KWQjwoG7v6NCXyaTdz7NE5yDxsd72rAGK7qrjF4YVrfZervsJBjsXxvTL98Yhc7poBk7K",
+    )
+    key3 = Key.from_json(key2.json)
+    key3.xpub = "vpub5Z8h5qLg5f2vEKbwDtoyqsiFwbFUiu7kD47LceVRS6Um4m94rfuxjRxghaYYywPh3dqhyd6rZ4TQ9bBCzfWRZgwpdydgbmmGLkx9s6MGKaU"
+    # Case 1: Identical keys
     keys = [key1, key1]
-    with pytest.raises(SpecterError) as execinfo:
+    with pytest.raises(SpecterError):
         wm._check_duplicate_keys(keys)
+    # Case 2: different keys
+    # key2 and 3 are different as they don't have the same xpub. See #1500 dor discussion
+    keys = [key1, key2, key3]
+    wm._check_duplicate_keys(keys)
 
 
 def test_wallet_sortedmulti(

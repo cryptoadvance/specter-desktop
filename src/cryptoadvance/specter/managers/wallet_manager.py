@@ -403,9 +403,10 @@ class WalletManager:
 
     @classmethod
     def _check_duplicate_keys(cls, keys):
-        """raise a SpecterError when a key in the passed KeyList is listed twice. Should prevent MultisigWallets where
-        keys are used twice.
+        """raise a SpecterError when a xpub in the passed KeyList is listed twice. Should prevent MultisigWallets where
+        xpubs are used twice.
         """
-        for key in keys:
-            if keys.count(key) > 1:
-                raise SpecterError(_(f"Key {key} seem to be used at least twice!"))
+        xpubs = [key.xpub for key in keys]
+        for xpub in xpubs:
+            if xpubs.count(xpub) > 1:
+                raise SpecterError(_(f"xpub {xpub} seem to be used at least twice!"))
