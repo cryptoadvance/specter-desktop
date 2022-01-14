@@ -54,12 +54,8 @@ describe('Send transactions from wallets', () => {
         cy.get('tx-table').shadow().find('tx-row').eq(3).shadow().find('.select-tx-img').click()
         cy.get('tx-table').shadow().find('.compose-tx-btn').click()
 
-        // cy.get('#coin_selection_table').find('tr').eq(0).find('.coin_select_checkbox').should('be.checked')
-        cy.get('.coin_select_checkbox[checked]').should('have.length', 2);
-
-        cy.get('.coin_select_checkbox').eq(0).should('be.checked')
-        cy.get('.coin_select_checkbox').eq(1).should('not.be.checked')
-        cy.get('.coin_select_checkbox').eq(2).should('be.checked')
+        // If you select a coin from the utxo-set and cklick on "create transaction", the coins need to be preselected
+        cy.get('.coinselect-hidden').should('have.length', 3);
 
         // Unfreeze the UTXO
         cy.get('#btn_transactions').click()
@@ -80,11 +76,7 @@ describe('Send transactions from wallets', () => {
         cy.get('tx-table').shadow().find('tx-row').eq(3).shadow().find('.select-tx-img').click()
         cy.get('tx-table').shadow().find('.compose-tx-btn').click()
 
-        cy.get('.coin_select_checkbox[checked]').should('have.length', 3);
+        cy.get('.coinselect-hidden').should('have.length', 3);
 
-        cy.get('.coin_select_checkbox').eq(0).should('be.checked')
-        cy.get('.coin_select_checkbox').eq(1).should('be.checked')
-        cy.get('.coin_select_checkbox').eq(2).should('not.be.checked')
-        cy.get('.coin_select_checkbox').eq(3).should('be.checked')
     })
 })

@@ -1,14 +1,18 @@
-from ..wallet import *
-from ..addresslist import Address
+import hashlib
+from typing import List
+
 from embit import ec
+from embit.descriptor.checksum import add_checksum
+from embit.liquid.addresses import to_unconfidential
+from embit.liquid.descriptor import LDescriptor
 from embit.liquid.pset import PSET
 from embit.liquid.transaction import LTransaction
-from embit.liquid.descriptor import LDescriptor
-from embit.descriptor.checksum import add_checksum
-from .txlist import LTxList
-from .addresslist import LAddressList
-from embit.liquid.addresses import to_unconfidential
+
+from ..addresslist import Address
 from ..specter_error import SpecterError
+from ..wallet import *
+from .addresslist import LAddressList
+from .txlist import LTxList
 from .util.pset import SpecterPSET
 
 
@@ -136,8 +140,8 @@ class LWallet(Wallet):
 
     def createpsbt(
         self,
-        addresses: [str],
-        amounts: [float],
+        addresses: List[str],
+        amounts: List[float],
         subtract: bool = False,
         subtract_from: int = 0,
         fee_rate: float = 1.0,

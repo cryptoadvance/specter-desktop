@@ -45,7 +45,12 @@ class BitcoindDockerController(NodeController):
         )
 
     def _start_node(
-        self, cleanup_at_exit, cleanup_hard=False, datadir=None, extra_args=[]
+        self,
+        cleanup_at_exit,
+        cleanup_hard=False,
+        datadir=None,
+        log_stdout=None,
+        extra_args=[],
     ):
         if datadir != None:
             # ignored
