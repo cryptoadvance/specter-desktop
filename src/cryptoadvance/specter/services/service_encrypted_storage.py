@@ -106,10 +106,10 @@ class ServiceEncryptedStorageManager(ConfigurableSingleton):
     """
 
     @classmethod
-    def configure_instance(cls, specter):
+    def configure_instance(cls, data_folder, user_manager):
         super().configure_instance()
-        cls._instance.data_folder = specter.data_folder
-        cls._instance.user_manager = specter.user_manager
+        cls._instance.data_folder = data_folder
+        cls._instance.user_manager = user_manager
         cls._instance.storage_by_user = {}
 
     def get_raw_encrypted_data(self, user: User) -> dict:

@@ -141,6 +141,10 @@ class BaseConfig(object):
     # This is just a placeholder in order to be aware that you cannot set this
     # It'll be filled up with the fully qualified Classname the Config is derived from
     SPECTER_CONFIGURATION_CLASS_FULLNAME = None
+    # The user will get a warning if a request takes longer than this threshold
+    REQUEST_TIME_WARNING_THRESHOLD = int(
+        os.getenv("REQUEST_TIME_WARNING_THRESHOLD", "20")
+    )
 
 
 class DevelopmentConfig(BaseConfig):

@@ -160,7 +160,7 @@ def init_app(app, hwibridge=False, specter=None):
     if not hwibridge:
         with app.app_context():
             from cryptoadvance.specter.server_endpoints import controller
-            from cryptoadvance.specter.services import controller
+            from cryptoadvance.specter.services import controller as serviceController
 
             if app.config.get("TESTING") and len(app.view_functions) <= 20:
                 # Need to force a reload as otherwise the import is skipped
@@ -170,7 +170,9 @@ def init_app(app, hwibridge=False, specter=None):
                 # see archblog for more about this nasty workaround
                 import importlib
 
+                logger.info("Reloading controllers")
                 importlib.reload(controller)
+                importlib.reload(serviceController)
     else:
 
         @app.route("/", methods=["GET"])

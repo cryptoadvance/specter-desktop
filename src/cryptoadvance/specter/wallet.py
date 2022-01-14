@@ -1720,7 +1720,7 @@ class Wallet:
             )
             if sats_in_coins < total_sats:
                 raise SpecterError(
-                    "Selected coins does not cover Full amount! Please select more coins!"
+                    "Selected coins do not cover full amount. Please select more coins!"
                 )
             extra_inputs = selected_coins
 

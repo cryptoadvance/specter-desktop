@@ -35,4 +35,3 @@ def test_get_subclasses_in_packagedir(caplog):
     classlist = get_subclasses_for_class(Service)
     assert SwanService in classlist
     assert BitcoinReserveService in classlist
-    assert False
