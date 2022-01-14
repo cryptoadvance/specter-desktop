@@ -8,16 +8,7 @@ from .jadepy.jade import JadeAPI, JadeError
 from serial.tools import list_ports
 
 from functools import wraps
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    Union
-)
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 from hwilib.descriptor import PubkeyProvider, MultisigDescriptor
 from hwilib.hwwclient import HardwareWalletClient
 from hwilib.errors import (
@@ -58,10 +49,10 @@ from embit.util import secp256k1
 from embit.liquid.finalizer import finalize_psbt
 
 # The test emulator port
-SIMULATOR_PATH = 'tcp:127.0.0.1:2222'
+SIMULATOR_PATH = "tcp:127.0.0.1:2222"
 
-JADE_DEVICE_IDS = [(0x10c4, 0xea60), (0x1a86, 0x55d4)]
-HAS_NETWORKING = hasattr(jade, '_http_request')
+JADE_DEVICE_IDS = [(0x10C4, 0xEA60), (0x1A86, 0x55D4)]
+HAS_NETWORKING = hasattr(jade, "_http_request")
 
 py_enumerate = (
     enumerate  # To use the enumerate built-in, since the name is overridden below
@@ -79,19 +70,24 @@ def jade_exception(f: Callable[..., Any]) -> Any:
             raise BadArgumentError(str(e))
         except JadeError as e:
             if e.code == JadeError.USER_CANCELLED:
-                raise ActionCanceledError(f'{f.__name__} canceled by user')
+                raise ActionCanceledError(f"{f.__name__} canceled by user")
             elif e.code == JadeError.BAD_PARAMETERS:
                 raise BadArgumentError(e.message)
             elif e.code == JadeError.INTERNAL_ERROR:
                 raise DeviceFailureError(e.message)
             elif e.code == JadeError.HW_LOCKED:
-                raise DeviceConnectionError('Device is locked')
+                raise DeviceConnectionError("Device is locked")
             elif e.code == JadeError.NETWORK_MISMATCH:
-                raise DeviceConnectionError('Network/chain selection error')
-            elif e.code in [JadeError.INVALID_REQUEST, JadeError.UNKNOWN_METHOD, JadeError.PROTOCOL_ERROR]:
-                raise DeviceConnectionError('Messaging/communiciation error')
+                raise DeviceConnectionError("Network/chain selection error")
+            elif e.code in [
+                JadeError.INVALID_REQUEST,
+                JadeError.UNKNOWN_METHOD,
+                JadeError.PROTOCOL_ERROR,
+            ]:
+                raise DeviceConnectionError("Messaging/communiciation error")
             else:
                 raise e
+
     return func
 
 
@@ -813,21 +809,21 @@ class JadeClient(HardwareWalletClient):
         return None
 
 
-def enumerate(password: str = '') -> List[Dict[str, Any]]:
+def enumerate(password: str = "") -> List[Dict[str, Any]]:
     results = []
 
     def _get_device_entry(device_model: str, device_path: str) -> Dict[str, Any]:
         d_data: Dict[str, Any] = {}
-        d_data['type'] = 'jade'
-        d_data['model'] = device_model
-        d_data['path'] = device_path
-        d_data['needs_pin_sent'] = False
-        d_data['needs_passphrase_sent'] = False
+        d_data["type"] = "jade"
+        d_data["model"] = device_model
+        d_data["path"] = device_path
+        d_data["needs_pin_sent"] = False
+        d_data["needs_passphrase_sent"] = False
 
         client = None
-        with handle_errors(common_err_msgs['enumerate'], d_data):
+        with handle_errors(common_err_msgs["enumerate"], d_data):
             client = JadeClient(device_path, password, timeout=1)
-            d_data['fingerprint'] = client.get_master_fingerprint().hex()
+            d_data["fingerprint"] = client.get_master_fingerprint().hex()
 
         if client:
             client.close()
@@ -839,7 +835,7 @@ def enumerate(password: str = '') -> List[Dict[str, Any]]:
     # hold the path to the serial port device, eg. /dev/ttyUSB0
     for devinfo in list_ports.comports():
         if (devinfo.vid, devinfo.pid) in JADE_DEVICE_IDS:
-            results.append(_get_device_entry('jade', devinfo.device))
+            results.append(_get_device_entry("jade", devinfo.device))
 
     # If we can connect to the simulator, add it too
     try:
@@ -847,11 +843,11 @@ def enumerate(password: str = '') -> List[Dict[str, Any]]:
             verinfo = jade.get_version_info()
 
         if verinfo is not None:
-            results.append(_get_device_entry('jade_simulator', SIMULATOR_PATH))
+            results.append(_get_device_entry("jade_simulator", SIMULATOR_PATH))
 
     except Exception as e:
         # If we get any sort of error do not add the simulator
-        logging.debug(f'Failed to connect to Jade simulator at {SIMULATOR_PATH}')
+        logging.debug(f"Failed to connect to Jade simulator at {SIMULATOR_PATH}")
         logging.debug(e)
 
     return results
