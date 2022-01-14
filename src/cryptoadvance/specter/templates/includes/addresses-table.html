@@ -408,9 +408,9 @@
                 return
             }
 
-            const url = `{{ url_for('wallets_endpoint.addresses_list', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+            const url = `{{ url_for('wallets_endpoint_api.addresses_list', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
 
-            this.export.href = `{{ url_for('wallets_endpoint.addresses_list_csv', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+            this.export.href = `{{ url_for('wallets_endpoint_api.addresses_list_csv', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
             this.export.href += `?onlyCurrentType=${this.onlyCurrentTypeSwitch.checked}&addressType=${this.listType}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
 
             if (this.listType == "receive") {
@@ -454,7 +454,7 @@
                         let addressesList = JSON.parse(jsonResponse.addressesList);
 
                         for (let addr of addressesList) {
-
+                            // Address data is embedded into each row as stringified JSON in the "data-address" attr.
                             let addrRow = document.createRange().createContextualFragment(`
                             <address-row 
                                 data-verify-qr="{{ supports_qr_code_verify != [] }}"
@@ -464,7 +464,7 @@
                                 data-symbol="${this.symbol ? this.symbol : ''}"
                                 data-address='${JSON.stringify(addr).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
                                 data-hide-sensitive-info="${this.hideSensitiveInfo}"
-                                data-wallet="${this.wallet}"> 
+                                data-wallet="${this.wallet}">
                             </<address-row>`);
 
                             this.tbody.append(addrRow);
@@ -535,15 +535,17 @@
             let addressDataPopup = document.getElementById('address-popup');
             addressDataPopup.innerHTML = `
             <address-data
-            data-verify-qr="{{ supports_qr_code_verify != [] }}"
-            data-verify-hwi="{{ supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) }}"
-            data-used="${addressData.used}"
-            data-utxo="${addressData.utxo}"
-            data-amount="${amount}"
-            data-amount-price="${amountPrice}"
-            data-address="${addressData.address}"
-            data-address-wallet="${wallet}">
-            </address-data>`;
+                data-verify-qr="{{ supports_qr_code_verify != [] }}"
+                data-verify-hwi="{{ supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) }}"
+                data-used="${addressData.used}"
+                data-utxo="${addressData.utxo}"
+                data-amount="${amount}"
+                data-amount-price="${amountPrice}"
+                data-address="${addressData.address}"
+                data-service-id="${addressData.service_id}"
+                data-label="${addressData.label}"
+                data-address-wallet="${wallet}"
+            />`;
             showPageOverlay('address-popup');
         } else {
             copyText(address, `{{ _("Copied address") }}: ${ address }`);

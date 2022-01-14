@@ -1,4 +1,6 @@
-import random, time
+import random
+import time
+
 from flask import (
     Flask,
     Blueprint,
@@ -175,6 +177,9 @@ please request a new link from the node operator."
 
 @auth_endpoint.route("/logout", methods=["GET", "POST"])
 def logout():
+    # Clear the decrypted user_secret from memory
+    current_user.plaintext_user_secret = None
+
     logout_user()
     if "timeout" in request.args:
         flash(_("You were automatically logged out"), "info")
@@ -196,6 +201,14 @@ def redirect_login(request):
         response = redirect(request.form["next"])
     else:
         response = redirect(url_for("index"))
+
+    for service_id in app.specter.user_manager.get_user().services:
+        try:
+            service_cls = app.specter.service_manager.get_service(service_id)
+            service_cls.on_user_login()
+        except Exception as e:
+            app.logger.exception(e)
+
     return response
 
 

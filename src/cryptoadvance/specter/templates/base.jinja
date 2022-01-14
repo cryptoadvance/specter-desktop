@@ -71,7 +71,7 @@
 						<img src="{{ url_for('static', filename='img/gear.svg') }}" style="width: 44px;" class="svg-white"/>
 					</a>
 					<a class="settings-bar-btn" href="{{ url_for('about') }}" title="About and help">
-						<img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 22px;"/>
+						<img src="{{ url_for('static', filename='img/ghost_3d.png') }}" style="width: 22px;"/>
 					</a>
 					{% if specter.config.auth.method != "none" %}
 						<a class="settings-bar-btn" href="{{ url_for('auth_endpoint.logout') }}"  style="padding: 0px 7px;">
@@ -102,9 +102,9 @@
 					<br>
 					<div style="max-width: 60%; text-align: center;">
 					<h1 style="font-size: 1.8em;">
-					<img src="{{ url_for('static', filename='img/icon.png') }}" width="40px" style="vertical-align: top; margin-right: 20px;"/>
+					<img src="{{ url_for('static', filename='img/ghost_3d.png') }}" width="40px" style="vertical-align: top; margin-right: 20px;"/>
 					{{ _('Welcome to Specter Desktop') }} 
-					<img src="{{ url_for('static', filename='img/ghost.png') }}" width="40px" style="vertical-align: top; margin-left: 20px;"/>
+					<img src="{{ url_for('static', filename='img/ghost_3d.png') }}" width="40px" style="vertical-align: top; margin-left: 20px;"/>
 					</h1>
 					<p style="font-size: 1.2em; font-weight: bolder;">{{ _("Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices.") }}</p>
 
@@ -223,7 +223,7 @@
 								{% if specter.chain == 'main' %}
 								<tr>
 									<td>
-										<img src="{{ url_for('static', filename='img/ghost.png')}}" width="30px">
+										<img src="{{ url_for('static', filename='img/ghost_3d.png')}}" width="30px">
 									</td>
 									<td style="text-align: left;">
 										<a href="{{ url_for('get_whitepaper') }}">
