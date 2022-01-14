@@ -163,7 +163,7 @@ class NodeController:
         except Exception as e:
             self.status = "Error"
             raise e
-        logger.info(f"Successfully started {self.node_impl}d in {self.datadir}")
+        logger.info(f"Successfully started {self.node_impl}d")
         if "" not in self.get_rpc().listwallets():
             logger.info("Creating Default-wallet")
             self.get_rpc().createwallet("", False, False, "", False, True, True)

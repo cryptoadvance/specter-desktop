@@ -1,21 +1,21 @@
-from ..rpc import RpcError, BitcoinRPC
+import copy
+import logging
+from io import BytesIO
+
+from embit.descriptor.checksum import add_checksum
 from embit.ec import PrivateKey, PublicKey
 from embit.hashes import tagged_hash
-from embit.descriptor.checksum import add_checksum
-from embit.liquid.descriptor import LDescriptor
-from embit.liquid.pset import PSET, PSBTError
+from embit.liquid import finalizer, slip77
 from embit.liquid.addresses import addr_decode
 from embit.liquid.addresses import address as liquid_address
+from embit.liquid.descriptor import LDescriptor
 from embit.liquid.networks import get_network
+from embit.liquid.pset import PSET, PSBTError
 from embit.liquid.transaction import LTransaction, unblind
-from embit.liquid import finalizer
-from embit.liquid import slip77
 from embit.psbt import read_string
-import copy
-from io import BytesIO
-from .util.pset import to_canonical_pset
 
-import logging
+from ..rpc import BitcoinRPC, RpcError
+from .util.pset import to_canonical_pset
 
 logger = logging.getLogger(__name__)
 

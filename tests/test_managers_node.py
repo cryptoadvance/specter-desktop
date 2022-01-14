@@ -22,6 +22,7 @@ def test_NodeManager(
         print(f"data_folder={data_folder}")
         nm = NodeManager(data_folder=data_folder)
         nm.add_node(
+            "BTC",
             "bitcoin_regtest",
             False,
             "",
@@ -36,6 +37,7 @@ def test_NodeManager(
         nm.switch_node("bitcoin_regtest")
         assert nm.active_node.get_rpc().getblockchaininfo()["chain"] == "regtest"
         nm.add_node(
+            "ELM",
             "elements_elreg",
             False,
             "",
