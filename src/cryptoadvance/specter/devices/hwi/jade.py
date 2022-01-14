@@ -102,7 +102,12 @@ class JadeClient(HardwareWalletClient):
     liquid_network = None
 
     def set_liquid_network(self, chain):
-        self.liquid_network = "liquid" if chain == "liquidv1" else "localtest-liquid"
+        if chain == "liquidv1":
+            self.liquid_network = "liquid"
+        elif chain == "liquidtestnet":
+            self.liquid_network = "testnet-liquid"
+        else:
+            self.liquid_network = "localtest-liquid"
 
     def _network(self):
         if self.liquid_network:
