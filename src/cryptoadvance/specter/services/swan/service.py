@@ -378,23 +378,18 @@ class SwanService(Service):
             service_id=cls.id, unused_only=False
         )
         for addr_obj in reserved_addresses:
-            if addr_obj["used"] and addr_obj["label"] == cls.default_address_label:
+            if addr_obj.used and addr_obj.label == cls.default_address_label():
                 # This addr has received an autowithdrawal since we last checked
                 logger.debug(
                     f"Updating address label for {json.dumps(addr_obj, indent=4)}"
                 )
-                addr_obj.set_label(str(_("Swan autowithdrawal")))
+                wallet.setlabel(addr_obj.address, str(_("Swan autowithdrawal")))
 
         num_pending_autowithdrawal_addrs = len(
             [addr_obj for addr_obj in reserved_addresses if not addr_obj["used"]]
         )
         if num_pending_autowithdrawal_addrs < cls.MIN_PENDING_AUTOWITHDRAWAL_ADDRS:
-            from . import (
-                client as swan_client,
-            )  # Import here to avoid circular dependency
-
             logger.debug("Need to send more addrs to Swan")
-
             cls.reserve_addresses(
                 wallet=wallet, num_addresses=cls.MIN_PENDING_AUTOWITHDRAWAL_ADDRS
             )
