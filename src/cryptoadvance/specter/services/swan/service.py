@@ -6,6 +6,7 @@ import pytz
 from flask import current_app as app
 from flask_babel import lazy_gettext as _
 from typing import List
+from cryptoadvance.specter.specter_error import SpecterError
 
 from cryptoadvance.specter.user import User
 
@@ -61,9 +62,15 @@ class SwanService(Service):
         if not service_data or cls.SPECTER_WALLET_ALIAS not in service_data:
             # Service is not initialized; nothing to do
             return
-        return app.specter.wallet_manager.get_by_alias(
-            service_data[cls.SPECTER_WALLET_ALIAS]
-        )
+        try:
+            return app.specter.wallet_manager.get_by_alias(
+                service_data[cls.SPECTER_WALLET_ALIAS]
+            )
+        except SpecterError as e:
+            logger.debug(e)
+            # Referenced an unknown wallet
+            # TODO: keep ignoring or remove the unknown wallet from service_data?
+            return
 
     @classmethod
     def set_associated_wallet(cls, wallet: Wallet):
