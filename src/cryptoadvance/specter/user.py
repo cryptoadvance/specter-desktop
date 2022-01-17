@@ -86,7 +86,7 @@ class User(UserMixin):
         self.wallet_manager = None
         self.device_manager = None
         self.manager = None
-        self.services = services
+        self._services = services
 
         # Iterations will need to be increased over time to keep ahead of CPU advances.
         self.encryption_iterations = 390000
@@ -122,6 +122,12 @@ class User(UserMixin):
         if self.is_admin:
             return ""
         return f"_{self.id}"
+
+    @property
+    def services(self):
+        if self._services:
+            return self._services
+        return []
 
     @property
     def is_user_secret_decrypted(self):

@@ -6,6 +6,7 @@ import pytz
 from flask import current_app as app
 from flask_babel import lazy_gettext as _
 from typing import List
+from cryptoadvance.specter.specter_error import SpecterError
 
 from cryptoadvance.specter.user import User
 
@@ -61,9 +62,15 @@ class SwanService(Service):
         if not service_data or cls.SPECTER_WALLET_ALIAS not in service_data:
             # Service is not initialized; nothing to do
             return
-        return app.specter.wallet_manager.get_by_alias(
-            service_data[cls.SPECTER_WALLET_ALIAS]
-        )
+        try:
+            return app.specter.wallet_manager.get_by_alias(
+                service_data[cls.SPECTER_WALLET_ALIAS]
+            )
+        except SpecterError as e:
+            logger.debug(e)
+            # Referenced an unknown wallet
+            # TODO: keep ignoring or remove the unknown wallet from service_data?
+            return
 
     @classmethod
     def set_associated_wallet(cls, wallet: Wallet):
@@ -371,23 +378,18 @@ class SwanService(Service):
             service_id=cls.id, unused_only=False
         )
         for addr_obj in reserved_addresses:
-            if addr_obj["used"] and addr_obj["label"] == cls.default_address_label:
+            if addr_obj.used and addr_obj.label == cls.default_address_label():
                 # This addr has received an autowithdrawal since we last checked
                 logger.debug(
                     f"Updating address label for {json.dumps(addr_obj, indent=4)}"
                 )
-                addr_obj.set_label(str(_("Swan autowithdrawal")))
+                wallet.setlabel(addr_obj.address, str(_("Swan autowithdrawal")))
 
         num_pending_autowithdrawal_addrs = len(
             [addr_obj for addr_obj in reserved_addresses if not addr_obj["used"]]
         )
         if num_pending_autowithdrawal_addrs < cls.MIN_PENDING_AUTOWITHDRAWAL_ADDRS:
-            from . import (
-                client as swan_client,
-            )  # Import here to avoid circular dependency
-
             logger.debug("Need to send more addrs to Swan")
-
             cls.reserve_addresses(
                 wallet=wallet, num_addresses=cls.MIN_PENDING_AUTOWITHDRAWAL_ADDRS
             )
