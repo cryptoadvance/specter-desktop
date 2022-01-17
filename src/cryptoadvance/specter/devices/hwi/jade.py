@@ -47,6 +47,7 @@ from embit.liquid.pset import PSET
 from embit import hashes
 from embit.util import secp256k1
 from embit.liquid.finalizer import finalize_psbt
+from embit.liquid.transaction import write_commitment
 
 # The test emulator port
 SIMULATOR_PATH = "tcp:127.0.0.1:2222"
@@ -691,17 +692,19 @@ class JadeClient(HardwareWalletClient):
         if len(blinding_outs) == 0:
             raise Exception("Nothing to blind")
         # calculate last vbf
-        vals = [sc.value for sc in pset.inputs + blinding_outs]
-        abfs = [
-            sc.asset_blinding_factor or b"\x00" * 32
-            for sc in pset.inputs + blinding_outs
-        ]
-        vbfs = [
-            sc.value_blinding_factor or b"\x00" * 32
-            for sc in pset.inputs + blinding_outs
-        ]
+        vals = []
+        abfs = []
+        vbfs = []
+        for sc in pset.inputs + blinding_outs:
+            value = sc.value if sc.value is not None else sc.utxo.value
+            asset = sc.asset or sc.utxo.asset
+            if not (isinstance(value, int) and len(asset) == 32):
+                continue
+            vals.append(value)
+            abfs.append(sc.asset_blinding_factor or b"\x00" * 32)
+            vbfs.append(sc.value_blinding_factor or b"\x00" * 32)
         last_vbf = secp256k1.pedersen_blind_generator_blind_sum(
-            vals, abfs, vbfs, len(pset.inputs)
+            vals, abfs, vbfs, len(vals) - len(blinding_outs)
         )
         last_out = blinding_outs[-1]
         new_last_commitment = self.jade.get_commitments(
@@ -718,12 +721,19 @@ class JadeClient(HardwareWalletClient):
         blinding_outs[-1].value_blinding_factor = last_vbf
 
         # calculate commitments (surj proof etc)
-
-        in_tags = [inp.asset for inp in pset.inputs]
-        in_gens = [secp256k1.generator_parse(inp.utxo.asset) for inp in pset.inputs]
+        in_tags = []
+        in_gens = []
+        for inp in pset.inputs:
+            if inp.asset:
+                in_tags.append(inp.asset)
+                in_gens.append(secp256k1.generator_parse(inp.utxo.asset))
+            # if we have unconfidential input
+            elif len(inp.utxo.asset) == 32:
+                in_tags.append(inp.utxo.asset)
+                in_gens.append(secp256k1.generator_generate(inp.utxo.asset))
 
         for i, out in py_enumerate(pset.outputs):
-            if out.blinding_pubkey is None:
+            if None in [out.blinding_pubkey, out.value, out.asset_blinding_factor]:
                 continue
             gen = secp256k1.generator_generate_blinded(
                 out.asset, out.asset_blinding_factor
@@ -743,12 +753,7 @@ class JadeClient(HardwareWalletClient):
                 in_tags, out.asset, proof_seed
             )
             secp256k1.surjectionproof_generate(
-                proof,
-                in_idx,
-                in_gens,
-                gen,
-                pset.inputs[in_idx].asset_blinding_factor,
-                out.asset_blinding_factor,
+                proof, in_idx, in_gens, gen, abfs[in_idx], out.asset_blinding_factor
             )
             out.surjection_proof = secp256k1.surjectionproof_serialize(proof)
             del proof
@@ -757,10 +762,15 @@ class JadeClient(HardwareWalletClient):
             rangeproof_nonce = hashes.tagged_hash(
                 "liquid/range_proof", txseed + i.to_bytes(4, "little")
             )
-            # reblind with extra message for unblinding
+            # reblind with extra message for unblinding of change outs
+            extra_message = (
+                out.unknown.get(b"\xfc\x07specter\x01", b"")
+                if out.bip32_derivations
+                else b""
+            )
             out.reblind(
                 rangeproof_nonce,
-                extra_message=out.unknown.get(b"\xfc\x07specter\x01", b""),
+                extra_message=extra_message,
             )
 
         return commitments
@@ -770,7 +780,6 @@ class JadeClient(HardwareWalletClient):
         mfp = self.get_master_fingerprint()
         pset = PSET.from_string(b64pset)
         commitments = self._blind(pset)
-
         ins = [
             {
                 "is_witness": True,
@@ -778,7 +787,7 @@ class JadeClient(HardwareWalletClient):
                 "script": inp.witness_script.data
                 if inp.witness_script
                 else script.p2pkh_from_p2wpkh(inp.script_pubkey).data,
-                "value_commitment": inp.witness_utxo.value,
+                "value_commitment": write_commitment(inp.utxo.value),
                 "path": [
                     der
                     for der in inp.bip32_derivations.values()
