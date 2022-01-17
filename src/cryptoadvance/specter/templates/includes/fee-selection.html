@@ -28,15 +28,15 @@
         <div id = "fee_manual" style="display: none">
             {{ _("Fee rate:") }}<br>
             {% set min_fee = 0.1 if specter.is_liquid else 1 %}
-            <input type="number" class="fee_rate" name="fee_rate" id="fee_rate" min="{{min_fee}}" step="any" autocomplete="off"> sat/vbyte
+            <input type="number" class="fee_rate" name="fee_rate" id="fee_rate" min="{{min_fee}}" step="0.1" value="{{min_fee}}" autocomplete="off"> sat/vbyte
             <div class="note">
-                {{ _("leave blank to set automatically, {} sat/vbyte is the minimal fee rate.".format(min_fee)) }}
+                {{ _("{} sat/vbyte is the minimal fee rate.".format(min_fee)) }}
             </div>
         </div>
         <div id ="fee_dynamic" style="display: {% if fee_options_dynamic %}block{% else %}none{% endif %}">
             <div id="blocks"></div>
-            <input type="range" style="width: 12em" min="" max="" value="" step="1" id="fees_slider">
-            <input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="0">
+            <input type="range" style="width: 12em" min="{{min_fee}}" max="" value="" step="1" id="fees_slider">
+            <input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="{{min_fee}}">
             <div>
                 {{ _("Estimated speed:") }} <span id="fee_rate_speed_text"></span>
                 <br>
@@ -70,7 +70,7 @@
             this.subtract = clone.querySelector("#subtract")
             this.subtract.addEventListener("change", (event) => {
                 this.toggleSubtractFrom()
-            })
+            });
             this.subtractFrom = clone.querySelector("#subtract_from")
             this.subtractFromInput = clone.querySelector("#subtract_from_input")
 
@@ -79,27 +79,30 @@
             this.fee_option_manual.addEventListener('click', (event) => {
                 this.showFeeOption("manual")
 			});
+            
             // The radio-button for dynamic
             this.fee_option_dynamic =  clone.querySelector("#fee_option_dynamic")
             this.fee_option_dynamic.addEventListener('click', (event) => {
                 this.showFeeOption("dynamic")
 			});
-            // Preset: manual or dynamic
+            
+            // Preset
             this.feeOptionPreset = this.getAttribute('fee-option-preset') == null ? "dynamic" : this.getAttribute('fee-option-preset')
-
-            // The manual stuff
+            
+            // Manual or dynamic div
+            this.fee_manual = clone.querySelector("#fee_manual") 
+            this.fee_dynamic = clone.querySelector("#fee_dynamic")
+            
+            // The manual rate
             this.feeRate = clone.querySelector(".fee_rate")
 
-            // The slider
+            // The slider && dynamic rate
             this.feesSlider = clone.querySelector("#fees_slider")
             this.feesSlider.addEventListener("input", (event) => {
                 this.dynamicFeeUpdated()
-            })
-
+            });
             this.feeRateDynamic = clone.querySelector("#fee_rate_dynamic")
             this.feeRateDynamicText = clone.querySelector("#fee_rate_dynamic_text")
-            this.fee_manual = clone.querySelector("#fee_manual") 
-            this.fee_dynamic = clone.querySelector("#fee_dynamic")
 
             // A text explaining the rate like: "Fast (30 minutes)"
             this.fee_rate_speed_text = clone.querySelector("#fee_rate_speed_text")
@@ -159,31 +162,6 @@
             this.appendChild(this.ld.feeRateDynamic)
         }
 
-        /** 
-         * Call this to figure out what the user has chosen
-         * returns fees and also updates Light DOM
-         */
-        selectedFee() {
-            if (this.ld.feeOption == "manual") {
-                return this.feeRate.value
-            } else {
-                {% if specter.is_liquid %}
-                const MIN_FEE_RATE = 0.1;
-                const FEE_RATE_STEP = 0.01;
-                {% else %}
-                const MIN_FEE_RATE = 1;
-                const FEE_RATE_STEP = 0.5;
-                {% endif %}
-                let manualRate = Math.round(this.feeRateDynamic.value / FEE_RATE_STEP) * FEE_RATE_STEP;
-                if (manualRate < MIN_FEE_RATE) {
-                    manualRate = MIN_FEE_RATE;
-                }
-                // This triggers update of ld.feeRate (because of event listener in connectedCallback)
-                this.feeRate.value = manualRate;
-                return this.feeRate.value
-            }
-        }
-
         /**
          * Browser calls this method when the element is added to the document
          * (can be called many times if an element is repeatedly added/removed)
@@ -207,17 +185,39 @@
             }
         }
 
-        /** Will get executed after fee initialisation
-         */
+        // Fetches fees from the Specter API 
+        async fetchFees(wallet_alias) {
+            let url = `{{ url_for('wallets_endpoint_api.fees') }}`
+            var formData = new FormData();
+            try {
+                const response = await fetch(
+                    url,
+                    {
+                        method: 'GET'
+                    }
+                );
+                if(response.status != 200){
+                    showError(await response.text());
+                    console.log("Error while fetching fees")
+                    return {"result": {"fastestFee": 8, "halfHourFee": 8, "hourFee": 8, "minimumFee": 1}, "error_messages": ["Couldn't fetch fees from server. Replaced with assumptions"]};
+                }
+                const fees = await response.json();
+                this.fees = fees["result"]
+                this.initWithFees()
+            } catch(e) {
+                console.log(e);
+                showError(`{{ _("Failed to fetch fees") }}: ${e}`);
+            }
+        }
+
+        // Gets executed after fee initialisation
         initWithFees() {
-            this.feesSlider.min = this.fees["minimumFee"]
-            this.feesSlider.max = this.fees["fastestFee"] * 1.4
-            // Attributes are strings not numbers
-            let sliderMin = parseInt(this.feesSlider.min)
-            let sliderMax = parseInt(this.feesSlider.max)
+            // this.feesSlider.min is set above via min_fee
+            this.feesSlider.max = Math.floor(this.fees["fastestFee"] * 1.4)
+            let sliderMin = this.fees["minimumFee"]
+            let sliderMax = this.fees["fastestFee"]
             let average = Math.floor((sliderMin + sliderMax) / 2)
             this.feesSlider.value = average
-            this.feeRate.value = this.feesSlider.value
             this.dynamicFeeUpdated() // otherwise no text next to estimated speed
         }
 
@@ -235,11 +235,12 @@
             }
         }
 
-        // Transport shadowDOM value to lightDOM
+        // Transports Shadow DOM value to Light DOM
         manualFeeUpdated() {
             this.ld.feeRate.value = this.feeRate.value
         }
 
+        // Transports Shadow DOM value to Light DOM & sets text values for slider
         dynamicFeeUpdated() {
             this.feeRateDynamicText.innerText = this.feesSlider.value;
             this.feeRateDynamic.value = this.feesSlider.value;
@@ -276,32 +277,18 @@
             this.ld.subtract.checked = this.subtract.checked
         }
 
-        /**
-        * Fetches assetBalance from the Specter API 
-        */
-        async fetchFees(wallet_alias) {
-            let url = `{{ url_for('wallets_endpoint_api.fees') }}`
-            var formData = new FormData();
-            try {
-                const response = await fetch(
-                    url,
-                    {
-                        method: 'GET'
-                    }
-                );
-                if(response.status != 200){
-                    showError(await response.text());
-                    console.log("Error while fetching fees")
-                    return {"result": {"fastestFee": 8, "halfHourFee": 8, "hourFee": 8, "minimumFee": 1}, "error_messages": ["Couldn't fetch fees from server. Replaced with assumptions"]};
-                }
-                const fees = await response.json();
-                this.fees = fees["result"]
-                this.initWithFees()
-            } catch(e) {
-                console.log(e);
-                showError(`{{ _("Failed to fetch fees") }}: ${e}`);
+        // Returns fees that can be picked up
+        selectedFee() {
+            if (this.ld.feeOption.value == "manual") {
+                let manualRate = this.ld.feeRate.value
+                return manualRate
+            } 
+            else {
+                let dynamicRate = this.ld.feeRateDynamic.value
+                return dynamicRate
             }
         }
+
     }
 
     customElements.define('fee-selection', FeeSelection);        

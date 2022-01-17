@@ -56,7 +56,7 @@
 				<p class="tool-tip__info">
 					<span class="info">
 						<span class="info__title">{{ _("Funds waiting in unsigned transactions") }}<br><br></span>
-						{{ _('To make funds available to spend in new transactions, just click on the "Unsigned" tab and delete unsigned transaction you have no need for.') }}
+						{{ _('To make funds available to spend in new transactions, just click on the "Unsigned" tab and delete unsigned transactions you have no need for anymore.') }}
 					</span>
 				</p>
 			</div>
@@ -123,11 +123,11 @@
 {% block scripts %}
 	<script>
 		{% if specter.is_liquid %}
-		const MIN_FEE_RATE = 0.1;
-		const FEE_RATE_STEP = 0.01;
+			const MIN_FEE_RATE = 0.1;
+			const NETWORK = "Liquid"
 		{% else %}
-		const MIN_FEE_RATE = 1;
-		const FEE_RATE_STEP = 0.5;
+			const MIN_FEE_RATE = 1;
+			const NETWORK = "Bitcoin"
 		{% endif %}
 		// Amounts and units
 		var units = [];
@@ -150,13 +150,15 @@
 			},
 		{% endfor %}
 		};
-		var spendableAmount = {{ wallet.full_available_balance | btcamount }}
+		var spendableAmount = {{ wallet.full_available_balance }}
+
+		// Set up web components
 		var coinselectionWebcomponent = document.getElementById('coinselection-webcomponent');
-		console.log("Setting attribute")
 		coinselectionWebcomponent.assetBalances = assetBalances
 		coinselectionWebcomponent.addEventListener("change", (event) => {
 			validateForm()
 		})
+		var FeeSelectionComponent = document.getElementById('fee-selection-component')
 
 		function addRecipient(addr, amount, amount_unit, label) {
 			let i = amounts.length;
@@ -398,9 +400,7 @@
 		// Form validation
 		function validateAmount(unit, amount, i, allowZero=false) {
 			if (isNaN(amount)) {
-				setVisibility('amount_errors_container', 'block');
-				document.getElementById('amount_errors_container')
-					.innerHTML = `{{ _("Amount entered is invalid!") }}`;
+				showError(`{{ _("Amount entered is invalid!") }}`, 5000);
 				return false;
 			}
 			if (i) {
@@ -412,22 +412,22 @@
 				}
 			}
 			if (!amount && !allowZero) {
+				showError(`{{ _("Amount is zero.") }}`, 5000);
 				return false;
 			}
 			if (isAboveWalletBalance(unit, amount)) {
-				setVisibility('amount_errors_container', 'block');
-				document.getElementById('amount_errors_container')
-					.innerHTML = `{{ _("You cannot send more than") }} ${assetBalances[unit].balance} ${assetBalances[unit].label}!`;
+				showError(`{{ _("You cannot send more than") }} ${assetBalances[unit].balance} ${assetBalances[unit].label}!`, 5000);
 				return false;
-			} else if (coinselectionWebcomponent.shouldSelectMoreCoins(unit, amount)) {
+			} 
+			else if (coinselectionWebcomponent.shouldSelectMoreCoins(unit, amount)) {
+				showError(`{{ _("You need to select more coins!") }}`, 5000);
 				return false;
-			} else if (isInvalidValue(unit, amount)) {
-				setVisibility('amount_errors_container', 'block');
-				document.getElementById('amount_errors_container')
-					.innerHTML = `{{ _("Invalid amount! Wrong unit?") }}`;
+			} 
+			else if (isInvalidValue(unit, amount)) {
+				showError(`{{ _("Invalid amount! Wrong unit?") }}`, 5000);
 				return false;
-			} else {
-				setVisibility('amount_errors_container', 'none');
+			} 
+			else {
 				return true;
 			}
 		}
@@ -441,11 +441,38 @@
 			return false;
 		}
 
-		async function validateForm(submitted=false) {
+		// Returns true if the fee is valid
+		function validFee() {
+			let feeRate = FeeSelectionComponent.selectedFee()
+			if (feeRate == '') {
+				showError(`{{ _("You didn't input a number for the fee or left it empty.") }}`, 5000)
+				return false	
+			}
+			else if (feeRate < MIN_FEE_RATE) {
+				showError(`{{ _("Your fee is too low. The minimum fee for ${NETWORK} is ${MIN_FEE_RATE} satoshi.") }}`, 5000)
+				return false	
+			}
+			else {
+				return true
+			}
+		}
+
+		// Returns true if the fee is valid
+		function validCoinSelection(unit, amount) {
+			if (coinselectionWebcomponent.shouldSelectMoreCoins(unit, amount)) {
+				showError(`{{ _("You need to select more coins!") }}`, 5000);
+				return false	
+			}
+			else {
+				return true
+			}
+		}
+
+		function validateForm(submitted=false) {
+			console.log("validateForm is called")
 			let createPSBTButton = document.getElementById('create_psbt_btn');
 			let totalAmount = 0.0;
 			let assetAmounts = {};
-
 			if (document.getElementById('ui-radio-btn').checked) {
 				for(let i in amounts) {
 					let unit = units[i]
@@ -459,32 +486,31 @@
 							assetAmounts[unit] = amount;
 						}
 					}
-					if (submitted && !amount) {
-						showError(`{{ _("Please enter the amount that you wish to send") }}`, 5000);
-					}
-					if (document.getElementById("amount_" + i).value == '') {
+					if (document.getElementById("amount_" + i).value == '') { // Question: What's this for?
 						amount = 0;
 					}
-					// Check amount when using coin selection
-					if (coinselectionWebcomponent.shouldSelectMoreCoins(unit, amount) && submitted) {
-						console.log("We are in the coin selection amount check.");
-						showError(`{{ _("You need to select more coins!") }}`, 5000);
-					}
-					if (!validateAmount(unit, amount, i)) {
-						createPSBTButton.setAttribute('type', 'button');
-						return;
-					}
-				}
-				
-				for(let i in amounts) {
-					if (!validateAddress(i)) {
-						if (submitted) {
-							showError(`{{ _("Please enter a valid recipient address") }}`, 5000);
+					if (submitted) {
+						// Check address
+						if (!validateAddress(i)) {
+							showError(`{{ _("Please enter a valid address") }}`, 5000);
+							createPSBTButton.setAttribute('type', 'button');
+							return;
 						}
-						createPSBTButton.setAttribute('type', 'button');
-						return;
+						// Check amount
+						if (!validateAmount(unit, amount, i)) {
+							createPSBTButton.setAttribute('type', 'button');
+							return;
+						}
 					}
 				}
+				// Check fee selection
+				if (submitted) {
+					if (!validFee()) {
+					createPSBTButton.setAttribute('type', 'button');
+					return
+					}	
+				}
+	
 			} else {
 				let outputs = document.getElementById('recipients-txt').value.split('\n');
 				for (let output of outputs) {
@@ -495,11 +521,15 @@
 					}
 				}
 			}
-			let allowZero = (Object.keys(assetAmounts).length > 0)
-			if (!validateAmount('btc', totalAmount, undefined, allowZero)){
-				createPSBTButton.setAttribute('type', 'button');
-				return;
-			}
+			// QUESTION: What for? If it doesn't work it can screw up the form check.
+			// if (submitted) {
+			// 	let allowZero = (Object.keys(assetAmounts).length > 0)
+			// 	if (!validateAmount('btc', totalAmount, undefined, allowZero)){
+			// 		createPSBTButton.setAttribute('type', 'button');
+			// 		return;
+			// 	}
+
+			// QUESTION: What for? Console log alwawys gives empty object ...
 			// check assets
 			for(asset in assetAmounts){
 				if(!validateAmount(asset, assetAmounts[asset])){
@@ -561,8 +591,6 @@
 				return;
 			}
 			try {
-				let FeeSelectionComponent = document.getElementById('fee-selection-component')
-				FeeSelectionComponent.selectedFee() // Will also set the relevant input 
 				var formData = new FormData(document.getElementById('send-form'));
 				let url="{{ url_for('wallets_endpoint_api.estimate_fee', wallet_alias=wallet.alias) }}"
 				formData.append("estimate_fee", true)
