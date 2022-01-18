@@ -22,6 +22,7 @@ git checkout -b k9ert-service_swan master
 git pull https://github.com/k9ert/specter-desktop.git service_swan
 ```
 Adjust the branch/user accordingly. After that, continue to setup your environment as described in the link above.
+If you need a more comprehensive guide, you can check out (what a pun!) [this blog post](https://snyk.io/blog/git-checkout-remote-branch/).
 
 # specterd binary or source cli
 
@@ -139,10 +140,12 @@ zip -r specter-prod.zip .specter -x ".specter/nodes/*"
 ```
 2. Unzip in new folder
 ```
-unzip specter-prod.zip -d tmp
-mv tmp/.specter .specter_copy
+unzip specter-prod.zip -d /tmp
+mv /tmp/.specter .specter_copy
 ```
 3. Start with new folder (and port)
 ```
 $ ./specterd server --config DevelopmentConfig --debug --specter-data-folder ~/.specter_copy --port 27441
 ```
+
+Note: When you are running Specter with the DevelopmentConfig a folder called `specter_dev` is automatically created. You could also use this folder for the above.
