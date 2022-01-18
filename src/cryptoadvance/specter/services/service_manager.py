@@ -110,7 +110,7 @@ class ServiceManager:
 
     @property
     def services(self) -> Dict[str, Service]:
-        return self._services
+        return self._services or {}
 
     @property
     def services_sorted(self):

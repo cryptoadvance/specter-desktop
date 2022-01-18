@@ -220,6 +220,7 @@
      *  - Showing amounts in either BTC or sats (set attribute `btc-unit` to either "btc" or "sat")
      *  - Showing prices next to the amounts (set attribute `price` to the BTC price and symbol to the symbol of the currency you're pricing at)
      *  - Showing validated blockhash column (set attribute `blockhash` to either "true" or "false")
+     *  - Limiting txs/utxos to just those associated with the specified `data-service-id`.
      *  - Hide columns by hide-columns="category time"
     */
     class TxTableElement extends HTMLElement {
@@ -442,7 +443,7 @@
         }
 
         static get observedAttributes() {
-            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'hide-sensitive-info', 'wallet', 'selected-coins'];
+            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'hide-sensitive-info', 'wallet', 'service-id', 'selected-coins'];
         }
 
         connectedCallback() {
@@ -522,7 +523,8 @@
                     this.symbol != this.getAttribute('symbol') ||
                     this.listType != this.getAttribute('type') ||
                     this.hideSensitiveInfo != this.getAttribute('hide-sensitive-info') ||
-                    this.wallet != this.getAttribute('wallet')
+                    this.wallet != this.getAttribute('wallet') ||
+                    this.serviceId != this.getAttribute('service-id')
                 ) {
                     this.blockhash = this.getAttribute('blockhash');
                     this.btcUnit = this.getAttribute('btc-unit');
@@ -531,6 +533,7 @@
                     this.listType = this.getAttribute('type');
                     this.hideSensitiveInfo = this.getAttribute('hide-sensitive-info') == 'true';
                     this.wallet = this.getAttribute('wallet');
+                    this.serviceId = this.getAttribute('service-id');
                     if (!this.listType) {
                         return
                     }

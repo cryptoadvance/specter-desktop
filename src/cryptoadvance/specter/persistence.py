@@ -33,6 +33,9 @@ def read_json_file(path):
 
         # if failed - try reading from the backup
         except Exception as e:
+            logger.error(
+                f"Exception {e} while reading file {path}. Reading from backup"
+            )
             # if no backup exists - raise
             if not os.path.isfile(bkp):
                 raise e
