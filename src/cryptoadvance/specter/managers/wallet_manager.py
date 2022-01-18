@@ -7,6 +7,8 @@ import traceback
 
 from flask_babel import lazy_gettext as _
 
+from cryptoadvance.specter.key import Key
+
 from ..helpers import add_dicts, alias, is_liquid, load_jsons
 from ..liquid.wallet import LWallet
 from ..persistence import delete_folder
@@ -433,7 +435,8 @@ class WalletManager:
         """raise a SpecterError when a xpub in the passed KeyList is listed twice. Should prevent MultisigWallets where
         xpubs are used twice.
         """
-        xpubs = [key.xpub for key in keys]
+        # normalizing xpubs in order to ignore slip132 differences
+        xpubs = [Key.parse_xpub(key.original).xpub for key in keys]
         for xpub in xpubs:
             if xpubs.count(xpub) > 1:
                 raise SpecterError(_(f"xpub {xpub} seem to be used at least twice!"))
