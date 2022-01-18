@@ -219,15 +219,44 @@ def test_WalletManager_check_duplicate_keys(empty_data_folder):
         None,
         "xpub6CRWp2zfwRYsVTuT2p96hKE2UT4vjq9gwvW732KWQjwoG7v6NCXyaTdz7NE5yDxsd72rAGK7qrjF4YVrfZervsJBjsXxvTL98Yhc7poBk7K",
     )
-    key3 = Key.from_json(key2.json)
-    key3.xpub = "vpub5Z8h5qLg5f2vEKbwDtoyqsiFwbFUiu7kD47LceVRS6Um4m94rfuxjRxghaYYywPh3dqhyd6rZ4TQ9bBCzfWRZgwpdydgbmmGLkx9s6MGKaU"
+    key3 = Key(
+        "[1ef4e492/49h/0h/0h]zpub6qk8ok1ouvwM1NkumKnsteGf1F9UUNshFdFdXEDwph8nQFaj8qEFry2cxoUveZCkPpNxQp4KhQwxuy4R7jXDMMsKkgW2yauC2dHbWYnr2Ee",
+        "1ef4e492",
+        "m/49h/0h/0h",
+        "sh-wpkh",
+        None,
+        "zpub6qk8ok1ouvwM1NkumKnsteGf1F9UUNshFdFdXEDwph8nQFaj8qEFry2cxoUveZCkPpNxQp4KhQwxuy4R7jXDMMsKkgW2yauC2dHbWYnr2Ee",
+    )
+
+    key4 = Key(
+        "[6ea15da6/49h/0h/0h]xpub6BtcNhqbaFaoC3oEfKky3Sm22pF48U2jmAf78cB3wdAkkGyAgmsVrgyt1ooSt3bHWgzsdUQh2pTJ867yTeUAMmFDKNSBp8J7WPmp7Df7zjv",
+        "6ea15da6",
+        "m/49h/0h/0h",
+        "sh-wpkh",
+        None,
+        "xpub6BtcNhqbaFaoC3oEfKky3Sm22pF48U2jmAf78cB3wdAkkGyAgmsVrgyt1ooSt3bHWgzsdUQh2pTJ867yTeUAMmFDKNSBp8J7WPmp7Df7zjv",
+    )
+
+    key5 = Key(
+        "[6ea15da6/49h/0h/0h]xpub6BtcNhqbaFaoG3xcuncx9xzL3X38FuWXdcdvsdG5Q99Cb4EgeVYPEYaVpX28he6472gEsCokg8v9oMVRTrZNe5LHtGSPcC5ofehYkhD1Kxy",
+        "6ea15da6",
+        "m/49h/0h/1h",
+        "sh-wpkh",
+        None,  # slightly different ypub than key4
+        "xpub6BtcNhqbaFaoG3xcuncx9xzL3X38FuWXdcdvsdG5Q99Cb4EgeVYPEYaVpX28he6472gEsCokg8v9oMVRTrZNe5LHtGSPcC5ofehYkhD1Kxy",
+    )
+
     # Case 1: Identical keys
     keys = [key1, key1]
     with pytest.raises(SpecterError):
         wm._check_duplicate_keys(keys)
     # Case 2: different keys
-    # key2 and 3 are different as they don't have the same xpub. See #1500 dor discussion
-    keys = [key1, key2, key3]
+    # key2 and 3 are different as they don't have the same xpub. See #1500 for discussion
+    keys = [key1, key2, key3]  # key2 xpub is the same than key3 zpub
+    with pytest.raises(SpecterError):
+        wm._check_duplicate_keys(keys)
+
+    keys = [key4, key5]
     wm._check_duplicate_keys(keys)
 
 
