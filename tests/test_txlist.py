@@ -1,12 +1,14 @@
 from binascii import hexlify
+import os
 
 from embit.descriptor.descriptor import Descriptor
 from cryptoadvance.specter.txlist import TxItem, TxList
+from embit.descriptor.arguments import Key
 from embit.transaction import Transaction, TransactionInput
 import json
 from mock import MagicMock
 
-descriptor = "pkh([78738c82/84h/1h/0h]vpub5YN2RvKrA9vGAoAdpsruQGfQMWZzaGt3M5SGMMhW8i2W4SyNSHMoLtyyLLS6EjSzLfrQcbtWdQcwNS6AkCWne1Y7U8bt9JgVYxfeH9mCVPH)"
+descriptor = "pkh([78738c82/84h/1h/0h]vpub5YN2RvKrA9vGAoAdpsruQGfQMWZzaGt3M5SGMMhW8i2W4SyNSHMoLtyyLLS6EjSzLfrQcbtWdQcwNS6AkCWne1Y7U8bt9JgVYxfeH9mCVPH/1/*)"
 # The example transaction from a regtest
 test_tx = json.loads(
     """
@@ -60,9 +62,7 @@ test_tx = json.loads(
 
 
 def test_understandTransaction():
-    mytx = Transaction.from_string(
-        "020000000001013f99d71080be8153a519372b42c47db4a2a1eb2e3b6e2f2be7cba92f85ddc9c70000000000feffffff01929335770000000016001484a2f6e50f4a058b33e39d3d4f12d4a13b20334d0247304402201088bfd110dd891b7f16c5d50d10e6f99cf79d48673d890e3563f8275500315b02205a75e89f794a3e681fe6a7622c642323ac3c802b5f60da2547b2589982795a24012102578993563d2d00cf1047011fe77a07181a1ab0467044d9b12857c3df65653a509f010000"
-    )
+    mytx = Transaction.from_string(test_tx["hex"])
     assert mytx.version == 2
     assert mytx.locktime == 415
     assert type(mytx.vin[0]) == TransactionInput
@@ -82,7 +82,7 @@ def test_TxItem(empty_data_folder):
         None,
         [],
         empty_data_folder,
-        hex="020000000001013f99d71080be8153a519372b42c47db4a2a1eb2e3b6e2f2be7cba92f85ddc9c70000000000feffffff01929335770000000016001484a2f6e50f4a058b33e39d3d4f12d4a13b20334d0247304402201088bfd110dd891b7f16c5d50d10e6f99cf79d48673d890e3563f8275500315b02205a75e89f794a3e681fe6a7622c642323ac3c802b5f60da2547b2589982795a24012102578993563d2d00cf1047011fe77a07181a1ab0467044d9b12857c3df65653a509f010000",
+        hex=test_tx["hex"],
         blocktime=1642182445,  # arbitrary stuff can get passed
     )
     # a TxItem pretty much works like a hash with some extrafunctionality
@@ -97,9 +97,21 @@ def test_txlist(empty_data_folder, bitcoin_regtest):
     parent_mock = MagicMock()
     parent_mock.rpc = bitcoin_regtest.get_rpc()
     parent_mock.descriptor = Descriptor.from_string(descriptor)
+    assert type(parent_mock.descriptor.key) == Key
+    assert parent_mock.descriptor.key.allowed_derivation != None
     assert parent_mock.descriptor.to_string() == descriptor
-    mytxlist = TxList(empty_data_folder, parent_mock, MagicMock())
+    filename = os.path.join(empty_data_folder, "my_filename.csv")
+    mytxlist = TxList(filename, parent_mock, MagicMock())
     # mytxlist.descriptor = descriptor
     mytxlist.add({test_tx["txid"]: test_tx})
     # .add will save implicitely.
-    # mytxlist.save()
+    # mytxlist._save()
+    with open(filename, "r+") as file:
+        # Reading form a file
+        assert file.readline().startswith(
+            "txid,blockhash,blockheight,time,blocktime,bip125-replaceable,conflicts,vsize,category,address,amount,ismine"
+        )
+        assert file.readline().startswith(
+            "42f5c9e826e52cde883cde7a6c7b768db302e0b8b32fc52db75ad3c5711b4a9e,72523c637e0b93505806564495b1acf915a88bacc45f50e35e8a536becd2f914,,1642494258,,no,[],,receive,Unknown,19.9999989,False"
+        )
+    assert False
