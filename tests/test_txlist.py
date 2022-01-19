@@ -1,10 +1,12 @@
 from binascii import hexlify
+
+from embit.descriptor.descriptor import Descriptor
 from cryptoadvance.specter.txlist import TxItem, TxList
 from embit.transaction import Transaction, TransactionInput
 import json
 from mock import MagicMock
 
-descriptor = "[78738c82/84h/1h/0h]vpub5YN2RvKrA9vGAoAdpsruQGfQMWZzaGt3M5SGMMhW8i2W4SyNSHMoLtyyLLS6EjSzLfrQcbtWdQcwNS6AkCWne1Y7U8bt9JgVYxfeH9mCVPH"
+descriptor = "pkh([78738c82/84h/1h/0h]vpub5YN2RvKrA9vGAoAdpsruQGfQMWZzaGt3M5SGMMhW8i2W4SyNSHMoLtyyLLS6EjSzLfrQcbtWdQcwNS6AkCWne1Y7U8bt9JgVYxfeH9mCVPH)"
 # The example transaction from a regtest
 test_tx = json.loads(
     """
@@ -92,8 +94,12 @@ def test_TxItem(empty_data_folder):
 
 
 def test_txlist(empty_data_folder, bitcoin_regtest):
-    mytxlist = TxList(empty_data_folder, None, MagicMock())
-    mytxlist.descriptor
+    parent_mock = MagicMock()
+    parent_mock.rpc = bitcoin_regtest.get_rpc()
+    parent_mock.descriptor = Descriptor.from_string(descriptor)
+    assert parent_mock.descriptor.to_string() == descriptor
+    mytxlist = TxList(empty_data_folder, parent_mock, MagicMock())
+    # mytxlist.descriptor = descriptor
     mytxlist.add({test_tx["txid"]: test_tx})
     # .add will save implicitely.
     # mytxlist.save()

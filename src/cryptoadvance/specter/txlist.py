@@ -47,6 +47,7 @@ class TxItem(dict, AbstractTxListContext):
         "blockhash",  # str, blockhash, None if not confirmed
         "blockheight",  # int, blockheight, None if not confirmed
         "time",  # int (timestamp in seconds), time received
+        "blocktime",  # int (timestamp in seconds), time the block was mined
         "bip125-replaceable",  # str ("yes" / "no"), whatever RBF is enabled for the transaction
         "conflicts",  # rbf conflicts, list of txids
         "vsize",
@@ -58,6 +59,7 @@ class TxItem(dict, AbstractTxListContext):
     type_converter = [
         str,
         str,
+        int,
         int,
         int,
         str,
@@ -180,6 +182,7 @@ class TxItem(dict, AbstractTxListContext):
             "blockhash": self["blockhash"],
             "blockheight": self["blockheight"],
             "time": self["time"],
+            "blocktime": self["blocktime"],
             "conflicts": self["conflicts"],
             "bip125-replaceable": self["bip125-replaceable"],
             "vsize": self["vsize"],
@@ -218,7 +221,7 @@ class TxList(dict, AbstractTxListContext):
             logger.error(e)
         self._file_exists = file_exists
 
-    def save(self):
+    def _save(self):
         # check if we have at least one transaction
         if self:
             # Dump all transactions to binary files
@@ -263,10 +266,10 @@ class TxList(dict, AbstractTxListContext):
         if full:
             res["hex"] = tx.hex
         if decode:
-            res.update(self.decoderawtransaction(tx.hex))
+            res.update(self._decoderawtransaction(tx.hex))
         return res
 
-    def decoderawtransaction(self, tx: Union[Transaction, str, bytes]):
+    def _decoderawtransaction(self, tx: Union[Transaction, str, bytes]):
         return SpecterTx(self, tx).to_dict()
 
     def add(self, txs):
@@ -319,8 +322,8 @@ class TxList(dict, AbstractTxListContext):
         self._addresses.set_used(addresses)
         # detect category, amounts and addresses
         for tx in [self[txid] for txid in self if txid in txs]:
-            self.fill_missing(tx)
-        self.save()
+            self._fill_missing(tx)
+        self._save()
 
     def _update_destinations(self, tx, outs):
         addresses = [out.get("address", "Unknown") for out in outs]
@@ -339,7 +342,7 @@ class TxList(dict, AbstractTxListContext):
             psbt.update(updated)
         return psbt
 
-    def fill_missing(self, tx):
+    def _fill_missing(self, tx):
         raw_tx = tx.tx
         psbt = self._get_psbt(raw_tx)
         # detect category
