@@ -14,9 +14,9 @@
                 </p>
             </div>
         </div>
-        <span id="subtract_from" class="hidden">
+        <span id="subtract_from" style="display: none">
             <br>{{ _("Subtract from recipient number:") }} 
-            <input id="subtract_from_input" name="subtract_from" type="number" min="1" value="{{ subtract_from }}" step="1" style="width: 80px; min-width: 80px;"><br>
+            <input id="subtract_from_input" name="subtract_from" type="number" min="1" value="1" step="1" style="width: 80px; min-width: 80px;"><br>
         </span>
         <br>
         <div>
@@ -44,7 +44,9 @@
             </div>
         </div>
         <br>
-        <label class="rbf-label" style="display: none"><input type="checkbox" class="rbf-checkbox inline" name="rbf" id="rbf"> {{ _("RBF Enabled") }}</label>
+        <label class="rbf-label" style="display: none">
+            <input type="checkbox" class="rbf-checkbox inline" name="rbf" id="rbf"> {{ _("RBF Enabled") }}
+        </label>
     </div>
 </template>
 
@@ -66,14 +68,6 @@
             var template_content = document.getElementById('fee-selection').content;
             var clone = template_content.cloneNode(true);
 
-            // subtract
-            this.subtract = clone.querySelector("#subtract")
-            this.subtract.addEventListener("change", (event) => {
-                this.toggleSubtractFrom()
-            });
-            this.subtractFrom = clone.querySelector("#subtract_from")
-            this.subtractFromInput = clone.querySelector("#subtract_from_input")
-
             // The radio-button for manual
             this.fee_option_manual =  clone.querySelector("#fee_option_manual")
             this.fee_option_manual.addEventListener('click', (event) => {
@@ -85,9 +79,6 @@
             this.fee_option_dynamic.addEventListener('click', (event) => {
                 this.showFeeOption("dynamic")
 			});
-            
-            // Preset
-            this.feeOptionPreset = this.getAttribute('fee-option-preset') == null ? "dynamic" : this.getAttribute('fee-option-preset')
             
             // Manual or dynamic div
             this.fee_manual = clone.querySelector("#fee_manual") 
@@ -108,10 +99,19 @@
             this.fee_rate_speed_text = clone.querySelector("#fee_rate_speed_text")
 
             // RBF
-            this.rbfEnabled = this.getAttribute('rbf-enabled') == null ? true : this.getAttribute('rbf-enabled').toLowerCase() == "true" ?? true
+            this.rbfEnabled = this.getAttribute('rbf-enabled') == null ? true : this.getAttribute('rbf-enabled').toLowerCase() == "true"
             this.rbfLabel = clone.querySelector(".rbf-label")
-            this.rbfCheckbox = clone.querySelector(".rbf-checkbox")
-            this.rbfCheckboxChecked = this.getAttribute('rbf-checked') == null ? false : this.getAttribute('rbf-checked').toLowerCase() == "true"
+            this.rbfOption = clone.getElementById("rbf")
+
+            // Subtract
+            this.subtract = clone.querySelector("#subtract")            
+            this.subtractFrom = clone.querySelector("#subtract_from")
+            this.subtractFromInput = clone.querySelector("#subtract_from_input")
+
+            // Presets
+            this.feeOptionPreset = this.getAttribute('fee-option-preset') == null ? "dynamic" : this.getAttribute('fee-option-preset')
+            this.rbfOption.value = "false"
+            this.subtract.value = "false" 
 
             this.createLighterDOMNodes()
 
@@ -128,38 +128,55 @@
         createLighterDOMNodes() {
             this.ld = {} // in order to separate clearly, we store all of them here
             
-            this.ld.rbfCheckbox = this.rbfCheckbox.cloneNode(true)
-            this.ld.rbfCheckbox.classList.add("hidden")
-            this.appendChild(this.ld.rbfCheckbox)
+            /* We need to expose:
+                * fee_option (either manual or dynamic)
+                * fee_rate_dynamic 
+                * fee_rate 
+                * rbf
+                * subtract
+                * subtract_from
+            */
 
-            this.ld.subtract = this.subtract.cloneNode(true)
-            this.ld.subtract.classList.add("hidden")
-            this.appendChild(this.ld.subtract)
-            this.ld.subtractFromInput = this.subtractFromInput.cloneNode(true)
-            this.ld.subtractFromInput.classList.add("hidden")
-            this.appendChild(this.ld.subtractFromInput)
-            
-            // We need to expose:
-            // * fee_options (either manual or dynamic)
-            // * fee_rate_dynamic 
-            // * fee_rate 
-
-            // We won't mirror fee_options, that's too much overhead. We create a textfield there:
+            // fee_option
             this.ld.feeOption = document.createElement("input");
             this.ld.feeOption.type = "hidden";
             this.ld.feeOption.value = this.feeOptionPreset;
             this.ld.feeOption.name = "fee_option";
             this.appendChild(this.ld.feeOption);
 
-            this.ld.feeRate = this.feeRate.cloneNode(true)
-            this.ld.feeRate.classList.add("hidden")
-            this.ld.feeRate.type = "hidden"
-            this.appendChild(this.ld.feeRate)
+            // fee_rate_dynamic
+            this.ld.feeRate = this.feeRate.cloneNode(true);
+            this.ld.feeRate.classList.add("hidden");
+            this.ld.feeRate.type = "hidden";
+            this.appendChild(this.ld.feeRate);
 
-            this.ld.feeRateDynamic = this.feeRateDynamic.cloneNode(true)
-            this.ld.feeRateDynamic.classList.add("hidden")
-            this.ld.feeRateDynamic.type = "hidden"
-            this.appendChild(this.ld.feeRateDynamic)
+            // fee_rate
+            this.ld.feeRateDynamic = this.feeRateDynamic.cloneNode(true);
+            this.ld.feeRateDynamic.classList.add("hidden");
+            this.ld.feeRateDynamic.type = "hidden";
+            this.appendChild(this.ld.feeRateDynamic);
+            
+            // rbf
+            this.ld.rbfOption = this.rbfOption.cloneNode(true);
+            this.ld.rbfOption.type = "hidden";
+            this.ld.rbfOption.value = this.rbfOption.value;
+            this.appendChild(this.ld.rbfOption);
+
+            // subtract
+            this.ld.subtract = this.subtract.cloneNode(true);
+            this.ld.subtract.type = "hidden";
+            this.ld.subtract.value = this.subtract.value;
+            this.appendChild(this.ld.subtract);
+
+            // subtract_from (the actual input field)
+            this.ld.subtractFromInput = this.subtractFromInput.cloneNode(true);
+            this.ld.subtractFromInput.type = "hidden";
+            this.appendChild(this.ld.subtractFromInput);
+
+            // This is just for exposure to the jinja template for displaying, not needed for the form POST
+            this.ld.subtractFrom = this.subtractFrom.cloneNode(true);
+            this.ld.subtractFrom.type = "hidden";
+            this.appendChild(this.ld.subtractFrom);
         }
 
         /**
@@ -167,22 +184,32 @@
          * (can be called many times if an element is repeatedly added/removed)
          */
         connectedCallback() {
-            this.feeRate.addEventListener("change", (event) => {
-                this.manualFeeUpdated()
-            })
-
-            // fetch the fees which looks like ...
+            // fetch the fees
             this.fetchFees()
-            // this: {"result": {"fastestFee": 8, "halfHourFee": 8, "hourFee": 8, "minimumFee": 1}, "error_messages": []}
+            // Looks like this: {"result": {"fastestFee": 8, "halfHourFee": 8, "hourFee": 8, "minimumFee": 1}, "error_messages": []}
             
             this.showFeeOption(this.feeOptionPreset)
 
+            // Show RBF checkbox if RBF is enabled
             if (this.rbfEnabled) {
-                this.rbfLabel.style.display = "block" 
-                if (this.rbfCheckboxChecked) {
-                    this.rbfCheckbox.checked = true
-                }
+                this.rbfLabel.style.display = "block";
             }
+
+            // Setting up event listeners
+            this.feeRate.addEventListener("change", (event) => {
+                this.manualFeeUpdated();
+            })
+
+            this.rbfOption.addEventListener("click", (event) => {
+                this.rbfUpdated();
+            })
+
+            this.subtractFromInput.addEventListener("click", (event) => {
+                 this.subtractUpdated();
+                })
+
+            // Necessary since subtractFrom is conditioned on elements outside of this web component
+            this.subtractClickHook()
         }
 
         // Fetches fees from the Specter API 
@@ -266,16 +293,42 @@
             }
         }
 
-        toggleSubtractFrom() {
-            if (this.subtract.checked && (amounts.length > 1 || !document.getElementById('ui-radio-btn').checked)) {
+        // Updates Light DOM values for the form
+        rbfUpdated() {
+            if (this.rbfOption.checked) {
+                this.ld.rbfOption.value = "true"
+            }
+            else {
+                this.ld.rbfOption.value = "false"
+            }
+        }
+
+        // Updates Light DOM values for the form
+        subtractUpdated() {
+            if (this.subtract.checked) {
+                this.ld.subtract.value = "true"
+                this.ld.subtractFromInput.value = this.subtractFromInput.value
+            }
+            else {
+                this.ld.subtract.value = "false"
+            }
+        }
+
+        showSubtractFrom(visible) {
+            if (visible) {
                 this.subtractFrom.style.display = 'block';
-                document.getElementById('coin-selection-row').style['margin-top'] = '90px';
             } else {
                 this.subtractFrom.style.display = 'none';
-                document.getElementById('coin-selection-row').style['margin-top'] = '30px';
             }
-            this.ld.subtract.checked = this.subtract.checked
         }
+
+        subtractClickHook() {
+                let event = new CustomEvent('subtractClick', {});
+                this.subtract.addEventListener("click", () => {
+                    this.ld.subtract.checked = this.subtract.checked
+                    this.dispatchEvent(event);
+                })
+            }
 
         // Returns fees that can be picked up
         selectedFee() {
