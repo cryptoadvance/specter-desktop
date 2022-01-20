@@ -12,7 +12,7 @@ from typing import Dict, List
 from cryptoadvance.specter.user import User
 
 from cryptoadvance.specter.managers.singleton import ConfigurableSingletonException
-from ..util.reflection import get_subclasses_for_class
+from ..util.reflection import get_subclasses_for_class, _get_module_from_class
 
 from .service import Service
 from .service_encrypted_storage import ServiceEncryptedStorageManager
@@ -160,3 +160,43 @@ class ServiceManager:
             # Encrypted Service data is now orphaned since there is no
             # password. So wipe it from the disk.
             ServiceEncryptedStorageManager.get_instance().delete_all_service_data(user)
+
+    @classmethod
+    def get_service_x_dirs(cls, x):
+        """returns a list of package-directories which represents a specific service.
+        This is primarily used by the pyinstaller packaging specter
+        """
+        arr = [
+            Path(Path(_get_module_from_class(clazz).__file__).parent, x)
+            for clazz in get_subclasses_for_class(Service)
+        ]
+        arr = [path for path in arr if path.is_dir()]
+        return [Path("..", *path.parts[5:]) for path in arr]
+
+    @classmethod
+    def get_service_packages(cls):
+        """returns a list of strings containing the service-classes. This is used for hiddenimports in pyinstaller"""
+        arr = get_subclasses_for_class(Service)
+        arr = [clazz.__module__ for clazz in arr]
+        # Controller-Packagages from the services are not imported via the service but via the baseclass
+        # Therefore hiddenimport don't find them. We have to do it here.
+        cont_arr = [
+            ".".join(package.split(".")[:-1]) + ".controller" for package in arr
+        ]
+        for controller_package in cont_arr:
+            try:
+                import_module(controller_package)
+                arr.append(controller_package)
+            except ImportError:
+                pass
+            except AttributeError:
+                # something like:
+                # AttributeError: type object 'BitcoinReserveService' has no attribute 'blueprint'
+                # shows that the package is existing
+                arr.append(controller_package)
+            except RuntimeError:
+                # something like
+                # RuntimeError: Working outside of application context.
+                # shows that the package is existing
+                arr.append(controller_package)
+        return arr

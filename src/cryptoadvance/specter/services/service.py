@@ -1,10 +1,12 @@
 import logging
 import os
+import sys
 from importlib import import_module
 
 from flask import current_app as app
 from flask.blueprints import Blueprint
 from cryptoadvance.specter.wallet import Wallet
+from cryptoadvance.specter.util.reflection import get_template_static_folder
 from flask_babel import lazy_gettext as _
 from typing import List
 
@@ -44,9 +46,9 @@ class Service:
         if self.has_blueprint:
             self.__class__.blueprint = Blueprint(
                 f"{self.id}_endpoint",
-                f"cryptoadvance.specter.services.{self.id}.service",  # To Do: move to subfolder
-                template_folder="templates",
-                static_folder="static",
+                f"cryptoadvance.specter.services.{self.id}.service",
+                template_folder=get_template_static_folder("templates"),
+                static_folder=get_template_static_folder("static"),
             )
 
             def inject_stuff():

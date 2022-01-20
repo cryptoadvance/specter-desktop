@@ -3,13 +3,28 @@ from importlib import import_module
 from inspect import isclass
 import os
 from pathlib import Path
+import pkgutil
 from pkgutil import iter_modules
+import sys
 
 logger = logging.getLogger(__name__)
 
 
 def _get_module_from_class(clazz):
     return import_module(clazz.__module__)
+
+
+def get_template_static_folder(foldername):
+    """convenience-method to return static/template methods taking pyinstaller into account
+    foldername can be anything but probably most reasonable template or static
+    """
+    if getattr(sys, "frozen", False):
+        # Best understood with the snippet below this section:
+        # https://pyinstaller.readthedocs.io/en/v3.3.1/runtime-information.html#using-sys-executable-and-sys-argv-0
+        x_folder = os.path.join(sys._MEIPASS, foldername)
+    else:
+        x_folder = foldername
+    return x_folder
 
 
 def get_package_dir_for_subclasses_of(clazz):
@@ -39,7 +54,7 @@ def get_subclasses_for_class(clazz):
     class_list = []
     loopdir = Path(__file__).resolve()
     package_dir = get_package_dir_for_subclasses_of(clazz)
-    logger.info(f"Collecting subclasses of {clazz.__name__} ...")
+    logger.info(f"Collecting subclasses of {clazz.__name__} in {package_dir}...")
     for (_, module_name, _) in iter_modules(
         [package_dir]
     ):  # import the module and iterate through its attributes
@@ -49,6 +64,9 @@ def get_subclasses_for_class(clazz):
 
                 module = import_module(
                     f"cryptoadvance.specter.services.{module_name}.service"
+                )
+                logger.debug(
+                    f"Imported cryptoadvance.specter.services.{module_name}.service"
                 )
             except ModuleNotFoundError:
                 logger.debug(
