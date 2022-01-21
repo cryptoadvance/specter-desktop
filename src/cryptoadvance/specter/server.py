@@ -12,6 +12,7 @@ from flask_wtf.csrf import CSRFProtect
 from cryptoadvance.specter.liquid.rpc import LiquidRPC
 
 from cryptoadvance.specter.rpc import BitcoinRPC
+from cryptoadvance.specter.util.reflection import get_template_static_folder
 
 from .helpers import hwi_get_config
 from .specter import Specter
@@ -76,20 +77,11 @@ def create_app(config=None):
             # Default
             config = "cryptoadvance.specter.config.ProductionConfig"
 
-    if getattr(sys, "frozen", False):
-
-        # Best understood with the snippet below this section:
-        # https://pyinstaller.readthedocs.io/en/v3.3.1/runtime-information.html#using-sys-executable-and-sys-argv-0
-        template_folder = os.path.join(sys._MEIPASS, "templates")
-        static_folder = os.path.join(sys._MEIPASS, "static")
-        logger.info("pyinstaller based instance running in {}".format(sys._MEIPASS))
-        app = SpecterFlask(
-            __name__, template_folder=template_folder, static_folder=static_folder
-        )
-    else:
-        app = SpecterFlask(
-            __name__, template_folder="templates", static_folder="static"
-        )
+    app = SpecterFlask(
+        __name__,
+        template_folder=get_template_static_folder("templates"),
+        static_folder=get_template_static_folder("static"),
+    )
     app.jinja_env.autoescape = select_autoescape(default_for_string=True, default=True)
     logger.info(f"Configuration: {config}")
     app.config.from_object(config)
