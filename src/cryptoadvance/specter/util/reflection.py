@@ -55,10 +55,16 @@ def get_subclasses_for_class(clazz):
     loopdir = Path(__file__).resolve()
     package_dir = get_package_dir_for_subclasses_of(clazz)
     logger.info(f"Collecting subclasses of {clazz.__name__} in {package_dir}...")
+    package_dirs = [package_dir]
+    if not Path("./src/cryptoadvance").is_dir():
+        if Path("./src").is_dir():
+            package_dirs.append("./src")
+        else:
+            package_dirs.append(".")
     for (_, module_name, _) in iter_modules(
-        [package_dir]
+        package_dirs
     ):  # import the module and iterate through its attributes
-        # logger.debug(f"Iterating on {module_name} ")
+        logger.debug(f"Iterating on {module_name} ")
         if clazz.__name__ == "Service":
             try:
 
@@ -70,9 +76,16 @@ def get_subclasses_for_class(clazz):
                 )
             except ModuleNotFoundError:
                 logger.debug(
-                    f"No Service Impl found in cryptoadvance.specter.services.{module_name}. Skipping!"
+                    f"No Service Impl found in cryptoadvance.specter.services.{module_name}."
                 )
-                continue
+                try:
+                    module = import_module(f"{module_name}.service")
+                    logger.debug(f"Imported {module_name}.service")
+                except ModuleNotFoundError as e:
+                    logger.debug(
+                        f"No Service Impl found in {module_name}.service. Skipping!"
+                    )
+                    continue
         elif clazz.__name__ == "SpecterMigration":
             module = import_module(
                 f"cryptoadvance.specter.util.migrations.{module_name}"

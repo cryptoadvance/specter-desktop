@@ -43,10 +43,14 @@ class Service:
             raise Exception(f"Service {self.__class__} needs name")
         self.active = active
         self.specter = specter
+        if hasattr(self.__class__, "blueprint_module"):
+            import_name = self.blueprint_module
+        else:
+            import_name = f"cryptoadvance.specter.services.{self.id}.service"
         if self.has_blueprint:
             self.__class__.blueprint = Blueprint(
                 f"{self.id}_endpoint",
-                f"cryptoadvance.specter.services.{self.id}.service",
+                import_name,
                 template_folder=get_template_static_folder("templates"),
                 static_folder=get_template_static_folder("static"),
             )
@@ -57,7 +61,13 @@ class Service:
 
             self.__class__.blueprint.context_processor(inject_stuff)
             # Import the controller for this service
-            import_module(f"cryptoadvance.specter.services.{self.id}.controller")
+            if hasattr(self.__class__, "blueprint_module"):
+                controller_module = self.blueprint_module
+            else:
+                controller_module = (
+                    f"cryptoadvance.specter.services.{self.id}.controller"
+                )
+            import_module(controller_module)
             app.register_blueprint(
                 self.__class__.blueprint, url_prefix=f"/svc/{self.id}"
             )
