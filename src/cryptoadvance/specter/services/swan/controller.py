@@ -193,10 +193,10 @@ def oauth2_auth():
             error = e
 
     return render_template(
-        "error.html",
+        "500.jinja",
         response=None,
         error=str(error),
-        error_description=None,
+        error_description=_("Could not complete the OAuth callback from Swan"),
         cookies=request.cookies,
     )
 

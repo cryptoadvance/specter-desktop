@@ -308,8 +308,8 @@ class User(UserMixin):
 
     def add_service(self, service_id: str, autosave: bool = True):
         """Add a Service to the User. Only updates what is listed in the sidebar."""
-        if service_id not in self.services:
-            self.services.append(service_id)
+        if service_id not in self._services:
+            self._services.append(service_id)
         if autosave:
             self.save_info()
 
