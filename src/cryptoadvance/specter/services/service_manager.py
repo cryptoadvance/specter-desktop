@@ -171,7 +171,7 @@ class ServiceManager:
             for clazz in get_subclasses_for_class(Service)
         ]
         arr = [path for path in arr if path.is_dir()]
-        return [Path("..", *path.parts[5:]) for path in arr]
+        return [Path("..", *path.parts[-6:]) for path in arr]
 
     @classmethod
     def get_service_packages(cls):
