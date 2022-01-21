@@ -20,8 +20,8 @@ logger = logging.getLogger(__name__)
 class SwanService(Service):
     id = "swan"
     name = "Swan"
-    icon = "img/swan_icon.svg"
-    logo = "img/swan_logo.svg"
+    icon = "swan/img/swan_icon.svg"
+    logo = "swan/img/swan_logo.svg"
     desc = "Auto-withdraw to your Specter wallet"
     has_blueprint = True
     devstatus = devstatus_prod
