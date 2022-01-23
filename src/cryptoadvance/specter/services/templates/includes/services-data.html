@@ -1,0 +1,15 @@
+{# Assumes that the `services` object has been injected into the Flask context. This
+script makes the Services data globally available to all JS. #}
+{# TODO: Better way to manage this JS global? #}
+<script>
+    const services = {
+        {% for service_id, service in services.items() %}
+            {{ service_id }}: {
+                name: "{{ service.name }}",
+                icon: "{{ service.icon }}",
+                logo: "{{ service.logo }}",
+                desc: "{{ service.desc }}",
+            },
+        {% endfor %}
+    }
+</script>

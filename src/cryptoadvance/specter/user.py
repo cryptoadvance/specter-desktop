@@ -1,7 +1,9 @@
 import base64
 import binascii
+import cryptography
 import hashlib
 import json
+import logging
 import os
 import shutil
 
@@ -16,6 +18,9 @@ from .persistence import read_json_file, write_json_file, delete_folder
 from .managers.wallet_manager import WalletManager
 from .managers.device_manager import DeviceManager
 from .helpers import deep_update
+
+
+logger = logging.getLogger(__name__)
 
 
 def hash_password(plaintext_password):
@@ -44,6 +49,10 @@ def verify_password(stored_password, provided_password):
     return pwdhash == binascii.a2b_base64(stored_password["pwdhash"])
 
 
+class UserSecretException(Exception):
+    pass
+
+
 class User(UserMixin):
     """
     The user_secret is used to encrypt/decrypt other user-specific data
@@ -63,7 +72,7 @@ class User(UserMixin):
         specter,
         encrypted_user_secret=None,
         is_admin=False,
-        services=None,
+        services=[],
     ):
         self.id = id
         self.username = username
@@ -77,7 +86,7 @@ class User(UserMixin):
         self.wallet_manager = None
         self.device_manager = None
         self.manager = None
-        self.services = services
+        self._services = services
 
         # Iterations will need to be increased over time to keep ahead of CPU advances.
         self.encryption_iterations = 390000
@@ -95,7 +104,7 @@ class User(UserMixin):
                 "config": {},
                 "specter": specter,
                 "encrypted_user_secret": user_dict.get("encrypted_user_secret", None),
-                "services": user_dict.get("services", None),
+                "services": user_dict.get("services", []),
             }
             if not user_dict["is_admin"]:
                 user_args["config"] = user_dict["config"]
@@ -113,6 +122,16 @@ class User(UserMixin):
         if self.is_admin:
             return ""
         return f"_{self.id}"
+
+    @property
+    def services(self):
+        if self._services:
+            return self._services
+        return []
+
+    @property
+    def is_user_secret_decrypted(self):
+        return self.plaintext_user_secret is not None
 
     def _encrypt_user_secret(self, plaintext_password):
         """
@@ -163,26 +182,58 @@ class User(UserMixin):
             self._encrypt_user_secret(plaintext_password)
 
     def _generate_user_secret(self, plaintext_password):
-        # Encryption using the user_secret uses a Fernet key. But the Fernet
-        #   key itself will be encrypted with the user's password.
+        """
+        Generates and stores the user_secret in memory. Also stores it encrypted
+        to disk.
+
+        Encryption using the user_secret uses a Fernet key. But the Fernet
+        key itself will be encrypted with the user's password.
+        """
         self.plaintext_user_secret = Fernet.generate_key()
         self._encrypt_user_secret(plaintext_password)
         self.save_info()
+        logger.debug("Generated user_secret")
+
+    def delete_user_secret(self, autosave: bool = True):
+        self.encrypted_user_secret = None
+        self.plaintext_user_secret = None
+        if autosave:
+            self.save_info()
 
     def set_password(self, plaintext_password):
-        # Hash the incoming plaintext password and update the encrypted
-        #   user_secret as needed.
-        self.password_hash = hash_password(plaintext_password)
+        """Hash the incoming plaintext password and update the encrypted user_secret as
+        needed.
 
-        # Must keep encrypted_user_secret in sync with password changes
+        Remember that the underlying user_secret doesn't change if the user changes
+        their password; it's the same user_secret but it just needs to be
+        re-encrypted using the new password.
+        """
+        # Check the encrypted_user_secret before saving password change!
         if self.encrypted_user_secret is None:
+            # First time this user is initializing their user_secret
             self._generate_user_secret(plaintext_password)
         else:
             if self.plaintext_user_secret is None:
-                raise Exception(
-                    "encrypted_user_secret wasn't decrypted during user login"
-                )
-            self._encrypt_user_secret(plaintext_password)
+                # encrypted_user_secret hasn't been decrypted in memory; try to decrypt
+                # it now (will only work if we're re-enabling the same password for the
+                # admin account).
+                try:
+                    self.decrypt_user_secret(plaintext_password)
+                except cryptography.fernet.InvalidToken as e:
+                    # Existing encrypted_user_secret cannot be decrypted with this new
+                    # password! Alert the calling code to handle (either provide the
+                    # previous password to decrypt/re-encrypt or delete all existing
+                    # encrypted data for this user (admin) because it's no longer
+                    # decryptable).
+                    logger.warn(e)
+                    raise UserSecretException(
+                        "Cannot decrypt existing encrypted_user_secret with the provided password"
+                    )
+            else:
+                # Must keep re-encrypt encrypted_user_secret with the new password.
+                self._encrypt_user_secret(plaintext_password)
+
+        self.password_hash = hash_password(plaintext_password)
 
     @property
     def json(self):
@@ -254,6 +305,20 @@ class User(UserMixin):
         if existing and delete:
             self.specter.delete_user(self)
         self.manager.save()
+
+    def add_service(self, service_id: str, autosave: bool = True):
+        """Add a Service to the User. Only updates what is listed in the sidebar."""
+        if service_id not in self.services:
+            self.services.append(service_id)
+        if autosave:
+            self.save_info()
+
+    def remove_service(self, service_id: str, autosave: bool = True):
+        """Remove a Service from the User. Only updates what is listed in the sidebar."""
+        if service_id in self.services:
+            self.services.remove(service_id)
+        if autosave:
+            self.save_info()
 
     # TODO: Refactor calling code to explicitly call User.save() rather than embedding
     #   self.save_info() on every update and setter. It ends up saving to disk multiple

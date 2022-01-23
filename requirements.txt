@@ -118,8 +118,8 @@ ecdsa==0.17.0 \
     # via
     #   bitbox02
     #   hwi
-embit==0.4.10 \
-    --hash=sha256:f6484bc495b45da27f3eb7fbe21a24c00cd72c0ab83c6e195660cf17db5cb5e2
+embit==0.4.12 \
+    --hash=sha256:d340107dc1604581df59f844d4eb76ec34b0219c2ac2cbc1837c14938a4730ee
     # via -r requirements.in
 flask==1.1.4 \
     --hash=sha256:0fbeb6180d383a9186d0d6ed954e0042ad9f18e0e8de088b2b419d526927d196 \
@@ -181,9 +181,9 @@ hidapi==0.10.1 \
     # via
     #   bitbox02
     #   hwi
-hwi==2.0.1 \
-    --hash=sha256:1a49ec86d4770239408e74c87acdd15b9f72271fbdddf66acd935f068bbf115d \
-    --hash=sha256:cba5e254fcf7ae1b523ec1f0eab693b401d4b3cd949b35a4557a106a98065c23
+hwi==2.0.2 \
+    --hash=sha256:70b83e9905d3ae7057cae516e7b26547a934cdaf1feee5ef26fe65f0ddeda058 \
+    --hash=sha256:762d5f46c31bc291dc0453530958af7f1a70854a1428b0376139c9c4aabf8c73
     # via -r requirements.in
 idna==2.10 \
     --hash=sha256:b307872f855b18632ce0c21c5e45be78c0ea7ae4c15c828c20788b26921eb3f6 \

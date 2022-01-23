@@ -4,9 +4,10 @@
 
 echo $1 > version.txt
 pip3 install -r requirements.txt --require-hashes
-pip3 install -e ..
 cd ..
+# Order is relevant here. If you flip the followng lines, the hiddenimports for services won't work anymore
 python3 setup.py install
+pip3 install -e .
 cd pyinstaller
 rm -rf build/ dist/ release/ electron/release/ electron/dist
 pyinstaller specterd.spec

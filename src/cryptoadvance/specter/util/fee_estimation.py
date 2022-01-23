@@ -1,5 +1,6 @@
 import logging
-import re
+from json import JSONEncoder
+
 import requests
 import urllib3
 from requests.exceptions import ConnectionError
@@ -33,6 +34,16 @@ class FeeEstimationResult:
     def add_error_message(self, message):
         """Appends an error-message to the list of existing ones"""
         self._error_messages.append(message)
+
+
+class FeeEstimationResultEncoder(JSONEncoder):
+    def default(self, o):
+        raw = o.__dict__
+        raw["result"] = raw["_result"]
+        del raw["_result"]
+        raw["error_messages"] = raw["_error_messages"]
+        del raw["_error_messages"]
+        return raw
 
 
 def get_fees(specter, config):
