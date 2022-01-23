@@ -4,8 +4,8 @@ from ..service import Service, devstatus_alpha
 class BitcoinReserveService(Service):
     id = "bitcoinreserve"
     name = "Bitcoin Reserve"
-    icon = "img/bitcoinreserve_icon.svg"
-    logo = "img/bitcoinreserve_icon.svg"
+    icon = "bitcoinreserve/img/bitcoinreserve_icon.svg"
+    logo = "bitcoinreserve/img/bitcoinreserve_icon.svg"
     desc = "Where Europe buys Bitcoin."
     has_blueprint = True
     devstatus = devstatus_alpha
