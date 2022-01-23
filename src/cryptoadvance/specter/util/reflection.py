@@ -49,18 +49,19 @@ def get_package_dir_for_subclasses_of(clazz):
         )
 
 
-def get_subclasses_for_class(clazz):
+def get_subclasses_for_class(clazz, services_load_from_cwd=False):
     """Returns all subclasses of class clazz located in the specific package for that class"""
     class_list = []
     loopdir = Path(__file__).resolve()
     package_dir = get_package_dir_for_subclasses_of(clazz)
     logger.info(f"Collecting subclasses of {clazz.__name__} in {package_dir}...")
     package_dirs = [package_dir]
-    if not Path("./src/cryptoadvance").is_dir():
-        if Path("./src").is_dir():
-            package_dirs.append("./src")
-        else:
+    if services_load_from_cwd:
+        if not Path("./src/cryptoadvance").is_dir():
             package_dirs.append(".")
+            logger.debug(
+                "Running in non-specter-src-folder. Added CWD to Service-Discovery"
+            )
     for (_, module_name, _) in iter_modules(
         package_dirs
     ):  # import the module and iterate through its attributes
