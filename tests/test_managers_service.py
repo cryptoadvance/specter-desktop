@@ -1,11 +1,25 @@
 from unittest.mock import MagicMock
+from flask import Flask
 from cryptoadvance.specter.services.service_manager import ServiceManager
 
 
-def test_ServiceManager(app_no_node):
+def test_ServiceManager():
     specter_mock = MagicMock()
     specter_mock.config = {"services": {}}
+    flaskapp_mock = Flask(__name__)
+    ctx = flaskapp_mock.app_context()
+    ctx.push()
+    # The ServiceManager is a flask-aware component. It will load all the services
+    # however, in order to configure them, he needs to know about the configuration
+    # of the specterApp.
+    flaskapp_mock.config[
+        "SPECTER_CONFIGURATION_CLASS_FULLNAME"
+    ] = "cryptoadvance.specter.config.TestConfig"
     sm = ServiceManager(specter_mock, "alpha")
+    # We have passed the TestConfig which is (hopefully) not existing in the Swan Extension
+    # So the ServiceManager will move up the dependency tree of TestConfig until it finds
+    # a Config and will copy the keys into the flask-config
+    assert flaskapp_mock.config["SWAN_API_URL"] == "https://dev-api.swanbitcoin.com"
     assert sm.services["bitcoinreserve"] != None
     assert sm.services["swan"] != None
 
