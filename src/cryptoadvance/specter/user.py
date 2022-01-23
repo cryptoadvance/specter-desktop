@@ -125,9 +125,9 @@ class User(UserMixin):
 
     @property
     def services(self):
-        if self._services:
-            return self._services
-        return []
+        if not self._services:
+            self._services = []
+        return self._services
 
     @property
     def is_user_secret_decrypted(self):
