@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import pathlib
@@ -6,15 +5,19 @@ import shutil
 import threading
 import traceback
 
-from ..helpers import alias, load_jsons, is_liquid, add_dicts
+from flask_babel import lazy_gettext as _
+
+from cryptoadvance.specter.key import Key
+
+from ..helpers import add_dicts, alias, is_liquid, load_jsons
+from ..liquid.wallet import LWallet
 from ..persistence import delete_folder
 from ..rpc import RpcError, get_default_datadir
 from ..specter_error import SpecterError
-from ..wallet import (
+from ..wallet import (  # TODO: `purposes` unused here, but other files rely on this import
     Wallet,
     purposes,
-)  # TODO: `purposes` unused here, but other files rely on this import
-from ..liquid.wallet import LWallet
+)
 
 logger = logging.getLogger(__name__)
 
@@ -271,6 +274,7 @@ class WalletManager:
             ]
         except:
             walletsindir = []
+        self._check_duplicate_keys(keys)
         wallet_alias = alias(name)
         i = 2
         while (
@@ -425,3 +429,14 @@ class WalletManager:
             wallet = self.wallets[w]
             self.delete_wallet(wallet, specter.bitcoin_datadir, specter.chain)
         delete_folder(self.data_folder)
+
+    @classmethod
+    def _check_duplicate_keys(cls, keys):
+        """raise a SpecterError when a xpub in the passed KeyList is listed twice. Should prevent MultisigWallets where
+        xpubs are used twice.
+        """
+        # normalizing xpubs in order to ignore slip132 differences
+        xpubs = [Key.parse_xpub(key.original).xpub for key in keys]
+        for xpub in xpubs:
+            if xpubs.count(xpub) > 1:
+                raise SpecterError(_(f"xpub {xpub} seem to be used at least twice!"))
