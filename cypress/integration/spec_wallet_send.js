@@ -38,7 +38,7 @@ describe('Send transactions from bitcoin hotwallets', () => {
         cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
         .should(($div) => {
             const n = parseFloat($div.text())
-            expect(n).to.be.equals(0)
+            expect(n).to.be.lessThan(0.5) // 20 minted, 19.5 send, the difference is fee
         })
     })
 
