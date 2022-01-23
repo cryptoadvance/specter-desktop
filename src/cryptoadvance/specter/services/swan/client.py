@@ -77,6 +77,9 @@ def get_access_token(code: str = None, code_verifier: str = None):
 
     If we don't have the refresh_token, raise SwanApiRefreshTokenException.
     """
+    # Must explicitly set User-Agent; Swan firewall blocks all requests with "python".
+    auth_header = {"User-Agent": "Specter Desktop"}
+
     if code:
         # Requesting initial refresh_token and access_token
         payload = {
@@ -86,7 +89,6 @@ def get_access_token(code: str = None, code_verifier: str = None):
             "grant_type": "authorization_code",
             "code": code,
         }
-        auth_header = None
     else:
         service_data = SwanService.get_current_user_service_data()
         if SwanService.is_access_token_valid():
@@ -106,9 +108,7 @@ def get_access_token(code: str = None, code_verifier: str = None):
         }
 
         auth_hash = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
-        auth_header = {
-            "Authorization": f"Basic {auth_hash}",
-        }
+        auth_header["Authorization"] = f"Basic {auth_hash}"
         logger.debug(f"auth_hash: {auth_hash}")
         logger.debug("Using the refresh_token to request an access_token")
         logger.debug(f"payload: {json.dumps(payload, indent=4)}")
@@ -173,7 +173,9 @@ def authenticated_request(
 
     access_token = get_access_token()
 
+    # Must explicitly set User-Agent; Swan firewall blocks all requests with "python".
     auth_header = {
+        "User-Agent": "Specter Desktop",
         "Authorization": f"Bearer {access_token}",
     }
     try:
