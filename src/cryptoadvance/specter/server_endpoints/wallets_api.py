@@ -181,7 +181,7 @@ def broadcast_blockexplorer(wallet_alias):
 @app.csrf.exempt
 def decoderawtx(wallet_alias):
     try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
         txid = request.form.get("txid", "")
         if txid:
             tx = wallet.rpc.gettransaction(txid)
@@ -212,6 +212,18 @@ def decoderawtx(wallet_alias):
 
             try:
                 rawtx = decoderawtransaction(tx["hex"], app.specter.chain)
+
+                # Enrich utxo data with address_info if the addr is from our Wallet
+                for utxo in rawtx.get("vout", []):
+                    address = utxo.get("address")
+                    addr_obj = wallet.get_address_info(address)
+                    if addr_obj:
+                        utxo.update(addr_obj)
+                        if not utxo.get("label"):
+                            utxo["label"] = addr_obj.label
+
+                # TODO: Fetch the relevant Input utxo details so the JS doesn't have to
+                #   make a separate call.
             except:
                 rawtx = wallet.rpc.decoderawtransaction(tx["hex"])
             # add assets
@@ -226,8 +238,18 @@ def decoderawtx(wallet_alias):
                 rawtx=rawtx,
                 walletName=wallet.name,
             )
+    except RpcError as e:
+        if "Invalid or non-wallet transaction id" in str(e):
+            # Expected failure when looking up a txid that didn't originate from the
+            #   user's Wallet.
+            pass
+        else:
+            app.logger.warning(
+                "Failed to fetch transaction data. Exception: {}".format(e)
+            )
     except Exception as e:
-        handle_exception(e)
+        app.logger.warning("Failed to fetch transaction data. Exception: {}".format(e))
+
     return jsonify(success=False)
 
 
@@ -289,11 +311,13 @@ def txlist(wallet_alias):
     search = request.form.get("search", None)
     sortby = request.form.get("sortby", None)
     sortdir = request.form.get("sortdir", "asc")
+    service_id = request.form.get("service_id", None)
     fetch_transactions = request.form.get("fetch_transactions", False)
     txlist = wallet.txlist(
         fetch_transactions=fetch_transactions,
         validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs", False),
         current_blockheight=app.specter.info["blocks"],
+        service_id=service_id,
     )
     return process_txlist(
         txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
@@ -329,11 +353,14 @@ def wallets_overview_txlist():
     sortby = request.form.get("sortby", None)
     sortdir = request.form.get("sortdir", "asc")
     fetch_transactions = request.form.get("fetch_transactions", False)
+    service_id = request.form.get("service_id")
     txlist = app.specter.wallet_manager.full_txlist(
         fetch_transactions=fetch_transactions,
         validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs", False),
         current_blockheight=app.specter.info["blocks"],
+        service_id=service_id,
     )
+
     return process_txlist(
         txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
     )
@@ -361,7 +388,7 @@ def wallets_overview_utxo_list():
 def addresses_list(wallet_alias):
     """Return a JSON with keys:
         addressesList: list of addresses with the properties
-                       (index, address, label, used, utxo, amount)
+                       (index, address, label, used, utxo, amount, service_id)
         pageCount: total number of pages
     POST parameters:
         idx: pagination index (current page)
@@ -370,7 +397,7 @@ def addresses_list(wallet_alias):
                 (index, address, label, used, utxo, amount)
         sortdir: 'asc' (ascending) or 'desc' (descending) order
         addressType: the current tab address type ('receive' or 'change')"""
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
 
     idx = int(request.form.get("idx", 0))
     limit = int(request.form.get("limit", 100))

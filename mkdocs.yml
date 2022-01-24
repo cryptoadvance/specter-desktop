@@ -19,9 +19,11 @@ nav:
       - hwibridge.md
       - elements.md
       - windows.md
+      - 'Endless Pacman Troubleshooting': endless-pacman.md
     - Development: 
       - 'Contributing': contributing.md
       - 'Developing': development.md
+      - 'Testing': test-new-releases.md
       - build-instructions.md
       - 'Continuous Integration': continuous-integration.md
       - cypress-testing.md

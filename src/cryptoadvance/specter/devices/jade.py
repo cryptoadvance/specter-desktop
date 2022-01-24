@@ -11,7 +11,7 @@ class Jade(HWIDevice):
     icon = "jade_icon.svg"
 
     supports_hwi_toggle_passphrase = False
-    supports_hwi_multisig_display_address = False
+    supports_hwi_multisig_display_address = True
     liquid_support = True
 
     @classmethod
