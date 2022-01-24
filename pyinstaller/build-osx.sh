@@ -90,15 +90,27 @@ while [[ $# -gt 0 ]]
   esac
   done
 
+echo "    --> This build got triggered for version $version"
+
 echo $version > version.txt
+
+echo "    --> Installing (build)-requirements"
 pip3 install -r requirements.txt --require-hashes
-pip3 install -e ..
+
 cd ..
+# Order is relevant here. If you flip the followng lines, the hiddenimports for services won't work anymore
 python3 setup.py install
+pip3 install -e .
 cd pyinstaller
+
+echo "    --> Cleaning up"
 rm -rf build/ dist/ release/ electron/release/ electron/dist
 rm *.dmg || true
+
+echo "    --> Building specterd"
 pyinstaller specterd.spec
+
+echo "    --> Making us ready for building electron-app for MacOS"
 cd electron
 npm ci
 if [[ "$make_hash" = 'True' ]]
@@ -114,11 +126,13 @@ then
 else
     echo "`jq '.build.mac.identity="'"${appleid}"'"' package.json`" > package.json
 fi
+
+echo "    --> building electron-app"
 npm run dist
 
 if [[ "$appleid" != '' ]]
 then
-    echo 'Attempting to code sign...'
+    echo '    --> Attempting to code sign...'
     ditto -c -k --keepParent "dist/mac/Specter.app" dist/Specter.zip
     output_json=$(xcrun altool --notarize-app -t osx -f dist/Specter.zip --primary-bundle-id "solutions.specter.desktop" -u "${mail}" --password "@keychain:AC_PASSWORD" --output-format json)
     echo "JSON-Output:"
@@ -133,6 +147,7 @@ fi
 
 cd ..
 
+echo "    --> Making the release-zip"
 mkdir release
 
 create-dmg 'electron/dist/mac/Specter.app' --identity="Developer ID Application: ${appleid}"
@@ -145,7 +160,7 @@ cd ..
 sha256sum ./release/specterd-${version}-osx.zip
 sha256sum ./release/SpecterDesktop-${version}.dmg
 
-
+echo "--------------------------------------------------------------------------"
 echo "In order to upload these artifacts to github, do:"
 echo "export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance"
 echo "export CI_COMMIT_TAG=$version"
