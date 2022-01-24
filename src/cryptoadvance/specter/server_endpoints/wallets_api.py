@@ -901,19 +901,20 @@ def wallet_addresses_list_to_csv(addresses_list):
 
 def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="asc"):
     if search:
+        search_lower = search.lower()
         txlist = [
             tx
             for tx in txlist
-            if search in tx["txid"]
+            if search_lower in tx["txid"]
             or (
                 any(search in address for address in tx["address"])
                 if isinstance(tx["address"], list)
                 else search in tx["address"]
             )
             or (
-                any(search in label for label in tx.get("label", ""))
+                any(search_lower in label.lower() for label in tx.get("label", ""))
                 if isinstance(tx.get("label", ""), list)
-                else search in tx.get("label", "")
+                else search_lower in tx.get("label", "").lower()
             )
             or (
                 any(search in str(amount) for amount in tx["amount"])
@@ -924,6 +925,16 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
             or search in str(tx["time"])
             or search
             in str(format(datetime.fromtimestamp(tx["time"]), "%d.%m.%Y %H:%M"))
+            or (
+                float(search.split(" ")[1]) > tx["amount"]
+                if search.split(" ")[0] == "<"
+                else False
+            )
+            or (
+                float(search.split(" ")[1]) < tx["amount"]
+                if search.split(" ")[0] == ">"
+                else False
+            )
         ]
     if sortby:
 
