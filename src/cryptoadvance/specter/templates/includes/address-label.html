@@ -103,7 +103,7 @@
             this.label.title = this.address;
             this.isEditing = false;
 
-            if (this.serviceId && this.serviceId != "null") {
+            if (services && (this.serviceId in services)) {
                 // `services` globally injected via includes/services-data.html
                 this.serviceIconImg.src = "/svc/" + this.serviceId + "/static/" + services[this.serviceId].icon;
             }
