@@ -10,7 +10,7 @@ from cryptoadvance.specter.specter_error import SpecterError
 
 from cryptoadvance.specter.user import User
 
-from ..service import Service, devstatus_beta
+from ..service import Service, devstatus_prod
 from cryptoadvance.specter.addresslist import Address
 from cryptoadvance.specter.wallet import Wallet
 
@@ -24,7 +24,7 @@ class SwanService(Service):
     logo = "swan/img/swan_logo.svg"
     desc = "Auto-withdraw to your Specter wallet"
     has_blueprint = True
-    devstatus = devstatus_beta
+    devstatus = devstatus_prod
 
     # TODO: As more Services are integrated, we'll want more robust categorization and sorting logic
     sort_priority = 1
@@ -195,6 +195,10 @@ class SwanService(Service):
                                 ],
                             }
                         )
+
+                        # Check to make sure we have enough autowithdrawal addresses
+                        SwanService.update()
+
                         return
 
             # Did not find a matching and/or active autowithdrawal
@@ -226,8 +230,7 @@ class SwanService(Service):
                             "clientId": "specter-dev"
                         },
                         "specter_wallet_alias": "seedsigner_demo"
-                    },
-                    "btcAddresses": []
+                    }
                 }
             }
             """

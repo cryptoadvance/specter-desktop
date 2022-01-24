@@ -30,7 +30,9 @@ class ServiceManager:
         # Each Service class is stored here, keyed on its Service.id str
         self._services: Dict[str, Service] = {}
         logger.info("----> starting service discovery <----")
-        for clazz in get_subclasses_for_class(Service):
+        for clazz in get_subclasses_for_class(
+            Service, app.config.get("SERVICES_LOAD_FROM_CWD", False)
+        ):
             compare_map = {"alpha": 1, "beta": 2, "prod": 3}
             if compare_map[self.devstatus_threshold] <= compare_map[clazz.devstatus]:
                 # First configure the service

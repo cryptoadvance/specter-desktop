@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 
 
 # TODO: Update with prod values
-client_id = "specter-dev"
-client_secret = "BcetcVcmueWf5P3UPJnHhCBMQ49p38fhzYwM7t3DJGzsXSjm89dDR5URE46SY69j"
+client_id = app.config.get("SWAN_CLIENT_ID")
+client_secret = app.config.get("SWAN_CLIENT_SECRET")
 code_verifier = "64fRjTuy6SKqdC1wSoInUNxX65dQUhVVKTqZXuQ7dqw"
 api_url = app.config.get("SWAN_API_URL")
 
@@ -53,7 +53,7 @@ def get_oauth2_start_url():
 
     flow_url = f"{api_url}/oidc/auth?"
     query_params = [
-        "client_id=specter-dev",
+        f"client_id={client_id}",
         "redirect_uri=http://localhost:25441/svc/swan/oauth2/callback",  # TODO: Will localhost work in all usage contexts (e.g. standalone app)?
         "response_type=code",
         "response_mode=query",
@@ -83,7 +83,7 @@ def get_access_token(code: str = None, code_verifier: str = None):
     if code:
         # Requesting initial refresh_token and access_token
         payload = {
-            "client_id": "specter-dev",
+            "client_id": client_id,
             "client_secret": client_secret,
             "code_verifier": code_verifier,
             "grant_type": "authorization_code",
@@ -109,21 +109,12 @@ def get_access_token(code: str = None, code_verifier: str = None):
 
         auth_hash = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
         auth_header["Authorization"] = f"Basic {auth_hash}"
-        logger.debug(f"auth_hash: {auth_hash}")
-        logger.debug("Using the refresh_token to request an access_token")
-        logger.debug(f"payload: {json.dumps(payload, indent=4)}")
-
-    logger.debug(payload)
-    logger.debug(auth_header)
 
     response = requests.post(
         f"{api_url}/oidc/token",
         data=payload,
         headers=auth_header,
     )
-    logger.debug(f"api_url: {api_url}")
-    logger.debug(response)
-    logger.debug(response.text)
     resp = json.loads(response.text)
     """
         {
@@ -134,8 +125,6 @@ def get_access_token(code: str = None, code_verifier: str = None):
             "token_type": "Bearer"
         }
     """
-    # TODO: Remove debugging
-    logger.debug(json.dumps(resp, indent=4))
     if resp.get("access_token"):
         new_api_data = {
             SwanService.ACCESS_TOKEN: resp["access_token"],
@@ -149,10 +138,6 @@ def get_access_token(code: str = None, code_verifier: str = None):
 
         SwanService.update_current_user_service_data(new_api_data)
 
-        # TODO: Remove debugging
-        logger.debug(
-            f"service_data: {json.dumps(SwanService.get_current_user_service_data(), indent=4)}"
-        )
         return resp["access_token"]
     else:
         logger.warning(response)
@@ -161,8 +146,6 @@ def get_access_token(code: str = None, code_verifier: str = None):
 
 def handle_oauth2_auth_callback(request):
     code = request.args.get("code")
-    logger.debug(f"request.args: {request.args}")
-    logger.debug(f"looks good, we got a code: {code}")
     get_access_token(code=code, code_verifier=code_verifier)
 
 
@@ -229,7 +212,6 @@ def get_autowithdrawal_addresses(swan_wallet_id: str = None) -> dict:
         method="GET",
     )
 
-    logger.debug(json.dumps(resp, indent=4))
     return resp
 
 
@@ -284,13 +266,10 @@ def update_autowithdrawal_addresses(
                         "clientId": "specter-dev"
                     },
                     "specter_wallet_alias": "seedsigner_demo"
-                },
-                "btcAddresses": []
+                }
             }
         }
     """
-    logger.debug(json.dumps(resp, indent=4))
-
     if "item" in resp and "id" in resp["item"]:
         if resp["item"]["id"] != swan_wallet_id:
             swan_wallet_id = resp["item"]["id"]
@@ -314,7 +293,6 @@ def delete_autowithdrawal_addresses(swan_wallet_id: str):
         endpoint=f"/apps/v20210824/wallets/{swan_wallet_id}/addresses",
         method="DELETE",
     )
-    logger.debug(json.dumps(resp, indent=4))
     return resp
 
 
@@ -327,7 +305,6 @@ def get_autowithdrawal_info() -> dict:
         endpoint="/apps/v20210824/automatic-withdrawal",
         method="GET",
     )
-    logger.debug(json.dumps(resp, indent=4))
     return resp
 
 
@@ -357,7 +334,6 @@ def set_autowithdrawal(btc_threshold: Decimal) -> dict:
             "minBtcThreshold": btc_threshold,
         },
     )
-    logger.debug(json.dumps(resp, indent=4))
 
     """
         {
@@ -414,7 +390,6 @@ def activate_autowithdrawal() -> dict:
         endpoint=endpoint,
         method=method,
     )
-    logger.debug(json.dumps(resp, indent=4))
 
     """
         {
@@ -446,16 +421,17 @@ def get_wallet_details(swan_wallet_id: str) -> dict:
     {
         "entity": "wallet",
         "item": {
-            "id": "********",
-            "isConfirmed": false,
-            "displayName": "Specter autowithdrawal to SeedSigner demo",
+            "id": "********************",
+            "walletAddressId": ""********************",
+            "btcAddress": ""********************",
+            "isConfirmed": true,
+            "displayName": "Specter Desktop \"DCA Cold Storage\"",
             "metadata": {
                 "oidc": {
                     "clientId": "specter-dev"
                 },
-                "specter_wallet_alias": "seedsigner_demo"
-            },
-            "btcAddresses": []
+                "specter_wallet_alias": "dca_cold_storage"
+            }
         }
     }
     """
@@ -464,7 +440,6 @@ def get_wallet_details(swan_wallet_id: str) -> dict:
         method="GET",
     )
 
-    logger.debug(json.dumps(resp, indent=4))
     return resp
 
 
@@ -511,6 +486,4 @@ def get_wallets() -> dict:
             ]
         }
     """
-    logger.debug(json.dumps(resp, indent=4))
-
     return resp
