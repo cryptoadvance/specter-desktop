@@ -107,8 +107,11 @@ echo "    --> Cleaning up"
 rm -rf build/ dist/ release/ electron/release/ electron/dist
 rm *.dmg || true
 
+echo "    --> Monkey patching rthooks/pyi_rth_pkgutil.py see #6537 in pyinstaller project"
+cp ./rthooks/pyi_rth_pkgutil.py ../.env/lib/python3.9/site-packages/PyInstaller/hooks/rthooks/pyi_rth_pkgutil.py
+
 echo "    --> Building specterd"
-pyinstaller specterd.spec
+pyinstaller specterd.spec --runtime-hook=rthooks/hook-pkgutil.py
 
 echo "    --> Making us ready for building electron-app for MacOS"
 cd electron
