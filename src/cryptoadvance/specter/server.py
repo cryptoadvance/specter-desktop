@@ -12,6 +12,7 @@ from flask_wtf.csrf import CSRFProtect
 from cryptoadvance.specter.liquid.rpc import LiquidRPC
 
 from cryptoadvance.specter.rpc import BitcoinRPC
+from cryptoadvance.specter.services.service_manager import ServiceManager
 from cryptoadvance.specter.util.reflection import get_template_static_folder
 
 from .helpers import hwi_get_config
@@ -115,8 +116,11 @@ def init_app(app, hwibridge=False, specter=None):
             data_folder=app.config["SPECTER_DATA_FOLDER"],
             config=app.config["DEFAULT_SPECTER_CONFIG"],
             internal_bitcoind_version=app.config["INTERNAL_BITCOIND_VERSION"],
-            service_devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"],
         )
+
+    specter.service_manager = ServiceManager(
+        specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
+    )
 
     login_manager = LoginManager()
     login_manager.session_protection = "strong"
