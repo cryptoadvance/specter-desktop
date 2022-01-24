@@ -5,6 +5,7 @@ from math import isnan
 
 import requests
 from cryptoadvance.specter.specter_error import SpecterError
+from cryptoadvance.specter.util.common import str2bool
 
 from ..helpers import is_testnet
 from .descriptor import AddChecksum, Descriptor
@@ -262,7 +263,7 @@ class PsbtCreator:
     def kwargs_from_request_form(request_form):
         """calculates the needed kwargs fow wallet.createpsbt() out of a request_form"""
         # Who pays the fees?
-        subtract = bool(request_form.get("subtract", False))
+        subtract = str2bool(request_form.get("subtract", False))
         subtract_from = int(request_form.get("subtract_from", 1))
         fee_option = request_form.get("fee_option")
         fee_rate = None
@@ -282,7 +283,7 @@ class PsbtCreator:
                     raise Exception(
                         "fee_option is manual but no fee_rate given", request_form
                     )
-        rbf = bool(request_form.get("rbf", False))
+        rbf = str2bool(request_form.get("rbf", False))
         # workaround for making the tests work with a dict
         if hasattr(request_form, "getlist"):
             coins = [coin.split(",") for coin in request_form.getlist("coinselect")]
