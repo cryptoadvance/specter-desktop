@@ -31,7 +31,7 @@
 				<p>{{ _("Note: If you set Authentication to \"None\", Specter will unlink your Service integrations as a security precaution.") }}</p>
 			</div>
 			<div id="ratelimit" class="{% if method == 'none' or not current_user.is_admin %}hidden{% endif %}">
-				{{ _("Rate Limiting (seconds between login/register attempts)") }}:<br><input id="rate_limit" type="number" name="rate_limit" min="0" step="1" value="{{ rate_limit }}"><br><br>
+				{{ _("Rate Limiting (seconds between login/register attempts)") }}:<br><input id="rate_limit" type="number" name="rate_limit" min="0" max="3600" step="1" value="{{ rate_limit }}" required><br><br>
 			</div>
 			<div id="passwordonly" class="{% if method != 'passwordonly' %}hidden{% endif %}">
 				{{ _("Specter Password") }}:<br><input id="specter_password_only" type="password" name="specter_password_only" placeholder="Set new password">
