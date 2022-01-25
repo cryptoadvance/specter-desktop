@@ -16,7 +16,7 @@
     <p id="bitbox02-pairing-code" style="margin: auto;"></p>
     <img src="{{ url_for('static', filename='img/loader_boxes.svg') }}">
     <div class="flex-center hidden" id="hwi_progress_note" style="cursor: pointer;">
-        {{ _("If your device does not show up, ensure the Specter USB settings are correctly configured.") }}<br><br>
+        {{ _("If your device does not show up, close any other wallet software that may be connected to your device and ensure the Specter USB settings are correctly configured.") }}<br><br>
         <a href="{{ url_for('settings_endpoint.hwi') }}" style="color: #fff; text-decoration: underline; cursor: pointer;">
             {{ _("View USB settings") }}
         </a>
