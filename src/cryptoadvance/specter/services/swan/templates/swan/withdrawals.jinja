@@ -35,10 +35,10 @@
     {% if wallet %}
         <div class="linked_wallet">Linked wallet:
             <a class="explorer-link" href="{{ url_for('wallets_endpoint.addresses', wallet_alias=wallet.alias) }}">{{ wallet.name }}</a><br/>
+            {% if autowithdrawal_threshold %}
+                Auto-withdrawal threshold: {% if autowithdrawal_threshold == "0" %}{{ _("Weekly") }}{% else %}{{ autowithdrawal_threshold }} btc{% endif %}
+            {% endif %}
         </div>
-        {% if autowithdrawal_threshold %}
-            Auto-withdrawal threshold: {% if autowithdrawal_threshold == "0" %}{{ _("Weekly") }}{% else %}{{ autowithdrawal_threshold }} btc{% endif %}
-        {% endif %}
 
     {% else %}
         <div class="no_linked_wallet">

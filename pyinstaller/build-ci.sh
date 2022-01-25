@@ -13,11 +13,10 @@ echo "    --> Assumed gitlab-project: ${CI_PROJECT_ROOT_NAMESPACE:+x}"
     export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance
 
 echo $1 > version.txt
-
 echo "    --> Installing (build)-requirements"
 pip3 install -r requirements.txt --require-hashes
-pip3 install -e ..
 cd ..
+pip3 install -e .
 python3 setup.py install
 cd pyinstaller
 
