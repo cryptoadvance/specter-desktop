@@ -58,13 +58,7 @@ class Specter:
     lock = threading.Lock()
     _default_asset = None
 
-    def __init__(
-        self,
-        data_folder="./data",
-        config={},
-        internal_bitcoind_version="",
-        service_devstatus_threshold=devstatus_prod,
-    ):
+    def __init__(self, data_folder="./data", config={}, internal_bitcoind_version=""):
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)
         data_folder = os.path.abspath(data_folder)
@@ -78,10 +72,6 @@ class Specter:
         self.user_manager = UserManager(
             self
         )  # has to come before calling VersionChecker()
-
-        self.service_manager = ServiceManager(
-            specter=self, devstatus_threshold=service_devstatus_threshold
-        )
 
         # version checker
         # checks for new versions once per hour

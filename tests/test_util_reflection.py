@@ -17,6 +17,10 @@ def test_get_module_from_class():
         _get_module_from_class(SpecterMigration).__name__
         == "cryptoadvance.specter.util.specter_migrator"
     )
+    assert (
+        _get_module_from_class(Service).__name__
+        == "cryptoadvance.specter.services.service"
+    )
 
 
 def test_get_package_dir_for_subclasses_of():
