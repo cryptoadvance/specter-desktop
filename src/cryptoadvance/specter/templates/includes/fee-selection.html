@@ -65,6 +65,7 @@
         constructor() {
             super();
             var shadow = this.attachShadow({mode: 'open'});
+            this.wholeTemplate = shadow
             var template_content = document.getElementById('fee-selection').content;
             var clone = template_content.cloneNode(true);
 
@@ -342,6 +343,23 @@
             }
         }
 
+        // Adds line breaks at the end of the component
+        addLineBreaks(number) {
+            for (let i = 0; i < number; i++) {
+                this.wholeTemplate.appendChild(document.createElement('br'))
+            }
+        }
+
+        // Removes all added line breaks again
+        removeLineBreaks() {
+            var allLineBreaks = this.wholeTemplate.querySelectorAll('br')
+            for (let i = 0; i < allLineBreaks.length; i++) {
+                // 11 is the nodeType of the Shadow Root
+                if (allLineBreaks[i].parentNode.nodeType == 11) {
+                    this.wholeTemplate.removeChild(allLineBreaks[i])
+                }
+            }
+        }
     }
 
     customElements.define('fee-selection', FeeSelection);        
