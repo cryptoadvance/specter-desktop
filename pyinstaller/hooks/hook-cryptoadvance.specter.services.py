@@ -1,4 +1,4 @@
-from cryptoadvance.specter.services.service_manager import ServiceManager
+from cryptoadvance.specter.managers.service_manager import ServiceManager
 
 
 # Collecting template and static files from the different services in src/cryptoadvance/specter/services

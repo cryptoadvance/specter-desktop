@@ -14,8 +14,8 @@ from cryptoadvance.specter.user import User
 from cryptoadvance.specter.managers.singleton import ConfigurableSingletonException
 from ..util.reflection import get_subclasses_for_class, _get_module_from_class
 
-from .service import Service
-from .service_encrypted_storage import ServiceEncryptedStorageManager
+from ..services.service import Service
+from ..services.service_encrypted_storage import ServiceEncryptedStorageManager
 
 logger = logging.getLogger(__name__)
 

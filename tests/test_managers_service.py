@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 from flask import Flask
-from cryptoadvance.specter.services.service_manager import ServiceManager
+from cryptoadvance.specter.managers.service_manager import ServiceManager
 
 
 def test_ServiceManager():

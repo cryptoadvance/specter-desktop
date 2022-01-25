@@ -7,7 +7,7 @@ from cryptoadvance.specter.util.reflection import (
 )
 from cryptoadvance.specter.util.specter_migrator import SpecterMigration
 from cryptoadvance.specter.util.migrations.migration_0000 import SpecterMigration_0000
-from cryptoadvance.specter.services.service_manager import Service
+from cryptoadvance.specter.managers.service_manager import Service
 from cryptoadvance.specter.services.swan.service import SwanService
 from cryptoadvance.specter.services.bitcoinreserve.service import BitcoinReserveService
 
