@@ -161,9 +161,15 @@
 		FeeSelectionComponent.addEventListener("subtractClick", (event) => {
 			if ((amounts.length > 1 || !document.getElementById('ui-radio-btn').checked) && document.getElementById('subtract').checked) {
 				FeeSelectionComponent.showSubtractFrom(true)
+				if (!document.getElementById('ui-radio-btn').checked) {
+					FeeSelectionComponent.addLineBreaks(2)
+				}
 			} 
 			else {
 				FeeSelectionComponent.showSubtractFrom(false)
+				if (!document.getElementById('ui-radio-btn').checked) {
+					FeeSelectionComponent.removeLineBreaks()
+				}
 			}
 		})
 
@@ -563,6 +569,7 @@
 
 		function toggleSendUIType(radioBtn) {
 			if (radioBtn.value == 'ui') {
+				FeeSelectionComponent.removeLineBreaks()
 				setVisibility('recipients', 'block');
 				setVisibility('add-recipient', 'flex');
 				setVisibility('recipients-txt-container', 'none');
@@ -579,8 +586,11 @@
 				setVisibility('remove-recipient', 'none');
 				setVisibility('recipients-txt-container', 'block');
 				// Assumes that text is always used for multiple recipients
-				FeeSelectionComponent.showSubtractFrom(true)
-
+				if (document.getElementById('subtract').checked) {
+					FeeSelectionComponent.showSubtractFrom(true)
+					// Adds two line breaks after the RBF checkbox, since it gets crowded
+					FeeSelectionComponent.addLineBreaks(2)
+				}
 			}
 		}
 
