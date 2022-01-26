@@ -1,7 +1,8 @@
 import logging
 from pathlib import Path
 from cryptoadvance.specter.util.reflection import (
-    get_subclasses_for_class,
+    get_subclasses_for_clazz,
+    get_classlist_of_type_clazz_from_modulelist,
     _get_module_from_class,
     get_package_dir_for_subclasses_of,
 )
@@ -32,10 +33,23 @@ def test_get_package_dir_for_subclasses_of():
     )
 
 
-def test_get_subclasses_in_packagedir(caplog):
+def test_get_classlist_from_importlist(caplog):
+    caplog.set_level(logging.DEBUG)
+    modulelist = [
+        "cryptoadvance.specter.services.swan.service",
+        "cryptoadvance.specter.services.bitcoinreserve.service",
+    ]
+    classlist = get_classlist_of_type_clazz_from_modulelist(Service, modulelist)
+    assert len(classlist) == 2  # Happy to remove that at some point
+    assert SwanService in classlist
+    assert BitcoinReserveService in classlist
+
+
+def test_get_subclasses_for_class(caplog):
     caplog.set_level(logging.INFO)
-    classlist = get_subclasses_for_class(SpecterMigration)
+    classlist = get_subclasses_for_clazz(SpecterMigration)
     assert SpecterMigration_0000 in classlist
-    classlist = get_subclasses_for_class(Service)
+    classlist = get_subclasses_for_clazz(Service)
+    assert len(classlist) == 2  # Happy to remove that at some point
     assert SwanService in classlist
     assert BitcoinReserveService in classlist

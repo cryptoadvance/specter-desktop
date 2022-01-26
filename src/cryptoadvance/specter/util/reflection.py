@@ -28,11 +28,12 @@ def get_template_static_folder(foldername):
 
 
 def get_package_dir_for_subclasses_of(clazz):
-    """There are two occasions where this is used: migrations and service-classes. Depending on the clazz
+    """There are two occasions where this makes sense: migrations and service-classes. Depending on the clazz
     this function is returning package_directories where subclasses from clazz are supposed to be located
     * subclasses of SpecterMigration are located in a subpackage called migrations
     * subclasses of Servuce are located in subpackages of package cryptoadvance.specter.services
-    I have to admit that this is not a pure util class as it's containing business-logic
+    I have to admit that this is not a pure util class as it's containing business-logic.
+    It's no longer used for Service.
     """
     if clazz.__name__ == "SpecterMigration":
         return str(
@@ -49,19 +50,49 @@ def get_package_dir_for_subclasses_of(clazz):
         )
 
 
-def get_subclasses_for_class(clazz, services_load_from_cwd=False):
-    """Returns all subclasses of class clazz located in the specific package for that class"""
+def get_classlist_of_type_clazz_from_modulelist(clazz, modulelist):
+    """A helper method converting a List of modules as described in config.py
+    into a List of classes. In order to make that more util-like, you
+    have to pass the the class you're searching for in the modules
+    """
     class_list = []
-    loopdir = Path(__file__).resolve()
-    package_dir = get_package_dir_for_subclasses_of(clazz)
-    logger.info(f"Collecting subclasses of {clazz.__name__} in {package_dir}...")
-    package_dirs = [package_dir]
-    if services_load_from_cwd:
-        if not Path("./src/cryptoadvance").is_dir():
-            package_dirs.append(".")
-            logger.debug(
-                "Running in non-specter-src-folder. Added CWD to Service-Discovery"
-            )
+    for fq_module_name in modulelist:
+        module = import_module(fq_module_name)
+        logger.debug(f"Imported {fq_module_name}")
+        for attribute_name in dir(module):
+            attribute = getattr(module, attribute_name)
+            if isclass(attribute):
+                if (
+                    issubclass(attribute, clazz)
+                    and not attribute.__name__ == clazz.__name__
+                ):
+                    class_list.append(attribute)
+                    logger.info(f"  Found class {attribute.__name__}")
+    return class_list
+
+
+def get_subclasses_for_clazz_in_cwd(clazz):
+    """Returns all subclasses of class clazz located in the CWD if the cwd
+    is not a specter-desktop dev-env-kind-of-dir
+    """
+    package_dirs = []
+    if not Path("./src/cryptoadvance").is_dir():
+        package_dirs.append(".")
+        logger.info("Running in non-specter-src-folder. Added CWD to Service-Discovery")
+    else:
+        return []
+    return get_subclasses_for_clazz(package_dirs)
+
+
+def get_subclasses_for_clazz(clazz, package_dirs=None):
+    """Returns all subclasses of class clazz located in the CWD
+    potentially add additional_packagedirs which is usefull for
+    calculating pyinstaller hiddenimports
+    """
+    if package_dirs == None:
+        package_dirs = [get_package_dir_for_subclasses_of(clazz)]
+    class_list = []
+    logger.info(f"Collecting subclasses of {clazz.__name__} in {package_dirs}...")
     for (_, module_name, _) in iter_modules(
         package_dirs
     ):  # import the module and iterate through its attributes
