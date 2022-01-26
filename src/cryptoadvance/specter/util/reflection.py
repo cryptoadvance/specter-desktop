@@ -6,6 +6,8 @@ from pathlib import Path
 import pkgutil
 from pkgutil import iter_modules
 import sys
+from .common import camelcase2snake_case
+from ..specter_error import SpecterError
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +50,14 @@ def get_package_dir_for_subclasses_of(clazz):
                 import_module("cryptoadvance.specter.services").__file__
             ).parent.resolve()
         )
+    # This is mainly for testing purposes for now
+    elif clazz.__name__ == "Device":
+        return str(
+            Path(
+                import_module("cryptoadvance.specter.devices").__file__
+            ).parent.resolve()
+        )
+    raise SpecterError("Unknown Class: {clazz}")
 
 
 def get_classlist_of_type_clazz_from_modulelist(clazz, modulelist):
@@ -125,6 +135,19 @@ def get_subclasses_for_clazz(clazz, package_dirs=None):
             module = import_module(
                 f"cryptoadvance.specter.util.migrations.{module_name}"
             )
+        else:
+            try:
+                module = import_module(
+                    f"{module_name}.{camelcase2snake_case(clazz.__name__)}"
+                )
+                logger.debug(
+                    f"Imported {module_name}.{camelcase2snake_case(clazz.__name__)}"
+                )
+            except ModuleNotFoundError as e:
+                logger.debug(
+                    f"No Service Impl found in {module_name}.service. Skipping!"
+                )
+                continue
         for attribute_name in dir(module):
             attribute = getattr(module, attribute_name)
             if isclass(attribute):
