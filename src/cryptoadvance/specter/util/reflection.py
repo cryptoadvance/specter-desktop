@@ -76,12 +76,15 @@ def get_subclasses_for_clazz_in_cwd(clazz):
     is not a specter-desktop dev-env-kind-of-dir
     """
     package_dirs = []
-    if not Path("./src/cryptoadvance").is_dir():
+    if Path("./src/cryptoadvance").is_dir() or getattr(sys, "frozen", False):
+        # No discovery in specter-desktop-dev-env (doesn't make sense)
+        # or appimage-mode (technically difficult on Linux and security-risk for
+        # appimage-users even on --config DevelopmentConfig)
+        return []
+    else:
         package_dirs.append(".")
         logger.info("Running in non-specter-src-folder. Added CWD to Service-Discovery")
-    else:
-        return []
-    return get_subclasses_for_clazz(package_dirs)
+        return get_subclasses_for_clazz(clazz, package_dirs)
 
 
 def get_subclasses_for_clazz(clazz, package_dirs=None):
