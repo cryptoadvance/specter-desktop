@@ -143,6 +143,12 @@ class BaseConfig(object):
     # THIS MIGHT BE A SECURITY_CRITICAL SETTING. DON'T SWITH TO TRUE IN PROD
     SERVICES_LOAD_FROM_CWD = False
 
+    # List of extensions (services) to potentially load
+    EXTENSION_LIST = [
+        "cryptoadvance.specter.services.swan.service",
+        "cryptoadvance.specter.services.bitcoinreserve.service",
+    ]
+
     # This is just a placeholder in order to be aware that you cannot set this
     # It'll be filled up with the fully qualified Classname the Config is derived from
     SPECTER_CONFIGURATION_CLASS_FULLNAME = None

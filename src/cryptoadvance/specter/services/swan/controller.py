@@ -54,7 +54,7 @@ def index():
         # User has already completed Swan integration; skip ahead
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
     return render_template(
-        "swan/index.jinja",
+        "swan/index.jinja", swan_frontend_url=app.config["SWAN_FRONTEND_URL"]
     )
 
 

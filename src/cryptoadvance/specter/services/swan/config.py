@@ -10,6 +10,7 @@ class BaseConfig:
         "BcetcVcmueWf5P3UPJnHhCBMQ49p38fhzYwM7t3DJGzsXSjm89dDR5URE46SY69j"
     )
     SWAN_API_URL = "https://dev-api.swanbitcoin.com"
+    SWAN_FRONTEND_URL = "https://dev-app.swanbitcoin.com/signup"
 
 
 class ProductionConfig(BaseConfig):
@@ -18,3 +19,4 @@ class ProductionConfig(BaseConfig):
         "UcqMZw3D70#E*Zo1hnC8f8P^Ils^6wligXMB*vL1fX@DYm6zloDI#p9Eemk8!y9#"
     )
     SWAN_API_URL = "https://api.swanbitcoin.com"
+    SWAN_FRONTEND_URL = "https://www.swanbitcoin.com/Specter/"
