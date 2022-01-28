@@ -41,9 +41,9 @@
     </style>
     <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" width="300"/>
     <div class="card center" style="width: auto; min-width: 90%; margin: 40px;">
-        <h1>Swan Integration Success!</h1>
+        <h1>{{ _("Swan Integration Success!") }}</h1>
         <br/>
-        <h2>You can close this browser tab now and login again.</h2>
+        <h2>{{ _("You can close this browser tab now.") }}</h2>
     </div>
 {% endblock %}
 
