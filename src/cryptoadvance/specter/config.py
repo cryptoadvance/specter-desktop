@@ -135,15 +135,46 @@ class BaseConfig(object):
     # Babel integration. List of languages written from right to left for RTL support in the UI
     RTL_LANGUAGES = ["he"]
 
+    # One of "prod", "beta" or "alpha". Every Service below will be not available
+    SERVICES_DEVSTATUS_THRESHOLD = os.getenv("SERVICES_DEVSTATUS_THRESHOLD", "prod")
+
+    # If the Current Working Directory doesn't look like a Specter-desktop Source-Dir
+    # it will try to load Services from that directory if True
+    # THIS MIGHT BE A SECURITY_CRITICAL SETTING. DON'T SWITH TO TRUE IN PROD
+    SERVICES_LOAD_FROM_CWD = False
+
+    # List of extensions (services) to potentially load
+    EXTENSION_LIST = [
+        "cryptoadvance.specter.services.swan.service",
+        "cryptoadvance.specter.services.bitcoinreserve.service",
+    ]
+
+    # This is just a placeholder in order to be aware that you cannot set this
+    # It'll be filled up with the fully qualified Classname the Config is derived from
+    SPECTER_CONFIGURATION_CLASS_FULLNAME = None
+    # The user will get a warning if a request takes longer than this threshold
+    REQUEST_TIME_WARNING_THRESHOLD = int(
+        os.getenv("REQUEST_TIME_WARNING_THRESHOLD", "20")
+    )
+
 
 class DevelopmentConfig(BaseConfig):
     # https://stackoverflow.com/questions/22463939/demystify-flask-app-secret-key
     SECRET_KEY = "development key"
+
+    # EXPLAIN_TEMPLATE_LOADING = os.getenv("EXPLAIN_TEMPLATE_LOADING", "False")
+
     SPECTER_DATA_FOLDER = os.path.expanduser(
         os.getenv("SPECTER_DATA_FOLDER", "~/.specter_dev")
     )
     # API active by default in dev-mode
     SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "True")
+
+    # One of "prod", "beta" or "alpha". Every Service below will be not available
+    SERVICES_DEVSTATUS_THRESHOLD = os.getenv("SERVICES_DEVSTATUS_THRESHOLD", "alpha")
+
+    # Developing Extensions should be possible in DevelopmentConfig
+    SERVICES_LOAD_FROM_CWD = True
 
 
 class TestConfig(BaseConfig):
@@ -157,8 +188,8 @@ class TestConfig(BaseConfig):
     SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "True")
 
     # See #1316 since Bitcoin v0.21.1 (not only) the importmulti-call takes longer than 10 seconds on cirrus
-    BITCOIN_RPC_TIMEOUT = 20
-    LIQUID_RPC_TIMEOUT = 30
+    BITCOIN_RPC_TIMEOUT = 60
+    LIQUID_RPC_TIMEOUT = 60
 
 
 class CypressTestConfig(TestConfig):
@@ -187,3 +218,6 @@ class ProductionConfig(BaseConfig):
     # Take already >30secs
     BITCOIN_RPC_TIMEOUT = 60
     LIQUID_RPC_TIMEOUT = 120
+
+    # Repeating it here as it's SECURITY CRITICAL. Check comments in BaseConfig
+    SERVICES_LOAD_FROM_CWD = False

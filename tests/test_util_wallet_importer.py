@@ -1,4 +1,5 @@
 import logging
+import pytest
 import time
 
 from cryptoadvance.specter.key import Key
@@ -31,8 +32,8 @@ def test_WalletImporter_unit():
     assert wallet_importer.wallet_name == "MyTestMultisig"
 
     assert (
-        wallet_importer.recv_descriptor
-        == "wsh(sortedmulti(1,[fb7c1f11/48h/1h/0h/2h]tpubDExnGppazLhZPNadP8Q5Vgee2QcvbyAf9GvGaEY7ALVJREaG2vdTqv1MHRoDtPaYP3y1DGVx7wrKKhsLhs26GY263uE6Wi3qNbi71AHZ6p7/0/*,[1ef4e492/48h/1h/0h/2h]tpubDFiVCZzdarbyk8kE65tjRhHCambEo8iTx4xkXL8b33BKZj66HWsDnUb3rg4GZz6Mwm6vTNyzRCjYtiScCQJ77ENedb2deDDtcoNQXiUouJQ/0/*))#s0jemlck"
+        str(wallet_importer.descriptor)
+        == "wsh(sortedmulti(1,[fb7c1f11/48h/1h/0h/2h]tpubDExnGppazLhZPNadP8Q5Vgee2QcvbyAf9GvGaEY7ALVJREaG2vdTqv1MHRoDtPaYP3y1DGVx7wrKKhsLhs26GY263uE6Wi3qNbi71AHZ6p7/0/*,[1ef4e492/48h/1h/0h/2h]tpubDFiVCZzdarbyk8kE65tjRhHCambEo8iTx4xkXL8b33BKZj66HWsDnUb3rg4GZz6Mwm6vTNyzRCjYtiScCQJ77ENedb2deDDtcoNQXiUouJQ/0/*))"
     )
     assert wallet_importer.cosigners_types == [
         {"label": "MyColdcard", "type": "coldcard"},
@@ -74,7 +75,12 @@ def test_WalletImporter_unit():
     assert wallet_mock.keypoolrefill.called
 
 
+@pytest.mark.slow
 def test_WalletImporter_integration(specter_regtest_configured, bitcoin_regtest):
+    """
+    WalletImporter can load a wallet from a backup json with unknown devices and
+    initialize a watch-only wallet that can receive funds and update its balance.
+    """
     specter = specter_regtest_configured
     someuser: User = specter.user_manager.add_user(
         User.from_json(
@@ -106,7 +112,15 @@ def test_WalletImporter_integration(specter_regtest_configured, bitcoin_regtest)
     bitcoin_regtest.testcoin_faucet(
         address=wallet.getnewaddress(), confirm_payment=False
     )
-    # Realize that the wallet has funds:
-    wallet.update()
+
+    # There can be a delay in the node generating the faucet deposit tx so keep
+    #   rechecking until it's done (or we timeout).
+    for i in range(0, 15):
+        wallet.update()
+        if wallet.update_balance()["untrusted_pending"] != 0:
+            break
+        else:
+            time.sleep(2)
+
     wallet = someuser.wallet_manager.get_by_alias("another_simple_wallet")
     assert wallet.update_balance()["untrusted_pending"] == 20

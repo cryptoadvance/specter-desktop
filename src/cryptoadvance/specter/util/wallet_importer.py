@@ -7,6 +7,7 @@ from cryptoadvance.specter.specter_error import SpecterError
 
 from embit.descriptor import Descriptor
 from embit.descriptor import Key as DescriptorKey
+from embit.descriptor.arguments import AllowedDerivation
 from embit.liquid.descriptor import LDescriptor
 from cryptoadvance.specter.key import Key
 
@@ -36,14 +37,14 @@ class WalletImporter:
             self.wallet_data = json.loads(wallet_json)
             (
                 self.wallet_name,
-                self.recv_descriptor,
+                recv_descriptor,
                 self.cosigners_types,
             ) = WalletImporter.parse_wallet_data_import(self.wallet_data)
         except Exception as e:
             logger.warning(f"Trying to import: {wallet_json}")
             raise SpecterError(f"Unsupported wallet import format:{e}")
         try:
-            self.descriptor = DescriptorCls.from_string(self.recv_descriptor)
+            self.descriptor = DescriptorCls.from_string(recv_descriptor)
             self.check_descriptor()
         except Exception as e:
             raise SpecterError(f"Invalid wallet descriptor: {e}")
@@ -58,6 +59,19 @@ class WalletImporter:
         self.wallet_type = "multisig" if self.descriptor.is_basic_multisig else "simple"
 
     def check_descriptor(self):
+        # Sparrow fix: if all keys have None as allowed derivation - set allowed derivation to [0, None]
+        if all(
+            [
+                k.allowed_derivation is None or k.allowed_derivation.indexes == []
+                for k in self.descriptor.keys
+                if k.is_extended
+            ]
+        ):
+            for k in self.descriptor.keys:
+                if k.is_extended:
+                    k.allowed_derivation = AllowedDerivation([0, None])
+
+        # Check that all keys are HD keys and all have default derivation
         for key in self.descriptor.keys:
             if not key.is_extended:
                 raise SpecterError("Only HD keys are supported in descriptor")
@@ -210,16 +224,13 @@ class WalletImporter:
                         f"Using pruned node - we will only rescan from block {newstartblock}"
                     )
                     startblock = newstartblock
-            self.wallet.rpc.rescanblockchain(startblock, timeout=1)
+            self.wallet.rpc.rescanblockchain(startblock, no_wait=True)
             logger.info("Rescanning Blockchain ...")
-        except requests.exceptions.ReadTimeout:
-            # this is normal behavior in our usecase
-            pass
         except Exception as e:
             logger.error("Exception while rescanning blockchain: %r" % e)
             if potential_errors:
                 potential_errors = SpecterError(
-                    potential_errors
+                    str(potential_errors)
                     + " and "
                     + "Failed to perform rescan for wallet: %r" % e
                 )

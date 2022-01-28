@@ -1,36 +1,23 @@
-import json
 import logging
 import os
 import pathlib
 import shutil
 import threading
 import traceback
-import hashlib
-from collections import OrderedDict
-from io import BytesIO
 
-from ..helpers import alias, load_jsons, is_liquid, add_dicts
-from ..persistence import delete_file, delete_folder
+from flask_babel import lazy_gettext as _
+
+from cryptoadvance.specter.key import Key
+
+from ..helpers import add_dicts, alias, is_liquid, load_jsons
+from ..liquid.wallet import LWallet
+from ..persistence import delete_folder
 from ..rpc import RpcError, get_default_datadir
 from ..specter_error import SpecterError
-from ..util.descriptor import AddChecksum
-from ..wallet import Wallet, purposes
-from ..liquid.wallet import LWallet
-
-from embit import ec
-from embit.descriptor import Descriptor
-from embit.liquid.descriptor import LDescriptor
-from embit.descriptor.checksum import add_checksum
-
-from embit import ec
-from embit.descriptor import Descriptor
-from embit.liquid.descriptor import LDescriptor
-from embit.descriptor.checksum import add_checksum
-
-from embit import ec
-from embit.descriptor import Descriptor
-from embit.liquid.descriptor import LDescriptor
-from embit.descriptor.checksum import add_checksum
+from ..wallet import (  # TODO: `purposes` unused here, but other files rely on this import
+    Wallet,
+    purposes,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +49,7 @@ class WalletManager:
         self.WalletClass = LWallet if is_liquid(chain) else Wallet
         self.update(data_folder, rpc, chain)
 
-    def update(self, data_folder=None, rpc=None, chain=None, allow_threading=True):
+    def update(self, data_folder=None, rpc=None, chain=None, use_threading=True):
         if self.is_loading:
             return
         self.is_loading = True
@@ -74,7 +61,7 @@ class WalletManager:
                 data_folder = os.path.expanduser(data_folder)
             # creating folders if they don't exist
             if not os.path.isdir(data_folder):
-                os.mkdir(data_folder)
+                os.makedirs(data_folder, exist_ok=True)
         self.working_folder = None
         if self.chain is not None and self.data_folder is not None:
             self.working_folder = os.path.join(self.data_folder, self.chain)
@@ -102,7 +89,7 @@ class WalletManager:
             for k in list(self.wallets.keys()):
                 if k not in self.wallets_update_list:
                     self.wallets.pop(k)
-            if allow_threading and self.allow_threading:
+            if self.allow_threading and use_threading:
                 t = threading.Thread(
                     target=self._update,
                     args=(
@@ -128,7 +115,7 @@ class WalletManager:
         try:
             if self.wallets_update_list:
                 loaded_wallets = self.rpc.listwallets()
-                logger.info("Getting loaded wallets list from Bitcoin Core")
+                # logger.info("Getting loaded wallets list from Bitcoin Core")
                 for wallet in self.wallets_update_list:
                     wallet_alias = self.wallets_update_list[wallet]["alias"]
                     wallet_name = self.wallets_update_list[wallet]["name"]
@@ -179,10 +166,10 @@ class WalletManager:
                                     ],
                                 )
                             self.wallets[wallet_name] = loaded_wallet
-                            logger.info(
-                                "Finished loading wallet into Bitcoin Core and Specter: %s"
-                                % self.wallets_update_list[wallet]["alias"]
-                            )
+                            # logger.info(
+                            #     "Finished loading wallet into Bitcoin Core and Specter: %s"
+                            #     % self.wallets_update_list[wallet]["alias"]
+                            # )
                         except RpcError as e:
                             logger.warning(
                                 f"Couldn't load wallet {wallet_alias} into core. Silently ignored! RPC error: {e}"
@@ -208,10 +195,10 @@ class WalletManager:
                             # ok wallet is already there
                             # we only need to update
                             try:
-                                logger.info(
-                                    "Wallet already loaded in Bitcoin Core. Initializing %s Wallet object"
-                                    % self.wallets_update_list[wallet]["alias"]
-                                )
+                                # logger.info(
+                                #     "Wallet already loaded in Bitcoin Core. Initializing %s Wallet object"
+                                #     % self.wallets_update_list[wallet]["alias"]
+                                # )
                                 loaded_wallet = self.WalletClass.from_json(
                                     self.wallets_update_list[wallet],
                                     self.device_manager,
@@ -219,10 +206,10 @@ class WalletManager:
                                 )
                                 if loaded_wallet:
                                     self.wallets[wallet_name] = loaded_wallet
-                                    logger.info(
-                                        "Finished loading wallet into Specter: %s"
-                                        % self.wallets_update_list[wallet]["alias"]
-                                    )
+                                    # logger.info(
+                                    #     "Finished loading wallet into Specter: %s"
+                                    #     % self.wallets_update_list[wallet]["alias"]
+                                    # )
                                 else:
                                     raise Exception("Failed to load wallet")
                             except Exception as e:
@@ -238,20 +225,20 @@ class WalletManager:
                                 )
                         else:
                             # wallet is loaded and should stay
-                            logger.info(
-                                "Wallet already in Specter, updating wallet: %s"
-                                % self.wallets_update_list[wallet]["alias"]
-                            )
+                            # logger.info(
+                            #     "Wallet already in Specter, updating wallet: %s"
+                            #     % self.wallets_update_list[wallet]["alias"]
+                            # )
                             self.wallets[wallet_name].update()
-                            logger.info(
-                                "Finished updating wallet:  %s"
-                                % self.wallets_update_list[wallet]["alias"]
-                            )
+                            # logger.info(
+                            #     "Finished updating wallet:  %s"
+                            #     % self.wallets_update_list[wallet]["alias"]
+                            # )
                             # TODO: check wallet file didn't change
         # only ignore rpc errors
         except RpcError as e:
             logger.error(f"Failed updating wallet manager. RPC error: {e}")
-        logger.info("Done updating wallet manager")
+        # logger.info("Done updating wallet manager")
         self.wallets_update_list = {}
         self.is_loading = False
 
@@ -287,6 +274,7 @@ class WalletManager:
             ]
         except:
             walletsindir = []
+        self._check_duplicate_keys(keys)
         wallet_alias = alias(name)
         i = 2
         while (
@@ -368,22 +356,29 @@ class WalletManager:
         fetch_transactions=True,
         validate_merkle_proofs=False,
         current_blockheight=None,
+        service_id=None,
     ):
         """Returns a list of all transactions in all wallets loaded in the wallet_manager.
         #Parameters:
         #    fetch_transactions (bool): Update the TxList CSV caching by fetching transactions from the Bitcoin RPC
         #    validate_merkle_proofs (bool): Return transactions with validated_blockhash
         #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
+        #    service_id (str): Filters results for just the specified Service
         """
+        # Nested comprehensions:
         txlists = [
             [
+                # Inner comprehension: Return each tx and all its attrs as a list of dicts...
+                # TODO: Simplify this by adding an `as_dict` option to `Wallet.txlist()`?
                 {**tx, "wallet_alias": wallet.alias}
                 for tx in wallet.txlist(
                     fetch_transactions=fetch_transactions,
                     validate_merkle_proofs=validate_merkle_proofs,
                     current_blockheight=current_blockheight,
+                    service_id=service_id,
                 )
             ]
+            # Outer comprehension: ...from each wallet, each returning their own tx list.
             for wallet in self.wallets.values()
         ]
         result = []
@@ -411,9 +406,37 @@ class WalletManager:
                 result.append(tx)
         return list(reversed(sorted(result, key=lambda tx: tx["time"])))
 
+    def full_addresses_info(self, is_change: bool = False, service_id: str = None):
+        """Mimics full_txlist in concept, but is really only expected to be used for
+        retrieving all addresses across all Wallets that are associated with a
+        Service.
+
+        Not currently used yet."""
+        addresses_info = []
+        for wallet_alias, wallet in self.wallets.items():
+            addresses_info.extend(
+                wallet.addresses_info(
+                    is_change=is_change,
+                    service_id=service_id,
+                    include_wallet_alias=True,
+                )
+            )
+        return addresses_info
+
     def delete(self, specter):
         """Deletes all the wallets"""
         for w in list(self.wallets.keys()):
             wallet = self.wallets[w]
             self.delete_wallet(wallet, specter.bitcoin_datadir, specter.chain)
         delete_folder(self.data_folder)
+
+    @classmethod
+    def _check_duplicate_keys(cls, keys):
+        """raise a SpecterError when a xpub in the passed KeyList is listed twice. Should prevent MultisigWallets where
+        xpubs are used twice.
+        """
+        # normalizing xpubs in order to ignore slip132 differences
+        xpubs = [Key.parse_xpub(key.original).xpub for key in keys]
+        for xpub in xpubs:
+            if xpubs.count(xpub) > 1:
+                raise SpecterError(_(f"xpub {xpub} seem to be used at least twice!"))

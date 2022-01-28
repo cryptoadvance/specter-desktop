@@ -47,6 +47,7 @@ elif platform.system() == 'Darwin':
 a = Analysis(['specterd.py'],
              binaries=binaries,
              datas=[('../src/cryptoadvance/specter/templates', 'templates'), 
+                    ('../src/cryptoadvance/specter/services/templates', 'templates'),
                     ('../src/cryptoadvance/specter/static', 'static'),
                     ('../src/cryptoadvance/specter/translations','translations'),
                     (mnemonic_path, 'mnemonic/wordlist'),

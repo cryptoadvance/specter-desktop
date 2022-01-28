@@ -1,7 +1,6 @@
 import json, logging, pytest
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.user import User, hash_password, verify_password
-from cryptoadvance.specter.managers.user_manager import UserManager
 
 
 def test_password_hash():

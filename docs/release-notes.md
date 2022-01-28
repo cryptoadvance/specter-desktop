@@ -1,3 +1,20 @@
+[TOC]
+
+## v1.7.2 November 30, 2021
+- Feature: Default blockchain rescan to first Taproot block for Taproot wallets #1479 (kdmukai)
+- Feature: Encrypted user data storage #1453 (kdmukai)
+- Feature: More options for address labels imports #1470 (Manolis)
+- Feature: Improved export and restore hot wallet process #1495 (singlatushar07)
+- Bugfix: Adds `no_wait` option to rpc calls #1485 (kdmukai)
+- Bugfix: Adjust build-badge to Cirrus #1464 (Kim Neunert)
+- Bugfix: csrf-exempt for /toggle_hide_sensitive_info endpoint #1478 (Kim Neunert)
+- Bugfix: Custom autohide bugfix #1468 (kdmukai)
+- Bugfix: Default state for left nav "Devices" should be hidden #1481 (kdmukai)
+- Bugfix: 'Specter' object has no attribute 'user_manager' #1476 (Manolis)
+- Bugfix: tests on master #1465 (Kim Neunert)
+- Documentation: hosted at docs.specter.solutions #1463 (Kim Neunert)
+- Chore: Taproot test case #1482 (kdmukai)
+
 ## v1.7.1 November 05, 2021
 - Bugfix: Bitcoin Core as default for fee estimation, error handling improvements #1408 (Kim Neunert)
 - Bugfix: fix unknown version bug in pip-installs fixes #1442 #1450 (Kim Neunert)
@@ -652,47 +669,46 @@
 - Docs: README updates (#164) (@moritzwietersheim)
 
 ## v0.4.0 May 31, 2020
-- #112 - Mobile friendly UI (@stepansnigirev)
-- #130 - Showing transacation details while sending (@ben-kaufman)
-- #232 - Being able to copy transaction instead of sending via own node (@ben-kaufman)
-- #139 - User feedback for proper connection to Core in settings menu (@k9ert)
-- #140 - Bugfix which blocked the use of Coldcard under certain circumstances  (@ben-kaufman)
-- #128 - Bugfix how funds get represented  (@ben-kaufman)
-
+- Mobile friendly UI (#112) (@stepansnigirev)
+- Showing transacation details while sending (#130) (@ben-kaufman)
+- Being able to copy transaction instead of sending via own node (#232) (@ben-kaufman)
+- User feedback for proper connection to Core in settings menu (#139) (@k9ert)
+- Bugfix which blocked the use of Coldcard under certain circumstances (#140) (@ben-kaufman)
+- Bugfix how funds get represented (#128) (@ben-kaufman)
 - A lot of refactorings (especially for template-logic) and tidyups. We also removed some dependencies (@ben-kaufman, @stepansnigirev)
 
 ## v0.3.0 May 11, 2020
-- #104 - QR-Code animations enable to pass more information in smaller chunks (@gorazdko)
-- #108 - Renaming and Deleting wallets (@ben-kaufman)
-- #95 - addresses and utxo-view for better overview of your funds (@ben-kaufman)
-- #100 - Pending PSBTS for partially sign and sign with others devices much later (@ben-kaufman)
-- #101 - Support Device passphrases for HWI-wallets (@ben-kaufman)
-- #40 - coin selection to control which utxo you want to spend (@k9ert)
-- #120 - Display Addresses on device (@ben-kaufman)
-- #127 - Windows support (@stepansnigirev)
+- QR-Code animations enable to pass more information in smaller chunks (#104) (@gorazdko)
+- Renaming and Deleting wallets (#108) (@ben-kaufman)
+- addresses and utxo-view for better overview of your funds (#95) (@ben-kaufman)
+- Pending PSBTS for partially sign and sign with others devices much later (#100) (@ben-kaufman)
+- Support Device passphrases for HWI-wallets (#101) (@ben-kaufman)
+- coin selection to control which utxo you want to spend (#40) (@k9ert)
+- Display Addresses on device (#120) (@ben-kaufman)
+- Windows support (#127) (@stepansnigirev)
 
 ## v0.2.0 Mar 27, 2020
-- #94 - label addresses to get remember where coins are coming from (@ben-kaufman)
-- #81 - Optional Authentication with RPC Password (@k9ert)
+- label addresses to get remember where coins are coming from (#94) (@ben-kaufman)
+- Optional Authentication with RPC Password (#81) (@k9ert)
 - Support custom block explorer for all networks (@ben-kaufman)
 
 ## v0.1.2 Mar 6, 2020
 - bugfix-release (#84)
 
 ## v0.1.1 Feb 29, 2020
-- #80 - Support for compressed PSBT in QR-codes (@stepansnigirev)
-- #77 - Use specter-diy to sign via USB (@stepansnigirev)
+- Support for compressed PSBT in QR-codes #80 (@stepansnigirev)
+- Use specter-diy to sign via USB (#77) (@stepansnigirev)
 
 ## v0.1.0 Feb 27, 2020
-- #73 - Rescan Blockchain to import older wallets easily (@stepansnigirev)
+- Rescan Blockchain to import older wallets easily (#73) (@stepansnigirev)
 - Command-line options for server: daemon, ssl-certs and tor
 
 ## v0.0.2 Feb 20, 2020
-- #69 - First PIP-Release available on [PyPi](https://pypi.org/project/cryptoadvance.specter/#history) (@k9ert)
-- #23 - HWI support enables a whole bunch of hardwarewallets to work with specter (@kdmukai)
-- #19 - Tor integration (@kdmukai)
-- #56 - Support for coldcard (@kdmukai)
-- #64 - https support (@stepansnigirev)
+- First PIP-Release available on [PyPi](https://pypi.org/project/cryptoadvance.specter/#history) (#69) (@k9ert)
+- HWI support enables a whole bunch of hardwarewallets to work with specter (#23) (@kdmukai)
+- Tor integration (#19) (@kdmukai)
+- Support for coldcard (#56) (@kdmukai)
+- https support (#64) (@stepansnigirev)
 
 ## v0.0.1-alpha Sep 28, 2019
 Specter Desktop has been started by @stepansnigirev since Aug 30, 2019.

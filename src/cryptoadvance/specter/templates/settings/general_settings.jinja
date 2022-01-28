@@ -6,7 +6,6 @@
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('general', current_user) }}
 		<div class="card" style="margin: 20px auto;">
-
 			<h1>{{ _("Language") }}</h1>
 			{% include "includes/language/language_select.jinja" %}<br/>
 			<br><br>
@@ -59,6 +58,7 @@
 				<a href="{{ url_for('settings_endpoint.backup_file') }}" class="btn" style="width: 100%; margin-top: -5px;">{{ _("Download Specter backup files") }}</a>
 			</div>
 			<br>
+			<span style="margin: auto 5px auto 0px;">Load Specter backup:</span>
 			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
 				<i class="tool-tip__icon">i</i>
 				<p class="tool-tip__info">

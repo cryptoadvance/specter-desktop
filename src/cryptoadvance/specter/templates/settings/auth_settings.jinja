@@ -1,7 +1,18 @@
 {% extends "base.jinja" %}
 {% block main %}
+	<style>
+		.hasencryptedservicedata {
+            background-color: var(--cmap-bg-lighter);
+			border: 2px solid yellow;
+			border-radius: 0.5em;
+			padding: 1em;
+			text-align: center;
+			margin-bottom: 4em !important;
+		}
+	</style>
 	<form action="?" method="POST">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+		<input type="hidden" name="next" value="{{ next }}">
 		<h1 id="title" class="settings-title">Settings</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('auth', current_user) }}
@@ -16,8 +27,11 @@
 				</select>
 				<br><br>
 			{% endif %}
+			<div id="hasencryptedservicedata" style="display: none" class="hasencryptedservicedata note">
+				<p>{{ _("Note: If you set Authentication to \"None\", Specter will unlink your Service integrations as a security precaution.") }}</p>
+			</div>
 			<div id="ratelimit" class="{% if method == 'none' or not current_user.is_admin %}hidden{% endif %}">
-				{{ _("Rate Limiting (seconds between login/register attempts)") }}:<br><input id="rate_limit" type="number" name="rate_limit" min="0" step="1" value="{{ rate_limit }}"><br><br>
+				{{ _("Rate Limiting (seconds between login/register attempts)") }}:<br><input id="rate_limit" type="number" name="rate_limit" min="0" max="3600" step="1" value="{{ rate_limit }}" required><br><br>
 			</div>
 			<div id="passwordonly" class="{% if method != 'passwordonly' %}hidden{% endif %}">
 				{{ _("Specter Password") }}:<br><input id="specter_password_only" type="password" name="specter_password_only" placeholder="Set new password">
@@ -67,10 +81,15 @@
 		function toggleUsernamePassword(select) {
 			{% if current_user.is_admin %}
 				var ratelimitDiv = document.getElementById("ratelimit");
+				var hasEncryptedServiceData = document.getElementById("hasencryptedservicedata");
 				if (select.options[select.selectedIndex].value !== 'none'){
 					ratelimitDiv.style.display = 'block';
+					hasEncryptedServiceData.style.display = 'none';
 				} else {
 					ratelimitDiv.style.display = 'none';
+					{% if method != "none" and current_user.is_admin and has_service_encrypted_storage %}
+						hasEncryptedServiceData.style.display = 'block';
+					{% endif %}
 				}
 			{% endif %}
 			var usernamepasswordDiv = document.getElementById("usernamepassword");

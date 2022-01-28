@@ -15,7 +15,7 @@ An unhelathy like this:
 
 Feel free to beat me for the brittle if-clause in server.py but please solve the issue in the first place for this as well :-).
 
-## 19nd Feb 2020 - Kim
+## 19nd Feb 2020 - k9ert
 The ApplicationFactory-pattern is not that straightforward. There are loads of pifalls and different ways to go. While finding a proper way to do it, one thing became clear: You need to separate the instantiation and the initialisation of the Application.
 
 (from singleton.py)

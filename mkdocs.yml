@@ -1,0 +1,41 @@
+site_name: Specter Desktop Documentation
+site_url: https://docs.specter.solutions/desktop
+repo_url: https://github.com/cryptoadvance/specter-desktop/
+nav:
+    - Home:
+      - 'Introduction': README.md
+      - release-notes.md
+    - User Guide:
+      - faq.md
+      - multisig-security-tradeoffs.md
+      - 'Using Tor': tor.md
+      - 'Signing messages': sign-message.md
+    - Operating Guide:
+      - connect-your-node.md
+      - daemon.md
+      - performance.md
+      - reverse-proxy.md
+      - self-signed-certificates.md
+      - hwibridge.md
+      - elements.md
+      - windows.md
+      - 'Endless Pacman Troubleshooting': endless-pacman.md
+    - Development: 
+      - 'Contributing': contributing.md
+      - 'Developing': development.md
+      - 'Testing': test-new-releases.md
+      - build-instructions.md
+      - 'Continuous Integration': continuous-integration.md
+      - cypress-testing.md
+      - services/services.md
+      - 'Some Random Dev Thoughts': archblog.md
+    - API:
+      - api/README.md
+      - api/ep_liveness.md
+      - api/ep_readyness.md
+      - api/ep_specter.md
+      - api/ep_specter_fulltxlist.md
+      - api/ep_wallets_psbt.md
+      - api/ep_wallets_wallet.md
+theme: 
+  name: readthedocs

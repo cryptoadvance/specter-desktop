@@ -13,6 +13,12 @@
             word-wrap: break-word;
             margin: auto;
         }
+        .service-icon {
+            margin-top: -5px;
+            margin-right: 0.5em;
+            height:24px;
+            vertical-align: middle;
+        }
     </style>
     <div class="address-data">
         <h1>{{ _("Address details") }}</h1><br>
@@ -33,6 +39,8 @@
             this.el = clone.querySelector(".address-data");
             this.note = clone.querySelector(".note");
             this.info = clone.querySelector(".address-data-info");
+
+            // Read input "data-*" attributes
             this.isVerifyQR = this.getAttribute('data-verify-qr') == 'True';
             this.isVerifyHwi = this.getAttribute('data-verify-hwi') == 'True';
             this.used = (this.getAttribute('data-used') == 'true');
@@ -40,7 +48,10 @@
             this.amount = this.getAttribute('data-amount');
             this.amountPrice = this.getAttribute('data-amount-price');
             this.address = this.getAttribute('data-address');
+            this.label = this.getAttribute('data-label');
+            this.serviceId = this.getAttribute('data-service-id');
             this.wallet = this.getAttribute('data-address-wallet');
+
             this.note.innerText = `{{ _("Loading address") }}: ${this.address} {{ _("details") }}...`;
             this.fetchAddressData();
         
@@ -49,7 +60,7 @@
         }
 
         async fetchAddressData() {
-            let url = `{{ url_for('wallets_endpoint.addressinfo', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+            let url = `{{ url_for('wallets_endpoint_api.addressinfo', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
             var formData = new FormData();
             formData.append('address', this.address);
             formData.append('csrf_token', '{{ csrf_token() }}');
@@ -67,7 +78,6 @@
                 }
                 const jsonResponse = await response.json();
                 if (jsonResponse.success) {
-                    console.log(jsonResponse);
                     let descriptor = jsonResponse.descriptor;
                     let addressIndex = jsonResponse.index;
                     let isChange = jsonResponse.change;
@@ -75,20 +85,31 @@
                     let address = jsonResponse.address;
                     let walletLink = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
                     let addressInfoHTML = `
-                    <qr-code style="margin: auto;" value="bitcoin:${address}" width="256"></qr-code><br>
-                    <table class="address-data-table">
-                    <tbody>
-                    <tr><td>{{ _("Address") }}:</td><td style="word-break: break-all;"><explorer-link data-type="address" data-value="${address}"></explorer-link></td></tr>
-                    <tr><td>{{ _("Label") }}:</td><td><address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}"></address-label><br></td></tr>
-                    <tr><td>{{ _("From wallet") }}:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
-                    <tr><td>{{ _("Address index") }}:</td><td>${addressIndex}</td></tr>
-                    <tr><td>{{ _("Is change address") }}:</td><td>${isChange ? '{{ _("Yes") }}' : '{{ _("No") }}'}</td></tr>
-                    <tr><td>{{ _("Used") }}:</td><td>${this.used ? 'Yes' : 'No'}</td></tr>
-                    <tr><td>{{ _("UTXO count") }}:</td><td>${this.utxo}</td></tr>
-                    <tr><td>{{ _("Amount") }}:</td><td>${this.amount} <span class="amount-price note ${this.amountPrice ? '' : 'hidden'}">${this.amountPrice}</span></td></tr>
-                    </tbody>
-                    </table>
-                    `
+                        <qr-code style="margin: auto;" value="bitcoin:${address}" width="256"></qr-code><br>
+                        <table class="address-data-table">
+                        <tbody>
+                        <tr><td>{{ _("Address") }}:</td><td style="word-break: break-all;"><explorer-link data-type="address" data-value="${address}"></explorer-link></td></tr>
+                        <tr><td>{{ _("Label") }}:</td><td><address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}" data-label="${this.label}" data-service-id="${this.serviceId}"></address-label><br></td></tr>
+                        <tr><td>{{ _("From wallet") }}:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
+                        <tr><td>{{ _("Address index") }}:</td><td>${addressIndex}</td></tr>
+                        <tr><td>{{ _("Is change address") }}:</td><td>${isChange ? '{{ _("Yes") }}' : '{{ _("No") }}'}</td></tr>
+                        <tr><td>{{ _("Used") }}:</td><td>${this.used ? 'Yes' : 'No'}</td></tr>
+                        <tr><td>{{ _("UTXO count") }}:</td><td>${this.utxo}</td></tr>
+                        <tr><td>{{ _("Amount") }}:</td><td>${this.amount} <span class="amount-price note ${this.amountPrice ? '' : 'hidden'}">${this.amountPrice}</span></td></tr>
+                        <tr><td>{{ _("Service") }}:</td><td>
+                    `;
+                    if ((typeof services !== 'undefined') && (this.serviceId in services)) {
+                        // `services` obj made globally available in services-data.html
+                        addressInfoHTML += `<img class="service-icon" src='/svc/${this.serviceId}/static/${services[this.serviceId].icon}'>${services[this.serviceId].name}`;
+                    } else {
+                        let associateServiceUrl = `{{ url_for('services_endpoint.associate_addr', wallet_alias='WALLET_ALIAS', address='ADDRESS') }}`.replace('WALLET_ALIAS', this.wallet).replace('ADDRESS', jsonResponse.address);
+                        addressInfoHTML += `<button type="button" class="btn" onclick="location.href='${associateServiceUrl}';">{{ _("Associate with a service") }}</button>`
+                    }
+                    addressInfoHTML += `
+                        </td></tr>
+                        </tbody>
+                        </table>
+                    `;
 
                     if (this.isVerifyHwi) { 
                         addressInfoHTML += `

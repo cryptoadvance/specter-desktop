@@ -194,6 +194,72 @@ def test_wallet_createpsbt(docker, request, devices_filled_data_folder, device_m
         bitcoind_controller.stop_bitcoind()
 
 
+def test_WalletManager_check_duplicate_keys(empty_data_folder):
+    wm = WalletManager(
+        200100,
+        empty_data_folder,
+        None,
+        "regtest",
+        None,
+        allow_threading=False,
+    )
+    key1 = Key(
+        "[f3e6eaff/84h/0h/0h]xpub6C5cCQfycZrPJnNg6cDdUU5efJrab8thRQDBxSSB4gP2J3xGdWu8cqiLvPZkejtuaY9LursCn6Es9PqHgLhBktW8217BomGDVBAJjUms8iG",
+        "f3e6eaff",
+        "84h/0h/0h",
+        "",
+        None,
+        "xpub6C5cCQfycZrPJnNg6cDdUU5efJrab8thRQDBxSSB4gP2J3xGdWu8cqiLvPZkejtuaY9LursCn6Es9PqHgLhBktW8217BomGDVBAJjUms8iG",
+    )
+    key2 = Key(
+        "[1ef4e492/49h/0h/0h]xpub6CRWp2zfwRYsVTuT2p96hKE2UT4vjq9gwvW732KWQjwoG7v6NCXyaTdz7NE5yDxsd72rAGK7qrjF4YVrfZervsJBjsXxvTL98Yhc7poBk7K",
+        "1ef4e492",
+        "m/49h/0h/0h",
+        "sh-wpkh",
+        None,
+        "xpub6CRWp2zfwRYsVTuT2p96hKE2UT4vjq9gwvW732KWQjwoG7v6NCXyaTdz7NE5yDxsd72rAGK7qrjF4YVrfZervsJBjsXxvTL98Yhc7poBk7K",
+    )
+    key3 = Key(
+        "[1ef4e492/49h/0h/0h]zpub6qk8ok1ouvwM1NkumKnsteGf1F9UUNshFdFdXEDwph8nQFaj8qEFry2cxoUveZCkPpNxQp4KhQwxuy4R7jXDMMsKkgW2yauC2dHbWYnr2Ee",
+        "1ef4e492",
+        "m/49h/0h/0h",
+        "sh-wpkh",
+        None,
+        "zpub6qk8ok1ouvwM1NkumKnsteGf1F9UUNshFdFdXEDwph8nQFaj8qEFry2cxoUveZCkPpNxQp4KhQwxuy4R7jXDMMsKkgW2yauC2dHbWYnr2Ee",
+    )
+
+    key4 = Key(
+        "[6ea15da6/49h/0h/0h]xpub6BtcNhqbaFaoC3oEfKky3Sm22pF48U2jmAf78cB3wdAkkGyAgmsVrgyt1ooSt3bHWgzsdUQh2pTJ867yTeUAMmFDKNSBp8J7WPmp7Df7zjv",
+        "6ea15da6",
+        "m/49h/0h/0h",
+        "sh-wpkh",
+        None,
+        "xpub6BtcNhqbaFaoC3oEfKky3Sm22pF48U2jmAf78cB3wdAkkGyAgmsVrgyt1ooSt3bHWgzsdUQh2pTJ867yTeUAMmFDKNSBp8J7WPmp7Df7zjv",
+    )
+
+    key5 = Key(
+        "[6ea15da6/49h/0h/0h]xpub6BtcNhqbaFaoG3xcuncx9xzL3X38FuWXdcdvsdG5Q99Cb4EgeVYPEYaVpX28he6472gEsCokg8v9oMVRTrZNe5LHtGSPcC5ofehYkhD1Kxy",
+        "6ea15da6",
+        "m/49h/0h/1h",
+        "sh-wpkh",
+        None,  # slightly different ypub than key4
+        "xpub6BtcNhqbaFaoG3xcuncx9xzL3X38FuWXdcdvsdG5Q99Cb4EgeVYPEYaVpX28he6472gEsCokg8v9oMVRTrZNe5LHtGSPcC5ofehYkhD1Kxy",
+    )
+
+    # Case 1: Identical keys
+    keys = [key1, key1]
+    with pytest.raises(SpecterError):
+        wm._check_duplicate_keys(keys)
+    # Case 2: different keys
+    # key2 and 3 are different as they don't have the same xpub. See #1500 for discussion
+    keys = [key1, key2, key3]  # key2 xpub is the same than key3 zpub
+    with pytest.raises(SpecterError):
+        wm._check_duplicate_keys(keys)
+
+    keys = [key4, key5]
+    wm._check_duplicate_keys(keys)
+
+
 def test_wallet_sortedmulti(
     bitcoin_regtest, devices_filled_data_folder, device_manager
 ):
@@ -290,6 +356,16 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
 
     address_balance = wallet.fullbalance
     assert len(wallet.full_utxo) == 20
+
+    print(wallet.full_utxo[4])
+    # Something like:
+    # { 'txid': 'fab823558781745179916b4bfdfd65b382bfc0e70e85188f1b9538604202f537',
+    #   'vout': 0, 'address': 'bcrt1qmlrraffw0evkjy2yrxmt263ksgfgv2gqhcddrt',
+    #   'label': 'Random label', 'scriptPubKey': '0014dfc63ea52e7e5969114419b6b56a368212862900',
+    #   'amount': 50.0, 'confirmations': 101, 'spendable': False, 'solvable': True,
+    #   'desc': "wpkh([08686ac6/48'/1'/0'/2'/0/0]02fa445808af849209038f422a22e335754fa07a2ece42fc483660606dcda3e0e9)#8q60z40m",
+    #   'safe': True, 'time': 1637091575, 'category': 'generate', 'locked': False
+    # }
 
     new_address = wallet.getnewaddress()
     wallet.setlabel(new_address, "")
@@ -683,3 +759,50 @@ def test_multisig_wallet_backup_and_restore(caplog, specter_regtest_configured):
 
     # We restored the wallet's utxos
     assert wallet.update_balance()["trusted"] > 0.0
+
+
+@pytest.mark.slow
+def test_taproot_wallet(caplog, specter_regtest_configured):
+    """
+    Taproot m/86h/ derivation path xpubs should be able to create wallets and
+    receive funds
+    """
+    caplog.set_level(logging.INFO)
+
+    device_manager = specter_regtest_configured.device_manager
+    wallet_manager = specter_regtest_configured.wallet_manager
+
+    taproot_device = device_manager.add_device(
+        name="hot_key", device_type=DeviceTypes.BITCOINCORE, keys=[]
+    )
+    taproot_device.setup_device(file_password=None, wallet_manager=wallet_manager)
+    taproot_device.add_hot_wallet_keys(
+        mnemonic=generate_mnemonic(strength=128),
+        passphrase="",
+        paths=["m/86h/1h/0h"],  # Taproot for testnet/regtest
+        file_password=None,
+        wallet_manager=wallet_manager,
+        testnet=True,
+        keys_range=[0, 1000],
+        keys_purposes=[],
+    )
+
+    taproot_wallet = wallet_manager.create_wallet(
+        name="my_test_wallet",
+        sigs_required=1,
+        key_type=taproot_device.keys[0].key_type,
+        keys=[taproot_device.keys[0]],
+        devices=[taproot_device],
+    )
+
+    # Fund the wallet
+    address = taproot_wallet.getnewaddress()
+
+    # Taproot test addrs are bcrt1p vs native segwit bcrt1q
+    assert address.startswith("bcrt1p")
+
+    taproot_wallet.rpc.generatetoaddress(101, address)
+
+    # update the wallet data
+    balance = taproot_wallet.update_balance()
+    assert balance["trusted"] > 0.0

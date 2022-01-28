@@ -1,6 +1,8 @@
 # Running as a daemon
 
-How to use Specter as a service - launch on boot, start and stop in the background.
+How to use Specter as a service - launch on boot, start and stop in the background. This guide is for Linux-Users only.
+
+## Specter as a Service
 
 1. Create a file `/lib/systemd/system/specter.service` with the following content (replace `User=myusername` to your username):
 ```
@@ -24,7 +26,7 @@ WantedBy=multi-user.target
 
 To stop run `sudo systemctl stop specter.service`, to restart `sudo systemctl restart specter.service`
 
-## bitcoind as a service
+## bitcoind as a Service
 
 You can do the same for `bitcoind` if you want to, then both Specter and bitcoind will start on system boot.
 To make bitcoind service follow the same steps, just name the service `bitcoind.service` and set `ExecStart=bitcoind` there.

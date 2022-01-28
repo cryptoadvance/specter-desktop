@@ -26,7 +26,7 @@
     The Crypto Anarchist Manifesto - Timothy C. May - Sun, 22 Nov 92 12:11:24 PST
 
 [![Build Status](https://api.cirrus-ci.com/github/cryptoadvance/specter-desktop.svg)](https://cirrus-ci.com/github/cryptoadvance/specter-desktop)
-[![Support the project](https://img.shields.io/badge/btcpay-support%20project-orange.svg)](https://btcpay.benkaufman.info/apps/2NBJqJ9GMmy1SPqEtg49bEcKUZqd/pos)
+[![Support the project](https://img.shields.io/badge/btcpay-support%20project-orange.svg)](https://donate.specter.solutions/apps/3k77BAT6zshCGNd3i7gw9WKwXQy1/pos)
 
 ## DISCLAIMER
 
@@ -59,7 +59,7 @@ As a small team on a tiny budget we are working hard to make Specter better ever
 We are quite overwhelmed with the response, the guides and shout-outs. Thank you!
 Stepan, Ben, Kim, all the fellow Specter-Builders & Moritz
 
-[Donations are welcome](https://btcpay.benkaufman.info/apps/2NBJqJ9GMmy1SPqEtg49bEcKUZqd/pos)
+[Donations are welcome](https://donate.specter.solutions/apps/3k77BAT6zshCGNd3i7gw9WKwXQy1/pos)
 
 ## How to run
 
@@ -124,7 +124,7 @@ If you are using Bitcoin Core with GUI, set `server=1` in `bitcoin.conf`. This s
 
 If you use Specter from a remote machine and want to use it with hardware wallets connected via USB, please read [this guide on setting up HWIBridge](docs/hwibridge.md) to facilitate such connection to hardware wallets. 
 
-Have a look at [DEVELOPMENT.md](DEVELOPMENT.md) for further information about hacking on Specter-desktop.
+Have a look at [development.md](docs/development.md) for further information about hacking on Specter-desktop.
 
 ## Tips and tricks (detailed instructions)
 

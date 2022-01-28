@@ -1,25 +1,22 @@
-import copy, random, json, re
+import copy
+import json
+import random
+import re
 
-from flask import (
-    Flask,
-    Blueprint,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    jsonify,
-    flash,
-)
+from cryptoadvance.specter.devices.device_types import DeviceTypes
+from flask import Blueprint, Flask
 from flask import current_app as app
+from flask import flash, jsonify, redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _
-from flask_login import login_required, current_user
+from flask_login import current_user, login_required
 from mnemonic import Mnemonic
+
 from ..devices.bitcoin_core import BitcoinCore
-from ..helpers import is_testnet, generate_mnemonic, validate_mnemonic
+from ..helpers import generate_mnemonic, is_testnet, validate_mnemonic
 from ..key import Key
 from ..managers.device_manager import get_device_class
-from ..managers.wallet_manager import purposes
 from ..specter_error import handle_exception
+from ..wallet import purposes
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
@@ -84,11 +81,19 @@ def new_device_keys(device_type):
                     err = _("Failed to parse these xpubs") + ":\n" + "\n".join(xpub)
                     break
         if not keys and not err:
-            if device_type in ["bitcoincore", "elementscore"]:
+            if device_type in [
+                DeviceTypes.BITCOINCORE,
+                DeviceTypes.ELEMENTSCORE,
+                DeviceTypes.BITCOINCORE_WATCHONLY,
+            ]:
                 if not paths:
                     err = _("No paths were specified, please provide at least one.")
                 if err is None:
                     if existing_device:
+                        if device_type == DeviceTypes.BITCOINCORE_WATCHONLY:
+                            device.setup_device(
+                                file_password, app.specter.wallet_manager
+                            )
                         device.add_hot_wallet_keys(
                             mnemonic,
                             passphrase,
