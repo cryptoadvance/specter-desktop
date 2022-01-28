@@ -561,8 +561,8 @@ class Wallet:
                         else txitem["address"]
                     )
                     for one_address in address_list:
-                        if one_address in labeled_addresses:
-                            continue  # if there is an address label, it supercedes the tx label
+                        if labeled_addresses.get(one_address): 
+                            continue  # if there is an address label and it is not empty, it supercedes the tx label
                         labeled_addresses[one_address] = labeled_addresses[
                             txitem["txid"]
                         ]
