@@ -1,5 +1,7 @@
 {% extends "base.jinja" %}
-
+{% block head %}
+<meta http-equiv="refresh" content="30">
+{% endblock %}
 {% block main %}
     <style>
         .big_option {
@@ -41,14 +43,18 @@
         <h1>{{ _("Enable Swan Integration") }}</h1>
         <br/>
 
-        <div class="big_option" onclick="location.href='{{ flow_url }}';">
-            <div class="big_option_text">
-                Link&nbsp;your&nbsp;account
-            </div>
+        <div class="big_option" onclick="window.open('{{ flow_url }}', '_blank');">
+                <div class="big_option_text"> 
+                    {{ _("Link your account") }}
+                    
+                </div>
+                
         </div>
-
+        
         <div class="instructions">
-            {{ _("Click to sign into your Swan account and authorize Specter integration") }}
+            {{ _("(will open in a new browser tab)") }}
+            <br>
+            {{ _("Click to sign into your Swan account and authorize Specter integration.") }}
         </div>
         <br/>
     </div>
