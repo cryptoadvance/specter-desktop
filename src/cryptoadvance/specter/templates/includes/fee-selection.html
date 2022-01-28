@@ -1,7 +1,7 @@
 <template id="fee-selection">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <div class="fee_container">
-        <div>
+        <div id="subtract_fees_div">
             <label><input type="checkbox" class="inline" name="subtract" id="subtract" {% if subtract %}checked{% endif %}> {{ _("Subtract fees from amount") }}</label>
             <div class="tool-tip" style="text-align: center;">
                 <i class="tool-tip__icon">i</i>
@@ -68,6 +68,8 @@
             this.wholeTemplate = shadow
             var template_content = document.getElementById('fee-selection').content;
             var clone = template_content.cloneNode(true);
+            this.feeContainer = clone.querySelector(".fee_container")
+            this.subtractFeesDiv = clone.getElementById("subtract_fees_div")
 
             // The radio-button for manual
             this.fee_option_manual =  clone.querySelector("#fee_option_manual")
@@ -111,7 +113,8 @@
 
             // Presets
             this.feeOptionPreset = this.getAttribute('fee-option-preset') == null ? "dynamic" : this.getAttribute('fee-option-preset')
-            this.rbfOption.value = "false"
+            this.rbfOption.value = "true"
+            this.rbfOption.checked = true
             this.subtract.value = "false" 
 
             this.createLighterDOMNodes()
@@ -294,6 +297,18 @@
             }
         }
 
+        // Returns fees that can be picked up
+        selectedFee() {
+            if (this.ld.feeOption.value == "manual") {
+                let manualRate = this.ld.feeRate.value
+                return manualRate
+            } 
+            else {
+                let dynamicRate = this.ld.feeRateDynamic.value
+                return dynamicRate
+            }
+        }
+
         // Updates Light DOM values for the form
         rbfUpdated() {
             if (this.rbfOption.checked) {
@@ -304,10 +319,24 @@
             }
         }
 
+        deactivateRbf() {
+            this.rbfLabel.remove()
+            this.ld.rbfOption.value = "false"
+        }
+
+        // Subtract setter
+        setSubtract(checked) {
+            try { console.log("setSubtract running")
+            this.subtract.checked = checked
+            this.subtractUpdated()
+            } catch(e) {console.log(e)}   
+        }
+
         // Updates Light DOM values for the form
         subtractUpdated() {
             if (this.subtract.checked) {
                 this.ld.subtract.value = "true"
+                this.ld.subtract.checked = true
                 this.ld.subtractFromInput.value = this.subtractFromInput.value
             }
             else {
@@ -323,25 +352,20 @@
             }
         }
 
+        deactivateSubtract() {
+            this.subtractFeesDiv.remove()
+            this.subtractFrom.remove()
+            // Removing light DOM elements would currently break wallet_send functions
+        }
+
         subtractClickHook() {
                 let event = new CustomEvent('subtractClick', {});
                 this.subtract.addEventListener("click", () => {
                     this.ld.subtract.checked = this.subtract.checked
+                    this.subtractUpdated()
                     this.dispatchEvent(event);
                 })
             }
-
-        // Returns fees that can be picked up
-        selectedFee() {
-            if (this.ld.feeOption.value == "manual") {
-                let manualRate = this.ld.feeRate.value
-                return manualRate
-            } 
-            else {
-                let dynamicRate = this.ld.feeRateDynamic.value
-                return dynamicRate
-            }
-        }
 
         // Adds line breaks at the end of the component
         addLineBreaks(number) {

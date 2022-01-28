@@ -117,7 +117,7 @@
             let spendableAmount;
             if (!this.isCoinSelectionActive()) {
                 if(unit == 'btc' || unit == 'sat'){
-                    spendableAmount = '{{ wallet.full_available_balance | btcamount }}';
+                    spendableAmount = '{{ wallet.full_available_balance }}';
                 } else {        
                     if (unit in assetBalances){
                         return assetBalances[unit].balance;
@@ -126,7 +126,7 @@
                     }
                 }
             } else {
-                spendableAmount = this.getCoinSelectedAmount;
+                spendableAmount = this.getCoinSelectedAmount();
             }
     
             return (unit == 'sat' ? spendableAmount * 100000000 : spendableAmount);
