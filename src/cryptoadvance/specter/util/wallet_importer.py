@@ -272,6 +272,10 @@ class WalletImporter:
                     cosigners_types.append(
                         {"type": "electrum", "label": f"Electrum Multisig {i}"}
                     )
+                    if "seed" in d:
+                        logger.warning(
+                            "The Electrum wallet contains a seed. The seed will not be imported."
+                        )
                 i += 1
             xpubs = xpubs.rstrip(",")
 
