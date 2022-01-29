@@ -357,7 +357,7 @@ def wallets_overview_txlist():
     txlist = app.specter.wallet_manager.full_txlist(
         fetch_transactions=fetch_transactions,
         validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs", False),
-        current_blockheight=app.specter.info["blocks"],
+        current_blockheight=app.specter.info.get("blocks"),
         service_id=service_id,
     )
 

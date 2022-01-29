@@ -118,6 +118,7 @@
 
 {% block scripts %}
 	<script>
+
 		{% if specter.is_liquid %}
 			const MIN_FEE_RATE = 0.1;
 			const NETWORK = "Liquid"
@@ -125,6 +126,7 @@
 			const MIN_FEE_RATE = 1;
 			const NETWORK = "Bitcoin"
 		{% endif %}
+
 		// Amounts and units
 		var units = [];
 		var amounts = [];
@@ -156,6 +158,24 @@
 		})
 		var FeeSelectionComponent = document.getElementById('fee-selection-component')
 		FeeSelectionComponent = document.getElementById('fee-selection-component')
+
+		// Switch off RBF and subtract fee for Liquid
+		function adjustForLiquid() {
+			if (NETWORK == "Liquid") {
+			console.log("On Liquid, removing RBF and subtract from features ... ")
+			FeeSelectionComponent.deactivateRbf()
+			FeeSelectionComponent.deactivateSubtract() // Subtract from is still set to true for send max under the hood
+			// Remove some line breaks
+			advancedSettingsDiv = document.getElementById("advanced_settings")
+			lineBreaks = Array.from(advancedSettingsDiv.querySelectorAll('br'))
+			lineBreaks.pop() // We still need the last line break
+			for (var br of lineBreaks) {
+				if (br.parentNode == advancedSettingsDiv) {
+					advancedSettingsDiv.removeChild(br)
+				}
+			}
+			}	
+		}
 		
 		// Main part of displaying subtractFrom, the rest is with addRecipient, deleteRecipient and toggleSendUIType
 		FeeSelectionComponent.addEventListener("subtractClick", (event) => {
@@ -372,15 +392,9 @@
 		async function setMaxAmount(i) {
 			let amountInput = document.getElementById('amount_' + i);
 			if (!validAddress(i)) {
-				showError(`{{ _("Please first enter a valid address") }}`);
 				return;
 			}
-			let subtract = document.getElementById('subtract');
-			subtract.checked = (units[i] == 'sat' || units[i] == 'btc');
-			if (amounts.length > 1) {
-				document.getElementById('subtract_from').style.display = 'block';
-				document.getElementById('subtract_from_input').value = i + 1;
-			}
+			FeeSelectionComponent.setSubtract(units[i] == 'sat' || units[i] == 'btc' || units[i] == 'lbtc');
 			let othersAmount = 0;
 			for(let j in amounts) {
 				if (j != i) {
@@ -635,7 +649,7 @@
 				}
 			} catch (e) {
 				console.log(e);
-				document.getElementById('calculated_tx_fee').innerText = `: {{ _("Failed to calculate transaction fees. Perhaps you used an invalid Bitcoin address.") }}`; // TODO: Remove second part of the message until we have a better address validation here.
+				document.getElementById('calculated_tx_fee').innerText = `: {{ _("Failed to calculate transaction fees.") }}`;
 			}
 			return -1;
 		}
@@ -648,6 +662,7 @@
 		{% else %}
 			addRecipient("", 0, "btc", "");
 		{% endif %}
+			adjustForLiquid()
 			document.getElementById('toggle_advanced').addEventListener('click', (event) => {
 				toggleAdvanced();
 			});

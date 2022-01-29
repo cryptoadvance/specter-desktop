@@ -1,5 +1,4 @@
 {% extends "base.jinja" %}
-
 {% block main %}
     <style>
         .big_option {
@@ -34,6 +33,16 @@
             color: #999;
             font-style: italic;
         }
+        /* ToDo: Refactor to style.css */
+        a {
+            /* Copied from .note */
+            font-size: 0.9em;
+            text-decoration: underline;
+            color: inherit;
+        }
+        a:hover {
+            color: #fff ; 
+        }
     </style>
 
     <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" width="300"/>
@@ -41,14 +50,22 @@
         <h1>{{ _("Enable Swan Integration") }}</h1>
         <br/>
 
-        <div class="big_option" onclick="location.href='{{ flow_url }}';">
-            <div class="big_option_text">
-                Link&nbsp;your&nbsp;account
-            </div>
+        <div class="big_option" onclick="window.open('{{ flow_url }}', '_blank');">
+                <div class="big_option_text"> 
+                    {{ _("Link your account") }}
+                    
+                </div>
+                
         </div>
-
+        
         <div class="instructions">
-            {{ _("Click to sign into your Swan account and authorize Specter integration") }}
+            
+            <br>
+            {{ _("Click to sign into your Swan account and authorize Specter integration.") }}
+            {{ _("(will open in a new browser tab)") }} <br>
+            <!-- Empty href will result in keeping on that page if the auth flow didn't succeeded yet -->
+            <!-- If suceeded, the controller will automaticall redirect to settings-page -->
+            After you've succeeded, you can click <a href="">here</a> to configure swan.<br>
         </div>
         <br/>
     </div>

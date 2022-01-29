@@ -12,7 +12,7 @@ from flask_wtf.csrf import CSRFProtect
 from cryptoadvance.specter.liquid.rpc import LiquidRPC
 
 from cryptoadvance.specter.rpc import BitcoinRPC
-from cryptoadvance.specter.services.service_manager import ServiceManager
+from cryptoadvance.specter.managers.service_manager import ServiceManager
 from cryptoadvance.specter.util.reflection import get_template_static_folder
 
 from .helpers import hwi_get_config

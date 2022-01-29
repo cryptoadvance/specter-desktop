@@ -16,7 +16,7 @@ from cryptoadvance.specter.services.service_encrypted_storage import (
     ServiceEncryptedStorageError,
     ServiceEncryptedStorageManager,
 )
-from cryptoadvance.specter.services.service_manager import ServiceManager
+from cryptoadvance.specter.managers.service_manager import ServiceManager
 from cryptoadvance.specter.user import User, hash_password
 
 

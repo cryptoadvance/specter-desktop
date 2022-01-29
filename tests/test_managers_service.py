@@ -1,12 +1,18 @@
+import logging
 from unittest.mock import MagicMock
 from flask import Flask
-from cryptoadvance.specter.services.service_manager import ServiceManager
+from cryptoadvance.specter.managers.service_manager import ServiceManager
 
 
-def test_ServiceManager():
+def test_ServiceManager(caplog):
+    caplog.set_level(logging.DEBUG)
     specter_mock = MagicMock()
     specter_mock.config = {"services": {}}
     flaskapp_mock = Flask(__name__)
+    flaskapp_mock.config["EXTENSION_LIST"] = [
+        "cryptoadvance.specter.services.swan.service",
+        "cryptoadvance.specter.services.bitcoinreserve.service",
+    ]
     ctx = flaskapp_mock.app_context()
     ctx.push()
     # The ServiceManager is a flask-aware component. It will load all the services

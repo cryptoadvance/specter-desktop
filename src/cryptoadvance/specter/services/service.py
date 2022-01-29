@@ -67,6 +67,7 @@ class Service:
                 controller_module = (
                     f"cryptoadvance.specter.services.{self.id}.controller"
                 )
+            logger.info(f"  Loading Controller {controller_module}")
             import_module(controller_module)
             app.register_blueprint(
                 self.__class__.blueprint, url_prefix=f"/svc/{self.id}"
