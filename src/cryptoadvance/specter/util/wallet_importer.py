@@ -266,7 +266,10 @@ class WalletImporter:
                 xpubs += "[{}]{}/0/*,".format(
                     d["derivation"].replace("m", d["root_fingerprint"]), d["xpub"]
                 )
-                cosigners_types.append({"type": d["hw_type"], "label": d["label"]})
+                if "hw_type" in d:
+                    cosigners_types.append({"type": d["hw_type"], "label": d["label"]})
+                else:  # this can occcur if no hardware wallet was used, but the seed is available
+                    cosigners_types.append({"type": "electrum", "label": f'electrum multisig {i}'})
                 i += 1
             xpubs = xpubs.rstrip(",")
 
@@ -278,7 +281,7 @@ class WalletImporter:
                 raise Exception('"xpub" not found in "x1/" in Electrum backup json')
 
             required_sigs = int(wallet_data.get("wallet_type").split("of")[0])
-            recv_descriptor = "{}(sortedmulti({}, {}))".format(
+            recv_descriptor = "{}(sortedmulti({},{}))".format(
                 wallet_type, required_sigs, xpubs
             )
             wallet_name = "Electrum {} of {}".format(required_sigs, i - 1)
