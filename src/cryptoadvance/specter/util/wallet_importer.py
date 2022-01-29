@@ -269,7 +269,9 @@ class WalletImporter:
                 if "hw_type" in d:
                     cosigners_types.append({"type": d["hw_type"], "label": d["label"]})
                 else:  # this can occcur if no hardware wallet was used, but the seed is available
-                    cosigners_types.append({"type": "electrum", "label": f'electrum multisig {i}'})
+                    cosigners_types.append(
+                        {"type": "electrum", "label": f"electrum multisig {i}"}
+                    )
                 i += 1
             xpubs = xpubs.rstrip(",")
 
