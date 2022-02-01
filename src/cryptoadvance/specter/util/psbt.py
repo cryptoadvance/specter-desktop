@@ -198,7 +198,7 @@ class SpecterInputScope(SpecterScope):
                 },
             }
         else:
-            obj["non_witness_utxo"] = self.TxCls(self, self.scope.non_witness_utxo)
+            obj["non_witness_utxo"] = self.TxCls(self, self.scope.non_witness_utxo).to_dict()
         return obj
 
 
