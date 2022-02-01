@@ -10,6 +10,8 @@ from embit.descriptor import Key as DescriptorKey
 from embit.descriptor.arguments import AllowedDerivation
 from embit.liquid.descriptor import LDescriptor
 from cryptoadvance.specter.key import Key
+from flask import flash
+from flask_babel import lazy_gettext as _
 
 logger = logging.getLogger(__name__)
 
@@ -273,8 +275,11 @@ class WalletImporter:
                         {"type": "electrum", "label": f"Electrum Multisig {i}"}
                     )
                     if "seed" in d:
-                        logger.warning(
-                            "The Electrum wallet contains a seed. The seed will not be imported."
+                        flash(
+                            _(
+                                "The Electrum wallet contains a seed. The seed will not be imported."
+                            ),
+                            "warning",
                         )
                 i += 1
             xpubs = xpubs.rstrip(",")
