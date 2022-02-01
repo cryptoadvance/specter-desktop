@@ -1,0 +1,73 @@
+{% extends "base.jinja" %}
+
+{% block main %}
+
+<h1>address-data</h1>
+
+{% include "includes/address-data.html" %}
+
+
+<code class="html"><textarea rows="40" cols="90" style="height: 200px">
+<address-data 
+    id="someid"
+    data-verify-qr="False" 
+    data-verify-hwi="False" 
+    data-used="false" 
+    data-utxo="0" 
+    data-amount="0" 
+    data-amount-price="" 
+    data-address="lq1qqde0h6pykv3m0754qyfjfz7lcd7hxhyah9urn3zhlszaplcjetk6la7xpl2ezwn59runn290qqnhyws3ckhuwj3nllgd0wsgf" 
+    data-service-id="undefined" 
+    data-label="Address #5" 
+    data-address-wallet="myliquidhot">
+</address-data>
+</textarea>    
+</code>
+
+<p>
+Address-Data needs an existing wallet-alias and a valid address as the component is making an Ajax-call to <code>{{ url_for('wallets_endpoint_api.addressinfo', wallet_alias='WALLET_ALIAS') }}</code>
+wallet-alias and address need to be defined in order to get a valid response. You can do that here:
+</p>
+
+
+WalletAlias: <input type="text" id="walletalias" site=50/> <button id="setwalletalias">SetWalletAlias</button>
+<br>
+Address: <input type="text" id="address" site=50/> <button id="setaddress">SetAddress</button>
+
+<h2>Render example</h2>
+<br><br>
+
+<address-data 
+    id="someid"
+    data-verify-qr="False" 
+    data-verify-hwi="False" 
+    data-used="false" 
+    data-utxo="0" 
+    data-amount="0" 
+    data-amount-price="" 
+    data-address="lq1qqde0h6pykv3m0754qyfjfz7lcd7hxhyah9urn3zhlszaplcjetk6la7xpl2ezwn59runn290qqnhyws3ckhuwj3nllgd0wsgf" 
+    data-service-id="undefined" 
+    data-label="Address #5" 
+    data-address-wallet="myliquidhot"></address-data>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    var setWalletAliasButton = document.getElementById('setwalletalias')
+    
+    setWalletAliasButton.addEventListener("click", (event) => {
+        var walletAlias = document.getElementById('walletalias').value
+        document.getElementById('someid').setAttribute("data-address-wallet", walletAlias)
+        console.log(walletAlias)
+    });
+
+    var setAddressButton = document.getElementById('setaddress')
+    
+    setAddressButton.addEventListener("click", (event) => {
+        var address = document.getElementById('address').value
+        document.getElementById('someid').setAttribute("data-address", address)
+        console.log(walletAlias)
+    });
+    
+</script>
+{% endblock %}
