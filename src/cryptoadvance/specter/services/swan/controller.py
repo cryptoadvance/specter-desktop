@@ -150,7 +150,7 @@ def integration_check():
         if SwanService.has_refresh_token():
             return jsonify(success=True)
     except Exception as e:
-        # Could fail in many ways: not logged in, user_secret not decrypted, Swan integration not complete
+        # Expected to fail in various possible ways: not logged in, user_secret not decrypted, Swan integration not complete
         pass
     return jsonify(success=False)
 

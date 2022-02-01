@@ -44,7 +44,7 @@
             color: #fff ; 
         }
 
-        .hidden_button {
+        .hidden_step {
             display: none;
         }
     </style>
@@ -60,15 +60,16 @@
             </div>
         </div>
 
-        <div class="hidden_button" id="step_two">
+        <div class="hidden_step" id="step_two">
             {{ _("Complete Swan link...")}}<br/>
             <br/>
-            <div class="instructions">{{ _("(or click <a href="">here</a> to restart linking process)") }}</div>
+            <br/>
+            {{ _("If linking is complete, click <a href=''>here</a>") }}
         </div>
 
         <!-- Empty href will result in keeping on that page if the auth flow didn't succeeded yet -->
         <!-- If suceeded, the controller will automaticall redirect to settings-page -->
-        <div class="big_option hidden_button" id="step_three" onclick="location.href='';">
+        <div class="big_option hidden_step" id="step_three" onclick="location.href='';">
             <div class="big_option_text">
                 {{ _("Click here after linking") }}
             </div>
@@ -94,9 +95,9 @@
             var step_one = document.getElementById("step_one");
             var step_two = document.getElementById("step_two");
             var instructions = document.getElementById("instructions");
-            step_one.classList.add("hidden_button");
-            instructions.classList.add("hidden_button");
-            step_two.classList.remove("hidden_button");
+            step_one.classList.add("hidden_step");
+            instructions.classList.add("hidden_step");
+            step_two.classList.remove("hidden_step");
 
             setInterval(function() {
                 console.log("polling");
@@ -109,8 +110,8 @@
                         console.log(data);
                         if (data.success) {
                             var step_three = document.getElementById("step_three");
-                            step_two.classList.add("hidden_button");
-                            step_three.classList.remove("hidden_button");
+                            step_two.classList.add("hidden_step");
+                            step_three.classList.remove("hidden_step");
                             window.location.href = "{{ url_for(service.id +'_endpoint' + '.settings') }}"
                         }
                     });
