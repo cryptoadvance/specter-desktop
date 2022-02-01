@@ -76,6 +76,8 @@ class SpecterTx(AbstractTxContext):
         return obj
 
     def to_dict(self) -> dict:
+        if not self.tx:
+            return
         txid = self.tx.txid().hex()
         size = len(self.tx.serialize())
         return {
@@ -198,7 +200,9 @@ class SpecterInputScope(SpecterScope):
                 },
             }
         else:
-            obj["non_witness_utxo"] = self.TxCls(self, self.scope.non_witness_utxo).to_dict()
+            obj["non_witness_utxo"] = self.TxCls(
+                self, self.scope.non_witness_utxo
+            ).to_dict()
         return obj
 
 
