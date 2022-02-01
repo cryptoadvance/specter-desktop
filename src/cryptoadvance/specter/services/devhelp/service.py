@@ -4,9 +4,9 @@ from ..service import Service, devstatus_alpha
 class DevhelpService(Service):
     id = "devhelp"
     name = "Development Helper"
-    icon = "img/ghost.png"
-    logo = "img/ghost.png"
-    desc = "Where Development gets easier."
+    icon = "devhelp/img/orange-wrench.png"
+    logo = "devhelp/img/orange-wrench.png"
+    desc = "Wrenches at work."
     has_blueprint = True
     devstatus = devstatus_alpha
 
