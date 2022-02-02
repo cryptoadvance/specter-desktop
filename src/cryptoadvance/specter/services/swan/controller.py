@@ -4,6 +4,7 @@ import logging
 from decimal import Decimal
 from flask import redirect, render_template, request, url_for, flash
 from flask import current_app as app
+from flask.json import jsonify
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from functools import wraps
@@ -137,6 +138,22 @@ def oauth2_start():
         "swan/oauth2_start.jinja",
         flow_url=flow_url,
     )
+
+
+@swan_endpoint.route("/integration_check")
+def integration_check():
+    """
+    Polled by the oauth2_start page via AJAX. Returns False until we have a Swan refresh token.
+    Returns True and can then redirect to settings.
+    """
+    try:
+        if SwanService.has_refresh_token():
+            return jsonify(success=True)
+    except Exception as e:
+        # Expected to fail in various possible ways: not logged in, user_secret
+        # not decrypted, Swan integration not complete.
+        pass
+    return jsonify(success=False)
 
 
 """
