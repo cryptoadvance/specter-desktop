@@ -103,7 +103,7 @@
                             </td>
                             <td style="padding-top: 10px; padding-bottom: 0px; border: none; text-align: left;">
                                 <fieldset style="border:none; display: inline; width: 100%;"> 
-                                    <select name="price_provider" id="price_provider">
+                                    <select name="price_provider" id="price_provider" onchange="providerChanged()">
                                         <option data-currency-type="usd" value="bitstamp" {% if specter.price_provider == 'bitstamp' %}selected{% endif %}>Bitstamp USD</option>
                                         <option data-currency-type="usd" value="coindesk" {% if specter.price_provider == 'coindesk' %}selected{% endif %}>Coindesk USD</option>
                                         <option data-currency-type="usd" value="spotbit_coinbase" {% if specter.price_provider == 'spotbit_coinbase' %}selected{% endif %}>Spotbit Coinbase (Tor) USD</option>
@@ -177,6 +177,7 @@
                         </tr>
                     </tbody>
                 </table>
+                <p class="note hidden" id="providerwarning"  style="color: red;">This Price Provider does not support historical prices! Remember that when downloading CSVs!</p>
                 <p class="note" style="max-width: 300px; margin: auto;">{{ _("Price will automatically be fetched from the selected provider every 10 minutes.") }}</p>
             </div>
             <br><br>
@@ -295,12 +296,23 @@
             }
         }
 
+        function providerChanged() {
+            
+            let provider = document.getElementById('price_provider').value
+            if (provider == "coindesk") {
+                document.getElementById('providerwarning').classList.remove("hidden")
+            } else {
+                document.getElementById('providerwarning').classList.add("hidden")
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", function(){
             {% if specter.price_check %}
                 {% if specter.price_provider %}
                     setPriceView('automatic');
                 {% endif %}
                 filterProviderOptions();
+                providerChanged()
             {% endif %}
         });
     </script>
