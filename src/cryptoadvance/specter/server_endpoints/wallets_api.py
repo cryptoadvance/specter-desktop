@@ -782,7 +782,8 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
                 amount_price = float(tx["amount"]) * rate
                 if specter.unit == "sat":
                     rate = round(1 / rate)
-            except SpecterError:
+            except SpecterError as se:
+                logger.error(se)
                 success = False
                 amount_price = None
                 rate = "-"

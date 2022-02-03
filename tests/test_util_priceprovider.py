@@ -4,7 +4,7 @@ import requests
 import pytest
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.specter_error import SpecterError
-from cryptoadvance.specter.util.price_providers import get_price_at, currency_mapping, parse_exchange_currency
+from cryptoadvance.specter.util.price_providers import get_price_at, currency_mapping, _parse_exchange_currency, failsafe_request_get
 from mock import MagicMock
 
 
@@ -20,6 +20,24 @@ def test_underlying_requests():
     ).json()["last"]
     assert type(price) == str
     assert float(price)
+
+def test_failsafe_request_get():
+    specter_mock = Specter()
+    requests_session = specter_mock.requests_session()
+    currency = "notExisting"
+    url = "https://www.bitstamp.net/api/v2/ticker/btc{}".format(currency)
+    with pytest.raises(SpecterError) as se:
+        failsafe_request_get(requests_session, url)
+    assert f"The currency_pair does not seem to exist for that provider" in str(se.value)
+
+    currency = "usd"
+    # timestamp most probably in the future
+    url= "https://www.bitstamp.net/api/v2/ohlc/btc{}/?limit=A&step=86400&start={}".format(
+                            currency, 6275453759
+                        )
+    with pytest.raises(SpecterError) as se:
+        failsafe_request_get(requests_session, url)
+    assert str(se.value).startswith("JSON error:")
 
 def test_get_price_at():
     specter_mock = MagicMock()
@@ -80,9 +98,9 @@ def test_get_price_at_errorhandling():
     assert "The currency usd is not supported on exchange spotbit_coindesk" in str(se.value)
 
 def test_parse_exchange_currency():
-    assert parse_exchange_currency("bitstamp_eur") == ("bitstamp" , "eur")
-    assert parse_exchange_currency("spotbit_bitstamp_eur") == ("spotbit_bitstamp" , "eur")
+    assert _parse_exchange_currency("bitstamp_eur") == ("bitstamp" , "eur")
+    assert _parse_exchange_currency("spotbit_bitstamp_eur") == ("spotbit_bitstamp" , "eur")
     with pytest.raises(SpecterError):
-        parse_exchange_currency("something_spotbit_bitstamp_eur")
+        _parse_exchange_currency("something_spotbit_bitstamp_eur")
     with pytest.raises(SpecterError):
-        parse_exchange_currency("bitstamp")
+        _parse_exchange_currency("bitstamp")
