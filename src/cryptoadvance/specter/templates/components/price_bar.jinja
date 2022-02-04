@@ -177,10 +177,10 @@
                         </tr>
                     </tbody>
                 </table>
-                <p class="note hidden" id="providerwarning"  style="color: red;">This Price Provider does not support historical prices! Remember that when downloading CSVs!</p>
-                <p class="note" style="max-width: 300px; margin: auto;">{{ _("Price will automatically be fetched from the selected provider every 10 minutes.") }}</p>
+                <p class="note" style="max-width: 300px; margin: auto;">{{ _("Price will automatically be fetched from the selected provider every 10 minutes.") }}</p><br>
+                <p class="note hidden" id="providerwarning"  style="color: red; max-width: 400px; margin: auto;">{{ _("Note: This provider does not support historical data.") }}</p>
             </div>
-            <br><br>
+            <br>
             <input type="hidden" id="price_type" name="price_type" value="{{ 'automatic' if specter.price_provider else 'manual' }}">
             <button type="button" class="btn" onclick="savePriceData(true)" style="margin: auto;">{{ _("Save") }}</button>
         </div>
@@ -299,7 +299,8 @@
         function providerChanged() {
             
             let provider = document.getElementById('price_provider').value
-            if (provider == "coindesk") {
+            // For EUR etc. provider looks like this: coindesk_eur
+            if (provider.startsWith("coindesk")) {
                 document.getElementById('providerwarning').classList.remove("hidden")
             } else {
                 document.getElementById('providerwarning').classList.add("hidden")
