@@ -1,5 +1,9 @@
 {% extends "base.jinja" %}
 
+
+{% block sidebar %}
+{% endblock %}
+
 {% block main %}
     <style>
         .big_option {
@@ -37,10 +41,9 @@
     </style>
     <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" width="300"/>
     <div class="card center" style="width: auto; min-width: 90%; margin: 40px;">
-        <h1>Swan Integration Success!</h1>
+        <h1>{{ _("Swan Integration Success!") }}</h1>
         <br/>
-
-        <div class="big_option" onclick="location.href='{{ url_for('swan_endpoint.settings') }}';"><div class="big_option_text">Continue</div></div>
+        <h2>{{ _("You can close this browser tab now.") }}</h2>
     </div>
 {% endblock %}
 

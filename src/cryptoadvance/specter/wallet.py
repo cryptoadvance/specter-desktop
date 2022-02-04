@@ -532,6 +532,13 @@ class Wallet:
         self._transactions.add(txs)
 
     def import_address_labels(self, address_labels):
+        """
+        Imports address_labels given in the formats:
+            - Specter JSON
+            - Electrum JSON
+            - Specter CSV
+        Returns the number of imported address labels
+        """
         if not address_labels:
             logger.warning(f"No argument was passed.")
             raise SpecterError("Looks like you didn't input any data. Try again!")
@@ -546,11 +553,10 @@ class Wallet:
                 for label, address in raw_dictionary["labels"].items():
                     labeled_addresses[address[0]] = label
                 logger.info(f"Specter JSON was converted to {labeled_addresses}.")
-            # Electrum
+            # Electrum JSON
             else:
                 logger.debug("In the Electrum JSON part.")
                 labeled_addresses = json.loads(address_labels)
-                logger.info(f"Electrum JSON was converted to {labeled_addresses}.")
                 # write tx_label to address_label in labels
                 for txitem in self._transactions.values():
                     if txitem["txid"] not in labeled_addresses:
@@ -561,13 +567,15 @@ class Wallet:
                         else txitem["address"]
                     )
                     for one_address in address_list:
-                        if one_address in labeled_addresses:
-                            continue  # if there is an address label, it supercedes the tx label
+                        if labeled_addresses.get(one_address):
+                            continue  # if there is an address label and it is not empty, it supercedes the tx label
                         labeled_addresses[one_address] = labeled_addresses[
                             txitem["txid"]
                         ]
+                logger.info(f"Electrum JSON was converted to {labeled_addresses}.")
         # Specter CSV
         except ValueError:  # If json.loads is not possible it throws a ValueError
+            logger.debug("In the Specter CSV part.")
             labeled_addresses = {}
             logger.debug(address_labels)
             try:

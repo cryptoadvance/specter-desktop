@@ -117,7 +117,7 @@
             let spendableAmount;
             if (!this.isCoinSelectionActive()) {
                 if(unit == 'btc' || unit == 'sat'){
-                    spendableAmount = '{{ wallet.full_available_balance | btcamount }}';
+                    spendableAmount = '{{ wallet.full_available_balance }}';
                 } else {        
                     if (unit in assetBalances){
                         return assetBalances[unit].balance;
@@ -126,7 +126,7 @@
                     }
                 }
             } else {
-                spendableAmount = this.getCoinSelectedAmount;
+                spendableAmount = this.getCoinSelectedAmount();
             }
     
             return (unit == 'sat' ? spendableAmount * 100000000 : spendableAmount);
@@ -162,31 +162,17 @@
             if (this.coinselectionDiv.style.display === 'block') {
                 this.coinselectionDiv.style.display = 'none';
                 this.toggler.innerHTML = `{{ _("Coin selection") }} &#9654;`;
-                if (this.isCoinSelectionActive()) {
-                    toggleExpand();
-                }
+                this.removeSelection()
             } else {
                 this.coinselectionDiv.style.display = 'block';
                 this.toggler.innerHTML = `{{ _("Coin selection") }} &#9660;`;
             }
         }
 
-        /*
-        * Removes all coin_selection if it's no longer active
-        */
-        toggleExpand() {
-            if (this.isCoinSelectionActive()) {
-                setVisibility('coinselection', 'none');
-            } else {
-                setVisibility('coinselection', 'block');
-
-                let coins = document.getElementsByClassName('coin_select_checkbox');
-                // unselect all choices
-                for(var i = 0; i < coins.length; i++){
-                    coins[i].checked = false;
-                }
-            }
-            this.fireChangeEvent();
+        removeSelection() {
+            this.txtable.unselect_all()
+            // We also need to update the Light DOM
+            this.updateLd()
         }
 
         shouldSelectMoreCoins(unit, amount) {

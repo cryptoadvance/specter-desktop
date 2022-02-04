@@ -1,5 +1,4 @@
 {% extends "base.jinja" %}
-
 {% block main %}
     <style>
         .big_option {
@@ -34,6 +33,20 @@
             color: #999;
             font-style: italic;
         }
+        /* ToDo: Refactor to style.css */
+        a {
+            /* Copied from .note */
+            font-size: 0.9em;
+            text-decoration: underline;
+            color: inherit;
+        }
+        a:hover {
+            color: #fff ; 
+        }
+
+        .hidden_step {
+            display: none;
+        }
     </style>
 
     <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" width="300"/>
@@ -41,14 +54,32 @@
         <h1>{{ _("Enable Swan Integration") }}</h1>
         <br/>
 
-        <div class="big_option" onclick="location.href='{{ flow_url }}';">
-            <div class="big_option_text">
-                Link&nbsp;your&nbsp;account
+        <div class="big_option" id="step_one" onclick="pollSuccess(); window.open('{{ flow_url }}', '_blank');">
+            <div class="big_option_text"> 
+                {{ _("Link your account") }}                    
             </div>
         </div>
 
-        <div class="instructions">
-            {{ _("Click to sign into your Swan account and authorize Specter integration") }}
+        <div class="hidden_step" id="step_two">
+            {{ _("Complete Swan link...")}}<br/>
+            <br/>
+            <br/>
+            {{ _("If linking is complete, click <a href=''>here</a>") }}
+        </div>
+
+        <!-- Empty href will result in keeping on that page if the auth flow didn't succeeded yet -->
+        <!-- If suceeded, the controller will automaticall redirect to settings-page -->
+        <div class="big_option hidden_step" id="step_three" onclick="location.href='';">
+            <div class="big_option_text">
+                {{ _("Click here after linking") }}
+            </div>
+        </div>
+        
+        <div class="instructions" id="instructions">
+            <br>
+            {{ _("Click to sign into your Swan account and authorize Specter integration.") }}<br/>
+            <br/>
+            {{ _("(will open in a new browser tab)") }} <br>
         </div>
         <br/>
     </div>
@@ -58,5 +89,33 @@
 
 {% block scripts %}
     <script>
+        function pollSuccess() {
+            console.log("pollSuccess started");
+
+            var step_one = document.getElementById("step_one");
+            var step_two = document.getElementById("step_two");
+            var instructions = document.getElementById("instructions");
+            step_one.classList.add("hidden_step");
+            instructions.classList.add("hidden_step");
+            step_two.classList.remove("hidden_step");
+
+            setInterval(function() {
+                console.log("polling");
+                var url = "{{ url_for(service.id +'_endpoint' + '.integration_check') }}";
+                fetch(url)
+                    .then((response) => {
+                        return response.json();
+                    })
+                    .then((data) => {
+                        console.log(data);
+                        if (data.success) {
+                            var step_three = document.getElementById("step_three");
+                            step_two.classList.add("hidden_step");
+                            step_three.classList.remove("hidden_step");
+                            window.location.href = "{{ url_for(service.id +'_endpoint' + '.settings') }}"
+                        }
+                    });
+            }, 5000);
+        }
     </script>
 {% endblock %}

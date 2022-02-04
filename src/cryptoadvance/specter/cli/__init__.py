@@ -32,6 +32,7 @@ def entry_point(config_home, debug=False, tracerpc=False):
         )
         logging.getLogger("cryptoadvance").setLevel(logging.INFO)
     ch.setFormatter(formatter)
+    logging.getLogger().handlers = []
     logging.getLogger().addHandler(ch)
 
     if tracerpc:

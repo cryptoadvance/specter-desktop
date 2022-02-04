@@ -1,21 +1,28 @@
 import json
 import logging
 import os
-
-from flask import current_app as app, url_for
-from flask.blueprints import Blueprint
 from importlib import import_module
 from inspect import isclass
 from pathlib import Path
 from pkgutil import iter_modules
 from typing import Dict, List
-from cryptoadvance.specter.user import User
 
+from cryptoadvance.specter.config import ProductionConfig
 from cryptoadvance.specter.managers.singleton import ConfigurableSingletonException
-from ..util.reflection import get_subclasses_for_class
+from cryptoadvance.specter.user import User
+from flask import current_app as app
+from flask import url_for
+from flask.blueprints import Blueprint
 
-from .service import Service
-from .service_encrypted_storage import ServiceEncryptedStorageManager
+from ..services.service import Service
+from ..services.service_encrypted_storage import ServiceEncryptedStorageManager
+from ..util.reflection import (
+    _get_module_from_class,
+    get_classlist_of_type_clazz_from_modulelist,
+    get_package_dir_for_subclasses_of,
+    get_subclasses_for_clazz,
+    get_subclasses_for_clazz_in_cwd,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +37,19 @@ class ServiceManager:
         # Each Service class is stored here, keyed on its Service.id str
         self._services: Dict[str, Service] = {}
         logger.info("----> starting service discovery <----")
-        for clazz in get_subclasses_for_class(Service):
+        # How do we discover services? Two configs are relevant:
+        # * SERVICES_LOAD_FROM_CWD (boolean, CWD is current working directory)
+        # * EXTENSION_LIST (array of Fully Qualified module strings like ["cryptoadvance.specter.services.swan.service"])
+        # Ensuring security (especially for the CWD) is NOT done here but
+        # in the corresponding (Production)Config
+        logger.debug(f"EXTENSION_LIST = {app.config.get('EXTENSION_LIST')}")
+        class_list = get_classlist_of_type_clazz_from_modulelist(
+            Service, app.config.get("EXTENSION_LIST", [])
+        )
+        if app.config.get("SERVICES_LOAD_FROM_CWD", False):
+            class_list.extend(get_subclasses_for_clazz_in_cwd(Service))
+        class_list = set(class_list)  # remove duplicates (shouldn't happen but  ...)
+        for clazz in class_list:
             compare_map = {"alpha": 1, "beta": 2, "prod": 3}
             if compare_map[self.devstatus_threshold] <= compare_map[clazz.devstatus]:
                 # First configure the service
@@ -82,9 +101,6 @@ class ServiceManager:
                     cls.import_config(clazz)
                     return
 
-        logger.warning(
-            f"Could not find a configuration for Service {module} ... trying parent-classes of main-config"
-        )
         config_module = import_module(".".join(main_config_clazz_name.split(".")[0:-1]))
 
         config_clazz = getattr(config_module, main_config_clazz_slug)
@@ -95,10 +111,13 @@ class ServiceManager:
                     cls.import_config(clazz)
                     return
             config_candidate_class = config_candidate_class.__bases__[0]
+        logger.warning(
+            f"Could not find a configuration for Service {module}. Skipping configuration."
+        )
 
     @classmethod
     def import_config(cls, clazz):
-        logger.info(f"Loading Service-specific configuration from {clazz}")
+        logger.info(f"  Loading Service-specific configuration from {clazz}")
         for key in dir(clazz):
             if key.isupper():
                 if app.config.get(key):
@@ -160,3 +179,57 @@ class ServiceManager:
             # Encrypted Service data is now orphaned since there is no
             # password. So wipe it from the disk.
             ServiceEncryptedStorageManager.get_instance().delete_all_service_data(user)
+
+    @classmethod
+    def get_service_x_dirs(cls, x):
+        """returns a list of package-directories which represents a specific service.
+        This is used by the pyinstaller packaging specter
+        """
+        arr = [
+            Path(Path(_get_module_from_class(clazz).__file__).parent, x)
+            for clazz in get_subclasses_for_clazz(Service)
+        ]
+        arr = [path for path in arr if path.is_dir()]
+        return [Path("..", *path.parts[-6:]) for path in arr]
+
+    @classmethod
+    def get_service_packages(cls):
+        """returns a list of strings containing the service-classes (+ controller/config-classes)
+        This is used for hiddenimports in pyinstaller
+        """
+        arr = get_subclasses_for_clazz(Service)
+        arr.extend(
+            get_classlist_of_type_clazz_from_modulelist(
+                Service, ProductionConfig.EXTENSION_LIST
+            )
+        )
+        arr = [clazz.__module__ for clazz in arr]
+        # Controller-Packagages from the services are not imported via the service but via the baseclass
+        # Therefore hiddenimport don't find them. We have to do it here.
+        cont_arr = [
+            ".".join(package.split(".")[:-1]) + ".controller" for package in arr
+        ]
+        for controller_package in cont_arr:
+            try:
+                import_module(controller_package)
+                arr.append(controller_package)
+            except ImportError:
+                pass
+            except AttributeError:
+                # something like:
+                # AttributeError: type object 'BitcoinReserveService' has no attribute 'blueprint'
+                # shows that the package is existing
+                arr.append(controller_package)
+            except RuntimeError:
+                # something like
+                # RuntimeError: Working outside of application context.
+                # shows that the package is existing
+                arr.append(controller_package)
+        config_arr = [".".join(package.split(".")[:-1]) + ".config" for package in arr]
+        for config_package in config_arr:
+            try:
+                import_module(config_package)
+                arr.append(config_package)
+            except ModuleNotFoundError as e:
+                pass
+        return arr

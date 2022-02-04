@@ -7,8 +7,11 @@ from cryptoadvance.specter.specter_error import SpecterError
 
 from embit.descriptor import Descriptor
 from embit.descriptor import Key as DescriptorKey
+from embit.descriptor.arguments import AllowedDerivation
 from embit.liquid.descriptor import LDescriptor
 from cryptoadvance.specter.key import Key
+from flask import flash
+from flask_babel import lazy_gettext as _
 
 logger = logging.getLogger(__name__)
 
@@ -36,14 +39,14 @@ class WalletImporter:
             self.wallet_data = json.loads(wallet_json)
             (
                 self.wallet_name,
-                self.recv_descriptor,
+                recv_descriptor,
                 self.cosigners_types,
             ) = WalletImporter.parse_wallet_data_import(self.wallet_data)
         except Exception as e:
             logger.warning(f"Trying to import: {wallet_json}")
             raise SpecterError(f"Unsupported wallet import format:{e}")
         try:
-            self.descriptor = DescriptorCls.from_string(self.recv_descriptor)
+            self.descriptor = DescriptorCls.from_string(recv_descriptor)
             self.check_descriptor()
         except Exception as e:
             raise SpecterError(f"Invalid wallet descriptor: {e}")
@@ -58,6 +61,19 @@ class WalletImporter:
         self.wallet_type = "multisig" if self.descriptor.is_basic_multisig else "simple"
 
     def check_descriptor(self):
+        # Sparrow fix: if all keys have None as allowed derivation - set allowed derivation to [0, None]
+        if all(
+            [
+                k.allowed_derivation is None or k.allowed_derivation.indexes == []
+                for k in self.descriptor.keys
+                if k.is_extended
+            ]
+        ):
+            for k in self.descriptor.keys:
+                if k.is_extended:
+                    k.allowed_derivation = AllowedDerivation([0, None])
+
+        # Check that all keys are HD keys and all have default derivation
         for key in self.descriptor.keys:
             if not key.is_extended:
                 raise SpecterError("Only HD keys are supported in descriptor")
@@ -252,7 +268,19 @@ class WalletImporter:
                 xpubs += "[{}]{}/0/*,".format(
                     d["derivation"].replace("m", d["root_fingerprint"]), d["xpub"]
                 )
-                cosigners_types.append({"type": d["hw_type"], "label": d["label"]})
+                if "hw_type" in d:
+                    cosigners_types.append({"type": d["hw_type"], "label": d["label"]})
+                else:  # this can occcur if no hardware wallet was used, but the seed is available
+                    cosigners_types.append(
+                        {"type": "electrum", "label": f"Electrum Multisig {i}"}
+                    )
+                    if "seed" in d:
+                        flash(
+                            _(
+                                "The Electrum wallet contains a seed. The seed will not be imported."
+                            ),
+                            "warning",
+                        )
                 i += 1
             xpubs = xpubs.rstrip(",")
 
@@ -264,7 +292,7 @@ class WalletImporter:
                 raise Exception('"xpub" not found in "x1/" in Electrum backup json')
 
             required_sigs = int(wallet_data.get("wallet_type").split("of")[0])
-            recv_descriptor = "{}(sortedmulti({}, {}))".format(
+            recv_descriptor = "{}(sortedmulti({},{}))".format(
                 wallet_type, required_sigs, xpubs
             )
             wallet_name = "Electrum {} of {}".format(required_sigs, i - 1)

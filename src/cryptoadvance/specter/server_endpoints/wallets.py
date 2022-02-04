@@ -18,7 +18,6 @@ from ..key import Key
 from ..managers.wallet_manager import purposes
 from ..persistence import delete_file
 from ..specter_error import SpecterError, handle_exception
-from ..util.fee_estimation import get_fees
 
 logger = logging.getLogger(__name__)
 

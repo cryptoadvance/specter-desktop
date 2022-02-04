@@ -194,6 +194,72 @@ def test_wallet_createpsbt(docker, request, devices_filled_data_folder, device_m
         bitcoind_controller.stop_bitcoind()
 
 
+def test_WalletManager_check_duplicate_keys(empty_data_folder):
+    wm = WalletManager(
+        200100,
+        empty_data_folder,
+        None,
+        "regtest",
+        None,
+        allow_threading=False,
+    )
+    key1 = Key(
+        "[f3e6eaff/84h/0h/0h]xpub6C5cCQfycZrPJnNg6cDdUU5efJrab8thRQDBxSSB4gP2J3xGdWu8cqiLvPZkejtuaY9LursCn6Es9PqHgLhBktW8217BomGDVBAJjUms8iG",
+        "f3e6eaff",
+        "84h/0h/0h",
+        "",
+        None,
+        "xpub6C5cCQfycZrPJnNg6cDdUU5efJrab8thRQDBxSSB4gP2J3xGdWu8cqiLvPZkejtuaY9LursCn6Es9PqHgLhBktW8217BomGDVBAJjUms8iG",
+    )
+    key2 = Key(
+        "[1ef4e492/49h/0h/0h]xpub6CRWp2zfwRYsVTuT2p96hKE2UT4vjq9gwvW732KWQjwoG7v6NCXyaTdz7NE5yDxsd72rAGK7qrjF4YVrfZervsJBjsXxvTL98Yhc7poBk7K",
+        "1ef4e492",
+        "m/49h/0h/0h",
+        "sh-wpkh",
+        None,
+        "xpub6CRWp2zfwRYsVTuT2p96hKE2UT4vjq9gwvW732KWQjwoG7v6NCXyaTdz7NE5yDxsd72rAGK7qrjF4YVrfZervsJBjsXxvTL98Yhc7poBk7K",
+    )
+    key3 = Key(
+        "[1ef4e492/49h/0h/0h]zpub6qk8ok1ouvwM1NkumKnsteGf1F9UUNshFdFdXEDwph8nQFaj8qEFry2cxoUveZCkPpNxQp4KhQwxuy4R7jXDMMsKkgW2yauC2dHbWYnr2Ee",
+        "1ef4e492",
+        "m/49h/0h/0h",
+        "sh-wpkh",
+        None,
+        "zpub6qk8ok1ouvwM1NkumKnsteGf1F9UUNshFdFdXEDwph8nQFaj8qEFry2cxoUveZCkPpNxQp4KhQwxuy4R7jXDMMsKkgW2yauC2dHbWYnr2Ee",
+    )
+
+    key4 = Key(
+        "[6ea15da6/49h/0h/0h]xpub6BtcNhqbaFaoC3oEfKky3Sm22pF48U2jmAf78cB3wdAkkGyAgmsVrgyt1ooSt3bHWgzsdUQh2pTJ867yTeUAMmFDKNSBp8J7WPmp7Df7zjv",
+        "6ea15da6",
+        "m/49h/0h/0h",
+        "sh-wpkh",
+        None,
+        "xpub6BtcNhqbaFaoC3oEfKky3Sm22pF48U2jmAf78cB3wdAkkGyAgmsVrgyt1ooSt3bHWgzsdUQh2pTJ867yTeUAMmFDKNSBp8J7WPmp7Df7zjv",
+    )
+
+    key5 = Key(
+        "[6ea15da6/49h/0h/0h]xpub6BtcNhqbaFaoG3xcuncx9xzL3X38FuWXdcdvsdG5Q99Cb4EgeVYPEYaVpX28he6472gEsCokg8v9oMVRTrZNe5LHtGSPcC5ofehYkhD1Kxy",
+        "6ea15da6",
+        "m/49h/0h/1h",
+        "sh-wpkh",
+        None,  # slightly different ypub than key4
+        "xpub6BtcNhqbaFaoG3xcuncx9xzL3X38FuWXdcdvsdG5Q99Cb4EgeVYPEYaVpX28he6472gEsCokg8v9oMVRTrZNe5LHtGSPcC5ofehYkhD1Kxy",
+    )
+
+    # Case 1: Identical keys
+    keys = [key1, key1]
+    with pytest.raises(SpecterError):
+        wm._check_duplicate_keys(keys)
+    # Case 2: different keys
+    # key2 and 3 are different as they don't have the same xpub. See #1500 for discussion
+    keys = [key1, key2, key3]  # key2 xpub is the same than key3 zpub
+    with pytest.raises(SpecterError):
+        wm._check_duplicate_keys(keys)
+
+    keys = [key4, key5]
+    wm._check_duplicate_keys(keys)
+
+
 def test_wallet_sortedmulti(
     bitcoin_regtest, devices_filled_data_folder, device_manager
 ):

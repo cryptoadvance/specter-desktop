@@ -357,7 +357,7 @@ def wallets_overview_txlist():
     txlist = app.specter.wallet_manager.full_txlist(
         fetch_transactions=fetch_transactions,
         validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs", False),
-        current_blockheight=app.specter.info["blocks"],
+        current_blockheight=app.specter.info.get("blocks"),
         service_id=service_id,
     )
 
@@ -772,28 +772,28 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
             value = float(tx["amount"])
             tx["amount"] = round(value * 1e8)
         if includePricesHistory:
-            success, rate, symbol = get_price_at(
-                specter, current_user, timestamp=tx["time"]
-            )
-        else:
-            success = False
-        if success:
-            rate = float(rate)
-            if specter.unit == "sat":
-                rate = rate / 1e8
-            amount_price = float(tx["amount"]) * rate
-            if specter.unit == "sat":
-                rate = round(1 / rate)
-        else:
-            amount_price = None
-            rate = "-"
+            try:
+                rate, _ = get_price_at(specter, current_user, timestamp=tx["time"])
+                rate = float(rate)
+                if specter.unit == "sat":
+                    rate = rate / 1e8
+                amount_price = float(tx["amount"]) * rate
+                if specter.unit == "sat":
+                    rate = round(1 / rate)
+            except SpecterError as se:
+                logger.error(se)
+                success = False
+                amount_price = None
+                rate = "-"
 
         row = (
             time.strftime("%Y-%m-%d", time.localtime(tx["time"])),
             label,
             tx["category"],
             round(tx["amount"], (0 if specter.unit == "sat" else 8)),
-            round(amount_price * 100) / 100 if amount_price is not None else "-",
+            round(amount_price * 100) / 100
+            if amount_price is not None
+            else "no-support",
             rate,
             tx["txid"],
             tx["address"],
@@ -901,19 +901,20 @@ def wallet_addresses_list_to_csv(addresses_list):
 
 def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="asc"):
     if search:
+        search_lower = search.lower()
         txlist = [
             tx
             for tx in txlist
-            if search in tx["txid"]
+            if search_lower in tx["txid"]
             or (
                 any(search in address for address in tx["address"])
                 if isinstance(tx["address"], list)
                 else search in tx["address"]
             )
             or (
-                any(search in label for label in tx.get("label", ""))
+                any(search_lower in label.lower() for label in tx.get("label", ""))
                 if isinstance(tx.get("label", ""), list)
-                else search in tx.get("label", "")
+                else search_lower in tx.get("label", "").lower()
             )
             or (
                 any(search in str(amount) for amount in tx["amount"])
@@ -924,6 +925,16 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
             or search in str(tx["time"])
             or search
             in str(format(datetime.fromtimestamp(tx["time"]), "%d.%m.%Y %H:%M"))
+            or (
+                float(search.split(" ")[1]) > tx["amount"]
+                if search.split(" ")[0] == "<"
+                else False
+            )
+            or (
+                float(search.split(" ")[1]) < tx["amount"]
+                if search.split(" ")[0] == ">"
+                else False
+            )
         ]
     if sortby:
 

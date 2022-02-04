@@ -138,6 +138,17 @@ class BaseConfig(object):
     # One of "prod", "beta" or "alpha". Every Service below will be not available
     SERVICES_DEVSTATUS_THRESHOLD = os.getenv("SERVICES_DEVSTATUS_THRESHOLD", "prod")
 
+    # If the Current Working Directory doesn't look like a Specter-desktop Source-Dir
+    # it will try to load Services from that directory if True
+    # THIS MIGHT BE A SECURITY_CRITICAL SETTING. DON'T SWITH TO TRUE IN PROD
+    SERVICES_LOAD_FROM_CWD = False
+
+    # List of extensions (services) to potentially load
+    EXTENSION_LIST = [
+        "cryptoadvance.specter.services.swan.service",
+        "cryptoadvance.specter.services.bitcoinreserve.service",
+    ]
+
     # This is just a placeholder in order to be aware that you cannot set this
     # It'll be filled up with the fully qualified Classname the Config is derived from
     SPECTER_CONFIGURATION_CLASS_FULLNAME = None
@@ -160,7 +171,10 @@ class DevelopmentConfig(BaseConfig):
     SPECTER_API_ACTIVE = _get_bool_env_var("SPECTER_API_ACTIVE", "True")
 
     # One of "prod", "beta" or "alpha". Every Service below will be not available
-    SERVICES_DEVSTATUS_THRESHOLD = os.getenv("SERVICES_DEVSTATUS_THRESHOLD", "beta")
+    SERVICES_DEVSTATUS_THRESHOLD = os.getenv("SERVICES_DEVSTATUS_THRESHOLD", "alpha")
+
+    # Developing Extensions should be possible in DevelopmentConfig
+    SERVICES_LOAD_FROM_CWD = True
 
 
 class TestConfig(BaseConfig):
@@ -204,3 +218,6 @@ class ProductionConfig(BaseConfig):
     # Take already >30secs
     BITCOIN_RPC_TIMEOUT = 60
     LIQUID_RPC_TIMEOUT = 120
+
+    # Repeating it here as it's SECURITY CRITICAL. Check comments in BaseConfig
+    SERVICES_LOAD_FROM_CWD = False

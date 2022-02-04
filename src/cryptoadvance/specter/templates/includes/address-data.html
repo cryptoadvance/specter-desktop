@@ -98,7 +98,7 @@
                         <tr><td>{{ _("Amount") }}:</td><td>${this.amount} <span class="amount-price note ${this.amountPrice ? '' : 'hidden'}">${this.amountPrice}</span></td></tr>
                         <tr><td>{{ _("Service") }}:</td><td>
                     `;
-                    if (this.serviceId != "null") {
+                    if ((typeof services !== 'undefined') && (this.serviceId in services)) {
                         // `services` obj made globally available in services-data.html
                         addressInfoHTML += `<img class="service-icon" src='/svc/${this.serviceId}/static/${services[this.serviceId].icon}'>${services[this.serviceId].name}`;
                     } else {

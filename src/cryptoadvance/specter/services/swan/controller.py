@@ -4,6 +4,7 @@ import logging
 from decimal import Decimal
 from flask import redirect, render_template, request, url_for, flash
 from flask import current_app as app
+from flask.json import jsonify
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from functools import wraps
@@ -54,7 +55,7 @@ def index():
         # User has already completed Swan integration; skip ahead
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
     return render_template(
-        "swan/index.jinja",
+        "swan/index.jinja", swan_frontend_url=app.config["SWAN_FRONTEND_URL"]
     )
 
 
@@ -139,6 +140,22 @@ def oauth2_start():
     )
 
 
+@swan_endpoint.route("/integration_check")
+def integration_check():
+    """
+    Polled by the oauth2_start page via AJAX. Returns False until we have a Swan refresh token.
+    Returns True and can then redirect to settings.
+    """
+    try:
+        if SwanService.has_refresh_token():
+            return jsonify(success=True)
+    except Exception as e:
+        # Expected to fail in various possible ways: not logged in, user_secret
+        # not decrypted, Swan integration not complete.
+        pass
+    return jsonify(success=False)
+
+
 """
     Note: the callback from Swan will be treated by Flask as an AnonymousUserMixin request
     but we need the user logged in and their user_secret decrypted. So we must require
@@ -193,10 +210,10 @@ def oauth2_auth():
             error = e
 
     return render_template(
-        "error.html",
+        "500.jinja",
         response=None,
         error=str(error),
-        error_description=None,
+        error_description=_("Could not complete the OAuth callback from Swan"),
         cookies=request.cookies,
     )
 

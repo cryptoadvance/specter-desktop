@@ -9,16 +9,15 @@ echo "    --> This build got triggered for version $1"
 echo "    --> Assumed gitlab-project: ${CI_PROJECT_ROOT_NAMESPACE:+x}"
 
 [ -z "${CI_PROJECT_ROOT_NAMESPACE:+x}" ]    && \
-    echo "Redefinig CI_PROJECT_ROOT_NAMESPACE=cryptoadvance " && \
+    echo "Redefining CI_PROJECT_ROOT_NAMESPACE=cryptoadvance " && \
     export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance
 
 echo $1 > version.txt
-
 echo "    --> Installing (build)-requirements"
 pip3 install -r requirements.txt --require-hashes
-pip3 install -e ..
 cd ..
 python3 setup.py install
+pip3 install -e .
 cd pyinstaller
 
 echo "    --> Cleaning up"
