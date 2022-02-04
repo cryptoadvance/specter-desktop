@@ -773,9 +773,7 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
             tx["amount"] = round(value * 1e8)
         if includePricesHistory:
             try:
-                rate, _ = get_price_at(
-                    specter, current_user, timestamp=tx["time"]
-                )
+                rate, _ = get_price_at(specter, current_user, timestamp=tx["time"])
                 rate = float(rate)
                 if specter.unit == "sat":
                     rate = rate / 1e8
@@ -793,7 +791,9 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
             label,
             tx["category"],
             round(tx["amount"], (0 if specter.unit == "sat" else 8)),
-            round(amount_price * 100) / 100 if amount_price is not None else "no-support",
+            round(amount_price * 100) / 100
+            if amount_price is not None
+            else "no-support",
             rate,
             tx["txid"],
             tx["address"],

@@ -10,31 +10,91 @@ logger = logging.getLogger(__name__)
 OZ_TO_G = 28.3495231
 
 currency_mapping = {
-    "usd": { 
-        "symbol": "$", 
-        "support": 
-            ["bitstamp","coindesk","spotbit_coinbase","spotbit_kraken","spotbit_bitfinex","spotbit_okcoin","spotbit_bitstamp"]
-        },
-    "eur": { "symbol": "€", "support": ["bitstamp","coindesk","spotbit_coinbase","spotbit_kraken",
-             "spotbit_bitfinex","spotbit_okcoin_eur","spotbit_bitstamp"] },
-    "gbp": { "symbol": "£", "support": ["bitstamp","coindesk","spotbit_coinbase","spotbit_kraken",
-             "spotbit_bitfinex","spotbit_bitstamp"] },
-    "chf": { "symbol": " Fr.", "support": ["coindesk","spotbit_coinbase","spotbit_kraken"] },
-    "aud": { "symbol": "$", "support": ["coindesk","spotbit_coinbase","spotbit_kraken"] },
-    "cad": { "symbol": "$", "support": ["coindesk","spotbit_coinbase","spotbit_kraken"] },
-    "nzd": { "symbol": "$", "support": ["coindesk","spotbit_coinbase"] },
-    "hkd": { "symbol": "$", "support": ["coindesk","spotbit_coinbase"] },
-    "jpy": { "symbol": "¥", "support": ["coindesk","spotbit_coinbase","spotbit_kraken","spotbit_bitfinex"] },
-    "rub": { "symbol": "₽", "support": ["coindesk","spotbit_coinbase"] },
-    "ils": { "symbol": "₪", "support": ["coindesk","spotbit_coinbase"] },
-    "jod": { "symbol": "د.ا", "support": ["coindesk","spotbit_coinbase"] },
-    "twd": { "symbol": "$", "support": ["coindesk","spotbit_coinbase"] },
-    "brl": { "symbol": " BRL", "support": ["coindesk","spotbit_coinbase"] },
-    "xau": { "symbol": " oz. ", "support": ["coindesk","spotbit_coinbase"], "weight_unit_convertible": True },
-    "xag": { "symbol": " oz. ", "support": ["coindesk","spotbit_coinbase"], "weight_unit_convertible": True },
-    "xpt": { "symbol": " oz. ", "support": ["spotbit_coinbase"], "weight_unit_convertible": True },
-    "xpd": { "symbol": " oz. ", "support": ["spotbit_coinbase"], "weight_unit_convertible": True }
+    "usd": {
+        "symbol": "$",
+        "support": [
+            "bitstamp",
+            "coindesk",
+            "spotbit_coinbase",
+            "spotbit_kraken",
+            "spotbit_bitfinex",
+            "spotbit_okcoin",
+            "spotbit_bitstamp",
+        ],
+    },
+    "eur": {
+        "symbol": "€",
+        "support": [
+            "bitstamp",
+            "coindesk",
+            "spotbit_coinbase",
+            "spotbit_kraken",
+            "spotbit_bitfinex",
+            "spotbit_okcoin_eur",
+            "spotbit_bitstamp",
+        ],
+    },
+    "gbp": {
+        "symbol": "£",
+        "support": [
+            "bitstamp",
+            "coindesk",
+            "spotbit_coinbase",
+            "spotbit_kraken",
+            "spotbit_bitfinex",
+            "spotbit_bitstamp",
+        ],
+    },
+    "chf": {
+        "symbol": " Fr.",
+        "support": ["coindesk", "spotbit_coinbase", "spotbit_kraken"],
+    },
+    "aud": {
+        "symbol": "$",
+        "support": ["coindesk", "spotbit_coinbase", "spotbit_kraken"],
+    },
+    "cad": {
+        "symbol": "$",
+        "support": ["coindesk", "spotbit_coinbase", "spotbit_kraken"],
+    },
+    "nzd": {"symbol": "$", "support": ["coindesk", "spotbit_coinbase"]},
+    "hkd": {"symbol": "$", "support": ["coindesk", "spotbit_coinbase"]},
+    "jpy": {
+        "symbol": "¥",
+        "support": [
+            "coindesk",
+            "spotbit_coinbase",
+            "spotbit_kraken",
+            "spotbit_bitfinex",
+        ],
+    },
+    "rub": {"symbol": "₽", "support": ["coindesk", "spotbit_coinbase"]},
+    "ils": {"symbol": "₪", "support": ["coindesk", "spotbit_coinbase"]},
+    "jod": {"symbol": "د.ا", "support": ["coindesk", "spotbit_coinbase"]},
+    "twd": {"symbol": "$", "support": ["coindesk", "spotbit_coinbase"]},
+    "brl": {"symbol": " BRL", "support": ["coindesk", "spotbit_coinbase"]},
+    "xau": {
+        "symbol": " oz. ",
+        "support": ["coindesk", "spotbit_coinbase"],
+        "weight_unit_convertible": True,
+    },
+    "xag": {
+        "symbol": " oz. ",
+        "support": ["coindesk", "spotbit_coinbase"],
+        "weight_unit_convertible": True,
+    },
+    "xpt": {
+        "symbol": " oz. ",
+        "support": ["spotbit_coinbase"],
+        "weight_unit_convertible": True,
+    },
+    "xpd": {
+        "symbol": " oz. ",
+        "support": ["spotbit_coinbase"],
+        "weight_unit_convertible": True,
+    },
 }
+
 
 def update_price(specter, current_user):
     try:
@@ -55,6 +115,7 @@ def update_price(specter, current_user):
 
 # (provider, currency) = specter.price_provider.split()
 
+
 def get_price_at(specter, current_user, timestamp="now"):
     try:
         if specter.price_check:
@@ -65,17 +126,22 @@ def get_price_at(specter, current_user, timestamp="now"):
             (exchange, currency) = _parse_exchange_currency(specter.price_provider)
             try:
                 currency_symbol = currency_mapping[currency]["symbol"]
-                weight_unit_convertible = currency_mapping[currency].get("weight_unit_convertible", False)
+                weight_unit_convertible = currency_mapping[currency].get(
+                    "weight_unit_convertible", False
+                )
             except AttributeError:
                 raise SpecterError(f"Currency not supported: {currency}")
 
             if exchange not in currency_mapping[currency]["support"]:
-                raise SpecterError(f"The currency {currency} is not supported on exchange {exchange}")
+                raise SpecterError(
+                    f"The currency {currency} is not supported on exchange {exchange}"
+                )
 
             if specter.price_provider.startswith("bitstamp"):
                 if timestamp == "now":
-                    price = failsafe_request_get(requests_session,
-                        "https://www.bitstamp.net/api/v2/ticker/btc{}".format(currency)
+                    price = failsafe_request_get(
+                        requests_session,
+                        "https://www.bitstamp.net/api/v2/ticker/btc{}".format(currency),
                     )["last"]
                 else:
                     price = requests_session.get(
@@ -85,27 +151,30 @@ def get_price_at(specter, current_user, timestamp="now"):
                     ).json()["data"]["ohlc"][0]["close"]
             elif specter.price_provider.startswith("coindesk"):
                 if timestamp == "now":
-                    price = failsafe_request_get(requests_session,
-                        f"https://api.coindesk.com/v1/bpi/currentprice/{currency.upper()}.json"
+                    price = failsafe_request_get(
+                        requests_session,
+                        f"https://api.coindesk.com/v1/bpi/currentprice/{currency.upper()}.json",
                     )["bpi"][currency.upper()]["rate_float"]
                 else:
                     raise SpecterError("coindesk does not support historic prices")
             elif specter.price_provider.startswith("spotbit"):
                 exchange = specter.price_provider.split("spotbit_")[1].split("_")[0]
                 if timestamp == "now":
-                    price = failsafe_request_get(requests_session,
+                    price = failsafe_request_get(
+                        requests_session,
                         "http://h6zwwkcivy2hjys6xpinlnz2f74dsmvltzsd4xb42vinhlcaoe7fdeqd.onion/now/{}/{}".format(
                             currency, exchange
-                        )
+                        ),
                     )["close"]
                 else:
-                    price = failsafe_request_get(requests_session,
+                    price = failsafe_request_get(
+                        requests_session,
                         "http://h6zwwkcivy2hjys6xpinlnz2f74dsmvltzsd4xb42vinhlcaoe7fdeqd.onion/hist/{}/{}/{}/{}".format(
                             currency,
                             exchange,
                             timestamp * 1000,
                             (timestamp + 121) * 1000,
-                        )
+                        ),
                     )["data"][0][7]
             if weight_unit_convertible:
                 if specter.weight_unit == "gram":
@@ -127,6 +196,7 @@ def get_price_at(specter, current_user, timestamp="now"):
         handle_exception(e)
         raise SpecterError(e)
 
+
 def _parse_exchange_currency(exchange_currency):
     # e.g. "spotbit_bitstamp_eur" or "bitstamp_eur"
     arr = exchange_currency.split("_")
@@ -136,20 +206,20 @@ def _parse_exchange_currency(exchange_currency):
         return f"{arr[0]}_{arr[1]}", arr[2]
     raise SpecterError(f"Cannot parse exchange_currency: {exchange_currency}")
 
+
 def failsafe_request_get(requests_session, url):
     response: requests.Response = requests_session.get(url)
     try:
         json_response = response.json()
         if json_response.get("errors"):
-            raise SpecterError(f"JSON error: {json_response}") 
+            raise SpecterError(f"JSON error: {json_response}")
         print(json_response)
         return response.json()
     except JSONDecodeError:
         if response.status_code == 404:
-            raise SpecterError(f"The currency_pair does not seem to exist for that provider (404)")
+            raise SpecterError(
+                f"The currency_pair does not seem to exist for that provider (404)"
+            )
     except Exception as e:
         handle_exception(e)
         raise SpecterError(e)
-
-
-    
