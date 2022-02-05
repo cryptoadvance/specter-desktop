@@ -1,28 +1,25 @@
 import logging
 import os
 import sys
-import secrets
 from pathlib import Path
 
+from cryptoadvance.specter.liquid.rpc import LiquidRPC
+from cryptoadvance.specter.managers.service_manager import ServiceManager
+from cryptoadvance.specter.rpc import BitcoinRPC
+from cryptoadvance.specter.util.reflection import get_template_static_folder
 from dotenv import load_dotenv
-from flask import Flask, redirect, request, url_for, jsonify, session
+from flask import Flask, jsonify, redirect, request, session, url_for
 from flask_babel import Babel
 from flask_login import LoginManager, login_user
 from flask_wtf.csrf import CSRFProtect
-from cryptoadvance.specter.liquid.rpc import LiquidRPC
-
-from cryptoadvance.specter.rpc import BitcoinRPC
-from cryptoadvance.specter.managers.service_manager import ServiceManager
-from cryptoadvance.specter.util.reflection import get_template_static_folder
-
-from .helpers import hwi_get_config
-from .specter import Specter
-from .hwi_server import hwi_server
-from .user import User
-from .util.version import VersionChecker
-from .util.specter_migrator import SpecterMigrator
-from werkzeug.middleware.proxy_fix import ProxyFix
 from jinja2 import select_autoescape
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.wrappers import Response
+
+from .hwi_server import hwi_server
+from .specter import Specter
+from .util.specter_migrator import SpecterMigrator
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +96,15 @@ def create_app(config=None):
 
 def init_app(app, hwibridge=False, specter=None):
     """see blogpost 19nd Feb 2020"""
+
+    # Configuring a prefix for the app
+    if app.config["APP_URL_PREFIX"] != "":
+        # https://dlukes.github.io/flask-wsgi-url-prefix.html
+        app.wsgi_app = DispatcherMiddleware(
+            Response("Not Found", status=404),
+            {app.config["APP_URL_PREFIX"]: app.wsgi_app},
+        )
+
     # First: Migrations
     mm = SpecterMigrator(app.config["SPECTER_DATA_FOLDER"])
     mm.execute_migrations()

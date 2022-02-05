@@ -33,6 +33,17 @@ DEFAULT_CONFIG = "cryptoadvance.specter.config.DevelopmentConfig"
 
 
 class BaseConfig(object):
+    # A generic prefix for EVERYTHING (might make sense if specter is integrated somewhere else)
+    APP_URL_PREFIX = os.getenv("APP_URL_PREFIX", "")
+    # The prefix for all Specter-Core-functionality
+    SPECTER_URL_PREFIX = "/spc"
+    SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
+    SESSION_COOKIE_NAME = "session2"
+    # The prefix for extensions which get access to the session cookie
+    EXT_URL_PREFIX = "/spc/ext"
+    # The prefix for extensions which don't get access to the session cookie (if SPECTER_URL_PREFIX isn't compromised)
+    PIGGYBACK_EXT_URL_PREFIX = "/ext"
+
     PORT = os.getenv("PORT", 25441)
     CONNECT_TOR = _get_bool_env_var(os.getenv("CONNECT_TOR", "False"))
     SPECTER_DATA_FOLDER = os.path.expanduser(
@@ -178,6 +189,9 @@ class DevelopmentConfig(BaseConfig):
 
 
 class TestConfig(BaseConfig):
+
+    SPECTER_URL_PREFIX = "/"
+    SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
     SECRET_KEY = "test key"
     # This should never be used as the data-folder is injected at runtime
     # But let's be sure before something horrible happens:
@@ -193,6 +207,9 @@ class TestConfig(BaseConfig):
 
 
 class CypressTestConfig(TestConfig):
+    SPECTER_URL_PREFIX = ""
+    # For some reason cypress doesn't work with a scoped down session so we're setting here the unscoped again
+    SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
     SPECTER_DATA_FOLDER = os.path.expanduser(
         os.getenv("SPECTER_DATA_FOLDER", "~/.specter_cypress")
     )
@@ -221,3 +238,6 @@ class ProductionConfig(BaseConfig):
 
     # Repeating it here as it's SECURITY CRITICAL. Check comments in BaseConfig
     SERVICES_LOAD_FROM_CWD = False
+    APP_URL_PREFIX = "/spc"
+    EXT_URL_PREFIX = "/spc/svc"
+    EXTERNAT_EXT_URL_PREFIX = "/svc"

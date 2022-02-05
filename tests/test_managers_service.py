@@ -13,6 +13,9 @@ def test_ServiceManager(caplog):
         "cryptoadvance.specter.services.swan.service",
         "cryptoadvance.specter.services.bitcoinreserve.service",
     ]
+    flaskapp_mock.config["PIGGYBACK_EXT_URL_PREFIX"] = "/spc/ext"
+    flaskapp_mock.config["EXT_URL_PREFIX"] = "/ext"
+
     ctx = flaskapp_mock.app_context()
     ctx.push()
     # The ServiceManager is a flask-aware component. It will load all the services

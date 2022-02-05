@@ -11,7 +11,7 @@ def test_home(caplog, client):
     result = client.get("/")
     # By default there is no authentication
     assert result.status_code == 302  # REDIRECT.
-    result = client.get("/about")
+    result = client.get("/welcome/about")
     assert b"Welcome to Specter" in result.data
     result = client.get("/devices/new_device_type", follow_redirects=True)
     assert result.status_code == 200  # OK.
@@ -42,6 +42,7 @@ def test_home(caplog, client):
 def test_settings_general(caplog, client):
     login(client, "secret")
     result = client.get("/settings/general", follow_redirects=True)
+    assert result.status_code == 200  # OK.
     assert b"Network:" in result.data
     assert b"regtest" in result.data
 
