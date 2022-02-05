@@ -3,6 +3,7 @@ Manages the list of transactions for the wallet
 """
 from typing import Union
 import os
+from .specter_error import SpecterError
 from .persistence import write_csv, read_csv
 from .helpers import get_address_from_dict
 from embit.transaction import Transaction
@@ -268,6 +269,13 @@ class TxList(dict, AbstractTxListContext):
         if decode:
             res.update(self._decoderawtransaction(tx.hex))
         return res
+
+    def invalidate(self, txid):
+        """removes a tx from the list"""
+        if txid not in self:
+            raise SpecterError(f"TX with txid {txid} does not exit in {self}")
+        del self[txid]
+        self._save()
 
     def _decoderawtransaction(self, tx: Union[Transaction, str, bytes]):
         return SpecterTx(self, tx).to_dict()
