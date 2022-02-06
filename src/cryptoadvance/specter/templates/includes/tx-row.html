@@ -287,7 +287,10 @@
             if (this.hideColumns != "null") {
                 this.hideColumns.split(" ").forEach((column_name) => {
                     if (column_name) {
-                        this.shadowRoot.getElementById("column-"+ column_name).remove()
+                        let column = this.shadowRoot.getElementById("column-"+ column_name)
+                        if (column) {
+                            column.remove()
+                        }
                     }
                 })
             }

@@ -1,6 +1,7 @@
-{% extends "base.jinja" %}
-
-{% block main %}
+{% extends "devhelp/components/devhelp_tab.jinja" %}
+{% block title %}address-data{% endblock %}
+{% set tab = 'html' %}
+{% block content %}
 
 <h1>address-label</h1>
 
@@ -28,9 +29,9 @@ Address-label changes the label of an address. It's using Ajax-call to:
 </ul>
 wallet-alias and address need to be defined in order to get a valid response. You can do that here:
 </p>
+{{ wallet.alias }}
 
-
-WalletAlias: <input type="text" id="walletalias" site=50/> <button id="setwalletalias">SetWalletAlias</button>
+WalletAlias: <input type="text" id="walletalias" value="{{ wallet.alias }}" site=50/> <button id="setwalletalias">SetWalletAlias</button>
 <br>
 Address: <input type="text" id="address" site=50/> <button id="setaddress">SetAddress</button>
 

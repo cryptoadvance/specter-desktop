@@ -1,10 +1,14 @@
-{% extends "base.jinja" %}
+{% extends "devhelp/components/devhelp_tab.jinja" %}
+{% block title %}address-data{% endblock %}
+{% set tab = 'index' %}
+{% block content %}
 
-{% block main %}
+
 
 <ul>
    <li><a href="html/address-data.jinja">address-data</a></li>
    <li><a href="html/address-label.jinja">address-label</a></li>
    <li><a href="html/fee-selection.jinja">fee-selection</a></li>
+   <li><a href="html/tx-table.jinja">tx-table</a></li>
 </ul>
 {% endblock %}
