@@ -33,10 +33,21 @@ DEFAULT_CONFIG = "cryptoadvance.specter.config.DevelopmentConfig"
 
 
 class BaseConfig(object):
-    # A generic prefix for EVERYTHING (might make sense if specter is integrated somewhere else)
+    # You got redirected here if you hit "/"
+    ROOT_URL_REDIRECT = "/spc"
+
+    # *_URL_PREFIX
+    # For all of them, either set them to "" or "/something". Never "/".
+    # SESSION_COOKIE_PATH is critical to control if you change any *_URL_PREFIX
+    # Especially true if you overwrite one of them in a derivation-class.
+    # In doubt, always do this in the end:
+    # SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
+
+    # Enables mounting the specter including extensions somewhere else as "/"
     APP_URL_PREFIX = os.getenv("APP_URL_PREFIX", "")
-    # The prefix for all Specter-Core-functionality
+    # The prefix for mounting all Specter-Core-blueprints
     SPECTER_URL_PREFIX = "/spc"
+    # This enables the piggyback-extensions, SECURITY-CRITICAL
     SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
     SESSION_COOKIE_NAME = "session2"
     # The prefix for extensions which get access to the session cookie
@@ -189,9 +200,10 @@ class DevelopmentConfig(BaseConfig):
 
 
 class TestConfig(BaseConfig):
-
-    SPECTER_URL_PREFIX = "/"
+    # ToDo: remove the below line to test a scenario more close to the default-setup
+    SPECTER_URL_PREFIX = ""
     SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
+
     SECRET_KEY = "test key"
     # This should never be used as the data-folder is injected at runtime
     # But let's be sure before something horrible happens:

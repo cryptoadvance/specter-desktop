@@ -105,7 +105,7 @@ class ServiceManager:
 
         # Import the controller for this service
         logger.info(f"  Loading Controller {controller_module}")
-        import_module(controller_module)
+        controller_module = import_module(controller_module)
 
         # finally register the blueprint
         if clazz.piggyback:
@@ -113,6 +113,23 @@ class ServiceManager:
         else:
             ext_prefix = app.config["EXT_URL_PREFIX"]
         app.register_blueprint(clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}")
+
+        if (
+            app.testing
+            and len([vf for vf in app.view_functions if vf.startswith(clazz.id)]) <= 1
+        ):  # the swan-static one
+            # Yet again that nasty workaround which has been described in the archblog.
+            # The easy variant can be found in server.py
+            # The good news is, that we'll only do that for testing
+            import importlib
+
+            logger.info("Reloading Extension controller")
+            importlib.reload(controller_module)
+            app.register_blueprint(
+                clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
+            )
+
+        logger.info(f"  Mounting {clazz.id} to {ext_prefix}/{clazz.id}")
 
     @classmethod
     def configure_service_for_module(cls, service_id):
@@ -194,7 +211,7 @@ class ServiceManager:
             logger.debug(
                 f"Setting service '{ext.id}' active to {ext.id in service_names_active}"
             )
-            service.active = service.id in service_names_active
+            ext.active = ext.id in service_names_active
 
     def get_service(self, service_id: str) -> Service:
         if service_id not in self._services:

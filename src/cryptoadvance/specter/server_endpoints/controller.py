@@ -91,7 +91,7 @@ def server_notFound_error(e):
     """Unspecific Exceptions get a 404 Error-Page"""
     # if rpc is not available
     app.logger.error("Could not find Resource (404): %s" % request.url)
-    return render_template("500.jinja", error=e), 500
+    return render_template("500.jinja", error=e), 404
 
 
 @app.errorhandler(Exception)
@@ -204,13 +204,15 @@ def inject_debug():
 ################ Specter global routes ####################
 @app.route("/")
 def index():
-    app.logger.info("Muuuh")
-    return redirect(url_for("welcome_endpoint.index"))
+    if app.config["SPECTER_URL_PREFIX"] == "":
+        return redirect(url_for("welcome_endpoint.index"))
+    else:
+        """This is the root-entry URL which redirects to ROOT_URL_REDIRECT"""
+        return redirect(app.config["ROOT_URL_REDIRECT"])
 
 
 if app.config["SPECTER_URL_PREFIX"] != "":
-
+    # Not necessary if the prefix has been removed
     @app.route(f"{app.config['SPECTER_URL_PREFIX']}/")
     def index_prefix():
-        app.logger.info("Muuuh")
         return redirect(url_for("welcome_endpoint.index"))

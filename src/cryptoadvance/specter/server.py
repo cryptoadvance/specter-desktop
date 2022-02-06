@@ -59,14 +59,23 @@ def calc_module_name(config):
 
 
 def create_app(config=None):
-
+    """config is either a string:
+    * if it's with dots, it's fqn classname
+    * without dots cryptoadvance.specter.config will be added in the front
+    ir it's a class directly. Then it's simply passed through
+    """
     # Cmdline has precedence over Env-Var
     if config is not None:
-        config = calc_module_name(
-            os.environ.get("SPECTER_CONFIG")
-            if os.environ.get("SPECTER_CONFIG")
-            else config
-        )
+        if isinstance(config, str):
+            config = calc_module_name(
+                os.environ.get("SPECTER_CONFIG")
+                if os.environ.get("SPECTER_CONFIG")
+                else config
+            )
+            config_name = config
+        elif isinstance(config, type):
+            # Useful for testing passing in classes directly
+            config_name = config.__module__ + "." + config.__name__
     else:
         # Enables injection of a different config via Env-Variable
         if os.environ.get("SPECTER_CONFIG"):
@@ -84,7 +93,7 @@ def create_app(config=None):
     logger.info(f"Configuration: {config}")
     app.config.from_object(config)
     # Might be convenient to know later where it came from (see Service configuration)
-    app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"] = config
+    app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"] = config_name
     app.wsgi_app = ProxyFix(
         app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1
     )
@@ -124,6 +133,7 @@ def init_app(app, hwibridge=False, specter=None):
             internal_bitcoind_version=app.config["INTERNAL_BITCOIND_VERSION"],
         )
 
+    # ServiceManager will instantiate and register blueprints for extensions
     specter.service_manager = ServiceManager(
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )

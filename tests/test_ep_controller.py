@@ -1,5 +1,11 @@
 import logging
 import pytest
+import sys
+from flask import Blueprint
+from cryptoadvance.specter.server import create_app, init_app
+from cryptoadvance.specter.specter import Specter
+from cryptoadvance.specter.config import TestConfig
+from conftest import specter_app_with_config
 
 
 @pytest.mark.slow
@@ -88,6 +94,101 @@ def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
     # assert b'btc Hot Wallet' in result.data # Not sure why this doesn't work
     assert b"myNiceDevice" in result.data
     assert b"btchot" in result.data
+
+
+def test_APP_URL_PREFIX(caplog):
+    caplog.set_level(logging.INFO)
+    caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
+    myapp = specter_app_with_config(
+        config={"APP_URL_PREFIX": "/someprefix", "SPECTER_URL_PREFIX": ""}
+    )
+    client = myapp.test_client()
+    login(client, "secret")
+
+    # Specter
+    result = client.get("/")
+    assert result.status_code == 404  # / --> 404
+    result = client.get("/someprefix/")
+    assert result.status_code == 302  # REDIRECT.
+    result = client.get("/someprefix/welcome")
+    assert result.status_code == 308  # REDIRECT.
+    result = client.get("/someprefix/welcome/")
+    assert result.status_code == 302  # REDIRECT.
+    result = client.get("/someprefix/welcome/about")
+    assert b"Welcome to Specter" in result.data
+
+    # Extensions
+    result = client.get("/someprefix/spc/ext/swan/")
+    # The swan extension will automatically redirect to /settings/auth
+    assert result.status_code == 302
+    assert result.location.endswith("/someprefix/settings/auth")
+
+
+def test_SPECTER_URL_PREFIX(caplog):
+    caplog.set_level(logging.INFO)
+    caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
+    myapp = specter_app_with_config(
+        config={
+            "APP_URL_PREFIX": "",
+            "SPECTER_URL_PREFIX": "/someprefix",
+            "EXT_URL_PREFIX": "/someprefix/extensions",
+        }
+    )
+    client = myapp.test_client()
+    login(client, "secret")
+    result = client.get("/")
+    # The effect is almost the same but you get one more convenient redirect
+    assert result.status_code == 302  # REDIRECT.
+    result = client.get("/someprefix/")
+    assert result.status_code == 302  # REDIRECT.
+    result = client.get("/someprefix/welcome")
+    assert result.status_code == 308  # REDIRECT.
+    result = client.get("/someprefix/welcome/")
+    assert result.status_code == 302  # REDIRECT.
+    result = client.get("/someprefix/welcome/about")
+    assert b"Welcome to Specter" in result.data
+
+    # Extensions
+    result = client.get("/someprefix/extensions/swan/")
+    # The swan extension will automatically redirect to /settings/auth
+    assert result.status_code == 302
+    assert result.location.endswith("/someprefix/settings/auth")
+
+
+def specter_app_w2ith_config(config={}):
+    """the Flask-App, but uninitialized"""
+    # class tempClass(TestConfig):
+    #    ''' For now, this can only be used once as a config object :-| '''
+    #    pass
+    tempClass = type("tempClass", (TestConfig,), {})
+    for key, value in config.items():
+        setattr(tempClass, key, value)
+    # service_manager will expect the class to be defined as a direct property of the module:
+    if hasattr(sys.modules[__name__], "tempClass"):
+        delattr(sys.modules[__name__], "tempClass")
+    assert not hasattr(sys.modules[__name__], "tempClass")
+    setattr(sys.modules[__name__], "tempClass", tempClass)
+    assert hasattr(sys.modules[__name__], "tempClass")
+    assert getattr(sys.modules[__name__], "tempClass") == tempClass
+    app = create_app(config=tempClass)
+    assert (
+        app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"]
+        == "test_ep_controller.tempClass"
+    )
+    for key, value in config.items():
+        assert app.config[key] == value
+
+    app.app_context().push()
+    app.config["TESTING"] = True
+    app.testing = True
+    app.tor_service_id = None
+    app.tor_enabled = False
+    init_app(app, specter=Specter())
+    test123: Blueprint = app.blueprints["swan_endpoint"]
+    for vf in app.view_functions:
+        print(vf)
+    # assert app.view_functions == " "
+    return app
 
 
 def login(client, password):
