@@ -48,12 +48,17 @@ class Service:
         else:
             import_name = f"cryptoadvance.specter.services.{self.id}.service"
         if self.has_blueprint:
-            self.__class__.blueprint = Blueprint(
-                f"{self.id}_endpoint",
-                import_name,
-                template_folder=get_template_static_folder("templates"),
-                static_folder=get_template_static_folder("static"),
-            )
+            try:
+                self.__class__.blueprint = Blueprint(
+                    f"{self.id}_endpoint",
+                    import_name,
+                    template_folder=get_template_static_folder("templates"),
+                    static_folder=get_template_static_folder("static"),
+                )
+            except ImportError as e:
+                raise Exception(
+                    f"There was an ImportError {e} and you probably forgot to specify blueprint_module on your services class of your external extension {self.id}"
+                )
 
             def inject_stuff():
                 """Can be used in all jinja2 templates"""
