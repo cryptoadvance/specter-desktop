@@ -394,7 +394,9 @@ class SwanService(Service):
         if num_pending_autowithdrawal_addrs < cls.MIN_PENDING_AUTOWITHDRAWAL_ADDRS:
             logger.debug("Need to send more addrs to Swan")
             cls.reserve_addresses(
-                wallet=wallet, num_addresses=cls.MIN_PENDING_AUTOWITHDRAWAL_ADDRS - num_pending_autowithdrawal_addrs
+                wallet=wallet,
+                num_addresses=cls.MIN_PENDING_AUTOWITHDRAWAL_ADDRS
+                - num_pending_autowithdrawal_addrs,
             )
 
     @classmethod
