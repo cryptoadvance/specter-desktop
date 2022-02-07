@@ -77,7 +77,7 @@ class SpecterTx(AbstractTxContext):
 
     def to_dict(self) -> dict:
         if not self.tx:
-            return
+            return {}
         txid = self.tx.txid().hex()
         size = len(self.tx.serialize())
         return {
