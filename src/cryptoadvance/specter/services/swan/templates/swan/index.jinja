@@ -73,6 +73,17 @@
             color: #ccc;
             vertical-align: text-bottom;
         }
+
+        .faq {
+            max-width: 40em;
+            margin: auto;
+            margin-top: 4em;
+            border-top: 1px solid #666;
+            padding-top: 2em;
+            font-size: 0.9em;
+            text-align: left;
+        }
+
     </style>
     <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" width="300"/>
     <div class="tagline">&ldquo;Swan is a great way to accumulate Bitcoin with automatic recurring buys and instant buys.&rdquo;</div>
@@ -101,6 +112,13 @@
                 <li>Swan UTXOs marked in your Specter History
             </div>
         </div>
+
+        <div class="note faq">
+            Note that Swan is a regulated KYC exchange (as are most fiat onramps), meaning that they require users to register their personal info, government ID, etc. and can be compelled to turn over user data to government agencies.
+
+            <p>Be aware of the privacy tradeoffs inherent to any KYC service. Read: <a style="color: #fff; text-decoration: underline; cursor: pointer;" href="https://www.swanbitcoin.com/bitcoin-privacy-best-practices/" target="blank">Bitcoin Privacy: Best Practices</a></p>
+        </div>
+
     </div>
 {% endblock %}
 
