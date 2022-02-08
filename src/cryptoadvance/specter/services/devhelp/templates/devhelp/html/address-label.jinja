@@ -18,7 +18,11 @@
 </code>
 
 <p>
-Address-label changes the label of an address. It's using Ajax-call to:
+Address-label changes the label of an address. 
+wallet-alias and address need to be defined in order to get a valid response. 
+Don't set an data-label attribute because otherwise the initial label doesn't get fetched (bug?!).
+
+It's using Ajax-call to:
 <ul>
     <li>
         <code>{{ url_for('wallets_endpoint_api.get_label', wallet_alias='WALLET_ALIAS') }}</code>
@@ -27,20 +31,30 @@ Address-label changes the label of an address. It's using Ajax-call to:
         <code>{{ url_for('wallets_endpoint_api.set_label', wallet_alias='WALLET_ALIAS') }}</code>
     </li>
 </ul>
-wallet-alias and address need to be defined in order to get a valid response. You can do that here:
+You set the most important params here:
 </p>
 {{ wallet.alias }}
 
 WalletAlias: <input type="text" id="walletalias" value="{{ wallet.alias }}" site=50/> <button id="setwalletalias">SetWalletAlias</button>
 <br>
-Address: <input type="text" id="address" site=50/> <button id="setaddress">SetAddress</button>
+potential-addresses:
+<ul>
+    <li>
+        {{wallet.get_address(0) }}
+    </li>
+    <li>
+        {{wallet.get_address(1) }}
+    </li>
+</ul>
+
+Address: <input type="text" id="address" site=50 value="{{address}}"/> <button id="setaddress">SetAddress</button>
 
 
 <address-label 
     id="someid"
-    data-address="lq1qq259d9ahc6apt9fcgjx4fmfl5lsfr2vkzrvyy2uuukhrreulzs7xxsyv70jzt0h7rv2s7dwsll8ln2ypf4qujur5m94edx6jv" 
-    data-label="Address #0" 
-    data-wallet="myliquidhot">
+    data-address="{{ wallet.get_address(2) }}" 
+    
+    data-wallet="{{wallet.alias}}">
 </address-label>
 
 {% endblock %}
@@ -60,7 +74,6 @@ Address: <input type="text" id="address" site=50/> <button id="setaddress">SetAd
     setAddressButton.addEventListener("click", (event) => {
         var address = document.getElementById('address').value
         document.getElementById('someid').setAttribute("data-address", address)
-        console.log(walletAlias)
     });
     
 </script>

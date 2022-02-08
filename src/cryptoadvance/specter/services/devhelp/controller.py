@@ -34,6 +34,7 @@ def html_component(html_component):
         f"devhelp/html/{html_component}",
         wallet=associated_wallet,
         services=app.specter.service_manager.services,
+        address=associated_wallet.get_address(3),
     )
 
 
