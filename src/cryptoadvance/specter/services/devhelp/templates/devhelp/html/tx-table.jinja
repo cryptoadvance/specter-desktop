@@ -65,7 +65,7 @@
 
 
 <div class="card" style="float: left;">
-WalletAlias: <input type="text" id="walletalias" value="{{ wallet.alias }}"  site=50/> <button id="setwalletalias">SetWalletAlias</button>
+{% include "devhelp/includes/set-wallet.html" %}
 <br>
 Tx-Data (Does not work yet): <input type="text" id="txdata" site=50/ value='[
 {"txid": "aafaecb085944a6fce4556885c1f10c1cd97bac146a2a0e676a2b12bcf428d3b", "blockhash": "201eea173347cdc8e8effeaf96053b5867860cec163f3eacec7c8918c94bdaaa", "blockheight": 721, "time": 1644162928, "conflicts": [], "bip125-replaceable": "no", "vsize": null, "category": "receive", "address": "bcrt1qyncynwdxmeynk245wa3f4urul3nm2v0ulfueek", "amount": 20.0, "ismine": true, "confirmations": 780, "label": "Address #6", "validated_blockhash": ""}, 
@@ -114,13 +114,6 @@ tx-data='[
 
 {% block scripts %}
 <script type="text/javascript">
-    var setWalletAliasButton = document.getElementById('setwalletalias')
-    
-    setWalletAliasButton.addEventListener("click", (event) => {
-        var walletAlias = document.getElementById('walletalias').value
-        document.getElementById('someid').setAttribute("data-address-wallet", walletAlias)
-        console.log(walletAlias)
-    });
 
     var setTxdataButton = document.getElementById('settxdata')
     

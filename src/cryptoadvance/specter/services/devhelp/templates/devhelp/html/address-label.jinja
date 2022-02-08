@@ -33,21 +33,11 @@ It's using Ajax-call to:
 </ul>
 You set the most important params here:
 </p>
-{{ wallet.alias }}
 
-WalletAlias: <input type="text" id="walletalias" value="{{ wallet.alias }}" site=50/> <button id="setwalletalias">SetWalletAlias</button>
+
+{% include "devhelp/includes/set-wallet.html" %}
 <br>
-potential-addresses:
-<ul>
-    <li>
-        {{wallet.get_address(0) }}
-    </li>
-    <li>
-        {{wallet.get_address(1) }}
-    </li>
-</ul>
-
-Address: <input type="text" id="address" site=50 value="{{address}}"/> <button id="setaddress">SetAddress</button>
+{% include "devhelp/includes/set-address.html" %}
 
 
 <address-label 
@@ -59,22 +49,4 @@ Address: <input type="text" id="address" site=50 value="{{address}}"/> <button i
 
 {% endblock %}
 
-{% block scripts %}
-<script type="text/javascript">
-    var setWalletAliasButton = document.getElementById('setwalletalias')
-    
-    setWalletAliasButton.addEventListener("click", (event) => {
-        var walletAlias = document.getElementById('walletalias').value
-        document.getElementById('someid').setAttribute("data-wallet", walletAlias)
-        console.log(walletAlias)
-    });
 
-    var setAddressButton = document.getElementById('setaddress')
-    
-    setAddressButton.addEventListener("click", (event) => {
-        var address = document.getElementById('address').value
-        document.getElementById('someid').setAttribute("data-address", address)
-    });
-    
-</script>
-{% endblock %}
