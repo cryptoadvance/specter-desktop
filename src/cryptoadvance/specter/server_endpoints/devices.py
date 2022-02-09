@@ -1,5 +1,6 @@
 import copy
 import json
+import logging
 import random
 import re
 
@@ -17,6 +18,8 @@ from ..key import Key
 from ..managers.device_manager import get_device_class
 from ..specter_error import handle_exception
 from ..wallet import purposes
+
+logger = logging.getLogger(__name__)
 
 rand = random.randint(0, 1e32)  # to force style refresh
 
@@ -495,6 +498,12 @@ def device(device_alias):
         )
 
     device.keys.sort(key=sort_accounts, reverse=False)
+
+    # If wallet is the origin the signing overlay will pop up directly
+    origin = request.args.get("origin", "")
+    address = request.args.get("address", "")
+    derivation_path = request.args.get("derivation_path", "")
+
     return render_template(
         "device/device.jinja",
         device=device,
@@ -504,4 +513,7 @@ def device(device_alias):
         error=err,
         specter=app.specter,
         rand=rand,
+        origin=origin,
+        address=address,
+        derivation_path=derivation_path,
     )

@@ -1,0 +1,35 @@
+
+<form id="{{ device.alias }}_sign_msg_qr" class="flex-center flex-column hidden">
+    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+    <h2>{{ _("Scan this QR code with your") }} {{device.name}}</h2>
+    <div class="row" style="min-height: 400px; margin-top:20px">
+        <span id="compressed_msg" style="margin: auto;">
+            <qr-code id="msg-qr-code" animate="auto" style="margin-top:20px;" width="300"></qr-code>
+        </span>
+    </div>
+    <qr-scanner id="{{ device.alias }}_qr_scan_btn">
+        <a slot="button" class="btn flex-item" style="width: 350px; margin: 15px auto;">
+            <img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 30px; margin: 0px;" class="svg-white"> {{ _("When done: Scan signature by clicking here") }}
+        </a>
+    </qr-scanner>
+
+<script type="module">
+    document.getElementById("{{ device.alias }}_qr_scan_btn")
+            .addEventListener("scan", e =>{
+        let result = e.detail.result;
+        console.log(`This is the signature from the DIY: ${result}`)
+        // if the result is bcur thingy:
+        /* if(result.type == 'crypto-psbt'){
+            let urpsbt = window.URlib.CryptoPSBT.fromCBOR(result.cbor);
+            result = urpsbt.getPSBT().toString("base64");
+            console.log(result)
+        } */
+        if(result){
+            hidePageOverlay();
+            // combine(result);
+        } else {
+            showError(`{{ _("Scan failed, please try again...") }}`, 3000);
+        }
+    });
+</script>
+</form>

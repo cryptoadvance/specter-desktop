@@ -2,6 +2,7 @@
 {% block main %}
 	{% include "includes/overlay/key_export_qr.jinja" %}
 	{% include "includes/hwi/hwi.jinja" %}
+	{% include "includes/qr-scanner.html" %}
 	<style>
 		#keys-table td {
 			padding: 5px 20px;
@@ -73,18 +74,23 @@
 			{% endif %}
 		</form>
 		<br>
-		{% if device.hwi_support %}
-			<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">{{ _("Sign message on device") }}</button>
-			<div id="message-signing" class="hidden" style="text-align: left;">
-				{{ _("Derivation path") }}:<input type="text" id="messageDerivationPath" type="text" value="" placeholder="e.g. m/84h/0h/0h/0/0"><br><br>
-				{{ _("Message") }}:<br>
-				<textarea id="message" placeholder="Enter the message you would like to sign" style="font-size: 0.95em;"></textarea>
-				<span id="signature-label" class="hidden">{{ _("Message signature") }}:</span>
-				<p style="word-break: break-all; margin-top: 5px;" id="signature" title='{{ _("Copy message signature") }}' class="explorer-link" onclick="copyText(this.innerText, '{{ _("Copied message signature") }}')">
-				</p>
-				<button type="button" class="btn centered" onclick="signMessageOnDevice();">{{ _("Sign message on device") }}</button>
-			</div>
-		{% endif %}
+		<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">{{ _("Sign message") }}</button>
+		<div id="message-signing" class="hidden" style="text-align: left;">
+			{{ _("Address") }}:<input type="text" id="signing-address" type="text" value="" placeholder="bc1q ..."><br><br>
+			{{ _("Derivation path") }}:<input type="text" id="messageDerivationPath" type="text" value="" placeholder="e.g. m/84h/0h/0h/0/0"><br><br>
+			{{ _("Message") }}:<br>
+			<textarea id="message" placeholder="Enter the message you would like to sign" style="font-size: 0.95em;"></textarea>
+			<span id="signature-label" class="hidden">{{ _("Message signature") }}:</span>
+			<p style="word-break: break-all; margin-top: 5px;" id="signature" title='{{ _("Copy message signature") }}' class="explorer-link" onclick="copyText(this.innerText, '{{ _("Copied message signature") }}')">
+			</p>
+			{% if device.hwi_support %}
+				<button type="button" class="btn centered" onclick="signMessageOnDevice();">{{ _("Sign message via USB") }}</button>
+			{% endif %}
+			{% if device.qr_code_support %}
+				{% include "includes/overlay/qr_code_sign_message.jinja" %}
+            	<button id="{{ device.alias }}_qr_sign_msg_btn" class="btn centered" style="margin: 10px auto;">{{ _("Sign message via QR code") }}</button>
+			{% endif %}
+		</div>
 		{% if specter.is_liquid %}
 			<br>
 			<a class="btn centered" href="{{ url_for('devices_endpoint.device_blinding_key', device_alias=device.alias) }}">{{ _("Update master blinding key") }}</a>
@@ -165,6 +171,25 @@
 			if (isNewDevice) {
 				showPageOverlay('new_device_popup');
 			}
+
+			// Directly pop up sign message when coming from a wallet
+			let origin = "{{ origin }}"
+			let address = "{{ address }}"
+			let derivation_path = "{{ derivation_path }}"
+			console.log(origin)
+			if (origin == "wallet") {
+				document.getElementById('signing-address').value = address
+				document.getElementById('messageDerivationPath').value = derivation_path
+				showPageOverlay('message-signing')
+			} 
+
+			// QR code pops up to sign
+			document.getElementById("{{ device.alias }}_qr_sign_msg_btn").addEventListener("click", e => {
+                    e.preventDefault();
+                    hidePageOverlay();
+                    showPageOverlay('{{ device.alias }}_sign_msg_qr');
+                    QRcodeSetter();
+                });
 		});
 
 		async function signMessageOnDevice() {
@@ -178,6 +203,13 @@
 			document.getElementById('signature').innerText = signature;
 			showPageOverlay('message-signing');
 			showNotification(`{{ _("Message was signed successfully!") }}`)
+		}
+
+		function QRcodeSetter() {
+			let messageText = document.getElementById('message').value
+			let derivationPath = document.getElementById('messageDerivationPath').value
+			fullStringToEncode = `signmessage ${derivationPath} ascii:${messageText}`
+			document.getElementById('msg-qr-code').setAttribute("value", fullStringToEncode)
 		}
 	</script>
 {% endblock %}
