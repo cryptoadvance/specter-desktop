@@ -32,6 +32,14 @@ def wget_if_not_exist(url, fname):
     if not Path(fname).is_file():
         r = requests.get(url)
         open(fname, "wb").write(r.content)
+        print(f"    --> Created {fname}")
+
+
+def create_if_not_exist(fname, content):
+    if not Path(fname).is_file():
+        with open(fname, "w") as w:
+            w.write(content)
+        print(f"    --> Created {fname}")
 
 
 def replace(fname, search, replace):
@@ -133,11 +141,11 @@ def publish():
     if Path(dir).is_dir():
         Path(f"src/{user_or_org}/spext").mkdir(parents=True, exist_ok=True)
         shutil.move(dir, f"src/{user_or_org}/spext")
+        print(f"    --> Moved {dir} to src/{user_or_org}/spext")
 
-    if not Path("setup.cfg").is_file():
-        with open("setup.cfg", "w") as w:
-            w.write(
-                f"""\
+    create_if_not_exist(
+        "setup.cfg",
+        f"""\
 [metadata]
 name = {user_or_org}_{dir}
 version = 0.0.1
@@ -162,33 +170,36 @@ python_requires = >=3.6
 
 [options.packages.find]
 where = src
-"""
-            )
+""",
+    )
 
-    if not Path("pyproject.toml").is_file():
-        with open("pyproject.toml", "w") as w:
-            w.write(
-                f"""\
+    create_if_not_exist(
+        "pyproject.toml",
+        f"""\
 [build-system]
 requires = [
     "cryptoadvance.specter==1.8.1"
 ]
 build-backend = "setuptools.build_meta"
-"""
-            )
+""",
+    )
 
-    if not Path("MANIFEST.in").is_file():
-        with open("MANIFEST.in", "w") as w:
-            w.write(
-                f"""\
+    create_if_not_exist(
+        "MANIFEST.in",
+        f"""\
 recursive-include src/{user_or_org}/spext/{dir}/templates *
 recursive-include src/{user_or_org}/spext/{dir}/static *
 recursive-include src/{user_or_org}/spext/{dir}/*/LC_MESSAGES *.mo
 recursive-include src/{user_or_org}/spext/{dir}/translations/*/LC_MESSAGES *.po
 include requirements.txt
-"""
-            )
-    replace(f"./{dir}/service.py", "", snake_case2camelcase(dir))
+""",
+    )
+
+    replace(
+        f"src/{user_or_org}/spext/{dir}/service.py",
+        f'blueprint_module = "{dir}.controller"',
+        f'blueprint_module = "{user_or_org}.spext.{dir}.controller',
+    )
 
     print(
         f"""
