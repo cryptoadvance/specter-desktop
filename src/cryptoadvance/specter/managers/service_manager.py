@@ -38,7 +38,7 @@ class ServiceManager:
 
         # Each Service class is stored here, keyed on its Service.id str
         self._services: Dict[str, Service] = {}
-        logger.info("----> starting service discovery <----")
+        logger.info("----> starting service discovery Static")
         # How do we discover services? Two configs are relevant:
         # * SERVICES_LOAD_FROM_CWD (boolean, CWD is current working directory)
         # * EXTENSION_LIST (array of Fully Qualified module strings like ["cryptoadvance.specter.services.swan.service"])
@@ -48,8 +48,10 @@ class ServiceManager:
         class_list = get_classlist_of_type_clazz_from_modulelist(
             Service, app.config.get("EXTENSION_LIST", [])
         )
+        logger.info("----> starting service discovery Dynamic")
         if app.config.get("SERVICES_LOAD_FROM_CWD", False):
             class_list.extend(get_subclasses_for_clazz_in_cwd(Service))
+        logger.info("----> starting service loading")
         class_list = set(class_list)  # remove duplicates (shouldn't happen but  ...)
         for clazz in class_list:
             compare_map = {"alpha": 1, "beta": 2, "prod": 3}
@@ -77,7 +79,7 @@ class ServiceManager:
         except ConfigurableSingletonException as e:
             # Test suite triggers multiple calls; ignore for now.
             pass
-        logger.info("----> finished service discovery <----")
+        logger.info("----> finished service processing")
 
     @classmethod
     def register_blueprint_for_ext(cls, clazz, ext):
