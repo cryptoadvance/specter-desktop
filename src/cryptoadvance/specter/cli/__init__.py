@@ -3,6 +3,7 @@ import click
 import os
 from .cli_server import server
 from .cli_noded import bitcoind, elementsd
+from .cli_ext import ext
 
 logger = logging.getLogger(__name__)
 
@@ -44,5 +45,6 @@ def entry_point(config_home, debug=False, tracerpc=False):
 
 
 entry_point.add_command(server)
+entry_point.add_command(ext)
 entry_point.add_command(bitcoind)
 entry_point.add_command(elementsd)

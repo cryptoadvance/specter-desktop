@@ -9,6 +9,7 @@ from typing import Dict, List
 
 from cryptoadvance.specter.config import ProductionConfig
 from cryptoadvance.specter.managers.singleton import ConfigurableSingletonException
+from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.user import User
 from cryptoadvance.specter.util.reflection import get_template_static_folder
 from flask import current_app as app
@@ -112,7 +113,21 @@ class ServiceManager:
             ext_prefix = app.config["PIGGYBACK_EXT_URL_PREFIX"]
         else:
             ext_prefix = app.config["EXT_URL_PREFIX"]
-        app.register_blueprint(clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}")
+
+        try:
+            app.register_blueprint(
+                clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
+            )
+        except AssertionError as e:
+            if str(e).startswith("A name collision"):
+                raise SpecterError(
+                    f"""
+                There is a name collision for the {clazz.blueprint.name}. \n
+                This is probably because you're running in DevelopementConfig and configured
+                the extension at the same time in the EXTENSION_LIST which currently loks like this:
+                {app.config['EXTENSION_LIST']})
+                """
+                )
 
     @classmethod
     def configure_service_for_module(cls, service_id):
