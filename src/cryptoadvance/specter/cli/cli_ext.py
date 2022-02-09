@@ -198,7 +198,7 @@ include requirements.txt
     replace(
         f"src/{user_or_org}/spext/{dir}/service.py",
         f'blueprint_module = "{dir}.controller"',
-        f'blueprint_module = "{user_or_org}.spext.{dir}.controller',
+        f'blueprint_module = "{user_or_org}.spext.{dir}.controller"',
     )
 
     print(
