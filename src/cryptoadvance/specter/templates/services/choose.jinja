@@ -215,7 +215,7 @@
 
         {% for plugin in services %}
             {% if plugin.__class__.devstatus == "prod" %}
-                {{ plugin_card(plugin.name, plugin.desc, url_for(plugin.id + '_endpoint' + '.static', filename=plugin.icon)) }}
+                {{ plugin_card(plugin.name, plugin.desc, url_for(plugin.id + '_endpoint' + '.static', filename=plugin.icon), url_for(plugin.id + '_endpoint' + '.index')) }}
             {% endif %}
         {% endfor %}
 
@@ -225,7 +225,7 @@
 
         {% for plugin in services %}
             {% if plugin.__class__.devstatus == "beta" %}
-                {{ plugin_card(plugin.name, plugin.desc, url_for(plugin.id + '_endpoint' + '.static', filename=plugin.icon)) }}
+                {{ plugin_card(plugin.name, plugin.desc, url_for(plugin.id + '_endpoint' + '.static', filename=plugin.icon), url_for(plugin.id + '_endpoint' + '.index')) }}
             {% endif %}
         {% endfor %}
 
@@ -237,7 +237,7 @@
 
         {% for plugin in services %}
             {% if plugin.__class__.devstatus == "alpha" %}
-                {{ plugin_card(plugin.name, plugin.desc, url_for(plugin.id + '_endpoint' + '.static', filename=plugin.icon)) }}
+                {{ plugin_card(plugin.name, plugin.desc, url_for(plugin.id + '_endpoint' + '.static', filename=plugin.icon), url_for(plugin.id + '_endpoint' + '.index')) }}
             {% endif %}
         {% endfor %}
 
