@@ -222,7 +222,7 @@
             {{ sidebar_btn(url_for('devices_endpoint.new_device_type'), _('Add new device'),'btn_new_device') }}
         </div>
         {% include "services/sidebar_services_list.jinja" %}
-        {{ sidebar_btn(url_for('services_endpoint.choose'), 'Choose services', 'btn_new_service') }}
+        {{ sidebar_btn(url_for('services_endpoint.choose'), 'Choose plugins', 'btn_plugins') }}
         <br>
         <div class="footer">
 	        <span>{{ _("Specter Version:") }} <strong>{{ specter.version.current }}</strong></span>
