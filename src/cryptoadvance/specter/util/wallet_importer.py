@@ -443,7 +443,7 @@ class WalletImporter:
                 )
             recv_descriptor = "{}({})".format(
                 wallet_type,
-                "[{}]{}/0/*,".format(
+                "[{}]{}/0/*".format(
                     wallet_data["keystore"]["derivation"].replace(
                         "m", wallet_data["keystore"]["root_fingerprint"]
                     ),
@@ -456,7 +456,6 @@ class WalletImporter:
                     "label": wallet_data["keystore"].get("label", "Electrum Wallet"),
                 }
             ]
-
         # Current Specter backups
         else:
             # Newer exports are able to reinitialize device types but stay backwards
