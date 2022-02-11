@@ -49,7 +49,7 @@ class BaseConfig(object):
     SPECTER_URL_PREFIX = "/spc"
     # This enables the isolated_client-extensions, SECURITY-CRITICAL
     SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
-    SESSION_COOKIE_NAME = "session2"
+    SESSION_COOKIE_NAME = "specter"
     # The prefix for extensions which get access to the session cookie
     EXT_URL_PREFIX = "/spc/ext"
     # The prefix for extensions which don't get access to the session cookie (if SPECTER_URL_PREFIX isn't compromised)
