@@ -10,9 +10,12 @@ from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from mock import MagicMock, call, patch
 
 
+@patch("cryptoadvance.specter.util.wallet_importer.flash", print)
 def test_WalletImporter_unit():
     specter_mock = MagicMock()
     specter_mock.chain = "regtest"
+
+    # coldcard, trezor import
     wallet_json = """
         {"label": "MyTestMultisig", 
          "blockheight": 0, 
@@ -73,6 +76,63 @@ def test_WalletImporter_unit():
     assert wm_mock.create_wallet.called
     wm_mock.create_wallet.assert_called_once
     assert wallet_mock.keypoolrefill.called
+
+    # electrum single-sig and multisig import (Not BIP39, but electrum seeds), Focus is here only on the correct descriptor
+    singlesig_json = """
+        {
+            "keystore": {
+                "derivation": "m/0'",
+                "pw_hash_version": 1,
+                "root_fingerprint": "1f0a071c",
+                "seed": "castle flight vessel game mushroom stumble noise list scheme episode sheriff squeeze",
+                "seed_type": "segwit",
+                "type": "bip32",
+                "xprv": "vprv9FTrHquAzV9x9rNoJNA65YTwqyAjJHzs9kvPSfQqoPYKDPiAugDe6sCqrbkut2k3JEeXbmRN9aWMsdJZD1nGhdsCZbbmHrszvifAxo7oVjA",
+                "xpub": "vpub5UTChMS4priFNLTGQPh6SgQgQ11DhkiiWyqzF3pTMj5J6C3KTDXtefXKhrrRPuF2TsEuoU9w6NvydP9axJQKuof6gzdvt1eDJSRZzy3WDzV"
+            },
+            "use_encryption": false,
+            "wallet_type": "standard"
+        }
+    """
+
+    singlesig_importer = WalletImporter(singlesig_json, specter_mock)
+    assert (
+        str(singlesig_importer.descriptor)
+        == "wpkh([1f0a071c/0h]vpub5UTChMS4priFNLTGQPh6SgQgQ11DhkiiWyqzF3pTMj5J6C3KTDXtefXKhrrRPuF2TsEuoU9w6NvydP9axJQKuof6gzdvt1eDJSRZzy3WDzV/0/*)"
+    )
+
+    multisig_json = """
+        {
+            "use_encryption": false,
+            "wallet_type": "1of2",
+            "x1/": {
+                "derivation": "m/1'",
+                "pw_hash_version": 1,
+                "root_fingerprint": "9f09087f",
+                "seed": "bicycle master jacket bring tornado faint bachelor violin delay equip february frog",
+                "seed_type": "segwit",
+                "type": "bip32",
+                "xprv": "Vprv19bpWVjGnupHR8JU9p9RU4gWrUAYProMHQ5MxPw14b1Rtk8mB6V3vQSywnxwJ9GoJwt3Jgf4Qe2DcU9JzYoFj1FNZsuqY3kYt3Rt2JvG4wG",
+                "xpub": "Vpub5gHreumWwHVxJbLG3Tp1sULdRVgUZBzFrhg9EuyJUropjEPXoVJe6u4r7y2EpwyVXHgehJ2PNn2R3kDxXLBGNnKmbicdibuoGmNjhCfyEZF"
+            },
+            "x2/": {
+                "derivation": "m/1'",
+                "pw_hash_version": 1,
+                "root_fingerprint": "1f0a071c",
+                "seed": "castle flight vessel game mushroom stumble noise list scheme episode sheriff squeeze",
+                "seed_type": "segwit",
+                "type": "bip32",
+                "xprv": "Vprv18fFgB8GFSawxQYZFf4q8umBXkVGg799uBeuAp1wXSkxX9dgvpwZnjCFwaffHauq1LZHZQPpei13HuMoR7kjTJg8HKWcmqbPTTzbVqUKj5Y",
+                "xpub": "Vpub5fMHpbAWPpGcqsaM9JjRYKRJ6n1CqSL4UVFgTL4EwiZMMdtTZDm9yDp87ko2WA1N9dWLuM48H9oiPDE4nGPfpxFNe7ZkcSqc2L2ncuEXu4Z"
+            }
+        }
+    """
+
+    multisig_importer = WalletImporter(multisig_json, specter_mock)
+    assert (
+        str(multisig_importer.descriptor)
+        == "wsh(sortedmulti(1,[9f09087f/1h]Vpub5gHreumWwHVxJbLG3Tp1sULdRVgUZBzFrhg9EuyJUropjEPXoVJe6u4r7y2EpwyVXHgehJ2PNn2R3kDxXLBGNnKmbicdibuoGmNjhCfyEZF/0/*,[1f0a071c/1h]Vpub5fMHpbAWPpGcqsaM9JjRYKRJ6n1CqSL4UVFgTL4EwiZMMdtTZDm9yDp87ko2WA1N9dWLuM48H9oiPDE4nGPfpxFNe7ZkcSqc2L2ncuEXu4Z/0/*))"
+    )
 
 
 @pytest.mark.slow
