@@ -34,8 +34,8 @@ class Service:
     logo = None
     desc = None  # TODO: rename to "description" to be explicit
     has_blueprint = True  # the default
-    # If the blueprint gets a "/svc" prefix (piggyback = True), the login cookie won't work for all specter core functionality
-    piggyback = True
+    # If the blueprint gets a "/ext" prefix (isolated_client = True), the login cookie won't work for all specter core functionality
+    isolated_client = True
     devstatus = devstatus_alpha
 
     def __init__(self, active, specter):
@@ -108,20 +108,41 @@ class Service:
                 service_id=cls.id, wallet=wallet
             )
 
-        addresses = []
-        start_index = wallet.address_index + 1
-        for i in range(start_index, start_index + (2 * num_addresses), 2):
-            address = wallet.get_address(i)
+        # Start with the addresses that are already reserved but still unused
+        addresses: List[str] = wallet.get_associated_addresses(
+            service_id=cls.id, unused_only=True
+        )
+        logger.debug(f"Already have {len(addresses)} addresses reserved for {cls.id}")
 
-            # Mark an Address in a persistent way as being reserved by a Service
-            cls.reserve_address(wallet=wallet, address=address)
+        if len(addresses) < num_addresses:
+            if addresses:
+                # Continuing reserving from where we left off
+                index = addresses[-1].index + 2
 
-            addresses.append(address)
+                # Final `addresses` list has to be just addr strs
+                addresses = [addr_obj.address for addr_obj in addresses]
+            else:
+                index = wallet.address_index + 1
 
-            if annotations:
-                annotations_storage.set_addr_annotations(
-                    addr=address, annotations=annotations, autosave=False
-                )
+            while len(addresses) < num_addresses:
+                address = wallet.get_address(index)
+                addr_obj = wallet.get_address_obj(address)
+
+                index += 2
+
+                if addr_obj.used or addr_obj.is_reserved:
+                    continue
+
+                # Mark an Address in a persistent way as being reserved by a Service
+                cls.reserve_address(wallet=wallet, address=address)
+                logger.debug(f"Reserved {address} for {cls.id}")
+
+                addresses.append(address)
+
+                if annotations:
+                    annotations_storage.set_addr_annotations(
+                        addr=address, annotations=annotations, autosave=False
+                    )
         if annotations:
             annotations_storage.save()
 

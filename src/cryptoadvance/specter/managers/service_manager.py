@@ -132,6 +132,59 @@ class ServiceManager:
                 )
 
     @classmethod
+    def register_blueprint_for_ext(cls, clazz, ext):
+        if not clazz.has_blueprint:
+            return
+        if hasattr(clazz, "blueprint_module"):
+            import_name = clazz.blueprint_module
+            controller_module = clazz.blueprint_module
+        else:
+            # The import_name helps to locate the root_path for the blueprint
+            import_name = f"cryptoadvance.specter.services.{clazz.id}.service"
+            controller_module = f"cryptoadvance.specter.services.{clazz.id}.controller"
+
+        clazz.blueprint = Blueprint(
+            f"{clazz.id}_endpoint",
+            import_name,
+            template_folder=get_template_static_folder("templates"),
+            static_folder=get_template_static_folder("static"),
+        )
+
+        def inject_stuff():
+            """Can be used in all jinja2 templates"""
+            return dict(specter=app.specter, service=ext)
+
+        clazz.blueprint.context_processor(inject_stuff)
+
+        # Import the controller for this service
+        logger.info(f"  Loading Controller {controller_module}")
+        controller_module = import_module(controller_module)
+
+        # finally register the blueprint
+        if clazz.isolated_client:
+            ext_prefix = app.config["ISOLATED_CLIENT_EXT_URL_PREFIX"]
+        else:
+            ext_prefix = app.config["EXT_URL_PREFIX"]
+        app.register_blueprint(clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}")
+
+        if (
+            app.testing
+            and len([vf for vf in app.view_functions if vf.startswith(clazz.id)]) <= 1
+        ):  # the swan-static one
+            # Yet again that nasty workaround which has been described in the archblog.
+            # The easy variant can be found in server.py
+            # The good news is, that we'll only do that for testing
+            import importlib
+
+            logger.info("Reloading Extension controller")
+            importlib.reload(controller_module)
+            app.register_blueprint(
+                clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
+            )
+
+        logger.info(f"  Mounting {clazz.id} to {ext_prefix}/{clazz.id}")
+
+    @classmethod
     def configure_service_for_module(cls, service_id):
         """searches for ConfigClasses in the module-Directory and merges its config in the global config"""
         try:
@@ -211,7 +264,7 @@ class ServiceManager:
             logger.debug(
                 f"Setting service '{ext.id}' active to {ext.id in service_names_active}"
             )
-            service.active = service.id in service_names_active
+            ext.active = ext.id in service_names_active
 
     def get_service(self, service_id: str) -> Service:
         if service_id not in self._services:
