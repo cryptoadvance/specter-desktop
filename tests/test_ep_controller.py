@@ -155,42 +155,6 @@ def test_SPECTER_URL_PREFIX(caplog):
     assert result.location.endswith("/someprefix/settings/auth")
 
 
-def specter_app_w2ith_config(config={}):
-    """the Flask-App, but uninitialized"""
-    # class tempClass(TestConfig):
-    #    ''' For now, this can only be used once as a config object :-| '''
-    #    pass
-    tempClass = type("tempClass", (TestConfig,), {})
-    for key, value in config.items():
-        setattr(tempClass, key, value)
-    # service_manager will expect the class to be defined as a direct property of the module:
-    if hasattr(sys.modules[__name__], "tempClass"):
-        delattr(sys.modules[__name__], "tempClass")
-    assert not hasattr(sys.modules[__name__], "tempClass")
-    setattr(sys.modules[__name__], "tempClass", tempClass)
-    assert hasattr(sys.modules[__name__], "tempClass")
-    assert getattr(sys.modules[__name__], "tempClass") == tempClass
-    app = create_app(config=tempClass)
-    assert (
-        app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"]
-        == "test_ep_controller.tempClass"
-    )
-    for key, value in config.items():
-        assert app.config[key] == value
-
-    app.app_context().push()
-    app.config["TESTING"] = True
-    app.testing = True
-    app.tor_service_id = None
-    app.tor_enabled = False
-    init_app(app, specter=Specter())
-    test123: Blueprint = app.blueprints["swan_endpoint"]
-    for vf in app.view_functions:
-        print(vf)
-    # assert app.view_functions == " "
-    return app
-
-
 def login(client, password):
     """login helper-function"""
     result = client.post(

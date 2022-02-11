@@ -250,6 +250,7 @@ class ProductionConfig(BaseConfig):
 
     # Repeating it here as it's SECURITY CRITICAL. Check comments in BaseConfig
     SERVICES_LOAD_FROM_CWD = False
-    APP_URL_PREFIX = "/spc"
-    EXT_URL_PREFIX = "/spc/svc"
-    EXTERNAT_EXT_URL_PREFIX = "/svc"
+    SPECTER_URL_PREFIX = "/spc"
+    EXT_URL_PREFIX = "/spc/ext"
+    EXTERNAT_EXT_URL_PREFIX = "/ext"
+    SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
