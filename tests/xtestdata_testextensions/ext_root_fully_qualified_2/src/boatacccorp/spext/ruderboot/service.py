@@ -21,7 +21,7 @@ class RuderbootService(Service):
     logo = "ruderboot/img/ruderboot_logo.jpeg"
     desc = "Where a Ruderboot grows bigger."
     has_blueprint = True
-    blueprint_module = "boatacccorp.spext.ruderboot.controller"
+    blueprint_module = "boatacccorp.specterext.ruderboot.controller"
     devstatus = devstatus_alpha
     piggyback = False
 

@@ -1,5 +1,5 @@
-recursive-include src/boatacccorp/spext/tretboot/templates *
-recursive-include src/boatacccorp/spext/tretboot/static *
-recursive-include src/boatacccorp/spext/tretboot/*/LC_MESSAGES *.mo
-recursive-include src/boatacccorp/spext/tretboot/translations/*/LC_MESSAGES *.po
+recursive-include src/boatacccorp/specterext/tretboot/templates *
+recursive-include src/boatacccorp/specterext/tretboot/static *
+recursive-include src/boatacccorp/specterext/tretboot/*/LC_MESSAGES *.mo
+recursive-include src/boatacccorp/specterext/tretboot/translations/*/LC_MESSAGES *.po
 include requirements.txt

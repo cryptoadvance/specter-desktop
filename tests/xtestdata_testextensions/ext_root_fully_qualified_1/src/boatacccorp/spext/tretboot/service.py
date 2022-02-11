@@ -21,7 +21,7 @@ class TretbootService(Service):
     logo = "tretboot/img/tretboot_logo.jpeg"
     desc = "Where a Tretboot grows bigger."
     has_blueprint = True
-    blueprint_module = "boatacccorp.spext.tretboot.controller"
+    blueprint_module = "boatacccorp.specterext.tretboot.controller"
     devstatus = devstatus_alpha
     piggyback = False
 

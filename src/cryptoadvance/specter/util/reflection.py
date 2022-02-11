@@ -140,7 +140,7 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
         )
         if clazz.__name__ == "Service":
             # We'll try different styles
-            # one style is orgname.spext.extensionid, for that we have to guess the orgname:
+            # one style is orgname.specterext.extensionid, for that we have to guess the orgname:
             orgname = str(importer).split("/")[-2]
             logger.debug(f"guessing orgname: {orgname}")
             try:
@@ -157,9 +157,11 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
                     logger.debug(f"  Imported {module_name}.service")
                 except ModuleNotFoundError as e:
                     try:
-                        module = import_module(f"{orgname}.spext.{module_name}.service")
+                        module = import_module(
+                            f"{orgname}.specterext.{module_name}.service"
+                        )
                         logger.debug(
-                            f"  Imported {orgname}.spext.{module_name}.service"
+                            f"  Imported {orgname}.specterext.{module_name}.service"
                         )
                     except ModuleNotFoundError as e:
                         logger.debug(

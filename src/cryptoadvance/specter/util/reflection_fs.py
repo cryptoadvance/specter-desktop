@@ -35,9 +35,9 @@ def detect_extension_style_in_cwd(cwd=".") -> str:
         return "adhoc"
 
 
-def search_dirs_in_path(path: Path, dirname="spext") -> List[Path]:
-    """recursively walks the filesystem collecting directories which are called "spext"
-    returns a list of PATH all ending with spext
+def search_dirs_in_path(path: Path, dirname="specterext") -> List[Path]:
+    """recursively walks the filesystem collecting directories which are called "specterext"
+    returns a list of PATH all ending with specterext
     """
     plist: List[Path] = []
     print(path)
@@ -45,6 +45,6 @@ def search_dirs_in_path(path: Path, dirname="spext") -> List[Path]:
         raise Exception(f"Search path does not exist: {path}")
     for root, dirs, _ in os.walk(path):
         for dirname in dirs:
-            if dirname == "spext":
+            if dirname == ext_mark:
                 plist.append(Path(root, dirname))
     return plist

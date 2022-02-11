@@ -20,7 +20,10 @@ from ..util.tor import start_hidden_service, stop_hidden_services
 
 logger = logging.getLogger(__name__)
 
-dummy_ext_url = "https://raw.githubusercontent.com/cryptoadvance/spext-dummy/master"
+ext_mark = "specterext"
+dummy_ext_url = (
+    "https://raw.githubusercontent.com/cryptoadvance/specterext-dummy/master"
+)
 
 
 @click.group()
@@ -62,7 +65,16 @@ def create():
     dir = click.prompt(
         "What should be the ID of your extension (lowercase only)", type=str
     )
-    # iggyback = click.prompt("Should this get a Piggyback-Extension? ",type=bool)
+    org = click.prompt(
+        f"""
+        what should be the prefix? This is usually something like your github-username or
+        github organisation-name ?
+        This will be used to create the directory structure ( ./src/mycorpname/specterext/${dir} )
+        and later it will be used to prepare the files in order to publish this extension to pypi.
+    """,
+        type=str,
+    )
+
     wget_if_not_exist(f"{dummy_ext_url}/requirements.txt", "requirements.txt")
 
     Path(f"{dir}/templates/{dir}/components").mkdir(parents=True, exist_ok=True)
@@ -139,9 +151,9 @@ def publish():
         "What is the ID of your username or organisation? (lowercase only)", type=str
     )
     if Path(dir).is_dir():
-        Path(f"src/{user_or_org}/spext").mkdir(parents=True, exist_ok=True)
-        shutil.move(dir, f"src/{user_or_org}/spext")
-        print(f"    --> Moved {dir} to src/{user_or_org}/spext")
+        Path(f"src/{user_or_org}/{ext_mark}").mkdir(parents=True, exist_ok=True)
+        shutil.move(dir, f"src/{user_or_org}/{ext_mark}")
+        print(f"    --> Moved {dir} to src/{user_or_org}/{ext_mark}")
 
     create_if_not_exist(
         "setup.cfg",
@@ -188,18 +200,18 @@ build-backend = "setuptools.build_meta"
     create_if_not_exist(
         "MANIFEST.in",
         f"""\
-recursive-include src/{user_or_org}/spext/{dir}/templates *
-recursive-include src/{user_or_org}/spext/{dir}/static *
-recursive-include src/{user_or_org}/spext/{dir}/*/LC_MESSAGES *.mo
-recursive-include src/{user_or_org}/spext/{dir}/translations/*/LC_MESSAGES *.po
+recursive-include src/{user_or_org}/{ext_mark}/{dir}/templates *
+recursive-include src/{user_or_org}/{ext_mark}/{dir}/static *
+recursive-include src/{user_or_org}/{ext_mark}/{dir}/*/LC_MESSAGES *.mo
+recursive-include src/{user_or_org}/{ext_mark}/{dir}/translations/*/LC_MESSAGES *.po
 include requirements.txt
 """,
     )
 
     replace(
-        f"src/{user_or_org}/spext/{dir}/service.py",
+        f"src/{user_or_org}/{ext_mark}/{dir}/service.py",
         f'blueprint_module = "{dir}.controller"',
-        f'blueprint_module = "{user_or_org}.spext.{dir}.controller"',
+        f'blueprint_module = "{user_or_org}.{ext_mark}.{dir}.controller"',
     )
 
     print(
@@ -214,7 +226,7 @@ include requirements.txt
     pip3 install dist/{user_or_org}_{dir}-0.0.1-py3-none-any.whl
 
     In order to use your extension in production, please refer to the Readme.md in the
-    https://github.com/cryptoadvance/spext-dummy#how-to-get-this-to-production
+    https://github.com/cryptoadvance/{ext_mark}-dummy#how-to-get-this-to-production
     
     To publish your package
 
