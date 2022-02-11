@@ -83,6 +83,7 @@ def create_app(config=None):
         else:
             # Default
             config = "cryptoadvance.specter.config.ProductionConfig"
+        config_name = config
 
     app = SpecterFlask(
         __name__,
