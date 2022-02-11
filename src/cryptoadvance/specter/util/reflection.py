@@ -164,10 +164,17 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
                             f"  Imported {orgname}.specterext.{module_name}.service"
                         )
                     except ModuleNotFoundError as e:
-                        logger.debug(
-                            f"No Service Impl found in {module_name}.service. Skipping!"
+                        raise Exception(
+                            f"""
+                        While iterating over {importer} for module {module_name}, 
+                        a Service implementation could not be found in this places:
+                        * cryptoadvance.specter.services.{module_name}.service
+                        * {module_name}.service
+                        * {orgname}.specterext.{module_name}.service
+                        Maybe you did forget to do this:
+                        $ pip3 install -e .
+                        """
                         )
-                        continue
         elif clazz.__name__ == "SpecterMigration":
             module = import_module(
                 f"cryptoadvance.specter.util.migrations.{module_name}"
