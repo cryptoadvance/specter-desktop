@@ -147,12 +147,7 @@ class WalletManager:
                             if len(loaded_wallet.pending_psbts) > 0:
                                 for psbt in loaded_wallet.pending_psbts:
                                     logger.info(
-                                        "lock {} {}".format(
-                                            wallet_alias,
-                                            loaded_wallet.pending_psbts[
-                                                psbt
-                                            ].utxo_dict(),
-                                        )
+                                        f"lock {wallet_alias} {loaded_wallet.pending_psbts[psbt].utxo_dict()}"
                                     )
                                     loaded_wallet.rpc.lockunspent(
                                         False,
