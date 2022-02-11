@@ -24,6 +24,7 @@ class SwanService(Service):
     logo = "swan/img/swan_logo.svg"
     desc = "Auto-withdraw to your Specter wallet"
     has_blueprint = True
+    isolated_client = False
     devstatus = devstatus_prod
 
     # TODO: As more Services are integrated, we'll want more robust categorization and sorting logic

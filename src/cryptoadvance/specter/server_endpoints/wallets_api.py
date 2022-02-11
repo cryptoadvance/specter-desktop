@@ -9,6 +9,7 @@ from math import isnan
 from numbers import Number
 
 import requests
+from cryptoadvance.specter.util.psbt_creator import PsbtCreator
 from flask import Blueprint
 from flask import current_app as app
 from flask import flash, jsonify, redirect, request, url_for
@@ -16,9 +17,7 @@ from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
 
-from cryptoadvance.specter.util.psbt_creator import PsbtCreator
-
-from ..helpers import bcur2base64
+from ..helpers import bcur2base64, generate_mnemonic
 from ..rpc import RpcError
 from ..server_endpoints.filters import assetlabel
 from ..specter_error import SpecterError, handle_exception
@@ -33,10 +32,65 @@ logger = logging.getLogger(__name__)
 wallets_endpoint_api = Blueprint("wallets_endpoint_api", __name__)
 
 
+@wallets_endpoint_api.route("/wallets_loading/", methods=["GET", "POST"])
+@login_required
+def wallets_loading():
+    return {
+        "is_loading": app.specter.wallet_manager.is_loading,
+        "loaded_wallets": [
+            app.specter.wallet_manager.wallets[wallet].alias
+            for wallet in app.specter.wallet_manager.wallets
+        ],
+        "failed_load_wallets": [
+            wallet["alias"] for wallet in app.specter.wallet_manager.failed_load_wallets
+        ],
+    }
+
+
+@wallets_endpoint_api.route("/generatemnemonic/", methods=["GET", "POST"])
+@login_required
+def generatemnemonic():
+    return {
+        "mnemonic": generate_mnemonic(
+            strength=int(request.form["strength"]),
+            language_code=app.get_language_code(),
+        )
+    }
+
+
+@wallets_endpoint_api.route("/get_txout_set_info")
+@login_required
+@app.csrf.exempt
+def txout_set_info():
+    res = app.specter.rpc.gettxoutsetinfo()
+    return res
+
+
+@wallets_endpoint_api.route("/get_scantxoutset_status")
+@login_required
+@app.csrf.exempt
+def get_scantxoutset_status():
+    status = app.specter.rpc.scantxoutset("status", [])
+    app.specter.info["utxorescan"] = status.get("progress", None) if status else None
+    if app.specter.info["utxorescan"] is None:
+        app.specter.utxorescanwallet = None
+    return {
+        "active": app.specter.info["utxorescan"] is not None,
+        "progress": app.specter.info["utxorescan"],
+    }
+
+
 @wallets_endpoint_api.route("/fees", methods=["GET"])
 @login_required
 def fees():
     return json.dumps(get_fees(app.specter, app.config), cls=FeeEstimationResultEncoder)
+
+
+@app.route("/get_fee/<blocks>")
+@login_required
+def fees_old(blocks):
+    """Is this endpoint even used? It has been migrated from controller.py and renamed to fees_old"""
+    return app.specter.estimatesmartfee(int(blocks))
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/combine/", methods=["POST"])

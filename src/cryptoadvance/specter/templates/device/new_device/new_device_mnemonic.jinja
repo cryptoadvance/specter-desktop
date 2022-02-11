@@ -159,7 +159,7 @@
         }
 
         async function generateMnemonic() {
-			let url = `{{ url_for('generatemnemonic') }}`;
+			let url = `{{ url_for('wallets_endpoint_api.generatemnemonic') }}`;
             var formData = new FormData(document.getElementById('form'));
 			try {
 				const response = await fetch(
