@@ -108,8 +108,8 @@ class ServiceManager:
         controller_module = import_module(controller_module)
 
         # finally register the blueprint
-        if clazz.piggyback:
-            ext_prefix = app.config["PIGGYBACK_EXT_URL_PREFIX"]
+        if clazz.isolated_client:
+            ext_prefix = app.config["ISOLATED_CLIENT_EXT_URL_PREFIX"]
         else:
             ext_prefix = app.config["EXT_URL_PREFIX"]
         app.register_blueprint(clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}")

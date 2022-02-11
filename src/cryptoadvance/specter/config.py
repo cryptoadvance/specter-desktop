@@ -47,13 +47,13 @@ class BaseConfig(object):
     APP_URL_PREFIX = os.getenv("APP_URL_PREFIX", "")
     # The prefix for mounting all Specter-Core-blueprints
     SPECTER_URL_PREFIX = "/spc"
-    # This enables the piggyback-extensions, SECURITY-CRITICAL
+    # This enables the isolated_client-extensions, SECURITY-CRITICAL
     SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
     SESSION_COOKIE_NAME = "session2"
     # The prefix for extensions which get access to the session cookie
     EXT_URL_PREFIX = "/spc/ext"
     # The prefix for extensions which don't get access to the session cookie (if SPECTER_URL_PREFIX isn't compromised)
-    PIGGYBACK_EXT_URL_PREFIX = "/ext"
+    ISOLATED_CLIENT_EXT_URL_PREFIX = "/ext"
 
     PORT = os.getenv("PORT", 25441)
     CONNECT_TOR = _get_bool_env_var(os.getenv("CONNECT_TOR", "False"))
