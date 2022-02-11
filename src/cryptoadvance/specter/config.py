@@ -33,10 +33,10 @@ DEFAULT_CONFIG = "cryptoadvance.specter.config.DevelopmentConfig"
 
 
 class BaseConfig(object):
-    # You got redirected here if you hit "/"
+    # You got redirected here if you hit "/". This doesn't work anymore (at least for "/") if you modify APP_URL_PREFIX
     ROOT_URL_REDIRECT = "/spc"
 
-    # *_URL_PREFIX
+    # Some notes to all three *_URL_PREFIX
     # For all of them, either set them to "" or "/something". Never "/".
     # SESSION_COOKIE_PATH is critical to control if you change any *_URL_PREFIX
     # Especially true if you overwrite one of them in a derivation-class.
@@ -45,7 +45,7 @@ class BaseConfig(object):
 
     # Enables mounting the specter including extensions somewhere else as "/"
     APP_URL_PREFIX = os.getenv("APP_URL_PREFIX", "")
-    # The prefix for mounting all Specter-Core-blueprints
+    # The prefix for mounting all Specter-Core-blueprints (and non isolated_client extensions)
     SPECTER_URL_PREFIX = "/spc"
     # This enables the isolated_client-extensions, SECURITY-CRITICAL
     SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
