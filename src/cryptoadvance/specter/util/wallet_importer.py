@@ -456,6 +456,13 @@ class WalletImporter:
                     "label": wallet_data["keystore"].get("label", "Electrum Wallet"),
                 }
             ]
+            if "seed" in wallet_data["keystore"]:
+                flash(
+                    _(
+                        "The Electrum wallet contains a seed. The seed will not be imported."
+                    ),
+                    "warning",
+                )
         # Current Specter backups
         else:
             # Newer exports are able to reinitialize device types but stay backwards
