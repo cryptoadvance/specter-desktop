@@ -17,6 +17,7 @@ from ..specter_error import SpecterError
 from ..util.common import snake_case2camelcase
 from ..util.shell import run_shell
 from ..util.tor import start_hidden_service, stop_hidden_services
+from ..util.reflection_fs import search_dirs_in_path
 
 logger = logging.getLogger(__name__)
 
@@ -58,57 +59,111 @@ def replace(fname, search, replace):
 
 
 @ext.command()
-def create():
-    """Will create a new extension in a more or less empty directory.
-    It will ask you for the ID of the extension and will then create the necessary files.
+def gen():
+    """Will generate a new extension in a more or less empty directory.
+    It will ask you for the ID of the extension and the org/name and will
+    then create the necessary files.
     """
-    dir = click.prompt(
+    ext_id = click.prompt(
         "What should be the ID of your extension (lowercase only)", type=str
     )
     org = click.prompt(
         f"""
         what should be the prefix? This is usually something like your github-username or
         github organisation-name ?
-        This will be used to create the directory structure ( ./src/mycorpname/specterext/${dir} )
+        This will be used to create the directory structure ( ./src/mycorpname/specterext/${ext_id} )
         and later it will be used to prepare the files in order to publish this extension to pypi.
     """,
         type=str,
     )
 
+    isolated_client = click.prompt(
+        f"""
+        Should the extension be working in isolated_client-mode? In that case it's won't share the
+        session-cookie with specter and the integration can only happen on server-side?
+    """,
+        type=bool,
+    )
+
     wget_if_not_exist(f"{dummy_ext_url}/requirements.txt", "requirements.txt")
+    package_path = f"src/{org}/{ext_mark}/{ext_id}"
+    Path(f"{package_path}/templates/{ext_id}/components").mkdir(
+        parents=True, exist_ok=True
+    )
+    Path(f"{package_path}/static/{ext_id}").mkdir(parents=True, exist_ok=True)
 
-    Path(f"{dir}/templates/{dir}/components").mkdir(parents=True, exist_ok=True)
-    Path(f"{dir}/static/{dir}").mkdir(parents=True, exist_ok=True)
+    # Service
+    wget_if_not_exist(
+        f"{dummy_ext_url}/dummy/service.py", f"./{package_path}/service.py"
+    )
+    replace(f"./{package_path}/service.py", "dummy", ext_id)
+    replace(f"./{package_path}/service.py", "Dummy", snake_case2camelcase(ext_id))
+    replace(
+        f"./{package_path}/service.py",
+        f'blueprint_module = "{ext_id}.controller"',
+        f'blueprint_module = "{org}.{ext_mark}.{ext_id}.controller"',
+    )
 
-    wget_if_not_exist(f"{dummy_ext_url}/dummy/service.py", f"./{dir}/service.py")
-    replace(f"./{dir}/service.py", "dummy", dir)
-    replace(f"./{dir}/service.py", "Dummy", snake_case2camelcase(dir))
-    wget_if_not_exist(f"{dummy_ext_url}/dummy/controller.py", f"./{dir}/controller.py")
-    replace(f"./{dir}/controller.py", "dummy", dir)
-    replace(f"./{dir}/controller.py", "Dummy", snake_case2camelcase(dir))
-    wget_if_not_exist(f"{dummy_ext_url}/dummy/__init__.py", f"./{dir}/__init__.py")
+    # Controller
     wget_if_not_exist(
-        f"{dummy_ext_url}/dummy/templates/dummy/index.jinja",
-        f"{dir}/templates/{dir}/index.jinja",
+        f"{dummy_ext_url}/dummy/controller.py", f"./{package_path}/controller.py"
     )
-    replace(f"{dir}/templates/{dir}/index.jinja", "dummy", dir)
-    replace(f"{dir}/templates/{dir}/index.jinja", "Dummy", snake_case2camelcase(dir))
+    replace(f"./{package_path}/controller.py", "dummy", ext_id)
+    replace(f"./{package_path}/controller.py", "Dummy", snake_case2camelcase(ext_id))
+    if isolated_client:
+        replace(f"{package_path}/controller.py", "@login_required", "")
+        replace(f"{package_path}/controller.py", "@user_secret_decrypted_required", "")
+
     wget_if_not_exist(
-        f"{dummy_ext_url}/dummy/templates/dummy/settings.jinja",
-        f"{dir}/templates/{dir}/settings.jinja",
+        f"{dummy_ext_url}/dummy/__init__.py", f"./{package_path}/__init__.py"
     )
-    replace(f"{dir}/templates/{dir}/settings.jinja", "dummy", dir)
-    replace(f"{dir}/templates/{dir}/settings.jinja", "Dummy", snake_case2camelcase(dir))
-    wget_if_not_exist(
-        f"{dummy_ext_url}/dummy/templates/dummy/components/dummy_menu.jinja",
-        f"{dir}/templates/{dir}/components/{dir}_menu.jinja",
-    )
-    replace(f"{dir}/templates/{dir}/components/{dir}_menu.jinja", "dummy", dir)
-    wget_if_not_exist(
-        f"{dummy_ext_url}/dummy/templates/dummy/components/dummy_tab.jinja",
-        f"{dir}/templates/{dir}/components/{dir}_tab.jinja",
-    )
-    replace(f"{dir}/templates/{dir}/components/{dir}_tab.jinja", "dummy", dir)
+
+    # Templates
+    if isolated_client:
+        create_if_not_exist(
+            f"{package_path}/templates/{ext_id}/index.jinja",
+            f"<html> <body> Hello {ext_id} </body></html>",
+        )
+    else:
+        wget_if_not_exist(
+            f"{dummy_ext_url}/dummy/templates/dummy/index.jinja",
+            f"{package_path}/templates/{ext_id}/index.jinja",
+        )
+        replace(f"{package_path}/templates/{ext_id}/index.jinja", "dummy", ext_id)
+        replace(
+            f"{package_path}/templates/{ext_id}/index.jinja",
+            "Dummy",
+            snake_case2camelcase(ext_id),
+        )
+
+        wget_if_not_exist(
+            f"{dummy_ext_url}/dummy/templates/dummy/settings.jinja",
+            f"{package_path}/templates/{ext_id}/settings.jinja",
+        )
+        replace(f"{package_path}/templates/{ext_id}/settings.jinja", "dummy", ext_id)
+        replace(
+            f"{package_path}/templates/{ext_id}/settings.jinja",
+            "Dummy",
+            snake_case2camelcase(ext_id),
+        )
+        wget_if_not_exist(
+            f"{dummy_ext_url}/dummy/templates/dummy/components/dummy_menu.jinja",
+            f"{package_path}/templates/{ext_id}/components/{ext_id}_menu.jinja",
+        )
+        replace(
+            f"{package_path}/templates/{ext_id}/components/{ext_id}_menu.jinja",
+            "dummy",
+            ext_id,
+        )
+        wget_if_not_exist(
+            f"{dummy_ext_url}/dummy/templates/dummy/components/dummy_tab.jinja",
+            f"{package_path}/templates/{ext_id}/components/{ext_id}_tab.jinja",
+        )
+        replace(
+            f"{package_path}/templates/{ext_id}/components/{ext_id}_tab.jinja",
+            "dummy",
+            ext_id,
+        )
 
     Path("tests").mkdir(parents=True, exist_ok=True)
     wget_if_not_exist(
@@ -135,40 +190,69 @@ def create():
         pip3 install -r requirements.txt
         python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
         # point your browser to http://localhost:25441
-        # "choose Services" --> {dir}
+        # "choose Services" --> {ext_id}
 """
     )
 
 
 @ext.command()
-def publish():
+def preppub():
     """This will make your extension release-ready.
     It'll create the necessary files and will tell you how to create a package and
     publish it.
     """
-    dir = click.prompt("What is the ID of your extension (lowercase only)", type=str)
-    user_or_org = click.prompt(
-        "What is the ID of your username or organisation? (lowercase only)", type=str
+
+    package_dirs = search_dirs_in_path("src", return_without_extid=False)
+    if len(package_dirs) != 1:
+        raise Exception(
+            f"""
+            no or more than one extension found:
+            { package_dirs }
+            Please create an Extension first or create the necessary files yourself
+        """
+        )
+    ext_id = package_dirs[0].parts[-1]
+    org = package_dirs[0].parts[-3]
+    result = run_shell(["git", "config", "--get", "user.name"])
+    if result["code"] == 0:
+        author = result["out"].decode("ascii").strip()
+    else:
+        author = click.prompt("Please type in your Name: ", type=str)
+    result = run_shell(["git", "config", "--get", "user.email"])
+    if result["code"] == 0:
+        email = result["out"].decode("ascii").strip()
+    else:
+        email = click.prompt("Please type in your E-Mail: ", type=str)
+    print(
+        f"""
+        Your Extension ID and Organsiation would be:
+            Extension ID: {ext_id}
+            Organisation: {org}
+        The recommended details of the python-package would be:
+            name:   {org}_{ext_id}
+            Author: {author}
+            mail:   {email}
+        The recommended Github-URL would be:
+            https://github.com/{org}/{ext_mark}-{ext_id}
+        However, you can also change these things afterwards.
+    """
     )
-    if Path(dir).is_dir():
-        Path(f"src/{user_or_org}/{ext_mark}").mkdir(parents=True, exist_ok=True)
-        shutil.move(dir, f"src/{user_or_org}/{ext_mark}")
-        print(f"    --> Moved {dir} to src/{user_or_org}/{ext_mark}")
+    answer = click.prompt("Is this correct (y/n) ?", type=bool)
 
     create_if_not_exist(
         "setup.cfg",
         f"""\
 [metadata]
-name = {user_or_org}_{dir}
+name = {org}_{ext_id}
 version = 0.0.1
-author = Your Name
-author_email = some_mail@mail.com
+author = {author}
+author_email = {email}
 description = A small example package
 long_description = file: README.md
 long_description_content_type = text/markdown
-url = https://github.com/{user_or_org}/spex-{dir}
+url = https://github.com/{org}/{ext_mark}-{ext_id}
 project_urls =
-    Bug Tracker = https://github.com/pypa/sampleproject/issues
+    Bug Tracker = https://github.com/{org}/specterext-{ext_id}/issues
 classifiers =
     Programming Language :: Python :: 3
     License :: OSI Approved :: MIT License
@@ -187,6 +271,16 @@ where = src
     )
 
     create_if_not_exist(
+        "setup.py",
+        f"""\
+from setuptools import setup
+
+if __name__ == "__main__":
+    setup()
+""",
+    )
+
+    create_if_not_exist(
         "pyproject.toml",
         f"""\
 [build-system]
@@ -200,18 +294,12 @@ build-backend = "setuptools.build_meta"
     create_if_not_exist(
         "MANIFEST.in",
         f"""\
-recursive-include src/{user_or_org}/{ext_mark}/{dir}/templates *
-recursive-include src/{user_or_org}/{ext_mark}/{dir}/static *
-recursive-include src/{user_or_org}/{ext_mark}/{dir}/*/LC_MESSAGES *.mo
-recursive-include src/{user_or_org}/{ext_mark}/{dir}/translations/*/LC_MESSAGES *.po
+recursive-include src/{org}/{ext_mark}/{dir}/templates *
+recursive-include src/{org}/{ext_mark}/{ext_id}/static *
+recursive-include src/{org}/{ext_mark}/{ext_id}/*/LC_MESSAGES *.mo
+recursive-include src/{org}/{ext_mark}/{ext_id}/translations/*/LC_MESSAGES *.po
 include requirements.txt
 """,
-    )
-
-    replace(
-        f"src/{user_or_org}/{ext_mark}/{dir}/service.py",
-        f'blueprint_module = "{dir}.controller"',
-        f'blueprint_module = "{user_or_org}.{ext_mark}.{dir}.controller"',
     )
 
     print(
@@ -223,7 +311,7 @@ include requirements.txt
     
     You can then install your extension like:")
     
-    pip3 install dist/{user_or_org}_{dir}-0.0.1-py3-none-any.whl
+    pip3 install dist/{org}_{ext_id}-0.0.1-py3-none-any.whl
 
     In order to use your extension in production, please refer to the Readme.md in the
     https://github.com/cryptoadvance/{ext_mark}-dummy#how-to-get-this-to-production

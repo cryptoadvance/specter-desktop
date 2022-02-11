@@ -10,8 +10,35 @@ def test_search_dir_in_cwd():
     plist: List[Path] = search_dirs_in_path(Path("./tests/xtestdata_testextensions"))
     assert len(plist) == 2
     assert isinstance(plist[0], Path)
-    assert str(plist[0]).startswith(
-        "tests/xtestdata_testextensions/ext_root_fully_qualified_"
+    assert (
+        Path(
+            "tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/boatacccorp/specterext"
+        )
+        in plist
+    )
+    assert (
+        Path(
+            "tests/xtestdata_testextensions/ext_root_fully_qualified_2/src/boatacccorp/specterext"
+        )
+        in plist
+    )
+
+    plist = search_dirs_in_path(
+        Path("./tests/xtestdata_testextensions"), return_without_extid=False
+    )
+    assert len(plist) == 2
+    assert isinstance(plist[0], Path)
+    assert (
+        Path(
+            "tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/boatacccorp/specterext/tretboot"
+        )
+        in plist
+    )
+    assert (
+        Path(
+            "tests/xtestdata_testextensions/ext_root_fully_qualified_2/src/boatacccorp/specterext/ruderboot"
+        )
+        in plist
     )
 
 
