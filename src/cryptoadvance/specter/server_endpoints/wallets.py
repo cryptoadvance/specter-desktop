@@ -31,7 +31,7 @@ def handle_wallet_error(func_name, error):
     flash(_("SpecterError while {}: {}").format(func_name, error), "error")
     app.logger.error(f"SpecterError while {func_name}: {error}")
     app.specter.wallet_manager.update()
-    return redirect(url_for("about"))
+    return redirect(url_for("welcome_endpoint.about"))
 
 
 def check_wallet(func):

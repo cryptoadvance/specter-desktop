@@ -10,6 +10,7 @@ from typing import Dict, List
 from cryptoadvance.specter.config import ProductionConfig
 from cryptoadvance.specter.managers.singleton import ConfigurableSingletonException
 from cryptoadvance.specter.user import User
+from cryptoadvance.specter.util.reflection import get_template_static_folder
 from flask import current_app as app
 from flask import url_for
 from flask.blueprints import Blueprint
@@ -59,6 +60,8 @@ class ServiceManager:
                     active=clazz.id in self.specter.config.get("services", []),
                     specter=self.specter,
                 )
+                # maybe register the blueprint
+                self.register_blueprint_for_ext(clazz, self._services[clazz.id])
                 logger.info(f"Service {clazz.__name__} activated ({clazz.devstatus})")
             else:
                 logger.info(
@@ -74,6 +77,59 @@ class ServiceManager:
             # Test suite triggers multiple calls; ignore for now.
             pass
         logger.info("----> finished service discovery <----")
+
+    @classmethod
+    def register_blueprint_for_ext(cls, clazz, ext):
+        if not clazz.has_blueprint:
+            return
+        if hasattr(clazz, "blueprint_module"):
+            import_name = clazz.blueprint_module
+            controller_module = clazz.blueprint_module
+        else:
+            # The import_name helps to locate the root_path for the blueprint
+            import_name = f"cryptoadvance.specter.services.{clazz.id}.service"
+            controller_module = f"cryptoadvance.specter.services.{clazz.id}.controller"
+
+        clazz.blueprint = Blueprint(
+            f"{clazz.id}_endpoint",
+            import_name,
+            template_folder=get_template_static_folder("templates"),
+            static_folder=get_template_static_folder("static"),
+        )
+
+        def inject_stuff():
+            """Can be used in all jinja2 templates"""
+            return dict(specter=app.specter, service=ext)
+
+        clazz.blueprint.context_processor(inject_stuff)
+
+        # Import the controller for this service
+        logger.info(f"  Loading Controller {controller_module}")
+        controller_module = import_module(controller_module)
+
+        # finally register the blueprint
+        if clazz.isolated_client:
+            ext_prefix = app.config["ISOLATED_CLIENT_EXT_URL_PREFIX"]
+        else:
+            ext_prefix = app.config["EXT_URL_PREFIX"]
+        app.register_blueprint(clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}")
+
+        if (
+            app.testing
+            and len([vf for vf in app.view_functions if vf.startswith(clazz.id)]) <= 1
+        ):  # the swan-static one
+            # Yet again that nasty workaround which has been described in the archblog.
+            # The easy variant can be found in server.py
+            # The good news is, that we'll only do that for testing
+            import importlib
+
+            logger.info("Reloading Extension controller")
+            importlib.reload(controller_module)
+            app.register_blueprint(
+                clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
+            )
+
+        logger.info(f"  Mounting {clazz.id} to {ext_prefix}/{clazz.id}")
 
     @classmethod
     def configure_service_for_module(cls, service_id):
@@ -151,11 +207,11 @@ class ServiceManager:
     def set_active_services(self, service_names_active):
         logger.debug(f"Setting these services active: {service_names_active}")
         self.specter.update_services(service_names_active)
-        for _, service in self.services.items():
+        for _, ext in self.services.items():
             logger.debug(
-                f"Setting service '{service.id}' active to {service.id in service_names_active}"
+                f"Setting service '{ext.id}' active to {ext.id in service_names_active}"
             )
-            service.active = service.id in service_names_active
+            ext.active = ext.id in service_names_active
 
     def get_service(self, service_id: str) -> Service:
         if service_id not in self._services:
