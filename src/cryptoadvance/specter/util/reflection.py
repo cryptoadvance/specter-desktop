@@ -112,8 +112,9 @@ def get_subclasses_for_clazz_in_cwd(clazz, cwd=".") -> List[type]:
         package_dirs.extend(search_dirs_in_path(Path("./src")))
     elif extension_style == "specter-desktop":
         if "PYTEST_CURRENT_TEST" in os.environ:
+            # I admit, ugly hack
             logger.info("We're in testing mode. Adding CWD to searchpath")
-            package_dirs.append(Path("."))  # pytest will know what's good here
+            package_dirs.append(Path("./src"))
         else:
             raise Exception(f"This should not happen")
     logger.info(f"Detected Extension-style: {extension_style}")
@@ -139,10 +140,6 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
             f"Iterating on importer={importer} , module_name={module_name} is_pkg={is_pkg}"
         )
         if clazz.__name__ == "Service":
-            # We'll try different styles
-            # one style is orgname.specterext.extensionid, for that we have to guess the orgname:
-            orgname = str(importer).split("/")[-2]
-            logger.debug(f"guessing orgname: {orgname}")
             try:
 
                 module = import_module(
@@ -152,11 +149,17 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
                     f"  Imported cryptoadvance.specter.services.{module_name}.service"
                 )
             except ModuleNotFoundError:
+                # Ignore the stuff lying around in cryptoadvance/specter/services
+                if importer.path.endswith("cryptoadvance/specter/services"):
+                    continue
                 try:
                     module = import_module(f"{module_name}.service")
                     logger.debug(f"  Imported {module_name}.service")
                 except ModuleNotFoundError as e:
                     try:
+                        # Another style is orgname.specterext.extensionid, for that we have to guess the orgname:
+                        orgname = str(importer).split("/")[-2]
+                        logger.debug(f"guessing orgname: {orgname}")
                         module = import_module(
                             f"{orgname}.specterext.{module_name}.service"
                         )
@@ -164,8 +167,9 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
                             f"  Imported {orgname}.specterext.{module_name}.service"
                         )
                     except ModuleNotFoundError as e:
-                        raise Exception(
-                            f"""
+                        if module_name in str(e):
+                            raise Exception(
+                                f"""
                         While iterating over {importer} for module {module_name}, 
                         a Service implementation could not be found in this places:
                         * cryptoadvance.specter.services.{module_name}.service
@@ -174,7 +178,9 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
                         Maybe you did forget to do this:
                         $ pip3 install -e .
                         """
-                        )
+                            )
+                        else:
+                            raise e
         elif clazz.__name__ == "SpecterMigration":
             module = import_module(
                 f"cryptoadvance.specter.util.migrations.{module_name}"
