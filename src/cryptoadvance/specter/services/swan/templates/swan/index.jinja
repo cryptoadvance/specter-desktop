@@ -55,6 +55,24 @@
     </style>
     <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" width="300"/>
     <div class="tagline">&ldquo;Swan is a great way to accumulate Bitcoin with automatic recurring buys and instant buys.&rdquo;</div>
+
+    {% if not specter_hostname_supported %}
+
+    <div class="service_warning">
+        <p>{{ _("You are currently using specter via this hostname:")}}</p>
+        <p> {{ specter_used_hostname }} </p>
+        <p>{{ _("Unfortunately the swan-extension does not support this. The only supported hostnames are:") }}</p>
+        <ul>
+            {% for hostname in allowed_specter_hostnames %}
+            <li>{{ hostname }}</li>
+            {% endfor %}
+        </ul> 
+        <p>{{ _("You might be able to make this work by modifying your hosts-file.") }}</p>
+        <br/>
+    </div>
+    
+    {% else %}
+
     <div class="card center" style="width: auto; min-width: 90%; margin: 40px;">
         <a class="button_wide" href="{{ swan_frontend_url }}" target="_swan">
             <span class="big_option">
@@ -88,6 +106,7 @@
         </div>
 
     </div>
+    {% endif %}  
 {% endblock %}
 
 

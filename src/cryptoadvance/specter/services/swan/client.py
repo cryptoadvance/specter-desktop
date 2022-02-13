@@ -35,7 +35,7 @@ class SwanApiRefreshTokenException(SwanApiException):
     pass
 
 
-def get_oauth2_start_url():
+def get_oauth2_start_url(callback_hostname):
     """
     Set up the Swan API integration by requesting our initial access_token and
     refresh_token.
@@ -54,7 +54,7 @@ def get_oauth2_start_url():
     flow_url = f"{api_url}/oidc/auth?"
     query_params = [
         f"client_id={client_id}",
-        "redirect_uri=http://localhost:25441/svc/swan/oauth2/callback",  # TODO: Will localhost work in all usage contexts (e.g. standalone app)?
+        f"redirect_uri=http://{ callback_hostname }/svc/swan/oauth2/callback",  # TODO: Will localhost work in all usage contexts (e.g. standalone app)?
         "response_type=code",
         "response_mode=query",
         f"code_challenge={code_challenge}",
