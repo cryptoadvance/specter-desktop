@@ -52,31 +52,38 @@ def ext():
     help="Output content on stdout instead of creating files",
 )
 def gen(org, ext_id, isolated_client, tmpl_fs_source, dryrun):
+    # fmt: off
     """Will generate a new extension in a more or less empty directory.
-
+    \b
     It'll will ask you for the missing information if you don't pass the
     necessary details (see below).
 
     After creation, you can get the extension to run like this in your Development Environment:
-    python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
-    # point your browser to http://localhost:25441
-    # "choose Services" --> {ext_id}
+
+    \b
+        python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
+        # point your browser to http://localhost:25441
+        # "choose Services" --> YourService
 
     If you want to package it, you can build it like this:
-    python3 -m pip install --upgrade build
-    python3 -m build
-    # install it like this:
-    pip3 install dist/{org}_{ext_id}-0.0.1-py3-none-any.whl
+
+    \b
+        python3 -m pip install --upgrade build
+        python3 -m build
+        # install it like this:
+        pip3 install dist/{org}_{ext_id}-0.0.1-py3-none-any.whl
 
     In order to use your extension in production, please refer to the Readme.md in the
     https://github.com/cryptoadvance/{ext_mark}-dummy#how-to-get-this-to-production
 
-    To publish your package
+    To publish your package:
 
-    python3 -m pip install --upgrade twine
-    python3 -m twine upload --repository testpypi dist/*
+    \b
+        python3 -m pip install --upgrade twine
+        python3 -m twine upload --repository testpypi dist/*
 
     """
+    # fmt: on
     if ext_id == None:
         ext_id = click.prompt(
             "What should be the ID of your extension (lowercase only)", type=str
