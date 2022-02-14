@@ -422,6 +422,7 @@
                 this.export.href = this.export.href.split('?')[0] + `?exportPrices=${this.exportPricesSwitch.checked}&search=${this.search}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
             }
 
+            // Create transaction with selected UTXO
             this.composeTxBtn.onclick = () => {
                 for (let tx of this.selectedRows) {
                     this.composeTxForm.innerHTML += `
@@ -432,6 +433,7 @@
                 this.composeTxForm.submit();
             }
 
+            // Freeze selected UTXO
             this.freezeTxBtn.onclick = () => {
                 for (let tx of this.selectedRows) {
                     this.freezeTxForm.innerHTML += `
@@ -486,6 +488,7 @@
             })
         }
 
+        // TODO: Remove? Not used anywhere and looks incomplete
         select_coins(selected_coins) {
             this.shadowRoot.querySelectorAll(".txrowitem").forEach((item) => {
                 selected_coins.forEach((selected_coin) => {
@@ -557,8 +560,8 @@
         }
 
         /**
-         * searches this.selectedCoin for a transactionId and removes that if found and returns True in that case.
-         * Explanation: An initial pre-ticking the checkboxes is not that easy as the state of the component is
+         * searches this.selectedCoins for a transactionId and removes that if found and returns True in that case.
+         * Explanation: An initial pre ticking of the checkboxes is not that easy as the state of the component is
          * created dynamically. This also involves the preselected checkboxes which get set by setAttribute("selected-coins",...)
          * In order to solve this, this.selectedCoins is an array of txids which nedd to be checked and they get "consumed" when the 
          * the check is positive.
@@ -571,7 +574,7 @@
                if (filtered.length == this.selectedCoins.length) {
                    return false
                } else {
-                   console.log("Found txid"+txid)
+                   console.log(`Found txid: ${txid}`)
                    this.selectedCoins = filtered
                    return true
                }
@@ -742,33 +745,55 @@
                         this.selectedRows = [];
                         this.selectedRowsActionBox.classList.add('hidden');
 
-                        // if preselectedCoins are there, we need to dispatch an event
                         let dispatchLater = false
                         for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) {
+                            // Replaces checkbox for locked UTXO in coin selection by snowflake image
+                            if (txRow.tx.locked) {
+                                txRow.callbackaction.innerHTML = ""
+                                // Need to clone otherwise we're ripping the node from the UTXO overview
+                                let frozenImgClone = txRow.frozenImg.cloneNode()
+                                txRow.callbackaction.append(frozenImgClone)
+                            }
                             // Preselect if necessary
                             if (this.checkForSelectedCoin(txRow.tx.txid)) {
                                 txRow.select()
                                 dispatchLater = true
                             }
-                            txRow.addEventListener('txRowCustomSelected', (e) => {
+                            // Listening for (un-) selecting coin selection checkboxes
+                            txRow.addEventListener('coinSelectRowSelected', (e) => {
                                 this.fireCustomSelectedEvent()
                             })
                             
-                            txRow.addEventListener('txRowSelected', e=>{
-                                let selectedRow = e.target;
+                            // Listening for (un-) selecting standard checkboxes
+                            txRow.addEventListener('txRowSelected', (e) => {
+                                let selectedRow = e.target; 
+                                // Note: Values could also be retrieved from selectedRow instead
                                 if (e.detail.selected) {
                                     this.selectedRows.push({
                                         txid: e.detail.txid,
                                         vout: e.detail.vout,
-                                        amount: e.detail.amount.toFixed(8)
+                                        amount: e.detail.amount.toFixed(8),
+                                        locked: e.detail.locked, 
                                     });
                                 } else {
                                     this.selectedRows = this.selectedRows.filter(row => !(row.txid === e.detail.txid && row.vout === e.detail.vout))
                                 }
+                                // Returns true if a selected UTXO is locked
+                                function checkLock(row) {
+                                    return row.locked == true
+                                }
                                 if (this.selectedRows.length == 0) {
-                                    this.selectedRowsActionBox.classList.add('hidden');
-                                } else {
+                                    this.composeTxForm.classList.add('hidden');
+                                    this.freezeTxForm.classList.add('hidden');
+                                }
+                                else {
                                     this.selectedRowsActionBox.classList.remove('hidden');
+                                    this.composeTxForm.classList.remove('hidden');
+                                    this.freezeTxForm.classList.remove('hidden');
+                                }
+                                // If a locked UTXO is selected the create transaction button disappears
+                                if (this.selectedRows.some(checkLock)) {
+                                    this.composeTxForm.classList.add('hidden');
                                 }
                             });
                         }
@@ -784,14 +809,11 @@
                 showError(`{{ _("Failed to fetch transactions list.") }}: ${e}`);
             }
         }
-            /** 
-        * If this event is fired, then some row got ticked/unticked in the custom-selection-column
-        */
+     
+        // If this event is fired, then some row got ticked/unticked in the custom-selection-column
+        // This is picked up by coin selection
         fireCustomSelectedEvent() {
-            let event = new CustomEvent('CustomSelected', { detail: {
-                txs: this.getSelectedTxs()
-            } }
-            );
+            let event = new CustomEvent('CustomSelected')
             this.dispatchEvent(event);
         }
     }

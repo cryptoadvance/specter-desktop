@@ -467,6 +467,15 @@ def send_new(wallet_alias):
     rbf_utxo = []
     rbf_tx_id = ""
     selected_coins = request.form.getlist("coinselect")
+    # Additional server side check not to use frozen UTXO as a precaution
+    frozen_utxo = wallet.frozen_utxo
+    for utxo in selected_coins:
+        if utxo in frozen_utxo:
+            selected_coins.remove(utxo)
+            flash(f"You've selected a frozen UTXO for a transaction.", "error")
+            return redirect(
+                url_for("wallets_endpoint.history", wallet_alias=wallet_alias)
+            )
 
     if request.method == "POST":
         action = request.form.get("action")
