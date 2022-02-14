@@ -92,6 +92,7 @@ class ExtGen:
 
     def generate_basics(self):
         self.render("requirements.txt", version=self.version)
+        self.render(".gitignore")
         package_path = f"src/dummyorg/specterext/dummy"
         self.render(f"{package_path}/service.py")
         self.render(f"{package_path}/controller.py")
@@ -102,6 +103,7 @@ class ExtGen:
             self.create_binary_file(f"{package_path}/static/dummy/img/ghost.png")
             self.create_binary_file(f"{package_path}/static/dummy/img/logo.jpeg")
             self.render(f"{package_path}/templates/dummy/base.jinja")
+            self.render(f"{package_path}/templates/dummy/transactions.jinja")
             self.render(f"{package_path}/templates/dummy/settings.jinja")
             self.render(f"{package_path}/templates/dummy/components/dummy_menu.jinja")
             self.render(f"{package_path}/templates/dummy/components/dummy_tab.jinja")
