@@ -167,7 +167,10 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
                             f"  Imported {orgname}.specterext.{module_name}.service"
                         )
                     except ModuleNotFoundError as e:
-                        if module_name in str(e):
+                        print(
+                            f"----------------------------------------{module_name} -> {e.name}"
+                        )
+                        if module_name in str(e.name) or orgname in str(e.name):
                             raise Exception(
                                 f"""
                         While iterating over {importer} for module {module_name}, 
