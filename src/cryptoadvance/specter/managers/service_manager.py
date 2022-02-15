@@ -17,6 +17,7 @@ from flask import url_for
 from flask.blueprints import Blueprint
 
 from ..services.service import Service
+from ..services import callbacks
 from ..services.service_encrypted_storage import ServiceEncryptedStorageManager
 from ..util.reflection import (
     _get_module_from_class,
@@ -80,56 +81,7 @@ class ServiceManager:
             # Test suite triggers multiple calls; ignore for now.
             pass
         logger.info("----> finished service processing")
-
-    @classmethod
-    def register_blueprint_for_ext(cls, clazz, ext):
-        if not clazz.has_blueprint:
-            return
-        if hasattr(clazz, "blueprint_module"):
-            import_name = clazz.blueprint_module
-            controller_module = clazz.blueprint_module
-        else:
-            # The import_name helps to locate the root_path for the blueprint
-            import_name = f"cryptoadvance.specter.services.{clazz.id}.service"
-            controller_module = f"cryptoadvance.specter.services.{clazz.id}.controller"
-
-        clazz.blueprint = Blueprint(
-            f"{clazz.id}_endpoint",
-            import_name,
-            template_folder=get_template_static_folder("templates"),
-            static_folder=get_template_static_folder("static"),
-        )
-
-        def inject_stuff():
-            """Can be used in all jinja2 templates"""
-            return dict(specter=app.specter, service=ext)
-
-        clazz.blueprint.context_processor(inject_stuff)
-
-        # Import the controller for this service
-        logger.info(f"  Loading Controller {controller_module}")
-        import_module(controller_module)
-
-        # finally register the blueprint
-        if clazz.piggyback:
-            ext_prefix = app.config["PIGGYBACK_EXT_URL_PREFIX"]
-        else:
-            ext_prefix = app.config["EXT_URL_PREFIX"]
-
-        try:
-            app.register_blueprint(
-                clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
-            )
-        except AssertionError as e:
-            if str(e).startswith("A name collision"):
-                raise SpecterError(
-                    f"""
-                There is a name collision for the {clazz.blueprint.name}. \n
-                This is probably because you're running in DevelopementConfig and configured
-                the extension at the same time in the EXTENSION_LIST which currently loks like this:
-                {app.config['EXTENSION_LIST']})
-                """
-                )
+        self.execute_ext_callbacks("afterServiceManagerInit")
 
     @classmethod
     def register_blueprint_for_ext(cls, clazz, ext):
@@ -165,24 +117,37 @@ class ServiceManager:
             ext_prefix = app.config["ISOLATED_CLIENT_EXT_URL_PREFIX"]
         else:
             ext_prefix = app.config["EXT_URL_PREFIX"]
-        app.register_blueprint(clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}")
 
-        if (
-            app.testing
-            and len([vf for vf in app.view_functions if vf.startswith(clazz.id)]) <= 1
-        ):  # the swan-static one
-            # Yet again that nasty workaround which has been described in the archblog.
-            # The easy variant can be found in server.py
-            # The good news is, that we'll only do that for testing
-            import importlib
-
-            logger.info("Reloading Extension controller")
-            importlib.reload(controller_module)
+        try:
             app.register_blueprint(
                 clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
             )
+            logger.info(f"  Mounted {clazz.id} to {ext_prefix}/{clazz.id}")
+            if (
+                app.testing
+                and len([vf for vf in app.view_functions if vf.startswith(clazz.id)])
+                <= 1
+            ):  # the swan-static one
+                # Yet again that nasty workaround which has been described in the archblog.
+                # The easy variant can be found in server.py
+                # The good news is, that we'll only do that for testing
+                import importlib
 
-        logger.info(f"  Mounting {clazz.id} to {ext_prefix}/{clazz.id}")
+                logger.info("Reloading Extension controller")
+                importlib.reload(controller_module)
+                app.register_blueprint(
+                    clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
+                )
+        except AssertionError as e:
+            if str(e).startswith("A name collision"):
+                raise SpecterError(
+                    f"""
+                There is a name collision for the {clazz.blueprint.name}. \n
+                This is probably because you're running in DevelopementConfig and configured
+                the extension at the same time in the EXTENSION_LIST which currently loks like this:
+                {app.config['EXTENSION_LIST']})
+                """
+                )
 
     @classmethod
     def configure_service_for_module(cls, service_id):
@@ -235,6 +200,18 @@ class ServiceManager:
                     )
                 app.config[key] = getattr(clazz, key)
                 logger.debug(f"setting {key} = {app.config[key]}")
+
+    def execute_ext_callbacks(self, callback_id, *args, **kwargs):
+        """will execute the callback function for each extension which has defined that method
+        the callback_id needs to be passed and specify why the callback has been called.
+        It needs to be one of the constants defined in cryptoadvance.specter.services.callbacks
+        """
+        if callback_id not in dir(callbacks):
+            raise Exception(f"Non existing callback_id: {callback_id}")
+        logger.debug(f"Executing callback {callback_id}")
+        for ext in self.services.values():
+            if hasattr(ext, "callback"):
+                ext.callback(callback_id, *args, **kwargs)
 
     @property
     def services(self) -> Dict[str, Service]:
