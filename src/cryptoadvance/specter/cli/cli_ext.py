@@ -55,12 +55,13 @@ def gen(org, ext_id, isolated_client, tmpl_fs_source, dryrun):
     # fmt: off
     """Will generate a new extension in a more or less empty directory.
     \b
-    It'll will ask you for the missing information if you don't pass the
+    It'll ask you for the missing information if you don't pass the
     necessary details (see below).
 
     After creation, you can get the extension to run like this in your Development Environment:
 
     \b
+        pip3 install -e .
         python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
         # point your browser to http://localhost:25441
         # "choose Services" --> YourService
@@ -85,25 +86,33 @@ def gen(org, ext_id, isolated_client, tmpl_fs_source, dryrun):
     """
     # fmt: on
     if ext_id == None:
+        print(
+            """
+            We need an ID and a prefix for your extension. It'll reflect in the package-layout.
+            The id should be a short string.
+            The prefix is usually something like your github-username or github organisation-name.
+            Both will be used to to create the directory structure ( ./src/mycorpname/specterext/myextension )
+            and it will be used to prepare the files in order to publish this extension to pypi.
+
+        """
+        )
         ext_id = click.prompt(
             "What should be the ID of your extension (lowercase only)", type=str
         )
     if org == None:
         org = click.prompt(
-            f"""
-            what should be the prefix? This is usually something like your github-username or
-            github organisation-name ?
-            This will be used to create the directory structure ( ./src/mycorpname/specterext/${ext_id} )
-            and later it will be used to prepare the files in order to publish this extension to pypi.
-        """,
+            "what should be the prefix?",
             type=str,
         )
     if isolated_client == None:
-        isolated_client = click.prompt(
-            f"""
+        print(
+            """
             Should the extension be working in isolated_client-mode? In that case it's won't share the
             session-cookie with specter and the integration can only happen on server-side?
-        """,
+        """
+        )
+        isolated_client = click.prompt(
+            "Should the extension work in isolated client mode (y/n)?",
             type=bool,
         )
     result = run_shell(["git", "config", "--get", "user.name"])
