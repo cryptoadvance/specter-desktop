@@ -196,9 +196,14 @@ def slow_request_detection_stop(response):
 
 ########## template injections #############
 @app.context_processor
-def inject_debug():
+def inject_common_stuff():
     """Can be used in all jinja2 templates"""
-    return dict(debug=app.config["DEBUG"])
+    return dict(
+        debug=app.config["DEBUG"],
+        specter_url_prefix=app.config["APP_URL_PREFIX"]
+        + app.config["SPECTER_URL_PREFIX"],
+        ext_url_prefix=app.config["APP_URL_PREFIX"] + app.config["EXT_URL_PREFIX"],
+    )
 
 
 ################ Specter global routes ####################

@@ -54,7 +54,7 @@ def get_oauth2_start_url(callback_hostname):
     flow_url = f"{api_url}/oidc/auth?"
     query_params = [
         f"client_id={client_id}",
-        f"redirect_uri=http://{ callback_hostname }/svc/swan/oauth2/callback",  # TODO: Will localhost work in all usage contexts (e.g. standalone app)?
+        f"redirect_uri=http://{ callback_hostname }{app.config['APP_URL_PREFIX']}{app.config['EXT_URL_PREFIX']}/swan/oauth2/callback",  # TODO: Will localhost work in all usage contexts (e.g. standalone app)?
         "response_type=code",
         "response_mode=query",
         f"code_challenge={code_challenge}",
