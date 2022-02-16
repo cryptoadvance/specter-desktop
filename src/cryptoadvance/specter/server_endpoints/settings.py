@@ -396,6 +396,24 @@ def auth():
     rate_limit = auth["rate_limit"]
     registration_link_timeout = auth["registration_link_timeout"]
     users = None
+
+    if (
+        request.method == "GET"
+        and current_user.is_admin
+        and app.config["LOGIN_DISABLED"] == False
+        and not current_user.plaintext_user_secret
+    ):
+        # Password protection is enabled but the admin user doesn't have their
+        # user_secret decrypted. Force them to login again to prevent problems if they
+        # try to change their password (changing password requires re-encrypting the
+        # user_secret... which we can't do if it isn't decrypted first).
+        flash(_("Must login again to before making Authentication changes"))
+        return redirect(
+            url_for("auth_endpoint.login")
+            + "?next="
+            + url_for("settings_endpoint.auth")
+        )
+
     if current_user.is_admin and method == "usernamepassword":
         users = [user for user in app.specter.user_manager.users if not user.is_admin]
     if request.method == "POST":
