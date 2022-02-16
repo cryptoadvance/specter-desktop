@@ -4,7 +4,7 @@ Manages the list of transactions for the wallet
 from typing import Union
 import os
 from .specter_error import SpecterError
-from .persistence import write_csv, read_csv
+from .persistence import delete_file, write_csv, read_csv
 from .helpers import get_address_from_dict
 from embit.transaction import Transaction
 from embit.liquid.networks import get_network
@@ -230,7 +230,10 @@ class TxList(dict, AbstractTxListContext):
             for tx in self.values():
                 tx.dump()
             write_csv(self.path, list(self.values()), self.ItemCls)
-        self._file_exists = True
+            self._file_exists = True
+        else:
+            delete_file(self.path)
+            self._file_exists = False
 
     def getfetch(self, txid):
         """

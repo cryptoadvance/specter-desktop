@@ -1,5 +1,6 @@
 from binascii import hexlify
 import os
+from pathlib import Path
 
 from embit.descriptor.descriptor import Descriptor
 from cryptoadvance.specter.txlist import TxItem, TxList
@@ -121,12 +122,6 @@ def test_txlist(empty_data_folder, bitcoin_regtest):
 
     mytxlist.invalidate(test_tx["txid"])
     assert len(mytxlist) == 0
-    with open(filename, "r+") as file:
-        # Reading from file
-        assert file.readline().startswith(
-            "txid,blockhash,blockheight,time,blocktime,bip125-replaceable,conflicts,vsize,category,address,amount,ismine"
-        )
-        assert file.readline().startswith(
-            "42f5c9e826e52cde883cde7a6c7b768db302e0b8b32fc52db75ad3c5711b4a9e,72523c637e0b93505806564495b1acf915a88bacc45f50e35e8a536becd2f914,,1642494258,,no,[],,receive,Unknown,19.9999989,False"
-        )
+    assert not Path(filename).is_file()
+
     # assert False
