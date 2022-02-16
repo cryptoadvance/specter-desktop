@@ -59,7 +59,7 @@ def search_dirs_in_path(
     plist: List[Path] = []
     if not path.is_dir():
         raise Exception(f"Search path does not exist: {path}")
-    for root, dirs, _ in os.walk(path):
+    for root, dirs, _ in os.walk(path, followlinks=True):
         for dirname in dirs:
             if dirname == search_dirname:
                 if return_without_extid:

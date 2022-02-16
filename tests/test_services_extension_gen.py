@@ -16,7 +16,7 @@ def test_ExtGen(caplog):
         False,
         "Some Author",
         "some@mail",
-        loader=FileSystemLoader("../specterext-dummy"),
+        tmpl_fs_source="../specterext-dummy",
         dry_run=True,
     )
     extgen.generate()

@@ -8,11 +8,17 @@ from typing import List
 
 def test_search_dir_in_cwd():
     plist: List[Path] = search_dirs_in_path(Path("./tests/xtestdata_testextensions"))
-    assert len(plist) == 2
+    assert len(plist) == 3
     assert isinstance(plist[0], Path)
     assert (
         Path(
             "tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/boatacccorp/specterext"
+        )
+        in plist
+    )
+    assert (
+        Path(
+            "tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/accorp/specterext"
         )
         in plist
     )
@@ -26,11 +32,17 @@ def test_search_dir_in_cwd():
     plist = search_dirs_in_path(
         Path("./tests/xtestdata_testextensions"), return_without_extid=False
     )
-    assert len(plist) == 2
+    assert len(plist) == 3
     assert isinstance(plist[0], Path)
     assert (
         Path(
             "tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/boatacccorp/specterext/tretboot"
+        )
+        in plist
+    )
+    assert (
+        Path(
+            "tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/accorp/specterext/beiboot"
         )
         in plist
     )
