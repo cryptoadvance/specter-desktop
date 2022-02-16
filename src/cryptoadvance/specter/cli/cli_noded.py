@@ -391,7 +391,7 @@ def miner_loop(node_impl, my_node, data_folder, mining_every_x_seconds, echo):
     def exit_now(signo, _frame):
         exit.set()
 
-    for sig in ("TERM", "HUP", "INT"):
+    for sig in ("HUP", "INT"):
         signal.signal(getattr(signal, "SIG" + sig), exit_now)
     prevent_mining_file = Path("prevent_mining")
     i = 0
