@@ -387,27 +387,37 @@ def miner_loop(node_impl, my_node, data_folder, mining_every_x_seconds, echo):
     )
     i = 0
     while True:
+        prevent_minig_file = Path("prevent_mining")
         try:
-            my_node.mine()
             current_height = my_node.rpcconn.get_rpc().getblockchaininfo()["blocks"]
+            time.sleep(mining_every_x_seconds)
+            if not prevent_minig_file.is_file():
+                my_node.mine()
+            else:
+                echo("X", prefix=False, nl=False)
+                continue
+
+            echo("%i" % (i % 10), prefix=False, nl=False)
+            if i % 10 == 9:
+                echo(" ", prefix=False, nl=False)
+            i += 1
+            if i >= 50:
+                i = 0
+                echo("", prefix=False)
+                echo(
+                    f"height: {current_height} | ",
+                    nl=False,
+                )
+
         except Exception as e:
             logger.debug(
                 f"Caught {e}, Couldn't mine, assume SIGTERM occured => exiting!"
             )
             echo(f"THE_END(@height:{current_height})")
+            if prevent_minig_file.is_file():
+                echo("Deleting file prevent_mining")
+                prevent_minig_file.unlink()
             break
-        echo("%i" % (i % 10), prefix=False, nl=False)
-        if i % 10 == 9:
-            echo(" ", prefix=False, nl=False)
-        i += 1
-        if i >= 50:
-            i = 0
-            echo("", prefix=False)
-            echo(
-                f"height: {current_height} | ",
-                nl=False,
-            )
-        time.sleep(mining_every_x_seconds)
 
 
 def mine_2_specter_wallets(node_impl, my_node, data_folder, echo):
