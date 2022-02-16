@@ -50,13 +50,5 @@ def test_import_address_labels(caplog, specter_regtest_configured):
     assert wallet._addresses[test_address]["label"] is None
     number_of_addresses = len(wallet._addresses)
 
-    # _transactions is a Dict where the key is the txID and the value is a TxItem
-    mytxitem = (
-        wallet._transactions[
-            "51dc63b8ed240a070ff1233572058bdd91072e751c5b4270fd5fea56b7a0acc8"
-        ]
-        == None
-    )
-
     assert wallet.txlist()[0]["blockheight"] != None
     assert wallet.txlist()[0]["blocktime"] != None

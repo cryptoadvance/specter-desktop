@@ -256,7 +256,10 @@ class TxList(dict, AbstractTxListContext):
         decode=True will decode transaction similar to Core's decoderawtransaction
         """
         # if we don't know blockheigth or transaction
-        # we get it from rpc
+        # we invalidate which results in asking core
+        if txid in self and self[txid]["blockheight"] == None:
+            self.invalidate(txid)
+
         if blockheight is None or txid not in self:
             tx = self.rpc.gettransaction(txid)
             if "time" not in tx:
@@ -294,6 +297,7 @@ class TxList(dict, AbstractTxListContext):
             "blockheight", - int blockheight if confirmed, None otherwise
             "blockhash", - str blockhash if confirmed, None otherwise
             "time", - int unix timestamp in seconds when tx was received
+            "blocktime",  - int unix timestamp in seconds  the block was mined
             "conflicts", - list of txids spending the same inputs (rbf)
             "bip125-replaceable", - str ("yes" or "no") - is rbf enabled for this tx
         }
@@ -316,6 +320,7 @@ class TxList(dict, AbstractTxListContext):
                 "blockheight": tx.get("blockheight", None),
                 "blockhash": tx.get("blockhash", None),
                 "time": time,
+                "blocktime": tx.get("blocktime", None),
                 "conflicts": tx.get("walletconflicts", []),
                 "bip125-replaceable": tx.get("bip125-replaceable", "no"),
                 "hex": tx.get("hex", None),
@@ -354,6 +359,11 @@ class TxList(dict, AbstractTxListContext):
         return psbt
 
     def _fill_missing(self, tx):
+        """This seem to calculate the category of the tx which is one of:
+        mixed (default), generate, selftransfer, receive or send
+
+        Also the tx gets a key with a boolean to figure out whether its "mine"
+        """
         raw_tx = tx.tx
         psbt = self._get_psbt(raw_tx)
         # detect category

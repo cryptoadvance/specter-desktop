@@ -1,8 +1,12 @@
 from binascii import hexlify
 import os
 from pathlib import Path
+import time
 
 from embit.descriptor.descriptor import Descriptor
+from cryptoadvance.specter.process_controller.bitcoind_controller import (
+    BitcoindPlainController,
+)
 from cryptoadvance.specter.txlist import TxItem, TxList
 from embit.descriptor.arguments import Key
 from embit.transaction import Transaction, TransactionInput
@@ -11,59 +15,24 @@ from mock import MagicMock
 
 descriptor = "pkh([78738c82/84h/1h/0h]vpub5YN2RvKrA9vGAoAdpsruQGfQMWZzaGt3M5SGMMhW8i2W4SyNSHMoLtyyLLS6EjSzLfrQcbtWdQcwNS6AkCWne1Y7U8bt9JgVYxfeH9mCVPH/1/*)"
 # The example transaction from a regtest
-test_tx = json.loads(
-    """
-{
-  "in_active_chain": true,
-  "txid": "42f5c9e826e52cde883cde7a6c7b768db302e0b8b32fc52db75ad3c5711b4a9e",
-  "hash": "d93c51fe9b7d001a795e98dd1357de42647cda08fe5072703f7e438154402bb6",
-  "version": 2,
-  "size": 191,
-  "vsize": 110,
-  "weight": 437,
-  "locktime": 415,
-  "vin": [
-    {
-      "txid": "c7c9dd852fa9cbe72b2f6e3b2eeba1a2b47dc4422b3719a55381be8010d7993f",
-      "vout": 0,
-      "scriptSig": {
-        "asm": "",
-        "hex": ""
-      },
-      "txinwitness": [
-        "304402201088bfd110dd891b7f16c5d50d10e6f99cf79d48673d890e3563f8275500315b02205a75e89f794a3e681fe6a7622c642323ac3c802b5f60da2547b2589982795a2401",
-        "02578993563d2d00cf1047011fe77a07181a1ab0467044d9b12857c3df65653a50"
-      ],
-      "sequence": 4294967294
-    }
-  ],
-  "vout": [
-    {
-      "value": 19.99999890,
-      "n": 0,
-      "scriptPubKey": {
-        "asm": "0 84a2f6e50f4a058b33e39d3d4f12d4a13b20334d",
-        "hex": "001484a2f6e50f4a058b33e39d3d4f12d4a13b20334d",
-        "reqSigs": 1,
-        "type": "witness_v0_keyhash",
-        "addresses": [
-          "bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u"
-        ]
-      }
-    }
-  ],
-  "hex": "020000000001013f99d71080be8153a519372b42c47db4a2a1eb2e3b6e2f2be7cba92f85ddc9c70000000000feffffff01929335770000000016001484a2f6e50f4a058b33e39d3d4f12d4a13b20334d0247304402201088bfd110dd891b7f16c5d50d10e6f99cf79d48673d890e3563f8275500315b02205a75e89f794a3e681fe6a7622c642323ac3c802b5f60da2547b2589982795a24012102578993563d2d00cf1047011fe77a07181a1ab0467044d9b12857c3df65653a509f010000",
-  "blockhash": "72523c637e0b93505806564495b1acf915a88bacc45f50e35e8a536becd2f914",
-  "confirmations": 222,
-  "time": 1642494258,
-  "blocktime": 1642494258
-}
-"""
-)
+
+# 42f5c9e826e52cde883cde7a6c7b768db302e0b8b32fc52db75ad3c5711b4a9e
+with open("tests/xtestdata_txlist/tx1_confirmed.json") as f:
+    tx1_confirmed = json.load(f)
+
+#
+with open("tests/xtestdata_txlist/tx2_unconfirmed.json") as f:
+    tx2_unconfirmed = json.load(f)
+
+with open("tests/xtestdata_txlist/tx2_confirmed.json") as f:
+    tx2_confirmed = json.load(f)
+
+with open("tests/xtestdata_txlist/tx2_confirmed2.json") as f:
+    tx2_confirmed2 = json.load(f)
 
 
 def test_understandTransaction():
-    mytx = Transaction.from_string(test_tx["hex"])
+    mytx = Transaction.from_string(tx1_confirmed["hex"])
     assert mytx.version == 2
     assert mytx.locktime == 415
     assert type(mytx.vin[0]) == TransactionInput
@@ -83,7 +52,7 @@ def test_TxItem(empty_data_folder):
         None,
         [],
         empty_data_folder,
-        hex=test_tx["hex"],
+        hex=tx1_confirmed["hex"],
         blocktime=1642182445,  # arbitrary stuff can get passed
     )
     # a TxItem pretty much works like a hash with some extrafunctionality
@@ -96,7 +65,10 @@ def test_TxItem(empty_data_folder):
 
 def test_txlist(empty_data_folder, bitcoin_regtest):
     parent_mock = MagicMock()
-    parent_mock.rpc = bitcoin_regtest.get_rpc()
+    bitcoin_regtest.get_rpc().createwallet("txlist1")
+    wrpc = bitcoin_regtest.get_rpc().wallet("txlist1")
+    parent_mock.rpc = wrpc
+
     parent_mock.descriptor = Descriptor.from_string(descriptor)
     assert type(parent_mock.descriptor.key) == Key
     assert parent_mock.descriptor.key.allowed_derivation != None
@@ -104,24 +76,98 @@ def test_txlist(empty_data_folder, bitcoin_regtest):
     filename = os.path.join(empty_data_folder, "my_filename.csv")
     mytxlist = TxList(filename, parent_mock, MagicMock())
     # mytxlist.descriptor = descriptor
-    mytxlist.add({test_tx["txid"]: test_tx})
+    mytxlist.add({tx1_confirmed["txid"]: tx1_confirmed})
     # .add will save implicitely.
     # mytxlist._save()
     with open(filename, "r+") as file:
         # Reading form a file
+
         assert file.readline().startswith(
             "txid,blockhash,blockheight,time,blocktime,bip125-replaceable,conflicts,vsize,category,address,amount,ismine"
         )
         assert file.readline().startswith(
-            "42f5c9e826e52cde883cde7a6c7b768db302e0b8b32fc52db75ad3c5711b4a9e,72523c637e0b93505806564495b1acf915a88bacc45f50e35e8a536becd2f914,,1642494258,,no,[],,receive,Unknown,19.9999989,False"
+            "42f5c9e826e52cde883cde7a6c7b768db302e0b8b32fc52db75ad3c5711b4a9e,72523c637e0b93505806564495b1acf915a88bacc45f50e35e8a536becd2f914,,1642494258,1642494258,no,[],,receive,Unknown,19.9999989,False"
         )
     assert len(mytxlist) == 1
-    assert (
-        mytxlist.gettransaction(test_tx["txid"], blockheight=0)["amount"] == 19.9999989
-    )
-
-    mytxlist.invalidate(test_tx["txid"])
+    mytxlist.invalidate(tx1_confirmed["txid"])
     assert len(mytxlist) == 0
     assert not Path(filename).is_file()
 
+    # Mock rpc-calls
+    mock_rpc = MagicMock()
+    mock_rpc.gettransaction.return_value = tx2_confirmed
+    mock_parent = MagicMock()
+    mock_parent.rpc = mock_rpc
+    mytxlist.parent = mock_parent
+    # mytxlist.getfetch("42f5c9e826e52cde883cde7a6c7b768db302e0b8b32fc52db75ad3c5711b4a9e")
+
     # assert False
+
+
+def test_txlist_invalidate(empty_data_folder, bitcoin_regtest: BitcoindPlainController):
+
+    # Setup the infra
+    rpc = bitcoin_regtest.get_rpc()
+    rpc.mine
+    rpc.createwallet("txlist2")
+    wrpc = rpc.wallet("txlist2")
+    address = wrpc.getnewaddress()
+    bitcoin_regtest.testcoin_faucet(address, amount=10, confirm_payment=True)
+    # itcoin_regtest.mine(self, address=address, block_count=100)
+
+    # Create the mytxlist
+    parent_mock = MagicMock()
+    parent_mock.rpc = wrpc
+    parent_mock.descriptor = Descriptor.from_string(descriptor)
+    assert type(parent_mock.descriptor.key) == Key
+    assert parent_mock.descriptor.key.allowed_derivation != None
+    assert parent_mock.descriptor.to_string() == descriptor
+    filename = os.path.join(empty_data_folder, "my_filename.csv")
+    mytxlist = TxList(filename, parent_mock, MagicMock())
+
+    # create a tx
+    txid = wrpc.sendtoaddress("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u", "1")
+    tx_via_core = wrpc.gettransaction(txid)
+    assert tx_via_core, "we have created a transaction"
+    assert tx_via_core["confirmations"] == 0, "it's not broadcasted, yet"
+    print(f"TxId: {txid}")
+    print(f"Tx via core:\n{tx_via_core}\n")
+    assert (
+        tx_via_core["time"] == tx_via_core["timereceived"]
+    ), "time and timereceived should be the same"
+
+    tx_item = mytxlist.getfetch(txid)
+    assert isinstance(tx_item, TxItem), "The tx should get returned via the txlist"
+    assert (
+        mytxlist[txid] == tx_item
+    ), "is should be the same item you get via obtaining it via the dict-method"
+
+    # analyzing the content of the tx
+    tx = mytxlist.gettransaction(txid)
+    print(f"Tx via cache:\n{tx}\n")
+    mpool_hittime = tx["time"]
+    assert tx["blockheight"] == None
+    print(f"this is the time when the tx hit the mempool {mpool_hittime}")
+
+    # Get the tx confirmed
+    bitcoin_regtest.mine(block_count=1)
+    print("\n-----------------------mining----------------------------------\n")
+    assert wrpc.gettransaction(txid)["confirmations"] == 1, "Now it's broadcasted"
+    tx_via_core = wrpc.gettransaction(txid)
+    assert tx_via_core["confirmations"] == 1, "it should now be broadcasted"
+    print(f"Tx via core:\n{tx_via_core}\n")
+    assert (
+        tx_via_core["blocktime"] > tx_via_core["time"]
+    ), "blocktime should be larger than time"
+
+    # optional: invalidate
+    # mytxlist.invalidate(txid)
+
+    # get it again
+    tx = mytxlist.gettransaction(txid)
+    print(f"Tx via cache:\n{tx}\n")
+    assert tx["blockheight"], "The tx should now have a blockheight"
+    assert tx["blocktime"], "The tx should now have a blocktime"
+    assert (
+        tx["blocktime"] > mpool_hittime
+    ), "The time of the transaction should now be bigger than the time it got hit the mempool"
