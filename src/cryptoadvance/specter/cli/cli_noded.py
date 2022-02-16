@@ -7,19 +7,20 @@ import signal
 import sys
 import time
 from pathlib import Path
+from threading import Event
 
 import click
 import psutil
 from flask import Config
 
 from ..config import DEFAULT_CONFIG
-from ..process_controller.node_controller import find_node_executable
 from ..process_controller.elementsd_controller import ElementsPlainController
+from ..process_controller.node_controller import find_node_executable
 from .utils import (
     Echo,
+    compute_data_dir_and_set_config_obj,
     kill_node_process,
     purge_node_data_dir,
-    compute_data_dir_and_set_config_obj,
 )
 
 logger = logging.getLogger(__name__)
@@ -385,13 +386,20 @@ def miner_loop(node_impl, my_node, data_folder, mining_every_x_seconds, echo):
         f"height: {my_node.rpcconn.get_rpc().getblockchaininfo()['blocks']} | ",
         nl=False,
     )
+    exit = Event()
+
+    def exit_now(signo, _frame):
+        exit.set()
+
+    for sig in ("TERM", "HUP", "INT"):
+        signal.signal(getattr(signal, "SIG" + sig), exit_now)
+    prevent_mining_file = Path("prevent_mining")
     i = 0
     while True:
-        prevent_minig_file = Path("prevent_mining")
         try:
             current_height = my_node.rpcconn.get_rpc().getblockchaininfo()["blocks"]
-            time.sleep(mining_every_x_seconds)
-            if not prevent_minig_file.is_file():
+            exit.wait(mining_every_x_seconds)
+            if not prevent_mining_file.is_file():
                 my_node.mine()
             else:
                 echo("X", prefix=False, nl=False)
@@ -414,9 +422,9 @@ def miner_loop(node_impl, my_node, data_folder, mining_every_x_seconds, echo):
                 f"Caught {e}, Couldn't mine, assume SIGTERM occured => exiting!"
             )
             echo(f"THE_END(@height:{current_height})")
-            if prevent_minig_file.is_file():
+            if prevent_mining_file.is_file():
                 echo("Deleting file prevent_mining")
-                prevent_minig_file.unlink()
+                prevent_mining_file.unlink()
             break
 
 
