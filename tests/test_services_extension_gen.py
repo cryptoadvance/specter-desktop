@@ -1,5 +1,6 @@
 from cryptoadvance.specter.services.extension_gen import ExtGen, GithubUrlLoader
 from jinja2 import FileSystemLoader
+from mock import patch
 
 
 def test_GithubUrlLoader():
@@ -9,15 +10,16 @@ def test_GithubUrlLoader():
 
 def test_ExtGen(caplog):
 
-    extgen = ExtGen(
-        ".",
-        "testorg",
-        "testext",
-        False,
-        "Some Author",
-        "some@mail",
-        tmpl_fs_source="../specterext-dummy",
-        dry_run=True,
-    )
-    extgen.generate()
-    assert False
+    with patch("cryptoadvance.specter.services.extension_gen.GithubUrlLoader") as mock:
+        extgen = ExtGen(
+            ".",
+            "testorg",
+            "testext",
+            False,
+            "Some Author",
+            "some@mail",
+            # uncomment the below line to see a real generation
+            # tmpl_fs_source="../specterext-dummy",
+            dry_run=True,
+        )
+        extgen.generate()
