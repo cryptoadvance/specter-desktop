@@ -17,7 +17,7 @@ from flask import url_for
 from flask.blueprints import Blueprint
 
 from ..services.service import Service
-from ..services import callbacks
+from ..services import callbacks, ExtensionException
 from ..services.service_encrypted_storage import ServiceEncryptedStorageManager
 from ..util.reflection import (
     _get_module_from_class,
@@ -243,11 +243,11 @@ class ServiceManager:
             )
             ext.active = ext.id in service_names_active
 
-    def get_service(self, service_id: str) -> Service:
-        if service_id not in self._services:
-            # TODO: better error handling?
-            raise Exception(f"No such Service: '{service_id}'")
-        return self._services[service_id]
+    def get_service(self, plugin_id: str) -> Service:
+        """get an extension-instance by ID. Raises an ExtensionException if it doesn't find it."""
+        if plugin_id not in self._services:
+            raise ExtensionException(f"No such plugin: '{plugin_id}'")
+        return self._services[plugin_id]
 
     def remove_all_services_from_user(self, user: User):
         """
