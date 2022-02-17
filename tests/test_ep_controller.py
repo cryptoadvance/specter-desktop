@@ -100,7 +100,11 @@ def test_APP_URL_PREFIX(caplog):
     caplog.set_level(logging.INFO)
     caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
     myapp = specter_app_with_config(
-        config={"APP_URL_PREFIX": "/someprefix", "SPECTER_URL_PREFIX": ""}
+        config={
+            "APP_URL_PREFIX": "/someprefix",
+            "SPECTER_URL_PREFIX": "",
+            "SPECTER_DATA_FOLDER": "~/.specter_testing",
+        }
     )
     client = myapp.test_client()
     login(client, "secret")
@@ -132,6 +136,7 @@ def test_SPECTER_URL_PREFIX(caplog):
             "APP_URL_PREFIX": "",
             "SPECTER_URL_PREFIX": "/someprefix",
             "EXT_URL_PREFIX": "/someprefix/extensions",
+            "SPECTER_DATA_FOLDER": "~/.specter_testing",
         }
     )
     client = myapp.test_client()
@@ -153,6 +158,7 @@ def test_SPECTER_URL_PREFIX(caplog):
     # The swan extension will automatically redirect to /settings/auth
     assert result.status_code == 302
     assert result.location.endswith("/someprefix/settings/auth")
+    assert False
 
 
 def login(client, password):

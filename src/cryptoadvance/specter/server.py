@@ -115,8 +115,8 @@ def init_app(app, hwibridge=False, specter=None):
             Response("Not Found", status=404),
             {app.config["APP_URL_PREFIX"]: app.wsgi_app},
         )
-
     # First: Migrations
+    print(f"-----------{app.config['SPECTER_DATA_FOLDER']}")
     mm = SpecterMigrator(app.config["SPECTER_DATA_FOLDER"])
     mm.execute_migrations()
 
@@ -128,7 +128,9 @@ def init_app(app, hwibridge=False, specter=None):
 
     if specter is None:
         # the default. If not None, then it got injected for testing
-        app.logger.info("Initializing Specter")
+        app.logger.info(
+            f"Initializing Specter with data-folder {app.config['SPECTER_DATA_FOLDER']}"
+        )
         specter = Specter(
             data_folder=app.config["SPECTER_DATA_FOLDER"],
             config=app.config["DEFAULT_SPECTER_CONFIG"],
