@@ -832,12 +832,12 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
         amount_price = "not supported"
         rate = "not supported"
         if tx["blocktime"]:
-            time = tx["blocktime"]
+            timestamp = tx["blocktime"]
         else:
-            time = tx["time"]
+            timestamp = tx["time"]
         if includePricesHistory:
             try:
-                rate, _ = get_price_at(specter, current_user, time)
+                rate, _ = get_price_at(specter, current_user, timestamp)
                 rate = float(rate)
                 if specter.unit == "sat":
                     rate = rate / 1e8
@@ -851,7 +851,7 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
                 rate = "-"
 
         row = (
-            time.strftime("%Y-%m-%d", time.localtime(tx["time"])),
+            time.strftime("%Y-%m-%d", time.localtime(timestamp)),
             label,
             tx["category"],
             round(tx["amount"], (0 if specter.unit == "sat" else 8)),
