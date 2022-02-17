@@ -137,16 +137,18 @@ class ExtGen:
         self.render("pyproject.toml", version=self.version)
         self.render("setup.py")
         # Author and Email
-        result = run_shell(["git", "config", "--get", "user.name"])
-        if result["code"] == 0:
-            author = result["out"].decode("ascii").strip()
-        else:
-            author = click.prompt("Please type in your Name: ", type=str)
-        result = run_shell(["git", "config", "--get", "user.email"])
-        if result["code"] == 0:
-            email = result["out"].decode("ascii").strip()
-        else:
-            email = click.prompt("Please type in your E-Mail: ", type=str)
+        if not self.author:
+            result = run_shell(["git", "config", "--get", "user.name"])
+            if result["code"] == 0:
+                author = result["out"].decode("ascii").strip()
+            else:
+                author = click.prompt("Please type in your Name: ", type=str)
+        if not self.author_email:
+            result = run_shell(["git", "config", "--get", "user.email"])
+            if result["code"] == 0:
+                email = result["out"].decode("ascii").strip()
+            else:
+                email = click.prompt("Please type in your E-Mail: ", type=str)
         self.render("setup.cfg")
         self.render("MANIFEST.in")
 

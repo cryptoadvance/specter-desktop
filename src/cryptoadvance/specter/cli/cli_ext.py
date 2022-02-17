@@ -147,23 +147,24 @@ def gen(org, ext_id, isolated_client, tmpl_fs_source, dryrun):
         Congratulations, you've created a new extension
 
         Here is how to get it tor run on your Development Environment:
-        python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
-        # point your browser to http://localhost:25441
-        # "choose Services" --> {ext_id}
+            pip3 install -e .
+            python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
+            # point your browser to http://localhost:25441
+            # "choose Services" --> {ext_id}
 
         If you want to package it, you can build it like this:
-        python3 -m pip install --upgrade build
-        python3 -m build
-        # install it like this:
-        pip3 install dist/{org}_{ext_id}-0.0.1-py3-none-any.whl
+            python3 -m pip install --upgrade build
+            python3 -m build
+            # install it like this:
+            pip3 install dist/{org}_{ext_id}-0.0.1-py3-none-any.whl
 
         In order to use your extension in production, please refer to the Readme.md in the
         https://github.com/cryptoadvance/{ext_mark}-dummy#how-to-get-this-to-production
     
         To publish your package
 
-        python3 -m pip install --upgrade twine
-        python3 -m twine upload --repository testpypi dist/*
+            python3 -m pip install --upgrade twine
+            python3 -m twine upload --repository testpypi dist/*
 
         You can get all these information again via:
         python3 -m cryptoadvance.specter ext gen --help
