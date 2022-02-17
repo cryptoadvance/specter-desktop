@@ -158,7 +158,6 @@ def test_SPECTER_URL_PREFIX(caplog):
     # The swan extension will automatically redirect to /settings/auth
     assert result.status_code == 302
     assert result.location.endswith("/someprefix/settings/auth")
-    assert False
 
 
 def login(client, password):
