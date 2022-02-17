@@ -152,7 +152,6 @@ def test_txlist_invalidate(empty_data_folder, bitcoin_regtest: BitcoindPlainCont
     # Get the tx confirmed
     bitcoin_regtest.mine(block_count=1)
     print("\n-----------------------mining----------------------------------\n")
-    assert wrpc.gettransaction(txid)["confirmations"] == 1, "Now it's broadcasted"
     tx_via_core = wrpc.gettransaction(txid)
     assert tx_via_core["confirmations"] == 1, "it should now be broadcasted"
     print(f"Tx via core:\n{tx_via_core}\n")
