@@ -22,7 +22,6 @@ describe('Completely empty specter-home', () => {
     cy.contains("Choose plugins")
     cy.get('#btn_plugins').click()
     cy.contains("Plugins in Production")
-    cy.get('#plugin_container_Swan')
 
 
   })
