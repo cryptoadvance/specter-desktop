@@ -688,11 +688,25 @@ def import_psbt(wallet_alias):
                 if is_hex(b64psbt):  #  then it is HEX
                     raw_hex = b64psbt
                     b64psbt_bare = wallet.rpc.converttopsbt(raw_hex, True)
-                    b64psbt = wallet.rpc.utxoupdatepsbt(b64psbt_bare)
+                    b64psbt_with_inputs = wallet.rpc.utxoupdatepsbt(b64psbt_bare)
 
                     decoded_raw_tx = decoderawtransaction(raw_hex)
-                    psbt = wallet.importpsbt(b64psbt)
-                    print(psbt)
+
+                    import hwilib.psbt
+
+                    hwilib_psbt = hwilib.psbt.PSBT()
+                    hwilib_psbt.deserialize(b64psbt_with_inputs)
+
+                    for specter_input, hw_input in zip(
+                        decoded_raw_tx["vin"], hwilib_psbt.inputs
+                    ):
+                        final_script_witness = hwilib.psbt.CTxInWitness()
+                        final_script_witness.scriptWitness.stack = [
+                            w.encode() for w in specter_input["txinwitness"]
+                        ]
+                        hw_input.final_script_witness = final_script_witness
+
+                    psbt = wallet.importpsbt(hwilib_psbt.serialize())
                     # TODO: Missing are the "outputs" and the signatures in the "inputs"
                 else:
                     psbt = wallet.importpsbt(b64psbt)
