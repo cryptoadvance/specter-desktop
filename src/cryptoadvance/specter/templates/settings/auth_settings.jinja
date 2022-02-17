@@ -64,7 +64,7 @@
 				{% endif %}
 			</div>
 			<div class="row">
-				<button type="submit" class="btn" name="action" value="save">{{ _("Save") }}</button>
+				<button type="submit" id="submit-btn" class="btn" name="action" value="save">{{ _("Save") }}</button>
 			</div>
 			{% if method == "usernamepassword" and current_user.is_admin %}
 			<br>
