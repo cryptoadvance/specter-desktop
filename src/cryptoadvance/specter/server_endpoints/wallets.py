@@ -1,3 +1,4 @@
+from binascii import hexlify
 import json
 import logging
 import random
@@ -700,14 +701,11 @@ def import_psbt(wallet_alias):
                     for specter_input, hw_input in zip(
                         decoded_raw_tx["vin"], hwilib_psbt.inputs
                     ):
-                        final_script_witness = hwilib.psbt.CTxInWitness()
-                        final_script_witness.scriptWitness.stack = [
-                            w.encode() for w in specter_input["txinwitness"]
+                        hw_input.final_script_witness.scriptWitness.stack = [
+                            bytes.fromhex(w) for w in specter_input["txinwitness"]
                         ]
-                        hw_input.final_script_witness = final_script_witness
 
                     psbt = wallet.importpsbt(hwilib_psbt.serialize())
-                    # TODO: Missing are the "outputs" and the signatures in the "inputs"
                 else:
                     psbt = wallet.importpsbt(b64psbt)
 
