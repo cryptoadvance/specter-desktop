@@ -1078,6 +1078,7 @@ class Wallet:
                     rpc_tx = self.rpc.gettransaction(tx["txid"])
                     tx["fee"] = rpc_tx.get("fee", 1)
                     tx["confirmations"] = rpc_tx.get("confirmations", 0)
+                    tx["vsize"] = decoderawtransaction(rpc_tx["hex"]).get("vsize")
 
                 if isinstance(tx["address"], str):
                     tx["label"] = self.getlabel(tx["address"])
@@ -1830,8 +1831,6 @@ class Wallet:
                 "txid": utxo["txid"],
                 "vout": utxo["vout"],
                 "amount": utxo["details"]["value"],
-                "address": get_address_from_dict(utxo["details"]),
-                "label": self.getlabel(get_address_from_dict(utxo["details"])),
             }
             for utxo in rbf_utxo
         ]
