@@ -765,14 +765,18 @@ def wallet_overview_utxo_csv():
 
 # Transactions list to user-friendly CSV format
 def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=False):
+    # Why is this line needed?
+    # Please remover if you can!
+    from flask_babel import lazy_gettext as _
+
     txlist = []
     for tx in _txlist:
         if isinstance(tx["address"], list):
-            _tx = tx.copy()
+            tx = tx.copy()
             for i in range(0, len(tx["address"])):
-                _tx["address"] = tx["address"][i]
-                _tx["amount"] = tx["amount"][i]
-                txlist.append(_tx.copy())
+                tx["address"] = tx["address"][i]
+                tx["amount"] = tx["amount"][i]
+                txlist.append(tx.copy())
         else:
             txlist.append(tx.copy())
     data = StringIO()
@@ -825,6 +829,8 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
         if specter.unit == "sat":
             value = float(tx["amount"])
             tx["amount"] = round(value * 1e8)
+        amount_price = "not supported"
+        rate = "not supported"
         if includePricesHistory:
             try:
                 rate, _ = get_price_at(specter, current_user, timestamp=tx["time"])
@@ -832,12 +838,12 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
                 if specter.unit == "sat":
                     rate = rate / 1e8
                 amount_price = float(tx["amount"]) * rate
+                amount_price = round(amount_price * 100) / 100
                 if specter.unit == "sat":
                     rate = round(1 / rate)
             except SpecterError as se:
                 logger.error(se)
                 success = False
-                amount_price = None
                 rate = "-"
 
         row = (
@@ -845,14 +851,12 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
             label,
             tx["category"],
             round(tx["amount"], (0 if specter.unit == "sat" else 8)),
-            round(amount_price * 100) / 100
-            if amount_price is not None
-            else "no-support",
+            amount_price,
             rate,
             tx["txid"],
             tx["address"],
             tx["blockheight"],
-            tx["time"],
+            tx["blocktime"] if tx["blocktime"] else tx["time"],
         )
         if not wallet:
             row = (tx.get("wallet_alias", ""),) + row
@@ -864,6 +868,7 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
 
 # Addresses list to user-friendly CSV format
 def addresses_list_to_csv(wallet):
+    print(_)
     data = StringIO()
     w = csv.writer(data)
     # write header
@@ -915,6 +920,7 @@ def wallet_addresses_list_to_csv(addresses_list):
     """Convert a list of the wallet addresses to user-friendly CSV format
     Parameters: addresses_list: a dict of addresses informations
                 (index, address, type, label, used, utxo and amount)"""
+    print(_)
     data = StringIO()
     w = csv.writer(data)
     # write header
@@ -954,6 +960,7 @@ def wallet_addresses_list_to_csv(addresses_list):
 
 
 def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="asc"):
+    """Prepares the txlist for the ui filtering it with the search-criterias and sorting it"""
     if search:
         search_lower = search.lower()
         txlist = [
