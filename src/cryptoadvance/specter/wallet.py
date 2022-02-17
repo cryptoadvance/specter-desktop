@@ -2085,9 +2085,10 @@ class Wallet:
         b64psbt_with_inputs = self.rpc.utxoupdatepsbt(
             b64psbt_bare
         )  # this adds inputs for segwit, but not for non-segwit
+        logger.debug(f"b64psbt_with_inputs  {b64psbt_with_inputs}")
 
         specter_decoded_raw_tx = decoderawtransaction(rawtransaction)
-        print(specter_decoded_raw_tx)
+        logger.debug(f"specter_decoded_raw_tx  {specter_decoded_raw_tx}")
 
         hwilib_psbt = PSBT()
         hwilib_psbt.deserialize(b64psbt_with_inputs)
@@ -2111,7 +2112,8 @@ class Wallet:
                     specter_input["scriptSig"]["hex"]
                 )
 
-            hw_input.final_script_witness.scriptWitness.stack = [
-                bytes.fromhex(w) for w in specter_input["txinwitness"]
-            ]
+            if specter_input.get("txinwitness"):
+                hw_input.final_script_witness.scriptWitness.stack = [
+                    bytes.fromhex(w) for w in specter_input["txinwitness"]
+                ]
         return hwilib_psbt.serialize()

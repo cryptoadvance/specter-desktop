@@ -227,3 +227,175 @@ def test_abandon_purged_tx(
     finally:
         # Clean up
         bitcoind_controller.stop_bitcoind()
+
+
+@pytest.mark.slow
+def test_import_raw_transaction(
+    caplog, docker, request, devices_filled_data_folder, device_manager
+):
+    # Specter should support calling abandontransaction if a pending tx has been purged
+    # from the mempool. Test starts a new bitcoind with a restricted mempool to make it
+    # easier to spam the mempool and purge our target tx.
+    # TODO: Similar test but for maxmempoolexpiry?
+
+    # Copied and adapted from:
+    #    https://github.com/bitcoin/bitcoin/blob/master/test/functional/mempool_limit.py
+    from bitcoin_core.test.functional.test_framework.util import (
+        gen_return_txouts,
+        satoshi_round,
+        create_lots_of_big_transactions,
+    )
+    from conftest import instantiate_bitcoind_controller
+
+    caplog.set_level(logging.DEBUG)
+
+    # ==== Specter-specific: do custom setup ====
+    # Instantiate a new bitcoind w/limited mempool. Use a different port to not interfere
+    # with existing instance for other tests.
+    bitcoind_controller = instantiate_bitcoind_controller(
+        docker,
+        request,
+        rpcport=18998,
+    )
+    try:
+        assert bitcoind_controller.get_rpc().test_connection()
+        rpcconn = bitcoind_controller.rpcconn
+        rpc = rpcconn.get_rpc()
+        assert rpc is not None
+        assert rpc.ipaddress != None
+
+        # Note: Our utxo creation is simpler than mempool_limit.py's approach since we're
+        # running in regtest and can just use generatetoaddress().
+
+        # Instantiate a new Specter instance to talk to this bitcoind
+        config = {
+            "rpc": {
+                "autodetect": False,
+                "datadir": "",
+                "user": rpcconn.rpcuser,
+                "password": rpcconn.rpcpassword,
+                "port": rpcconn.rpcport,
+                "host": rpcconn.ipaddress,
+                "protocol": "http",
+            },
+            "auth": {
+                "method": "rpcpasswordaspin",
+            },
+        }
+        specter = Specter(data_folder=devices_filled_data_folder, config=config)
+        specter.check()
+
+        # Largely copy-and-paste from test_wallet_manager.test_wallet_createpsbt.
+        # TODO: Make a test fixture in conftest.py that sets up already funded wallets
+        # for a bitcoin core hot wallet.
+        wallet_manager = WalletManager(
+            210100,
+            devices_filled_data_folder,
+            rpc,
+            "regtest",
+            device_manager,
+            allow_threading=False,
+        )
+
+        # Create a new device that can sign psbts (Bitcoin Core hot wallet)
+        devices = []
+        for i in range(2):
+            device = device_manager.add_device(
+                name=f"bitcoin_core_hot_wallet{i}", device_type="bitcoincore", keys=[]
+            )
+            device.setup_device(file_password=None, wallet_manager=wallet_manager)
+            device.add_hot_wallet_keys(
+                mnemonic=generate_mnemonic(strength=128),
+                passphrase="",
+                paths=["m/84h/1h/0h", "m/84h/1h/1h"],
+                file_password=None,
+                wallet_manager=wallet_manager,
+                testnet=True,
+                keys_range=[0, 1000],
+                keys_purposes=[],
+            )
+            devices.append(device)
+        device = devices[0]
+
+        # funding wallet
+        source_wallet = wallet_manager.create_wallet(
+            "bitcoincore_source_wallet", 1, "wpkh", [device.keys[0]], [device]
+        )
+
+        # Fund the wallet.
+        logging.info("Generating utxos to wallet")
+        source_wallet.rpc.generatetoaddress(
+            102, source_wallet.getnewaddress()
+        )  # must mine +100 to make them spendable
+
+        def fund_address(dest_address, source_wallet=source_wallet):
+            outputs = {dest_address: 1}
+            tx = source_wallet.rpc.createrawtransaction([], outputs)
+            txF = source_wallet.rpc.fundrawtransaction(
+                tx, {"changeAddress": dest_address}
+            )
+            psbtF = source_wallet.rpc.converttopsbt(txF["hex"])
+            psbtFF = source_wallet.rpc.walletprocesspsbt(psbtF)
+            signed = device.sign_psbt(psbtFF["psbt"], source_wallet)
+            assert signed["complete"]
+            finalized = source_wallet.rpc.finalizepsbt(signed["psbt"])
+            txid = source_wallet.rpc.sendrawtransaction(finalized["hex"])
+            source_wallet.rpc.generatetoaddress(
+                1, source_wallet.getnewaddress()
+            )  # confirm tx
+
+        for key_type in [
+            #            "tr",   #  somehow it doesn't sign.  However in the UI one can sign taproot psbts.
+            "wpkh",
+            "sh-wpkh",
+            "pkh",
+            "wsh",
+            "sh-wsh",
+            "sh",
+        ]:  # "tr" signing doesnt work
+            #     None: "General",
+            #     "wpkh": "Single (Segwit)",
+            #     "sh-wpkh": "Single (Nested)",
+            #     "pkh": "Single (Legacy)",
+            #     "wsh": "Multisig (Segwit)",
+            #     "sh-wsh": "Multisig (Nested)",
+            #     "sh": "Multisig (Legacy)",
+            #     "tr": "Taproot",
+            logging.info(f"Start key_type '{key_type}'")
+
+            if key_type in ["sh", "wsh", "sh-wsh"]:  # multisig
+                keys = [device.keys[0] for device in devices]
+                used_devices = devices
+            else:
+                keys = [device.keys[0]]
+                used_devices = [device]
+
+            wallet = wallet_manager.create_wallet(
+                f"bitcoincore_test_wallet_{key_type}", 1, key_type, keys, used_devices
+            )
+
+            # Fund the wallet. Going to need a LOT of utxos to play with.
+            logging.info("Generating utxos to wallet")
+            fund_address(wallet.getnewaddress())
+
+            logging.info("Create a mempool tx that will be evicted")
+            outputs = {wallet.getnewaddress(): 1}
+            tx = wallet.rpc.createrawtransaction([], outputs)
+            txF = wallet.rpc.fundrawtransaction(
+                tx, {"changeAddress": wallet.getnewaddress()}
+            )
+            psbtF = wallet.rpc.converttopsbt(txF["hex"])
+            psbtFF = wallet.rpc.walletprocesspsbt(psbtF)
+            logging.debug(psbtFF)
+            signed = device.sign_psbt(psbtFF["psbt"], wallet)
+            logging.debug(f"signed {signed}")
+            assert signed["complete"]
+            finalized = wallet.rpc.finalizepsbt(signed["psbt"])
+
+            psbt_base64 = wallet.convert_rawtransaction_to_psbt(finalized["hex"])
+            # check that the original rawt_transaction == recreated raw_transaction
+            assert finalized["hex"] == wallet.rpc.finalizepsbt(psbt_base64)["hex"]
+
+    finally:
+        # Clean up
+        bitcoind_controller.stop_bitcoind()

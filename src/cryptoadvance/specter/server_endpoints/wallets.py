@@ -681,7 +681,6 @@ def import_psbt(wallet_alias):
         if action == "importpsbt":
             try:
                 b64psbt = "".join(request.form["rawpsbt"].split())
-                print(wallet.convert_rawtransaction_to_psbt(b64psbt))
                 psbt = wallet.importpsbt(
                     wallet.convert_rawtransaction_to_psbt(b64psbt)
                     if is_hex(b64psbt)
