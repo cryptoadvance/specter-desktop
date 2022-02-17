@@ -831,9 +831,13 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
             tx["amount"] = round(value * 1e8)
         amount_price = "not supported"
         rate = "not supported"
+        if tx["blocktime"]:
+            time = tx["blocktime"]
+        else:
+            time = tx["time"]
         if includePricesHistory:
             try:
-                rate, _ = get_price_at(specter, current_user, timestamp=tx["time"])
+                rate, _ = get_price_at(specter, current_user, time)
                 rate = float(rate)
                 if specter.unit == "sat":
                     rate = rate / 1e8
@@ -856,7 +860,7 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
             tx["txid"],
             tx["address"],
             tx["blockheight"],
-            tx["blocktime"] if tx["blocktime"] else tx["time"],
+            time,
         )
         if not wallet:
             row = (tx.get("wallet_alias", ""),) + row
