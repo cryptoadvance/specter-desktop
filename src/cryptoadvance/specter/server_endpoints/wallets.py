@@ -18,6 +18,11 @@ from ..key import Key
 from ..managers.wallet_manager import purposes
 from ..persistence import delete_file
 from ..specter_error import SpecterError, handle_exception
+from cryptoadvance.specter.util.tx import decoderawtransaction, is_hex
+from cryptoadvance.specter.util.psbt import SpecterPSBT, SpecterTx
+from embit.psbt import PSBT, Transaction, TransactionInput, TransactionOutput
+import embit.base
+
 
 logger = logging.getLogger(__name__)
 
@@ -680,7 +685,18 @@ def import_psbt(wallet_alias):
         if action == "importpsbt":
             try:
                 b64psbt = "".join(request.form["rawpsbt"].split())
-                psbt = wallet.importpsbt(b64psbt)
+                if is_hex(b64psbt):  #  then it is HEX
+                    raw_hex = b64psbt
+                    b64psbt_bare = wallet.rpc.converttopsbt(raw_hex, True)
+                    b64psbt = wallet.rpc.utxoupdatepsbt(b64psbt_bare)
+
+                    decoded_raw_tx = decoderawtransaction(raw_hex)
+                    psbt = wallet.importpsbt(b64psbt)
+                    print(psbt)
+                    # TODO: Missing are the "outputs" and the signatures in the "inputs"
+                else:
+                    psbt = wallet.importpsbt(b64psbt)
+
             except Exception as e:
                 handle_exception(e)
                 flash(_("Could not import PSBT: {}").format(e), "error")
