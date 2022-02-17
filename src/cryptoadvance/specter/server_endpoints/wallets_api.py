@@ -872,7 +872,6 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
 
 # Addresses list to user-friendly CSV format
 def addresses_list_to_csv(wallet):
-    print(_)
     data = StringIO()
     w = csv.writer(data)
     # write header
@@ -924,7 +923,6 @@ def wallet_addresses_list_to_csv(addresses_list):
     """Convert a list of the wallet addresses to user-friendly CSV format
     Parameters: addresses_list: a dict of addresses informations
                 (index, address, type, label, used, utxo and amount)"""
-    print(_)
     data = StringIO()
     w = csv.writer(data)
     # write header
