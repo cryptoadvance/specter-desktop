@@ -16,10 +16,10 @@ def test_search_dir_in_cwd():
         f"./tests/xtestdata_testextensions/ext_root_fully_qualified_1 : {os.listdir('./tests/xtestdata_testextensions/ext_root_fully_qualified_1')}"
     )
     print(
-        f"./tests/xtestdata_testextensions/ext_root_fully_qualified_1/tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/ : {os.listdir('./tests/xtestdata_testextensions/ext_root_fully_qualified_1/tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/')}"
+        f"./tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/ : {os.listdir('./tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/')}"
     )
     print(
-        f"./tests/xtestdata_testextensions/ext_root_fully_qualified_1/tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/boatacccorp : {os.listdir('./tests/xtestdata_testextensions/ext_root_fully_qualified_1/tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/boatacccorp')}"
+        f"./tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/boatacccorp : {os.listdir('./tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/boatacccorp')}"
     )
     plist: List[Path] = search_dirs_in_path(Path("./tests/xtestdata_testextensions"))
     assert len(plist) == 3
