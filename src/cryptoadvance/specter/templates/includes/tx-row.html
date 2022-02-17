@@ -246,7 +246,18 @@
             }
             
             // Set time
-            this.time.innerText = this.hideSensitiveInfo ? '###########' : (new Date(this.tx.time * 1000)).toLocaleString()
+            if (this.hideSensitiveInfo) {
+                this.time.innerText = '###########'
+            } else {
+                // blocktime for confirmed Txs
+                if (this.tx.blocktime) {
+                    this.time.innerText = (new Date(this.tx.blocktime * 1000)).toLocaleString()
+                } else {
+                    this.time.innerText = (new Date(this.tx.time * 1000)).toLocaleString()
+                }
+            }
+
+            
 
             // Show blockhash
             if (this.showBlockhash) {
