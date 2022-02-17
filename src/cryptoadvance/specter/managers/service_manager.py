@@ -58,7 +58,7 @@ class ServiceManager:
             compare_map = {"alpha": 1, "beta": 2, "prod": 3}
             if compare_map[self.devstatus_threshold] <= compare_map[clazz.devstatus]:
                 # First configure the service
-                self.configure_service_for_module(clazz.id)
+                self.configure_service_for_module(clazz)
                 # Now activate it
                 self._services[clazz.id] = clazz(
                     active=clazz.id in self.specter.config.get("services", []),
@@ -150,17 +150,20 @@ class ServiceManager:
                 )
 
     @classmethod
-    def configure_service_for_module(cls, service_id):
+    def configure_service_for_module(cls, clazz):
         """searches for ConfigClasses in the module-Directory and merges its config in the global config"""
         try:
-            module = import_module(
-                f"cryptoadvance.specter.services.{service_id}.config"
-            )
+            module = import_module(f"cryptoadvance.specter.services.{clazz.id}.config")
         except ModuleNotFoundError:
-            logger.warning(
-                f"Service {service_id} does not have a service Configuration! Skipping!"
-            )
-            return
+            # maybe the other style:
+            org = clazz.__module__.split(".")[0]
+            try:
+                module = import_module(f"{org}.specterext.{clazz.id}.config")
+            except ModuleNotFoundError:
+                logger.warning(
+                    f"Service {clazz.id} does not have a service Configuration! Skipping!"
+                )
+                return
         main_config_clazz_name = app.config.get("SPECTER_CONFIGURATION_CLASS_FULLNAME")
         main_config_clazz_slug = main_config_clazz_name.split(".")[-1]
         potential_config_classes = []

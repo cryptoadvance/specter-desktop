@@ -96,7 +96,9 @@ class ExtGen:
         package_path = f"src/dummyorg/specterext/dummy"
         self.render(f"{package_path}/service.py")
         self.render(f"{package_path}/controller.py")
+        self.render(f"{package_path}/config.py")
         self.render(f"{package_path}/__init__.py")
+        self.render(f"{package_path}/__main__.py")
         self.render(f"{package_path}/templates/dummy/index.jinja")
         if not self.isolated_client:
             self.render(f"{package_path}/static/dummy/css/styles.css")
