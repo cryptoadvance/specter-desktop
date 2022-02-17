@@ -1,4 +1,3 @@
-from binascii import hexlify
 import json
 import logging
 import random
@@ -8,6 +7,7 @@ import requests
 from cryptoadvance.specter.util.psbt_creator import PsbtCreator
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from cryptoadvance.specter.wallet import Wallet
+from cryptoadvance.specter.util.tx import is_hex
 from flask import Blueprint
 from flask import current_app as app
 from flask import flash, jsonify, redirect, render_template, request, url_for
@@ -19,11 +19,6 @@ from ..key import Key
 from ..managers.wallet_manager import purposes
 from ..persistence import delete_file
 from ..specter_error import SpecterError, handle_exception
-from cryptoadvance.specter.util.tx import decoderawtransaction, is_hex
-from cryptoadvance.specter.util.psbt import SpecterPSBT, SpecterTx
-from embit.psbt import PSBT, Transaction, TransactionInput, TransactionOutput
-import embit.base
-
 
 logger = logging.getLogger(__name__)
 
@@ -686,8 +681,9 @@ def import_psbt(wallet_alias):
         if action == "importpsbt":
             try:
                 b64psbt = "".join(request.form["rawpsbt"].split())
+                print(wallet.convert_rawtransaction_to_psbt(b64psbt))
                 psbt = wallet.importpsbt(
-                    wallet.psbt_from_rawtransaction(b64psbt)
+                    wallet.convert_rawtransaction_to_psbt(b64psbt)
                     if is_hex(b64psbt)
                     else b64psbt
                 )
