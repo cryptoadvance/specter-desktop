@@ -686,29 +686,11 @@ def import_psbt(wallet_alias):
         if action == "importpsbt":
             try:
                 b64psbt = "".join(request.form["rawpsbt"].split())
-                if is_hex(b64psbt):  #  then it is HEX
-                    raw_hex = b64psbt
-                    b64psbt_bare = wallet.rpc.converttopsbt(raw_hex, True)
-                    b64psbt_with_inputs = wallet.rpc.utxoupdatepsbt(b64psbt_bare)
-
-                    decoded_raw_tx = decoderawtransaction(raw_hex)
-
-                    import hwilib.psbt
-
-                    hwilib_psbt = hwilib.psbt.PSBT()
-                    hwilib_psbt.deserialize(b64psbt_with_inputs)
-
-                    for specter_input, hw_input in zip(
-                        decoded_raw_tx["vin"], hwilib_psbt.inputs
-                    ):
-                        hw_input.final_script_witness.scriptWitness.stack = [
-                            bytes.fromhex(w) for w in specter_input["txinwitness"]
-                        ]
-
-                    psbt = wallet.importpsbt(hwilib_psbt.serialize())
-                else:
-                    psbt = wallet.importpsbt(b64psbt)
-
+                psbt = wallet.importpsbt(
+                    wallet.psbt_from_rawtransaction(b64psbt)
+                    if is_hex(b64psbt)
+                    else b64psbt
+                )
             except Exception as e:
                 handle_exception(e)
                 flash(_("Could not import PSBT: {}").format(e), "error")

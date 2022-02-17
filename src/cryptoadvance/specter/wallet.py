@@ -26,6 +26,8 @@ from .txlist import TxList
 from .util.psbt import SpecterPSBT
 from .util.tx import decoderawtransaction
 from .util.xpub import get_xpub_fingerprint
+from hwilib.psbt import PSBT
+
 
 logger = logging.getLogger(__name__)
 LISTTRANSACTIONS_BATCH_SIZE = 1000
@@ -2074,3 +2076,22 @@ class Wallet:
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} name={self.name } alias={self.alias}>"
+
+    def psbt_from_rawtransaction(self, rawtransaction) -> str:
+        """
+        Converts a signed raw transaction in HEX format into a psbt in b64 format
+        """
+        b64psbt_bare = self.rpc.converttopsbt(rawtransaction, True)
+        b64psbt_with_inputs = self.rpc.utxoupdatepsbt(b64psbt_bare)
+
+        specter_decoded_raw_tx = decoderawtransaction(rawtransaction)
+
+        hwilib_psbt = PSBT()
+        hwilib_psbt.deserialize(b64psbt_with_inputs)
+        for specter_input, hw_input in zip(
+            specter_decoded_raw_tx["vin"], hwilib_psbt.inputs
+        ):
+            hw_input.final_script_witness.scriptWitness.stack = [
+                bytes.fromhex(w) for w in specter_input["txinwitness"]
+            ]
+        return hwilib_psbt.serialize()
