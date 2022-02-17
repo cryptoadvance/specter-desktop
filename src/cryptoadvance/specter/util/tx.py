@@ -41,6 +41,14 @@ def decoderawoutput(vout, chain):
     return result
 
 
+def is_hex(s):
+    try:
+        int(s, 16)
+    except ValueError:
+        return False
+    return len(s) % 2 == 0
+
+
 def decoderawtransaction(hextx, chain="main"):
     raw = bytes.fromhex(hextx)
     tx = Transaction.parse(raw)
