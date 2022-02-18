@@ -240,11 +240,6 @@ def test_import_raw_transaction(
 
     # Copied and adapted from:
     #    https://github.com/bitcoin/bitcoin/blob/master/test/functional/mempool_limit.py
-    from bitcoin_core.test.functional.test_framework.util import (
-        gen_return_txouts,
-        satoshi_round,
-        create_lots_of_big_transactions,
-    )
     from conftest import instantiate_bitcoind_controller
 
     caplog.set_level(logging.DEBUG)
@@ -264,9 +259,6 @@ def test_import_raw_transaction(
         assert rpc is not None
         assert rpc.ipaddress != None
 
-        # Note: Our utxo creation is simpler than mempool_limit.py's approach since we're
-        # running in regtest and can just use generatetoaddress().
-
         # Instantiate a new Specter instance to talk to this bitcoind
         config = {
             "rpc": {
@@ -282,12 +274,10 @@ def test_import_raw_transaction(
                 "method": "rpcpasswordaspin",
             },
         }
+        logging.info(f"config  {config}")
         specter = Specter(data_folder=devices_filled_data_folder, config=config)
         specter.check()
 
-        # Largely copy-and-paste from test_wallet_manager.test_wallet_createpsbt.
-        # TODO: Make a test fixture in conftest.py that sets up already funded wallets
-        # for a bitcoin core hot wallet.
         wallet_manager = WalletManager(
             210100,
             devices_filled_data_folder,
@@ -307,7 +297,23 @@ def test_import_raw_transaction(
             device.add_hot_wallet_keys(
                 mnemonic=generate_mnemonic(strength=128),
                 passphrase="",
-                paths=["m/84h/1h/0h", "m/84h/1h/1h"],
+                paths=[
+                    "m/49h/1h/0h",  #  Single Sig (Nested)
+                    "m/84h/1h/0h",  #  Single Sig (Segwit)'
+                    "m/86h/1h/0h",  # Single Sig (Taproot)    #  Taproot ONLY works if this derivation path is enabled. The wallet descriptor is derived from this
+                    "m/48h/1h/0h/1h",  # Multisig Sig (Nested)
+                    "m/48h/1h/0h/2h",  # Multisig Sig (Segwit)
+                    #                    "m/44h/0h/0h",  # pkh  single-legacy
+                ],
+                # "tr" signing doesnt work
+                #     None: "General",
+                #     "wpkh": "Single (Segwit)",
+                #     "sh-wpkh": "Single (Nested)",
+                #     "pkh": "Single (Legacy)",
+                #     "wsh": "Multisig (Segwit)",
+                #     "sh-wsh": "Multisig (Nested)",
+                #     "sh": "Multisig (Legacy)",
+                #     "tr": "Taproot",
                 file_password=None,
                 wallet_manager=wallet_manager,
                 testnet=True,
@@ -317,16 +323,33 @@ def test_import_raw_transaction(
             devices.append(device)
         device = devices[0]
 
+        logging.info(f"device.taproot_available(rpc)   {device.taproot_available(rpc)}")
+        assert device.taproot_available(rpc)
+
         # funding wallet
+        keys = [key for key in device.keys if key.key_type == "wpkh"]
         source_wallet = wallet_manager.create_wallet(
-            "bitcoincore_source_wallet", 1, "wpkh", [device.keys[0]], [device]
+            "bitcoincore_source_wallet", 1, "wpkh", keys, [device]
         )
 
+        logging.info(
+            f"source_wallet keys {[key.json for key in keys]}  wallet.account_map {source_wallet.account_map}"
+        )
         # Fund the wallet.
         logging.info("Generating utxos to wallet")
         source_wallet.rpc.generatetoaddress(
             102, source_wallet.getnewaddress()
         )  # must mine +100 to make them spendable
+
+        def sign_with_devices(psbtFF, devices=devices):
+            signed = psbtFF
+            for device in devices:
+                signed = device.sign_psbt(signed["psbt"], wallet)
+                if signed["complete"]:
+                    break
+            logging.info(f"signed  {psbtFF}")
+            assert signed["complete"]
+            return signed
 
         def fund_address(dest_address, source_wallet=source_wallet):
             outputs = {dest_address: 1}
@@ -336,8 +359,8 @@ def test_import_raw_transaction(
             )
             psbtF = source_wallet.rpc.converttopsbt(txF["hex"])
             psbtFF = source_wallet.rpc.walletprocesspsbt(psbtF)
-            signed = device.sign_psbt(psbtFF["psbt"], source_wallet)
-            assert signed["complete"]
+            logging.info(f"funding {dest_address} with {psbtFF}")
+            signed = sign_with_devices(psbtFF)
             finalized = source_wallet.rpc.finalizepsbt(signed["psbt"])
             txid = source_wallet.rpc.sendrawtransaction(finalized["hex"])
             source_wallet.rpc.generatetoaddress(
@@ -345,14 +368,15 @@ def test_import_raw_transaction(
             )  # confirm tx
 
         for key_type in [
-            #            "tr",   #  somehow it doesn't sign.  However in the UI one can sign taproot psbts.
-            "wpkh",
-            "sh-wpkh",
-            "pkh",
-            "wsh",
             "sh-wsh",
-            "sh",
-        ]:  # "tr" signing doesnt work
+            "wpkh",
+            #            "pkh",
+            "wsh",
+            "sh-wpkh",
+            #            "sh",
+            "tr",
+        ]:
+            # "tr" signing doesnt work
             #     None: "General",
             #     "wpkh": "Single (Segwit)",
             #     "sh-wpkh": "Single (Nested)",
@@ -361,41 +385,61 @@ def test_import_raw_transaction(
             #     "sh-wsh": "Multisig (Nested)",
             #     "sh": "Multisig (Legacy)",
             #     "tr": "Taproot",
-            logging.info(f"Start key_type '{key_type}'")
+            logging.info(f"begin of loop key_type '{key_type}'")
 
             if key_type in ["sh", "wsh", "sh-wsh"]:  # multisig
-                keys = [device.keys[0] for device in devices]
+                keys = [
+                    key
+                    for device in devices
+                    for key in device.keys
+                    if key.key_type == key_type
+                ]
                 used_devices = devices
             else:
-                keys = [device.keys[0]]
+                keys = [key for key in device.keys if key.key_type == key_type]
                 used_devices = [device]
 
+            assert keys
+
             wallet = wallet_manager.create_wallet(
-                f"bitcoincore_test_wallet_{key_type}", 1, key_type, keys, used_devices
+                f"bitcoincore_test_wallet_{key_type}",
+                len(used_devices),
+                key_type,
+                keys,
+                used_devices,
+            )
+            with open(wallet.fullpath, "r") as f:
+                logging.info("Wallet info")
+                logging.info(str(f.read()))
+            with open(device.fullpath, "r") as f:
+                logging.info("devices info")
+                logging.info(str(f.read()))
+
+            logging.info(
+                f"Start key_type '{key_type}' keys {[key.json for key in keys]}  wallet.account_map {wallet.account_map}"
             )
 
             # Fund the wallet. Going to need a LOT of utxos to play with.
             logging.info("Generating utxos to wallet")
             fund_address(wallet.getnewaddress())
+            wallet.save_to_file()
 
-            logging.info("Create a mempool tx that will be evicted")
             outputs = {wallet.getnewaddress(): 1}
             tx = wallet.rpc.createrawtransaction([], outputs)
             txF = wallet.rpc.fundrawtransaction(
                 tx, {"changeAddress": wallet.getnewaddress()}
             )
+            logging.debug(f"txF {txF}")
             psbtF = wallet.rpc.converttopsbt(txF["hex"])
+            logging.debug(f"psbtF {psbtF}")
             psbtFF = wallet.rpc.walletprocesspsbt(psbtF)
-            logging.debug(psbtFF)
-            signed = device.sign_psbt(psbtFF["psbt"], wallet)
-            logging.debug(f"signed {signed}")
-            assert signed["complete"]
+            logging.debug(f"psbtFF {psbtFF}")
+            signed = sign_with_devices(psbtFF)
             finalized = wallet.rpc.finalizepsbt(signed["psbt"])
 
             psbt_base64 = wallet.convert_rawtransaction_to_psbt(finalized["hex"])
             # check that the original rawt_transaction == recreated raw_transaction
             assert finalized["hex"] == wallet.rpc.finalizepsbt(psbt_base64)["hex"]
-
     finally:
         # Clean up
         bitcoind_controller.stop_bitcoind()
