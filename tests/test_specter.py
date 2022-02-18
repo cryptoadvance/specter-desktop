@@ -376,7 +376,6 @@ def test_import_raw_transaction(
             #            "sh",
             "tr",
         ]:
-            # "tr" signing doesnt work
             #     None: "General",
             #     "wpkh": "Single (Segwit)",
             #     "sh-wpkh": "Single (Nested)",
