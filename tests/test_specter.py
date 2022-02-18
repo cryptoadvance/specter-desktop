@@ -408,19 +408,12 @@ def test_import_raw_transaction(
                 keys,
                 used_devices,
             )
-            with open(wallet.fullpath, "r") as f:
-                logging.info("Wallet info")
-                logging.info(str(f.read()))
-            with open(device.fullpath, "r") as f:
-                logging.info("devices info")
-                logging.info(str(f.read()))
 
             logging.info(
                 f"Start key_type '{key_type}' keys {[key.json for key in keys]}  wallet.account_map {wallet.account_map}"
             )
 
             # Fund the wallet. Going to need a LOT of utxos to play with.
-            logging.info("Generating utxos to wallet")
             fund_address(wallet.getnewaddress())
             wallet.save_to_file()
 
@@ -429,11 +422,8 @@ def test_import_raw_transaction(
             txF = wallet.rpc.fundrawtransaction(
                 tx, {"changeAddress": wallet.getnewaddress()}
             )
-            logging.debug(f"txF {txF}")
             psbtF = wallet.rpc.converttopsbt(txF["hex"])
-            logging.debug(f"psbtF {psbtF}")
             psbtFF = wallet.rpc.walletprocesspsbt(psbtF)
-            logging.debug(f"psbtFF {psbtFF}")
             signed = sign_with_devices(psbtFF)
             finalized = wallet.rpc.finalizepsbt(signed["psbt"])
 
