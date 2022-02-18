@@ -274,7 +274,6 @@ def test_import_raw_transaction(
                 "method": "rpcpasswordaspin",
             },
         }
-        logging.info(f"config  {config}")
         specter = Specter(data_folder=devices_filled_data_folder, config=config)
         specter.check()
 
@@ -323,7 +322,6 @@ def test_import_raw_transaction(
             devices.append(device)
         device = devices[0]
 
-        logging.info(f"device.taproot_available(rpc)   {device.taproot_available(rpc)}")
         assert device.taproot_available(rpc)
 
         # funding wallet
@@ -332,7 +330,7 @@ def test_import_raw_transaction(
             "bitcoincore_source_wallet", 1, "wpkh", keys, [device]
         )
 
-        logging.info(
+        logging.debug(
             f"source_wallet keys {[key.json for key in keys]}  wallet.account_map {source_wallet.account_map}"
         )
         # Fund the wallet.
@@ -408,8 +406,8 @@ def test_import_raw_transaction(
                 used_devices,
             )
 
-            logging.info(
-                f"Start key_type '{key_type}' keys {[key.json for key in keys]}  wallet.account_map {wallet.account_map}"
+            logging.debug(
+                f"created wallet key_type '{key_type}' keys {[key.json for key in keys]}  wallet.account_map {wallet.account_map}"
             )
 
             # Fund the wallet. Going to need a LOT of utxos to play with.
