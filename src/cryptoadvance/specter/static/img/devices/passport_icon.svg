@@ -1,0 +1,66 @@
+<svg width="53" height="150" viewBox="0 0 53 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_1928_21629)">
+<path d="M2 8.25C2 6.63306 3.00213 5.12714 5.25694 3.91921C7.51495 2.70956 10.7302 2 14.25 2H38.25C41.7698 2 44.9851 2.70956 47.2431 3.91921C49.4979 5.12714 50.5 6.63306 50.5 8.25V139.25C50.5 141.982 49.171 144.094 46.9665 145.598C44.7103 147.137 41.5636 148 38.25 148H14.25C10.9364 148 7.78975 147.137 5.53353 145.598C3.32903 144.094 2 141.982 2 139.25V8.25Z" stroke="white" stroke-width="4"/>
+<line x1="24" y1="6.5" x2="28.5" y2="6.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="16.75" y="70.75" width="18.5" height="19" rx="6.25" stroke="white" stroke-width="3.5"/>
+<rect x="7.5" y="76" width="4.5" height="9" rx="1.5" stroke="white" stroke-width="3"/>
+<mask id="path-5-inside-1_1928_21629" fill="white">
+<rect x="5.75" y="98" width="12" height="7.5" rx="1.5"/>
+</mask>
+<rect x="5.75" y="98" width="12" height="7.5" rx="1.5" stroke="white" stroke-width="7" mask="url(#path-5-inside-1_1928_21629)"/>
+<mask id="path-6-inside-2_1928_21629" fill="white">
+<rect x="20.25" y="98" width="12" height="7.5" rx="1.5"/>
+</mask>
+<rect x="20.25" y="98" width="12" height="7.5" rx="1.5" stroke="white" stroke-width="7" mask="url(#path-6-inside-2_1928_21629)"/>
+<mask id="path-7-inside-3_1928_21629" fill="white">
+<rect x="34.75" y="98" width="12" height="7.5" rx="1.5"/>
+</mask>
+<rect x="34.75" y="98" width="12" height="7.5" rx="1.5" stroke="white" stroke-width="7" mask="url(#path-7-inside-3_1928_21629)"/>
+<mask id="path-8-inside-4_1928_21629" fill="white">
+<rect x="5.75" y="108" width="12" height="7.5" rx="1.5"/>
+</mask>
+<rect x="5.75" y="108" width="12" height="7.5" rx="1.5" stroke="white" stroke-width="7" mask="url(#path-8-inside-4_1928_21629)"/>
+<mask id="path-9-inside-5_1928_21629" fill="white">
+<rect x="20.25" y="108" width="12" height="7.5" rx="1.5"/>
+</mask>
+<rect x="20.25" y="108" width="12" height="7.5" rx="1.5" stroke="white" stroke-width="7" mask="url(#path-9-inside-5_1928_21629)"/>
+<mask id="path-10-inside-6_1928_21629" fill="white">
+<rect x="34.75" y="108" width="12" height="7.5" rx="1.5"/>
+</mask>
+<rect x="34.75" y="108" width="12" height="7.5" rx="1.5" stroke="white" stroke-width="7" mask="url(#path-10-inside-6_1928_21629)"/>
+<mask id="path-11-inside-7_1928_21629" fill="white">
+<rect x="5.75" y="118" width="12" height="7.5" rx="1.5"/>
+</mask>
+<rect x="5.75" y="118" width="12" height="7.5" rx="1.5" stroke="white" stroke-width="7" mask="url(#path-11-inside-7_1928_21629)"/>
+<mask id="path-12-inside-8_1928_21629" fill="white">
+<rect x="20.25" y="118" width="12" height="7.5" rx="1.5"/>
+</mask>
+<rect x="20.25" y="118" width="12" height="7.5" rx="1.5" stroke="white" stroke-width="7" mask="url(#path-12-inside-8_1928_21629)"/>
+<mask id="path-13-inside-9_1928_21629" fill="white">
+<rect x="34.75" y="118" width="12" height="7.5" rx="1.5"/>
+</mask>
+<rect x="34.75" y="118" width="12" height="7.5" rx="1.5" stroke="white" stroke-width="7" mask="url(#path-13-inside-9_1928_21629)"/>
+<mask id="path-14-inside-10_1928_21629" fill="white">
+<rect x="5.75" y="128" width="12" height="7.5" rx="1.5"/>
+</mask>
+<rect x="5.75" y="128" width="12" height="7.5" rx="1.5" stroke="white" stroke-width="7" mask="url(#path-14-inside-10_1928_21629)"/>
+<mask id="path-15-inside-11_1928_21629" fill="white">
+<rect x="20.25" y="128" width="12" height="7.5" rx="1.5"/>
+</mask>
+<rect x="20.25" y="128" width="12" height="7.5" rx="1.5" stroke="white" stroke-width="7" mask="url(#path-15-inside-11_1928_21629)"/>
+<mask id="path-16-inside-12_1928_21629" fill="white">
+<rect x="34.75" y="128" width="12" height="7.5" rx="1.5"/>
+</mask>
+<rect x="34.75" y="128" width="12" height="7.5" rx="1.5" stroke="white" stroke-width="7" mask="url(#path-16-inside-12_1928_21629)"/>
+<rect x="40.5" y="76" width="4.5" height="9" rx="1.5" stroke="white" stroke-width="3"/>
+<mask id="path-18-inside-13_1928_21629" fill="white">
+<rect x="7" y="10" width="38" height="52" rx="2.5"/>
+</mask>
+<rect x="7" y="10" width="38" height="52" rx="2.5" stroke="white" stroke-width="8" mask="url(#path-18-inside-13_1928_21629)"/>
+</g>
+<defs>
+<clipPath id="clip0_1928_21629">
+<rect width="52.5" height="150" fill="white"/>
+</clipPath>
+</defs>
+</svg>
