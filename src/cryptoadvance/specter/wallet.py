@@ -27,7 +27,6 @@ from .util.psbt import SpecterPSBT
 from .util.tx import decoderawtransaction
 from .util.xpub import get_xpub_fingerprint
 
-
 logger = logging.getLogger(__name__)
 LISTTRANSACTIONS_BATCH_SIZE = 1000
 
