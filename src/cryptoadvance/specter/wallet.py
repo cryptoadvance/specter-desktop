@@ -26,8 +26,6 @@ from .txlist import TxList
 from .util.psbt import SpecterPSBT
 from .util.tx import decoderawtransaction
 from .util.xpub import get_xpub_fingerprint
-from hwilib.psbt import PSBT, CTxOut
-
 
 logger = logging.getLogger(__name__)
 LISTTRANSACTIONS_BATCH_SIZE = 1000
@@ -2075,44 +2073,3 @@ class Wallet:
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} name={self.name } alias={self.alias}>"
-
-    def convert_rawtransaction_to_psbt(self, rawtransaction) -> str:
-        """
-        Converts a signed raw transaction in HEX format into a PSBT in b64 format
-        """
-        b64psbt_bare = self.rpc.converttopsbt(rawtransaction, True)
-        b64psbt_with_inputs = self.rpc.utxoupdatepsbt(
-            b64psbt_bare
-        )  # this adds inputs for segwit, but not for non-segwit
-        logger.debug(f"b64psbt_with_inputs  {b64psbt_with_inputs}")
-
-        specter_decoded_raw_tx = decoderawtransaction(rawtransaction)
-        logger.debug(f"specter_decoded_raw_tx  {specter_decoded_raw_tx}")
-
-        hwilib_psbt = PSBT()
-        hwilib_psbt.deserialize(b64psbt_with_inputs)
-        for specter_input, hwilib_input in zip(
-            specter_decoded_raw_tx["vin"], hwilib_psbt.inputs
-        ):
-
-            # if it is not segwit  utxoupdatepsbt did not add the "inputs" in the PSBT
-            # and we need to manually add the required info
-            if not hwilib_input.witness_utxo:
-                # add witness_utxo
-                witness_utxo = self.rpc.gettxout(
-                    specter_input["txid"], specter_input["vout"]
-                )
-                hwilib_input.witness_utxo = CTxOut(
-                    nValue=int(witness_utxo["value"] * 1e8),
-                    scriptPubKey=bytes.fromhex(witness_utxo["scriptPubKey"]["hex"]),
-                )
-                # add final_scriptSig
-                hwilib_input.final_script_sig = bytes.fromhex(
-                    specter_input["scriptSig"]["hex"]
-                )
-
-            if specter_input.get("txinwitness"):
-                hwilib_input.final_script_witness.scriptWitness.stack = [
-                    bytes.fromhex(w) for w in specter_input["txinwitness"]
-                ]
-        return hwilib_psbt.serialize()
