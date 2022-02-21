@@ -28,7 +28,7 @@ from cryptoadvance.specter.util.wallet_importer import WalletImporter
 
 logger = logging.getLogger(__name__)
 
-pytest_plugins = ["ghost_machine"]
+pytest_plugins = ["ghost_machine", "devices_and_wallets"]
 
 # This is from https://stackoverflow.com/questions/132058/showing-the-stack-trace-from-a-running-python-application
 # it enables stopping a hanging test via sending the pytest-process a SIGUSR2 (12)
