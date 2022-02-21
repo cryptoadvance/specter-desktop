@@ -20,7 +20,7 @@
     </div>
     <br><br>
     <div class="row">
-        <form method="POST" action="{{ url_for('about') }}">
+        <form method="POST" action="{{ url_for('welcome_endpoint.about') }}">
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             <button type="submit" name="action" value="cancelsetup" class="btn hidden danger" id="reset-setup-process" style="max-height: 36px;" onclick="">{{ _("Cancel process") }}</button>
         </form>

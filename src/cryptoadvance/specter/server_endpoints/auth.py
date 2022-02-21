@@ -188,6 +188,22 @@ def logout():
     return redirect(url_for("auth_endpoint.login"))
 
 
+@auth_endpoint.route("/toggle_hide_sensitive_info/", methods=["POST"])
+@login_required
+@app.csrf.exempt  # might get called by a timeout in the browser --> csrf-issues
+def toggle_hide_sensitive_info():
+    try:
+        app.specter.update_hide_sensitive_info(
+            not app.specter.hide_sensitive_info, current_user
+        )
+        return {"success": True}
+    except Exception as e:
+        app.logger.warning(
+            "Failed to update sensitive info display settings. Exception: {}".format(e)
+        )
+    return {"success": False}
+
+
 ################### Util ######################
 def redirect_login(request):
     flash(_("Logged in successfully."), "info")

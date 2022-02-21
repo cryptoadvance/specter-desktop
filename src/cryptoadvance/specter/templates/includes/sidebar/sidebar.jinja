@@ -94,7 +94,7 @@
             async function fetchUTXORescanProgress() {
                 try {
                     const response = await fetch(
-                        "{{ url_for('get_scantxoutset_status') }}",
+                        "{{ url_for('wallets_endpoint_api.get_scantxoutset_status') }}",
                         {
                             method: 'GET'
                         }
@@ -222,11 +222,11 @@
             {{ sidebar_btn(url_for('devices_endpoint.new_device_type'), _('Add new device'),'btn_new_device') }}
         </div>
         {% include "services/sidebar_services_list.jinja" %}
-        {{ sidebar_btn(url_for('services_endpoint.choose'), 'Choose services', 'btn_new_service') }}
+        {{ sidebar_btn(url_for('services_endpoint.choose'), 'Choose plugins', 'btn_plugins') }}
         <br>
         <div class="footer">
 	        <span>{{ _("Specter Version:") }} <strong>{{ specter.version.current }}</strong></span>
-            <a style="color: #fff; font-size: 1.1em; margin: 10px; text-align: center;" href="{{ url_for('about') }}">
+            <a style="color: #fff; font-size: 1.1em; margin: 10px; text-align: center;" href="{{ url_for('welcome_endpoint.about') }}">
             {{ _("About Specter") }}<br>
             <img src="{{ url_for('static', filename='img/ghost_3d.png') }}" style="width: 35px;"/>
             </a>
@@ -237,7 +237,7 @@
 
     async function updateWalletsLoadingData() {
         try {
-            let url="{{ url_for('wallets_loading') }}"
+            let url="{{ url_for('wallets_endpoint_api.wallets_loading') }}"
             const response = await fetch(
                 url,
                 {
