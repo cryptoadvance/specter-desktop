@@ -85,12 +85,12 @@ def decoderawtransaction(hextx, chain="main"):
     return result
 
 
-def convert_rawtransaction_to_psbt(wallet, rawtransaction) -> str:
+def convert_rawtransaction_to_psbt(wallet_rpc, rawtransaction) -> str:
     """
     Converts a signed raw transaction in HEX format into a PSBT in b64 format
     """
-    b64psbt_bare = wallet.rpc.converttopsbt(rawtransaction, True)
-    b64psbt_with_inputs = wallet.rpc.utxoupdatepsbt(
+    b64psbt_bare = wallet_rpc.converttopsbt(rawtransaction, True)
+    b64psbt_with_inputs = wallet_rpc.utxoupdatepsbt(
         b64psbt_bare
     )  # this adds inputs for segwit, but not for non-segwit
     logger.debug(f"b64psbt_with_inputs  {b64psbt_with_inputs}")
@@ -108,7 +108,7 @@ def convert_rawtransaction_to_psbt(wallet, rawtransaction) -> str:
         # and we need to manually add the required info
         if not hwilib_input.witness_utxo:
             # add witness_utxo
-            witness_utxo = wallet.rpc.gettxout(
+            witness_utxo = wallet_rpc.gettxout(
                 specter_input["txid"], specter_input["vout"]
             )
             hwilib_input.witness_utxo = CTxOut(

@@ -197,7 +197,7 @@ def test_import_raw_transaction(
             signed = sign_with_devices(psbtFF)
             finalized = wallet.rpc.finalizepsbt(signed["psbt"])
 
-            psbt_base64 = convert_rawtransaction_to_psbt(wallet, finalized["hex"])
+            psbt_base64 = convert_rawtransaction_to_psbt(wallet.rpc, finalized["hex"])
             # check that the original rawt_transaction == recreated raw_transaction
             assert finalized["hex"] == wallet.rpc.finalizepsbt(psbt_base64)["hex"]
     finally:
