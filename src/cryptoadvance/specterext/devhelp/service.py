@@ -1,7 +1,7 @@
 import logging
 from flask import current_app as app
-from ..service import Service, devstatus_alpha
-from ...specter_error import SpecterError
+from cryptoadvance.specter.services.service import Service, devstatus_alpha
+from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.wallet import Wallet
 
 logger = logging.getLogger(__name__)
@@ -14,6 +14,7 @@ class DevhelpService(Service):
     logo = "devhelp/img/orange-wrench.png"
     desc = "Wrenches at work."
     has_blueprint = True
+    blueprint_module = "cryptoadvance.specterext.devhelp.controller"
     devstatus = devstatus_alpha
 
     sort_priority = 2
