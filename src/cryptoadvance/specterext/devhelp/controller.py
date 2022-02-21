@@ -3,13 +3,10 @@ from flask import Flask, Response, redirect, render_template, request, url_for
 from flask import current_app as app
 from flask_login import login_required, current_user
 
-from ..controller import user_secret_decrypted_required
+from cryptoadvance.specter.services.controller import user_secret_decrypted_required
 from .service import DevhelpService
-from ...wallet import Wallet
+from cryptoadvance.specter.wallet import Wallet
 
-"""
-    Empty placeholder just so the dummyservice/static folder can be wired up to retrieve its img
-"""
 
 logger = logging.getLogger(__name__)
 
