@@ -6,6 +6,7 @@ from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.managers.wallet_manager import WalletManager
+from cryptoadvance.specter.util.tx import convert_rawtransaction_to_psbt
 
 
 def test_alias():
@@ -233,13 +234,6 @@ def test_abandon_purged_tx(
 def test_import_raw_transaction(
     caplog, docker, request, devices_filled_data_folder, device_manager
 ):
-    # Specter should support calling abandontransaction if a pending tx has been purged
-    # from the mempool. Test starts a new bitcoind with a restricted mempool to make it
-    # easier to spam the mempool and purge our target tx.
-    # TODO: Similar test but for maxmempoolexpiry?
-
-    # Copied and adapted from:
-    #    https://github.com/bitcoin/bitcoin/blob/master/test/functional/mempool_limit.py
     from conftest import instantiate_bitcoind_controller
 
     caplog.set_level(logging.DEBUG)
@@ -424,7 +418,7 @@ def test_import_raw_transaction(
             signed = sign_with_devices(psbtFF)
             finalized = wallet.rpc.finalizepsbt(signed["psbt"])
 
-            psbt_base64 = wallet.convert_rawtransaction_to_psbt(finalized["hex"])
+            psbt_base64 = convert_rawtransaction_to_psbt(wallet, finalized["hex"])
             # check that the original rawt_transaction == recreated raw_transaction
             assert finalized["hex"] == wallet.rpc.finalizepsbt(psbt_base64)["hex"]
     finally:
