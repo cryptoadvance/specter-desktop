@@ -24,7 +24,6 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
-
         .pagination-idx {
             min-width: 50px;
             max-width: 50px;
@@ -33,16 +32,15 @@
             text-align: center;
             height: 35px;
         }
-        .search {
-            /* float: right; */
-            margin: auto;
-            width: 100%;
-            max-width: 350px;
-        }
         .search-container {
             width: 100%;
             display: flex;
+            justify-content: center;
+            align-items: center;
             margin-bottom: 0.5em;
+        }
+        .search {
+            margin: auto;
         }
         .up-arrow {
             width: 0;
@@ -56,7 +54,6 @@
             margin-right: 50px;
             margin-top: 5px;
         }
-
         .down-arrow {
             width: 0;
             height: 0;
@@ -70,7 +67,6 @@
             margin-right: 50px;
             margin-top: 5px;
         }
-        
         .export-container {
             max-width: 50%;
             margin: 20px auto;
@@ -91,6 +87,65 @@
             margin: 5px;
             height: 38px;
         }
+        .action-teaser {
+            max-width: 20em;
+            border: 1px solid var(--cmap-border);
+            background-color: var(--cmap-bg-lighter);
+            padding: 0.8em;
+            text-align: center;
+            font-size: 15px;
+            line-height: 12px;
+            font-weight: 50;
+            color: grey;
+        }
+        .freeze-tx-btn {
+            border: 1px solid var(--cmap-border);
+            border-radius: 0.5em;
+            background-color: var(--cmap-bg-lighter);
+            padding: 0.8em;
+            text-align: center;
+            font-weight: 250;
+        }
+        .freeze-tx-btn:hover {
+            background-color: var(--cmap-bg-lightest);
+            border: 1px solid var(--main-color);
+        }
+        .compose-tx-btn {
+            border: 1px solid var(--cmap-border);
+            border-radius: 0.5em;
+            background-color: var(--cmap-bg-lighter);
+            padding: 0.8em;
+            text-align: center;
+            font-weight: 250;
+        }
+        .compose-tx-btn:hover {
+            background-color: var(--cmap-bg-lightest);
+            border: 1px solid var(--main-color);
+        }
+
+        .manage-psbt-btn {
+            border: 1px solid var(--cmap-border);
+            border-radius: 0.5em;
+            background-color: var(--cmap-bg-lighter);
+            padding: 0.8em;
+            text-align: center;
+            font-weight: 250;
+        }
+        .manage-psbt-btn:hover {
+            background-color: var(--cmap-bg-lightest);
+            border: 1px solid var(--main-color);
+        }
+        .icon-explainer {
+            display: inline-block;
+            content: "lala";
+            position: absolute;
+            left: -10px;
+            top: 7px;
+            border-style: solid;
+            border-width: 10px 10px 10px 0;
+            border-color: transparent #27b1f0;
+        }
+
     </style>
     <nav class="switcher row">
         <button
@@ -112,34 +167,41 @@
     </div>
     <div class="search-container">
         <!--Left part of the toolbar-->
-        <div style="flex: 1;">
+        <div style="flex: 0 0 200px">
             {% include "includes/page-limit-select.html" %}
         </div>
-        <!--Middle part of the toolbar-->
-        <input class="search" type="text" placeholder="Search..." />
-        <tool-tip title="Search options">
-            {{ _("anything in the address, tx, label, confirmations or amount") }}<br>
-            {{ _('search like') }} <code>%d.%m.%Y %H:%M</code> {{ _('if you want to search in the time field') }}<br>
-            {{ _("<code> 1</code> for anything more than 1 BTC and likewise <code>< 1</code> (don't forget the space)") }}<br>
-        </tool-tip>
-        <!--Placeholder for right part of the toolbar-->
-        <div style="flex: 1;"></div>
-    </div>
-    <div class="selected-rows-action-box row hidden">
-        <form class="freeze-tx-form" method="POST">
-            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button type="button" class="btn freeze-tx-btn">
+         <!--Middle part of the toolbar-->
+        <div style="flex-grow: 0.5">
+            <input class="search" type="text" placeholder="Search..."></input>
+        </div>
+        <div style="flex: 0 0 50px">
+            <tool-tip title="Search options">
+                {{ _("anything in the address, tx, label, confirmations or amount") }}<br>
+                {{ _('search like') }} <code>%d.%m.%Y %H:%M</code> {{ _('if you want to search in the time field') }}<br>
+                {{ _("<code> 1</code> for anything more than 1 BTC and likewise <code>< 1</code> (don't forget the space)") }}<br>
+            </tool-tip>
+        </div>
+        <!--Right part of the toolbar-->
+        <div id="action-teaser" class="action-teaser hidden" style="flex-grow: 1"> 
+            <span id="action-teaser-text" class="action-teaser-text">Select checkboxes for actions</span>
+        </div>
+        <div class="selected-rows-action-box row hidden">
+            <form class="freeze-tx-form" method="POST">
+                <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="button" class="btn freeze-tx-btn">
                 <tool-tip title="Freezing UTXOs">
                     {{ _("Freezing a UTXO will make Specter disallow spending it.") }}<br><br>
-                    {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }}"
+                    {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }}
                 </tool-tip>&nbsp;&nbsp;
                 Un/Freeze UTXOs
             </button>
-        </form>
-        <form class="compose-tx-form" method="POST">
-            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button type="button" class="btn compose-tx-btn">{{ _("Create new transaction") }}</button>
-        </form>
+            </form>
+            <form class="compose-tx-form" method="POST">
+                <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="button" class="btn compose-tx-btn">{{ _("Create new transaction") }}</button>
+            </form>
+            <a id="manage-psbt-btn" type="button" class="btn manage-psbt-btn hidden" href="">{{ _("Manage unsigned PSBT") }}</a>
+        </div>
     </div>
     <div class="export-container hidden">
         <h1>{{ _("Export transactions to CSV") }}</h1>
@@ -292,7 +354,12 @@
             this.composeTxBtn = clone.querySelector(".compose-tx-btn");
             this.freezeTxForm = clone.querySelector(".freeze-tx-form");
             this.freezeTxBtn = clone.querySelector(".freeze-tx-btn");
+            this.managePSBTBtn = clone.getElementById("manage-psbt-btn")
             this.selectedRows = [];
+
+            // Action teaser
+            this.actionTeaserDiv = clone.getElementById("action-teaser") 
+            this.actionTeaserText = clone.getElementById("action-teaser-text")
 
             // CustomAction Preselection default
             this.selectedCoins = []
@@ -302,6 +369,7 @@
 					this.utxoViewBtn.classList.remove("checked");
 					this.txlistViewBtn.classList.add("checked");
 					this.setAttribute("type","txlist");
+                    this.actionTeaserDiv.classList.add("hidden");
 				}
 			}
 
@@ -310,6 +378,7 @@
 					this.txlistViewBtn.classList.remove("checked");
 					this.utxoViewBtn.classList.add("checked");
 					this.setAttribute("type","utxo");
+                    this.actionTeaserDiv.classList.remove("hidden");
 				}
             }
             
@@ -443,7 +512,10 @@
                 this.freezeTxForm.innerHTML += `<input type="hidden" name="action" value="freezeutxo"/>`
                 this.freezeTxForm.action = `{{ url_for('wallets_endpoint.history', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
                 this.freezeTxForm.submit();
+
             }
+
+            // Manage PSBT
 
             // Attach the created element to the shadow dom
             shadow.appendChild(clone);
@@ -454,7 +526,8 @@
         }
 
         connectedCallback() {
-            // Hide columns
+            this.managePSBTBtn.href = `{{ url_for('wallets_endpoint.send_pending', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+            
             this.hideColumns = this.getAttribute("hide-columns") ?? "callbackaction"
             if (this.hideColumns && this.hideColumns != "null") {
                 this.hideColumns.split(" ").forEach((column_name) => {
@@ -514,6 +587,7 @@
          * - wallet: The wallet alias (null to get all wallets combined)
         */
         attributeChangedCallback(attrName, oldValue, newValue) {
+            this.wallet = this.getAttribute('wallet');
             if (attrName != "selected-coins") {
                 if (this.getAttribute('blockhash') == 'true' && this.getAttribute('type') == "txlist" && this.getAttribute('wallet')) {
                         this.blockhashHeader.classList.remove('hidden');
@@ -582,9 +656,7 @@
            return false
         }
 
-        /**
-         * Fetches txlist from the Specter API and loads the result into TxRowElements
-        */
+        // Fetches txlist from the Specter API and loads the result into TxRowElements
         async fetchTxItems() {
             this.callId++;
             // Clean up from existing transaction list
@@ -746,13 +818,56 @@
                         this.selectedRowsActionBox.classList.add('hidden');
 
                         let dispatchLater = false
-                        for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) {
-                            // Replaces checkbox for locked UTXO in coin selection by snowflake image
-                            if (txRow.tx.locked) {
+
+                        // Get txids of pending PSBTs
+                        var pending_psbts = await this.fetchWalletData();
+                        var pending_psbts_txids = []
+                        const keys = Object.keys(pending_psbts)
+                        keys.forEach((key, index) => {
+                            let txid = (pending_psbts[key]["inputs"][0]["txid"]);
+                            pending_psbts_txids.push(txid);
+
+                        });
+                        for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) { 
+                            // EventListener when hovering over checkboxes
+                            txRow.selectTxImg.addEventListener("mouseover", () => {
+                                this.actionTeaserDiv.style.color = 'orange';
+                            })
+                            txRow.selectTxImg.addEventListener("mouseout", () => {
+                                this.actionTeaserDiv.style.color = 'grey';
+                            })
+                            // EventListener when hovering over categories
+                            txRow.category.addEventListener("mouseover", () => {
+                                console.log()
+                                if (txRow.tx.confirmations == 0) {
+                                txRow.iconInfoText.innerText = `${txRow.tx.category} (unconfirmed)`
+                                } 
+                                else {
+                                txRow.iconInfoText.innerText = txRow.tx.category
+                                }  
+                            })
+                            // Adding additional text to special UTXO in coin selection and UTXO list                 
+                            if (txRow.tx.locked && pending_psbts_txids.includes(txRow.tx.txid) == false) {
+                                // Replaces checkbox for locked UTXO in coin selection by snowflake image
                                 txRow.callbackaction.innerHTML = ""
                                 // Need to clone otherwise we're ripping the node from the UTXO overview
                                 let frozenImgClone = txRow.frozenImg.cloneNode()
                                 txRow.callbackaction.append(frozenImgClone)
+                                // Adding "Locked" in coin selection and UTXO overview 
+                                txRow.callbackaction.append("Locked")
+                                txRow.categoryCell.append("Locked")
+                            }
+                            if (txRow.tx.locked && pending_psbts_txids.includes(txRow.tx.txid) == true) {
+                                txRow.callbackaction.innerHTML = ""
+                                let frozenImgClone = txRow.frozenImg.cloneNode()
+                                txRow.callbackaction.append(frozenImgClone)
+                                // Adding "Unsigned" in coin selection and UTXO overview 
+                                txRow.callbackaction.append("Unsigned")
+                                txRow.categoryCell.append("Unsigned")
+                            }
+                            if (txRow.tx.confirmations == 0) {
+                                // Only necessary to add this to the coin selection 
+                                txRow.callbackaction.append("Unconfirmed")
                             }
                             // Preselect if necessary
                             if (this.checkForSelectedCoin(txRow.tx.txid)) {
@@ -767,7 +882,6 @@
                             // Listening for (un-) selecting standard checkboxes
                             txRow.addEventListener('txRowSelected', (e) => {
                                 let selectedRow = e.target; 
-                                // Note: Values could also be retrieved from selectedRow instead
                                 if (e.detail.selected) {
                                     this.selectedRows.push({
                                         txid: e.detail.txid,
@@ -776,24 +890,66 @@
                                         locked: e.detail.locked, 
                                     });
                                 } else {
+                                    // Remove unselected rows from array
                                     this.selectedRows = this.selectedRows.filter(row => !(row.txid === e.detail.txid && row.vout === e.detail.vout))
                                 }
                                 // Returns true if a selected UTXO is locked
-                                function checkLock(row) {
+                                function checkLocked(row) {
                                     return row.locked == true
                                 }
-                                if (this.selectedRows.length == 0) {
+                                // Returns true if a selected UTXO is unsigned-locked
+                                function checkUnsignedLocked(row) {
+                                    if (row.locked == true && pending_psbts_txids.includes(row.txid) == true) {
+                                        return true
+                                    }
+                                }
+
+                                // Locked UTXO is selected
+                                if (this.selectedRows.some(checkLocked) && !this.selectedRows.some(checkUnsignedLocked)) {
+                                    this.composeTxForm.classList.add('hidden');
+                                    this.actionTeaserDiv.classList.add("hidden");
+                                    this.selectedRowsActionBox.classList.remove('hidden');
+                                    this.freezeTxForm.classList.remove('hidden');
+                                    for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) {
+                                        if ((!txRow.tx.locked || pending_psbts_txids.includes(txRow.tx.txid) == true)) {
+                                            txRow.selectTxImg.classList.add("hidden")
+                                            txRow.selectTxImg.src = "{{ url_for('static', filename='img/checkbox-untick.svg') }}"
+                                            // Remove rows that were selected previously
+                                            this.selectedRows = this.selectedRows.filter(row => (row.locked))
+                                        }
+                                    }
+                                }
+                                // Unsigned-locked UTXO is selected
+                                else if (this.selectedRows.some(checkUnsignedLocked)) {
                                     this.composeTxForm.classList.add('hidden');
                                     this.freezeTxForm.classList.add('hidden');
+                                    this.selectedRowsActionBox.classList.remove('hidden');
+                                    this.managePSBTBtn.classList.remove('hidden');
+                                    this.actionTeaserDiv.classList.add("hidden");
+                                    for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) {
+                                        if ((!pending_psbts_txids.includes(txRow.tx.txid) == true)) {
+                                            txRow.selectTxImg.classList.add("hidden")
+                                            txRow.selectTxImg.src = "{{ url_for('static', filename='img/checkbox-untick.svg') }}"
+                                            // Remove rows that were selected previously
+                                            this.selectedRows = this.selectedRows.filter(row => (checkUnsignedLocked(row)))
+                                        }
+                                    }
                                 }
                                 else {
                                     this.selectedRowsActionBox.classList.remove('hidden');
                                     this.composeTxForm.classList.remove('hidden');
                                     this.freezeTxForm.classList.remove('hidden');
+                                    this.managePSBTBtn.classList.add('hidden');
+                                    this.actionTeaserDiv.classList.add("hidden");
+                                    for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) {
+                                            txRow.selectTxImg.classList.remove("hidden")
+                                    }
                                 }
-                                // If a locked UTXO is selected the create transaction button disappears
-                                if (this.selectedRows.some(checkLock)) {
+                                if (this.selectedRows.length == 0) {
                                     this.composeTxForm.classList.add('hidden');
+                                    this.freezeTxForm.classList.add('hidden');
+                                    this.managePSBTBtn.classList.add('hidden');
+                                    this.actionTeaserDiv.classList.remove("hidden");
                                 }
                             });
                         }
@@ -816,9 +972,30 @@
             let event = new CustomEvent('CustomSelected')
             this.dispatchEvent(event);
         }
+
+        async fetchWalletData() {
+            // Currently only fetching the list of pending PSBT
+            if (this.wallet) {
+                var url = `{{ url_for('wallets_endpoint_api.pending_psbt_list', wallet_alias='WALLET_ALIAS') }}`.replace('WALLET_ALIAS', this.wallet);
+            }
+            try {
+                const response = await fetch(url, {method: 'GET',});
+                if (response.status != 200) {
+                    showError(`{{ _("Error while fetching wallet data:") }} ${response.statusText}`)
+                }
+                else {
+                    let pending_psbts_json = await response.json()
+                    var pending_psbts = pending_psbts_json["pending_psbts"]
+                    // This returns a promise
+                    return pending_psbts
+                }
+            }
+            catch(e) {
+                console.log("Caught error: ", e);
+                showError(`{{ _("Failed to fetch wallet data! <br> Use this to ask about this error:") }} ${e}`);
+            }
+        }
     }
-
-
 
     /**
      * Shows a <tx-data> element popup for specified txid.

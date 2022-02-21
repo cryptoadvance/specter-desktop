@@ -141,16 +141,6 @@ ul, li{
     /*max-width: 100%;*/
     justify-content: center;
 }
-tr.unconfirmed{
-    background: var(--cmap-bg);
-    /*font-style: italic;*/
-}
-.unconfirmed td img{
-    opacity: 0.7;
-}
-.unconfirmed:hover td img{
-    opacity: 1;
-}
 .row{
     display: flex;
     flex-direction: row;
