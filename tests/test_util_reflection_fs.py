@@ -8,19 +8,6 @@ from typing import List
 
 
 def test_search_dir_in_cwd():
-    print(os.getcwd())
-    print(
-        f"./tests/xtestdata_testextensions : {os.listdir('./tests/xtestdata_testextensions')}"
-    )
-    print(
-        f"./tests/xtestdata_testextensions/ext_root_fully_qualified_1 : {os.listdir('./tests/xtestdata_testextensions/ext_root_fully_qualified_1')}"
-    )
-    print(
-        f"./tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/ : {os.listdir('./tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/')}"
-    )
-    print(
-        f"./tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/boatacccorp : {os.listdir('./tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/boatacccorp')}"
-    )
     plist: List[Path] = search_dirs_in_path(Path("./tests/xtestdata_testextensions"))
     assert len(plist) == 3
     assert isinstance(plist[0], Path)
@@ -46,17 +33,11 @@ def test_search_dir_in_cwd():
     plist = search_dirs_in_path(
         Path("./tests/xtestdata_testextensions"), return_without_extid=False
     )
-    assert len(plist) == 3
+    assert len(plist) == 2
     assert isinstance(plist[0], Path)
     assert (
         Path(
             "tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/boatacccorp/specterext/tretboot"
-        )
-        in plist
-    )
-    assert (
-        Path(
-            "tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/accorp/specterext/beiboot"
         )
         in plist
     )
