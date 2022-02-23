@@ -112,6 +112,8 @@ class ExtGen:
 
         self.render(f"tests/conftest.py", env=self.sd_env)
         self.render(f"tests/ghost_machine.py", env=self.sd_env)
+        # after #1591 is merged
+        # self.render(f"tests/devices_and_wallets.py", env=self.sd_env)
 
     def create_binary_file(self, sourcepath):
         """textfiles can all be rendered. Binaries must be wgettet or copied"""
