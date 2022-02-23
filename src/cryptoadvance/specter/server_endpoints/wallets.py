@@ -545,6 +545,7 @@ def send_new(wallet_alias):
                 fee_rate = float(request.form["rbf_fee_rate"])
                 fee_options = "manual"
                 rbf = True
+                fillform = True
             except Exception as e:
                 handle_exception(e)
                 flash(_("Failed to perform RBF. Error: {}").format(e), "error")
