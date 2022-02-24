@@ -63,15 +63,11 @@ def test_SwanClient(app):
             "https://dev-api.swanbitcoin.com/oidc/auth?client_id=specter-dev&redirect_uri=http://a_hostname/spc/ext/swan/oauth2/callback&response_type=code&response_mode=query"
         )
 
-        fake_response = Mock()
-        fake_response.text = fake_response_text
+        fake_response = construct_access_token_fake_response()
         with mock.patch("requests.post", return_value=fake_response):
             assert sc._get_access_token() == "muuuhTheAccessToken"
         assert sc.access_token_expires != 123123
         assert sc.is_access_token_valid()
-
-        fake_response.status_code = 200
-        fake_response.json.return_value = {"some": "json"}
         with mock.patch("requests.get", return_value=fake_response):
             assert (
                 sc.authenticated_request(
