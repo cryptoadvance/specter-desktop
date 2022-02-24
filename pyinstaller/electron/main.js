@@ -192,6 +192,7 @@ function initMainWindow(specterURL) {
   mainWindow = new BrowserWindow({
     width: parseInt(dimensions.width * 0.8),
     height: parseInt(dimensions.height * 0.8),
+    icon: path.join(__dirname, '/assets/icon.png'),
     webPreferences
   })
   

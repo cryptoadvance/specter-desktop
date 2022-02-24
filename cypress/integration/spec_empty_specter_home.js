@@ -19,6 +19,11 @@ describe('Completely empty specter-home', () => {
     // Hidden in Cypress behind the price 
     // cy.get('[href="/settings/tor"]').click()
     // cy.contains('Tor configurations')
+    cy.contains("Choose plugins")
+    cy.get('#btn_plugins').click()
+    cy.contains("Plugins in Production")
+
+
   })
 
   it('Creates a device in Specter', () => {

@@ -875,7 +875,7 @@ def enumerate(password: str = "") -> List[Dict[str, Any]]:
 
     except Exception as e:
         # If we get any sort of error do not add the simulator
-        logging.debug(f"Failed to connect to Jade simulator at {SIMULATOR_PATH}")
-        logging.debug(e)
+        logger.debug(f"Failed to connect to Jade simulator at {SIMULATOR_PATH}")
+        logger.debug(e)
 
     return results
