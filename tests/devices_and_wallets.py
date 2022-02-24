@@ -7,23 +7,33 @@ from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.wallet import Wallet
 
 
+mnemonic_ghost = (
+    "ghost ghost ghost ghost ghost ghost ghost ghost ghost ghost ghost machine"
+)
+mnemonic_zoo = (
+    "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo when"
+)
+
+
 @pytest.fixture
 def hot_wallet_device_1(specter_regtest_configured):
     return create_hot_wallet_device(
+        mnemonic_ghost,
         specter_regtest_configured,
-        f"some_hot_wallet_device_{random.randint(0, 999999)}",
+        "hot_wallet_device_ghost",
     )
 
 
 @pytest.fixture
 def hot_wallet_device_2(specter_regtest_configured):
     return create_hot_wallet_device(
+        mnemonic_zoo,
         specter_regtest_configured,
-        f"some_hot_wallet_device_{random.randint(0, 999999)}",
+        "hot_wallet_device_zoo",
     )
 
 
-def create_hot_wallet_device(specter_regtest_configured, name):
+def create_hot_wallet_device(mnemonic, specter_regtest_configured, name):
     wallet_manager = specter_regtest_configured.wallet_manager
     device_manager = specter_regtest_configured.device_manager
 
@@ -31,7 +41,7 @@ def create_hot_wallet_device(specter_regtest_configured, name):
     device = device_manager.add_device(name=name, device_type="bitcoincore", keys=[])
     device.setup_device(file_password=None, wallet_manager=wallet_manager)
     device.add_hot_wallet_keys(
-        mnemonic=generate_mnemonic(strength=128),
+        mnemonic=mnemonic,
         passphrase="",
         paths=[
             "m/49h/1h/0h",  #  Single Sig (Nested)

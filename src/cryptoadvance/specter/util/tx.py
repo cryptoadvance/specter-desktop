@@ -1,7 +1,7 @@
 from embit.transaction import Transaction
 from embit.networks import NETWORKS
+from embit.psbt import PSBT
 from hashlib import sha256
-from hwilib.psbt import PSBT, CTxOut
 import math
 import logging
 
@@ -87,41 +87,17 @@ def decoderawtransaction(hextx, chain="main"):
 
 def convert_rawtransaction_to_psbt(wallet_rpc, rawtransaction) -> str:
     """
-    Converts a signed raw transaction in HEX format into a PSBT in b64 format
+    Converts a raw transaction in HEX format into a PSBT in b64 format
     """
-    b64psbt_bare = wallet_rpc.converttopsbt(rawtransaction, True)
-    b64psbt_with_inputs = wallet_rpc.utxoupdatepsbt(
-        b64psbt_bare
-    )  # this adds inputs for segwit, but not for non-segwit
-    logger.debug(f"b64psbt_with_inputs  {b64psbt_with_inputs}")
-
-    specter_decoded_raw_tx = decoderawtransaction(rawtransaction)
-    logger.debug(f"specter_decoded_raw_tx  {specter_decoded_raw_tx}")
-
-    hwilib_psbt = PSBT()
-    hwilib_psbt.deserialize(b64psbt_with_inputs)
-    for specter_input, hwilib_input in zip(
-        specter_decoded_raw_tx["vin"], hwilib_psbt.inputs
-    ):
-
-        # if it is not segwit  utxoupdatepsbt did not add the "inputs" in the PSBT
-        # and we need to manually add the required info
-        if not hwilib_input.witness_utxo:
-            # add witness_utxo
-            witness_utxo = wallet_rpc.gettxout(
-                specter_input["txid"], specter_input["vout"]
-            )
-            hwilib_input.witness_utxo = CTxOut(
-                nValue=int(witness_utxo["value"] * 1e8),
-                scriptPubKey=bytes.fromhex(witness_utxo["scriptPubKey"]["hex"]),
-            )
-            # add final_scriptSig
-            hwilib_input.final_script_sig = bytes.fromhex(
-                specter_input["scriptSig"]["hex"]
-            )
-
-        if specter_input.get("txinwitness"):
-            hwilib_input.final_script_witness.scriptWitness.stack = [
-                bytes.fromhex(w) for w in specter_input["txinwitness"]
-            ]
-    return hwilib_psbt.serialize()
+    tx = Transaction.from_string(rawtransaction)
+    psbt = PSBT(tx)  # this empties the signatures
+    psbt = wallet_rpc.walletprocesspsbt(str(psbt), False).get("psbt", str(psbt))
+    psbt = PSBT.from_string(psbt)  # we need the class object again
+    # Recover signatures (witness or scriptsig) if available in raw tx
+    for vin, psbtin in zip(tx.vin, psbt.inputs):
+        if vin.witness:
+            psbtin.final_scriptwitness = vin.witness
+        if vin.script_sig:
+            psbtin.final_scriptsig = vin.script_sig
+    b64_psbt = str(psbt)
+    return b64_psbt

@@ -21,34 +21,34 @@ def test_import_raw_transaction(
 
     caplog.set_level(logging.INFO)
     devices = [hot_wallet_device_1, hot_wallet_device_2]
-    # device = devices[0]
     wallet_manager = specter_regtest_configured.wallet_manager
 
-    def sign_with_devices(psbtFF, devices=devices):
-        signed = psbtFF
+    def sign_tx_with_device(raw_tx: str, devices=devices) -> str:
+        signed = hot_wallet_device_1.sign_raw_tx(raw_tx, wallet)
+        assert signed["complete"]
+        return signed["hex"]
+
+    def sign_psbt_with_devices(psbt: dict, devices=devices) -> str:
+        signed = psbt
         for device in devices:
             signed = device.sign_psbt(signed["psbt"], wallet)
             if signed["complete"]:
                 break
-        logging.info(f"signed  {psbtFF}")
         assert signed["complete"]
-        return signed
+        return signed["psbt"]
 
     # Let's test that with all the relevant key-types
     for key_type in [
-        "sh-wsh",  # Single (Nested)
         "wpkh",  # Single (Segwit)
-        # "pkh",    # Single (Legacy)
+        "sh-wpkh",  #  Single (Nested)
         "wsh",  # Multisig (Segwit)
-        "sh-wpkh",  # Multisig (Nested)
-        # "sh",     # Multisig (Legacy)
+        "sh-wsh",  # Multisig (Nested)
         "tr",  # Taproot
     ]:
 
         logging.info(f"begin of loop key_type '{key_type}'")
-
         # choose the devices
-        if key_type in ["sh", "wsh", "sh-wsh"]:  # multisig
+        if key_type in ["wsh", "sh-wsh"]:  # multisig
             keys = [
                 key
                 for device in devices
@@ -71,27 +71,49 @@ def test_import_raw_transaction(
             used_devices,
         )
 
-        logging.debug(
+        logging.info(
             f"created wallet key_type '{key_type}' keys {[key.json for key in keys]}  wallet.account_map {wallet.account_map}"
         )
 
-        # fund it
-        bitcoin_regtest.testcoin_faucet(wallet.getnewaddress(), amount=3)
-        wallet.save_to_file()
-
-        # Create a raw TX
-        outputs = {wallet.getnewaddress(): 1}
-        tx = wallet.rpc.createrawtransaction([], outputs)
-        txF = wallet.rpc.fundrawtransaction(
-            tx, {"changeAddress": wallet.getnewaddress()}
-        )
-        psbtF = wallet.rpc.converttopsbt(txF["hex"])
-        psbtFF = wallet.rpc.walletprocesspsbt(psbtF)
-        signed = sign_with_devices(psbtFF)
-        finalized_hex = wallet.rpc.finalizepsbt(signed["psbt"])["hex"]
-
-        # convert the tx-hex to psbt
-        psbt_base64 = convert_rawtransaction_to_psbt(wallet.rpc, finalized_hex)
-
-        # Finally: check that the original TX == recreated raw_transaction
-        assert finalized_hex == wallet.rpc.finalizepsbt(psbt_base64)["hex"]
+        if key_type == "wpkh":
+            # More solid test possible: Deriving the signed tx without any RPC calls used in convert_rawtransaction_to_psbt()
+            # fund it
+            bitcoin_regtest.testcoin_faucet(wallet.getnewaddress(), amount=3)
+            wallet.save_to_file()
+            # Check import of signed raw tx
+            outputs = {wallet.getnewaddress(): 1}
+            tx = wallet.rpc.createrawtransaction([], outputs)
+            txF = wallet.rpc.fundrawtransaction(
+                tx, {"changeAddress": wallet.getnewaddress()}
+            )
+            raw_tx = txF["hex"]
+            signed_tx = sign_tx_with_device(raw_tx)
+            b64_psbt = convert_rawtransaction_to_psbt(wallet.rpc, signed_tx)
+            assert signed_tx == wallet.rpc.finalizepsbt(b64_psbt)["hex"]
+            # Check import of unsigned raw tx
+            b64_psbt_from_unsigned = convert_rawtransaction_to_psbt(wallet.rpc, raw_tx)
+            psbt_dict = {"psbt": b64_psbt_from_unsigned, "complete": ""}
+            signed_psbt = sign_psbt_with_devices(psbt_dict)
+            assert signed_tx == wallet.rpc.finalizepsbt(signed_psbt)["hex"]
+        else:
+            # fund it
+            bitcoin_regtest.testcoin_faucet(wallet.getnewaddress(), amount=3)
+            wallet.save_to_file()
+            # Check import of signed raw tx
+            outputs = {wallet.getnewaddress(): 1}
+            tx = wallet.rpc.createrawtransaction([], outputs)
+            txF = wallet.rpc.fundrawtransaction(
+                tx, {"changeAddress": wallet.getnewaddress()}
+            )
+            raw_tx = txF["hex"]
+            psbt = wallet.rpc.converttopsbt(raw_tx)
+            psbt_dict = wallet.rpc.walletprocesspsbt(psbt)
+            signed_psbt = sign_psbt_with_devices(psbt_dict)
+            signed_tx = wallet.rpc.finalizepsbt(signed_psbt)["hex"]
+            b64_psbt = convert_rawtransaction_to_psbt(wallet.rpc, signed_tx)
+            assert signed_tx == wallet.rpc.finalizepsbt(b64_psbt)["hex"]
+            # Check import of unsigned raw tx
+            b64_psbt_from_unsigned = convert_rawtransaction_to_psbt(wallet.rpc, raw_tx)
+            psbt_dict = {"psbt": b64_psbt_from_unsigned, "complete": ""}
+            signed_psbt = sign_psbt_with_devices(psbt_dict)
+            assert signed_tx == wallet.rpc.finalizepsbt(signed_psbt)["hex"]
