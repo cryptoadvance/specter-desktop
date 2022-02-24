@@ -1,16 +1,17 @@
-from binascii import hexlify
+import json
 import os
-from pathlib import Path
 import time
+from binascii import hexlify
+from datetime import datetime
+from pathlib import Path
 
-from embit.descriptor.descriptor import Descriptor
 from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
 )
 from cryptoadvance.specter.txlist import TxItem, TxList
 from embit.descriptor.arguments import Key
+from embit.descriptor.descriptor import Descriptor
 from embit.transaction import Transaction, TransactionInput
-import json
 from mock import MagicMock
 
 descriptor = "pkh([78738c82/84h/1h/0h]vpub5YN2RvKrA9vGAoAdpsruQGfQMWZzaGt3M5SGMMhW8i2W4SyNSHMoLtyyLLS6EjSzLfrQcbtWdQcwNS6AkCWne1Y7U8bt9JgVYxfeH9mCVPH/1/*)"
@@ -105,6 +106,9 @@ def test_txlist(empty_data_folder, bitcoin_regtest):
 
 
 def test_txlist_invalidate(empty_data_folder, bitcoin_regtest: BitcoindPlainController):
+    def print_time():
+        curr_dt = datetime.now()
+        print(f"current time\t\t\t\t\t: {int(round(curr_dt.timestamp()))}\n")
 
     # Setup the infra
     rpc = bitcoin_regtest.get_rpc()
@@ -126,15 +130,19 @@ def test_txlist_invalidate(empty_data_folder, bitcoin_regtest: BitcoindPlainCont
     mytxlist = TxList(filename, parent_mock, MagicMock())
 
     # create a tx
+
     txid = wrpc.sendtoaddress("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u", "1")
     tx_via_core = wrpc.gettransaction(txid)
+    print_time()
     assert tx_via_core, "we have created a transaction"
-    assert tx_via_core["confirmations"] == 0, "it's not broadcasted, yet"
+    assert tx_via_core["confirmations"] == 0, "it's not confirmed, yet"
     print(f"TxId: {txid}")
     print(f"Tx via core:\n{tx_via_core}\n")
     assert (
         tx_via_core["time"] == tx_via_core["timereceived"]
     ), "time and timereceived should be the same"
+    print(f"timereceived \t\t\t\t\t: {tx_via_core['time']}")
+    print_time()
 
     tx_item = mytxlist.getfetch(txid)
     assert isinstance(tx_item, TxItem), "The tx should get returned via the txlist"
@@ -148,13 +156,24 @@ def test_txlist_invalidate(empty_data_folder, bitcoin_regtest: BitcoindPlainCont
     mpool_hittime = tx["time"]
     assert tx["blockheight"] == None
     print(f"this is the time when the tx hit the mempool {mpool_hittime}")
-
+    print_time()
+    print("let's sleep for 2 seconds")
+    time.sleep(2)
+    print_time()
     # Get the tx confirmed
+
     bitcoin_regtest.mine(block_count=1)
     print("\n-----------------------mining----------------------------------\n")
     tx_via_core = wrpc.gettransaction(txid)
     assert tx_via_core["confirmations"] == 1, "it should now be broadcasted"
     print(f"Tx via core:\n{tx_via_core}\n")
+    print(f"blocktime \t\t\t\t\t: {tx_via_core['blocktime']}")
+    print_time()
+    print(
+        f"Difference of blocktime - current-time:\t\t\t {int(round(datetime.now().timestamp())) - tx_via_core['blocktime']}"
+    )
+    print(f"How is it possible that this number is negative?")
+
     assert (
         tx_via_core["blocktime"] > tx_via_core["time"]
     ), "blocktime should be larger than time"
@@ -170,3 +189,4 @@ def test_txlist_invalidate(empty_data_folder, bitcoin_regtest: BitcoindPlainCont
     assert (
         tx["blocktime"] > mpool_hittime
     ), "The time of the transaction should now be bigger than the time it got hit the mempool"
+    assert False
