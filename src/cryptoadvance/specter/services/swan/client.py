@@ -245,6 +245,10 @@ class SwanClient:
         * Sends the list of new addresses for SWAN_WALLET_ID.
         """
 
+        # normalize the strucure compatible with what swan will accept:
+        # like: [{"address": "bcrt1q8k8a73crvjs06jhdj7xee8mace3mhlxj4pdvna"}, {"address": "bcrt ...
+        addresses = [address["address"] for address in addresses]
+
         if swan_wallet_id:
             # We already have a Swan walletId. DELETE the existing unused addresses...
             self.delete_autowithdrawal_addresses(swan_wallet_id)

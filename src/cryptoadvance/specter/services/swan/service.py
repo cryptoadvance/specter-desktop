@@ -141,7 +141,8 @@ class SwanService(Service):
             addresses=addresses,
         )
         logger.debug(f"Updating the Swan wallet id to {swan_wallet_id}")
-        cls.update_current_user_service_data({cls.SWAN_WALLET_ID: swan_wallet_id})
+        if swan_wallet_id:
+            cls.update_current_user_service_data({cls.SWAN_WALLET_ID: swan_wallet_id})
 
         return addresses
 
