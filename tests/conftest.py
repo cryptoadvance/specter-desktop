@@ -1,34 +1,30 @@
 import atexit
+import code
 import json
 import logging
 import os
-import shutil
-import subprocess
+import signal
+import sys
 import tempfile
-import time
+import traceback
 
-import docker
 import pytest
+from cryptoadvance.specter.config import TestConfig
 from cryptoadvance.specter.managers.device_manager import DeviceManager
 from cryptoadvance.specter.managers.user_manager import UserManager
 from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
 )
-from cryptoadvance.specter.process_controller.bitcoind_docker_controller import (
-    BitcoindDockerController,
-)
 from cryptoadvance.specter.process_controller.elementsd_controller import (
     ElementsPlainController,
 )
-from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.server import SpecterFlask, create_app, init_app
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.user import User, hash_password
-from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from cryptoadvance.specter.util.common import str2bool
 from cryptoadvance.specter.util.shell import which
-import code, traceback, signal
+from cryptoadvance.specter.util.wallet_importer import WalletImporter
 
 logger = logging.getLogger(__name__)
 
@@ -475,17 +471,39 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
                 )
 
 
-@pytest.fixture
-def app(specter_regtest_configured) -> SpecterFlask:
-    """the Flask-App, but uninitialized"""
-    app = create_app(config="cryptoadvance.specter.config.TestConfig")
+def specter_app_with_config(config={}, specter=None):
+    """helper-function to create SpecterFlasks"""
+    if specter == None:
+        specter = Specter()
+    if isinstance(config, dict):
+        tempClass = type("tempClass", (TestConfig,), {})
+        for key, value in config.items():
+            setattr(tempClass, key, value)
+        # service_manager will expect the class to be defined as a direct property of the module:
+        if hasattr(sys.modules[__name__], "tempClass"):
+            delattr(sys.modules[__name__], "tempClass")
+        assert not hasattr(sys.modules[__name__], "tempClass")
+        setattr(sys.modules[__name__], "tempClass", tempClass)
+        assert hasattr(sys.modules[__name__], "tempClass")
+        assert getattr(sys.modules[__name__], "tempClass") == tempClass
+        config = tempClass
+    app = create_app(config=config)
     app.app_context().push()
     app.config["TESTING"] = True
     app.testing = True
     app.tor_service_id = None
     app.tor_enabled = False
-    init_app(app, specter=specter_regtest_configured)
+    init_app(app, specter=specter)
     return app
+
+
+@pytest.fixture
+def app(specter_regtest_configured) -> SpecterFlask:
+    """the Flask-App, but uninitialized"""
+    return specter_app_with_config(
+        config="cryptoadvance.specter.config.TestConfig",
+        specter=specter_regtest_configured,
+    )
 
 
 @pytest.fixture

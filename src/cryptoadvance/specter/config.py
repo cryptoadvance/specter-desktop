@@ -33,6 +33,28 @@ DEFAULT_CONFIG = "cryptoadvance.specter.config.DevelopmentConfig"
 
 
 class BaseConfig(object):
+    # You got redirected here if you hit "/". This doesn't work anymore (at least for "/") if you modify APP_URL_PREFIX
+    ROOT_URL_REDIRECT = "/spc"
+
+    # Some notes to all three *_URL_PREFIX
+    # For all of them, either set them to "" or "/something". Never "/".
+    # SESSION_COOKIE_PATH is critical to control if you change any *_URL_PREFIX
+    # Especially true if you overwrite one of them in a derivation-class.
+    # In doubt, always do this in the end:
+    # SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
+
+    # Enables mounting the specter including extensions somewhere else as "/"
+    APP_URL_PREFIX = os.getenv("APP_URL_PREFIX", "")
+    # The prefix for mounting all Specter-Core-blueprints (and non isolated_client extensions)
+    SPECTER_URL_PREFIX = "/spc"
+    # This enables the isolated_client-extensions, SECURITY-CRITICAL
+    SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
+    SESSION_COOKIE_NAME = "specter"
+    # The prefix for extensions which get access to the session cookie
+    EXT_URL_PREFIX = "/spc/ext"
+    # The prefix for extensions which don't get access to the session cookie (if SPECTER_URL_PREFIX isn't compromised)
+    ISOLATED_CLIENT_EXT_URL_PREFIX = "/ext"
+
     PORT = os.getenv("PORT", 25441)
     CONNECT_TOR = _get_bool_env_var(os.getenv("CONNECT_TOR", "False"))
     SPECTER_DATA_FOLDER = os.path.expanduser(
@@ -179,6 +201,10 @@ class DevelopmentConfig(BaseConfig):
 
 
 class TestConfig(BaseConfig):
+    # ToDo: remove the below line to test a scenario more close to the default-setup
+    SPECTER_URL_PREFIX = ""
+    SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
+
     SECRET_KEY = "test key"
     # This should never be used as the data-folder is injected at runtime
     # But let's be sure before something horrible happens:
@@ -194,6 +220,9 @@ class TestConfig(BaseConfig):
 
 
 class CypressTestConfig(TestConfig):
+    SPECTER_URL_PREFIX = ""
+    # For some reason cypress doesn't work with a scoped down session so we're setting here the unscoped again
+    SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
     SPECTER_DATA_FOLDER = os.path.expanduser(
         os.getenv("SPECTER_DATA_FOLDER", "~/.specter_cypress")
     )
@@ -222,3 +251,7 @@ class ProductionConfig(BaseConfig):
 
     # Repeating it here as it's SECURITY CRITICAL. Check comments in BaseConfig
     SERVICES_LOAD_FROM_CWD = False
+    SPECTER_URL_PREFIX = "/spc"
+    EXT_URL_PREFIX = "/spc/ext"
+    EXTERNAT_EXT_URL_PREFIX = "/ext"
+    SESSION_COOKIE_PATH = SPECTER_URL_PREFIX

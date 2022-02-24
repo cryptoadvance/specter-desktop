@@ -73,7 +73,7 @@
 					<a class="settings-bar-btn" href="{{ url_for('settings_endpoint.settings') }}" style="padding: 0px 7px;">
 						<img src="{{ url_for('static', filename='img/gear.svg') }}" style="width: 44px;" class="svg-white"/>
 					</a>
-					<a class="settings-bar-btn" href="{{ url_for('about') }}" title="About and help">
+					<a class="settings-bar-btn" href="{{ url_for('welcome_endpoint.about') }}" title="About and help">
 						<img src="{{ url_for('static', filename='img/ghost_3d.png') }}" style="width: 22px;"/>
 					</a>
 					{% if specter.config.auth.method != "none" %}
@@ -229,7 +229,7 @@
 										<img src="{{ url_for('static', filename='img/ghost_3d.png')}}" width="30px">
 									</td>
 									<td style="text-align: left;">
-										<a href="{{ url_for('get_whitepaper') }}">
+										<a href="{{ url_for('welcome_endpoint.get_whitepaper') }}">
 											<h2>{{ _("And when you are all set: Get the whitepaper from the timechain.") }}</h2>
 										</a>
 									</td>
@@ -248,7 +248,7 @@
 					<br><br>
 
 					<div class="spacer"></div>
-					<a href="https://github.com/cryptoadvance/specter-desktop#help-wanted-do-you-like-specter" target="_blank" style="color: #fff; display: inline-block;"><h2 id="help-wanted-text" style="display: inline-block;">{{ _('Help wanted: Do you like Specter?') }}</h2><img src="static/img/love.png" width="20px" style="vertical-align: sub; margin-left: 10px;"/></a>
+					<a href="https://github.com/cryptoadvance/specter-desktop#help-wanted-do-you-like-specter" target="_blank" style="color: #fff; display: inline-block;"><h2 id="help-wanted-text" style="display: inline-block;">{{ _('Help wanted: Do you like Specter?') }}</h2><img src="{{ url_for('static', filename='img/love.png') }}" width="20px" style="vertical-align: sub; margin-left: 10px;"/></a>
 					<div class="spacer"></div>
 					<div class="footer">
 						{{ _("Supported and maintained by") }}:<br>
@@ -270,7 +270,7 @@
 		<script>
 			async function toggleHideSensitiveInfo() {
 				showNotification(`{{ _("Revealing") if specter.hide_sensitive_info else _("Hiding") }} sensitive info...`, 0);
-				let url = `{{ url_for('toggle_hide_sensitive_info') }}`;
+				let url = `{{ url_for('auth_endpoint.toggle_hide_sensitive_info') }}`;
 				var formData = new FormData();
 				formData.append('csrf_token', '{{ csrf_token() }}');
 				try {
