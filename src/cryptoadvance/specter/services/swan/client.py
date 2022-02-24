@@ -12,10 +12,8 @@ from urllib.parse import urlparse
 
 import pytz
 import requests
-from cryptoadvance.specter.wallet import Wallet
 from flask import current_app as app
 from flask_babel import lazy_gettext as _
-from klein import url_for
 
 logger = logging.getLogger(__name__)
 
