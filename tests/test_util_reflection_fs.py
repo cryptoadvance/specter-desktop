@@ -9,7 +9,7 @@ from typing import List
 
 def test_search_dir_in_cwd():
     plist: List[Path] = search_dirs_in_path(Path("./tests/xtestdata_testextensions"))
-    assert len(plist) == 3
+    assert len(plist) == 2
     assert isinstance(plist[0], Path)
     assert (
         Path(
