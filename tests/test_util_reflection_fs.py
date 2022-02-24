@@ -19,12 +19,6 @@ def test_search_dir_in_cwd():
     )
     assert (
         Path(
-            "tests/xtestdata_testextensions/ext_root_fully_qualified_1/src/accorp/specterext"
-        )
-        in plist
-    )
-    assert (
-        Path(
             "tests/xtestdata_testextensions/ext_root_fully_qualified_2/src/boatacccorp/specterext"
         )
         in plist
