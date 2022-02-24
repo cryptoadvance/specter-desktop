@@ -3,7 +3,8 @@ Manages the list of transactions for the wallet
 """
 from typing import Union
 import os
-from .persistence import write_csv, read_csv
+from .specter_error import SpecterError
+from .persistence import delete_file, write_csv, read_csv
 from .helpers import get_address_from_dict
 from embit.transaction import Transaction
 from embit.liquid.networks import get_network
@@ -47,6 +48,7 @@ class TxItem(dict, AbstractTxListContext):
         "blockhash",  # str, blockhash, None if not confirmed
         "blockheight",  # int, blockheight, None if not confirmed
         "time",  # int (timestamp in seconds), time received
+        "blocktime",  # int (timestamp in seconds), time the block was mined
         "bip125-replaceable",  # str ("yes" / "no"), whatever RBF is enabled for the transaction
         "conflicts",  # rbf conflicts, list of txids
         "vsize",
@@ -58,6 +60,7 @@ class TxItem(dict, AbstractTxListContext):
     type_converter = [
         str,
         str,
+        int,
         int,
         int,
         str,
@@ -180,6 +183,7 @@ class TxItem(dict, AbstractTxListContext):
             "blockhash": self["blockhash"],
             "blockheight": self["blockheight"],
             "time": self["time"],
+            "blocktime": self["blocktime"],
             "conflicts": self["conflicts"],
             "bip125-replaceable": self["bip125-replaceable"],
             "vsize": self["vsize"],
@@ -218,7 +222,7 @@ class TxList(dict, AbstractTxListContext):
             logger.error(e)
         self._file_exists = file_exists
 
-    def save(self):
+    def _save(self):
         # check if we have at least one transaction
         if self:
             # Dump all transactions to binary files
@@ -226,7 +230,10 @@ class TxList(dict, AbstractTxListContext):
             for tx in self.values():
                 tx.dump()
             write_csv(self.path, list(self.values()), self.ItemCls)
-        self._file_exists = True
+            self._file_exists = True
+        else:
+            delete_file(self.path)
+            self._file_exists = False
 
     def getfetch(self, txid):
         """
@@ -249,7 +256,10 @@ class TxList(dict, AbstractTxListContext):
         decode=True will decode transaction similar to Core's decoderawtransaction
         """
         # if we don't know blockheigth or transaction
-        # we get it from rpc
+        # we invalidate which results in asking core
+        if txid in self and self[txid]["blockheight"] == None:
+            self.invalidate(txid)
+
         if blockheight is None or txid not in self:
             tx = self.rpc.gettransaction(txid)
             if "time" not in tx:
@@ -263,10 +273,17 @@ class TxList(dict, AbstractTxListContext):
         if full:
             res["hex"] = tx.hex
         if decode:
-            res.update(self.decoderawtransaction(tx.hex))
+            res.update(self._decoderawtransaction(tx.hex))
         return res
 
-    def decoderawtransaction(self, tx: Union[Transaction, str, bytes]):
+    def invalidate(self, txid):
+        """removes a tx from the list"""
+        if txid not in self:
+            raise SpecterError(f"TX with txid {txid} does not exit in {self}")
+        del self[txid]
+        self._save()
+
+    def _decoderawtransaction(self, tx: Union[Transaction, str, bytes]):
         return SpecterTx(self, tx).to_dict()
 
     def add(self, txs):
@@ -280,6 +297,7 @@ class TxList(dict, AbstractTxListContext):
             "blockheight", - int blockheight if confirmed, None otherwise
             "blockhash", - str blockhash if confirmed, None otherwise
             "time", - int unix timestamp in seconds when tx was received
+            "blocktime",  - int unix timestamp in seconds  the block was mined
             "conflicts", - list of txids spending the same inputs (rbf)
             "bip125-replaceable", - str ("yes" or "no") - is rbf enabled for this tx
         }
@@ -302,6 +320,7 @@ class TxList(dict, AbstractTxListContext):
                 "blockheight": tx.get("blockheight", None),
                 "blockhash": tx.get("blockhash", None),
                 "time": time,
+                "blocktime": tx.get("blocktime", None),
                 "conflicts": tx.get("walletconflicts", []),
                 "bip125-replaceable": tx.get("bip125-replaceable", "no"),
                 "hex": tx.get("hex", None),
@@ -319,8 +338,8 @@ class TxList(dict, AbstractTxListContext):
         self._addresses.set_used(addresses)
         # detect category, amounts and addresses
         for tx in [self[txid] for txid in self if txid in txs]:
-            self.fill_missing(tx)
-        self.save()
+            self._fill_missing(tx)
+        self._save()
 
     def _update_destinations(self, tx, outs):
         addresses = [out.get("address", "Unknown") for out in outs]
@@ -339,7 +358,12 @@ class TxList(dict, AbstractTxListContext):
             psbt.update(updated)
         return psbt
 
-    def fill_missing(self, tx):
+    def _fill_missing(self, tx):
+        """This seem to calculate the category of the tx which is one of:
+        mixed (default), generate, selftransfer, receive or send
+
+        Also the tx gets a key with a boolean to figure out whether its "mine"
+        """
         raw_tx = tx.tx
         psbt = self._get_psbt(raw_tx)
         # detect category

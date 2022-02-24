@@ -7,19 +7,20 @@ import signal
 import sys
 import time
 from pathlib import Path
+from threading import Event
 
 import click
 import psutil
 from flask import Config
 
 from ..config import DEFAULT_CONFIG
-from ..process_controller.node_controller import find_node_executable
 from ..process_controller.elementsd_controller import ElementsPlainController
+from ..process_controller.node_controller import find_node_executable
 from .utils import (
     Echo,
+    compute_data_dir_and_set_config_obj,
     kill_node_process,
     purge_node_data_dir,
-    compute_data_dir_and_set_config_obj,
 )
 
 logger = logging.getLogger(__name__)
@@ -385,29 +386,46 @@ def miner_loop(node_impl, my_node, data_folder, mining_every_x_seconds, echo):
         f"height: {my_node.rpcconn.get_rpc().getblockchaininfo()['blocks']} | ",
         nl=False,
     )
+    exit = Event()
+
+    def exit_now(signo, _frame):
+        exit.set()
+
+    for sig in ("HUP", "INT"):
+        signal.signal(getattr(signal, "SIG" + sig), exit_now)
+    prevent_mining_file = Path("prevent_mining")
     i = 0
     while True:
         try:
-            my_node.mine()
             current_height = my_node.rpcconn.get_rpc().getblockchaininfo()["blocks"]
+            exit.wait(mining_every_x_seconds)
+            if not prevent_mining_file.is_file():
+                my_node.mine()
+            else:
+                echo("X", prefix=False, nl=False)
+                continue
+
+            echo("%i" % (i % 10), prefix=False, nl=False)
+            if i % 10 == 9:
+                echo(" ", prefix=False, nl=False)
+            i += 1
+            if i >= 50:
+                i = 0
+                echo("", prefix=False)
+                echo(
+                    f"height: {current_height} | ",
+                    nl=False,
+                )
+
         except Exception as e:
             logger.debug(
                 f"Caught {e}, Couldn't mine, assume SIGTERM occured => exiting!"
             )
             echo(f"THE_END(@height:{current_height})")
+            if prevent_mining_file.is_file():
+                echo("Deleting file prevent_mining")
+                prevent_mining_file.unlink()
             break
-        echo("%i" % (i % 10), prefix=False, nl=False)
-        if i % 10 == 9:
-            echo(" ", prefix=False, nl=False)
-        i += 1
-        if i >= 50:
-            i = 0
-            echo("", prefix=False)
-            echo(
-                f"height: {current_height} | ",
-                nl=False,
-            )
-        time.sleep(mining_every_x_seconds)
 
 
 def mine_2_specter_wallets(node_impl, my_node, data_folder, echo):
