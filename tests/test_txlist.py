@@ -189,4 +189,3 @@ def test_txlist_invalidate(empty_data_folder, bitcoin_regtest: BitcoindPlainCont
     assert (
         tx["blocktime"] > mpool_hittime
     ), "The time of the transaction should now be bigger than the time it got hit the mempool"
-    assert False
