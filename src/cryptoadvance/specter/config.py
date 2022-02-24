@@ -254,3 +254,8 @@ class ProductionConfig(BaseConfig):
     EXT_URL_PREFIX = "/spc/ext"
     EXTERNAT_EXT_URL_PREFIX = "/ext"
     SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
+
+    # As described in https://github.com/cryptoadvance/specter-desktop/pull/1579#issuecomment-1049895972
+    # This should get removed after v1.9.0 is out.
+    SPECTER_URL_PREFIX = ""
+    EXT_URL_PREFIX = "/ext"
