@@ -73,13 +73,14 @@ if platform.system() == 'Linux':
 
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
+name=os.getenv("specterd_filename","specterd")
 exe = EXE(pyz,
           a.scripts,
           a.binaries,
           a.zipfiles,
           a.datas,
           [],
-          name='specterd',
+          name=name,
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
