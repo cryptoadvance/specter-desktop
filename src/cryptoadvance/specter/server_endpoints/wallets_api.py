@@ -105,6 +105,22 @@ def get_max_chaintip_height():  # GET request
     return jsonify(max_chaintip_height)  # serialize and use JSON headers
 
 
+@wallets_endpoint_api.route("/get_updated_wallet_infos", methods=["GET"])
+@login_required
+def get_updated_wallet_infos():  # GET request
+    from flask import jsonify
+
+    old_full_txlist = app.specter.wallet_manager.full_txlist(fetch_transactions=False)
+    old_txids = set(tx["txid"] for tx in old_full_txlist)
+    app.specter.wallet_manager.update()
+    new_full_txlist = app.specter.wallet_manager.full_txlist()
+    updated_txids = set(tx["txid"] for tx in new_full_txlist) - old_txids
+
+    return jsonify(
+        [tx for tx in new_full_txlist if tx["txid"] in updated_txids]
+    )  # serialize and use JSON headers
+
+
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/combine/", methods=["POST"])
 @login_required
 def combine(wallet_alias):
