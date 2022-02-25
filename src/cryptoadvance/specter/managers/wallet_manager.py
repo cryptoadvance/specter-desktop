@@ -20,7 +20,6 @@ from ..wallet import (  # TODO: `purposes` unused here, but other files rely on 
 )
 
 from apscheduler.schedulers.background import BackgroundScheduler
-import time
 import atexit
 
 logger = logging.getLogger(__name__)
@@ -52,31 +51,12 @@ class WalletManager:
         # define different wallet classes for liquid and bitcoin
         self.WalletClass = LWallet if is_liquid(chain) else Wallet
         self.update(data_folder, rpc, chain)
-        self.chaintips = None
 
-        def update_if_chaintip_changed():
-            if self.rpc:
-                newchaintips = self.rpc.getchaintips()
-                if self.chaintips != newchaintips:
-                    self.chaintips = newchaintips
-                    logger.info(self.chaintips)
-                    self.update()
-                else:
-                    logger.info("do nothing")
-
-        if (
-            os.environ.get("WERKZEUG_RUN_MAIN") != "true"
-        ):  #  in debug mode flask initializes everything twice. This env checks if it is already running
-            scheduler = BackgroundScheduler()
-            scheduler.add_job(
-                func=update_if_chaintip_changed,
-                trigger="interval",
-                seconds=5,
-                max_instances=1,
-            )
-            atexit.register(lambda: scheduler.shutdown(wait=False))
-            scheduler.start()
-            print("scheduler activated")
+    def getchaintips(self):
+        if not self.rpc:
+            return []
+        chaintips = self.rpc.getchaintips()
+        return chaintips
 
     def update(self, data_folder=None, rpc=None, chain=None, use_threading=True):
         if self.is_loading:
