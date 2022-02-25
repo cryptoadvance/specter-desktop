@@ -224,6 +224,37 @@
         {% include "services/sidebar_services_list.jinja" %}
         {{ sidebar_btn(url_for('services_endpoint.choose'), 'Choose plugins', 'btn_plugins') }}
         <br>
+
+		<script>
+            function notifyMe(text) {
+                // Let's check if the browser supports notifications
+                if (!("Notification" in window)) {
+                    console.debug("This browser does not support desktop notification");
+                }
+                // Let's check whether notification permissions have already been granted
+                else if (Notification.permission === "granted") {
+                    // If it's okay let's create a notification
+                    var notification = new Notification(text);
+                }
+
+                // Otherwise, we need to ask the user for permission
+                else if (Notification.permission !== "denied") {
+                    Notification.requestPermission().then(function (permission) {
+                    // If the user accepts, let's create a notification
+                    if (permission === "granted") {
+                        var notification = new Notification(text);
+                    }
+                    });
+                }
+
+                // At last, if the user has denied notifications, and you
+                // want to be respectful there is no need to bother them any more.
+                }
+
+		</script>
+        <button onclick="notifyMe('external text')">Notify me!</button>
+
+
         <div class="footer">
 	        <span>{{ _("Specter Version:") }} <strong>{{ specter.version.current }}</strong></span>
             <a style="color: #fff; font-size: 1.1em; margin: 10px; text-align: center;" href="{{ url_for('welcome_endpoint.about') }}">
