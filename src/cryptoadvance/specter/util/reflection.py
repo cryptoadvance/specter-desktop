@@ -136,6 +136,9 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
     for (importer, module_name, is_pkg) in iter_modules(
         [str(dir) for dir in package_dirs]
     ):  # import the module and iterate through its attributes
+        # skip known redherrings
+        if module_name in ["callbacks"]:
+            continue
         logger.debug(
             f"Iterating on importer={importer} , module_name={module_name} is_pkg={is_pkg}"
         )
@@ -150,7 +153,9 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
                 )
             except ModuleNotFoundError:
                 # Ignore the stuff lying around in cryptoadvance/specter/services
-                if importer.path.endswith("cryptoadvance/specter/services"):
+                if importer.path.endswith(
+                    os.path.sep.join(["cryptoadvance", "specter", "services"])
+                ):
                     continue
                 try:
                     module = import_module(f"{module_name}.service")
@@ -158,7 +163,7 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
                 except ModuleNotFoundError as e:
                     try:
                         # Another style is orgname.specterext.extensionid, for that we have to guess the orgname:
-                        orgname = str(importer).split("/")[-2]
+                        orgname = str(importer).split(os.path.sep)[-2]
                         logger.debug(f"guessing orgname: {orgname}")
                         module = import_module(
                             f"{orgname}.specterext.{module_name}.service"
