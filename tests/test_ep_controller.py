@@ -103,6 +103,7 @@ def test_APP_URL_PREFIX(caplog):
         config={
             "APP_URL_PREFIX": "/someprefix",
             "SPECTER_URL_PREFIX": "",
+            "EXT_URL_PREFIX": "/spc/ext",
             "SPECTER_DATA_FOLDER": "~/.specter_testing",
         }
     )
