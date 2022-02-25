@@ -201,18 +201,6 @@ def inject_debug():
     return dict(debug=app.config["DEBUG"])
 
 
-@app.route("/", methods=["GET", "POST"])
-def get_max_chaintip_height():  # GET request
-    from flask import jsonify
-
-    if request.method == "GET":
-        chaintips = app.specter.wallet_manager.getchaintips()
-        max_chaintip_height = (
-            max([chaintip["height"] for chaintip in chaintips]) if chaintips else 0
-        )
-        return jsonify(max_chaintip_height)  # serialize and use JSON headers
-
-
 ################ Specter global routes ####################
 @app.route("/")
 def index():

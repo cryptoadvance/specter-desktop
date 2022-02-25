@@ -93,6 +93,18 @@ def fees_old(blocks):
     return app.specter.estimatesmartfee(int(blocks))
 
 
+@wallets_endpoint_api.route("/get_max_chaintip_height", methods=["GET"])
+@login_required
+def get_max_chaintip_height():  # GET request
+    from flask import jsonify
+
+    chaintips = app.specter.wallet_manager.getchaintips()
+    max_chaintip_height = (
+        max([chaintip["height"] for chaintip in chaintips]) if chaintips else 0
+    )
+    return jsonify(max_chaintip_height)  # serialize and use JSON headers
+
+
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/combine/", methods=["POST"])
 @login_required
 def combine(wallet_alias):
