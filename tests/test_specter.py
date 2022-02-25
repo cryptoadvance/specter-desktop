@@ -1,11 +1,17 @@
 import json, logging, pytest
 from decimal import Decimal
+from cryptoadvance.specter.device import Device
 from cryptoadvance.specter.helpers import alias, generate_mnemonic
 from cryptoadvance.specter.key import Key
+from cryptoadvance.specter.process_controller.bitcoind_controller import (
+    BitcoindPlainController,
+)
+from cryptoadvance.specter.process_controller.node_controller import NodeController
 from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.managers.wallet_manager import WalletManager
+from cryptoadvance.specter.wallet import Wallet
 
 
 def test_alias():
