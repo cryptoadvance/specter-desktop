@@ -5,7 +5,7 @@
 	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
 	{{ send_nav('import_psbt', wallet_alias) }}
 		<h1 class="padded">{{ _("Import transaction") }}</h1>
-		<span class="center note padded" style="margin-bottom: 10px; font-size:1em">{{ _("PSBT (base64) or old-school transaction (hex)") }}</span>
+		<span class="center note padded" style="margin-bottom: 10px; font-size:1em">{{ _("PSBT (base64) or serialized transaction (hex)") }}</span>
 		<form action="{{ url_for('wallets_endpoint.import_psbt',wallet_alias=wallet_alias) }}" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			<div class="card">
