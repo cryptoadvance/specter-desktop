@@ -58,7 +58,7 @@
 
     {% if not specter_hostname_supported %}
 
-    <div class="service_warning">
+    <div class="yellow_warn_box">
         <p>{{ _("You are currently using specter via this hostname:")}}</p>
         <p> {{ specter_used_hostname }} </p>
         <p>{{ _("Unfortunately the swan-extension does not support this. The only supported hostnames are:") }}</p>

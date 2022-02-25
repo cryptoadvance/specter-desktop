@@ -33,19 +33,6 @@
     font-style: italic;
 }
 
-.service_warning {
-    max-width: 35em;
-    border: 4px solid yellow;
-    border-radius: 0.5em;
-    background-color: var(--cmap-bg-lighter);
-    padding: 1em;
-    text-align: center;
-}
-.service_warning .btn {
-    margin: auto;
-    max-width: 20em;
-}
-
 /* oauth2_start.jinja */
 
 /* ToDo: Refactor to style.css ?! */
