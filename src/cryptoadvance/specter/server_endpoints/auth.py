@@ -1,22 +1,15 @@
 import random
 import time
 
-from flask import (
-    Flask,
-    Blueprint,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    jsonify,
-    flash,
-)
-from flask_babel import lazy_gettext as _
-from flask_login import login_required, current_user, logout_user
+from flask import Blueprint, Flask
 from flask import current_app as app
-from ..helpers import alias
-from ..user import User, hash_password, verify_password
+from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask_babel import lazy_gettext as _
+from flask_login import current_user, login_required, logout_user
 
+from ..helpers import alias
+from ..services import ExtensionException
+from ..user import User, hash_password, verify_password
 
 rand = random.randint(0, 1e32)  # to force style refresh
 last_sensitive_request = 0  # to rate limit sensitive requests
@@ -222,6 +215,9 @@ def redirect_login(request):
         try:
             service_cls = app.specter.service_manager.get_service(service_id)
             service_cls.on_user_login()
+        except ExtensionException as ee:
+            if not str(ee).startswith("No such plugin"):
+                raise ee
         except Exception as e:
             app.logger.exception(e)
 

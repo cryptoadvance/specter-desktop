@@ -12,11 +12,11 @@ from cryptoadvance.specter.util.price_providers import (
 from mock import MagicMock
 
 
-def test_underlying_requests():
+def test_underlying_requests(empty_data_folder):
     """This test might fail on MacOS
     see #1512
     """
-    specter_mock = Specter()
+    specter_mock = Specter(data_folder=empty_data_folder)
     requests_session = specter_mock.requests_session()
     currency = "eur"
     price = requests_session.get(
@@ -26,8 +26,8 @@ def test_underlying_requests():
     assert float(price)
 
 
-def test_failsafe_request_get():
-    specter_mock = Specter()
+def test_failsafe_request_get(empty_data_folder):
+    specter_mock = Specter(data_folder=empty_data_folder)
     requests_session = specter_mock.requests_session()
     currency = "notExisting"
     url = "https://www.bitstamp.net/api/v2/ticker/btc{}".format(currency)

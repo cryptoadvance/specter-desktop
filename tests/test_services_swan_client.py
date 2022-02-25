@@ -54,9 +54,7 @@ def test_SwanClient(app):
     sc = SwanClient("a_hostname", "a_access_token", 123123, "a_refresh_token")
     with app.app_context():
         assert not sc.is_access_token_valid()
-        assert (
-            sc.calc_callback_url() == "http://a_hostname/spc/ext/swan/oauth2/callback"
-        )
+        assert sc.calc_callback_url() == "http://a_hostname/svc/swan/oauth2/callback"
 
         start_url = sc.get_oauth2_start_url("a_hostname")
         start_url.startswith(

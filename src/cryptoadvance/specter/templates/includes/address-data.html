@@ -40,15 +40,6 @@
             this.note = clone.querySelector(".note");
             this.info = clone.querySelector(".address-data-info");
 
-
-
-            this.note.innerText = `{{ _("Loading address") }}: ${this.address} {{ _("details") }}...`;
-            
-        
-            // Attach the created element to the shadow dom
-            shadow.appendChild(clone);
-        }
-        connectedCallback() {
             // Read input "data-*" attributes
             this.isVerifyQR = this.getAttribute('data-verify-qr') == 'True';
             this.isVerifyHwi = this.getAttribute('data-verify-hwi') == 'True';
@@ -60,21 +51,12 @@
             this.label = this.getAttribute('data-label');
             this.serviceId = this.getAttribute('data-service-id');
             this.wallet = this.getAttribute('data-address-wallet');
-            this.fetchAddressData();
-        }
 
-        static get observedAttributes() {return ['data-address-wallet', 'data-address']; }
-
-        attributeChangedCallback(name, oldValue, newValue) {
-            if (name=="data-address") {
-                this.address = newValue
-            }
-            if (name=="data-address-wallet") {
-                this.wallet = newValue
-            }
-            this.info.innerHTML = "<br>"
             this.note.innerText = `{{ _("Loading address") }}: ${this.address} {{ _("details") }}...`;
             this.fetchAddressData();
+        
+            // Attach the created element to the shadow dom
+            shadow.appendChild(clone);
         }
 
         async fetchAddressData() {
@@ -82,7 +64,6 @@
             var formData = new FormData();
             formData.append('address', this.address);
             formData.append('csrf_token', '{{ csrf_token() }}');
-            console.log( this.address)
             try {
                 const response = await fetch(
                     url,
@@ -122,7 +103,7 @@
                         addressInfoHTML += `<img class="service-icon" src='{{ext_url_prefix}}/${this.serviceId}/static/${services[this.serviceId].icon}'>${services[this.serviceId].name}`;
                     } else {
                         let associateServiceUrl = `{{ url_for('services_endpoint.associate_addr', wallet_alias='WALLET_ALIAS', address='ADDRESS') }}`.replace('WALLET_ALIAS', this.wallet).replace('ADDRESS', jsonResponse.address);
-                        addressInfoHTML += `<button type="button" class="btn" onclick="location.href='${associateServiceUrl}';">{{ _("Associate with a service") }}</button>`
+                        addressInfoHTML += `<button type="button" id="associate-btn" class="btn" onclick="location.href='${associateServiceUrl}';">{{ _("Associate with a service") }}</button>`
                     }
                     addressInfoHTML += `
                         </td></tr>

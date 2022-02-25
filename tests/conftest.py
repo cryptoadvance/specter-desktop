@@ -473,8 +473,6 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
 
 def specter_app_with_config(config={}, specter=None):
     """helper-function to create SpecterFlasks"""
-    if specter == None:
-        specter = Specter()
     if isinstance(config, dict):
         tempClass = type("tempClass", (TestConfig,), {})
         for key, value in config.items():

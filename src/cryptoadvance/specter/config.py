@@ -179,6 +179,12 @@ class BaseConfig(object):
         os.getenv("REQUEST_TIME_WARNING_THRESHOLD", "20")
     )
 
+    # As described in https://github.com/cryptoadvance/specter-desktop/pull/1579#issuecomment-1049895972
+    # This should get removed after v1.9.0 is out.
+    SPECTER_URL_PREFIX = ""
+    EXT_URL_PREFIX = "/svc"
+    SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
+
 
 class DevelopmentConfig(BaseConfig):
     # https://stackoverflow.com/questions/22463939/demystify-flask-app-secret-key
@@ -250,13 +256,7 @@ class ProductionConfig(BaseConfig):
 
     # Repeating it here as it's SECURITY CRITICAL. Check comments in BaseConfig
     SERVICES_LOAD_FROM_CWD = False
-    SPECTER_URL_PREFIX = "/spc"
-    EXT_URL_PREFIX = "/spc/ext"
-    EXTERNAT_EXT_URL_PREFIX = "/ext"
-    SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
-
-    # As described in https://github.com/cryptoadvance/specter-desktop/pull/1579#issuecomment-1049895972
-    # This should get removed after v1.9.0 is out.
-    SPECTER_URL_PREFIX = ""
-    EXT_URL_PREFIX = "/svc"
-    SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
+    # SPECTER_URL_PREFIX = "/spc"
+    # EXT_URL_PREFIX = "/spc/ext"
+    # EXTERNAT_EXT_URL_PREFIX = "/ext"
+    # SESSION_COOKIE_PATH = SPECTER_URL_PREFIX

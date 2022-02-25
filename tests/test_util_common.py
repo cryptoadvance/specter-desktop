@@ -1,4 +1,8 @@
-from cryptoadvance.specter.util.common import camelcase2snake_case, str2bool
+from cryptoadvance.specter.util.common import (
+    camelcase2snake_case,
+    snake_case2camelcase,
+    str2bool,
+)
 
 
 def test_str2bool():
@@ -20,3 +24,8 @@ def test_str2bool():
 def test_camelcase2snake_case():
     assert camelcase2snake_case("Service") == "service"
     assert camelcase2snake_case("DeviceType") == "device_type"
+
+
+def test_snake_case2camelcase():
+    assert snake_case2camelcase("service") == "Service"
+    assert snake_case2camelcase("device_Type") == "DeviceType"
