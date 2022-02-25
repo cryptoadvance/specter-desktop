@@ -168,6 +168,7 @@ class BaseConfig(object):
     EXTENSION_LIST = [
         "cryptoadvance.specter.services.swan.service",
         "cryptoadvance.specter.services.bitcoinreserve.service",
+        "cryptoadvance.specterext.devhelp.service",
     ]
 
     # This is just a placeholder in order to be aware that you cannot set this

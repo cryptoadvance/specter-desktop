@@ -94,6 +94,18 @@
             shadow.appendChild(clone);
         }
 
+        static get observedAttributes() {return ['data-wallet', 'data-address']; }
+
+        attributeChangedCallback(name, oldValue, newValue) {
+            if (name=="data-address") {
+                this.address = newValue
+            }
+            if (name=="data-wallet") {
+                this.wallet = newValue
+            }
+            //ToDo: Implement more here
+        }
+
         connectedCallback() {
             this.address = this.getAttribute('data-address');
             this.wallet = this.getAttribute('data-wallet');
