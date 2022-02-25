@@ -226,23 +226,8 @@
         <br>
 
 		<script>
-            current_chaintip_height = 0
-            setInterval(function(){ 
-                //this code runs every interval
-                fetch('/')
-                    .then(function (response) {
-                        return response.json();
-                    }).then(function (max_chaintip_height) {
-                        if (current_chaintip_height != max_chaintip_height){
-                            console.log(`new Block!!!  ${max_chaintip_height}`);
-                            current_chaintip_height = max_chaintip_height;
-                        } else {
-                            console.log(`... ${max_chaintip_height}`);
-                        };
-                    });
-            }, 2000);
 
-            function notifyMe(text) {
+            function webpush_notification(text) {
                 // Let's check if the browser supports notifications
                 if (!("Notification" in window)) {
                     console.debug("This browser does not support desktop notification");
@@ -266,6 +251,24 @@
                 // At last, if the user has denied notifications, and you
                 // want to be respectful there is no need to bother them any more.
                 }
+
+
+
+            current_chaintip_height = 0
+            setInterval(function(){ 
+                //this code runs every interval
+                fetch('/')
+                    .then(function (response) {
+                        return response.json();
+                    }).then(function (max_chaintip_height) {
+                        if (current_chaintip_height != max_chaintip_height){
+                            webpush_notification(`New Block ${max_chaintip_height}`)
+                            //console.log(`new Block!!!  ${max_chaintip_height}`);
+                            current_chaintip_height = max_chaintip_height;
+                        } ;
+                    console.log(`${max_chaintip_height}`);
+                    });
+            }, 2000);
 
 		</script>
 
