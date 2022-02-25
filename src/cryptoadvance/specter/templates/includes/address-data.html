@@ -63,8 +63,6 @@
             this.fetchAddressData();
         }
 
-        static get observedAttributes() {return ['data-address-wallet', 'data-address']; }
-
         attributeChangedCallback(name, oldValue, newValue) {
             if (name=="data-address") {
                 this.address = newValue
@@ -75,6 +73,8 @@
             this.info.innerHTML = "<br>"
             this.note.innerText = `{{ _("Loading address") }}: ${this.address} {{ _("details") }}...`;
             this.fetchAddressData();
+
+            shadow.appendChild(clone);
         }
 
         async fetchAddressData() {
