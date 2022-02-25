@@ -17,7 +17,7 @@ Below is a table ([initial source](https://shiftcrypto.ch/blog/how-nearly-all-pe
 
 ## Backups
 
-To spend from a multisig wallet (for example 2 of 3) you do not only need 2 of the three signing keys but *all 3* of the XPUBs in order to construct a valid transaction to spend funds.
+To spend from a multisig wallet (for example 2 of 3) you need *all 3* of the XPUBs, not just 2-of-3, in order to construct a valid transaction.
 
 This means that when using a Specter Desktop multisig wallet you should keep a copy of the exported PDF backup file with each of your signing devices.
 
