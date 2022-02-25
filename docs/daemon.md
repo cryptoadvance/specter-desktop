@@ -77,9 +77,9 @@ To make bitcoind service follow the same steps, just name the service `bitcoind.
 
 ## Specter with virtual environment
 
-Let's say you don't want to have Specter in you global python modules, but use a virtual environment instead.
+If you don't want to have Specter in your global python modules, you can use a virtual environment instead.
 
-First create the virtual environment and install Specter there, let's say the path is `/home/myusername/.venv_specter`.
+First create the virtual environment and install Specter there. Let's say the path is `/home/myusername/.venv_specter`.
 
 Then you need to change the `specter.service` to the following:
 

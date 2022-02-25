@@ -28,7 +28,7 @@ from cryptoadvance.specter.util.wallet_importer import WalletImporter
 
 logger = logging.getLogger(__name__)
 
-pytest_plugins = ["ghost_machine"]
+pytest_plugins = ["ghost_machine", "devices_and_wallets"]
 
 # This is from https://stackoverflow.com/questions/132058/showing-the-stack-trace-from-a-running-python-application
 # it enables stopping a hanging test via sending the pytest-process a SIGUSR2 (12)
@@ -473,8 +473,6 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
 
 def specter_app_with_config(config={}, specter=None):
     """helper-function to create SpecterFlasks"""
-    if specter == None:
-        specter = Specter()
     if isinstance(config, dict):
         tempClass = type("tempClass", (TestConfig,), {})
         for key, value in config.items():
