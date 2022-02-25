@@ -49,7 +49,6 @@ class BaseConfig(object):
     SPECTER_URL_PREFIX = "/spc"
     # This enables the isolated_client-extensions, SECURITY-CRITICAL
     SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
-    SESSION_COOKIE_NAME = "specter"
     # The prefix for extensions which get access to the session cookie
     EXT_URL_PREFIX = "/spc/ext"
     # The prefix for extensions which don't get access to the session cookie (if SPECTER_URL_PREFIX isn't compromised)
@@ -169,6 +168,7 @@ class BaseConfig(object):
     EXTENSION_LIST = [
         "cryptoadvance.specter.services.swan.service",
         "cryptoadvance.specter.services.bitcoinreserve.service",
+        "cryptoadvance.specterext.devhelp.service",
     ]
 
     # This is just a placeholder in order to be aware that you cannot set this
@@ -253,4 +253,10 @@ class ProductionConfig(BaseConfig):
     SPECTER_URL_PREFIX = "/spc"
     EXT_URL_PREFIX = "/spc/ext"
     EXTERNAT_EXT_URL_PREFIX = "/ext"
+    SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
+
+    # As described in https://github.com/cryptoadvance/specter-desktop/pull/1579#issuecomment-1049895972
+    # This should get removed after v1.9.0 is out.
+    SPECTER_URL_PREFIX = ""
+    EXT_URL_PREFIX = "/svc"
     SESSION_COOKIE_PATH = SPECTER_URL_PREFIX

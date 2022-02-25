@@ -12,6 +12,14 @@ class BaseConfig:
     SWAN_API_URL = "https://dev-api.swanbitcoin.com"
     SWAN_FRONTEND_URL = "https://dev-app.swanbitcoin.com/signup"
 
+    # There is a whitelist at the oauth2-infra of swan which is hopefully in sync with this list:
+    SWAN_ALLOWED_SPECTER_HOSTNAMES = [
+        "localhost:25441",
+        "umbrel.local:25441",
+        "citadel.local:25441",
+        "specter.local:25441",
+    ]
+
 
 class ProductionConfig(BaseConfig):
     SWAN_CLIENT_ID = "specter"
