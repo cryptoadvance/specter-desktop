@@ -254,17 +254,21 @@
 
 
 
-            current_chaintip_height = 0
+            current_chaintip_height = -1
             setInterval(function(){ 
                 //this code runs every interval
                 fetch('/')
                     .then(function (response) {
                         return response.json();
                     }).then(function (max_chaintip_height) {
+                        if (current_chaintip_height == -1){
+                            current_chaintip_height = max_chaintip_height;
+                        }
                         if (current_chaintip_height != max_chaintip_height){
                             webpush_notification(`New Block ${max_chaintip_height}`)
                             //console.log(`new Block!!!  ${max_chaintip_height}`);
                             current_chaintip_height = max_chaintip_height;
+                            // location.reload();
                         } ;
                     console.log(`${max_chaintip_height}`);
                     });
