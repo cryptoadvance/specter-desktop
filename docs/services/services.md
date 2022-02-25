@@ -1,11 +1,47 @@
 # Third-Party Service Integrations
 
-A developer's guide for Specter Desktop `Service` integrations.
+A developer's guide for the Specter Desktop `Extension` framework. 
+
+We currently rework the naming of extensions/plugins/services. If not otherwise stated, you can see those three terms as the same, for now.
 
 
-## Basic Code Philosophy
-As much as possible, each `Service` implementation should be entirely self-contained with little or no custom code altering existing/core Specter functionality.
+## Concept
+As much as possible, each `Service` implementation should be entirely self-contained with little or no custom code altering existing/core Specter functionality. There is a name for that: Extension-/Pluginframework.
+The term `extension` will be used for all sorts extensions whereas `plugin` will be used as a component which can be de-/activated by a user.
 
+All extensions are completely sperated in a specific folder-structure. There are internal extensions which `SHOULD` be located in `cryptoadvance.specterext.id_of_extension` but at least 2 extensions are still at the deprecated location of `cryptoadvance.specter.services`. However that does not mean that an extension needs to be located in the same repository than specter itself. There can and will be extensions which are located in their own repositories.
+
+Independent whether an extension is shipped with the official specter-release-binaries and whether it's an internal (which is shipped) or external extension (which might be shipped), the creation of extensions is already heavily supported and encouraged.
+Whether an extension is shipped with the official binary is entirely the choice of the Specter Team. However, you can simply develop extensions and use them on production (only for technical personel) as described in `specterext-dummy` (see below).
+
+A description of how to create your own extension can be found at the [dummy-extension](https://github.com/cryptoadvance/specterext-dummy/). You will need to choose an organisation or username if you create one. This is used for package-structure.
+
+All the attributes of an extension are currently (json-support is planned sooner or later) defined as attributes of a class which is derived from the class `Service` (should be renamed). That class has attributes which are essential. So let's discuss them briefly.
+
+## Extension Attributes
+Here is an Example. This class definition MUST be stored in a file called "service.py" within a package with the name `org-id.specterext.extions-id`.
+```
+class DiceService(Service):
+    id = "dice"
+    name = "Specter Dice"
+    icon = "dice/dice_logo.png"
+    logo = "dice/dice_logo.png"
+    desc = "Send your bet!"
+    has_blueprint = True
+    blueprint_module = "k9ert.specterext.dice.controller"
+    isolated_client = False
+    devstatus = devstatus_alpha
+```
+So this defines the base `Service` class (to be renamed to "Extension") that all extensions must inherit from. This is wired to enable `Extension` auto-discovery. Any feature that is common to most or all `Service` integrations should be implemented here.
+With inheriting from `Service` you get some usefull methods explained later.
+
+
+The `id` needs to be unique within a specific specter-instance where this extension is part of. The `name` is the displayname as shown to the user in the plugin-area (currently there is not yet a technical difference between extensions and plugins). The `icon` will be used where labels are used to be diplayed if this extension is reserving addresses. The `logo` and the `desc` (ription) is also used in the plugin-area ("choose plugins").
+If the extension has a UI (currently all of them have one), `has_blueprint` is True. `The blueprint_module` is referencing the controller-module where endpoints are defined. It's recommended to follow the format `org.specterext.extions-id.controller`.
+`isolated_client` Should not be used yet. It is determining where in the url-path-tree the blueprint will be mounted. This might have an impact on whether the extension's frontend-client has access to the cookie used in specter. Check `config.py` for details.
+`devstatus` is one of `devstatus_alpha`, `devstatus_beta` or `devstatus_prod` defined in `cryptoadvance.specter.services.service`. Each specter-instance will have a config-variable  called `SERVICES_DEVSTATUS_THRESHOLD` (prod in Production and alpha in Development) and depending on that, the plugin will be available to the user.
+
+## Data-Storage
 Effort has been taken to provide `Service` data storage that is separate from existing data stores in order to keep those areas clean and simple. Where touchpoints are unavoidable, they are kept to the absolute bare minimum (e.g. `User.services` list, `Address.service_id` field).
 
 
@@ -19,18 +55,6 @@ Users can also manually associate an existing `Address` with a `Service` (this i
 _Note: TODO: manually un-reserve an `Address` from a `Service`._
 
 
-## Basic Code Structure
-All `Service`-related code should be contained within `cryptoadvance.specter.services`. The base components are:
-
-
-### `Service` Base Class
-Defines the base `Service` class that all service integrations must inherit from. This is wired to enable `Service` auto-discovery. Any feature that is common to most or all `Service` integrations should be implemented here.
-
-Each `Service` must specify a unique `Service.id` that is just a short string (e.g. "swan"). This is the main identifier throughout the code.
-
-Includes methods to "reserve" addresses for the `Service` to basically make those not-yet-used addresses somewhat off-limits to the rest of the UI (can still be manually overridden though).
-
-
 ### `Service` Configuration
 In order to separate the service-configuration from the main-configuration, you can specify your config in a file called `config.py`. It's structure is similiar to the specter-wide `config.py`, e.g.:
 ```
@@ -41,11 +65,6 @@ class ProductionConfig(BaseConfig):
     SWAN_API_URL="https://api.swanbitcoin.com"
 ```
 In your code, you can access the correct value as in any other flask-code, like `api_url = app.config.get("SWAN_API_URL")`. If the instance is running a config (e.g. `DevelopmentConfig`) which is not available in your service-specific config (as above), the inheritance-hirarchy from the mainconfig will get traversed and the first hit will get get configured. In this example, it would be `BaseConfig`.
-
-
-### `ServiceManager`
-Simple manager that contains all `Service`s. Performs the `Service` auto-discovery at startup and filters availability by each `Service`'s release level (i.e. alpha, beta, etc).
-
 
 ### `ServiceEncryptedStorage`
 Most `Service`s will require user secrets (e.g. API key and secret). Each Specter `User` will have their own on-disk encrypted `ServiceEncryptedStorage` with filename `<username>_services.json`. Note that the user's secrets for all `Service`s will be stored in this one file.
@@ -82,7 +101,7 @@ Whenever possible, external code should not directly access these `Service`-rela
 
 
 ### `ServiceAnnotationsStorage`
-Annotations are any address-specific or transaction-specific data from a `Service` that we might want to present to the user. Example: a `Service` that integrates with a onchain storefront would have product/order data associated with a utxo. That additional data could be imported by the `Service` and stored as an annotation. This annotation data could then be displayed to the user when viewing the details for that particular address or tx.
+Annotations are any address-specific or transaction-specific data from a `Service` that we might want to present to the user (not yet implemented). Example: a `Service` that integrates with a onchain storefront would have product/order data associated with a utxo. That additional data could be imported by the `Service` and stored as an annotation. This annotation data could then be displayed to the user when viewing the details for that particular address or tx.
 
 Annotations are stored on a per-wallet and per-`Service` basis as _unencrypted_ on-disk data (filename: `<wallet_alias>_<service>.json`).
 
@@ -101,7 +120,7 @@ cryptoadvance.specter.services.swan
 
 Each implementation must have the following required components:
 ```
-/static
+/static/<service_id>
 /templates/<service_id>
 controller.py
 service.py
@@ -110,7 +129,7 @@ service.py
 This makes each implementation its own Flask `Blueprint`.
 
 ### `/static`
-Because of Flask `Blueprint` imports, you can just add static files here and reference them (e.g. "static/img/blah.png") as if they were in the main `/static` files root dir.
+Because of Flask `Blueprint` imports, you can just add static files here and reference them (e.g. "static//<service_id>/img/blah.png") as if they were in the main `/static` files root dir.
 
 ### `/templates/<service_id>`
 Again, Flask `Blueprint`s import the `/templates` directory as-is, but to avoid namespace collisions on the template files (e.g. `/templates/index.html`) they should be contained within a subdirectory named with the `Service.id` (e.g. `/templates/swan/index.html`)

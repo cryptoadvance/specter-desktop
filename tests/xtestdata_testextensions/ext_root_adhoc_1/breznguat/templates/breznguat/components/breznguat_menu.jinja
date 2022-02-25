@@ -1,0 +1,16 @@
+{% from 'components/menu_item.jinja' import menu_item %}
+
+{# 
+    vaultoro_menu - Tabs menu to navigate between the vaultoro screens.
+    Parameters:
+    - active_menuitem: Current active tab. Options: 'general', 'bitcoin_core', 'auth'.
+ #}
+{% macro breznguat_menu(active_menuitem) -%}
+	<nav class="row collapse-on-mobile">
+		{{ menu_item(service.id, 'index', 'Main', active_menuitem, isLeft=true) }}
+		{{ menu_item(service.id, 'settings_get', 'Settings', active_menuitem, isRight=true) }}
+		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/expand-more.svg') }}`, `{{ url_for('static', filename='img/expand-less.svg') }}`)">
+			<img style="width: 36px;" src="{{ url_for('static', filename='img/expand-more.svg') }}"/>
+		</a>
+	</nav>
+{%- endmacro %}
