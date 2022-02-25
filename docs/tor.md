@@ -1,6 +1,6 @@
 # Tor and Specter Desktop
 
-When using Specter Desktop, there might be certain cases where you would want to make calls over the Tor network. The simplest way to setup Tor integration with Specter Desktop is to click on the Get Started button of the welcome page aand follow the setup wizard, which will install and configure Tor for you. You can also access it but going to Settings -> Tor tab, and clicking on Setup Tor.
+When using Specter Desktop, there might be certain cases where you would want to make calls over the Tor network. The simplest way to setup Tor integration with Specter Desktop is to click on the Get Started button of the welcome page and follow the setup wizard, which will install and configure Tor for you. You can also access it by going to Settings -> Tor tab, and clicking on Setup Tor.
 
 <img width="956" alt="Screen Shot 2021-04-24 at 10 42 08" src="./images/tor/get-started-setup.png">
 
