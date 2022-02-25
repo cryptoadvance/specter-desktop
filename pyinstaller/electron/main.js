@@ -7,11 +7,15 @@ const request = require('request')
 const extract = require('extract-zip')
 const defaultMenu = require('electron-default-menu');
 const { spawn, exec } = require('child_process');
+
 const helpers = require('./helpers')
 const getFileHash = helpers.getFileHash
 const getAppSettings = helpers.getAppSettings
 const appSettingsPath = helpers.appSettingsPath
 const specterdDirPath = helpers.specterdDirPath
+
+const downloadloc = require('./downloadloc')
+const getDownloadLocation = downloadloc.getDownloadLocation
 
 // Logging
 const {transports, format, createLogger } = require('winston')
@@ -222,7 +226,8 @@ function downloadSpecterd(specterdPath) {
   updateSpecterdStatus('Fetching Specter binary...')
   logger.info("Using version ", appSettings.specterdVersion);
   logger.info(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`);
-  download(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`, specterdPath + '.zip', function(errored) {
+  download_location = getDownloadLocation(appSettings.specterdVersion, platformName)
+  download(download_location, specterdPath + '.zip', function(errored) {
     if (errored == true) {
       updatingLoaderMsg('Fetching specter binary from the server failed, could not reach the server or the file could not have been found.')
       updateSpecterdStatus('Fetching specterd failed...')
