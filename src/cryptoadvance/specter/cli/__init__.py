@@ -1,8 +1,12 @@
 import logging
-import click
 import os
-from .cli_server import server
+from http.client import HTTPConnection
+
+import click
+
 from .cli_noded import bitcoind, elementsd
+from .cli_ext import ext
+from .cli_server import server
 
 logger = logging.getLogger(__name__)
 
@@ -14,10 +18,28 @@ logger = logging.getLogger(__name__)
     default=False,
     help="Will trace all calls to BitcoinCore or ElementsCore if in --debug",
 )
+@click.option(
+    "--tracerequests/--no-tracerequests",
+    default=False,
+    help="Will trace all calls done via the requests module. Might be quite verbose!",
+)
 @click.pass_context
-def entry_point(config_home, debug=False, tracerpc=False):
+def entry_point(config_home, debug=False, tracerpc=False, tracerequests=False):
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
+    if tracerpc or tracerequests:
+        if tracerpc:
+            debug = True  # otherwise this won't work
+            logging.getLogger("cryptoadvance.specter.rpc").setLevel(logging.DEBUG)
+        if tracerequests:
+            # from here: https://stackoverflow.com/questions/16337511/log-all-requests-from-the-python-requests-module
+            HTTPConnection.debuglevel = 1
+            requests_log = logging.getLogger("requests.packages.urllib3")
+            requests_log.setLevel(logging.DEBUG)
+            requests_log.propagate = True
+    else:
+        logging.getLogger("cryptoadvance.specter.rpc").setLevel(logging.INFO)
+
     if debug:
         # No need for timestamps while developing
         formatter = logging.Formatter("[%(levelname)7s] in %(module)15s: %(message)s")
@@ -35,14 +57,8 @@ def entry_point(config_home, debug=False, tracerpc=False):
     logging.getLogger().handlers = []
     logging.getLogger().addHandler(ch)
 
-    if tracerpc:
-        if not debug:
-            raise Exception("--tracerpc Doesn't make sense without --debug")
-        logging.getLogger("cryptoadvance.specter.rpc").setLevel(logging.DEBUG)
-    else:
-        logging.getLogger("cryptoadvance.specter.rpc").setLevel(logging.INFO)
-
 
 entry_point.add_command(server)
+entry_point.add_command(ext)
 entry_point.add_command(bitcoind)
 entry_point.add_command(elementsd)

@@ -39,6 +39,7 @@
 				{% endif %}
 			}
 		</style>
+		<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
 		{% block head %}
 		{% endblock %}
 	</head>
@@ -263,7 +264,6 @@
 			{% endblock %}
 		</main>
 	</div>
-	<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
 
 	{% if not hwi_bridge %}
 		{# url routes are not defined in hwi_bridge mode. `url_for` will fail. #}

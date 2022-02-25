@@ -329,14 +329,14 @@
             this.paginationNext.onclick = () => {
                 this.idx++;
                 console.log("paginationNext fetch");
-                this.fetchTxItems();
+                
             }
 
             // Previous page action
             this.paginationBack.onclick = () => {
                 this.idx--;
                 console.log("paginationBack fetch");
-                this.fetchTxItems();
+                this.update();
             }
 
             // Listen to changes in page number selection input
@@ -348,7 +348,7 @@
                 }
                 this.idx = newIdx - 1;
                 console.log("paginationIdxInput fetch");
-                this.fetchTxItems();
+                this.update();
             }
 
             // Listen to changes in search bar
@@ -356,14 +356,14 @@
                 this.search = this.searchInput.value;
                 this.export.href = this.export.href.split('?')[0] + `?exportPrices=${this.exportPricesSwitch.checked}&search=${this.search}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
                 console.log("searchInput fetch");
-                this.fetchTxItems();
+                this.update();
             }
 
             // Listen to changes in page limit
             this.pageLimitSelect.onchange = () => {
                 this.limit = this.pageLimitSelect.value;
                 console.log("pageLimitSelect fetch");
-                this.fetchTxItems();
+                this.update();
             }
 
             // Setup sorting functionality for each column of the table header
@@ -397,7 +397,6 @@
                         this.export.href = this.export.href.split('?')[0] + `?exportPrices=${this.exportPricesSwitch.checked}&search=${this.search}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
                     }
                     console.log("header fetch")
-                    this.fetchTxItems();
                 }
             }
 
@@ -468,6 +467,7 @@
             if (this.hideSwitcher && this.hideSwitcher.toLowerCase() == "true") {
                 this.shadowRoot.querySelector(".switcher").classList.add('hidden')
             }
+            this.update();
         }
 
         getSelectedTxs() {
@@ -498,8 +498,6 @@
         }
 
         /**
-         * TODO: This is being called 7 times (once for each attribute) when the page is loaded, 
-         * causing up to 7 redundant fetchTxItems() hits to the server.
          * 
          * Listens to changes on the following attributes:
          * - blockhash: Should show blockhash column. Either "true" or "false"
@@ -542,7 +540,10 @@
                     if (!this.listType) {
                         return
                     }
-                    this.fetchTxItems();
+                    if (oldValue) {
+                        this.update();
+                    }
+                    
                 }
             }
             if (attrName == "selected-coins" && newValue != undefined && newValue != "undefined") {
@@ -579,27 +580,25 @@
            return false
         }
 
+        update() {
+            if (this.getAttribute('tx-data')) {
+                // faking a jsonResponse for the render-method
+                let jsonResponse = {
+                    pageCount: 1,
+                    txlist: this.getAttribute('tx-data')
+                }
+                let showBlockhash = !this.blockhashHeader.classList.contains('hidden');
+                this.render(jsonResponse, showBlockhash)
+            } else {
+                this.fetchTxItems()
+            }
+        }
+
         /**
          * Fetches txlist from the Specter API and loads the result into TxRowElements
         */
         async fetchTxItems() {
             this.callId++;
-            // Clean up from existing transaction list
-            this.summaryRow.classList.add('hidden');
-            this.emptyRow.children[1].innerText = '{{ _("Fetching transactions...") }}';
-            this.emptyRow.classList.remove('hidden');
-            this.tbody.querySelectorAll('tx-row').forEach((row) => {row.remove()});
-            if (!this.listType) {
-                this.emptyRow.children[1].innerText = '{{ _("Failed to fetch transactions...") }}';
-                return
-            }
-
-            if (this.listType == "txlist") {
-                this.txlistViewBtn.classList.add("checked");
-            } else {
-                this.utxoViewBtn.classList.add("checked");
-            }
-
             // Select the correct URL based on the list type and selected wallet
             let url;
             switch (this.listType) {
@@ -662,120 +661,7 @@
                 let showBlockhash = !this.blockhashHeader.classList.contains('hidden');
                 
                 if ("txlist" in jsonResponse) {
-                    // Populate the table with TXRowElement objects using the fetched txlist
-                    if (jsonResponse.txlist) {
-                        let txlist = JSON.parse(jsonResponse.txlist);
-                        let summaryTxCount = 0;
-                        let summaryAmount = 0;
-                        let summaryPrice = 0;
-                        for (let tx of txlist) {
-                            let txRow = document.createRange().createContextualFragment(`
-                            <tx-row class="txrowitem"
-                                data-btc-unit="${this.btcUnit ? this.btcUnit : 'btc'}"
-                                data-price="${this.price ? this.price : 0}"
-                                data-symbol="${this.symbol ? this.symbol : ''}"
-                                data-tx='${JSON.stringify(tx).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
-                                data-wallet="${(this.wallet ? this.wallet : tx.wallet_alias)}"
-                                data-show-blockhash="${showBlockhash}"
-                                data-mode="${this.getAttribute('type') + (this.wallet ? "" : "-overview")}"
-                                data-hide-sensitive-info="${this.hideSensitiveInfo}"
-                                hide-columns="${this.hideColumns}">
-                                </tx-row>
-                            `)
-                            this.tbody.append(txRow);
-                            summaryTxCount++;
-                            summaryAmount += parseFloat(this.tbody.children[this.tbody.children.length - 1].shadowRoot.querySelector('.amount').innerText.replace(',', ''));
-                            summaryPrice += parseFloat(this.tbody.children[this.tbody.children.length - 1].shadowRoot.querySelector('.amount-price').innerText.replace(`(${this.symbol}`, '').replace(')', '').replace(',', ''));
-                        }
-
-                        if (summaryTxCount > 0 && this.search) {
-                            this.summaryTxCount.innerText = `Transactions count: ${summaryTxCount}`;
-                            this.summaryAmount.innerHTML = `Total amount: ${numberWithCommas(summaryAmount.toFixed(8))}`;
-                            if (summaryPrice) {
-                                this.summaryAmount.innerHTML += ` <span class="note">(${this.symbol}${numberWithCommas(summaryPrice.toFixed(2))})</span>`
-                            }
-                            this.summaryRow.classList.remove('hidden');
-                        }
-                        // Pagination
-                        this.pageCount = jsonResponse.pageCount;
-                        // Show empty row if no transaction found
-                        if (this.pageCount == 0 || txlist.length == 0) {
-                            this.emptyRow.classList.remove('hidden');
-                            this.emptyRow.children[1].innerText = '{{ _("No transactions found...") }}';
-                            this.pageCount = 1;
-                        } else {
-                            this.emptyRow.classList.add('hidden');
-                        }
-
-                        // If index is greater than the pages count fetch again for the last page
-                        if (this.idx >= this.pageCount) {
-                            this.idx = this.pageCount - 1;
-                            console.log("index greater than pages count fetch");
-                            this.fetchTxItems()
-                        }
-
-                        this.paginationIdxInput.value = this.idx + 1;
-
-                        // If there are multiple pages show the pagination bar
-                        if (this.pageCount > 1) {
-                            this.paginationContainer.classList.remove('hidden');
-                            this.paginationCounter.innerText = `of ${this.pageCount}`;
-                            this.paginationIdxInput.max = this.pageCount;
-                        } else {
-                            this.paginationContainer.classList.add('hidden');
-                        }
-
-                        // Disable pagination back button if on the first page
-                        if (this.idx == 0) {
-                            this.paginationBack.classList.add('pagination-disabled');
-                        } else {
-                            this.paginationBack.classList.remove('pagination-disabled');
-                        }
-
-                        // Disable pagination next button if on the last page
-                        if (this.idx + 1 == this.pageCount) {
-                            this.paginationNext.classList.add('pagination-disabled');
-                        } else {
-                            this.paginationNext.classList.remove('pagination-disabled');
-                        }
-
-                        this.selectedRows = [];
-                        this.selectedRowsActionBox.classList.add('hidden');
-
-                        // if preselectedCoins are there, we need to dispatch an event
-                        let dispatchLater = false
-                        for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) {
-                            // Preselect if necessary
-                            if (this.checkForSelectedCoin(txRow.tx.txid)) {
-                                txRow.select()
-                                dispatchLater = true
-                            }
-                            txRow.addEventListener('txRowCustomSelected', (e) => {
-                                this.fireCustomSelectedEvent()
-                            })
-                            
-                            txRow.addEventListener('txRowSelected', e=>{
-                                let selectedRow = e.target;
-                                if (e.detail.selected) {
-                                    this.selectedRows.push({
-                                        txid: e.detail.txid,
-                                        vout: e.detail.vout,
-                                        amount: e.detail.amount.toFixed(8)
-                                    });
-                                } else {
-                                    this.selectedRows = this.selectedRows.filter(row => !(row.txid === e.detail.txid && row.vout === e.detail.vout))
-                                }
-                                if (this.selectedRows.length == 0) {
-                                    this.selectedRowsActionBox.classList.add('hidden');
-                                } else {
-                                    this.selectedRowsActionBox.classList.remove('hidden');
-                                }
-                            });
-                        }
-                        if (dispatchLater) {
-                            this.fireCustomSelectedEvent()
-                        }
-                    }
+                    this.render(jsonResponse, showBlockhash)
                     return
                 };
                 showError(`{{ _("Failed to fetch transactions list.") }}`)
@@ -784,7 +670,147 @@
                 showError(`{{ _("Failed to fetch transactions list.") }}: ${e}`);
             }
         }
-            /** 
+        
+        render(jsonResponse, showBlockhash) {
+            // jsonresponse is something like:
+            // {
+            //  "pageCount": 1, 
+            //  "txlist": "[{\"txid\": \"1f2b4f9b6762ab37d3b0495cda51d8733c68a5e3a01356f0a67f215a29b2f05e\", \"blockhash\": \"05d7c1f7c4fa2a530e0916dcd15551657c22f4c30df175292b0c0b0f320adc10\", \"blockheight\": 722, \"time\": 1644162928, \"conflicts\": [], \"bip125-replaceable\": \"no\", \"vsize\": null, \"category\": \"receive\", \"address\": \"bcrt1qc3z4j7kksr3wm2heaahzx62yjrj8fn83s7x3ps\", \"amount\": 20.0, \"ismine\": true, \"confirmations\": 132, \"label\": \"Address #7\", \"validated_blockhash\": \"\", \"wallet_alias\": \"myhot_2\"}, {\"txid\": \"aafaecb085944a6fce4556885c1f10c1cd97bac146a2a0e676a2b12bcf428d3b\", \"blockhash\": \"201eea173347cdc8e8effeaf96053b5867860cec163f3eacec7c8918c94bdaaa\", \"blockheight\": 721, \"time\": 1644162928, \"conflicts\": [], \"bip125-replaceable\": \"no\", \"vsize\": null, \"category\": \"receive\", \"address\": \"bcrt1qyncynwdxmeynk245wa3f4urul3nm2v0ulfueek\", \"amount\": 20.0, \"ismine\": true, \"confirmations\": 133, \"label\": \"Address #6\", \"validated_blockhash\": \"\", \"wallet_alias\": \"myhot_2\"}, {\"txid\": \"bf34b090996dfcd2971c88f645edd4a0a0ad180e15096389d8841cf2bac0ecde\", \"blockhash\": \"07952e41edea8a9507722531e922b9d217518d6116ba4fba47c9e62ce12dee9e\", \"blockheight\": 305, \"time\": 1644159720, \"conflicts\": [], \"bip125-replaceable\": \"no\", \"vsize\": null, \"category\": \"receive\", \"address\": \"bcrt1qyncynwdxmeynk245wa3f4urul3nm2v0ulfueek\", \"amount\": 20.0, \"ismine\": true, \"confirmations\": 549, \"label\": \"Address #6\", \"validated_blockhash\": \"\", \"wallet_alias\": \"myhot_2\"}]"
+            //  }
+
+            // Clean up from existing transaction list
+            this.summaryRow.classList.add('hidden');
+            this.emptyRow.children[1].innerText = '{{ _("Fetching transactions...") }}';
+            this.emptyRow.classList.remove('hidden');
+            this.tbody.querySelectorAll('tx-row').forEach((row) => {row.remove()});
+            if (!this.listType) {
+                this.emptyRow.children[1].innerText = '{{ _("Failed to fetch transactions...") }}';
+                return
+            }
+
+            if (this.listType == "txlist") {
+                this.txlistViewBtn.classList.add("checked");
+            } else {
+                this.utxoViewBtn.classList.add("checked");
+            }
+
+            // Populate the table with TXRowElement objects using the fetched txlist
+            if (jsonResponse.txlist) {
+                let txlist = JSON.parse(jsonResponse.txlist);
+                let summaryTxCount = 0;
+                let summaryAmount = 0;
+                let summaryPrice = 0;
+                for (let tx of txlist) {
+                    let txRow = document.createRange().createContextualFragment(`
+                    <tx-row class="txrowitem"
+                        data-btc-unit="${this.btcUnit ? this.btcUnit : 'btc'}"
+                        data-price="${this.price ? this.price : 0}"
+                        data-symbol="${this.symbol ? this.symbol : ''}"
+                        data-tx='${JSON.stringify(tx).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
+                        data-wallet="${(this.wallet ? this.wallet : tx.wallet_alias)}"
+                        data-show-blockhash="${showBlockhash}"
+                        data-mode="${this.getAttribute('type') + (this.wallet ? "" : "-overview")}"
+                        data-hide-sensitive-info="${this.hideSensitiveInfo}"
+                        hide-columns="${this.hideColumns}">
+                        </tx-row>
+                    `)
+                    this.tbody.append(txRow);
+                    summaryTxCount++;
+                    summaryAmount += parseFloat(this.tbody.children[this.tbody.children.length - 1].shadowRoot.querySelector('.amount').innerText.replace(',', ''));
+                    summaryPrice += parseFloat(this.tbody.children[this.tbody.children.length - 1].shadowRoot.querySelector('.amount-price').innerText.replace(`(${this.symbol}`, '').replace(')', '').replace(',', ''));
+                }
+
+                if (summaryTxCount > 0 && this.search) {
+                    this.summaryTxCount.innerText = `Transactions count: ${summaryTxCount}`;
+                    this.summaryAmount.innerHTML = `Total amount: ${numberWithCommas(summaryAmount.toFixed(8))}`;
+                    if (summaryPrice) {
+                        this.summaryAmount.innerHTML += ` <span class="note">(${this.symbol}${numberWithCommas(summaryPrice.toFixed(2))})</span>`
+                    }
+                    this.summaryRow.classList.remove('hidden');
+                }
+                // Pagination
+                this.pageCount = jsonResponse.pageCount;
+                // Show empty row if no transaction found
+                if (this.pageCount == 0 || txlist.length == 0) {
+                    this.emptyRow.classList.remove('hidden');
+                    this.emptyRow.children[1].innerText = '{{ _("No transactions found...") }}';
+                    this.pageCount = 1;
+                } else {
+                    this.emptyRow.classList.add('hidden');
+                }
+
+                // If index is greater than the pages count fetch again for the last page
+                if (this.idx >= this.pageCount) {
+                    this.idx = this.pageCount - 1;
+                    console.log("index greater than pages count fetch");
+                    this.fetchTxItems()
+                }
+
+                this.paginationIdxInput.value = this.idx + 1;
+
+                // If there are multiple pages show the pagination bar
+                if (this.pageCount > 1) {
+                    this.paginationContainer.classList.remove('hidden');
+                    this.paginationCounter.innerText = `of ${this.pageCount}`;
+                    this.paginationIdxInput.max = this.pageCount;
+                } else {
+                    this.paginationContainer.classList.add('hidden');
+                }
+
+                // Disable pagination back button if on the first page
+                if (this.idx == 0) {
+                    this.paginationBack.classList.add('pagination-disabled');
+                } else {
+                    this.paginationBack.classList.remove('pagination-disabled');
+                }
+
+                // Disable pagination next button if on the last page
+                if (this.idx + 1 == this.pageCount) {
+                    this.paginationNext.classList.add('pagination-disabled');
+                } else {
+                    this.paginationNext.classList.remove('pagination-disabled');
+                }
+
+                this.selectedRows = [];
+                this.selectedRowsActionBox.classList.add('hidden');
+
+                // if preselectedCoins are there, we need to dispatch an event
+                let dispatchLater = false
+                for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) {
+                    // Preselect if necessary
+                    if (this.checkForSelectedCoin(txRow.tx.txid)) {
+                        txRow.select()
+                        dispatchLater = true
+                    }
+                    txRow.addEventListener('txRowCustomSelected', (e) => {
+                        this.fireCustomSelectedEvent()
+                    })
+                    
+                    txRow.addEventListener('txRowSelected', e=>{
+                        let selectedRow = e.target;
+                        if (e.detail.selected) {
+                            this.selectedRows.push({
+                                txid: e.detail.txid,
+                                vout: e.detail.vout,
+                                amount: e.detail.amount.toFixed(8)
+                            });
+                        } else {
+                            this.selectedRows = this.selectedRows.filter(row => !(row.txid === e.detail.txid && row.vout === e.detail.vout))
+                        }
+                        if (this.selectedRows.length == 0) {
+                            this.selectedRowsActionBox.classList.add('hidden');
+                        } else {
+                            this.selectedRowsActionBox.classList.remove('hidden');
+                        }
+                    });
+                }
+                if (dispatchLater) {
+                    this.fireCustomSelectedEvent()
+                }
+            }
+        }
+        
+        /** 
         * If this event is fired, then some row got ticked/unticked in the custom-selection-column
         */
         fireCustomSelectedEvent() {

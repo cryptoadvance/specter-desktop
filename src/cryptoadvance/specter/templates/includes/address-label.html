@@ -94,6 +94,18 @@
             shadow.appendChild(clone);
         }
 
+        static get observedAttributes() {return ['data-wallet', 'data-address']; }
+
+        attributeChangedCallback(name, oldValue, newValue) {
+            if (name=="data-address") {
+                this.address = newValue
+            }
+            if (name=="data-wallet") {
+                this.wallet = newValue
+            }
+            //ToDo: Implement more here
+        }
+
         connectedCallback() {
             this.address = this.getAttribute('data-address');
             this.wallet = this.getAttribute('data-wallet');
@@ -105,7 +117,7 @@
 
             if ((typeof services !== 'undefined') && (this.serviceId in services)) {
                 // `services` globally injected via includes/services-data.html
-                this.serviceIconImg.src = "/svc/" + this.serviceId + "/static/" + services[this.serviceId].icon;
+                this.serviceIconImg.src = "{{ext_url_prefix}}/" + this.serviceId + "/static/" + services[this.serviceId].icon;
             }
 
             // Set the label - fetch if not specified

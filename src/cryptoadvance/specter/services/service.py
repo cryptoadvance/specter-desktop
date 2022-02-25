@@ -34,7 +34,7 @@ class Service:
     logo = None
     desc = None  # TODO: rename to "description" to be explicit
     has_blueprint = True  # the default
-    # If the blueprint gets a "/svc" prefix (isolated_client = True), the login cookie won't work for all specter core functionality
+    # If the blueprint gets a "/ext" prefix (isolated_client = True), the login cookie won't work for all specter core functionality
     isolated_client = True
     devstatus = devstatus_alpha
 
