@@ -19,7 +19,7 @@ from werkzeug.wrappers import Response
 
 from ..helpers import bcur2base64, generate_mnemonic
 from ..rpc import RpcError
-from ..server_endpoints.filters import assetlabel
+from ..server_endpoints.filters import assetlabel, btcunitamount
 from ..specter_error import SpecterError, handle_exception
 from ..util.base43 import b43_decode
 from ..util.descriptor import Descriptor
@@ -105,9 +105,9 @@ def get_max_chaintip_height():  # GET request
     return jsonify(max_chaintip_height)  # serialize and use JSON headers
 
 
-@wallets_endpoint_api.route("/get_updated_wallet_infos", methods=["GET"])
+@wallets_endpoint_api.route("/get_new_tx_notifications", methods=["GET"])
 @login_required
-def get_updated_wallet_infos():  # GET request
+def get_new_tx_notifications():  # GET request
     from flask import jsonify
 
     old_full_txlist = app.specter.wallet_manager.full_txlist(fetch_transactions=False)
@@ -116,9 +116,34 @@ def get_updated_wallet_infos():  # GET request
     new_full_txlist = app.specter.wallet_manager.full_txlist()
     updated_txids = set(tx["txid"] for tx in new_full_txlist) - old_txids
 
-    return jsonify(
-        [tx for tx in new_full_txlist if tx["txid"] in updated_txids]
-    )  # serialize and use JSON headers
+    updated_txs = [tx for tx in new_full_txlist if tx["txid"] in updated_txids]
+
+    print(updated_txs)
+    notifications = [
+        {
+            "title": f"{tx['category'].capitalize()} Transaction of wallet {tx['wallet_alias']}",
+            "options": {
+                "body": f"{btcunitamount(None, tx['amount'])} {app.specter.unit.upper()}\n"
+                f"sent to {tx['label']}",
+                "timestamp": tx["time"],
+            },
+            "category": tx["category"],
+            "isConfirmed": tx["confirmations"] > 0,
+        }
+        for tx in updated_txs
+    ]
+
+    return jsonify(notifications)  # serialize and use JSON headers
+
+
+"""
+            <span id="fullbalance_amount">{{ fullbalance | btcunitamount }}</span>
+            {% if specter.unit == 'sat' %}
+                sats
+            {% else %}
+                {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
+            {% endif %}
+"""
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/combine/", methods=["POST"])

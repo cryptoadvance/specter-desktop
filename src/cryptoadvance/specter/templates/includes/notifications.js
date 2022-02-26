@@ -1,8 +1,36 @@
+{% include "includes/utils.js" %}
+
 function webpush_notification(title, options) {
     function show_notification(){
         let notification = new Notification(title, options);
     };
 
+    /*
+{
+  "//": "Visual Options",
+  "body": "<String>",
+  "icon": "<URL String>",
+  "image": "<URL String>",
+  "badge": "<URL String>",
+  "vibrate": "<Array of Integers>",
+  "sound": "<URL String>",
+  "dir": "<String of 'auto' | 'ltr' | 'rtl'>",
+
+  "//": "Behavioral Options",
+  "tag": "<String>",
+  "data": "<Anything>",
+  "requireInteraction": "<boolean>",
+  "renotify": "<Boolean>",
+  "silent": "<Boolean>",
+
+  "//": "Both visual & behavioral options",
+  "actions": "<Array of Strings>",
+
+  "//": "Information Option. No visual affect.",
+  "timestamp": "<Long>"
+}
+
+    */
 
 
     // Let's check if the browser supports notifications    
@@ -29,38 +57,20 @@ function webpush_notification(title, options) {
 };
 
 
-function format_amount(value){
-    unit = "{{ specter.unit }}"
-    if (unit == 'btc'){
-        amount_formatted = `${value.toFixed(8)}`;
-    } else if (unit == 'sat') {
-        amount_formatted = `${(value * 1e8).toFixed(0)}`;
-    };
-    if  (amount>0){
-        amount_formatted = `+${amount_formatted}`
-    };
-    return amount_formatted + " {{ specter.unit }}"  
-}
-
-function webpush_tx(tx) {
-    title = `Incoming Transaction`;
-
-    var options = {
-        body: format_amount(tx["amount"]),
-    };
-    webpush_notification(title, options);
-};
-
 current_chaintip_height = -1
 function evalaute_new_transactions(){
-    fetch("{{ url_for('wallets_endpoint_api.get_updated_wallet_infos') }}")
+    fetch("{{ url_for('wallets_endpoint_api.get_new_tx_notifications') }}")
         .then(function (response) {
             return response.json();
-        }).then(function (wallets_txlists) {
+        }).then(function (tx_notifications) {
             // do something with the response
-            for (let i in wallets_txlists) {
-                console.log(wallets_txlists[i])
-                webpush_tx(wallets_txlists[i])
+            console.log(tx_notifications)
+            for (let i in tx_notifications) {
+                console.log(tx_notifications[i]);
+                tx_notifications[i]['icon'] = getCategoryImg(tx_notifications[i]['category'], tx_notifications[i]['isConfirmed']);  // TODO: Doesnt work
+                tx_notifications[i]['image'] = tx_notifications[i]['icon']
+                tx_notifications[i]['badge'] = tx_notifications[i]['icon']                                
+                webpush_notification(tx_notifications[i]['title'], tx_notifications[i]['options']);
             }
 
         });
@@ -72,6 +82,10 @@ function notify_new_block(max_chaintip_height){
 
 function run_scheduled(){ 
     //this code runs every interval
+    evalaute_new_transactions()
+
+
+    /*
     fetch("{{ url_for('wallets_endpoint_api.get_max_chaintip_height') }}")
         .then(function (response) {
             return response.json();
@@ -90,7 +104,7 @@ function run_scheduled(){
             } ;
         console.log(max_chaintip_height);
         });
-
+        */
 };
 
 
