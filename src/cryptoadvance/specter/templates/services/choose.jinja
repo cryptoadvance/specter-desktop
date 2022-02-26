@@ -236,8 +236,7 @@
         <h2>Plugin Wishlist</h2>
         <br>
 
-        {{ plugin_card('Warden', 'Portfolio Tracker.', "https://github.com/pxsocs/warden/raw/master/warden/static/images/warden_square_logo.png", "https://github.com/pxsocs/warden") }}
-        {{ plugin_card('Spotbit', 'Price Info Service.', "https://github.com/BlockchainCommons/spotbit/raw/master/images/logos/spotbit_avatar.jpg", "https://github.com/BlockchainCommons/spotbit") }}
+        {% include "services/components/wishlist.jinja" %}
 
         <div class="note endnote">
             {{ _("Some plugins might not respect the Tor-only policy.") }}
