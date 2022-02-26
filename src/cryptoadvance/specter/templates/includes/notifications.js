@@ -29,16 +29,24 @@ function webpush_notification(title, options) {
 };
 
 
-function webpush_tx(tx) {
-    title = `Incoming Transaction`;
-    amount = tx["amount"];
-    amount_formatted = amount.toFixed(8);
+function format_amount(value){
+    unit = "{{ specter.unit }}"
+    if (unit == 'btc'){
+        amount_formatted = `${value.toFixed(8)}`;
+    } else if (unit == 'sat') {
+        amount_formatted = `${(value * 1e8).toFixed(0)}`;
+    };
     if  (amount>0){
         amount_formatted = `+${amount_formatted}`
     };
+    return amount_formatted + " {{ specter.unit }}"  
+}
+
+function webpush_tx(tx) {
+    title = `Incoming Transaction`;
 
     var options = {
-        body:   amount_formatted,
+        body: format_amount(tx["amount"]),
     };
     webpush_notification(title, options);
 };
