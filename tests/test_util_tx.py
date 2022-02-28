@@ -76,7 +76,7 @@ def test_import_raw_transaction(
         )
 
         if key_type == "wpkh":
-            # Deriving the signed tx with only 1 RPC call used in convert_rawtransaction_to_psbt()
+            # Deriving the signed tx without RPC calls used in convert_rawtransaction_to_psbt()
             # fund it
             bitcoin_regtest.testcoin_faucet(wallet.getnewaddress(), amount=3)
             # Check import of signed raw tx

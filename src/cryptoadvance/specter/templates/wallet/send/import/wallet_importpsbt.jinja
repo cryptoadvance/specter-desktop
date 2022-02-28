@@ -10,7 +10,7 @@
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			<div class="card">
 				<div class="row">
-					<textarea name="rawpsbt" id="rawpsbt" placeholder="{{ _('Paste PSBT or transction here') }}"></textarea>
+					<textarea name="rawpsbt" id="rawpsbt" placeholder="{{ _('Paste PSBT or transaction here') }}"></textarea>
 				</div>
 				<div class="row break-row-mobile">
 					<qr-scanner id="psbt-scan" style="width:50%">
@@ -21,7 +21,7 @@
 								<p class="tool-tip__info">
 									<span class="info">
 										<span class="info__title">{{ _("Using an airgapped device with QR codes") }}<br><br></span>
-										{{ _("PSBT should be base64 encoded, raw TX can be signed or unsigned and should be in hex.") }}
+										{{ _("PSBT should be base64 encoded, raw transaction can be signed or unsigned and should be in hex.") }}
 									</span>
 								</p>
 							</div>
@@ -35,7 +35,7 @@
 							<p class="tool-tip__info">
 								<span class="info">
 									<span class="info__title">{{ _("Using a file") }}<br><br></span>
-									{{ _("PSBT can be base64 or binary encoded, raw TX can be signed or unsigned and should be in hex.") }}
+									{{ _("PSBT can be base64 or binary encoded, raw transaction can be signed or unsigned and should be in hex.") }}
 								</span>
 							</p>
 						</div>
