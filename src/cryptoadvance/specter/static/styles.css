@@ -798,6 +798,18 @@ table tr:hover .btn.hovering{
     border-radius: 7px;
     line-height: 1.5;
 }
+.yellow_warn_box {
+    max-width: 35em;
+    border: 4px solid yellow;
+    border-radius: 0.5em;
+    background-color: var(--cmap-bg-lighter);
+    padding: 1em;
+    text-align: center;
+}
+.yellow_warn_box .btn {
+    margin: auto;
+    max-width: 20em;
+}
 .explorer-link {
     color: inherit;
     text-decoration: none;

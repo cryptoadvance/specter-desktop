@@ -157,7 +157,7 @@
                     this.address.innerHTML = '#########';
                 } else {
                     if ((typeof services !== 'undefined') && ("service_id" in this.tx) && (this.tx.service_id in services)) {
-                        this.address.innerHTML = `<img class="service-icon" src="/svc/${this.tx.service_id}/static/${services[this.tx.service_id].icon}">`;
+                        this.address.innerHTML = `<img class="service-icon" src="{{ext_url_prefix}}/${this.tx.service_id}/static/${services[this.tx.service_id].icon}">`;
                     }
                     if (this.tx.label !== undefined) {
                         this.address.innerHTML += this.tx.label;
@@ -246,7 +246,18 @@
             }
             
             // Set time
-            this.time.innerText = this.hideSensitiveInfo ? '###########' : (new Date(this.tx.time * 1000)).toLocaleString()
+            if (this.hideSensitiveInfo) {
+                this.time.innerText = '###########'
+            } else {
+                // blocktime for confirmed Txs
+                if (this.tx.blocktime) {
+                    this.time.innerText = (new Date(this.tx.blocktime * 1000)).toLocaleString()
+                } else {
+                    this.time.innerText = (new Date(this.tx.time * 1000)).toLocaleString()
+                }
+            }
+
+            
 
             // Show blockhash
             if (this.showBlockhash) {
@@ -287,7 +298,10 @@
             if (this.hideColumns != "null") {
                 this.hideColumns.split(" ").forEach((column_name) => {
                     if (column_name) {
-                        this.shadowRoot.getElementById("column-"+ column_name).remove()
+                        let column = this.shadowRoot.getElementById("column-"+ column_name)
+                        if (column) {
+                            column.remove()
+                        }
                     }
                 })
             }

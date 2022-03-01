@@ -7,6 +7,7 @@ import requests
 from cryptoadvance.specter.util.psbt_creator import PsbtCreator
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from cryptoadvance.specter.wallet import Wallet
+from cryptoadvance.specter.util.tx import is_hex, convert_rawtransaction_to_psbt
 from flask import Blueprint
 from flask import current_app as app
 from flask import flash, jsonify, redirect, render_template, request, url_for
@@ -681,7 +682,11 @@ def import_psbt(wallet_alias):
         if action == "importpsbt":
             try:
                 b64psbt = "".join(request.form["rawpsbt"].split())
-                psbt = wallet.importpsbt(b64psbt)
+                psbt = wallet.importpsbt(
+                    convert_rawtransaction_to_psbt(wallet.rpc, b64psbt)
+                    if is_hex(b64psbt)
+                    else b64psbt
+                )
             except Exception as e:
                 handle_exception(e)
                 flash(_("Could not import PSBT: {}").format(e), "error")

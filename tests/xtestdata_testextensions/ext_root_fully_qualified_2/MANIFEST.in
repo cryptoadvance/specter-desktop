@@ -1,0 +1,5 @@
+recursive-include src/boatacccorp/specterext/ruderboot/templates *
+recursive-include src/boatacccorp/specterext/ruderboot/static *
+recursive-include src/boatacccorp/specterext/ruderboot/*/LC_MESSAGES *.mo
+recursive-include src/boatacccorp/specterext/ruderboot/translations/*/LC_MESSAGES *.po
+include requirements.txt

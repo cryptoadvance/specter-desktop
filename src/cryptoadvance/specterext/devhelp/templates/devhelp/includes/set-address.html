@@ -1,0 +1,20 @@
+potential addresses:
+<ul>
+    <li>
+        {{ wallet.get_address(1)}}
+    </li>
+    <li>
+        {{ wallet.get_address(2)}}
+    </li>
+</ul>
+Address: <input type="text" id="address" site=50 value="{{address}}"/> <button id="setaddress">SetAddress</button>
+
+<script type="text/javascript">
+    var setAddressButton = document.getElementById('setaddress')
+    
+    setAddressButton.addEventListener("click", (event) => {
+        var address = document.getElementById('address').value
+        document.getElementById('someid').setAttribute("data-address", address)
+
+    });
+</script>
