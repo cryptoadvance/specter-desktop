@@ -1,7 +1,11 @@
 from embit.transaction import Transaction
 from embit.networks import NETWORKS
+from embit.psbt import PSBT
 from hashlib import sha256
 import math
+import logging
+
+logger = logging.getLogger(__name__)
 
 TYPES_MAP = {"p2wpkh": "witness_v0_keyhash"}
 
@@ -41,6 +45,14 @@ def decoderawoutput(vout, chain):
     return result
 
 
+def is_hex(s):
+    try:
+        int(s, 16)
+    except ValueError:
+        return False
+    return len(s) % 2 == 0
+
+
 def decoderawtransaction(hextx, chain="main"):
     raw = bytes.fromhex(hextx)
     tx = Transaction.parse(raw)
@@ -71,3 +83,21 @@ def decoderawtransaction(hextx, chain="main"):
         ],
     }
     return result
+
+
+def convert_rawtransaction_to_psbt(wallet_rpc, rawtransaction) -> str:
+    """
+    Converts a raw transaction in HEX format into a PSBT in b64 format
+    """
+    tx = Transaction.from_string(rawtransaction)
+    psbt = PSBT(tx)  # this empties the signatures
+    psbt = wallet_rpc.walletprocesspsbt(str(psbt), False).get("psbt", str(psbt))
+    psbt = PSBT.from_string(psbt)  # we need the class object again
+    # Recover signatures (witness or scriptsig) if available in raw tx
+    for vin, psbtin in zip(tx.vin, psbt.inputs):
+        if vin.witness:
+            psbtin.final_scriptwitness = vin.witness
+        if vin.script_sig:
+            psbtin.final_scriptsig = vin.script_sig
+    b64_psbt = str(psbt)
+    return b64_psbt

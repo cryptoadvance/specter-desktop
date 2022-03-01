@@ -1,4 +1,4 @@
-# introduction
+# Introduction
 Specter-Desktop is using GitLab, Cirrus and GitHub-Actions for continuous integration purposes but GitHub-actions only for Blackify so far. It might be more effort using more than one CI-approach but it makes us also more resilient. 
 GitLab and Cirrus have both advantages and disadvantages so ... let's use both!
 GitLab:
@@ -38,7 +38,7 @@ We're no longer using travis-ci due to the abuse-detection-system going wild on 
 
 # Cirrus-CI
 
-[Cirrus-CI](https://cirrus-ci.org) is used by Bitcoin-Core and HWI and is a quite good replacement for travis. We're using it only for PRs so far. The [../.cirrus.yml] file defines the build. We have two task, one for pytest and one for the cypress-tests.
+[Cirrus-CI](https://cirrus-ci.org) is used by Bitcoin-Core and HWI and is a quite good replacement for travis. We're using it only for PRs so far. The [../.cirrus.yml] file defines the build. We have two task, one for pytest and one for the [cypress-tests](./cypress-testing.md).
 
 # Releasing
 

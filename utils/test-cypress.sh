@@ -263,15 +263,15 @@ function restore_snapshot {
 
   rm -rf ${BTCD_REGTEST_DATA_DIR}
   mkdir ${BTCD_REGTEST_DATA_DIR}
-  echo "--> Unpacking ./cypress/fixtures/${spec_file}_btcdir.tar.gz ... "
+  echo "--> Unpacking ./cypress/fixtures/${spec_file}_btcdir.tar.gz ... into ${BTCD_REGTEST_DATA_DIR}"
   tar -xzf ./cypress/fixtures/${spec_file}_btcdir.tar.gz -C ${BTCD_REGTEST_DATA_DIR} --strip-components=1
 
   rm -rf ${ELMD_REGTEST_DATA_DIR}
   mkdir ${ELMD_REGTEST_DATA_DIR}
-  echo "--> Unpacking ./cypress/fixtures/${spec_file}_elmdir.tar.gz ... "
+  echo "--> Unpacking ./cypress/fixtures/${spec_file}_elmdir.tar.gz into ${ELMD_REGTEST_DATA_DIR} ..."
   tar -xzf ./cypress/fixtures/${spec_file}_elmdir.tar.gz -C ${ELMD_REGTEST_DATA_DIR} --strip-components=1
 
-  echo "--> Unpacking ./cypress/fixtures/${spec_file}_specterdir.tar.gz ... "
+  echo "--> Unpacking ./cypress/fixtures/${spec_file}_specterdir.tar.gz ... into ${SPECTER_DATA_FOLDER} ..."
   rm -rf $SPECTER_DATA_FOLDER
   mkdir $SPECTER_DATA_FOLDER 
   tar -xzf ./cypress/fixtures/${spec_file}_specterdir.tar.gz -C $SPECTER_DATA_FOLDER --strip-components=1
@@ -305,8 +305,8 @@ function sub_open {
   spec_file=$1
   if [ -n "${spec_file}" ]; then
     restore_snapshot ${spec_file}
-    start_bitcoind --cleanuphard --reset
-    start_elementsd --cleanuphard --reset
+    start_bitcoind
+    start_elementsd
     start_specter
   else
     start_bitcoind --reset
@@ -321,8 +321,8 @@ function sub_run {
   spec_file=$1
   if [ -f ./cypress/integration/${spec_file} ]; then
     restore_snapshot ${spec_file}
-    start_bitcoind --cleanuphard --reset
-    start_elementsd --cleanuphard --reset
+    start_bitcoind 
+    start_elementsd
     start_specter
     # Run $spec_file and all of the others coming later!
     #$(npm bin)/cypress run --spec $(./utils/calc_cypress_test_spec.py --run $spec_file)

@@ -3,9 +3,10 @@ import json
 import logging
 import pytz
 
-from flask import current_app as app
+from flask import current_app as app, request
 from flask_babel import lazy_gettext as _
 from typing import List
+from cryptoadvance.specter.services.swan.client import SwanClient
 from cryptoadvance.specter.specter_error import SpecterError
 
 from cryptoadvance.specter.user import User
@@ -13,6 +14,7 @@ from cryptoadvance.specter.user import User
 from ..service import Service, devstatus_prod
 from cryptoadvance.specter.addresslist import Address
 from cryptoadvance.specter.wallet import Wallet
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +26,7 @@ class SwanService(Service):
     logo = "swan/img/swan_logo.svg"
     desc = "Auto-withdraw to your Specter wallet"
     has_blueprint = True
+    isolated_client = False
     devstatus = devstatus_prod
 
     # TODO: As more Services are integrated, we'll want more robust categorization and sorting logic
@@ -42,6 +45,21 @@ class SwanService(Service):
     AUTOWITHDRAWAL_THRESHOLD = "withdrawal_threshold"
 
     @classmethod
+    def client(cls) -> SwanClient:
+        if hasattr(cls, "_client"):
+            return cls._client
+        try:
+            cls._client = SwanClient(
+                urlparse(request.url).netloc,
+                cls.get_current_user_service_data().get(cls.ACCESS_TOKEN),
+                cls.get_current_user_service_data().get(cls.ACCESS_TOKEN_EXPIRES),
+                cls.get_current_user_service_data().get(cls.REFRESH_TOKEN),
+            )
+        except Exception as e:
+            raise e
+        return cls._client
+
+    @classmethod
     def is_access_token_valid(cls):
         service_data = cls.get_current_user_service_data()
         if not service_data or not service_data.get(cls.ACCESS_TOKEN_EXPIRES):
@@ -50,6 +68,17 @@ class SwanService(Service):
             service_data[cls.ACCESS_TOKEN_EXPIRES]
             > datetime.datetime.now(tz=pytz.utc).timestamp()
         )
+
+    @classmethod
+    def store_new_api_access_data(cls):
+        new_api_data = {
+            cls.ACCESS_TOKEN: cls.client().access_token,
+            cls.ACCESS_TOKEN_EXPIRES: cls.client().access_token_expires,
+        }
+        if cls.client().refresh_token:
+            new_api_data[cls.REFRESH_TOKEN] = cls.client().refresh_token
+        logger.debug(f"Storing: {new_api_data}")
+        cls.update_current_user_service_data(new_api_data)
 
     @classmethod
     def has_refresh_token(cls):
@@ -105,11 +134,15 @@ class SwanService(Service):
         cls.set_associated_wallet(wallet)
 
         # Send the new list to Swan (DELETES any unused ones; creates a new SWAN_WALLET_ID if needed)
-        swan_client.update_autowithdrawal_addresses(
+        swan_wallet_id = cls.client().update_autowithdrawal_addresses(
+            cls.get_current_user_service_data().get(cls.SWAN_WALLET_ID),
             specter_wallet_name=wallet.name,
             specter_wallet_alias=wallet.alias,
             addresses=addresses,
         )
+        logger.debug(f"Updating the Swan wallet id to {swan_wallet_id}")
+        if swan_wallet_id:
+            cls.update_current_user_service_data({cls.SWAN_WALLET_ID: swan_wallet_id})
 
         return addresses
 
@@ -129,8 +162,20 @@ class SwanService(Service):
             wallet=wallet, num_addresses=cls.MIN_PENDING_AUTOWITHDRAWAL_ADDRS
         )
 
+        swan_wallet_id = cls.get_current_user_service_data().get(cls.SWAN_WALLET_ID)
         # Send the autowithdrawal threshold
-        swan_client.set_autowithdrawal(btc_threshold=btc_threshold)
+        resp = cls.client().set_autowithdrawal(
+            swan_wallet_id, btc_threshold=btc_threshold
+        )
+        autowithdrawal_id = resp["item"]["id"]
+        if autowithdrawal_id != cls.get_current_user_service_data().get(
+            SwanService.AUTOWITHDRAWAL_ID
+        ):
+            cls.update_current_user_service_data(
+                {
+                    SwanService.AUTOWITHDRAWAL_ID: autowithdrawal_id,
+                }
+            )
 
         # Store the threshold setting in the User's service data
         cls.update_current_user_service_data(
@@ -158,7 +203,7 @@ class SwanService(Service):
 
             Otherwise clear any local autowithdrawal data.
             """
-            autowithdrawal_info = swan_client.get_autowithdrawal_info()
+            autowithdrawal_info = cls.client().get_autowithdrawal_info()
             """
                 {
                     "entity": "automaticWithdrawal",
@@ -217,7 +262,7 @@ class SwanService(Service):
             logger.debug(f"swan_wallet_id: {swan_wallet_id}")
 
             # Confirm that the Swan walletId exists on the Swan side
-            details = swan_client.get_wallet_details(swan_wallet_id)
+            details = cls.client().get_wallet_details(swan_wallet_id)
             """
             {
                 "entity": "wallet",
@@ -281,7 +326,7 @@ class SwanService(Service):
 
         # This Specter instance has no idea if there might already be wallet data on the Swan side.
         # Fetch all Swan wallets, if any exist.
-        wallet_entries = swan_client.get_wallets().get("list")
+        wallet_entries = cls.client().get_wallets().get("list")
         if not wallet_entries:
             # No Swan data at all yet. Nothing to do.
             logger.debug("No wallets on the Swan side yet")
@@ -342,7 +387,7 @@ class SwanService(Service):
                 # Import here to prevent circular dependency
                 from . import client as swan_client
 
-                swan_client.delete_autowithdrawal_addresses(
+                cls.client().delete_autowithdrawal_addresses(
                     service_data[cls.SWAN_WALLET_ID]
                 )
         except Exception as e:

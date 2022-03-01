@@ -20,7 +20,7 @@ Let's look at all the issues which can potentially occur.
 
 ## Potential connection issues
 
-The first thing you should do if it doesn't work out of the box is explicitly configuring the connection to Bitcoin Core. For that, there are the following values to be set:
+The first thing you should do if it doesn't work out of the box is explicitly configure the connection to Bitcoin Core. For that, there are the following values to be set:
 * Your Bitcoin RPC username is specified in your bitcoin.conf file on the computer where Bitcoin Core is running. If you open the file, it should like this: `rpcuser=bitcoin`
 * Your Bitcoin RPC password can also be found in that file. Search for `rpcpassword=aVerySecretPassword`
 * Your node's IP address could simply be `http://localhost` if you're running Bitcoin Core on the same machine as Specter. Otherwise, it's, as discussed above, a local network-address starting often enough with 192.168.X.Y.
@@ -53,7 +53,7 @@ However, if you're running it on a different machine, you need to make your serv
 * binding it to all network interfaces like `rpcbind=0.0.0.0:8332`
 * and also allowing everyone (specifically your machine) to connect to it: `rpcallowip=0.0.0.0/0`
 
-Note: This allow option is only for trouble shooting, ideally you would limit
+Note: This allow option is only for troubleshooting; ideally you would limit
 it to your local subnet or the machine running Specter that wants to talk to the
 node via RPC.
 
@@ -84,5 +84,5 @@ sudo ufw allow from SPECIFIC IP to any port 8332
 ```
 
 ### Server responded with error code 401:
-This issue is due to a wrong password or username configured. Double-check that the values configured match those on the bitcoin.conf
+This issue is due to a wrong username or password configuration. Double-check that the values configured match those on the bitcoin.conf
 

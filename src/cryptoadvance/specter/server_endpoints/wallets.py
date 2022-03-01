@@ -7,6 +7,7 @@ import requests
 from cryptoadvance.specter.util.psbt_creator import PsbtCreator
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from cryptoadvance.specter.wallet import Wallet
+from cryptoadvance.specter.util.tx import is_hex, convert_rawtransaction_to_psbt
 from flask import Blueprint
 from flask import current_app as app
 from flask import flash, jsonify, redirect, render_template, request, url_for
@@ -31,7 +32,7 @@ def handle_wallet_error(func_name, error):
     flash(_("SpecterError while {}: {}").format(func_name, error), "error")
     app.logger.error(f"SpecterError while {func_name}: {error}")
     app.specter.wallet_manager.update()
-    return redirect(url_for("about"))
+    return redirect(url_for("welcome_endpoint.about"))
 
 
 def check_wallet(func):
@@ -554,6 +555,7 @@ def send_new(wallet_alias):
                 fee_rate = float(request.form["rbf_fee_rate"])
                 fee_options = "manual"
                 rbf = True
+                fillform = True
             except Exception as e:
                 handle_exception(e)
                 flash(_("Failed to perform RBF. Error: {}").format(e), "error")
@@ -689,7 +691,11 @@ def import_psbt(wallet_alias):
         if action == "importpsbt":
             try:
                 b64psbt = "".join(request.form["rawpsbt"].split())
-                psbt = wallet.importpsbt(b64psbt)
+                psbt = wallet.importpsbt(
+                    convert_rawtransaction_to_psbt(wallet.rpc, b64psbt)
+                    if is_hex(b64psbt)
+                    else b64psbt
+                )
             except Exception as e:
                 handle_exception(e)
                 flash(_("Could not import PSBT: {}").format(e), "error")

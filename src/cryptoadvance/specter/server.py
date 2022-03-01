@@ -1,28 +1,26 @@
 import logging
 import os
 import sys
-import secrets
 from pathlib import Path
 
+from cryptoadvance.specter.liquid.rpc import LiquidRPC
+from cryptoadvance.specter.managers.service_manager import ServiceManager
+from cryptoadvance.specter.rpc import BitcoinRPC
+from cryptoadvance.specter.util.reflection import get_template_static_folder
+from .services.callbacks import after_serverpy_init_app
 from dotenv import load_dotenv
-from flask import Flask, redirect, request, url_for, jsonify, session
+from flask import Flask, jsonify, redirect, request, session, url_for
 from flask_babel import Babel
 from flask_login import LoginManager, login_user
 from flask_wtf.csrf import CSRFProtect
-from cryptoadvance.specter.liquid.rpc import LiquidRPC
-
-from cryptoadvance.specter.rpc import BitcoinRPC
-from cryptoadvance.specter.managers.service_manager import ServiceManager
-from cryptoadvance.specter.util.reflection import get_template_static_folder
-
-from .helpers import hwi_get_config
-from .specter import Specter
-from .hwi_server import hwi_server
-from .user import User
-from .util.version import VersionChecker
-from .util.specter_migrator import SpecterMigrator
-from werkzeug.middleware.proxy_fix import ProxyFix
 from jinja2 import select_autoescape
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.wrappers import Response
+
+from .hwi_server import hwi_server
+from .specter import Specter
+from .util.specter_migrator import SpecterMigrator
 
 logger = logging.getLogger(__name__)
 
@@ -62,14 +60,23 @@ def calc_module_name(config):
 
 
 def create_app(config=None):
-
+    """config is either a string:
+    * if it's with dots, it's fqn classname
+    * without dots cryptoadvance.specter.config will be added in the front
+    ir it's a class directly. Then it's simply passed through
+    """
     # Cmdline has precedence over Env-Var
     if config is not None:
-        config = calc_module_name(
-            os.environ.get("SPECTER_CONFIG")
-            if os.environ.get("SPECTER_CONFIG")
-            else config
-        )
+        if isinstance(config, str):
+            config = calc_module_name(
+                os.environ.get("SPECTER_CONFIG")
+                if os.environ.get("SPECTER_CONFIG")
+                else config
+            )
+            config_name = config
+        elif isinstance(config, type):
+            # Useful for testing passing in classes directly
+            config_name = config.__module__ + "." + config.__name__
     else:
         # Enables injection of a different config via Env-Variable
         if os.environ.get("SPECTER_CONFIG"):
@@ -77,6 +84,7 @@ def create_app(config=None):
         else:
             # Default
             config = "cryptoadvance.specter.config.ProductionConfig"
+        config_name = config
 
     app = SpecterFlask(
         __name__,
@@ -87,7 +95,7 @@ def create_app(config=None):
     logger.info(f"Configuration: {config}")
     app.config.from_object(config)
     # Might be convenient to know later where it came from (see Service configuration)
-    app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"] = config
+    app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"] = config_name
     app.wsgi_app = ProxyFix(
         app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1
     )
@@ -99,7 +107,16 @@ def create_app(config=None):
 
 def init_app(app, hwibridge=False, specter=None):
     """see blogpost 19nd Feb 2020"""
+
+    # Configuring a prefix for the app
+    if app.config["APP_URL_PREFIX"] != "":
+        # https://dlukes.github.io/flask-wsgi-url-prefix.html
+        app.wsgi_app = DispatcherMiddleware(
+            Response("Not Found", status=404),
+            {app.config["APP_URL_PREFIX"]: app.wsgi_app},
+        )
     # First: Migrations
+    print(f"-----------{app.config['SPECTER_DATA_FOLDER']}")
     mm = SpecterMigrator(app.config["SPECTER_DATA_FOLDER"])
     mm.execute_migrations()
 
@@ -111,13 +128,16 @@ def init_app(app, hwibridge=False, specter=None):
 
     if specter is None:
         # the default. If not None, then it got injected for testing
-        app.logger.info("Initializing Specter")
+        app.logger.info(
+            f"Initializing Specter with data-folder {app.config['SPECTER_DATA_FOLDER']}"
+        )
         specter = Specter(
             data_folder=app.config["SPECTER_DATA_FOLDER"],
             config=app.config["DEFAULT_SPECTER_CONFIG"],
             internal_bitcoind_version=app.config["INTERNAL_BITCOIND_VERSION"],
         )
 
+    # ServiceManager will instantiate and register blueprints for extensions
     specter.service_manager = ServiceManager(
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )
@@ -212,7 +232,7 @@ def init_app(app, hwibridge=False, specter=None):
             return jsonify(success=False)
 
     # --------------------- Babel integration ---------------------
-
+    specter.service_manager.execute_ext_callbacks(after_serverpy_init_app)
     return app
 
 

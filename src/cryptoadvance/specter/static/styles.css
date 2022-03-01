@@ -658,6 +658,7 @@ table{
 .table-holder{
     padding: 0 30px;
     width: 100%;
+    overflow-y: scroll;
     /*overflow-x: scroll;*/
 }
 .full-width{
@@ -786,6 +787,18 @@ table tr:hover .btn.hovering{
     margin: 10px 20px;
     border-radius: 7px;
     line-height: 1.5;
+}
+.yellow_warn_box {
+    max-width: 35em;
+    border: 4px solid yellow;
+    border-radius: 0.5em;
+    background-color: var(--cmap-bg-lighter);
+    padding: 1em;
+    text-align: center;
+}
+.yellow_warn_box .btn {
+    margin: auto;
+    max-width: 20em;
 }
 .explorer-link {
     color: inherit;
