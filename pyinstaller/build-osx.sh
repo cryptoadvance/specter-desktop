@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
+source build-common.sh
 
 
 function sub_help {
@@ -90,29 +91,24 @@ while [[ $# -gt 0 ]]
   esac
   done
 
+
+
+
 echo "    --> This build got triggered for version $version"
 
 echo $version > version.txt
 
-echo "    --> Installing (build)-requirements"
-pip3 install -r requirements.txt --require-hashes
+install_build_requirements
 
-cd ..
-# Order is relevant here. If you flip the followng lines, the hiddenimports for services won't work anymore
-python3 setup.py install
-pip3 install -e .
-cd pyinstaller
+cleanup
 
-echo "    --> Cleaning up"
-rm -rf build/ dist/ release/ electron/release/ electron/dist
-rm *.dmg || true
+building_app
 
-echo "    --> Building specterd"
-pyinstaller specterd.spec --runtime-hook=rthooks/hook-pkgutil.py
-
-echo "    --> Making us ready for building electron-app for MacOS"
 cd electron
-npm ci
+
+prepare_npm
+
+
 if [[ "$make_hash" = 'True' ]]
 then
     node ./set-version $version ../dist/specterd
@@ -127,22 +123,11 @@ else
     echo "`jq '.build.mac.identity="'"${appleid}"'"' package.json`" > package.json
 fi
 
-echo "    --> building electron-app"
-npm run dist
+building_electron_app
 
 if [[ "$appleid" != '' ]]
 then
-    echo '    --> Attempting to code sign...'
-    ditto -c -k --keepParent "dist/mac/Specter.app" dist/Specter.zip
-    output_json=$(xcrun altool --notarize-app -t osx -f dist/Specter.zip --primary-bundle-id "solutions.specter.desktop" -u "${mail}" --password "@keychain:AC_PASSWORD" --output-format json)
-    echo "JSON-Output:"
-    requestuuid=$(echo $output_json | jq -r '."notarization-upload".RequestUUID')
-    sleep 180
-    sign_result_json=$(xcrun altool --notarization-info $requestuuid -u "${mail}" --password "@keychain:AC_PASSWORD" --output-format json)
-    mkdir -p signing_logs
-    timestamp=$(date +"%Y%m%d-%H%M")
-    echo $sign_result_json | jq . > ./signing_logs/${timestamp}_${requestuuid}.log
-    xcrun stapler staple "dist/mac/Specter.app"
+  macos_code_sign
 fi
 
 cd ..
