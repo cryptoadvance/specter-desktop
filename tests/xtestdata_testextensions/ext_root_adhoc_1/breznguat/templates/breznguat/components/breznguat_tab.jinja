@@ -1,0 +1,8 @@
+{% extends "base.jinja" %}
+{% block main %}
+    <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" width="300"/>    
+    {% from 'breznguat/components/breznguat_menu.jinja' import breznguat_menu with context %}
+    {{ breznguat_menu(tab) }}
+    {% block content %}
+    {% endblock %}
+{% endblock %}

@@ -181,24 +181,11 @@
         .endnote {
             margin-top: 4em;
         }
-
-        .login_disabled {
-            max-width: 35em;
-            border: 4px solid yellow;
-            border-radius: 0.5em;
-            background-color: var(--cmap-bg-lighter);
-            padding: 1em;
-            text-align: center;
-        }
-        .login_disabled .btn {
-            margin: auto;
-            max-width: 20em;
-        }
     </style>
     <h1 style="font-size: 2em;">{{ _("Plugins") }}</h1>
     
     {% if is_login_disabled %}
-        <div class="login_disabled">
+        <div class="yellow_warn_box">
             <p>{{ _("Current Authentication method: \"None\"")}}</p>
             <p>{{ _("Service integrations require secure per-user storage. This is only possible with a user authentication method that is password protected (any method other than \"None\").") }}</p>
             <br/>

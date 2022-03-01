@@ -7,6 +7,7 @@ from cryptoadvance.specter.liquid.rpc import LiquidRPC
 from cryptoadvance.specter.managers.service_manager import ServiceManager
 from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.util.reflection import get_template_static_folder
+from .services.callbacks import after_serverpy_init_app
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, request, session, url_for
 from flask_babel import Babel
@@ -114,8 +115,8 @@ def init_app(app, hwibridge=False, specter=None):
             Response("Not Found", status=404),
             {app.config["APP_URL_PREFIX"]: app.wsgi_app},
         )
-
     # First: Migrations
+    print(f"-----------{app.config['SPECTER_DATA_FOLDER']}")
     mm = SpecterMigrator(app.config["SPECTER_DATA_FOLDER"])
     mm.execute_migrations()
 
@@ -127,7 +128,9 @@ def init_app(app, hwibridge=False, specter=None):
 
     if specter is None:
         # the default. If not None, then it got injected for testing
-        app.logger.info("Initializing Specter")
+        app.logger.info(
+            f"Initializing Specter with data-folder {app.config['SPECTER_DATA_FOLDER']}"
+        )
         specter = Specter(
             data_folder=app.config["SPECTER_DATA_FOLDER"],
             config=app.config["DEFAULT_SPECTER_CONFIG"],
@@ -229,7 +232,7 @@ def init_app(app, hwibridge=False, specter=None):
             return jsonify(success=False)
 
     # --------------------- Babel integration ---------------------
-
+    specter.service_manager.execute_ext_callbacks(after_serverpy_init_app)
     return app
 
 

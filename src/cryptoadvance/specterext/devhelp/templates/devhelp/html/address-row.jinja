@@ -1,0 +1,51 @@
+{% extends "devhelp/components/devhelp_tab.jinja" %}
+{% block title %}address-row{% endblock %}
+{% set tab = 'html' %}
+{% block content %}
+
+<h1>address-row</h1> 
+
+{% include "includes/address-row.html" %}
+
+
+<code class="html"><textarea rows="40" cols="90" style="height: 200px">
+<table>
+<address-row 
+    data-verify-qr="False" 
+    data-verify-hwi="False" 
+    data-btc-unit="btc" 
+    data-price="0" 
+    data-symbol="" 
+    data-address='{"index":0,"address":"bcrt1qreur2f3v9q8ylznanxwkzkhy0gl7vym3zqkwaw","label":"Address #0","amount":20,"used":true,"utxo":1,"type":"receive","service_id":null}' 
+    data-hide-sensitive-info="false" 
+    data-wallet="syfdds_2">
+</address-row>
+</table>
+</textarea>    
+</code>
+
+<p>
+Address-rows are used in address-tables. as discussed in this <a href="https://stackoverflow.com/posts/45765748/revisions">answer</a>, custom elements are not allowed in table-tags. 
+It's not clear how the address-table achieves it that it works nevertheless. So in the example below, we'll render the component without a table-tag.
+
+The data-address takes json. The data-wallet is used to enable clicking on the address which will show a address-data if the code is properly imported.
+The component is passive otherwise.
+
+
+<h1>Render with data-address</h1>
+
+<address-row 
+    id="someid"
+    data-verify-qr="False" 
+    data-verify-hwi="False" 
+    data-btc-unit="btc" 
+    data-price="0" 
+    data-symbol="" 
+    data-address='{"index":0,"address":"bcrt1qreur2f3v9q8ylznanxwkzkhy0gl7vym3zqkwaw","label":"Address #0","amount":20,"used":true,"utxo":1,"type":"receive","service_id":null}' 
+    data-hide-sensitive-info="false" 
+    data-wallet="syfdds_2">
+    <!-- -->
+</address-row>
+
+
+{% endblock %}

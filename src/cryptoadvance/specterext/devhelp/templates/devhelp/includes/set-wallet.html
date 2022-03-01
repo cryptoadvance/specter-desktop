@@ -1,0 +1,11 @@
+WalletAlias: <input type="text" id="walletalias" site=50 value="{{ wallet.alias}}"/> <button id="setwalletalias">SetWalletAlias</button>
+
+<script type="text/javascript">
+    var setWalletAliasButton = document.getElementById('setwalletalias')
+    
+    setWalletAliasButton.addEventListener("click", (event) => {
+        var walletAlias = document.getElementById('walletalias').value
+        document.getElementById('someid').setAttribute("data-address-wallet", walletAlias)
+        console.log(walletAlias)
+    });
+</script>
