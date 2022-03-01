@@ -1,7 +1,14 @@
+
 function getDownloadLocation(version, platformname) {
-    return `https://github.com/cryptoadvance/specter-desktop/releases/download/${version}/specterd-${version}-${platformname}.zip`
+    return `http://specterext.bitcoinops.de/user/k9ert/dice/releases/download/${version}/diced-${version}-${platformname}.zip`
+}
+
+function appName() {
+    return "Specter"
 }
 
 module.exports = {
-    getDownloadLocation: getDownloadLocation
+    getDownloadLocation: getDownloadLocation, 
+    appName: appName
 }
+

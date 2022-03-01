@@ -23,7 +23,7 @@
     "electron-builder": "^22.9.1"
   },
   "build": {
-    "productName": "Specter",
+    "productName": "Dice",
     "appId": "solutions.specter.desktop",
     "mac": {
       "category": "public.app-category.utilities",
@@ -48,5 +48,6 @@
     "read-last-lines": "^1.8.0",
     "request": "^2.88.2",
     "winston": "^3.3.3"
-  }
+  },
+  "version": "v0.0.0-pre1"
 }
