@@ -230,6 +230,30 @@ nav.side > a.item.active, nav.side > div > a.item.active{
     background: rgba(0,0,0,0.1);
     /*color: #fff;*/
 }
+.main-page-container{
+    max-width: 65%;
+    text-align: center;
+    margin-top: 1em;
+    border: 3px #263044 solid;
+    border-radius: 1em;
+}
+.main-description-box{
+    max-width: 90%;
+    padding-left: 1em;
+    padding-right: 1em;
+    padding-top: .5em;
+    margin-bottom: 1em;
+    background-color: #263044;
+    border: 1px solid #CCCCCC;
+    border-radius: 4px;
+}
+.main-specter-background-image{
+    position: absolute;
+    bottom: 0;
+    left: 30;
+    opacity: 0.3;
+    z-index: 0;
+}
 
 
 #devices_list{
@@ -1022,6 +1046,14 @@ nav.collapse-on-mobile a.mobile-nav-icon {
       right: -20px;
     }
   }
+  .main-page-container{
+    max-width: 85%;
+    border: none;
+    margin-top: .1em;
+  }
+  .main-specter-background-image{
+    right: 0;
+  }
 }
 /* touch based devices need a menu button */
 @media (any-hover: none) and (max-width: 1100px),
@@ -1145,6 +1177,9 @@ nav.collapse-on-mobile a.mobile-nav-icon {
     #wizard-previous {
         margin-right: 10px !important;
     }
+    .main-specter-background-image{
+        display: none;
+      }
 }
 
 /************** Switch checkbox styles ********************************/
