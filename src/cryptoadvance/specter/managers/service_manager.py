@@ -53,9 +53,12 @@ class ServiceManager:
         class_list = get_classlist_of_type_clazz_from_modulelist(
             Service, app.config.get("EXTENSION_LIST", [])
         )
-        logger.info("----> starting service discovery Dynamic")
+
         if app.config.get("SERVICES_LOAD_FROM_CWD", False):
+            logger.info("----> starting service discovery dynamic")
             class_list.extend(get_subclasses_for_clazz_in_cwd(Service))
+        else:
+            logger.info("----> skipping service discovery dynamic")
         logger.info("----> starting service loading")
         class_list = set(class_list)  # remove duplicates (shouldn't happen but  ...)
         for clazz in class_list:

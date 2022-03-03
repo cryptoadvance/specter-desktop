@@ -55,9 +55,18 @@ def run_shell(cmd):
         return {"code": 0xF00DBABE, "out": b"", "err": e}
 
 
-def get_last_lines_from_file(file_localtion, x=50):
+def get_last_lines_from_file(file_location, x=50):
     """returns an array of the last x lines of a file"""
-    with open(file_localtion, "r") as the_file:
+    with open(file_location, "r") as the_file:
         lines = the_file.readlines()
         last_lines = lines[-x:]
     return last_lines
+
+
+def grep(file_location, search_line):
+    """returns true if any like in that file endswith search_line"""
+    with open(file_location, "r") as the_file:
+        for line in the_file.readlines():
+            if line.endswith(search_line):
+                return True
+    return False
