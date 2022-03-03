@@ -121,7 +121,7 @@ def get_new_tx_notifications():  # GET request
     print(updated_txs)
     notifications = [
         {
-            "title": f"{tx['category'].capitalize()} Transaction of wallet {tx['wallet_alias']}",
+            "title": f"Specter: {tx['category'].capitalize()} Transaction of wallet {tx['wallet_alias']}",
             "options": {
                 "body": f"{btcunitamount(None, tx['amount'])} {app.specter.unit.upper()}\n"
                 f"sent to {tx['label']}",
