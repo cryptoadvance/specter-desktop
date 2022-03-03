@@ -67,6 +67,6 @@ def grep(file_location, search_line):
     """returns true if any like in that file endswith search_line"""
     with open(file_location, "r") as the_file:
         for line in the_file.readlines():
-            if line.endswith(search_line):
+            if line.strip().endswith(search_line):
                 return True
     return False
