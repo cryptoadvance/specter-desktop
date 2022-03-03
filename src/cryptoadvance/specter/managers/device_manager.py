@@ -5,6 +5,7 @@ import pathlib
 from flask_babel import lazy_gettext as _
 
 from cryptoadvance.specter.devices.bitcoin_core import BitcoinCoreWatchOnly
+from cryptoadvance.specter.devices.electrum import Electrum
 
 from ..helpers import alias, load_jsons
 from ..rpc import get_default_datadir
@@ -110,8 +111,7 @@ class DeviceManager:
             devices = [
                 device_class
                 for device_class in device_classes
-                if device_class.device_type != "bitcoincore"
-                and device_class.device_type != "elementscore"
+                if device_class.device_type not in ["bitcoincore", "elementscore"]
             ]
         elif specter.is_liquid:
             devices = [
@@ -125,8 +125,12 @@ class DeviceManager:
                 for device_class in device_classes
                 if device_class.bitcoin_core_support
             ]
+
         if BitcoinCoreWatchOnly in devices:
             devices.remove(BitcoinCoreWatchOnly)
+        # electrum needs to be configured via the "Manual configuration" dialog and excluded from the list
+        if Electrum in devices:
+            devices.remove(Electrum)
         return devices
 
     def delete(self, specter):
