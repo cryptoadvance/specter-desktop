@@ -23,4 +23,4 @@ pgpy==0.5.4
 cbor==1.0.0
 mnemonic==0.20
 cryptography==3.4.7
-apscheduler==3.9.1
+Flask-APScheduler==1.12.3

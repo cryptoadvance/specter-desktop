@@ -3,13 +3,14 @@ import os
 import sys
 from pathlib import Path
 
-from apscheduler.schedulers.background import BackgroundScheduler
 from cryptoadvance.specter.liquid.rpc import LiquidRPC
 from cryptoadvance.specter.managers.service_manager import ServiceManager
 from cryptoadvance.specter.rpc import BitcoinRPC
+from cryptoadvance.specter.services import callbacks
 from cryptoadvance.specter.util.reflection import get_template_static_folder
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, request, session, url_for
+from flask_apscheduler import APScheduler
 from flask_babel import Babel
 from flask_login import LoginManager, login_user
 from flask_wtf.csrf import CSRFProtect
@@ -22,7 +23,6 @@ from .hwi_server import hwi_server
 from .services.callbacks import after_serverpy_init_app
 from .specter import Specter
 from .util.specter_migrator import SpecterMigrator
-from cryptoadvance.specter.services import callbacks
 
 logger = logging.getLogger(__name__)
 
@@ -241,11 +241,16 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
         app.specter.service_manager.execute_ext_callbacks(callbacks.every5seconds)
         ctx.pop()
 
-    sched = BackgroundScheduler(daemon=True)
-    sched.add_job(every5seconds, "interval", seconds=5)
-    sched.start()
+    # initialize scheduler
+    from apscheduler.schedulers.background import BackgroundScheduler
 
-    specter.service_manager.execute_ext_callbacks(after_serverpy_init_app)
+    scheduler = APScheduler()
+
+    scheduler.init_app(app)
+    scheduler.start()
+    specter.service_manager.execute_ext_callbacks(
+        after_serverpy_init_app, scheduler=scheduler
+    )
     return app
 
 
