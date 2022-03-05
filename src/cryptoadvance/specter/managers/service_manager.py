@@ -9,12 +9,15 @@ from typing import Dict, List
 
 from cryptoadvance.specter.config import ProductionConfig
 from cryptoadvance.specter.managers.singleton import ConfigurableSingletonException
+from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.user import User
+from cryptoadvance.specter.util.reflection import get_template_static_folder
 from flask import current_app as app
 from flask import url_for
 from flask.blueprints import Blueprint
 
 from ..services.service import Service
+from ..services import callbacks, ExtensionException
 from ..services.service_encrypted_storage import ServiceEncryptedStorageManager
 from ..util.reflection import (
     _get_module_from_class,
@@ -36,7 +39,7 @@ class ServiceManager:
 
         # Each Service class is stored here, keyed on its Service.id str
         self._services: Dict[str, Service] = {}
-        logger.info("----> starting service discovery <----")
+        logger.info("----> starting service discovery Static")
         # How do we discover services? Two configs are relevant:
         # * SERVICES_LOAD_FROM_CWD (boolean, CWD is current working directory)
         # * EXTENSION_LIST (array of Fully Qualified module strings like ["cryptoadvance.specter.services.swan.service"])
@@ -46,19 +49,23 @@ class ServiceManager:
         class_list = get_classlist_of_type_clazz_from_modulelist(
             Service, app.config.get("EXTENSION_LIST", [])
         )
+        logger.info("----> starting service discovery Dynamic")
         if app.config.get("SERVICES_LOAD_FROM_CWD", False):
             class_list.extend(get_subclasses_for_clazz_in_cwd(Service))
+        logger.info("----> starting service loading")
         class_list = set(class_list)  # remove duplicates (shouldn't happen but  ...)
         for clazz in class_list:
             compare_map = {"alpha": 1, "beta": 2, "prod": 3}
             if compare_map[self.devstatus_threshold] <= compare_map[clazz.devstatus]:
                 # First configure the service
-                self.configure_service_for_module(clazz.id)
+                self.configure_service_for_module(clazz)
                 # Now activate it
                 self._services[clazz.id] = clazz(
                     active=clazz.id in self.specter.config.get("services", []),
                     specter=self.specter,
                 )
+                # maybe register the blueprint
+                self.register_blueprint_for_ext(clazz, self._services[clazz.id])
                 logger.info(f"Service {clazz.__name__} activated ({clazz.devstatus})")
             else:
                 logger.info(
@@ -73,20 +80,90 @@ class ServiceManager:
         except ConfigurableSingletonException as e:
             # Test suite triggers multiple calls; ignore for now.
             pass
-        logger.info("----> finished service discovery <----")
+        logger.info("----> finished service processing")
+        self.execute_ext_callbacks("afterServiceManagerInit")
 
     @classmethod
-    def configure_service_for_module(cls, service_id):
+    def register_blueprint_for_ext(cls, clazz, ext):
+        if not clazz.has_blueprint:
+            return
+        if hasattr(clazz, "blueprint_module"):
+            import_name = clazz.blueprint_module
+            controller_module = clazz.blueprint_module
+        else:
+            # The import_name helps to locate the root_path for the blueprint
+            import_name = f"cryptoadvance.specter.services.{clazz.id}.service"
+            controller_module = f"cryptoadvance.specter.services.{clazz.id}.controller"
+
+        clazz.blueprint = Blueprint(
+            f"{clazz.id}_endpoint",
+            import_name,
+            template_folder=get_template_static_folder("templates"),
+            static_folder=get_template_static_folder("static"),
+        )
+
+        def inject_stuff():
+            """Can be used in all jinja2 templates"""
+            return dict(specter=app.specter, service=ext)
+
+        clazz.blueprint.context_processor(inject_stuff)
+
+        # Import the controller for this service
+        logger.info(f"  Loading Controller {controller_module}")
+        controller_module = import_module(controller_module)
+
+        # finally register the blueprint
+        if clazz.isolated_client:
+            ext_prefix = app.config["ISOLATED_CLIENT_EXT_URL_PREFIX"]
+        else:
+            ext_prefix = app.config["EXT_URL_PREFIX"]
+
+        try:
+            app.register_blueprint(
+                clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
+            )
+            logger.info(f"  Mounted {clazz.id} to {ext_prefix}/{clazz.id}")
+            if (
+                app.testing
+                and len([vf for vf in app.view_functions if vf.startswith(clazz.id)])
+                <= 1
+            ):  # the swan-static one
+                # Yet again that nasty workaround which has been described in the archblog.
+                # The easy variant can be found in server.py
+                # The good news is, that we'll only do that for testing
+                import importlib
+
+                logger.info("Reloading Extension controller")
+                importlib.reload(controller_module)
+                app.register_blueprint(
+                    clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
+                )
+        except AssertionError as e:
+            if str(e).startswith("A name collision"):
+                raise SpecterError(
+                    f"""
+                There is a name collision for the {clazz.blueprint.name}. \n
+                This is probably because you're running in DevelopementConfig and configured
+                the extension at the same time in the EXTENSION_LIST which currently loks like this:
+                {app.config['EXTENSION_LIST']})
+                """
+                )
+
+    @classmethod
+    def configure_service_for_module(cls, clazz):
         """searches for ConfigClasses in the module-Directory and merges its config in the global config"""
         try:
-            module = import_module(
-                f"cryptoadvance.specter.services.{service_id}.config"
-            )
+            module = import_module(f"cryptoadvance.specter.services.{clazz.id}.config")
         except ModuleNotFoundError:
-            logger.warning(
-                f"Service {service_id} does not have a service Configuration! Skipping!"
-            )
-            return
+            # maybe the other style:
+            org = clazz.__module__.split(".")[0]
+            try:
+                module = import_module(f"{org}.specterext.{clazz.id}.config")
+            except ModuleNotFoundError:
+                logger.warning(
+                    f"Service {clazz.id} does not have a service Configuration! Skipping!"
+                )
+                return
         main_config_clazz_name = app.config.get("SPECTER_CONFIGURATION_CLASS_FULLNAME")
         main_config_clazz_slug = main_config_clazz_name.split(".")[-1]
         potential_config_classes = []
@@ -127,6 +204,18 @@ class ServiceManager:
                 app.config[key] = getattr(clazz, key)
                 logger.debug(f"setting {key} = {app.config[key]}")
 
+    def execute_ext_callbacks(self, callback_id, *args, **kwargs):
+        """will execute the callback function for each extension which has defined that method
+        the callback_id needs to be passed and specify why the callback has been called.
+        It needs to be one of the constants defined in cryptoadvance.specter.services.callbacks
+        """
+        if callback_id not in dir(callbacks):
+            raise Exception(f"Non existing callback_id: {callback_id}")
+        logger.debug(f"Executing callback {callback_id}")
+        for ext in self.services.values():
+            if hasattr(ext, "callback"):
+                ext.callback(callback_id, *args, **kwargs)
+
     @property
     def services(self) -> Dict[str, Service]:
         return self._services or {}
@@ -151,17 +240,17 @@ class ServiceManager:
     def set_active_services(self, service_names_active):
         logger.debug(f"Setting these services active: {service_names_active}")
         self.specter.update_services(service_names_active)
-        for _, service in self.services.items():
+        for _, ext in self.services.items():
             logger.debug(
-                f"Setting service '{service.id}' active to {service.id in service_names_active}"
+                f"Setting service '{ext.id}' active to {ext.id in service_names_active}"
             )
-            service.active = service.id in service_names_active
+            ext.active = ext.id in service_names_active
 
-    def get_service(self, service_id: str) -> Service:
-        if service_id not in self._services:
-            # TODO: better error handling?
-            raise Exception(f"No such Service: '{service_id}'")
-        return self._services[service_id]
+    def get_service(self, plugin_id: str) -> Service:
+        """get an extension-instance by ID. Raises an ExtensionException if it doesn't find it."""
+        if plugin_id not in self._services:
+            raise ExtensionException(f"No such plugin: '{plugin_id}'")
+        return self._services[plugin_id]
 
     def remove_all_services_from_user(self, user: User):
         """

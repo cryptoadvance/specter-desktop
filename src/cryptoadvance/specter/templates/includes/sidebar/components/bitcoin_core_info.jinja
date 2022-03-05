@@ -46,7 +46,7 @@
                 document.getElementById('total_supply').innerHTML = `{{ _("Running the numbers... (this might take a few minutes)") }}`;
                 try {
                     const response = await fetch(
-                        "{{ url_for('txout_set_info') }}",
+                        "{{ url_for('wallets_endpoint_api.txout_set_info') }}",
                         {
                             method: 'GET'
                         }

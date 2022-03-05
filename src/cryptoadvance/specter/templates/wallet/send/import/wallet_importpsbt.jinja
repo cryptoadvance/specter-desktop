@@ -4,13 +4,13 @@
 	{% include "includes/qr-scanner.html" %}
 	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
 	{{ send_nav('import_psbt', wallet_alias) }}
-		<h1 class="padded">{{ _("Import PSBT transaction:") }}</h1>
-		<span class="center note padded">{{ _("Paste base64-encoded PSBT transaction here to import.") }}</span>
+		<h1 class="padded">{{ _("Import transaction") }}</h1>
+		<span class="center note padded" style="margin-bottom: 10px; font-size:1em">{{ _("PSBT (base64) or old-school transaction (hex)") }}</span>
 		<form action="{{ url_for('wallets_endpoint.import_psbt',wallet_alias=wallet_alias) }}" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			<div class="card">
 				<div class="row">
-					<textarea name="rawpsbt" id="rawpsbt" placeholder="{{ _('Paste PSBT here') }}"></textarea>
+					<textarea name="rawpsbt" id="rawpsbt" placeholder="{{ _('Paste PSBT or transction here') }}"></textarea>
 				</div>
 				<div class="row break-row-mobile">
 					<qr-scanner id="psbt-scan" style="width:50%">
@@ -21,7 +21,7 @@
 								<p class="tool-tip__info">
 									<span class="info">
 										<span class="info__title">{{ _("Using an airgapped device with QR codes") }}<br><br></span>
-										{{ _("PSBT should be base64 encoded.") }}
+										{{ _("PSBT should be base64 encoded, raw TX can be signed or unsigned and should be in hex.") }}
 									</span>
 								</p>
 							</div>
@@ -35,7 +35,7 @@
 							<p class="tool-tip__info">
 								<span class="info">
 									<span class="info__title">{{ _("Using a file") }}<br><br></span>
-									{{ _("The file should contain either base64 or binary encoded PSBT.") }}
+									{{ _("PSBT can be base64 or binary encoded, raw TX can be signed or unsigned and should be in hex.") }}
 								</span>
 							</p>
 						</div>

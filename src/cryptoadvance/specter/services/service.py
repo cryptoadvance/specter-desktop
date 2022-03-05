@@ -34,6 +34,8 @@ class Service:
     logo = None
     desc = None  # TODO: rename to "description" to be explicit
     has_blueprint = True  # the default
+    # If the blueprint gets a "/ext" prefix (isolated_client = True), the login cookie won't work for all specter core functionality
+    isolated_client = True
     devstatus = devstatus_alpha
 
     def __init__(self, active, specter):
@@ -43,35 +45,6 @@ class Service:
             raise Exception(f"Service {self.__class__} needs name")
         self.active = active
         self.specter = specter
-        if hasattr(self.__class__, "blueprint_module"):
-            import_name = self.blueprint_module
-        else:
-            import_name = f"cryptoadvance.specter.services.{self.id}.service"
-        if self.has_blueprint:
-            self.__class__.blueprint = Blueprint(
-                f"{self.id}_endpoint",
-                import_name,
-                template_folder=get_template_static_folder("templates"),
-                static_folder=get_template_static_folder("static"),
-            )
-
-            def inject_stuff():
-                """Can be used in all jinja2 templates"""
-                return dict(specter=app.specter, service=self)
-
-            self.__class__.blueprint.context_processor(inject_stuff)
-            # Import the controller for this service
-            if hasattr(self.__class__, "blueprint_module"):
-                controller_module = self.blueprint_module
-            else:
-                controller_module = (
-                    f"cryptoadvance.specter.services.{self.id}.controller"
-                )
-            logger.info(f"  Loading Controller {controller_module}")
-            import_module(controller_module)
-            app.register_blueprint(
-                self.__class__.blueprint, url_prefix=f"/svc/{self.id}"
-            )
 
     @classmethod
     def set_current_user_service_data(cls, service_data: dict):

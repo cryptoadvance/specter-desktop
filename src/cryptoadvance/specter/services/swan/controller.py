@@ -2,6 +2,7 @@ import json
 import logging
 
 from decimal import Decimal
+from urllib.parse import urlparse
 from flask import redirect, render_template, request, url_for, flash
 from flask import current_app as app
 from flask.json import jsonify
@@ -54,8 +55,15 @@ def index():
     if SwanService.has_refresh_token():
         # User has already completed Swan integration; skip ahead
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
+    specter_used_hostname = urlparse(request.url).netloc
     return render_template(
-        "swan/index.jinja", swan_frontend_url=app.config["SWAN_FRONTEND_URL"]
+        "swan/index.jinja",
+        swan_frontend_url=app.config["SWAN_FRONTEND_URL"],
+        specter_used_hostname=specter_used_hostname,
+        # The oauth2-flow uses a whitelist. Is our hostname whitelisted?!
+        specter_hostname_supported=specter_used_hostname
+        in app.config["SWAN_ALLOWED_SPECTER_HOSTNAMES"],
+        allowed_specter_hostnames=app.config["SWAN_ALLOWED_SPECTER_HOSTNAMES"],
     )
 
 
@@ -132,7 +140,11 @@ def oauth2_start():
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.settings"))
 
     # Let's start the PKCE-flow
-    flow_url = swan_client.get_oauth2_start_url()
+    specter_used_hostname = urlparse(request.url).netloc
+    # The oauth2-flow uses a whitelist. Is our hostname whitelisted?!
+    if specter_used_hostname not in app.config["SWAN_ALLOWED_SPECTER_HOSTNAMES"]:
+        return redirect(url_for(f"{SwanService.get_blueprint_name()}.index"))
+    flow_url = SwanService.client().get_oauth2_start_url(specter_used_hostname)
 
     return render_template(
         "swan/oauth2_start.jinja",
@@ -182,7 +194,8 @@ def oauth2_auth():
     error = None
 
     try:
-        swan_client.handle_oauth2_auth_callback(request)
+        SwanService.client().handle_oauth2_auth_callback(request)
+        SwanService.store_new_api_access_data()
     except swan_client.SwanApiException as e:
         logger.exception(e)
         error = e

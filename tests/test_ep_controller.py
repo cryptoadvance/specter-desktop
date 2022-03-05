@@ -1,5 +1,12 @@
 import logging
+import os
 import pytest
+import sys
+from flask import Blueprint
+from cryptoadvance.specter.server import create_app, init_app
+from cryptoadvance.specter.specter import Specter
+from cryptoadvance.specter.config import TestConfig
+from conftest import specter_app_with_config
 
 
 @pytest.mark.slow
@@ -11,7 +18,7 @@ def test_home(caplog, client):
     result = client.get("/")
     # By default there is no authentication
     assert result.status_code == 302  # REDIRECT.
-    result = client.get("/about")
+    result = client.get("/welcome/about")
     assert b"Welcome to Specter" in result.data
     result = client.get("/devices/new_device_type", follow_redirects=True)
     assert result.status_code == 200  # OK.
@@ -42,6 +49,7 @@ def test_home(caplog, client):
 def test_settings_general(caplog, client):
     login(client, "secret")
     result = client.get("/settings/general", follow_redirects=True)
+    assert result.status_code == 200  # OK.
     assert b"Network:" in result.data
     assert b"regtest" in result.data
 
@@ -87,6 +95,71 @@ def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
     # assert b'btc Hot Wallet' in result.data # Not sure why this doesn't work
     assert b"myNiceDevice" in result.data
     assert b"btchot" in result.data
+
+
+def test_APP_URL_PREFIX(caplog):
+    caplog.set_level(logging.INFO)
+    caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
+    myapp = specter_app_with_config(
+        config={
+            "APP_URL_PREFIX": "/someprefix",
+            "SPECTER_URL_PREFIX": "",
+            "EXT_URL_PREFIX": "/spc/ext",
+            "SPECTER_DATA_FOLDER": os.path.expanduser("~/.specter_testing"),
+        }
+    )
+    client = myapp.test_client()
+    login(client, "secret")
+
+    # Specter
+    result = client.get("/")
+    assert result.status_code == 404  # / --> 404
+    result = client.get("/someprefix/")
+    assert result.status_code == 302  # REDIRECT.
+    result = client.get("/someprefix/welcome")
+    assert result.status_code == 308  # REDIRECT.
+    result = client.get("/someprefix/welcome/")
+    assert result.status_code == 302  # REDIRECT.
+    result = client.get("/someprefix/welcome/about")
+    assert b"Welcome to Specter" in result.data
+
+    # Extensions
+    result = client.get("/someprefix/spc/ext/swan/")
+    # The swan extension will automatically redirect to /settings/auth
+    assert result.status_code == 302
+    assert result.location.endswith("/someprefix/settings/auth")
+
+
+def test_SPECTER_URL_PREFIX(caplog):
+    caplog.set_level(logging.INFO)
+    caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
+    myapp = specter_app_with_config(
+        config={
+            "APP_URL_PREFIX": "",
+            "SPECTER_URL_PREFIX": "/someprefix",
+            "EXT_URL_PREFIX": "/someprefix/extensions",
+            "SPECTER_DATA_FOLDER": os.path.expanduser("~/.specter_testing"),
+        }
+    )
+    client = myapp.test_client()
+    login(client, "secret")
+    result = client.get("/")
+    # The effect is almost the same but you get one more convenient redirect
+    assert result.status_code == 302  # REDIRECT.
+    result = client.get("/someprefix/")
+    assert result.status_code == 302  # REDIRECT.
+    result = client.get("/someprefix/welcome")
+    assert result.status_code == 308  # REDIRECT.
+    result = client.get("/someprefix/welcome/")
+    assert result.status_code == 302  # REDIRECT.
+    result = client.get("/someprefix/welcome/about")
+    assert b"Welcome to Specter" in result.data
+
+    # Extensions
+    result = client.get("/someprefix/extensions/swan/")
+    # The swan extension will automatically redirect to /settings/auth
+    assert result.status_code == 302
+    assert result.location.endswith("/someprefix/settings/auth")
 
 
 def login(client, password):
