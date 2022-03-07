@@ -98,7 +98,7 @@ currency_mapping = {
 
 def update_price(specter, current_user):
     try:
-        price, symbol = get_price_at(specter, current_user, timestamp="now")
+        price, symbol = get_price_at(specter, timestamp="now")
         specter.update_alt_rate(price, current_user)
         specter.update_alt_symbol(symbol, current_user)
         return True

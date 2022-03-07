@@ -780,7 +780,7 @@ def txlist_to_csv(
             for i in range(0, len(tx["address"])):
                 tx_copy["address"] = tx["address"][i]
                 tx_copy["amount"] = tx["amount"][i]
-                txlist.append(tx.copy())
+                txlist.append(tx_copy.copy())
         else:
             txlist.append(tx.copy())
     data = StringIO()
