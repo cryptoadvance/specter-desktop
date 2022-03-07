@@ -116,7 +116,8 @@ def update_price(specter, current_user):
 # (provider, currency) = specter.price_provider.split()
 
 
-def get_price_at(specter, current_user, timestamp="now"):
+def get_price_at(specter, timestamp="now"):
+    """returns a price and a currency-symbol at the timestamp"""
     try:
         if specter.price_check:
             requests_session = specter.requests_session(
@@ -183,8 +184,8 @@ def get_price_at(specter, current_user, timestamp="now"):
                 elif specter.weight_unit == "kg":
                     price = price * OZ_TO_G / 1000
                     currency_symbol = " kg"
-
             return (price, currency_symbol)
+        raise Exception("get_price_at called whereas specter.price_check is False")
     except SpecterError as se:
         raise se
     except (ConnectionRefusedError, ConnectionError, NewConnectionError) as e:

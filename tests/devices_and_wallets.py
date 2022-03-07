@@ -96,7 +96,11 @@ def funded_hot_wallet_1(
     bitcoin_regtest: NodeController, unfunded_hot_wallet_1: Wallet
 ) -> Wallet:
     funded_hot_wallet_1 = unfunded_hot_wallet_1
-    bitcoin_regtest.testcoin_faucet(funded_hot_wallet_1.getnewaddress())
+    for i in range(1, 10):
+        bitcoin_regtest.testcoin_faucet(
+            funded_hot_wallet_1.getnewaddress(), amount=random.randint(1, 4)
+        )
+    funded_hot_wallet_1.update_balance()
     return funded_hot_wallet_1
 
 
