@@ -835,7 +835,7 @@ def txlist_to_csv(
             tx["amount"] = round(value * 1e8)
         amount_price = "not supported"
         rate = "not supported"
-        if tx["blocktime"]:
+        if tx.get("blocktime"):
             timestamp = tx["blocktime"]
         else:
             timestamp = tx["time"]
