@@ -1,9 +1,48 @@
+<!-- 
+    Custom element for showing a table of transactions.
+    Can be configured to show:
+     - The transaction history of a wallet (set attribute `type` to "txlist" and `wallet` to the wallet's alias)
+     - The UTXO list of a wallet (set attribute `type` to "utxo" and `wallet` to the wallet's alias)
+     - The transaction history of all the user's wallets (set attribute `type` to "txlist" and `wallet` to null)
+     - The UTXO list of all the user's wallets (set attribute `type` to "utxo" and `wallet` to null)
+    The uses Specter's API to fetch transactions every time the user changes its parameters.
+    These parameters are configured using components included in this table element:
+     - Tabs for switching between History (`type="txlist"`) and UTXO (`type="utxo"`) list types
+     - Sorting transactions by any column (ascending or descending)
+     - Search bar to filter transactions using free text search
+     - Configuring limit for transactions displayed per page
+     - Pagination, jumping between pages and showing the total pages count
+     - Export - export the full (unfiltered) list from which the table is drawing its data as CSV (optionally with price history)
+    
+    The table also supports:
+     - Showing amounts in either BTC or sats (set attribute `btc-unit` to either "btc" or "sat")
+     - Showing prices next to the amounts (set attribute `price` to the BTC price and symbol to the symbol of the currency you're pricing at)
+     - Showing validated blockhash column (set attribute `blockhash` to either "true" or "false")
+     - Limiting txs/utxos to just those associated with the specified `data-service-id`.
+     - Hide columns by hide-columns="category time"
+     - Enable scrollbar
+     - Toggle for scrollbar
+
+- Usage -
+
+<tx-table
+    btc-unit="{{ specter.unit }}"
+    hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
+    type="utxo" 
+    hide-columns="category time txid confirmations action" 
+    blockhash="true" 
+    hide-switcher="true"
+    wallet="{{ wallet.alias }}"
+    scrollbar-height="333px"
+    scrollbar-default="off"
+    compact-switch="true">
+</tx-table> 
+-->
+
 <template id="tx-table">
+
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <style>
-        .tx-table {
-            display: table;
-        }
         tx-row {
             display: contents;
         }
@@ -19,7 +58,6 @@
             -webkit-appearance: none;
             margin: 0;
         }
-
         /* Firefox */
         input[type=number] {
             -moz-appearance: textfield;
@@ -122,7 +160,6 @@
             background-color: var(--cmap-bg-lightest);
             border: 1px solid var(--main-color);
         }
-
         .manage-psbt-btn {
             border: 1px solid var(--cmap-border);
             border-radius: 0.5em;
@@ -135,18 +172,40 @@
             background-color: var(--cmap-bg-lightest);
             border: 1px solid var(--main-color);
         }
-        .icon-explainer {
-            display: inline-block;
-            content: "lala";
-            position: absolute;
-            left: -10px;
-            top: 7px;
-            border-style: solid;
-            border-width: 10px 10px 10px 0;
-            border-color: transparent #27b1f0;
+        .table-container {
+            width:  100%;
         }
-
+        .scrollbar {
+            min-height: 350px;
+            overflow-y: scroll;
+            scrollbar-color: grey hsl(217, 15%, 55%); 
+            scrollbar-width: thin; 
+        }
+        .table-container::-webkit-scrollbar {
+              width: 0.7em;
+        }
+        .table-container::-webkit-scrollbar-track {
+          background: hsl(217, 15%, 55%);
+          border-radius: 100vw;
+          margin-top: 0.25em;
+          margin-bottom: 0.25em;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+          background: white;
+          border: 0.15em solid hsl(40 0% 30%);
+          border-radius: 100vw;
+        }
+        .table-container::-webkit-scrollbar-thumb:hover {
+          background: hsl(40 0% 30%);
+        }
+        .scrollbar-checkbox-div {
+            margin-left: 15px;
+        }
+        input:checked + .slider {
+            background-color: hsl(217, 15%, 55%);
+        }
     </style>
+
     <nav class="switcher row">
         <button
             type="button"
@@ -202,6 +261,13 @@
             </form>
             <a id="manage-psbt-btn" type="button" class="btn manage-psbt-btn hidden" href="">{{ _("Manage unsigned PSBT") }}</a>
         </div>
+        <div id="scrollbar-checkbox-div" class="scrollbar-checkbox-div row hidden">
+            {{ _("Compact table") }} &nbsp;&nbsp;
+            <label class="switch">
+                <input type="checkbox" id="scrollbar-checkbox" class="scrollbar-checkbox" name="scrollbar-checkbox">
+                <span class="slider"></span>
+            </label>
+        </div>
     </div>
     <div class="export-container hidden">
         <h1>{{ _("Export transactions to CSV") }}</h1>
@@ -218,78 +284,57 @@
         </div>
         <a class="export btn" download>{{ _("Export") }}</a>
     </div>
-    <table class="tx-table">
-        <thead>
-            <tr>
-                <th value="callbackaction" class="column-callbackaction customaction-header"></th>
-                <th value="category" class="column-category category-header"><div class="category-arrow"></div></th>
-                <th value="txid"     class="column-txid optional txid-header">TxID<div class="txid-arrow"></div></th>
-                <th value="label"    class="column-label optional label-header">{{ _("Label") }}<div class="label-arrow"></div></th>
-                <th value="amount"   class="column-amount amount-header">{{ _("Amount") }}<div class="amount-arrow"></div></th>
-                <th value="time"     class="column-time time-header">{{ _("Time") }}<div class="time-arrow up-arrow"></div></th>
-                <th value="confirmations" class="column-confirmations confirmations-header">{{ _("Confirmations") }}<div class="confirmations-arrow"></div></th>
-                <th value="blockhash" class="column-blockhash optional hidden blockhash-header">
-                    {{ _("Block Hash") }}
-                    {% include "includes/merkletooltip.html" %}
-                </th>
-                <th class="column-action" style="width: 50px; padding: 10px;">
-                    <button type="button" class="export-btn btn" style="width: 50px;">
-                        {{ _("Export") }}
-                    </button>
-                </th>
-            </tr>
-        </thead>
-    <tr class="empty">
-        <td class="column-callbackaction"></td>
-        <td class="column-category"></td>
-        <td class="column-txid">{{ _("Fetching transactions...") }}</td>
-        <td class="column-label optional"></td>
-        <td class="column-amount optional"></td>
-        <td class="column-time" ></td>
-        <td class="column-confirmations"></td>
-        <td class="column-blockhash optional hidden blockhash-empty"></td>
-        <td class="column-action"></td>
-    </tr>
-    <tr class="summary-row hidden">
-        <td class="column-callbackaction"></td>
-        <td class="column-category" ></td>
-        <td class="column-txid summary-tx-count"></td>
-        <td class="column-label optional"></td>
-        <td class="column-amount summary-amount"></td>
-        <td class="column-time optional"></td>
-        <td class="column-confirmations"> </td>
-        <td class="column-blockhash optional hidden blockhash-summary"></td>
-        <td class="column-action"></td>
-    </tr>
-	<tbody class="tx-tbody">
-	</tbody>
-    </table>
+    <div id="table-container" class="table-container">
+        <table class="tx-table">
+            <thead>
+                <tr>
+                    <th value="callbackaction" class="column-callbackaction customaction-header"></th>
+                    <th value="category" class="column-category category-header"><div class="category-arrow"></div></th>
+                    <th value="txid"     class="column-txid optional txid-header">TxID<div class="txid-arrow"></div></th>
+                    <th value="label"    class="column-label optional label-header">{{ _("Label") }}<div class="label-arrow"></div></th>
+                    <th value="amount"   class="column-amount amount-header">{{ _("Amount") }}<div class="amount-arrow"></div></th>
+                    <th value="time"     class="column-time time-header">{{ _("Time") }}<div class="time-arrow up-arrow"></div></th>
+                    <th value="confirmations" class="column-confirmations confirmations-header">{{ _("Confirmations") }}<div class="confirmations-arrow"></div></th>
+                    <th value="blockhash" class="column-blockhash optional hidden blockhash-header">
+                        {{ _("Block Hash") }}
+                        {% include "includes/merkletooltip.html" %}
+                    </th>
+                    <th class="column-action" style="width: 50px; padding: 10px;">
+                        <button type="button" class="export-btn btn" style="width: 50px;">
+                            {{ _("Export") }}
+                        </button>
+                    </th>
+                </tr>
+            </thead>
+        <tr class="empty">
+            <td class="column-callbackaction"></td>
+            <td class="column-category"></td>
+            <td class="column-txid">{{ _("Fetching transactions...") }}</td>
+            <td class="column-label optional"></td>
+            <td class="column-amount optional"></td>
+            <td class="column-time" ></td>
+            <td class="column-confirmations"></td>
+            <td class="column-blockhash optional hidden blockhash-empty"></td>
+            <td class="column-action"></td>
+        </tr>
+        <tr class="summary-row hidden">
+            <td class="column-callbackaction"></td>
+            <td class="column-category" ></td>
+            <td class="column-txid summary-tx-count"></td>
+            <td class="column-label optional"></td>
+            <td class="column-amount summary-amount"></td>
+            <td class="column-time optional"></td>
+            <td class="column-confirmations"> </td>
+            <td class="column-blockhash optional hidden blockhash-summary"></td>
+            <td class="column-action"></td>
+        </tr>
+    	<tbody class="tx-tbody">
+    	</tbody>
+        </table>
+    </div>
 </template>
 
 <script type="text/javascript">
-    /**
-     * Custom element for showing a table of transactions.
-     * Can be configured to show:
-     *  - The transaction history of a wallet (set attribute `type` to "txlist" and `wallet` to the wallet's alias)
-     *  - The UTXO list of a wallet (set attribute `type` to "utxo" and `wallet` to the wallet's alias)
-     *  - The transaction history of all the user's wallets (set attribute `type` to "txlist" and `wallet` to null)
-     *  - The UTXO list of all the user's wallets (set attribute `type` to "utxo" and `wallet` to null)
-     * The uses Specter's API to fetch transactions every time the user changes its parameters.
-     * These parameters are configured using components included in this table element:
-     *  - Tabs for switching between History (`type="txlist"`) and UTXO (`type="utxo"`) list types
-     *  - Sorting transactions by any column (ascending or descending)
-     *  - Search bar to filter transactions using free text search
-     *  - Configuring limit for transactions displayed per page
-     *  - Pagination, jumping between pages and showing the total pages count
-     *  - Export - export the full (unfiltered) list from which the table is drawing its data as CSV (optionally with price history)
-     * 
-     * The table also supports:
-     *  - Showing amounts in either BTC or sats (set attribute `btc-unit` to either "btc" or "sat")
-     *  - Showing prices next to the amounts (set attribute `price` to the BTC price and symbol to the symbol of the currency you're pricing at)
-     *  - Showing validated blockhash column (set attribute `blockhash` to either "true" or "false")
-     *  - Limiting txs/utxos to just those associated with the specified `data-service-id`.
-     *  - Hide columns by hide-columns="category time"
-    */
     class TxTableElement extends HTMLElement {
         constructor() {
             super();
@@ -299,6 +344,7 @@
             var clone = style.cloneNode(true);
             this.el = clone.querySelector(".tx-table");
             this.tbody = clone.querySelector(".tx-tbody");
+            this.tableContainer = clone.getElementById("table-container")
 
             // Empty row element
             this.emptyRow = clone.querySelector(".empty");
@@ -361,11 +407,16 @@
             this.actionTeaserDiv = clone.getElementById("action-teaser") 
             this.actionTeaserText = clone.getElementById("action-teaser-text")
 
+            // Scrollbar checkbox
+            this.scrollbarCheckboxDiv = clone.getElementById("scrollbar-checkbox-div")
+            this.scrollbarCheckbox = clone.getElementById("scrollbar-checkbox")
+
             // CustomAction Preselection default
             this.selectedCoins = []
             
 			this.txlistViewBtn.onclick = () => {
 				if (!this.txlistViewBtn.classList.contains("checked")) {
+                    this.idx = 0
 					this.utxoViewBtn.classList.remove("checked");
 					this.txlistViewBtn.classList.add("checked");
 					this.setAttribute("type","txlist");
@@ -375,6 +426,7 @@
 
 			this.utxoViewBtn.onclick = () => {
 				if (!this.utxoViewBtn.classList.contains("checked")) {
+                    this.idx = 0
 					this.txlistViewBtn.classList.remove("checked");
 					this.utxoViewBtn.classList.add("checked");
 					this.setAttribute("type","utxo");
@@ -384,7 +436,6 @@
             
             // Init call id to avoid fetch returning after another one triggered
             this.callId = 0
-
 
             // Initialize default sort, search, limit and page parameters
             this.idx = 0;
@@ -398,7 +449,7 @@
             this.paginationNext.onclick = () => {
                 this.idx++;
                 console.log("paginationNext fetch");
-                
+                this.update();         
             }
 
             // Previous page action
@@ -514,19 +565,28 @@
 
             }
 
-            // Manage PSBT
-
             // Attach the created element to the shadow dom
             shadow.appendChild(clone);
         }
 
         static get observedAttributes() {
-            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'hide-sensitive-info', 'wallet', 'service-id', 'selected-coins'];
+            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'hide-sensitive-info', 'wallet', 'service-id', 'selected-coins', 'scrollbar-height', 'scrollbar-default', 'compact-switch'];
         }
 
         connectedCallback() {
+            // Manage PSBT
             this.managePSBTBtn.href = `{{ url_for('wallets_endpoint.send_pending', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
-            
+
+            // Listerning for changes in compact table
+            this.scrollbarCheckbox.addEventListener("click", () => {
+                if (this.scrollbarCheckbox.checked) {
+                    this.tableContainer.classList.add("scrollbar")
+                }
+                else {
+                 this.tableContainer.classList.remove("scrollbar")   
+                }
+            })
+
             this.hideColumns = this.getAttribute("hide-columns") ?? "callbackaction"
             if (this.hideColumns && this.hideColumns != "null") {
                 this.hideColumns.split(" ").forEach((column_name) => {
@@ -583,9 +643,18 @@
          * - type: Transactions list type to load. Either "txlist" or "utxo"
          * - hide-sensitive-info: Mask user sensitive info. Either "true" or "false"
          * - wallet: The wallet alias (null to get all wallets combined)
+         * - scrollbar-height: Height of the table container with the scrollbar
+         * - scrollbar-default: Whether scrollbar is enabled by default
+         * - compact-switch: Offer a switch to change between long and compact list
         */
         attributeChangedCallback(attrName, oldValue, newValue) {
-            this.wallet = this.getAttribute('wallet');
+            this.tableContainer.style.height = this.getAttribute("scrollbar-height")
+            if (this.getAttribute("scrollbar-default") == "on") {
+                this.tableContainer.classList.add("scrollbar")
+            } 
+            if (this.getAttribute("compact-switch") == "true") {
+                this.scrollbarCheckboxDiv.classList.remove("hidden")
+            }
             if (attrName != "selected-coins") {
                 if (this.getAttribute('blockhash') == 'true' && this.getAttribute('type') == "txlist" && this.getAttribute('wallet')) {
                         this.blockhashHeader.classList.remove('hidden');
@@ -718,6 +787,7 @@
                 formData.append('service_id', this.serviceId);
             }
             formData.append('csrf_token', '{{ csrf_token() }}');
+            console.log(url)
             try {
                 let callId = this.callId;
                 const response = await fetch(
@@ -736,7 +806,6 @@
                 }
                 const jsonResponse = await response.json();
                 let showBlockhash = !this.blockhashHeader.classList.contains('hidden');
-                
                 if ("txlist" in jsonResponse) {
                     this.render(jsonResponse, showBlockhash)
                     return
@@ -748,7 +817,7 @@
             }
         }
         
-        render(jsonResponse, showBlockhash) {
+        async render(jsonResponse, showBlockhash) {
             // jsonresponse is something like:
             // {
             //  "pageCount": 1, 
@@ -855,13 +924,14 @@
                 let dispatchLater = false
 
                 // Get txids of pending PSBTs
-                var pending_psbts = this.fetchWalletData();
+                var pending_psbts = await this.fetchWalletData();
                 var pending_psbts_txids = []
                 const keys = Object.keys(pending_psbts)
                 keys.forEach((key, index) => {
-                    let txid = (pending_psbts[key]["inputs"][0]["txid"]);
-                    pending_psbts_txids.push(txid);
-
+                    for (let input of pending_psbts[key]["inputs"]) {
+                        let txid = input["txid"]
+                        pending_psbts_txids.push(txid)
+                    }
                 });
                 for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) { 
                     // EventListener when hovering over checkboxes
@@ -873,7 +943,6 @@
                     })
                     // EventListener when hovering over categories
                     txRow.category.addEventListener("mouseover", () => {
-                        console.log()
                         if (txRow.tx.confirmations == 0) {
                         txRow.iconInfoText.innerText = `${txRow.tx.category} (unconfirmed)`
                         } 
@@ -888,9 +957,9 @@
                         // Need to clone otherwise we're ripping the node from the UTXO overview
                         let frozenImgClone = txRow.frozenImg.cloneNode()
                         txRow.callbackaction.append(frozenImgClone)
-                        // Adding "Locked" in coin selection and UTXO overview 
-                        txRow.callbackaction.append("Locked")
-                        txRow.categoryCell.append("Locked")
+                        // Adding "Frozen" in coin selection and UTXO overview 
+                        txRow.callbackaction.append("Frozen")
+                        txRow.categoryCell.append("Frozen")
                     }
                     if (txRow.tx.locked && pending_psbts_txids.includes(txRow.tx.txid) == true) {
                         txRow.callbackaction.innerHTML = ""
@@ -901,9 +970,19 @@
                         txRow.categoryCell.append("Unsigned")
                     }
                     if (txRow.tx.confirmations == 0) {
-                        // Only necessary to add this to the coin selection 
-                        txRow.callbackaction.append("Unconfirmed")
+                        var el = txRow.callbackaction.childNodes
+                        var nodeArray = Array.from(el)
+                        function checkNodes(node) {
+                            return node.textContent == "Frozen" || node.textContent == "Unsigned"
+                        }
+                        if (nodeArray.some(checkNodes)) {
+                                txRow.callbackaction.append(" & unconfirmed");
+                            }
+                        else {
+                                txRow.callbackaction.append("Unconfirmed");
+                            }
                     }
+         
                     // Preselect if necessary
                     if (this.checkForSelectedCoin(txRow.tx.txid)) {
                         txRow.select()

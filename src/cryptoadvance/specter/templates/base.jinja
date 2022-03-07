@@ -65,7 +65,7 @@
 		{% endblock %}
 		<main><div><br><br></div>
 			{% if current_user.is_authenticated and not hwi_bridge %}
-				<div class="row" id="status-bar" style="{% if session['is_language_rtl'] %}border-radius: 0 0 15px 0; left{% else %}border-radius: 0 0 0 15px; right{% endif %}: 0; position: absolute; color: #ddd; background-color: #323e50;">
+				<div class="row" id="status-bar" style="{% if session['is_language_rtl'] %}border-radius: 0 0 15px 0; left{% else %}border-radius: 0 0 15px 15px; right{% endif %}: 1%; position: absolute; color: #ddd; background-color: #323e50;">
 					{% include "components/price_bar.jinja" %}
 					<a class="settings-bar-btn" onclick="toggleHideSensitiveInfo()" style="padding: 0px 12px; cursor: pointer;" title="{{ 'Hide sensitive info' if not specter.hide_sensitive_info else 'Show sensitive info' }}">
 						<img src="{{ url_for('static', filename='img/hidden.svg' if specter.hide_sensitive_info else 'img/visible.svg') }}" style="width: 30px;" class="svg-white"/>

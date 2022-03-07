@@ -1544,21 +1544,21 @@ class Wallet:
                 else self.rpc.getbalances()["watchonly"]
             )
             # calculate available balance
-            locked_utxo = self.rpc.listlockunspent()
-            available = {}
-            available.update(balance)
-            for tx in locked_utxo:
-                tx_data = self.gettransaction(tx["txid"])
-                raw_tx = decoderawtransaction(tx_data["hex"], self.manager.chain)
-                delta = raw_tx["vout"][tx["vout"]]["value"]
-                if "confirmations" not in tx_data or tx_data["confirmations"] == 0:
-                    available["untrusted_pending"] -= delta
-                else:
-                    available["trusted"] -= delta
-                    available["trusted"] = round(available["trusted"], 8)
-            available["untrusted_pending"] = round(available["untrusted_pending"], 8)
-            balance["trusted"] = available["trusted"]
-            balance["untrusted_pending"] = available["untrusted_pending"]
+            # locked_utxo = self.rpc.listlockunspent()
+            # available = {}
+            # available.update(balance)
+            # for tx in locked_utxo:
+            #     tx_data = self.gettransaction(tx["txid"])
+            #     raw_tx = decoderawtransaction(tx_data["hex"], self.manager.chain)
+            #     delta = raw_tx["vout"][tx["vout"]]["value"]
+            #     if "confirmations" not in tx_data or tx_data["confirmations"] == 0:
+            #         available["untrusted_pending"] -= delta
+            #     else:
+            #         available["trusted"] -= delta
+            #         available["trusted"] = round(available["trusted"], 8)
+            # available["untrusted_pending"] = round(available["untrusted_pending"], 8)
+            # balance["trusted"] = available["trusted"]
+            # balance["untrusted_pending"] = available["untrusted_pending"]
         except Exception as e:
             raise SpecterError(f"was not able to get wallet_balance because {e}")
         self.balance = balance

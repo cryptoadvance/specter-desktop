@@ -610,11 +610,7 @@ def send_new(wallet_alias):
             flash(_("Failed to get RBF coins. Error: {}").format(e), "error")
 
     show_advanced_settings = (
-        ui_option != "ui"
-        or subtract
-        or fee_options != "dynamic"
-        or not rbf
-        or selected_coins
+        ui_option != "ui" or subtract or fee_options != "dynamic" or not rbf
     )
     wallet_utxo = wallet.utxo
     if app.specter.is_liquid:

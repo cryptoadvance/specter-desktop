@@ -438,7 +438,6 @@ def wallets_overview_utxo_list():
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/pending_psbt_list", methods=["GET"])
 @login_required
-@app.csrf.exempt
 def pending_psbt_list(wallet_alias):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     pending_psbts = wallet.pending_psbts_dict()

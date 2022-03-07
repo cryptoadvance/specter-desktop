@@ -9,7 +9,7 @@
     <h1>
         <small style="line-height:30px">Total balance:</small><br>
         <span style="color: #fff">
-            <span id="fullbalance_amount">{{ wallet.fullbalance | btcunitamount }}</span>
+            <span id="fullbalance_amount">{{ wallet.full_available_balance | btcunitamount }}</span>
             {% if specter.unit == 'sat' %}
 				sats
 			{% else %}
@@ -17,15 +17,16 @@
 			{% endif %}
         </span><br>
         <span class="note">{{ wallet.fullbalance | altunit }}</span>
-        {% if wallet.balance.get("untrusted_pending", 0) or wallet.balance.get("immature", 0) %}<br>
-            <small>( {{ wallet.balance.get("trusted", 0) | btcunitamount }} confirmed,
-                     {% if wallet.balance.get("untrusted_pending", 0) %}
-                        {{ wallet.balance.get("untrusted_pending", 0) | btcunitamount }} pending
-                     {% endif %}
-                     {% if wallet.balance.get("immature", 0) %}
-                        {{ wallet.balance.get("immature", 0) | btcunitamount }} immature
-                     {% endif %}
-            )</small>
+        {% if wallet.balance.get("untrusted_pending", 0) or wallet.balance.get("immature", 0) %}
+        <div class="smaller-card">
+                <div>Confirmed: {{ wallet.balance.get("trusted", 0) | btcunitamount }}</div>
+            {% if wallet.balance.get("untrusted_pending", 0) %}
+                <div>Unconfirmed: {{ wallet.balance.get("untrusted_pending", 0) | btcunitamount }}</div>
+            {% endif %}
+            {% if wallet.balance.get("immature", 0) %}
+                <div>Immature: {{ wallet.balance.get("immature", 0) }}</div>
+            {% endif %}
+         </div>
         {% endif %}
         {% if specter.is_liquid %}
         {% if wallet.balance.get("assets", {}) %}
