@@ -52,3 +52,47 @@ def test_import_address_labels(caplog, specter_regtest_configured):
 
     assert wallet.txlist()[0]["blockheight"] != None
     assert wallet.txlist()[0]["blocktime"] != None
+
+
+def test_check_utxo(specter_regtest_configured: Specter, funded_hot_wallet_1: Wallet):
+    wl = funded_hot_wallet_1
+
+    # Let's first prepare some locked txids
+    unspent_list_orig = wl.rpc.listunspent()  # to be able to ref in stable way
+
+    wl.check_utxo()
+    # 10 transactions + 2 unconfirmed
+    assert len(wl.full_utxo) == 12
+    for tx in wl.full_utxo:
+        print(f"txid: {tx['txid']}")
+    # non are locked
+    assert len([tx for tx in wl.full_utxo if tx["locked"]]) == 0
+
+    unspent_list = wl.rpc.listunspent()
+    print(f"unspent_list: {len(unspent_list)}")
+    print([tx["txid"] for tx in unspent_list])
+
+    print(f"\n\nLocking this one: {unspent_list_orig[0]['txid']}")
+    print(wl.rpc.gettransaction(unspent_list_orig[0]["txid"]))
+    wl.rpc.lockunspent(
+        False,
+        [{"txid": unspent_list_orig[0]["txid"], "vout": unspent_list_orig[0]["vout"]}],
+    )
+    print(f"\n\nLocking this one: {unspent_list_orig[1]['txid']}")
+    print(wl.rpc.gettransaction(unspent_list_orig[1]["txid"]))
+    wl.rpc.lockunspent(
+        False,
+        [{"txid": unspent_list_orig[1]["txid"], "vout": unspent_list_orig[1]["vout"]}],
+    )
+
+    unspent_list = wl.rpc.listunspent()
+    print(f"\n\nunspent_list: {len(unspent_list)}")
+    print([tx["txid"] for tx in unspent_list])
+
+    wl.check_utxo()
+    # still 2 transactions + 2 unconfirmed
+    for tx in wl.full_utxo:
+        print(f"txid: {tx['txid']}")
+    assert len(wl.full_utxo) == 12
+    # 2 are locked
+    assert len([tx for tx in wl.full_utxo if tx["locked"]]) == 2

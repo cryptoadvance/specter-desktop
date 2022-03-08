@@ -12,7 +12,8 @@ from flask_login import current_user, login_required
 from mnemonic import Mnemonic
 
 from ..devices.bitcoin_core import BitcoinCore
-from ..helpers import generate_mnemonic, is_testnet, validate_mnemonic
+from ..helpers import is_testnet
+from ..util.mnemonic import generate_mnemonic, validate_mnemonic
 from ..key import Key
 from ..managers.device_manager import get_device_class
 from ..specter_error import handle_exception
