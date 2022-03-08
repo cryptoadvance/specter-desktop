@@ -214,7 +214,7 @@ def failsafe_request_get(requests_session, url):
         json_response = response.json()
         if json_response.get("errors"):
             raise SpecterError(f"JSON error: {json_response}")
-        print(json_response)
+        logger.debug(f"json-response: {json_response}")
         return response.json()
     except JSONDecodeError:
         if response.status_code == 404:
