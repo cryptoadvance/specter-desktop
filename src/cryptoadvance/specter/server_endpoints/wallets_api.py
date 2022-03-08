@@ -18,7 +18,8 @@ from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
 
-from ..helpers import bcur2base64, generate_mnemonic
+from ..helpers import bcur2base64
+from ..util.mnemonic import generate_mnemonic
 from ..rpc import RpcError
 from ..server_endpoints.filters import assetlabel
 from ..specter_error import SpecterError, handle_exception

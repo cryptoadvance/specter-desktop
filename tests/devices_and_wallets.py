@@ -1,10 +1,10 @@
 import pytest
 import random
 
-from cryptoadvance.specter.helpers import generate_mnemonic
+from cryptoadvance.specter.util.mnemonic import generate_mnemonic
 from cryptoadvance.specter.process_controller.node_controller import NodeController
 from cryptoadvance.specter.specter import Specter
-from cryptoadvance.specter.wallet import Wallet
+from cryptoadvance.specter.wallet import Wallet, Device
 
 
 mnemonic_ghost = (
@@ -17,23 +17,21 @@ mnemonic_zoo = (
 
 @pytest.fixture
 def hot_wallet_device_1(specter_regtest_configured):
-    return create_hot_wallet_device(
-        mnemonic_ghost,
-        specter_regtest_configured,
-        "hot_wallet_device_ghost",
-    )
+    return create_hot_wallet_device(specter_regtest_configured)
 
 
 @pytest.fixture
 def hot_wallet_device_2(specter_regtest_configured):
-    return create_hot_wallet_device(
-        mnemonic_zoo,
-        specter_regtest_configured,
-        "hot_wallet_device_zoo",
-    )
+    return create_hot_wallet_device(specter_regtest_configured)
 
 
-def create_hot_wallet_device(mnemonic, specter_regtest_configured, name):
+def create_hot_wallet_device(
+    specter_regtest_configured, name=None, mnemonic=None
+) -> Device:
+    if mnemonic == None:
+        mnemonic = generate_mnemonic(strength=128)
+    if name == None:
+        name = "_".join(mnemonic.split(" ")[0:3])
     wallet_manager = specter_regtest_configured.wallet_manager
     device_manager = specter_regtest_configured.device_manager
 
