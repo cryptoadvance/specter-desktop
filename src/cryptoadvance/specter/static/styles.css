@@ -249,8 +249,8 @@ nav.side > a.item.active, nav.side > div > a.item.active{
 }
 .main-specter-background-image{
     position: absolute;
-    bottom: 0;
-    left: 30;
+    bottom: 7%;
+    right: 13%;
     opacity: 0.3;
     z-index: 0;
 }
