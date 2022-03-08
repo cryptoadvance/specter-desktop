@@ -11,6 +11,6 @@
     
 """
 
-afterServiceManagerInit = " afterServiceManagerInit"
+afterServiceManagerInit = "afterServiceManagerInit"
 after_serverpy_init_app = "after_serverpy_init_app"
 every5seconds = "every5seconds"
