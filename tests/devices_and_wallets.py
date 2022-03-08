@@ -94,11 +94,26 @@ def funded_hot_wallet_1(
     bitcoin_regtest: NodeController, unfunded_hot_wallet_1: Wallet
 ) -> Wallet:
     funded_hot_wallet_1 = unfunded_hot_wallet_1
-    for i in range(1, 10):
+    assert len(funded_hot_wallet_1.txlist()) == 0
+    for i in range(0, 10):
         bitcoin_regtest.testcoin_faucet(
             funded_hot_wallet_1.getnewaddress(), amount=random.randint(1, 4)
         )
-    funded_hot_wallet_1.update_balance()
+    funded_hot_wallet_1.update()
+    for i in range(0, 2):
+        bitcoin_regtest.testcoin_faucet(
+            funded_hot_wallet_1.getnewaddress(),
+            amount=random.randint(1, 4),
+            confirm_payment=False,
+        )
+    funded_hot_wallet_1.update()
+    # 12 txs
+    assert len(funded_hot_wallet_1.txlist()) == 12
+    # two of them are unconfirmed
+    assert (
+        len([tx for tx in funded_hot_wallet_1.txlist() if tx["confirmations"] == 0])
+        == 2
+    )
     return funded_hot_wallet_1
 
 
