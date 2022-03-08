@@ -1,6 +1,5 @@
-import json, logging, pytest
-from decimal import Decimal
-from cryptoadvance.specter.helpers import alias, generate_mnemonic
+import logging, pytest
+from cryptoadvance.specter.helpers import alias
 from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.process_controller.node_controller import NodeController
 from cryptoadvance.specter.rpc import BitcoinRPC

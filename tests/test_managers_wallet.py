@@ -4,18 +4,14 @@ import os
 import time
 
 import pytest
-from cryptoadvance.specter.helpers import (
-    is_testnet,
-    generate_mnemonic,
-)
+from cryptoadvance.specter.helpers import is_testnet
+from cryptoadvance.specter.util.mnemonic import generate_mnemonic
 from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.devices import DeviceTypes
 from cryptoadvance.specter.managers.wallet_manager import WalletManager
-from cryptoadvance.specter.rpc import RpcError
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.util.descriptor import AddChecksum, Descriptor
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
-from cryptoadvance.specter.wallet import Wallet
 from conftest import instantiate_bitcoind_controller
 
 
