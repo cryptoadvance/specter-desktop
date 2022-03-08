@@ -54,7 +54,7 @@ def test_get_price_at():
     specter_mock.price_provider = "bitstamp_eur"
     specter_mock.price_provider = "bitstamp_eur"
     # returns a tuple like (True, price, currency_symbol)
-    mytuple = get_price_at(specter_mock, None)
+    mytuple = get_price_at(specter_mock)
     assert float(mytuple[0])
     assert mytuple[1] == "€"
 
@@ -66,7 +66,7 @@ def test_get_price_at():
                 # ignore for now
                 continue
             specter_mock.price_provider = f"{exchange}_{currency}"
-            mytuple = get_price_at(specter_mock, None)
+            mytuple = get_price_at(specter_mock)
             assert float(mytuple[0])
             assert mytuple[1] == currency_mapping[currency]["symbol"]
 
@@ -77,7 +77,7 @@ def test_get_price_at_historic():
     # historic-prices:
 
     specter_mock.price_provider = f"bitstamp_usd"
-    mytuple = get_price_at(specter_mock, None, 1636551359)
+    mytuple = get_price_at(specter_mock, 1636551359)
     assert float(mytuple[0]) > 60000
 
 
@@ -88,22 +88,22 @@ def test_get_price_at_errorhandling():
 
     specter_mock.price_provider = f"bitstamp_ils"
     with pytest.raises(SpecterError) as se:
-        get_price_at(specter_mock, None)
+        get_price_at(specter_mock)
     assert "The currency ils is not supported on exchange bitstamp" in str(se.value)
 
     specter_mock.price_provider = f"bitstamp"
     with pytest.raises(SpecterError) as se:
-        get_price_at(specter_mock, None)
+        get_price_at(specter_mock)
     assert "Cannot parse exchange_currency: bitstamp" in str(se.value)
 
     specter_mock.price_provider = f"coindesk_usd"
     with pytest.raises(SpecterError) as se:
-        get_price_at(specter_mock, None, "someOtherDate")
+        get_price_at(specter_mock, "someOtherDate")
     assert "coindesk does not support historic prices" in str(se.value)
 
     specter_mock.price_provider = f"spotbit_coindesk_usd"
     with pytest.raises(SpecterError) as se:
-        get_price_at(specter_mock, None, "someOtherDate")
+        get_price_at(specter_mock, "someOtherDate")
     # ToDo: Better error-messaging. spotbit_coindesk does not even exist!
     assert "The currency usd is not supported on exchange spotbit_coindesk" in str(
         se.value
