@@ -10,6 +10,7 @@ from numbers import Number
 
 import requests
 from cryptoadvance.specter.util.psbt_creator import PsbtCreator
+from cryptoadvance.specter.wallet import Wallet
 from flask import Blueprint
 from flask import current_app as app
 from flask import flash, jsonify, redirect, request, url_for
@@ -17,7 +18,8 @@ from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
 
-from ..helpers import bcur2base64, generate_mnemonic
+from ..helpers import bcur2base64
+from ..util.mnemonic import generate_mnemonic
 from ..rpc import RpcError
 from ..server_endpoints.filters import assetlabel
 from ..specter_error import SpecterError, handle_exception
@@ -764,7 +766,9 @@ def wallet_overview_utxo_csv():
 ################## Helpers #######################
 
 # Transactions list to user-friendly CSV format
-def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=False):
+def txlist_to_csv(
+    wallet: Wallet, _txlist, specter, current_user, includePricesHistory=False
+):
     # Why is this line needed?
     # Please remover if you can!
     from flask_babel import lazy_gettext as _
@@ -772,11 +776,12 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
     txlist = []
     for tx in _txlist:
         if isinstance(tx["address"], list):
-            tx = tx.copy()
+            tx_copy = tx.copy()
+            # No idea how this could be?!
             for i in range(0, len(tx["address"])):
-                tx["address"] = tx["address"][i]
-                tx["amount"] = tx["amount"][i]
-                txlist.append(tx.copy())
+                tx_copy["address"] = tx["address"][i]
+                tx_copy["amount"] = tx["amount"][i]
+                txlist.append(tx_copy.copy())
         else:
             txlist.append(tx.copy())
     data = StringIO()
@@ -831,13 +836,13 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
             tx["amount"] = round(value * 1e8)
         amount_price = "not supported"
         rate = "not supported"
-        if tx["blocktime"]:
+        if tx.get("blocktime"):
             timestamp = tx["blocktime"]
         else:
             timestamp = tx["time"]
         if includePricesHistory:
             try:
-                rate, _ = get_price_at(specter, current_user, timestamp)
+                rate, _ = get_price_at(specter, timestamp=timestamp)
                 rate = float(rate)
                 if specter.unit == "sat":
                     rate = rate / 1e8
@@ -860,7 +865,7 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
             tx["txid"],
             tx["address"],
             tx["blockheight"],
-            time,
+            time.strftime(("%Y-%m-%d %H:%M:%S"), time.localtime(timestamp)),
         )
         if not wallet:
             row = (tx.get("wallet_alias", ""),) + row
@@ -871,7 +876,8 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
 
 
 # Addresses list to user-friendly CSV format
-def addresses_list_to_csv(wallet):
+def addresses_list_to_csv(wallet: Wallet):
+    """Doesn't seem to be used currently?!"""
     data = StringIO()
     w = csv.writer(data)
     # write header
