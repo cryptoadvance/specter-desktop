@@ -13,7 +13,7 @@
 	<h1 id="title">{{ device.name }}</h1>
 	{% from 'components/editable_title.jinja' import editable_title %}
 	{{ editable_title(device.name) }}
-	<form action="./" method="POST">
+	<form action="./" method="POST" style="margin-bottom: 15px;">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<div class="row" style="text-align: center; line-height: 2;">
 			{% include "device/components/device_type.jinja" %}
