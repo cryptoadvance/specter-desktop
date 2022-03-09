@@ -23,7 +23,7 @@
      - Enable scrollbar
      - Toggle for scrollbar
 
-- Usage -
+{#- Usage -
 
 <tx-table
     btc-unit="{{ specter.unit }}"
@@ -36,7 +36,8 @@
     scrollbar-height="333px"
     scrollbar-default="off"
     compact-switch="true">
-</tx-table> 
+</tx-table>
+#} 
 -->
 
 <template id="tx-table">
@@ -178,31 +179,29 @@
         .scrollbar {
             min-height: 350px;
             overflow-y: scroll;
-            scrollbar-color: grey hsl(217, 15%, 55%); 
+            scrollbar-color: hsl(217, 10%, 80%) var(--cmap-border); 
             scrollbar-width: thin; 
         }
         .table-container::-webkit-scrollbar {
-              width: 0.7em;
+            width: 0.4em;
         }
         .table-container::-webkit-scrollbar-track {
-          background: hsl(217, 15%, 55%);
-          border-radius: 100vw;
-          margin-top: 0.25em;
-          margin-bottom: 0.25em;
+            background: var(--cmap-bg);
+            border-radius: 100vw;
+            margin-top: 4em;
         }
         .table-container::-webkit-scrollbar-thumb {
-          background: white;
-          border: 0.15em solid hsl(40 0% 30%);
-          border-radius: 100vw;
+            background: hsl(217, 10%, 80%);
+            border-radius: 100vw;
         }
         .table-container::-webkit-scrollbar-thumb:hover {
-          background: hsl(40 0% 30%);
+            background: white;
         }
         .scrollbar-checkbox-div {
             margin-left: 15px;
         }
         input:checked + .slider {
-            background-color: hsl(217, 15%, 55%);
+            background-color: var(--cmap-border);
         }
     </style>
 
