@@ -234,8 +234,13 @@ nav.side > a.item.active, nav.side > div > a.item.active{
     max-width: 65%;
     text-align: center;
     margin-top: 1em;
+    margin-bottom: 1em;
     border: 3px #263044 solid;
     border-radius: 1em;
+    background-image: url("img/ghost_3d_transparent.png");
+    background-size: 400px 400px;
+    background-repeat: no-repeat;
+    background-position: 100% 100%;
 }
 .main-description-box{
     max-width: 90%;
@@ -246,13 +251,6 @@ nav.side > a.item.active, nav.side > div > a.item.active{
     background-color: #263044;
     border: 1px solid #CCCCCC;
     border-radius: 4px;
-}
-.main-specter-background-image{
-    position: absolute;
-    bottom: 7%;
-    right: 13%;
-    opacity: 0.3;
-    z-index: 0;
 }
 
 
@@ -1068,9 +1066,6 @@ nav.collapse-on-mobile a.mobile-nav-icon {
     border: none;
     margin-top: .1em;
   }
-  .main-specter-background-image{
-    right: 0;
-  }
 }
 /* touch based devices need a menu button */
 @media (any-hover: none) and (max-width: 1100px),
@@ -1089,6 +1084,9 @@ nav.collapse-on-mobile a.mobile-nav-icon {
   }
   #side-content:after{
     content: none;
+  }
+  .main-page-container{
+      max-width: 90%;
   }
 }
 @media (max-width: 690px){
@@ -1194,8 +1192,8 @@ nav.collapse-on-mobile a.mobile-nav-icon {
     #wizard-previous {
         margin-right: 10px !important;
     }
-    .main-specter-background-image{
-        display: none;
+    .main-page-container{
+        background-image: none;
       }
 }
 
