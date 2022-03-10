@@ -18,6 +18,10 @@ function sub_help {
 # After installation of xcode: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 # otherwise you get xcrun: error: unable to find utility "altool", not a developer tool or in PATH
 
+# catalina might have a a too old version of bash. You need at least 4.0 or so
+# 3.2 is too low definitely
+# brew install bash
+
 # Fill the keychain with your password like this
 # xcrun altool --store-password-in-keychain-item AC_PASSWORD -u '<your apple id>' -p apassword
 
@@ -98,20 +102,22 @@ echo "    --> This build got triggered for version $version"
 
 echo $version > version.txt
 
+specify_app_name
+
 install_build_requirements
 
 cleanup
 
 building_app
 
-cd electron
+cd electron # ./pyinstaller/electron
 
 prepare_npm
 
 
 if [[ "$make_hash" = 'True' ]]
 then
-    node ./set-version $version ../dist/specterd
+    node ./set-version $version ../dist/${specterd_filename}
 else
     node ./set-version $version
 fi
@@ -130,30 +136,34 @@ then
   macos_code_sign
 fi
 
-cd ..
+cd .. # ./pyinstaller
 
 echo "    --> Making the release-zip"
 mkdir release
 
-create-dmg 'electron/dist/mac/Specter.app' --identity="Developer ID Application: ${appleid}"
-mv "Specter ${version:1}.dmg" release/SpecterDesktop-${version}.dmg
+create-dmg electron/dist/mac/${specterimg_filename}.app --identity="Developer ID Application: ${appleid}"
+# create-dmg doesn't create the prepending "v" to the version
+node_comp_version=$(python3 -c "print('$version'[1:])")
+mv "electron/dist/${specterimg_filename}-${node_comp_version}.dmg" release/${specterimg_filename}-${version}.dmg
 
-cd dist
-zip ../release/specterd-${version}-osx.zip specterd
-cd ..
+cd dist # ./pyinstaller/dist
+zip ../release/${specterd_filename}-${version}-osx.zip ${specterd_filename}
+cd .. # ./pyinstaller
 
-sha256sum ./release/specterd-${version}-osx.zip
-sha256sum ./release/SpecterDesktop-${version}.dmg
+sha256sum ./release/${specterd_filename}-${version}-osx.zip
+sha256sum ./release/${specterimg_filename}-${version}.dmg
 
-echo "--------------------------------------------------------------------------"
-echo "In order to upload these artifacts to github, do:"
-echo "export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance"
-echo "export CI_COMMIT_TAG=$version"
-echo "export GH_BIN_UPLOAD_PW=YourSecretHere"
-echo "python3 ../utils/github.py upload ./release/specterd-${version}-osx.zip"
-echo "python3 ../utils/github.py upload ./release/SpecterDesktop-${version}.dmg"
-echo "cd release"
-echo "sha256sum * > SHA256SUMS-macos"
-echo "python3 ../../utils/github.py upload SHA256SUMS-macos"
-echo "gpg --detach-sign --armor SHA256SUMS-macos"
-echo "python3 ../../utils/github.py upload SHA256SUMS-macos.asc"
+if [ "$app_name" == "specter" ]; then
+  echo "--------------------------------------------------------------------------"
+  echo "In order to upload these artifacts to github, do:"
+  echo "export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance"
+  echo "export CI_COMMIT_TAG=$version"
+  echo "export GH_BIN_UPLOAD_PW=YourSecretHere"
+  echo "python3 ../utils/github.py upload ./release/specterd-${version}-osx.zip"
+  echo "python3 ../utils/github.py upload ./release/SpecterDesktop-${version}.dmg"
+  echo "cd release"
+  echo "sha256sum * > SHA256SUMS-macos"
+  echo "python3 ../../utils/github.py upload SHA256SUMS-macos"
+  echo "gpg --detach-sign --armor SHA256SUMS-macos"
+  echo "python3 ../../utils/github.py upload SHA256SUMS-macos.asc"
+fi

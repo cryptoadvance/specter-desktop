@@ -8,8 +8,8 @@ function specify_app_name {
         specterimg_filename=Specter
         pkg_filename=specter_desktop
     else
-        specterd_filename=${app_name}d
-        specterimg_filename=${app_name^}
+        specterd_filename=${app_name}d # usually "specterd"
+        specterimg_filename=${app_name^} # usually "Specter"
         pkg_filename=${app_name}
     fi
 
@@ -26,8 +26,8 @@ function install_build_requirements {
 
     cd ..
     # Order is relevant here. If you flip the followng lines, the hiddenimports for services won't work anymore
-    python3 setup.py install
-    pip3 install -e .
+    python3 setup.py install > /dev/null
+    pip3 install -e .  > /dev/null
     cd pyinstaller
 
 }
@@ -57,17 +57,48 @@ function building_electron_app {
 }
 
 function macos_code_sign {
+    # docs:
+    # https://help.apple.com/itc/apploader/#/apdATD1E53-D1E1A1303-D1E53A1126
+    # https://keith.github.io/xcode-man-pages/altool.1.html
     echo '    --> Attempting to code sign...'
-    ditto -c -k --keepParent "dist/mac/Specter.app" dist/Specter.zip
-    output_json=$(xcrun altool --notarize-app -t osx -f dist/Specter.zip --primary-bundle-id "solutions.specter.desktop" -u "${mail}" --password "@keychain:AC_PASSWORD" --output-format json)
+    ditto -c -k --keepParent "dist/mac/${specterimg_filename}.app" dist/${specterimg_filename}.zip
+    # upload
+    output_json=$(xcrun altool --notarize-app -t osx -f dist/${specterimg_filename}.zip --primary-bundle-id "solutions.specter.desktop" -u "${mail}" --password "@keychain:AC_PASSWORD" --output-format json)
     echo "JSON-Output:"
+    # parsing the requestuuid which we'll need to track progress
     requestuuid=$(echo $output_json | jq -r '."notarization-upload".RequestUUID')
-    sleep 180
-    sign_result_json=$(xcrun altool --notarization-info $requestuuid -u "${mail}" --password "@keychain:AC_PASSWORD" --output-format json)
     mkdir -p signing_logs
-    timestamp=$(date +"%Y%m%d-%H%M")
-    echo $sign_result_json | jq . > ./signing_logs/${timestamp}_${requestuuid}.log
-    xcrun stapler staple "dist/mac/Specter.app"
+    i=1
+    while [ $i -le 6 ] ; do
+        echo "        check result in minute $i ..."
+        sign_result_json=$(xcrun altool --notarization-info $requestuuid -u "${mail}" --password "@keychain:AC_PASSWORD" --output-format json)
+        timestamp=$(date +"%Y%m%d-%H%M")
+        # If it's not json-parseable
+        if ! echo "$sign_result_json" | jq .; then
+            echo $sign_result_json > ./signing_logs/${app_name}_${timestamp}_${requestuuid}.log
+            echo "ERROR: track-json not parseable."
+            echo "$sign_result_json"
+            exit 1   
+        fi
+        # if it's no longer in progress
+        status=$(echo "$sign_result_json" | jq -e -r '.["notarization-info"].Status')
+        if [ "$status" != "in progress" ]; then
+            echo "        Finished code sign with status $status"
+            echo $sign_result_json | jq . > ./signing_logs/${app_name}_${timestamp}_${requestuuid}.log
+            break
+        fi
+        i=$(( $i + 1 ))
+        sleep 60
+    done
+    if [ "$status" != "success" ]; then
+        echo "ERROR: status $status"
+        echo $(echo $sign_result_json | jq .)
+        echo
+        exit 1
+    fi
+    # The stapler somehow "staples" the result of the notarisation in to your app
+    # see e.g. https://stackoverflow.com/questions/58817903/how-to-download-notarized-files-from-apple
+    xcrun stapler staple "dist/mac/${specterimg_filename}.app"
 }
 
 function make_release_zip {
