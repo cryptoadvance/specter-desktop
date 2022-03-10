@@ -1,5 +1,6 @@
 import pytest
 import random
+import time
 
 from cryptoadvance.specter.util.mnemonic import generate_mnemonic
 from cryptoadvance.specter.process_controller.node_controller import NodeController
@@ -106,6 +107,7 @@ def funded_hot_wallet_1(
             amount=random.randint(1, 4),
             confirm_payment=False,
         )
+    time.sleep(0.5)  # needed for tx to propagate
     funded_hot_wallet_1.update()
     # 12 txs
     assert len(funded_hot_wallet_1.txlist()) == 12

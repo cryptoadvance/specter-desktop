@@ -811,9 +811,10 @@ class Wallet:
                 tx["category"] = tx_data.get("category") or "send"
                 if "locked" not in tx:
                     tx["locked"] = False
-            self.full_utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
+            self._full_utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
+            logger.info(f"full_utxo looks like this: {self._full_utxo[0]}")
         except Exception as e:
-            self.full_utxo = []
+            self._full_utxo = []
             raise SpecterError(f"Failed to load utxos, {e}")
 
     def getdata(self):
@@ -842,8 +843,20 @@ class Wallet:
             self.save_to_file()
 
     @property
+    def full_utxo(self):
+        if hasattr(self, "_full_utxo"):
+            return self._full_utxo
+        else:
+            self.check_utxo()
+            return self._full_utxo
+
+    @property
     def utxo(self):
-        return [utxo for utxo in self.full_utxo if not utxo["locked"]]
+        return [utxo for utxo in self._full_utxo if not utxo["locked"]]
+
+    @property
+    def locked_utxo(self):
+        return [utxo for utxo in self._full_utxo if utxo["locked"]]
 
     @property
     def json(self):
@@ -914,10 +927,12 @@ class Wallet:
 
     @property
     def locked_amount(self):
-        amount = 0
-        for psbt in self.pending_psbts.values():
-            amount += sum([inp.float_amount for inp in psbt.inputs])
-        return amount
+        """Deprecated, please use amount_locked_unsigned"""
+        return self.amount_locked_unsigned
+        # amount = 0
+        # for psbt in self.pending_psbts.values():
+        #     amount += sum([inp.float_amount for inp in psbt.inputs])
+        # return amount
 
     def delete_spent_pending_psbts(self, txs: list):
         """
@@ -1648,6 +1663,52 @@ class Wallet:
         # TODO: remove
         return self.getlabel(address)
 
+    ### Start: New amount properties here
+    @property
+    def amount_confirmed(self):
+        """Confirmed outputs (and outputs created by the wallet for Bitcoin Core Hot Wallets)"""
+        return round(self.balance["trusted"], 8)
+
+    @property
+    def amount_unconfirmed(self):
+        """Unconfirmed outputs"""
+        return round(self.balance["untrusted_pending"], 8)
+
+    @property
+    def amount_frozen(self):
+        """Only frozen outputs, no outputs locked in unsigned PSBTS"""
+        amount = 0
+        frozen_txid = [utxo.split(":")[0] for utxo in self.frozen_utxo]
+        for utxo in self.locked_utxo:
+            if utxo["txid"] in frozen_txid:
+                amount += utxo["amount"]
+        return amount
+
+    @property
+    def amount_locked_unsigned(self):
+        """Outputs locked in unsigned PSBTs"""
+        amount = 0
+        for psbt in self.pending_psbts.values():
+            amount += sum([inp.float_amount for inp in psbt.inputs])
+        return amount
+
+    @property
+    def amount_immature(self):
+        """Immature coinbase outputs"""
+        return round(self.balance["immature"], 8)
+
+    @property
+    def amount_total(self):
+        """All outputs, including unconfirmed outputs, except for immature outputs"""
+        return self.amount_confirmed + self.amount_unconfirmed
+
+    @property
+    def amount_available(self):
+        """All outputs, including unconfirmed outputs, except for immature outputs"""
+        return self.amount_total - self.amount_locked_unsigned - self.amount_frozen
+
+    ### End
+
     @property
     def fullbalance(self):
         """Confirmed, locked outputs (incl. unsigned PSBTs) and - for Bitcoin Core Hot Wallets only in Specter - outputs created by the wallet"""
@@ -2029,7 +2090,7 @@ class Wallet:
             addr_amount = 0
 
             for utxo in [
-                utxo for utxo in self.full_utxo if utxo["address"] == addr.address
+                utxo for utxo in self._full_utxo if utxo["address"] == addr.address
             ]:
                 addr_amount = addr_amount + utxo["amount"]
                 addr_utxo = addr_utxo + 1
