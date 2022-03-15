@@ -512,11 +512,11 @@ input:hover{
 .smaller-card{
     min-width: 220px;
     padding: 15px;
-    background: transparent;
-    border: 1px solid var(--cmap-border);
+    background: var(--cmap-bg-lighter);
+    border: 2px solid var(--cmap-border);
     border-radius: 4px;
-    color: #ccc;
-    font-size: 0.65em;
+    color: #fff;
+    font-size: 0.9em;
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -525,7 +525,7 @@ input:hover{
     margin: 5px;
 }
 .smaller-card:hover{
-    border: 1px solid hsl(217, 15%, 55%);
+    border: 2px solid hsl(217, 15%, 55%);
 }
 .small-card{
     min-width: 220px;

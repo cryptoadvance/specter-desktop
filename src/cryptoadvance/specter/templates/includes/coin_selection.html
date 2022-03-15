@@ -30,7 +30,7 @@
         <coin-selection  
             id="coinselection-webcomponent"
             wallet-alias="{{wallet.alias}}"
-            spendable-amount='{{ wallet.full_available_balance | btcamount }}'
+            spendable-amount='{{ wallet.amount_available | btcamount }}'
             is-liquid="{{specter.is_liquid}}"
             selected-coins="{{ selected_coins }}">
         </coin-selection>
@@ -117,7 +117,7 @@
             let spendableAmount;
             if (!this.isCoinSelectionActive()) {
                 if(unit == 'btc' || unit == 'sat'){
-                    spendableAmount = '{{ wallet.full_available_balance }}';
+                    spendableAmount = '{{ wallet.amount_available }}';
                 } else {        
                     if (unit in assetBalances){
                         return assetBalances[unit].balance;

@@ -687,7 +687,7 @@ def asset_balances(wallet_alias):
                 "label": label,
             },
             "sat": {
-                "balance": int(wallet.full_available_balance * 1e8),
+                "balance": int(wallet.amount_available * 1e8),
                 "label": "sat",
             },
         }

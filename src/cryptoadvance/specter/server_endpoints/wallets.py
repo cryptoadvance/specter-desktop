@@ -361,7 +361,7 @@ def new_wallet(wallet_type):
 @login_required
 def wallet(wallet_alias):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    if wallet.fullbalance > 0:
+    if wallet.amount_total > 0:
         return redirect(url_for("wallets_endpoint.history", wallet_alias=wallet_alias))
     else:
         return redirect(url_for("wallets_endpoint.receive", wallet_alias=wallet_alias))

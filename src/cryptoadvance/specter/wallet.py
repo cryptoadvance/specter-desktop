@@ -929,10 +929,6 @@ class Wallet:
     def locked_amount(self):
         """Deprecated, please use amount_locked_unsigned"""
         return self.amount_locked_unsigned
-        # amount = 0
-        # for psbt in self.pending_psbts.values():
-        #     amount += sum([inp.float_amount for inp in psbt.inputs])
-        # return amount
 
     def delete_spent_pending_psbts(self, txs: list):
         """
@@ -1663,7 +1659,6 @@ class Wallet:
         # TODO: remove
         return self.getlabel(address)
 
-    ### Start: New amount properties here
     @property
     def amount_confirmed(self):
         """Confirmed outputs (and outputs created by the wallet for Bitcoin Core Hot Wallets)"""
@@ -1704,20 +1699,18 @@ class Wallet:
 
     @property
     def amount_available(self):
-        """All outputs, including unconfirmed outputs, except for immature outputs"""
+        """All outputs minus UTXO locked in unsigned transactions and frozen outputs"""
         return self.amount_total - self.amount_locked_unsigned - self.amount_frozen
-
-    ### End
 
     @property
     def fullbalance(self):
-        """Confirmed, locked outputs (incl. unsigned PSBTs) and - for Bitcoin Core Hot Wallets only in Specter - outputs created by the wallet"""
+        """Deprecated, please use amount_total"""
         balance = self.balance
         return round(balance["trusted"], 8)
 
     @property
     def full_available_balance(self):
-        """Fullbalance plus unconfirmed outputs but no immature block rewards"""
+        """Deprecated, please use amount_available"""
         return round(self.balance["trusted"] + self.balance["untrusted_pending"], 8)
 
     @property
@@ -1759,7 +1752,7 @@ class Wallet:
         total_sats = round(sum(amounts) * 1e8)
 
         # if creating new tx - check we have enough balance
-        if not rbf_edit_mode and self.full_available_balance < total_btc:
+        if not rbf_edit_mode and self.amount_available < total_btc:
             raise SpecterError(
                 f"Wallet {self.name} does not have sufficient funds to make the transaction."
             )
