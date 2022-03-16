@@ -96,6 +96,7 @@ def create_app(config=None):
     app.jinja_env.autoescape = select_autoescape(default_for_string=True, default=True)
     logger.info(f"Configuration: {config}")
     app.config.from_object(config)
+    logger.info(f"SPECTER_DATA_FOLDER: {app.config['SPECTER_DATA_FOLDER']}")
     # Might be convenient to know later where it came from (see Service configuration)
     app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"] = config_name
     app.wsgi_app = ProxyFix(

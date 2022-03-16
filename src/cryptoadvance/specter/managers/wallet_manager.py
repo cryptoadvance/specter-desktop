@@ -324,9 +324,8 @@ class WalletManager:
                 os.path.join(bitcoin_datadir, "wallets", wallet_rpc_path),
             ]
             for path in candidates:
-                if os.path.exists(path):
-                    shutil.rmtree(path)
-                    break
+                shutil.rmtree(path, ignore_errors=True)
+
         # Delete files
         wallet.delete_files()
         del self.wallets[wallet.name]
