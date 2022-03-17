@@ -5,6 +5,7 @@ describe('Send transactions from wallets', () => {
         var wallet_name_ref = wallet_name.toLowerCase().replace(/ /g,"_")
         cy.viewport(1200,660)
         cy.visit('/')
+        cy.get('#toggle_devices_list').click()
         cy.addHotDevice(name+" device","bitcoin")
         cy.addHotWallet(wallet_name,name+" device", "bitcoin", "segwit")
         cy.get('#fullbalance_amount').then(($div) => {
@@ -48,14 +49,13 @@ describe('Send transactions from wallets', () => {
         })
 
         // Test freeze UTXO can't be spend, and unfreeze works for coin selection option
-        cy.log("Select 3 UTXOs and freeze them")
-        cy.get('tx-table').shadow().find('tx-row').eq(0).shadow().find('.select-tx-img').click()
+        cy.log("Select 2 more UTXOs and freeze them")
         cy.get('tx-table').shadow().find('tx-row').eq(1).shadow().find('.select-tx-img').click()
         cy.get('tx-table').shadow().find('tx-row').eq(3).shadow().find('.select-tx-img').click()
         cy.get('tx-table').shadow().find('.compose-tx-btn').click()
 
         // If you select a coin from the utxo-set and cklick on "create transaction", the coins need to be preselected
-        cy.get('.coinselect-hidden').should('have.length', 3);
+        cy.get('.coinselect-hidden').should('have.length', 2);
 
         // Unfreeze the UTXO
         cy.get('#btn_transactions').click()
