@@ -923,15 +923,19 @@
                 let dispatchLater = false
 
                 // Get txids of pending PSBTs
-                var pending_psbts = await this.fetchWalletData();
-                var pending_psbts_txids = []
-                const keys = Object.keys(pending_psbts)
-                keys.forEach((key, index) => {
-                    for (let input of pending_psbts[key]["inputs"]) {
-                        let txid = input["txid"]
-                        pending_psbts_txids.push(txid)
-                    }
-                });
+                if (this.wallet) {
+                    var pending_psbts = await this.fetchWalletData();
+                    var pending_psbts_txids = []
+                    const keys = Object.keys(pending_psbts)
+                    keys.forEach((key, index) => {
+                        for (let input of pending_psbts[key]["inputs"]) {
+                            let txid = input["txid"]
+                            pending_psbts_txids.push(txid)
+                        }
+                    });
+                } else {
+                    pending_psbts = []
+                }
                 for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) { 
                     // EventListener when hovering over checkboxes
                     txRow.selectTxImg.addEventListener("mouseover", () => {
