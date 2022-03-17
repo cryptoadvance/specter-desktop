@@ -812,7 +812,6 @@ class Wallet:
                 if "locked" not in tx:
                     tx["locked"] = False
             self._full_utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
-            logger.info(f"full_utxo looks like this: {self._full_utxo[0]}")
         except Exception as e:
             self._full_utxo = []
             raise SpecterError(f"Failed to load utxos, {e}")

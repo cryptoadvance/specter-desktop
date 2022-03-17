@@ -683,7 +683,7 @@ def asset_balances(wallet_alias):
         textUnit = app.specter.unit
         asset_balances = {
             "btc": {
-                "balance": wallet.full_available_balance,
+                "balance": wallet.amount_available,
                 "label": label,
             },
             "sat": {
