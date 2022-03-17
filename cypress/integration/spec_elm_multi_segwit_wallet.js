@@ -61,7 +61,7 @@ describe('Operating with an elements multisig wallet', () => {
         // spend the money again
         cy.contains("Elm Multi Segwit Wallet").click()
 
-        cy.get('#fullbalance_amount').then(($div) => {
+        cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") }).then(($div) => {
             const oldBalance = parseFloat($div.text())
             expect(oldBalance).to.be.gte(1.5)
             cy.createPsbt("el1qqdsywea5scrn7t9q83fd540pw447h0uae30pdp82rzgkl7yzvjz6gra9ls8qu6sslw4s0ck48we06zhqd6kwjy2quh69zwxwn", "Burn address","1.5")
@@ -104,7 +104,7 @@ describe('Operating with an elements multisig wallet', () => {
         // spend the money again
         cy.contains("Elm Multi Segwit Wallet").click()
 
-        cy.get('#fullbalance_amount').then(($div) => {
+        cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") }).then(($div) => {
             const oldBalance = parseFloat($div.text())
             expect(oldBalance).to.be.gte(1.5)
             cy.createPsbt("ert1q38la37ulxgc0uwt334he46eua7h8qagqnlm5phcqk7ntgv3x73cqjtr2fa", "unconf Burn address","1.5")
@@ -146,7 +146,7 @@ describe('Operating with an elements multisig wallet', () => {
         // spend the money again
         cy.contains("Elm Multi Nested Wallet").click()
 
-        cy.get('#fullbalance_amount').then(($div) => {
+        cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") }).then(($div) => {
             const oldBalance = parseFloat($div.text())
             expect(oldBalance).to.be.gte(1.5)
             cy.createPsbt("el1qqdsywea5scrn7t9q83fd540pw447h0uae30pdp82rzgkl7yzvjz6gra9ls8qu6sslw4s0ck48we06zhqd6kwjy2quh69zwxwn", "Burn address","1.5")
@@ -189,7 +189,7 @@ describe('Operating with an elements multisig wallet', () => {
         // spend the money again
         cy.contains("Elm Multi Nested Wallet").click()
 
-        cy.get('#fullbalance_amount').then(($div) => {
+        cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") }).then(($div) => {
             const oldBalance = parseFloat($div.text())
             expect(oldBalance).to.be.gte(1.5)
             cy.createPsbt("ert1q38la37ulxgc0uwt334he46eua7h8qagqnlm5phcqk7ntgv3x73cqjtr2fa", "unconf Burn address","1.5")

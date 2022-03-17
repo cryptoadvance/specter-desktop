@@ -144,8 +144,8 @@ Cypress.Commands.add("deleteWallet", (name) => {
 Cypress.Commands.add("mine2wallet", (chain) => { 
   // Fund it and check the balance
   cy.get('#btn_transactions').click()
-  cy.get('#fullbalance_amount').then(($div) => {
-      const oldBalance = parseFloat($div.text())
+  cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") }).then(($span) => {
+      const oldBalance = parseFloat($span.text())
       if (chain=="elm" || chain=="elements") {
         cy.task("elm:mine")
       } else if (chain=="btc" || chain=="bitcoin") {
@@ -154,8 +154,8 @@ Cypress.Commands.add("mine2wallet", (chain) => {
         throw new Error("Unknown chain: " + chain)
       }
       cy.waitUntil( () => cy.reload().get('#fullbalance_amount', { timeout: 3000 }) 
-        .then(($div) => {
-          const n = parseFloat($div.text())
+        .then(($span) => {
+          const n = parseFloat($span.text())
           return n > oldBalance
         })
       , {

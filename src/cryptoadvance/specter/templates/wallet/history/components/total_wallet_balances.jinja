@@ -9,8 +9,8 @@
     <div style="display: flex; flex-direction: column; min-width: 300px; align-items: center">
         <span style="line-height:30px; font-size: 1.1em;">Balance:</span>
         <div class="smaller-card">
-            <div id="fullbalance_amount"> 
-                Total amount: {{ wallet.amount_total | btcunitamount }}
+            <div > 
+                Total amount: <span id="fullbalance_amount">{{ wallet.amount_total | btcunitamount }}</span>
                 {% if specter.unit == 'sat' %}
                     sats
                 {% else %}
