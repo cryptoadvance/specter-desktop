@@ -47,7 +47,7 @@
                 {% endif %}
                 {% if wallet.amount_immature > 0 and specter.chain == "regtest" %}
                 <div style="color: grey">
-                    Immature: {{ wallet.amount_immature }} 
+                    Immature: {{ wallet.amount_immature | btcunitamount }} 
                     {% if specter.unit == 'sat' %}
                         sats
                     {% else %}
@@ -63,7 +63,7 @@
                 {% endif %}
                 {% elif wallet.amount_immature > 0 and specter.chain == "main" %}
                 <div style="color: #ccc">
-                    Immature: {{ wallet.amount_immature }} 
+                    Immature: {{ wallet.amount_immature | btcunitamount }} 
                     {% if specter.unit == 'sat' %}
                         sats
                     {% else %}

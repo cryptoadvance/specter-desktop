@@ -429,7 +429,10 @@
 					this.txlistViewBtn.classList.remove("checked");
 					this.utxoViewBtn.classList.add("checked");
 					this.setAttribute("type","utxo");
+                    // The action teaser should not be visible on wallets overview 
+                    if (this.wallet != null) { 
                     this.actionTeaserDiv.classList.remove("hidden");
+                    }
 				}
             }
             
