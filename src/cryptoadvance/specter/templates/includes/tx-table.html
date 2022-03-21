@@ -1034,6 +1034,7 @@
                                 if ((!txRow.tx.locked || pending_psbts_txids.includes(txRow.tx.txid) == true)) {
                                     txRow.selectTxImg.classList.add("hidden")
                                     txRow.selectTxImg.src = "{{ url_for('static', filename='img/checkbox-untick.svg') }}"
+                                    txRow.selectTxValue.value = ""
                                     // Remove rows that were selected previously
                                     this.selectedRows = this.selectedRows.filter(row => (row.locked))
                                 }
@@ -1050,6 +1051,7 @@
                                 if ((!pending_psbts_txids.includes(txRow.tx.txid) == true)) {
                                     txRow.selectTxImg.classList.add("hidden")
                                     txRow.selectTxImg.src = "{{ url_for('static', filename='img/checkbox-untick.svg') }}"
+                                    txRow.selectTxValue.value = ""
                                     // Remove rows that were selected previously
                                     this.selectedRows = this.selectedRows.filter(row => (checkUnsignedLocked(row)))
                                 }

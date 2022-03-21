@@ -102,9 +102,7 @@ Cypress.Commands.add("addHotWallet", (wallet_name, device_name, node_type, walle
         cy.get('#advanced_settings_tab_btn').click()
         cy.get('#delete_wallet').click()
       }
-       
       cy.get('#side-content').click()
-      
       cy.get('#btn_new_wallet').click()
       cy.get('[href="./simple/"]').click()
       var device_button = "#"+device_name.toLowerCase().replace(/ /g,"_")
