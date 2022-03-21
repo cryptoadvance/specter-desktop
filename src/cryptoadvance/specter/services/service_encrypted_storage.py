@@ -100,6 +100,18 @@ class ServiceEncryptedStorage(GenericDataManager):
 
 
 class ServiceUnencryptedStorage(ServiceEncryptedStorage):
+    """In order to use ServiceEncryptedStorage but unencrypted, we derive from that class
+    and change the datafile.
+    """
+
+    def __init__(self, data_folder: str, user: User, disable_decrypt: bool = False):
+        if not disable_decrypt:
+            raise Exception(
+                "ServiceUnencryptedStorage needs to be initialized with disable_decrypt = True"
+            )
+        if disable_decrypt:
+            super().__init__(data_folder, encryption_key=None, disable_decrypt=True)
+
     @property
     def data_file(self):
         return os.path.join(
