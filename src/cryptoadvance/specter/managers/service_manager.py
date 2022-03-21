@@ -26,6 +26,7 @@ from ..util.reflection import (
     get_subclasses_for_clazz,
     get_subclasses_for_clazz_in_cwd,
 )
+from ..util.reflection_fs import search_dirs_in_path
 
 logger = logging.getLogger(__name__)
 
@@ -272,14 +273,31 @@ class ServiceManager:
     @classmethod
     def get_service_x_dirs(cls, x):
         """returns a list of package-directories which represents a specific service.
-        This is used by the pyinstaller packaging specter
+        This is used EXCLUSIVELY by the pyinstaller-hook packaging specter to add templates/static
+        When this gets called, CWD is ./pyinstaller
         """
+
         arr = [
             Path(Path(_get_module_from_class(clazz).__file__).parent, x)
             for clazz in get_subclasses_for_clazz(Service)
         ]
         arr = [path for path in arr if path.is_dir()]
-        return [Path("..", *path.parts[-6:]) for path in arr]
+        # Those pathes are absolute. Let's make them relative:
+        arr = [Path(*path.parts[-6:]) for path in arr]
+
+        # ... and a as the pyinstaller is in a subdir, let's add ..
+        arr = [Path("..", path) for path in arr]
+
+        # Non cryptoadvance extensions sitting in src/org/specterext/... need to be added, too
+        src_org_specterext_exts = search_dirs_in_path(
+            "../src/", return_without_extid=False
+        )
+        src_org_specterext_exts = [Path(path, x) for path in src_org_specterext_exts]
+
+        arr.extend(src_org_specterext_exts)
+        # Not only relative, as the pyinstaller is in a subdir, let's add ..
+
+        return arr
 
     @classmethod
     def get_service_packages(cls):
