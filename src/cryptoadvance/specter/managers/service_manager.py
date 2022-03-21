@@ -18,7 +18,10 @@ from flask.blueprints import Blueprint
 
 from ..services.service import Service
 from ..services import callbacks, ExtensionException
-from ..services.service_encrypted_storage import ServiceEncryptedStorageManager
+from ..services.service_encrypted_storage import (
+    ServiceEncryptedStorageManager,
+    ServiceUnencryptedStorageManager,
+)
 from ..util.reflection import (
     _get_module_from_class,
     get_classlist_of_type_clazz_from_modulelist,
@@ -36,6 +39,7 @@ class ServiceManager:
 
     def __init__(self, specter, devstatus_threshold):
         self.specter = specter
+        specter.ext = {}
         self.devstatus_threshold = devstatus_threshold
 
         # Each Service class is stored here, keyed on its Service.id str
@@ -50,9 +54,12 @@ class ServiceManager:
         class_list = get_classlist_of_type_clazz_from_modulelist(
             Service, app.config.get("EXTENSION_LIST", [])
         )
-        logger.info("----> starting service discovery Dynamic")
+
         if app.config.get("SERVICES_LOAD_FROM_CWD", False):
+            logger.info("----> starting service discovery dynamic")
             class_list.extend(get_subclasses_for_clazz_in_cwd(Service))
+        else:
+            logger.info("----> skipping service discovery dynamic")
         logger.info("----> starting service loading")
         class_list = set(class_list)  # remove duplicates (shouldn't happen but  ...)
         for clazz in class_list:
@@ -65,6 +72,7 @@ class ServiceManager:
                     active=clazz.id in self.specter.config.get("services", []),
                     specter=self.specter,
                 )
+                self.specter.ext[clazz.id] = self._services[clazz.id]
                 # maybe register the blueprint
                 self.register_blueprint_for_ext(clazz, self._services[clazz.id])
                 logger.info(f"Service {clazz.__name__} activated ({clazz.devstatus})")
@@ -81,6 +89,11 @@ class ServiceManager:
         except ConfigurableSingletonException as e:
             # Test suite triggers multiple calls; ignore for now.
             pass
+
+        specter.service_unencrypted_storage_manager = ServiceUnencryptedStorageManager(
+            specter.user_manager, specter.data_folder
+        )
+
         logger.info("----> finished service processing")
         self.execute_ext_callbacks("afterServiceManagerInit")
 

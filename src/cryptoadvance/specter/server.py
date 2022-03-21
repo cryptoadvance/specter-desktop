@@ -6,10 +6,11 @@ from pathlib import Path
 from cryptoadvance.specter.liquid.rpc import LiquidRPC
 from cryptoadvance.specter.managers.service_manager import ServiceManager
 from cryptoadvance.specter.rpc import BitcoinRPC
+from cryptoadvance.specter.services import callbacks
 from cryptoadvance.specter.util.reflection import get_template_static_folder
-from .services.callbacks import after_serverpy_init_app
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, request, session, url_for
+from flask_apscheduler import APScheduler
 from flask_babel import Babel
 from flask_login import LoginManager, login_user
 from flask_wtf.csrf import CSRFProtect
@@ -19,6 +20,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.wrappers import Response
 
 from .hwi_server import hwi_server
+from .services.callbacks import after_serverpy_init_app
 from .specter import Specter
 from .util.specter_migrator import SpecterMigrator
 
@@ -106,7 +108,7 @@ def create_app(config=None):
     return app
 
 
-def init_app(app, hwibridge=False, specter=None):
+def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     """see blogpost 19nd Feb 2020"""
 
     # Configuring a prefix for the app
@@ -232,7 +234,24 @@ def init_app(app, hwibridge=False, specter=None):
             return jsonify(success=False)
 
     # --------------------- Babel integration ---------------------
-    specter.service_manager.execute_ext_callbacks(after_serverpy_init_app)
+
+    # Background Scheduler
+    def every5seconds():
+        ctx = app.app_context()
+        ctx.push()
+        app.specter.service_manager.execute_ext_callbacks(callbacks.every5seconds)
+        ctx.pop()
+
+    # initialize scheduler
+    from apscheduler.schedulers.background import BackgroundScheduler
+
+    scheduler = APScheduler()
+
+    scheduler.init_app(app)
+    scheduler.start()
+    specter.service_manager.execute_ext_callbacks(
+        after_serverpy_init_app, scheduler=scheduler
+    )
     return app
 
 
