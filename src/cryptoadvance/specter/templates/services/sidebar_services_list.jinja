@@ -5,7 +5,7 @@
     {% for _,plugin in specter.service_manager.services.items() %}
         {% if plugin.id in current_user.services %}
         <a href="{{ url_for(plugin.id +'_endpoint.index') }}" class="item service">
-            <img src="{{ url_for(plugin.id +'_endpoint' + '.static', filename=service.icon) }}" height="30px">&nbsp;{{ service.name }}
+            <img src="{{ url_for(plugin.id +'_endpoint' + '.static', filename=plugin.icon) }}" height="30px">&nbsp;{{ plugin.name }}
         </a>
         <br>
         {% endif %}
