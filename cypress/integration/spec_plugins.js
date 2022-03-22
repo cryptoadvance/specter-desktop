@@ -7,7 +7,7 @@ describe('plugins are working', () => {
         // choose address
         cy.get('#test_hot_wallet_1-sidebar-list-item').click()
         cy.get('[href="/wallets/wallet/test_hot_wallet_1/addresses/"]').click()
-        cy.get('addresses-table').shadow().find('address-row').eq(0).shadow().find('.explorer-link').click()
+        cy.get('addresses-table').shadow().find('address-row').eq(0).shadow().find('.explorer-link').eq(0).click({position: 'top'})
         cy.get('address-data').shadow().find('#associate-btn').click()
 
         cy.contains("Service integration requires an authentication method that includes a password")
@@ -20,7 +20,7 @@ describe('plugins are working', () => {
         // choose address again
         cy.get('#test_hot_wallet_1-sidebar-list-item').click()
         cy.get('[href="/wallets/wallet/test_hot_wallet_1/addresses/"]').click()
-        cy.get('addresses-table').shadow().find('address-row').eq(0).shadow().find('.explorer-link').click()
+        cy.get('addresses-table').shadow().find('address-row').eq(0).shadow().find('.explorer-link').eq(0).click()
         cy.get('address-data').shadow().find('#associate-btn').click()
         cy.contains("Associating an address with a service will")
 

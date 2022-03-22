@@ -15,5 +15,5 @@
     "env": {
       "broadcast_timeout":"8000"
     },
-    "includeShadowDom": true
+    "includeShadowDom": false 
 }
