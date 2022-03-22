@@ -1,3 +1,4 @@
+from unittest.mock import MagicMock
 import pytest
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.util.version import _parse_version, compare
@@ -19,6 +20,7 @@ def test_VersionChecker(
     imp_lib_mock,
     mock_installation_type,
     mock_latest,
+    caplog,
 ):
     mock_latest.return_value = "v9.10.21"
     imp_lib_mock.return_value = "1.2.3"
@@ -49,6 +51,27 @@ def test_VersionChecker(
         "2.3.4",
         "v9.10.21",
     )
+
+
+@patch("cryptoadvance.specter.util.version.requests")
+@patch(
+    "cryptoadvance.specter.util.version.VersionChecker.installation_type",
+    new_callable=PropertyMock,
+)
+@patch("cryptoadvance.specter.util.version.importlib_metadata.version")
+@patch("cryptoadvance.specter.util.version.VersionChecker._version_txt_content")
+def test_VersionChecker_get_binary_version(
+    VersionChecker_version_txt_content,
+    imp_lib_mock,
+    mock_installation_type,
+    mock_requests_session: MagicMock,
+    caplog,
+):
+    mock_requests_session.Session().get().json.return_value = {
+        "releases": {"0.10.0": None, "1.9.0rc5": None}
+    }
+    vc = VersionChecker(name="joke")
+    assert vc._get_latest_version_from_github() == "1.9.0rc5"
 
 
 def test_parse_version():
