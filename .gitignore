@@ -19,6 +19,7 @@ pyinstaller/release-linux
 pyinstaller/release-win
 pyinstaller/version.txt
 pyinstaller/electron/version-data.json
+pyinstaller/electron/downloadloc.js
 pyinstaller/electron/node_modules
 pyinstaller/electron/dist
 .DS_Store

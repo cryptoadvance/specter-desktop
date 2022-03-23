@@ -9,6 +9,7 @@ import sys
 from typing import List
 from .common import camelcase2snake_case
 from ..specter_error import SpecterError
+from .shell import grep
 
 from .reflection_fs import detect_extension_style_in_cwd, search_dirs_in_path
 
@@ -100,8 +101,12 @@ def get_subclasses_for_clazz_in_cwd(clazz, cwd=".") -> List[type]:
 
     # if not testing but in a folder which looks like specter-desktop/src --> No dynamic extensions
     if "PYTEST_CURRENT_TEST" not in os.environ:
-        if Path("./src/cryptoadvance").is_dir():
-            return []
+        # Hmm, need a better way to detect a specter-desktop-sourcedir
+        try:
+            if grep("./setup.py", 'name="cryptoadvance.specter",'):
+                return []
+        except FileNotFoundError:
+            pass
 
     # Depending on the style we either add "." or "./src" to the searchpath
 
@@ -136,6 +141,9 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
     for (importer, module_name, is_pkg) in iter_modules(
         [str(dir) for dir in package_dirs]
     ):  # import the module and iterate through its attributes
+        # skip known redherrings
+        if module_name in ["callbacks"]:
+            continue
         logger.debug(
             f"Iterating on importer={importer} , module_name={module_name} is_pkg={is_pkg}"
         )
@@ -150,7 +158,9 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
                 )
             except ModuleNotFoundError:
                 # Ignore the stuff lying around in cryptoadvance/specter/services
-                if importer.path.endswith("cryptoadvance/specter/services"):
+                if importer.path.endswith(
+                    os.path.sep.join(["cryptoadvance", "specter", "services"])
+                ):
                     continue
                 try:
                     module = import_module(f"{module_name}.service")
@@ -158,7 +168,7 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
                 except ModuleNotFoundError as e:
                     try:
                         # Another style is orgname.specterext.extensionid, for that we have to guess the orgname:
-                        orgname = str(importer).split("/")[-2]
+                        orgname = str(importer).split(os.path.sep)[-2]
                         logger.debug(f"guessing orgname: {orgname}")
                         module = import_module(
                             f"{orgname}.specterext.{module_name}.service"
