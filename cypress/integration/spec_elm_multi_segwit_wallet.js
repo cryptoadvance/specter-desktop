@@ -1,7 +1,7 @@
 describe('Operating with an elements multisig wallet', () => {
 
     
-    it('Creates an two elements multisig hot wallets (segwit/nested) both 2/3', () => {
+    it('Creates two elements multisig hot wallets (segwit/nested) both 2/3', () => {
         cy.viewport(1200,660)
         cy.visit('/')
         cy.get('#node-switch-icon').click()
@@ -204,6 +204,7 @@ describe('Operating with an elements multisig wallet', () => {
             // cy.get('#broadcast_local_btn').click()
             // There is a bug as the first device doesn't seem to have signed and so we can't send the tx just right from here
             // 2 more clicks until to get to the send button
+            cy.wait(100)
             cy.get('#btn_send').click()
             cy.get('.row > :nth-child(1) > .btn').click()
             cy.get('#send_tx_btn').click()

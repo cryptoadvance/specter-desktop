@@ -129,7 +129,7 @@ Cypress.Commands.add("deleteWallet", (name) => {
   cy.get('body').then(($body) => {
     if ($body.text().includes(name)) {
         cy.contains(name).click()
-        cy.get('#btn_settings').click()
+        cy.get('#btn_settings').click( {force: true} )
         cy.get('#advanced_settings_tab_btn').click()
         cy.get('#delete_wallet').click()
         // That does not seem to delete the wallet-file in elements, though

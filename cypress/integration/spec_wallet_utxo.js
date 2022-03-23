@@ -39,7 +39,7 @@ describe('Test the actions in UTXO list', () => {
         cy.get('tx-table').find('tx-row').eq(3).find('.select-tx-img').click( {position: 'top'} )
         cy.wait(100)
         cy.get('tx-table').find('.freeze-tx-btn').click()
-        cy.wait(100)
+        cy.wait(500)
         // We should have 3 frozen outputs now, let's check that
         cy.log("Check whether we have 3 frozen outputs")
         cy.get('tx-table').find('tx-row').each(($el, index, $list) => {
@@ -99,7 +99,7 @@ describe('Test the actions in UTXO list', () => {
         // Check the labeling of the unsigned UTXO
         cy.log("Check the labeling of the unsigned UTXO")
         cy.get('#btn_transactions').click()
-        cy.wait(200)
+        cy.wait(1000)
         cy.get('tx-table').find('.utxo-view-btn').click()
         cy.get('tx-table').find('tx-row').eq(2).find('#column-category').should('contain', 'Unsigned')
         cy.get('tx-table').find('tx-row').eq(3).find('#column-category').should('contain', 'Unsigned')
