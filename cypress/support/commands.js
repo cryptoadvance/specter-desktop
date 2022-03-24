@@ -63,10 +63,11 @@ Cypress.Commands.add("addDevice", (name) => {
 Cypress.Commands.add("addHotDevice", (name, node_type) => { 
   // node_type is either elements or bitcoin
   cy.get('body').then(($body) => {
-      //cy.task("delete:elements-hotwallet")
+      cy.task("delete:elements-hotwallet")
       if ($body.text().includes(name)) {
+        cy.get('#toggle_devices_list').click()
         var refName = "#device_list_item_"+name.toLowerCase().replace(/ /g,"_")
-        cy.get(refName).click()
+        cy.get(refName).click( {force: true} )
         cy.get('#forget_device').click()
         // We might get an error here, if the device is used in a wallet
         // We assume therefore that this is ok (see below)
@@ -75,7 +76,7 @@ Cypress.Commands.add("addHotDevice", (name, node_type) => {
       if (!cy.get('#btn_new_device').isVisible) {
         cy.get('#toggle_devices_list').click()
       }
-      cy.get('#btn_new_device').click()
+      cy.get('#btn_new_device').click( {force: true} )
       cy.contains('Select Your Device Type')
       cy.get(`#${node_type}core_device_card`).click()
       cy.get('#submit-mnemonic').click()
