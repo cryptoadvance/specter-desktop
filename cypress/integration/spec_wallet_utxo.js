@@ -31,12 +31,17 @@ describe('Test the actions in UTXO list', () => {
     it('Freezing', () => {
         cy.contains("UTXO wallet").click()
         cy.get('tx-table').find('.utxo-view-btn').click({ force: true })
-        cy.wait(100)
+        cy.wait(500)
         // Freeze 3 UTXOs 
         cy.log("Freeze 3 UTXO")
         cy.get('tx-table').find('tx-row').eq(0).find('.select-tx-img').click( {position: 'top'} )
+        cy.get('tx-table').find('tx-row').eq(0).find('.select-tx-value').invoke('attr', 'value').should('eq', 'true') // Check whether click worked
+        cy.wait(100)
         cy.get('tx-table').find('tx-row').eq(1).find('.select-tx-img').click( {position: 'top'} )
+        cy.get('tx-table').find('tx-row').eq(1).find('.select-tx-value').invoke('attr', 'value').should('eq', 'true') 
+        cy.wait(100)
         cy.get('tx-table').find('tx-row').eq(3).find('.select-tx-img').click( {position: 'top'} )
+        cy.get('tx-table').find('tx-row').eq(3).find('.select-tx-value').invoke('attr', 'value').should('eq', 'true') 
         cy.wait(100)
         cy.get('tx-table').find('.freeze-tx-btn').click()
         cy.wait(500)
