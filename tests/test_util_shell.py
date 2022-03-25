@@ -21,3 +21,9 @@ def test_last_lines(caplog):
 
     lines = get_last_lines_from_file("LICENSE", 30)
     assert lines[-2].startswith("OUT OF OR IN CONNECTION WITH THE SOFTWARE ")
+
+
+def test_grep():
+    from cryptoadvance.specter.util.shell import grep
+
+    assert grep("./setup.py", 'name="cryptoadvance.specter",')

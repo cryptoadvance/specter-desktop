@@ -1,4 +1,5 @@
 import logging
+import os
 from unittest.mock import MagicMock
 from flask import Flask
 from cryptoadvance.specter.managers.service_manager import ServiceManager
@@ -32,22 +33,32 @@ def test_ServiceManager(caplog):
     assert sm.services["bitcoinreserve"] != None
     assert sm.services["swan"] != None
 
-    # THis is usefull in the pytinstaller/specterd.spec
-    dirs = ServiceManager.get_service_x_dirs("templates")
-    assert "../src/cryptoadvance/specter/services/swan/templates" in [
-        str(dir) for dir in dirs
-    ]
-    assert len(dirs) >= 1  # Should not need constant update
 
-    dirs = ServiceManager.get_service_x_dirs("static")
-    assert "../src/cryptoadvance/specter/services/swan/static" in [
-        str(dir) for dir in dirs
-    ]
-    assert "../src/cryptoadvance/specter/services/bitcoinreserve/static" in [
-        str(dir) for dir in dirs
-    ]
-    assert len(dirs) >= 2
+def test_ServiceManager_get_service_x_dirs():
+    try:
+        os.chdir("./pyinstaller")
+        # THis is usefull in the pytinstaller/specterd.spec
+        dirs = ServiceManager.get_service_x_dirs("templates")
+        assert "../src/cryptoadvance/specter/services/swan/templates" in [
+            str(dir) for dir in dirs
+        ]
+        for path in dirs:
+            assert str(path).endswith("templates")
+        assert len(dirs) == 2  # Should not need constant update
 
+        dirs = ServiceManager.get_service_x_dirs("static")
+        assert "../src/cryptoadvance/specter/services/swan/static" in [
+            str(dir) for dir in dirs
+        ]
+        assert "../src/cryptoadvance/specter/services/bitcoinreserve/static" in [
+            str(dir) for dir in dirs
+        ]
+        assert len(dirs) >= 2
+    finally:
+        os.chdir("../")
+
+
+def test_ServiceManager_get_service_packages():
     packages = ServiceManager.get_service_packages()
     assert "cryptoadvance.specter.services.swan.service" in packages
     assert "cryptoadvance.specter.services.bitcoinreserve.service" in packages
