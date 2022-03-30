@@ -1,6 +1,6 @@
 
 function getDownloadLocation(version, platformname) {
-    return `http://specterext.bitcoinops.de/user/k9ert/dice/releases/download/${version}/diced-${version}-${platformname}.zip`
+    return `https://github.com/cryptoadvance/specter-desktop/releases/download/${version}/specterd-${version}-${platformname}.zip`
 }
 
 function appName() {
