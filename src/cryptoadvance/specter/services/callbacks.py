@@ -13,3 +13,7 @@
 
 afterServiceManagerInit = "afterServiceManagerInit"
 after_serverpy_init_app = "after_serverpy_init_app"
+
+# Extensions which want to extend the settings dialog
+# needs to return something like: return [{"title": "token", "endpoint":"settings_token"}]
+setting_exts = "setting_exts"

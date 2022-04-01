@@ -225,10 +225,12 @@ class ServiceManager:
         """
         if callback_id not in dir(callbacks):
             raise Exception(f"Non existing callback_id: {callback_id}")
+        return_values = {}
         logger.debug(f"Executing callback {callback_id}")
         for ext in self.services.values():
             if hasattr(ext, "callback"):
-                ext.callback(callback_id, *args, **kwargs)
+                return_values[ext.id] = ext.callback(callback_id, *args, **kwargs)
+        return return_values
 
     @property
     def services(self) -> Dict[str, Service]:
