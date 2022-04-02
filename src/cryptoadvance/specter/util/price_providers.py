@@ -2,7 +2,7 @@ import requests
 import logging
 from ..specter_error import SpecterError, handle_exception
 from urllib3.exceptions import NewConnectionError
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, HTTPError
 from json.decoder import JSONDecodeError
 
 logger = logging.getLogger(__name__)
@@ -209,18 +209,24 @@ def _parse_exchange_currency(exchange_currency):
 
 
 def failsafe_request_get(requests_session, url):
-    response: requests.Response = requests_session.get(url)
+    """wrapping requests which is only emitting reasonable SpecterErrors which are hopefully meaningful to the user"""
     try:
+        response: requests.Response = requests_session.get(url)
+        if response.status_code != 200:
+            response.raise_for_status()
         json_response = response.json()
         if json_response.get("errors"):
             raise SpecterError(f"JSON error: {json_response}")
-        logger.debug(f"json-response: {json_response}")
         return response.json()
-    except JSONDecodeError:
-        if response.status_code == 404:
-            raise SpecterError(
-                f"The currency_pair does not seem to exist for that provider (404)"
-            )
+    except HTTPError as httpe:
+        try:
+            json_response = response.json()
+        except JSONDecodeError:
+            raise SpecterError(f"HttpError {httpe.response.status_code} for {url}")
+        logger.debug(f"json-response: {json_response}")
+        if json_response.get("errors"):
+            raise SpecterError(f"JSON error: {json_response}")
+        raise SpecterError(f"HttpError {httpe.response.status_code} for {url}")
     except Exception as e:
         handle_exception(e)
         raise SpecterError(e)
