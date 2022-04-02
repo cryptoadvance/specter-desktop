@@ -559,14 +559,21 @@ def fetch_wallet_addresses_for_mining(node_impl, data_folder):
     """parses all the wallet-jsons in the folder (default ~/.specter/wallets/regtest)
     and returns an array with the addresses
     """
-    wallet_folder = (
-        f"{data_folder}/wallets/{'regtest' if node_impl == 'bitcoin' else 'elreg'}"
-    )
-    wallets = load_jsons(wallet_folder)
-    address_array = [value["address"] for key, value in wallets.items()]
-    # remove duplicates
-    address_array = list(dict.fromkeys(address_array))
-    logger.debug(
-        f"Found {len(address_array)} addresses in {len(wallets.items())} wallets located in {wallet_folder}"
-    )
-    return address_array
+    print(f"{data_folder}/wallets")
+    print(os.listdir(f"{data_folder}"))
+    addresses_all = []
+    for folder in [
+        folder for folder in os.listdir(data_folder) if folder.startswith("wallets")
+    ]:
+        wallet_folder = (
+            f"{data_folder}/{folder}/{'regtest' if node_impl == 'bitcoin' else 'elreg'}"
+        )
+        wallets = load_jsons(wallet_folder)
+        address_array = [value["address"] for key, value in wallets.items()]
+        # remove duplicates
+        address_array = list(dict.fromkeys(address_array))
+        logger.debug(
+            f"Found {len(address_array)} addresses in {len(wallets.items())} wallets located in {wallet_folder}"
+        )
+        addresses_all.extend(address_array)
+    return addresses_all

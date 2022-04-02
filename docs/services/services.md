@@ -79,7 +79,6 @@ It is up to each `Service` implementation to decide what data is stored; the `Se
 
 This is also where `Service`-wide configuration or other information should be stored, _**even if it is not secret**_ (see above intro about not polluting other existing data stores).
 
-
 ### `ServiceEncryptedStorageManager`
 Because the `ServiceEncryptedStorage` is specific to each individual user, this manager provides convenient access to automatically retrieve the `current_user` from the Flask context and provide the correct user's `ServiceEncryptedStorage`. It is implemented as a `Singleton` which can be retrieved simply by importing the class and calling `get_instance()`.
 
@@ -99,6 +98,10 @@ def get_current_user_service_data(cls) -> dict:
 
 Whenever possible, external code should not directly access these `Service`-related support classes but rather should ask for them through the `Service` class.
 
+### `ServiceUnencryptedStorage`
+A disadvantage of the `ServiceEncryptedStorage` is, that the user needs to be freshly logged in in order to be able to decrypt the secrets. If you want to avoid that login but your extension should still store data on disk, you can use the `ServiceUnencryptedStorage`.
+
+In parallel with the `ServiceEncryptedStorageManager` there is also a `ServiceUnencryptedStorageManager` which is used exactly the same way.
 
 ### `ServiceAnnotationsStorage`
 Annotations are any address-specific or transaction-specific data from a `Service` that we might want to present to the user (not yet implemented). Example: a `Service` that integrates with a onchain storefront would have product/order data associated with a utxo. That additional data could be imported by the `Service` and stored as an annotation. This annotation data could then be displayed to the user when viewing the details for that particular address or tx.
@@ -106,6 +109,11 @@ Annotations are any address-specific or transaction-specific data from a `Servic
 Annotations are stored on a per-wallet and per-`Service` basis as _unencrypted_ on-disk data (filename: `<wallet_alias>_<service>.json`).
 
 _Note: current `Service` implementations have not yet needed this feature so displaying annotations is not yet implemented._
+
+### callback methods
+Your service-class will inherit a callback-method which will get called for various reasons with the "reason" being a string as the first parameter. Checkout the `cryptoadvance.specter.services.callbacks` file for the specific callbacks.
+
+Some important one is the `after_serverpy_init_app` which passes a `Scheduler` class which can be used to setup regular tasks.
 
 
 ### `controller.py`

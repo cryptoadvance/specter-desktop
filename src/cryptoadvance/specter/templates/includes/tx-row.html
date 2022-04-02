@@ -160,7 +160,7 @@
                         this.address.innerHTML = `<img class="service-icon" src="{{ext_url_prefix}}/${this.tx.service_id}/static/${services[this.tx.service_id].icon}">`;
                     }
                     if (this.tx.label !== undefined) {
-                        this.address.innerHTML += this.tx.label;
+                        this.address.innerHTML += `<address-label data-address="${this.tx.address}" ${this.tx.label ? `data-label="${this.tx.label}"` : ''} data-wallet="${this.wallet ? this.wallet : this.tx.wallet_alias}"></address-label>`
                     } else {
                         this.address.innerHTML += this.tx.address;
                     }
