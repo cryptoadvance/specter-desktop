@@ -174,7 +174,7 @@ def new_device_keys(device_type):
                 )
 
     return render_template(
-        "device/new_device/new_device_keys.jinja",
+        get_device_class(device_type).template_new_device_keys,
         device_class=get_device_class(device_type),
         mnemonic=mnemonic,
         passphrase=passphrase,

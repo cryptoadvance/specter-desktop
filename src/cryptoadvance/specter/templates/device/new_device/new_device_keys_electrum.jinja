@@ -1,0 +1,57 @@
+{% extends "base.jinja" %}
+{% block main %}
+    <style>
+        td {
+            text-align: left;
+        }
+
+        @media screen and (max-width:720px) {
+            #device_setup_wizard th, #device_setup_wizard td { 
+                display: block;
+                width: 100%;
+            }
+            #device_setup_wizard td:empty, #device_setup_wizard th:empty {
+                display: none;
+                margin: auto;
+            }
+            #device_setup_wizard th, #device_setup_wizard td, #device_setup_wizard td > input {
+                text-align: center;
+                width: 100%;
+                margin: auto;
+            }
+            #device_setup_wizard .xpub {
+                padding: 10px;
+            }
+            #device_setup_wizard #edit-xpubs-table-btn {
+                margin: auto;
+            }
+        }
+        .xpubs_edit {
+            visibility: hidden;
+        }
+    </style>
+    <form id="form" action="{{ url_for('devices_endpoint.new_device_manual', device_type='electrum') }}" method="GET" style="width: 100%;"">
+        <div style="width: auto; margin: 40px;" class="card center" >
+            <div>
+                <h1 style="font-size: 1.8em;">{{ _("Adding electrum") }}</h1>
+                <h4>{{ _("1. Show Wallet Information") }}</h4>
+                    <img src="{{ url_for('static', filename='img/electrum_manual/1.png') }}" alt=_("Select Wallet --> Information")>  
+                <h4>{{ _("2. Get the master public key and the derivation path") }}</h4>
+                    <img src="{{ url_for('static', filename='img/electrum_manual/2a.png') }}" alt=_("Copy the master public key and derivation path")>  
+                <h4>{{ _("3. Show console to get root fingerprint") }}</h4>
+                    <img src="{{ url_for('static', filename='img/electrum_manual/3.png') }}" alt=_("View --> Show Console")>  
+                <h4>{{ _("4. Show root fingerprint") }}</h4>
+                    <img src="{{ url_for('static', filename='img/electrum_manual/4.png') }}" alt=_("Paste in console 'wallet.get_keystores()[0].get_root_fingerprint()'")>  
+                    <br>
+				<div class="note">
+					{{ _("Paste in console") }}:<br>
+			<pre>
+wallet.get_keystores()[0].get_root_fingerprint()
+			</pre>
+				</div>
+            </div>
+        </div>
+        <button type="submit" id="submit-keys" class="btn centered action" style="margin: auto;">{{ _("Manual configuration") }}</button>
+        <br><br>
+    </form>
+{% endblock %}

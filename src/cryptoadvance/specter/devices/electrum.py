@@ -13,6 +13,7 @@ class Electrum(Device):
     sd_card_support = True
     qr_code_support = True
     qr_code_animate = "off"
+    template_new_device_keys = "device/new_device/new_device_keys_electrum.jinja"
 
     def create_psbts(self, base64_psbt, wallet):
         # remove non_witness utxo for QR code

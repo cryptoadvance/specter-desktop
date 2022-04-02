@@ -31,6 +31,7 @@ class Device:
     bitcoin_core_support = True
     liquid_support = False
     taproot_support = False
+    template_new_device_keys = "device/new_device/new_device_keys.jinja"
 
     def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
         """
