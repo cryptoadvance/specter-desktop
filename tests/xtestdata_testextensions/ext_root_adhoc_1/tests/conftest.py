@@ -326,13 +326,7 @@ def devices_filled_data_folder(empty_data_folder):
 
 @pytest.fixture
 def wallets_filled_data_folder(devices_filled_data_folder):
-    os.makedirs(os.path.join(devices_filled_data_folder, "wallets", "regtest"))
-    with open(
-        os.path.join(devices_filled_data_folder, "wallets", "regtest", "simple.json"),
-        "w",
-    ) as json_file:
-        json_file.write(
-            """
+    simple_json = """
 {
     "alias": "simple",
     "fullpath": "/home/kim/.specter/wallets/regtest/simple.json",
@@ -358,9 +352,56 @@ def wallets_filled_data_folder(devices_filled_data_folder):
     "device_type": "trezor",
     "address_type": "bech32"
 }
-
 """
-        )
+    another_wallet_json = """
+{
+    "name": "sdsd",
+    "alias": "sdsd",
+    "description": "Single (Segwit)",
+    "address_type": "bech32",
+    "address": "bcrt1q4h86vfanswhsle63hw2muv9h5a45cg2878uez5",
+    "address_index": 0,
+    "change_address": "bcrt1qxsj28ddr95xvp7xjyzkkfq6qknrn4kap30zkut",
+    "change_index": 0,
+    "keypool": 60,
+    "change_keypool": 20,
+    "recv_descriptor": "wpkh([41490ec7/84h/1h/0h]tpubDCTPz7KwyetfhQNMSWiK34pPR2zSTsTybrMPgRVAzouNLqtgsv51o81KjccmTbjkWJ8mVhRJM1LxZD6AfRH2635tHpHeCAKW446iwADNv7C/0/*)#rn833s5g",
+    "change_descriptor": "wpkh([41490ec7/84h/1h/0h]tpubDCTPz7KwyetfhQNMSWiK34pPR2zSTsTybrMPgRVAzouNLqtgsv51o81KjccmTbjkWJ8mVhRJM1LxZD6AfRH2635tHpHeCAKW446iwADNv7C/1/*)#j8zsv9ys",
+    "keys": [
+        {
+            "original": "vpub5YRErYARy1rFj1oGKc9yQyJ1jybtbEyvDziem5eFttPiVMbXJNtoQZ2DTAcowHUfu7NFPAiJtaop6TNRqAbkc8GPVY9VLp2HveP2PygjuYh",
+            "fingerprint": "41490ec7",
+            "derivation": "m/84h/1h/0h",
+            "type": "wpkh",
+            "purpose": "#0 Single Sig (Segwit)",
+            "xpub": "tpubDCTPz7KwyetfhQNMSWiK34pPR2zSTsTybrMPgRVAzouNLqtgsv51o81KjccmTbjkWJ8mVhRJM1LxZD6AfRH2635tHpHeCAKW446iwADNv7C"
+        }
+    ],
+    "devices": [
+        "dsds"
+    ],
+    "sigs_required": 1,
+    "blockheight": 0,
+    "pending_psbts": {},
+    "frozen_utxo": [],
+    "last_block": "187e2db380eb6d901efd87188f00c7074506c9c3813b8ecec7300ecc4e55eb46"
+}
+"""
+
+    os.makedirs(os.path.join(devices_filled_data_folder, "wallets", "regtest"))
+    with open(
+        os.path.join(devices_filled_data_folder, "wallets", "regtest", "simple.json"),
+        "w",
+    ) as json_file:
+        json_file.write(simple_json)
+    os.makedirs(os.path.join(devices_filled_data_folder, "wallets_someuser", "regtest"))
+    with open(
+        os.path.join(
+            devices_filled_data_folder, "wallets_someuser", "regtest", "simple.json"
+        ),
+        "w",
+    ) as json_file:
+        json_file.write(another_wallet_json)
     return devices_filled_data_folder  # and with wallets obviously
 
 

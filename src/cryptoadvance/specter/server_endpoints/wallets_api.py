@@ -11,10 +11,11 @@ from numbers import Number
 import requests
 from cryptoadvance.specter.util.psbt_creator import PsbtCreator
 from cryptoadvance.specter.wallet import Wallet
-from flask import Blueprint
+from flask import Blueprint, stream_with_context
 from flask import current_app as app
 from flask import flash, jsonify, redirect, request, url_for
 from flask_babel import lazy_gettext as _
+from flask_babel import lazy_gettext
 from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
 
@@ -578,7 +579,7 @@ def tx_history_csv(wallet_alias):
 
     # stream the response as the data is generated
     response = Response(
-        txlist_to_csv(wallet, txlist, app.specter, current_user, includePricesHistory),
+        stream_with_context(txlist_to_csv(wallet, txlist, includePricesHistory)),
         mimetype="text/csv",
     )
     # add a filename
@@ -610,12 +611,12 @@ def utxo_csv(wallet_alias):
         )
         # stream the response as the data is generated
         response = Response(
-            txlist_to_csv(
-                wallet,
-                txlist,
-                app.specter,
-                current_user,
-                includePricesHistory,
+            stream_with_context(
+                txlist_to_csv(
+                    wallet,
+                    txlist,
+                    includePricesHistory,
+                )
             ),
             mimetype="text/csv",
         )
@@ -716,9 +717,7 @@ def wallet_overview_txs_csv():
         includePricesHistory = request.args.get("exportPrices", "false") == "true"
         # stream the response as the data is generated
         response = Response(
-            txlist_to_csv(
-                None, txlist, app.specter, current_user, includePricesHistory
-            ),
+            stream_with_context(txlist_to_csv(None, txlist, includePricesHistory)),
             mimetype="text/csv",
         )
         # add a filename
@@ -748,9 +747,7 @@ def wallet_overview_utxo_csv():
         includePricesHistory = request.args.get("exportPrices", "false") == "true"
         # stream the response as the data is generated
         response = Response(
-            txlist_to_csv(
-                None, txlist, app.specter, current_user, includePricesHistory
-            ),
+            stream_with_context(txlist_to_csv(None, txlist, includePricesHistory)),
             mimetype="text/csv",
         )
         # add a filename
@@ -766,13 +763,11 @@ def wallet_overview_utxo_csv():
 ################## Helpers #######################
 
 # Transactions list to user-friendly CSV format
-def txlist_to_csv(
-    wallet: Wallet, _txlist, specter, current_user, includePricesHistory=False
-):
-    # Why is this line needed?
-    # Please remover if you can!
-    from flask_babel import lazy_gettext as _
-
+def txlist_to_csv(wallet: Wallet, _txlist, includePricesHistory=False):
+    """transforms a txlist into a csv-stream. This function is not returning but yielding. As such it needs to be called
+    via wrapping it in stream_with_context
+    see https://flask.palletsprojects.com/en/1.1.x/patterns/streaming/#streaming-with-context for details
+    """
     txlist = []
     for tx in _txlist:
         if isinstance(tx["address"], list):
@@ -788,23 +783,24 @@ def txlist_to_csv(
     w = csv.writer(data)
     # write header
     symbol = "USD"
-    if specter.price_provider.endswith("_eur"):
+    if app.specter.price_provider.endswith("_eur"):
         symbol = "EUR"
-    elif specter.price_provider.endswith("_gbp"):
+    elif app.specter.price_provider.endswith("_gbp"):
         symbol = "GBP"
     row = (
-        _("Date"),
-        _("Label"),
-        _("Category"),
-        _("Amount ({})").format(specter.unit.upper()),
-        _("Value ({})").format(symbol),
-        _("Rate (BTC/{})").format(symbol)
-        if specter.unit != "sat"
+        # For some reason (probably app-context_specific) the _ apprev of lazy_gettext does not work
+        lazy_gettext("Date"),
+        lazy_gettext("Label"),
+        lazy_gettext("Category"),
+        lazy_gettext("Amount ({})").format(app.specter.unit.upper()),
+        lazy_gettext("Value ({})").format(symbol),
+        lazy_gettext("Rate (BTC/{})").format(symbol)
+        if app.specter.unit != "sat"
         else _("Rate ({}/SAT)").format(symbol),
-        _("TxID"),
-        _("Address"),
-        _("Block Height"),
-        _("Timestamp"),
+        lazy_gettext("TxID"),
+        lazy_gettext("Address"),
+        lazy_gettext("Block Height"),
+        lazy_gettext("Timestamp"),
     )
     if not wallet:
         row = (_("Wallet"),) + row
@@ -819,7 +815,7 @@ def txlist_to_csv(
         if not wallet:
             wallet_alias = tx.get("wallet_alias", None)
             try:
-                _wallet = specter.wallet_manager.get_by_alias(wallet_alias)
+                _wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
             except Exception as e:
                 continue
         label = _wallet.getlabel(tx["address"])
@@ -831,7 +827,7 @@ def txlist_to_csv(
                 tx["blockheight"] = tx_raw["blockheight"]
             else:
                 tx["blockheight"] = "Unconfirmed"
-        if specter.unit == "sat":
+        if app.specter.unit == "sat":
             value = float(tx["amount"])
             tx["amount"] = round(value * 1e8)
         amount_price = "not supported"
@@ -842,13 +838,14 @@ def txlist_to_csv(
             timestamp = tx["time"]
         if includePricesHistory:
             try:
-                rate, _ = get_price_at(specter, timestamp=timestamp)
+                print(f"meh {app.specter.user}")
+                rate, _ = get_price_at(app.specter, timestamp=timestamp)
                 rate = float(rate)
-                if specter.unit == "sat":
+                if app.specter.unit == "sat":
                     rate = rate / 1e8
                 amount_price = float(tx["amount"]) * rate
                 amount_price = round(amount_price * 100) / 100
-                if specter.unit == "sat":
+                if app.specter.unit == "sat":
                     rate = round(1 / rate)
             except SpecterError as se:
                 logger.error(se)
@@ -859,7 +856,7 @@ def txlist_to_csv(
             time.strftime("%Y-%m-%d", time.localtime(timestamp)),
             label,
             tx["category"],
-            round(tx["amount"], (0 if specter.unit == "sat" else 8)),
+            round(tx["amount"], (0 if app.specter.unit == "sat" else 8)),
             amount_price,
             rate,
             tx["txid"],
