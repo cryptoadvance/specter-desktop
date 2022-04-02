@@ -124,7 +124,6 @@ class DeviceManager:
                 for device_class in device_classes
                 if device_class.bitcoin_core_support
             ]
-
         if BitcoinCoreWatchOnly in devices:
             devices.remove(BitcoinCoreWatchOnly)
         return devices
