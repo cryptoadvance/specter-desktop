@@ -1,63 +1,39 @@
 {% extends "base.jinja" %}
 {% block main %}
-    <style>
-        td {
-            text-align: left;
-        }
+	{% include "includes/hwi/hwi.jinja" %}
+	{% include "includes/qr-scanner.html" %}
 
-        @media screen and (max-width:720px) {
-            #device_setup_wizard th, #device_setup_wizard td { 
-                display: block;
-                width: 100%;
-            }
-            #device_setup_wizard td:empty, #device_setup_wizard th:empty {
-                display: none;
-                margin: auto;
-            }
-            #device_setup_wizard th, #device_setup_wizard td, #device_setup_wizard td > input {
-                text-align: center;
-                width: 100%;
-                margin: auto;
-            }
-            #device_setup_wizard .xpub {
-                padding: 10px;
-            }
-            #device_setup_wizard #edit-xpubs-table-btn {
-                margin: auto;
-            }
-        }
-        .xpubs_edit {
-            visibility: hidden;
-        }
-    </style>
-    <form id="form" action="{{ url_for('devices_endpoint.new_device_manual', device_type='electrum') }}" method="GET" style="width: 100%;"">
+    <h1>{{ _("Setting up electrum as a new device") }}</h1>
+    <form action="{{ url_for('devices_endpoint.new_device_manual', device_type='electrum') }}" oninput="xpubs.value =`[${root_fingerprint.value}/0']${xpub.value}`"  method="POST" >
+			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+
+
         <div style="width: auto; margin: 40px;" class="card center" >
-            <div>
-                <h1 style="font-size: 1.8em;">{{ _("Adding electrum") }}</h1>
-                <h4>{{ _("1. Show Wallet Information") }}</h4>
-                    <img src="{{ url_for('static', filename='img/electrum_manual/1.png') }}" alt=_("Select Wallet --> Information")>  
-                <h4>{{ _("2. Get the master public key and the derivation path") }}</h4>
-                    <img src="{{ url_for('static', filename='img/electrum_manual/2a.png') }}" alt=_("Copy the master public key and derivation path")>  
-                <h4>{{ _("3. Show console to get root fingerprint") }}</h4>
-                    <img src="{{ url_for('static', filename='img/electrum_manual/3.png') }}" alt=_("View --> Show Console")>  
-                <h4>{{ _("4. Show root fingerprint") }}</h4>
-                    <img src="{{ url_for('static', filename='img/electrum_manual/4.png') }}" alt=_("Paste in console 'wallet.get_keystores()[0].get_root_fingerprint()'")>  
-                    <br>
-				<div class="note">
-					{{ _("Paste in console") }}:<br>
-			<pre>
+            <div class="row">
+                <input type="text" id="device_name" name="device_name" value="{{ device_name }}" placeholder="Name your electrum wallet">
+            </div>           
+            <input type="hidden" id="device_type" name="device_type" value="electrum">  
+            <h4>{{ _("1. Get the master public key") }}</h4>
+                <img src="{{ url_for('static', filename='img/electrum_manual/1.png') }}" alt=_("Select Wallet  -  Information")>  
+                <img src="{{ url_for('static', filename='img/electrum_manual/2a.png')}}"   alt=_("Copy the master public key and derivation path")>  
+                <input   id="xpub" name="xpub"   placeholder="Your master public key" >  
+            <h4>{{ _("2. Show root fingerprint") }}</h4>
+                <img src="{{ url_for('static', filename='img/electrum_manual/3.png') }}" alt=_("View -  Show Console")>  
+                <img src="{{ url_for('static', filename='img/electrum_manual/4.png') }}" alt=_("Paste in console 'wallet.get_keystores()[0].get_root_fingerprint()'")>  
+                <br>
+                <div class="note">
+                {{ _("Paste in console") }}:<br>
+                    <pre>
 wallet.get_keystores()[0].get_root_fingerprint()
-			</pre>
-				</div>
+                    </pre>
+                </div>
+                <input   id="root_fingerprint" name="root_fingerprint"   placeholder="Your root fingerprint" >   
 
-                <h4>{{ _("5. Combine the pieces") }}</h4>
-			<pre>
-[abaa0609/0']vpub5VV9nqoWMnDCfHJuTwtWXeXDFY72dDuSvr3NLUuRkpm7cpnCNTMsQh7WDD2wK1AgpSy7qTnMMzswmFsgGXwbXpB5dMGLvGYiFgQQofKLX6d
-			</pre>
-
-            </div>
-        </div>
-        <button type="submit" id="submit-keys" class="btn centered action" style="margin: auto;">{{ _("Manual configuration") }}</button>
-        <br><br>
+                <input type='hidden'  id="xpubs" name="xpubs" >   
+                
+        </div><br>
+        <button type="submit" class="btn centered" name="action" value="newcolddevice" onsubmit="showPacman()">{{ _("Continue") }}</button>
+        
     </form>
+
 {% endblock %}
