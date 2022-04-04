@@ -1,3 +1,6 @@
+## v1.9.2 April 04, 2022
+- Bugfix: Tzdata module missing on windows fixes #1653 #1654 (Kim Neunert)
+
 ## v1.9.1 April 02, 2022
 - Bugfix: opening non-installed extensions in new window #1650 (Kim Neunert)
 - Bugfix: price provider uses wrong user #1640 (Kim Neunert)
