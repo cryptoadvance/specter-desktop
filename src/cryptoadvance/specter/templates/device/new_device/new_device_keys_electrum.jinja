@@ -19,9 +19,9 @@
             <img src="{{ url_for('static', filename='img/electrum_manual/1.png') }}" alt=_("Select Wallet  -  Information")>  
             <img src="{{ url_for('static', filename='img/electrum_manual/2a.png')}}"   alt=_("Copy the master public key and derivation path")>  <br>
 
-            {{ _("Master public key") }}<br>
+            {{ _("Master public key:") }}<br>
             <input   id="xpub" name="xpub"   placeholder="Your master public key" style="max-width: 500px;   margin-right: 10px"  required>  <br>
-            {{ _("Derivation path") }}<br>
+            {{ _("Derivation path:") }}<br>
             <input   id="derivation_path" name="derivation_path"   placeholder="Your derivation path" value="m/0'" style="max-width: 500px;  margin-right: 10px"  required>  <br>
 
             <h4>{{ _("2. Show root fingerprint") }}</h4>
@@ -32,10 +32,9 @@
             <div class="note">
             {{ _("Paste in console") }}:<br>
                 <pre>
-wallet.get_keystores()[0].get_root_fingerprint()
-                </pre>
+wallet.get_keystores()[0].get_root_fingerprint()                </pre>
             </div>
-            {{ _("Root fingerprint") }}<br>
+            {{ _("Root fingerprint:") }}<br>
             <input   id="root_fingerprint" name="root_fingerprint"   placeholder="Your root fingerprint"   style="max-width: 500px;  margin-right: 10px"  required>  <br>
 
             <input type='hidden'  id="xpubs" name="xpubs" >   
