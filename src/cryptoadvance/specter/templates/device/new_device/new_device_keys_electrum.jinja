@@ -14,7 +14,7 @@
             <h2 style="max-width: 500px; margin: auto;">{{ _("Name your Device: ") }}<input type="text" name="device_name" placeholder="My electrum wallet" id="device_name" required/></h2>
             <br>
             <input type="hidden" id="device_type" name="device_type" value="electrum">  
-            <h4>{{ _("1. Get the master public key and derivation path") }}</h4>
+            <h4>{{ _("1. Show the master public key and derivation path") }}</h4>
         
             <img src="{{ url_for('static', filename='img/electrum_manual/1.png') }}" alt=_("Select Wallet  -  Information")>  
             <img src="{{ url_for('static', filename='img/electrum_manual/2a.png')}}"   alt=_("Copy the master public key and derivation path")>  <br>
@@ -24,7 +24,7 @@
             {{ _("Derivation path:") }}<br>
             <input   id="derivation_path" name="derivation_path"   placeholder="Your derivation path" value="m/0'" style="max-width: 500px;  margin-right: 10px"  required>  <br>
 
-            <h4>{{ _("2. Show root fingerprint") }}</h4>
+            <h4>{{ _("2. Show the root fingerprint") }}</h4>
 
             <img src="{{ url_for('static', filename='img/electrum_manual/3.png') }}" alt=_("View -  Show Console")>  
             <img src="{{ url_for('static', filename='img/electrum_manual/4.png') }}" alt=_("Paste in console 'wallet.get_keystores()[0].get_root_fingerprint()'")>  
