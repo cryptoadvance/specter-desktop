@@ -57,7 +57,8 @@ a = Analysis(['specterd.py'],
              ],
              hiddenimports=[
                 'pkg_resources.py2_warn',
-                'cryptoadvance.specter.config'
+                'cryptoadvance.specter.config',
+                'tzdata' # used by apscheduler and existing hook doesn't seem to be complete
              ],
              hookspath=['hooks/'],
              runtime_hooks=[],
