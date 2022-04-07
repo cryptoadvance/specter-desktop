@@ -137,7 +137,7 @@ service.py
 This makes each implementation its own Flask `Blueprint`.
 
 ### `/static`
-Because of Flask `Blueprint` imports, you can just add static files here and reference them (e.g. "static//<service_id>/img/blah.png") as if they were in the main `/static` files root dir.
+Because of Flask `Blueprint` imports, you can just add static files here and reference them (e.g. "static/<service_id>/img/blah.png") as if they were in the main `/static` files root dir.
 
 ### `/templates/<service_id>`
 Again, Flask `Blueprint`s import the `/templates` directory as-is, but to avoid namespace collisions on the template files (e.g. `/templates/index.html`) they should be contained within a subdirectory named with the `Service.id` (e.g. `/templates/swan/index.html`)
