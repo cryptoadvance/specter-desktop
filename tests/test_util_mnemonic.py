@@ -1,3 +1,4 @@
+import pytest
 from cryptoadvance.specter.util.mnemonic import *
 
 
@@ -21,3 +22,8 @@ def test_validate_mnemonic():
     assert validate_mnemonic(
         "ghost ghost ghost ghost ghost ghost ghost ghost ghost ghost ghost machine"
     )
+
+    with pytest.raises(SpecterError, match="Language not detected") as se:
+        validate_mnemonic(
+            "muh ghost ghost ghost ghost ghost ghost ghost ghost ghost ghost machine"
+        )

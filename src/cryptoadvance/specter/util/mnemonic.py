@@ -1,5 +1,7 @@
 import logging
-from mnemonic import Mnemonic
+from mnemonic.mnemonic import ConfigurationError, Mnemonic
+
+from cryptoadvance.specter.specter_error import SpecterError
 
 logger = logging.getLogger(__name__)
 
@@ -39,5 +41,8 @@ def generate_mnemonic(strength=256, language_code="en") -> str:
 def validate_mnemonic(words):
     # We cannot assume the mnemonic will be in the same language currently active
     #   in the UI (e.g. a Spanish user is likely to have an English mnemonic).
-    mnemo = initialize_mnemonic(Mnemonic.detect_language(words))
+    try:
+        mnemo = initialize_mnemonic(Mnemonic.detect_language(words))
+    except ConfigurationError:
+        raise SpecterError(str(ConfigurationError))
     return mnemo.check(words)
