@@ -43,6 +43,6 @@ def validate_mnemonic(words):
     #   in the UI (e.g. a Spanish user is likely to have an English mnemonic).
     try:
         mnemo = initialize_mnemonic(Mnemonic.detect_language(words))
-    except ConfigurationError:
-        raise SpecterError(str(ConfigurationError))
+    except ConfigurationError as ce:
+        raise SpecterError(str(ce))
     return mnemo.check(words)
