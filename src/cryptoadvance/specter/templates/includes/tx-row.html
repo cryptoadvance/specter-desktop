@@ -1,8 +1,5 @@
 <template id="tx-row">
     <style>
-        .frozen {
-            background: #546773;
-        }
         .svg-send {
             filter: invert(63%) sepia(67%) saturate(851%) hue-rotate(346deg) brightness(107%) contrast(92%);
         }
@@ -15,10 +12,21 @@
         .svg-cancelled {
             filter: invert(20%) sepia(32%) saturate(4838%) hue-rotate(332deg) brightness(81%) contrast(97%);
         }
-
         .tx-row:hover {
             background-color: var(--cmap-bg-lightest);
+            vertical-align: middle;
         }
+        .tx-row {
+            vertical-align: middle;
+        }
+/*        .frozen {
+            background: #48535d
+        #546773;
+        }
+        .frozen:hover {
+            background: #48535d
+        #546773;
+        } */
         .address {
             overflow: hidden;
             text-overflow: ellipsis;
@@ -29,14 +37,64 @@
             height:24px;
             vertical-align: middle;
         }
+        .coin_select_checkbox {
+            vertical-align: middle;
+        }
+
+        .icon-info {
+           display: inline-block; 
+           position: relative; 
+           margin-left: 0.5em; 
+        }
+       .icon-info .icon-info-text {
+            display: none;
+            background: #262626;
+            border: 1px solid grey;
+            border-radius: 5px;
+            padding: 0.5em;
+            position: absolute;
+            left: 30px;
+            top: -20px;
+            width: 100px;
+            z-index: 2;
+        }
+        .icon-info .icon-info-text:before, .icon-info .icon-info-text:after {
+            content: "";
+            position: absolute;
+            left: -10px;
+            top: 7px;
+            border-style: solid;
+            border-width: 10px 10px 10px 0;
+            border-color: transparent grey;
+        }
+        .icon-info .icon-info-text:after {
+            left: -8px;
+            border-right-color: #262626;
+        }
+        .icon-info .icon-info-text .info-2 {
+            display: block;
+        }
+        .icon-info-text {
+            text-transform: capitalize;
+            text-align: center;
+        }
+        .icon-info:hover .icon-info-text, .icon-info:focus .icon-info-text {
+            display: inline-block;
+        }
+
     </style>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+
     <tr class="tx-row">
         <td id="column-callbackaction" class="callbackaction">
-            <input class="checkbox coin_select_checkbox" type="checkbox" name="coinselect" value="" >
+            <input id="coin-select-checkbox" class="checkbox coin_select_checkbox" type="checkbox" name="coinselect" value="">
         </td>
         <td id="column-category">
-            <img class="category" style="vertical-align: middle; margin-right: 10px;"/>
+            <div class="icon-info">
+                <img class="category" style="vertical-align: middle; margin-right: 10px;"/>
+                <p id="icon-info-text" class="icon-info-text">
+                </p>
+            </div>
             <img class="frozen-img hidden svg-white" style="vertical-align: middle; height: 28px;" src="{{ url_for('static', filename='img/snowflake.svg') }}"/>
         </td>
         <td id="column-txid" class="tx scroll optional txid">
@@ -54,7 +112,10 @@
             <button class="rbf-cancel danger btn optional hidden" style="width: 130px; float: right; margin-right: 10px;" type="button">{{ _("Cancel transaction") }}</button>
         </td>
         <td class="hidden optional blockhash"></td>
-        <td id="column-action"><input class="select-tx-value" type="hidden" value=""><img style="vertical-align: middle;" class="select-tx-img" src="{{ url_for('static', filename='img/checkbox-untick.svg') }}" width="25px"></tool-tip></td>
+        <td id="column-action" class="highlight-box">
+            <input class="select-tx-value" type="hidden" value="">
+            <img style="vertical-align: middle;" class="select-tx-img" src="{{ url_for('static', filename='img/checkbox-untick.svg') }}" width="25px">
+        </td>
     </tr>
 </template>
 
@@ -69,7 +130,10 @@
             this.el = clone.querySelector(".tx-row");
 
             this.callbackaction = clone.querySelector(".callbackaction");
+            this.coinSelectCheckbox = clone.getElementById("coin-select-checkbox");
+            this.categoryCell = clone.getElementById("column-category");
             this.category = clone.querySelector(".category");
+            this.iconInfoText = clone.getElementById("icon-info-text");
             this.txid = clone.querySelector(".txid .explorer-link");
             this.address = clone.querySelector(".address");
             this.serviceIcon = clone.querySelector(".service-icon");
@@ -97,15 +161,15 @@
             this.symbol = this.getAttribute('data-symbol');
             this.mode = this.getAttribute('data-mode');
             this.hideSensitiveInfo = this.getAttribute('data-hide-sensitive-info') == 'true';
-
-            // Set data for customaction
-            this.callbackaction.childNodes[1].value=`${this.tx['txid']},${this.tx['vout']}`
-            this.callbackaction.childNodes[1].amount = `${this.tx['amount']}` // a bit hackish, doing that to have access via this in next line
-            this.callbackaction.childNodes[1].addEventListener("change", (e) => {
-                let event = new CustomEvent('txRowCustomSelected', { detail: {
-                        txid: this.tx.txid,
+            // Listening for changes of coin selection checkboxes
+            this.coinSelectCheckbox.value=`${this.tx['txid']},${this.tx['vout']}` // Necessary?
+            this.coinSelectCheckbox.amount = `${this.tx['amount']}` // a bit hackish, doing that to have access via this in next line - necessary?
+            this.coinSelectCheckbox.addEventListener("change", (e) => {
+                let event = new CustomEvent(('coinSelectRowSelected'), { detail: {
+                        txid: this.tx.txid, // Detail currently not used, remove?
                         vout: this.tx.vout,
-                        amount: this.amount
+                        amount: this.amount,
+                        locked: this.tx.locked,
                     } }
                 );
                 this.dispatchEvent(event);
@@ -257,8 +321,6 @@
                 }
             }
 
-            
-
             // Show blockhash
             if (this.showBlockhash) {
                 this.blockhash.classList.remove('hidden');
@@ -285,7 +347,8 @@
                         selected: this.selectTxValue.value == "true",
                         txid: this.tx.txid,
                         vout: this.tx.vout,
-                        amount: this.amount
+                        amount: this.amount,
+                        locked: this.tx.locked,
                     } });
                     this.dispatchEvent(event);
                 }
@@ -315,15 +378,15 @@
         }
 
         isSelected() {
-            return this.callbackaction.childNodes[1].checked
+            return this.coinSelectCheckbox.checked
         }
 
         unselect() {
-            this.callbackaction.childNodes[1].checked = false
+            this.coinSelectCheckbox.checked = false
         }
 
         select() {
-            this.callbackaction.childNodes[1].checked = true
+            this.coinSelectCheckbox.checked = true
         }
 
         rbfPopup(rbfType) {
@@ -376,9 +439,10 @@
                 case "send":
                     return `{{ url_for('static', filename='img') }}/send.svg`;
                 case "receive":
+                    return `{{ url_for('static', filename='img') }}/receive.svg`;
                 case "immature":
                 case "generate":
-                    return `{{ url_for('static', filename='img') }}/receive.svg`;
+                    return `{{ url_for('static', filename='img') }}/gear.svg`;
                 case "selftransfer":
                     return `{{ url_for('static', filename='img') }}/transfer.svg`;
                 case "mixed":

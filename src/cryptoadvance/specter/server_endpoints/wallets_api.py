@@ -439,6 +439,14 @@ def wallets_overview_utxo_list():
     )
 
 
+@wallets_endpoint_api.route("/wallet/<wallet_alias>/pending_psbt_list", methods=["GET"])
+@login_required
+def pending_psbt_list(wallet_alias):
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    pending_psbts = wallet.pending_psbts_dict()
+    return jsonify(pending_psbts=pending_psbts)
+
+
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/addresses_list/", methods=["POST"])
 @login_required
 @app.csrf.exempt
@@ -676,11 +684,11 @@ def asset_balances(wallet_alias):
         textUnit = app.specter.unit
         asset_balances = {
             "btc": {
-                "balance": wallet.full_available_balance,
+                "balance": wallet.amount_available,
                 "label": label,
             },
             "sat": {
-                "balance": int(wallet.full_available_balance * 1e8),
+                "balance": int(wallet.amount_available * 1e8),
                 "label": "sat",
             },
         }

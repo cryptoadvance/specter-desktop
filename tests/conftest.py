@@ -470,36 +470,6 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
     specter.user_manager.save()
     specter.check()
 
-    assert not someuser.wallet_manager.working_folder is None
-
-    # Create a Wallet
-    wallet_json = '{"label": "a_simple_wallet", "blockheight": 0, "descriptor": "wpkh([1ef4e492/84h/1h/0h]tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc/0/*)#xp8lv5nr", "devices": [{"type": "trezor", "label": "trezor"}]} '
-    wallet_importer = WalletImporter(
-        wallet_json, specter, device_manager=someuser.device_manager
-    )
-    wallet_importer.create_nonexisting_signers(
-        someuser.device_manager,
-        {"unknown_cosigner_0_name": "trezor", "unknown_cosigner_0_type": "trezor"},
-    )
-    dm: DeviceManager = someuser.device_manager
-    wallet = wallet_importer.create_wallet(someuser.wallet_manager)
-    try:
-        # fund it with some coins
-        bitcoin_regtest.testcoin_faucet(address=wallet.getnewaddress())
-        # make sure it's confirmed
-        bitcoin_regtest.mine()
-        # Realize that the wallet has funds:
-        wallet.update()
-    except SpecterError as se:
-        if str(se).startswith("Timeout"):
-            pytest.fail(
-                "We got a Bitcoin-RPC timeout while setting up the test, minting some coins. Test Error! Check cpu/mem utilastion and btc/elem logs!"
-            )
-            return
-        else:
-            raise se
-
-    assert wallet.fullbalance >= 20
     assert not specter.wallet_manager.working_folder is None
     try:
         yield specter
