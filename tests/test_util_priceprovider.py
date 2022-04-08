@@ -33,8 +33,9 @@ def test_failsafe_request_get(empty_data_folder):
     url = "https://www.bitstamp.net/api/v2/ticker/btc{}".format(currency)
     with pytest.raises(SpecterError) as se:
         failsafe_request_get(requests_session, url)
-    assert f"The currency_pair does not seem to exist for that provider" in str(
-        se.value
+    assert (
+        f"HttpError 404 for https://www.bitstamp.net/api/v2/ticker/btcnotExisting"
+        in str(se.value)
     )
 
     currency = "usd"
@@ -45,6 +46,13 @@ def test_failsafe_request_get(empty_data_folder):
     with pytest.raises(SpecterError) as se:
         failsafe_request_get(requests_session, url)
     assert str(se.value).startswith("JSON error:")
+
+    with pytest.raises(SpecterError) as se:
+        failsafe_request_get(requests_session, "https://httpbin.org/status/404")
+    assert f"HttpError 404 for https://httpbin.org/status/404" in str(se.value)
+
+    json = failsafe_request_get(requests_session, "https://httpbin.org/json")
+    assert json["slideshow"]
 
 
 def test_get_price_at():

@@ -361,7 +361,7 @@ def new_wallet(wallet_type):
 @login_required
 def wallet(wallet_alias):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    if wallet.fullbalance > 0:
+    if wallet.amount_total > 0:
         return redirect(url_for("wallets_endpoint.history", wallet_alias=wallet_alias))
     else:
         return redirect(url_for("wallets_endpoint.receive", wallet_alias=wallet_alias))
@@ -468,6 +468,15 @@ def send_new(wallet_alias):
     rbf_utxo = []
     rbf_tx_id = ""
     selected_coins = request.form.getlist("coinselect")
+    # Additional server side check not to use frozen UTXO as a precaution
+    frozen_utxo = wallet.frozen_utxo
+    for utxo in selected_coins:
+        if utxo in frozen_utxo:
+            selected_coins.remove(utxo)
+            flash(f"You've selected a frozen UTXO for a transaction.", "error")
+            return redirect(
+                url_for("wallets_endpoint.history", wallet_alias=wallet_alias)
+            )
 
     if request.method == "POST":
         action = request.form.get("action")
@@ -601,11 +610,7 @@ def send_new(wallet_alias):
             flash(_("Failed to get RBF coins. Error: {}").format(e), "error")
 
     show_advanced_settings = (
-        ui_option != "ui"
-        or subtract
-        or fee_options != "dynamic"
-        or not rbf
-        or selected_coins
+        ui_option != "ui" or subtract or fee_options != "dynamic" or not rbf
     )
     wallet_utxo = wallet.utxo
     if app.specter.is_liquid:
