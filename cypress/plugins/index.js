@@ -48,6 +48,18 @@ module.exports = (on, config) => {
     }
   })
 
+  // For future use, not used yet
+  on('task', {
+    'delete:bitcoin-hotwallet': (name) => {
+      console.log('connection details: %s', btc_conn)
+      const bitcoin_data_dir=btc_conn["bitcoin_data_dir"];
+      var rimraf = require("rimraf");
+      console.log('Removing all wallets in %s', bitcoin_data_dir+"/regtest/wallets/specter123456_hotstorage")
+      rimraf.sync(bitcoin_data_dir+"/regtest/wallets/specter123456_hotstorage");
+      return null
+    }
+  })
+
   on('task', {
     'btc:mine': () => {
       // sending the bitcoind-process a signal SIGUSR1 (10) will cause mining towards all specter-wallets

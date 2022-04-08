@@ -32,7 +32,7 @@ def timedatetime(context, s):
 def btcamount(context, value):
     if value is None:
         return "Unknown"
-    if value < 0:
+    if value < 0 and app.specter.is_liquid:
         return "Confidential"
     value = round(float(value), 8)
     return "{:,.8f}".format(value).rstrip("0").rstrip(".")
@@ -63,7 +63,7 @@ def btcunitamount(context, value):
         return "#########"
     if value is None:
         return "Unknown"
-    if value < 0:
+    if value < 0 and app.specter.is_liquid:
         return "Confidential"
     if app.specter.unit != "sat":
         return btcamount(context, value)

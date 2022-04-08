@@ -1,9 +1,49 @@
+<!-- 
+    Custom element for showing a table of transactions.
+    Can be configured to show:
+     - The transaction history of a wallet (set attribute `type` to "txlist" and `wallet` to the wallet's alias)
+     - The UTXO list of a wallet (set attribute `type` to "utxo" and `wallet` to the wallet's alias)
+     - The transaction history of all the user's wallets (set attribute `type` to "txlist" and `wallet` to null)
+     - The UTXO list of all the user's wallets (set attribute `type` to "utxo" and `wallet` to null)
+    The uses Specter's API to fetch transactions every time the user changes its parameters.
+    These parameters are configured using components included in this table element:
+     - Tabs for switching between History (`type="txlist"`) and UTXO (`type="utxo"`) list types
+     - Sorting transactions by any column (ascending or descending)
+     - Search bar to filter transactions using free text search
+     - Configuring limit for transactions displayed per page
+     - Pagination, jumping between pages and showing the total pages count
+     - Export - export the full (unfiltered) list from which the table is drawing its data as CSV (optionally with price history)
+    
+    The table also supports:
+     - Showing amounts in either BTC or sats (set attribute `btc-unit` to either "btc" or "sat")
+     - Showing prices next to the amounts (set attribute `price` to the BTC price and symbol to the symbol of the currency you're pricing at)
+     - Showing validated blockhash column (set attribute `blockhash` to either "true" or "false")
+     - Limiting txs/utxos to just those associated with the specified `data-service-id`.
+     - Hide columns by hide-columns="category time"
+     - Enable scrollbar
+     - Toggle for scrollbar
+
+{#- Usage -
+
+<tx-table
+    btc-unit="{{ specter.unit }}"
+    hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
+    type="utxo" 
+    hide-columns="category time txid confirmations action" 
+    blockhash="true" 
+    hide-switcher="true"
+    wallet="{{ wallet.alias }}"
+    scrollbar-height="333px"
+    scrollbar-default="off"
+    compact-switch="true">
+</tx-table>
+#} 
+-->
+
 <template id="tx-table">
+
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <style>
-        .tx-table {
-            display: table;
-        }
         tx-row {
             display: contents;
         }
@@ -19,12 +59,10 @@
             -webkit-appearance: none;
             margin: 0;
         }
-
         /* Firefox */
         input[type=number] {
             -moz-appearance: textfield;
         }
-
         .pagination-idx {
             min-width: 50px;
             max-width: 50px;
@@ -33,16 +71,15 @@
             text-align: center;
             height: 35px;
         }
-        .search {
-            /* float: right; */
-            margin: auto;
-            width: 100%;
-            max-width: 350px;
-        }
         .search-container {
             width: 100%;
             display: flex;
+            justify-content: center;
+            align-items: center;
             margin-bottom: 0.5em;
+        }
+        .search {
+            margin: auto;
         }
         .up-arrow {
             width: 0;
@@ -56,7 +93,6 @@
             margin-right: 50px;
             margin-top: 5px;
         }
-
         .down-arrow {
             width: 0;
             height: 0;
@@ -70,7 +106,6 @@
             margin-right: 50px;
             margin-top: 5px;
         }
-        
         .export-container {
             max-width: 50%;
             margin: 20px auto;
@@ -91,7 +126,85 @@
             margin: 5px;
             height: 38px;
         }
+        .action-teaser {
+            max-width: 20em;
+            border: 1px solid var(--cmap-border);
+            background-color: var(--cmap-bg-lighter);
+            padding: 0.8em;
+            text-align: center;
+            font-size: 15px;
+            line-height: 12px;
+            font-weight: 50;
+            color: grey;
+        }
+        .freeze-tx-btn {
+            border: 1px solid var(--cmap-border);
+            border-radius: 0.5em;
+            background-color: var(--cmap-bg-lighter);
+            padding: 0.8em;
+            text-align: center;
+            font-weight: 250;
+        }
+        .freeze-tx-btn:hover {
+            background-color: var(--cmap-bg-lightest);
+            border: 1px solid var(--main-color);
+        }
+        .compose-tx-btn {
+            border: 1px solid var(--cmap-border);
+            border-radius: 0.5em;
+            background-color: var(--cmap-bg-lighter);
+            padding: 0.8em;
+            text-align: center;
+            font-weight: 250;
+        }
+        .compose-tx-btn:hover {
+            background-color: var(--cmap-bg-lightest);
+            border: 1px solid var(--main-color);
+        }
+        .manage-psbt-btn {
+            border: 1px solid var(--cmap-border);
+            border-radius: 0.5em;
+            background-color: var(--cmap-bg-lighter);
+            padding: 0.8em;
+            text-align: center;
+            font-weight: 250;
+        }
+        .manage-psbt-btn:hover {
+            background-color: var(--cmap-bg-lightest);
+            border: 1px solid var(--main-color);
+        }
+        .table-container {
+            width:  100%;
+        }
+        .scrollbar {
+            min-height: 350px;
+            overflow-y: scroll;
+            scrollbar-color: hsl(217, 10%, 80%) var(--cmap-border); 
+            scrollbar-width: thin; 
+        }
+        .table-container::-webkit-scrollbar {
+            width: 0.4em;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: var(--cmap-bg);
+            border-radius: 100vw;
+            margin-top: 4em;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background: hsl(217, 10%, 80%);
+            border-radius: 100vw;
+        }
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: white;
+        }
+        .scrollbar-checkbox-div {
+            margin-left: 15px;
+        }
+        input:checked + .slider {
+            background-color: var(--cmap-border);
+        }
     </style>
+
     <nav class="switcher row">
         <button
             type="button"
@@ -112,34 +225,48 @@
     </div>
     <div class="search-container">
         <!--Left part of the toolbar-->
-        <div style="flex: 1;">
+        <div style="flex: 0 0 200px">
             {% include "includes/page-limit-select.html" %}
         </div>
-        <!--Middle part of the toolbar-->
-        <input class="search" type="text" placeholder="Search..." />
-        <tool-tip title="Search options">
-            {{ _("anything in the address, tx, label, confirmations or amount") }}<br>
-            {{ _('search like') }} <code>%d.%m.%Y %H:%M</code> {{ _('if you want to search in the time field') }}<br>
-            {{ _("<code> 1</code> for anything more than 1 BTC and likewise <code>< 1</code> (don't forget the space)") }}<br>
-        </tool-tip>
-        <!--Placeholder for right part of the toolbar-->
-        <div style="flex: 1;"></div>
-    </div>
-    <div class="selected-rows-action-box row hidden">
-        <form class="freeze-tx-form" method="POST">
-            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button type="button" class="btn freeze-tx-btn">
+         <!--Middle part of the toolbar-->
+        <div style="flex-grow: 0.5">
+            <input class="search" type="text" placeholder="Search..."></input>
+        </div>
+        <div style="flex: 0 0 50px">
+            <tool-tip title="Search options">
+                {{ _("anything in the address, tx, label, confirmations or amount") }}<br>
+                {{ _('search like') }} <code>%d.%m.%Y %H:%M</code> {{ _('if you want to search in the time field') }}<br>
+                {{ _("<code> 1</code> for anything more than 1 BTC and likewise <code>< 1</code> (don't forget the space)") }}<br>
+            </tool-tip>
+        </div>
+        <!--Right part of the toolbar-->
+        <div id="action-teaser" class="action-teaser hidden" style="flex-grow: 1"> 
+            <span id="action-teaser-text" class="action-teaser-text">Select checkboxes for actions</span>
+        </div>
+        <div class="selected-rows-action-box row hidden">
+            <form class="freeze-tx-form" method="POST">
+                <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="button" class="btn freeze-tx-btn">
                 <tool-tip title="Freezing UTXOs">
                     {{ _("Freezing a UTXO will make Specter disallow spending it.") }}<br><br>
-                    {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }}"
+                    {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }}
                 </tool-tip>&nbsp;&nbsp;
                 Un/Freeze UTXOs
             </button>
-        </form>
-        <form class="compose-tx-form" method="POST">
-            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button type="button" class="btn compose-tx-btn">{{ _("Create new transaction") }}</button>
-        </form>
+            </form>
+            <form class="compose-tx-form" method="POST">
+                <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="button" class="btn compose-tx-btn">{{ _("Create new transaction") }}</button>
+            </form>
+            <a id="manage-psbt-btn" type="button" class="btn manage-psbt-btn hidden" href="">{{ _("Manage unsigned PSBT") }}</a>
+        </div>
+        <div id="scrollbar-checkbox-div" class="scrollbar-checkbox-div row hidden">
+            {{ _("Compact table") }} &nbsp;&nbsp;
+            <label class="switch">
+                <input type="checkbox" id="scrollbar-checkbox" class="scrollbar-checkbox" name="scrollbar-checkbox">
+                <span class="slider"></span>
+            </label>
+        </div>
     </div>
     <div class="export-container hidden">
         <h1>{{ _("Export transactions to CSV") }}</h1>
@@ -156,78 +283,57 @@
         </div>
         <a class="export btn" download>{{ _("Export") }}</a>
     </div>
-    <table class="tx-table">
-        <thead>
-            <tr>
-                <th value="callbackaction" class="column-callbackaction customaction-header"></th>
-                <th value="category" class="column-category category-header"><div class="category-arrow"></div></th>
-                <th value="txid"     class="column-txid optional txid-header">TxID<div class="txid-arrow"></div></th>
-                <th value="label"    class="column-label optional label-header">{{ _("Label") }}<div class="label-arrow"></div></th>
-                <th value="amount"   class="column-amount amount-header">{{ _("Amount") }}<div class="amount-arrow"></div></th>
-                <th value="time"     class="column-time time-header">{{ _("Time") }}<div class="time-arrow up-arrow"></div></th>
-                <th value="confirmations" class="column-confirmations confirmations-header">{{ _("Confirmations") }}<div class="confirmations-arrow"></div></th>
-                <th value="blockhash" class="column-blockhash optional hidden blockhash-header">
-                    {{ _("Block Hash") }}
-                    {% include "includes/merkletooltip.html" %}
-                </th>
-                <th class="column-action" style="width: 50px; padding: 10px;">
-                    <button type="button" class="export-btn btn" style="width: 50px;">
-                        {{ _("Export") }}
-                    </button>
-                </th>
-            </tr>
-        </thead>
-    <tr class="empty">
-        <td class="column-callbackaction"></td>
-        <td class="column-category"></td>
-        <td class="column-txid">{{ _("Fetching transactions...") }}</td>
-        <td class="column-label optional"></td>
-        <td class="column-amount optional"></td>
-        <td class="column-time" ></td>
-        <td class="column-confirmations"></td>
-        <td class="column-blockhash optional hidden blockhash-empty"></td>
-        <td class="column-action"></td>
-    </tr>
-    <tr class="summary-row hidden">
-        <td class="column-callbackaction"></td>
-        <td class="column-category" ></td>
-        <td class="column-txid summary-tx-count"></td>
-        <td class="column-label optional"></td>
-        <td class="column-amount summary-amount"></td>
-        <td class="column-time optional"></td>
-        <td class="column-confirmations"> </td>
-        <td class="column-blockhash optional hidden blockhash-summary"></td>
-        <td class="column-action"></td>
-    </tr>
-	<tbody class="tx-tbody">
-	</tbody>
-    </table>
+    <div id="table-container" class="table-container">
+        <table class="tx-table">
+            <thead>
+                <tr>
+                    <th value="callbackaction" class="column-callbackaction customaction-header"></th>
+                    <th value="category" class="column-category category-header"><div class="category-arrow"></div></th>
+                    <th value="txid"     class="column-txid optional txid-header">TxID<div class="txid-arrow"></div></th>
+                    <th value="label"    class="column-label optional label-header">{{ _("Label") }}<div class="label-arrow"></div></th>
+                    <th value="amount"   class="column-amount amount-header">{{ _("Amount") }}<div class="amount-arrow"></div></th>
+                    <th value="time"     class="column-time time-header">{{ _("Time") }}<div class="time-arrow up-arrow"></div></th>
+                    <th value="confirmations" class="column-confirmations confirmations-header">{{ _("Confirmations") }}<div class="confirmations-arrow"></div></th>
+                    <th value="blockhash" class="column-blockhash optional hidden blockhash-header">
+                        {{ _("Block Hash") }}
+                        {% include "includes/merkletooltip.html" %}
+                    </th>
+                    <th class="column-action" style="width: 50px; padding: 10px;">
+                        <button type="button" class="export-btn btn" style="width: 50px;">
+                            {{ _("Export") }}
+                        </button>
+                    </th>
+                </tr>
+            </thead>
+        <tr class="empty">
+            <td class="column-callbackaction"></td>
+            <td class="column-category"></td>
+            <td class="column-txid">{{ _("Fetching transactions...") }}</td>
+            <td class="column-label optional"></td>
+            <td class="column-amount optional"></td>
+            <td class="column-time" ></td>
+            <td class="column-confirmations"></td>
+            <td class="column-blockhash optional hidden blockhash-empty"></td>
+            <td class="column-action"></td>
+        </tr>
+        <tr class="summary-row hidden">
+            <td class="column-callbackaction"></td>
+            <td class="column-category" ></td>
+            <td class="column-txid summary-tx-count"></td>
+            <td class="column-label optional"></td>
+            <td class="column-amount summary-amount"></td>
+            <td class="column-time optional"></td>
+            <td class="column-confirmations"> </td>
+            <td class="column-blockhash optional hidden blockhash-summary"></td>
+            <td class="column-action"></td>
+        </tr>
+    	<tbody class="tx-tbody">
+    	</tbody>
+        </table>
+    </div>
 </template>
 
 <script type="text/javascript">
-    /**
-     * Custom element for showing a table of transactions.
-     * Can be configured to show:
-     *  - The transaction history of a wallet (set attribute `type` to "txlist" and `wallet` to the wallet's alias)
-     *  - The UTXO list of a wallet (set attribute `type` to "utxo" and `wallet` to the wallet's alias)
-     *  - The transaction history of all the user's wallets (set attribute `type` to "txlist" and `wallet` to null)
-     *  - The UTXO list of all the user's wallets (set attribute `type` to "utxo" and `wallet` to null)
-     * The uses Specter's API to fetch transactions every time the user changes its parameters.
-     * These parameters are configured using components included in this table element:
-     *  - Tabs for switching between History (`type="txlist"`) and UTXO (`type="utxo"`) list types
-     *  - Sorting transactions by any column (ascending or descending)
-     *  - Search bar to filter transactions using free text search
-     *  - Configuring limit for transactions displayed per page
-     *  - Pagination, jumping between pages and showing the total pages count
-     *  - Export - export the full (unfiltered) list from which the table is drawing its data as CSV (optionally with price history)
-     * 
-     * The table also supports:
-     *  - Showing amounts in either BTC or sats (set attribute `btc-unit` to either "btc" or "sat")
-     *  - Showing prices next to the amounts (set attribute `price` to the BTC price and symbol to the symbol of the currency you're pricing at)
-     *  - Showing validated blockhash column (set attribute `blockhash` to either "true" or "false")
-     *  - Limiting txs/utxos to just those associated with the specified `data-service-id`.
-     *  - Hide columns by hide-columns="category time"
-    */
     class TxTableElement extends HTMLElement {
         constructor() {
             super();
@@ -237,6 +343,7 @@
             var clone = style.cloneNode(true);
             this.el = clone.querySelector(".tx-table");
             this.tbody = clone.querySelector(".tx-tbody");
+            this.tableContainer = clone.getElementById("table-container")
 
             // Empty row element
             this.emptyRow = clone.querySelector(".empty");
@@ -292,30 +399,45 @@
             this.composeTxBtn = clone.querySelector(".compose-tx-btn");
             this.freezeTxForm = clone.querySelector(".freeze-tx-form");
             this.freezeTxBtn = clone.querySelector(".freeze-tx-btn");
+            this.managePSBTBtn = clone.getElementById("manage-psbt-btn")
             this.selectedRows = [];
+
+            // Action teaser
+            this.actionTeaserDiv = clone.getElementById("action-teaser") 
+            this.actionTeaserText = clone.getElementById("action-teaser-text")
+
+            // Scrollbar checkbox
+            this.scrollbarCheckboxDiv = clone.getElementById("scrollbar-checkbox-div")
+            this.scrollbarCheckbox = clone.getElementById("scrollbar-checkbox")
 
             // CustomAction Preselection default
             this.selectedCoins = []
             
 			this.txlistViewBtn.onclick = () => {
 				if (!this.txlistViewBtn.classList.contains("checked")) {
+                    this.idx = 0
 					this.utxoViewBtn.classList.remove("checked");
 					this.txlistViewBtn.classList.add("checked");
 					this.setAttribute("type","txlist");
+                    this.actionTeaserDiv.classList.add("hidden");
 				}
 			}
 
 			this.utxoViewBtn.onclick = () => {
 				if (!this.utxoViewBtn.classList.contains("checked")) {
+                    this.idx = 0
 					this.txlistViewBtn.classList.remove("checked");
 					this.utxoViewBtn.classList.add("checked");
 					this.setAttribute("type","utxo");
+                    // The action teaser should not be visible on wallets overview 
+                    if (this.wallet != null) { 
+                    this.actionTeaserDiv.classList.remove("hidden");
+                    }
 				}
             }
             
             // Init call id to avoid fetch returning after another one triggered
             this.callId = 0
-
 
             // Initialize default sort, search, limit and page parameters
             this.idx = 0;
@@ -329,7 +451,7 @@
             this.paginationNext.onclick = () => {
                 this.idx++;
                 console.log("paginationNext fetch");
-                
+                this.update();         
             }
 
             // Previous page action
@@ -421,6 +543,7 @@
                 this.export.href = this.export.href.split('?')[0] + `?exportPrices=${this.exportPricesSwitch.checked}&search=${this.search}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
             }
 
+            // Create transaction with selected UTXO
             this.composeTxBtn.onclick = () => {
                 for (let tx of this.selectedRows) {
                     this.composeTxForm.innerHTML += `
@@ -431,6 +554,7 @@
                 this.composeTxForm.submit();
             }
 
+            // Freeze selected UTXO
             this.freezeTxBtn.onclick = () => {
                 for (let tx of this.selectedRows) {
                     this.freezeTxForm.innerHTML += `
@@ -440,6 +564,7 @@
                 this.freezeTxForm.innerHTML += `<input type="hidden" name="action" value="freezeutxo"/>`
                 this.freezeTxForm.action = `{{ url_for('wallets_endpoint.history', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
                 this.freezeTxForm.submit();
+
             }
 
             // Attach the created element to the shadow dom
@@ -447,11 +572,23 @@
         }
 
         static get observedAttributes() {
-            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'hide-sensitive-info', 'wallet', 'service-id', 'selected-coins'];
+            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'hide-sensitive-info', 'wallet', 'service-id', 'selected-coins', 'scrollbar-height', 'scrollbar-default', 'compact-switch'];
         }
 
         connectedCallback() {
-            // Hide columns
+            // Manage PSBT
+            this.managePSBTBtn.href = `{{ url_for('wallets_endpoint.send_pending', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+
+            // Listerning for changes in compact table
+            this.scrollbarCheckbox.addEventListener("click", () => {
+                if (this.scrollbarCheckbox.checked) {
+                    this.tableContainer.classList.add("scrollbar")
+                }
+                else {
+                 this.tableContainer.classList.remove("scrollbar")   
+                }
+            })
+
             this.hideColumns = this.getAttribute("hide-columns") ?? "callbackaction"
             if (this.hideColumns && this.hideColumns != "null") {
                 this.hideColumns.split(" ").forEach((column_name) => {
@@ -486,6 +623,7 @@
             })
         }
 
+        // TODO: Remove? Not used anywhere and looks incomplete
         select_coins(selected_coins) {
             this.shadowRoot.querySelectorAll(".txrowitem").forEach((item) => {
                 selected_coins.forEach((selected_coin) => {
@@ -507,8 +645,18 @@
          * - type: Transactions list type to load. Either "txlist" or "utxo"
          * - hide-sensitive-info: Mask user sensitive info. Either "true" or "false"
          * - wallet: The wallet alias (null to get all wallets combined)
+         * - scrollbar-height: Height of the table container with the scrollbar
+         * - scrollbar-default: Whether scrollbar is enabled by default
+         * - compact-switch: Offer a switch to change between long and compact list
         */
         attributeChangedCallback(attrName, oldValue, newValue) {
+            this.tableContainer.style.height = this.getAttribute("scrollbar-height")
+            if (this.getAttribute("scrollbar-default") == "on") {
+                this.tableContainer.classList.add("scrollbar")
+            } 
+            if (this.getAttribute("compact-switch") == "true") {
+                this.scrollbarCheckboxDiv.classList.remove("hidden")
+            }
             if (attrName != "selected-coins") {
                 if (this.getAttribute('blockhash') == 'true' && this.getAttribute('type') == "txlist" && this.getAttribute('wallet')) {
                         this.blockhashHeader.classList.remove('hidden');
@@ -558,8 +706,8 @@
         }
 
         /**
-         * searches this.selectedCoin for a transactionId and removes that if found and returns True in that case.
-         * Explanation: An initial pre-ticking the checkboxes is not that easy as the state of the component is
+         * searches this.selectedCoins for a transactionId and removes that if found and returns True in that case.
+         * Explanation: An initial pre ticking of the checkboxes is not that easy as the state of the component is
          * created dynamically. This also involves the preselected checkboxes which get set by setAttribute("selected-coins",...)
          * In order to solve this, this.selectedCoins is an array of txids which nedd to be checked and they get "consumed" when the 
          * the check is positive.
@@ -572,7 +720,7 @@
                if (filtered.length == this.selectedCoins.length) {
                    return false
                } else {
-                   console.log("Found txid"+txid)
+                   console.log(`Found txid: ${txid}`)
                    this.selectedCoins = filtered
                    return true
                }
@@ -641,6 +789,7 @@
                 formData.append('service_id', this.serviceId);
             }
             formData.append('csrf_token', '{{ csrf_token() }}');
+            console.log(url)
             try {
                 let callId = this.callId;
                 const response = await fetch(
@@ -659,7 +808,6 @@
                 }
                 const jsonResponse = await response.json();
                 let showBlockhash = !this.blockhashHeader.classList.contains('hidden');
-                
                 if ("txlist" in jsonResponse) {
                     this.render(jsonResponse, showBlockhash)
                     return
@@ -671,7 +819,7 @@
             }
         }
         
-        render(jsonResponse, showBlockhash) {
+        async render(jsonResponse, showBlockhash) {
             // jsonresponse is something like:
             // {
             //  "pageCount": 1, 
@@ -776,31 +924,154 @@
 
                 // if preselectedCoins are there, we need to dispatch an event
                 let dispatchLater = false
-                for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) {
+
+                // Get txids of pending PSBTs
+                if (this.wallet) {
+                    var pending_psbts = await this.fetchWalletData();
+                    var pending_psbts_txids = []
+                    const keys = Object.keys(pending_psbts)
+                    keys.forEach((key, index) => {
+                        for (let input of pending_psbts[key]["inputs"]) {
+                            let txid = input["txid"]
+                            pending_psbts_txids.push(txid)
+                        }
+                    });
+                } else {
+                    pending_psbts = []
+                }
+                for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) { 
+                    // EventListener when hovering over checkboxes
+                    txRow.selectTxImg.addEventListener("mouseover", () => {
+                        this.actionTeaserDiv.style.color = 'orange';
+                    })
+                    txRow.selectTxImg.addEventListener("mouseout", () => {
+                        this.actionTeaserDiv.style.color = 'grey';
+                    })
+                    // EventListener when hovering over categories
+                    txRow.category.addEventListener("mouseover", () => {
+                        if (txRow.tx.confirmations == 0) {
+                        txRow.iconInfoText.innerText = `${txRow.tx.category} (unconfirmed)`
+                        } 
+                        else {
+                        txRow.iconInfoText.innerText = txRow.tx.category
+                        }  
+                    })
+                    // Adding additional text to special UTXO in coin selection and UTXO list                 
+                    if (txRow.tx.locked && pending_psbts_txids.includes(txRow.tx.txid) == false) {
+                        // Replaces checkbox for locked UTXO in coin selection by snowflake image
+                        txRow.callbackaction.innerHTML = ""
+                        // Need to clone otherwise we're ripping the node from the UTXO overview
+                        let frozenImgClone = txRow.frozenImg.cloneNode()
+                        txRow.callbackaction.append(frozenImgClone)
+                        // Adding "Frozen" in coin selection and UTXO overview 
+                        txRow.callbackaction.append("Frozen")
+                        txRow.categoryCell.append("Frozen")
+                    }
+                    if (txRow.tx.locked && pending_psbts_txids.includes(txRow.tx.txid) == true) {
+                        txRow.callbackaction.innerHTML = ""
+                        let frozenImgClone = txRow.frozenImg.cloneNode()
+                        txRow.callbackaction.append(frozenImgClone)
+                        // Adding "Unsigned" in coin selection and UTXO overview 
+                        txRow.callbackaction.append("Unsigned")
+                        txRow.categoryCell.append("Unsigned")
+                    }
+                    if (txRow.tx.confirmations == 0) {
+                        var el = txRow.callbackaction.childNodes
+                        var nodeArray = Array.from(el)
+                        function checkNodes(node) {
+                            return node.textContent == "Frozen" || node.textContent == "Unsigned"
+                        }
+                        if (nodeArray.some(checkNodes)) {
+                                txRow.callbackaction.append(" & unconfirmed");
+                            }
+                        else {
+                                txRow.callbackaction.append("Unconfirmed");
+                            }
+                    }
+         
                     // Preselect if necessary
                     if (this.checkForSelectedCoin(txRow.tx.txid)) {
                         txRow.select()
                         dispatchLater = true
                     }
-                    txRow.addEventListener('txRowCustomSelected', (e) => {
+                    // Listening for (un-) selecting coin selection checkboxes
+                    txRow.addEventListener('coinSelectRowSelected', (e) => {
                         this.fireCustomSelectedEvent()
                     })
                     
-                    txRow.addEventListener('txRowSelected', e=>{
-                        let selectedRow = e.target;
+                    // Listening for (un-) selecting standard checkboxes
+                    txRow.addEventListener('txRowSelected', (e) => {
+                        let selectedRow = e.target; 
                         if (e.detail.selected) {
                             this.selectedRows.push({
                                 txid: e.detail.txid,
                                 vout: e.detail.vout,
-                                amount: e.detail.amount.toFixed(8)
+                                amount: e.detail.amount.toFixed(8),
+                                locked: e.detail.locked, 
                             });
                         } else {
+                            // Remove unselected rows from array
                             this.selectedRows = this.selectedRows.filter(row => !(row.txid === e.detail.txid && row.vout === e.detail.vout))
                         }
-                        if (this.selectedRows.length == 0) {
-                            this.selectedRowsActionBox.classList.add('hidden');
-                        } else {
+                        // Returns true if a selected UTXO is locked
+                        function checkLocked(row) {
+                            return row.locked == true
+                        }
+                        // Returns true if a selected UTXO is unsigned-locked
+                        function checkUnsignedLocked(row) {
+                            if (row.locked == true && pending_psbts_txids.includes(row.txid) == true) {
+                                return true
+                            }
+                        }
+
+                        // Locked UTXO is selected
+                        if (this.selectedRows.some(checkLocked) && !this.selectedRows.some(checkUnsignedLocked)) {
+                            this.composeTxForm.classList.add('hidden');
+                            this.actionTeaserDiv.classList.add("hidden");
                             this.selectedRowsActionBox.classList.remove('hidden');
+                            this.freezeTxForm.classList.remove('hidden');
+                            for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) {
+                                if ((!txRow.tx.locked || pending_psbts_txids.includes(txRow.tx.txid) == true)) {
+                                    txRow.selectTxImg.classList.add("hidden")
+                                    txRow.selectTxImg.src = "{{ url_for('static', filename='img/checkbox-untick.svg') }}"
+                                    txRow.selectTxValue.value = ""
+                                    // Remove rows that were selected previously
+                                    this.selectedRows = this.selectedRows.filter(row => (row.locked))
+                                }
+                            }
+                        }
+                        // Unsigned-locked UTXO is selected
+                        else if (this.selectedRows.some(checkUnsignedLocked)) {
+                            this.composeTxForm.classList.add('hidden');
+                            this.freezeTxForm.classList.add('hidden');
+                            this.selectedRowsActionBox.classList.remove('hidden');
+                            this.managePSBTBtn.classList.remove('hidden');
+                            this.actionTeaserDiv.classList.add("hidden");
+                            for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) {
+                                if ((!pending_psbts_txids.includes(txRow.tx.txid) == true)) {
+                                    txRow.selectTxImg.classList.add("hidden")
+                                    txRow.selectTxImg.src = "{{ url_for('static', filename='img/checkbox-untick.svg') }}"
+                                    txRow.selectTxValue.value = ""
+                                    // Remove rows that were selected previously
+                                    this.selectedRows = this.selectedRows.filter(row => (checkUnsignedLocked(row)))
+                                }
+                            }
+                        }
+                        else {
+                            this.selectedRowsActionBox.classList.remove('hidden');
+                            this.composeTxForm.classList.remove('hidden');
+                            this.freezeTxForm.classList.remove('hidden');
+                            this.managePSBTBtn.classList.add('hidden');
+                            this.actionTeaserDiv.classList.add("hidden");
+                            for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) {
+                                    txRow.selectTxImg.classList.remove("hidden")
+                            }
+                        }
+                        if (this.selectedRows.length == 0) {
+                            this.composeTxForm.classList.add('hidden');
+                            this.freezeTxForm.classList.add('hidden');
+                            this.managePSBTBtn.classList.add('hidden');
+                            this.actionTeaserDiv.classList.remove("hidden");
                         }
                     });
                 }
@@ -809,20 +1080,37 @@
                 }
             }
         }
-        
-        /** 
-        * If this event is fired, then some row got ticked/unticked in the custom-selection-column
-        */
+     
+        // If this event is fired, then some row got ticked/unticked in the custom-selection-column
+        // This is picked up by coin selection
         fireCustomSelectedEvent() {
-            let event = new CustomEvent('CustomSelected', { detail: {
-                txs: this.getSelectedTxs()
-            } }
-            );
+            let event = new CustomEvent('CustomSelected')
             this.dispatchEvent(event);
         }
+
+        async fetchWalletData() {
+            // Currently only fetching the list of pending PSBT
+            if (this.wallet) {
+                var url = `{{ url_for('wallets_endpoint_api.pending_psbt_list', wallet_alias='WALLET_ALIAS') }}`.replace('WALLET_ALIAS', this.wallet);
+            }
+            try {
+                const response = await fetch(url, {method: 'GET',});
+                if (response.status != 200) {
+                    showError(`{{ _("Error while fetching wallet data:") }} ${response.statusText}`)
+                }
+                else {
+                    let pending_psbts_json = await response.json()
+                    var pending_psbts = pending_psbts_json["pending_psbts"]
+                    // This returns a promise
+                    return pending_psbts
+                }
+            }
+            catch(e) {
+                console.log("Caught error: ", e);
+                showError(`{{ _("Failed to fetch wallet data! <br> Use this to ask about this error:") }} ${e}`);
+            }
+        }
     }
-
-
 
     /**
      * Shows a <tx-data> element popup for specified txid.
