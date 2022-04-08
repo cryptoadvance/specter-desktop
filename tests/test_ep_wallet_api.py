@@ -49,8 +49,6 @@ def test_txlist_to_csv(
             txlist_to_csv(
                 funded_hot_wallet_1,
                 funded_hot_wallet_1.txlist(),
-                specter_regtest_configured,
-                None,
                 includePricesHistory=True,
             )
         ):
