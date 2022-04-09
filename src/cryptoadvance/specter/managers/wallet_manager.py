@@ -45,8 +45,6 @@ class WalletManager:
         # key is the name of the wallet, value is the actual instance
         self.wallets = {}
         # A way to communicate failed wallets to the outside
-        # Caused mostly due to RPCErrors
-        self.failed_load_wallets = []
         self.bitcoin_core_version_raw = bitcoin_core_version_raw
         self.allow_threading = allow_threading
         # define different wallet classes for liquid and bitcoin
@@ -120,10 +118,18 @@ class WalletManager:
             )
 
     def _update(self, wallets_update_list):
+        """Effectively a three way sync. The three data-sources are:
+        * the json on disk (wallets_update_list)
+        * the current wallet-instances (existing_names)
+        * The loaded wallets from Core (loaded_wallets)
+        So this has effects if we have data from disk. It does
+        * get a list of loaded wallets from core and ...
+        * ... load the unloaded ones and replace in that cases the wallet-instances
+        """
         # list of wallets in the dict
         existing_names = list(self.wallets.keys())
         # list of wallet to keep
-        self.failed_load_wallets = []
+        self._failed_load_wallets = []
         try:
             if wallets_update_list:
                 loaded_wallets = self.rpc.listwallets()
@@ -131,6 +137,7 @@ class WalletManager:
                 for wallet in wallets_update_list:
                     wallet_alias = wallets_update_list[wallet]["alias"]
                     wallet_name = wallets_update_list[wallet]["name"]
+                    # wallet from json not yet loaded in Core?!
                     if os.path.join(self.rpc_path, wallet_alias) not in loaded_wallets:
                         try:
                             logger.info(
@@ -183,7 +190,7 @@ class WalletManager:
                             logger.warning(
                                 f"Couldn't load wallet {wallet_alias} into core. Silently ignored! RPC error: {e}"
                             )
-                            self.failed_load_wallets.append(
+                            self._failed_load_wallets.append(
                                 {
                                     **wallets_update_list[wallet],
                                     "loading_error": str(e).replace("'", ""),
@@ -193,7 +200,7 @@ class WalletManager:
                             logger.warning(
                                 f"Couldn't load wallet {wallet_alias}. Silently ignored! Wallet error: {e}"
                             )
-                            self.failed_load_wallets.append(
+                            self._failed_load_wallets.append(
                                 {
                                     **wallets_update_list[wallet],
                                     "loading_error": str(e).replace("'", ""),
@@ -213,20 +220,17 @@ class WalletManager:
                                     self.device_manager,
                                     self,
                                 )
-                                if loaded_wallet:
-                                    self.wallets[wallet_name] = loaded_wallet
-                                    # logger.info(
-                                    #     "Finished loading wallet into Specter: %s"
-                                    #     % wallets_update_list[wallet]["alias"]
-                                    # )
-                                else:
-                                    raise Exception("Failed to load wallet")
+                                self.wallets[wallet_name] = loaded_wallet
+                                # logger.info(
+                                #     "Finished loading wallet into Specter: %s"
+                                #     % wallets_update_list[wallet]["alias"]
+                                # )
                             except Exception as e:
                                 logger.warning(
                                     f"Failed to load wallet {wallet_name}: {e}"
                                 )
                                 logger.warning(traceback.format_exc())
-                                self.failed_load_wallets.append(
+                                self._failed_load_wallets.append(
                                     {
                                         **wallets_update_list[wallet],
                                         "loading_error": str(e).replace("'", ""),
@@ -256,6 +260,13 @@ class WalletManager:
             if self.wallets[wallet_name] and self.wallets[wallet_name].alias == alias:
                 return self.wallets[wallet_name]
         raise SpecterError("Wallet %s does not exist!" % alias)
+
+    @property
+    def failed_load_wallets(self) -> list:
+        """A list of wallets failed where not loaded"""
+        if not hasattr(self, "_failed_load_wallets"):
+            self._failed_load_wallets = []
+        return self._failed_load_wallets
 
     @property
     def wallets_names(self):
