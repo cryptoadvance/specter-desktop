@@ -100,14 +100,14 @@ class WalletManager:
                 )
                 t.start()
             else:
-                self._update(data_folder, rpc, chain)
+                self._update()
         else:
             self.is_loading = False
             logger.info(
                 "Specter seems to be disconnected from Bitcoin Core. Skipping wallets update."
             )
 
-    def _update(self, data_folder=None, rpc=None, chain=None):
+    def _update(self):
         # list of wallets in the dict
         existing_names = list(self.wallets.keys())
         # list of wallet to keep
