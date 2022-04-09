@@ -54,6 +54,9 @@ def validate_mnemonic(words):
 
 
 def mnemonic_to_root(mnemonic: str, passphrase: str) -> bip32.HDKey:
-    seed = bip39.mnemonic_to_seed(mnemonic, passphrase)
+    language = Mnemonic.detect_language(mnemonic)
+    mnemo = Mnemonic(language)
+    wordlist = mnemo.wordlist
+    seed = bip39.mnemonic_to_seed(mnemonic, passphrase, wordlist=wordlist)
     root = bip32.HDKey.from_seed(seed)
     return root
