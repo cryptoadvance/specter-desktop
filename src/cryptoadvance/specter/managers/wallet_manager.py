@@ -6,6 +6,7 @@ import threading
 import traceback
 
 from flask_babel import lazy_gettext as _
+from cryptoadvance.specter.rpc import BitcoinRPC
 
 from cryptoadvance.specter.key import Key
 
@@ -39,8 +40,12 @@ class WalletManager:
         self.rpc = rpc
         self.rpc_path = path
         self.device_manager = device_manager
+        # sort of lock to prevent threads to update in parallel
         self.is_loading = False
+        # key is the name of the wallet, value is the actual instance
         self.wallets = {}
+        # A way to communicate failed wallets to the outside
+        # Caused mostly due to RPCErrors
         self.failed_load_wallets = []
         self.bitcoin_core_version_raw = bitcoin_core_version_raw
         self.allow_threading = allow_threading
@@ -48,7 +53,13 @@ class WalletManager:
         self.WalletClass = LWallet if is_liquid(chain) else Wallet
         self.update(data_folder, rpc, chain)
 
-    def update(self, data_folder=None, rpc=None, chain=None, use_threading=True):
+    def update(
+        self, data_folder=None, rpc: BitcoinRPC = None, chain=None, use_threading=True
+    ):
+        """Restructures the instance, specifically if data_folder/chain/rpc changed
+        The _update internal method will resync the internal status with core
+        use_threading : for the _update method which is heavily communicating with core
+        """
         if self.is_loading:
             return
         self.is_loading = True
@@ -72,6 +83,8 @@ class WalletManager:
                 logger.error(
                     f"Prevented Trying to update wallet_Manager with broken {rpc}"
                 )
+        # wallets_update_list is something like:
+        # { "name" : "waletName", walletName: { original json as on disk, "is_multisig": True/False, "keys_count": 2} }
         wallets_update_list = {}
         if self.working_folder is not None and self.rpc is not None:
             wallets_files = load_jsons(self.working_folder, key="name")
@@ -99,7 +112,7 @@ class WalletManager:
                 )
                 t.start()
             else:
-                self._update()
+                self._update(wallets_update_list)
         else:
             self.is_loading = False
             logger.info(
@@ -136,8 +149,6 @@ class WalletManager:
                                 self.device_manager,
                                 self,
                             )
-                            if not loaded_wallet:
-                                raise Exception("Failed to load wallet")
                             # Lock UTXO of pending PSBTs
                             logger.info(
                                 "Re-locking UTXOs of wallet %s"

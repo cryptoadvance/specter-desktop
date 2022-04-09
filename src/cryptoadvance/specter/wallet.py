@@ -749,9 +749,11 @@ class Wallet:
             change_descriptor = wallet_dict["change_descriptor"]
             keys = [Key.from_json(key_dict) for key_dict in wallet_dict["keys"]]
             devices = wallet_dict["devices"]
-        except:
-            logger.error("Could not construct a Wallet object from the data provided.")
-            return
+        except Exception as e:
+            logger.error(
+                f"Could not construct a Wallet object from the data provided: {wallet_dict}. Reraise {e}"
+            )
+            raise e
 
         combined_descriptor = cls.merge_descriptors(recv_descriptor, change_descriptor)
 
