@@ -1,5 +1,6 @@
 import logging
 from mnemonic.mnemonic import ConfigurationError, Mnemonic
+from embit import bip32, bip39, networks
 
 from cryptoadvance.specter.specter_error import SpecterError
 
@@ -42,7 +43,17 @@ def validate_mnemonic(words):
     # We cannot assume the mnemonic will be in the same language currently active
     #   in the UI (e.g. a Spanish user is likely to have an English mnemonic).
     try:
-        mnemo = initialize_mnemonic(Mnemonic.detect_language(words))
+        # detect_language does not return a language code but sth. like "spanish"
+        language = Mnemonic.detect_language(words)
+        for key, value in MNEMONIC_LANGUAGES.items():
+            if value == language:
+                mnemo = initialize_mnemonic(key)
+                return mnemo.check(words)
     except ConfigurationError as ce:
         raise SpecterError(str(ce))
-    return mnemo.check(words)
+
+
+def mnemonic_to_root(mnemonic: str, passphrase: str) -> bip32.HDKey:
+    seed = bip39.mnemonic_to_seed(mnemonic, passphrase)
+    root = bip32.HDKey.from_seed(seed)
+    return root
