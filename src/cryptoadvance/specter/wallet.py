@@ -811,9 +811,9 @@ class Wallet:
                 tx["category"] = tx_data.get("category") or "send"
                 if "locked" not in tx:
                     tx["locked"] = False
-            self.full_utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
+            self._full_utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
         except Exception as e:
-            self.full_utxo = []
+            self._full_utxo = []
             raise SpecterError(f"Failed to load utxos, {e}")
 
     def getdata(self):
@@ -842,8 +842,20 @@ class Wallet:
             self.save_to_file()
 
     @property
+    def full_utxo(self):
+        if hasattr(self, "_full_utxo"):
+            return self._full_utxo
+        else:
+            self.check_utxo()
+            return self._full_utxo
+
+    @property
     def utxo(self):
-        return [utxo for utxo in self.full_utxo if not utxo["locked"]]
+        return [utxo for utxo in self._full_utxo if not utxo["locked"]]
+
+    @property
+    def locked_utxo(self):
+        return [utxo for utxo in self._full_utxo if utxo["locked"]]
 
     @property
     def json(self):
@@ -914,10 +926,8 @@ class Wallet:
 
     @property
     def locked_amount(self):
-        amount = 0
-        for psbt in self.pending_psbts.values():
-            amount += sum([inp.float_amount for inp in psbt.inputs])
-        return amount
+        """Deprecated, please use amount_locked_unsigned"""
+        return self.amount_locked_unsigned
 
     def delete_spent_pending_psbts(self, txs: list):
         """
@@ -1543,22 +1553,6 @@ class Wallet:
                 if self.use_descriptors
                 else self.rpc.getbalances()["watchonly"]
             )
-            # calculate available balance
-            locked_utxo = self.rpc.listlockunspent()
-            available = {}
-            available.update(balance)
-            for tx in locked_utxo:
-                tx_data = self.gettransaction(tx["txid"])
-                raw_tx = decoderawtransaction(tx_data["hex"], self.manager.chain)
-                delta = raw_tx["vout"][tx["vout"]]["value"]
-                if "confirmations" not in tx_data or tx_data["confirmations"] == 0:
-                    available["untrusted_pending"] -= delta
-                else:
-                    available["trusted"] -= delta
-                    available["trusted"] = round(available["trusted"], 8)
-            available["untrusted_pending"] = round(available["untrusted_pending"], 8)
-            balance["trusted"] = available["trusted"]
-            balance["untrusted_pending"] = available["untrusted_pending"]
         except Exception as e:
             raise SpecterError(f"was not able to get wallet_balance because {e}")
         self.balance = balance
@@ -1665,12 +1659,57 @@ class Wallet:
         return self.getlabel(address)
 
     @property
+    def amount_confirmed(self):
+        """Confirmed outputs (and outputs created by the wallet for Bitcoin Core Hot Wallets)"""
+        return round(self.balance["trusted"], 8)
+
+    @property
+    def amount_unconfirmed(self):
+        """Unconfirmed outputs"""
+        return round(self.balance["untrusted_pending"], 8)
+
+    @property
+    def amount_frozen(self):
+        """Only frozen outputs, no outputs locked in unsigned PSBTS"""
+        amount = 0
+        frozen_txid = [utxo.split(":")[0] for utxo in self.frozen_utxo]
+        for utxo in self.locked_utxo:
+            if utxo["txid"] in frozen_txid:
+                amount += utxo["amount"]
+        return amount
+
+    @property
+    def amount_locked_unsigned(self):
+        """Outputs locked in unsigned PSBTs"""
+        amount = 0
+        for psbt in self.pending_psbts.values():
+            amount += sum([inp.float_amount for inp in psbt.inputs])
+        return amount
+
+    @property
+    def amount_immature(self):
+        """Immature coinbase outputs"""
+        return round(self.balance["immature"], 8)
+
+    @property
+    def amount_total(self):
+        """All outputs, including unconfirmed outputs, except for immature outputs"""
+        return self.amount_confirmed + self.amount_unconfirmed
+
+    @property
+    def amount_available(self):
+        """All outputs minus UTXO locked in unsigned transactions and frozen outputs"""
+        return self.amount_total - self.amount_locked_unsigned - self.amount_frozen
+
+    @property
     def fullbalance(self):
+        """Deprecated, please use amount_total"""
         balance = self.balance
         return round(balance["trusted"], 8)
 
     @property
     def full_available_balance(self):
+        """Deprecated, please use amount_available"""
         return round(self.balance["trusted"] + self.balance["untrusted_pending"], 8)
 
     @property
@@ -1712,7 +1751,7 @@ class Wallet:
         total_sats = round(sum(amounts) * 1e8)
 
         # if creating new tx - check we have enough balance
-        if not rbf_edit_mode and self.full_available_balance < total_btc:
+        if not rbf_edit_mode and self.amount_available < total_btc:
             raise SpecterError(
                 f"Wallet {self.name} does not have sufficient funds to make the transaction."
             )
@@ -2043,7 +2082,7 @@ class Wallet:
             addr_amount = 0
 
             for utxo in [
-                utxo for utxo in self.full_utxo if utxo["address"] == addr.address
+                utxo for utxo in self._full_utxo if utxo["address"] == addr.address
             ]:
                 addr_amount = addr_amount + utxo["amount"]
                 addr_utxo = addr_utxo + 1

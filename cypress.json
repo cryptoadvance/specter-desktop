@@ -14,5 +14,6 @@
     "baseUrl": "http://localhost:25444",
     "env": {
       "broadcast_timeout":"8000"
-    }
+    },
+    "includeShadowDom": false 
 }

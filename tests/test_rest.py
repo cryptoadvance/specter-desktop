@@ -1,8 +1,15 @@
-import pytest
-import json
 import base64
+import json
 import logging
 from numbers import Number
+
+import pytest
+from cryptoadvance.specter.managers.device_manager import DeviceManager
+from cryptoadvance.specter.specter import Specter
+from cryptoadvance.specter.specter_error import SpecterError
+from cryptoadvance.specter.util.wallet_importer import WalletImporter
+
+from devices_and_wallets import create_hot_wallet_with_ID
 
 
 def almost_equal(a: Number, b: Number, precision: float = 0.01) -> bool:
@@ -16,7 +23,8 @@ def almost_equal(a: Number, b: Number, precision: float = 0.01) -> bool:
     return (diff < precision) and (diff > -precision)
 
 
-def test_rr_psbt_get(client, caplog):
+def test_rr_psbt_get(client, specter_regtest_configured, bitcoin_regtest, caplog):
+    create_a_simple_wallet(specter_regtest_configured, bitcoin_regtest)
     caplog.set_level(logging.DEBUG)
     """ testing the registration """
     # Unauthorized
@@ -70,7 +78,8 @@ def test_rr_psbt_get(client, caplog):
     assert data["result"] == {}
 
 
-def test_rr_psbt_post(specter_regtest_configured, client, caplog):
+def test_rr_psbt_post(specter_regtest_configured, bitcoin_regtest, client, caplog):
+    create_a_simple_wallet(specter_regtest_configured, bitcoin_regtest)
     caplog.set_level(logging.DEBUG)
     """ testing the registration """
 
@@ -142,3 +151,37 @@ def test_rr_psbt_post(specter_regtest_configured, client, caplog):
     assert data["result"]["base64"]
     assert data["result"]["time"]
     assert data["result"]["sigs_count"] == 0
+
+
+def create_a_simple_wallet(specter: Specter, bitcoin_regtest):
+    """ToDo: Could potentially do this with a a fixture but this is only relevant for this file only"""
+    someuser = specter.user_manager.get_user_by_username("someuser")
+    assert not someuser.wallet_manager.working_folder is None
+    # Create a Wallet
+    wallet_json = '{"label": "a_simple_wallet", "blockheight": 0, "descriptor": "wpkh([1ef4e492/84h/1h/0h]tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc/0/*)#xp8lv5nr", "devices": [{"type": "trezor", "label": "trezor"}]} '
+    wallet_importer = WalletImporter(
+        wallet_json, specter, device_manager=someuser.device_manager
+    )
+    wallet_importer.create_nonexisting_signers(
+        someuser.device_manager,
+        {"unknown_cosigner_0_name": "trezor", "unknown_cosigner_0_type": "trezor"},
+    )
+    dm: DeviceManager = someuser.device_manager
+    wallet = wallet_importer.create_wallet(someuser.wallet_manager)
+    try:
+        # fund it with some coins
+        bitcoin_regtest.testcoin_faucet(address=wallet.getnewaddress())
+        # make sure it's confirmed
+        bitcoin_regtest.mine()
+        # Realize that the wallet has funds:
+        wallet.update()
+    except SpecterError as se:
+        if str(se).startswith("Timeout"):
+            pytest.fail(
+                "We got a Bitcoin-RPC timeout while setting up the test, minting some coins. Test Error! Check cpu/mem utilastion and btc/elem logs!"
+            )
+            return
+        else:
+            raise se
+
+    assert wallet.fullbalance >= 20
