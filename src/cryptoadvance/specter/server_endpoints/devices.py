@@ -281,9 +281,8 @@ def device_blinding_key(device_alias):
     )
 
 
-
 def newcolddevice(device_name, device_type, xpubs):
-    "returns (err, redirect object)"    
+    "returns (err, redirect object)"
     err = None
     if not device_name:
         err = _("Device name cannot be empty")
@@ -303,6 +302,7 @@ def newcolddevice(device_name, device_type, xpubs):
         )
     return err, None
 
+
 # New device "manual" (deprecated)
 @devices_endpoint.route("/new_device_manual/", methods=["GET", "POST"])
 @login_required
@@ -320,7 +320,7 @@ def new_device_manual():
         device_type = request.form["device_type"]
         device_name = request.form["device_name"]
         if action == "newcolddevice":
-            err, result = newcolddevice(device_name, device_type, request.form["xpubs"])            
+            err, result = newcolddevice(device_name, device_type, request.form["xpubs"])
             if result:
                 return result
         elif action == "newhotdevice":
