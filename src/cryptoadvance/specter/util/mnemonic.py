@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 MNEMONIC_LANGUAGES = {
     "en": "english",
     "es": "spanish",
-    "fr": "french",
+    # "fr": "french", TODO: Uncomment when language detection works better upstream (https://github.com/trezor/python-mnemonic/issues/98)
     "it": "italian",
     # "jp": "japanese",
     # "ko": korean",
@@ -43,12 +43,17 @@ def validate_mnemonic(words):
     # We cannot assume the mnemonic will be in the same language currently active
     #   in the UI (e.g. a Spanish user is likely to have an English mnemonic).
     try:
-        # detect_language does not return a language code but sth. like "spanish"
+        supported_language_found = False
         language = Mnemonic.detect_language(words)
         for key, value in MNEMONIC_LANGUAGES.items():
             if value == language:
-                mnemo = initialize_mnemonic(key)
+                mnemo = Mnemonic(language)
+                supported_language_found = True
                 return mnemo.check(words)
+        if supported_language_found == False:
+            raise SpecterError(
+                f"The language {language.capitalize()} is not supported."
+            )
     except ConfigurationError as ce:
         raise SpecterError(str(ce))
 

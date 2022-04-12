@@ -145,7 +145,7 @@ class BitcoinCore(Device):
         ]
 
         if use_descriptors:
-            rpc.importdescriptors(args)
+            rpc.importdescriptors(args, timeout=15)
         else:
             rpc.importmulti(args, {"rescan": False})
 
