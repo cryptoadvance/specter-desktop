@@ -5,10 +5,10 @@ describe('Node Configured', () => {
         cy.addDevice("Testdevice Ghost")
         cy.get('body').then(($body) => {
             if ($body.text().includes('Testwallet Ghost')) {
-                cy.get('#wallets_list > .item > svg').click()
-                cy.get(':nth-child(6) > .right').click()
+                cy.contains('Testwallet Ghost').click()
+                cy.get('#btn_settings').click({"force": true})
                 cy.get('#advanced_settings_tab_btn').click()
-                cy.get('.card > :nth-child(9) > .btn').click()
+                cy.get('#delete_wallet').click()
             }
         })
         cy.get('#btn_new_wallet').click()

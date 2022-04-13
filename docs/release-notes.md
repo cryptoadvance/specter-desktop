@@ -1,3 +1,14 @@
+## v1.9.2 April 04, 2022
+- Bugfix: Tzdata module missing on windows fixes #1653 #1654 (Kim Neunert)
+
+## v1.9.1 April 02, 2022
+- Bugfix: opening non-installed extensions in new window #1650 (Kim Neunert)
+- Bugfix: price provider uses wrong user #1640 (Kim Neunert)
+- Bugfix: Restore editing of labels #1649 (Kim Neunert)
+- Chore: Bump ansi-regex from 4.1.0 to 4.1.1 in /pyinstaller/electron #1643 (dependabot[bot])
+- Chore: Bump minimist from 1.2.5 to 1.2.6 #1639 (dependabot[bot])
+- Chore: Update elements to 0.21.0.2 #1641 (Kim Neunert)
+
 ## v1.9.0 März 30, 2022
 - Feature: added better scrollbar for all table-style-lists #1598 (relativisticelectron)
 - Feature: CLI and a publishing model for extensions #1566 (Kim Neunert)

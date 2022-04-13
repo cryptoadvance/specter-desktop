@@ -1,5 +1,6 @@
 import pytest
 import random
+import time
 
 from cryptoadvance.specter.util.mnemonic import generate_mnemonic
 from cryptoadvance.specter.process_controller.node_controller import NodeController
@@ -13,16 +14,6 @@ mnemonic_ghost = (
 mnemonic_zoo = (
     "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo when"
 )
-
-
-@pytest.fixture
-def hot_wallet_device_1(specter_regtest_configured):
-    return create_hot_wallet_device(specter_regtest_configured)
-
-
-@pytest.fixture
-def hot_wallet_device_2(specter_regtest_configured):
-    return create_hot_wallet_device(specter_regtest_configured)
 
 
 def create_hot_wallet_device(
@@ -59,6 +50,29 @@ def create_hot_wallet_device(
 
 
 @pytest.fixture
+def hot_wallet_device_1(specter_regtest_configured):
+    return create_hot_wallet_device(specter_regtest_configured)
+
+
+@pytest.fixture
+def hot_wallet_device_2(specter_regtest_configured):
+    return create_hot_wallet_device(specter_regtest_configured)
+
+
+def create_hot_wallet_with_ID(
+    specter_regtest_configured: Specter, hot_wallet_device_1, wallet_id
+) -> Wallet:
+    device = hot_wallet_device_1
+    wallet_manager = specter_regtest_configured.wallet_manager
+    assert device.taproot_available(specter_regtest_configured.rpc)
+
+    # create the wallet
+    keys = [key for key in device.keys if key.key_type == "wpkh"]
+    source_wallet = wallet_manager.create_wallet(wallet_id, 1, "wpkh", keys, [device])
+    return source_wallet
+
+
+@pytest.fixture
 def unfunded_hot_wallet_1(specter_regtest_configured, hot_wallet_device_1) -> Wallet:
     return create_hot_wallet_with_ID(
         specter_regtest_configured,
@@ -76,19 +90,6 @@ def unfunded_hot_wallet_2(specter_regtest_configured, hot_wallet_device_1) -> Wa
     )
 
 
-def create_hot_wallet_with_ID(
-    specter_regtest_configured: Specter, hot_wallet_device_1, wallet_id
-) -> Wallet:
-    device = hot_wallet_device_1
-    wallet_manager = specter_regtest_configured.wallet_manager
-    assert device.taproot_available(specter_regtest_configured.rpc)
-
-    # create the wallet
-    keys = [key for key in device.keys if key.key_type == "wpkh"]
-    source_wallet = wallet_manager.create_wallet(wallet_id, 1, "wpkh", keys, [device])
-    return source_wallet
-
-
 @pytest.fixture
 def funded_hot_wallet_1(
     bitcoin_regtest: NodeController, unfunded_hot_wallet_1: Wallet
@@ -96,16 +97,15 @@ def funded_hot_wallet_1(
     funded_hot_wallet_1 = unfunded_hot_wallet_1
     assert len(funded_hot_wallet_1.txlist()) == 0
     for i in range(0, 10):
-        bitcoin_regtest.testcoin_faucet(
-            funded_hot_wallet_1.getnewaddress(), amount=random.randint(1, 4)
-        )
+        bitcoin_regtest.testcoin_faucet(funded_hot_wallet_1.getnewaddress(), amount=1)
     funded_hot_wallet_1.update()
     for i in range(0, 2):
         bitcoin_regtest.testcoin_faucet(
             funded_hot_wallet_1.getnewaddress(),
-            amount=random.randint(1, 4),
+            amount=2.5,
             confirm_payment=False,
         )
+    time.sleep(0.5)  # needed for tx to propagate
     funded_hot_wallet_1.update()
     # 12 txs
     assert len(funded_hot_wallet_1.txlist()) == 12
