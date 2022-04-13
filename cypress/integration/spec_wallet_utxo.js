@@ -34,13 +34,13 @@ describe('Test the actions in UTXO list', () => {
         cy.wait(500)
         // Freeze 3 UTXOs 
         cy.log("Freeze 3 UTXO")
-        cy.get('tx-table').find('tx-row').eq(0).find('.select-tx-img').click( {position: 'top'} )
+        cy.get('tx-table').find('tx-row').eq(0).find('.select-tx-img').click('top')
         cy.get('tx-table').find('tx-row').eq(0).find('.select-tx-value').invoke('attr', 'value').should('eq', 'true') // Check whether click worked
         cy.wait(100)
-        cy.get('tx-table').find('tx-row').eq(1).find('.select-tx-img').click( {position: 'top'} )
+        cy.get('tx-table').find('tx-row').eq(1).find('.select-tx-img').click('top')
         cy.get('tx-table').find('tx-row').eq(1).find('.select-tx-value').invoke('attr', 'value').should('eq', 'true') 
         cy.wait(100)
-        cy.get('tx-table').find('tx-row').eq(3).find('.select-tx-img').click( {position: 'top'} )
+        cy.get('tx-table').find('tx-row').eq(3).find('.select-tx-img').click('top')
         cy.get('tx-table').find('tx-row').eq(3).find('.select-tx-value').invoke('attr', 'value').should('eq', 'true') 
         cy.wait(100)
         cy.get('tx-table').find('.freeze-tx-btn').click()
@@ -58,8 +58,8 @@ describe('Test the actions in UTXO list', () => {
         })
         // Check that we can't create a transaction when a frozen UTXO is selected ...
         cy.log("Check that we can't create a transaction when frozen UTXO is selected")
-        cy.get('tx-table').find('tx-row').eq(2).find('.select-tx-img').click( {position: 'top'} )
-        cy.get('tx-table').find('tx-row').eq(0).find('.select-tx-img').click( {position: 'top'} )
+        cy.get('tx-table').find('tx-row').eq(2).find('.select-tx-img').click('top')
+        cy.get('tx-table').find('tx-row').eq(0).find('.select-tx-img').click('top')
         cy.get('tx-table').find('.compose-tx-btn').should('be.hidden')
         // ... and that the checkboxes disappear for non-frozen UTXO and get unticked
         cy.log("... and that the checkboxes disappear for non-frozen UTXO and get unticked")
@@ -69,7 +69,7 @@ describe('Test the actions in UTXO list', () => {
         cy.get('tx-table').find('tx-row').eq(4).find('.select-tx-img').should('have.attr', 'src').and('contain', 'untick')
         // Unselect the first UTXO again and check that all checkboxes are visible and none are selected
         cy.log("Unselect the first UTXO again and check that all checkboxes are visible and none are selected")
-        cy.get('tx-table').find('tx-row').eq(0).find('.select-tx-img').click( {position: 'top'} )
+        cy.get('tx-table').find('tx-row').eq(0).find('.select-tx-img').click('top')
         cy.wait(100)
         cy.get('tx-table').find('tx-row').each(($el, index, $list) => {
             cy.wrap($el).find('.tx-row').find('.select-tx-img').should('not.be.hidden').should('have.attr', 'src').and('contain', 'untick')
@@ -80,13 +80,13 @@ describe('Test the actions in UTXO list', () => {
         // Make a transaction with the third and forth UTXO
         cy.log("Make a transaction with the third and forth UTXO")
         // Unfreeze necessary for the forth UTXO
-        cy.get('tx-table').find('tx-row').eq(3).find('.select-tx-img').click( {position: 'top'} )
+        cy.get('tx-table').find('tx-row').eq(3).find('.select-tx-img').click('top')
         cy.wait(100)
         cy.get('tx-table').find('.freeze-tx-btn').click()
         cy.wait(200)
-        cy.get('tx-table').find('tx-row').eq(2).find('.select-tx-img').click( {position: 'top'} );
+        cy.get('tx-table').find('tx-row').eq(2).find('.select-tx-img').click('top');
         cy.get('tx-table').find('tx-row').eq(2).find('.select-tx-value').invoke('attr', 'value').should('eq', 'true') // Check that the click flow is (still) in order
-        cy.get('tx-table').find('tx-row').eq(3).find('.select-tx-img').click( {position: 'top'} )
+        cy.get('tx-table').find('tx-row').eq(3).find('.select-tx-img').click('top')
         cy.get('tx-table').find('tx-row').eq(3).find('.select-tx-value').invoke('attr', 'value').should('eq', 'true')
         cy.wait(100)
         cy.get('tx-table').find('.compose-tx-btn').should('not.be.hidden')
@@ -110,7 +110,7 @@ describe('Test the actions in UTXO list', () => {
         cy.get('tx-table').find('tx-row').eq(3).find('#column-category').should('contain', 'Unsigned')
         // Check that only the two checkboxes of the unsigned UTXO are visible
         cy.log("Check that only the two checkboxes of the unsigned UTXO are visible")
-        cy.get('tx-table').find('tx-row').eq(2).find('.select-tx-img').click( {position: 'top'} )
+        cy.get('tx-table').find('tx-row').eq(2).find('.select-tx-img').click('top')
         cy.wait(200)
         cy.get('tx-table').find('tx-row').each(($el, index, $list) => {
             if (index == 0 || index == 1) {
@@ -119,7 +119,7 @@ describe('Test the actions in UTXO list', () => {
         })
         // Unselect the third UTXO again and check that all checkboxes are visible and none are selected
         cy.log("Unselect the third UTXO again and check that all checkboxes are visible and none are selected")
-        cy.get('tx-table').find('tx-row').eq(2).find('.select-tx-img').click( {position: 'top'} )
+        cy.get('tx-table').find('tx-row').eq(2).find('.select-tx-img').click('top')
         cy.get('tx-table').find('tx-row').eq(2).find('.select-tx-value').invoke('attr', 'value').should('eq', '')
         cy.wait(100)
         cy.get('tx-table').find('tx-row').each(($el, index, $list) => {
@@ -127,13 +127,13 @@ describe('Test the actions in UTXO list', () => {
         })
         // Select a normal UTXO, select an unsigned UTXO and then unselect the unsigned again
         cy.log("Select a normal UTXO, select an unsigned UTXO and then unselect the unsigned again")
-        cy.get('tx-table').find('tx-row').eq(4).find('.select-tx-img').click( {position: 'top'} )
+        cy.get('tx-table').find('tx-row').eq(4).find('.select-tx-img').click('top')
         cy.get('tx-table').find('tx-row').eq(4).find('.select-tx-value').invoke('attr', 'value').should('eq', 'true')
         cy.wait(100)
-        cy.get('tx-table').find('tx-row').eq(3).find('.select-tx-img').click( {position: 'top'} )
+        cy.get('tx-table').find('tx-row').eq(3).find('.select-tx-img').click('top')
         cy.get('tx-table').find('tx-row').eq(3).find('.select-tx-value').invoke('attr', 'value').should('eq', 'true')
         cy.wait(100)
-        cy.get('tx-table').find('tx-row').eq(3).find('.select-tx-img').click( {position: 'top'} )
+        cy.get('tx-table').find('tx-row').eq(3).find('.select-tx-img').click('top')
         cy.get('tx-table').find('tx-row').eq(3).find('.select-tx-value').invoke('attr', 'value').should('eq', '')
         cy.wait(100)
         // Check that all checkboxes are visible again and none are selected
@@ -141,7 +141,7 @@ describe('Test the actions in UTXO list', () => {
             cy.wrap($el).find('.tx-row').find('.select-tx-img').should('not.be.hidden').should('have.attr', 'src').and('contain', 'untick')
         })
         // Check that the manage PSBT button is working
-        cy.get('tx-table').find('tx-row').eq(2).find('.select-tx-img').click( {position: 'top'} )
+        cy.get('tx-table').find('tx-row').eq(2).find('.select-tx-img').click('top')
         cy.wait(100)
         cy.get('tx-table').find('#manage-psbt-btn').should('not.be.hidden').click()
         cy.wait(200)
