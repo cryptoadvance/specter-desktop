@@ -82,29 +82,7 @@ function notify_new_block(max_chaintip_height){
 
 function run_scheduled(){ 
     //this code runs every interval
-    evalaute_new_transactions()
-
-
-    /*
-    fetch("{{ url_for('wallets_endpoint_api.get_max_chaintip_height') }}")
-        .then(function (response) {
-            return response.json();
-        }).then(function (max_chaintip_height) {
-            // do something with the response
-            if (current_chaintip_height == -1){
-                current_chaintip_height = max_chaintip_height;
-            }
-            if (current_chaintip_height != max_chaintip_height){
-
-                evalaute_new_transactions()
-                notify_new_block(max_chaintip_height)
-                current_chaintip_height = max_chaintip_height;
-                //console.log(`new Block!!!  ${max_chaintip_height}`);
-                // location.reload();
-            } ;
-        console.log(max_chaintip_height);
-        });
-        */
+    evalaute_new_transactions() 
 };
 
 

@@ -119,10 +119,7 @@
     </tr>
 </template>
 
-
 <script type="text/javascript">
-    {% include "includes/utils.js" %}
-
     class TxRowElement extends HTMLElement {
         constructor() {
             super();
@@ -431,7 +428,6 @@
                 }
             }
 
-            
             showPageOverlay('tx-popup');
         }
 
@@ -453,8 +449,6 @@
                     return `{{ url_for('static', filename='img') }}/mixed.svg`;
             }
         }
-
-
     }
     customElements.define('tx-row', TxRowElement);
 </script>

@@ -14,6 +14,8 @@ from .rpc import (
     autodetect_rpc_confs,
     get_default_datadir,
 )
+import zmq, binascii
+from concurrent.futures import ThreadPoolExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +68,7 @@ class Node:
         self.user = user
         self.password = password
         self.port = port
+        self.zmq_port = 29000
         self.host = host
         self.protocol = protocol
         self.external_node = external_node
@@ -77,6 +80,19 @@ class Node:
         self.rpc = self.get_rpc()
         self._asset_labels = None
         self.check_info()
+
+        self.zmq_context, self.zmq_socket = self.get_zmq_socket()
+        self.thread_executor = ThreadPoolExecutor(1)
+
+        self.listener_zmq_recv_message()
+        self.buffered_zmq_messages = []
+        # Requires that these lines are in bitcoin.conf        
+        # zmqpubrawblock=tcp://127.0.0.1:29000
+        # zmqpubrawtx=tcp://127.0.0.1:29000
+        # zmqpubhashtx=tcp://127.0.0.1:29000
+        # zmqpubhashblock=tcp://127.0.0.1:29000
+
+
 
     @classmethod
     def from_json(cls, node_dict, manager, default_alias="", default_fullpath=""):
@@ -127,6 +143,45 @@ class Node:
             "fullpath": self.fullpath,
             "node_type": self.node_type,
         }
+
+
+
+    def get_zmq_socket(self):
+        context = zmq.Context()
+
+        #  Socket to talk to server
+        socket = context.socket(zmq.SUB)
+        socket.connect(f"tcp://{self.host}:{self.zmq_port}")
+
+        socket.subscribe('hashtx')
+        #socket.subscribe('rawblock')  # way too much data
+        #socket.subscribe('rawtx')
+        socket.subscribe('hashblock')
+        return context, socket
+
+
+    def _decode_zmq_multipart_message(self, multipart_message):
+        topic = multipart_message[0].decode()
+        body = binascii.hexlify(b"".join(multipart_message[1:]))
+        return topic, body
+
+
+    def listener_zmq_recv_message(self):
+        "calls self.on_zmq_event(topic, body)  on an event"
+        def zmq_recv_message():
+            while True:
+                topic, body = self._decode_zmq_multipart_message(self.zmq_socket.recv_multipart())   # recv_multipart waits for an event.
+                self.on_zmq_event(topic, body)
+        self.thread_executor.submit(zmq_recv_message)
+
+    def on_zmq_event(self, topic, body):
+        self.buffered_zmq_messages.append((topic, body))
+
+    def read_and_clear_buffered_zmq_messages(self):
+        buffer = self.buffered_zmq_messages
+        self.buffered_zmq_messages = []
+        return buffer
+
 
     def get_rpc(self):
         """

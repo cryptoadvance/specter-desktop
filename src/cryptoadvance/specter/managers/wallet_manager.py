@@ -19,9 +19,6 @@ from ..wallet import (  # TODO: `purposes` unused here, but other files rely on 
     purposes,
 )
 
-from apscheduler.schedulers.background import BackgroundScheduler
-import atexit
-
 logger = logging.getLogger(__name__)
 
 
@@ -51,12 +48,6 @@ class WalletManager:
         # define different wallet classes for liquid and bitcoin
         self.WalletClass = LWallet if is_liquid(chain) else Wallet
         self.update(data_folder, rpc, chain)
-
-    def getchaintips(self):
-        if not self.rpc:
-            return []
-        chaintips = self.rpc.getchaintips()
-        return chaintips
 
     def update(self, data_folder=None, rpc=None, chain=None, use_threading=True):
         if self.is_loading:

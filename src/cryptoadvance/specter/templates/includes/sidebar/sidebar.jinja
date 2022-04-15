@@ -224,9 +224,6 @@
         {% include "services/sidebar_services_list.jinja" %}
         {{ sidebar_btn(url_for('services_endpoint.choose'), 'Choose plugins', 'btn_plugins') }}
         <br>
-
-
-
         <div class="footer">
 	        <span>{{ _("Specter Version:") }} <strong>{{ specter.version.current }}</strong></span>
             <a style="color: #fff; font-size: 1.1em; margin: 10px; text-align: center;" href="{{ url_for('welcome_endpoint.about') }}">

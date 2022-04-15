@@ -95,48 +95,42 @@ def fees_old(blocks):
     """Is this endpoint even used? It has been migrated from controller.py and renamed to fees_old"""
     return app.specter.estimatesmartfee(int(blocks))
 
-
-@wallets_endpoint_api.route("/get_max_chaintip_height", methods=["GET"])
-@login_required
-def get_max_chaintip_height():  # GET request
-    from flask import jsonify
-
-    chaintips = app.specter.wallet_manager.getchaintips()
-    max_chaintip_height = (
-        max([chaintip["height"] for chaintip in chaintips]) if chaintips else 0
-    )
-    return jsonify(max_chaintip_height)  # serialize and use JSON headers
-
-
 @wallets_endpoint_api.route("/get_new_tx_notifications", methods=["GET"])
 @login_required
 def get_new_tx_notifications():  # GET request
     from flask import jsonify
 
-    old_full_txlist = app.specter.wallet_manager.full_txlist(fetch_transactions=False)
-    old_txids = set(tx["txid"] for tx in old_full_txlist)
-    app.specter.wallet_manager.update()
-    new_full_txlist = app.specter.wallet_manager.full_txlist()
-    updated_txids = set(tx["txid"] for tx in new_full_txlist) - old_txids
+    buffer = app.specter.node.read_and_clear_buffered_zmq_messages()
+    print(buffer)
+    notifications = []
+    if buffer:
+        old_full_txlist = app.specter.wallet_manager.full_txlist(fetch_transactions=False)
+        old_txids = set(tx["txid"] for tx in old_full_txlist)
+        app.specter.wallet_manager.update()
+        new_full_txlist = app.specter.wallet_manager.full_txlist()
+        updated_txids = set(tx["txid"] for tx in new_full_txlist) - old_txids
 
-    updated_txs = [tx for tx in new_full_txlist if tx["txid"] in updated_txids]
+        updated_txs = [tx for tx in new_full_txlist if tx["txid"] in updated_txids]
 
-    print(updated_txs)
-    notifications = [
-        {
-            "title": f"Specter: {tx['category'].capitalize()} Transaction of wallet {tx['wallet_alias']}",
-            "options": {
-                "body": f"{btcunitamount(None, tx['amount'])} {app.specter.unit.upper()}\n"
-                f"sent to {tx['label']}",
-                "timestamp": tx["time"],
-            },
-            "category": tx["category"],
-            "isConfirmed": tx["confirmations"] > 0,
-        }
-        for tx in updated_txs
-    ]
+        print(updated_txs)
+        notifications = [
+            {
+                "title": f"Specter: {tx['category'].capitalize()} Transaction of wallet {tx['wallet_alias']}",
+                "options": {
+                    "body": f"{btcunitamount(None, tx['amount'])} {app.specter.unit.upper()}\n"
+                    f"sent to {tx['label']}",
+                    "timestamp": tx["time"],
+                },
+                "category": tx["category"],
+                "isConfirmed": tx["confirmations"] > 0,
+            }
+            for tx in updated_txs
+        ]
+    else:
+        print('No rpc call because empty zmq buffer')
 
     return jsonify(notifications)  # serialize and use JSON headers
+
 
 
 """
