@@ -2,10 +2,14 @@ import logging
 from mnemonic.mnemonic import ConfigurationError, Mnemonic
 from embit import bip32, bip39, networks
 from embit.wordlists.bip39 import WORDLIST
-
 from cryptoadvance.specter.specter_error import SpecterError
 
 logger = logging.getLogger(__name__)
+
+
+""" This module is using two libraries: Trezor's python-mnemonic (https://github.com/trezor/python-mnemonic) 
+and embit (https://github.com/diybitcoinhardware/embit)"""
+
 
 MNEMONIC_LANGUAGES = {
     "en": "english",
@@ -20,8 +24,8 @@ MNEMONIC_LANGUAGES = {
 
 
 def initialize_mnemonic(language_code: str) -> Mnemonic:
+    """Returns a language specific Mnemonic instance. If the language code is not supported, English is used."""
     if language_code not in MNEMONIC_LANGUAGES:
-        # Fall back to English if Mnemonic doesn't support the current language
         logger.debug(
             f"Language code '{language_code}' not supported by python-mnemonic; using English"
         )
@@ -30,7 +34,7 @@ def initialize_mnemonic(language_code: str) -> Mnemonic:
 
 
 def generate_mnemonic(strength=256, language_code="en") -> str:
-    """returns a 24 wordlist by using the mnemonic library:
+    """returns a 24 wordlist:
     "tomorrow question cook lend burden bone own junior stage square leaf father edge decrease pipe tired useful junior calm silver topple require rug clock"
 
     :param strength: 256 (default) will give you 24 words. 128 will result in 12 words
@@ -41,6 +45,7 @@ def generate_mnemonic(strength=256, language_code="en") -> str:
 
 
 def get_language(mnemonic: str) -> str:
+    """Returns the language based on the mnemonic provided, errors are raised if a language is not supported or not properly detected"""
     try:
         supported_language_found = False
         language = Mnemonic.detect_language(mnemonic)
@@ -66,12 +71,14 @@ def get_language(mnemonic: str) -> str:
 
 
 def validate_mnemonic(mnemonic: str) -> bool:
+    """Returns true if the length and the checksum of the mnemonic are correct"""
     language = get_language(mnemonic)
     mnemo = Mnemonic(language)
     return mnemo.check(mnemonic)
 
 
 def get_wordlist(mnemonic: str) -> list:
+    """Returns a language specific wordlist"""
     language = get_language(mnemonic)
     mnemo = Mnemonic(language)
     wordlist = mnemo.wordlist
@@ -79,6 +86,7 @@ def get_wordlist(mnemonic: str) -> list:
 
 
 def mnemonic_to_root(mnemonic: str, passphrase: str) -> bip32.HDKey:
+    """Returns an embit BIP32 root key class"""
     wordlist = get_wordlist(mnemonic)
     seed = bip39.mnemonic_to_seed(mnemonic, passphrase, wordlist=wordlist)
     root = bip32.HDKey.from_seed(seed)
