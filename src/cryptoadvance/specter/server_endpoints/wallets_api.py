@@ -804,7 +804,7 @@ def txlist_to_csv(wallet: Wallet, _txlist, includePricesHistory=False):
         lazy_gettext("Value ({})").format(symbol),
         lazy_gettext("Rate (BTC/{})").format(symbol)
         if app.specter.unit != "sat"
-        else _("Rate ({}/SAT)").format(symbol),
+        else lazy_gettext("Rate ({}/SAT)").format(symbol),
         lazy_gettext("TxID"),
         lazy_gettext("Address"),
         lazy_gettext("Block Height"),
@@ -887,11 +887,12 @@ def addresses_list_to_csv(wallet: Wallet):
     w = csv.writer(data)
     # write header
     row = (
-        _("Address"),
-        _("Label"),
-        _("Index"),
-        _("Used"),
-        _("Current balance"),
+        # For some reason (probably app-context_specific) the _ apprev of lazy_gettext does not work
+        lazy_gettext("Address"),
+        lazy_gettext("Label"),
+        lazy_gettext("Index"),
+        lazy_gettext("Used"),
+        lazy_gettext("Current balance"),
     )
     w.writerow(row)
     yield data.getvalue()
@@ -938,13 +939,14 @@ def wallet_addresses_list_to_csv(addresses_list):
     w = csv.writer(data)
     # write header
     row = (
-        _("Index"),
-        _("Address"),
-        _("Type"),
-        _("Label"),
-        _("Used"),
-        _("UTXO"),
-        _("Amount (BTC)"),
+        # For some reason (probably app-context_specific) the _ apprev of lazy_gettext does not work
+        lazy_gettext("Index"),
+        lazy_gettext("Address"),
+        lazy_gettext("Type"),
+        lazy_gettext("Label"),
+        lazy_gettext("Used"),
+        lazy_gettext("UTXO"),
+        lazy_gettext("Amount (BTC)"),
     )
     w.writerow(row)
     yield data.getvalue()
