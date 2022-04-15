@@ -159,7 +159,7 @@ class Node:
             #  Socket to talk to server
             socket = context.socket(zmq.SUB)
             socket.connect(d['address'])
-            socket.subscribe(d['type'][3:]) 
+            socket.subscribe(d['type'][3:])    # the [3:]  removes the "pub" in front
             sockets.append(socket)
         return sockets
 
