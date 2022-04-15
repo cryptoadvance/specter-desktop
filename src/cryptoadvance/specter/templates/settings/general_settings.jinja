@@ -52,13 +52,12 @@
 			</div>
 			{{ _("Specter Data Backup") }}:
 			<div class="note">
-				{{ _("Warning: This backup does not include private seed of the hot wallets or, obviously, the private seed of your Hardwarewallets.") }}
+				{{ _("Warning: This backup does not include the private keys of any hot wallet or the BIP 39 seed of your hardware wallets.") }}
 			</div>
 			<div class="row">
-				<a href="{{ url_for('settings_endpoint.backup_file') }}" class="btn" style="width: 100%; margin-top: -5px;">{{ _("Download Specter backup files") }}</a>
+				<a href="{{ url_for('settings_endpoint.backup_file') }}" class="btn" style="max-width: 500px">{{ _("Download Specter backup files") }}</a>
 			</div>
 			<br>
-			<span style="margin: auto 5px auto 0px;">Load Specter backup:</span>
 			<div class="tool-tip" style="float: right; margin-bottom: 5px;">
 				<i class="tool-tip__icon">i</i>
 				<p class="tool-tip__info">
@@ -70,12 +69,12 @@
 					</span>
 				</p>
 			</div>
-			<span style="margin: auto 5px auto 0px;">{{ _("Load Specter backup") }}:</span><br><br>
+			<span style="margin: auto 5px auto 0px;">{{ _("Load Specter backup") }}:</span><br>
 			<div class="row">
 				<input type="file" id="file" class="inputfile" webkitdirectory mozdirectory/>
 				<input type="hidden" id="restorewallets" name="restorewallets"/>
 				<input type="hidden" id="restoredevices" name="restoredevices"/>
-				<label for="file" class="btn" style="margin-top: -5px;">
+				<label for="file" class="btn" style="min-width: 500px; margin-top: 5px;">
 					{{ _("Choose backup folder") }}
 				</label>
 			</div>

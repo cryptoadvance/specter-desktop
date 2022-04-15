@@ -27,44 +27,38 @@
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="rbf_tx_id" value="{{ rbf_tx_id }}"/>
 		<h1 class="padded">{{ _("Create Transaction") }}</h1>
-		<p class="center">{{ _("Available funds:") }} {{wallet.full_available_balance | btcunitamount}}
-			{% if specter.unit == 'sat' %}
-				sats
-			{% else %}
-				{% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
-			{% endif %}<br>
-			{% if specter.price_check %}
-				<span class="note">{{ wallet.full_available_balance | altunit }}</span>
-			{% endif %}
-			{% if specter.is_liquid and wallet.balance.get("assets", {}) %}
-			<span>
-				<br>{{ _("Assets:") }}<br>
-				{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
-					{% set balance = wallet.balance.get("assets",{}).get(asset, {}) %}
-					<span style="margin: 0 10px;">
-						{{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcamount }}
-						<asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}"></asset-label>
-					</span>
-				{% endfor %}
-			</span>
-			{% endif %}
-		</p>
-		{% if wallet.locked_amount > 0 %}
-		<div style="margin: auto; text-align: center; max-width: 90%;">
-			<div class="tool-tip" style="text-align: center;">
-				<i class="tool-tip__icon">i</i>
-				<p class="tool-tip__info">
-					<span class="info">
-						<span class="info__title">{{ _("Funds waiting in unsigned transactions") }}<br><br></span>
-						{{ _('To make funds available to spend in new transactions, just click on the "Unsigned" tab and delete unsigned transactions you have no need for anymore.') }}
-					</span>
-				</p>
+		<div style="display: flex; justify-content: center; margin-bottom: 15px">
+			<div>{{ _("Available funds:") }} {{wallet.amount_available | btcunitamount}}
+				{% if specter.unit == 'sat' %}
+					sats
+				{% else %}
+					{% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
+				{% endif %}<br>
+				{% if specter.price_check %}
+					<span class="note">{{ wallet.amount_available | altunit }}</span>
+				{% endif %}
+				{% if specter.is_liquid and wallet.balance.get("assets", {}) %}
+				<span>
+					<br>{{ _("Assets:") }}<br>
+					{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
+						{% set balance = wallet.balance.get("assets",{}).get(asset, {}) %}
+						<span style="margin: 0 10px;">
+							{{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcamount }}
+							<asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}"></asset-label>
+						</span>
+					{% endfor %}
+				</span>
+				{% endif %}
 			</div>
-			<p style="display: inline; margin: auto; text-align: center;">&nbsp;{{ _("You have") }} {{wallet.locked_amount | btcunitamount}} {% if specter.unit == 'sat' %}sats{% else %}{% if specter.is_testnet %}t{%endif%}BTC{% endif %} {{ _("waiting in unsigned transactions.") }}</p>
-			<br>
-			<br>
-		</div>
-		{% endif %}
+			{% if wallet.amount_locked_unsigned  > 0 or wallet.amount_frozen > 0 %}
+			<div>
+				<tool-tip title='{{ _("Why is this less than mal total balance?") }}'>
+					{{ _(' Frozen outputs and outputs locked in unsigned transactions cannot be used here.  
+					To make more funds available, click on the "Unsigned" tab and delete not required transactions or unfreeze UTXO under "Transactions".') }}
+		        </tool-tip>
+	        </div>
+	        {% endif %}
+	    </div>
 		<div class="card" style="margin: auto;">
 			<div id="recipients" {% if ui_option != 'ui' %}class="hidden"{% endif %}></div>
 			<div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>

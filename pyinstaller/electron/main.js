@@ -16,6 +16,8 @@ const specterdDirPath = helpers.specterdDirPath
 
 const downloadloc = require('./downloadloc')
 const getDownloadLocation = downloadloc.getDownloadLocation
+const appName = downloadloc.appName()
+const appNameLower = appName.toLowerCase()
 
 // Logging
 const {transports, format, createLogger } = require('winston')
@@ -109,7 +111,12 @@ switch (process.platform) {
   case 'linux':
     platformName = 'x86_64-linux-gnu'
     break
+  default:
+      throw `Unknown platformName ${platformName}`
+
 }
+logger.info("Using version " + appSettings.specterdVersion);
+logger.info("Using platformName " + platformName);
 
 function createWindow (specterURL) {  
   if (!mainWindow) {
@@ -167,7 +174,7 @@ app.whenReady().then(() => {
     appSettings.versionInitialized = versionData.version
     fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings))
   }
-  const specterdPath = specterdDirPath + '/specterd'
+  const specterdPath = specterdDirPath + '/' + appNameLower + 'd'
   if (fs.existsSync(specterdPath + (platformName == 'win64' ? '.exe' : ''))) {
     getFileHash(specterdPath + (platformName == 'win64' ? '.exe' : ''), function (specterdHash) {
       if (appSettings.specterdHash.toLowerCase() == specterdHash || appSettings.specterdHash == "") {
@@ -222,31 +229,34 @@ function initMainWindow(specterURL) {
 }
 
 function downloadSpecterd(specterdPath) {
-  updatingLoaderMsg('Fetching the Specter binary...<br>This might take a minute...')
-  updateSpecterdStatus('Fetching Specter binary...')
-  logger.info("Using version ", appSettings.specterdVersion);
-  logger.info(`https://github.com/cryptoadvance/specter-desktop/releases/download/${appSettings.specterdVersion}/specterd-${appSettings.specterdVersion}-${platformName}.zip`);
+  updatingLoaderMsg(`Fetching the ${appName} binary...<br>This might take a minute...`)
+  updateSpecterdStatus(`Fetching ${appName} binary...`)
+  logger.info("Using version " + appSettings.specterdVersion);
+  logger.info("Using platformName " + platformName);
+  
   download_location = getDownloadLocation(appSettings.specterdVersion, platformName)
+  logger.info("Downloading from "+download_location);
   download(download_location, specterdPath + '.zip', function(errored) {
     if (errored == true) {
-      updatingLoaderMsg('Fetching specter binary from the server failed, could not reach the server or the file could not have been found.')
-      updateSpecterdStatus('Fetching specterd failed...')
+      updatingLoaderMsg(`Fetching ${appNameLower} binary from the server failed, could not reach the server or the file could not have been found.`)
+      updateSpecterdStatus(`Fetching ${appNameLower}d failed...`)
       return
     }
 
     updatingLoaderMsg('Unpacking files...')
+    logger.info("Extracting "+specterdPath);
 
     extract(specterdPath + '.zip', { dir: specterdPath + '-dir' }).then(function () {
       let extraPath = ''
       switch (process.platform) {
         case 'darwin':
-          extraPath = 'specterd'
+          extraPath = appNameLower + "d"
           break
         case 'win32':
-          extraPath = 'specterd.exe'
+          extraPath = appNameLower + 'd.exe'
           break
         case 'linux':
-          extraPath = 'specterd'
+          extraPath = appNameLower + 'd'
       }
       var oldPath = specterdPath + `-dir/${extraPath}`
       var newPath = specterdPath + (platformName == 'win64' ? '.exe' : '')
@@ -260,7 +270,10 @@ function downloadSpecterd(specterdPath) {
           startSpecterd(specterdPath)
         } else {
           updatingLoaderMsg('Specterd version could not be validated.')
+          logger.error(`hash of downloaded file: ${specterdHash}`)
+          logger.error(`Expected hash: ${appSettings.specterdHash}`)
           updateSpecterdStatus('Failed to launch specterd...')
+
           // app.quit()
           // TODO: This should never happen unless the specterd file was swapped on GitHub.
           // Think of what would be the appropriate way to handle this...
@@ -285,6 +298,7 @@ function updatingLoaderMsg(msg) {
     `;
     mainWindow.webContents.executeJavaScript(code);
   } 
+  logger.info("Updated LoaderMsg: "+msg)
 }
 
 function hasSuccessfullyStarted(logs) {

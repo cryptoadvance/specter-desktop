@@ -141,16 +141,6 @@ ul, li{
     /*max-width: 100%;*/
     justify-content: center;
 }
-tr.unconfirmed{
-    background: var(--cmap-bg);
-    /*font-style: italic;*/
-}
-.unconfirmed td img{
-    opacity: 0.7;
-}
-.unconfirmed:hover td img{
-    opacity: 1;
-}
 .row{
     display: flex;
     flex-direction: row;
@@ -215,7 +205,6 @@ main{
     /*justify-content: center;*/
     padding: 0;
     /*padding: 30px 0 20px 0;*/
-    overflow-y: scroll;
 }
 nav.side > .item, nav.side > div > .item{
     padding: 10px 0;
@@ -229,6 +218,28 @@ nav.side > a.item.active, nav.side > div > a.item.active{
     border-left: 3px solid #4A90E2;
     background: rgba(0,0,0,0.1);
     /*color: #fff;*/
+}
+.main-page-container{
+    max-width: 65%;
+    text-align: center;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    border: 3px #263044 solid;
+    border-radius: 1em;
+    background-image: url("img/ghost_3d_transparent.png");
+    background-size: 400px 400px;
+    background-repeat: no-repeat;
+    background-position: 100% 100%;
+}
+.main-description-box{
+    max-width: 90%;
+    padding-left: 1em;
+    padding-right: 1em;
+    padding-top: .5em;
+    margin-bottom: 1em;
+    background-color: #263044;
+    border: 1px solid #CCCCCC;
+    border-radius: 4px;
 }
 
 
@@ -424,6 +435,23 @@ select option{
     background: var(--cmap-bg);
     color: #fff;
 }
+#price_provider, #price_provider_currency {
+    background: #192432;
+    color: #fff;
+    font-size: inherit;
+    padding: 8px 15px 8px 10px;
+}
+
+#price_provider option, #price_provider_currency option {
+    background: #192432;
+    color: #fff;
+}
+optgroup[label="Fiat currencies"] {
+        color: #79869B;
+}
+optgroup[label="Precious metals"] {
+        color: #FF9A00;
+}
 .input{
     text-align: left;
     background: rgba(255,255,255,0.05);
@@ -480,6 +508,24 @@ input:hover{
 }
 .flex-item{
     margin: 0.5em;
+}
+.smaller-card{
+    min-width: 220px;
+    padding: 15px;
+    background: var(--cmap-bg-lighter);
+    border: 2px solid var(--cmap-border);
+    border-radius: 4px;
+    color: #fff;
+    font-size: 0.9em;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    margin: 5px;
+}
+.smaller-card:hover{
+    border: 2px solid hsl(217, 15%, 55%);
 }
 .small-card{
     min-width: 220px;
@@ -668,8 +714,6 @@ table{
 .table-holder{
     padding: 0 30px;
     width: 100%;
-    overflow-y: scroll;
-    /*overflow-x: scroll;*/
 }
 .full-width{
     width: 100%;
@@ -702,29 +746,74 @@ tbody tr:hover{
 .tx{
     max-width: 200px;
 }
-.scroll{
+
+/* Scroll functionality along x axis
+   (mainly used for xpub keys)
+*/
+
+.scroll {
     padding: 0 10px;
 }
-.scroll > *{
+.scroll > * {
     /* ugly fix for firefox - scrolling child element */
     display: block;
     overflow-x: scroll;
     width: 100%;
     padding: 20px 0;
 }
-.scroll > *::-webkit-scrollbar,
-#side-content::-webkit-scrollbar,
-main::-webkit-scrollbar,
-pre::-webkit-scrollbar{
-  display: none;
-}
-/* Hide scrollbar for IE, Edge and Firefox */
-td.scroll > *,
-#side-content,
-main,pre{
+/* Hide scrollbar thumb and track for IE, Edge and Firefox */
+td.scroll > *, pre {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
-  scrollbar-height: none;  /* Firefox */
+}
+/* Hide scrollbar thumb and track for Chrome */
+td.scroll > *::-webkit-scrollbar,
+pre::-webkit-scrollbar {
+    display: none;
+}
+
+/* Standard scrollbar along y axis
+scrollbar-color and scrollbar-width only supported by Firefox */
+
+main {
+  overflow-y: scroll;
+  scrollbar-color: hsl(217, 10%, 80%) var(--cmap-border);
+  scrollbar-width: thin;
+}
+/* Not supported by Firefox & Safari on iOS */
+main::-webkit-scrollbar {
+  width: 0.5em;
+}
+main::-webkit-scrollbar:horizontal {
+  display: none;
+}
+main::-webkit-scrollbar-track {
+    background: var(--cmap-bg);
+    border-radius: 100vw;
+    margin-top: 3.5em;
+    margin-bottom: 1em;
+}
+main::-webkit-scrollbar-track:active {
+    background: hsl(217, 15%, 55%);
+    border-radius: 100vw;
+    margin-top: 3.5em;
+    margin-bottom: 1em;
+}
+main::-webkit-scrollbar-thumb {
+    background: hsl(217, 10%, 80%);
+    border-radius: 100vw;
+}
+main::-webkit-scrollbar-thumb:hover {
+    background: white;
+}
+
+/* No scrollbar for side-content */
+#side-content::-webkit-scrollbar {
+    display: none;
+}
+
+#side-content {
+    scrollbar-width: none;
 }
 
 table a, .address-link{
@@ -1022,6 +1111,11 @@ nav.collapse-on-mobile a.mobile-nav-icon {
       right: -20px;
     }
   }
+  .main-page-container{
+    max-width: 85%;
+    border: none;
+    margin-top: .1em;
+  }
 }
 /* touch based devices need a menu button */
 @media (any-hover: none) and (max-width: 1100px),
@@ -1040,6 +1134,9 @@ nav.collapse-on-mobile a.mobile-nav-icon {
   }
   #side-content:after{
     content: none;
+  }
+  .main-page-container{
+      max-width: 90%;
   }
 }
 @media (max-width: 690px){
@@ -1145,6 +1242,9 @@ nav.collapse-on-mobile a.mobile-nav-icon {
     #wizard-previous {
         margin-right: 10px !important;
     }
+    .main-page-container{
+        background-image: none;
+      }
 }
 
 /************** Switch checkbox styles ********************************/

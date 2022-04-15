@@ -14,6 +14,7 @@ from .service_encrypted_storage import ServiceEncryptedStorageManager
 from .service_annotations_storage import ServiceAnnotationsStorage
 
 from cryptoadvance.specter.addresslist import Address
+from cryptoadvance.specter.services import callbacks
 
 
 logger = logging.getLogger(__name__)
@@ -45,6 +46,11 @@ class Service:
             raise Exception(f"Service {self.__class__} needs name")
         self.active = active
         self.specter = specter
+
+    def callback(self, callback_id, *argv, **kwargv):
+        if callback_id == callbacks.after_serverpy_init_app:
+            if hasattr(self, "callback_after_serverpy_init_app"):
+                self.callback_after_serverpy_init_app(kwargv["scheduler"])
 
     @classmethod
     def set_current_user_service_data(cls, service_data: dict):
