@@ -83,7 +83,6 @@ class Node:
 
         self.buffered_zmq_messages = []
         self.zmq_sockets = self.get_zmq_sockets()
-        self.thread_executor = ThreadPoolExecutor(1)
         self.listener_zmq_recv_message()
         # Requires that these lines are in bitcoin.conf        
         # zmqpubrawblock=tcp://127.0.0.1:29000
@@ -178,6 +177,7 @@ class Node:
                 for socket in self.zmq_sockets:
                     topic, body = self._decode_zmq_multipart_message(socket.recv_multipart())   # recv_multipart waits for an event.
                     self.on_zmq_event(topic, body)
+        self.thread_executor = ThreadPoolExecutor(1)
         self.thread_executor.submit(zmq_recv_message)
 
     def on_zmq_event(self, topic, body):
