@@ -1003,12 +1003,17 @@
                     txRow.addEventListener('txRowSelected', (e) => {
                         let selectedRow = e.target; 
                         if (e.detail.selected) {
-                            this.selectedRows.push({
-                                txid: e.detail.txid,
-                                vout: e.detail.vout,
-                                amount: e.detail.amount.toFixed(8),
-                                locked: e.detail.locked, 
-                            });
+                            // For some unknown reason, the event is triggered twice, so we have this workaround
+                            // checking whether it has been added
+                            if (this.selectedRows.filter(t => t.txid == e.detail.txid).length == 0) { 
+                                console.log("Adding ...")
+                                this.selectedRows.push({
+                                    txid: e.detail.txid,
+                                    vout: e.detail.vout,
+                                    amount: e.detail.amount.toFixed(8),
+                                    locked: e.detail.locked, 
+                                });
+                            }
                         } else {
                             // Remove unselected rows from array
                             this.selectedRows = this.selectedRows.filter(row => !(row.txid === e.detail.txid && row.vout === e.detail.vout))
