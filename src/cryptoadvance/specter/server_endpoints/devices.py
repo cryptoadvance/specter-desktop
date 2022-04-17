@@ -37,9 +37,65 @@ def new_device_type():
     )
 
 
+def action_newcolddevice(device_name, device_type, xpubs):
+    "returns (err, redirect object)"
+    err = None
+    if not device_name:
+        err = _("Device name cannot be empty")
+    elif device_name in app.specter.device_manager.devices_names:
+        err = _("Device with this name already exists")
+    if not xpubs:
+        err = _("xpubs name cannot be empty")
+    keys, failed = Key.parse_xpubs(xpubs)
+    if len(failed) > 0:
+        err = _("Failed to parse these xpubs") + ":\n" + "\n".join(failed)
+    if err is None:
+        device = app.specter.device_manager.add_device(
+            name=device_name, device_type=device_type, keys=keys
+        )
+        return err, redirect(
+            url_for("devices_endpoint.device", device_alias=device.alias)
+        )
+    return err, None
+
+
+def new_device_manual_electrum():
+    err = None
+    device_type = "electrum"
+    device_name = ""
+    xpub = ""
+    derivation_path = ""
+    root_fingerprint = ""
+    if request.method == "POST":
+        xpub = request.form["xpub"]
+        derivation_path = request.form["derivation_path"]
+        root_fingerprint = request.form["root_fingerprint"]
+        action = request.form["action"]
+        device_name = request.form["device_name"]
+        if action == "newcolddevice":
+            err, redirect_obj = action_newcolddevice(
+                device_name, device_type, request.form["xpubs"]
+            )
+            if redirect_obj:
+                return redirect_obj
+    return render_template(
+        "device/new_device/new_device_keys_electrum.jinja",
+        device_type=device_type,
+        device_name=device_name,
+        xpub=xpub,
+        derivation_path=derivation_path,
+        root_fingerprint=root_fingerprint,
+        error=err,
+        specter=app.specter,
+        rand=rand,
+    )
+
+
 @devices_endpoint.route("/new_device_keys/<device_type>/", methods=["GET", "POST"])
 @login_required
 def new_device_keys(device_type):
+    if device_type == "electrum":
+        return new_device_manual_electrum()
     err = None
     mnemonic = ""
     passphrase = ""
@@ -174,7 +230,7 @@ def new_device_keys(device_type):
                 )
 
     return render_template(
-        get_device_class(device_type).template_new_device_keys,
+        "device/new_device/new_device_keys.jinja",
         device_class=get_device_class(device_type),
         mnemonic=mnemonic,
         passphrase=passphrase,
@@ -281,28 +337,6 @@ def device_blinding_key(device_alias):
     )
 
 
-def newcolddevice(device_name, device_type, xpubs):
-    "returns (err, redirect object)"
-    err = None
-    if not device_name:
-        err = _("Device name cannot be empty")
-    elif device_name in app.specter.device_manager.devices_names:
-        err = _("Device with this name already exists")
-    if not xpubs:
-        err = _("xpubs name cannot be empty")
-    keys, failed = Key.parse_xpubs(xpubs)
-    if len(failed) > 0:
-        err = _("Failed to parse these xpubs") + ":\n" + "\n".join(failed)
-    if err is None:
-        device = app.specter.device_manager.add_device(
-            name=device_name, device_type=device_type, keys=keys
-        )
-        return err, redirect(
-            url_for("devices_endpoint.device", device_alias=device.alias)
-        )
-    return err, None
-
-
 # New device "manual" (deprecated)
 @devices_endpoint.route("/new_device_manual/", methods=["GET", "POST"])
 @login_required
@@ -320,7 +354,7 @@ def new_device_manual():
         device_type = request.form["device_type"]
         device_name = request.form["device_name"]
         if action == "newcolddevice":
-            err, redirect_obj = newcolddevice(
+            err, redirect_obj = action_newcolddevice(
                 device_name, device_type, request.form["xpubs"]
             )
             if redirect_obj:
@@ -388,33 +422,6 @@ def new_device_manual():
         xpubs=xpubs,
         mnemonic=mnemonic,
         strength=strength,
-        error=err,
-        specter=app.specter,
-        rand=rand,
-    )
-
-
-@devices_endpoint.route("/new_device_manual_electrum/", methods=["GET", "POST"])
-@login_required
-def new_device_manual_electrum():
-    err = None
-    device_type = "electrum"
-    device_name = ""
-    xpubs = ""
-    if request.method == "POST":
-        action = request.form["action"]
-        device_name = request.form["device_name"]
-        if action == "newcolddevice":
-            err, redirect_obj = newcolddevice(
-                device_name, device_type, request.form["xpubs"]
-            )
-            if redirect_obj:
-                return redirect_obj
-    return render_template(
-        "device/new_device/new_device_keys_electrum.jinja",
-        device_type=device_type,
-        device_name=device_name,
-        xpubs=xpubs,
         error=err,
         specter=app.specter,
         rand=rand,
