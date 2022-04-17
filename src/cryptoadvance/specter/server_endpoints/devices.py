@@ -281,6 +281,28 @@ def device_blinding_key(device_alias):
     )
 
 
+
+def newcolddevice(device_name, device_type, xpubs):
+    "returns (err, redirect object)"    
+    err = None
+    if not device_name:
+        err = _("Device name cannot be empty")
+    elif device_name in app.specter.device_manager.devices_names:
+        err = _("Device with this name already exists")
+    if not xpubs:
+        err = _("xpubs name cannot be empty")
+    keys, failed = Key.parse_xpubs(xpubs)
+    if len(failed) > 0:
+        err = _("Failed to parse these xpubs") + ":\n" + "\n".join(failed)
+    if err is None:
+        device = app.specter.device_manager.add_device(
+            name=device_name, device_type=device_type, keys=keys
+        )
+        return err, redirect(
+            url_for("devices_endpoint.device", device_alias=device.alias)
+        )
+    return err, None
+
 # New device "manual" (deprecated)
 @devices_endpoint.route("/new_device_manual/", methods=["GET", "POST"])
 @login_required
@@ -298,23 +320,9 @@ def new_device_manual():
         device_type = request.form["device_type"]
         device_name = request.form["device_name"]
         if action == "newcolddevice":
-            if not device_name:
-                err = _("Device name cannot be empty")
-            elif device_name in app.specter.device_manager.devices_names:
-                err = _("Device with this name already exists")
-            xpubs = request.form["xpubs"]
-            if not xpubs:
-                err = _("xpubs name cannot be empty")
-            keys, failed = Key.parse_xpubs(xpubs)
-            if len(failed) > 0:
-                err = _("Failed to parse these xpubs") + ":\n" + "\n".join(failed)
-            if err is None:
-                device = app.specter.device_manager.add_device(
-                    name=device_name, device_type=device_type, keys=keys
-                )
-                return redirect(
-                    url_for("devices_endpoint.device", device_alias=device.alias)
-                )
+            err, result = newcolddevice(device_name, device_type, request.form["xpubs"])            
+            if result:
+                return result
         elif action == "newhotdevice":
             if not device_name:
                 err = _("Device name cannot be empty")
@@ -378,6 +386,31 @@ def new_device_manual():
         xpubs=xpubs,
         mnemonic=mnemonic,
         strength=strength,
+        error=err,
+        specter=app.specter,
+        rand=rand,
+    )
+
+
+@devices_endpoint.route("/new_device_manual_electrum/", methods=["GET", "POST"])
+@login_required
+def new_device_manual_electrum():
+    err = None
+    device_type = "electrum"
+    device_name = ""
+    xpubs = ""
+    if request.method == "POST":
+        action = request.form["action"]
+        device_name = request.form["device_name"]
+        if action == "newcolddevice":
+            err, result = newcolddevice(device_name, device_type, request.form["xpubs"])
+            if result:
+                return result
+    return render_template(
+        "device/new_device/new_device_keys_electrum.jinja",
+        device_type=device_type,
+        device_name=device_name,
+        xpubs=xpubs,
         error=err,
         specter=app.specter,
         rand=rand,

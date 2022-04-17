@@ -4,7 +4,7 @@
 	{% include "includes/qr-scanner.html" %}
 
     <h1>{{ _("Setting up electrum as a new device") }}</h1>
-    <form action="{{ url_for('devices_endpoint.new_device_manual', device_type='electrum') }}" 
+    <form action="{{ url_for('devices_endpoint.new_device_manual_electrum') }}" 
           method="POST" 
           oninput="xpubs.value =`[${root_fingerprint.value}/${derivation_path.value.replace('m/', '')}]${xpub.value}`"  >
         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
