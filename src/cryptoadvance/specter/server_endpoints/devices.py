@@ -320,9 +320,11 @@ def new_device_manual():
         device_type = request.form["device_type"]
         device_name = request.form["device_name"]
         if action == "newcolddevice":
-            err, result = newcolddevice(device_name, device_type, request.form["xpubs"])
-            if result:
-                return result
+            err, redirect_obj = newcolddevice(
+                device_name, device_type, request.form["xpubs"]
+            )
+            if redirect_obj:
+                return redirect_obj
         elif action == "newhotdevice":
             if not device_name:
                 err = _("Device name cannot be empty")
@@ -403,9 +405,11 @@ def new_device_manual_electrum():
         action = request.form["action"]
         device_name = request.form["device_name"]
         if action == "newcolddevice":
-            err, result = newcolddevice(device_name, device_type, request.form["xpubs"])
-            if result:
-                return result
+            err, redirect_obj = newcolddevice(
+                device_name, device_type, request.form["xpubs"]
+            )
+            if redirect_obj:
+                return redirect_obj
     return render_template(
         "device/new_device/new_device_keys_electrum.jinja",
         device_type=device_type,
