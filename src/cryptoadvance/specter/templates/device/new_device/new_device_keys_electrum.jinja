@@ -1,14 +1,10 @@
 {% extends "base.jinja" %}
 {% block main %}
-	{% include "includes/hwi/hwi.jinja" %}
-	{% include "includes/qr-scanner.html" %}
-
     <h1>{{ _("Setting up electrum as a new device") }}</h1>
     <form action="{{ url_for('devices_endpoint.new_device_manual_electrum') }}" 
           method="POST" 
           oninput="xpubs.value =`[${root_fingerprint.value}/${derivation_path.value.replace('m/', '')}]${xpub.value}`"  >
         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-
 
         <div style="width: auto; margin: 40px;" class="card center" >
             <h2 style="max-width: 500px; margin: auto;">{{ _("Name your Device: ") }}<input type="text" name="device_name" placeholder="My electrum wallet" id="device_name" required/></h2>
@@ -40,8 +36,6 @@ wallet.get_keystores()[0].get_root_fingerprint()                </pre>
             <input type='hidden'  id="xpubs" name="xpubs" >   
             
         </div><br>
-        <button type="submit" class="btn centered" name="action" value="newcolddevice" onsubmit="showPacman()">{{ _("Continue") }}</button>
-        
+        <button type="submit" class="btn centered" name="action" value="newcolddevice" onsubmit="showPacman()">{{ _("Continue") }}</button>        
     </form>
-
 {% endblock %}
