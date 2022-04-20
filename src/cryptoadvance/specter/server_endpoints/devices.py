@@ -204,7 +204,7 @@ def new_device_mnemonic(device_type):
             err = _(
                 "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
             )
-        if not validate_mnemonic(words=request.form["mnemonic"]):
+        if not validate_mnemonic(request.form["mnemonic"]):
             err = _("Invalid mnemonic entered.")
         range_start = int(request.form["range_start"])
         range_end = int(request.form["range_end"])
@@ -325,7 +325,7 @@ def new_device_manual():
                     "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
                 )
 
-            if not validate_mnemonic(words=request.form["mnemonic"]):
+            if not validate_mnemonic(request.form["mnemonic"]):
                 err = _("Invalid mnemonic entered.")
             range_start = int(request.form["range_start"])
             range_end = int(request.form["range_end"])
