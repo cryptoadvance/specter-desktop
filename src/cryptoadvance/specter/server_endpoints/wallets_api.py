@@ -121,18 +121,22 @@ def get_new_tx_notifications():  # GET request
             for tx in updated_txs:
                 title = "Specter: "
                 if not tx["confirmations"]:  # unconfirmed
-                    title += f"Unconfirmed {tx['category'].capitalize()} transaction of wallet {tx['wallet_alias']}"
+                    title += f"Unconfirmed {tx['category'].capitalize()} transaction"
                 else:
                     if tx["txid"] in old_txids:  # was in mempool but now confirmed
-                        title += f"Status change: Recieved of {tx['category'].capitalize()} transaction of wallet {tx['wallet_alias']} has now {tx['confirmations']} confirmations"
+                        title += f"Status change: {tx['category'].capitalize()} transaction is now confirmed"
                     else:  #  learned of tx because it is in a block
-                        title += f"Confirmed {tx['category'].capitalize()} transaction of wallet {tx['wallet_alias']}"
+                        title += f"Confirmed {tx['category'].capitalize()} transaction"
                 notifications.append(
                     {
                         "title": title,
                         "options": {
-                            "body": f"{btcunitamount(None, tx['amount'])} {app.specter.unit.upper()}\n"
-                            f"sent to {tx['label']}",
+                            "body": '\n'.join([f"Wallet: {tx['wallet_alias']}",
+                                    f"{btcunitamount(None, tx['amount'])} {app.specter.unit.upper()}",                 
+                                    f"sent to {tx['label']}",
+                                    ]+
+                                    (["Confirmations: {}".format(tx['confirmations'])  if tx["confirmations"] else 'Unconfirmed']  if tx["confirmations"] else [])
+                                    ),
                             "timestamp": tx["time"],
                         },
                         "category": tx["category"],
