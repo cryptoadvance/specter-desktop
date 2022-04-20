@@ -95,6 +95,7 @@ def fees_old(blocks):
     """Is this endpoint even used? It has been migrated from controller.py and renamed to fees_old"""
     return app.specter.estimatesmartfee(int(blocks))
 
+
 @wallets_endpoint_api.route("/get_new_tx_notifications", methods=["GET"])
 @login_required
 def get_new_tx_notifications():  # GET request
@@ -103,34 +104,46 @@ def get_new_tx_notifications():  # GET request
     buffer = app.specter.node.read_and_clear_buffered_zmq_messages()
     print(buffer)
     notifications = []
+
     if buffer:
-        old_full_txlist = app.specter.wallet_manager.full_txlist(fetch_transactions=False)
-        old_txids = set(tx["txid"] for tx in old_full_txlist)
+        old_full_txlist = app.specter.wallet_manager.full_txlist(
+            fetch_transactions=False
+        )
+        old_txids = [tx["txid"] for tx in old_full_txlist]
         app.specter.wallet_manager.update()
         new_full_txlist = app.specter.wallet_manager.full_txlist()
-        updated_txids = set(tx["txid"] for tx in new_full_txlist) - old_txids
+    for zmq_message in buffer:
+        if zmq_message["topic"] == "hashtx":
+            updated_txids = [zmq_message["body"][0].decode()]
+            updated_txs = [tx for tx in new_full_txlist if tx["txid"] in updated_txids]
 
-        updated_txs = [tx for tx in new_full_txlist if tx["txid"] in updated_txids]
-
-        print(updated_txs)
-        notifications = [
-            {
-                "title": f"Specter: {tx['category'].capitalize()} Transaction of wallet {tx['wallet_alias']}",
-                "options": {
-                    "body": f"{btcunitamount(None, tx['amount'])} {app.specter.unit.upper()}\n"
-                    f"sent to {tx['label']}",
-                    "timestamp": tx["time"],
-                },
-                "category": tx["category"],
-                "isConfirmed": tx["confirmations"] > 0,
-            }
-            for tx in updated_txs
-        ]
+            print(updated_txs)
+            for tx in updated_txs:
+                title = "Specter: "
+                if not tx["confirmations"]:  # unconfirmed
+                    title += f"Unconfirmed {tx['category'].capitalize()} transaction of wallet {tx['wallet_alias']}"
+                else:
+                    if tx["txid"] in old_txids:  # was in mempool but now confirmed
+                        title += f"Status change: Recieved of {tx['category'].capitalize()} transaction of wallet {tx['wallet_alias']} has now {tx['confirmations']} confirmations"
+                    else:  #  learned of tx because it is in a block
+                        title += f"Confirmed {tx['category'].capitalize()} transaction of wallet {tx['wallet_alias']}"
+                notifications.append(
+                    {
+                        "title": title,
+                        "options": {
+                            "body": f"{btcunitamount(None, tx['amount'])} {app.specter.unit.upper()}\n"
+                            f"sent to {tx['label']}",
+                            "timestamp": tx["time"],
+                        },
+                        "category": tx["category"],
+                        "isConfirmed": tx["confirmations"] > 0,
+                    }
+                )
     else:
-        print('No rpc call because empty zmq buffer')
+        print("No rpc call because empty zmq buffer")
 
+    print(notifications)
     return jsonify(notifications)  # serialize and use JSON headers
-
 
 
 """

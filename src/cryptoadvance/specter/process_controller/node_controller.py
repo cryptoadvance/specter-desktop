@@ -362,8 +362,7 @@ class NodeController:
         if extra_args:
             btcd_cmd += " {}".format(" ".join(extra_args))
         if enable_zmq:
-            btcd_cmd += ' -zmqpubhashtx=tcp://127.0.0.1:29000 '
-            btcd_cmd += ' -zmqpubhashblock=tcp://127.0.0.1:29000 '
+            btcd_cmd += " -zmqpubhashtx=tcp://127.0.0.1:29000 "
         logger.debug("constructed bitcoind-command: %s", btcd_cmd)
         return btcd_cmd
 

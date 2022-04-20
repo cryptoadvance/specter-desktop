@@ -80,18 +80,14 @@ class Node:
         self._asset_labels = None
         self.check_info()
 
-
         self.buffered_zmq_messages = []
         self.zmq_sockets = self.get_zmq_sockets()
         self.listener_zmq_recv_message()
-        # Requires that these lines are in bitcoin.conf        
+        # Requires that these lines are in bitcoin.conf
         # zmqpubrawblock=tcp://127.0.0.1:29000
         # zmqpubrawtx=tcp://127.0.0.1:29000
         # zmqpubhashtx=tcp://127.0.0.1:29000
         # zmqpubhashblock=tcp://127.0.0.1:29000
-
-
-
 
     @classmethod
     def from_json(cls, node_dict, manager, default_alias="", default_fullpath=""):
@@ -143,13 +139,16 @@ class Node:
             "node_type": self.node_type,
         }
 
-
-
     def get_zmq_sockets(self):
-        if not self.rpc: return
-        zmqnotifications = self.rpc.getzmqnotifications()  # Example:  [{'type': 'pubhashblock', 'address': 'tcp://127.0.0.1:29000', 'hwm': 1000}, {'type': 'pubhashtx', 'address': 'tcp://127.0.0.1:29000', 'hwm': 1000}, {'type': 'pubrawblock', 'address': 'tcp://127.0.0.1:29000', 'hwm': 1000}, {'type': 'pubrawtx', 'address': 'tcp://127.0.0.1:29000', 'hwm': 1000}]
-        subcriber_topics = ['pubhashtx', 'pubhashblock']
-        available_subcriber_topics = [d for d in zmqnotifications if d['type'] in subcriber_topics]
+        if not self.rpc:
+            return
+        zmqnotifications = (
+            self.rpc.getzmqnotifications()
+        )  # Example:  [{'type': 'pubhashblock', 'address': 'tcp://127.0.0.1:29000', 'hwm': 1000}, {'type': 'pubhashtx', 'address': 'tcp://127.0.0.1:29000', 'hwm': 1000}, {'type': 'pubrawblock', 'address': 'tcp://127.0.0.1:29000', 'hwm': 1000}, {'type': 'pubrawtx', 'address': 'tcp://127.0.0.1:29000', 'hwm': 1000}]
+        subcriber_topics = ["pubhashtx"]  # , 'pubhashblock'
+        available_subcriber_topics = [
+            d for d in zmqnotifications if d["type"] in subcriber_topics
+        ]
         # print(zmqnotifications, available_subcriber_topics)
 
         context = zmq.Context()
@@ -157,37 +156,37 @@ class Node:
         for d in available_subcriber_topics:
             #  Socket to talk to server
             socket = context.socket(zmq.SUB)
-            socket.connect(d['address'])
-            socket.subscribe(d['type'][3:])    # the [3:]  removes the "pub" in front
+            socket.connect(d["address"])
+            socket.subscribe(d["type"][3:])  # the [3:]  removes the "pub" in front
             sockets.append(socket)
         return sockets
 
-
     def _decode_zmq_multipart_message(self, multipart_message):
         topic = multipart_message[0].decode()
-        body = binascii.hexlify(b"".join(multipart_message[1:]))
+        body = [binascii.hexlify(m) for m in multipart_message[1:]]
         return topic, body
-
-    
 
     def listener_zmq_recv_message(self):
         "calls self.on_zmq_event(topic, body)  on an event"
+
         def zmq_recv_message():
             while True:
                 for socket in self.zmq_sockets:
-                    topic, body = self._decode_zmq_multipart_message(socket.recv_multipart())   # recv_multipart waits for an event.
+                    topic, body = self._decode_zmq_multipart_message(
+                        socket.recv_multipart()
+                    )  # recv_multipart waits for an event.
                     self.on_zmq_event(topic, body)
+
         self.thread_executor = ThreadPoolExecutor(1)
         self.thread_executor.submit(zmq_recv_message)
 
     def on_zmq_event(self, topic, body):
-        self.buffered_zmq_messages.append((topic, body))
+        self.buffered_zmq_messages.append({"topic": topic, "body": body})
 
     def read_and_clear_buffered_zmq_messages(self):
         buffer = self.buffered_zmq_messages
         self.buffered_zmq_messages = []
         return buffer
-
 
     def get_rpc(self):
         """
