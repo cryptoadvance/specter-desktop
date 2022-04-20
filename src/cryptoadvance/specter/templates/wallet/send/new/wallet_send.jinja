@@ -27,53 +27,60 @@
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="rbf_tx_id" value="{{ rbf_tx_id }}"/>
 		<h1 class="padded">{{ _("Create Transaction") }}</h1>
-		<div style="display: flex; justify-content: center; margin-bottom: 15px">
-			<div>{{ _("Available funds:") }} {{wallet.amount_available | btcunitamount}}
-				{% if specter.unit == 'sat' %}
-					sats
-				{% else %}
-					{% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
-				{% endif %}<br>
-				{% if specter.price_check %}
-					<span class="note">{{ wallet.amount_available | altunit }}</span>
-				{% endif %}
-				{% if specter.is_liquid and wallet.balance.get("assets", {}) %}
-				<span>
-					<br>{{ _("Assets:") }}<br>
-					{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
-						{% set balance = wallet.balance.get("assets",{}).get(asset, {}) %}
-						<span style="margin: 0 10px;">
-							{{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcamount }}
-							<asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}"></asset-label>
-						</span>
-					{% endfor %}
-				</span>
-				{% endif %}
+		<p class="center">{{ _("Available funds:") }} {{wallet.full_available_balance | btcunitamount}}
+			{% if specter.unit == 'sat' %}
+				sats
+			{% else %}
+				{% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
+			{% endif %}<br>
+			{% if specter.price_check %}
+				<span class="note">{{ wallet.full_available_balance | altunit }}</span>
+			{% endif %}
+			{% if specter.is_liquid and wallet.balance.get("assets", {}) %}
+			<span>
+				<br>{{ _("Assets:") }}<br>
+				{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
+					{% set balance = wallet.balance.get("assets",{}).get(asset, {}) %}
+					<span style="margin: 0 10px;">
+						{{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcamount }}
+						<asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}"></asset-label>
+					</span>
+				{% endfor %}
+			</span>
+			{% endif %}
+		</p>
+		{% if wallet.locked_amount > 0 %}
+		<div style="margin: auto; text-align: center; max-width: 90%;">
+			<div class="tool-tip" style="text-align: center;">
+				<i class="tool-tip__icon">i</i>
+				<p class="tool-tip__info">
+					<span class="info">
+						<span class="info__title">{{ _("Funds waiting in unsigned transactions") }}<br><br></span>
+						{{ _('To make funds available to spend in new transactions, just click on the "Unsigned" tab and delete unsigned transactions you have no need for anymore.') }}
+					</span>
+				</p>
 			</div>
-			{% if wallet.amount_locked_unsigned  > 0 or wallet.amount_frozen > 0 %}
-			<div>
-				<tool-tip title='{{ _("Why is this less than mal total balance?") }}'>
-					{{ _(' Frozen outputs and outputs locked in unsigned transactions cannot be used here.  
-					To make more funds available, click on the "Unsigned" tab and delete not required transactions or unfreeze UTXO under "Transactions".') }}
-		        </tool-tip>
-	        </div>
-	        {% endif %}
-	    </div>
+			<p style="display: inline; margin: auto; text-align: center;">&nbsp;{{ _("You have") }} {{wallet.locked_amount | btcunitamount}} {% if specter.unit == 'sat' %}sats{% else %}{% if specter.is_testnet %}t{%endif%}BTC{% endif %} {{ _("waiting in unsigned transactions.") }}</p>
+			<br>
+			<br>
+		</div>
+		{% endif %}
 		<div class="card" style="margin: auto;">
 			<div id="recipients" {% if ui_option != 'ui' %}class="hidden"{% endif %}></div>
-			<div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>
-			{{ _("Unit:") }} 
-			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_text" value="sat" onchange="toggleUnit(this, 'text')" {% if specter.unit == 'sat' %}checked{% endif %}>sat</label>
-			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_text" value="btc" onchange="toggleUnit(this, 'text')" {% if specter.unit != 'sat' %}checked{% endif %}>BTC</label><br>
+			 <div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>
+				 {{ _("Unit:") }} 
+				 <label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_text" value="sat" onchange="toggleUnit(this, 'text')" {% if specter.unit == 'sat' %}checked{% endif %}>sat</label>
+				 <label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_text" value="btc" onchange="toggleUnit(this, 'text')" {% if specter.unit != 'sat' %}checked{% endif %}>BTC</label><br>
 
-			<textarea id="recipients-txt" name="recipients" placeholder="{{ _('Enter recipient address, amount') }}" style="margin-top: 5px; font-size: 0.95em;" onblur="validateForm()">{{ recipients_txt }}</textarea>
-				<p class="note" style="line-height: 2; background-color: #16202d; padding: 10px; border-radius: 7px;">
+				 <textarea id="recipients-txt" name="recipients" placeholder="{{ _('Enter recipient address, amount') }}" style="margin-top: 5px; font-size: 0.95em;" onblur="validateForm()">{{ recipients_txt }}</textarea>
+				 <p class="note" style="line-height: 2; background-color: #16202d; padding: 10px; border-radius: 7px;">
 					{{ _("Enter each recipient address, amount as a new line:") }}<br>
 					&lt;{{ _("ADDRESS") }}1&gt;, &lt;{{ _("AMOUNT") }}1&gt;<br>
 					&lt;{{ _("ADDRESS") }}2&gt;, &lt;{{ _("AMOUNT") }}2&gt;<br>
 					&lt;{{ _("ADDRESS") }}3&gt;, &lt;{{ _("AMOUNT") }}3&gt;<br>
-				</p>
-			</div>
+					</p>
+					
+			  </div>
 			<button id="remove-recipient" style="width: 200px; height: 38px;" type="button" class="btn hidden" onclick="removeRecipient()"><b>&#8722;</b>&nbsp; &nbsp;{{ _("Remove recipient") }}</button>
 			<p><span id="calculated_tx_fee_label" class="note" style="margin-top: 17px;" onclick="calculateEstimatedFee()">{{ _("Calculate estimated fee") }}</span><span class="note" id="calculated_tx_fee"></span><p>
 			<span id="toggle_advanced" style="cursor: pointer;">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
@@ -85,6 +92,7 @@
 				</div><br>
 				{% include "includes/fee-selection.html" %}
 				<fee-selection id="fee-selection-component"></fee-selection>
+				
 				<br>
 				<br>
 				<br>
@@ -188,6 +196,7 @@
 		})
 
 		function addRecipient(addr, amount, amount_unit, label) {
+			
 			let i = amounts.length;
 			amounts.push(amount);
 			units.push(amount_unit);
@@ -295,6 +304,10 @@
 				}
 			}
 			calculateConvertedUnit(i);
+			if(document.getElementById('ui-radio-btn').checked && amounts.length>1)
+			{
+			FeeSelectionComponent.showSubtractFrom(true)
+			}
 		} 
 
 		function removeRecipient() {
@@ -563,7 +576,7 @@
 			document.getElementById(id).style.display = visibility;
 		}
 
-		function toggleAdvanced() {
+	function toggleAdvanced() {
 			let advancedButton = document.getElementById('toggle_advanced');
 			let advancedSettings = document.getElementById('advanced_settings');
 			if (advancedSettings.style.display === 'block') {
@@ -575,27 +588,41 @@
 			}
 		}
 
-		function toggleSendUIType(radioBtn) {
+			function toggleSendUIType(radioBtn) {
 			if (radioBtn.value == 'ui') {
 				FeeSelectionComponent.removeLineBreaks()
+
+	//	var elms=	 document.getElementById("subtract_from").style.display="block";
+
 				setVisibility('recipients', 'block');
 				setVisibility('add-recipient', 'flex');
+    			setVisibility('subtract_from_input','block')
 				setVisibility('recipients-txt-container', 'none');
-				setVisibility('subtract', 'block');
+				//	setVisibility('subtract_from','block')
+
+				//setVisibility('subtract_from', 'block');
 				if (amounts.length > 1) {
 					setVisibility('remove-recipient', 'block');	
+					FeeSelectionComponent.showSubtractFrom(true)
+
 				}
 				else {
 					FeeSelectionComponent.showSubtractFrom(false)
+				
 				}
-			} else {
+			}
+			 else {
+	console.log(document.getElementById("divChild"));
 				setVisibility('recipients', 'none');
 				setVisibility('add-recipient', 'none');
 				setVisibility('remove-recipient', 'none');
 				setVisibility('recipients-txt-container', 'block');
+//			setVisibility('subtract_from','none')
+					FeeSelectionComponent.showSubtractFrom(false)
+
 				// Assumes that text is always used for multiple recipients
 				if (document.getElementById('subtract').checked) {
-					FeeSelectionComponent.showSubtractFrom(true)
+		     		FeeSelectionComponent.showSubtractFrom(true)
 					// Adds two line breaks after the RBF checkbox, since it gets crowded
 					FeeSelectionComponent.addLineBreaks(2)
 				}

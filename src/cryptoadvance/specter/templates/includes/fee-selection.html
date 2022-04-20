@@ -14,7 +14,7 @@
                 </p>
             </div>
         </div>
-        <span id="subtract_from" style="display: none">
+        <span id="subtract_from" style="display: none" >
             <br>{{ _("Subtract from recipient number:") }} 
             <input id="subtract_from_input" name="subtract_from" type="number" min="1" value="1" step="1" style="width: 80px; min-width: 80px;"><br>
         </span>
@@ -253,6 +253,7 @@
         }
 
         showFeeOption(option) {
+
             if (option == 'dynamic') {
                 this.fee_manual.style.display ='none'
                 this.fee_dynamic.style.display = 'block'
@@ -260,6 +261,7 @@
                 this.fee_option_dynamic.checked = true
             } else {
                 this.fee_manual.style.display ='block'
+
                 this.fee_dynamic.style.display = 'none'
                 this.ld.feeOption.value = "manual"
                 this.fee_option_manual.checked = true
