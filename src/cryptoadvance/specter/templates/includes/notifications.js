@@ -1,4 +1,19 @@
+
+
 {% include "includes/utils.js" %}
+{% include "includes/message_box.js" %}
+
+
+function javascript_popup_message(title, options){
+
+    msgboxPersistent.show(
+        `${title}\n\n${options['body']}`,
+        //() => {
+        //  console.log("I am the callback! Of course, you may add various javaScript codes to make the callback function colourful.");
+        //},
+        //"Has callback"
+      );			
+}
 
 function webpush_notification(title, options) {
     function show_notification(){
@@ -31,7 +46,7 @@ function webpush_notification(title, options) {
 }
 
     */
-
+    //document.title = `1 new notification: ${title}`;
 
     // Let's check if the browser supports notifications    
     if (!("Notification" in window)) {
@@ -48,10 +63,17 @@ function webpush_notification(title, options) {
         // If the user accepts, let's create a notification
         if (permission === "granted") {
             show_notification();
+        }        
+        else{
+            javascript_popup_message(title, options)
         }
         });
     }
 
+
+    
+
+      
     // At last, if the user has denied notifications, and you
     // want to be respectful there is no need to bother them any more.
 };
@@ -81,8 +103,8 @@ function notify_new_block(max_chaintip_height){
 };
 
 function run_scheduled(){ 
-    //this code runs every interval
-    evalaute_new_transactions() 
+    //this code runs every interval  
+  evalaute_new_transactions() 
 };
 
 

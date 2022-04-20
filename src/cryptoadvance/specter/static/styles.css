@@ -1302,3 +1302,86 @@ input:checked + .slider:before {
     -ms-transform: translateX(26px);
     transform: translateX(26px);
 }
+
+
+
+
+
+
+/*****************************/
+/* MESSAGE BOX RELATED CLASS */
+/* (START) */
+/*****************************/
+ .msgbox-area {
+	 font-size: inherit;
+	 max-height: 100%;
+	 position: fixed;
+	 bottom: 15px;
+	 left: 20px;
+	 right: 20px;
+}
+ .msgbox-box {
+	 font-size: inherit;
+	 color: #fff;
+	 background-color: var(--cmap-blue);
+	 margin: 0 0 1rem;
+	 display: flex;
+	 flex-direction: column;
+	 position: relative;
+	 border-radius: 12px;
+	 box-shadow: 0 10px 15px rgba(0, 0, 0, 0.65);
+	 backdrop-filter: blur(4px);
+	 transition: opacity 256ms ease-in;
+}
+ .msgbox-box.msgbox-box-hide {
+	 opacity: 0;
+}
+ .msgbox-box:last-child {
+	 margin: 0;
+}
+ .msgbox-content {
+	 font-size: inherit;
+	 padding: 1.5rem;
+	 padding-bottom: 0.75rem;
+	 flex-shrink: 1;
+}
+ .msgbox-command {
+	 padding: 1.5rem;
+	 padding-top: 0.75rem;
+	 display: flex;
+}
+ .msgbox-close {
+	 color: #fff;
+	 font-size: inherit;
+	 text-decoration: none;
+	 margin: 0 10px;
+	 flex-grow: 0;
+	 flex-shrink: 0;
+	 position: relative;
+	 transition: color 64ms ease-out, text-shadow 64ms ease-out;
+}
+ .msgbox-close:hover {
+	 color: #efefef;
+	 text-shadow: 0 0 4px #fff;
+}
+ .msgbox-close:first-child {
+	 margin-left: auto;
+}
+ .msgbox-close:last-child {
+	 margin-right: 0;
+}
+ @media (min-width: 481px) and (max-width: 767px) {
+	 .msgbox-area {
+		 left: 80px;
+		 right: 80px;
+	}
+}
+ @media (min-width: 768px) {
+	 .msgbox-area {
+		 width: 480px;
+		 height: 0;
+		 top: 15px;
+		 left: auto;
+		 right: 15px;
+	}
+}

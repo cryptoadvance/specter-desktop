@@ -7,6 +7,7 @@ from datetime import datetime
 from io import StringIO
 from math import isnan
 from numbers import Number
+from matplotlib.pyplot import show
 
 import requests
 from cryptoadvance.specter.util.psbt_creator import PsbtCreator
@@ -145,8 +146,6 @@ def get_new_tx_notifications():  # GET request
                 )
     else:
         print("No rpc call because empty zmq buffer")
-
-    print(notifications)
     return jsonify(notifications)  # serialize and use JSON headers
 
 
