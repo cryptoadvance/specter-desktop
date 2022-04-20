@@ -1,41 +1,90 @@
 {% extends "base.jinja" %}
 {% block main %}
-    <h1>{{ _("Setting up electrum as a new device") }}</h1>
-    <form action="{{ url_for('devices_endpoint.new_device_keys' , device_type='electrum')}}" 
-          method="POST" 
-          oninput="xpubs.value =`[${root_fingerprint.value}/${derivation_path.value.replace('m/', '')}]${xpub.value}`"  >
-        <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 
-        <div style="width: auto; margin: 40px;" class="card center" >
-            <h2 style="max-width: 500px; margin: auto;">{{ _("Name your Device: ") }}<input type="text" name="device_name" placeholder="My electrum wallet" id="device_name" value="{{ device_name }}" required/></h2>
+    <style>
+    .small-card:hover {
+         background-color: var(--cmap-bg);
+    }
+    h2 {
+         margin:  0px 0px 14px 0px;
+         min-width: 410px;
+    }
+    </style>
+
+    <h1>{{ _("Setting up Electrum as a new device") }}</h1>
+        <form id="form" action="{{ url_for('devices_endpoint.new_device_keys' , device_type='electrum')}}" method="POST">
+        <div class="small-card center" style="cursor: auto;">
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="hidden" id="device_type" name="device_type" value="electrum">
+            <input type='hidden' id="xpub" name="xpub">   
+            <h2>{{ _("Name your device: ") }}
+                <input type="text" name="device_name" placeholder="My Electrum device" id="device_name" value="" required/>
+            </h2>
             <br>
-            <input type="hidden" id="device_type" name="device_type" value="electrum">  
-            <h4>{{ _("1. Show the master public key and derivation path") }}</h4>
-        
-            <img src="{{ url_for('static', filename='img/electrum_manual/1.png') }}" alt=_("Select Wallet  -  Information")>  
-            <img src="{{ url_for('static', filename='img/electrum_manual/2a.png')}}"   alt=_("Copy the master public key and derivation path")>  <br>
-
-            {{ _("Master public key:") }}<br>
-            <input   id="xpub" name="xpub" value="{{ xpub }}"  placeholder="Your master public key" style="max-width: 500px;   margin-right: 10px"  required>  <br>
-            {{ _("Derivation path:") }}<br>
-            <input   id="derivation_path" name="derivation_path"   placeholder="Your derivation path" value={{ derivation_path if derivation_path else "m/0'" }}  style="max-width: 500px;  margin-right: 10px"  required>  <br>
-
-            <h4>{{ _("2. Show the root fingerprint") }}</h4>
-
-            <img src="{{ url_for('static', filename='img/electrum_manual/3.png') }}" alt=_("View -  Show Console")>  
-            <img src="{{ url_for('static', filename='img/electrum_manual/4.png') }}" alt=_("Paste in console 'wallet.get_keystores()[0].get_root_fingerprint()'")>  
+            <h2>{{ _("Master public key:") }}
+                <input id="master_pub_key" name="master_pub_key" value="" placeholder="Your master public key" required>
+            </h2>
             <br>
-            <div class="note">
-            {{ _("Paste in console") }}:<br>
-                <pre>
-wallet.get_keystores()[0].get_root_fingerprint()                </pre>
+            <h2>{{ _("Derivation path:") }}
+                <input id="derivation_path" name="derivation_path" placeholder="Your derivation path" value={{ derivation_path if derivation_path else "m/0'" }} required>
+            </h2>
+            <br>
+            <h2>{{ _("Root fingerprint:") }}
+                <input id="root_fingerprint" name="root_fingerprint" value="" placeholder="Your root fingerprint" required>
+            </h2>
+            <br>
+            <span id="toggle-explainer" style="cursor: pointer; margin: 0 0 5px 0; align-self: start; font-size: 1.2em;">
+                &#128218; {{ _("How to get this info from Electrum?") }} &#9654;
+            </span>
+            <div id="text-explainer" class="hidden">
+                <p style="max-width: 300px">
+                    {{ _('Under "Wallet" and "Information" you can find the Master Public Key and the derivation path: ') }}
+                </p>
+                <img src="{{ url_for('static', filename='img/electrum_manual/1.png')}}" alt=_("Select Wallet  -  Information") style="width: 250px; height: 300px">
+                <img src="{{ url_for('static', filename='img/electrum_manual/2a.png')}}" alt=_("Copy the master public key and derivation path") style="width: 415px; height: 300px"> 
+                <p style="max-width: 300px">
+                    {{ _("To get the root fingerprint, go to the console and type the command:") }}
+                     <code>wallet.get_keystores()[0].get_root_fingerprint()</code>
+                </p>
+                <img src="{{ url_for('static', filename='img/electrum_manual/3.png') }}" alt=_("View -  Show Console") style="width: 200px; height: 200px">
+                <img src="{{ url_for('static', filename='img/electrum_manual/4.png') }}" alt=_("Paste in console 'wallet.get_keystores()[0].get_root_fingerprint()'") style="width: 415px; height: 110px">  
             </div>
-            {{ _("Root fingerprint:") }}<br>
-            <input   id="root_fingerprint" name="root_fingerprint"  value="{{ root_fingerprint }}"   placeholder="Your root fingerprint"   style="max-width: 500px;  margin-right: 10px"  required>  <br>
+            <button type="submit" class="btn centered" style="font-size: 14px; margin-top: 5px" name="action" value="newelectrumdevice" onsubmit="showPacman()">{{ _("Continue") }}</button>   
+            </div>     
+        </form>
+    
+{% endblock %}
 
-            <input type='hidden'  id="xpubs" name="xpubs" >   
-            
-        </div><br>
-        <button type="submit" class="btn centered" name="action" value="newcolddevice" onsubmit="showPacman()">{{ _("Continue") }}</button>        
-    </form>
+{% block scripts %}
+    <script>
+        function toggleExplainer() {
+            let toggle = document.getElementById('toggle-explainer');
+            let explainerText = document.getElementById('text-explainer');
+            if (explainerText.classList.contains('hidden')) {
+                explainerText.classList.remove("hidden");
+                explainerText.classList.add("flex-center")
+                explainerText.classList.add("flex-column")
+                toggle.innerHTML = '&#128218; ' + 'How to get this info from Electrum?' + ' &#9660;';
+            } else {
+                explainerText.classList.add("hidden");
+                toggle.innerHTML = '&#128218; ' + 'How to get this info from Electrum?' + ' &#9654;';
+            }
+        }
+
+        const form = document.getElementById('form');
+        form.onsubmit = xpubCreation
+        function xpubCreation(event) {
+            let masterPubKey = document.getElementById("master_pub_key")
+            let rootFingerprint = document.getElementById("root_fingerprint")
+            let derivationPath = document.getElementById("derivation_path")
+            let xpub = document.getElementById("xpub")
+            xpub.value = `[${rootFingerprint.value}/${derivationPath.value.replace('m/', '')}]${masterPubKey.value}`
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('toggle-explainer').addEventListener('click', (event) => {
+                toggleExplainer();
+            });
+        })
+    </script>
 {% endblock %}

@@ -2,6 +2,7 @@ import copy
 import json
 import random
 import re
+import logging
 
 from cryptoadvance.specter.devices.device_types import DeviceTypes
 from flask import Blueprint, Flask
@@ -20,6 +21,7 @@ from ..specter_error import handle_exception
 from ..wallet import purposes
 
 rand = random.randint(0, 1e32)  # to force style refresh
+logger = logging.getLogger(__name__)
 
 # Setup endpoint blueprint
 devices_endpoint = Blueprint("devices_endpoint", __name__)
@@ -37,65 +39,11 @@ def new_device_type():
     )
 
 
-def action_newcolddevice(device_name, device_type, xpubs):
-    "returns (err, redirect object)"
-    err = None
-    if not device_name:
-        err = _("Device name cannot be empty")
-    elif device_name in app.specter.device_manager.devices_names:
-        err = _("Device with this name already exists")
-    if not xpubs:
-        err = _("xpubs name cannot be empty")
-    keys, failed = Key.parse_xpubs(xpubs)
-    if len(failed) > 0:
-        err = _("Failed to parse these xpubs") + ":\n" + "\n".join(failed)
-    if err is None:
-        device = app.specter.device_manager.add_device(
-            name=device_name, device_type=device_type, keys=keys
-        )
-        return err, redirect(
-            url_for("devices_endpoint.device", device_alias=device.alias)
-        )
-    return err, None
-
-
-def new_device_manual_electrum():
-    err = None
-    device_type = "electrum"
-    device_name = ""
-    xpub = ""
-    derivation_path = ""
-    root_fingerprint = ""
-    if request.method == "POST":
-        xpub = request.form["xpub"]
-        derivation_path = request.form["derivation_path"]
-        root_fingerprint = request.form["root_fingerprint"]
-        action = request.form["action"]
-        device_name = request.form["device_name"]
-        if action == "newcolddevice":
-            err, redirect_obj = action_newcolddevice(
-                device_name, device_type, request.form["xpubs"]
-            )
-            if redirect_obj:
-                return redirect_obj
-    return render_template(
-        "device/new_device/new_device_keys_electrum.jinja",
-        device_type=device_type,
-        device_name=device_name,
-        xpub=xpub,
-        derivation_path=derivation_path,
-        root_fingerprint=root_fingerprint,
-        error=err,
-        specter=app.specter,
-        rand=rand,
-    )
-
-
 @devices_endpoint.route("/new_device_keys/<device_type>/", methods=["GET", "POST"])
 @login_required
 def new_device_keys(device_type):
-    if device_type == "electrum":
-        return new_device_manual_electrum()
+    device_class = get_device_class(device_type)
+    template = device_class.template
     err = None
     mnemonic = ""
     passphrase = ""
@@ -118,7 +66,7 @@ def new_device_keys(device_type):
                 err = _("Device name cannot be empty")
             elif device_name in app.specter.device_manager.devices_names:
                 err = _("Device with this name already exists")
-        xpubs_rows_count = int(request.form["xpubs_rows_count"]) + 1
+        xpubs_rows_count = int(request.form.get("xpubs_rows_count", 0)) + 1
         keys = []
         paths = []
         keys_purposes = []
@@ -137,6 +85,8 @@ def new_device_keys(device_type):
                 except:
                     err = _("Failed to parse these xpubs") + ":\n" + "\n".join(xpub)
                     break
+        if device_type == "electrum":
+            keys.append(Key.parse_xpub(request.form["xpub"]))
         if not keys and not err:
             if device_type in [
                 DeviceTypes.BITCOINCORE,
@@ -230,8 +180,8 @@ def new_device_keys(device_type):
                 )
 
     return render_template(
-        "device/new_device/new_device_keys.jinja",
-        device_class=get_device_class(device_type),
+        template,
+        device_class=device_class,
         mnemonic=mnemonic,
         passphrase=passphrase,
         file_password=file_password,
