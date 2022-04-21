@@ -18,11 +18,11 @@
             <input type="hidden" id="device_type" name="device_type" value="electrum">
             <input type='hidden' id="xpub" name="xpub">   
             <h2>{{ _("Name your device: ") }}
-                <input type="text" name="device_name" placeholder="My Electrum device" id="device_name" value="" required/>
+                <input type="text" name="device_name" placeholder="My Electrum device" id="device_name" value="{{ device_name }}" required/>
             </h2>
             <br>
             <h2>{{ _("Master public key:") }}
-                <input id="master_pub_key" name="master_pub_key" value="" placeholder="Your master public key" required>
+                <input id="master_pub_key" name="master_pub_key" value="{{ master_pub_key }}" placeholder="Your master public key" required>
             </h2>
             <br>
             <h2>{{ _("Derivation path:") }}
@@ -30,7 +30,7 @@
             </h2>
             <br>
             <h2>{{ _("Root fingerprint:") }}
-                <input id="root_fingerprint" name="root_fingerprint" value="" placeholder="Your root fingerprint" required>
+                <input id="root_fingerprint" name="root_fingerprint" value="{{ root_fingerprint }}" placeholder="Your root fingerprint" required>
             </h2>
             <br>
             <span id="toggle-explainer" style="cursor: pointer; margin: 0 0 5px 0; align-self: start; font-size: 1.2em;">

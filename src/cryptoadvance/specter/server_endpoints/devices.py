@@ -187,6 +187,10 @@ def new_device_keys(device_type):
         file_password=file_password,
         range_start=range_start,
         range_end=range_end,
+        device_name=request.form.get("device_name", ""),
+        master_pub_key=request.form.get("master_pub_key", ""),
+        derivation_path=request.form.get("derivation_path", ""),
+        root_fingerprint=request.form.get("root_fingerprint", ""),
         existing_device=app.specter.device_manager.get_by_alias(existing_device)
         if existing_device
         else None,
