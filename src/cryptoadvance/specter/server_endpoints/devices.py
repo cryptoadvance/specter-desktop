@@ -304,11 +304,23 @@ def new_device_manual():
         device_type = request.form["device_type"]
         device_name = request.form["device_name"]
         if action == "newcolddevice":
-            err, redirect_obj = action_newcolddevice(
-                device_name, device_type, request.form["xpubs"]
-            )
-            if redirect_obj:
-                return redirect_obj
+            if not device_name:
+                err = _("Device name cannot be empty")
+            elif device_name in app.specter.device_manager.devices_names:
+                err = _("Device with this name already exists")
+            xpubs = request.form["xpubs"]
+            if not xpubs:
+                err = _("xpubs name cannot be empty")
+            keys, failed = Key.parse_xpubs(xpubs)
+            if len(failed) > 0:
+                err = _("Failed to parse these xpubs") + ":\n" + "\n".join(failed)
+            if err is None:
+                device = app.specter.device_manager.add_device(
+                    name=device_name, device_type=device_type, keys=keys
+                )
+                return redirect(
+                    url_for("devices_endpoint.device", device_alias=device.alias)
+                )
         elif action == "newhotdevice":
             if not device_name:
                 err = _("Device name cannot be empty")
