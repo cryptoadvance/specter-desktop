@@ -41,7 +41,7 @@
 
 #### Ubuntu/Debian/macOS
 ```
-sudo apt install libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev
+sudo apt install libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev build-essential
 
 # macOS:
 brew install libusb

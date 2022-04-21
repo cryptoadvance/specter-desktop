@@ -1,17 +1,21 @@
-import os
-import shutil
-from embit import bip39, bip32, networks
-from . import DeviceTypes
-from ..device import Device
-from ..helpers import alias
-from ..util.descriptor import AddChecksum
-from ..util.base58 import encode_base58_checksum, decode_base58
-from ..util.xpub import get_xpub_fingerprint, convert_xpub_prefix
-from ..key import Key
-from ..rpc import get_default_datadir
-from io import BytesIO
 import hmac
 import logging
+import os
+import shutil
+from io import BytesIO
+
+from embit import bip32, bip39, networks
+
+from ..device import Device
+from ..helpers import alias
+from ..key import Key
+from ..rpc import get_default_datadir
+from ..specter_error import SpecterError
+from ..util.base58 import decode_base58, encode_base58_checksum
+from ..util.descriptor import AddChecksum
+from ..util.xpub import convert_xpub_prefix, get_xpub_fingerprint
+from ..util.mnemonic import mnemonic_to_root
+from . import DeviceTypes
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +78,7 @@ class BitcoinCore(Device):
             return taproot_support
         except Exception as e:
             self.taproot_support = False
-            logger.error(e)
+            logger.exception(e)
             return False
 
     def add_hot_wallet_keys(
@@ -92,8 +96,7 @@ class BitcoinCore(Device):
             keys_range[0] = int(keys_range[0])
         if type(keys_range[1]) == str:
             keys_range[1] = int(keys_range[1])
-        seed = bip39.mnemonic_to_seed(mnemonic, passphrase)
-        root = bip32.HDKey.from_seed(seed)
+        root = mnemonic_to_root(mnemonic, passphrase)
         network = networks.NETWORKS["test" if testnet else "main"]
         root.version = network["xprv"]
         xprv = root.to_base58()
@@ -142,7 +145,7 @@ class BitcoinCore(Device):
         ]
 
         if use_descriptors:
-            rpc.importdescriptors(args)
+            rpc.importdescriptors(args, timeout=15)
         else:
             rpc.importmulti(args, {"rescan": False})
 
@@ -259,3 +262,49 @@ class BitcoinCore(Device):
                         break
         except:
             pass  # We tried...
+
+
+class BitcoinCoreWatchOnly(BitcoinCore):
+    """If a BitcoinCore Hotwallet get exported, it'll have the type:"bitcoincore_watchonly" .
+    if such a device.json get imported, it's instantiate as a BitcoinCoreWatchOnly.
+    It can be converted back to a device of Type BitcoinCore by providing the 12 words again.
+    """
+
+    device_type = DeviceTypes.BITCOINCORE_WATCHONLY
+    name = "Bitcoin Core (watch only)"
+    hot_wallet = False
+
+    def sign_psbt(self, base64_psbt, wallet, file_password=None):
+        raise SpecterError("Cannot sign with a watch-only wallet. Convert")
+
+    def sign_raw_tx(self, raw_tx, wallet, file_password=None):
+        raise SpecterError("Cannot sign with a watch-only wallet")
+
+    def add_hot_wallet_keys(
+        self,
+        mnemonic,
+        passphrase,
+        paths,
+        file_password,
+        wallet_manager,
+        testnet,
+        keys_range=[0, 1000],
+        keys_purposes=[],
+    ):
+        # Convert the watch-only wallet to a hot wallet then fix up its internal attrs to
+        # match.
+        super().add_hot_wallet_keys(
+            mnemonic,
+            passphrase,
+            paths,
+            file_password,
+            wallet_manager,
+            testnet,
+            keys_range,
+            keys_purposes,
+        )
+
+        # Change type (also triggers write to file)
+        self.set_type(DeviceTypes.BITCOINCORE)
+        # After update this device will be available as a BitcoinCore (hot) instance
+        self.manager.update()

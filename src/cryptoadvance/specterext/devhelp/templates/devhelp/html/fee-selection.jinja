@@ -1,0 +1,44 @@
+{% extends "base.jinja" %}
+
+{% block main %}
+
+<h1>address-label</h1>
+
+{% include "includes/fee-selection.html" %}
+
+
+<code class="html"><textarea rows="40" cols="90" style="height: 200px">
+    <fee-selection id="fee-selection-component"/>
+</textarea>    
+</code>
+
+<p>
+fee-selection let you choose to change the fee you'd like to have. It's using Ajax-call to:
+<ul>
+    <li>
+        <code>{{ url_for('wallets_endpoint_api.fees') }}</code> : Grab the current fees
+    </li>
+</ul>
+</p>
+
+It's designed to be used in a form and will "drop" what the user has chosen in form-fields which are stored outside the shadow-DOM in the "lightdom". This will look like this:
+<code class="html"><textarea rows="40" cols="90" style="height: 200px">
+		<input type="hidden" value="dynamic" name="fee_option">
+        <input type="hidden" class="fee_rate hidden" name="fee_rate" id="fee_rate" min="1" step="0.1" value="1" autocomplete="off">
+        <input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="4" class="hidden">
+        <input type="hidden" class="rbf-checkbox inline" name="rbf" id="rbf" value="true">
+        <input type="hidden" class="inline" name="subtract" id="subtract" value="false">
+        <input id="subtract_from_input" name="subtract_from" type="hidden" min="1" value="1" step="1" style="width: 80px; min-width: 80px;">
+        <span id="subtract_from" style="display: none">
+            <br>Subtract from recipient number: 
+            <input id="subtract_from_input" name="subtract_from" type="number" min="1" value="1" step="1" style="width: 80px; min-width: 80px;"><br>
+        </span>
+
+</textarea>    
+</code>
+
+<h2>Rendering</h2>
+
+<fee-selection id="fee-selection-component"/>
+
+{% endblock %}

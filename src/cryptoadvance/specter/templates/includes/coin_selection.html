@@ -1,0 +1,188 @@
+<template id="coin-selection">
+    <span class="toggle_coinselection" style="cursor: pointer;">{{ _("Coin selection") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
+    <br>
+    <div class="coinselection_div" style="margin: auto; max-width: 90%; display: none;">
+        <div class="errorMessagesDiv">
+            <message-box type="error" style="display: none;"></message-box>
+        </div>
+        <tx-table
+            class="txtable"
+            btc-unit="{{ specter.unit }}"
+            hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
+            type="utxo" hide-columns="category time txid confirmations action" 
+            blockhash="true" hide-switcher="true"
+            wallet="{{ wallet.alias }}"
+            scrollbar-height="400px"
+            scrollbar-default="on"
+            compact-switch="false">
+        </tx-table>
+    </div> 
+</template>
+
+
+<script type="module">
+    /**
+     * Custom element for showing the coin-selection-dialog
+       attributes:
+       * wallet-alias
+       * spendable-amount
+       Example:
+        <coin-selection  
+            id="coinselection-webcomponent"
+            wallet-alias="{{wallet.alias}}"
+            spendable-amount='{{ wallet.amount_available | btcamount }}'
+            is-liquid="{{specter.is_liquid}}"
+            selected-coins="{{ selected_coins }}">
+        </coin-selection>
+        Internally, a tx-table is used which is customizable in order to be useful here.
+        We're using the asset_balance endpoint to get Liquid assets.
+     */
+    class CoinSelection extends HTMLElement {
+        constructor() {
+            super();
+            var shadow = this.attachShadow({mode: 'open'});
+            var template_content = document.getElementById('coin-selection').content;
+            var clone = template_content.cloneNode(true);
+            
+            this.coinselectionDiv = clone.querySelector(".coinselection_div")
+            this.txtable = clone.querySelector(".txtable")
+            this.txtable.addEventListener("CustomSelected", (event) => {
+                this.updateLd();
+                this.fireChangeEvent();
+            } )
+
+            // ErrorMessages
+            this.errorMessagesDiv = clone.querySelector(".errorMessagesDiv");
+
+            // toggler
+            this.toggler = clone.querySelector(".toggle_coinselection")
+            this.toggler.addEventListener('click', (event) => {
+                this.toggleCoinselection()
+			});
+
+            this.createLighterDOMNodes()
+
+            // Attach the created element to the shadow dom
+            shadow.appendChild(clone);
+        }
+        /**
+         * Browser calls this method when the element is added to the document
+         * (can be called many times if an element is repeatedly added/removed)
+        */
+        connectedCallback() {
+            this.walletAlias = this.getAttribute('wallet-alias');
+            this.spendableAmount = this.getAttribute("spendable-amount") ?? 0
+            if (this.getAttribute("is-liquid") == "True") {
+                this.classList.add("hidden")
+            }
+            let selectedCoins = JSON.parse(this.getAttribute('selected-coins').replace(/'/g, '"'));
+            if (selectedCoins.length > 0) {
+                this.txtable.setAttribute("selected-coins", JSON.stringify(selectedCoins))
+                // unfold if we have preselected coins
+                this.toggleCoinselection()
+            }
+        }
+
+        /**
+         * here, we create some kind of mirror-nodes in the lighterDOM so that the outer form can 
+         * pick the values up. They are all hidden and we'll clone them from their "peer" from the shadowDOM
+         * Check https://stackoverflow.com/a/38667839/330964 for details
+         */
+        createLighterDOMNodes() {
+            this.ld = {} // in order to separate clearly, we store all of them here
+            // We won't mirror fee_options, that's too much overhead. We create a textfield there:
+            this.ld.div = document.createElement("div");
+            this.ld.div.type = "hidden";
+            this.appendChild(this.ld.div);
+        }
+
+        fireChangeEvent() {
+            let event = new CustomEvent('change', {});
+            this.dispatchEvent(event);
+        }
+    
+        handleError(errorText) {
+            console.log(errorText)
+            const messageBox = document.createElement('message-box');
+            //messageBox.setType("error")
+            messageBox.textContent = errorText
+            this.errorMessagesDiv.appendChild(messageBox)
+        }
+
+        isCoinSelectionActive() {
+            return this.coinselectionDiv.style.display !== 'none';
+        }
+
+        getSpendableAmount(unit) {
+            let spendableAmount;
+            if (!this.isCoinSelectionActive()) {
+                if(unit == 'btc' || unit == 'sat'){
+                    spendableAmount = '{{ wallet.amount_available }}';
+                } else {        
+                    if (unit in assetBalances){
+                        return assetBalances[unit].balance;
+                    } else {
+                        return 0;
+                    }
+                }
+            } else {
+                spendableAmount = this.getCoinSelectedAmount();
+            }
+    
+            return (unit == 'sat' ? spendableAmount * 100000000 : spendableAmount);
+        }
+
+        /**
+         * Updates the lightDOM: It creates one hidden input-element for each tx which is selected in the shadowDOM
+         */
+        updateLd() {
+            while (this.ld.div.lastChild) {
+                this.ld.div.removeChild(this.ld.div.lastChild);
+            }
+            this.txtable.getSelectedTxs().forEach( (tx) => {
+                var element = document.createElement("input");
+                element.type = "hidden";
+                element.name = "coinselect"
+                element.classList.add("coinselect-hidden") // for cypress-tests
+                element.value= tx.txid + "," + tx.vout
+
+                this.ld.div.appendChild(element)
+            })
+        }
+
+        getCoinSelectedAmount() {
+            var sum = 0
+            this.txtable.getSelectedTxs().forEach( (tx) => {
+                sum = sum + tx.amount
+            })
+            sum = Number.parseFloat(sum.toFixed(8))
+            return sum
+        }
+    
+        toggleCoinselection() {
+            if (this.coinselectionDiv.style.display === 'block') {
+                this.coinselectionDiv.style.display = 'none';
+                this.toggler.innerHTML = `{{ _("Coin selection") }} &#9654;`;
+                this.removeSelection()
+            } else {
+                this.coinselectionDiv.style.display = 'block';
+                this.toggler.innerHTML = `{{ _("Coin selection") }} &#9660;`;
+            }
+        }
+
+        removeSelection() {
+            this.txtable.unselect_all()
+            // We also need to update the Light DOM
+            this.updateLd()
+        }
+
+        shouldSelectMoreCoins(unit, amount) {
+            return (unit == 'sat' ? amount / 100000000 : amount) > this.getCoinSelectedAmount() && this.isCoinSelectionActive()
+        }
+    }
+
+
+    customElements.define('coin-selection', CoinSelection);
+
+    
+</script>

@@ -5,13 +5,13 @@
 	{% include "includes/file-uploader.html" %}
 	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
 	{{ send_nav('import_psbt', wallet_alias) }}
-		<h1 class="padded">{{ _("Import PSBT transaction:") }}</h1>
-		<span class="center note padded">{{ _("Paste base64-encoded PSBT transaction here to import.") }}</span>
+		<h1 class="padded">{{ _("Import transaction") }}</h1>
+		<span class="center note padded" style="margin-bottom: 10px; font-size:1em">{{ _("PSBT (base64) or serialized transaction (hex)") }}</span>
 		<form action="{{ url_for('wallets_endpoint.import_psbt',wallet_alias=wallet_alias) }}" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			<div class="card">
 				<div class="row">
-					<textarea name="rawpsbt" id="rawpsbt" placeholder="{{ _('Paste PSBT here') }}"></textarea>
+					<textarea name="rawpsbt" id="rawpsbt" placeholder="{{ _('Paste PSBT or transaction here') }}"></textarea>
 				</div>
 				<div class="row break-row-mobile">
 					<qr-scanner id="psbt-scan" style="width:50%">
@@ -22,7 +22,7 @@
 								<p class="tool-tip__info">
 									<span class="info">
 										<span class="info__title">{{ _("Using an airgapped device with QR codes") }}<br><br></span>
-										{{ _("PSBT should be base64 encoded.") }}
+										{{ _("PSBT should be base64 encoded, raw transaction can be signed or unsigned and should be in hex.") }}
 									</span>
 								</p>
 							</div>
@@ -32,6 +32,19 @@
 						<span slot="description">Upload file</span>
 						<tool-tip slot="tool-tip" title="{{ _('Using a file') }}">{{ _("The file should contain either base64 or binary encoded PSBT.") }}</tool-tip>
 					</file-uploader>
+					<input type="file" id="file" class="inputfile"/>
+					<label for="file" class="btn" style="margin: 8px;">
+						<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Choose file") }}
+						<div class="tool-tip">
+							<i class="tool-tip__icon">i</i>
+							<p class="tool-tip__info">
+								<span class="info">
+									<span class="info__title">{{ _("Using a file") }}<br><br></span>
+									{{ _("PSBT can be base64 or binary encoded, raw transaction can be signed or unsigned and should be in hex.") }}
+								</span>
+							</p>
+						</div>
+					</label>
 				</div>
 				<button type="submit" name="action" value="importpsbt" class="btn centered" style="margin-top: 20px;">{{ _("Import transaction") }}</button>
 			</div>

@@ -9,20 +9,25 @@ nav:
       - faq.md
       - multisig-security-tradeoffs.md
       - 'Using Tor': tor.md
+      - 'Signing messages': sign-message.md
     - Operating Guide:
       - connect-your-node.md
       - daemon.md
+      - performance.md
       - reverse-proxy.md
       - self-signed-certificates.md
       - hwibridge.md
       - elements.md
       - windows.md
+      - 'Endless Pacman Troubleshooting': endless-pacman.md
     - Development: 
       - 'Contributing': contributing.md
       - 'Developing': development.md
+      - 'Testing': test-new-releases.md
       - build-instructions.md
       - 'Continuous Integration': continuous-integration.md
       - cypress-testing.md
+      - services/services.md
       - 'Some Random Dev Thoughts': archblog.md
     - API:
       - api/README.md

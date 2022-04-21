@@ -1,0 +1,73 @@
+{% extends "swan/components/swan_tab.jinja" %}
+{% block title %}Settings{% endblock %}
+{% set tab = 'settings' %}
+{% block content %}
+    <br/>
+    <div class="card">
+        <h1>{{ _("Configure Auto-Withdrawal") }}</h1>
+        <br>
+
+        <div class="note">
+            {{ _("- Specter will send {} unused addresses to Swan").format(num_reserved_addrs) }}<br/>
+            {{ _("- Your wallet will show them pre-labeled as \"reserved\" for Swan") }}<br/>
+            {{ _("- Specter will check these addresses each time you log in to Specter") }}<br/>
+            {{ _("- Specter will send more unused addresses to Swan as needed") }}<br/>
+        </div>
+        <br/>
+
+        <form action="{{ url_for(service.get_blueprint_name() + '.update_autowithdrawal') }}" method="POST" role="form">
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+            
+            {{ _("Withdraw to wallet") }}:<br>
+            <select name="destination_wallet">
+                {% for wallet in wallets %}
+                    <option value="{{ wallet.alias }}" {% if associated_wallet == wallet %}selected{% endif %}>{{ wallet.name }}</option>
+                {% endfor %}
+            </select>
+            <br/>
+            <br/>
+            <br/>
+
+            <div>Auto-withdrawal threshold:</div>
+            <select name="threshold">
+                <option value="0"     {% if threshold == '0' %}selected{% endif %}>Weekly</option>
+                <option value="0.01"  {% if threshold == '0.01' %}selected{% endif %}>0.010 BTC</option>
+                <option value="0.025" {% if threshold == '0.025' %}selected{% endif %}>0.025 BTC</option>
+                <option value="0.05"  {% if threshold == '0.05' %}selected{% endif %}>0.050 BTC</option>
+            </select>
+            <br/>
+            <br/>
+            <br/>
+            
+            <div class="row">
+                <button type="submit" class="btn">{{ _("Update Auto-withdrawal") }}</button>
+            </div>
+
+        </form>
+    </div>
+    <br/>
+    <br/>
+    <br/>
+
+
+    <div class="card">
+        <h1>{{ _("Remove Swan Integration") }}</h1>
+        <br/>
+        <div class="note">
+            {{ _("- Halts Swan auto-withdrawals to your Specter wallet") }}<br/>
+            {{ _("- Clears Swan data from Specter") }}<br/>
+        </div>
+        <br/>
+
+        <form action="{{ url_for(service.get_blueprint_name() + '.oauth2_delete_token') }}" method="POST" role="form">
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="row">
+                <button type="submit" class="btn danger">{{ _("Remove Swan Integration") }}</button>
+            </div>
+        </form>
+    </div>
+    <br/>
+    <br/>
+    <br/>
+
+{% endblock %}

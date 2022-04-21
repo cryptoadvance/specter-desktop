@@ -1,0 +1,87 @@
+{% extends "ruderboot/components/ruderboot_tab.jinja" %}
+{% block title %}Settings{% endblock %}
+{% set tab = 'index' %}
+{% block content %}
+    <style>
+        .tagline {
+            font-style: italic;
+            font-size: 1.1em;
+            text-align: center;
+            color: #aaa;
+            padding-left: 4em;
+            padding-right: 4em;
+        }
+
+        .button_wide {
+            text-decoration: none;
+            color: white;
+        }
+        .button_wide:hover {
+            color: white;
+        }
+        .big_option {
+            display: inline-block;
+            width: 12em;
+            padding: 1em;
+            vertical-align: middle;
+            height: 3.5em;
+            border: 4px solid var(--cmap-border);
+            border-radius: 0.5em;
+            background-color: var(--cmap-bg-lighter);
+            font-size: 1.5em;
+            margin: 1em;
+            position: relative;
+        }
+        .big_option:hover {
+            background-color: var(--cmap-bg-lightest);
+            border: 4px solid var(--main-color);
+            cursor: pointer;
+        }
+
+        .big_option_text {
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            -ms-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+        }
+
+        .bonus {
+            color: #999;
+            font-size: 0.7em;
+            font-style: italic;
+        }
+
+        .highlights {
+            margin-top: 2em;
+            margin-bottom: 1.5em;
+        }
+
+        .show_list_bullet {
+            margin-top: 0.5em;
+            display: inline-block;
+            width: auto;
+        }
+        .show_list_bullet li {
+            text-align: left;
+            list-style-type: disc;
+            line-height: 1.7em;
+        }
+
+        .plus_sign {
+            font-size: 3em;
+            color: #ccc;
+            vertical-align: text-bottom;
+        }
+    </style>
+    <br><br>
+    <div class="tagline">&ldquo;Ruderbootservice 4thewin.&rdquo;</div>
+{% endblock %}
+
+
+
+{% block scripts %}
+    <script>
+    </script>
+{% endblock %}

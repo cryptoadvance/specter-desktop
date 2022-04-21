@@ -94,7 +94,7 @@ class ConfigManager(GenericDataManager):
             # unique id of specter
             if self.data["uid"] == "":
                 self.config["uid"] = (
-                    random.randint(0, 256 ** 8).to_bytes(8, "big").hex()
+                    random.randint(0, 256**8).to_bytes(8, "big").hex()
                 )
             self._save()
 

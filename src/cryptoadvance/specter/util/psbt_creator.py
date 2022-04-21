@@ -5,6 +5,7 @@ from math import isnan
 
 import requests
 from cryptoadvance.specter.specter_error import SpecterError
+from cryptoadvance.specter.util.common import str2bool
 
 from ..helpers import is_testnet
 from .descriptor import AddChecksum, Descriptor
@@ -33,13 +34,18 @@ class PsbtCreator:
             amounts in recipients_txt either "sats" or "btc"
         * in both cases, the request_form also contains:
           * "substract": optional (default: False), Boolean whether to substract the fee from the amounts, otherwise additional input gets created
-          * "substract_from": index on which address to substract the fee from
+          * "subtract_from": index on which address to substract the fee from
           * fee_options:
             * "dynamic": get the fee from "fee_rate_dynamic"
             * "fee_rate": directly get the fee
           * "rbf": "on" or "off" "boolean" whether to replace-by-fee
           * "estimate_fee"
         """
+        # Good to have some values for error-reporting
+        self.ui_option = ui_option
+        self.request_form = request_form
+        self.request_json = request_json
+
         if ui_option == "ui":
             (
                 self.addresses,
@@ -94,6 +100,19 @@ class PsbtCreator:
             self.kwargs = PsbtCreator.kwargs_from_request_json(request_json)
         if specter.is_liquid:
             self.kwargs["assets"] = self.amount_units
+        self.validate_before_creation()
+
+    def validate_before_creation(self):
+        if self.kwargs["fee_rate"] == None:
+            if self.ui_option == "ui" or self.ui_option == "text":
+                additional_data = self.request_form
+            elif self.ui_option == "json":
+                additional_data = self.request_json
+
+            raise Exception(
+                f"Fee Rate could not be calculated and is now None. This is not supported right now and probably unintended anyway(ui_option = {self.ui_option}).\nrequest={additional_data}\nkwargs={self.kwargs}",
+                additional_data,
+            )
 
     def create_psbt(self, wallet):
         """creates the PSBT via the wallet and modifies it for if substract is true
@@ -244,17 +263,27 @@ class PsbtCreator:
     def kwargs_from_request_form(request_form):
         """calculates the needed kwargs fow wallet.createpsbt() out of a request_form"""
         # Who pays the fees?
-        subtract = bool(request_form.get("subtract", False))
+        subtract = str2bool(request_form.get("subtract", False))
         subtract_from = int(request_form.get("subtract_from", 1))
-        fee_options = request_form.get("fee_options")
+        fee_option = request_form.get("fee_option")
         fee_rate = None
-        if fee_options:
-            if "dynamic" in fee_options:
-                fee_rate = float(request_form.get("fee_rate_dynamic"))
+        if fee_option:
+            if "dynamic" in fee_option:
+                if request_form.get("fee_rate_dynamic"):
+                    fee_rate = float(request_form.get("fee_rate_dynamic"))
+                else:
+                    raise Exception(
+                        "fee_option is dynamic but no fee_rate_dynamic given",
+                        request_form,
+                    )
             else:
                 if request_form.get("fee_rate"):
                     fee_rate = float(request_form.get("fee_rate"))
-        rbf = bool(request_form.get("rbf", False))
+                else:
+                    raise Exception(
+                        "fee_option is manual but no fee_rate given", request_form
+                    )
+        rbf = str2bool(request_form.get("rbf", False))
         # workaround for making the tests work with a dict
         if hasattr(request_form, "getlist"):
             coins = [coin.split(",") for coin in request_form.getlist("coinselect")]

@@ -1,26 +1,28 @@
 import logging
 import os
 import sys
-import secrets
 from pathlib import Path
 
+from cryptoadvance.specter.liquid.rpc import LiquidRPC
+from cryptoadvance.specter.managers.service_manager import ServiceManager
+from cryptoadvance.specter.rpc import BitcoinRPC
+from cryptoadvance.specter.services import callbacks
+from cryptoadvance.specter.util.reflection import get_template_static_folder
 from dotenv import load_dotenv
-from flask import Flask, redirect, request, url_for, jsonify, session
+from flask import Flask, jsonify, redirect, request, session, url_for
+from flask_apscheduler import APScheduler
 from flask_babel import Babel
 from flask_login import LoginManager, login_user
 from flask_wtf.csrf import CSRFProtect
-from cryptoadvance.specter.liquid.rpc import LiquidRPC
-
-from cryptoadvance.specter.rpc import BitcoinRPC
-
-from .helpers import hwi_get_config
-from .specter import Specter
-from .hwi_server import hwi_server
-from .user import User
-from .util.version import VersionChecker
-from .util.specter_migrator import SpecterMigrator
-from werkzeug.middleware.proxy_fix import ProxyFix
 from jinja2 import select_autoescape
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.wrappers import Response
+
+from .hwi_server import hwi_server
+from .services.callbacks import after_serverpy_init_app
+from .specter import Specter
+from .util.specter_migrator import SpecterMigrator
 
 logger = logging.getLogger(__name__)
 
@@ -60,14 +62,23 @@ def calc_module_name(config):
 
 
 def create_app(config=None):
-
+    """config is either a string:
+    * if it's with dots, it's fqn classname
+    * without dots cryptoadvance.specter.config will be added in the front
+    ir it's a class directly. Then it's simply passed through
+    """
     # Cmdline has precedence over Env-Var
     if config is not None:
-        config = calc_module_name(
-            os.environ.get("SPECTER_CONFIG")
-            if os.environ.get("SPECTER_CONFIG")
-            else config
-        )
+        if isinstance(config, str):
+            config = calc_module_name(
+                os.environ.get("SPECTER_CONFIG")
+                if os.environ.get("SPECTER_CONFIG")
+                else config
+            )
+            config_name = config
+        elif isinstance(config, type):
+            # Useful for testing passing in classes directly
+            config_name = config.__module__ + "." + config.__name__
     else:
         # Enables injection of a different config via Env-Variable
         if os.environ.get("SPECTER_CONFIG"):
@@ -75,24 +86,19 @@ def create_app(config=None):
         else:
             # Default
             config = "cryptoadvance.specter.config.ProductionConfig"
+        config_name = config
 
-    if getattr(sys, "frozen", False):
-
-        # Best understood with the snippet below this section:
-        # https://pyinstaller.readthedocs.io/en/v3.3.1/runtime-information.html#using-sys-executable-and-sys-argv-0
-        template_folder = os.path.join(sys._MEIPASS, "templates")
-        static_folder = os.path.join(sys._MEIPASS, "static")
-        logger.info("pyinstaller based instance running in {}".format(sys._MEIPASS))
-        app = SpecterFlask(
-            __name__, template_folder=template_folder, static_folder=static_folder
-        )
-    else:
-        app = SpecterFlask(
-            __name__, template_folder="templates", static_folder="static"
-        )
+    app = SpecterFlask(
+        __name__,
+        template_folder=get_template_static_folder("templates"),
+        static_folder=get_template_static_folder("static"),
+    )
     app.jinja_env.autoescape = select_autoescape(default_for_string=True, default=True)
     logger.info(f"Configuration: {config}")
     app.config.from_object(config)
+    logger.info(f"SPECTER_DATA_FOLDER: {app.config['SPECTER_DATA_FOLDER']}")
+    # Might be convenient to know later where it came from (see Service configuration)
+    app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"] = config_name
     app.wsgi_app = ProxyFix(
         app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1
     )
@@ -102,8 +108,16 @@ def create_app(config=None):
     return app
 
 
-def init_app(app, hwibridge=False, specter=None):
+def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     """see blogpost 19nd Feb 2020"""
+
+    # Configuring a prefix for the app
+    if app.config["APP_URL_PREFIX"] != "":
+        # https://dlukes.github.io/flask-wsgi-url-prefix.html
+        app.wsgi_app = DispatcherMiddleware(
+            Response("Not Found", status=404),
+            {app.config["APP_URL_PREFIX"]: app.wsgi_app},
+        )
     # First: Migrations
     mm = SpecterMigrator(app.config["SPECTER_DATA_FOLDER"])
     mm.execute_migrations()
@@ -116,12 +130,19 @@ def init_app(app, hwibridge=False, specter=None):
 
     if specter is None:
         # the default. If not None, then it got injected for testing
-        app.logger.info("Initializing Specter")
+        app.logger.info(
+            f"Initializing Specter with data-folder {app.config['SPECTER_DATA_FOLDER']}"
+        )
         specter = Specter(
             data_folder=app.config["SPECTER_DATA_FOLDER"],
             config=app.config["DEFAULT_SPECTER_CONFIG"],
             internal_bitcoind_version=app.config["INTERNAL_BITCOIND_VERSION"],
         )
+
+    # ServiceManager will instantiate and register blueprints for extensions
+    specter.service_manager = ServiceManager(
+        specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
+    )
 
     login_manager = LoginManager()
     login_manager.session_protection = "strong"
@@ -150,12 +171,14 @@ def init_app(app, hwibridge=False, specter=None):
         app.config["LOGIN_DISABLED"] = True
     else:
         app.logger.info("Login enabled")
+        app.config["LOGIN_DISABLED"] = False
     app.logger.info("Initializing Controller ...")
     app.register_blueprint(hwi_server, url_prefix="/hwi")
     csrf.exempt(hwi_server)
     if not hwibridge:
         with app.app_context():
             from cryptoadvance.specter.server_endpoints import controller
+            from cryptoadvance.specter.services import controller as serviceController
 
             if app.config.get("TESTING") and len(app.view_functions) <= 20:
                 # Need to force a reload as otherwise the import is skipped
@@ -165,7 +188,9 @@ def init_app(app, hwibridge=False, specter=None):
                 # see archblog for more about this nasty workaround
                 import importlib
 
+                logger.info("Reloading controllers")
                 importlib.reload(controller)
+                importlib.reload(serviceController)
     else:
 
         @app.route("/", methods=["GET"])
@@ -210,6 +235,23 @@ def init_app(app, hwibridge=False, specter=None):
 
     # --------------------- Babel integration ---------------------
 
+    # Background Scheduler
+    def every5seconds():
+        ctx = app.app_context()
+        ctx.push()
+        app.specter.service_manager.execute_ext_callbacks(callbacks.every5seconds)
+        ctx.pop()
+
+    # initialize scheduler
+    from apscheduler.schedulers.background import BackgroundScheduler
+
+    scheduler = APScheduler()
+
+    scheduler.init_app(app)
+    scheduler.start()
+    specter.service_manager.execute_ext_callbacks(
+        after_serverpy_init_app, scheduler=scheduler
+    )
     return app
 
 

@@ -1,0 +1,5 @@
+[build-system]
+requires = [
+    "cryptoadvance.specter==1.8.1"
+]
+build-backend = "setuptools.build_meta"

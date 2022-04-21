@@ -1,0 +1,23 @@
+{% extends "base.jinja" %}
+{% block main %}
+    <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" width="50"/>    
+    {% from 'devhelp/components/devhelp_menu.jinja' import devhelp_menu with context %}
+    {{ devhelp_menu(tab) }}
+    <style>
+        /* ToDo: Refactor to style.css */
+        a {
+            /* Copied from .note */
+            font-size: 0.9em;
+            text-decoration: underline;
+            color: inherit;
+        }
+        a:hover {
+            color: #fff ; 
+        }
+        textarea {
+            font-size: 1.2em;
+        }
+    </style>
+    {% block content %}
+    {% endblock %}
+{% endblock %}

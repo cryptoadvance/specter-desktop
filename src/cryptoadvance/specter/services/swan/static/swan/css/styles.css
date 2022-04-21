@@ -1,0 +1,54 @@
+.big_option {
+    display: inline-block;
+    width: 12em;
+    padding: 1em;
+    vertical-align: middle;
+    height: 3.5em;
+    border: 4px solid var(--cmap-border);
+    border-radius: 0.5em;
+    background-color: var(--cmap-bg-lighter);
+    font-size: 1.5em;
+    margin: 1em;
+    position: relative;
+}
+
+
+.big_option:hover {
+    background-color: var(--cmap-bg-lightest);
+    border: 4px solid var(--main-color);
+    cursor: pointer;
+}
+
+.big_option_text {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+.instructions {
+    color: #999;
+    font-style: italic;
+}
+
+/* oauth2_start.jinja */
+
+/* ToDo: Refactor to style.css ?! */
+a {
+    /* Copied from .note */
+    font-size: 0.9em;
+    text-decoration: underline;
+    color: inherit;
+}
+a:hover {
+    color: #fff ; 
+}
+
+
+
+
+
+
+

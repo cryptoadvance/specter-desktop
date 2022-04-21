@@ -1,0 +1,117 @@
+{% extends "swan/components/base.jinja" %}
+
+{% block main %}
+    <style>
+        .tagline {
+            font-style: italic;
+            font-size: 1.1em;
+            text-align: center;
+            color: #aaa;
+            padding-bottom: 2em;
+        }
+        .button_wide {
+            text-decoration: none;
+            color: white;
+        }
+        .button_wide:hover {
+            color: white;
+        }
+        .bonus {
+            color: #999;
+            font-size: 0.7em;
+            font-style: italic;
+        }
+        .highlights {
+            margin-top: 2em;
+            margin-bottom: 1.5em;
+        }
+        
+        .show_list_bullet {
+            margin-top: 0.5em;
+            display: inline-block;
+            width: auto;
+        }
+        .show_list_bullet li {
+            text-align: left;
+            list-style-type: disc;
+            line-height: 1.7em;
+        }
+        
+        .plus_sign {
+            font-size: 3em;
+            color: #ccc;
+            vertical-align: text-bottom;
+        }
+        
+        .faq {
+            max-width: 40em;
+            margin: auto;
+            margin-top: 4em;
+            border-top: 1px solid #666;
+            padding-top: 2em;
+            font-size: 0.9em;
+            text-align: left;
+        }
+    </style>
+    <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" width="300"/>
+    <div class="tagline">&ldquo;Swan is a great way to accumulate Bitcoin with automatic recurring buys and instant buys.&rdquo;</div>
+
+    {% if not specter_hostname_supported %}
+
+    <div class="yellow_warn_box">
+        <p>{{ _("You are currently using specter via this hostname:")}}</p>
+        <p> {{ specter_used_hostname }} </p>
+        <p>{{ _("Unfortunately the swan-extension does not support this. The only supported hostnames are:") }}</p>
+        <ul>
+            {% for hostname in allowed_specter_hostnames %}
+            <li>{{ hostname }}</li>
+            {% endfor %}
+        </ul> 
+        <p>{{ _("You might be able to make this work by modifying your hosts-file.") }}</p>
+        <br/>
+    </div>
+    
+    {% else %}
+
+    <div class="card center" style="width: auto; min-width: 90%; margin: 40px;">
+        <a class="button_wide" href="{{ swan_frontend_url }}" target="_swan">
+            <span class="big_option">
+                <div class="big_option_text">
+                    Join Swan!
+                    <br/>
+                    <div class="bonus">$10&nbsp;free&nbsp;Bitcoin&nbsp;bonus</div>
+                </div>
+            </span>
+        </a>
+        <span class="big_option" onclick="location.href='{{ url_for(service.id +'_endpoint.oauth2_start') }}';">
+            <div class="big_option_text">
+                Existing&nbsp;Swan&nbsp;users
+            </div>
+        </span>
+
+        <div class="highlights">
+            <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.icon) }}" width="50"/>
+            <span class="plus_sign">+</span>
+            <img src="{{ url_for('static', filename='img/ghost_3d.png') }}" width="50"/><br/>
+            <div class="show_list_bullet">
+                <li>Auto-withdraw from Swan straight into your Specter wallet
+                <li>Swan UTXOs marked in your Specter History
+            </div>
+        </div>
+
+        <div class="note faq">
+            Note that Swan is a regulated KYC exchange (as are most fiat onramps), meaning that they require users to register their personal info, government ID, etc. and can be compelled to turn over user data to government agencies.
+
+            <p>Be aware of the privacy tradeoffs inherent to any KYC service. Read: <a style="color: #fff; text-decoration: underline; cursor: pointer;" href="https://www.swanbitcoin.com/bitcoin-privacy-best-practices/" target="blank">Bitcoin Privacy: Best Practices</a></p>
+        </div>
+
+    </div>
+    {% endif %}  
+{% endblock %}
+
+
+
+{% block scripts %}
+    <script>
+    </script>
+{% endblock %}

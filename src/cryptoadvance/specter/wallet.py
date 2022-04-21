@@ -1,31 +1,31 @@
-import copy, hashlib, json, logging, os, re, csv
-from csv import Error
-from io import StringIO
+import json, logging, os, re, csv
+import requests
+import threading
 import time
+
 from collections import OrderedDict
+from csv import Error
+from embit import bip32
+from embit.descriptor import Descriptor
+from embit.descriptor.checksum import add_checksum
+from embit.ec import PublicKey
+from embit.liquid.networks import get_network
+from embit.psbt import DerivationPath
+from embit.transaction import Transaction
+from io import StringIO
+from typing import List
+
+from .addresslist import Address, AddressList
 from .device import Device
 from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
-from .helpers import der_to_bytes, get_address_from_dict
-from embit import base58, bip32
-from embit.descriptor import Descriptor
-from embit.descriptor.checksum import add_checksum
-from embit.liquid.networks import get_network
-from embit.psbt import PSBT, DerivationPath
-from embit.transaction import Transaction
-from embit.ec import PublicKey
-
-from .util.xpub import get_xpub_fingerprint
-from .util.tx import decoderawtransaction
+from .helpers import get_address_from_dict
 from .persistence import write_json_file, delete_file, delete_folder
-from io import BytesIO
 from .specter_error import SpecterError
-import threading
-import requests
-from math import ceil
-from .addresslist import AddressList
 from .txlist import TxList
 from .util.psbt import SpecterPSBT
+from .util.tx import decoderawtransaction
+from .util.xpub import get_xpub_fingerprint
 
 logger = logging.getLogger(__name__)
 LISTTRANSACTIONS_BATCH_SIZE = 1000
@@ -532,6 +532,13 @@ class Wallet:
         self._transactions.add(txs)
 
     def import_address_labels(self, address_labels):
+        """
+        Imports address_labels given in the formats:
+            - Specter JSON
+            - Electrum JSON
+            - Specter CSV
+        Returns the number of imported address labels
+        """
         if not address_labels:
             logger.warning(f"No argument was passed.")
             raise SpecterError("Looks like you didn't input any data. Try again!")
@@ -546,11 +553,10 @@ class Wallet:
                 for label, address in raw_dictionary["labels"].items():
                     labeled_addresses[address[0]] = label
                 logger.info(f"Specter JSON was converted to {labeled_addresses}.")
-            # Electrum
+            # Electrum JSON
             else:
                 logger.debug("In the Electrum JSON part.")
                 labeled_addresses = json.loads(address_labels)
-                logger.info(f"Electrum JSON was converted to {labeled_addresses}.")
                 # write tx_label to address_label in labels
                 for txitem in self._transactions.values():
                     if txitem["txid"] not in labeled_addresses:
@@ -561,13 +567,15 @@ class Wallet:
                         else txitem["address"]
                     )
                     for one_address in address_list:
-                        if one_address in labeled_addresses:
-                            continue  # if there is an address label, it supercedes the tx label
+                        if labeled_addresses.get(one_address):
+                            continue  # if there is an address label and it is not empty, it supercedes the tx label
                         labeled_addresses[one_address] = labeled_addresses[
                             txitem["txid"]
                         ]
+                logger.info(f"Electrum JSON was converted to {labeled_addresses}.")
         # Specter CSV
         except ValueError:  # If json.loads is not possible it throws a ValueError
+            logger.debug("In the Specter CSV part.")
             labeled_addresses = {}
             logger.debug(address_labels)
             try:
@@ -580,17 +588,20 @@ class Wallet:
                 reader = csv.DictReader(f, delimiter=dialect.delimiter)
                 reader.fieldnames = [name.lower() for name in reader.fieldnames]
                 for row in reader:
-                    labeled_addresses[row["address"]] = row["label"]
+                    if not row["label"].startswith(
+                        "Address #"
+                    ):  # Avoids importing addresses with standard "Address #X" description
+                        labeled_addresses[row["address"]] = row["label"]
                 logger.info(f"Specter label CSV was converted to {labeled_addresses}.")
             except (Error, KeyError) as e:
                 raise SpecterError(
                     f"Labels import failed. Check the import info box for the expected formats. Error: {e}"
                 )
-        # convert labeled_addresses to arr (for AddressList.set_labels), only allow existing addresses for which a label had been set
+        # Convert labeled_addresses to arr (for AddressList.set_labels)
         arr = [
             {"address": address, "label": label}
             for address, label in labeled_addresses.items()
-            if address in self._addresses and self._addresses[address].is_labeled
+            if address in self._addresses
         ]
         logger.info(f"Array for set_labels is: {arr}")
         self._addresses.set_labels(arr)
@@ -800,9 +811,9 @@ class Wallet:
                 tx["category"] = tx_data.get("category") or "send"
                 if "locked" not in tx:
                     tx["locked"] = False
-            self.full_utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
+            self._full_utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
         except Exception as e:
-            self.full_utxo = []
+            self._full_utxo = []
             raise SpecterError(f"Failed to load utxos, {e}")
 
     def getdata(self):
@@ -831,8 +842,20 @@ class Wallet:
             self.save_to_file()
 
     @property
+    def full_utxo(self):
+        if hasattr(self, "_full_utxo"):
+            return self._full_utxo
+        else:
+            self.check_utxo()
+            return self._full_utxo
+
+    @property
     def utxo(self):
-        return [utxo for utxo in self.full_utxo if not utxo["locked"]]
+        return [utxo for utxo in self._full_utxo if not utxo["locked"]]
+
+    @property
+    def locked_utxo(self):
+        return [utxo for utxo in self._full_utxo if utxo["locked"]]
 
     @property
     def json(self):
@@ -903,10 +926,8 @@ class Wallet:
 
     @property
     def locked_amount(self):
-        amount = 0
-        for psbt in self.pending_psbts.values():
-            amount += sum([inp.float_amount for inp in psbt.inputs])
-        return amount
+        """Deprecated, please use amount_locked_unsigned"""
+        return self.amount_locked_unsigned
 
     def delete_spent_pending_psbts(self, txs: list):
         """
@@ -999,6 +1020,7 @@ class Wallet:
         fetch_transactions=True,
         validate_merkle_proofs=False,
         current_blockheight=None,
+        service_id: str = None,
     ):
         """Returns a list of all transactions in the wallet's CSV cache - processed with information to display in the UI in the transactions list
         #Parameters:
@@ -1064,13 +1086,24 @@ class Wallet:
                     rpc_tx = self.rpc.gettransaction(tx["txid"])
                     tx["fee"] = rpc_tx.get("fee", 1)
                     tx["confirmations"] = rpc_tx.get("confirmations", 0)
+                    tx["vsize"] = decoderawtransaction(rpc_tx["hex"]).get("vsize")
 
                 if isinstance(tx["address"], str):
                     tx["label"] = self.getlabel(tx["address"])
+                    addr_obj = self.get_address_obj(tx["address"])
+                    if addr_obj and addr_obj.get("service_id"):
+                        tx["service_id"] = addr_obj["service_id"]
                 elif isinstance(tx["address"], list):
+                    # TODO: Handle services integration w/batch txs
                     tx["label"] = [self.getlabel(address) for address in tx["address"]]
                 else:
                     tx["label"] = None
+
+                if service_id and (
+                    "service_id" not in tx or tx["service_id"] != service_id
+                ):
+                    # We only want `service_id`-related txs returned
+                    continue
 
                 # TODO: validate for unique txids only
                 tx["validated_blockhash"] = ""  # default is assume unvalidated
@@ -1344,19 +1377,29 @@ class Wallet:
         if change:
             self.change_address = address
         else:
+            addr_obj = self.get_address_obj(address)
+            if addr_obj["service_id"]:
+                # Skip addresses reserved for a Service
+                return self.getnewaddress(change, save)
             self.address = address
         if save:
             self.save_to_file()
         return address
 
-    def get_address(self, index, change=False, check_keypool=True):
+    def get_address(self, index, change=False, check_keypool=True) -> str:
         if check_keypool:
             pool = self.change_keypool if change else self.keypool
+            logger.debug(
+                f"get_address index={index} pool={pool} gapLIMIT={self.GAP_LIMIT} change={change} will_keypoolrefill={pool < index + self.GAP_LIMIT}"
+            )
             if pool < index + self.GAP_LIMIT:
                 self.keypoolrefill(pool, index + self.GAP_LIMIT, change=change)
         return self.descriptor.derive(index, branch_index=int(change)).address(
             self.network
         )
+
+    def get_address_obj(self, address: str) -> Address:
+        return self._addresses.get(address)
 
     def derive_descriptor(self, index: int, change: bool, keep_xpubs=False):
         """
@@ -1417,7 +1460,8 @@ class Wallet:
             ),
         }
 
-    def get_address_info(self, address):
+    def get_address_info(self, address) -> Address:
+        # TODO: This is a misleading name. This is really fetching an Address obj
         return self._addresses.get(address)
 
     def is_address_mine(self, address):
@@ -1509,22 +1553,6 @@ class Wallet:
                 if self.use_descriptors
                 else self.rpc.getbalances()["watchonly"]
             )
-            # calculate available balance
-            locked_utxo = self.rpc.listlockunspent()
-            available = {}
-            available.update(balance)
-            for tx in locked_utxo:
-                tx_data = self.gettransaction(tx["txid"])
-                raw_tx = decoderawtransaction(tx_data["hex"], self.manager.chain)
-                delta = raw_tx["vout"][tx["vout"]]["value"]
-                if "confirmations" not in tx_data or tx_data["confirmations"] == 0:
-                    available["untrusted_pending"] -= delta
-                else:
-                    available["trusted"] -= delta
-                    available["trusted"] = round(available["trusted"], 8)
-            available["untrusted_pending"] = round(available["untrusted_pending"], 8)
-            balance["trusted"] = available["trusted"]
-            balance["untrusted_pending"] = available["untrusted_pending"]
         except Exception as e:
             raise SpecterError(f"was not able to get wallet_balance because {e}")
         self.balance = balance
@@ -1534,6 +1562,9 @@ class Wallet:
         if end is None:
             # end is ignored for descriptor wallets
             end = start + self.GAP_LIMIT
+        if end - start < self.GAP_LIMIT:
+            # avoid too many calls
+            end = start + self.GAP_LIMIT * 2
 
         desc = self.recv_descriptor if not change else self.change_descriptor
         args = [
@@ -1577,10 +1608,41 @@ class Wallet:
         self.save_to_file()
         return end
 
+    def associate_address_with_service(
+        self, address: str, service_id: str, label: str, autosave: bool = True
+    ):
+        """
+        Links the Address to the specified Service.id
+        """
+        self._addresses.associate_with_service(
+            address=address, service_id=service_id, label=label, autosave=autosave
+        )
+
+    def deassociate_address(self, address: str, autosave: bool = True):
+        """
+        Clears any Service associations on the Address.
+        """
+        self._addresses.deassociate(address=address, autosave=autosave)
+
+    def get_associated_addresses(
+        self, service_id: str, unused_only: bool = False
+    ) -> List[Address]:
+        """
+        Return the Wallet's Address objs that are associated with the specified Service.id
+        """
+        addrs = []
+        for addr, addr_obj in self._addresses.items():
+            if addr_obj["service_id"] == service_id:
+                if not unused_only or not addr_obj["used"]:
+                    addrs.append(addr_obj)
+        return addrs
+
     def setlabel(self, address, label):
         self._addresses.set_label(address, label)
 
     def getlabel(self, address):
+        # TODO: This is confusing. The Address["label"] attr may be blank but the
+        # Address.label property will auto-populate a value (e.g. "Address #4").
         if address in self._addresses:
             return self._addresses[address].label
         else:
@@ -1597,12 +1659,57 @@ class Wallet:
         return self.getlabel(address)
 
     @property
+    def amount_confirmed(self):
+        """Confirmed outputs (and outputs created by the wallet for Bitcoin Core Hot Wallets)"""
+        return round(self.balance["trusted"], 8)
+
+    @property
+    def amount_unconfirmed(self):
+        """Unconfirmed outputs"""
+        return round(self.balance["untrusted_pending"], 8)
+
+    @property
+    def amount_frozen(self):
+        """Only frozen outputs, no outputs locked in unsigned PSBTS"""
+        amount = 0
+        frozen_txid = [utxo.split(":")[0] for utxo in self.frozen_utxo]
+        for utxo in self.locked_utxo:
+            if utxo["txid"] in frozen_txid:
+                amount += utxo["amount"]
+        return amount
+
+    @property
+    def amount_locked_unsigned(self):
+        """Outputs locked in unsigned PSBTs"""
+        amount = 0
+        for psbt in self.pending_psbts.values():
+            amount += sum([inp.float_amount for inp in psbt.inputs])
+        return amount
+
+    @property
+    def amount_immature(self):
+        """Immature coinbase outputs"""
+        return round(self.balance["immature"], 8)
+
+    @property
+    def amount_total(self):
+        """All outputs, including unconfirmed outputs, except for immature outputs"""
+        return self.amount_confirmed + self.amount_unconfirmed
+
+    @property
+    def amount_available(self):
+        """All outputs minus UTXO locked in unsigned transactions and frozen outputs"""
+        return self.amount_total - self.amount_locked_unsigned - self.amount_frozen
+
+    @property
     def fullbalance(self):
+        """Deprecated, please use amount_total"""
         balance = self.balance
         return round(balance["trusted"], 8)
 
     @property
     def full_available_balance(self):
+        """Deprecated, please use amount_available"""
         return round(self.balance["trusted"] + self.balance["untrusted_pending"], 8)
 
     @property
@@ -1622,8 +1729,8 @@ class Wallet:
 
     def createpsbt(
         self,
-        addresses: [str],
-        amounts: [float],
+        addresses: List[str],
+        amounts: List[float],
         subtract: bool = False,
         subtract_from: int = 0,
         fee_rate: float = 0,  # fee rate to use, if less than MIN_FEE_RATE will use MIN_FEE_RATE, 0 for automatic
@@ -1644,7 +1751,7 @@ class Wallet:
         total_sats = round(sum(amounts) * 1e8)
 
         # if creating new tx - check we have enough balance
-        if not rbf_edit_mode and self.full_available_balance < total_btc:
+        if not rbf_edit_mode and self.amount_available < total_btc:
             raise SpecterError(
                 f"Wallet {self.name} does not have sufficient funds to make the transaction."
             )
@@ -1661,7 +1768,7 @@ class Wallet:
             )
             if sats_in_coins < total_sats:
                 raise SpecterError(
-                    "Selected coins does not cover Full amount! Please select more coins!"
+                    "Selected coins do not cover full amount. Please select more coins!"
                 )
             extra_inputs = selected_coins
 
@@ -1761,8 +1868,6 @@ class Wallet:
                 "txid": utxo["txid"],
                 "vout": utxo["vout"],
                 "amount": utxo["details"]["value"],
-                "address": get_address_from_dict(utxo["details"]),
-                "label": self.getlabel(get_address_from_dict(utxo["details"])),
             }
             for utxo in rbf_utxo
         ]
@@ -1951,10 +2056,19 @@ class Wallet:
         self.save_pending_psbt(psbt)
         return psbt.to_dict()
 
-    def addresses_info(self, is_change):
+    def addresses_info(
+        self,
+        is_change: bool = False,
+        service_id: str = None,
+        include_wallet_alias: bool = False,
+    ):
         """Create a list of (receive or change) addresses from cache and retrieve the
         related UTXO and amount.
-        Parameters: is_change: if true, return the change addresses else the receive ones.
+        Parameters:
+            * is_change: if true, return the change addresses else the receive ones.
+            * service_id: just return addresses associated for the given Service
+            * include_wallet_alias: adds `wallet_alias` to each output (useful when this
+                is called by WalletManager.full_addresses_info() across all Wallets)
         """
 
         addresses_info = []
@@ -1964,27 +2078,35 @@ class Wallet:
         ]
 
         for addr in addresses_cache:
-
             addr_utxo = 0
             addr_amount = 0
 
             for utxo in [
-                utxo for utxo in self.full_utxo if utxo["address"] == addr.address
+                utxo for utxo in self._full_utxo if utxo["address"] == addr.address
             ]:
                 addr_amount = addr_amount + utxo["amount"]
                 addr_utxo = addr_utxo + 1
 
-            addresses_info.append(
-                {
-                    "index": addr.index,
-                    "address": addr.address,
-                    "label": addr.label,
-                    "amount": addr_amount,
-                    "used": bool(addr.used),
-                    "utxo": addr_utxo,
-                    "type": "change" if is_change else "receive",
-                }
-            )
+            if service_id and (
+                "service_id" not in addr or addr["service_id"] != service_id
+            ):
+                # Filter this address out
+                continue
+
+            addr_info = {
+                "index": addr.index,
+                "address": addr.address,
+                "label": addr.label,
+                "amount": addr_amount,
+                "used": bool(addr.used),
+                "utxo": addr_utxo,
+                "type": "change" if is_change else "receive",
+                "service_id": addr.service_id,
+            }
+            if include_wallet_alias:
+                addr_info["wallet_alias"] = self.alias
+
+            addresses_info.append(addr_info)
 
         return addresses_info
 

@@ -1,8 +1,5 @@
 <template id="tx-row">
     <style>
-        .frozen {
-            background: #546773;
-        }
         .svg-send {
             filter: invert(63%) sepia(67%) saturate(851%) hue-rotate(346deg) brightness(107%) contrast(92%);
         }
@@ -15,26 +12,110 @@
         .svg-cancelled {
             filter: invert(20%) sepia(32%) saturate(4838%) hue-rotate(332deg) brightness(81%) contrast(97%);
         }
+        .tx-row:hover {
+            background-color: var(--cmap-bg-lightest);
+            vertical-align: middle;
+        }
+        .tx-row {
+            vertical-align: middle;
+        }
+/*        .frozen {
+            background: #48535d
+        #546773;
+        }
+        .frozen:hover {
+            background: #48535d
+        #546773;
+        } */
+        .address {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .service-icon {
+            margin-top: -5px;
+            margin-right: 0.5em;
+            height:24px;
+            vertical-align: middle;
+        }
+        .coin_select_checkbox {
+            vertical-align: middle;
+        }
+
+        .icon-info {
+           display: inline-block; 
+           position: relative; 
+           margin-left: 0.5em; 
+        }
+       .icon-info .icon-info-text {
+            display: none;
+            background: #262626;
+            border: 1px solid grey;
+            border-radius: 5px;
+            padding: 0.5em;
+            position: absolute;
+            left: 30px;
+            top: -20px;
+            width: 100px;
+            z-index: 2;
+        }
+        .icon-info .icon-info-text:before, .icon-info .icon-info-text:after {
+            content: "";
+            position: absolute;
+            left: -10px;
+            top: 7px;
+            border-style: solid;
+            border-width: 10px 10px 10px 0;
+            border-color: transparent grey;
+        }
+        .icon-info .icon-info-text:after {
+            left: -8px;
+            border-right-color: #262626;
+        }
+        .icon-info .icon-info-text .info-2 {
+            display: block;
+        }
+        .icon-info-text {
+            text-transform: capitalize;
+            text-align: center;
+        }
+        .icon-info:hover .icon-info-text, .icon-info:focus .icon-info-text {
+            display: inline-block;
+        }
+
     </style>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+
     <tr class="tx-row">
-        <td>
-            <img class="category" style="vertical-align: middle; margin-right: 10px;"/>
+        <td id="column-callbackaction" class="callbackaction">
+            <input id="coin-select-checkbox" class="checkbox coin_select_checkbox" type="checkbox" name="coinselect" value="">
+        </td>
+        <td id="column-category">
+            <div class="icon-info">
+                <img class="category" style="vertical-align: middle; margin-right: 10px;"/>
+                <p id="icon-info-text" class="icon-info-text">
+                </p>
+            </div>
             <img class="frozen-img hidden svg-white" style="vertical-align: middle; height: 28px;" src="{{ url_for('static', filename='img/snowflake.svg') }}"/>
         </td>
-        <td class="tx scroll optional txid">
+        <td id="column-txid" class="tx scroll optional txid">
             <span class="explorer-link"></span>
         </td>
-        <td class="tx scroll optional address"></td>
-        <td><span class="amount"></span> <span class="amount-price note hidden">()</span></td>
-        <td class="time"></td>
-        <td>
+        <td id="column-label" class="tx optional address"></td>
+        <td id="column-amount">
+            <span class="amount"></span> 
+            <span class="amount-price note hidden">()</span>
+        </td>
+        <td id="column-time" class="time"></td>
+        <td id="column-confirmations" >
             <span class="confirmations"></span>
             <button class="rbf btn optional hidden" style="width: 130px; float: right;" type="button">{{ _("Speed up") }}</button>
             <button class="rbf-cancel danger btn optional hidden" style="width: 130px; float: right; margin-right: 10px;" type="button">{{ _("Cancel transaction") }}</button>
         </td>
         <td class="hidden optional blockhash"></td>
-        <td><input class="select-tx-value" type="hidden" value=""><img style="vertical-align: middle;" class="select-tx-img" src="{{ url_for('static', filename='img/checkbox-untick.svg') }}" width="25px"></tool-tip></td>
+        <td id="column-action" class="highlight-box">
+            <input class="select-tx-value" type="hidden" value="">
+            <img style="vertical-align: middle;" class="select-tx-img" src="{{ url_for('static', filename='img/checkbox-untick.svg') }}" width="25px">
+        </td>
     </tr>
 </template>
 
@@ -47,9 +128,15 @@
             var style = document.getElementById('tx-row').content;
             var clone = style.cloneNode(true);
             this.el = clone.querySelector(".tx-row");
+
+            this.callbackaction = clone.querySelector(".callbackaction");
+            this.coinSelectCheckbox = clone.getElementById("coin-select-checkbox");
+            this.categoryCell = clone.getElementById("column-category");
             this.category = clone.querySelector(".category");
+            this.iconInfoText = clone.getElementById("icon-info-text");
             this.txid = clone.querySelector(".txid .explorer-link");
             this.address = clone.querySelector(".address");
+            this.serviceIcon = clone.querySelector(".service-icon");
             this.amountText = clone.querySelector(".amount");
             this.amountPrice = clone.querySelector(".amount-price");
             this.time = clone.querySelector(".time");
@@ -74,7 +161,20 @@
             this.symbol = this.getAttribute('data-symbol');
             this.mode = this.getAttribute('data-mode');
             this.hideSensitiveInfo = this.getAttribute('data-hide-sensitive-info') == 'true';
-
+            // Listening for changes of coin selection checkboxes
+            this.coinSelectCheckbox.value=`${this.tx['txid']},${this.tx['vout']}` // Necessary?
+            this.coinSelectCheckbox.amount = `${this.tx['amount']}` // a bit hackish, doing that to have access via this in next line - necessary?
+            this.coinSelectCheckbox.addEventListener("change", (e) => {
+                let event = new CustomEvent(('coinSelectRowSelected'), { detail: {
+                        txid: this.tx.txid, // Detail currently not used, remove?
+                        vout: this.tx.vout,
+                        amount: this.amount,
+                        locked: this.tx.locked,
+                    } }
+                );
+                this.dispatchEvent(event);
+            })
+            
             // Set category image
             this.category.src = this.getCategoryImg(this.tx.category, this.tx.confirmations > 0);
             this.category.classList.add('svg-' + this.tx.category)
@@ -88,7 +188,7 @@
 
 
             // Set txid
-            this.txid.innerText = this.hideSensitiveInfo ? '############################################' : this.tx.txid;
+            this.txid.innerHTML = this.hideSensitiveInfo ? '############################################' : this.tx.txid.slice(0,11) + '&hellip;';
             if (!this.hideSensitiveInfo) {
                 this.txid.onclick = () => {
                     showTxData(
@@ -117,7 +217,18 @@
             if (Array.isArray(this.tx.address)) {
                 this.address.innerText = this.hideSensitiveInfo ? '#########' : `${this.tx.address.length} {{ _("Recipients") }}`;
             } else {
-                this.address.innerHTML = this.hideSensitiveInfo ? '#########' : `<address-label data-address="${this.tx.address}" ${this.tx.label ? `data-label="${this.tx.label}"` : ''} data-wallet="${this.wallet ? this.wallet : this.tx.wallet_alias}"></address-label>`
+                if (this.hideSensitiveInfo) {
+                    this.address.innerHTML = '#########';
+                } else {
+                    if ((typeof services !== 'undefined') && ("service_id" in this.tx) && (this.tx.service_id in services)) {
+                        this.address.innerHTML = `<img class="service-icon" src="{{ext_url_prefix}}/${this.tx.service_id}/static/${services[this.tx.service_id].icon}">`;
+                    }
+                    if (this.tx.label !== undefined) {
+                        this.address.innerHTML += `<address-label data-address="${this.tx.address}" ${this.tx.label ? `data-label="${this.tx.label}"` : ''} data-wallet="${this.wallet ? this.wallet : this.tx.wallet_alias}"></address-label>`
+                    } else {
+                        this.address.innerHTML += this.tx.address;
+                    }
+                }
             }
             
             // Set amount
@@ -145,7 +256,7 @@
                 this.amount = parseInt(this.amount * 1e8);
             }
 
-            if (this.amount == 1e-8 || this.amount == 0) {
+            if (this.amount == 1e-8 ) { //|| this.amount == 0) {
                 this.amountText.innerText = '{{ _("Confidential") }}';
             } else {
                 if(this.hideSensitiveInfo){
@@ -169,7 +280,7 @@
 
             // Set confirmations
             if (this.tx.confirmations > 0) {
-                this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `${this.tx.confirmations}<span class="optional"> {{ _("Confirmations") }}</span>`;
+                this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `${this.tx.confirmations}`;
             } else if (this.tx.confirmations == 0) {
                 this.el.classList.add('unconfirmed');
                 this.confirmations.innerHTML = this.hideSensitiveInfo ? '########' : `{{ _("Unconfirmed") }}`;
@@ -199,7 +310,16 @@
             }
             
             // Set time
-            this.time.innerText = this.hideSensitiveInfo ? '###########' : (new Date(this.tx.time * 1000)).toLocaleString()
+            if (this.hideSensitiveInfo) {
+                this.time.innerText = '###########'
+            } else {
+                // blocktime for confirmed Txs
+                if (this.tx.blocktime) {
+                    this.time.innerText = (new Date(this.tx.blocktime * 1000)).toLocaleString()
+                } else {
+                    this.time.innerText = (new Date(this.tx.time * 1000)).toLocaleString()
+                }
+            }
 
             // Show blockhash
             if (this.showBlockhash) {
@@ -227,13 +347,46 @@
                         selected: this.selectTxValue.value == "true",
                         txid: this.tx.txid,
                         vout: this.tx.vout,
-                        amount: this.amount
+                        amount: this.amount,
+                        locked: this.tx.locked,
                     } });
                     this.dispatchEvent(event);
                 }
             } else {
                 this.selectTxImg.classList.add('hidden');
             }
+
+            // Hide columns
+            this.hideColumns = this.getAttribute("hide-columns")
+            if (this.hideColumns != "null") {
+                this.hideColumns.split(" ").forEach((column_name) => {
+                    if (column_name) {
+                        let column = this.shadowRoot.getElementById("column-"+ column_name)
+                        if (column) {
+                            column.remove()
+                        }
+                    }
+                })
+            }
+        }
+
+        /** 
+         * Returns a json from this item
+         */
+        getTxItem() {
+            return this.tx
+        }
+
+        isSelected() {
+            return this.coinSelectCheckbox.checked
+        }
+
+        unselect() {
+            this.coinSelectCheckbox.checked = false
+        }
+
+        select() {
+            this.coinSelectCheckbox.checked = true
         }
 
         rbfPopup(rbfType) {
@@ -286,9 +439,10 @@
                 case "send":
                     return `{{ url_for('static', filename='img') }}/send.svg`;
                 case "receive":
+                    return `{{ url_for('static', filename='img') }}/receive.svg`;
                 case "immature":
                 case "generate":
-                    return `{{ url_for('static', filename='img') }}/receive.svg`;
+                    return `{{ url_for('static', filename='img') }}/gear.svg`;
                 case "selftransfer":
                     return `{{ url_for('static', filename='img') }}/transfer.svg`;
                 case "mixed":

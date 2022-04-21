@@ -33,11 +33,13 @@
         }
     }
 </style>
-<a id="price-bar-btn" type="button" style="cursor: pointer; background: #4a90e2; color: #fff; padding: 0px 20px;" class="settings-bar-btn left-toolbar" onclick="showPageOverlay('price-popup')">
+<a id="price-bar-btn" title="Bitcoin price" type="button" style="cursor: pointer; background: #4a90e2; color: #fff; padding: 0px 20px;" class="settings-bar-btn left-toolbar" onclick="showPageOverlay('price-popup')">
     {% if specter.price_check %}
-        <span>{{ 1 | altunit}}</span>
+        <div title="Price settings">
+            <span>{{ 1 | altunit}}</span>
+        </div>        
     {% else %}
-        <img src="{{ url_for('static', filename='img/no-dollars.svg') }}" style="width: 40px;" class="svg-white"/>
+        <img src="{{ url_for('static', filename='img/no-dollars.svg') }}" style="width: 40px;" title="Enable Fiat price display" class="svg-white"/>
     {% endif %}
 </a>
 <div id="price-popup" class="hidden">
@@ -103,9 +105,9 @@
                             </td>
                             <td style="padding-top: 10px; padding-bottom: 0px; border: none; text-align: left;">
                                 <fieldset style="border:none; display: inline; width: 100%;"> 
-                                    <select name="price_provider" id="price_provider">
-                                        <option data-currency-type="usd" value="bitstamp" {% if specter.price_provider == 'bitstamp' %}selected{% endif %}>Bitstamp USD</option>
-                                        <option data-currency-type="usd" value="coindesk" {% if specter.price_provider == 'coindesk' %}selected{% endif %}>Coindesk USD</option>
+                                    <select name="price_provider" id="price_provider" onchange="providerChanged()">
+                                        <option data-currency-type="usd" value="bitstamp_usd" {% if specter.price_provider == 'bitstamp' %}selected{% endif %}>Bitstamp USD</option>
+                                        <option data-currency-type="usd" value="coindesk_usd" {% if specter.price_provider == 'coindesk' %}selected{% endif %}>Coindesk USD</option>
                                         <option data-currency-type="usd" value="spotbit_coinbase" {% if specter.price_provider == 'spotbit_coinbase' %}selected{% endif %}>Spotbit Coinbase (Tor) USD</option>
                                         <option data-currency-type="usd" value="spotbit_kraken" {% if specter.price_provider == 'spotbit_kraken' %}selected{% endif %}>Spotbit Kraken (Tor) USD</option>
                                         <option data-currency-type="usd" value="spotbit_bitfinex" {% if specter.price_provider == 'spotbit_bitfinex' %}selected{% endif %}>Spotbit Bitfinex (Tor) USD</option>
@@ -177,9 +179,10 @@
                         </tr>
                     </tbody>
                 </table>
-                <p class="note" style="max-width: 300px; margin: auto;">{{ _("Price will automatically be fetched from the selected provider every 10 minutes.") }}</p>
+                <p class="note" style="max-width: 300px; margin: auto;">{{ _("Price will automatically be fetched from the selected provider every 10 minutes.") }}</p><br>
+                <p class="note hidden" id="providerwarning"  style="color: red; max-width: 400px; margin: auto;">{{ _("Note: This provider does not support historical data.") }}</p>
             </div>
-            <br><br>
+            <br>
             <input type="hidden" id="price_type" name="price_type" value="{{ 'automatic' if specter.price_provider else 'manual' }}">
             <button type="button" class="btn" onclick="savePriceData(true)" style="margin: auto;">{{ _("Save") }}</button>
         </div>
@@ -295,12 +298,24 @@
             }
         }
 
+        function providerChanged() {
+            
+            let provider = document.getElementById('price_provider').value
+            // For EUR etc. provider looks like this: coindesk_eur
+            if (provider.startsWith("coindesk")) {
+                document.getElementById('providerwarning').classList.remove("hidden")
+            } else {
+                document.getElementById('providerwarning').classList.add("hidden")
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", function(){
             {% if specter.price_check %}
                 {% if specter.price_provider %}
                     setPriceView('automatic');
                 {% endif %}
                 filterProviderOptions();
+                providerChanged()
             {% endif %}
         });
     </script>

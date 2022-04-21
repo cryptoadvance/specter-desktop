@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
-set -exo
+set -e
+
+source build-common.sh
+
+
+function sub_help {
+    cat << EOF
 # possible prerequisites
 # brew install gmp # to prevent module 'embit.util' has no attribute 'ctypes_secp256k1'
 # npm install --global create-dmg
@@ -11,6 +17,10 @@ set -exo
 # Therefore we expect xcode 12.1 (according to google)
 # After installation of xcode: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 # otherwise you get xcrun: error: unable to find utility "altool", not a developer tool or in PATH
+
+# catalina might have a a too old version of bash. You need at least 4.0 or so
+# 3.2 is too low definitely
+# brew install bash
 
 # Fill the keychain with your password like this
 # xcrun altool --store-password-in-keychain-item AC_PASSWORD -u '<your apple id>' -p apassword
@@ -28,66 +38,132 @@ set -exo
 # https://github.com/sindresorhus/create-dmg
 
 # Example-call:
-# ./build-osx.sh v1.6.1-pre1 "Kim Neunert (FWV59JHV83)" "kneunert@gmail.com" "make-hash"
+# ./build-osx.sh --debug --version v1.7.0-pre1 --appleid "Kim Neunert (FWV59JHV83)" --mail "kim@specter.solutions" make-hash
+EOF
+}
 
-echo $1 > version.txt
-pip3 install -r requirements.txt --require-hashes
-pip3 install -e ..
-cd ..
-python3 setup.py install
-cd pyinstaller
-rm -rf build/ dist/ release/ electron/release/ electron/dist
-rm *.dmg || true
-pyinstaller specterd.spec
-cd electron
-npm ci
-if [[ "$4" == 'make-hash' ]]
+appleid=""
+
+while [[ $# -gt 0 ]]
+  do
+  arg="$1"
+  case $arg in
+      "" | "-h" | "--help")
+        sub_help
+        exit 0
+        shift
+        ;;
+      --debug)
+        set -x
+        DEBUG=true
+        shift
+        ;;
+      --version)
+        version=$2
+        shift
+        shift
+        ;;
+      --appleid)
+        appleid=$2
+        shift
+        shift
+        ;;
+      --mail)
+        mail=$2
+        shift
+        shift
+        ;;
+      make-hash)
+        make_hash=True
+        shift
+        ;;
+      help)
+        sub_help
+        shift
+        ;;
+      *)
+          shift
+          sub_${arg} $@ && ret=0 || ret=$?
+          if [ "$ret" = 127 ]; then
+              echo "Error: '$arg' is not a known subcommand." >&2
+              echo "       Run '$progname --help' for a list of known subcommands." >&2
+              exit 1
+          else
+              exit $ret_value
+          fi
+          ;;
+  esac
+  done
+
+
+
+
+echo "    --> This build got triggered for version $version"
+
+echo $version > version.txt
+
+specify_app_name
+
+install_build_requirements
+
+cleanup
+
+building_app
+
+cd electron # ./pyinstaller/electron
+
+prepare_npm
+
+
+if [[ "$make_hash" = 'True' ]]
 then
-    node ./set-version $1 ../dist/specterd
+    node ./set-version $version ../dist/${specterd_filename}
 else
-    node ./set-version $1
+    node ./set-version $version
 fi
 npm i
-if [[ "$2" == '' ]]
+if [[ "${appleid}" == '' ]]
 then
     echo "`jq '.build.mac.identity=null' package.json`" > package.json
 else
-    echo "`jq '.build.mac.identity="'"$2"'"' package.json`" > package.json
+    echo "`jq '.build.mac.identity="'"${appleid}"'"' package.json`" > package.json
 fi
-npm run dist
 
-if [[ "$2" != '' ]]
+building_electron_app
+
+if [[ "$appleid" != '' ]]
 then
-    echo 'Attempting to code sign...'
-    ditto -c -k --keepParent "dist/mac/Specter.app" dist/Specter.zip
-    output_json=$(xcrun altool --notarize-app -t osx -f dist/Specter.zip --primary-bundle-id "solutions.specter.desktop" -u "$3" --password "@keychain:AC_PASSWORD" --output-format json)
-    echo "JSON-Output:"
-    requestuuid=$(echo $output_json | jq -r '."notarization-upload".RequestUUID')
-    sleep 180
-    sign_result_json=$(xcrun altool --notarization-info $requestuuid -u "$3" --password "@keychain:AC_PASSWORD" --output-format json)
-    mkdir -p signing_logs
-    timestamp=$(date +"%Y%m%d-%H%M")
-    echo $sign_result_json | jq . > ./signing_logs/${timestamp}_${requestuuid}.log
-    xcrun stapler staple "dist/mac/Specter.app"
+  macos_code_sign
 fi
 
-cd ..
+cd .. # ./pyinstaller
 
+echo "    --> Making the release-zip"
 mkdir release
 
-create-dmg 'electron/dist/mac/Specter.app' --identity="Developer ID Application: $2"
-mv "Specter ${1:1}.dmg" release/SpecterDesktop-$1.dmg
+create-dmg electron/dist/mac/${specterimg_filename}.app --identity="Developer ID Application: ${appleid}"
+# create-dmg doesn't create the prepending "v" to the version
+node_comp_version=$(python3 -c "print('$version'[1:])")
+mv "electron/dist/${specterimg_filename}-${node_comp_version}.dmg" release/${specterimg_filename}-${version}.dmg
 
-cd dist
-zip ../release/specterd-$1-osx.zip specterd
-cd ..
+cd dist # ./pyinstaller/dist
+zip ../release/${specterd_filename}-${version}-osx.zip ${specterd_filename}
+cd .. # ./pyinstaller
 
-sha256sum ./release/specterd-$1-osx.zip
-sha256sum ./release/SpecterDesktop-$1.dmg
+sha256sum ./release/${specterd_filename}-${version}-osx.zip
+sha256sum ./release/${specterimg_filename}-${version}.dmg
 
-# "In order to upload these artifacts to github, do:"
-# export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance
-# export CI_COMMIT_TAG=$1
-# export GH_BIN_UPLOAD_PW=YourSecretHere
-# python ./utils/github.py upload ./release/specterd-$1-osx.zip
-# python ./utils/github.py upload ./release/SpecterDesktop-$1.dmg
+if [ "$app_name" == "specter" ]; then
+  echo "--------------------------------------------------------------------------"
+  echo "In order to upload these artifacts to github, do:"
+  echo "export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance"
+  echo "export CI_COMMIT_TAG=$version"
+  echo "export GH_BIN_UPLOAD_PW=YourSecretHere"
+  echo "python3 ../utils/github.py upload ./release/specterd-${version}-osx.zip"
+  echo "python3 ../utils/github.py upload ./release/SpecterDesktop-${version}.dmg"
+  echo "cd release"
+  echo "sha256sum * > SHA256SUMS-macos"
+  echo "python3 ../../utils/github.py upload SHA256SUMS-macos"
+  echo "gpg --detach-sign --armor SHA256SUMS-macos"
+  echo "python3 ../../utils/github.py upload SHA256SUMS-macos.asc"
+fi

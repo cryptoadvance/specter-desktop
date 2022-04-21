@@ -19,6 +19,8 @@ from requests.exceptions import ConnectionError
 from stem.control import Controller
 from urllib3.exceptions import NewConnectionError
 
+from cryptoadvance.specter.devices.device_types import DeviceTypes
+
 from .helpers import clean_psbt, deep_update, is_liquid, is_testnet, get_asset_label
 from .internal_node import InternalNode
 from .liquid.rpc import LiquidRPC
@@ -33,10 +35,10 @@ from .process_controller.bitcoind_controller import BitcoindPlainController
 from .rpc import (
     BitcoinRPC,
     RpcError,
-    autodetect_rpc_confs,
-    detect_rpc_confs,
     get_default_datadir,
 )
+from .managers.service_manager import ServiceManager
+from .services.service import devstatus_alpha, devstatus_beta, devstatus_prod
 from .specter_error import ExtProcTimeoutException, SpecterError
 from .tor_daemon import TorDaemonController
 from .user import User
@@ -426,7 +428,11 @@ class Specter:
     def update_alt_symbol(self, alt_symbol, user):
         self.config_manager.update_alt_symbol(alt_symbol, user)
 
-    # mark logic!
+    def update_services(self, services):
+        """takes a list of service_names which should be activated"""
+        self.config["services"] = services
+        self._save()
+
     def update_merkleproof_settings(self, validate_bool):
         if validate_bool is True and self.info.get("pruned") is True:
             validate_bool = False
@@ -665,8 +671,12 @@ class Specter:
                     data = zipfile.ZipInfo("{}.json".format(device.alias))
                     data.date_time = time.localtime(time.time())[:6]
                     data.compress_type = zipfile.ZIP_DEFLATED
+                    device = device.json
+                    # Exporting the bitcoincore hot wallet as watchonly
+                    if device["type"] == DeviceTypes.BITCOINCORE:
+                        device["type"] = DeviceTypes.BITCOINCORE_WATCHONLY
                     zf.writestr(
-                        "devices/{}.json".format(device.alias), json.dumps(device.json)
+                        "devices/{}.json".format(device["alias"]), json.dumps(device)
                     )
         memory_file.seek(0)
         return memory_file
@@ -720,6 +730,7 @@ class Specter:
                 old_rpc.get("protocol", "http"),
                 True,
                 os.path.join(os.path.join(self.data_folder, "nodes"), "default.json"),
+                "BTC",
                 self,
             )
             logger.info(f"persisting {node} in migrate_old_node_format")

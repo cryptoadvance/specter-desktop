@@ -1,0 +1,8 @@
+{% extends "swan/components/base.jinja" %}
+{% block main %}
+    <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" width="300"/>    
+    {% from 'swan/components/swan_menu.jinja' import swan_menu with context %}
+    {{ swan_menu(tab) }}
+    {% block content %}
+    {% endblock %}
+{% endblock %}

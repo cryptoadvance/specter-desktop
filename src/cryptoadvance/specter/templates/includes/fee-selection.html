@@ -1,0 +1,391 @@
+<template id="fee-selection">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <div class="fee_container">
+        <div id="subtract_fees_div">
+            <label><input type="checkbox" class="inline" name="subtract" id="subtract" {% if subtract %}checked{% endif %}> {{ _("Subtract fees from amount") }}</label>
+            <div class="tool-tip" style="text-align: center;">
+                <i class="tool-tip__icon">i</i>
+                <p class="tool-tip__info">
+                    <span class="info">
+                        <span class="info__title">{{ _("Subtract fees from amount") }}<br><br></span>
+                        {{ _("If checked, the transaction fees will be paid off from the transaction amount.") }}<br><br>
+                        {{ _("Otherwise, the fees will be paid in addition to the amount sent.") }}
+                    </span>
+                </p>
+            </div>
+        </div>
+        <span id="subtract_from" style="display: none">
+            <br>{{ _("Subtract from recipient number:") }} 
+            <input id="subtract_from_input" name="subtract_from" type="number" min="1" value="1" step="1" style="width: 80px; min-width: 80px;"><br>
+        </span>
+        <br>
+        <div>
+            {{ _("Fees:") }} 
+            <label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" id="fee_option_dynamic" name="fee_options" value="dynamic" >{{ _("dynamic") }}</label>
+            <label><input type="radio" class="inline" style="margin: 0 10px 0 20px"  id="fee_option_manual" name="fee_options" value="manual" >{{ _("manual") }}</label>
+        </div>
+        <br>
+        <div id = "fee_manual" style="display: none">
+            {{ _("Fee rate:") }}<br>
+            {% set min_fee = 0.1 if specter.is_liquid else 1 %}
+            <input type="number" class="fee_rate" name="fee_rate" id="fee_rate" min="{{min_fee}}" step="0.1" value="{{min_fee}}" autocomplete="off"> sat/vbyte
+            <div class="note">
+                {{ _("{} sat/vbyte is the minimal fee rate.".format(min_fee)) }}
+            </div>
+        </div>
+        <div id ="fee_dynamic" style="display: {% if fee_options_dynamic %}block{% else %}none{% endif %}">
+            <div id="blocks"></div>
+            <input type="range" style="width: 12em" min="{{min_fee}}" max="" value="" step="1" id="fees_slider">
+            <input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="{{min_fee}}">
+            <div>
+                {{ _("Estimated speed:") }} <span id="fee_rate_speed_text"></span>
+                <br>
+                <span class="note">({{ _("Fee rate:") }} <span id="fee_rate_dynamic_text"></span> sat/vbyte)</span>
+            </div>
+        </div>
+        <br>
+        <label class="rbf-label" style="display: none">
+            <input type="checkbox" class="rbf-checkbox inline" name="rbf" id="rbf"> {{ _("RBF Enabled") }}
+        </label>
+    </div>
+</template>
+
+<script type="module">
+    /**
+     * A WebComponent to enable the user to manage the fees
+     * The API for this component works in a way that it manages 5 hidden inputs which will expose the
+     * choice of the user.
+     * * <input type="checkbox" class="rbf-checkbox inline hidden" name="rbf" id="rbf">
+     * * <input id="subtract_from_input" name="subtract_from" type="number" class="hidden">
+     * * <input type="hidden" value="dynamic" name="fee_option">
+     * * <input type="number" class="fee_rate hidden" name="fee_rate" id="fee_rate" value="0.1">
+     * * <input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="0.1" class="hidden">
+     */
+    class FeeSelection extends HTMLElement {
+        constructor() {
+            super();
+            var shadow = this.attachShadow({mode: 'open'});
+            this.wholeTemplate = shadow
+            var template_content = document.getElementById('fee-selection').content;
+            var clone = template_content.cloneNode(true);
+            this.feeContainer = clone.querySelector(".fee_container")
+            this.subtractFeesDiv = clone.getElementById("subtract_fees_div")
+
+            // The radio-button for manual
+            this.fee_option_manual =  clone.querySelector("#fee_option_manual")
+            this.fee_option_manual.addEventListener('click', (event) => {
+                this.showFeeOption("manual")
+			});
+            
+            // The radio-button for dynamic
+            this.fee_option_dynamic =  clone.querySelector("#fee_option_dynamic")
+            this.fee_option_dynamic.addEventListener('click', (event) => {
+                this.showFeeOption("dynamic")
+			});
+            
+            // Manual or dynamic div
+            this.fee_manual = clone.querySelector("#fee_manual") 
+            this.fee_dynamic = clone.querySelector("#fee_dynamic")
+            
+            // The manual rate
+            this.feeRate = clone.querySelector(".fee_rate")
+
+            // The slider && dynamic rate
+            this.feesSlider = clone.querySelector("#fees_slider")
+            this.feesSlider.addEventListener("input", (event) => {
+                this.dynamicFeeUpdated()
+            });
+            this.feeRateDynamic = clone.querySelector("#fee_rate_dynamic")
+            this.feeRateDynamicText = clone.querySelector("#fee_rate_dynamic_text")
+
+            // A text explaining the rate like: "Fast (30 minutes)"
+            this.fee_rate_speed_text = clone.querySelector("#fee_rate_speed_text")
+
+            // RBF
+            this.rbfEnabled = this.getAttribute('rbf-enabled') == null ? true : this.getAttribute('rbf-enabled').toLowerCase() == "true"
+            this.rbfLabel = clone.querySelector(".rbf-label")
+            this.rbfOption = clone.getElementById("rbf")
+
+            // Subtract
+            this.subtract = clone.querySelector("#subtract")            
+            this.subtractFrom = clone.querySelector("#subtract_from")
+            this.subtractFromInput = clone.querySelector("#subtract_from_input")
+
+            // Presets
+            this.feeOptionPreset = this.getAttribute('fee-option-preset') == null ? "dynamic" : this.getAttribute('fee-option-preset')
+            this.rbfOption.value = "true"
+            this.rbfOption.checked = true
+            this.subtract.value = "false" 
+
+            this.createLighterDOMNodes()
+
+            // Attach the created element to the shadow dom
+            shadow.appendChild(clone);
+            
+        }
+
+        /**
+         * here, we create some kind of mirror-nodes in the lighterDOM so that the outer form can 
+         * pick the values up. They are all hidden and we'll clone them from their "peer" from the shadowDOM
+         * Check https://stackoverflow.com/a/38667839/330964 for details
+         */
+        createLighterDOMNodes() {
+            this.ld = {} // in order to separate clearly, we store all of them here
+            
+            /* We need to expose:
+                * fee_option (either manual or dynamic)
+                * fee_rate_dynamic 
+                * fee_rate 
+                * rbf
+                * subtract
+                * subtract_from
+            */
+
+            // fee_option
+            this.ld.feeOption = document.createElement("input");
+            this.ld.feeOption.type = "hidden";
+            this.ld.feeOption.value = this.feeOptionPreset;
+            this.ld.feeOption.name = "fee_option";
+            this.appendChild(this.ld.feeOption);
+
+            // fee_rate_dynamic
+            this.ld.feeRate = this.feeRate.cloneNode(true);
+            this.ld.feeRate.classList.add("hidden");
+            this.ld.feeRate.type = "hidden";
+            this.appendChild(this.ld.feeRate);
+
+            // fee_rate
+            this.ld.feeRateDynamic = this.feeRateDynamic.cloneNode(true);
+            this.ld.feeRateDynamic.classList.add("hidden");
+            this.ld.feeRateDynamic.type = "hidden";
+            this.appendChild(this.ld.feeRateDynamic);
+            
+            // rbf
+            this.ld.rbfOption = this.rbfOption.cloneNode(true);
+            this.ld.rbfOption.type = "hidden";
+            this.ld.rbfOption.value = this.rbfOption.value;
+            this.appendChild(this.ld.rbfOption);
+
+            // subtract
+            this.ld.subtract = this.subtract.cloneNode(true);
+            this.ld.subtract.type = "hidden";
+            this.ld.subtract.value = this.subtract.value;
+            this.appendChild(this.ld.subtract);
+
+            // subtract_from (the actual input field)
+            this.ld.subtractFromInput = this.subtractFromInput.cloneNode(true);
+            this.ld.subtractFromInput.type = "hidden";
+            this.appendChild(this.ld.subtractFromInput);
+
+            // This is just for exposure to the jinja template for displaying, not needed for the form POST
+            this.ld.subtractFrom = this.subtractFrom.cloneNode(true);
+            this.ld.subtractFrom.type = "hidden";
+            this.appendChild(this.ld.subtractFrom);
+        }
+
+        /**
+         * Browser calls this method when the element is added to the document
+         * (can be called many times if an element is repeatedly added/removed)
+         */
+        connectedCallback() {
+            // fetch the fees
+            this.fetchFees()
+            // Looks like this: {"result": {"fastestFee": 8, "halfHourFee": 8, "hourFee": 8, "minimumFee": 1}, "error_messages": []}
+            
+            this.showFeeOption(this.feeOptionPreset)
+
+            // Show RBF checkbox if RBF is enabled
+            if (this.rbfEnabled) {
+                this.rbfLabel.style.display = "block";
+            }
+
+            // Setting up event listeners
+            this.feeRate.addEventListener("change", (event) => {
+                this.manualFeeUpdated();
+            })
+
+            this.rbfOption.addEventListener("click", (event) => {
+                this.rbfUpdated();
+            })
+
+            this.subtractFromInput.addEventListener("click", (event) => {
+                 this.subtractUpdated();
+                })
+
+            // Necessary since subtractFrom is conditioned on elements outside of this web component
+            this.subtractClickHook()
+        }
+
+        // Fetches fees from the Specter API 
+        async fetchFees(wallet_alias) {
+            let url = `{{ url_for('wallets_endpoint_api.fees') }}`
+            var formData = new FormData();
+            try {
+                const response = await fetch(
+                    url,
+                    {
+                        method: 'GET'
+                    }
+                );
+                if(response.status != 200){
+                    showError(await response.text());
+                    console.log("Error while fetching fees")
+                    return {"result": {"fastestFee": 8, "halfHourFee": 8, "hourFee": 8, "minimumFee": 1}, "error_messages": ["Couldn't fetch fees from server. Replaced with assumptions"]};
+                }
+                const fees = await response.json();
+                this.fees = fees["result"]
+                this.initWithFees()
+            } catch(e) {
+                console.log(e);
+                showError(`{{ _("Failed to fetch fees") }}: ${e}`);
+            }
+        }
+
+        // Gets executed after fee initialisation
+        initWithFees() {
+            // this.feesSlider.min is set above via min_fee
+            this.feesSlider.max = Math.floor(this.fees["fastestFee"] * 1.4)
+            let sliderMin = this.fees["minimumFee"]
+            let sliderMax = this.fees["fastestFee"]
+            let average = Math.floor((sliderMin + sliderMax) / 2)
+            this.feesSlider.value = average
+            this.dynamicFeeUpdated() // otherwise no text next to estimated speed
+        }
+
+        showFeeOption(option) {
+            if (option == 'dynamic') {
+                this.fee_manual.style.display ='none'
+                this.fee_dynamic.style.display = 'block'
+                this.ld.feeOption.value = "dynamic"
+                this.fee_option_dynamic.checked = true
+            } else {
+                this.fee_manual.style.display ='block'
+                this.fee_dynamic.style.display = 'none'
+                this.ld.feeOption.value = "manual"
+                this.fee_option_manual.checked = true
+            }
+        }
+
+        // Transports Shadow DOM value to Light DOM
+        manualFeeUpdated() {
+            this.ld.feeRate.value = this.feeRate.value
+        }
+
+        // Transports Shadow DOM value to Light DOM & sets text values for slider
+        dynamicFeeUpdated() {
+            this.feeRateDynamicText.innerText = this.feesSlider.value;
+            this.feeRateDynamic.value = this.feesSlider.value;
+            this.ld.feeRateDynamic.value = this.feesSlider.value;
+            let minFee = this.fees["minimumFee"]
+            let hourFee = this.fees["hourFee"]
+            let halfHourFee = this.fees["halfHourFee"]
+            let fastestFee = this.fees["fastestFee"]
+            if (this.feesSlider.value <= minFee + ((hourFee - minFee) / 2)) {
+                this.fee_rate_speed_text.innerText = '{{ _("Very slow") }}';
+            } else if (this.feesSlider.value > minFee + ((hourFee - minFee) / 2) && this.feesSlider.value < hourFee) {
+                this.fee_rate_speed_text.innerText = '{{ _("Slow") }}';
+            } else if (this.feesSlider.value >= hourFee && this.feesSlider.value < halfHourFee) {
+                this.fee_rate_speed_text.innerText = '{{ _("Medium (1 hour)") }}';
+            } else if (this.feesSlider.value >= halfHourFee && this.feesSlider.value < fastestFee) {
+                this.fee_rate_speed_text.innerText = '{{ _("Fast (30 minutes)") }}';
+            } else if (this.feesSlider.value >= fastestFee && this.feesSlider.value < fastestFee * 1.2) {
+                this.fee_rate_speed_text.innerText = '{{ _("Very fast (10 minutes)") }}';
+            } else if (this.feesSlider.value >= fastestFee * 1.2) {
+                this.fee_rate_speed_text.innerText = '{{ _("Overpaid! (10 minutes)") }}';
+            } else {
+                console.log("Could not set fee_rate_speed_text")
+            }
+        }
+
+        // Returns fees that can be picked up
+        selectedFee() {
+            if (this.ld.feeOption.value == "manual") {
+                let manualRate = this.ld.feeRate.value
+                return manualRate
+            } 
+            else {
+                let dynamicRate = this.ld.feeRateDynamic.value
+                return dynamicRate
+            }
+        }
+
+        // Updates Light DOM values for the form
+        rbfUpdated() {
+            if (this.rbfOption.checked) {
+                this.ld.rbfOption.value = "true"
+            }
+            else {
+                this.ld.rbfOption.value = "false"
+            }
+        }
+
+        deactivateRbf() {
+            this.rbfLabel.remove()
+            this.ld.rbfOption.value = "false"
+        }
+
+        // Subtract setter
+        setSubtract(checked) {
+            try { console.log("setSubtract running")
+            this.subtract.checked = checked
+            this.subtractUpdated()
+            } catch(e) {console.log(e)}   
+        }
+
+        // Updates Light DOM values for the form
+        subtractUpdated() {
+            if (this.subtract.checked) {
+                this.ld.subtract.value = "true"
+                this.ld.subtract.checked = true
+                this.ld.subtractFromInput.value = this.subtractFromInput.value
+            }
+            else {
+                this.ld.subtract.value = "false"
+            }
+        }
+
+        showSubtractFrom(visible) {
+            if (visible) {
+                this.subtractFrom.style.display = 'block';
+            } else {
+                this.subtractFrom.style.display = 'none';
+            }
+        }
+
+        deactivateSubtract() {
+            this.subtractFeesDiv.remove()
+            this.subtractFrom.remove()
+            // Removing light DOM elements would currently break wallet_send functions
+        }
+
+        subtractClickHook() {
+                let event = new CustomEvent('subtractClick', {});
+                this.subtract.addEventListener("click", () => {
+                    this.ld.subtract.checked = this.subtract.checked
+                    this.subtractUpdated()
+                    this.dispatchEvent(event);
+                })
+            }
+
+        // Adds line breaks at the end of the component
+        addLineBreaks(number) {
+            for (let i = 0; i < number; i++) {
+                this.wholeTemplate.appendChild(document.createElement('br'))
+            }
+        }
+
+        // Removes all added line breaks again
+        removeLineBreaks() {
+            var allLineBreaks = this.wholeTemplate.querySelectorAll('br')
+            for (let i = 0; i < allLineBreaks.length; i++) {
+                // 11 is the nodeType of the Shadow Root
+                if (allLineBreaks[i].parentNode.nodeType == 11) {
+                    this.wholeTemplate.removeChild(allLineBreaks[i])
+                }
+            }
+        }
+    }
+
+    customElements.define('fee-selection', FeeSelection);        
+
+</script>

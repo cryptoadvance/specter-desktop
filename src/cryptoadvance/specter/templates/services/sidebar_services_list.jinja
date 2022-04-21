@@ -1,0 +1,13 @@
+<div class="separator">
+    <span id="toggle_services_list" style="cursor: pointer;">Plugins &nbsp; &#9660;</span>
+</div>
+<div id="services_list">
+    {% for _,plugin in specter.service_manager.services.items() %}
+        {% if plugin.id in current_user.services %}
+        <a href="{{ url_for(plugin.id +'_endpoint.index') }}" class="item service">
+            <img src="{{ url_for(plugin.id +'_endpoint' + '.static', filename=plugin.icon) }}" height="30px">&nbsp;{{ plugin.name }}
+        </a>
+        <br>
+        {% endif %}
+    {% endfor %}
+</div>

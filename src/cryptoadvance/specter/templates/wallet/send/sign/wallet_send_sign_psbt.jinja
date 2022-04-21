@@ -146,9 +146,9 @@
 							<br>
 						{% endif %}
 						{% if specter.is_liquid %}
-							<b>{{ _("Amount:") }}</b> {{ input['float_amount']|btcamount }} <asset-label data-asset="{{input['asset']}}" data-label="{{input['asset'] | assetlabel}}"></asset-label>
+							<b>{{ _("Amount:") }}</b> {{ input.get('float_amount') | btcamount }} <asset-label data-asset="{{input['asset']}}" data-label="{{input['asset'] | assetlabel}}"></asset-label>
 						{% else %}
-							<b>{{ _("Amount:") }}</b> {{ input['float_amount']|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ input['float_amount'] | altunit }})</span>{% endif %}
+							<b>{{ _("Amount:") }}</b> {{ input.get('float_amount') | btcamount }} {% if input.get('float_amount') != None %} BTC {% endif %} {% if specter.price_check %} <span class="note">&nbsp;({{ input.get('float_amount') | altunit }})</span> {% endif %}
 						{% endif %}
 					</p>
 				{% endfor %}
@@ -201,10 +201,15 @@
 		<div id="signing_container" class="signing_container flex-column {% if psbt['raw'] %}hidden{% endif %}" style="text-align: center;">
 			<p style="margin-bottom: 15px; margin-top: 0px;">{{ _("Sign transaction with your:") }}</p>
 			{% for device in wallet.devices %}
-				{% set device_signed = (device.alias in psbt.get("devices_signed")) %}
-				<button type="button" class="btn signing-column-btn" id="{{ device.alias }}_tx_sign_btn" {% if device_signed %} disabled style="background-color:#303c49;" {% endif %}>
-					{{ device.name }} {% if device.alias in psbt.get('devices_signed',[]) %} (&#10004;) {% endif %}
-				</button>
+				{% if device.type != "bitcoincore_watchonly" %}
+					{% set device_signed = (device.alias in psbt.get("devices_signed")) %}
+					<button type="button" class="btn signing-column-btn" id="{{ device.alias }}_tx_sign_btn" {% if device_signed %} disabled style="background-color:#303c49;" {% endif %}>
+						{{ device.name }} {% if device.alias in psbt.get('devices_signed',[]) %} (&#10004;) {% endif %}
+					</button>
+				{% endif %}
+				{% if device.type == "bitcoincore_watchonly" %}
+					<p>{{ _("Cannot sign with a watchonly wallet") }}</p>
+				{% endif %}
 			{% endfor %}
 		</div>
 
@@ -342,7 +347,7 @@
 		}
 
 		async function combine(psbt1) {
-			let url = "{{ url_for('wallets_endpoint.combine', wallet_alias=wallet.alias) }}";
+			let url = "{{ url_for('wallets_endpoint_api.combine', wallet_alias=wallet.alias) }}";
 
 			var formData = new FormData();
 			formData.append("csrf_token", "{{ csrf_token() }}");
@@ -410,7 +415,7 @@
 
 		async function broadcastLocal(tx) {
 			showNotification(`{{ _('Sending transaction...') }}`);
-			let url="{{ url_for('wallets_endpoint.broadcast', wallet_alias=wallet.alias) }}";
+			let url="{{ url_for('wallets_endpoint_api.broadcast', wallet_alias=wallet.alias) }}";
 
 			var formData = new FormData();
 			formData.append("csrf_token", "{{ csrf_token() }}");
@@ -440,7 +445,7 @@
 
 		async function broadcastBlockExplorer(tx, explorer, useTor) {
 			showNotification(`{{ _('Sending transaction...') }}`, 0);
-			let url = "{{ url_for('wallets_endpoint.broadcast_blockexplorer', wallet_alias=wallet.alias) }}";
+			let url = "{{ url_for('wallets_endpoint_api.broadcast_blockexplorer', wallet_alias=wallet.alias) }}";
 	
 
 			var formData = new FormData();

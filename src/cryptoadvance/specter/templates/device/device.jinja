@@ -13,7 +13,7 @@
 	<h1 id="title">{{ device.name }}</h1>
 	{% from 'components/editable_title.jinja' import editable_title %}
 	{{ editable_title(device.name) }}
-	<form action="./" method="POST">
+	<form action="./" method="POST" style="margin-bottom: 15px;">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<div class="row" style="text-align: center; line-height: 2;">
 			{% include "device/components/device_type.jinja" %}
@@ -66,7 +66,11 @@
 	<div style="line-height: 1; margin-top: 30px;">
 		<form action="./" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-			<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">{{ _("Add more keys") }}</button>
+			{% if device.device_type != "bitcoincore_watchonly"%}
+				<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">{{ _("Add more keys") }}</button>
+			{% else %}
+				<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">{{ _("Convert to hot wallet") }}</button>
+			{% endif %}
 		</form>
 		<br>
 		{% if device.hwi_support %}

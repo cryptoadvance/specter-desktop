@@ -1,0 +1,251 @@
+{% extends "base.jinja" %}
+{% block head %}
+<style>
+
+    /* copied (and adapted for card-use) from here:
+    * "Fork me on GitHub" CSS ribbon v0.2.3 | MIT License
+    * https://github.com/simonwhitaker/github-fork-ribbon-css
+    */
+
+    .github-fork-ribbon {
+        width: 12.1em;
+        height: 12.1em;
+        position: relative;
+        overflow: hidden;
+        top: -0;
+        right: 0;
+        z-index: 1;
+        pointer-events: none;
+        font-size: 10px;
+        text-decoration: none;
+        text-indent: -999999px;
+    } 
+    
+    .github-fork-ribbon.fixed {
+        position: fixed;
+    }
+    
+    .github-fork-ribbon:hover, .github-fork-ribbon:active {
+        background-color: rgba(0, 0, 0, 0.0);
+    }
+    
+    .github-fork-ribbon:before, .github-fork-ribbon:after {
+        /* The right and left classes determine the side we attach our banner to */
+        position: absolute;
+        display: block;
+        width: 15.38em;
+        height: 1.54em;
+    
+        top: -6.23em;
+        right: -16.23em;
+    
+        -webkit-box-sizing: content-box;
+        -moz-box-sizing: content-box;
+        box-sizing: content-box;
+    
+        -webkit-transform: rotate(45deg);
+        -moz-transform: rotate(45deg);
+        -ms-transform: rotate(45deg);
+        -o-transform: rotate(45deg);
+        transform: rotate(45deg);
+    }
+    
+    .github-fork-ribbon:before {
+        content: "";
+    
+        /* Add a bit of padding to give some substance outside the "stitching" */
+        padding: .38em 0;
+    
+        /* Set the base colour */
+        background-color: #a00;
+    
+        /* Set a gradient: transparent black at the top to almost-transparent black at the bottom */
+        background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0, 0, 0, 0)), to(rgba(0, 0, 0, 0.15)));
+        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15));
+        background-image: -moz-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15));
+        background-image: -ms-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15));
+        background-image: -o-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15));
+        background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15));
+    
+        /* Add a drop shadow */
+        -webkit-box-shadow: 0 .15em .23em 0 rgba(0, 0, 0, 0.5);
+        -moz-box-shadow: 0 .15em .23em 0 rgba(0, 0, 0, 0.5);
+        box-shadow: 0 .15em .23em 0 rgba(0, 0, 0, 0.5);
+    
+        pointer-events: auto;
+    }
+    
+    .github-fork-ribbon:after {
+        /* Set the text from the data-ribbon attribute */
+        content: attr(data-ribbon);
+    
+        /* Set the text properties */
+        color: #fff;
+        font: 700 1em "Helvetica Neue", Helvetica, Arial, sans-serif;
+        line-height: 1.54em;
+        text-decoration: none;
+        text-shadow: 0 -.08em rgba(0, 0, 0, 0.5);
+        text-align: center;
+        text-indent: 0;
+    
+        /* Set the layout properties */
+        padding: .15em 0;
+        margin: .15em 0;
+    
+        /* Add "stitching" effect */
+        border-width: .08em 0;
+        border-style: dotted;
+        border-color: #fff;
+        border-color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .github-fork-ribbon.left-top, .github-fork-ribbon.left-bottom {
+        right: auto;
+        left: 0;
+    }
+    
+    .github-fork-ribbon.left-bottom, .github-fork-ribbon.right-bottom {
+        top: auto;
+        bottom: 0;
+    }
+    
+    .github-fork-ribbon.left-top:before, .github-fork-ribbon.left-top:after, .github-fork-ribbon.left-bottom:before, .github-fork-ribbon.left-bottom:after {
+        right: auto;
+        left: -3.23em;
+    }
+    
+    .github-fork-ribbon.left-bottom:before, .github-fork-ribbon.left-bottom:after, .github-fork-ribbon.right-bottom:before, .github-fork-ribbon.right-bottom:after {
+        top: auto;
+        bottom: 3.23em;
+    }
+    
+    .github-fork-ribbon.left-top:before, .github-fork-ribbon.left-top:after, .github-fork-ribbon.right-bottom:before, .github-fork-ribbon.right-bottom:after {
+        -webkit-transform: rotate(-45deg);
+        -moz-transform: rotate(-45deg);
+        -ms-transform: rotate(-45deg);
+        -o-transform: rotate(-45deg);
+        transform: rotate(-45deg);
+    }
+
+</style>
+
+{% endblock %}
+
+{% block main %}
+{% from 'services/components/plugin_card.jinja' import plugin_card %}
+
+<style>
+
+        .plugin_container {
+            border: 4px solid var(--cmap-border);
+            border-radius: 0.5em;
+            display: inline-block;
+            vertical-align: middle;
+            background-color: var(--cmap-bg-lighter);
+            width: 16em;
+            height: 13em;
+            cursor: pointer;
+            padding: 1em;
+            margin: 0.75em;
+        }
+        .plugin_container:hover {
+            background-color: var(--cmap-bg-lightest);
+            border: 4px solid var(--main-color);
+        }
+
+        .inner-border {
+            position: relative;
+            display: inline-block;
+            margin: 15px;
+        }
+        .inner-border:before {
+            border: 20px solid #192432;
+            z-index: 3;
+            padding: 10px;
+            content: "";
+            position: absolute;
+            top: -25px;
+            bottom: -25px;
+            left: -25px;
+            right: -25px;
+        }
+
+        .plugin_name {
+            font-size: 1.5em;
+        }
+        .plugin_description {
+            color: #ccc;
+        }
+
+
+        .endnote {
+            margin-top: 4em;
+        }
+    </style>
+    <h1 style="font-size: 2em;">{{ _("Plugins") }}</h1>
+    
+    {% if is_login_disabled %}
+        <div class="yellow_warn_box">
+            <p>{{ _("Current Authentication method: \"None\"")}}</p>
+            <p>{{ _("Service integrations require secure per-user storage. This is only possible with a user authentication method that is password protected (any method other than \"None\").") }}</p>
+            <br/>
+            <p>{{ _("Select a new method in:") }}<br/>
+            <a class="btn" href="{{ url_for('settings_endpoint.auth', next=url_for('services_endpoint.choose')) }}">{{ _("Settings") }}</a></p>
+        </div>
+    {% endif %}
+
+    <div class="card center" style="width: auto; min-width: 90%; margin: 40px;">
+        <hr>
+        <h2>Plugins in Production</h2>
+        <br>
+        
+
+        {% for plugin in services %}
+            {% if plugin.__class__.devstatus == "prod" %}
+                {{ plugin_card(plugin.name, plugin.desc, url_for(plugin.id + '_endpoint' + '.static', filename=plugin.icon), url_for(plugin.id + '_endpoint' + '.index')) }}
+            {% endif %}
+        {% endfor %}
+
+        <hr>
+        <h2>Plugins in Beta</h2>
+        <br>
+
+        {% for plugin in services %}
+            {% if plugin.__class__.devstatus == "beta" %}
+                {{ plugin_card(plugin.name, plugin.desc, url_for(plugin.id + '_endpoint' + '.static', filename=plugin.icon), url_for(plugin.id + '_endpoint' + '.index')) }}
+            {% endif %}
+        {% endfor %}
+
+        {{ plugin_card('Slush Pool', 'Import your mining rewards history', "https://github.com/kdmukai/slushpool-importer/raw/master/slushpool/static/slushpool/img/slushpool_icon.png", "https://github.com/kdmukai/slushpool-importer") }}
+
+        <hr>
+        <h2>Plugins in Alpha</h2>
+        <br>
+
+        {% for plugin in services %}
+            {% if plugin.__class__.devstatus == "alpha" %}
+                {{ plugin_card(plugin.name, plugin.desc, url_for(plugin.id + '_endpoint' + '.static', filename=plugin.icon), url_for(plugin.id + '_endpoint' + '.index')) }}
+            {% endif %}
+        {% endfor %}
+
+    
+        {{ plugin_card("Specter Dice", "Simulate Satoshi Dice on Regtest", "https://github.com/k9ert/specterext-dice/raw/v0.0.0-pre1/src/k9ert/specterext/dice/static/dice/dice_logo.png","https://github.com/k9ert/specterext-dice/tree/master/dice") }}
+
+        <hr>
+        <h2>Plugin Wishlist</h2>
+        <br>
+
+        {% include "services/components/wishlist.jinja" %}
+
+        <div class="note endnote">
+            {{ _("Some plugins might not respect the Tor-only policy.") }}
+        </div>
+    </div>
+{% endblock %}
+
+
+
+{% block scripts %}
+    <script>
+    </script>
+{% endblock %}

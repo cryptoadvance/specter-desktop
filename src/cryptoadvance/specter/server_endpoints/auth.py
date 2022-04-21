@@ -1,20 +1,15 @@
-import random, time
-from flask import (
-    Flask,
-    Blueprint,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    jsonify,
-    flash,
-)
-from flask_babel import lazy_gettext as _
-from flask_login import login_required, current_user, logout_user
-from flask import current_app as app
-from ..helpers import alias
-from ..user import User, hash_password, verify_password
+import random
+import time
 
+from flask import Blueprint, Flask
+from flask import current_app as app
+from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask_babel import lazy_gettext as _
+from flask_login import current_user, login_required, logout_user
+
+from ..helpers import alias
+from ..services import ExtensionException
+from ..user import User, hash_password, verify_password
 
 rand = random.randint(0, 1e32)  # to force style refresh
 last_sensitive_request = 0  # to rate limit sensitive requests
@@ -175,12 +170,31 @@ please request a new link from the node operator."
 
 @auth_endpoint.route("/logout", methods=["GET", "POST"])
 def logout():
+    # Clear the decrypted user_secret from memory
+    current_user.plaintext_user_secret = None
+
     logout_user()
     if "timeout" in request.args:
         flash(_("You were automatically logged out"), "info")
     else:
         flash(_("You were logged out"), "info")
     return redirect(url_for("auth_endpoint.login"))
+
+
+@auth_endpoint.route("/toggle_hide_sensitive_info/", methods=["POST"])
+@login_required
+@app.csrf.exempt  # might get called by a timeout in the browser --> csrf-issues
+def toggle_hide_sensitive_info():
+    try:
+        app.specter.update_hide_sensitive_info(
+            not app.specter.hide_sensitive_info, current_user
+        )
+        return {"success": True}
+    except Exception as e:
+        app.logger.warning(
+            "Failed to update sensitive info display settings. Exception: {}".format(e)
+        )
+    return {"success": False}
 
 
 ################### Util ######################
@@ -196,6 +210,17 @@ def redirect_login(request):
         response = redirect(request.form["next"])
     else:
         response = redirect(url_for("index"))
+
+    for service_id in app.specter.user_manager.get_user().services:
+        try:
+            service_cls = app.specter.service_manager.get_service(service_id)
+            service_cls.on_user_login()
+        except ExtensionException as ee:
+            if not str(ee).startswith("No such plugin"):
+                raise ee
+        except Exception as e:
+            app.logger.exception(e)
+
     return response
 
 
