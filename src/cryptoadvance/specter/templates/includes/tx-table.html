@@ -1003,10 +1003,8 @@
                     txRow.addEventListener('txRowSelected', (e) => {
                         let selectedRow = e.target; 
                         if (e.detail.selected) {
-                            // For some unknown reason, the event is triggered twice, so we have this workaround
-                            // checking whether it has been added
+                            // Good idea to Check whether it's already in before adding (had some issues with that)
                             if (this.selectedRows.filter(t => t.txid == e.detail.txid).length == 0) { 
-                                console.log("Adding ...")
                                 this.selectedRows.push({
                                     txid: e.detail.txid,
                                     vout: e.detail.vout,
