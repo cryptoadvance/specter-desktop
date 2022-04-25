@@ -77,7 +77,7 @@ cypress_test_task:
   npm_cache:
     folders:
       - ./node_modules
-      - /root/.cache/Cypress
+      - ../../root/.cache/Cypress # needs to be raltive 
     fingerprint_script: cat package-lock.json
     populate_script: npm ci
   cypress_script:
