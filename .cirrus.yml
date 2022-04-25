@@ -75,7 +75,9 @@ cypress_test_task:
     - virtualenv --version
   << : *PREP_STUFF_TEMPLATE
   npm_cache:
-    folder: ./node_modules
+    folders:
+      - ./node_modules
+      - /root/.cache/Cypress
     fingerprint_script: cat package-lock.json
     populate_script: npm ci
   cypress_script:
