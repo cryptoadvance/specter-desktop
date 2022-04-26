@@ -1003,12 +1003,15 @@
                     txRow.addEventListener('txRowSelected', (e) => {
                         let selectedRow = e.target; 
                         if (e.detail.selected) {
-                            this.selectedRows.push({
-                                txid: e.detail.txid,
-                                vout: e.detail.vout,
-                                amount: e.detail.amount.toFixed(8),
-                                locked: e.detail.locked, 
-                            });
+                            // Good idea to Check whether it's already in before adding (had some issues with that)
+                            if (this.selectedRows.filter(t => t.txid == e.detail.txid).length == 0) { 
+                                this.selectedRows.push({
+                                    txid: e.detail.txid,
+                                    vout: e.detail.vout,
+                                    amount: e.detail.amount.toFixed(8),
+                                    locked: e.detail.locked, 
+                                });
+                            }
                         } else {
                             // Remove unselected rows from array
                             this.selectedRows = this.selectedRows.filter(row => !(row.txid === e.detail.txid && row.vout === e.detail.vout))
