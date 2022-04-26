@@ -28,6 +28,7 @@ nav:
       - 'Continuous Integration': continuous-integration.md
       - cypress-testing.md
       - services/services.md
+      - 'Architectural Notes': architecture.md
       - 'Some Random Dev Thoughts': archblog.md
     - API:
       - api/README.md
