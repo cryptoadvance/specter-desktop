@@ -48,7 +48,6 @@ let appSettings = getAppSettings()
 let dimensions = { widIth: 1500, height: 1000 };
 
 const contextMenu = require('electron-context-menu');
-const { options } = require('request')
 
 contextMenu({
 	menu: (actions) => [
