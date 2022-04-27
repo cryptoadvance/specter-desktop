@@ -71,12 +71,10 @@
     </style>
     <div class="tool-tip">
         <i class="tool-tip__icon">i</i>
-        <p class="tool-tip__info">
-            <span>
-                <span class="info__title"></span><br><br>
-                <slot></slot>
-            </span>
-        </p>
+        <div class="tool-tip__info">
+            <slot name="title" class="info__title"></slot>
+            <slot name="paragraph" style="display: block"></slot>
+        </div>
     </div>
     
 </template>

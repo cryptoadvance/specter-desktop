@@ -17,34 +17,20 @@
 					<qr-scanner id="psbt-scan" style="width:50%">
 						<a slot="button" href="#" class="btn" style="margin: 8px;">
 							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Scan") }}
-							<div class="tool-tip">
-								<i class="tool-tip__icon">i</i>
-								<p class="tool-tip__info">
-									<span class="info">
-										<span class="info__title">{{ _("Using an airgapped device with QR codes") }}<br><br></span>
-										{{ _("PSBT should be base64 encoded, raw transaction can be signed or unsigned and should be in hex.") }}
-									</span>
-								</p>
-							</div>
+							<tool-tip>
+								<h4 slot="title">{{_('Using an airgapped device with QR codes') }}</h4>
+								<span slot="paragraph">{{ _('PSBT should be base64 encoded, raw transaction can be signed or unsigned and should be in hex.') }}
+								</span>
+							</tool-tip>
 						</a>
 					</qr-scanner>
-					<file-uploader id="psbt-uploader" image_src="{{ url_for('static', filename='img/file.svg') }}">
-						<span slot="description">Upload file</span>
-						<tool-tip slot="tool-tip" title="{{ _('Using a file') }}">{{ _("The file should contain either base64 or binary encoded PSBT.") }}</tool-tip>
+					<file-uploader id="psbt-uploader" image_src="{{ url_for('static', filename='img/file.svg') }}" button_width="250px">
+						<span slot="description">Choose file</span>
+						<tool-tip slot="tool-tip"> 
+							<h4 slot="title">{{ _('Using a file') }}</h4>
+							<span slot="paragraph">{{ _("PSBT can be base64 or binary encoded, raw transaction can be signed or unsigned and should be in hex.") }}</span>
+						</tool-tip>
 					</file-uploader>
-					<input type="file" id="file" class="inputfile"/>
-					<label for="file" class="btn" style="margin: 8px;">
-						<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Choose file") }}
-						<div class="tool-tip">
-							<i class="tool-tip__icon">i</i>
-							<p class="tool-tip__info">
-								<span class="info">
-									<span class="info__title">{{ _("Using a file") }}<br><br></span>
-									{{ _("PSBT can be base64 or binary encoded, raw transaction can be signed or unsigned and should be in hex.") }}
-								</span>
-							</p>
-						</div>
-					</label>
 				</div>
 				<button type="submit" name="action" value="importpsbt" class="btn centered" style="margin-top: 20px;">{{ _("Import transaction") }}</button>
 			</div>
@@ -52,17 +38,13 @@
 {% endblock %}
 
 {% block scripts %}
-
 <script type="text/javascript">
-	let uploader = document.getElementById('psbt-uploader');
-	uploader.addEventListener('upload', e => {
+	let textarea = document.getElementById("rawpsbt")
+	document.addEventListener('file-upload', e => {
 		let result = e.detail.result;
-		console.log(result);
-		document.getElementById("rawpsbt").value = result;
-	});
-</script>
+		textarea.value = result
+	})
 
-<script type="text/javascript">
 	let scanner = document.getElementById('psbt-scan');
 	if(scanner != null) {
 		scanner.addEventListener('scan', e=>{

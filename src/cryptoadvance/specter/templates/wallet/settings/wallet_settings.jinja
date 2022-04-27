@@ -181,30 +181,33 @@
 				<div class="row aligned">
 					<textarea name="address_labels_data" 
 					id="address_labels_data" 
-					placeholder="{{ _('You can paste or drag & drop here: Electrum JSON file, Specter addresses CSV or Specter JSON file.') }}"  
+					placeholder="{{ _('You can paste and drag & drop here') }}
+					{{ _('(Electrum JSON file, Specter addresses CSV or Specter JSON file)') }}"  
 					ondrop="dropHandler(event);" 
 					ondragover="dragOverHandler(event);"
 					ondragleave="dragLeaveHandler(event);" 
 					ondragexit="dragExitHandler(event);" 
-					ondragend="dragEndHandler(event);">
+					ondragend="dragEndHandler(event);"
+					style="margin-bottom: 20px; height: 150px; font-size: 13px;">
 					</textarea>
+					<file-uploader id="label-uploader" image_src="{{ url_for('static', filename='img/file.svg') }}" image_width="30px" button_width="137px" button_height="50px" button_color="hsl(217, 20%, 35%)">
+						<span slot="description">or upload file</span>
+					</file-uploader>
+				</div>
+				<div class="row center">
 					<button type="submit" name="action" value="import_address_labels" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Import") }}
-						<tool-tip title="{{ _('Importing labels') }}">
-							{{ _('The expected format for Electrum contains:') }}<br>
-							{{ _('{"8a5e4...": "some tx id label", "bc1qj3...": "some address label"}') }}<br><br>
-							{{ _('The expected format for Specter JSON contains:') }}<br>
-							{{ _('{"labels": {"some_label": ["bc1qj3..."], ...}') }}<br><br>
-							{{ _('The expected format for Specter CSV contains:') }}<br>
-							{{ _('Address,Label') }}<br>
-							{{ _('bc1qj3...,some_label') }}<br> 
+						<tool-tip>
+							<span slot="paragraph">
+								{{ _('The expected format for Electrum contains:') }}<br>
+								{{ _('{"8a5e4...": "some tx id label", "bc1qj3...": "some address label"}') }}<br><br>
+								{{ _('The expected format for Specter JSON contains:') }}<br>
+								{{ _('{"labels": {"some_label": ["bc1qj3..."], ...}') }}<br><br>
+								{{ _('The expected format for Specter CSV contains:') }}<br>
+								{{ _('Address,Label') }}<br>
+								{{ _('bc1qj3...,some_label') }}<br> 
+							</span>
 						</tool-tip>
 					</button>
-				</div>
-				<div class="row aligned">
-					<file-uploader id="label-uploader" image_src="{{ url_for('static', filename='img/file.svg') }}">
-						<span slot="description">Upload labels from file</span>
-						<tool-tip slot="tool-tip" title="{{ _('Using a file') }}">{{ _("The file should be a JSON or CSV file.") }}</tool-tip>
-					</file-uploader>
 				</div>
 			</form>
 			<div class="section-separator"></div>
@@ -384,9 +387,7 @@
 			console.log(result);
 			document.getElementById("address_labels_data").value = result;
 		});
-	</script>
 
-	<script>
 		document.addEventListener("DOMContentLoaded", function(){
 			let walletDataSpecterFormat = encodeURIComponent(`{{ wallet.to_json(for_export=True)|tojson }}`)
 			document.getElementById('export_specter_format').href = "data:text/json;charset=utf-8," + walletDataSpecterFormat;
@@ -471,6 +472,18 @@
 					break;
             }
         }
+
+        let textarea = document.getElementById("address_labels_data")
+		document.addEventListener('file-upload', e => {
+		let result = e.detail.result;
+		textarea.value = result
+		})
+
+		// Makes sure that the textarea for labels is cleared
+		document.addEventListener("DOMContentLoaded", () => {
+			let textarea = document.getElementById("address_labels_data")
+			textarea.value = ""
+		})
 	</script>
 
 {% endblock %}
