@@ -106,10 +106,14 @@
             <span class="amount-price note hidden">()</span>
         </td>
         <td id="column-time" class="time"></td>
-        <td id="column-confirmations" >
-            <span class="confirmations"></span>
-            <button class="rbf btn optional hidden" style="width: 130px; float: right;" type="button">{{ _("Speed up") }}</button>
-            <button class="rbf-cancel danger btn optional hidden" style="width: 130px; float: right; margin-right: 10px;" type="button">{{ _("Cancel transaction") }}</button>
+        <td id="column-confirmations">
+            <div style="display: flex; align-items: center;">
+                <span class="confirmations"></span>
+                <div style="flex:1; display: flex; justify-content: center; align-items: center; flex-wrap: wrap;">
+                    <button class="rbf btn optional hidden" style="width: 130px; flex-grow: 0; margin: 5px;" type="button">{{ _("Speed up") }}</button>
+                    <button class="rbf-cancel danger btn optional hidden" style="width: 130px; flex-grow: 0; margin: 5px;" type="button">{{ _("Cancel transaction") }}</button>
+                </div>
+            </div>
         </td>
         <td class="hidden optional blockhash"></td>
         <td id="column-action" class="highlight-box">
