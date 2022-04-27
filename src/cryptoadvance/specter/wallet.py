@@ -970,7 +970,10 @@ class Wallet:
 
     def toggle_freeze_utxo(self, utxo_list):
         # utxo = ["txid:vout", "txid:vout"]
+        utxo_list_done = []  # Preventing Duplicates server-side
         for utxo in utxo_list:
+            if utxo in utxo_list_done:
+                continue
             if utxo in self.frozen_utxo:
                 try:
                     self.rpc.lockunspent(
@@ -981,6 +984,7 @@ class Wallet:
                     # UTXO was spent
                     print(e)
                     pass
+                logger.info(f"Unfreeze {utxo}")
                 self.frozen_utxo.remove(utxo)
             else:
                 try:
@@ -992,7 +996,9 @@ class Wallet:
                     # UTXO was spent
                     print(e)
                     pass
+                logger.info(f"Freeze {utxo}")
                 self.frozen_utxo.append(utxo)
+            utxo_list_done.append(utxo)
 
         self.save_to_file()
 
