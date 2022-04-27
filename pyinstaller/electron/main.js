@@ -481,13 +481,16 @@ function setMainMenu() {
 }
 
 
-function openNewWindow(htmlContentFile) {
+function openNewWindow(htmlContentFile, width, height) {
+  if (! width) {width=700}
+  if (! height) {height=750}
   prefWindow = new BrowserWindow({
-    width: 700,
-    height: 750,
+    width: width,
+    height: height,
     autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: true,
+      contextIsolation: false, // acceptable as this is not the mainwindow. No remote content!
       enableRemoteModule: true,
       
     }
@@ -506,7 +509,9 @@ function openPreferences() {
 }
 
 function openErrorLog() {
-  openNewWindow("error_logs.html")
+  width = parseInt(dimensions.width * 0.7),
+  height = parseInt(dimensions.height * 0.7)
+  openNewWindow("error_logs.html", width, height)
 }
 
 function showError(error) {
