@@ -1,7 +1,7 @@
 <html>
     <link rel="stylesheet" type="text/css" href="./styles.css">
     <body style="overflow: auto; height: 100%;">
-	<div class="card" style="width:90%; max-width: 1000px;">
+	<div class="card" style="width:90%">
 		This window shows you the last 700 lines Logs of the specterApp. This also includes 
         the Logs of specterd which are marked as such. It might give you hints on why specter is not coming up properly.
         The best approach is to scroll to the bottom and then search upwards for errors.
@@ -16,11 +16,7 @@
         const helpers = require('./helpers')
         helpers.getSpecterAppLogs( (lines) => {
             document.getElementById('specterapp-logs').innerText = lines
-        })
-        
-
-
-        
+        }) 
 
     </script>
     </body>
