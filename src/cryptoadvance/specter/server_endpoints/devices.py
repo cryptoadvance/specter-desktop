@@ -86,7 +86,7 @@ def new_device_keys(device_type):
                     err = _("Failed to parse these xpubs") + ":\n" + "\n".join(xpub)
                     break
         if device_type == "electrum":
-            keys.append(Key.parse_xpub(request.form["xpub"]))
+            keys.append(Key.parse_xpub(request.form["master_pub_key"]))
         if not keys and not err:
             if device_type in [
                 DeviceTypes.BITCOINCORE,
@@ -189,8 +189,6 @@ def new_device_keys(device_type):
         range_end=range_end,
         device_name=request.form.get("device_name", ""),
         master_pub_key=request.form.get("master_pub_key", ""),
-        derivation_path=request.form.get("derivation_path", ""),
-        root_fingerprint=request.form.get("root_fingerprint", ""),
         existing_device=app.specter.device_manager.get_by_alias(existing_device)
         if existing_device
         else None,

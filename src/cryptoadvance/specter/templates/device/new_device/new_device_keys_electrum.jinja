@@ -6,7 +6,7 @@
          background-color: var(--cmap-bg);
     }
     h2 {
-         margin:  0px 0px 14px 0px;
+         margin:  0 0 25px 0;
          min-width: 410px;
     }
     </style>
@@ -21,35 +21,23 @@
                 <input type="text" name="device_name" placeholder="My Electrum device" id="device_name" value="{{ device_name }}" required/>
             </h2>
             <br>
+            <br>
             <h2>{{ _("Master public key:") }}
                 <input id="master_pub_key" name="master_pub_key" value="{{ master_pub_key }}" placeholder="Your master public key" required>
             </h2>
             <br>
-            <h2>{{ _("Derivation path:") }}
-                <input id="derivation_path" name="derivation_path" placeholder="Your derivation path" value={{ derivation_path if derivation_path else "m/0'" }} required>
-            </h2>
             <br>
-            <h2>{{ _("Root fingerprint:") }}
-                <input id="root_fingerprint" name="root_fingerprint" value="{{ root_fingerprint }}" placeholder="Your root fingerprint" required>
-            </h2>
-            <br>
-            <span id="toggle-explainer" style="cursor: pointer; margin: 0 0 5px 0; align-self: start; font-size: 1.2em;">
+            <span id="toggle-explainer" style="cursor: pointer; margin: 0 0 25px 0; align-self: start; font-size: 1.2em;">
                 &#128218; {{ _("How to get this info from Electrum?") }} &#9654;
             </span>
             <div id="text-explainer" class="hidden">
                 <p style="max-width: 300px">
-                    {{ _('Under "Wallet" and "Information" you can find the Master Public Key and the derivation path: ') }}
+                    {{ _('You can find the master public key under "Wallet" and "Information":') }}
                 </p>
                 <img src="{{ url_for('static', filename='img/electrum_manual/1.png')}}" alt=_("Select Wallet  -  Information") style="width: 250px; height: 300px">
-                <img src="{{ url_for('static', filename='img/electrum_manual/2a.png')}}" alt=_("Copy the master public key and derivation path") style="width: 415px; height: 300px"> 
-                <p style="max-width: 300px">
-                    {{ _("To get the root fingerprint, go to the console and type the command:") }}
-                     <code>wallet.get_keystores()[0].get_root_fingerprint()</code>
-                </p>
-                <img src="{{ url_for('static', filename='img/electrum_manual/3.png') }}" alt=_("View -  Show Console") style="width: 200px; height: 200px">
-                <img src="{{ url_for('static', filename='img/electrum_manual/4.png') }}" alt=_("Paste in console 'wallet.get_keystores()[0].get_root_fingerprint()'") style="width: 415px; height: 110px">  
+                <img src="{{ url_for('static', filename='img/electrum_manual/2.png')}}" alt=_("Copy the master public key and derivation path") style="width: 410px; height: 300px"> 
             </div>
-            <button type="submit" class="btn centered" style="font-size: 14px; margin-top: 5px" name="action" value="newelectrumdevice" onsubmit="showPacman()">{{ _("Continue") }}</button>   
+            <button type="submit" class="btn centered" style="font-size: 14px;" name="action" value="newelectrumdevice" onsubmit="showPacman()">{{ _("Continue") }}</button>   
             </div>     
         </form>
     
@@ -70,17 +58,6 @@
                 toggle.innerHTML = '&#128218; ' + 'How to get this info from Electrum?' + ' &#9654;';
             }
         }
-
-        const form = document.getElementById('form');
-        form.onsubmit = xpubCreation
-        function xpubCreation(event) {
-            let masterPubKey = document.getElementById("master_pub_key")
-            let rootFingerprint = document.getElementById("root_fingerprint")
-            let derivationPath = document.getElementById("derivation_path")
-            let xpub = document.getElementById("xpub")
-            xpub.value = `[${rootFingerprint.value}/${derivationPath.value.replace('m/', '')}]${masterPubKey.value}`
-        }
-
         document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('toggle-explainer').addEventListener('click', (event) => {
                 toggleExplainer();
