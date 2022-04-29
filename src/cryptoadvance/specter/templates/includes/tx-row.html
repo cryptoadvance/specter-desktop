@@ -107,18 +107,18 @@
         </td>
         <td id="column-time" class="time"></td>
         <td id="column-confirmations">
-            <div style="display: flex; align-items: center;">
+            <div style="display: flex;">
                 <span class="confirmations"></span>
-                <div style="flex:1; display: flex; justify-content: center; align-items: center; flex-wrap: wrap;">
-                    <button class="rbf btn optional hidden" style="width: 130px; flex-grow: 0; margin: 5px;" type="button">{{ _("Speed up") }}</button>
-                    <button class="rbf-cancel danger btn optional hidden" style="width: 130px; flex-grow: 0; margin: 5px;" type="button">{{ _("Cancel transaction") }}</button>
-                </div>
             </div>
         </td>
         <td class="hidden optional blockhash"></td>
         <td id="column-action" class="highlight-box">
             <input class="select-tx-value" type="hidden" value="">
             <img style="vertical-align: middle;" class="select-tx-img" src="{{ url_for('static', filename='img/checkbox-untick.svg') }}" width="25px">
+            <div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap;">
+                <button class="rbf btn optional hidden" style="width: 130px; margin: 2px;" type="button">{{ _("Speed up") }}</button>
+                <button class="rbf-cancel danger btn optional hidden" style="width: 130px; margin: 2px;" type="button">{{ _("Cancel transaction") }}</button>
+            </div>
         </td>
     </tr>
 </template>
