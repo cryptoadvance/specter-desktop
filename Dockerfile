@@ -18,9 +18,9 @@ RUN apt update && apt install -y git build-essential libusb-1.0-0-dev libudev-de
 
 WORKDIR /
 
-COPY . .
-
 WORKDIR /specter-desktop
+
+COPY . .
 
 RUN pip3 install --upgrade pip
 RUN pip3 install babel cryptography
@@ -31,8 +31,6 @@ FROM python:3.9-slim-bullseye as final
 
 ARG USER
 ARG DIR
-
-LABEL maintainer="nolim1t (hello@nolim1t.co)"
 
 RUN apt update && apt install -y libusb-1.0-0-dev libudev-dev
 
