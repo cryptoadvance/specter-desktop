@@ -4,7 +4,7 @@ import random
 from functools import wraps
 
 import requests
-from cryptoadvance.specter.util.psbt_creator import PsbtCreator
+from cryptoadvance.specter.commands.psbt_creator import PsbtCreator
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from cryptoadvance.specter.wallet import Wallet
 from cryptoadvance.specter.util.tx import is_hex, convert_rawtransaction_to_psbt

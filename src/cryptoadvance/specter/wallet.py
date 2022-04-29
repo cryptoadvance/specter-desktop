@@ -15,7 +15,7 @@ from embit.transaction import Transaction
 from io import StringIO
 from typing import List
 
-from cryptoadvance.specter.util.utxo_scanner import UtxoScanner
+from cryptoadvance.specter.commands.utxo_scanner import UtxoScanner
 
 from .addresslist import Address, AddressList
 from .device import Device
