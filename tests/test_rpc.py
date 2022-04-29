@@ -28,19 +28,24 @@ def test_BitcoinRpc(bitcoin_regtest):
 
 def test_BitcoinRpc_timeout(bitcoin_regtest, caplog):
     brt = bitcoin_regtest  # stupid long name
+    BitcoinRPC.default_timeout = 0.001
     rpc = BitcoinRPC(
         brt.rpcconn.rpcuser,
         brt.rpcconn.rpcpassword,
         host=brt.rpcconn.ipaddress,
         port=brt.rpcconn.rpcport,
     )
-    rpc.timeout = 0.0000000000001
-    try:
+
+    with pytest.raises(SpecterError) as se:
         rpc.createwallet("some_test_wallet_name_392")
-        assert False, "Should raise an exception"
-    except SpecterError:
-        assert "Timeout after " in caplog.text
-        assert (
-            "while BitcoinRPC call(                            ) payload:[{'method': 'createwallet', 'params': ['some_test_wallet_name_392'], 'jsonrpc': '2.0', 'id': 0}]"
-            in caplog.text
-        )
+    assert "Timeout after 0.001" in str(se.value)
+    assert (
+        "while BitcoinRPC call(                            ) payload:[{'method': 'createwallet', 'params': ['some_test_wallet_name_392'], 'jsonrpc': '2.0', 'id': 0}]"
+        in caplog.text
+    )
+
+    rpc.timeout = 0.0001
+    with pytest.raises(SpecterError) as se:
+        rpc.createwallet("some_test_wallet_name_393")
+    assert "Timeout after 0.0001" in str(se.value)
+    assert "Timeout after 0.001" in caplog.text
