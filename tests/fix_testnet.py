@@ -2,7 +2,7 @@
 
 """
 
-from argon2 import hash_password
+from cryptoadvance.specter.user import User, hash_password
 import pytest
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.user import User
@@ -27,7 +27,9 @@ def specter_testnet_configured(bitcoin_regtest, devices_filled_data_folder):
         },
     }
     specter = Specter(data_folder=devices_filled_data_folder, config=config)
+    specter.check()
     assert specter.chain == "test"
+
     # Create a User
     someuser = specter.user_manager.add_user(
         User.from_json(
