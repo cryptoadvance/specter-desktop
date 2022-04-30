@@ -52,7 +52,7 @@ class KeepkeyFeatures(Features):  # type: ignore
         self.firmware_hash = firmware_hash
 
     @classmethod
-    def get_fields(cls) -> Dict[int, p.FieldInfo]:
+    def get_fields(cls) -> Dict[int, p.Field]:
         return {
             1: ("vendor", p.UnicodeType, None),
             2: ("major_version", p.UVarintType, None),
@@ -88,7 +88,7 @@ class KeepkeyResetDevice(ResetDevice):  # type: ignore
         self.auto_lock_delay_ms = auto_lock_delay_ms
 
     @classmethod
-    def get_fields(cls) -> Dict[int, p.FieldInfo]:
+    def get_fields(cls) -> Dict[int, p.Field]:
         return {
             1: ("display_random", p.BoolType, None),
             2: ("strength", p.UVarintType, 256),  # default=256
@@ -119,7 +119,7 @@ class KeepkeyDebugLinkState(DebugLinkState):  # type: ignore
         self.storage_hash = storage_hash
 
     @classmethod
-    def get_fields(cls) -> Dict[int, p.FieldType]:
+    def get_fields(cls) -> Dict[int, p.Field]:
         return {
             1: ("layout", p.BytesType, None),
             2: ("pin", p.UnicodeType, None),
