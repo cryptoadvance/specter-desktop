@@ -21,7 +21,7 @@ from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
 from .helpers import get_address_from_dict
 from .persistence import write_json_file, delete_file, delete_folder
-from .specter_error import SpecterError
+from .specter_error import SpecterError, handle_exception
 from .txlist import TxList
 from .util.psbt import SpecterPSBT
 from .util.tx import decoderawtransaction
@@ -629,7 +629,8 @@ class Wallet:
             # sometimes last_block is invalid, not sure why
             try:
                 obj = self.rpc.listsinceblock(self.last_block)
-            except:
+            except Exception as e:
+                handle_exception(e)
                 logger.error(f"Invalid block {self.last_block}")
                 obj = self.rpc.listsinceblock()
         txs = obj["transactions"]
@@ -749,7 +750,8 @@ class Wallet:
             change_descriptor = wallet_dict["change_descriptor"]
             keys = [Key.from_json(key_dict) for key_dict in wallet_dict["keys"]]
             devices = wallet_dict["devices"]
-        except:
+        except Exception as e:
+            handle_exception(e)
             logger.error("Could not construct a Wallet object from the data provided.")
             return
 
@@ -824,7 +826,8 @@ class Wallet:
         # check if address was used already
         try:
             value_on_address = self.rpc.getreceivedbyaddress(self.change_address, 0)
-        except:
+        except Exception as e:
+            handle_exception(e)
             # Could happen if address not in wallet (wallet was imported)
             # try adding keypool
             logger.info(
