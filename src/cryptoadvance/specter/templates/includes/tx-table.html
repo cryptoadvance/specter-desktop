@@ -939,7 +939,14 @@
                 } else {
                     pending_psbts = []
                 }
-                for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) { 
+                for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) {
+                    // This is currently not needed since the UTXO list API endpoint does not return "bip125-replaceable" and thus the rbf buttons are hidden in the tx-row web component
+                    if (this.utxoViewBtn.classList.contains("checked")) {
+                        if (txRow.tx["bip125-replaceable"] && txRow.tx["bip125-replaceable"] == "no") {
+                            txRow.rbf.classList.add('hidden');
+                            txRow.rbfCancel.classList.add('hidden');
+                        }
+                    }
                     // EventListener when hovering over checkboxes
                     txRow.selectTxImg.addEventListener("mouseover", () => {
                         this.actionTeaserDiv.style.color = 'orange';
