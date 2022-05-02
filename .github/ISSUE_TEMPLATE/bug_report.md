@@ -24,15 +24,11 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
- - OS: [e.g. iOS]
+ - Where is your node running: [e.g. raspiblitz, MyNode, umbrel, local(internal), local(external)]
+ - Where is your specter running: [e.g. Raspiblitz, Node, umbrel, binary]
+ - If you're running a binary, which OS: [e.g. Linux, MacOs, Windows]
  - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
-
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+ - Specter Version [e.g. 1.9.4]
 
 **Additional context**
 Add any other context about the problem here.
