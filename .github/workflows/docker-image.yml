@@ -62,4 +62,4 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create final manifest
-        run: ./create-manifest.sh "ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}" "${BRANCH}"
+        run: ./utils/create-manifest.sh "ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}" "${BRANCH}"
