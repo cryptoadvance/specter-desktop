@@ -9,7 +9,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-ARG VERSION=master # (CHANGED)
+ARG VERSION=master
 ARG REPO=https://github.com/cryptoadvance/specter-desktop
 ARG USER=specter
 ARG DIR=/data/
