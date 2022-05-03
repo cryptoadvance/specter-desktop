@@ -40,7 +40,7 @@ FROM python:3.8.11-slim-buster as final
 ARG USER
 ARG DIR
 
-LABEL maintainer="k9ert (k9ert@gmx.net)" # (CHANGED)
+LABEL maintainer="k9ert (k9ert@gmx.net)"
 
 RUN apt update && apt install -y libusb-1.0-0-dev libudev-dev
 
