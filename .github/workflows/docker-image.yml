@@ -9,7 +9,7 @@ on:
 jobs:
 
   build-amd64:
-    name: Build image (AMD64)
+    name: Build Image (AMD64)
     runs-on: ubuntu-20.04
 
     steps:
