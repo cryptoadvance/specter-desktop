@@ -208,8 +208,9 @@ function wait_on_master() {
     fi
 
     echo "# ERROR: I'm confused. This should not happened, exiting 99"
+    echo "# current_state = $current_state"
+    echo "# different_conclusions = $different_conclusions"
     echo "# conclusion = $conclusion"
-    #echo $current_state
     exit 99
 }
 
