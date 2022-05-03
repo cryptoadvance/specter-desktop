@@ -10,12 +10,18 @@ on: [push,pull_request]
 jobs:
 
   build-amd64:
-    name: Build Image (AMD64)
+    name: Build image (AMD64)
     runs-on: ubuntu-20.04
 
     steps:
     - name: Checkout project
       uses: actions/checkout@v3
+
+    - name: Set env variables
+      run: |
+        echo "BRANCH=$(echo ${GITHUB_REF#refs/heads/} | sed 's/\//-/g')" >> $GITHUB_ENV
+        IMAGE_NAME="${GITHUB_REPOSITORY#*/}"
+        echo "IMAGE_NAME=${IMAGE_NAME//docker-/}" >> $GITHUB_ENV
 
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v1 
@@ -28,4 +34,4 @@ jobs:
       run: |
           docker build . \
           --file Dockerfile \
-          --tag ghcr.io/${{ github.repository_owner }}/specter-desktop:$BRANCH-amd64
+          --tag ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$BRANCH-amd64
