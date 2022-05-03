@@ -9,7 +9,7 @@ from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 
-from devices_and_wallets import create_hot_wallet_with_ID
+from fix_devices_and_wallets import create_hot_wallet_with_ID
 
 
 def almost_equal(a: Number, b: Number, precision: float = 0.01) -> bool:
