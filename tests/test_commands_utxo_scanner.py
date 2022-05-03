@@ -49,7 +49,7 @@ def test_rescan_utxo(specter_testnet_configured: Specter, caplog):
         assert_exact_utxo_set(utxos)
 
     else:
-        # On a non-pruned_node, you don't need any explorer
+        # With a full node, you don't need any explorer
         mycmd = UtxoScanner(wallet)
         mycmd.execute(asyncc=False)
         utxos = wallet.full_utxo

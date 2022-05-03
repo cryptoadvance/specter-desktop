@@ -16,7 +16,7 @@ def specter_testnet_configured(bitcoin_regtest, devices_filled_data_folder):
         "rpc": {
             "autodetect": False,
             "datadir": "",
-            "user": "bitcoin",
+            "user": "bitcoin", # change this to your credential in bitcoin.conf (for testnet)
             "password": "secret",
             "port": 18332,
             "host": "localhost",
