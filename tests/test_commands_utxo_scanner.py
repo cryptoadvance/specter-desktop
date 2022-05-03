@@ -1,5 +1,6 @@
 import logging
 from random import randint
+import time
 import pytest
 from cryptoadvance.specter.commands.utxo_scanner import UtxoScanner
 from cryptoadvance.specter.specter import Specter
@@ -10,6 +11,7 @@ from fix_devices_and_wallets import create_hot_wallet_device, create_hot_wallet_
 @pytest.mark.skip()
 def test_rescan_utxo(specter_testnet_configured: Specter, caplog):
     caplog.set_level(logging.DEBUG)
+    logging.getLogger("urllib3.connectionpool").setLevel(logging.INFO)
     specter: Specter = specter_testnet_configured
     is_pruned_node = specter.rpc.getblockchaininfo()["pruned"]
     assert is_pruned_node
@@ -22,19 +24,23 @@ def test_rescan_utxo(specter_testnet_configured: Specter, caplog):
         11 * "hold " + "accident",
     )
     assert hot_device
-    wallet = create_hot_wallet_with_ID(
+    wallet: Wallet = create_hot_wallet_with_ID(
         specter_testnet_configured, hot_device, "hold_accident"
     )
 
     if is_pruned_node:
 
-        # Currently, the pruned node still operates like a full_node
+        # The pruned node on testnet might have incredible lots of TXs
         mycmd = UtxoScanner(wallet)
         mycmd.execute(asyncc=False)
+        # check_utxo is not part of the execution (but maybe should?!).
+        # It's usually called from the server_endpoints
+        wallet.check_utxo()
         utxos = wallet.full_utxo
         assert len(utxos) == 6
-        assert_exact_utxo_set(utxos)
+        # assert_exact_utxo_set(utxos)
 
+        # When the txs are no longer in th pruned-set, this should work:
         # With an explorer, it should work on a pruned_node:
         mycmd = UtxoScanner(wallet, explorer="https://mempool.space/testnet/")
         mycmd.execute(asyncc=False)
@@ -43,7 +49,7 @@ def test_rescan_utxo(specter_testnet_configured: Specter, caplog):
         assert_exact_utxo_set(utxos)
 
     else:
-        # On a pruned_node, you don't need any explorer
+        # On a non-pruned_node, you don't need any explorer
         mycmd = UtxoScanner(wallet)
         mycmd.execute(asyncc=False)
         utxos = wallet.full_utxo

@@ -785,6 +785,9 @@ def settings(wallet_alias):
             )
             app.specter.info["utxorescan"] = 1
             app.specter.utxorescanwallet = wallet.alias
+            flash(
+                "Rescan started. Check the status bar on the left for progress and/or the logs for potential issues."
+            )
         elif action == "abortrescanutxo":
             app.specter.abortrescanutxo()
             app.specter.info["utxorescan"] = None

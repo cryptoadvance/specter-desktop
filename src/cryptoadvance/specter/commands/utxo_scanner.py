@@ -39,7 +39,7 @@ class UtxoScanner:
             self._execute()
 
     def _execute(self):
-        self.prepare_scantxoutset_args()
+        self.args = self.get_scantxoutset_args()
         # get something like:
         # [{'txid': '917a4d55...', 'vout': 1, 'scriptPubKey': '0014c313...5b19317',
         #   'desc': "wpkh([e3b947d9/84'/1'/0'/1/0]0244290480...ab2f94d940a7a)#gey9w279",
@@ -104,8 +104,8 @@ class UtxoScanner:
         self.wallet.fetch_transactions()
         self.wallet.check_addresses()
 
-    def prepare_scantxoutset_args(self):
-        self.args = [
+    def get_scantxoutset_args(self):
+        return [
             "start",
             [
                 {
@@ -145,7 +145,7 @@ class UtxoScanner:
             # get next
             self.wallet.getnewaddress(change=False, save=False)
             updated = True
-        while max_change >= self.wallet.change_index:
+        if max_change >= self.wallet.change_index:
             # skip to max_change
             self.wallet.change_index = max_change
             logger.info(f"Adjusted change_index of {self.wallet} to {max_change}")
