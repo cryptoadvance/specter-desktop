@@ -8,7 +8,7 @@ from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.util.common import str2bool
 
 from ..helpers import is_testnet
-from .descriptor import AddChecksum, Descriptor
+from ..util.descriptor import AddChecksum, Descriptor
 
 logger = logging.getLogger(__name__)
 

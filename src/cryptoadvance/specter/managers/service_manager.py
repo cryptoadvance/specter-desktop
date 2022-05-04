@@ -133,10 +133,6 @@ class ServiceManager:
             ext_prefix = app.config["EXT_URL_PREFIX"]
 
         try:
-            app.register_blueprint(
-                clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
-            )
-            logger.info(f"  Mounted {clazz.id} to {ext_prefix}/{clazz.id}")
             if (
                 app.testing
                 and len([vf for vf in app.view_functions if vf.startswith(clazz.id)])
@@ -152,6 +148,11 @@ class ServiceManager:
                 app.register_blueprint(
                     clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
                 )
+            else:
+                app.register_blueprint(
+                    clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
+                )
+            logger.info(f"  Mounted {clazz.id} to {ext_prefix}/{clazz.id}")
         except AssertionError as e:
             if str(e).startswith("A name collision"):
                 raise SpecterError(

@@ -1,7 +1,7 @@
 import logging
 from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.util.descriptor import Descriptor
-from cryptoadvance.specter.util.psbt_creator import PsbtCreator
+from cryptoadvance.specter.commands.psbt_creator import PsbtCreator
 from mock import MagicMock, call, patch
 
 
