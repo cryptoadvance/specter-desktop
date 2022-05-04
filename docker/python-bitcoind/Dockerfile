@@ -12,7 +12,9 @@ RUN wget https://launchpad.net/~bitcoin/+archive/ubuntu/bitcoin/+files/libdb4.8+
 	wget https://launchpad.net/~bitcoin/+archive/ubuntu/bitcoin/+files/libdb4.8++_4.8.30-artful3_amd64.deb
 RUN dpkg -i *.deb && rm *.deb
 
-RUN apt update && apt install git build-essential autoconf libboost-all-dev libssl-dev libprotobuf-dev protobuf-compiler libqrencode-dev libtool libevent-dev pkg-config bsdmainutils  libzmq5-dev  -y  
+RUN apt update && apt install git build-essential autoconf libboost-all-dev libssl-dev libprotobuf-dev \
+				protobuf-compiler libqrencode-dev libtool libevent-dev pkg-config bsdmainutils  \
+				libzmq5-dev  -y  
 
 RUN git clone https://github.com/bitcoin/bitcoin.git
 RUN cd bitcoin && git checkout v23.0
@@ -32,7 +34,8 @@ RUN wget https://launchpad.net/~bitcoin/+archive/ubuntu/bitcoin/+files/libdb4.8+
         wget https://launchpad.net/~bitcoin/+archive/ubuntu/bitcoin/+files/libdb4.8++_4.8.30-artful3_amd64.deb
 RUN dpkg -i *.deb && rm *.deb
 
-RUN apt update && apt install libevent-dev libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-test-dev libboost-thread-dev jq  libzmq5-dev   -y
+RUN apt update && apt install libevent-dev libboost-system-dev libboost-filesystem-dev libboost-chrono-dev \
+				libboost-test-dev libboost-thread-dev jq  libzmq5-dev   -y
 
 COPY --from=0 /usr/local/bin/bitcoind /usr/local/bin
 COPY --from=0 /usr/local/bin/bitcoin-cli /usr/local/bin
