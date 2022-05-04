@@ -1,4 +1,4 @@
-A base-image used in cypress-python to use a newer ubuntu focal rather than a buster.
+A base-image used in cypress-python to use a newer ubuntu jammy rather than a buster.
 
 Create it like this:
 
