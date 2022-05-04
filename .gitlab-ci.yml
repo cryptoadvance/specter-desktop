@@ -64,7 +64,7 @@ check:
    - py.test --cov-report term --cov cryptoadvance --docker
 
 .test-cypress:
-  image: registry.gitlab.com/c8527/specter/cypress-python
+  image: registry.gitlab.com/c8527/specter/cypress-python:latest
   stage: testing
   script:
     # start the server in the background
