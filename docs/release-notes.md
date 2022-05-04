@@ -1,3 +1,15 @@
+## v1.9.4 April 28, 2022
+- UIUX: Overhaul of UTXO list, handling of locked UTXOs and scrollbar added #1580 (Manolis)
+- Bugfix: i18n issue preventing historical proces to work in edge cases #1664 (Kim Neunert)
+- Feature: More languages supported for BIP39 mnemonic import #1660 (Kim Neunert/Manolis)
+- Docs: Architectural notes #1673 (Kim Neunert)
+- Docs: Fix extra / in url in service.md #1659 (Brendan Murphy)
+- Chore: Bump electron from 11.5.0 to 13.6.9 #1647 (Kim Neunert)
+- Chore: Bump async from 3.2.0 to 3.2.3 #1674 (dependabot[bot])
+- Chore: Bump minimist from 1.2.5 to 1.2.6 in /pyinstaller/electron #1637 (dependabot[bot])
+- Chore: Updating cypress from 7.1.0 to 9.5.4  #1672 #1676 (Kim Neunert)
+- Chore: Upgrade flask (and others) from 1.1.4 to 2.1.1 #1666 (Kim Neunert)
+
 ## v1.9.2 April 04, 2022
 - Bugfix: Tzdata module missing on windows fixes #1653 #1654 (Kim Neunert)
 
