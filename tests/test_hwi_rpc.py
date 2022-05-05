@@ -17,7 +17,7 @@ from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.util.descriptor import Descriptor
 
 
-# @pytest.mark.skip()
+@pytest.mark.skip()
 def test_trezor(caplog, monkeypatch):
     """In order to get this test working, you have to run it with "-s":
     pytest tests/test_hwi_rpc.py::test_enumerate_trezor  -vv -s
