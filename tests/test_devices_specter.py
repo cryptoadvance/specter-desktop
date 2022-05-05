@@ -34,4 +34,4 @@ def test_get_wallet_qr_descriptor(
         get_wallet_qr_descriptor(wallet)
         == "wpkh([ccf2e5c3/84h/1h/0h]tpubDCnYSFavtHxX7w8S8GyYwQ2bQPeA5fSVd2WqFzY7BeE1DKhqvq9Qdyz4AM13xGQvo1J5c46ixbW84evZhqerR3eh1r2tndT8r51p3sxiQ8F)"
     )
-    assert get_wallet_fingerprint(wallet) == ""
+    assert get_wallet_fingerprint(wallet) == b"Kh\xb5*"
