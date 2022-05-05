@@ -1,6 +1,6 @@
 from . import DeviceTypes
 from .hwi_device import HWIDevice
-from hwilib.devices.trezorlib.client import TrezorClient
+from hwilib.devices.trezor import TrezorClient
 
 
 class Trezor(HWIDevice):
