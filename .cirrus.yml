@@ -2,7 +2,7 @@ container:
 #  image: python:slim
 #  image: ubuntu:jammy
 #  image: python:3.10
-  image: registry.gitlab.com/c8527/specter/cirrus-jammy:20220504
+  image: registry.gitlab.com/relativisticelectron/specter-desktop/cirrus-jammy:latest
 
 # We assume here that we're having a proper python3 system including virtualenv and pip
 prep_stuff_template: &PREP_STUFF_TEMPLATE
@@ -64,7 +64,7 @@ test_task:
 
 cypress_test_task:
   container:
-    image: registry.gitlab.com/c8527/specter/cypress-python:latest
+    image: registry.gitlab.com/relativisticelectron/specter-desktop/cypress-python:latest
     cpu: 6
     memory: 6G
   pre_prep_script: 

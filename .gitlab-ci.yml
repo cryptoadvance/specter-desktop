@@ -1,6 +1,6 @@
 # this image contains python, bitcoind and docker
 # check docker/python-bitcoind on how it's built
-image: registry.gitlab.com/c8527/specter/python-bitcoind:v23.0
+image: registry.gitlab.com/relativisticelectron/specter-desktop/python-bitcoind:v23.0
 
 variables:
   # Cache documentation: https://docs.gitlab.com/ee/ci/caching/
@@ -64,7 +64,7 @@ check:
    - py.test --cov-report term --cov cryptoadvance --docker
 
 .test-cypress:
-  image: registry.gitlab.com/c8527/specter/cypress-python:latest
+  image: registry.gitlab.com/relativisticelectron/specter-desktop/cypress-python:latest
   stage: testing
   script:
     # start the server in the background
