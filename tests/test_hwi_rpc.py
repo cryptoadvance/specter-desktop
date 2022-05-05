@@ -1,11 +1,19 @@
 """ This is just a manual test to understand how HWI works. All tests are marked skipped as hardware plugged in is necessary.
-    Don't take this as best practise. I doubt, this is just something to test difference in behaviour for migration from HWI 2.0.2 to 2.1.0
+    Don't take this as best practise. This is just something to test difference in behaviour for migration from HWI 2.0.2 to 2.1.0
+
+    To get it to run:
+    * comment the test: @pytest.mark.skip()
+    * Plugin yout trezor
+    * Run the test like: pytest tests/test_hwi_rpc.py::test_enumerate_trezor  -vv -s
+    * Type in your Pin
+    * Success!
 """
 
 import logging
 import io
 import pytest
 from cryptoadvance.specter.hwi_rpc import HWIBridge
+from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.util.descriptor import Descriptor
 
 
@@ -30,25 +38,28 @@ def test_trezor(caplog, monkeypatch):
         assert res["error"].startswith(
             "Could not open client or get fingerprint information: Trezor is locked"
         )
+        res = hwi.prompt_pin(device_type="trezor", passphrase="")
+        assert res["success"] == True
+        # monkeypatch.setattr('sys.stdin', io.StringIO('my input'))
+        pin = input("Enter pin: ")
+
+        res = hwi.send_pin(pin, device_type="trezor", passphrase="")
+        assert res["success"] == True
 
     else:
         assert res["error"].startswith(
             "Could not open client or get fingerprint information: Passphrase needs to be specified before the fingerprint information can be retrieved"
         )
         assert len(res["fingerprint"]) == 8
-    assert res["code"] == -12
-
-    res = hwi.prompt_pin(device_type="trezor", passphrase="")
-    assert res["success"] == True
-    # monkeypatch.setattr('sys.stdin', io.StringIO('my input'))
-    pin = input("Enter pin: ")
-
-    res = hwi.send_pin(pin, device_type="trezor", passphrase="")
-    assert res["success"] == True
     results = hwi.extract_xpubs(chain="test", device_type="trezor").split("\n")
     assert len(results) == 9
     assert results[0].startswith("[")
-    assert results == None
+    print(results[0])
+    # You can construct keys from the results:
+    key: Key = Key.parse_xpub(results[0])
+    assert len(key.fingerprint) == 8
+    assert key.derivation == "m/49h/0h/0h"
+    assert key.xpub.startswith("xpub")
 
 
 def test_jade(caplog):
@@ -74,4 +85,3 @@ def test_jade(caplog):
     ).split("\n")
     assert len(results) == 9
     assert results[0].startswith("[")
-    assert results == None
