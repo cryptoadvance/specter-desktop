@@ -4,7 +4,7 @@ import random
 from functools import wraps
 
 import requests
-from cryptoadvance.specter.util.psbt_creator import PsbtCreator
+from cryptoadvance.specter.commands.psbt_creator import PsbtCreator
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from cryptoadvance.specter.wallet import Wallet
 from cryptoadvance.specter.util.tx import is_hex, convert_rawtransaction_to_psbt
@@ -785,6 +785,9 @@ def settings(wallet_alias):
             )
             app.specter.info["utxorescan"] = 1
             app.specter.utxorescanwallet = wallet.alias
+            flash(
+                "Rescan started. Check the status bar on the left for progress and/or the logs for potential issues."
+            )
         elif action == "abortrescanutxo":
             app.specter.abortrescanutxo()
             app.specter.info["utxorescan"] = None
