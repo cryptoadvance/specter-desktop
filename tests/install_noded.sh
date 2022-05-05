@@ -93,7 +93,8 @@ function calc_pytestinit_nodeimpl_version {
         fi
         if [ "$node_impl" = "bitcoin" ]; then
             # in the case of bitcoin, the binary-version-artifacts are missing a ".0" at the end which we remove here
-            PINNED=$(echo "$PINNED" | sed 's/..$//')
+            # starting from Bitcoin 22.0 there is a 0. missing in front and no need to cut any .0 at the end
+            # PINNED=$(echo "$PINNED" | sed 's/..$//')
         fi
     fi
     echo $PINNED
