@@ -17,7 +17,7 @@ RUN apt update && apt install git build-essential autoconf libboost-all-dev libs
 				libzmq5-dev  -y  
 
 RUN git clone https://github.com/bitcoin/bitcoin.git
-RUN cd bitcoin && git checkout v23.0
+RUN cd bitcoin && git checkout v22.0
 RUN cd bitcoin && ./autogen.sh && ./configure --without-gui && make -j8
 RUN cd bitcoin && make install
 
