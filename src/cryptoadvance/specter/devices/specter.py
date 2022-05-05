@@ -174,5 +174,5 @@ def get_wallet_fingerprint(wallet):
     Unique fingerprint of the wallet -
     first 4 bytes of hash160 of its descriptor
     """
-    h160 = hash160(get_wallet_qr_descriptor(wallet).encode()).digest()
+    h160 = hash160(get_wallet_qr_descriptor(wallet).encode())
     return h160[:4]
