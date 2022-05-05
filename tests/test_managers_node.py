@@ -35,7 +35,7 @@ def test_NodeManager(
         )
         assert nm.nodes_names == ["Bitcoin Core", "bitcoin_regtest"]
         nm.switch_node("bitcoin_regtest")
-        assert nm.active_node.get_rpc().getblockchaininfo()["chain"] == "regtest"
+        assert nm.node.get_rpc().getblockchaininfo()["chain"] == "regtest"
         nm.add_node(
             "ELM",
             "elements_elreg",
@@ -50,7 +50,7 @@ def test_NodeManager(
         )
         assert nm.nodes_names == ["Bitcoin Core", "bitcoin_regtest", "elements_elreg"]
         nm.switch_node("elements_elreg")
-        assert nm.active_node.get_rpc().getblockchaininfo()["chain"] == "elreg"
+        assert nm.node.get_rpc().getblockchaininfo()["chain"] == "elreg"
         time.sleep(20)
 
 
@@ -93,6 +93,6 @@ def test_NodeManager_import(bitcoind_path):
             # assert node.get_rpc().password == None
             nm.switch_node("somename")
             time.sleep(5)
-            assert nm.active_node.get_rpc().getblockchaininfo()["chain"] == "main"
+            assert nm.node.get_rpc().getblockchaininfo()["chain"] == "main"
         finally:
             node.stop()
