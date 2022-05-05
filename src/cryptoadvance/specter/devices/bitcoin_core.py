@@ -14,6 +14,7 @@ from ..specter_error import SpecterError
 from ..util.base58 import decode_base58, encode_base58_checksum
 from ..util.descriptor import AddChecksum
 from ..util.xpub import convert_xpub_prefix, get_xpub_fingerprint
+from ..util.mnemonic import mnemonic_to_root
 from . import DeviceTypes
 
 logger = logging.getLogger(__name__)
@@ -95,8 +96,7 @@ class BitcoinCore(Device):
             keys_range[0] = int(keys_range[0])
         if type(keys_range[1]) == str:
             keys_range[1] = int(keys_range[1])
-        seed = bip39.mnemonic_to_seed(mnemonic, passphrase)
-        root = bip32.HDKey.from_seed(seed)
+        root = mnemonic_to_root(mnemonic, passphrase)
         network = networks.NETWORKS["test" if testnet else "main"]
         root.version = network["xprv"]
         xprv = root.to_base58()
@@ -145,7 +145,7 @@ class BitcoinCore(Device):
         ]
 
         if use_descriptors:
-            rpc.importdescriptors(args)
+            rpc.importdescriptors(args, timeout=15)
         else:
             rpc.importmulti(args, {"rescan": False})
 

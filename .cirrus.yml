@@ -64,7 +64,7 @@ test_task:
 
 cypress_test_task:
   container:
-    image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python:latest
+    image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python:v9.5.4
     cpu: 6
     memory: 6G
   pre_prep_script: 

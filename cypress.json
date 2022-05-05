@@ -4,6 +4,7 @@
       "spec_setup_tor.js",
       "spec_empty_specter_home.js",
       "spec_configures_nodes.js",
+      "spec_devices.js",
       "spec_node_configured.js",
       "spec_wallet_send.js",
       "spec_wallet_utxo.js",
@@ -14,5 +15,6 @@
     "baseUrl": "http://localhost:25444",
     "env": {
       "broadcast_timeout":"8000"
-    }
+    },
+    "includeShadowDom": false 
 }

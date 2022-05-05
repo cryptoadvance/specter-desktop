@@ -303,7 +303,7 @@
         }
 
         if ('{{ specter.service_manager.service_names | length }}' == '0') {
-            document.getElementById('toggle_services_list').innerHTML = 'Services';
+            document.getElementById('toggle_services_list').innerHTML = 'Plugins';
         } else {
             document.getElementById('toggle_services_list').addEventListener('click', (event) => {
                 toggleList('services');

@@ -36,6 +36,7 @@ class ServiceEncryptedStorage(GenericDataManager):
     """
 
     def __init__(self, data_folder: str, user: User, disable_decrypt: bool = False):
+
         if not user.plaintext_user_secret and not disable_decrypt:
             raise ServiceEncryptedStorageError(
                 f"User {user} must be authenticated with password before encrypted service data can be loaded"
@@ -96,6 +97,26 @@ class ServiceEncryptedStorage(GenericDataManager):
         else:
             service_data = {}
         return service_data
+
+
+class ServiceUnencryptedStorage(ServiceEncryptedStorage):
+    """In order to use ServiceEncryptedStorage but unencrypted, we derive from that class
+    and change the datafile.
+    """
+
+    def __init__(self, data_folder: str, user: User, disable_decrypt: bool = False):
+        if not disable_decrypt:
+            raise Exception(
+                "ServiceUnencryptedStorage needs to be initialized with disable_decrypt = True"
+            )
+        if disable_decrypt:
+            super().__init__(data_folder, encryption_key=None, disable_decrypt=True)
+
+    @property
+    def data_file(self):
+        return os.path.join(
+            self.data_folder, f"{self.user.username}_unencrypted_services.json"
+        )
 
 
 class ServiceEncryptedStorageManager(ConfigurableSingleton):
@@ -160,3 +181,20 @@ class ServiceEncryptedStorageManager(ConfigurableSingleton):
         )
         encrypted_storage.data = {}
         encrypted_storage._save()
+
+
+class ServiceUnencryptedStorageManager(ServiceEncryptedStorageManager):
+    def __init__(self, user_manager, data_folder):
+        self.user_manager = user_manager
+        self.data_folder = data_folder
+        self.storage_by_user = {}
+
+    def _get_current_user_service_storage(self) -> ServiceEncryptedStorage:
+        """Returns the storage-class for the current_user. Lazy_init if necessary"""
+        user = self.user_manager.get_user()
+
+        if user not in self.storage_by_user:
+            self.storage_by_user[user] = ServiceUnencryptedStorage(
+                self.data_folder, user, disable_decrypt=True
+            )
+        return self.storage_by_user[user]

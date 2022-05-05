@@ -6,7 +6,7 @@ from .base import (
 )
 from flask import current_app as app, request
 from ...wallet import Wallet
-from ...util.psbt_creator import PsbtCreator
+from ...commands.psbt_creator import PsbtCreator
 
 from .. import auth
 

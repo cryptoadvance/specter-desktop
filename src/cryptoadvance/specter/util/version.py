@@ -78,7 +78,7 @@ class VersionChecker:
             logger.warning(
                 "We're checking here for a different binary than specter-desktop. We're hopefully in a pytest"
             )
-        latest = VersionChecker._get_latest_version_from_github(self.specter)
+        latest = VersionChecker._get_latest_version_from_github()
         return current, latest
 
     def _get_pip_version(self):
@@ -136,19 +136,19 @@ class VersionChecker:
             self.stop()
         return current, latest, False
 
-    @classmethod
-    def _get_latest_version_from_github(cls, specter):
+    def _get_latest_version_from_github(self):
         try:
-            if specter:
-                requests_session = specter.requests_session(force_tor=False)
+            if self.specter:
+                requests_session = self.specter.requests_session(force_tor=False)
             else:
                 requests_session = requests.Session()
-
+            print(requests_session.get().json())
             releases = (
                 requests_session.get(f"https://pypi.org/pypi/{self.name}/json")
                 .json()["releases"]
                 .keys()
             )
+
             latest = list(releases)[-1]
         except Exception as e:
             logger.exception(e)

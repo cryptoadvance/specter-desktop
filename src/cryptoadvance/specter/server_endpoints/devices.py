@@ -2,6 +2,7 @@ import copy
 import json
 import random
 import re
+import logging
 
 from cryptoadvance.specter.devices.device_types import DeviceTypes
 from flask import Blueprint, Flask
@@ -12,13 +13,15 @@ from flask_login import current_user, login_required
 from mnemonic import Mnemonic
 
 from ..devices.bitcoin_core import BitcoinCore
-from ..helpers import generate_mnemonic, is_testnet, validate_mnemonic
+from ..helpers import is_testnet
+from ..util.mnemonic import generate_mnemonic, validate_mnemonic
 from ..key import Key
 from ..managers.device_manager import get_device_class
 from ..specter_error import handle_exception
 from ..wallet import purposes
 
 rand = random.randint(0, 1e32)  # to force style refresh
+logger = logging.getLogger(__name__)
 
 # Setup endpoint blueprint
 devices_endpoint = Blueprint("devices_endpoint", __name__)
@@ -39,6 +42,8 @@ def new_device_type():
 @devices_endpoint.route("/new_device_keys/<device_type>/", methods=["GET", "POST"])
 @login_required
 def new_device_keys(device_type):
+    device_class = get_device_class(device_type)
+    template = device_class.template
     err = None
     mnemonic = ""
     passphrase = ""
@@ -61,7 +66,7 @@ def new_device_keys(device_type):
                 err = _("Device name cannot be empty")
             elif device_name in app.specter.device_manager.devices_names:
                 err = _("Device with this name already exists")
-        xpubs_rows_count = int(request.form["xpubs_rows_count"]) + 1
+        xpubs_rows_count = int(request.form.get("xpubs_rows_count", 0)) + 1
         keys = []
         paths = []
         keys_purposes = []
@@ -80,6 +85,8 @@ def new_device_keys(device_type):
                 except:
                     err = _("Failed to parse these xpubs") + ":\n" + "\n".join(xpub)
                     break
+        if device_type == "electrum":
+            keys.append(Key.parse_xpub(request.form["master_pub_key"]))
         if not keys and not err:
             if device_type in [
                 DeviceTypes.BITCOINCORE,
@@ -173,13 +180,15 @@ def new_device_keys(device_type):
                 )
 
     return render_template(
-        "device/new_device/new_device_keys.jinja",
-        device_class=get_device_class(device_type),
+        template,
+        device_class=device_class,
         mnemonic=mnemonic,
         passphrase=passphrase,
         file_password=file_password,
         range_start=range_start,
         range_end=range_end,
+        device_name=request.form.get("device_name", ""),
+        master_pub_key=request.form.get("master_pub_key", ""),
         existing_device=app.specter.device_manager.get_by_alias(existing_device)
         if existing_device
         else None,
@@ -203,7 +212,7 @@ def new_device_mnemonic(device_type):
             err = _(
                 "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
             )
-        if not validate_mnemonic(words=request.form["mnemonic"]):
+        if not validate_mnemonic(request.form["mnemonic"]):
             err = _("Invalid mnemonic entered.")
         range_start = int(request.form["range_start"])
         range_end = int(request.form["range_end"])
@@ -324,7 +333,7 @@ def new_device_manual():
                     "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
                 )
 
-            if not validate_mnemonic(words=request.form["mnemonic"]):
+            if not validate_mnemonic(request.form["mnemonic"]):
                 err = _("Invalid mnemonic entered.")
             range_start = int(request.form["range_start"])
             range_end = int(request.form["range_end"])
