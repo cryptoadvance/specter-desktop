@@ -456,7 +456,7 @@ echo "        pyenv shell 3.10.4"
 ```
 So i'm using `pyenv shell` but before you install now a 3.10 version via `pyenv install 3.10.4` make sure to install sqlite3:
 ```
-sudo apt-get install sqlite3
+sudo apt-get install sqlite3 libbz2-dev 
 ```
 If you miss that, you might later have issues while pre-commit-hooks kick in, something like `No module named '_sqlite3`.
 
