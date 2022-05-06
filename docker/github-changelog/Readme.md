@@ -3,8 +3,8 @@ An image used to create changelogs.
 Create it like this:
 
 ``` 
-docker build . -t registry.gitlab.com/relativisticelectron/specter-desktop/github-changelog:latest
-docker push registry.gitlab.com/relativisticelectron/specter-desktop/github-changelog:latest
+docker build . -t registry.gitlab.com/cryptoadvance/specter-desktop/github-changelog:latest
+docker push registry.gitlab.com/cryptoadvance/specter-desktop/github-changelog:latest
 ```
 
 Use it like this:
