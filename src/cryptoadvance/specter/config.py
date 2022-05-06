@@ -251,8 +251,8 @@ class ProductionConfig(BaseConfig):
     SECRET_KEY = secrets.token_urlsafe(16)
     # There are some really slow machines out there. Creating a 2/4 multisig on an older MacBookAir
     # Take already >30secs
-    BITCOIN_RPC_TIMEOUT = 60
-    LIQUID_RPC_TIMEOUT = 120
+    BITCOIN_RPC_TIMEOUT = float(os.getenv("BITCOIN_RPC_TIMEOUT", "60"))
+    LIQUID_RPC_TIMEOUT = float(os.getenv("LIQUID_RPC_TIMEOUT", "120"))
 
     # Repeating it here as it's SECURITY CRITICAL. Check comments in BaseConfig
     SERVICES_LOAD_FROM_CWD = False

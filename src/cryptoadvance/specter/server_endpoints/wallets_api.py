@@ -9,7 +9,7 @@ from math import isnan
 from numbers import Number
 
 import requests
-from cryptoadvance.specter.util.psbt_creator import PsbtCreator
+from cryptoadvance.specter.commands.psbt_creator import PsbtCreator
 from cryptoadvance.specter.wallet import Wallet
 from flask import Blueprint, stream_with_context
 from flask import current_app as app
@@ -325,7 +325,6 @@ def rescan_progress(wallet_alias):
         )
     except SpecterError as se:
         app.logger.error("SpecterError while get wallet rescan_progress: %s" % se)
-        return {}
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/get_label", methods=["POST"])
