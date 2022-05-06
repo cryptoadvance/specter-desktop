@@ -442,3 +442,29 @@ We're aware that currently the app is not very compatible on different browsers 
   * nice blue #4A90E2
 * A designer would probably rant about all these bad choices. Professional help, especially in the frontend, is very much appreciated.
 
+### Troubleshooting and migration to python3.10
+We're currently migrating to python3.10 while alos supporting older versions. This is creating some extra challenges for those that want to run 3.10 but don't have 3.10 available in their standard-package. So here are some hints on how to get that going.
+
+`pyenv` is a great tool to granually install. The [installation](https://github.com/pyenv/pyenv#basic-github-checkout) worked great. However, i don't want to pyenv to screw up my existing python setup. So i only use pyenv if i explicitely do (put that in a script):
+```
+export PYENV_ROOT="$HOME/.pyenv"
+command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
+echo "    --> now do:omething like:"
+echo "        pyenv shell 3.10.4"
+```
+So i'm using `pyenv shell` but before you install now a 3.10 version via `pyenv install 3.10.4` make sure to install sqlite3:
+```
+sudo apt-get install sqlite3
+```
+If you miss that, you might later have issues while pre-commit-hooks kick in, something like `No module named '_sqlite3`.
+
+Now you can switch your shell to use python 3.10 via `pyenv shell 3.10.4` and after that create your extra virtualenv which uses 3.10:
+```
+python3 -m virtualenv --python=python3.10 .env310
+```
+
+
+
+
