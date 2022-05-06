@@ -946,7 +946,14 @@
                 } else {
                     pending_psbts = []
                 }
-                for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) { 
+                for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) {
+                    // This is currently not needed since the UTXO list API endpoint does not return "bip125-replaceable" and thus the rbf buttons are hidden in the tx-row web component
+                    if (this.utxoViewBtn.classList.contains("checked")) {
+                        if (txRow.tx["bip125-replaceable"] && txRow.tx["bip125-replaceable"] == "no") {
+                            txRow.rbf.classList.add('hidden');
+                            txRow.rbfCancel.classList.add('hidden');
+                        }
+                    }
                     // EventListener when hovering over checkboxes
                     txRow.selectTxImg.addEventListener("mouseover", () => {
                         this.actionTeaserDiv.style.color = 'orange';
@@ -1010,12 +1017,15 @@
                     txRow.addEventListener('txRowSelected', (e) => {
                         let selectedRow = e.target; 
                         if (e.detail.selected) {
-                            this.selectedRows.push({
-                                txid: e.detail.txid,
-                                vout: e.detail.vout,
-                                amount: e.detail.amount.toFixed(8),
-                                locked: e.detail.locked, 
-                            });
+                            // Good idea to Check whether it's already in before adding (had some issues with that)
+                            if (this.selectedRows.filter(t => t.txid == e.detail.txid).length == 0) { 
+                                this.selectedRows.push({
+                                    txid: e.detail.txid,
+                                    vout: e.detail.vout,
+                                    amount: e.detail.amount.toFixed(8),
+                                    locked: e.detail.locked, 
+                                });
+                            }
                         } else {
                             // Remove unselected rows from array
                             this.selectedRows = this.selectedRows.filter(row => !(row.txid === e.detail.txid && row.vout === e.detail.vout))
