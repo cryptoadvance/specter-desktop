@@ -30,6 +30,7 @@
     - [Some words about dependencies](#some-words-about-dependencies)
     - [Some words specific to the frontend](#some-words-specific-to-the-frontend)
     - [Some words about style](#some-words-about-style)
+    - [Troubleshooting and migration to python3.10](#troubleshooting-and-migration-to-python310)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
