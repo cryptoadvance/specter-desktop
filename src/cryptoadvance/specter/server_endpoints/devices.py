@@ -13,7 +13,8 @@ from flask_login import current_user, login_required
 from mnemonic import Mnemonic
 
 from ..devices.bitcoin_core import BitcoinCore
-from ..helpers import generate_mnemonic, is_testnet, validate_mnemonic
+from ..helpers import is_testnet
+from ..util.mnemonic import generate_mnemonic, validate_mnemonic
 from ..key import Key
 from ..managers.device_manager import get_device_class
 from ..specter_error import handle_exception
@@ -206,7 +207,7 @@ def new_device_mnemonic(device_type):
             err = _(
                 "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
             )
-        if not validate_mnemonic(words=request.form["mnemonic"]):
+        if not validate_mnemonic(request.form["mnemonic"]):
             err = _("Invalid mnemonic entered.")
         range_start = int(request.form["range_start"])
         range_end = int(request.form["range_end"])
@@ -327,7 +328,7 @@ def new_device_manual():
                     "Invalid mnemonic entered: Must contain either: 12, 15, 18, 21, or 24 words."
                 )
 
-            if not validate_mnemonic(words=request.form["mnemonic"]):
+            if not validate_mnemonic(request.form["mnemonic"]):
                 err = _("Invalid mnemonic entered.")
             range_start = int(request.form["range_start"])
             range_end = int(request.form["range_end"])

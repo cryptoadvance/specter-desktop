@@ -57,7 +57,8 @@ a = Analysis(['specterd.py'],
              ],
              hiddenimports=[
                 'pkg_resources.py2_warn',
-                'cryptoadvance.specter.config'
+                'cryptoadvance.specter.config',
+                'tzdata' # used by apscheduler and existing hook doesn't seem to be complete
              ],
              hookspath=['hooks/'],
              runtime_hooks=[],
@@ -73,13 +74,14 @@ if platform.system() == 'Linux':
 
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
+name=os.getenv("specterd_filename","specterd")
 exe = EXE(pyz,
           a.scripts,
           a.binaries,
           a.zipfiles,
           a.datas,
           [],
-          name='specterd',
+          name=name,
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,

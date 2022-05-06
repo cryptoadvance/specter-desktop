@@ -4,9 +4,10 @@ import random
 from functools import wraps
 
 import requests
-from cryptoadvance.specter.util.psbt_creator import PsbtCreator
+from cryptoadvance.specter.commands.psbt_creator import PsbtCreator
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from cryptoadvance.specter.wallet import Wallet
+from cryptoadvance.specter.util.tx import is_hex, convert_rawtransaction_to_psbt
 from flask import Blueprint
 from flask import current_app as app
 from flask import flash, jsonify, redirect, render_template, request, url_for
@@ -31,7 +32,7 @@ def handle_wallet_error(func_name, error):
     flash(_("SpecterError while {}: {}").format(func_name, error), "error")
     app.logger.error(f"SpecterError while {func_name}: {error}")
     app.specter.wallet_manager.update()
-    return redirect(url_for("about"))
+    return redirect(url_for("welcome_endpoint.about"))
 
 
 def check_wallet(func):
@@ -360,7 +361,7 @@ def new_wallet(wallet_type):
 @login_required
 def wallet(wallet_alias):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    if wallet.fullbalance > 0:
+    if wallet.amount_total > 0:
         return redirect(url_for("wallets_endpoint.history", wallet_alias=wallet_alias))
     else:
         return redirect(url_for("wallets_endpoint.receive", wallet_alias=wallet_alias))
@@ -467,6 +468,15 @@ def send_new(wallet_alias):
     rbf_utxo = []
     rbf_tx_id = ""
     selected_coins = request.form.getlist("coinselect")
+    # Additional server side check not to use frozen UTXO as a precaution
+    frozen_utxo = wallet.frozen_utxo
+    for utxo in selected_coins:
+        if utxo in frozen_utxo:
+            selected_coins.remove(utxo)
+            flash(f"You've selected a frozen UTXO for a transaction.", "error")
+            return redirect(
+                url_for("wallets_endpoint.history", wallet_alias=wallet_alias)
+            )
 
     if request.method == "POST":
         action = request.form.get("action")
@@ -545,6 +555,7 @@ def send_new(wallet_alias):
                 fee_rate = float(request.form["rbf_fee_rate"])
                 fee_options = "manual"
                 rbf = True
+                fillform = True
             except Exception as e:
                 handle_exception(e)
                 flash(_("Failed to perform RBF. Error: {}").format(e), "error")
@@ -599,11 +610,7 @@ def send_new(wallet_alias):
             flash(_("Failed to get RBF coins. Error: {}").format(e), "error")
 
     show_advanced_settings = (
-        ui_option != "ui"
-        or subtract
-        or fee_options != "dynamic"
-        or not rbf
-        or selected_coins
+        ui_option != "ui" or subtract or fee_options != "dynamic" or not rbf
     )
     wallet_utxo = wallet.utxo
     if app.specter.is_liquid:
@@ -680,7 +687,11 @@ def import_psbt(wallet_alias):
         if action == "importpsbt":
             try:
                 b64psbt = "".join(request.form["rawpsbt"].split())
-                psbt = wallet.importpsbt(b64psbt)
+                psbt = wallet.importpsbt(
+                    convert_rawtransaction_to_psbt(wallet.rpc, b64psbt)
+                    if is_hex(b64psbt)
+                    else b64psbt
+                )
             except Exception as e:
                 handle_exception(e)
                 flash(_("Could not import PSBT: {}").format(e), "error")
@@ -774,6 +785,9 @@ def settings(wallet_alias):
             )
             app.specter.info["utxorescan"] = 1
             app.specter.utxorescanwallet = wallet.alias
+            flash(
+                "Rescan started. Check the status bar on the left for progress and/or the logs for potential issues."
+            )
         elif action == "abortrescanutxo":
             app.specter.abortrescanutxo()
             app.specter.info["utxorescan"] = None

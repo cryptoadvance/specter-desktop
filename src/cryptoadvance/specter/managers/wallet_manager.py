@@ -147,8 +147,7 @@ class WalletManager:
                             if len(loaded_wallet.pending_psbts) > 0:
                                 for psbt in loaded_wallet.pending_psbts:
                                     logger.info(
-                                        "lock %s " % wallet_alias,
-                                        loaded_wallet.pending_psbts[psbt].utxo_dict(),
+                                        f"lock {wallet_alias} {loaded_wallet.pending_psbts[psbt].utxo_dict()}"
                                     )
                                     loaded_wallet.rpc.lockunspent(
                                         False,
@@ -325,9 +324,8 @@ class WalletManager:
                 os.path.join(bitcoin_datadir, "wallets", wallet_rpc_path),
             ]
             for path in candidates:
-                if os.path.exists(path):
-                    shutil.rmtree(path)
-                    break
+                shutil.rmtree(path, ignore_errors=True)
+
         # Delete files
         wallet.delete_files()
         del self.wallets[wallet.name]

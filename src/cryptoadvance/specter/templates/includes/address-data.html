@@ -103,10 +103,10 @@
                     `;
                     if ((typeof services !== 'undefined') && (this.serviceId in services)) {
                         // `services` obj made globally available in services-data.html
-                        addressInfoHTML += `<img class="service-icon" src='/svc/${this.serviceId}/static/${services[this.serviceId].icon}'>${services[this.serviceId].name}`;
+                        addressInfoHTML += `<img class="service-icon" src='{{ext_url_prefix}}/${this.serviceId}/static/${services[this.serviceId].icon}'>${services[this.serviceId].name}`;
                     } else {
                         let associateServiceUrl = `{{ url_for('services_endpoint.associate_addr', wallet_alias='WALLET_ALIAS', address='ADDRESS') }}`.replace('WALLET_ALIAS', this.wallet).replace('ADDRESS', jsonResponse.address);
-                        addressInfoHTML += `<button type="button" class="btn" onclick="location.href='${associateServiceUrl}';">{{ _("Associate with a service") }}</button>`
+                        addressInfoHTML += `<button type="button" id="associate-btn" class="btn" onclick="location.href='${associateServiceUrl}';">{{ _("Associate with a service") }}</button>`
                     }
                     addressInfoHTML += `
                         </td></tr>

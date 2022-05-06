@@ -17,3 +17,7 @@ def camelcase2snake_case(name):
     pattern = re.compile(r"(?<!^)(?=[A-Z])")
     name = pattern.sub("_", name).lower()
     return name
+
+
+def snake_case2camelcase(word):
+    return "".join(x.capitalize() or "_" for x in word.split("_"))

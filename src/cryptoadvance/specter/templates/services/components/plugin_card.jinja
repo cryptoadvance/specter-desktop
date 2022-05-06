@@ -1,0 +1,14 @@
+ {% macro plugin_card(name, desc, img_url, external_url) -%}
+
+ <div class="inner-border" >
+    <div class="plugin_container inner-border" {% if external_url.startswith("https://github") %}onclick="window.open('{{ external_url }}')" {% else %}onclick="location.href=`{{ external_url }}`"{% endif %} >
+        <img src="{{ img_url }}" height="80px"><br/>
+        {% if external_url.startswith("https://github") %}
+        <a class="github-fork-ribbon" data-ribbon="Fork me on GitHub" title="Fork Me on GitHub"></a>
+        {% endif %}
+        <div class="plugin_name">{{ name }}</div>
+        <div class="plugin_description">{{ desc }}</div>
+    </div>
+</div>
+
+{%- endmacro %}

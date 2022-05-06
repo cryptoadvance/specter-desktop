@@ -2,20 +2,25 @@ const fs = require('fs')
 const path = require('path')
 const crypto = require('crypto')
 const readLastLines = require('read-last-lines');
+const downloadloc = require('./downloadloc');
+const { loggers } = require('winston');
+const appName = downloadloc.appName()
+const appNameLower = appName.toLowerCase()
 
 let versionData
 try {
     versionData = require('./version-data.json')
-} catch {
-    console.log('Could not find default version data configurations...')
+    console.log(versionData)
+} catch (e) {
+    console.log('Could not find default version data configurations...'+e)
     versionData = {
         "version": "",
         "sha256": ""
     }
 }
-const appSettingsPath = path.resolve(require('os').homedir(), '.specter/app_settings.json')
-const specterdDirPath = path.resolve(require('os').homedir(), '.specter/specterd-binaries')
-const specterAppLogPath = path.resolve(require('os').homedir(), '.specter/specterApp.log')
+const appSettingsPath = path.resolve(require('os').homedir(), `.${appNameLower}/app_settings.json`)
+const specterdDirPath = path.resolve(require('os').homedir(), `.${appNameLower}/specterd-binaries`)
+const specterAppLogPath = path.resolve(require('os').homedir(), `.${appNameLower}/specterApp.log`)
 
 function getFileHash(filename, callback) {
   let shasum = crypto.createHash('sha256')

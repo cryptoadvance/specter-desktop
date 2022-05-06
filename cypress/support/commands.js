@@ -63,10 +63,11 @@ Cypress.Commands.add("addDevice", (name) => {
 Cypress.Commands.add("addHotDevice", (name, node_type) => { 
   // node_type is either elements or bitcoin
   cy.get('body').then(($body) => {
-      //cy.task("delete:elements-hotwallet")
+      cy.task("delete:elements-hotwallet")
       if ($body.text().includes(name)) {
+        cy.get('#toggle_devices_list').click()
         var refName = "#device_list_item_"+name.toLowerCase().replace(/ /g,"_")
-        cy.get(refName).click()
+        cy.get(refName).click( {force: true} )
         cy.get('#forget_device').click()
         // We might get an error here, if the device is used in a wallet
         // We assume therefore that this is ok (see below)
@@ -75,7 +76,7 @@ Cypress.Commands.add("addHotDevice", (name, node_type) => {
       if (!cy.get('#btn_new_device').isVisible) {
         cy.get('#toggle_devices_list').click()
       }
-      cy.get('#btn_new_device').click()
+      cy.get('#btn_new_device').click( {force: true} )
       cy.contains('Select Your Device Type')
       cy.get(`#${node_type}core_device_card`).click()
       cy.get('#submit-mnemonic').click()
@@ -102,9 +103,7 @@ Cypress.Commands.add("addHotWallet", (wallet_name, device_name, node_type, walle
         cy.get('#advanced_settings_tab_btn').click()
         cy.get('#delete_wallet').click()
       }
-       
       cy.get('#side-content').click()
-      
       cy.get('#btn_new_wallet').click()
       cy.get('[href="./simple/"]').click()
       var device_button = "#"+device_name.toLowerCase().replace(/ /g,"_")
@@ -131,7 +130,7 @@ Cypress.Commands.add("deleteWallet", (name) => {
   cy.get('body').then(($body) => {
     if ($body.text().includes(name)) {
         cy.contains(name).click()
-        cy.get('#btn_settings').click()
+        cy.get('#btn_settings').click( {force: true} )
         cy.get('#advanced_settings_tab_btn').click()
         cy.get('#delete_wallet').click()
         // That does not seem to delete the wallet-file in elements, though
@@ -144,8 +143,8 @@ Cypress.Commands.add("deleteWallet", (name) => {
 Cypress.Commands.add("mine2wallet", (chain) => { 
   // Fund it and check the balance
   cy.get('#btn_transactions').click()
-  cy.get('#fullbalance_amount').then(($div) => {
-      const oldBalance = parseFloat($div.text())
+  cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") }).then(($span) => {
+      const oldBalance = parseFloat($span.text())
       if (chain=="elm" || chain=="elements") {
         cy.task("elm:mine")
       } else if (chain=="btc" || chain=="bitcoin") {
@@ -154,8 +153,8 @@ Cypress.Commands.add("mine2wallet", (chain) => {
         throw new Error("Unknown chain: " + chain)
       }
       cy.waitUntil( () => cy.reload().get('#fullbalance_amount', { timeout: 3000 }) 
-        .then(($div) => {
-          const n = parseFloat($div.text())
+        .then(($span) => {
+          const n = parseFloat($span.text())
           return n > oldBalance
         })
       , {

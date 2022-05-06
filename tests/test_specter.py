@@ -1,11 +1,13 @@
-import json, logging, pytest
+import json
+import logging
 from decimal import Decimal
-from cryptoadvance.specter.helpers import alias, generate_mnemonic
-from cryptoadvance.specter.key import Key
-from cryptoadvance.specter.rpc import BitcoinRPC
+
+import pytest
+from cryptoadvance.specter.helpers import alias
+from cryptoadvance.specter.managers.wallet_manager import WalletManager
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.specter_error import SpecterError
-from cryptoadvance.specter.managers.wallet_manager import WalletManager
+from cryptoadvance.specter.util.mnemonic import generate_mnemonic
 
 
 def test_alias():
@@ -39,9 +41,9 @@ def test_abandon_purged_tx(
     # Copied and adapted from:
     #    https://github.com/bitcoin/bitcoin/blob/master/test/functional/mempool_limit.py
     from bitcoin_core.test.functional.test_framework.util import (
+        create_lots_of_big_transactions,
         gen_return_txouts,
         satoshi_round,
-        create_lots_of_big_transactions,
     )
     from conftest import instantiate_bitcoind_controller
 

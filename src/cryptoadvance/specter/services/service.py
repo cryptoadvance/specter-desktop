@@ -14,6 +14,7 @@ from .service_encrypted_storage import ServiceEncryptedStorageManager
 from .service_annotations_storage import ServiceAnnotationsStorage
 
 from cryptoadvance.specter.addresslist import Address
+from cryptoadvance.specter.services import callbacks
 
 
 logger = logging.getLogger(__name__)
@@ -34,6 +35,8 @@ class Service:
     logo = None
     desc = None  # TODO: rename to "description" to be explicit
     has_blueprint = True  # the default
+    # If the blueprint gets a "/ext" prefix (isolated_client = True), the login cookie won't work for all specter core functionality
+    isolated_client = True
     devstatus = devstatus_alpha
 
     def __init__(self, active, specter):
@@ -43,35 +46,11 @@ class Service:
             raise Exception(f"Service {self.__class__} needs name")
         self.active = active
         self.specter = specter
-        if hasattr(self.__class__, "blueprint_module"):
-            import_name = self.blueprint_module
-        else:
-            import_name = f"cryptoadvance.specter.services.{self.id}.service"
-        if self.has_blueprint:
-            self.__class__.blueprint = Blueprint(
-                f"{self.id}_endpoint",
-                import_name,
-                template_folder=get_template_static_folder("templates"),
-                static_folder=get_template_static_folder("static"),
-            )
 
-            def inject_stuff():
-                """Can be used in all jinja2 templates"""
-                return dict(specter=app.specter, service=self)
-
-            self.__class__.blueprint.context_processor(inject_stuff)
-            # Import the controller for this service
-            if hasattr(self.__class__, "blueprint_module"):
-                controller_module = self.blueprint_module
-            else:
-                controller_module = (
-                    f"cryptoadvance.specter.services.{self.id}.controller"
-                )
-            logger.info(f"  Loading Controller {controller_module}")
-            import_module(controller_module)
-            app.register_blueprint(
-                self.__class__.blueprint, url_prefix=f"/svc/{self.id}"
-            )
+    def callback(self, callback_id, *argv, **kwargv):
+        if callback_id == callbacks.after_serverpy_init_app:
+            if hasattr(self, "callback_after_serverpy_init_app"):
+                self.callback_after_serverpy_init_app(kwargv["scheduler"])
 
     @classmethod
     def set_current_user_service_data(cls, service_data: dict):
@@ -135,20 +114,41 @@ class Service:
                 service_id=cls.id, wallet=wallet
             )
 
-        addresses = []
-        start_index = wallet.address_index + 1
-        for i in range(start_index, start_index + (2 * num_addresses), 2):
-            address = wallet.get_address(i)
+        # Start with the addresses that are already reserved but still unused
+        addresses: List[str] = wallet.get_associated_addresses(
+            service_id=cls.id, unused_only=True
+        )
+        logger.debug(f"Already have {len(addresses)} addresses reserved for {cls.id}")
 
-            # Mark an Address in a persistent way as being reserved by a Service
-            cls.reserve_address(wallet=wallet, address=address)
+        if len(addresses) < num_addresses:
+            if addresses:
+                # Continuing reserving from where we left off
+                index = addresses[-1].index + 2
 
-            addresses.append(address)
+                # Final `addresses` list has to be just addr strs
+                addresses = [addr_obj.address for addr_obj in addresses]
+            else:
+                index = wallet.address_index + 1
 
-            if annotations:
-                annotations_storage.set_addr_annotations(
-                    addr=address, annotations=annotations, autosave=False
-                )
+            while len(addresses) < num_addresses:
+                address = wallet.get_address(index)
+                addr_obj = wallet.get_address_obj(address)
+
+                index += 2
+
+                if addr_obj.used or addr_obj.is_reserved:
+                    continue
+
+                # Mark an Address in a persistent way as being reserved by a Service
+                cls.reserve_address(wallet=wallet, address=address)
+                logger.debug(f"Reserved {address} for {cls.id}")
+
+                addresses.append(address)
+
+                if annotations:
+                    annotations_storage.set_addr_annotations(
+                        addr=address, annotations=annotations, autosave=False
+                    )
         if annotations:
             annotations_storage.save()
 

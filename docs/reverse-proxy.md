@@ -49,6 +49,30 @@ ssh -nN -R 25441:localhost:25441 user@specter.mydomain.com
 
 Check in your browser - when you navigate to `http://specter.mydomain.com` you should see Specter already.
 
+## Incorporate SSH tunnel into Specter.service file
+
+To launch specter automatically on system startup, see [daemon.md](./daemon.md). Whether you use the specter python package or the tar.gz release, you can incorporate an ssh port forward to your reverse proxy to start automatically with specter. 
+
+For the python approach, would use the following specter.service file:
+
+```
+[Unit]
+Description=Specter Desktop Service
+After=multi-user.target
+Conflicts=getty@tty1.service
+
+[Service]
+User=myusername
+Type=simple
+ExecStart=/usr/bin/python3 -m cryptoadvance.specter server & ssh -nN -R 25441:localhost:25441 user@specter.mydomain.com && fg
+StandardInput=tty-force
+
+[Install]
+WantedBy=multi-user.target
+```
+
+The approach for using the tarball is commented out in the example in [daemon.md](./daemon.md).
+
 ## Adding HTTPS
 
 HTTPS is very important, not only because it is secure, but also because without HTTPS we can't use camera to scan QR codes. We need to get secure connection.

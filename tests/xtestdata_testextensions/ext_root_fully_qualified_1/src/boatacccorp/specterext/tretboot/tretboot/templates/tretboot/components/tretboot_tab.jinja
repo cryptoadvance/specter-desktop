@@ -1,0 +1,8 @@
+{% extends "base.jinja" %}
+{% block main %}
+    <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" width="300"/>    
+    {% from 'tretboot/components/tretboot_menu.jinja' import tretboot_menu with context %}
+    {{ tretboot_menu(tab) }}
+    {% block content %}
+    {% endblock %}
+{% endblock %}

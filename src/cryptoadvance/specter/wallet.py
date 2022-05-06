@@ -15,6 +15,8 @@ from embit.transaction import Transaction
 from io import StringIO
 from typing import List
 
+from cryptoadvance.specter.commands.utxo_scanner import UtxoScanner
+
 from .addresslist import Address, AddressList
 from .device import Device
 from .key import Key
@@ -811,9 +813,9 @@ class Wallet:
                 tx["category"] = tx_data.get("category") or "send"
                 if "locked" not in tx:
                     tx["locked"] = False
-            self.full_utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
+            self._full_utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
         except Exception as e:
-            self.full_utxo = []
+            self._full_utxo = []
             raise SpecterError(f"Failed to load utxos, {e}")
 
     def getdata(self):
@@ -842,8 +844,20 @@ class Wallet:
             self.save_to_file()
 
     @property
+    def full_utxo(self):
+        if hasattr(self, "_full_utxo"):
+            return self._full_utxo
+        else:
+            self.check_utxo()
+            return self._full_utxo
+
+    @property
     def utxo(self):
-        return [utxo for utxo in self.full_utxo if not utxo["locked"]]
+        return [utxo for utxo in self._full_utxo if not utxo["locked"]]
+
+    @property
+    def locked_utxo(self):
+        return [utxo for utxo in self._full_utxo if utxo["locked"]]
 
     @property
     def json(self):
@@ -914,10 +928,8 @@ class Wallet:
 
     @property
     def locked_amount(self):
-        amount = 0
-        for psbt in self.pending_psbts.values():
-            amount += sum([inp.float_amount for inp in psbt.inputs])
-        return amount
+        """Deprecated, please use amount_locked_unsigned"""
+        return self.amount_locked_unsigned
 
     def delete_spent_pending_psbts(self, txs: list):
         """
@@ -960,7 +972,10 @@ class Wallet:
 
     def toggle_freeze_utxo(self, utxo_list):
         # utxo = ["txid:vout", "txid:vout"]
+        utxo_list_done = []  # Preventing Duplicates server-side
         for utxo in utxo_list:
+            if utxo in utxo_list_done:
+                continue
             if utxo in self.frozen_utxo:
                 try:
                     self.rpc.lockunspent(
@@ -971,6 +986,7 @@ class Wallet:
                     # UTXO was spent
                     print(e)
                     pass
+                logger.info(f"Unfreeze {utxo}")
                 self.frozen_utxo.remove(utxo)
             else:
                 try:
@@ -982,7 +998,9 @@ class Wallet:
                     # UTXO was spent
                     print(e)
                     pass
+                logger.info(f"Freeze {utxo}")
                 self.frozen_utxo.append(utxo)
+            utxo_list_done.append(utxo)
 
         self.save_to_file()
 
@@ -1076,6 +1094,7 @@ class Wallet:
                     rpc_tx = self.rpc.gettransaction(tx["txid"])
                     tx["fee"] = rpc_tx.get("fee", 1)
                     tx["confirmations"] = rpc_tx.get("confirmations", 0)
+                    tx["vsize"] = decoderawtransaction(rpc_tx["hex"]).get("vsize")
 
                 if isinstance(tx["address"], str):
                     tx["label"] = self.getlabel(tx["address"])
@@ -1161,17 +1180,13 @@ class Wallet:
         self.rpc.abandontransaction(txid)
 
     def rescanutxo(self, explorer=None, requests_session=None, only_tor=False):
+        """rescans the utxo via a thread. internally calls _rescan_utxo_thread
+        explorer: something like https://mempool.space/testnet/
+        """
         delete_file(self._transactions.path)
         self.fetch_transactions()
-        t = threading.Thread(
-            target=self._rescan_utxo_thread,
-            args=(
-                explorer,
-                requests_session,
-                only_tor,
-            ),
-        )
-        t.start()
+        command = UtxoScanner(self, explorer, requests_session, only_tor)
+        command.execute(asyncc=True)
 
     def export_labels(self):
         return self._addresses.get_labels()
@@ -1188,132 +1203,6 @@ class Wallet:
                 continue
             for address in addresses:
                 self._addresses.set_label(address, label)
-
-    def _rescan_utxo_thread(self, explorer=None, requests_session=None, only_tor=False):
-        # rescan utxo is pretty fast,
-        # so we can check large range of addresses
-        # and adjust keypool accordingly
-        args = [
-            "start",
-            [
-                {"desc": self.recv_descriptor, "range": max(self.keypool, 1000)},
-                {
-                    "desc": self.change_descriptor,
-                    "range": max(self.change_keypool, 1000),
-                },
-            ],
-        ]
-        unspents = self.rpc.scantxoutset(*args)["unspents"]
-        # if keypool adjustments fails - not a big deal
-        try:
-            # check derivation indexes in found unspents (last 2 indexes in [brackets])
-            derivations = [
-                tx["desc"].split("[")[1].split("]")[0].split("/")[-2:]
-                for tx in unspents
-            ]
-            # get max derivation for change and receive branches
-            max_recv = max([-1] + [int(der[1]) for der in derivations if der[0] == "0"])
-            max_change = max(
-                [-1] + [int(der[1]) for der in derivations if der[0] == "1"]
-            )
-
-            updated = False
-            if max_recv >= self.address_index:
-                # skip to max_recv
-                self.address_index = max_recv
-                # get next
-                self.getnewaddress(change=False, save=False)
-                updated = True
-            while max_change >= self.change_index:
-                # skip to max_change
-                self.change_index = max_change
-                # get next
-                self.getnewaddress(change=True, save=False)
-                updated = True
-            # save only if needed
-            if updated:
-                self.save_to_file()
-        except Exception as e:
-            logger.warning(f"Failed to get derivation path from utxo transaction: {e}")
-
-        # keep working with unspents
-        res = self.rpc.multi([("getblockhash", tx["height"]) for tx in unspents])
-        block_hashes = [r["result"] for r in res]
-        for i, tx in enumerate(unspents):
-            tx["blockhash"] = block_hashes[i]
-        res = self.rpc.multi(
-            [("gettxoutproof", [tx["txid"]], tx["blockhash"]) for tx in unspents]
-        )
-        proofs = [r["result"] for r in res]
-        for i, tx in enumerate(unspents):
-            tx["proof"] = proofs[i]
-        res = self.rpc.multi(
-            [
-                ("getrawtransaction", tx["txid"], False, tx["blockhash"])
-                for tx in unspents
-            ]
-        )
-        raws = [r["result"] for r in res]
-        for i, tx in enumerate(unspents):
-            tx["raw"] = raws[i]
-        missing = [tx for tx in unspents if tx["raw"] is None]
-        existing = [tx for tx in unspents if tx["raw"] is not None]
-        self.rpc.multi(
-            [("importprunedfunds", tx["raw"], tx["proof"]) for tx in existing]
-        )
-        # handle missing transactions now
-        # if Tor is running, requests will be sent over Tor
-        if explorer is not None:
-            # make sure there is no trailing /
-            explorer = explorer.rstrip("/")
-            try:
-                # get raw transactions
-                raws = [
-                    requests_session.get(f"{explorer}/api/tx/{tx['txid']}/hex").text
-                    for tx in missing
-                ]
-                # get proofs
-                proofs = [
-                    requests_session.get(
-                        f"{explorer}/api/tx/{tx['txid']}/merkleblock-proof"
-                    ).text
-                    for tx in missing
-                ]
-                # import funds
-                self.rpc.multi(
-                    [
-                        ("importprunedfunds", raws[i], proofs[i])
-                        for i in range(len(raws))
-                    ]
-                )
-            except Exception as e:
-                logger.warning(f"Failed to fetch data from block explorer: {e}")
-                # retry if using requests_session failed
-                if not only_tor:
-                    try:
-                        # get raw transactions
-                        raws = [
-                            requests.get(f"{explorer}/api/tx/{tx['txid']}/hex").text
-                            for tx in missing
-                        ]
-                        # get proofs
-                        proofs = [
-                            requests.get(
-                                f"{explorer}/api/tx/{tx['txid']}/merkleblock-proof"
-                            ).text
-                            for tx in missing
-                        ]
-                        # import funds
-                        self.rpc.multi(
-                            [
-                                ("importprunedfunds", raws[i], proofs[i])
-                                for i in range(len(raws))
-                            ]
-                        )
-                    except:
-                        logger.warning(f"Failed to fetch data from block explorer: {e}")
-        self.fetch_transactions()
-        self.check_addresses()
 
     @property
     def rescan_progress(self):
@@ -1378,9 +1267,9 @@ class Wallet:
     def get_address(self, index, change=False, check_keypool=True) -> str:
         if check_keypool:
             pool = self.change_keypool if change else self.keypool
-            logger.debug(
-                f"get_address index={index} pool={pool} gapLIMIT={self.GAP_LIMIT} change={change} will_keypoolrefill={pool < index + self.GAP_LIMIT}"
-            )
+            # logger.debug(
+            #    f"get_address index={index} pool={pool} gapLIMIT={self.GAP_LIMIT} change={change} will_keypoolrefill={pool < index + self.GAP_LIMIT}"
+            # )
             if pool < index + self.GAP_LIMIT:
                 self.keypoolrefill(pool, index + self.GAP_LIMIT, change=change)
         return self.descriptor.derive(index, branch_index=int(change)).address(
@@ -1535,22 +1424,6 @@ class Wallet:
                 if self.use_descriptors
                 else self.rpc.getbalances()["watchonly"]
             )
-            # calculate available balance
-            locked_utxo = self.rpc.listlockunspent()
-            available = {}
-            available.update(balance)
-            for tx in locked_utxo:
-                tx_data = self.gettransaction(tx["txid"])
-                raw_tx = decoderawtransaction(tx_data["hex"], self.manager.chain)
-                delta = raw_tx["vout"][tx["vout"]]["value"]
-                if "confirmations" not in tx_data or tx_data["confirmations"] == 0:
-                    available["untrusted_pending"] -= delta
-                else:
-                    available["trusted"] -= delta
-                    available["trusted"] = round(available["trusted"], 8)
-            available["untrusted_pending"] = round(available["untrusted_pending"], 8)
-            balance["trusted"] = available["trusted"]
-            balance["untrusted_pending"] = available["untrusted_pending"]
         except Exception as e:
             raise SpecterError(f"was not able to get wallet_balance because {e}")
         self.balance = balance
@@ -1657,12 +1530,57 @@ class Wallet:
         return self.getlabel(address)
 
     @property
+    def amount_confirmed(self):
+        """Confirmed outputs (and outputs created by the wallet for Bitcoin Core Hot Wallets)"""
+        return round(self.balance["trusted"], 8)
+
+    @property
+    def amount_unconfirmed(self):
+        """Unconfirmed outputs"""
+        return round(self.balance["untrusted_pending"], 8)
+
+    @property
+    def amount_frozen(self):
+        """Only frozen outputs, no outputs locked in unsigned PSBTS"""
+        amount = 0
+        frozen_txid = [utxo.split(":")[0] for utxo in self.frozen_utxo]
+        for utxo in self.locked_utxo:
+            if utxo["txid"] in frozen_txid:
+                amount += utxo["amount"]
+        return amount
+
+    @property
+    def amount_locked_unsigned(self):
+        """Outputs locked in unsigned PSBTs"""
+        amount = 0
+        for psbt in self.pending_psbts.values():
+            amount += sum([inp.float_amount for inp in psbt.inputs])
+        return amount
+
+    @property
+    def amount_immature(self):
+        """Immature coinbase outputs"""
+        return round(self.balance["immature"], 8)
+
+    @property
+    def amount_total(self):
+        """All outputs, including unconfirmed outputs, except for immature outputs"""
+        return self.amount_confirmed + self.amount_unconfirmed
+
+    @property
+    def amount_available(self):
+        """All outputs minus UTXO locked in unsigned transactions and frozen outputs"""
+        return self.amount_total - self.amount_locked_unsigned - self.amount_frozen
+
+    @property
     def fullbalance(self):
+        """Deprecated, please use amount_total"""
         balance = self.balance
         return round(balance["trusted"], 8)
 
     @property
     def full_available_balance(self):
+        """Deprecated, please use amount_available"""
         return round(self.balance["trusted"] + self.balance["untrusted_pending"], 8)
 
     @property
@@ -1704,7 +1622,7 @@ class Wallet:
         total_sats = round(sum(amounts) * 1e8)
 
         # if creating new tx - check we have enough balance
-        if not rbf_edit_mode and self.full_available_balance < total_btc:
+        if not rbf_edit_mode and self.amount_available < total_btc:
             raise SpecterError(
                 f"Wallet {self.name} does not have sufficient funds to make the transaction."
             )
@@ -1821,8 +1739,6 @@ class Wallet:
                 "txid": utxo["txid"],
                 "vout": utxo["vout"],
                 "amount": utxo["details"]["value"],
-                "address": get_address_from_dict(utxo["details"]),
-                "label": self.getlabel(get_address_from_dict(utxo["details"])),
             }
             for utxo in rbf_utxo
         ]
@@ -2037,7 +1953,7 @@ class Wallet:
             addr_amount = 0
 
             for utxo in [
-                utxo for utxo in self.full_utxo if utxo["address"] == addr.address
+                utxo for utxo in self._full_utxo if utxo["address"] == addr.address
             ]:
                 addr_amount = addr_amount + utxo["amount"]
                 addr_utxo = addr_utxo + 1

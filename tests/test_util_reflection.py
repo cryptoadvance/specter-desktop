@@ -1,10 +1,13 @@
 import logging
 from pathlib import Path
+from typing import List
 from cryptoadvance.specter.util.reflection import (
     get_subclasses_for_clazz,
+    get_subclasses_for_clazz_in_cwd,
     get_classlist_of_type_clazz_from_modulelist,
     _get_module_from_class,
     get_package_dir_for_subclasses_of,
+    search_dirs_in_path,
 )
 from cryptoadvance.specter.util.specter_migrator import SpecterMigration
 from cryptoadvance.specter.util.migrations.migration_0000 import SpecterMigration_0000
@@ -43,6 +46,15 @@ def test_get_classlist_from_importlist(caplog):
     assert len(classlist) == 2  # Happy to remove that at some point
     assert SwanService in classlist
     assert BitcoinReserveService in classlist
+
+
+def test_get_subclasses_for_clazz_in_cwd(caplog):
+    caplog.set_level(logging.DEBUG)
+    classlist: List[type] = get_subclasses_for_clazz_in_cwd(
+        Service, cwd="./tests/xtestdata_testextensions"
+    )
+    # damn, this is difficult to test
+    # assert len(classlist) == 3
 
 
 def test_get_subclasses_for_class(caplog):
