@@ -72,8 +72,8 @@ class FileUploaderElement extends HTMLElement {
 	constructor() {
 		super();
 		const shadowRoot = this.attachShadow({mode: 'open'});
-		const template = document.getElementById('file-uploader').content;
-		const clone = template.cloneNode(true);
+		const template = document.getElementById('file-uploader');
+		const clone = template.content.cloneNode(true);
 		this.img = clone.querySelector('img')
 		this.img.src = this.getAttribute("image_src");
 		this.img.style.width = this.getAttribute("image_width");

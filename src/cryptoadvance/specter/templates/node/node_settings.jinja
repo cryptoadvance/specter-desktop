@@ -15,31 +15,31 @@
 		{% endif %}
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 
-		<div class="card" style="margin: 20px auto 20px;">
-			<h2>{{ _("Bitcoin JSON-RPC configuration") }}</h2>
+		<div class="card" style="margin: 10px auto 15px;">
+			<h2 style="text-align: center;">{{ _("Bitcoin JSON-RPC configuration") }} </h2>
 			<br>
-			<label style="height: 25px; vertical-align: sub;">Auto-detect:&nbsp;</label>
-			<label class="switch">
-				<input type="checkbox" id="autodetect" name="autodetect" {% if node.autodetect %}checked{% endif %}>
-				<span class="slider"></span>
-			</label>
-			<span id="datadir-container">
-			<div class="tool-tip" style="float: right;">
-				<i class="tool-tip__icon">i</i>
-				<p class="tool-tip__info">
-					<span class="info">
-						<span class="info__title">{{ _("Setting Bitcoin Core Data Directory") }}<br></span><br>
-						{{ _("When auto-detect is on, Specter will check for Environment-Variables (BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT) to configure the connection or attempt to automatically locate your Bitcoin data directory and load your node configurations from it.") }}<br><br>
-						{{ _("However, if your Bitcoin Core data directory is not located at the default location, you will need to enter its path here so Specter will be able to locate it.") }}<br><br>
-						{{ _("If you are connecting to a specific remote node, you can disable the auto-detect feature and enter the node's configurations manually below.") }}
-					</span>
-				</p>
+			<span id="toggle-explainer" style="cursor: pointer;">
+                &#128218; {{ _("Need help with the setup?") }} &#9654;
+            </span>
+            <br>
+            <div id="text-explainer" class="hidden warning" style="text-align: left;">
+				{{ _("When auto-detect is on, Specter will check for environment variables (BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT) to configure the connection or attempt to automatically locate your Bitcoin data directory and load your node configurations from it.") }}<br>
+				{{ _('If your Bitcoin Core data directory is not located at the default location, you will need to enter its path under "Bitcoin Core data directory path" to locate it.') }}<br>
+				{{ _("If you are connecting to a remote node, you need to disable auto-detect and enter the node's configurations manually below.") }}
+            </div>
+            <div style="display: flex; margin-top: 20px">
+				<label style="height: 25px;">Auto-detect:&nbsp;</label>
+				<label class="switch">
+					<input type="checkbox" id="autodetect" name="autodetect" {% if node.autodetect %}checked{% endif %}>
+					<span class="slider"></span>
+				</label>
 			</div>
-			<br><br>
+			<span id="datadir-container">
+			<br>
 				{{ _("Bitcoin Core data directory path:") }}<br><input type="text" id="datadir" name="datadir" type="text" value="{{ node.datadir }}">
 			</span>
 			<br><br>
-			<div id="rpc_settings">
+			<div id="rpc_settings" style="margin-bottom: 10px;">
 				<div id="lock" class="center">
 					<p style="text-align: center; margin: auto; ">&#128274;</p>
 					<span class="note centered"> {{ _("(disable auto-detect to configure manually)") }}</span>
@@ -61,7 +61,7 @@
 			<div class="note">
 				{{ _("Default ports: <b>8332</b> for mainnet, <b>18332</b> for Testnet, <b>18443</b> for Regtest, <b>38332</b> for Signet, <b>7041</b> for Liquid mainnet, <b>7040</b> for Liquid testnet or regtest") }}
 			</div>
-			<br><br>
+			<br>
 			<div class="row">
 				<button type="submit" class="btn" name="action" value="test">{{ _("Test") }}</button>&nbsp;
 				<button type="submit" class="btn" name="action" value="save">{{ _("Save") }}</button>
@@ -82,9 +82,12 @@
 						<div>{{ _("Connectable") }}</div>
 						<div>{{ tick_or_cross(test['tests']['connectable']) }} </div>
 						{% if not test['tests']['connectable'] %} 
-							<tool-tip title="{{ _("Your Node can't be reached") }}" style="float: right;">
-								{{ _("There are a lot of potential issues preventing the connection. Please double check the Host and the Port. Make sure you can reach the host and make sure that Bitcoin-Core is listening at the port you have specified.") }} 
-								{{ _('For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">article</a>.') }}
+							<tool-tip>
+    							<h4 slot="title">{{ _("Your Node can't be reached") }}</h4>
+							    <span slot="paragraph">
+									{{ _("There are a lot of potential issues preventing the connection. Please double-check the host and the port. Make sure you can reach the host and make sure that Bitcoin Core is listening on the port you have specified.") }} 
+									{{ _('For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">article</a>.') }}
+							    </span>
 							</tool-tip>
 						{% else %}
 							<div></div>
@@ -95,10 +98,13 @@
 						<div>Credentials</div>
 						<div> {{ tick_or_cross(test['tests']['credentials']) }} </div>
 						{% if not test['tests']['credentials'] %}
-							<tool-tip title="{{ _("Your Credentials don't work") }}" style="float: right;">
-								{{ _("Please doublecheck the user and the Password. Look at the bitcoin.conf
-								for the correct values in that field.") }}
-								{{ _('For more hints, please look at this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">article</a>.') }}
+							<tool-tip style="float: right;">
+							    <h4 slot="title">{{ _("Your Credentials don't work") }}</h4>
+							    <span slot="paragraph">
+									{{ _("Please double-check the user and the password. Have a look at the bitcoin.conf
+									for the correct values in that field.") }}
+									{{ _('For more hints, please read this <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">article</a>.') }}
+							    </span>
 							</tool-tip>
 						{% else %}
 							<div></div>
@@ -109,8 +115,11 @@
 						<div>{{ _("Version recent enough") }}</div>
 						<div> {{ tick_or_cross(test['tests']['recent_version']) }} </div>
 						{% if not test['tests']['recent_version'] %}
-							<tool-tip title='{{ _("Your Core Node might be too old") }}' style="float: right; margin-bottom: 5px;">
-									{{ _("Specter is working well up from Bitcoin Core version 0.17. The version of your Node is too low, unfortunatley. Please upgrade!") }}
+							<tool-tip style="float: right; margin-bottom: 5px;">
+							    <h4 slot="title">{{ _("Your Core Node might be too old") }}</h4>
+							    <span slot="paragraph">
+									{{ _("Specter is working well up from Bitcoin Core version 0.17. The version of your node is too old, unfortunatley. Please upgrade!") }}
+							    </span>
 							</tool-tip>
 						{% else %}
 							<div></div>
@@ -121,8 +130,11 @@
 						<div>Wallets enabled</div>
 						<div> {{ tick_or_cross(test['tests']['wallets']) }} </div>
 						{% if not test['tests']['wallets'] %}
-							<tool-tip title='{{ _("Wallet Support in your Core-Node") }}' style="float: right; margin-bottom: 5px;">
-								{{ _("The RPC-Interface of your Core-Node is available, but the wallet-api is not. Please make sure to have 'disablewallet=0' in your bitcoin.conf.") }}
+							<tool-tip style="float: right; margin-bottom: 5px;">
+							    <h4 slot="title">{{ _("Wallet Support in your Core Node") }}</h4>
+							    <span slot="paragraph">
+									{{ _("The RPC interface of your Core node is available, but the Core wallet API is not. Please make sure to have 'disablewallet=0' in your bitcoin.conf.") }}
+							    </span>
 							</tool-tip>
 						{% else %}
 							<div></div>
@@ -208,5 +220,24 @@
 			}
 		});
 	}
+
+    function toggleExplainer() {
+        let toggle = document.getElementById('toggle-explainer');
+        let explainerText = document.getElementById('text-explainer');
+        if (explainerText.classList.contains('hidden')) {
+            explainerText.classList.remove("hidden");
+            explainerText.classList.add("flex-center")
+            explainerText.classList.add("flex-column")
+            toggle.innerHTML = '&#128218; ' + 'Need help with the setup?' + ' &#9660;';
+        } else {
+            explainerText.classList.add("hidden");
+            toggle.innerHTML = '&#128218; ' + 'Need help with the setup?' + ' &#9654;';
+        }
+    }
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById('toggle-explainer').addEventListener('click', (event) => {
+            toggleExplainer();
+        });
+    })
 </script>
 {% endblock %}

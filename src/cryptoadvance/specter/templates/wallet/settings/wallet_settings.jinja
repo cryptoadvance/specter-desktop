@@ -90,9 +90,9 @@
 				{% endif %}
 			{% endfor %}
 			{% if supports_export_to_device != [] %}
-				<h2 class="subtitle">{{ _("Export To Device") }}</h1>
+				<h2 class="subtitle">{{ _("Export wallet to device") }}</h1>
 				<p class="center">
-					{{ _("Import this wallet to a device by scanning its QR code or importing its data file.") }}
+					{{ _("Export this wallet to a device by scanning its QR code or importing its data file.") }}
 				</p>
 
 				{% for device in wallet.devices %}
@@ -119,57 +119,60 @@
 				<div class="section-separator"></div>
 			{% endif %}
 			
-			<h2 class="subtitle">{{ _("Export To Wallet Software") }}</h2>
+			<h2 class="subtitle">{{ _("Export to wallet software") }}</h2>
 			<p class="center">
-				{{ _("Import this wallet to another Specter instance or other supported wallet softwares by scanning the QR code or importing the JSON file.") }}
+				{{ _("Export this wallet to another Specter instance or other supported wallet softwares by scanning the QR code or importing the JSON file.") }}
 			</p>
-			<button onclick="showPageOverlay('account_map_export')" type="button" class="btn centered padded">{{ _("Export") }}</button>
+			<button onclick="showPageOverlay('account_map_export')" type="button" class="btn centered padded">{{ _("Go to export details") }}</button>
 			<div class="section-separator"></div>
-			<h2 class="subtitle">{{ _("Export Specter format") }}</h2>
+			<h2 class="subtitle">{{ _("Specter wallet backup") }}</h2>
 			<p class="center">
-				{{ _("Export a JSON file containing complete wallet data including labels.") }}
+				{{ _("Create a JSON file containing all wallet data including labels.") }}
 			</p>
-			<a download="{{ wallet.name }}.json" class="btn centered padded" id="export_specter_format">Export Specter format</a>
+			<a download="{{ wallet.name }}.json" class="btn centered padded" id="export_specter_format">Download Specter JSON file</a>
 			<div class="section-separator"></div>
-			<h2 class="subtitle">{{ _("Export PDF backup") }}</h2>
-			<p style="max-width: 500px;" class="center">
-			{{ _("It is recommended that you print and save this wallet backup file with each of your devices.") }}
-			</p>
-			<button id="pdf-wallet-download" type="button" class="btn centered padded" style="margin: 30px auto;">Save Backup PDF</button>
-			<span id="advanced_pdf_export_toggle" style="cursor: pointer;" onclick="togglePDFExportAdvanced()">{{ _("Advanced") }} &#9654;</span>
-			<br>
-			<div style="margin: 0 auto;" class="center hidden" id="advanced_pdf_export_container"><br>
-				<label style="font-size: 1em;">{{ _("Use SLIP-132:") }}&nbsp;</label>
-				<label class="switch">
-					<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()">
-					<span class="slider"></span>
-				</label>
-				<br>
-				{% if not wallet.is_multisig %} 
-				<br>
-				<tool-tip title="{{ _("A Paper Wallet") }}" style="float: right;">
-					{{ _('This PDF is optimized for singlesig Paperwallets: Wallets created by uncle Jim (<a href="https://stephanlivera.com/episode/265/">inspired by</a>) for family&friends which want a coldstorage but can\'t afford a Hardwarewallet yet.') }} 
-					{{ _('So we enable the import in a specter-desktop later and list many single addresses (#0 is dedicated for a penny-test) for later use when the HWW is gone.') }}
-					{{ _('A checkbox can be used to verify the address on the (probably Specter-DIY or seedsigner) hardwarewallet as long as it\'s around and still hold that seed in memory.') }}
-					{{ _('It\'s assumed to be folded into DIN-A5 to fit in a transparent sealing-bag (together with the seed).') }}
+			<div class="row center" style="align-items: center;">
+				<h2 class="subtitle">{{ _("Printable PDF backup") }}</h2>
+				<tool-tip width="33px">
+				    <span slot="paragraph">
+				    	{{ _("This backup includes all the information you need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core.") }}
+	    				{{ _("It is recommended that you keep this file private. It contains all the information to track your balance and associate transactions with your wallet.") }}
+				    </span>
 				</tool-tip>
-				Paper-Wallet (xpub-part): <br>
-				<button id="pdf-paperxpub-download" type="button" class="btn centered padded" style="margin: 30px auto;">
-					Save Paperxpub PDF
-				</button>
-				
-				{% endif %}
 			</div>
-			<br>
-			<p class="note center" style="margin-top: 5px; max-width: 90%;">{{ _("To format master keys on the PDF backup document.") }}</p>
-			<p style="max-width: 500px;" class="note center">
-			{{ _("This backup includes all the information you'd need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core itself.") }}<br>
-			<p>
-			<p style="max-width: 500px;" class="note center">
-			{{ _("It is recommended that you keep this file private, as it contains all the information needed to track all of the wallet balance and transactions history.") }}
-			<p>
+			<p style="max-width: 500px;" class="center">
+			{{ _("It is recommended that you print this backup and save it with each of your devices.") }}
+			</p>
+			<button id="pdf-wallet-download" type="button" class="btn centered padded" style="margin: 30px auto;">Open backup PDF</button>
+			<span id="advanced_pdf_export_toggle" style="cursor: pointer;" onclick="togglePDFExportAdvanced()">{{ _("Adjust PDF backup (advanced)") }} &#9654;</span>
+			<div style="margin: 20px;" class="center hidden" id="advanced_pdf_export_container">
+				<div class="row center">
+					<label style="font-size: 1em;">{{ _("Use SLIP-132 for xpubs in PDF:") }}&nbsp;</label>
+					<label class="switch">
+						<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()">
+						<span class="slider"></span>
+					</label>
+				</div>
+			</div>
+			{% if not wallet.is_multisig %} 
+			<div class="section-separator"></div>
+			<div class="row center" style="align-items: center;">
+				<h2 class="subtitle">{{ _("Uncle Jim PDF") }}</h2>
+				<tool-tip>
+				    <span slot="paragraph">
+						{{ _('The PDF lists many singlesig addresses in QR code format, as well as the descriptor of the wallet as a QR code with which the wallet can be imported to Specter Desktop at any time.') }}
+						{{ _('There are checkboxes to keep track of which addresses were used already.') }}
+						{{ _('Can be folded into DIN-A5 to fit in a transparent sealing bag (together with the seed).') }}
+				    </span>
+				</tool-tip>
+			</div>
+				<p class="center"> {{ _("PDF optimized for Uncle Jims: hand out addresses to receive funds for friends & family without hardware wallet.") }}</p>
+				<button id="pdf-paperxpub-download" type="button" class="btn centered padded" style="margin: 30px auto;">
+					Get Uncle Jim PDF
+				</button>
 			{% include 'wallet/components/wallet_pdf.jinja' %}
 			{% include "wallet/settings/components/export_wallet_account_map.jinja" %}
+			{% endif %}
 		</div>
 	</div>
 	<div class="hidden" id="wallet_advanced_settings_tab">
@@ -181,8 +184,7 @@
 				<div class="row aligned">
 					<textarea name="address_labels_data" 
 					id="address_labels_data" 
-					placeholder="{{ _('You can paste and drag & drop here') }}
-					{{ _('(Electrum JSON file, Specter addresses CSV or Specter JSON file)') }}"  
+					placeholder="{{ _('You can paste and drag & drop here:') }}&#10&#10{{ _('Electrum JSON file, Specter addresses CSV or Specter JSON file') }}"  
 					ondrop="dropHandler(event);" 
 					ondragover="dragOverHandler(event);"
 					ondragleave="dragLeaveHandler(event);" 
@@ -196,7 +198,7 @@
 				</div>
 				<div class="row center">
 					<button type="submit" name="action" value="import_address_labels" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Import") }}
-						<tool-tip>
+						<tool-tip width="325px">
 							<span slot="paragraph">
 								{{ _('The expected format for Electrum contains:') }}<br>
 								{{ _('{"8a5e4...": "some tx id label", "bc1qj3...": "some address label"}') }}<br><br>
@@ -282,9 +284,12 @@
 				{% if specter.info['pruned']  %}
 					<div class="row" style="margin-top: 10px">
 						<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> {{ _("fetch missing data from block explorer") }}
-							<tool-tip title="Fetch missing data">
-							{{ _("You are using a pruned node. Blocks for some transactions may be missing.") }}<br><br>
-							{{ _("Check this checkbox if you want to fetch missing information from block explorer.") }}
+							<tool-tip>
+							    <h4 slot="title">{{ _("Fetch missing data") }}</h4>
+							    <span slot="paragraph">
+							    	{{ _("You are using a pruned node. Blocks for some transactions may be missing.") }}<br><br>
+									{{ _("Check this checkbox if you want to fetch missing information from block explorer.") }}
+							    </span>
 							</tool-tip>
 						</label>
 					</div>
@@ -431,10 +436,10 @@
 			let advancedSettings = document.getElementById(`advanced_pdf_export_container`);
 			if (advancedSettings.classList.contains("hidden")) {
 				advancedSettings.classList.remove("hidden");
-				advancedButton.innerHTML = `{{ _("Advanced") }} &#9660;`;
+				advancedButton.innerHTML = `{{ _("Adjust PDF backup (advanced)") }} &#9660;`;
 			} else {
 				advancedSettings.classList.add("hidden");
-				advancedButton.innerHTML = `{{ _("Advanced") }} &#9654;`;
+				advancedButton.innerHTML = `{{ _("Adjust PDF backup (advanced)") }} &#9654;`;
 			}
 		}
 

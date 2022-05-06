@@ -238,8 +238,9 @@
                 <span slot="paragraph">
                     {{ _("You can search using addresses, tx-IDs, labels, confirmations or amounts.") }}<br><br>
                     {{ _('Search like this in the time field:') }} <code>%d.%m.%Y %H:%M</code><br><br>
-                    {{ _('Search like this for amounts:') }} <code> 1</code> 
-                    {{ _("for anything more than 1 BTC and for less than 1 BTC simply type <code>< 1</code> (don't forget the space)") }}<br>
+                    {{ _('Search like this for amounts:') }} <br>
+                    <code> 1</code> {{ _("for anything more than 1") }}<br>
+                    <code>< 1</code> {{ _("for less than 1 BTC (don't forget the space)") }}<br>
                 </span>
             </tool-tip>
         </div>
