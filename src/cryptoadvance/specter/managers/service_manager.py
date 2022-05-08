@@ -302,12 +302,16 @@ class ServiceManager:
         # Those pathes are absolute. Let's make them relative:
         arr = [Path(*path.parts[-6:]) for path in arr]
 
+        if os.name == "nt":
+            virtualenv_search_path = Path("..", ".buildenv", "Lib", "site-packages")
+        else:
+            virtualenv_search_path = Path("..", ".buildenv", "lib", "python3.8")
         # ... and as the classes are in the .buildenv (see build-unix.sh) let's add ..
-        arr = [Path(".buildenv/lib/python3.8", path) for path in arr]
+        arr = [Path(virtualenv_search_path, path) for path in arr]
 
-        # Non cryptoadvance extensions sitting in src/org/specterext/... need to be added, too
+        # Non internal-repo extensions sitting in org/specterext/... need to be added, too
         src_org_specterext_exts = search_dirs_in_path(
-            ".buildenv/lib/python3.8", return_without_extid=False
+            virtualenv_search_path, return_without_extid=False
         )
         src_org_specterext_exts = [Path(path, x) for path in src_org_specterext_exts]
 
