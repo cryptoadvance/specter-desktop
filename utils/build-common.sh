@@ -1,5 +1,34 @@
 #!/usr/bin/env bash
 
+# All functions in here are responsible to change directory
+# from the project root to wherever they want
+# They need to change back to project-root when they finish
+
+
+function create_virtualenv_for_pyinstaller {
+    if [ -d .buildenv ]; then
+        echo "    --> Deleting .buildenv"
+        rm -rf .buildenv
+    fi
+    virtualenv --python=python3 .buildenv
+    source .buildenv/bin/activate
+    pip3 install -r test_requirements.txt
+}
+
+function build_pypi_pckgs_and_install {
+    rm -rf dist
+    if ! git diff --quiet setup.py; then
+        echo "ERROR: setup.py is dirty, can't reasonably build"
+        exit 1
+    fi
+    sed -i "s/version=\".*/version=\"$version\",/" setup.py
+    cat setup.py
+    python3 setup.py sdist bdist_wheel
+    git checkout setup.py
+    pypi_comp_version=$(echo $version | sed 's/^v//' | sed 's/-pre/rc/' )
+    pip3 install ./dist/cryptoadvance.specter-${pypi_comp_version}-py3-none-any.whl
+}
+
 function specify_app_name {
     if [ -z "$app_name" ]; then
     # activate virtualenv. This is e.g. not needed in CI
@@ -21,45 +50,68 @@ function specify_app_name {
 
 function install_build_requirements {
 
-    echo "    --> Installing (build)-requirements"
+    echo "    --> Installing pyinstaller build-requirements"
+    cd pyinstaller
     pip3 install -r requirements.txt --require-hashes > /dev/null
 
     cd ..
-    # Order is relevant here. If you flip the followng lines, the hiddenimports for services won't work anymore
-    python3 setup.py install > /dev/null
-    pip3 install -e .  > /dev/null
-    cd pyinstaller
-
 }
 
 function cleanup {
     echo "    --> Cleaning up"
+    cd pyinstaller
     rm -rf build/ dist/ release/ electron/release/ electron/dist
     rm *.dmg || true
+    cd ..
 }
 
 function building_app {
     echo "    --> Building ${specterd_filename}"
+    cd pyinstaller
     specterd_filename=${specterd_filename} pyinstaller specterd.spec > /dev/null
+    cd ..
 }
 
 function prepare_npm {
-    echo "    --> Making us ready for building electron-app for MacOS"
+    cd pyinstaller/electron
+    echo "    --> Making us ready for building electron-app"
     npm ci
+    cd ../..
 }
 
-
+function make_hash_if_necessary {
+    cd pyinstaller/electron
+    echo "    --> calculate the hash of the binary for download"
+    if [[ "$1" = "win" ]]; then
+        specterd_plt_filename=../dist/${specterd_filename}.exe
+    else
+        specterd_plt_filename=../dist/${specterd_filename}.exe
+    fi
+    if [[ "$make_hash" == 'True' ]]
+    then
+        node ./set-version $version ${specterd_plt_filename}
+    else
+        node ./set-version $version
+    fi
+    echo "        Hash in version -data.json $(cat ./version-data.json | jq -r '.sha256')"
+    echo "        Hash of file $(sha256sum ${specterd_plt_filename} )"
+    cd ../..
+}
 
 function building_electron_app {
+    platform="-- --${1}" # either linux or win (maxOS is empty)
+    cd pyinstaller/electron
     echo "    --> building electron-app"
     npm i
-    npm run dist
+    npm run dist ${platform}
+    cd ../..
 }
 
 function macos_code_sign {
     # docs:
     # https://help.apple.com/itc/apploader/#/apdATD1E53-D1E1A1303-D1E53A1126
     # https://keith.github.io/xcode-man-pages/altool.1.html
+    cd pyinstaller/electron
     echo '    --> Attempting to code sign...'
     ditto -c -k --keepParent "dist/mac/${specterimg_filename}.app" dist/${specterimg_filename}.zip
     # upload
@@ -99,6 +151,7 @@ function macos_code_sign {
     # The stapler somehow "staples" the result of the notarisation in to your app
     # see e.g. https://stackoverflow.com/questions/58817903/how-to-download-notarized-files-from-apple
     xcrun stapler staple "dist/mac/${specterimg_filename}.app"
+    cd pyinstaller/electron
 }
 
 function make_release_zip {

@@ -52,7 +52,9 @@ class ServiceManager:
         # in the corresponding (Production)Config
         logger.debug(f"EXTENSION_LIST = {app.config.get('EXTENSION_LIST')}")
         class_list = get_classlist_of_type_clazz_from_modulelist(
-            Service, app.config.get("EXTENSION_LIST", [])
+            Service,
+            app.config.get("EXTENSION_LIST", []),
+            app.config.get("SPECTER_CONFIGURATION_CLASS_FULLNAME"),
         )
 
         if app.config.get("SERVICES_LOAD_FROM_CWD", False):
@@ -295,16 +297,17 @@ class ServiceManager:
             Path(Path(_get_module_from_class(clazz).__file__).parent, x)
             for clazz in get_subclasses_for_clazz(Service)
         ]
+        logger.info(f"arr = {arr}")
         arr = [path for path in arr if path.is_dir()]
         # Those pathes are absolute. Let's make them relative:
         arr = [Path(*path.parts[-6:]) for path in arr]
 
-        # ... and a as the pyinstaller is in a subdir, let's add ..
-        arr = [Path("..", path) for path in arr]
+        # ... and as the classes are in the .buildenv (see build-unix.sh) let's add ..
+        arr = [Path(".buildenv/lib/python3.8", path) for path in arr]
 
         # Non cryptoadvance extensions sitting in src/org/specterext/... need to be added, too
         src_org_specterext_exts = search_dirs_in_path(
-            "../src/", return_without_extid=False
+            ".buildenv/lib/python3.8", return_without_extid=False
         )
         src_org_specterext_exts = [Path(path, x) for path in src_org_specterext_exts]
 
@@ -321,7 +324,7 @@ class ServiceManager:
         arr = get_subclasses_for_clazz(Service)
         arr.extend(
             get_classlist_of_type_clazz_from_modulelist(
-                Service, ProductionConfig.EXTENSION_LIST
+                Service, ProductionConfig.EXTENSION_LIST, None
             )
         )
         arr = [clazz.__module__ for clazz in arr]
