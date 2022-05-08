@@ -303,7 +303,7 @@ class ServiceManager:
         arr = [Path(*path.parts[-6:]) for path in arr]
 
         if os.name == "nt":
-            virtualenv_search_path = Path("..", ".buildenv", "Lib", "site-packages")
+            virtualenv_search_path = Path("..", ".buildenv", "Lib")
         else:
             virtualenv_search_path = Path("..", ".buildenv", "lib", "python3.8")
         # ... and as the classes are in the .buildenv (see build-unix.sh) let's add ..
