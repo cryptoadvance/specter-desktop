@@ -123,6 +123,10 @@ release_binary_windows:
     - windows
   before_script:
     - python -V
+    - pip3 install virtualenv
+    - virtualenv --python=python3 .env
+    - .\.env\Scripts\activate
+    - pip3 install -r test_requirements.txt
     - whoami
   script:
     # This script won't execute if the script before that fails
@@ -161,7 +165,6 @@ release_electron_linux_windows:
     # Only difference to default befor_script: (ToDo fix this)
     - python3 -m virtualenv --python=python3 .env
     - source .env/bin/activate
-    - pip3 install -r test_requirements.txt
   script:
     - echo "Releasing for ${CI_PROJECT_ROOT_NAMESPACE}"
     - export CI_PROJECT_ROOT_NAMESPACE # needed in the build-script to download the right windows-binary
