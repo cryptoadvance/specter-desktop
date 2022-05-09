@@ -54,6 +54,7 @@ function create_release_zip_linux {
   cp -r ../../../udev ./udev
   echo "Don't forget to set up udev rules! Check out udev folder for instructions." > README.md
   tar -czvf ../../../release/${pkg_filename}-"$version"-"$(uname -m)"-linux-gnu.tar.gz ${app_name^}-* udev README.md
+  cd ../../..
 }
 
 function prepare_building_electron_app_win {
