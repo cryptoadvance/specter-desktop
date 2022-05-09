@@ -463,6 +463,8 @@ zipp==3.8.0 \
 # setuptools
 
 
+# The block below is created with pip-compile in python 3.8, such that requirements.txt is backwards compatible with python 3.8
+# This package is not needed for python 3.10
 backports.zoneinfo==0.2.1 ; python_version < '3.10' \
     --hash=sha256:17746bd546106fa389c51dbea67c8b7c8f0d14b5526a579ca6ccf5ed72c526cf \
     --hash=sha256:1b13e654a55cd45672cb54ed12148cd33628f672548f373963b0bff67b217328 \
