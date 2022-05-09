@@ -27,11 +27,10 @@ python .\utils\release-helper.py install_wheel %1%
 pip3 install -r pyinstaller/test_requirements.txt
 cd pyinstaller
 
+Rem This file gets further packaged up with the pyinstaller and will help specter to figure out which version it's running on
 echo %1% > version.txt
 echo "    --> installing pyinstaller requirements"
 pip3 install -r requirements.txt  --require-hashes
-
-Rem Order is relevant here. If you flip the followng lines, the hiddenimports for services won't work anymore
 
 rmdir /s /q .\dist\
 rmdir /s /q .\build\
