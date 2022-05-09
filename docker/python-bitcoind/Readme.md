@@ -13,10 +13,10 @@ Here the version is v23.0 but that's just an example. This folder just explains 
 
 ```
 python3 -m cryptoadvance.specter bitcoind #it's using "latest"
-``` 
+```
 
 but you can override like this:
 
 ```
-python3 -m cryptoadvance.specter bitcoind --docker-tag v23.0
+python3 -m cryptoadvance.specter bitcoind --docker-tag v22.0
 ```
