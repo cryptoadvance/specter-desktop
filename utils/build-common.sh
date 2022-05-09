@@ -85,7 +85,7 @@ function make_hash_if_necessary {
     if [[ "$1" = "win" ]]; then
         specterd_plt_filename=../dist/${specterd_filename}.exe
     else
-        specterd_plt_filename=../dist/${specterd_filename}.exe
+        specterd_plt_filename=../dist/${specterd_filename}
     fi
     if [[ "$make_hash" == 'True' ]]
     then
