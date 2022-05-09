@@ -68,7 +68,7 @@ function prepare_building_electron_app_win {
 
 version=$CI_COMMIT_TAG
 
-echo "    --> Assumed gitlab-project: ${CI_PROJECT_ROOT_NAMESPACE:+x}"
+echo "    --> Assume gitlab-project: ${CI_PROJECT_ROOT_NAMESPACE}"
 
 [ -z "${CI_PROJECT_ROOT_NAMESPACE:+x}" ]    && \
     echo "        Redefining CI_PROJECT_ROOT_NAMESPACE=cryptoadvance " && \
@@ -89,13 +89,15 @@ while [[ $# -gt 0 ]]
         shift
         ;;
       --version)
-        if [ -n "$CI_COMMIT_TAG" ]; then
-          echo "ERROR: Cannot set version while having CI_COMMIT_TAG env-var. "
-          exit 1
-        fi
         version=$2
         shift
         shift
+        if [ -n "$CI_COMMIT_TAG" ]; then
+          if [ "$version" != "$CI_COMMIT_TAG" ]; then
+            echo "ERROR: Cannot set version to something different than CI_COMMIT_TAG env-var if that var is set. "
+            exit 1
+          fi
+        fi
         ;;
       specterd)
         build_specterd=True
