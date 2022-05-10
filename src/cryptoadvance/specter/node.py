@@ -185,7 +185,7 @@ class Node:
             logger.error(rpce)
             return None
         except ConnectionError as e:
-            logger.error(e)
+            logger.error(f"{e} while get_rpc")
             return None
         except Exception as e:
             logger.exception(e)
@@ -314,7 +314,7 @@ class Node:
                         ]
                     )
                 except Exception as e:
-                    logger.error(e)
+                    logger.exception(e)
             self._info = {"chain": None}
             self._network_info = {"subversion": "", "version": 999999}
 

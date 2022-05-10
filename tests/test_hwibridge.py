@@ -4,10 +4,13 @@ from cryptoadvance.specter.devices import DeviceTypes
 
 def test_malformed_parse_error(client):
     client.environ_base["HTTP_ORIGIN"] = "http://127.0.0.1:25441/"
-    req = client.post("http://127.0.0.1:25441/hwi/api/", data=b"malformed")
+    req = client.post("http://127.0.0.1:25441/hwi/api/", data=b"{'muh':'meh'}")
     assert {
         "jsonrpc": "2.0",
-        "error": {"code": -32700, "message": "Parse error"},
+        "error": {
+            "code": -32700,
+            "message": "Parse error:Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",
+        },
         "id": None,
     } == json.loads(req.data)
 

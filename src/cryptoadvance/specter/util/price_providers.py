@@ -1,9 +1,11 @@
-import requests
 import logging
-from ..specter_error import SpecterError, handle_exception
-from urllib3.exceptions import NewConnectionError
-from requests.exceptions import ConnectionError, HTTPError
 from json.decoder import JSONDecodeError
+
+import requests
+from requests.exceptions import ConnectionError, HTTPError
+from urllib3.exceptions import NewConnectionError
+
+from ..specter_error import SpecterError, handle_exception
 
 logger = logging.getLogger(__name__)
 
@@ -102,6 +104,8 @@ def update_price(specter, current_user):
         specter.update_alt_rate(price, current_user)
         specter.update_alt_symbol(symbol, current_user)
         return True
+    except SpecterError as e:
+        logger.error(f"{e} while updating price")
     except Exception as e:
         handle_exception(e)
         return False
@@ -188,14 +192,8 @@ def get_price_at(specter, timestamp="now"):
         raise Exception("get_price_at called whereas specter.price_check is False")
     except SpecterError as se:
         raise se
-    except (ConnectionRefusedError, ConnectionError, NewConnectionError) as e:
-        logger.error(e)
-        raise SpecterError(f"There are connection issue with the exchange:{e}")
     except KeyError as ke:
         raise SpecterError(f"Error as json doesn't look reasonable: {ke}")
-    except Exception as e:
-        handle_exception(e)
-        raise SpecterError(e)
 
 
 def _parse_exchange_currency(exchange_currency):
@@ -227,6 +225,6 @@ def failsafe_request_get(requests_session, url):
         if json_response.get("errors"):
             raise SpecterError(f"JSON error: {json_response}")
         raise SpecterError(f"HttpError {httpe.response.status_code} for {url}")
-    except Exception as e:
-        handle_exception(e)
-        raise SpecterError(e)
+    except (ConnectionRefusedError, ConnectionError, NewConnectionError) as e:
+        logger.error(f"{e} while requesting {url}")
+        raise SpecterError(f"There is a connection issue with the exchange:{e}")
