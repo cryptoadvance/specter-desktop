@@ -182,10 +182,10 @@ release_electron_linux_windows:
     - python3 ./utils/github.py upload ./release/Specter-Setup-${CI_COMMIT_TAG}.exe
     - python3 ./utils/github.py upload ./release/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip 
     - python3 ./utils/github.py upload ./release/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz 
-    #- python3 ../utils/github.py upload ./release-linux/SHA256SUMS-linux
-    #- python3 ../utils/github.py upload ./release-linux/SHA256SUMS-linux.asc
-    #- python3 ../utils/github.py upload ./release-win/SHA256SUMS-win
-    #- python3 ../utils/github.py upload ./release-win/SHA256SUMS-win.asc
+    #- python3 ../utils/github.py upload ./release/SHA256SUMS-linux
+    #- python3 ../utils/github.py upload ./release/SHA256SUMS-linux.asc
+    #- python3 ../utils/github.py upload ./release/SHA256SUMS-win
+    #- python3 ../utils/github.py upload ./release/SHA256SUMS-win.asc
   cache:
     key:
         files:
@@ -197,13 +197,13 @@ release_electron_linux_windows:
   artifacts:
     when: always
     paths:
-      - pyinstaller/release/Specter-Setup-${CI_COMMIT_TAG}.exe
-      - pyinstaller/release/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip
-      - pyinstaller/release/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz
-      - pyinstaller/release/SHA256SUMS-linux
-      - pyinstaller/release/SHA256SUMS-linux.asc
-      - pyinstaller/release/SHA256SUMS-win
-      - pyinstaller/release/SHA256SUMS-win.asc
+      - release/Specter-Setup-${CI_COMMIT_TAG}.exe
+      - release/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip
+      - release/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz
+      - release/SHA256SUMS-linux
+      - release/SHA256SUMS-linux.asc
+      - release/SHA256SUMS-win
+      - release/SHA256SUMS-win.asc
     expire_in: 1 day
 
 release_signatures:
