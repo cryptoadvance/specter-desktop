@@ -247,6 +247,10 @@
                 doc.line(0,214,181,214)
 
             {% endfor %}
+            {% if wallet.chain == "regtest" %} 
+                doc.text('{{ _("As this is a regtest-wallet, the addresses in") }}', 80, 205, {"angle": 10});
+                doc.text('{{ _("the three rows are not usable and missing 2 chars.") }}', 80, 210, {"angle": 10});
+            {% endif  %} 
             doc.save(({{ wallet.name.lower() | tojson | safe  }} + "_backup.pdf").replace(" ", '_'));
 
 
