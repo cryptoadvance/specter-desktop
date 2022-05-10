@@ -88,6 +88,7 @@ class LWallet(Wallet):
                 self.change_address, assetlabel=None
             )
         except Exception as e:
+            handle_exception(e)
             # Could happen if address not in wallet (wallet was imported)
             # try adding keypool
             logger.info(
