@@ -118,6 +118,10 @@ click==8.1.1 \
     # via
     #   -r requirements.in
     #   flask
+cryptoadvance-liquidissuer==0.2.3 \
+    --hash=sha256:4a8c0b11177fd4387f6185002e4e6bb2c4f74486794aa35c028705ebb5aae55e \
+    --hash=sha256:fa743e5d35f152d086c75306c82b97daff9fc086fa7a0acb0d91742f2685054e
+    # via -r requirements.in
 cryptography==3.4.7 \
     --hash=sha256:0f1212a66329c80d68aeeb39b8a16d54ef57071bf22ff4e521657b27372e327d \
     --hash=sha256:1e056c28420c072c5e3cb36e2b23ee55e260cb04eee08f702e0edfec3fb51959 \

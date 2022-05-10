@@ -25,3 +25,6 @@ cbor==1.0.0
 mnemonic==0.20
 cryptography==3.4.7
 Flask-APScheduler==1.12.3
+
+# Extensions
+cryptoadvance-liquidissuer==0.2.3
