@@ -22,7 +22,7 @@
                 &#128218; {{ _("Need help with the setup?") }} &#9654;
             </span>
             <br>
-            <div id="text-explainer" class="hidden warning" style="text-align: left;">
+            <div id="text-explainer" class="hidden warning flex-center flex-column" style="text-align: left;">
 				{{ _("When auto-detect is on, Specter will check for environment variables (BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT) to configure the connection or attempt to automatically locate your Bitcoin data directory and load your node configurations from it.") }}<br>
 				{{ _('If your Bitcoin Core data directory is not located at the default location, you will need to enter its path under "Bitcoin Core data directory path" to locate it.') }}<br>
 				{{ _("If you are connecting to a remote node, you need to disable auto-detect and enter the node's configurations manually below.") }}
@@ -226,8 +226,6 @@
         let explainerText = document.getElementById('text-explainer');
         if (explainerText.classList.contains('hidden')) {
             explainerText.classList.remove("hidden");
-            explainerText.classList.add("flex-center")
-            explainerText.classList.add("flex-column")
             toggle.innerHTML = '&#128218; ' + 'Need help with the setup?' + ' &#9660;';
         } else {
             explainerText.classList.add("hidden");
