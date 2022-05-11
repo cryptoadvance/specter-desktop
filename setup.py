@@ -61,7 +61,7 @@ setup(
         "Operating System :: OS Independent",
         "Framework :: Flask",
     ],
-    python_requires=">=3.6,<3.10",
+    python_requires=">=3.7,<3.10",
     cmdclass={
         "install": InstallWithBabelCompile,
         # The rest is convenience but not strictly necessary for the automation:

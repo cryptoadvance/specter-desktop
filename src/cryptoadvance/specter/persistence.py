@@ -19,6 +19,7 @@ from .util.shell import run_shell
 logger = logging.getLogger(__name__)
 
 fslock = threading.Lock()
+pclock = threading.Lock()
 
 
 def read_json_file(path):
@@ -53,8 +54,7 @@ def read_json_file(path):
 def _delete_folder(path):
     """Internal method which won't trigger the callback"""
     with fslock:
-        if os.path.exists(path):
-            shutil.rmtree(path)
+        shutil.rmtree(path, ignore_errors=True)  # might not exist
 
 
 def _write_json_file(content, path, lock=None):
@@ -183,15 +183,16 @@ def read_csv(fname, cls=dict, *args):
 
 def storage_callback_function(cmd_list):
     """This is executing the callback-script, either directly or via threading"""
-    logger.debug(f"Executing {cmd_list}")
-    result = run_shell(cmd_list)
-    if result["code"] != 0:
-        logger.error("callback failed ")
-        logger.error("stderr: {}".format(result["err"]))
-        logger.error("stdout: {}".format(result["out"]))
-    else:
-        logger.info("Successfully executed {}".format(" ".join(cmd_list)))
-        logger.debug("result: {}".format(result))
+    with pclock:
+        logger.debug(f"Executing {cmd_list}")
+        result = run_shell(cmd_list)
+        if result["code"] != 0:
+            logger.error("callback failed ")
+            logger.error("stderr: {}".format(result["err"]))
+            logger.error("stdout: {}".format(result["out"]))
+        else:
+            logger.info("Successfully executed {}".format(" ".join(cmd_list)))
+            logger.debug("result: {}".format(result))
 
 
 def storage_callback(mode="write", path=None):
