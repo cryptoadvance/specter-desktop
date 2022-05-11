@@ -8,14 +8,6 @@ from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.wallet import Wallet, Device
 
 
-mnemonic_ghost = (
-    "ghost ghost ghost ghost ghost ghost ghost ghost ghost ghost ghost machine"
-)
-mnemonic_zoo = (
-    "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo when"
-)
-
-
 def create_hot_wallet_device(
     specter_regtest_configured, name=None, mnemonic=None
 ) -> Device:
