@@ -500,7 +500,7 @@ def device(device_alias):
 
     device.keys.sort(key=sort_accounts, reverse=False)
 
-    # If wallet is the origin the signing overlay will pop up directly
+    # For message signing
     origin = request.args.get("origin", "")
     address = request.args.get("address", "")
     derivation_path = request.args.get("derivation_path", "")

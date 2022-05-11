@@ -923,6 +923,10 @@ class Wallet:
         return len(self.keys) > 1
 
     @property
+    def is_singlesig(self):
+        return len(self.keys) == 1
+
+    @property
     def keys_count(self):
         return len(self.keys)
 

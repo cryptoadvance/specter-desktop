@@ -19,6 +19,15 @@
             height:24px;
             vertical-align: middle;
         }
+        .btn {
+            min-height: 33px;
+            font-size: 13.5px;
+            max-width: 335px;
+        }
+        .btn:hover {
+            border: 1px solid var(--main-color);
+            background: var(--cmap-border);
+        }
     </style>
     <div class="address-data">
         <h1>{{ _("Address details") }}</h1><br>
@@ -99,35 +108,28 @@
                         <tr><td>{{ _("Used") }}:</td><td>${this.used ? 'Yes' : 'No'}</td></tr>
                         <tr><td>{{ _("UTXO count") }}:</td><td>${this.utxo}</td></tr>
                         <tr><td>{{ _("Amount") }}:</td><td>${this.amount} <span class="amount-price note ${this.amountPrice ? '' : 'hidden'}">${this.amountPrice}</span></td></tr>
-                        <tr><td>{{ _("Service") }}:</td><td>
                     `;
+
                     if ((typeof services !== 'undefined') && (this.serviceId in services)) {
                         // `services` obj made globally available in services-data.html
-                        addressInfoHTML += `<img class="service-icon" src='{{ext_url_prefix}}/${this.serviceId}/static/${services[this.serviceId].icon}'>${services[this.serviceId].name}`;
+                        addressInfoHTML += `<tr><td>{{ _("Service") }}:</td><td><img class="service-icon" src='{{ext_url_prefix}}/${this.serviceId}/static/${services[this.serviceId].icon}'>${services[this.serviceId].name}</td></tr>`;
                     } else {
                         let associateServiceUrl = `{{ url_for('services_endpoint.associate_addr', wallet_alias='WALLET_ALIAS', address='ADDRESS') }}`.replace('WALLET_ALIAS', this.wallet).replace('ADDRESS', jsonResponse.address);
-                        addressInfoHTML += `<button type="button" id="associate-btn" class="btn" onclick="location.href='${associateServiceUrl}';">{{ _("Associate with a service") }}</button>`
-                    }
+                        addressInfoHTML += `<tr><td>{{ _("Service") }}:</td><td><button type="button" id="associate-btn" class="btn" onclick="location.href='${associateServiceUrl}';">&#128229;&nbsp;{{ _("Associate with a service") }}</button></td></tr>`;
+                    };
+
+                    // Message signing feature restricted to singlesig wallets using a Specter DIY
+                    {% set device = wallet.devices[0] %}
+                    {% if wallet.is_singlesig and device.device_type == "specter" %}
+                    let redirectUrl = `{{ url_for('devices_endpoint.device', device_alias=device.alias, origin='wallet', address='ADDRESS', derivation_path='DERIVATION_PATH') }}`.replace('ADDRESS', address).replace('DERIVATION_PATH', derivation_path);
+                    addressInfoHTML += `<tr><td>{{ _("Message signing") }}:</td><td><button type="button" id="msg-signing-btn" class="btn" onclick="location.href='${redirectUrl}';">&#128396;&nbsp;{{ _("Sign a message with your") }} {{ device.name }} {{ _("device") }}</button></td></tr>`;
+                    {% endif %}
+
                     addressInfoHTML += `
                         </td></tr>
                         </tbody>
                         </table>
                     `;
-
-                    {% for device in wallet.devices %}
-                    let redirectUrl = `{{ url_for('devices_endpoint.device', device_alias=device.alias, origin='wallet', address='ADDRESS', derivation_path='DERIVATION_PATH') }}`.replace('ADDRESS', address).replace('DERIVATION_PATH', derivation_path);
-
-                    addressInfoHTML += `
-                        <br>
-                        <a href="${redirectUrl}" style="text-decoration: none;">
-                            <div class="small-card radio" style="padding:3px; max-width: 300px; margin: 0 auto">
-                                <img src="{{ url_for('static', filename='img/devices/' ~ device.icon) }}" width="18px">
-                                {{ _("Sign a message using this address with your:") }}
-                                <br>
-                                {{ device.name }}
-                            </div>
-                        </a>`
-                    {% endfor %}
 
                     if (this.isVerifyHwi) { 
                         addressInfoHTML += `
@@ -161,7 +163,7 @@
                         if (e.target.checked) {
                             this.info.querySelector(".descriptor").innerHTML = `<code class="explorer-link" onclick='copyText(unescape("${escape(descriptor)}"), "{{ _("Copied address descriptor") }}")'>${descriptor}</code>`;
                         } else {
-                            this.info.querySelector(".descriptor").innerHTML = `<code class="explorer-link" onclick='copyText(unescape("${escape(xpubs_descriptor)}"), "{{ _("Copied address descripto") }}")'>${xpubs_descriptor}</code>`;
+                            this.info.querySelector(".descriptor").innerHTML = `<code class="explorer-link" onclick='copyText(unescape("${escape(xpubs_descriptor)}"), "{{ _("Copied address descriptor") }}")'>${xpubs_descriptor}</code>`;
                         }
                     }
 

@@ -10,6 +10,19 @@
 		#keys-table th {
 			padding: 20px 20px;
 		}
+		.signature {
+			background-color: var(--cmap-bg-lightest);
+        	word-break: break-all;
+        	margin-top: 5px;
+        	margin: 1px;
+        	border-radius: 10px;
+        	border: 2px solid hsl(217, 10%, 80%);
+        	padding: 10px 10px 10px 10px;
+        	cursor: pointer;
+		}
+		.signature:hover {
+			border: 2px solid var(--main-color);
+		}
 	</style>
 	<h1 id="title">{{ device.name }}</h1>
 	{% from 'components/editable_title.jinja' import editable_title %}
@@ -75,20 +88,20 @@
 		</form>
 		<br>
 		<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">{{ _("Sign message") }}</button>
-		<div id="message-signing" class="hidden" style="text-align: left;">
+		<div id="message-signing" class="hidden" style="text-align: left; max-width: 350px;">
 			{{ _("Address") }}:<input type="text" id="signing-address" type="text" value="" placeholder="bc1q ..."><br><br>
 			{{ _("Derivation path") }}:<input type="text" id="messageDerivationPath" type="text" value="" placeholder="e.g. m/84h/0h/0h/0/0"><br><br>
 			{{ _("Message") }}:<br>
-			<textarea id="message" placeholder="Enter the message you would like to sign" style="font-size: 0.95em;"></textarea>
+			<textarea id="message" placeholder="Enter the message you would like to sign" style="font-size: 0.95em; margin-bottom: 15px;"></textarea>
 			<span id="signature-label" class="hidden">{{ _("Message signature") }}:</span>
-			<p style="word-break: break-all; margin-top: 5px;" id="signature" title='{{ _("Copy message signature") }}' class="explorer-link" onclick="copyText(this.innerText, '{{ _("Copied message signature") }}')">
+			<p id="signature" title='{{ _("Copy signature") }}' class="hidden" onclick="copyText(this.innerText, '{{ _("Copied message signature") }}')">
 			</p>
 			{% if device.hwi_support %}
-				<button type="button" class="btn centered" onclick="signMessageOnDevice();">{{ _("Sign message via USB") }}</button>
+				<button id="{{ device.alias }}_usb_sign_msg_btn" type="button" class="btn centered" onclick="signMessageOnDevice();">{{ _("Sign message via USB") }}</button>
 			{% endif %}
 			{% if device.qr_code_support %}
 				{% include "includes/overlay/qr_code_sign_message.jinja" %}
-            	<button id="{{ device.alias }}_qr_sign_msg_btn" class="btn centered" style="margin: 10px auto;">{{ _("Sign message via QR code") }}</button>
+            	<button id="{{ device.alias }}_qr_sign_msg_btn" class="btn centered" style="margin-top: 10px;">{{ _("Sign message via QR code") }}</button>
 			{% endif %}
 		</div>
 		{% if specter.is_liquid %}
@@ -172,22 +185,23 @@
 				showPageOverlay('new_device_popup');
 			}
 
-			// Directly pop up sign message when coming from a wallet
+			// Prefill address and derivation path when coming from an individual address
 			let origin = "{{ origin }}"
 			let address = "{{ address }}"
 			let derivation_path = "{{ derivation_path }}"
-			console.log(origin)
 			if (origin == "wallet") {
 				document.getElementById('signing-address').value = address
 				document.getElementById('messageDerivationPath').value = derivation_path
 				showPageOverlay('message-signing')
 			} 
 
-			// QR code pops up to sign
+			// Event listener for sign message via QR code-button 
 			document.getElementById("{{ device.alias }}_qr_sign_msg_btn").addEventListener("click", e => {
                     e.preventDefault();
                     hidePageOverlay();
+                    // This makes qr_code_sign_message.jinja visible
                     showPageOverlay('{{ device.alias }}_sign_msg_qr');
+                    // This set the qr-code web component in qr_code_sign_message.jinja
                     QRcodeSetter();
                 });
 		});
@@ -200,14 +214,21 @@
 				document.getElementById('messageDerivationPath').value
 			);
 			document.getElementById('signature-label').style.display = 'block';
-			document.getElementById('signature').innerText = signature;
+			let signatureElement = document.getElementById('signature')
+			signatureElement.innerText = signature;
 			showPageOverlay('message-signing');
-			showNotification(`{{ _("Message was signed successfully!") }}`)
+			if (signatureElement.innerText != "undefined") {
+				showNotification(`{{ _("Message was signed successfully!") }}`)
+			}
+			else {
+				showNotification(`{{ _("Message signing failed.") }}`)
+			}
 		}
 
 		function QRcodeSetter() {
 			let messageText = document.getElementById('message').value
 			let derivationPath = document.getElementById('messageDerivationPath').value
+			// This QR code only works for the DIY
 			fullStringToEncode = `signmessage ${derivationPath} ascii:${messageText}`
 			document.getElementById('msg-qr-code').setAttribute("value", fullStringToEncode)
 		}

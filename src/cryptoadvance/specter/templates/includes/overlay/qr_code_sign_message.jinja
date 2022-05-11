@@ -8,25 +8,24 @@
         </span>
     </div>
     <qr-scanner id="{{ device.alias }}_qr_scan_btn">
-        <a slot="button" class="btn flex-item" style="width: 350px; margin: 15px auto;">
-            <img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 30px; margin: 0px;" class="svg-white"> {{ _("When done: Scan signature by clicking here") }}
+        <a slot="button" class="btn flex-item" style="width: 350px; margin: 15px auto; font-size: 1em;">
+            &#128247; {{ _("Click here to scan signature") }}
         </a>
     </qr-scanner>
 
 <script type="module">
-    document.getElementById("{{ device.alias }}_qr_scan_btn")
-            .addEventListener("scan", e =>{
+    document.getElementById("{{ device.alias }}_qr_scan_btn").addEventListener("scan", e =>{
         let result = e.detail.result;
-        console.log(`This is the signature from the DIY: ${result}`)
-        // if the result is bcur thingy:
-        /* if(result.type == 'crypto-psbt'){
-            let urpsbt = window.URlib.CryptoPSBT.fromCBOR(result.cbor);
-            result = urpsbt.getPSBT().toString("base64");
-            console.log(result)
-        } */
-        if(result){
+        if (result) {
             hidePageOverlay();
-            // combine(result);
+            document.getElementById('signature-label').style.display = 'block';
+            let signatureElement = document.getElementById('signature')
+            signatureElement.classList.remove("hidden")
+            signatureElement.classList.add("signature")
+            signatureElement.innerText = result;
+            showPageOverlay('message-signing');
+            document.getElementById('{{ device.alias }}_usb_sign_msg_btn').remove()
+            document.getElementById('{{ device.alias }}_qr_sign_msg_btn').remove()
         } else {
             showError(`{{ _("Scan failed, please try again...") }}`, 3000);
         }
