@@ -18,6 +18,9 @@ def failsafe_request_get(requests_session, url):
         if json_response.get("errors"):
             raise SpecterError(f"JSON error: {json_response}")
         return response.json()
+    except JSONDecodeError as e:
+        logger.error(f"Got a JSONDecodeError while parsing {response.text} ...")
+        raise SpecterError(f"Got a JSONDecodeError while parsing {response.text[:200]}")
     except HTTPError as httpe:
         try:
             json_response = response.json()
