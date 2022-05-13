@@ -8,12 +8,14 @@ from json.decoder import JSONDecodeError
 logger = logging.getLogger(__name__)
 
 
-def failsafe_request_get(requests_session, url):
+def failsafe_request_get(requests_session, url, parse_json=True):
     """wrapping requests which is only emitting reasonable SpecterErrors which are hopefully meaningful to the user"""
     try:
         response: requests.Response = requests_session.get(url)
         if response.status_code != 200:
             response.raise_for_status()
+        if not parse_json:
+            return response
         json_response = response.json()
         if json_response.get("errors"):
             raise SpecterError(f"JSON error: {json_response}")
