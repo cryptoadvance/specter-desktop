@@ -1,5 +1,7 @@
-import threading
 import logging
+import threading
+from cryptoadvance.specter.specter_error import SpecterError
+from cryptoadvance.specter.util.requests_tools import failsafe_request_get
 
 logger = logging.getLogger(__name__)
 
@@ -18,14 +20,23 @@ class UtxoScanner:
         300  # 0.001 # As this is async, have longer timeout for all rpc-calls: 5 mins
     )
 
-    def __init__(
-        self, wallet, explorer: str = None, requests_session=None, only_tor=False
-    ):
+    def __init__(self, wallet, requests_session, explorer: str = None, only_tor=False):
+        if requests_session == None and explorer != None:
+            raise SpecterError("Cannot use a blockchainexplorer without a Session!")
+
+        if (
+            explorer
+            and explorer.endswith(".onion")
+            and not requests_session.proxies["https"]
+        ):
+            raise SpecterError(
+                "Cannot Query an Onion Explorer without a working Tor Setup! Check your Tor Setup or choose a non Tor Explorer."
+            )
         self.wallet = wallet
         self.explorer = explorer
+        self.requests_session = requests_session
         if self.explorer:
             self.explorer = self.explorer.rstrip("/")
-        self.requests_session = requests_session
         self.only_tor = only_tor
         self.error_msgs = []
 
@@ -206,7 +217,10 @@ class UtxoScanner:
                 f"explorer seem to have an invalid url: {self.explorer}"
             )
             return False
-        request = self.requests_session.get(f"{self.explorer}")
+        try:
+            request = failsafe_request_get(self.requests_session, f"{self.explorer}")
+        except SpecterError:
+            return False
         if not request.ok:
             logger.error(f"explorer seem to have an invalid url: {self.explorer}")
             self.error_msgs.append(

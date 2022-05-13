@@ -313,7 +313,7 @@ def new_wallet(wallet_type):
                             ]["url"]
                     wallet.rescanutxo(
                         explorer,
-                        app.specter.requests_session(explorer),
+                        app.specter.requests_session(app.specter.only_tor),
                         app.specter.only_tor,
                     )
                     app.specter.info["utxorescan"] = 1
@@ -781,7 +781,9 @@ def settings(wallet_alias):
                     ]
 
             wallet.rescanutxo(
-                explorer, app.specter.requests_session(explorer), app.specter.only_tor
+                explorer,
+                app.specter.requests_session(app.specter.only_tor),
+                app.specter.only_tor,
             )
             app.specter.info["utxorescan"] = 1
             app.specter.utxorescanwallet = wallet.alias

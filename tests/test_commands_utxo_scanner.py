@@ -2,6 +2,7 @@ import logging
 from random import randint
 import time
 import pytest
+import requests
 from cryptoadvance.specter.commands.utxo_scanner import UtxoScanner
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.wallet import Wallet
@@ -31,7 +32,7 @@ def test_rescan_utxo(specter_testnet_configured: Specter, caplog):
     if is_pruned_node:
 
         # The pruned node on testnet might have incredible lots of TXs
-        mycmd = UtxoScanner(wallet)
+        mycmd = UtxoScanner(wallet, requests.session())
         mycmd.execute(asyncc=False)
         # check_utxo is not part of the execution (but maybe should?!).
         # It's usually called from the server_endpoints
@@ -42,7 +43,9 @@ def test_rescan_utxo(specter_testnet_configured: Specter, caplog):
 
         # When the txs are no longer in th pruned-set, this should work:
         # With an explorer, it should work on a pruned_node:
-        mycmd = UtxoScanner(wallet, explorer="https://mempool.space/testnet/")
+        mycmd = UtxoScanner(
+            wallet, requests.session(), explorer="https://mempool.space/testnet/"
+        )
         mycmd.execute(asyncc=False)
         utxos = wallet.full_utxo
         assert len(utxos) == 6
