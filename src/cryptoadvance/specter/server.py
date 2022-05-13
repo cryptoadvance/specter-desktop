@@ -93,6 +93,8 @@ def create_app(config=None):
         template_folder=get_template_static_folder("templates"),
         static_folder=get_template_static_folder("static"),
     )
+    app.tor_service_id = None
+    app.tor_enabled = False
     app.jinja_env.autoescape = select_autoescape(default_for_string=True, default=True)
     logger.info(f"Configuration: {config}")
     app.config.from_object(config)
@@ -255,12 +257,12 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     return app
 
 
-def create_and_init():
+def create_and_init(config="cryptoadvance.specter.config.ProductionConfig"):
     """This method can be used to fill the FLASK_APP-env variable like
     export FLASK_APP="src/cryptoadvance/specter/server:create_and_init()"
     See Development.md to use this for debugging
     """
-    app = create_app()
+    app = create_app(config)
     app.app_context().push()
     init_app(app)
     return app
