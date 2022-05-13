@@ -218,7 +218,9 @@ class UtxoScanner:
             )
             return False
         try:
-            request = failsafe_request_get(self.requests_session, f"{self.explorer}")
+            request = failsafe_request_get(
+                self.requests_session, f"{self.explorer}", parse_json=False
+            )
         except SpecterError:
             return False
         if not request.ok:
