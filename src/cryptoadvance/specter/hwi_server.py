@@ -18,7 +18,6 @@ from .helpers import deep_update, hwi_get_config, save_hwi_bridge_config
 hwi_server = Blueprint("hwi_server", __name__)
 CORS(hwi_server)
 rand = random.randint(0, 1e32)  # to force style refresh
-hwi = HWIBridge()
 
 
 @hwi_server.route("/", methods=["GET"])
@@ -103,7 +102,7 @@ def api():
         response = json.loads(forwarded_request.content)
         return jsonify(response)
 
-    return jsonify(hwi.jsonrpc(data))
+    return jsonify(app.specter.hwi.jsonrpc(data))
 
 
 @hwi_server.route("/settings/", methods=["GET", "POST"])
