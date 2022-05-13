@@ -791,9 +791,10 @@ def settings(wallet_alias):
                 "Rescan started. Check the status bar on the left for progress and/or the logs for potential issues."
             )
         elif action == "abortrescanutxo":
-            app.specter.abortrescanutxo()
+            app.specter.node.abortrescanutxo()
             app.specter.info["utxorescan"] = None
             app.specter.utxorescanwallet = None
+            flash(_("Successfully aborted the UTXO rescan"))
         elif action == "import_address_labels":
             address_labels = request.form["address_labels_data"]
             imported_addresses_len = wallet.import_address_labels(address_labels)
