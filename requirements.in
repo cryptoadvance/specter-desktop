@@ -25,4 +25,4 @@ cbor==1.0.0
 mnemonic==0.20
 cryptography==3.4.7
 Flask-APScheduler==1.12.3
-flask-debugtoolbar==0.13.1
+gunicorn==20.1.0
