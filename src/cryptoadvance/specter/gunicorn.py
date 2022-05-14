@@ -1,10 +1,10 @@
 import multiprocessing
 from cryptoadvance.specter.server import init_app, create_app, create_and_init
 
-import gunicorn.app.base
+from gunicorn.app.wsgiapp import WSGIApplication
 
 
-class SpecterGunicornApp(gunicorn.app.base.Application):
+class SpecterGunicornApp(WSGIApplication):
     def __init__(
         self, config="cryptoadvance.specter.config.ProductionConfig", options=None
     ):
@@ -27,15 +27,6 @@ class SpecterGunicornApp(gunicorn.app.base.Application):
         self.options = options or {}
         self.config = config
         super().__init__()
-
-    def load_config(self):
-        config = {
-            key: value
-            for key, value in self.options.items()
-            if key in self.cfg.settings and value is not None
-        }
-        for key, value in config.items():
-            self.cfg.set(key.lower(), value)
 
     def load(self):
         return create_and_init(self.config)

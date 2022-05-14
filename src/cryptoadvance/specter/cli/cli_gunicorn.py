@@ -27,43 +27,39 @@ def cli():
 
 
 @cli.command()
-# options below can help to run it on a remote server,
-# but better use nginx
-@click.option(
-    "--port", default=25441, help="TCP port to bind specter to"
-)  # default - 25441 set to 80 for http, 443 for https
-# set to 0.0.0.0 to make it available outside
-@click.option(
-    "--host",
-    default="127.0.0.1",
-    help="if you specify --host 0.0.0.0 then specter will be available in your local LAN.",
-)
-@click.option("--debug/--no-debug", default=None)
-@click.option(
-    "--config",
-    default=None,
-    help="A class from the config.py which sets reasonable default values.",
-)
-def gunicorn(
-    port,
-    host,
-    debug,
-    config,
-):
+def gunicorn():
     """uses gunicorn instead of the build in development-server.
-    Less option but maybe also better scalable. In principal, it's very similiar to the server-command
-    but you can't use it for the hwiBridge, using tor or creating certs out of the box.
-    It's considered to be beta.
-    """
-    # logging
-    if debug:
-        ca_logger = logging.getLogger("cryptoadvance")
-        ca_logger.setLevel(logging.DEBUG)
-        logger.debug("We're now on level DEBUG on logger cryptoadvance")
+    This works mostly like in https://docs.gunicorn.org/en/latest/run.html just that you use
+    this command rather than gunicorn. As recommended there, everything Application
+    specific needs to be configured via envirnoment Vars. See cryptoadvance.specter.config for
+    how to configure most specter-sepcific things.
 
-    options = {
-        "bind": "%s:%s" % (host, port),
-        "workers": 1,
-    }
-    specter_gunicorn = SpecterGunicornApp(config=config, options=options)
+    Other than running gunicorn's executable directly, you can't specify command-line
+    paramaters. Here are some configurations you can do:
+
+    ```
+    GUNICORN_CMD_ARGS="--bind=127.0.0.1 --workers=3" python3 -m cryptoadvance.specter gunicorn
+    ```
+
+    You can use a config file named gunicorn.conf.py in the same directory:
+
+    ```
+    workers=10
+    ```
+
+    Commandline paramater trums env-var params.
+    You can specify hook functions in the gunicorn.conf.py, see this for a list of them:
+    https://docs.gunicorn.org/en/latest/settings.html#server-hooks
+
+    e.g.:
+    ```
+    def on_starting(server):
+        print("Called just before the master process is initialized.")
+    ```
+
+    More information directly in the gunicorn-Documentation
+
+
+    """
+    specter_gunicorn = SpecterGunicornApp(config=None)
     specter_gunicorn.run()
