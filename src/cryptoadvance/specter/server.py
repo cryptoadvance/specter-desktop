@@ -263,6 +263,6 @@ def create_and_init(config="cryptoadvance.specter.config.ProductionConfig"):
     See Development.md to use this for debugging
     """
     app = create_app(config)
-    app.app_context().push()
-    init_app(app)
+    with app.app_context():
+        init_app(app)
     return app
