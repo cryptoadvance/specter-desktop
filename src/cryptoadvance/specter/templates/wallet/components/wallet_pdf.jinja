@@ -185,7 +185,7 @@
             doc.text({{ wallet.name | tojson | safe }}.replace(/(.{55})/g, "$1\n"), 105, currentHeight, {align: 'center'});
             doc.setFontSize(9);
             doc.text('{{ _("Scan this QR code with Specter-Desktop") }}', 50, currentHeight + 6, {align: 'left'});
-            doc.text("The below addresses are from index 1. ", 50, currentHeight + 12)
+            doc.text("The addresses below start from index 1. ", 50, currentHeight + 12)
             doc.text("Feel free to use the checkbox as a proof", 50, currentHeight + 18)
             doc.text("to have verified the address via a hardware wallet.", 50, currentHeight +24)
 
