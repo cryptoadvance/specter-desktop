@@ -242,9 +242,9 @@
                 xpubLines = "{{ key.xpub }}".split(/(.{36})/g);
                 xpubLines = xpubLines.filter(line => line !== '');
                 currentHeight += 6
-                doc.setLineDash([2, 2], 0);
-                doc.line(181,0,181,214)
-                doc.line(0,214,181,214)
+            doc.setLineDash([2, 2], 0);
+            doc.line(181,0,181,214)
+            doc.line(0,214,181,214)
 
             {% endfor %}
             doc.save(({{ wallet.name.lower() | tojson | safe  }} + "_backup.pdf").replace(" ", '_'));
