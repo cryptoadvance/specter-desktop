@@ -110,8 +110,7 @@ class DeviceManager:
             devices = [
                 device_class
                 for device_class in device_classes
-                if device_class.device_type != "bitcoincore"
-                and device_class.device_type != "elementscore"
+                if device_class.device_type not in ["bitcoincore", "elementscore"]
             ]
         elif specter.is_liquid:
             devices = [

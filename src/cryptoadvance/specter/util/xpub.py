@@ -1,10 +1,6 @@
 import hashlib
 from embit import base58
-
-
-def hash160(d):
-    # ripemd160(sha256(d))
-    return hashlib.new("ripemd160", hashlib.sha256(d).digest()).digest()
+from embit.hashes import hash160
 
 
 def convert_xpub_prefix(xpub, prefix_bytes):
