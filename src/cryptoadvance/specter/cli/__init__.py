@@ -44,6 +44,8 @@ def entry_point(config_home, debug=False, tracerpc=False, tracerequests=False):
         # No need for timestamps while developing
         formatter = logging.Formatter("[%(levelname)7s] in %(module)15s: %(message)s")
         logging.getLogger("cryptoadvance").setLevel(logging.DEBUG)
+        # but not that chatty connectionpool
+        logging.getLogger("urllib3.connectionpool").setLevel(logging.INFO)
     else:
         formatter = logging.Formatter(
             # Too early to format that via the flask-config, so let's copy it from there:

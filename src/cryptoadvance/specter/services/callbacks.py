@@ -13,3 +13,4 @@
 
 afterServiceManagerInit = "afterServiceManagerInit"
 after_serverpy_init_app = "after_serverpy_init_app"
+specter_persistence_callback = "specter_persistence_callback"
