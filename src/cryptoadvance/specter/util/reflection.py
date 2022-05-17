@@ -81,32 +81,16 @@ def get_classlist_of_type_clazz_from_modulelist(
         except ModuleNotFoundError as e:
             # ToDo: make it somehow clear where specific extensions are coming from: external or within same repo
             # Then we can remove the hardcoding of the first extra-repo extension: liquidissuer
-            if fq_module_name.startswith("cryptoadvance.specterext.liquidissuer"):
-
-                if (
-                    config_class_fullname
-                    == "cryptoadvance.specter.config.ProductionConfig"
-                ):
-                    raise SpecterError(
-                        """ 
-                        Module cryptoadvance.specterext.liquidissuer could not be found. This could have these reasons:
-                        * You might have forgot to: 
-                          pip3 install cryptoadvance-liquidissuer
-                        * You're trying to start the ProductionConfig in a Development Environment. 
-                          If you checked out the specter-Sourcecode, you should start specter like this:
-                          python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
-                    """
-                    )
-                elif (
-                    config_class_fullname
-                    == "cryptoadvance.specter.config.DevelopmentConfig"
-                ):
-                    logger.warning("Skipping cryptoadvance.specterext.liquidissuer")
-                    logger.warning(
-                        "You cannot include cryptoadvance.specterext.liquidissuer in a Development-Environment"
-                    )
-                    continue
-            raise SpecterError(e)
+            logger.warn(
+                f"""
+                Module {fq_module_name}  could not be found. This could have these reasons:
+                * You might have forgot to: 
+                    pip3 install yourPackage
+                * You're trying to start the ProductionConfig in a Development Environment. 
+                    If you checked out the specter-Sourcecode, you should start specter like this:
+                    python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug"""
+            )
+            continue
         logger.debug(f"Imported {fq_module_name}")
         for attribute_name in dir(module):
             attribute = getattr(module, attribute_name)
