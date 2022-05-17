@@ -5,7 +5,10 @@
 - [Development](#development)
   - [How to run the Application](#how-to-run-the-application)
     - [Install dependencies:](#install-dependencies)
-      - [Ubuntu/Debian/macOS](#ubuntudebianmacos)
+      - [Ubuntu/Debian:](#ubuntudebian)
+      - [macOS:](#macos)
+      - [Arch:](#arch)
+      - [Fedora/CentOS:](#fedoracentos)
       - [Windows](#windows)
     - [Set up virtualenv](#set-up-virtualenv)
       - [If `pip install` fails on `cryptography==3.4.x`](#if-pip-install-fails-on-cryptography34x)
@@ -39,12 +42,22 @@
 
 ### Install dependencies:
 
-#### Ubuntu/Debian/macOS
+#### Ubuntu/Debian:
 ```
 sudo apt install libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev build-essential
-
-# macOS:
+```
+#### macOS:
+```
 brew install libusb
+```
+#### Arch: 
+```
+sudo pacman -Syu && sudo pacman -S libusb
+```
+#### Fedora/CentOS:
+```
+sudo yum -y install libusb libudev-devel libffi libffi-devel openssl-devel && sudo yum groupinstall "Development Tools" "Development Libraries"
+
 ```
 
 #### Windows
