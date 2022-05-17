@@ -83,8 +83,11 @@
 		<h2 style="text-align: center; color: #ccc;">{{ _("Additional Options") }}</h2>
 		<div style="width: 580px; margin: auto;">
 			{% if not debug %}
-				<tool-tip title="Tor hidden service" style="float: right; margin-top: 15px;">
-				{{ _("Running Specter behind a Tor hidden service allows you to acccess Specter over Tor from anywhere via a Tor supporting browser.") }}
+				<tool-tip style="float: right; margin-top: 15px;">
+				    <h4 slot="title">{{ _("Tor hidden service") }}</h4>
+				    <span slot="paragraph">
+						{{ _("Running Specter behind a Tor hidden service allows you to acccess Specter over Tor from anywhere via a Tor supporting browser.") }}
+				    </span>
 				</tool-tip>
 				<label class="switch" style="float: right; margin-top: 15px;">
 					<input type="checkbox" id="hidden_service" name="hidden_service" onchange="checkAuthEabled()"{% if tor_service_id %}checked{% endif %}>
@@ -105,11 +108,14 @@
 				{% endif %}
 			{% endif %}
 			<br>
-			<tool-tip title="Tor Only mode" style="float: right; margin-top: 30px;">
-			{{ _("Some optional Specter functionality, like rescanning UTXO on a pruned node or getting the Bitcoin price, might make calls to external APIs and services.") }}<br><br>
-			{{ _("Toggle this on to ensure Specter routes all these external calls over Tor proxy.") }}<br><br>
-			{{ _("Note: Some external sources may stop working if they block Tor call.") }}
-			{{ _("This will have a significant performance impact. Specter will be much slower!") }}
+			<tool-tip style="float: right; margin-top: 30px;">
+			    <h4 slot="title">{{ _("Tor Only mode") }}</h4>
+			    <span slot="paragraph">
+					{{ _("Some optional Specter functionality, like rescanning UTXO on a pruned node or getting the Bitcoin price, might make calls to external APIs and services.") }}<br><br>
+					{{ _("Toggle this on to ensure Specter routes all these external calls over Tor proxy.") }}<br><br>
+					{{ _("Note: Some external sources may stop working if they block Tor calls.") }}
+					{{ _("This will have a significant performance impact. Specter will be much slower!") }}
+			    </span>
 			</tool-tip>
 			<label class="switch" style="float: right; margin-top: 30px;">
 				<input type="checkbox" id="only-tor" name="only_tor" {% if only_tor %}checked{% endif %}>
