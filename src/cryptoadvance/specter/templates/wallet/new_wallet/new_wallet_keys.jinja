@@ -94,9 +94,12 @@
 				<div id="utxo-scan-options" style="display: none">
 					{% if specter.info['pruned']  %}
 						<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> {{ _("fetch missing data from block explorer") }}
-							<tool-tip title="{{ _('Fetch missing data') }}">
-							{{ _("You are using a pruned node. Blocks for some transactions may be missing.") }}<br><br>
-							{{ _("Check this checkbox if you want to fetch missing information from block explorer.") }}
+							<tool-tip>
+							    <h4 slot="title">{{ _("Fetch missing data") }}</h4>
+							    <span slot="paragraph">
+									{{ _("You are using a pruned node. Blocks for some transactions may be missing.") }}<br><br>
+									{{ _("Check this checkbox if you want to fetch missing information from block explorer.") }}
+							    </span>
 							</tool-tip>
 						</label>
 						<div id="utxo-explorer">
