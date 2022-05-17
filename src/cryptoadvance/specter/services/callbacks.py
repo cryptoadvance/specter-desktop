@@ -11,6 +11,21 @@
     
 """
 
+"""
+    I don't know why we have this one. Doesn't seem to be used anywhere.    
+"""
 afterServiceManagerInit = "afterServiceManagerInit"
+
+"""
+    This one is called, after the init_app method has finished. The "run" method has not 
+    been executed yet and so urls can't be called yet.
+    So this is the best place for almost all extensions to do their initializing work.
+"""
 after_serverpy_init_app = "after_serverpy_init_app"
+
+"""
+    This one is called, whenever a file is persisted. To call external scripts in another
+    process, you better use the SPECTER_PERSISTENCE_CALLBACK Env Var or it's asynchronous cousin
+    SPECTER_PERSISTENCE_CALLBACK_ASYNC.
+"""
 specter_persistence_callback = "specter_persistence_callback"
