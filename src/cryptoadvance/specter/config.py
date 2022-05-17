@@ -205,6 +205,13 @@ class DevelopmentConfig(BaseConfig):
     # Developing Extensions should be possible in DevelopmentConfig
     SERVICES_LOAD_FROM_CWD = True
 
+    # Can't run external extensions in DevelopmentConfig
+    EXTENSION_LIST = [
+        "cryptoadvance.specter.services.swan.service",
+        "cryptoadvance.specter.services.bitcoinreserve.service",
+        "cryptoadvance.specterext.devhelp.service",
+    ]
+
 
 class TestConfig(BaseConfig):
     # ToDo: remove the below line to test a scenario more close to the default-setup
