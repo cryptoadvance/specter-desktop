@@ -1,7 +1,25 @@
 #!/usr/bin/env bash
 set -e
 
+# We start in the directory where this script is located
+cd "$( dirname "${BASH_SOURCE[0]}" )/."
 source build-common.sh
+cd ..
+# Now in project-root
+
+# Overriding this function
+function create_virtualenv_for_pyinstaller {
+    if [ -d .buildenv ]; then
+        echo "    --> Deleting .buildenv"
+        rm -rf .buildenv
+    fi
+    # linux:
+    # virtualenv --python=python3 .buildenv
+    # we do:
+    virtualenv --python=/usr/local/bin/python3 .buildenv
+    source .buildenv/bin/activate
+    pip3 install -r test_requirements.txt
+}
 
 
 function sub_help {
@@ -73,8 +91,20 @@ while [[ $# -gt 0 ]]
         shift
         shift
         ;;
+      specterd)
+        build_specterd=True
+        shift
+        ;;
       make-hash)
         make_hash=True
+        shift
+        ;;
+      electron)
+        build_electron=True
+        shift
+        ;;
+      sign)
+        build_sign=True
         shift
         ;;
       help)
@@ -95,63 +125,59 @@ while [[ $# -gt 0 ]]
   esac
   done
 
-
-
-
 echo "    --> This build got triggered for version $version"
 
-echo $version > version.txt
+echo $version > pyinstaller/version.txt
 
 specify_app_name
 
-install_build_requirements
-
-cleanup
-
-building_app
-
-cd electron # ./pyinstaller/electron
-
-prepare_npm
-
-
-if [[ "$make_hash" = 'True' ]]
-then
-    node ./set-version $version ../dist/${specterd_filename}
-else
-    node ./set-version $version
-fi
-npm i
-if [[ "${appleid}" == '' ]]
-then
-    echo "`jq '.build.mac.identity=null' package.json`" > package.json
-else
-    echo "`jq '.build.mac.identity="'"${appleid}"'"' package.json`" > package.json
+if [[ "$build_specterd" = "True" ]]; then
+  create_virtualenv_for_pyinstaller
+  build_pypi_pckgs_and_install
+  install_build_requirements
+  cleanup
+  building_app
 fi
 
-building_electron_app
+if [[ "$build_electron" = "True" ]]; then
+  prepare_npm
+  make_hash_if_necessary
 
-if [[ "$appleid" != '' ]]
-then
-  macos_code_sign
+
+
+  npm i
+  if [[ "${appleid}" == '' ]]
+  then
+      echo "`jq '.build.mac.identity=null' package.json`" > package.json
+  else
+      echo "`jq '.build.mac.identity="'"${appleid}"'"' package.json`" > package.json
+  fi
+
+  building_electron_app
+
 fi
 
-cd .. # ./pyinstaller
+if [[ "$build_sign" = "True" ]]; then
+  if [[ "$appleid" != '' ]]
+  then
+    macos_code_sign
+  fi
 
-echo "    --> Making the release-zip"
-mkdir release
+  echo "    --> Making the release-zip"
+  mkdir release
 
-create-dmg electron/dist/mac/${specterimg_filename}.app --identity="Developer ID Application: ${appleid}"
-# create-dmg doesn't create the prepending "v" to the version
-node_comp_version=$(python3 -c "print('$version'[1:])")
-mv "electron/dist/${specterimg_filename}-${node_comp_version}.dmg" release/${specterimg_filename}-${version}.dmg
+  create-dmg electron/dist/mac/${specterimg_filename}.app --identity="Developer ID Application: ${appleid}"
+  # create-dmg doesn't create the prepending "v" to the version
+  node_comp_version=$(python3 -c "print('$version'[1:])")
+  mv "electron/dist/${specterimg_filename}-${node_comp_version}.dmg" release/${specterimg_filename}-${version}.dmg
 
-cd dist # ./pyinstaller/dist
-zip ../release/${specterd_filename}-${version}-osx.zip ${specterd_filename}
-cd .. # ./pyinstaller
+  cd dist # ./pyinstaller/dist
+  zip ../release/${specterd_filename}-${version}-osx.zip ${specterd_filename}
+  cd .. # ./pyinstaller
 
-sha256sum ./release/${specterd_filename}-${version}-osx.zip
-sha256sum ./release/${specterimg_filename}-${version}.dmg
+  sha256sum ./release/${specterd_filename}-${version}-osx.zip
+  sha256sum ./release/${specterimg_filename}-${version}.dmg
+fi
 
 if [ "$app_name" == "specter" ]; then
   echo "--------------------------------------------------------------------------"

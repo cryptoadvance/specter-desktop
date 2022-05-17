@@ -6,8 +6,9 @@
 
 
 function create_virtualenv_for_pyinstaller {
+    echo "    --> Creating new virtualsenv"
     if [ -d .buildenv ]; then
-        echo "    --> Deleting .buildenv"
+        echo "        But first Delete it ..."
         rm -rf .buildenv
     fi
     virtualenv --python=python3 .buildenv
@@ -16,12 +17,16 @@ function create_virtualenv_for_pyinstaller {
 }
 
 function build_pypi_pckgs_and_install {
+    echo "    --> Build pip3-package"
     rm -rf dist
     if ! git diff --quiet setup.py; then
         echo "ERROR: setup.py is dirty, can't reasonably build"
         exit 1
     fi
-    sed -i "s/version=\".*/version=\"$version\",/" setup.py
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        SML_ADD="\"\""
+    fi
+    sed -i $SML_ADD "s|version=\".*|version=\"$version\",|" setup.py
     cat setup.py
     python3 setup.py sdist bdist_wheel
     git checkout setup.py
@@ -30,6 +35,7 @@ function build_pypi_pckgs_and_install {
 }
 
 function specify_app_name {
+    echo "    --> Specify app_name"
     if [ -z "$app_name" ]; then
     # activate virtualenv. This is e.g. not needed in CI
         app_name=specter
@@ -113,8 +119,11 @@ function macos_code_sign {
     # https://keith.github.io/xcode-man-pages/altool.1.html
     cd pyinstaller/electron
     echo '    --> Attempting to code sign...'
+    echo '        executing: ditto -c -k --keepParent "dist/mac/${specterimg_filename}.app" dist/${specterimg_filename}.zip'
     ditto -c -k --keepParent "dist/mac/${specterimg_filename}.app" dist/${specterimg_filename}.zip
     # upload
+    echo '        uploading ... '
+    echo '        executing: xcrun altool --notarize-app -t osx -f dist/${specterimg_filename}.zip --primary-bundle-id "solutions.specter.desktop" -u "${mail}" --password "@keychain:AC_PASSWORD" --output-format json'
     output_json=$(xcrun altool --notarize-app -t osx -f dist/${specterimg_filename}.zip --primary-bundle-id "solutions.specter.desktop" -u "${mail}" --password "@keychain:AC_PASSWORD" --output-format json)
     echo "JSON-Output:"
     # parsing the requestuuid which we'll need to track progress

@@ -140,7 +140,7 @@ if [[ "$version" = "" ]]; then
 fi
 echo "    --> This build got triggered for version $version"
 # This file gets further packaged up with the pyinstaller and will help specter to figure out which version it's running on
-echo $1 > pyinstaller/version.txt
+echo $version > pyinstaller/version.txt
 
 specify_app_name
 
