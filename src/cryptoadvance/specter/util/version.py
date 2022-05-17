@@ -116,7 +116,6 @@ class VersionChecker:
             NewConnectionError,
         ) as e:
             logger.error(f"{e} while checking for new pypi version")
-            raise SpecterError("Muuh")
         except Exception as e:
             logger.exception(e)
             latest = "unknown"
