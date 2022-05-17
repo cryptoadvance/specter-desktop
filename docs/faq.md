@@ -35,7 +35,6 @@
   - [*Which hardware wallets are supported?*](#which-hardware-wallets-are-supported)
   - [*Can this also work with external nodes like Casa, MyNode, and Raspilitz?*](#can-this-also-work-with-external-nodes-like-casa-mynode-and-raspilitz)
   - [*Can I use Tor?*](#can-i-use-tor)
-  - [*How to set the URL for the block explorer?*](#how-to-set-the-url-for-the-block-explorer)
   - [I forgot my password, how can I reset it?](#i-forgot-my-password-how-can-i-reset-it)
 - [BACKING UP FUNDS](#backing-up-funds)
   - [*If something happens to the `~/.specter` folder, is it still possible to **restore** access to multisigs created there (assuming there is no backup of the `~/.specter` folder)?*](#if-something-happens-to-the-specter-folder-is-it-still-possible-to-restore-access-to-multisigs-created-there-assuming-there-is-no-backup-of-the-specter-folder)
