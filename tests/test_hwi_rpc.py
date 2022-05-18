@@ -62,6 +62,7 @@ def test_trezor(caplog, monkeypatch):
     assert key.xpub.startswith("xpub")
 
 
+@pytest.mark.skip()
 def test_jade(caplog):
     caplog.set_level(logging.DEBUG)
 
