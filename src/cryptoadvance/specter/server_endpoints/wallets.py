@@ -4,7 +4,7 @@ import random
 from functools import wraps
 
 import requests
-from cryptoadvance.specter.util.psbt_creator import PsbtCreator
+from cryptoadvance.specter.commands.psbt_creator import PsbtCreator
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from cryptoadvance.specter.wallet import Wallet
 from cryptoadvance.specter.util.tx import is_hex, convert_rawtransaction_to_psbt
@@ -313,7 +313,7 @@ def new_wallet(wallet_type):
                             ]["url"]
                     wallet.rescanutxo(
                         explorer,
-                        app.specter.requests_session(explorer),
+                        app.specter.requests_session(explorer.endswith(".onion")),
                         app.specter.only_tor,
                     )
                     app.specter.info["utxorescan"] = 1
@@ -781,14 +781,20 @@ def settings(wallet_alias):
                     ]
 
             wallet.rescanutxo(
-                explorer, app.specter.requests_session(explorer), app.specter.only_tor
+                explorer,
+                app.specter.requests_session(explorer.endswith(".onion")),
+                app.specter.only_tor,
             )
             app.specter.info["utxorescan"] = 1
             app.specter.utxorescanwallet = wallet.alias
+            flash(
+                "Rescan started. Check the status bar on the left for progress and/or the logs for potential issues."
+            )
         elif action == "abortrescanutxo":
-            app.specter.abortrescanutxo()
+            app.specter.node.abortrescanutxo()
             app.specter.info["utxorescan"] = None
             app.specter.utxorescanwallet = None
+            flash(_("Successfully aborted the UTXO rescan"))
         elif action == "import_address_labels":
             address_labels = request.form["address_labels_data"]
             imported_addresses_len = wallet.import_address_labels(address_labels)

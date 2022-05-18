@@ -15,13 +15,15 @@ from embit.transaction import Transaction
 from io import StringIO
 from typing import List
 
+from cryptoadvance.specter.commands.utxo_scanner import UtxoScanner
+
 from .addresslist import Address, AddressList
 from .device import Device
 from .key import Key
 from .util.merkleblock import is_valid_merkle_proof
 from .helpers import get_address_from_dict
 from .persistence import write_json_file, delete_file, delete_folder
-from .specter_error import SpecterError
+from .specter_error import SpecterError, handle_exception
 from .txlist import TxList
 from .util.psbt import SpecterPSBT
 from .util.tx import decoderawtransaction
@@ -629,7 +631,8 @@ class Wallet:
             # sometimes last_block is invalid, not sure why
             try:
                 obj = self.rpc.listsinceblock(self.last_block)
-            except:
+            except Exception as e:
+                handle_exception(e)
                 logger.error(f"Invalid block {self.last_block}")
                 obj = self.rpc.listsinceblock()
         txs = obj["transactions"]
@@ -749,7 +752,8 @@ class Wallet:
             change_descriptor = wallet_dict["change_descriptor"]
             keys = [Key.from_json(key_dict) for key_dict in wallet_dict["keys"]]
             devices = wallet_dict["devices"]
-        except:
+        except Exception as e:
+            handle_exception(e)
             logger.error("Could not construct a Wallet object from the data provided.")
             return
 
@@ -824,7 +828,8 @@ class Wallet:
         # check if address was used already
         try:
             value_on_address = self.rpc.getreceivedbyaddress(self.change_address, 0)
-        except:
+        except Exception as e:
+            handle_exception(e)
             # Could happen if address not in wallet (wallet was imported)
             # try adding keypool
             logger.info(
@@ -1178,17 +1183,13 @@ class Wallet:
         self.rpc.abandontransaction(txid)
 
     def rescanutxo(self, explorer=None, requests_session=None, only_tor=False):
+        """rescans the utxo via a thread. internally calls _rescan_utxo_thread
+        explorer: something like https://mempool.space/testnet/
+        """
         delete_file(self._transactions.path)
         self.fetch_transactions()
-        t = threading.Thread(
-            target=self._rescan_utxo_thread,
-            args=(
-                explorer,
-                requests_session,
-                only_tor,
-            ),
-        )
-        t.start()
+        command = UtxoScanner(self, requests_session, explorer, only_tor)
+        command.execute(asyncc=True)
 
     def export_labels(self):
         return self._addresses.get_labels()
@@ -1205,132 +1206,6 @@ class Wallet:
                 continue
             for address in addresses:
                 self._addresses.set_label(address, label)
-
-    def _rescan_utxo_thread(self, explorer=None, requests_session=None, only_tor=False):
-        # rescan utxo is pretty fast,
-        # so we can check large range of addresses
-        # and adjust keypool accordingly
-        args = [
-            "start",
-            [
-                {"desc": self.recv_descriptor, "range": max(self.keypool, 1000)},
-                {
-                    "desc": self.change_descriptor,
-                    "range": max(self.change_keypool, 1000),
-                },
-            ],
-        ]
-        unspents = self.rpc.scantxoutset(*args)["unspents"]
-        # if keypool adjustments fails - not a big deal
-        try:
-            # check derivation indexes in found unspents (last 2 indexes in [brackets])
-            derivations = [
-                tx["desc"].split("[")[1].split("]")[0].split("/")[-2:]
-                for tx in unspents
-            ]
-            # get max derivation for change and receive branches
-            max_recv = max([-1] + [int(der[1]) for der in derivations if der[0] == "0"])
-            max_change = max(
-                [-1] + [int(der[1]) for der in derivations if der[0] == "1"]
-            )
-
-            updated = False
-            if max_recv >= self.address_index:
-                # skip to max_recv
-                self.address_index = max_recv
-                # get next
-                self.getnewaddress(change=False, save=False)
-                updated = True
-            while max_change >= self.change_index:
-                # skip to max_change
-                self.change_index = max_change
-                # get next
-                self.getnewaddress(change=True, save=False)
-                updated = True
-            # save only if needed
-            if updated:
-                self.save_to_file()
-        except Exception as e:
-            logger.warning(f"Failed to get derivation path from utxo transaction: {e}")
-
-        # keep working with unspents
-        res = self.rpc.multi([("getblockhash", tx["height"]) for tx in unspents])
-        block_hashes = [r["result"] for r in res]
-        for i, tx in enumerate(unspents):
-            tx["blockhash"] = block_hashes[i]
-        res = self.rpc.multi(
-            [("gettxoutproof", [tx["txid"]], tx["blockhash"]) for tx in unspents]
-        )
-        proofs = [r["result"] for r in res]
-        for i, tx in enumerate(unspents):
-            tx["proof"] = proofs[i]
-        res = self.rpc.multi(
-            [
-                ("getrawtransaction", tx["txid"], False, tx["blockhash"])
-                for tx in unspents
-            ]
-        )
-        raws = [r["result"] for r in res]
-        for i, tx in enumerate(unspents):
-            tx["raw"] = raws[i]
-        missing = [tx for tx in unspents if tx["raw"] is None]
-        existing = [tx for tx in unspents if tx["raw"] is not None]
-        self.rpc.multi(
-            [("importprunedfunds", tx["raw"], tx["proof"]) for tx in existing]
-        )
-        # handle missing transactions now
-        # if Tor is running, requests will be sent over Tor
-        if explorer is not None:
-            # make sure there is no trailing /
-            explorer = explorer.rstrip("/")
-            try:
-                # get raw transactions
-                raws = [
-                    requests_session.get(f"{explorer}/api/tx/{tx['txid']}/hex").text
-                    for tx in missing
-                ]
-                # get proofs
-                proofs = [
-                    requests_session.get(
-                        f"{explorer}/api/tx/{tx['txid']}/merkleblock-proof"
-                    ).text
-                    for tx in missing
-                ]
-                # import funds
-                self.rpc.multi(
-                    [
-                        ("importprunedfunds", raws[i], proofs[i])
-                        for i in range(len(raws))
-                    ]
-                )
-            except Exception as e:
-                logger.warning(f"Failed to fetch data from block explorer: {e}")
-                # retry if using requests_session failed
-                if not only_tor:
-                    try:
-                        # get raw transactions
-                        raws = [
-                            requests.get(f"{explorer}/api/tx/{tx['txid']}/hex").text
-                            for tx in missing
-                        ]
-                        # get proofs
-                        proofs = [
-                            requests.get(
-                                f"{explorer}/api/tx/{tx['txid']}/merkleblock-proof"
-                            ).text
-                            for tx in missing
-                        ]
-                        # import funds
-                        self.rpc.multi(
-                            [
-                                ("importprunedfunds", raws[i], proofs[i])
-                                for i in range(len(raws))
-                            ]
-                        )
-                    except:
-                        logger.warning(f"Failed to fetch data from block explorer: {e}")
-        self.fetch_transactions()
-        self.check_addresses()
 
     @property
     def rescan_progress(self):
@@ -1395,9 +1270,9 @@ class Wallet:
     def get_address(self, index, change=False, check_keypool=True) -> str:
         if check_keypool:
             pool = self.change_keypool if change else self.keypool
-            logger.debug(
-                f"get_address index={index} pool={pool} gapLIMIT={self.GAP_LIMIT} change={change} will_keypoolrefill={pool < index + self.GAP_LIMIT}"
-            )
+            # logger.debug(
+            #    f"get_address index={index} pool={pool} gapLIMIT={self.GAP_LIMIT} change={change} will_keypoolrefill={pool < index + self.GAP_LIMIT}"
+            # )
             if pool < index + self.GAP_LIMIT:
                 self.keypoolrefill(pool, index + self.GAP_LIMIT, change=change)
         return self.descriptor.derive(index, branch_index=int(change)).address(

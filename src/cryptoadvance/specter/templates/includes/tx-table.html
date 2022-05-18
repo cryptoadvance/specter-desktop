@@ -233,10 +233,15 @@
             <input class="search" type="text" placeholder="Search..."></input>
         </div>
         <div style="flex: 0 0 50px">
-            <tool-tip title="Search options">
-                {{ _("anything in the address, tx, label, confirmations or amount") }}<br>
-                {{ _('search like') }} <code>%d.%m.%Y %H:%M</code> {{ _('if you want to search in the time field') }}<br>
-                {{ _("<code> 1</code> for anything more than 1 BTC and likewise <code>< 1</code> (don't forget the space)") }}<br>
+            <tool-tip>
+                <h4 slot="title">{{ _('Search options') }}</h4>
+                <span slot="paragraph">
+                    {{ _("You can search using addresses, tx-IDs, labels, confirmations or amounts.") }}<br><br>
+                    {{ _('Search like this in the time field:') }} <code>%d.%m.%Y %H:%M</code><br><br>
+                    {{ _('Search like this for amounts:') }} <br>
+                    <code> 1</code> {{ _("for anything more than 1") }}<br>
+                    <code>< 1</code> {{ _("for less than 1 BTC (don't forget the space)") }}<br>
+                </span>
             </tool-tip>
         </div>
         <!--Right part of the toolbar-->
@@ -247,12 +252,15 @@
             <form class="freeze-tx-form" method="POST">
                 <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="button" class="btn freeze-tx-btn">
-                <tool-tip title="Freezing UTXOs">
-                    {{ _("Freezing a UTXO will make Specter disallow spending it.") }}<br><br>
-                    {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }}
+                <tool-tip>
+                    <h4 slot="title">{{ _('Freezing UTXOs') }}</h4>
+                    <span slot="paragraph">
+                        {{ _("Freezing a UTXO will make Specter disallow spending it.") }}<br><br>
+                        {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }}
+                    </span>
                 </tool-tip>&nbsp;&nbsp;
                 Un/Freeze UTXOs
-            </button>
+                </button>
             </form>
             <form class="compose-tx-form" method="POST">
                 <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -939,7 +947,14 @@
                 } else {
                     pending_psbts = []
                 }
-                for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) { 
+                for (let txRow of this.shadowRoot.querySelectorAll('tx-row')) {
+                    // This is currently not needed since the UTXO list API endpoint does not return "bip125-replaceable" and thus the rbf buttons are hidden in the tx-row web component
+                    if (this.utxoViewBtn.classList.contains("checked")) {
+                        if (txRow.tx["bip125-replaceable"] && txRow.tx["bip125-replaceable"] == "no") {
+                            txRow.rbf.classList.add('hidden');
+                            txRow.rbfCancel.classList.add('hidden');
+                        }
+                    }
                     // EventListener when hovering over checkboxes
                     txRow.selectTxImg.addEventListener("mouseover", () => {
                         this.actionTeaserDiv.style.color = 'orange';

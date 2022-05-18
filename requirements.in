@@ -15,7 +15,7 @@ requests==2.26.0
 pysocks==1.7.1
 six==1.16.0
 stem==1.8.0
-embit==0.4.12
+embit==0.4.13
 psutil==5.7.3
 pyopenssl==20.0.1
 flask_wtf==0.15.1
@@ -24,3 +24,4 @@ cbor==1.0.0
 mnemonic==0.20
 cryptography==3.4.7
 Flask-APScheduler==1.12.3
+gunicorn==20.1.0
