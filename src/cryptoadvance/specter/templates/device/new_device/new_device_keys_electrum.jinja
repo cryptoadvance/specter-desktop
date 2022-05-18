@@ -1,0 +1,67 @@
+{% extends "base.jinja" %}
+{% block main %}
+
+    <style>
+    .small-card:hover {
+         background-color: var(--cmap-bg);
+    }
+    h2 {
+         margin:  0 0 25px 0;
+         min-width: 410px;
+    }
+    </style>
+
+    <h1>{{ _("Setting up Electrum as a new device") }}</h1>
+        <form id="form" action="{{ url_for('devices_endpoint.new_device_keys' , device_type='electrum')}}" method="POST">
+        <div class="small-card center" style="cursor: auto;">
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="hidden" id="device_type" name="device_type" value="electrum">
+            <input type='hidden' id="xpub" name="xpub">   
+            <h2>{{ _("Name your device: ") }}
+                <input type="text" name="device_name" placeholder="My Electrum device" id="device_name" value="{{ device_name }}" required/>
+            </h2>
+            <br>
+            <br>
+            <h2>{{ _("Master public key:") }}
+                <input id="master_pub_key" name="master_pub_key" value="{{ master_pub_key }}" placeholder="Your master public key" required>
+            </h2>
+            <br>
+            <br>
+            <span id="toggle-explainer" style="cursor: pointer; margin: 0 0 25px 0; align-self: start; font-size: 1.2em;">
+                &#128218; {{ _("How to get this info from Electrum?") }} &#9654;
+            </span>
+            <div id="text-explainer" class="hidden">
+                <p style="max-width: 300px">
+                    {{ _('You can find the master public key under "Wallet" and "Information":') }}
+                </p>
+                <img src="{{ url_for('static', filename='img/electrum_manual/1.png')}}" alt=_("Select Wallet  -  Information") style="width: 250px; height: 300px">
+                <img src="{{ url_for('static', filename='img/electrum_manual/2.png')}}" alt=_("Copy the master public key and derivation path") style="width: 410px; height: 300px"> 
+            </div>
+            <button type="submit" class="btn centered" style="font-size: 14px;" name="action" onsubmit="showPacman()">{{ _("Continue") }}</button>   
+            </div>     
+        </form>
+    
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function toggleExplainer() {
+            let toggle = document.getElementById('toggle-explainer');
+            let explainerText = document.getElementById('text-explainer');
+            if (explainerText.classList.contains('hidden')) {
+                explainerText.classList.remove("hidden");
+                explainerText.classList.add("flex-center")
+                explainerText.classList.add("flex-column")
+                toggle.innerHTML = '&#128218; ' + 'How to get this info from Electrum?' + ' &#9660;';
+            } else {
+                explainerText.classList.add("hidden");
+                toggle.innerHTML = '&#128218; ' + 'How to get this info from Electrum?' + ' &#9654;';
+            }
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('toggle-explainer').addEventListener('click', (event) => {
+                toggleExplainer();
+            });
+        })
+    </script>
+{% endblock %}

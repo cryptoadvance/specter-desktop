@@ -3,17 +3,22 @@
 {% block setup %}
     <h1><img src="{{ url_for('static', filename='img/ghost_3d.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" style="width: 60px;" class="svg-white"/>&nbsp;{{ bitcoin_svg(network, 60) }}<br>
     <br>{{ _("Configure your node") }}</h1>
-    <p id="quicksync-option" {% if network != 'main' %}class="hidden"{% endif %}>{{ _("QuickSync?") }}&nbsp;&nbsp;
+    <div class="flex-center">
+        <p id="quicksync-option" {% if network != 'main' %}class="hidden"{% endif %}>{{ _("QuickSync?") }}&nbsp;&nbsp;
         <label class="switch" id="quicksync-switch">
             <input type="checkbox" name="quicksync" id="quicksync" onchange="toggleNodeTypeSelect()" checked>
             <span class="slider"></span>
         </label>&nbsp;&nbsp;
-        <tool-tip title='{{ _("What is QuickSync?") }}'>
+        </p>
+        <tool-tip>
+            <h4 slot="title">{{ _("What is QuickSync?") }}</h4>
+            <span slot="paragraph">
             {{ _("QuickSync will set up your new node from a trusted state of the blockchain.") }}<br><br>
             {{ _("This means all block validation will be skipped until the most recent block in the snapshot.") }}<br><br>
-            {{ _("Later blocks will be normally validated like with a regular full node.") }}
+            {{ _("Later blocks will be validated as they would with a regular full node.") }}
+            </span>
         </tool-tip>
-    </p>
+    </div>
     <div {% if network == 'main' %}class="hidden"{% endif %} id="select-node-type-div">
         <br>
         <h1>{{ _("Select node type:") }}</h1>
@@ -61,7 +66,7 @@
     </div>
     <br>
     {% if specter.only_tor  %}
-        {{ _("You have activated to only connect via Tor. This will significantly slow down the download-process and is not recommended.") }}
+        {{ _("You have activated to only connect via Tor. This will significantly slow down the download process and is not recommended.") }}
         <br>
     {% endif %}
     <span id="toggle_advanced" style="cursor: pointer;" onclick="toggleAdvanced()">{{ _("Advanced") }} &#9654;</span>

@@ -6,7 +6,7 @@ from cryptoadvance.specter.managers.device_manager import DeviceManager
 from cryptoadvance.specter.managers.wallet_manager import WalletManager
 
 
-def test_DeviceManager(empty_data_folder):
+def test_DeviceManager(empty_data_folder, a_key, a_tpub_only_key):
     # A DeviceManager manages devices, specifically the persistence
     # of them via json-files in an empty data folder
     dm = DeviceManager(data_folder=empty_data_folder)
@@ -22,13 +22,8 @@ def test_DeviceManager(empty_data_folder):
         "tpubDFHpKypXq4kwUrqLotPs6fCic5bFqTRGMBaTi9s5YwwGymE8FLGwB2kDXALxqvNwFxB1dLWYBmmeFVjmUSdt2AsaQuPmkyPLBKRZW8BGCiL",
     )
     # the DeviceManager doesn't care so much about the content of a key
-    # so this is a minimal valid "key":
-    another_key = Key.from_json(
-        {
-            "original": "tpubDDZ5jjGT5RvrAyjoLZfdCfv1PAPmicnhNctwZGKiCMF1Zy5hCGMqppxwYZzWgvPqk7LucMMHo7rkB6Dyj5ZLd2W62FAEP3U6pV4jD5gb9ma"
-        }
-    )
-    dm.add_device("some_name", "the_type", [a_key, another_key])
+    # so let's add two keys:
+    dm.add_device("some_name", "the_type", [a_key, a_tpub_only_key])
     # A json file was generated for the new device:
     assert os.path.isfile(dm.devices["some_name"].fullpath)
     # You can access the new device either by its name of with `get_by_alias` by its alias
@@ -46,7 +41,7 @@ def test_DeviceManager(empty_data_folder):
 
     # The DeviceManager also has a `devices_names` property, returning a sorted list of the names of all devices
     assert dm.devices_names == ["some_name"]
-    dm.add_device("another_name", "the_type", [a_key, another_key])
+    dm.add_device("another_name", "the_type", [a_key, a_tpub_only_key])
     assert dm.devices_names == ["another_name", "some_name"]
 
     # You can also remove a device - which will delete its json and remove it from the manager
@@ -70,7 +65,7 @@ def test_DeviceManager(empty_data_folder):
     assert some_device.device_type == "other"
     assert len(some_device.keys) == 2
     assert some_device.keys[0] == a_key
-    assert some_device.keys[1] == another_key
+    assert some_device.keys[1] == a_tpub_only_key
 
     # Keys can be added and removed. It will instantly update the underlying json
     # Adding keys can be done by passing an array of keys object to the `add_keys` method of a device
@@ -83,27 +78,27 @@ def test_DeviceManager(empty_data_folder):
     some_device.add_keys([third_key])
     assert len(some_device.keys) == 3
     assert some_device.keys[0] == a_key
-    assert some_device.keys[1] == another_key
+    assert some_device.keys[1] == a_tpub_only_key
     assert some_device.keys[2] == third_key
 
     # adding an existing key will do nothing
     some_device.add_keys([third_key])
     assert len(some_device.keys) == 3
     assert some_device.keys[0] == a_key
-    assert some_device.keys[1] == another_key
+    assert some_device.keys[1] == a_tpub_only_key
     assert some_device.keys[2] == third_key
 
     # Removing a key can be done by passing the `original` property of the key to remove to the `remove_key` method of a device
     some_device.remove_key(third_key)
     assert len(some_device.keys) == 2
     assert some_device.keys[0] == a_key
-    assert some_device.keys[1] == another_key
+    assert some_device.keys[1] == a_tpub_only_key
 
     # removing a none existing key will do nothing
     some_device.remove_key(third_key)
     assert len(some_device.keys) == 2
     assert some_device.keys[0] == a_key
-    assert some_device.keys[1] == another_key
+    assert some_device.keys[1] == a_tpub_only_key
 
 
 def test_device_wallets(
