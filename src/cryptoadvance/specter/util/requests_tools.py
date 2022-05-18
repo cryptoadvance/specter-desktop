@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def failsafe_request_get(requests_session, url, parse_json=True):
-    """wrapping requests which is only emitting reasonable SpecterErrors which are hopefully meaningful to the user"""
+    """wrapping requests which is only emitting SpecterErrors which are hopefully meaningful to the user"""
     try:
         response: requests.Response = requests_session.get(url)
         if response.status_code != 200:
@@ -36,6 +36,8 @@ def failsafe_request_get(requests_session, url, parse_json=True):
         logger.error(
             f"{e} while requesting {url} using proxies http {requests_session.proxies['http']} and https {requests_session.proxies['https']}"
         )
-        raise SpecterError(
-            f"There is a connection issue accessing the url {url}. Check the logs for more details."
-        )
+        msg = f"There is a connection issue accessing the url {url}."
+        if url and url.endswith(".onion"):
+            msg = msg + " Tor might be not working. Please Check your tor setup."
+        logger.error(msg)
+        raise SpecterError(f"{msg}. Check the logs for more details.")
