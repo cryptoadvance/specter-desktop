@@ -35,7 +35,6 @@
   - [*Which hardware wallets are supported?*](#which-hardware-wallets-are-supported)
   - [*Can this also work with external nodes like Casa, MyNode, and Raspilitz?*](#can-this-also-work-with-external-nodes-like-casa-mynode-and-raspilitz)
   - [*Can I use Tor?*](#can-i-use-tor)
-  - [*How to set the URL for the block explorer?*](#how-to-set-the-url-for-the-block-explorer)
   - [I forgot my password, how can I reset it?](#i-forgot-my-password-how-can-i-reset-it)
 - [BACKING UP FUNDS](#backing-up-funds)
   - [*If something happens to the `~/.specter` folder, is it still possible to **restore** access to multisigs created there (assuming there is no backup of the `~/.specter` folder)?*](#if-something-happens-to-the-specter-folder-is-it-still-possible-to-restore-access-to-multisigs-created-there-assuming-there-is-no-backup-of-the-specter-folder)
@@ -195,7 +194,11 @@ There is a great tutorial [here](https://bitcoiner.guide/verifysoftware/) explai
 
 ## *Where do i find the logs?*
 
-There is a log-file called specter.log in the SPECTER_DATA_FOLDER in your user-directory. If you're having trouble finding that file in your harddrive, have a look at the tooltip in the settings/general/Loglevel item.
+If you use a binary-installation (a platform specific download-package) there is a log-file called `specterApp.log` in the SPECTER_DATA_FOLDER in your user-directory. So for different platforms, default places are: 
+* Windows: `C:\Users\YourUser\.specter\specterApp.log`
+* Linux: `/home/yourUser/.specter/specterApp.log`
+For pip installations, you need to look into the file `specter.log` in the same directory.
+If you still have trouble finding that file on your harddrive, have a look at the tooltip in the settings/general/Loglevel item.
 
 ## *What types of ways can I run specter-desktop?*
 
@@ -204,11 +207,11 @@ There are many ways how to run Specter:
 - Specter on a remote node, web interface in local network or over Tor (but hardware wallets need to be connected to the node where Specter is running)
 - Specter on a remote node, another Specter on your computer in "hwibridge" mode that gives access to your hardware wallets from the remote node (configurable whitelist)
 
-It depends on your setup, and can be customized accordingly.
+Also you can run it via a platform-specific binary, pip-installation or via a Docker-container. It depends on your needs, and can be customized accordingly.
 
 Specter-desktop makes many requests to Bitcoin Core RPC, so it works better from the same machine where Core is running, but remote is also possible. With that being said, by default Bitcoin Core RPC is connecting over HTTP, so everything including your RPC login and password are flying around as plaintext. You can use HTTPS and a [self-signed certificate](https://github.com/cryptoadvance/specter-desktop/blob/master/docs/self-signed-certificates.md) to fix that.
 
-If you use hardware wallets and they are usb-connected to specter-desktop then you should take these precautions, but if they are air-gapped (ColdCard, specter-diy, cobo) - then you can use remote web interface.
+If you use hardware wallets and they are usb-connected to specter-desktop then you need to use the hwibridge in the remote cases. However if your HWW is air-gapped (ColdCard, specter-diy, cobo) - then you can use remote web interface.
 
 ## Devices? Wallets? What is the difference?
 
@@ -222,13 +225,12 @@ XPUBs are needed (from HWW's, laptop with Electrum desktop wallet, Specter-DIY, 
 
 ## *Is my understanding correct that specter-desktop does not hold any keys and you need to create a multisig wallet in order to sign transactions and send funds?*
 
-As of late, you can also use a hot wallet as a signer with specter-desktop, but since it is so new it is not recommended. You can however use devices like Electrum wallet or FullyNoded for example (Electrum or Bitcoin Core can be air-gapped). This [video](https://youtu.be/4YXklLh2srA) is quite useful for using Electrum, and this [guide](https://github.com/Fonta1n3/FullyNoded/blob/master/Docs/Connect-node.md#importing-a-wallet-from-specter) is useful for connecting with FullyNoded.
+As of late, you can also use a hot wallet as a signer with specter-desktop, but this is not recommended as a default setup. You can however use devices like Electrum wallet or FullyNoded for example (Electrum or Bitcoin Core can be air-gapped). This [video](https://youtu.be/4YXklLh2srA) is quite useful for using Electrum, and this [guide](https://github.com/Fonta1n3/FullyNoded/blob/master/Docs/Connect-node.md#importing-a-wallet-from-specter) is useful for connecting with FullyNoded.
 
 ## *How would one sign with Electrum? Do I need to create multisig wallet in Electrum first or can I create it with specter-desktop?*
 
 You need to create it in both wallets. When you start creating multisig wallet in Electrum it will give you the bech32 extended public key (ZPUB) where you can then add it to specter-desktop as well as other ZPUBS from other devices, and then add them to Electrum. After that you can start using Electrum as a signer.
-Full Electrum support is not out yet, but it should already work with files and copy paste of the transaction.
-See also this [video](https://www.youtube.com/watch?v=4YXklLh2srA) for more details.
+Electrum support got much better lately. We now have a dedicated electrum device with a specific explanation. If you're running into trouble, this [video](https://www.youtube.com/watch?v=4YXklLh2srA) might still help a lot and gives more details.
 
 ## *Can I use Ledger and ColdCard multisig while CC remains air-gapped?*
 
@@ -240,30 +242,27 @@ Yes you can use BlueWallet in watch-only mode and sign with Specter DIY. See it 
 
 ## *Which hardware wallets are supported?*
 
-Any HWW with HWI, including USB HWW's (ColdCard, Trezor, Ledger, KeepKey, BitBox(2), CoboVault etc.)
+All major once! Checkout the list when you add a new device.
 
 ## *Can this also work with external nodes like Casa, MyNode, and Raspilitz?*
 
 Absolutely, as well as any other DIY bitcoin full, or pruned, node!
 
-Currently Raspiblitz (https://github.com/rootzoll/raspiblitz), has explicit support and you can automatically install it as bonus-software. Also [umbrel](https://getumbrel.com/) has it in the app-store. Mynode has it on Mynode [premium](https://mynodebtc.com/products/premium). There are differences mainly on update-policy and update-freuency.
+Currently Raspiblitz (https://github.com/rootzoll/raspiblitz), has explicit support and you can automatically install it as bonus-software. Also [umbrel](https://getumbrel.com/) has it in the app-store. Mynode has it on Mynode [premium](https://mynodebtc.com/products/premium). Start9 is currently preparing support. There are differences mainly on update-policy and update-freuency.
 
 ## *Can I use Tor?*
 
 Yes there is a way to access specter-desktop over Tor from outside, here is the [doc](https://github.com/cryptoadvance/specter-desktop/blob/master/docs/tor.md).
 
-In the new version v1.3.0, there will also be the possibility to activate a tor-installation from within Specter-Desktop.
+Since version v1.3.0, there will also be the possibility to activate a tor-installation from within Specter-Desktop.
 
 With that being said, beware that it's not practical yet to sign transactions via Tor:
 
  - Specter-DIY needs the camera which is not available in the Tor-browser (yet)
  - You could use HWI-wallets, but you would need to plug the wallet into the machine where specter-desktop is running on, but this is usually not the use-case you're looking for when using Tor.
 
-## *How to set the URL for the block explorer?*
+ Progress on Tor Support for QR-code scanning is tracked in this [issue](https://github.com/cryptoadvance/specter-desktop/issues/536)
 
-This feature is optional and not needed for the wallet to function. It's only used for convenience in order to generate URLs for addresses.
-Technically, you can use any block explorer but that's not what you want to do, unless you want to try out the feature.
-Simply fill in https://blockstream.info/ to use that block explorer, but you will leak privacy doing that.
 
 ## I forgot my password, how can I reset it?
 
@@ -365,6 +364,8 @@ This is a known issue. See [here](https://github.com/cryptoadvance/specter-deskt
 * Also, make sure to upgrade to the latest firmware, ledger but also others are known to not work with specific older versions. 
 * On Linux, there is also something called [udev-rules](../udev/README.md) which have to be installed.
 * Then, there might be confusion about the computer to plug it in. Do you run specter locally or on some remote-computer? Without the hwi-bridge, you need to plug your hardware wallet in the USB-port of the computer you're running specter on. If you want to use your computer and not the remote one, checkout the [HWIBridge](./hwibridge.md)
+* Also unplug other maybe exotic USB hardware like game-controllers, printers and basically everything, just for testing purposes.
+* If you're using the hwi-bridge, skip it for testing purposes and use specter locally to let it connect to your local 
 
 ## *How to upgrade Specter-desktop?*
 
