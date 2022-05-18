@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 from pathlib import Path
+from cryptoadvance.specter.hwi_rpc import HWIBridge
 
 from cryptoadvance.specter.liquid.rpc import LiquidRPC
 from cryptoadvance.specter.managers.service_manager import ServiceManager
@@ -140,6 +141,9 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
             config=app.config["DEFAULT_SPECTER_CONFIG"],
             internal_bitcoind_version=app.config["INTERNAL_BITCOIND_VERSION"],
         )
+
+    # HWI
+    specter.hwi = HWIBridge()
 
     # ServiceManager will instantiate and register blueprints for extensions
     specter.service_manager = ServiceManager(
