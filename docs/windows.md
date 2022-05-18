@@ -1,6 +1,8 @@
 # Running Specter-Desktop on Windows
 
-1. Install Python 3.7 from Microsoft Store (python 3.8 is not supported yet). You may need to install [Visual C++ Redistributable](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) for it.
+This description is for a pip-installation on windows. Regular Windows users please simply install the windows-specific binary. However having a pip-installation on windows might make sense for specific users:
+
+1. Install Python 3.9 from Microsoft Store. You may need to install [Visual C++ Redistributable](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) for it.
 2. Install libusb:
 	- Download latest binary from https://libusb.info/ and extract
 	- For 32-bit Windows:
@@ -24,5 +26,3 @@ If you are running into problems with pip, you can install it via:
 - in Command Prompt navigate to the folder where this file is located
 - run `python3 get-pip.py`
 - now you can install specter-desktop from Command Prompt and run as usual
-
-*Note:* `--daemon` flag is not available on Windows yet

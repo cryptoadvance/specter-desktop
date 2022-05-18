@@ -110,10 +110,12 @@ class ExtGen:
             self.render(f"{package_path}/templates/dummy/components/dummy_menu.jinja")
             self.render(f"{package_path}/templates/dummy/components/dummy_tab.jinja")
 
+        self.render(f"pytest.ini", env=self.sd_env)
         self.render(f"tests/conftest.py", env=self.sd_env)
         self.render(f"tests/fix_ghost_machine.py", env=self.sd_env)
         self.render(f"tests/fix_devices_and_wallets.py", env=self.sd_env)
         self.render(f"tests/fix_testnet.py", env=self.sd_env)
+        self.render(f"tests/fix_keys_and_seeds.py", env=self.sd_env)
 
     def create_binary_file(self, sourcepath):
         """textfiles can all be rendered. Binaries must be wgettet or copied"""
