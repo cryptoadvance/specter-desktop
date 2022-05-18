@@ -7,6 +7,7 @@ import click
 from .cli_noded import bitcoind, elementsd
 from .cli_ext import ext
 from .cli_server import server
+from .cli_gunicorn import gunicorn
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,8 @@ def entry_point(config_home, debug=False, tracerpc=False, tracerequests=False):
         # No need for timestamps while developing
         formatter = logging.Formatter("[%(levelname)7s] in %(module)15s: %(message)s")
         logging.getLogger("cryptoadvance").setLevel(logging.DEBUG)
+        # but not that chatty connectionpool
+        logging.getLogger("urllib3.connectionpool").setLevel(logging.INFO)
     else:
         formatter = logging.Formatter(
             # Too early to format that via the flask-config, so let's copy it from there:
@@ -59,6 +62,7 @@ def entry_point(config_home, debug=False, tracerpc=False, tracerequests=False):
 
 
 entry_point.add_command(server)
+entry_point.add_command(gunicorn)
 entry_point.add_command(ext)
 entry_point.add_command(bitcoind)
 entry_point.add_command(elementsd)

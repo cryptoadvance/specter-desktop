@@ -63,12 +63,12 @@ def api():
                 )
     try:
         data = json.loads(request.data)
-    except:
+    except Exception as e:
         return (
             jsonify(
                 {
                     "jsonrpc": "2.0",
-                    "error": {"code": -32700, "message": "Parse error"},
+                    "error": {"code": -32700, "message": f"Parse error:{str(e)}"},
                     "id": None,
                 }
             ),

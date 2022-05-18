@@ -52,10 +52,13 @@
 			</div>
 			{% if wallet.amount_locked_unsigned  > 0 or wallet.amount_frozen > 0 %}
 			<div>
-				<tool-tip title='{{ _("Why is this less than mal total balance?") }}'>
-					{{ _(' Frozen outputs and outputs locked in unsigned transactions cannot be used here.  
-					To make more funds available, click on the "Unsigned" tab and delete not required transactions or unfreeze UTXO under "Transactions".') }}
-		        </tool-tip>
+				<tool-tip>
+				    <h4 slot="title">{{ _("Why is this less than my total balance?") }}</h4>
+				    <span slot="paragraph">
+						{{ _(' Frozen outputs and outputs locked in unsigned transactions are not available here.  
+						To make more funds available, click on the "Unsigned" tab and delete not required transactions or unfreeze UTXO under "Transactions".') }}
+				    </span>
+				</tool-tip>
 	        </div>
 	        {% endif %}
 	    </div>

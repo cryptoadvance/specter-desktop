@@ -108,9 +108,7 @@
 						{% include "includes/language/language_select.jinja" %}
 					</div>
 					<h1 style="font-size: 1.8em; line-height: 1em;">
-					
-					{{ _('Welcome to Specter Desktop') }} 
-					
+						{{ _('Welcome to Specter Desktop') }} 
 					</h1>
 					{% if ('://localhost:' not in url_for('index', _external=True) and '://127.0.0.1:' not in url_for('index', _external=True)) and specter.hwi_bridge_url != "http://127.0.0.1:25441/hwi/api/" %}
 						<div style="margin: auto; display: block;">
@@ -261,6 +259,7 @@
 							<a href="https://github.com/cryptoadvance/" target="_blank"><img src="{{ url_for('static', filename='img/github.svg') }}" style="width: 30px; margin: 10px; position: relative; z-index: 1;"></a>
 							<a href="https://twitter.com/specterwallet/" target="_blank"><img src="{{ url_for('static', filename='img/twitter.svg') }}" style="width: 30px; margin: 10px; position: relative; z-index: 1;"></a>
 						</div>
+						<span style="font-size: 0.8em;">uid: {{ specter.config_manager.data["uid"] }}</span>
 					</div>
 				{% endif %}
 			{% endblock %}
