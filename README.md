@@ -74,6 +74,8 @@ With this method, all you need to do is just download the right file for your op
   * Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev python3-dev`
   * macOS: `brew install libusb`
   * Windows: follow instructions in [`windows.md`](docs/windows.md)
+  * Arch: `sudo pacman -Syu && sudo pacman -S libusb`
+  * Fedora/CentOS: `sudo yum -y install libusb libudev-devel python3-devel`
  * Install Specter
 ```sh
 pip3 install cryptoadvance.specter
