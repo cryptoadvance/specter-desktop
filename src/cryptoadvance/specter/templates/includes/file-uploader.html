@@ -1,0 +1,113 @@
+<!--
+  - Image source and width, as well as button width, height and colour can be set
+
+{# - Usage -
+<file-uploader id="label-uploader" image_src="{{ url_for('static', filename='img/file.svg') }}" image_width="30px" button_width="137px" button_height="50px" button_color="hsl(217, 20%, 35%)">
+	<span slot="description">or upload file</span>
+</file-uploader>
+#}
+
+To get the data from the file upload into your jinja file, subscribe to the `file-upload` event in the js script part:
+
+let textarea = document.getElementById("address_labels_data")
+document.addEventListener('file-upload', e => {
+	let result = e.detail.result;
+	textarea.value = result
+	})
+-->
+
+<template id="file-uploader">
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+	<style>
+		input {
+			width: 200px;
+	    	height: 100px;
+	    	opacity: 0;
+	    	overflow: hidden;
+	    	position: fixed;
+	    	z-index: -1;
+		}
+		label {
+		    background: var(--cmap-border);
+		    border: 1px solid transparent;
+		    border-radius: 4px;
+		    padding: 8px 15px 8px 10px;
+		    color: #fff;
+		    font-size: 0.85em;
+		    text-align: center;
+		    display: flex;
+		    align-items: center;
+		    justify-content: center;
+		    cursor: pointer;
+		    flex-grow: 1;
+		    min-height: 33px;
+		    margin: 8px;
+		    width: 250px;
+		}
+
+		img {
+			width: 26px; 
+			margin: 0px;
+			filter: invert(100%) sepia(0%) saturate(1%) hue-rotate(304deg) brightness(102%) contrast(101%);
+		}
+		:host,slot{
+      		padding: 0;
+      		margin: 0;
+    }
+	</style>
+
+	<input type="file" id="input-file"/>
+	<label for="input-file">
+		<img>
+		<slot name="description">Choose file</slot>
+		<slot name="tool-tip"></slot>
+	</label> 
+	
+</template>
+
+<script type="module">
+
+class FileUploaderElement extends HTMLElement {
+	constructor() {
+		super();
+		const shadowRoot = this.attachShadow({mode: 'open'});
+		const template = document.getElementById('file-uploader');
+		const clone = template.content.cloneNode(true);
+		this.img = clone.querySelector('img')
+		this.img.src = this.getAttribute("image_src");
+		this.img.style.width = this.getAttribute("image_width");
+		this.uploadButton = clone.querySelector('label')
+		this.uploadButton.style.width = this.getAttribute("button_width");
+		this.uploadButton.style.height = this.getAttribute("button_height");
+		this.uploadButton.style.background = this.getAttribute("button_color")
+
+		let el = clone.getElementById("input-file");
+		el.addEventListener("change", (e) => {
+			// Only one file can be selected
+			let file = e.currentTarget.files[0];
+			var result
+            let reader = new FileReader();
+            reader.onload = (e) => {
+                result = reader.result;
+                // if raw bytes
+                if(reader.result.startsWith("psbt") || reader.result.startsWith("pset")){
+                    result = btoa(reader.result);
+                }
+                this.dispatchReadResult(result);
+            }
+            reader.readAsBinaryString(file);
+		})
+
+		shadowRoot.appendChild(clone);
+	}
+	dispatchReadResult(result) {
+		this.dispatchEvent(new CustomEvent('file-upload', {
+  		bubbles: true,
+  		composed: true, // not necessary here, only if the event was dispatched from an element within the FileUploaderElement 
+  		detail: {result},
+		}));
+	}
+}	
+customElements.define('file-uploader', FileUploaderElement);
+</script>

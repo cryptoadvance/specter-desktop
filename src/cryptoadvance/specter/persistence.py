@@ -14,6 +14,7 @@ import threading
 from flask import current_app as app
 
 from .specter_error import SpecterError
+from .services.callbacks import specter_persistence_callback
 from .util.shell import run_shell
 
 logger = logging.getLogger(__name__)
@@ -200,6 +201,27 @@ def storage_callback(mode="write", path=None):
     # Might be usefull to figure out why the callback has been triggered:
     # traceback.print_stack()
     # logger.debug(f"Storage Callback called mode {mode} with path {path}")
+
+    # First, call extensions which want to get informed.
+    # This is working synchronously!
+    try:
+        app.specter.service_manager.execute_ext_callbacks(
+            specter_persistence_callback, path=path, mode=mode
+        )
+    except AttributeError as e:
+        # chicken-egg poroblem:
+        if str(e).endswith("object has no attribute 'specter'"):
+            pass
+        else:
+            raise e
+    except RuntimeError as e:
+        if str(e).startswith("Working outside of application context"):
+            # not yet (?!) supported
+            pass
+        else:
+            raise e
+
+    # Now maybe we have async scripts?
     if os.getenv("SPECTER_PERSISTENCE_CALLBACK_ASYNC"):
         cmd_list = os.getenv("SPECTER_PERSISTENCE_CALLBACK_ASYNC").split(" ")
         cmd_list.append(mode)
@@ -209,6 +231,7 @@ def storage_callback(mode="write", path=None):
             args=(cmd_list,),
         )
         t.start()
+    # Or maybe even synchronous scripts?
     elif os.getenv("SPECTER_PERSISTENCE_CALLBACK"):
         cmd_list = os.getenv("SPECTER_PERSISTENCE_CALLBACK").split(" ")
         cmd_list.append(mode)
