@@ -210,7 +210,7 @@ def storage_callback(mode="write", path=None):
         )
     except AttributeError as e:
         # chicken-egg poroblem:
-        if str(e).startswith("'SpecterFlask' object has no attribute 'specter'"):
+        if str(e).endswith("object has no attribute 'specter'"):
             pass
         else:
             raise e
