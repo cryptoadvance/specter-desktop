@@ -417,9 +417,7 @@ class HWIBridge(JSONRPC):
             )
         devcls = get_device_class(device["type"])
         if devcls:
-            client = devcls.get_client(
-                device["path"], passphrase, transport=get_transport()
-            )
+            client = devcls.get_client(device["path"], passphrase)
         if not client:
             raise Exception(
                 "The device was identified but could not be reached.  Please check it is properly connected and try again"
