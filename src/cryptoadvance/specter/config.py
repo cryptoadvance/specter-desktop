@@ -256,7 +256,8 @@ class CypressTestConfig(TestConfig):
 
 
 class ProductionConfig(BaseConfig):
-    SECRET_KEY = secrets.token_urlsafe(16)
+    # Injectable, as having a random SECRET-KEY won't work for gunicorn using more than one worker (might have more issues with multiple workers, though)
+    SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_urlsafe(16))
     # There are some really slow machines out there. Creating a 2/4 multisig on an older MacBookAir
     # Take already >30secs
     BITCOIN_RPC_TIMEOUT = float(os.getenv("BITCOIN_RPC_TIMEOUT", "60"))

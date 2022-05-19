@@ -230,7 +230,9 @@ class ServiceManager:
             raise Exception(f"Non existing callback_id: {callback_id}")
         logger.debug(f"Executing callback {callback_id}")
         for ext in self.services.values():
-            if hasattr(ext, "callback"):
+            if hasattr(ext, f"callback_{callback_id}"):
+                getattr(ext, f"callback_{callback_id}")(*args, **kwargs)
+            elif hasattr(ext, "callback"):
                 ext.callback(callback_id, *args, **kwargs)
 
     @property
@@ -328,7 +330,7 @@ class ServiceManager:
         arr = get_subclasses_for_clazz(Service)
         arr.extend(
             get_classlist_of_type_clazz_from_modulelist(
-                Service, ProductionConfig.EXTENSION_LIST, None
+                Service, ProductionConfig.EXTENSION_LIST
             )
         )
         arr = [clazz.__module__ for clazz in arr]

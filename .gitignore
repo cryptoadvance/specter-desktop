@@ -32,6 +32,7 @@ node_modules
 btcd-conn.json
 elmd-conn.json
 tests/bitcoin*
+tests/elements*
 token.sh
 src/cryptoadvance/specter/translations/**/messages.mo
 tests/elements

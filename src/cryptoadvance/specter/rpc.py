@@ -9,7 +9,7 @@ import requests
 import urllib3
 
 from .helpers import is_ip_private
-from .specter_error import SpecterError
+from .specter_error import SpecterError, handle_exception
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +81,8 @@ def _get_rpcconfig(datadir=get_default_datadir()):
                         config["bitcoin.conf"][net.strip()][k.strip()] = v.strip()
                     else:
                         current[k.strip()] = v.strip()
-        except Exception:
+        except Exception as e:
+            handle_exception(e)
             print("Can't open %s file" % bitcoin_conf_file)
     folders = {"main": "", "test": "testnet3", "regtest": "regtest", "signet": "signet"}
     for chain in folders:
@@ -93,7 +94,8 @@ def _get_rpcconfig(datadir=get_default_datadir()):
                     user, password = content.split(":")
                     obj = {"user": user, "password": password, "port": RPC_PORTS[chain]}
                     config["cookies"].append(obj)
-            except:
+            except Exception as e:
+                handle_exception(e)
                 print("Can't open %s file" % fname)
     return config
 
