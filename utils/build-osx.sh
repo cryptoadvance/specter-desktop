@@ -107,6 +107,10 @@ while [[ $# -gt 0 ]]
         build_sign=True
         shift
         ;;
+      upload)
+        upload=True
+        shift
+        ;;        
       help)
         sub_help
         shift
@@ -164,32 +168,54 @@ if [[ "$build_sign" = "True" ]]; then
   fi
 
   echo "    --> Making the release-zip"
-  mkdir release
+  mkdir -p release
+  rm -rf release/*
 
-  create-dmg electron/dist/mac/${specterimg_filename}.app --identity="Developer ID Application: ${appleid}"
+  create-dmg pyinstaller/electron/dist/mac/${specterimg_filename}.app --identity="Developer ID Application: ${appleid}" dist
   # create-dmg doesn't create the prepending "v" to the version
   node_comp_version=$(python3 -c "print('$version'[1:])")
-  mv "electron/dist/${specterimg_filename}-${node_comp_version}.dmg" release/${specterimg_filename}-${version}.dmg
+  mv "dist/${specterimg_filename} ${node_comp_version}.dmg" release/${specterimg_filename}-${version}.dmg
 
-  cd dist # ./pyinstaller/dist
-  zip ../release/${specterd_filename}-${version}-osx.zip ${specterd_filename}
-  cd .. # ./pyinstaller
+  cd pyinstaller/dist # ./pyinstaller/dist
+  zip ../../release/${specterd_filename}-${version}-osx.zip ${specterd_filename}
+  cd ../..
 
   sha256sum ./release/${specterd_filename}-${version}-osx.zip
   sha256sum ./release/${specterimg_filename}-${version}.dmg
 fi
 
 if [ "$app_name" == "specter" ]; then
+  echo "    --> gpg-signing the hashes and uploading"
   echo "--------------------------------------------------------------------------"
-  echo "In order to upload these artifacts to github, do:"
+  
+  echo "In order to upload these artifacts to github, we now do:"
+  echo "We're keeping that here in case something fails on the last mile"
   echo "export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance"
   echo "export CI_COMMIT_TAG=$version"
   echo "export GH_BIN_UPLOAD_PW=YourSecretHere"
   echo "python3 ../utils/github.py upload ./release/specterd-${version}-osx.zip"
-  echo "python3 ../utils/github.py upload ./release/SpecterDesktop-${version}.dmg"
+  echo "python3 ../utils/github.py upload ./release/Specter-${version}.dmg"
   echo "cd release"
   echo "sha256sum * > SHA256SUMS-macos"
   echo "python3 ../../utils/github.py upload SHA256SUMS-macos"
   echo "gpg --detach-sign --armor SHA256SUMS-macos"
   echo "python3 ../../utils/github.py upload SHA256SUMS-macos.asc"
+
+
+  if [[ "$upload" = "True" ]]; then
+    echo "    --> This build got triggered for version $version"
+    . ../../specter_gh_upload.sh
+    if [[ -z "$CI_PROJECT_ROOT_NAMESPACE" ]]; then
+      export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance
+    fi
+    python3 ./utils/github.py upload ./release/specterd-${version}-osx.zip
+    python3 ./utils/github.py upload ./release/Specter-${version}.dmg
+    cd release
+    sha256sum * > SHA256SUMS-macos
+    python3 ../utils/github.py upload SHA256SUMS-macos
+    gpg --detach-sign --armor SHA256SUMS-macos
+    say "Du darfst nun das binary signieren"
+    python3 ../utils/github.py upload SHA256SUMS-macos.asc
+  fi
 fi
+

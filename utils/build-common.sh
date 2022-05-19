@@ -160,7 +160,7 @@ function macos_code_sign {
     # The stapler somehow "staples" the result of the notarisation in to your app
     # see e.g. https://stackoverflow.com/questions/58817903/how-to-download-notarized-files-from-apple
     xcrun stapler staple "dist/mac/${specterimg_filename}.app"
-    cd pyinstaller/electron
+    cd ../..
 }
 
 function make_release_zip {
