@@ -67,9 +67,7 @@ def get_package_dir_for_subclasses_of(clazz):
 # --------------- static discovery ------------------------------
 
 
-def get_classlist_of_type_clazz_from_modulelist(
-    clazz, modulelist, config_class_fullname
-):
+def get_classlist_of_type_clazz_from_modulelist(clazz, modulelist):
     """A helper method converting a List of modules as described in config.py
     into a List of classes. In order to make that more util-like, you
     have to pass the the class you're searching for in the modules

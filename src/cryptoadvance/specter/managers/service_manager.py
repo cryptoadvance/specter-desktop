@@ -52,9 +52,7 @@ class ServiceManager:
         # in the corresponding (Production)Config
         logger.debug(f"EXTENSION_LIST = {app.config.get('EXTENSION_LIST')}")
         class_list = get_classlist_of_type_clazz_from_modulelist(
-            Service,
-            app.config.get("EXTENSION_LIST", []),
-            app.config.get("SPECTER_CONFIGURATION_CLASS_FULLNAME"),
+            Service, app.config.get("EXTENSION_LIST", [])
         )
 
         if app.config.get("SERVICES_LOAD_FROM_CWD", False):
