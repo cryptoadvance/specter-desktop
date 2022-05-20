@@ -227,7 +227,6 @@ class Wallet:
         arr = key_type.split("-")
         for wrapper in arr[::-1]:
             desc = f"{wrapper}({desc})"
-        print(desc)
         return cls.DescriptorCls.from_string(desc)
 
     @classmethod
