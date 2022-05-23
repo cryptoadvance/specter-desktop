@@ -4,12 +4,20 @@ import os
 import signal
 import sys
 import time
-from os import path
+from os import path, name
 from socket import gethostname
 from urllib.parse import urlparse
 
 import click
-from cryptoadvance.specter.gunicorn import SpecterGunicornApp
+
+try:
+    from cryptoadvance.specter.gunicorn import SpecterGunicornApp
+except ModuleNotFoundError as e:
+    # gunicorn is not supported on windows
+    if os.name == "nt":
+        pass
+    else:
+        raise e
 from cryptoadvance.specter.server import create_and_init, create_app, init_app
 from OpenSSL import SSL, crypto
 from stem.control import Controller
@@ -61,5 +69,8 @@ def gunicorn():
 
 
     """
+    if os.name == "nt":
+        print("Sorry, gunicorn is not available on windows")
+        exit(1)
     specter_gunicorn = SpecterGunicornApp(config=None)
     specter_gunicorn.run()
