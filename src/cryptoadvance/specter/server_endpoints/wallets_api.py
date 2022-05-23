@@ -497,10 +497,17 @@ def addressinfo(wallet_alias):
             xpubs_descriptor = add_checksum(
                 wallet.get_descriptor(address=address, keep_xpubs=True).to_string()
             )
-            derivation_path_pattern = r"(\/[0-9h]+\/[0-9h]+\/[0-9h]+\/[0-9h]+\/[0-9h]+)"
-            # Descriptor looks like this:
+            # The last two regex groups are optional since Electrum's derivation path is shorter
+            derivation_path_pattern = (
+                r"(\/[0-9h]+)(\/[0-9h]+)(\/[0-9h]+)(\/[0-9h]+)?(\/[0-9h]+)?"
+            )
+            # Only "descriptor" gives full derivation path, looks usually like this:
             # wpkh([8c24a510/84h/1h/0h/0/0]0331edcb16cfd ... e02552539d984)#35zjhlhm
             match = re.search(derivation_path_pattern, descriptor)
+            if not match:
+                logger.debug(
+                    "Derivation path could not be parsed. Sth. wrong with the regex?"
+                )
             logger.debug(f"This is the derivation path match: {match.group()}")
             derivation_path = "m" + match.group()
             address_info = wallet.get_address_info(address=address)
