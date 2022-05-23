@@ -169,6 +169,10 @@ flask_wtf==0.15.1 \
     --hash=sha256:6ff7af73458f182180906a37a783e290bdc8a3817fe4ad17227563137ca285bf \
     --hash=sha256:ff177185f891302dc253437fe63081e7a46a4e99aca61dfe086fb23e54fff2dc
     # via -r requirements.in
+gunicorn==20.1.0 \
+    --hash=sha256:9dcc4547dbb1cb284accfb15ab5667a0e5d1881cc443e0677b4882a4067a807e \
+    --hash=sha256:e0a968b5ba15f8a328fdfd7ab1fcb5af4470c28aaf7e55df02a99bc13138e6e8
+    # via -r requirements.in
 hidapi==0.11.2 \
     --hash=sha256:0053afb387e660273db3cf252434cd5181c561725ed442cd44024ec2b5c97bbe \
     --hash=sha256:0be398136fa5fd6ed7648ca7df675100312a2158c39e1de059ea1d4f88e61046 \
@@ -461,6 +465,7 @@ zipp==3.8.0 \
 # WARNING: The following packages were not pinned, but pip requires them to be
 # pinned when the requirements file includes hashes. Consider using the --allow-unsafe flag.
 # setuptools
+
 
 
 # The block below is created with pip-compile in python 3.8, such that requirements.txt is backwards compatible with python 3.8

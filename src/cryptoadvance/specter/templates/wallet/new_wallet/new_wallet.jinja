@@ -17,8 +17,11 @@
 						{{ device_name }}
 					</div>
 					{% if not device.has_key_types(wallet_type, specter.chain) %}
-						<tool-tip title="Device cannot be selected" style="position: absolute; top: 30px; left: 25px;">
-							{{device.no_key_found_reason(wallet_type, specter.chain)}}
+						<tool-tip style="position: absolute; top: 30px; left: 25px;">
+    						<h4 slot="title">{{ _("Device cannot be selected") }}</h4>
+						    <span slot="paragraph">
+						        {{device.no_key_found_reason(wallet_type, specter.chain)}}
+						    </span>
 						</tool-tip>
 					{% endif %}
 				</label>

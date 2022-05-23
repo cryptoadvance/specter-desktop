@@ -97,7 +97,7 @@ def funded_hot_wallet_1(
             amount=2.5,
             confirm_payment=False,
         )
-    time.sleep(0.5)  # needed for tx to propagate
+    time.sleep(1)  # needed for tx to propagate
     funded_hot_wallet_1.update()
     # 12 txs
     assert len(funded_hot_wallet_1.txlist()) == 12

@@ -26,3 +26,4 @@ mnemonic==0.20
 cryptography==3.4.7
 Flask-APScheduler==1.12.3
 backports.zoneinfo==0.2.1 ; python_version < '3.10'
+gunicorn==20.1.0

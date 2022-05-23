@@ -1,4 +1,20 @@
-<template id="tooltip">
+<!--
+HTML tags for title and paragraph can be set on demand, also possible to just use a paragraph.
+You can also change the default width of the tool-tip.
+
+{# - Usage -
+<tool-tip width="325px">
+    <h4 slot="title">{{ _("Merkle Proof Validation") }}</h4>
+    <span slot="paragraph">
+        {{ _('Specter Desktop validates <a href="https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki" target="_blank">BIP 37</a> Merkle Proofs from your full node <strong>guaranteeing</strong> that transactions displayed as confirmed have been included in the specified block hash.') }}<br><br>
+        {{ _("However, a compromised full node could return a fake block that was never mined.") }}
+        {{ _("To be sure, you could double check the block hash in other locations (other nodes, block explorers, etc).") }}
+    </span>
+</tool-tip>
+#}
+-->
+
+<template id="tool-tip-template-id">
     <style>
         .tool-tip {
             display: inline-block;
@@ -48,12 +64,18 @@
         }
         .tool-tip .tool-tip__info .info__title {
             color: #4A90E2;
+            font-weight: 400;
+        }
+        .tool-tip .tool-tip__info .paragraph {
+            display: block;
+            font-weight: 100;
+            font-size: 14px;
         }
         .tool-tip:hover .tool-tip__info, .tool-tip:focus .tool-tip__info {
             display: inline-block;
         }
 
-        a:focus + .tool-tip .tool-tip__info {
+        a:focus + .tool-tip_basic .tool-tip__info {
             display: inline-block;
         }
         @media (hover: none) {
@@ -62,40 +84,28 @@
             }
         }
     </style>
+
     <div class="tool-tip">
         <i class="tool-tip__icon">i</i>
-        <p class="tool-tip__info">
-        <span class="info">
-            <span class="info__title"></span><br><br>
-            <slot></slot>
-        </span>
-        </p>
+        <div class="tool-tip__info" id="tool-tip-box">
+            <slot name="title" class="info__title"></slot>
+            <slot name="paragraph" class="paragraph"></slot>
+        </div>
     </div>
-  </template>
+    
+</template>
   
-  <script type="text/javascript">
-  class TooltipElement extends HTMLElement {
-    constructor() {
-        super();
-        // Create a shadow root
-        var shadow = this.attachShadow({mode: 'open'});
-        var style = document.getElementById('tooltip').content;
-        var clone = style.cloneNode(true);
-
-        this.titleText = clone.querySelector(".info__title");
-
-        // Attach the created element to the shadow dom
-        shadow.appendChild(clone);
+<script type="module">
+    class TooltipElement extends HTMLElement {
+        constructor() {
+            super();
+            var shadowRoot = this.attachShadow({mode: 'open'});
+            var template = document.getElementById('tool-tip-template-id');
+            var clone = template.content.cloneNode(true);
+            this.tooltipBox = clone.getElementById("tool-tip-box")
+            this.tooltipBox.style.width = this.getAttribute("width");
+            shadowRoot.appendChild(clone);
+        }
     }
-
-    static get observedAttributes() {
-        return ['title'];
-    }
-
-    attributeChangedCallback(attrName, oldValue, newValue) {
-      let title = this.getAttribute('title');
-      this.titleText.innerHTML = title;
-    }
-  }
-  customElements.define('tool-tip', TooltipElement);
-  </script>
+customElements.define('tool-tip', TooltipElement);
+</script>
