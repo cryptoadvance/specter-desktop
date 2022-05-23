@@ -6,6 +6,7 @@ from requests.exceptions import ConnectionError, HTTPError
 from urllib3.exceptions import NewConnectionError
 
 from ..specter_error import SpecterError, handle_exception
+from ..util.requests_tools import failsafe_request_get
 
 logger = logging.getLogger(__name__)
 
@@ -204,27 +205,3 @@ def _parse_exchange_currency(exchange_currency):
     elif len(arr) == 3:
         return f"{arr[0]}_{arr[1]}", arr[2]
     raise SpecterError(f"Cannot parse exchange_currency: {exchange_currency}")
-
-
-def failsafe_request_get(requests_session, url):
-    """wrapping requests which is only emitting reasonable SpecterErrors which are hopefully meaningful to the user"""
-    try:
-        response: requests.Response = requests_session.get(url)
-        if response.status_code != 200:
-            response.raise_for_status()
-        json_response = response.json()
-        if json_response.get("errors"):
-            raise SpecterError(f"JSON error: {json_response}")
-        return response.json()
-    except HTTPError as httpe:
-        try:
-            json_response = response.json()
-        except JSONDecodeError:
-            raise SpecterError(f"HttpError {httpe.response.status_code} for {url}")
-        logger.debug(f"json-response: {json_response}")
-        if json_response.get("errors"):
-            raise SpecterError(f"JSON error: {json_response}")
-        raise SpecterError(f"HttpError {httpe.response.status_code} for {url}")
-    except (ConnectionRefusedError, ConnectionError, NewConnectionError) as e:
-        logger.error(f"{e} while requesting {url}")
-        raise SpecterError(f"There is a connection issue with the exchange:{e}")

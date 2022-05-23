@@ -1192,7 +1192,7 @@ class Wallet:
         """
         delete_file(self._transactions.path)
         self.fetch_transactions()
-        command = UtxoScanner(self, explorer, requests_session, only_tor)
+        command = UtxoScanner(self, requests_session, explorer, only_tor)
         command.execute(asyncc=True)
 
     def export_labels(self):
