@@ -5,6 +5,7 @@ nav:
     - Home:
       - 'Introduction': README.md
       - release-notes.md
+      - multisig-guide.md
     - User Guide:
       - faq.md
       - multisig-security-tradeoffs.md
