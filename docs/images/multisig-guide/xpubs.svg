@@ -29,7 +29,7 @@
      showguides="true"
      inkscape:guide-bbox="true"
      inkscape:zoom="1"
-     inkscape:cx="380"
+     inkscape:cx="379.5"
      inkscape:cy="331"
      inkscape:window-width="1920"
      inkscape:window-height="1007"
@@ -240,14 +240,14 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:7.70502px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.192626"
-       x="32.310543"
+       x="55.994549"
        y="126.21202"
        id="text62400"><tspan
          sodipodi:role="line"
          id="tspan62398"
          style="fill:#ffffff;fill-opacity:1;stroke-width:0.192626"
-         x="32.310543"
-         y="126.21202">Public Keys = Watch-Only Wallet Information</tspan></text>
+         x="55.994549"
+         y="126.21202">Watch-Only Wallet Information</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:3.75011px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.094;stroke-miterlimit:4;stroke-dasharray:none"
