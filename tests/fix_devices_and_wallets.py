@@ -1,39 +1,20 @@
 import pytest
 import random
+import time
 
-from cryptoadvance.specter.helpers import generate_mnemonic
+from cryptoadvance.specter.util.mnemonic import generate_mnemonic
 from cryptoadvance.specter.process_controller.node_controller import NodeController
 from cryptoadvance.specter.specter import Specter
-from cryptoadvance.specter.wallet import Wallet
+from cryptoadvance.specter.wallet import Wallet, Device
 
 
-mnemonic_ghost = (
-    "ghost ghost ghost ghost ghost ghost ghost ghost ghost ghost ghost machine"
-)
-mnemonic_zoo = (
-    "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo when"
-)
-
-
-@pytest.fixture
-def hot_wallet_device_1(specter_regtest_configured):
-    return create_hot_wallet_device(
-        mnemonic_ghost,
-        specter_regtest_configured,
-        "hot_wallet_device_ghost",
-    )
-
-
-@pytest.fixture
-def hot_wallet_device_2(specter_regtest_configured):
-    return create_hot_wallet_device(
-        mnemonic_zoo,
-        specter_regtest_configured,
-        "hot_wallet_device_zoo",
-    )
-
-
-def create_hot_wallet_device(mnemonic, specter_regtest_configured, name):
+def create_hot_wallet_device(
+    specter_regtest_configured, name=None, mnemonic=None
+) -> Device:
+    if mnemonic == None:
+        mnemonic = generate_mnemonic(strength=128)
+    if name == None:
+        name = "_".join(mnemonic.split(" ")[0:3])
     wallet_manager = specter_regtest_configured.wallet_manager
     device_manager = specter_regtest_configured.device_manager
 
@@ -61,6 +42,29 @@ def create_hot_wallet_device(mnemonic, specter_regtest_configured, name):
 
 
 @pytest.fixture
+def hot_wallet_device_1(specter_regtest_configured):
+    return create_hot_wallet_device(specter_regtest_configured)
+
+
+@pytest.fixture
+def hot_wallet_device_2(specter_regtest_configured):
+    return create_hot_wallet_device(specter_regtest_configured)
+
+
+def create_hot_wallet_with_ID(
+    specter_regtest_configured: Specter, hot_wallet_device_1, wallet_id
+) -> Wallet:
+    device = hot_wallet_device_1
+    wallet_manager = specter_regtest_configured.wallet_manager
+    assert device.taproot_available(specter_regtest_configured.rpc)
+
+    # create the wallet
+    keys = [key for key in device.keys if key.key_type == "wpkh"]
+    source_wallet = wallet_manager.create_wallet(wallet_id, 1, "wpkh", keys, [device])
+    return source_wallet
+
+
+@pytest.fixture
 def unfunded_hot_wallet_1(specter_regtest_configured, hot_wallet_device_1) -> Wallet:
     return create_hot_wallet_with_ID(
         specter_regtest_configured,
@@ -78,25 +82,30 @@ def unfunded_hot_wallet_2(specter_regtest_configured, hot_wallet_device_1) -> Wa
     )
 
 
-def create_hot_wallet_with_ID(
-    specter_regtest_configured: Specter, hot_wallet_device_1, wallet_id
-) -> Wallet:
-    device = hot_wallet_device_1
-    wallet_manager = specter_regtest_configured.wallet_manager
-    assert device.taproot_available(specter_regtest_configured.rpc)
-
-    # create the wallet
-    keys = [key for key in device.keys if key.key_type == "wpkh"]
-    source_wallet = wallet_manager.create_wallet(wallet_id, 1, "wpkh", keys, [device])
-    return source_wallet
-
-
 @pytest.fixture
 def funded_hot_wallet_1(
     bitcoin_regtest: NodeController, unfunded_hot_wallet_1: Wallet
 ) -> Wallet:
     funded_hot_wallet_1 = unfunded_hot_wallet_1
-    bitcoin_regtest.testcoin_faucet(funded_hot_wallet_1.getnewaddress())
+    assert len(funded_hot_wallet_1.txlist()) == 0
+    for i in range(0, 10):
+        bitcoin_regtest.testcoin_faucet(funded_hot_wallet_1.getnewaddress(), amount=1)
+    funded_hot_wallet_1.update()
+    for i in range(0, 2):
+        bitcoin_regtest.testcoin_faucet(
+            funded_hot_wallet_1.getnewaddress(),
+            amount=2.5,
+            confirm_payment=False,
+        )
+    time.sleep(1)  # needed for tx to propagate
+    funded_hot_wallet_1.update()
+    # 12 txs
+    assert len(funded_hot_wallet_1.txlist()) == 12
+    # two of them are unconfirmed
+    assert (
+        len([tx for tx in funded_hot_wallet_1.txlist() if tx["confirmations"] == 0])
+        == 2
+    )
     return funded_hot_wallet_1
 
 

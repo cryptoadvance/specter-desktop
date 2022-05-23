@@ -1,9 +1,12 @@
-import requests
 import logging
-from ..specter_error import SpecterError, handle_exception
-from urllib3.exceptions import NewConnectionError
-from requests.exceptions import ConnectionError
 from json.decoder import JSONDecodeError
+
+import requests
+from requests.exceptions import ConnectionError, HTTPError
+from urllib3.exceptions import NewConnectionError
+
+from ..specter_error import SpecterError, handle_exception
+from ..util.requests_tools import failsafe_request_get
 
 logger = logging.getLogger(__name__)
 
@@ -98,10 +101,12 @@ currency_mapping = {
 
 def update_price(specter, current_user):
     try:
-        price, symbol = get_price_at(specter, current_user, timestamp="now")
+        price, symbol = get_price_at(specter, timestamp="now")
         specter.update_alt_rate(price, current_user)
         specter.update_alt_symbol(symbol, current_user)
         return True
+    except SpecterError as e:
+        logger.error(f"{e} while updating price")
     except Exception as e:
         handle_exception(e)
         return False
@@ -116,7 +121,8 @@ def update_price(specter, current_user):
 # (provider, currency) = specter.price_provider.split()
 
 
-def get_price_at(specter, current_user, timestamp="now"):
+def get_price_at(specter, timestamp="now"):
+    """returns a price and a currency-symbol at the timestamp"""
     try:
         if specter.price_check:
             requests_session = specter.requests_session(
@@ -183,18 +189,12 @@ def get_price_at(specter, current_user, timestamp="now"):
                 elif specter.weight_unit == "kg":
                     price = price * OZ_TO_G / 1000
                     currency_symbol = " kg"
-
             return (price, currency_symbol)
+        raise Exception("get_price_at called whereas specter.price_check is False")
     except SpecterError as se:
         raise se
-    except (ConnectionRefusedError, ConnectionError, NewConnectionError) as e:
-        logger.error(e)
-        raise SpecterError(f"There are connection issue with the exchange:{e}")
     except KeyError as ke:
         raise SpecterError(f"Error as json doesn't look reasonable: {ke}")
-    except Exception as e:
-        handle_exception(e)
-        raise SpecterError(e)
 
 
 def _parse_exchange_currency(exchange_currency):
@@ -205,21 +205,3 @@ def _parse_exchange_currency(exchange_currency):
     elif len(arr) == 3:
         return f"{arr[0]}_{arr[1]}", arr[2]
     raise SpecterError(f"Cannot parse exchange_currency: {exchange_currency}")
-
-
-def failsafe_request_get(requests_session, url):
-    response: requests.Response = requests_session.get(url)
-    try:
-        json_response = response.json()
-        if json_response.get("errors"):
-            raise SpecterError(f"JSON error: {json_response}")
-        print(json_response)
-        return response.json()
-    except JSONDecodeError:
-        if response.status_code == 404:
-            raise SpecterError(
-                f"The currency_pair does not seem to exist for that provider (404)"
-            )
-    except Exception as e:
-        handle_exception(e)
-        raise SpecterError(e)

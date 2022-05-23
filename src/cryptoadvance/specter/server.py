@@ -2,14 +2,16 @@ import logging
 import os
 import sys
 from pathlib import Path
+from cryptoadvance.specter.hwi_rpc import HWIBridge
 
 from cryptoadvance.specter.liquid.rpc import LiquidRPC
 from cryptoadvance.specter.managers.service_manager import ServiceManager
 from cryptoadvance.specter.rpc import BitcoinRPC
+from cryptoadvance.specter.services import callbacks
 from cryptoadvance.specter.util.reflection import get_template_static_folder
-from .services.callbacks import after_serverpy_init_app
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, request, session, url_for
+from flask_apscheduler import APScheduler
 from flask_babel import Babel
 from flask_login import LoginManager, login_user
 from flask_wtf.csrf import CSRFProtect
@@ -19,6 +21,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.wrappers import Response
 
 from .hwi_server import hwi_server
+from .services.callbacks import after_serverpy_init_app
 from .specter import Specter
 from .util.specter_migrator import SpecterMigrator
 
@@ -91,9 +94,12 @@ def create_app(config=None):
         template_folder=get_template_static_folder("templates"),
         static_folder=get_template_static_folder("static"),
     )
+    app.tor_service_id = None
+    app.tor_enabled = False
     app.jinja_env.autoescape = select_autoescape(default_for_string=True, default=True)
     logger.info(f"Configuration: {config}")
     app.config.from_object(config)
+    logger.info(f"SPECTER_DATA_FOLDER: {app.config['SPECTER_DATA_FOLDER']}")
     # Might be convenient to know later where it came from (see Service configuration)
     app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"] = config_name
     app.wsgi_app = ProxyFix(
@@ -105,7 +111,7 @@ def create_app(config=None):
     return app
 
 
-def init_app(app, hwibridge=False, specter=None):
+def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     """see blogpost 19nd Feb 2020"""
 
     # Configuring a prefix for the app
@@ -116,7 +122,6 @@ def init_app(app, hwibridge=False, specter=None):
             {app.config["APP_URL_PREFIX"]: app.wsgi_app},
         )
     # First: Migrations
-    print(f"-----------{app.config['SPECTER_DATA_FOLDER']}")
     mm = SpecterMigrator(app.config["SPECTER_DATA_FOLDER"])
     mm.execute_migrations()
 
@@ -136,6 +141,9 @@ def init_app(app, hwibridge=False, specter=None):
             config=app.config["DEFAULT_SPECTER_CONFIG"],
             internal_bitcoind_version=app.config["INTERNAL_BITCOIND_VERSION"],
         )
+
+    # HWI
+    specter.hwi = HWIBridge()
 
     # ServiceManager will instantiate and register blueprints for extensions
     specter.service_manager = ServiceManager(
@@ -232,16 +240,33 @@ def init_app(app, hwibridge=False, specter=None):
             return jsonify(success=False)
 
     # --------------------- Babel integration ---------------------
-    specter.service_manager.execute_ext_callbacks(after_serverpy_init_app)
+
+    # Background Scheduler
+    def every5seconds():
+        ctx = app.app_context()
+        ctx.push()
+        app.specter.service_manager.execute_ext_callbacks(callbacks.every5seconds)
+        ctx.pop()
+
+    # initialize scheduler
+    from apscheduler.schedulers.background import BackgroundScheduler
+
+    scheduler = APScheduler()
+
+    scheduler.init_app(app)
+    scheduler.start()
+    specter.service_manager.execute_ext_callbacks(
+        after_serverpy_init_app, scheduler=scheduler
+    )
     return app
 
 
-def create_and_init():
+def create_and_init(config="cryptoadvance.specter.config.ProductionConfig"):
     """This method can be used to fill the FLASK_APP-env variable like
     export FLASK_APP="src/cryptoadvance/specter/server:create_and_init()"
     See Development.md to use this for debugging
     """
-    app = create_app()
-    app.app_context().push()
-    init_app(app)
+    app = create_app(config)
+    with app.app_context():
+        init_app(app)
     return app

@@ -9,6 +9,7 @@ from embit.liquid.pset import PSET
 from embit.liquid.transaction import LSIGHASH
 from binascii import a2b_base64, b2a_base64
 from embit.liquid.networks import get_network
+from embit.hashes import hash160
 import logging
 
 logger = logging.getLogger(__name__)
@@ -173,6 +174,5 @@ def get_wallet_fingerprint(wallet):
     Unique fingerprint of the wallet -
     first 4 bytes of hash160 of its descriptor
     """
-    h256 = hashlib.sha256(get_wallet_qr_descriptor(wallet).encode()).digest()
-    h160 = hashlib.new("ripemd160", h256).digest()
+    h160 = hash160(get_wallet_qr_descriptor(wallet).encode())
     return h160[:4]

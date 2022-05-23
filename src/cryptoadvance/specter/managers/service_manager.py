@@ -18,7 +18,10 @@ from flask.blueprints import Blueprint
 
 from ..services.service import Service
 from ..services import callbacks, ExtensionException
-from ..services.service_encrypted_storage import ServiceEncryptedStorageManager
+from ..services.service_encrypted_storage import (
+    ServiceEncryptedStorageManager,
+    ServiceUnencryptedStorageManager,
+)
 from ..util.reflection import (
     _get_module_from_class,
     get_classlist_of_type_clazz_from_modulelist,
@@ -26,6 +29,7 @@ from ..util.reflection import (
     get_subclasses_for_clazz,
     get_subclasses_for_clazz_in_cwd,
 )
+from ..util.reflection_fs import search_dirs_in_path
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +39,7 @@ class ServiceManager:
 
     def __init__(self, specter, devstatus_threshold):
         self.specter = specter
+        specter.ext = {}
         self.devstatus_threshold = devstatus_threshold
 
         # Each Service class is stored here, keyed on its Service.id str
@@ -49,9 +54,12 @@ class ServiceManager:
         class_list = get_classlist_of_type_clazz_from_modulelist(
             Service, app.config.get("EXTENSION_LIST", [])
         )
-        logger.info("----> starting service discovery Dynamic")
+
         if app.config.get("SERVICES_LOAD_FROM_CWD", False):
+            logger.info("----> starting service discovery dynamic")
             class_list.extend(get_subclasses_for_clazz_in_cwd(Service))
+        else:
+            logger.info("----> skipping service discovery dynamic")
         logger.info("----> starting service loading")
         class_list = set(class_list)  # remove duplicates (shouldn't happen but  ...)
         for clazz in class_list:
@@ -64,6 +72,7 @@ class ServiceManager:
                     active=clazz.id in self.specter.config.get("services", []),
                     specter=self.specter,
                 )
+                self.specter.ext[clazz.id] = self._services[clazz.id]
                 # maybe register the blueprint
                 self.register_blueprint_for_ext(clazz, self._services[clazz.id])
                 logger.info(f"Service {clazz.__name__} activated ({clazz.devstatus})")
@@ -80,6 +89,11 @@ class ServiceManager:
         except ConfigurableSingletonException as e:
             # Test suite triggers multiple calls; ignore for now.
             pass
+
+        specter.service_unencrypted_storage_manager = ServiceUnencryptedStorageManager(
+            specter.user_manager, specter.data_folder
+        )
+
         logger.info("----> finished service processing")
         self.execute_ext_callbacks("afterServiceManagerInit")
 
@@ -119,10 +133,6 @@ class ServiceManager:
             ext_prefix = app.config["EXT_URL_PREFIX"]
 
         try:
-            app.register_blueprint(
-                clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
-            )
-            logger.info(f"  Mounted {clazz.id} to {ext_prefix}/{clazz.id}")
             if (
                 app.testing
                 and len([vf for vf in app.view_functions if vf.startswith(clazz.id)])
@@ -138,6 +148,11 @@ class ServiceManager:
                 app.register_blueprint(
                     clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
                 )
+            else:
+                app.register_blueprint(
+                    clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
+                )
+            logger.info(f"  Mounted {clazz.id} to {ext_prefix}/{clazz.id}")
         except AssertionError as e:
             if str(e).startswith("A name collision"):
                 raise SpecterError(
@@ -213,7 +228,9 @@ class ServiceManager:
             raise Exception(f"Non existing callback_id: {callback_id}")
         logger.debug(f"Executing callback {callback_id}")
         for ext in self.services.values():
-            if hasattr(ext, "callback"):
+            if hasattr(ext, f"callback_{callback_id}"):
+                getattr(ext, f"callback_{callback_id}")(*args, **kwargs)
+            elif hasattr(ext, "callback"):
                 ext.callback(callback_id, *args, **kwargs)
 
     @property
@@ -272,14 +289,31 @@ class ServiceManager:
     @classmethod
     def get_service_x_dirs(cls, x):
         """returns a list of package-directories which represents a specific service.
-        This is used by the pyinstaller packaging specter
+        This is used EXCLUSIVELY by the pyinstaller-hook packaging specter to add templates/static
+        When this gets called, CWD is ./pyinstaller
         """
+
         arr = [
             Path(Path(_get_module_from_class(clazz).__file__).parent, x)
             for clazz in get_subclasses_for_clazz(Service)
         ]
         arr = [path for path in arr if path.is_dir()]
-        return [Path("..", *path.parts[-6:]) for path in arr]
+        # Those pathes are absolute. Let's make them relative:
+        arr = [Path(*path.parts[-6:]) for path in arr]
+
+        # ... and a as the pyinstaller is in a subdir, let's add ..
+        arr = [Path("..", path) for path in arr]
+
+        # Non cryptoadvance extensions sitting in src/org/specterext/... need to be added, too
+        src_org_specterext_exts = search_dirs_in_path(
+            "../src/", return_without_extid=False
+        )
+        src_org_specterext_exts = [Path(path, x) for path in src_org_specterext_exts]
+
+        arr.extend(src_org_specterext_exts)
+        # Not only relative, as the pyinstaller is in a subdir, let's add ..
+
+        return arr
 
     @classmethod
     def get_service_packages(cls):

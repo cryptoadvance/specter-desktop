@@ -33,7 +33,7 @@
         }
     }
 </style>
-<a id="price-bar-btn" type="button" style="cursor: pointer; background: #4a90e2; color: #fff; padding: 0px 20px;" class="settings-bar-btn left-toolbar" onclick="showPageOverlay('price-popup')">
+<a id="price-bar-btn" title="Bitcoin price" type="button" style="cursor: pointer; background: #4a90e2; color: #fff; padding: 0px 20px;" class="settings-bar-btn left-toolbar" onclick="showPageOverlay('price-popup')">
     {% if specter.price_check %}
         <div title="Price settings">
             <span>{{ 1 | altunit}}</span>
@@ -106,8 +106,8 @@
                             <td style="padding-top: 10px; padding-bottom: 0px; border: none; text-align: left;">
                                 <fieldset style="border:none; display: inline; width: 100%;"> 
                                     <select name="price_provider" id="price_provider" onchange="providerChanged()">
-                                        <option data-currency-type="usd" value="bitstamp" {% if specter.price_provider == 'bitstamp' %}selected{% endif %}>Bitstamp USD</option>
-                                        <option data-currency-type="usd" value="coindesk" {% if specter.price_provider == 'coindesk' %}selected{% endif %}>Coindesk USD</option>
+                                        <option data-currency-type="usd" value="bitstamp_usd" {% if specter.price_provider == 'bitstamp' %}selected{% endif %}>Bitstamp USD</option>
+                                        <option data-currency-type="usd" value="coindesk_usd" {% if specter.price_provider == 'coindesk' %}selected{% endif %}>Coindesk USD</option>
                                         <option data-currency-type="usd" value="spotbit_coinbase" {% if specter.price_provider == 'spotbit_coinbase' %}selected{% endif %}>Spotbit Coinbase (Tor) USD</option>
                                         <option data-currency-type="usd" value="spotbit_kraken" {% if specter.price_provider == 'spotbit_kraken' %}selected{% endif %}>Spotbit Kraken (Tor) USD</option>
                                         <option data-currency-type="usd" value="spotbit_bitfinex" {% if specter.price_provider == 'spotbit_bitfinex' %}selected{% endif %}>Spotbit Bitfinex (Tor) USD</option>

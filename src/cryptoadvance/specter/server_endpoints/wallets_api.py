@@ -9,15 +9,18 @@ from math import isnan
 from numbers import Number
 
 import requests
-from cryptoadvance.specter.util.psbt_creator import PsbtCreator
-from flask import Blueprint
+from cryptoadvance.specter.commands.psbt_creator import PsbtCreator
+from cryptoadvance.specter.wallet import Wallet
+from flask import Blueprint, stream_with_context
 from flask import current_app as app
 from flask import flash, jsonify, redirect, request, url_for
 from flask_babel import lazy_gettext as _
+from flask_babel import lazy_gettext
 from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
 
-from ..helpers import bcur2base64, generate_mnemonic
+from ..helpers import bcur2base64
+from ..util.mnemonic import generate_mnemonic
 from ..rpc import RpcError
 from ..server_endpoints.filters import assetlabel
 from ..specter_error import SpecterError, handle_exception
@@ -322,7 +325,6 @@ def rescan_progress(wallet_alias):
         )
     except SpecterError as se:
         app.logger.error("SpecterError while get wallet rescan_progress: %s" % se)
-        return {}
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/get_label", methods=["POST"])
@@ -434,6 +436,14 @@ def wallets_overview_utxo_list():
     return process_txlist(
         txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
     )
+
+
+@wallets_endpoint_api.route("/wallet/<wallet_alias>/pending_psbt_list", methods=["GET"])
+@login_required
+def pending_psbt_list(wallet_alias):
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    pending_psbts = wallet.pending_psbts_dict()
+    return jsonify(pending_psbts=pending_psbts)
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/addresses_list/", methods=["POST"])
@@ -576,7 +586,7 @@ def tx_history_csv(wallet_alias):
 
     # stream the response as the data is generated
     response = Response(
-        txlist_to_csv(wallet, txlist, app.specter, current_user, includePricesHistory),
+        stream_with_context(txlist_to_csv(wallet, txlist, includePricesHistory)),
         mimetype="text/csv",
     )
     # add a filename
@@ -608,12 +618,12 @@ def utxo_csv(wallet_alias):
         )
         # stream the response as the data is generated
         response = Response(
-            txlist_to_csv(
-                wallet,
-                txlist,
-                app.specter,
-                current_user,
-                includePricesHistory,
+            stream_with_context(
+                txlist_to_csv(
+                    wallet,
+                    txlist,
+                    includePricesHistory,
+                )
             ),
             mimetype="text/csv",
         )
@@ -673,11 +683,11 @@ def asset_balances(wallet_alias):
         textUnit = app.specter.unit
         asset_balances = {
             "btc": {
-                "balance": wallet.full_available_balance,
+                "balance": wallet.amount_available,
                 "label": label,
             },
             "sat": {
-                "balance": int(wallet.full_available_balance * 1e8),
+                "balance": int(wallet.amount_available * 1e8),
                 "label": "sat",
             },
         }
@@ -714,9 +724,7 @@ def wallet_overview_txs_csv():
         includePricesHistory = request.args.get("exportPrices", "false") == "true"
         # stream the response as the data is generated
         response = Response(
-            txlist_to_csv(
-                None, txlist, app.specter, current_user, includePricesHistory
-            ),
+            stream_with_context(txlist_to_csv(None, txlist, includePricesHistory)),
             mimetype="text/csv",
         )
         # add a filename
@@ -746,9 +754,7 @@ def wallet_overview_utxo_csv():
         includePricesHistory = request.args.get("exportPrices", "false") == "true"
         # stream the response as the data is generated
         response = Response(
-            txlist_to_csv(
-                None, txlist, app.specter, current_user, includePricesHistory
-            ),
+            stream_with_context(txlist_to_csv(None, txlist, includePricesHistory)),
             mimetype="text/csv",
         )
         # add a filename
@@ -764,42 +770,44 @@ def wallet_overview_utxo_csv():
 ################## Helpers #######################
 
 # Transactions list to user-friendly CSV format
-def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=False):
-    # Why is this line needed?
-    # Please remover if you can!
-    from flask_babel import lazy_gettext as _
-
+def txlist_to_csv(wallet: Wallet, _txlist, includePricesHistory=False):
+    """transforms a txlist into a csv-stream. This function is not returning but yielding. As such it needs to be called
+    via wrapping it in stream_with_context
+    see https://flask.palletsprojects.com/en/1.1.x/patterns/streaming/#streaming-with-context for details
+    """
     txlist = []
     for tx in _txlist:
         if isinstance(tx["address"], list):
-            tx = tx.copy()
+            tx_copy = tx.copy()
+            # No idea how this could be?!
             for i in range(0, len(tx["address"])):
-                tx["address"] = tx["address"][i]
-                tx["amount"] = tx["amount"][i]
-                txlist.append(tx.copy())
+                tx_copy["address"] = tx["address"][i]
+                tx_copy["amount"] = tx["amount"][i]
+                txlist.append(tx_copy.copy())
         else:
             txlist.append(tx.copy())
     data = StringIO()
     w = csv.writer(data)
     # write header
     symbol = "USD"
-    if specter.price_provider.endswith("_eur"):
+    if app.specter.price_provider.endswith("_eur"):
         symbol = "EUR"
-    elif specter.price_provider.endswith("_gbp"):
+    elif app.specter.price_provider.endswith("_gbp"):
         symbol = "GBP"
     row = (
-        _("Date"),
-        _("Label"),
-        _("Category"),
-        _("Amount ({})").format(specter.unit.upper()),
-        _("Value ({})").format(symbol),
-        _("Rate (BTC/{})").format(symbol)
-        if specter.unit != "sat"
-        else _("Rate ({}/SAT)").format(symbol),
-        _("TxID"),
-        _("Address"),
-        _("Block Height"),
-        _("Timestamp"),
+        # For some reason (probably app-context_specific) the _ apprev of lazy_gettext does not work
+        lazy_gettext("Date"),
+        lazy_gettext("Label"),
+        lazy_gettext("Category"),
+        lazy_gettext("Amount ({})").format(app.specter.unit.upper()),
+        lazy_gettext("Value ({})").format(symbol),
+        lazy_gettext("Rate (BTC/{})").format(symbol)
+        if app.specter.unit != "sat"
+        else lazy_gettext("Rate ({}/SAT)").format(symbol),
+        lazy_gettext("TxID"),
+        lazy_gettext("Address"),
+        lazy_gettext("Block Height"),
+        lazy_gettext("Timestamp"),
     )
     if not wallet:
         row = (_("Wallet"),) + row
@@ -814,7 +822,7 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
         if not wallet:
             wallet_alias = tx.get("wallet_alias", None)
             try:
-                _wallet = specter.wallet_manager.get_by_alias(wallet_alias)
+                _wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
             except Exception as e:
                 continue
         label = _wallet.getlabel(tx["address"])
@@ -826,24 +834,25 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
                 tx["blockheight"] = tx_raw["blockheight"]
             else:
                 tx["blockheight"] = "Unconfirmed"
-        if specter.unit == "sat":
+        if app.specter.unit == "sat":
             value = float(tx["amount"])
             tx["amount"] = round(value * 1e8)
         amount_price = "not supported"
         rate = "not supported"
-        if tx["blocktime"]:
+        if tx.get("blocktime"):
             timestamp = tx["blocktime"]
         else:
             timestamp = tx["time"]
         if includePricesHistory:
             try:
-                rate, _ = get_price_at(specter, current_user, timestamp)
+                print(f"meh {app.specter.user}")
+                rate, _ = get_price_at(app.specter, timestamp=timestamp)
                 rate = float(rate)
-                if specter.unit == "sat":
+                if app.specter.unit == "sat":
                     rate = rate / 1e8
                 amount_price = float(tx["amount"]) * rate
                 amount_price = round(amount_price * 100) / 100
-                if specter.unit == "sat":
+                if app.specter.unit == "sat":
                     rate = round(1 / rate)
             except SpecterError as se:
                 logger.error(se)
@@ -854,13 +863,13 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
             time.strftime("%Y-%m-%d", time.localtime(timestamp)),
             label,
             tx["category"],
-            round(tx["amount"], (0 if specter.unit == "sat" else 8)),
+            round(tx["amount"], (0 if app.specter.unit == "sat" else 8)),
             amount_price,
             rate,
             tx["txid"],
             tx["address"],
             tx["blockheight"],
-            time,
+            time.strftime(("%Y-%m-%d %H:%M:%S"), time.localtime(timestamp)),
         )
         if not wallet:
             row = (tx.get("wallet_alias", ""),) + row
@@ -871,16 +880,18 @@ def txlist_to_csv(wallet, _txlist, specter, current_user, includePricesHistory=F
 
 
 # Addresses list to user-friendly CSV format
-def addresses_list_to_csv(wallet):
+def addresses_list_to_csv(wallet: Wallet):
+    """Doesn't seem to be used currently?!"""
     data = StringIO()
     w = csv.writer(data)
     # write header
     row = (
-        _("Address"),
-        _("Label"),
-        _("Index"),
-        _("Used"),
-        _("Current balance"),
+        # For some reason (probably app-context_specific) the _ apprev of lazy_gettext does not work
+        lazy_gettext("Address"),
+        lazy_gettext("Label"),
+        lazy_gettext("Index"),
+        lazy_gettext("Used"),
+        lazy_gettext("Current balance"),
     )
     w.writerow(row)
     yield data.getvalue()
@@ -927,13 +938,14 @@ def wallet_addresses_list_to_csv(addresses_list):
     w = csv.writer(data)
     # write header
     row = (
-        _("Index"),
-        _("Address"),
-        _("Type"),
-        _("Label"),
-        _("Used"),
-        _("UTXO"),
-        _("Amount (BTC)"),
+        # For some reason (probably app-context_specific) the _ apprev of lazy_gettext does not work
+        lazy_gettext("Index"),
+        lazy_gettext("Address"),
+        lazy_gettext("Type"),
+        lazy_gettext("Label"),
+        lazy_gettext("Used"),
+        lazy_gettext("UTXO"),
+        lazy_gettext("Amount (BTC)"),
     )
     w.writerow(row)
     yield data.getvalue()

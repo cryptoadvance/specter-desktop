@@ -19,6 +19,7 @@ pyinstaller/release-linux
 pyinstaller/release-win
 pyinstaller/version.txt
 pyinstaller/electron/version-data.json
+pyinstaller/electron/downloadloc.js
 pyinstaller/electron/node_modules
 pyinstaller/electron/dist
 .DS_Store
@@ -29,6 +30,7 @@ node_modules
 btcd-conn.json
 elmd-conn.json
 tests/bitcoin*
+tests/elements*
 token.sh
 src/cryptoadvance/specter/translations/**/messages.mo
 tests/elements
