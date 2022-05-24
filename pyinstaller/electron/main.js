@@ -118,6 +118,13 @@ switch (process.platform) {
 logger.info("Using version " + appSettings.specterdVersion);
 logger.info("Using platformName " + platformName);
 
+app.on('login', function(event, webContents, request, authInfo, callback) {
+  if (appSettings.basicAuth) {
+    event.preventDefault();
+    callback(appSettings.basicAuthUser, appSettings.basicAuthPass);
+  }
+})
+
 function createWindow (specterURL) {  
   if (!mainWindow) {
     initMainWindow()
