@@ -1,4 +1,5 @@
 import logging
+import sys
 import pytest
 import os
 from unittest.mock import MagicMock
@@ -21,24 +22,34 @@ def test_ServiceManager2(mock_specter, mock_flaskapp, caplog):
     sm.execute_ext_callbacks(after_serverpy_init_app, scheduler=None)
 
 
-def test_ServiceManager_get_service_x_dirs():
+def test_ServiceManager_get_service_x_dirs(caplog):
+    caplog.set_level(logging.DEBUG)
     try:
         os.chdir("./pyinstaller")
         # THis is usefull in the pytinstaller/specterd.spec
         dirs = ServiceManager.get_service_x_dirs("templates")
-        assert "../src/cryptoadvance/specter/services/swan/templates" in [
+        # As the tests are executed in a development-environment (pip3 install -e .), the results we get back here
+        # are not the same than the one we would get back when really are building. Because in that case,
+        # the .buildenv would the environment and no symlinks would link to src/cryptoadavance...
+        expected_folder = (
+            f"../.buildenv/lib/python{sys.version_info[0]}.{sys.version_info[1]}/src"
+        )
+        # however, in the real build, you get something like:
+        # ../.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/swan/templates
+        assert f"{expected_folder}/cryptoadvance/specter/services/swan/templates" in [
             str(dir) for dir in dirs
         ]
         for path in dirs:
             assert str(path).endswith("templates")
 
         dirs = ServiceManager.get_service_x_dirs("static")
-        assert "../src/cryptoadvance/specter/services/swan/static" in [
+        assert f"{expected_folder}/cryptoadvance/specter/services/swan/static" in [
             str(dir) for dir in dirs
         ]
-        assert "../src/cryptoadvance/specter/services/bitcoinreserve/static" in [
-            str(dir) for dir in dirs
-        ]
+        assert (
+            f"{expected_folder}/cryptoadvance/specter/services/bitcoinreserve/static"
+            in [str(dir) for dir in dirs]
+        )
         print(dirs)
         assert len(dirs) >= 2
     finally:
