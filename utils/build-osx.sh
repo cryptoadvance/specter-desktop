@@ -55,8 +55,17 @@ function sub_help {
 # create-dmg issue? Note that there are 2 create-dmg scripts out there. We use:
 # https://github.com/sindresorhus/create-dmg
 
+The different "tasks" are now somehow separated from one another.
+We have:
+*  make-hash is rather a flag for the electron-build to incorporate the hash of the specterd
+* specterd will trigger the pyinstaller build of the specterd
+* electron will build the electron-app
+* sign will upload the electron-app to the Apple notary service and get it back notarized
+* upload will upload all the binary artifacts to the github-release-page. This includes the creation of the hash-files
+  and the gnupg signing
+
 # Example-call:
-# ./build-osx.sh --debug --version v1.7.0-pre1 --appleid "Kim Neunert (FWV59JHV83)" --mail "kim@specter.solutions" make-hash
+./utils/build-osx.sh --debug --version v1.10.0-pre23 --appleid "Kim Neunert (FWV59JHV83)" --mail "kim@specter.solutions" make-hash specterd  electron sign upload
 EOF
 }
 
@@ -205,6 +214,7 @@ if [ "$app_name" == "specter" ]; then
   if [[ "$upload" = "True" ]]; then
     echo "    --> This build got triggered for version $version"
     . ../../specter_gh_upload.sh
+    export CI_COMMIT_TAG=$version
     if [[ -z "$CI_PROJECT_ROOT_NAMESPACE" ]]; then
       export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance
     fi
@@ -213,8 +223,14 @@ if [ "$app_name" == "specter" ]; then
     cd release
     sha256sum * > SHA256SUMS-macos
     python3 ../utils/github.py upload SHA256SUMS-macos
+    # The GPG comman below has a timeout. If that's reached, the script will interrupt. So let's make some noise
+    say "Du darfst nun das binary signieren. Hoerst Du mich? Du darfst jetzt nun das binary signieren!"
+    say "Nochmal, Du darfst nun das binary signieren. Hoerst Du mich? Du darfst jetzt nun das binary signieren!"
+    echo "Just in case you missed the timeout, those three last commands are missing:"
+    echo "cd release"
+    echo "gpg --detach-sign --armor SHA256SUMS-macos"
+    echo "python3 ../utils/github.py upload SHA256SUMS-macos.asc"
     gpg --detach-sign --armor SHA256SUMS-macos
-    say "Du darfst nun das binary signieren"
     python3 ../utils/github.py upload SHA256SUMS-macos.asc
   fi
 fi
