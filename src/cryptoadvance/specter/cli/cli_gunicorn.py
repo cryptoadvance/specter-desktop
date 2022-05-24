@@ -36,7 +36,9 @@ def cli():
 
 @cli.command()
 def gunicorn():
+    # fmt: off
     """uses gunicorn instead of the build in development-server.
+    
     This works mostly like in https://docs.gunicorn.org/en/latest/run.html just that you use
     this command rather than gunicorn. As recommended there, everything Application
     specific needs to be configured via envirnoment Vars. See cryptoadvance.specter.config for
@@ -45,28 +47,26 @@ def gunicorn():
     Other than running gunicorn's executable directly, you can't specify command-line
     paramaters. Here are some configurations you can do:
 
-    ```
-    GUNICORN_CMD_ARGS="--bind=127.0.0.1 --workers=3" python3 -m cryptoadvance.specter gunicorn
-    ```
-
+    \b
+    GUNICORN_CMD_ARGS="--bind=127.0.0.1 --workers=3" \ 
+      python3 -m cryptoadvance.specter gunicorn
+    
     You can use a config file named gunicorn.conf.py in the same directory:
 
-    ```
+    \b
     workers=10
-    ```
 
     Commandline paramater trums env-var params.
     You can specify hook functions in the gunicorn.conf.py, see this for a list of them:
     https://docs.gunicorn.org/en/latest/settings.html#server-hooks
 
     e.g.:
-    ```
+
+    \b
     def on_starting(server):
         print("Called just before the master process is initialized.")
-    ```
-
+    
     More information directly in the gunicorn-Documentation
-
 
     """
     if os.name == "nt":

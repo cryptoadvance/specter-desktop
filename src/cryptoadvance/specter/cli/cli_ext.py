@@ -30,6 +30,7 @@ dummy_ext_url = (
 
 @click.group()
 def ext():
+    """Commands for the extension framework"""
     pass
 
 
