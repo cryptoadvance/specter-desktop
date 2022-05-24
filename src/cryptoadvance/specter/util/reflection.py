@@ -78,7 +78,6 @@ def get_classlist_of_type_clazz_from_modulelist(clazz, modulelist):
             module = import_module(fq_module_name)
         except ModuleNotFoundError as e:
             # ToDo: make it somehow clear where specific extensions are coming from: external or within same repo
-            # Then we can remove the hardcoding of the first extra-repo extension: liquidissuer
             logger.warn(
                 f"""
                 Module {fq_module_name}  could not be found. This could have these reasons:
