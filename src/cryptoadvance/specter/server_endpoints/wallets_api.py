@@ -506,7 +506,7 @@ def addressinfo(wallet_alias):
             match = re.search(derivation_path_pattern, descriptor)
             if not match:
                 logger.debug(
-                    "Derivation path could not be parsed. Sth. wrong with the regex?"
+                    f"Derivation path of this descriptor {descriptor} could not be parsed. Sth. wrong with the regex pattern which was {derivation_path_pattern}?"
                 )
             logger.debug(f"This is the derivation path match: {match.group()}")
             derivation_path = "m" + match.group()
