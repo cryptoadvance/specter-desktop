@@ -70,13 +70,13 @@ From each seed the *signing device*  (e.g. *hardware wallet*)  will calculate a 
 ![xpubs](images/multisig-guide/xpubs.svg)
 
 * Specter Desktop will take the  *(master) public key*s together with the *derivation paths* (for segwit multisig the standard is "m/48h/1h/0h/2h") to construct the (watch-only) wallet. 
-* **Keep a copy of all *(master) public keys* (i.e. the Specter "Printable PDF backup") with every seed backup**.  They alllow anyone to recreate the (watch-only) wallet and see the Bitcoin balance, and therefore should be kept **private**. 
+* **Keep a copy of all *(master) public keys* (i.e. the Specter "Printable PDF backup") with every seed backup**.  They allow anyone to recreate the (watch-only) wallet and see the Bitcoin balance, and therefore should be kept **private**.   
 
 
 
 ### 3. Register the multisig setup with each *signing device*  (e.g. *hardware wallet*)
 
-
+*Signing devices* (see [here](multisig-security-tradeoffs.md) for a comparison) can import a multisig-wallet file (different ways to do this for every vendor, [coldcard](https://bitcoiner.guide/multisig/wallet/#notify-coldcard), [cobo/keystone](https://bitcoiner.guide/multisig/wallet/#notify-cobo), [bitbox02](https://shiftcrypto.ch/blog/specter-multisig-guide/)), allowing the *signing device* to protect against various attacks.
 
 
 
