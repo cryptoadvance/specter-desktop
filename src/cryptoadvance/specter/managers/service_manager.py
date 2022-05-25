@@ -5,6 +5,7 @@ from importlib import import_module
 from inspect import isclass
 from pathlib import Path
 from pkgutil import iter_modules
+import sys
 from typing import Dict, List
 
 from cryptoadvance.specter.config import ProductionConfig
@@ -288,7 +289,7 @@ class ServiceManager:
 
     @classmethod
     def get_service_x_dirs(cls, x):
-        """returns a list of package-directories which represents a specific service.
+        """returns a list of package-directories which each represents a specific service.
         This is used EXCLUSIVELY by the pyinstaller-hook packaging specter to add templates/static
         When this gets called, CWD is ./pyinstaller
         """
@@ -297,21 +298,35 @@ class ServiceManager:
             Path(Path(_get_module_from_class(clazz).__file__).parent, x)
             for clazz in get_subclasses_for_clazz(Service)
         ]
+        logger.debug(f"Initial arr:")
+        for element in arr:
+            logger.debug(element)
+        # /home/kim/src/specter-desktop/.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/bitcoinreserve/templates
+        # /home/kim/src/specter-desktop/.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/swan/templates
+
         arr = [path for path in arr if path.is_dir()]
         # Those pathes are absolute. Let's make them relative:
         arr = [Path(*path.parts[-6:]) for path in arr]
 
-        # ... and a as the pyinstaller is in a subdir, let's add ..
-        arr = [Path("..", path) for path in arr]
+        if os.name == "nt":
+            virtualenv_search_path = Path("..", ".buildenv", "Lib")
+        else:
+            # let's calcultate so that we get something like:
+            # virtualenv_search_path = Path("..", ".buildenv", "lib", "python3.8")
+            site_package = [path for path in sys.path if "site-packages" in path][0]
+            site_package = Path("..", ".buildenv", *(Path(site_package).parts[-3:-1]))
+            virtualenv_search_path = site_package
 
-        # Non cryptoadvance extensions sitting in src/org/specterext/... need to be added, too
+        # ... and as the classes are in the .buildenv (see build-unix.sh) let's add ..
+        arr = [Path(virtualenv_search_path, path) for path in arr]
+
+        # Non internal-repo extensions sitting in org/specterext/... need to be added, too
         src_org_specterext_exts = search_dirs_in_path(
-            "../src/", return_without_extid=False
+            virtualenv_search_path, return_without_extid=False
         )
         src_org_specterext_exts = [Path(path, x) for path in src_org_specterext_exts]
 
         arr.extend(src_org_specterext_exts)
-        # Not only relative, as the pyinstaller is in a subdir, let's add ..
 
         return arr
 
