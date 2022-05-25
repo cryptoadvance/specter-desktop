@@ -83,7 +83,7 @@ class VersionChecker:
             logger.warning(
                 "We're checking here for a different binary than specter-desktop. We're hopefully in a pytest"
             )
-        latest = VersionChecker._get_latest_version_from_github()
+        latest = self._get_latest_version_from_github()
         return current, latest
 
     def _get_pip_version(self):
