@@ -22,7 +22,7 @@ Cons:
 
 ## What is Multisig?
 
-Multisig is a way to allow spending from your wallet only after 2 *signing devices*  (e.g. 2 *hardware wallets*) have signed the outgoing transaction.  These 2 *signing devices* can be any 2 out of 3 *signing devices*. This is called a *2 of 3* multisig wallet.
+Multisig is a way to allow spending from your wallet only after 2 *signing devices*  (e.g. 2 *hardware wallets*) have signed the outgoing transaction.  These 2 *signing devices* can be any 2 out of 3 *signing devices*. This is called a *2 of 3* multisig wallet. (More complicated setups, e.g. 3 of 5, are possible but uncommon)
 
 Pros:
 
@@ -39,9 +39,7 @@ Cons:
 #### Further information
 
 * [https://bitcoiner.guide/multisig/intro/#why-multisig](https://bitcoiner.guide/multisig/intro/#why-multisig)
-
 * [https://btcguide.github.io/why-multisig](https://btcguide.github.io/why-multisig)
-* [https://coinguides.org/multisig-multi-signature-wallet/](https://coinguides.org/multisig-multi-signature-wallet/)
 
 
 
