@@ -1,5 +1,11 @@
 # Multisig Guide
 
+This guide is meant as an overview only.  We encourage you to also read completely through:
+
+* An **excellent** and comprehensive guide: https://bitcoiner.guide/multisig
+* A **video** step-by-step guide: https://www.youtube.com/watch?v=ZQvCncdFMPo
+* A step-by-step guide with the bitbox02: https://shiftcrypto.ch/blog/specter-multisig-guide/
+
 ## What is Single-sig?
 
 You are probably familiar with using 1 *signing device* (also called *hardware wallet*) that generated 1 seed. 
@@ -58,37 +64,52 @@ This is a crucial part of the setup and needs **careful consideration**. Only if
   * Examples are: Second home/apartment, Safe deposit box, a relatives (or very good friends) house/apartment
 * In 1 location there should not be more than 1 seed
   * Minimum is: 3 **secure locations**, in each location is the signing device and its seed backup
-  * Best is: 3 **secure locations** for the seed backups and 3 (medium) secure locations for the *signing device*s (e.g. *hardware wallets*).
-* Please read: https://bitcoiner.guide/multisig/backup/   (Risks) 
+  * Best is: 3 **secure locations** for the seed backups **and** 3 (medium) secure locations for the *signing device*s (e.g. *hardware wallets*).
+* Please read: https://bitcoiner.guide/multisig/backup
 
 
 
 ### 2. Multisig wallet creation with Specter Desktop
 
-From each seed the *signing device*  (e.g. *hardware wallet*)  will calculate a *(master) public key*. This *(master) public key* can be exported (via USB, QR Code, or sd-card) to Specter Desktop:
+From each seed the *signing device*  (e.g. *hardware wallet*)  will calculate a *(master) public key* and the *fingerprint* . These can be exported (via USB, QR Code, or sd-card) to Specter Desktop:
 
 ![xpubs](images/multisig-guide/xpubs.svg)
 
-* Specter Desktop will take the  *(master) public key*s together with the *derivation paths* (for segwit multisig the standard is "m/48h/1h/0h/2h") to construct the (watch-only) wallet. The fingerprints are important, when then *signing devices* signing transactions.
-* **Keep a copy of all *(master) public keys* (i.e. the Specter "Printable PDF backup") with every seed backup**.  They allow anyone to recreate the (watch-only) wallet and see the Bitcoin balance, and therefore should be kept **private**.   
+* Specter Desktop will take the  *(master) public key*s together with the *derivation paths* (for segwit multisig the standard is "m/48h/1h/0h/2h") to construct the (watch-only) wallet. The *fingerprints* are important, when then *signing devices* sign transactions.
+* **Keep a copy of all *(master) public keys* and *fingerprints* (i.e. the Specter "Printable PDF backup") with every seed backup**.  They allow anyone to recreate the (watch-only) wallet and see the Bitcoin balance, and therefore should be kept **private**.   
 
 
 
 ### 3. Register the multisig setup with each *signing device*  (e.g. *hardware wallet*)
 
-*Signing devices* (see [here](multisig-security-tradeoffs.md) for a comparison) can import a multisig-wallet file (different ways to do this for every vendor, [coldcard](https://bitcoiner.guide/multisig/wallet/#notify-coldcard), [cobo/keystone](https://bitcoiner.guide/multisig/wallet/#notify-cobo), [bitbox02](https://shiftcrypto.ch/blog/specter-multisig-guide/)), allowing the *signing device* to protect against various attacks.
+*Signing devices* (see [here](multisig-security-tradeoffs.md) for a comparison) can import a multisig-wallet file (different ways to do this for every vendor, [coldcard](https://bitcoiner.guide/multisig/wallet/#notify-coldcard), [cobo/keystone](https://bitcoiner.guide/multisig/wallet/#notify-cobo), [bitbox02](https://shiftcrypto.ch/blog/specter-multisig-guide/)). 
+
+* Then the *signing device* knows it's parts of a multisig setup and can protect against various attacks.
 
 
 
-## Step-by-Step
+### 4 Testing all parts of the setup
+
+Because the multisig setup is more complicated, testing all parts of the setup is even more important.  All the tests should be done only with **minimal funds** on the multisig wallet.
+
+#### 4a Test the seed backups
+
+Crucial is that you backed up each seed correctly (on steel). Examples:
+
+* Double and triple checking by comparing the steel backup with the *signing device*  (also known as *hardware wallet*)
+* a) Wiping the *signing device*  (also known as *hardware wallet*), b) restoring the  *signing device*  from the backup, c) exporting the  *(master) public key*  ensuring it is the same as before.
+
+#### 4b (Watch-only) Wallet test
+
+A good way to double check that the (watch-only) wallet creation was correct is to recreate the same (watch-only) wallet with different software, e.g. Sparrow Wallet instead of Specter Desktop:
+
+See here: https://bitcoiner.guide/multisig/recover/  
+
+#### 4c Test transaction
+
+A good way to test any setup is to send a transaction of a small amount to the multisig wallet and then send back to another wallet. 
+
+See here: https://bitcoiner.guide/multisig/spend/
 
 
-
-
-
-#### Further information
-
-* https://shiftcrypto.ch/blog/specter-multisig-guide/
-* https://www.youtube.com/watch?v=ZQvCncdFMPo
-* https://btcguide.github.io/setup-wallets/coordinate-multisig
 
