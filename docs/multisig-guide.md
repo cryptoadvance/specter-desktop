@@ -2,9 +2,9 @@
 
 This guide is meant as an overview only.  We encourage you to also read completely through:
 
-* An **excellent** and comprehensive guide: https://bitcoiner.guide/multisig
-* A **video** step-by-step guide: https://www.youtube.com/watch?v=ZQvCncdFMPo
-* A step-by-step guide with the bitbox02: https://shiftcrypto.ch/blog/specter-multisig-guide/
+* An **excellent** and comprehensive guide: [https://bitcoiner.guide/multisig](https://bitcoiner.guide/multisig)
+* A **video** step-by-step guide: [https://www.youtube.com/watch?v=ZQvCncdFMPo](https://www.youtube.com/watch?v=ZQvCncdFMPo)
+* A step-by-step guide with the bitbox02: [https://shiftcrypto.ch/blog/specter-multisig-guide/](https://shiftcrypto.ch/blog/specter-multisig-guide/)
 
 ## What is Single-sig?
 
@@ -38,10 +38,10 @@ Cons:
 
 #### Further information
 
-* https://bitcoiner.guide/multisig/intro/#why-multisig
+* [https://bitcoiner.guide/multisig/intro/#why-multisig](https://bitcoiner.guide/multisig/intro/#why-multisig)
 
-* https://btcguide.github.io/why-multisig
-* https://coinguides.org/multisig-multi-signature-wallet/
+* [https://btcguide.github.io/why-multisig](https://btcguide.github.io/why-multisig)
+* [https://coinguides.org/multisig-multi-signature-wallet/](https://coinguides.org/multisig-multi-signature-wallet/)
 
 
 
@@ -58,14 +58,14 @@ You should have now:
 
 #### Seed storage locations
 
-This is a crucial part of the setup and needs **careful consideration**. Only if you choose these locations well you get the benefits (see https://bitcoiner.guide/multisig/intro/#multisig-benefits). Here a few points to pay attention to:
+This is a crucial part of the setup and needs **careful consideration**. Only if you choose these locations well you get the benefits (see [https://bitcoiner.guide/multisig/intro/#multisig-benefits](https://bitcoiner.guide/multisig/intro/#multisig-benefits)). Here a few points to pay attention to:
 
 * Seed backups (on steel) are not protected by a pin as the *signing device*s (e.g. *hardware wallets*). They therefore need a **secure location**, i.e. accessible only to you or people you completely trust.
   * Examples are: Second home/apartment, Safe deposit box, a relatives (or very good friends) house/apartment
 * In 1 location there should not be more than 1 seed
   * Minimum is: 3 **secure locations**, in each location is the signing device and its seed backup
   * Best is: 3 **secure locations** for the seed backups **and** 3 (medium) secure locations for the *signing device*s (e.g. *hardware wallets*).
-* Please read: https://bitcoiner.guide/multisig/backup
+* Please read: [https://bitcoiner.guide/multisig/backup]( https://bitcoiner.guide/multisig/backup)
 
 
 
@@ -103,13 +103,13 @@ Crucial is that you backed up each seed correctly (on steel). Examples:
 
 A good way to double check that the (watch-only) wallet creation was correct is to recreate the same (watch-only) wallet with different software, e.g. Sparrow Wallet instead of Specter Desktop:
 
-See here: https://bitcoiner.guide/multisig/recover/  
+See here: [https://bitcoiner.guide/multisig/recover/](https://bitcoiner.guide/multisig/recover/)
 
 #### 4c Test transaction
 
 A good way to test any setup is to send a transaction of a small amount to the multisig wallet and then send back to another wallet. 
 
-See here: https://bitcoiner.guide/multisig/spend/
+See here: [https://bitcoiner.guide/multisig/spend/](https://bitcoiner.guide/multisig/spend/)
 
 
 
