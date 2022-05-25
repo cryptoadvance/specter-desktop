@@ -50,7 +50,7 @@ Cons:
 ### 1. Seed creation
 
 * You need 3 *signing devices* (see [here](multisig-security-tradeoffs.md) for a comparison, ideally the 3 devices are from 3 different vendors), that generate 3 different seeds.
-* The 3 seeds need to be stored on steel to survive long term, and resistant to fire & water
+* The 3 seeds need to be stored on steel to survive long term, and be resistant to fire and water
 
 You should have now:
 
@@ -61,7 +61,7 @@ You should have now:
 This is a crucial part of the setup and needs **careful consideration**. Only if you choose these locations well you get the benefits (see [https://bitcoiner.guide/multisig/intro/#multisig-benefits](https://bitcoiner.guide/multisig/intro/#multisig-benefits)). Here a few points to pay attention to:
 
 * Seed backups (on steel) are not protected by a pin as the *signing device*s (e.g. *hardware wallets*). They therefore need a **secure location**, i.e. accessible only to you or people you completely trust.
-    + Examples are: Home/apartment, Safe deposit box, a relatives (or very good friends) house/apartment
+    + Examples are: Home/apartment, Safe deposit box, a relatives (or very good friends) home/apartment
 * In 1 location there should not be more than 1 seed
     + Minimum is: 3 **secure locations**, in each location is the signing device and its seed backup
     + Ideal is: 3 **secure locations** for the seed backups **and** 3 (medium) secure locations for the *signing device*s (e.g. *hardware wallets*). The *signing device*s are themselves electronic vaults protected by the pin and do not need such a high security as the seed backups. 
@@ -71,7 +71,7 @@ This is a crucial part of the setup and needs **careful consideration**. Only if
 
 ### 2. Multisig wallet creation with Specter Desktop
 
-From each seed the *signing device*  (e.g. *hardware wallet*)  will calculate a *(master) public key* and the *fingerprint* . These can be exported (via USB, QR Code, or SD-card) to Specter Desktop:
+From each seed the *signing device*  (e.g. *hardware wallet*)  will calculate a *(master) public key* and the *fingerprint* . These can be exported (via USB, QR-Code, or SD-Card) to Specter Desktop:
 
 ![xpubs](images/multisig-guide/xpubs.svg)
 
@@ -89,15 +89,15 @@ From each seed the *signing device*  (e.g. *hardware wallet*)  will calculate a 
 
 
 
-### 4 Testing all parts of the setup
+### 4. Testing all parts of the setup
 
 Because the multisig setup is more complicated, testing all parts of the setup is even more important.  
 
-#### 4a Fund with small amount 
+#### 4.1 Fund with small amount 
 
 Send a small amount to the multisig wallet: [https://bitcoiner.guide/multisig/receive/](https://bitcoiner.guide/multisig/receive/)
 
-#### 4b Recreate from the seed backups
+#### 4.2 Recreate from the seed backups
 
 Crucial is that you backed up each seed correctly (on steel).  Do this only if there are **small** funds on the multisig setup:
 
@@ -105,12 +105,12 @@ Crucial is that you backed up each seed correctly (on steel).  Do this only if t
 
 * Restore the *signing devices*  from the steel backups
 
-#### 4c (Watch-only) Wallet test
+#### 4.3 (Watch-only) Wallet test
 
 * Recreate the (watch-only) wallet with a different software, e.g. Sparrow Wallet, instead of Specter Desktop. For this export the *(master) public keys* together with the *derivation paths* again from all *signing devices*. See here: [https://bitcoiner.guide/multisig/recover/](https://bitcoiner.guide/multisig/recover/)
 * If your transaction with the small amount appears in Sparrow Wallet **identical** to Specter Desktop your (Watch-only) Wallet test recreation was successful.
 
-#### 4d Spend test
+#### 4.4 Spend test
 
 The last test is to test that you are able to spend from the multisig setup. For this send the small funds to a completely different wallet (e.g. a phone wallet) (See here: https://bitcoiner.guide/multisig/spend/). If the different wallet (e.g. a phone wallet) receives this transaction, then this test was successful too and you are ready to fund the multisig setup with larger amounts.
 
