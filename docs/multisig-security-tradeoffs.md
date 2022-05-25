@@ -8,7 +8,7 @@ This assumption does not always hold true when using a multisig wallet with hard
 
 Below is a table ([initial source](https://shiftcrypto.ch/blog/how-nearly-all-personal-hardware-wallet-multisig-setups-are-insecure/)) that shows hardware wallet support for validating cosigner XPUBs:
 
-|                                      | BitBox02 | Ledger | Trezor | Coldcard | Specter DIY | Cobo Vault |
+|                                      | [BitBox02](https://shiftcrypto.ch/) | [Ledger](https://www.ledger.com/) | [Trezor](https://trezor.io/) | [Coldcard](https://coldcard.com/) | [Specter DIY](https://github.com/cryptoadvance/specter-diy) | Cobo Vault / [Keystone](https://keyst.one/) |
 |--------------------------------------|----------|--------|--------|----------|-------------|------------|
 | Display own xpub on demand           | ✅       | ❌     | ❌     | ✅       | ✅          | ✅         |
 | Display cosigner xpubs               | ✅       | ❌     | ✅     | ✅       | ✅          | ✅         |

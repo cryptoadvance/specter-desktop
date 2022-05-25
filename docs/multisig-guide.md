@@ -16,7 +16,7 @@ Cons:
 
 ## What is Multisig?
 
-Multisig is a way to allow spending from your wallet only after 2 *signing devices*  (e.g. 2 *hardware wallets*) have signed the outgoing transaction.  These 2 *signing devices* can be any 2 out of 3 *signing devices*. This is called a *2 out of 3* multisig wallet.
+Multisig is a way to allow spending from your wallet only after 2 *signing devices*  (e.g. 2 *hardware wallets*) have signed the outgoing transaction.  These 2 *signing devices* can be any 2 out of 3 *signing devices*. This is called a *2 of 3* multisig wallet.
 
 Pros:
 
@@ -35,12 +35,13 @@ Cons:
 * https://bitcoiner.guide/multisig/intro/#why-multisig
 
 * https://btcguide.github.io/why-multisig
+* https://coinguides.org/multisig-multi-signature-wallet/
 
 
 
 ## Overview
 
-### Seed creation
+### 1. Seed creation
 
 * You need 3 *signing devices* (see [here](multisig-security-tradeoffs.md) for a comparison, ideally the 3 devices are from 3 different vendors), that generate 3 different seeds.
 * The 3 seeds need to be stored on steel to survive long term, and resistant to fire & water
@@ -49,9 +50,9 @@ You should have now:
 
 ![secrets](images/multisig-guide/secrets.svg)
 
-### Seed storage locations
+#### Seed storage locations
 
-This is probably the most tricky part of the setup and needs **careful consideration**. Only if you choose these locations correctly you get the benefits (see https://bitcoiner.guide/multisig/intro/#multisig-benefits). Here a few points to pay attention to:
+This is probably the most tricky part of the setup and needs **careful consideration**. Only if you choose these locations well you get the benefits (see https://bitcoiner.guide/multisig/intro/#multisig-benefits). Here a few points to pay attention to:
 
 * Seed backups (on steel) are not protected by a pin as the *signing device*s (e.g. *hardware wallets*). They therefore need a **secure location**, i.e. accessible only to you or people you completely trust.
   * Examples are: Second home/apartment, Safe deposit box, a relatives (or very good friends) house/apartment
@@ -62,9 +63,9 @@ This is probably the most tricky part of the setup and needs **careful considera
 
 
 
-### Multisig wallet creation with specter
+### 2. Multisig wallet creation with Specter Desktop
 
-From each seed the *signing device*  (e.g. 2 *hardware wallet*)  will calculate a *(master) public key*. This *(master) public key* can be exported (via USB, QR Code, or sd-card) to Specter Desktop:
+From each seed the *signing device*  (e.g. *hardware wallet*)  will calculate a *(master) public key*. This *(master) public key* can be exported (via USB, QR Code, or sd-card) to Specter Desktop:
 
 ![xpubs](images/multisig-guide/xpubs.svg)
 
@@ -73,7 +74,7 @@ From each seed the *signing device*  (e.g. 2 *hardware wallet*)  will calculate 
 
 
 
-
+### 3. Register the multisig setup with each *signing device*  (e.g. *hardware wallet*)
 
 
 
@@ -89,3 +90,5 @@ From each seed the *signing device*  (e.g. 2 *hardware wallet*)  will calculate 
 
 * https://shiftcrypto.ch/blog/specter-multisig-guide/
 * https://www.youtube.com/watch?v=ZQvCncdFMPo
+* https://btcguide.github.io/setup-wallets/coordinate-multisig
+
