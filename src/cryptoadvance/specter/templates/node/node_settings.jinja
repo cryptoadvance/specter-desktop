@@ -16,16 +16,19 @@
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 
 		<div class="card" style="margin: 10px auto 15px;">
-			<h2 style="text-align: center;">{{ _("Bitcoin JSON-RPC configuration") }} </h2>
+			<h2 style="text-align: center;">{{ _("JSON-RPC configuration") }} </h2>
 			<br>
 			<span id="toggle-explainer" style="cursor: pointer;">
                 &#128218; {{ _("Need help with the setup?") }} &#9654;
             </span>
             <br>
             <div id="text-explainer" class="hidden warning flex-center flex-column" style="text-align: left;">
+            	<h3 style="align-self:start;">Bitcoin</h3><br>
 				{{ _("When auto-detect is on, Specter will check for environment variables (BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT) to configure the connection or attempt to automatically locate your Bitcoin data directory and load your node configurations from it.") }}<br>
 				{{ _('If your Bitcoin Core data directory is not located at the default location, you will need to enter its path under "Bitcoin Core data directory path" to locate it.') }}<br>
-				{{ _("If you are connecting to a remote node, you need to disable auto-detect and enter the node's configurations manually below.") }}
+				{{ _("If you are connecting to a remote node, you need to disable auto-detect and enter the node's configurations manually below.") }} <br><br>
+				<h3 style="align-self:start;">Liquid</h3>
+				{{ _("When auto-detect is on, Specter will here only check for environment variables (ELM_RPC_USER, ELM_RPC_PASSWORD, ELM_RPC_HOST, ELM_RPC_PORT).") }}
             </div>
             <div style="display: flex; margin-top: 20px">
 				<label style="height: 25px;">Auto-detect:&nbsp;</label>
@@ -36,10 +39,10 @@
 			</div>
 			<span id="datadir-container">
 			<br>
-				{{ _("Bitcoin Core data directory path:") }}<br><input type="text" id="datadir" name="datadir" type="text" value="{{ node.datadir }}">
+				{{ _("Bitcoin Core data directory path:") }}<br><input type="text" id="datadir" name="datadir" type="text" value="{{ node.datadir }}" style="margin-bottom: 15px;">
 			</span>
-			<br><br>
-			<div id="rpc_settings" style="margin-bottom: 10px;">
+			<br>
+			<div id="rpc_settings">
 				<div id="lock" class="center">
 					<p style="text-align: center; margin: auto; ">&#128274;</p>
 					<span class="note centered"> {{ _("(disable auto-detect to configure manually)") }}</span>
@@ -50,18 +53,21 @@
 				<br><br>
 				Host:<br><input type="text" id="host" name="host" type="text" value="{{ node.protocol }}://{{ node.host }}">
 				<br>
-				<qr-scanner id="scan_rpc" style="margin: 10px;">
-					<a slot="button" href="#" class="btn" style="padding: 7px 15px 5px 10px;">
+				<qr-scanner id="scan_rpc">
+					<a slot="button" href="#" class="btn" style="padding: 7px 15px 5px 10px; margin-top: 10px;">
 						<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 30px; margin: 0px;" class="svg-white">
 						{{ _("Connect with QR") }}
 					</a>
 				</qr-scanner>
 			</div>
+			<div style="margin-top: 10px">
 			Port:<br><input type="text" id="port" name="port" type="text" value="{{ node.port }}">
-			<div class="note">
-				{{ _("Default ports: <b>8332</b> for mainnet, <b>18332</b> for Testnet, <b>18443</b> for Regtest, <b>38332</b> for Signet, <b>7041</b> for Liquid mainnet, <b>7040</b> for Liquid testnet or regtest") }}
 			</div>
-			<br>
+			<div class="note" style="margin: 10px 0px 10px 0px;">
+				<h4 style="font-size: 1.2em;">{{ _("Default ports:") }}</h4>
+				{{ _("<b>8332</b> for mainnet, <b>18332</b> for testnet, <b>18443</b> for regtest and <b>38332</b> for signet <br>
+				<b>7041</b> for Liquid mainnet, <b>18891</b> for Liquid testnet and <b>18884</b> for Liquid regtest") }}
+			</div>
 			<div class="row">
 				<button type="submit" class="btn" name="action" value="test">{{ _("Test") }}</button>&nbsp;
 				<button type="submit" class="btn" name="action" value="save">{{ _("Save") }}</button>

@@ -132,8 +132,8 @@ def bitcoind(
 )
 @click.option(
     "--port",
-    default=18555,
-    help="Specify a port the elementsd should run on. Default is 18555.",
+    default=18884,
+    help="Specify a port the elementsd should run on. Default is 18884.",
 )
 @click.option(
     "--log-stdout",
