@@ -22,6 +22,7 @@ def test_ServiceManager2(mock_specter, mock_flaskapp, caplog):
     sm.execute_ext_callbacks(after_serverpy_init_app, scheduler=None)
 
 
+@pytest.mark.skip(reason="The .buildenv directoy does not exist on the CI-Infra")
 def test_ServiceManager_get_service_x_dirs(caplog):
     caplog.set_level(logging.DEBUG)
     try:
