@@ -3,8 +3,8 @@
 
 <svg
    width="183.86096mm"
-   height="138.34828mm"
-   viewBox="0 0 183.86097 138.34828"
+   height="154.59996mm"
+   viewBox="0 0 183.86097 154.59996"
    version="1.1"
    id="svg5"
    inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
@@ -29,8 +29,8 @@
      showguides="true"
      inkscape:guide-bbox="true"
      inkscape:zoom="1"
-     inkscape:cx="491.5"
-     inkscape:cy="148"
+     inkscape:cx="485"
+     inkscape:cy="306.5"
      inkscape:window-width="1920"
      inkscape:window-height="1007"
      inkscape:window-x="0"
@@ -42,7 +42,7 @@
      fit-margin-right="0"
      fit-margin-bottom="0">
     <sodipodi:guide
-       position="61.297269,103.49925"
+       position="61.297274,119.75094"
        orientation="0,-1"
        id="guide54569" />
   </sodipodi:namedview>
@@ -93,7 +93,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-15.783262,-53.082636)">
+     transform="translate(-15.783262,-53.082637)">
     <rect
        style="fill:#192432;fill-opacity:1;fill-rule:evenodd;stroke:#909090;stroke-width:0.69671;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect31"
@@ -103,13 +103,13 @@
        y="53.430992"
        ry="6.8872352" />
     <rect
-       style="fill:#192432;fill-opacity:1;fill-rule:evenodd;stroke:#909090;stroke-width:0.787576;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#192432;fill-opacity:1;fill-rule:evenodd;stroke:#909090;stroke-width:0.866637;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect177184"
-       width="182.92645"
-       height="76.86013"
-       x="16.250517"
-       y="114.10353"
-       ry="8.8123178" />
+       width="182.847"
+       height="93.106216"
+       x="16.290047"
+       y="114.14306"
+       ry="10.674996" />
     <g
        id="Group-5"
        style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
@@ -265,23 +265,23 @@
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:4.23333px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="34.203426"
-       y="174.30336"
+       y="197.00403"
        id="text156841"><tspan
          sodipodi:role="line"
          style="font-size:4.23333px;fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
          x="34.203426"
-         y="174.30336"
+         y="197.00403"
          id="tspan156839">m/48h/1h/0h/2h</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:6.26846px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.156712"
        x="48.81266"
-       y="167.17583"
+       y="189.8765"
        id="text159497"><tspan
          sodipodi:role="line"
          style="text-align:center;text-anchor:middle;fill:#ffffff;fill-opacity:1;stroke-width:0.156712"
          x="48.81266"
-         y="167.17583"
+         y="189.8765"
          id="tspan159495">Derivation Path 1</tspan></text>
     <path
        style="fill:none;stroke:#ffffff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Mend)"
@@ -313,23 +313,23 @@
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:4.23333px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="93.875038"
-       y="174.30336"
+       y="197.00403"
        id="text165384"><tspan
          sodipodi:role="line"
          style="font-size:4.23333px;fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
          x="93.875038"
-         y="174.30336"
+         y="197.00403"
          id="tspan165382">m/48h/1h/0h/2h</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:6.26846px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.156712"
        x="108.48428"
-       y="167.17583"
+       y="189.8765"
        id="text165388"><tspan
          sodipodi:role="line"
          style="text-align:center;text-anchor:middle;fill:#ffffff;fill-opacity:1;stroke-width:0.156712"
          x="108.48428"
-         y="167.17583"
+         y="189.8765"
          id="tspan165386">Derivation Path 2</tspan></text>
     <path
        style="fill:none;stroke:#ffffff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Mend)"
@@ -361,23 +361,23 @@
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:4.23333px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="151.8183"
-       y="174.30336"
+       y="197.00403"
        id="text165562"><tspan
          sodipodi:role="line"
          style="font-size:4.23333px;fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
          x="151.8183"
-         y="174.30336"
+         y="197.00403"
          id="tspan165560">m/48h/1h/0h/2h</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:6.26846px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.156712"
        x="166.42754"
-       y="167.17583"
+       y="189.8765"
        id="text165566"><tspan
          sodipodi:role="line"
          style="text-align:center;text-anchor:middle;fill:#ffffff;fill-opacity:1;stroke-width:0.156712"
          x="166.42754"
-         y="167.17583"
+         y="189.8765"
          id="tspan165564">Derivation Path 3</tspan></text>
     <path
        style="fill:none;stroke:#ffffff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Mend)"
@@ -436,5 +436,71 @@
            id="path1151" />
       </g>
     </g>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:7.70502px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.192626"
+       x="48.788811"
+       y="166.73752"
+       id="text929"><tspan
+         sodipodi:role="line"
+         style="text-align:center;text-anchor:middle;fill:#ffffff;fill-opacity:1;stroke-width:0.192626"
+         x="48.788811"
+         y="166.73752"
+         id="tspan927">Fingerprint 1</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:4.23333px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="39.477882"
+       y="176.07178"
+       id="text933"><tspan
+         sodipodi:role="line"
+         style="font-size:4.23333px;fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
+         x="39.477882"
+         y="176.07178"
+         id="tspan931">ea...34</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:7.70502px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.192626"
+       x="108.46043"
+       y="166.73752"
+       id="text937"><tspan
+         sodipodi:role="line"
+         style="text-align:center;text-anchor:middle;fill:#ffffff;fill-opacity:1;stroke-width:0.192626"
+         x="108.46043"
+         y="166.73752"
+         id="tspan935">Fingerprint 2</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:4.23333px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="97.679459"
+       y="176.07178"
+       id="text941"><tspan
+         sodipodi:role="line"
+         style="font-size:4.23333px;fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
+         x="97.679459"
+         y="176.07178"
+         id="tspan939">0c7...7d</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:7.70502px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.192626"
+       x="166.40369"
+       y="166.73752"
+       id="text945"><tspan
+         sodipodi:role="line"
+         style="text-align:center;text-anchor:middle;fill:#ffffff;fill-opacity:1;stroke-width:0.192626"
+         x="166.40369"
+         y="166.73752"
+         id="tspan943">Fingerprint 3</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:4.23333px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="155.62271"
+       y="176.07178"
+       id="text949"><tspan
+         sodipodi:role="line"
+         style="font-size:4.23333px;fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
+         x="155.62271"
+         y="176.07178"
+         id="tspan947">03.....5</tspan></text>
   </g>
 </svg>

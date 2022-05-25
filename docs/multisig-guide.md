@@ -52,7 +52,7 @@ You should have now:
 
 #### Seed storage locations
 
-This is probably the most tricky part of the setup and needs **careful consideration**. Only if you choose these locations well you get the benefits (see https://bitcoiner.guide/multisig/intro/#multisig-benefits). Here a few points to pay attention to:
+This is a crucial part of the setup and needs **careful consideration**. Only if you choose these locations well you get the benefits (see https://bitcoiner.guide/multisig/intro/#multisig-benefits). Here a few points to pay attention to:
 
 * Seed backups (on steel) are not protected by a pin as the *signing device*s (e.g. *hardware wallets*). They therefore need a **secure location**, i.e. accessible only to you or people you completely trust.
   * Examples are: Second home/apartment, Safe deposit box, a relatives (or very good friends) house/apartment
@@ -69,7 +69,7 @@ From each seed the *signing device*  (e.g. *hardware wallet*)  will calculate a 
 
 ![xpubs](images/multisig-guide/xpubs.svg)
 
-* Specter Desktop will take the  *(master) public key*s together with the *derivation paths* (for segwit multisig the standard is "m/48h/1h/0h/2h") to construct the (watch-only) wallet. 
+* Specter Desktop will take the  *(master) public key*s together with the *derivation paths* (for segwit multisig the standard is "m/48h/1h/0h/2h") to construct the (watch-only) wallet. The fingerprints are important, when then *signing devices* signing transactions.
 * **Keep a copy of all *(master) public keys* (i.e. the Specter "Printable PDF backup") with every seed backup**.  They allow anyone to recreate the (watch-only) wallet and see the Bitcoin balance, and therefore should be kept **private**.   
 
 
