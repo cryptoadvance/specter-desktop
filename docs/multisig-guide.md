@@ -27,8 +27,8 @@ Multisig is a way to allow spending from your wallet only after 2 *signing devic
 Pros:
 
 * Way more secure! 1 mistake (e.g. 1 seed lost or stolen) cannot result in loss of funds. 
-  * Useful for long term storage of significant funds
-  * If 1 seed was lost or stolen, all the funds can be transferred to a new setup with the 2 remaining seeds + all *(master) public keys* 
+    + Useful for long term storage of significant funds
+    + If 1 seed was lost or stolen, all the funds can be transferred to a new setup with the 2 remaining seeds + all *(master) public keys*
 
 Cons:
 
@@ -61,10 +61,11 @@ You should have now:
 This is a crucial part of the setup and needs **careful consideration**. Only if you choose these locations well you get the benefits (see [https://bitcoiner.guide/multisig/intro/#multisig-benefits](https://bitcoiner.guide/multisig/intro/#multisig-benefits)). Here a few points to pay attention to:
 
 * Seed backups (on steel) are not protected by a pin as the *signing device*s (e.g. *hardware wallets*). They therefore need a **secure location**, i.e. accessible only to you or people you completely trust.
-  * Examples are: Second home/apartment, Safe deposit box, a relatives (or very good friends) house/apartment
+    + Examples are: Second home/apartment, Safe deposit box, a relatives (or very good friends) house/apartment
+
 * In 1 location there should not be more than 1 seed
-  * Minimum is: 3 **secure locations**, in each location is the signing device and its seed backup
-  * Best is: 3 **secure locations** for the seed backups **and** 3 (medium) secure locations for the *signing device*s (e.g. *hardware wallets*).
+    + Minimum is: 3 **secure locations**, in each location is the signing device and its seed backup
+    + Best is: 3 **secure locations** for the seed backups **and** 3 (medium) secure locations for the *signing device*s (e.g. *hardware wallets*).
 * Please read: [https://bitcoiner.guide/multisig/backup]( https://bitcoiner.guide/multisig/backup)
 
 
@@ -75,7 +76,7 @@ From each seed the *signing device*  (e.g. *hardware wallet*)  will calculate a 
 
 ![xpubs](images/multisig-guide/xpubs.svg)
 
-* Specter Desktop will take the  *(master) public key*s together with the *derivation paths* (for segwit multisig the standard is "m/48h/1h/0h/2h") to construct the (watch-only) wallet. The *fingerprints* are important, when then *signing devices* sign transactions.
+* Specter Desktop will take the *(master) public key*s together with the *derivation paths* (for segwit multisig the standard is "m/48h/1h/0h/2h") to construct the (watch-only) wallet. The *fingerprints* are important, when then *signing devices* sign transactions.
 * **Keep a copy of all *(master) public keys* and *fingerprints* (i.e. the Specter "Printable PDF backup") with every seed backup**.  They allow anyone to recreate the (watch-only) wallet and see the Bitcoin balance, and therefore should be kept **private**.   
 
 
@@ -97,7 +98,7 @@ Because the multisig setup is more complicated, testing all parts of the setup i
 Crucial is that you backed up each seed correctly (on steel). Examples:
 
 * Double and triple checking by comparing the steel backup with the *signing device*  (also known as *hardware wallet*)
-* a) Wiping the *signing device*  (also known as *hardware wallet*), b) restoring the  *signing device*  from the backup, c) exporting the  *(master) public key*  ensuring it is the same as before.
+* a) Wiping the *signing device* (also known as *hardware wallet*), b) restoring the *signing device*  from the backup, c) exporting the *(master) public key*  ensuring it is the same as before.
 
 #### 4b (Watch-only) Wallet test
 
