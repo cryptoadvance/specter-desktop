@@ -337,8 +337,40 @@ def sha256sum(filenames):
 
 if __name__ == "__main__":
     if "sha256sums" in sys.argv:
+        # Used by build-win.ci.bat
         sha256sum(sys.argv[2:])
         exit(0)
+    if "set_setup_py_version" in sys.argv:
+        # Used by build-win.ci.bat
+        version = sys.argv[2]
+        print(f"setting version {version} in setup.py")
+        search_text = "vx.y.z-get-replaced-by-release-script"
+
+        # creating a variable and storing the text
+        # that we want to add
+        replace_text = version
+
+        # Opening our text file in read only
+        # mode using the open() function
+        with open(r"setup.py", "r") as file:
+            data = file.read()
+            data = data.replace(search_text, replace_text)
+        with open(r"setup.py", "w") as file:
+            file.write(data)
+        print("Done")
+        exit(0)
+    if "install_wheel" in sys.argv:
+        # Used by build-win.ci.bat
+        version = sys.argv[2]
+        version = version.replace("v", "")
+        version = version.replace("-pre", "rc")
+        filename = f"cryptoadvance.specter-{version}-py3-none-any.whl"
+        cmd = f"pip3 install {Path('dist',filename)}"
+        res = os.system(cmd)
+        print(f"result of command: {cmd}")
+        print(res)
+        exit(res)
+
     rh = ReleaseHelper()
     rh.init_gitlab()
     try:

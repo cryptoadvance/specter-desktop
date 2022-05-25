@@ -93,6 +93,18 @@ class Wallet:
         old_format_detected=False,
         last_block=None,
     ):
+        """creates a wallet. Very inconvenient to call as it has a lot of mandatory Parameters.
+            You better use either the Wallet.from_json() or the WalletManager.create_wallet() method.
+        :param string name: a not necessarily unique name
+        :param string alias: A unique alias. Might get modified automatically if not unique
+        :param string: irrelevan description
+        :param string address_type: one of bech32, p2sh-segwit, taproot
+        :param string address: the current free recv_address
+        :param int address_index: the current index for self.address
+        :param string change_address: the current free change_address
+        :param int change_index: the current index for self.change_address
+
+        """
         self.name = name
         self.alias = alias
         self.description = description

@@ -3,6 +3,9 @@ Sometimes people have issues where they get an endless Pacman animation and the 
 # Check The Logs
 The logs are usually in the `.specter` subfolder of your homediretory. There, you might find a file called `specter.log` and/or specterApp.log. If you're running Specter as a binary application (in contrast to a pip installation) which most people do that `specterApp.log` is the relevant file for you. This file might contain content which gives a hint on what's wrong. If you can't find anything suspicious, feel free to create a [pastebin](https://pastebin.com/) and ask in the chat for help (with a link to the created pastebin).
 
+# USB-issues
+Sometimes some devices attached via USB are blocking the startup. We had that in the past with a Game-Controller. In one case, the USB drivers where so screwed up, that only a windows in protected mode could start Specter.
+
 # Check Port 25441
 Maybe there is another instance (still) running. Check that via opening your brower here: [http://localhost:25441](http://localhost:25441)
 If that's the case, the most easy solution is to reboot your computer.

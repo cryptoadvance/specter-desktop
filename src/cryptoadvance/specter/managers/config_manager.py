@@ -54,7 +54,7 @@ class ConfigManager(GenericDataManager):
             "hwi_bridge_url": "/hwi/api/",
             # unique id that will be used in wallets path in Bitcoin Core
             # empty by default for backward-compatibility
-            "uid": "",
+            "uid": random.randint(0, 256**8).to_bytes(8, "big").hex(),
             "unit": "btc",
             "price_check": False,
             "alt_rate": 1,
