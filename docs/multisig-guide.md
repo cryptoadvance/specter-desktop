@@ -50,7 +50,7 @@ Cons:
 * You need 3 *signing devices* (see [here](multisig-security-tradeoffs.md) for a comparison, ideally the 3 devices are from 3 different vendors), that generate 3 different seeds.   
     + It is not strictly necessary to use 3 *signing devices* of different vendors to generate the 3 seeds. You could use 1 or 2 *signing devices* in total, generate a seed, reset the device, generate a seed, and so on. While this might not offer all the [benefits](https://btcguide.github.io/why-multisig) of multisig (like protection against a compromised random-number generator), it is significantly cheaper and needs fewer locations to store the *signing devices* in.
 
-* The 3 seeds need to be stored on steel to survive long term, and be resistant to fire and water
+* The 3 seeds need to be stored on steel to survive long term, and be resistant to fire and water. ([Comparison](https://jlopp.github.io/metal-bitcoin-storage-reviews/) and the [cheap version](https://www.econoalchemist.com/post/backup))
 
 You should have now:
 
@@ -112,5 +112,5 @@ Crucial is that you backed up each seed correctly (on steel).  Do this only if t
 
 #### 4.4 Spend test
 
-The last test is to test that you are able to spend from the multisig setup. For this send the small funds to a completely different wallet (e.g. a phone wallet) (See here: https://bitcoiner.guide/multisig/spend/). If the different wallet (e.g. a phone wallet) receives this transaction, then this test was successful too and you are ready to fund the multisig setup with larger amounts.
+The last test is to test that you are able to spend from the multisig setup. For this send the small funds to a completely different wallet (e.g. a phone wallet) (See here: [https://bitcoiner.guide/multisig/spend/](https://bitcoiner.guide/multisig/spend/)). If the different wallet (e.g. a phone wallet) receives this transaction, then this test was successful too and you are ready to fund the multisig setup with larger amounts.
 
