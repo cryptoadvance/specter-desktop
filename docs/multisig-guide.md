@@ -82,7 +82,7 @@ From each seed the *signing device*  (e.g. *hardware wallet*)  will calculate a 
 
 ### 3. Register the multisig setup with each *signing device*  (e.g. *hardware wallet*)
 
-*Signing devices* (see [here](multisig-security-tradeoffs.md) for a comparison) can import a multisig-wallet file (different ways to do this for every vendor, [coldcard](https://bitcoiner.guide/multisig/wallet/#notify-coldcard), [cobo/keystone](https://bitcoiner.guide/multisig/wallet/#notify-cobo), [bitbox02](https://shiftcrypto.ch/blog/specter-multisig-guide/)). 
+*Signing devices* (see [here](multisig-security-tradeoffs.md) for a comparison) can import a multisig-wallet file (different ways to do this for every vendor, [Notify Coldcard](https://bitcoiner.guide/multisig/wallet/#notify-coldcard), [Notify Cobo/Keystone](https://bitcoiner.guide/multisig/wallet/#notify-cobo), [Register Bitbox02](https://shiftcrypto.ch/blog/specter-multisig-guide/#register-the-multisig-wallet-on-the-bitbox02)). 
 
 * Then the *signing device* knows it's parts of a multisig setup and can protect against various attacks.
 * Then *signing device* can display receive addresses of the multisig setup.
