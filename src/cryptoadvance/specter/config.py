@@ -51,6 +51,7 @@ class BaseConfig(object):
     SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
     # should be "strong" until you're running specter behind a loadbalancer which accesses specter with more than one IP
     SESSION_PROTECTION = os.getenv("SESSION_PROTECTION", "strong")
+    SESSION_PROTECTION = None if SESSION_PROTECTION == "none" else SESSION_PROTECTION
     # The prefix for extensions which get access to the session cookie
     EXT_URL_PREFIX = "/spc/ext"
     # The prefix for extensions which don't get access to the session cookie (if SPECTER_URL_PREFIX isn't compromised)
