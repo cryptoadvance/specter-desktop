@@ -214,3 +214,18 @@ if app.config["SPECTER_URL_PREFIX"] != "":
     @app.route(f"{app.config['SPECTER_URL_PREFIX']}/")
     def index_prefix():
         return redirect(url_for("welcome_endpoint.index"))
+
+
+@app.route("/healthz/liveness")
+def liveness():
+    return {"message": "i am alive"}
+
+
+@app.route("/healthz/readyness")
+def readyness():
+    try:
+        # Probably improvable:
+        app.specter.check()
+    except Exception as e:
+        return {"message": "i am not ready"}, 500
+    return {"message": "i am ready"}

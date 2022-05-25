@@ -151,7 +151,7 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     )
 
     login_manager = LoginManager()
-    login_manager.session_protection = "strong"
+    login_manager.session_protection = app.config.get("SESSION_PROTECTION", "strong")
     login_manager.init_app(app)  # Enable Login
     login_manager.login_view = "auth_endpoint.login"  # Enable redirects if unauthorized
     app.config["SESSION_COOKIE_SAMESITE"] = "Strict"
