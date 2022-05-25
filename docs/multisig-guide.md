@@ -16,18 +16,19 @@ Cons:
 
 ## What is Multisig?
 
-Multisig is a way to allow spending from your wallet only after 2 *signing devices* have signed the outgoing transaction.  These 2 *signing devices* can be any 2 out of 3 *signing devices*. This is called a *2 out of 3* multisig wallet.
+Multisig is a way to allow spending from your wallet only after 2 *signing devices*  (e.g. 2 *hardware wallets*) have signed the outgoing transaction.  These 2 *signing devices* can be any 2 out of 3 *signing devices*. This is called a *2 out of 3* multisig wallet.
 
 Pros:
 
-* Way more secure. 1 mistake cannot result in loss of funds. 
+* Way more secure! 1 mistake (e.g. 1 seed lost or stolen) cannot result in loss of funds. 
   * Useful for long term storage of significant funds
+  * If 1 seed was lost or stolen, all the funds can be transferred to a new setup with the 2 remaining seeds + all *(master) public keys* 
 
 Cons:
 
 * More complicated
 * 3 secure locations to store the seed backups are needed
-* *(master) public keys* need backup
+* *(master) public keys* backup needed
 
 #### Further information
 
@@ -37,16 +38,54 @@ Cons:
 
 
 
+## Overview
 
+### Seed creation
 
-## How?
+* You need 3 *signing devices* (see [here](multisig-security-tradeoffs.md) for a comparison, ideally the 3 devices are from 3 different vendors), that generate 3 different seeds.
+* The 3 seeds need to be stored on steel to survive long term, and resistant to fire & water
 
-### Overview
-
-You need 3 *signing devices* (see [here](multisig-security-tradeoffs.md) for a comparison), that generate 3 different seeds.
+You should have now:
 
 ![secrets](images/multisig-guide/secrets.svg)
 
+### Seed storage locations
 
+This is probably the most tricky part of the setup and needs **careful consideration**. Only if you choose these locations correctly you get the benefits (see https://bitcoiner.guide/multisig/intro/#multisig-benefits). Here a few points to pay attention to:
+
+* Seed backups (on steel) are not protected by a pin as the *signing device*s (e.g. *hardware wallets*). They therefore need a **secure location**, i.e. accessible only to you or people you completely trust.
+  * Examples are: Second home/apartment, Safe deposit box, a relatives (or very good friends) house/apartment
+* In 1 location there should not be more than 1 seed
+  * Minimum is: 3 **secure locations**, in each location is the signing device and its seed backup
+  * Best is: 3 **secure locations** for the seed backups and 3 (medium) secure locations for the *signing device*s (e.g. *hardware wallets*).
+* Please read: https://bitcoiner.guide/multisig/backup/   (Risks) 
+
+
+
+### Multisig wallet creation with specter
+
+From each seed the *signing device*  (e.g. 2 *hardware wallet*)  will calculate a *(master) public key*. This *(master) public key* can be exported (via USB, QR Code, or sd-card) to Specter Desktop:
 
 ![xpubs](images/multisig-guide/xpubs.svg)
+
+* Specter Desktop will take the  *(master) public key*s together with the *derivation paths* (for segwit multisig the standard is "m/48h/1h/0h/2h") to construct the (watch-only) wallet. 
+* **Keep a copy of all *(master) public keys* (i.e. the Specter "Printable PDF backup") with every seed backup**.  They alllow anyone to recreate the (watch-only) wallet and see the Bitcoin balance, and therefore should be kept **private**. 
+
+
+
+
+
+
+
+
+
+## Step-by-Step
+
+
+
+
+
+#### Further information
+
+* https://shiftcrypto.ch/blog/specter-multisig-guide/
+* https://www.youtube.com/watch?v=ZQvCncdFMPo
