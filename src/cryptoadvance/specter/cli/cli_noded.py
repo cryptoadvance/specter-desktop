@@ -185,7 +185,7 @@ def elementsd(
     cleanuphard,
     config,
 ):
-    """This will start a bitcoind regtest and mines a block every mining-period.
+    """This will start a elements regtest and mines a block every mining-period.
     If a bitcoind is already running on port 18443, it won't start another one. If you CTRL-C this, the bitcoind will
     still continue to run. You have to shut it down.
     """
