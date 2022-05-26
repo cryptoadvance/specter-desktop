@@ -2,12 +2,29 @@
 {% block main %}
 	{% include "includes/overlay/key_export_qr.jinja" %}
 	{% include "includes/hwi/hwi.jinja" %}
+	{% include "includes/qr-scanner.html" %}
 	<style>
 		#keys-table td {
 			padding: 5px 20px;
 		}
 		#keys-table th {
 			padding: 20px 20px;
+		}
+		.signature {
+			background-color: var(--cmap-bg-lightest);
+        	word-break: break-all;
+        	margin-top: 5px;
+        	margin: 1px;
+        	border-radius: 10px;
+        	border: 2px solid hsl(217, 10%, 80%);
+        	padding: 10px 10px 10px 10px;
+        	cursor: pointer;
+		}
+		.signature:hover {
+			border: 2px solid var(--main-color);
+		}
+		.btn {
+			margin-bottom: 5px;
 		}
 	</style>
 	<h1 id="title">{{ device.name }}</h1>
@@ -72,24 +89,31 @@
 				<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">{{ _("Convert to hot wallet") }}</button>
 			{% endif %}
 		</form>
-		<br>
-		{% if device.hwi_support %}
-			<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">{{ _("Sign message on device") }}</button>
-			<div id="message-signing" class="hidden" style="text-align: left;">
-				{{ _("Derivation path") }}:<input type="text" id="messageDerivationPath" type="text" value="" placeholder="e.g. m/84h/0h/0h/0/0"><br><br>
-				{{ _("Message") }}:<br>
-				<textarea id="message" placeholder="Enter the message you would like to sign" style="font-size: 0.95em;"></textarea>
-				<span id="signature-label" class="hidden">{{ _("Message signature") }}:</span>
-				<p style="word-break: break-all; margin-top: 5px;" id="signature" title='{{ _("Copy message signature") }}' class="explorer-link" onclick="copyText(this.innerText, '{{ _("Copied message signature") }}')">
-				</p>
-				<button type="button" class="btn centered" onclick="signMessageOnDevice();">{{ _("Sign message on device") }}</button>
-			</div>
+		{% if device.hwi_support or device.device_type == "specter" %}
+		<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">{{ _("Sign message") }}</button>
+		<div id="message-signing" class="hidden" style="text-align: left; max-width: 350px;">
+			{% if origin %}
+				{{ _("Address") }}:<input type="text" id="signing-address" type="text" value="" placeholder="bc1q ..."><br><br>
+			{% endif %}
+			{{ _("Derivation path") }}:<input type="text" id="messageDerivationPath" type="text" value="" placeholder="e.g. m/84h/0h/0h/0/0"><br><br>
+			{{ _("Message") }}:<br>
+			<textarea id="message" placeholder="Enter the message you would like to sign" style="font-size: 0.95em; margin-bottom: 15px;"></textarea>
+			<span id="signature-label" class="hidden">{{ _("Message signature") }}:</span>
+			<p id="signature" title='{{ _("Copy signature") }}' class="hidden" onclick="copyText(this.innerText, '{{ _("Copied message signature") }}')">
+			</p>
+			{% if device.hwi_support %}
+				<button id="{{ device.alias }}_usb_sign_msg_btn" type="button" class="btn centered" onclick="signMessageOnDevice();">{{ _("Sign message via USB") }}</button>
+			{% endif %}
+			{% if device.device_type == "specter" %}
+				{% include "includes/overlay/qr_code_sign_message.jinja" %}
+            	<button id="{{ device.alias }}_qr_sign_msg_btn" class="btn centered" style="margin-top: 10px;">{{ _("Sign message via QR code") }}</button>
+			{% endif %}
+		</div>
 		{% endif %}
 		{% if specter.is_liquid %}
 			<br>
 			<a class="btn centered" href="{{ url_for('devices_endpoint.device_blinding_key', device_alias=device.alias) }}">{{ _("Update master blinding key") }}</a>
 		{% endif %}
-		<br>
 		{% if device.supports_hwi_toggle_passphrase %}
 			<button type="button" class="btn centered" onclick="togglePassphrase('{{ device.device_type }}')">{{ _("Toggle device passphrase") }}</button>
 			<br>
@@ -146,8 +170,7 @@
 
 {% block scripts %}
 	<script>
-		document.addEventListener("DOMContentLoaded", function(){
-			
+		document.addEventListener("DOMContentLoaded", function() {
 			var deviceType = document.getElementById("device_type");
 			if (deviceType != null) {
 				deviceType.value = '{{ device.device_type }}';
@@ -165,6 +188,28 @@
 			if (isNewDevice) {
 				showPageOverlay('new_device_popup');
 			}
+
+			// Prefill address and derivation path when coming from an individual address
+			let origin = "{{ origin }}"
+			let address = "{{ address }}"
+			let derivation_path = "{{ derivation_path }}"
+			if (origin == "wallet") {
+				document.getElementById('signing-address').value = address
+				document.getElementById('messageDerivationPath').value = derivation_path
+				showPageOverlay('message-signing')
+			} 
+
+			// Event listener for sign message via QR code-button 
+			{% if device.device_type == "specter" %}
+			document.getElementById("{{ device.alias }}_qr_sign_msg_btn").addEventListener("click", e => {
+                    e.preventDefault();
+                    hidePageOverlay();
+                    // This makes qr_code_sign_message.jinja visible
+                    showPageOverlay('{{ device.alias }}_sign_msg_qr');
+                    // This set the qr-code web component in qr_code_sign_message.jinja
+                    QRcodeSetter();
+                });
+			{% endif %}
 		});
 
 		async function signMessageOnDevice() {
@@ -174,10 +219,30 @@
 				document.getElementById('message').value,
 				document.getElementById('messageDerivationPath').value
 			);
-			document.getElementById('signature-label').style.display = 'block';
-			document.getElementById('signature').innerText = signature;
-			showPageOverlay('message-signing');
-			showNotification(`{{ _("Message was signed successfully!") }}`)
+			if (signature) {
+				document.getElementById('signature-label').style.display = 'block';
+				let signatureElement = document.getElementById('signature');
+				signatureElement.classList.remove("hidden")
+				signatureElement.classList.add("signature")
+				signatureElement.innerText = signature;
+				document.getElementById('{{ device.alias }}_usb_sign_msg_btn').remove()
+				showPageOverlay('message-signing');
+				showNotification(`{{ _("Message was signed successfully!") }}`)
+			}
+			else if (signature === undefined) {
+				showError(`{{ _("No signature received from the device. Did you cancel the signing?") }}`, 3000)
+			}
+			else {
+				showError(`{{ _("Message signing failed.") }}`, 3000)
+			}
+		}
+
+		function QRcodeSetter() {
+			let messageText = document.getElementById('message').value
+			let derivationPath = document.getElementById('messageDerivationPath').value
+			// This QR code only works for the DIY
+			fullStringToEncode = `signmessage ${derivationPath} ascii:${messageText}`
+			document.getElementById('msg-qr-code').setAttribute("value", fullStringToEncode)
 		}
 	</script>
 {% endblock %}
