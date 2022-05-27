@@ -99,11 +99,13 @@ function start_node {
       --bitcoin)
         node_impl=bitcoind
         node_impl_abbrev=btcd
+        node_port=15443
         shift
         ;;
       --elements)
         node_impl=elementsd
         node_impl_abbrev=elmd
+        node_port=8040
         shift
         ;;
       --reset)
@@ -149,7 +151,7 @@ function start_node {
     fi
   fi
   echo "--> Starting $node_impl with $addopts ..."
-  python3 -m cryptoadvance.specter $DEBUG $node_impl $addopts --create-conn-json --config $SPECTER_CONFIG &
+  python3 -m cryptoadvance.specter $DEBUG $node_impl $addopts --port $node_port --create-conn-json --config $SPECTER_CONFIG &
   if [ "$node_impl" = "bitcoind" ]; then
     bitcoind_pid=$!
   else

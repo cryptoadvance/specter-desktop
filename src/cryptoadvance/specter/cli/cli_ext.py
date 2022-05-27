@@ -30,6 +30,7 @@ dummy_ext_url = (
 
 @click.group()
 def ext():
+    """Commands for the extension framework"""
     pass
 
 
@@ -88,11 +89,15 @@ def gen(org, ext_id, isolated_client, tmpl_fs_source, dryrun):
     if ext_id == None:
         print(
             """
-            We need an ID and a prefix for your extension. It'll reflect in the package-layout.
-            The id should be a short string.
-            The prefix is usually something like your github-username or github organisation-name.
-            Both will be used to to create the directory structure ( ./src/mycorpname/specterext/myextension )
-            and it will be used to prepare the files in order to publish this extension to pypi.
+            We need an ID and a prefix for your extension. It'll 
+            reflect in the package-layout. The id should be a 
+            short string.
+            The prefix is usually something like your github-username 
+            or github organisation-name. Both will be used to to 
+            create the directory structure 
+            ( like ./src/mycorpname/specterext/myextension )
+            and it will be used to prepare the files in order to 
+            publish this extension to pypi.
 
         """
         )
@@ -107,8 +112,9 @@ def gen(org, ext_id, isolated_client, tmpl_fs_source, dryrun):
     if isolated_client == None:
         print(
             """
-            Should the extension be working in isolated_client-mode? In that case it's won't share the
-            session-cookie with specter and the integration can only happen on server-side?
+            Should the extension be working in isolated_client-mode?
+            In that case it's won't share the session-cookie with 
+            specter and the integration can only happen on server-side?
         """
         )
         isolated_client = click.prompt(
@@ -158,7 +164,8 @@ def gen(org, ext_id, isolated_client, tmpl_fs_source, dryrun):
             # install it like this:
             pip3 install dist/{org}_{ext_id}-0.0.1-py3-none-any.whl
 
-        In order to use your extension in production, please refer to the Readme.md in the
+        In order to use your extension in production, please refer to 
+        the Readme.md in the dummy-extension-repo.
         https://github.com/cryptoadvance/{ext_mark}-dummy#how-to-get-this-to-production
     
         To publish your package

@@ -1,0 +1,34 @@
+
+<form id="{{ device.alias }}_sign_msg_qr" class="flex-center flex-column hidden">
+    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+    <h2>{{ _("Scan this QR code with your") }} {{device.name}}</h2>
+    <div class="row" style="min-height: 400px; margin-top:20px">
+        <span id="compressed_msg" style="margin: auto;">
+            <qr-code id="msg-qr-code" animate="auto" style="margin-top:20px;" width="300"></qr-code>
+        </span>
+    </div>
+    <qr-scanner id="{{ device.alias }}_qr_scan_btn">
+        <a slot="button" class="btn flex-item" style="width: 350px; margin: 15px auto; font-size: 1em;">
+            &#128247; {{ _("Click here to scan signature") }}
+        </a>
+    </qr-scanner>
+
+<script type="module">
+    document.getElementById("{{ device.alias }}_qr_scan_btn").addEventListener("scan", e =>{
+        let result = e.detail.result;
+        if (result) {
+            hidePageOverlay();
+            document.getElementById('signature-label').style.display = 'block';
+            let signatureElement = document.getElementById('signature')
+            signatureElement.classList.remove("hidden")
+            signatureElement.classList.add("signature")
+            signatureElement.innerText = result;
+            showPageOverlay('message-signing');
+            document.getElementById('{{ device.alias }}_usb_sign_msg_btn').remove()
+            document.getElementById('{{ device.alias }}_qr_sign_msg_btn').remove()
+        } else {
+            showError(`{{ _("Scan failed, please try again...") }}`, 3000);
+        }
+    });
+</script>
+</form>

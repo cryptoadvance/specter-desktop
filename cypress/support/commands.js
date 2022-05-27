@@ -30,7 +30,7 @@ Cypress.Commands.add("addDevice", (name) => {
     cy.get('body').then(($body) => {
         if ($body.text().includes(name)) {
           cy.get('#toggle_devices_list').click()
-          cy.get('#devices_list > .item > div').click()
+          cy.contains(name).click()
           cy.get('#forget_device').click()
         } 
         cy.get('#side-content').click()
@@ -50,10 +50,10 @@ Cypress.Commands.add("addDevice", (name) => {
         cy.get('#device-type-container > .note').click()
         cy.get('#device_name').type(name)
         cy.get('#device_type').select("Specter-DIY")
-        cy.get('#txt').type("[6ea15da6/84h/1h/0h]vpub5Yw9Qps1aUVBpD3eyKVUhe5K8gbaWav9ArB4FudKeCLPb5vSsX8afAWfYvEASbkv4qxKzxSRyd3wqdgM3ir2fbrUJwiHDAJUNWGeqMDQfTj")
-        cy.get('#txt').type("\n[6ea15da6/49h/1h/0h]upub5DANnftqN2Tj4S185offdMnaM6Qea3jinT57VfScASP2fuENSrFn9ixZ7zFX7ZmLovp7j2oEiWYSpCcPkeBuR2ULCiiEn8TW8P8mjaaydR3")
-        cy.get('#txt').type("\n[6ea15da6/48h/1h/0h/2h]Vpub5mvDKGjRsucYGM7PWahGKJKkC3um3oJMqCYDf6SzdkPp8yES65bLfvxhE1bCZsqWobZKpcdTk3niqKR3f6T4B2zJDSyDdes3TyRM17vXYQs")
-        cy.get('#txt').type("\n[6ea15da6/48h/1h/0h/1h]Upub5T5x1c4WjE54P7PsaPCUa9WNtcZuNyijXdytoHAzcK5AWrMHXX8ebWyQCXaBJuRVLDgKJMjTGSmZUans2ghMGBA8g9xRjdhuFrTyJxKYKDE")
+        cy.get('#txt').type("[8c24a510/84h/1h/0h]vpub5Y24kG7ZrCFRkRnHia2sdnt5N7MmsrNry1jMrP8XptMEcZZqkjQA6bc1f52RGiEoJmdy1Vk9Qck9tAL1ohKvuq3oFXe3ADVse6UiTHzuyKx")
+        cy.get('#txt').type("\n[8c24a510/49h/1h/0h]upub5DCn7wm4SgVmzmtdoi8DVVfxhBJkqL1L6mmKHNgVky1Fj5VyBxV6NzKD957sr5fWXkY5y8THtqSVWWpjLnomBYw4iXpxaPbkXg5Gn6s5tQf")
+        cy.get('#txt').type("\n[8c24a510/48h/1h/0h/1h]Upub5S2BXfT5rv2bc2i4Hr8NaBzcu243ztEMJ7LUDK4A9UKRtVmr9EFNdNdPz8rAXQnZDeAoHA8KcR7grVjREWKpBr69bev4rkvxytLZ6fN3sUv")
+        cy.get('#txt').type("\n[8c24a510/48h/1h/0h/2h]Vpub5krSqL811ba5VJdUoP42TFmfRkAaR6h4uxdDThCvDd24PR5gXWPHCvASLbEKevdQQjGx3i1WG7ueEARb8Hpo2u4HikY3wnvwvF1VSakkjew")
         cy.get('#cold_device > [type="submit"]').click()
         cy.get('#toggle_devices_list').click()
         cy.get('#devices_list > .item > div').contains(name)
@@ -87,6 +87,28 @@ Cypress.Commands.add("addHotDevice", (name, node_type) => {
       // but continue flaslessly nevertheless
       cy.get('#devices_list > .item > div',  { timeout: 8000 }).contains(name)
     })
+})
+
+Cypress.Commands.add("deleteDevice", (name) => { 
+    cy.get('body').then(($body) => {
+        if ($body.text().includes(name)) {
+          cy.get('#toggle_devices_list').click()
+          cy.contains(name).click()
+          cy.get('#forget_device').click()
+          cy.reload()
+        } 
+      })
+})
+
+Cypress.Commands.add("changeDeviceType", (nameDevice, newType) => { 
+    cy.get('body').then(($body) => {
+        if ($body.text().includes(nameDevice)) {
+          cy.get('#toggle_devices_list').click()
+          cy.contains(nameDevice).click()
+          cy.get('#device_type').select(newType)
+          cy.get('#settype').click()
+        } 
+      })
 })
 
 Cypress.Commands.add("addHotWallet", (wallet_name, device_name, node_type, wallet_type, single_multi) => { 
