@@ -1,3 +1,4 @@
+from ..services.callbacks import flask_before_request
 import random, traceback
 from time import time
 from flask_wtf.csrf import CSRFError
@@ -158,8 +159,13 @@ def selfcheck():
 
 @app.before_request
 def slow_request_detection_start():
-    """ """
     g.start = time()
+
+
+@app.before_request
+def execute_service_manager_hook():
+    """inform extensions about the request"""
+    app.specter.service_manager.execute_ext_callbacks(flask_before_request, request)
 
 
 @app.after_request
