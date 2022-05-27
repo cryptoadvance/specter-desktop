@@ -7,6 +7,7 @@ from datetime import datetime
 from io import StringIO
 from math import isnan
 from numbers import Number
+import re
 
 import requests
 from cryptoadvance.specter.commands.psbt_creator import PsbtCreator
@@ -29,6 +30,7 @@ from ..util.descriptor import Descriptor
 from ..util.fee_estimation import FeeEstimationResultEncoder, get_fees
 from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
+from embit.descriptor.checksum import add_checksum
 
 logger = logging.getLogger(__name__)
 
@@ -489,15 +491,35 @@ def addressinfo(wallet_alias):
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
         address = request.form.get("address", "")
         if address:
-            descriptor = wallet.get_descriptor(address=address)
+            descriptor = add_checksum(
+                wallet.get_descriptor(address=address, keep_xpubs=False).to_string()
+            )
+            xpubs_descriptor = add_checksum(
+                wallet.get_descriptor(address=address, keep_xpubs=True).to_string()
+            )
+            # The last two regex groups are optional since Electrum's derivation path is shorter
+            derivation_path_pattern = (
+                r"(\/[0-9h]+)(\/[0-9h]+)(\/[0-9h]+)(\/[0-9h]+)?(\/[0-9h]+)?"
+            )
+            # Only "descriptor" gives full derivation path, looks usually like this:
+            # wpkh([8c24a510/84h/1h/0h/0/0]0331edcb16cfd ... e02552539d984)#35zjhlhm
+            match = re.search(derivation_path_pattern, descriptor)
+            if not match:
+                logger.debug(
+                    f"Derivation path of this descriptor {descriptor} could not be parsed. Sth. wrong with the regex pattern which was {derivation_path_pattern}?"
+                )
+            logger.debug(f"This is the derivation path match: {match.group()}")
+            derivation_path = "m" + match.group()
             address_info = wallet.get_address_info(address=address)
             return {
                 "success": True,
                 "address": address,
                 "descriptor": descriptor,
+                "xpubs_descriptor": xpubs_descriptor,
+                "derivation_path": derivation_path,
                 "walletName": wallet.name,
                 "isMine": address_info and not address_info.is_external,
-                **address_info,
+                **address_info,  # address_info is an instance of Address(dict)
             }
     except Exception as e:
         handle_exception(e)
