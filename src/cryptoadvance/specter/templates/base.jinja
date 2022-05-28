@@ -127,7 +127,9 @@
 					{% endif %}
 					<div style="display: flex; justify-content: center; align-items: center;">
 						<div class="main-description-box">
-							<p style="font-size: 1.1em; margin-bottom: 2em; text-align: left;">{{ _("Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices.") }}</p>
+							<p style="font-size: 1.1em; margin-bottom: 2em; text-align: left;">{{ _("Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices.") }}
+								Learn <a style="color: #fff" href="https://deploy-preview-1731--specter-desktop-docs.netlify.app/multisig-guide/" target="_blank">🕮 {{ _("here") }}</a> more about multisig.
+							</p>
 						</div>
 					</div>
 					{% if not specter.chain %}
@@ -241,7 +243,7 @@
 						</table>
 						<br>
 					{% endif %}
-					<p style="position: relative; z-index: 1; line-height: 24px;">{{ _('Any problem? Here is the <a href="https://specter-desktop-docs.netlify.app/" target="_blank" style="color: #fff; font-size: 1.05em; font-weight: bolder;">🕮 help</a>.') }}</p><br><br>
+					<p style="position: relative; z-index: 1; line-height: 24px;">{{ _('Have a look at our <a href="https://specter-desktop-docs.netlify.app/" target="_blank" style="color: #fff; font-size: 1.05em; font-weight: bolder;">🕮 help</a>.') }}</p><br><br>
 					<span style="position: relative; z-index: 1;">{{ _("Still having issues?") }}</span><br>
 					<div style="display: flex; justify-content: center;">
 						<div style="max-width: 80%;">
