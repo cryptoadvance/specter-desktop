@@ -64,8 +64,8 @@ class WalletManager:
         use_threading=True,
     ):
         """Restructures the instance, specifically if chain/rpc changed
-        The _update internal method will resync the internal status with core
-        use_threading : for the _update method which is heavily communicating with core
+        The _update internal method will resync the internal status with Bitcoin Core
+        use_threading : for the _update method which is heavily communicating with Bitcoin Core
         """
         if (chain is None and rpc is not None) or (chain is not None and rpc is None):
             raise Exception(
@@ -91,7 +91,8 @@ class WalletManager:
                     f"Prevented Trying to update wallet_Manager with broken {rpc}"
                 )
         # wallets_update_list is something like:
-        # { "name" : "waletName", walletName: { original json as on disk, "is_multisig": True/False, "keys_count": 2} }
+        # {'Specter': {'name': 'Specter', 'alias': 'pacman', ... }, 'another_wallet': { ... } }
+        # It contains the same data as the JSON on disk
         wallets_update_list = {}
         if self.working_folder is not None and self.rpc is not None:
             wallets_files = load_jsons(self.working_folder, key="name")
@@ -120,13 +121,14 @@ class WalletManager:
             )
 
     def _update(self, wallets_update_list: Dict):
-        """Effectively a three way sync. The three data-sources are:
+        """Effectively a three way sync. The three data sources are:
         * the json on disk (wallets_update_list)
-        * the current wallet-instances (existing_names)
-        * The loaded wallets from Core (loaded_wallets)
-        So this has effects if we have data from disk. It does
-        * get a list of loaded wallets from core and ...
-        * ... load the unloaded ones and replace in that cases the wallet-instances
+        * the current wallet instances (existing_names)
+        * the loaded wallets from Bitcoin Core (loaded_wallets)
+        So, if we have data on disk
+        * we get a list of loaded wallets from Bitcoin Core
+        * the unloaded wallets are loaded in Bitcoin Core
+        * and, on the Specter side, the wallet objects of those unloaded wallets are reinitialised
         """
         # list of wallets in the dict
         existing_names = list(self.wallets.keys())
@@ -139,7 +141,7 @@ class WalletManager:
                 for wallet in wallets_update_list:
                     wallet_alias = wallets_update_list[wallet]["alias"]
                     wallet_name = wallets_update_list[wallet]["name"]
-                    # wallet from json not yet loaded in Core?!
+                    # wallet from json not yet loaded in Bitcoin Core?!
                     if os.path.join(self.rpc_path, wallet_alias) not in loaded_wallets:
                         try:
                             logger.info(
@@ -190,7 +192,7 @@ class WalletManager:
                             # )
                         except RpcError as e:
                             logger.warning(
-                                f"Couldn't load wallet {wallet_alias} into core. Silently ignored! RPC error: {e}"
+                                f"Couldn't load wallet {wallet_alias} into Bitcoin Core. Silently ignored! RPC error: {e}"
                             )
                             self._failed_load_wallets.append(
                                 {
