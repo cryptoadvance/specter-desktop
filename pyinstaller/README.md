@@ -9,9 +9,12 @@ This will update the file hash and version name the Specter Desktop app expects 
 
 # Pyinstaller build
 
-`cd` into this directory (`specter-desktop/pyinstaller`) and install requirements:
+Install requirements:
 
 ```bash
+$ virtualenv --python=python3 .buildenv
+$ source .buildenv/bin/activate 
+$ cd pyinstaller
 $ pip3 install -r requirements.txt --require-hashes
 ```
 
