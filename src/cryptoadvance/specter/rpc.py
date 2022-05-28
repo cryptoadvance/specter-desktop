@@ -374,6 +374,7 @@ class BitcoinRPC:
             if kwargs.get("no_wait"):
                 # Used for rpc calls that don't immediately return (e.g. rescanblockchain) so we don't
                 # expect any data back anyway. __getattr__ expects a list of formatted json.
+                self.trace_call_after(url, payload, timeout)
                 return [{"error": None, "result": None}]
 
             logger.error(

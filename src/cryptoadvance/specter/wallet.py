@@ -939,6 +939,10 @@ class Wallet:
         return len(self.keys) > 1
 
     @property
+    def is_singlesig(self):
+        return len(self.keys) == 1
+
+    @property
     def keys_count(self):
         return len(self.keys)
 
@@ -1330,7 +1334,7 @@ class Wallet:
                 )
         return desc
 
-    def get_descriptor(self, index=None, change=False, address=None):
+    def get_descriptor(self, index=None, change=False, address=None, keep_xpubs=False):
         """
         Returns address descriptor from index, change
         or from address belonging to the wallet.
@@ -1345,14 +1349,7 @@ class Wallet:
                 change = a.change
         if index is None:
             index = self.change_index if change else self.address_index
-        return {
-            "descriptor": add_checksum(
-                str(self.derive_descriptor(index, change, keep_xpubs=False))
-            ),
-            "xpubs_descriptor": add_checksum(
-                str(self.derive_descriptor(index, change, keep_xpubs=True))
-            ),
-        }
+        return self.derive_descriptor(index, change, keep_xpubs)
 
     def get_address_info(self, address) -> Address:
         # TODO: This is a misleading name. This is really fetching an Address obj

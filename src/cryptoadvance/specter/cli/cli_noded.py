@@ -44,6 +44,11 @@ logger = logging.getLogger(__name__)
     help="Specify a (maybe not yet existing) datadir. Works only with --nodocker. (Default is /tmp/bitcoind_plain_datadir)",
 )
 @click.option(
+    "--port",
+    default=18443,
+    help="Specify a port the Bitcoind should run on. Default is 18443.",
+)
+@click.option(
     "--log-stdout",
     is_flag=True,
     default=False,
@@ -86,6 +91,7 @@ def bitcoind(
     nodocker,
     docker_tag,
     data_dir,
+    port,
     log_stdout,
     mining,
     mining_period,
@@ -104,6 +110,7 @@ def bitcoind(
         nodocker,
         docker_tag,
         data_dir,
+        port,
         log_stdout,
         mining,
         mining_period,
@@ -122,6 +129,11 @@ def bitcoind(
 @click.option(
     "--data-dir",
     help="Specify a (maybe not yet existing) datadir. Works only with --nodocker. (Default is /tmp/bitcoind_plain_datadir)",
+)
+@click.option(
+    "--port",
+    default=18884,
+    help="Specify a port the elementsd should run on. Default is 18884.",
 )
 @click.option(
     "--log-stdout",
@@ -164,6 +176,7 @@ def bitcoind(
 def elementsd(
     quiet,
     data_dir,
+    port,
     log_stdout,
     mining,
     mining_period,
@@ -182,6 +195,7 @@ def elementsd(
         True,  # nodocker
         None,  # docker_tag
         data_dir,
+        port,
         log_stdout,
         mining,
         mining_period,
@@ -198,6 +212,7 @@ def noded(
     nodocker,
     docker_tag,
     data_dir,
+    port,
     log_stdout,
     mining,
     mining_period,
@@ -244,11 +259,11 @@ def noded(
         echo(f"Creating plain {node_impl}d")
         if node_impl == "bitcoin":
             my_node = BitcoindPlainController(
-                bitcoind_path=find_node_executable("bitcoin")
+                bitcoind_path=find_node_executable("bitcoin"), rpcport=port
             )
         elif node_impl == "elements":
             my_node = ElementsPlainController(
-                elementsd_path=find_node_executable("elements")
+                elementsd_path=find_node_executable("elements"), rpcport=port
             )
         Path(data_dir).mkdir(parents=True, exist_ok=True)
     else:
