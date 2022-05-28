@@ -3,7 +3,7 @@
 This guide is meant as an overview only.  We encourage you to also read completely through:
 
 - An **excellent** and comprehensive guide: [https://bitcoiner.guide/multisig](https://bitcoiner.guide/multisig)
-- A **video** step-by-step guide: ![small_video](https://www.youtube.com/embed/ZQvCncdFMPo)
+- **Video** guides: ![small_video](https://www.youtube.com/embed/ZQvCncdFMPo)
 - A step-by-step guide with the bitbox02: [https://shiftcrypto.ch/blog/specter-multisig-guide/](https://shiftcrypto.ch/blog/specter-multisig-guide/)
 
 ## What is Single-sig?

@@ -36,8 +36,7 @@ This software might be ready to be used but at your own risk.
 If something doesn't work open an issue here or ask a question in our [Telegram group](https://t.me/spectersupport).
 
 ## Video Walkthrough
-
-![video](https://www.youtube.com/embed/MGXgRUA9qvM) [Watch here](https://www.youtube.com/watch?v=MGXgRUA9qvM)
+![video](https://www.youtube.com/embed/v3SEp0SkOWs) [Watch here](https://www.youtube.com/watch?v=v3SEp0SkOWs)
 
 ## Why?
 
