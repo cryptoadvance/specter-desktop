@@ -41,3 +41,14 @@ nav:
       - api/ep_wallets_wallet.md
 theme: 
   name: readthedocs
+plugins:
+  - mkdocs-video:
+      mark: "small_video"
+      css_style:
+        width: "70%"
+        height: "14vw"
+  - mkdocs-video:
+      mark: "video"
+      css_style:
+        width: "100%"
+        height: "22.172vw"
