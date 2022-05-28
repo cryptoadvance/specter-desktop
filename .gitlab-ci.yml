@@ -127,19 +127,18 @@ release_binary_windows:
     - virtualenv --python=python3 .env
     - .\.env\Scripts\activate
     - pip3 install -r test_requirements.txt
+    - whoami
   script:
     # This script won't execute if the script before that fails
     # No need to check the version-scheme again
-    - whoami
-    - echo "Releasing for ${CI_PROJECT_ROOT_NAMESPACE}"
-    - cd pyinstaller 
-    - .\build-win-ci.bat $CI_COMMIT_TAG
-    - python ../utils/github.py upload ./release/specterd-$CI_COMMIT_TAG-win64.zip
-    - cd release
+
+    - echo "Releasing for ${CI_PROJECT_ROOT_NAMESPACE}" 
+    - .\pyinstaller\build-win-ci.bat $CI_COMMIT_TAG
+    - python ./utils/github.py upload ./pyinstaller/release/specterd-$CI_COMMIT_TAG-win64.zip
+    - cd ./pyinstaller/release
     - python ..\..\utils\release-helper.py sha256sums specterd-$CI_COMMIT_TAG-win64.zip > SHA256SUMS-windows
     - type SHA256SUMS-windows
     - echo $GPG_PASSPHRASE | c:\Program` Files` `(x86`)\GnuPg\bin\gpg --detach-sign --armor --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback SHA256SUMS-windows
-    - dir
   artifacts:
     when: always
     paths:
@@ -166,30 +165,27 @@ release_electron_linux_windows:
     # Only difference to default befor_script: (ToDo fix this)
     - python3 -m virtualenv --python=python3 .env
     - source .env/bin/activate
+    - pip3 install -r test_requirements.txt
   script:
     - echo "Releasing for ${CI_PROJECT_ROOT_NAMESPACE}"
     - export CI_PROJECT_ROOT_NAMESPACE # needed in the build-script to download the right windows-binary
-    - cd pyinstaller
-    - ./build-ci.sh $CI_COMMIT_TAG "make-hash"
-    - ls -l release-linux
-    - ls -l release-win
-    - cd release-linux
-    - sha256sum  specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz > ./SHA256SUMS-linux
+    - ./utils/build-unix.sh --version $CI_COMMIT_TAG make-hash specterd electron-linux electron-win
+    - ls -l release
+    - cd release
+    - sha256sum specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz > ./SHA256SUMS-linux
     - cat ./SHA256SUMS-linux
-    - cd ..
-    - cd release-win
     - sha256sum  Specter-Setup-${CI_COMMIT_TAG}.exe > ./SHA256SUMS-win
     - cat ./SHA256SUMS-win
     - cd ..
-    - ../utils/artifact_signer.sh sign --artifact ./release-win/SHA256SUMS-win
-    - ../utils/artifact_signer.sh sign --artifact ./release-linux/SHA256SUMS-linux
-    - python3 ../utils/github.py upload ./release-win/Specter-Setup-${CI_COMMIT_TAG}.exe
-    - python3 ../utils/github.py upload ./release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip 
-    - python3 ../utils/github.py upload ./release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz 
-    #- python3 ../utils/github.py upload ./release-linux/SHA256SUMS-linux
-    #- python3 ../utils/github.py upload ./release-linux/SHA256SUMS-linux.asc
-    #- python3 ../utils/github.py upload ./release-win/SHA256SUMS-win
-    #- python3 ../utils/github.py upload ./release-win/SHA256SUMS-win.asc
+    - ./utils/artifact_signer.sh sign --artifact ./release/SHA256SUMS-win
+    - ./utils/artifact_signer.sh sign --artifact ./release/SHA256SUMS-linux
+    - python3 ./utils/github.py upload ./release/Specter-Setup-${CI_COMMIT_TAG}.exe
+    - python3 ./utils/github.py upload ./release/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip 
+    - python3 ./utils/github.py upload ./release/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz 
+    #- python3 ../utils/github.py upload ./release/SHA256SUMS-linux
+    #- python3 ../utils/github.py upload ./release/SHA256SUMS-linux.asc
+    #- python3 ../utils/github.py upload ./release/SHA256SUMS-win
+    #- python3 ../utils/github.py upload ./release/SHA256SUMS-win.asc
   cache:
     key:
         files:
@@ -201,13 +197,13 @@ release_electron_linux_windows:
   artifacts:
     when: always
     paths:
-      - pyinstaller/release-win/Specter-Setup-${CI_COMMIT_TAG}.exe
-      - pyinstaller/release-linux/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip
-      - pyinstaller/release-linux/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz
-      - pyinstaller/release-linux/SHA256SUMS-linux
-      - pyinstaller/release-linux/SHA256SUMS-linux.asc
-      - pyinstaller/release-win/SHA256SUMS-win
-      - pyinstaller/release-win/SHA256SUMS-win.asc
+      - release/Specter-Setup-${CI_COMMIT_TAG}.exe
+      - release/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip
+      - release/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz
+      - release/SHA256SUMS-linux
+      - release/SHA256SUMS-linux.asc
+      - release/SHA256SUMS-win
+      - release/SHA256SUMS-win.asc
     expire_in: 1 day
 
 release_signatures:

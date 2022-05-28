@@ -313,6 +313,10 @@ class User(UserMixin):
         if autosave:
             self.save_info()
 
+    def has_service(self, service_id: str) -> bool:
+        """Returns true if the User has that service"""
+        return service_id in self._services
+
     def remove_service(self, service_id: str, autosave: bool = True):
         """Remove a Service from the User. Only updates what is listed in the sidebar."""
         if service_id in self.services:

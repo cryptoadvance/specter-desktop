@@ -70,4 +70,8 @@ setup(
         "init_catalog": babel.init_catalog,
         "update_catalog": babel.update_catalog,
     },
+    entry_points="""
+        [console_scripts]
+        specter=cryptoadvance.specter.cli:entry_point
+    """,
 )

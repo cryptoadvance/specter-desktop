@@ -23,9 +23,9 @@ describe('Configuring nodes', () => {
       // AUtomating that is probably simply not worth it.
       cy.readFile('btcd-conn.json').then((conn) => {
         cy.get('#host').type("http://"+conn["host"])
+        cy.get('#port').clear()
+        cy.get('#port').type(conn["port"])
       })
-      cy.get('#port').clear()
-      cy.get('#port').type("18443")
       cy.get('[value="test"]').click()
       cy.get(':nth-child(2) > button > div').should('have.css', 'color', 'rgb(0, 128, 0)') // connectable: green
       cy.get(':nth-child(5) > button > div').should('have.css', 'color', 'rgb(255, 0, 0)') // Credentials: red

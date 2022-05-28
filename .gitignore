@@ -2,10 +2,12 @@ __pycache__
 .pytest_cache
 *.pyc
 .env
+.buildenv
 .venv
 .tor_service_key
 build
 dist
+release
 *.egg-info
 .vscode
 .idea
