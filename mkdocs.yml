@@ -41,6 +41,8 @@ nav:
       - api/ep_wallets_wallet.md
 theme: 
   name: readthedocs
+markdown_extensions:
+  - mdx_truly_sane_lists
 plugins:
   - mkdocs-video:
       mark: "small_video"

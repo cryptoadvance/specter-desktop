@@ -15,7 +15,7 @@
 # We're using mkdocs for creating the static pages
 # We don't pin this dependency as this is not relevant for either testing or
 # production. Therefore it's easier to simply let it upgrade automatically:
-pip3 install mkdocs mkdocs-video
+pip3 install mkdocs mkdocs-video  mdx_truly_sane_lists
 # At the sime of this comment, we had: mkdocs==1.2.3
 
 
