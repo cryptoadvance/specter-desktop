@@ -37,7 +37,7 @@ If something doesn't work open an issue here or ask a question in our [Telegram 
 
 ## Video Walkthrough
 
-![video](https://www.youtube.com/embed/MGXgRUA9qvM)
+![video](https://www.youtube.com/embed/MGXgRUA9qvM) [Watch here](https://www.youtube.com/watch?v=MGXgRUA9qvM)
 
 ## Why?
 
