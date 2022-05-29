@@ -87,6 +87,8 @@ These can be exported (via USB, QR-Code, or SD-Card) to Specter Desktop:
 
 ### 3. Register the multisig setup with each *signing device*  (e.g. *hardware wallet*)
 
+![register](multisig-guide.assets/register.svg)
+
 *Signing devices* (see [here](multisig-security-tradeoffs.md) for a comparison) can import (via USB, QR-Code, or SD-Card) the multisig-wallet file from Specter Desktop (Wallet --> Settings --> Export --> Export to wallet software).
 
 - Then the *signing device* knows it's parts of a multisig setup and can protect against various attacks.
