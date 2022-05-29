@@ -27,8 +27,8 @@ Multisig is a way to allow spending from your wallet only after 2 *signing devic
 Pros:
 
 - Way more secure! 1 mistake (e.g. 1 seed lost or stolen) cannot result in loss of funds.
-    - Useful for long term storage of significant funds
-    - If 1 seed was lost or stolen, all the funds can be transferred to a new setup with the 2 remaining seeds + all *(master) public keys*
+  - Useful for long term storage of significant funds
+  - If 1 seed was lost or stolen, all the funds can be transferred to a new setup with the 2 remaining seeds + all *(master) public keys*
 
 Cons:
 
@@ -48,7 +48,7 @@ Cons:
 ### 1. Seed creation
 
 - You need 3 *signing devices* (see [here](multisig-security-tradeoffs.md) for a comparison, ideally the 3 devices are from 3 different vendors), that generate 3 different seeds.
-    - It is not strictly necessary to use 3 *signing devices* of different vendors to generate the 3 seeds. You could use 1 or 2 *signing devices* in total, generate a seed, reset the device, generate a seed, and so on. While this might not offer all the [benefits](https://btcguide.github.io/why-multisig) of multisig (like protection against a compromised random-number generator), it is significantly cheaper and needs fewer locations to store the *signing devices* in.
+  - It is not strictly necessary to use 3 *signing devices* of different vendors to generate the 3 seeds. You could use 1 or 2 *signing devices* in total, generate a seed, reset the device, generate a seed, and so on. While this might not offer all the [benefits](https://btcguide.github.io/why-multisig) of multisig (like protection against a compromised random-number generator), it is significantly cheaper and needs fewer locations to store the *signing devices* in.
 
 - The 3 seeds need to be stored on steel to survive long term, and be resistant to fire and water. ([Comparison](https://jlopp.github.io/metal-bitcoin-storage-reviews/) and the [cheap version](https://www.econoalchemist.com/post/backup))
 
@@ -61,10 +61,10 @@ You should have now:
 This is a crucial part of the setup and needs **careful consideration**. Only if you choose these locations well you get the benefits (see [https://bitcoiner.guide/multisig/intro/#multisig-benefits](https://bitcoiner.guide/multisig/intro/#multisig-benefits)). Here a few points to pay attention to:
 
 - Seed backups (on steel) are not protected by a pin as the *signing device*s (e.g. *hardware wallets*). They therefore need a **secure location**, i.e. accessible only to you or people you completely trust.
-    - Examples are: Home/apartment, Safe deposit box, a relatives (or very good friends) home/apartment
+  - Examples are: Home/apartment, Safe deposit box, a relatives (or very good friends) home/apartment
 - In 1 location there should not be more than 1 seed
-    - Minimum is: 3 **secure locations**, in each location is the signing device and its seed backup
-    - Ideal is: 3 **secure locations** for the seed backups **and** 3 (medium) secure locations for the *signing device*s (e.g. *hardware wallets*). The *signing device*s are themselves electronic vaults protected by the pin and do not need such a high security as the seed backups.
+  - Minimum is: 3 **secure locations**, in each location is the signing device and its seed backup
+  - Ideal is: 3 **secure locations** for the seed backups **and** 3 (medium) secure locations for the *signing device*s (e.g. *hardware wallets*). The *signing device*s are themselves electronic vaults protected by the pin and do not need such a high security as the seed backups.
 - Please read: [https://bitcoiner.guide/multisig/backup]( https://bitcoiner.guide/multisig/backup)
 
 
