@@ -3,8 +3,8 @@
 
 <svg
    width="183.86096mm"
-   height="78.786507mm"
-   viewBox="0 0 183.86097 78.786506"
+   height="87.622017mm"
+   viewBox="0 0 183.86097 87.622016"
    version="1.1"
    id="svg5"
    inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
@@ -30,7 +30,7 @@
      inkscape:guide-bbox="true"
      inkscape:zoom="1"
      inkscape:cx="248.5"
-     inkscape:cy="199"
+     inkscape:cy="232"
      inkscape:window-width="1920"
      inkscape:window-height="1007"
      inkscape:window-x="0"
@@ -42,7 +42,7 @@
      fit-margin-right="0"
      fit-margin-bottom="0">
     <sodipodi:guide
-       position="61.29728,-1.0700767"
+       position="61.297284,-1.0700815"
        orientation="0,-1"
        id="guide54569" />
   </sodipodi:namedview>
@@ -93,7 +93,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-15.783262,-8.0750738)">
+     transform="translate(-15.783262,0.76044121)">
     <rect
        style="fill:#192432;fill-opacity:1;fill-rule:evenodd;stroke:#909090;stroke-width:0.69671;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect31"
@@ -103,13 +103,13 @@
        y="26.443466"
        ry="6.8872352" />
     <rect
-       style="fill:#192432;fill-opacity:1;fill-rule:evenodd;stroke:#909090;stroke-width:0.380574;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#192432;fill-opacity:1;fill-rule:evenodd;stroke:#909090;stroke-width:0.464714;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect177184"
        width="183.33307"
-       height="17.907251"
+       height="26.700697"
        x="16.047014"
-       y="8.2653608"
-       ry="2.0531373" />
+       y="-0.52808422"
+       ry="3.0613406" />
     <g
        id="Group-5"
        style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
@@ -211,13 +211,13 @@
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:7.70502px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.192626"
        x="55.994549"
-       y="20.577356"
+       y="11.620741"
        id="text62400"><tspan
          sodipodi:role="line"
          id="tspan62398"
          style="fill:#ffffff;fill-opacity:1;stroke-width:0.192626"
          x="55.994549"
-         y="20.577356">Watch-Only Wallet Information</tspan></text>
+         y="11.620741">Watch-Only Wallet Information</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:3.75011px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.094;stroke-miterlimit:4;stroke-dasharray:none"
@@ -358,5 +358,16 @@
         </g>
       </g>
     </g>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.05305px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.126327"
+       x="80.095718"
+       y="19.336071"
+       id="text896"><tspan
+         sodipodi:role="line"
+         id="tspan894"
+         style="fill:#ffffff;fill-opacity:1;stroke-width:0.126327"
+         x="80.095718"
+         y="19.336071">Export to wallet software</tspan></text>
   </g>
 </svg>
