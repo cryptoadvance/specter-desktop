@@ -71,7 +71,12 @@ This is a crucial part of the setup and needs **careful consideration**. Only if
 
 ### 2. Multisig wallet creation with Specter Desktop
 
-From each seed the *signing device*  (e.g. *hardware wallet*)  will calculate a *(master) public key* and the *fingerprint* . These can be exported (via USB, QR-Code, or SD-Card) to Specter Desktop:
+From each seed the *signing device*  (e.g. *hardware wallet*)  will calculate 
+
+- the *(master) public key* (also called *xpub*)
+- the [*fingerprint*](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#Key_identifiers) (The *BIP32 Root Fingerprint* is a short string, e.g. "3d2adeb9").
+
+These can be exported (via USB, QR-Code, or SD-Card) to Specter Desktop:
 
 ![xpubs](images/multisig-guide/xpubs.svg)
 

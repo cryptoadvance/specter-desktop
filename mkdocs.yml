@@ -48,7 +48,9 @@ plugins:
       mark: "small_video"
       css_style:
         width: "70%"
-        height: "14vw"
+        height: "15lw"
+        min-width: "300px"
+        min-height: "180px"
   - mkdocs-video:
       mark: "video"
       css_style:
