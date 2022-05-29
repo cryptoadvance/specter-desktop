@@ -12,16 +12,16 @@ This will update the file hash and version name the Specter Desktop app expects 
 Install requirements:
 
 ```bash
-$ virtualenv --python=python3 .buildenv
-$ source .buildenv/bin/activate 
-$ cd pyinstaller
-$ pip3 install -r requirements.txt --require-hashes
+virtualenv --python=python3 .buildenv
+source .buildenv/bin/activate 
+cd pyinstaller
+pip3 install -r requirements.txt --require-hashes
 ```
 
 Now run:
 
 ```bash
-$ pyinstaller specterd.spec
+pyinstaller specterd.spec
 ```
 
 And for HWIBridge, run: 
