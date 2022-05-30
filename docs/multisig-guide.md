@@ -100,7 +100,7 @@ For different vendors the registering works slightly different: [Notify Coldcard
 
 #### Signing device comparison
 
-as mentioned above, registering the multisig setup on the hardware device is important. Below we show  a table ([initial source](https://shiftcrypto.ch/blog/how-nearly-all-personal-hardware-wallet-multisig-setups-are-insecure/)) of those supporting the most important features for a multisig setup: 
+As mentioned above, registering the multisig setup on the hardware device is important. Below we show  a table ([initial source](https://shiftcrypto.ch/blog/how-nearly-all-personal-hardware-wallet-multisig-setups-are-insecure/)) of those supporting the most important features for a multisig setup: 
 
 |                                      | [BitBox02](https://shiftcrypto.ch/) | [Ledger](https://www.ledger.com/) | [Trezor](https://trezor.io/) | [Coldcard](https://coldcard.com/) | [Specter DIY](https://github.com/cryptoadvance/specter-diy) | Cobo Vault / [Keystone](https://keyst.one/) |
 | ------------------------------------ | ----------------------------------- | --------------------------------- | ---------------------------- | --------------------------------- | ----------------------------------------------------------- | ------------------------------------------- |
