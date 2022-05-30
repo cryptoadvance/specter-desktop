@@ -47,7 +47,7 @@ Cons:
 
 ### 1. Seed creation
 
-- You need 3 *signing devices* (see [here](multisig-security-tradeoffs.md) for a comparison, ideally the 3 devices are from 3 different vendors), that generate 3 different seeds.
+- You need 3 *signing devices* (ideally the 3 devices are from 3 different vendors), that generate 3 different seeds.
   - It is not strictly necessary to use 3 *signing devices* of different vendors to generate the 3 seeds. You could use 1 or 2 *signing devices* in total, generate a seed, reset the device, generate a seed, and so on. While this might not offer all the [benefits](https://btcguide.github.io/why-multisig) of multisig (like protection against a compromised random-number generator), it is significantly cheaper and needs fewer locations to store the *signing devices* in.
 
 - The 3 seeds need to be stored on steel to survive long term, and be resistant to fire and water. ([Comparison](https://jlopp.github.io/metal-bitcoin-storage-reviews/) and the [cheap version](https://www.econoalchemist.com/post/backup))
@@ -89,12 +89,25 @@ These can be exported (via USB, QR-Code, or SD-Card) to Specter Desktop:
 
 ![register](images/multisig-guide/register.svg)
 
-*Signing devices* (see [here](multisig-security-tradeoffs.md) for a comparison) can import (via USB, QR-Code, or SD-Card) the multisig-wallet file from Specter Desktop (Wallet --> Settings --> Export --> Export to wallet software).
+*Signing devices* can import (via USB, QR-Code, or SD-Card) the multisig-wallet file from Specter Desktop (Wallet --> Settings --> Export --> Export to wallet software).
 
 - Then the *signing device* knows it's parts of a multisig setup and can protect against various attacks.
 - Then *signing device* can display receive addresses of the multisig setup.
 
 For different vendors the registering works slightly different: [Notify Coldcard](https://bitcoiner.guide/multisig/wallet/#notify-coldcard), [Notify Cobo/Keystone](https://bitcoiner.guide/multisig/wallet/#notify-cobo), [Register Bitbox02](https://shiftcrypto.ch/blog/specter-multisig-guide/#register-the-multisig-wallet-on-the-bitbox02) 
+
+
+
+#### Signing device comparison
+
+as mentioned above, registering the multisig setup on the hardware device is important. Below we show  a table ([initial source](https://shiftcrypto.ch/blog/how-nearly-all-personal-hardware-wallet-multisig-setups-are-insecure/)) of those supporting the most important features for a multisig setup: 
+
+|                                      | [BitBox02](https://shiftcrypto.ch/) | [Ledger](https://www.ledger.com/) | [Trezor](https://trezor.io/) | [Coldcard](https://coldcard.com/) | [Specter DIY](https://github.com/cryptoadvance/specter-diy) | Cobo Vault / [Keystone](https://keyst.one/) |
+| ------------------------------------ | ----------------------------------- | --------------------------------- | ---------------------------- | --------------------------------- | ----------------------------------------------------------- | ------------------------------------------- |
+| Display own xpub on demand           | ✅                                   | ❌                                 | ❌                            | ✅                                 | ✅                                                           | ✅                                           |
+| Display cosigner xpubs               | ✅                                   | ❌                                 | ✅                            | ✅                                 | ✅                                                           | ✅                                           |
+| Show SLIP-132 formats (`Ypub, Zpub`) | ✅                                   | ❌                                 | ❌                            | ✅                                 | ✅                                                           | ✅                                           |
+| Register xpubs inside the device     | ✅                                   | ❌                                 | ❌                            | ✅                                 | ✅                                                           | ✅                                           |
 
 
 
