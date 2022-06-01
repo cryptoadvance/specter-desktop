@@ -58,7 +58,13 @@ class Specter:
     lock = threading.Lock()
     _default_asset = None
 
-    def __init__(self, data_folder="./data", config={}, internal_bitcoind_version=""):
+    def __init__(
+        self,
+        data_folder="./data",
+        config={},
+        internal_bitcoind_version="",
+        checker_threads=True,
+    ):
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)
         data_folder = os.path.abspath(data_folder)
@@ -76,7 +82,8 @@ class Specter:
         # version checker
         # checks for new versions once per hour
         self.version = VersionChecker(specter=self)
-        self.version.start()
+        if checker_threads:
+            self.version.start()
 
         self._config_manager = ConfigManager(self.data_folder, config)
 
@@ -125,17 +132,20 @@ class Specter:
 
         self.update_tor_controller()
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
-        self.checker.start()
+        if checker_threads:
+            self.checker.start()
         self.price_checker = Checker(
             lambda: update_price(self, self.user), desc="price"
         )
-        if self.price_check and self.price_provider:
+        if self.price_check and self.price_provider and checker_threads:
             self.price_checker.start()
 
-        # This is for CTRL-C --> SIGINT
-        signal.signal(signal.SIGINT, self.cleanup_on_exit)
-        # This is for kill $pid --> SIGTERM
-        signal.signal(signal.SIGTERM, self.cleanup_on_exit)
+        if threading.current_thread() is threading.main_thread():
+            # breaks on non-main thread
+            # This is for CTRL-C --> SIGINT
+            signal.signal(signal.SIGINT, self.cleanup_on_exit)
+            # This is for kill $pid --> SIGTERM
+            signal.signal(signal.SIGTERM, self.cleanup_on_exit)
 
     def cleanup_on_exit(self, signum=0, frame=0):
         if self._tor_daemon:
