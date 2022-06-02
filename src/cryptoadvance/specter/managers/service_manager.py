@@ -227,7 +227,8 @@ class ServiceManager:
         """
         if callback_id not in dir(callbacks):
             raise Exception(f"Non existing callback_id: {callback_id}")
-        logger.debug(f"Executing callback {callback_id}")
+        # No debug statement here possible as this is called for every request and would flood the logs
+        # logger.debug(f"Executing callback {callback_id}")
         for ext in self.services.values():
             if hasattr(ext, f"callback_{callback_id}"):
                 getattr(ext, f"callback_{callback_id}")(*args, **kwargs)
@@ -308,13 +309,15 @@ class ServiceManager:
         # Those pathes are absolute. Let's make them relative:
         arr = [Path(*path.parts[-6:]) for path in arr]
 
+        virtuelenv_path = os.path.relpath(os.environ["VIRTUAL_ENV"], ".")
+
         if os.name == "nt":
-            virtualenv_search_path = Path("..", ".buildenv", "Lib")
+            virtualenv_search_path = Path(virtuelenv_path, "Lib")
         else:
             # let's calcultate so that we get something like:
             # virtualenv_search_path = Path("..", ".buildenv", "lib", "python3.8")
             site_package = [path for path in sys.path if "site-packages" in path][0]
-            site_package = Path("..", ".buildenv", *(Path(site_package).parts[-3:-1]))
+            site_package = Path(virtuelenv_path, *(Path(site_package).parts[-3:-1]))
             virtualenv_search_path = site_package
 
         # ... and as the classes are in the .buildenv (see build-unix.sh) let's add ..

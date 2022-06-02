@@ -19,6 +19,14 @@
                             <input id="specter-url" style="margin-top: 10px;" type="url" placeholder="http://" />
                             <br>
                             <p style="margin-top: 20px;">
+                                <img style="width: 25px; margin-right: 7px; vertical-align: bottom;" src="assets/lock.svg"/><span style="vertical-align: bottom; margin-right: 10px;">HTTP Basic authentication: </span><label class="switch">
+                                    <input type="checkbox" id="basic-auth-checkbox" onchange="toggleBasicAuth(this.checked)">
+                                    <span class="slider"></span>
+                                </label>
+                            </p>
+                            <input id="basic-auth-user" type="text" class="hidden" placeholder="Username" style="margin-bottom: 10px;" />
+                            <input id="basic-auth-pass" type="password" class="hidden" placeholder="Password" />
+                            <p style="margin-top: 20px;">
                                 <img style="width: 25px; margin-right: 7px; vertical-align: bottom;" src="assets/tor.svg"/><span style="vertical-align: bottom; margin-right: 10px;">Connect over Tor: </span><label class="switch">
                                     <input type="checkbox" id="tor-checkbox" onchange="toggleTorProxy(this.checked)">
                                     <span class="slider"></span>
@@ -129,6 +137,9 @@
                 let appSettings = getAppSettings()
                 appSettings.mode = hwiBridgeMode ? 'hwibridge' : 'specterd'
                 appSettings.specterURL = hwiBridgeMode ? remoteSpecterURL : 'http://localhost:25441'
+                appSettings.basicAuth = document.getElementById('basic-auth-checkbox').checked
+                appSettings.basicAuthUser = document.getElementById('basic-auth-user').value
+                appSettings.basicAuthPass = document.getElementById('basic-auth-pass').value
                 appSettings.tor = document.getElementById('tor-checkbox').checked
                 appSettings.proxyURL = document.getElementById('proxy-url').value
                 appSettings.specterdVersion = document.getElementById('specterd-version').value
@@ -139,6 +150,16 @@
                 ipcRenderer.send('request-mainprocess-action', {
                     message: 'quit-app'
                 });
+            }
+
+            function toggleBasicAuth(basicAuthOn) {
+                if (basicAuthOn) {
+                    document.getElementById('basic-auth-user').classList.remove('hidden')
+                    document.getElementById('basic-auth-pass').classList.remove('hidden')
+                } else {
+                    document.getElementById('basic-auth-user').classList.add('hidden')
+                    document.getElementById('basic-auth-pass').classList.add('hidden')
+                }
             }
 
             function toggleTorProxy(torOn) {
@@ -155,6 +176,10 @@
                 if (hwiBridgeMode) {
                     document.getElementById('specter-url').value = appSettings.specterURL
                 }
+                document.getElementById('basic-auth-user').value = appSettings.basicAuthUser
+                document.getElementById('basic-auth-pass').value = appSettings.basicAuthPass
+                document.getElementById('basic-auth-checkbox').checked = appSettings.basicAuth
+                toggleBasicAuth(appSettings.basicAuth)
                 document.getElementById('proxy-url').value = appSettings.proxyURL
                 document.getElementById('tor-checkbox').checked = appSettings.tor
                 toggleTorProxy(appSettings.tor)
