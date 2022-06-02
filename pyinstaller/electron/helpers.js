@@ -40,6 +40,9 @@ function getAppSettings() {
     let defaultSettings = {
       mode: 'specterd',
       specterURL: 'http://localhost:25441',
+      basicAuth: false,
+      basicAuthUser: '',
+      basicAuthPass: '',
       tor: false,
       proxyURL: "socks5://127.0.0.1:9050",
       specterdVersion: versionData.version,
