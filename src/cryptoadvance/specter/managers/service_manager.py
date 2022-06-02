@@ -227,7 +227,8 @@ class ServiceManager:
         """
         if callback_id not in dir(callbacks):
             raise Exception(f"Non existing callback_id: {callback_id}")
-        logger.debug(f"Executing callback {callback_id}")
+        # No debug statement here possible as this is called for every request and would flood the logs
+        # logger.debug(f"Executing callback {callback_id}")
         for ext in self.services.values():
             if hasattr(ext, f"callback_{callback_id}"):
                 getattr(ext, f"callback_{callback_id}")(*args, **kwargs)
