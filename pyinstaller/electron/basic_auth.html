@@ -1,0 +1,65 @@
+<html>
+    <style>
+        input[type="text"]:disabled {
+            border: none;
+        }
+    </style>
+    <link rel="stylesheet" type="text/css" href="./styles.css">
+    <body style="overflow: auto; height: 100%;">
+        <div style="margin: auto; text-align: left;">
+            <h1 style="margin-top: 20px;">Authorization</h1>
+            <form action="" class="card">
+                <div>
+                    <h2>The server at '<span id="server">...</span>' is prompting for authorization</h2>
+                    <div style="margin: 10px;">
+                        <div id="basic-auth-settings">
+                            <input id="basic-auth-user" type="text" placeholder="Username" style="margin-bottom: 10px" />
+                            <input id="basic-auth-pass" type="password" placeholder="Password" style="margin-bottom: 10px" />
+                            <span style="vertical-align: bottom; margin-right: 10px;">Save username and password: </span><label class="switch">
+                                <input type="checkbox" id="save-auth-checkbox" onchange="toggleBasicAuth(this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <br>
+                </div><br>
+                <div class="row flex-center">
+                    <button type="button" id="cancel-btn" class="btn" onclick="cancel()" style="margin: 5px;">Cancel</button>
+                    <button type="button" id="ok-btn" class="btn action" onclick="saveAuth()" style="margin: 5px;">Ok</button>
+                </div>
+            </form>
+        </div>
+        <script>
+            const fs = require('fs')
+            const { ipcRenderer } = require('electron')
+            const helpers = require('./helpers')
+            const getAppSettings = helpers.getAppSettings
+            const appSettingsPath = helpers.appSettingsPath
+
+            function cancel() {
+                window.close();
+            }
+
+            function saveAuth() {
+                let appSettings = getAppSettings()
+                appSettings.basicAuth = true
+                appSettings.basicAuthUser = document.getElementById('basic-auth-user').value
+                appSettings.basicAuthPass = document.getElementById('basic-auth-pass').value
+                if (document.getElementById('save-auth-checkbox').checked) {
+                    fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings));
+                }
+                ipcRenderer.send('basic-auth', {
+                    username: appSettings.basicAuthUser,
+                    password: appSettings.basicAuthPass
+                });
+            }
+
+            document.addEventListener("DOMContentLoaded", function() {
+                let appSettings = getAppSettings()
+                document.getElementById('server').innerText = appSettings.specterURL
+                document.getElementById('basic-auth-user').value = appSettings.basicAuthUser
+                document.getElementById('basic-auth-pass').value = appSettings.basicAuthPass
+            });
+        </script>
+    </body>
+</html>
