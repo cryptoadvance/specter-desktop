@@ -75,7 +75,7 @@
 				{% set supports_hwi = supports_hwi.append(device) %}
 			{% endfor %}
 			{% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
-				<button type="button" onclick='displayAddressOnDevice(`{{ wallet.address }}`, `{{ wallet.get_descriptor()|tojson }}`)' class="btn centered optional">{{ _("Display address on device") }}</button><br>
+				<button type="button" onclick='displayAddressOnDevice(`{{ wallet.address }}`, `{{ wallet.get_descriptor().to_string() | tojson }}`)' class="btn centered optional">{{ _("Display address on device") }}</button><br>
 				{% if wallet.is_multisig %}
 					<p class="note center optional">{{ _("Multsig address on-device display is only available for BitBox02, ColdCard, KeepKey, Specter, and Trezor devices.") }}</p>
 				{% endif %}

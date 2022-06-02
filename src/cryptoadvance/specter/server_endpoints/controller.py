@@ -1,3 +1,4 @@
+from ..services.callbacks import flask_before_request
 import random, traceback
 from time import time
 from flask_wtf.csrf import CSRFError
@@ -158,8 +159,13 @@ def selfcheck():
 
 @app.before_request
 def slow_request_detection_start():
-    """ """
     g.start = time()
+
+
+@app.before_request
+def execute_service_manager_hook():
+    """inform extensions about the request"""
+    app.specter.service_manager.execute_ext_callbacks(flask_before_request, request)
 
 
 @app.after_request
@@ -214,3 +220,18 @@ if app.config["SPECTER_URL_PREFIX"] != "":
     @app.route(f"{app.config['SPECTER_URL_PREFIX']}/")
     def index_prefix():
         return redirect(url_for("welcome_endpoint.index"))
+
+
+@app.route("/healthz/liveness")
+def liveness():
+    return {"message": "i am alive"}
+
+
+@app.route("/healthz/readyness")
+def readyness():
+    try:
+        # Probably improvable:
+        app.specter.check()
+    except Exception as e:
+        return {"message": "i am not ready"}, 500
+    return {"message": "i am ready"}

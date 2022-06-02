@@ -93,6 +93,18 @@ class Wallet:
         old_format_detected=False,
         last_block=None,
     ):
+        """creates a wallet. Very inconvenient to call as it has a lot of mandatory Parameters.
+            You better use either the Wallet.from_json() or the WalletManager.create_wallet() method.
+        :param string name: a not necessarily unique name
+        :param string alias: A unique alias. Might get modified automatically if not unique
+        :param string: irrelevan description
+        :param string address_type: one of bech32, p2sh-segwit, taproot
+        :param string address: the current free recv_address
+        :param int address_index: the current index for self.address
+        :param string change_address: the current free change_address
+        :param int change_index: the current index for self.change_address
+
+        """
         self.name = name
         self.alias = alias
         self.description = description
@@ -926,6 +938,10 @@ class Wallet:
         return len(self.keys) > 1
 
     @property
+    def is_singlesig(self):
+        return len(self.keys) == 1
+
+    @property
     def keys_count(self):
         return len(self.keys)
 
@@ -1317,7 +1333,7 @@ class Wallet:
                 )
         return desc
 
-    def get_descriptor(self, index=None, change=False, address=None):
+    def get_descriptor(self, index=None, change=False, address=None, keep_xpubs=False):
         """
         Returns address descriptor from index, change
         or from address belonging to the wallet.
@@ -1332,14 +1348,7 @@ class Wallet:
                 change = a.change
         if index is None:
             index = self.change_index if change else self.address_index
-        return {
-            "descriptor": add_checksum(
-                str(self.derive_descriptor(index, change, keep_xpubs=False))
-            ),
-            "xpubs_descriptor": add_checksum(
-                str(self.derive_descriptor(index, change, keep_xpubs=True))
-            ),
-        }
+        return self.derive_descriptor(index, change, keep_xpubs)
 
     def get_address_info(self, address) -> Address:
         # TODO: This is a misleading name. This is really fetching an Address obj

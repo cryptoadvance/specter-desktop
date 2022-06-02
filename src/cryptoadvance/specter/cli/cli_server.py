@@ -81,6 +81,7 @@ def server(
     specter_data_folder,
     config,
 ):
+    """Run Specter Desktop as a http(s)-service"""
     # logging
     if debug:
         ca_logger = logging.getLogger("cryptoadvance")

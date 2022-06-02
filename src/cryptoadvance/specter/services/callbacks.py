@@ -29,3 +29,8 @@ after_serverpy_init_app = "after_serverpy_init_app"
     SPECTER_PERSISTENCE_CALLBACK_ASYNC.
 """
 specter_persistence_callback = "specter_persistence_callback"
+
+""" 
+    Will get called before every request via the Flask's @app.before_request
+"""
+flask_before_request = "flask_before_request"
