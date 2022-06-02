@@ -484,6 +484,7 @@ When CoinJoin servers and hardware wallets support proof of ownership: https://g
 # VIDEOS
 
 ## **1** [Getting started with Specter-DIY and Specter-Desktop](https://twitter.com/CryptoAdvance/status/1235151027348926464)
+![video](https://www.youtube.com/embed/eF4cgK_L6T4)
 
 How to flash and set up an air-gapped hardware wallet that uses QR codes to communicate with the host.
 
@@ -497,6 +498,7 @@ In the video:
  - Signing multisig transactions 
 
 ## **2** [Assembling Specter-DIY](https://www.youtube.com/watch?v=1H7FqG_FmCw)
+![video](https://www.youtube.com/embed/1H7FqG_FmCw)
 
 Specter-DIY hardware wallet: 
 
@@ -508,6 +510,7 @@ Specter-DIY hardware wallet:
 ## **3** [Specter-DIY air-gapped open source bitcoin hardware wallet overview](https://twitter.com/KeithMukai/status/1189565099259944961)
 
 ## **4** [Build your own bitcoin hardware-wallet YT series](https://www.youtube.com/playlist?list=PLn2qRQUAAg0z_-R0swVuSsNS9bzRu6oP5&app=desktop)
+![video](https://www.youtube.com/embed/AgOqTGeDrac)  [playlist](https://www.youtube.com/playlist?list=PLn2qRQUAAg0z_-R0swVuSsNS9bzRu6oP5&app=desktop)
 
 ## *What is the difference between that project (DIYbitcoinhardware) & Specter? Is DIYbitcoinhardware sort of a prerequisite for Specter?*
 

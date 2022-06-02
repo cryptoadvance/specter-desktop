@@ -5,9 +5,9 @@ nav:
     - Home:
       - 'Introduction': README.md
       - release-notes.md
+      - multisig-guide.md
     - User Guide:
       - faq.md
-      - multisig-security-tradeoffs.md
       - 'Using Tor': tor.md
       - 'Signing messages': sign-message.md
     - Operating Guide:
@@ -40,3 +40,18 @@ nav:
       - api/ep_wallets_wallet.md
 theme: 
   name: readthedocs
+markdown_extensions:
+  - mdx_truly_sane_lists
+plugins:
+  - mkdocs-video:
+      mark: "small_video"
+      css_style:
+        width: "70%"
+        height: "15lw"
+        min-width: "300px"
+        min-height: "180px"
+  - mkdocs-video:
+      mark: "video"
+      css_style:
+        width: "100%"
+        height: "22.172vw"
