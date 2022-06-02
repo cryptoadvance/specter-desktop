@@ -141,7 +141,7 @@ class Specter:
             self.price_checker.start()
 
         if threading.current_thread() is threading.main_thread():
-            # breaks on non-main thread
+            # Python signal handlers are always executed in the main Python thread and only the main thread is allowed to set a new signal handler.
             # This is for CTRL-C --> SIGINT
             signal.signal(signal.SIGINT, self.cleanup_on_exit)
             # This is for kill $pid --> SIGTERM
