@@ -1,4 +1,4 @@
-## v1.10.1 Juni 02, 2022
+## v1.10.2 Juni 03, 2022
 - Feature: Basic auth in electron #1730 (djpnewton)
 - Feature: Multisig beginner guide #1731 (relativisticelectron)
 - Bugfix: Corrected build instructions and made virtuelenv name dynamic #1735 (relativisticelectron)
