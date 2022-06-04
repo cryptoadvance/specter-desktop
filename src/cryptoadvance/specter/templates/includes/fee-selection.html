@@ -332,6 +332,11 @@
             } catch(e) {console.log(e)}   
         }
 
+
+        setSubtractFrom(recipient) {
+            this.subtractFromInput.value = recipient
+        }
+
         // Updates Light DOM values for the form
         subtractUpdated() {
             if (this.subtract.checked) {
