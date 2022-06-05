@@ -138,29 +138,32 @@ class PsbtCreator:
         """calculates the correct format needed by wallet.createpsbt() out of a request-form
         returns something like  (addresses, labels, amounts, amount_units) (all arrays)
         """
-        i = 0
         addresses = []
         labels = []
         amounts = []
         amount_units = []
-        while "address_{}".format(i) in request_form:
-            addresses.append(request_form["address_{}".format(i)])
+
+        recipient_ids_in_order = [
+            int(i) for i in json.loads(request_form["recipient_ids_in_order"])
+        ]  # e.g. ['1', '0', '3', '2']
+        for recipient_id in recipient_ids_in_order:
+            addresses.append(request_form["address_{}".format(recipient_id)])
             amount = 0.0
             try:
-                amount = float(request_form["btc_amount_{}".format(i)])
+                amount = float(request_form["btc_amount_{}".format(recipient_id)])
             except ValueError:
                 pass
             if isnan(amount):
                 amount = 0.0
             amounts.append(amount)
-            unit = request_form["amount_unit_{}".format(i)]
+            unit = request_form["amount_unit_{}".format(recipient_id)]
             if specter.is_liquid and unit in ["sat", "btc"]:
                 unit = specter.default_asset
             amount_units.append(unit)
-            labels.append(request_form["label_{}".format(i)])
-            if request_form["label_{}".format(i)] != "":
-                wallet.setlabel(addresses[i], labels[i])
-            i += 1
+            labels.append(request_form["label_{}".format(recipient_id)])
+            if request_form["label_{}".format(recipient_id)] != "":
+                wallet.setlabel(addresses[recipient_id], labels[recipient_id])
+
         return addresses, labels, amounts, amount_units
 
     @classmethod
@@ -170,7 +173,6 @@ class PsbtCreator:
         """calculates the correct format needed by wallet.createpsbt() out of a request-form
         out of a textbox holding addresses and amounts.
         """
-        i = 0
         addresses = []
         labels = []
         amounts = []

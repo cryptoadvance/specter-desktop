@@ -26,6 +26,7 @@
 	<form action="{{ url_for('wallets_endpoint.send_new',wallet_alias=wallet_alias) }}" id="send-form" method="POST" style="width: 100%;">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="rbf_tx_id" value="{{ rbf_tx_id }}"/>
+		<input type="hidden" name="recipient_ids_in_order"  id="recipient_ids_in_order" value=""/>  
 		<h1 class="padded">{{ _("Create Transaction") }}</h1>
 		<div style="display: flex; justify-content: center; margin-bottom: 15px">
 			<div>{{ _("Available funds:") }} {{wallet.amount_available | btcunitamount}}
@@ -189,11 +190,11 @@
 		})
 
 		function addRecipient(addr, amount, amount_unit, label) {
-			let ids = recipient_array.map(({id}) => id) 
-			id = 0
+			let ids = recipient_array.map(({id}) => id) ;
+			id = 0;
 			if (ids.length > 0){
-				id = Math.max(ids)+1
-			}
+				id = Math.max(...ids)+1
+			}			;
 			recipient = {
 				'amount':amount,
 				'unit':amount_unit,
@@ -359,18 +360,6 @@
 			let ids = recipient_array.map(({id}) => id) ;
 			let recipient = recipient_array[ids.indexOf(id)];
 			recipient['amount'] = parseFloat(amountInput.value);
-
-			function assertEqual(v1, v2, message) {
-				condition = (v1 == v2 || (isNaN(v1) && isNaN(v2)))
-				if (!condition) {
-					throw message || "Assertion failed";
-				}
-			}
-
-			console.log(recipient['amount'])
-			console.log(recipient_array[ids.indexOf(id)]['amount'])
-			assertEqual(recipient['amount'], recipient_array[ids.indexOf(id)]['amount']);
-
 
 			let convertedAmount = parseFloat(Number.parseFloat(recipient['amount'] / (recipient['unit'] == 'sat' ? 1e8 : 1e-8)).toFixed((recipient['unit'] == 'sat' ? 8 : 0)));
 			if (convertedAmount == 'NaN') {
@@ -541,8 +530,6 @@
 			if (document.getElementById('ui-radio-btn').checked) {
 				for(let i in recipient_array) {
 					let recipient = recipient_array[i];
-					console.log('recipient')
-					console.log(recipient)
 					if(recipient['unit'] == 'btc' || recipient['unit'] == 'sat'){
 						totalAmount += (recipient['unit'] == 'sat' ? recipient['amount'] / 1e8 : recipient['amount']);
 					}else{
@@ -590,6 +577,13 @@
 					return;
 				}
 			}
+
+
+			var recipient_ids_in_order = document.getElementById('recipient_ids_in_order')  
+			recipient_ids_in_order.value = JSON.stringify(sortable_recipient_wrapper.toArray()); 
+
+
+
 
 			createPSBTButton.setAttribute('type', 'submit');
 			return true;
@@ -704,8 +698,14 @@
 			
 			onEnd: function(evt) {
 				console.log("Dragged id: " + evt.item.id);
+
+				var recipients = document.getElementById('recipients')  
+				recipients.recipient_ids_in_order = sortable_recipient_wrapper.toArray();
+				console.log("New recipient order: " +recipients.recipient_ids_in_order);
+
 			}		
 		});
+
 
 	</script>
 {% endblock %}
