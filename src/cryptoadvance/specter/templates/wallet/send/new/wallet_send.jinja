@@ -306,7 +306,12 @@
 			calculateConvertedUnit(id);
 		} 
 
-		function removeRecipient(id=-1) {			
+		function removeRecipient(id=-1) {	
+			if (recipient_array.length == 1){  // should not delete the last recipient
+				showError(`{{ _("Cannot delete the last recipient") }}`, 5000)
+				return;
+			}
+
 			if (id==-1) {
 				id = recipient_array.length - 1
 			};
