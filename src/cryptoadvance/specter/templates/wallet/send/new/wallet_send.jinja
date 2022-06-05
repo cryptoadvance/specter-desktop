@@ -542,6 +542,37 @@
 			}
 		}
 
+		async function checkIfOwnAddress(id) {
+			let address = document.getElementById('address_' + id).value;
+			if (!address){return;}
+
+
+			// this calls wallet.is_address_mine(address)
+			var formData = new FormData(document.getElementById('send-form'));
+			let url="{{ url_for('wallets_endpoint_api.is_address_mine', wallet_alias=wallet.alias) }}"
+			formData.append("address", address)
+			const response = await fetch(
+				url,
+				{
+					method: 'POST',
+					body: formData
+				}
+			);
+			if(response.status != 200){
+				showError(await response.text());
+				console.log("Error while fetching fees")
+				return
+			}
+			let is_address_mine = await response.json();
+			return is_address_mine;
+		}
+
+		async function mark_recipient(id, is_address_mine){
+			let recipient_element = document.getElementById(`recipient_${id}`);
+			recipient_element.background-color: rgba(0,0,0, 0.75);
+
+		}
+
 		function validateForm(submitted=false) {
 			console.log("validateForm is called")
 			let createPSBTButton = document.getElementById('create_psbt_btn');
@@ -564,6 +595,9 @@
 					if (document.getElementById("amount_" + recipient['id']).value == '') {
 						recipient['amount'] = 0;
 					}
+
+					mark_recipient(recipient['id'], checkIfOwnAddress(recipient['id']) );
+
 					if (submitted) {
 						// Check address
 						if (!validAddress(recipient['id'])) {

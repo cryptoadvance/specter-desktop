@@ -657,6 +657,13 @@ def utxo_csv(wallet_alias):
         return _("Failed to export wallet utxo. Error: {}").format(e), 500
 
 
+@wallets_endpoint_api.route("/wallet/<wallet_alias>/is_address_mine", methods=["POST"])
+@login_required
+def is_address_mine(wallet_alias):
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    return jsonify(wallet.is_address_mine(request.form["address"]))
+
+
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/send/estimatefee", methods=["POST"])
 @login_required
 def estimate_fee(wallet_alias):
