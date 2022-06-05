@@ -34,6 +34,7 @@ def test_PsbtCreator_ui(caplog):
         "fee_rate_dynamic": "64",
         "rbf": "on",
         "action": "createpsbt",
+        "recipient_ids_in_order": '["0", "1"]',
     }
 
     psbt_creator: PsbtCreator = PsbtCreator(

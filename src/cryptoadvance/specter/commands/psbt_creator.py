@@ -162,7 +162,7 @@ class PsbtCreator:
             amount_units.append(unit)
             labels.append(request_form["label_{}".format(recipient_id)])
             if request_form["label_{}".format(recipient_id)] != "":
-                wallet.setlabel(addresses[recipient_id], labels[recipient_id])
+                wallet.setlabel(addresses[-1], labels[-1])
 
         return addresses, labels, amounts, amount_units
 
