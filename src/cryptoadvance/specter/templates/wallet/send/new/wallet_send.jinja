@@ -424,14 +424,12 @@
 			let othersAmount = 0;
 			for(let j in recipient_array) {		
 				recipient = recipient_array[j]		;
-				if (j != id) {
+				if (recipient['id'] != id) {
 					let unit = recipient['unit'];
 					let amount = recipient['amount'];
 					// assets
 					if(recipient['unit'] != 'sat' || recipient['unit'] != 'btc'){
-						if(unit == recipient['unit']){
-							othersAmount += amount;
-						}
+						othersAmount += amount;
 					// btc
 					}else{
 						if(unit == 'sat' || unit == 'btc'){
