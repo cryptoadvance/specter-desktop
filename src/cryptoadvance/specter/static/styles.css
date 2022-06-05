@@ -1322,7 +1322,7 @@ input:checked + .slider:before {
     cursor: pointer; 
 }
 .recipient_dragger:hover{
-    cursor: ns-resize; 
+    cursor: grab; 
   }
 
   
