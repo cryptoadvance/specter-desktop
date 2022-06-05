@@ -112,7 +112,7 @@
 
 
 {% block scripts %}
-    <script src="{{ url_for('static', filename='Sortable.js') }}"></script>
+    <script src="{{ url_for('static', filename='Sortable.min.js') }}"></script>   <!-- v1.15.0 from https://github.com/SortableJS/Sortable/releases -->
 	<script>
 		{% if specter.is_liquid %}
 			const MIN_FEE_RATE = 0.1;
