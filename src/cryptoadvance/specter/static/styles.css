@@ -1311,10 +1311,12 @@ input:checked + .slider:before {
 
 .recipient_button{
     background-color: var(--cmap-blue-darker);
-    padding: 2px;
+    padding-left: 2px;
+    padding-right: 2px;
+    margin-left: 2px;
+    margin-right: 2px; 
     border-radius: 3px;
     width: fit-content;
-    display:inline;
     border: none;    
   }
 
