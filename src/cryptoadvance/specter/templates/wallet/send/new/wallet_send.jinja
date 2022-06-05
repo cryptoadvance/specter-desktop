@@ -416,6 +416,10 @@
 		}
 
 		async function setMaxAmount(id) {
+			let ids = recipient_array.map(({id}) => id) ;
+			let recipient = recipient_array[ids.indexOf(id)];
+
+
 			let amountInput = document.getElementById('amount_' + id);
 			if (!validAddress(id)) {
 				return;
@@ -423,13 +427,15 @@
 			FeeSelectionComponent.setSubtract(recipient['unit'] == 'sat' || recipient['unit'] == 'btc' || recipient['unit'] == 'lbtc');
 			let othersAmount = 0;
 			for(let j in recipient_array) {		
-				recipient = recipient_array[j]		;
-				if (recipient['id'] != id) {
-					let unit = recipient['unit'];
-					let amount = recipient['amount'];
+				other_recipient = recipient_array[j]		;
+				if (other_recipient['id'] != id) {
+					let unit = other_recipient['unit'];
+					let amount = other_recipient['amount'];
 					// assets
-					if(recipient['unit'] != 'sat' || recipient['unit'] != 'btc'){
-						othersAmount += amount;
+					if(other_recipient['unit'] != 'sat' || other_recipient['unit'] != 'btc'){
+						if(unit == recipient['unit']){
+							othersAmount += amount;
+						}
 					// btc
 					}else{
 						if(unit == 'sat' || unit == 'btc'){
@@ -438,6 +444,7 @@
 					}
 				}
 			}
+
 			let maxAmount = (coinselectionWebcomponent.getSpendableAmount(recipient['unit']) - (recipient['unit'] == 'sat' ? othersAmount * 1e8 : othersAmount));
 			if (recipient['unit'] == 'sat') {
 				maxAmount = Math.round(maxAmount);
