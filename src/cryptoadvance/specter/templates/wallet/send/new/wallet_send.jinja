@@ -234,7 +234,9 @@
 			{% endif %}
 			let recipientForm = `			
 			<div id="recipient_${id}" class="item" >		
-				<span  class="recipient_button">&#19977;</span>   Recipient ${id+1}
+				<span class="recipient_dragger">
+					<span  class="recipient_button">&#19977;</span>   Recipient ${id+1}
+				</span>
 				<span class="recipient_button" style="float:right" onclick="removeRecipient(${id})">&#10060;</span>
 
 				<div class="inner_box"  >

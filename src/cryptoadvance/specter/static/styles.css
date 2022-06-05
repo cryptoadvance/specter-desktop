@@ -1319,6 +1319,14 @@ input:checked + .slider:before {
     width: fit-content;
     border: none;    
   }
+.recipient_dragger {
+    cursor: pointer; 
+}
+.recipient_dragger:hover{
+    cursor: ns-resize; 
+  }
+
+  
 
 .recipient_wrapper{
     padding: 5px;
@@ -1342,12 +1350,4 @@ input:checked + .slider:before {
   .recipient_wrapper .item:last-child{
     margin-bottom: 0px;
   }
-  .recipient_wrapper .item .text{
-    font-size: 18px;
-    font-weight: 400;
-  }
-  .recipient_wrapper .item i{
-    font-size: 18px;
-    cursor: pointer;
-  }
-
+  
