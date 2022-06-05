@@ -591,12 +591,9 @@
 				}
 			}
 
-
+			// this has to be set before send-form POST request 
 			var recipient_ids_in_order = document.getElementById('recipient_ids_in_order')  
 			recipient_ids_in_order.value = JSON.stringify(sortable_recipient_wrapper.toArray()); 
-
-
-
 
 			createPSBTButton.setAttribute('type', 'submit');
 			return true;
@@ -708,6 +705,7 @@
 		const sortable_recipient_wrapper = Sortable.create(document.querySelector(".recipient_wrapper"), {
 			dataIdAttr: 'id',
 			animation: 350,
+			handle: '.recipient_dragger',
 			
 			onEnd: function(evt) {
 				console.log("Dragged id: " + evt.item.id);
