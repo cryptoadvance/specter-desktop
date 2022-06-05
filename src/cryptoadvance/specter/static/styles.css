@@ -1319,7 +1319,7 @@ input:checked + .slider:before {
     border: none;    
   }
 .recipient_dragger {
-    cursor: pointer; 
+    cursor: grab; 
 }
 .recipient_dragger:hover{
     cursor: grab; 

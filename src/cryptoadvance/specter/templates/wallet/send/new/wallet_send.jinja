@@ -122,6 +122,17 @@
 			const NETWORK = "Bitcoin"
 		{% endif %}
 
+
+
+		function get_recipient_ids() {
+			return recipient_array.map(({id}) => id);
+		}
+
+		function get_recipient(id) {
+			let ids = get_recipient_ids();
+			return  recipient_array[ids.indexOf(id)];
+		}
+
 		// Amounts and units
 		var textUnit = '{{ specter.unit }}';
 		var recipient_array = [];
@@ -187,8 +198,9 @@
 			}
 		})
 
+
 		function addRecipient(addr, amount, amount_unit, label) {
-			let ids = recipient_array.map(({id}) => id) ;
+			let ids = get_recipient_ids();
 			id = 0;
 			if (ids.length > 0){
 				id = Math.max(...ids)+1
@@ -317,7 +329,7 @@
 			if (id==-1) {
 				id = recipient_array.length - 1
 			};
-			let ids = recipient_array.map(({id}) => id) 
+			let ids = get_recipient_ids();
 
 
 			//recipient.parentNode.removeChild(recipient);					
@@ -343,8 +355,7 @@
 		}
 
 		function toggleUnit(unitSelected, id) {
-			let ids = recipient_array.map(({id}) => id) ;
-			let recipient = recipient_array[ids.indexOf(id)];
+			let recipient = recipient(id);
 
 			if (id == 'text') {
 				textUnit = unitSelected.value
@@ -366,8 +377,7 @@
 		function calculateConvertedUnit(id) {
 			let amountInput = document.getElementById('amount_' + id);
 
-			let ids = recipient_array.map(({id}) => id) ;
-			let recipient = recipient_array[ids.indexOf(id)];
+			let recipient = get_recipient(id);
 			recipient['amount'] = parseFloat(amountInput.value);
 
 			let convertedAmount = parseFloat(Number.parseFloat(recipient['amount'] / (recipient['unit'] == 'sat' ? 1e8 : 1e-8)).toFixed((recipient['unit'] == 'sat' ? 8 : 0)));
@@ -416,8 +426,7 @@
 		}
 
 		async function setMaxAmount(id) {
-			let ids = recipient_array.map(({id}) => id) ;
-			let recipient = recipient_array[ids.indexOf(id)];
+			let recipient = get_recipient(id);
 
 
 			let amountInput = document.getElementById('amount_' + id);
