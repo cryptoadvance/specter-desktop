@@ -17,11 +17,11 @@ def test_PsbtCreator_ui(caplog):
     # Let's mock the request.form which behaves like a dict but also needs getlist()
     request_form_data = {
         "rbf_tx_id": "",
-        "address_0": "BCRT1qgc6h85z43g3ss2dl5zdrzrp3ef6av4neqcqhh8",  # will need normalisation
-        "label_0": "someLabel",
-        "amount_0": "0.1",
-        "btc_amount_0": "0.1",
-        "amount_unit_0": "btc",
+        "address_4": "BCRT1qgc6h85z43g3ss2dl5zdrzrp3ef6av4neqcqhh8",  # will need normalisation
+        "label_4": "someLabel",
+        "amount_4": "0.1",
+        "btc_amount_4": "0.1",
+        "amount_unit_4": "btc",
         "address_1": "bcrt1q3kfetuxpxvujasww6xas94nawklvpz0e52uw8a",
         "label_1": "someOtherLabel",
         "amount_1": "111211",
@@ -39,7 +39,7 @@ def test_PsbtCreator_ui(caplog):
         "fee_rate_dynamic": "64",
         "rbf": "on",
         "action": "createpsbt",
-        "recipient_ids_in_order": '["2", "0", "1"]',
+        "recipient_ids_in_order": '["2", "4", "1"]',
     }
 
     psbt_creator: PsbtCreator = PsbtCreator(
