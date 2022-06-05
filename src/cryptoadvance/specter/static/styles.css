@@ -14,6 +14,7 @@ html, body{
     --cmap-bg-lighter:    #263044;
     --cmap-bg-lightest:   #313E50;
     --cmap-border:        #506072;
+    --cmap-border-highlight:#4B8CD8;
     --cmap-border-darker: #405062;
 
     margin: 0;
@@ -1309,7 +1310,7 @@ input:checked + .slider:before {
 
 
 .recipient_button{
-    background-color: var(--cmap-blue-darker);
+    background: var(--cmap-border);
     padding-left: 2px;
     padding-right: 2px;
     margin-left: 2px;
@@ -1318,14 +1319,16 @@ input:checked + .slider:before {
     width: fit-content;
     border: none;    
   }
+.recipient_button:hover {
+    background: var(--cmap-border-darker);
+}
 .recipient_dragger {
     cursor: grab; 
 }
-.recipient_dragger:hover{
-    cursor: grab; 
-  }
+  .recipient_remove {
+    cursor: default; 
+}
 
-  
 
 .recipient_wrapper{
     padding: 5px;
@@ -1336,13 +1339,13 @@ input:checked + .slider:before {
   }
   .recipient_wrapper .item{
     border-radius: 5px;
-    border: 1px solid var(--cmap-blue);
+    border: 1px solid var(--cmap-border-highlight);
     padding: 5px;
     margin-bottom: 10px;
   }
   .recipient_wrapper .inner_box{
     border-radius: 5px;
-    border: 1px solid var(--cmap-blue);
+    border: 1px solid var(--cmap-border);
     padding: 5px;
     margin-top: 5px;
   }

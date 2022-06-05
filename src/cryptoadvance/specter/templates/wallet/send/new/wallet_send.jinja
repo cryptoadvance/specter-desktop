@@ -65,7 +65,7 @@
 	    </div>
 		<div class="card" style="margin: auto;">
 			<div id="recipients" {% if ui_option != 'ui' %}class="hidden"{% else %} class="recipient_wrapper" {% endif %}></div>
-			<div id="add-recipient" class="recipient_button" style="float:right"  onclick="addRecipient('', 0, 'btc', '')"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
+			<div id="add-recipient" title="Add a recipient" class="recipient_button" style="float:right"  onclick="addRecipient('', 0, 'btc', '')"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
 			<div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>
 			{{ _("Unit:") }} 
 			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_text" value="sat" onchange="toggleUnit(this, 'text')" {% if specter.unit == 'sat' %}checked{% endif %}>sat</label>
@@ -249,7 +249,7 @@
 				<span class="recipient_dragger">
 					<span  class="recipient_button">&#19977;</span>   Recipient ${id+1}
 				</span>
-				<span class="recipient_button" style="float:right" onclick="removeRecipient(${id})">&#10060;</span>
+				<span class="recipient_button recipient_remove" style="float:right" onclick="removeRecipient(${id})">&#10060;</span>
 
 				<div class="inner_box"  >
 					<div class="row">
