@@ -65,6 +65,7 @@
 	    </div>
 		<div class="card" style="margin: auto;">
 			<div id="recipients" {% if ui_option != 'ui' %}class="hidden"{% else %} class="recipient_wrapper" {% endif %}></div>
+			<div id="add-recipient" class="recipient_button" style="float:right"  onclick="addRecipient('', 0, 'btc', '')"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
 			<div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>
 			{{ _("Unit:") }} 
 			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_text" value="sat" onchange="toggleUnit(this, 'text')" {% if specter.unit == 'sat' %}checked{% endif %}>sat</label>
@@ -91,9 +92,6 @@
 				<br>
 				<br>
 				<br>
-				<div class="row break-row-mobile" id="coin-selection-row" style="margin-top: 30px;">
-					<button id="add-recipient" style="width: 200px; height: 38px;" type="button" class="btn" onclick="addRecipient('', 0, 'btc', '')"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> {{ _("Add recipient") }} </button>
-				</div><br>
 			</div>
 			{% include "includes/tx-row.html" %}
 			{% include "includes/tx-data.html" %}
@@ -236,8 +234,8 @@
 			{% endif %}
 			let recipientForm = `			
 			<div id="recipient_${id}" class="item" >		
-				<div  class="recipient_dragger">三</div>   Recipient ${id+1}
-				<button  class="recipient_delete" onclick="removeRecipient(${id})">❌</button>
+				<div  class="recipient_button">&#19977;</div>   Recipient ${id+1}
+				<div class="recipient_button" style="float:right" onclick="removeRecipient(${id})">&#10060;</div>
 
 				<div class="inner_box"  >
 					<div class="row">
@@ -300,10 +298,7 @@
 					});
 				}
 			});
-			if (recipient_array.length == 1) {
-				document.getElementById('coin-selection-row').style['margin-top'] = '30px';
-			} else {
-				document.getElementById('coin-selection-row').style['margin-top'] = '90px';
+			if (recipient_array.length != 1){
 				if (document.getElementById('subtract').checked) {
 					FeeSelectionComponent.showSubtractFrom(true)
 				}
@@ -318,18 +313,25 @@
 			let ids = recipient_array.map(({id}) => id) 
 
 
-			let recipient = document.getElementById('recipient_' + id);
-			recipient.parentNode.removeChild(recipient);
+			//recipient.parentNode.removeChild(recipient);					
 			recipient_array.splice(ids.indexOf( id), 1);
+
+
+			for  (var i = sortable_recipient_wrapper.el.children.length -1; i >= 0; i--)   {
+				let	child =  sortable_recipient_wrapper.el.children[i];
+				if (child['id'] == id) {
+					console.log('remove child')
+					console.log(child)
+					sortable_recipient_wrapper.el.removeChild(child)
+				}
+			}
 
 			if (recipient_array.length == 1) {
 				FeeSelectionComponent.showSubtractFrom(false);
-				document.getElementById('coin-selection-row').style['margin-top'] = '30px';
 			} else {
 				if (document.getElementById('subtract').checked) {
 					document.getElementById('subtract_from').style.display = 'block';
 				}
-				document.getElementById('coin-selection-row').style['margin-top'] = '90px';
 			}
 		}
 
@@ -698,10 +700,7 @@
 			
 			onEnd: function(evt) {
 				console.log("Dragged id: " + evt.item.id);
-
-				var recipients = document.getElementById('recipients')  
-				recipients.recipient_ids_in_order = sortable_recipient_wrapper.toArray();
-				console.log("New recipient order: " +recipients.recipient_ids_in_order);
+				console.log("New recipient order: " + JSON.stringify(sortable_recipient_wrapper.toArray()));
 
 			}		
 		});
