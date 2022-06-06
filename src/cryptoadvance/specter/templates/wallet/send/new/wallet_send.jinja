@@ -546,11 +546,11 @@
 			let address = document.getElementById('address_' + id).value;
 			if (!address){return;}
 
-
 			// this calls wallet.is_address_mine(address)
-			var formData = new FormData(document.getElementById('send-form'));
-			let url="{{ url_for('wallets_endpoint_api.is_address_mine', wallet_alias=wallet.alias) }}"
+			var formData = new FormData();
 			formData.append("address", address)
+			formData.append("csrf_token", "{{ csrf_token() }}")
+			let url="{{ url_for('wallets_endpoint_api.is_address_mine', wallet_alias=wallet.alias) }}"			
 			const response = await fetch(
 				url,
 				{
