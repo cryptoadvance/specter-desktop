@@ -661,7 +661,8 @@ def utxo_csv(wallet_alias):
 @login_required
 def is_address_mine(wallet_alias):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    return jsonify(wallet.is_address_mine(request.form["address"]))
+    address = request.form.get("address", None)
+    return jsonify(wallet.is_address_mine()) if address else jsonify(False)
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/send/estimatefee", methods=["POST"])
