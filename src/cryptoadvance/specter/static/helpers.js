@@ -147,12 +147,11 @@ async function send_request(url, method_str, formData, append_token=true) {
 	if (method_str == 'POST') {
 		d['body'] = formData;
 	}
-	console.log(d)
 
 	const response = await fetch(url, d);
 	if(response.status != 200){
 		showError(await response.text());
-		console.log("Error while fetching fees")
+		console.log(`Error while calling ${url} with ${method_str} ${formData}`)
 		return
 	}
 	return await response.json();

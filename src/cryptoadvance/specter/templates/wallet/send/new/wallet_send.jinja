@@ -339,8 +339,6 @@
 			for  (var i = sortable_recipient_wrapper.el.children.length -1; i >= 0; i--)   {
 				let	child =  sortable_recipient_wrapper.el.children[i];
 				if (child['id'] == id) {
-					console.log('remove child')
-					console.log(child)
 					sortable_recipient_wrapper.el.removeChild(child)
 				}
 			}
@@ -555,7 +553,7 @@
 		}
 
 		function mark_recipient(id, is_address_mine){
-			console.log(`${id} is_mine = ${is_address_mine}`)
+			console.log(`Marking ${id} as is_mine=${is_address_mine}`)
 
 			let html_address = document.getElementById(`address_${id}`);
 			if (is_address_mine) {
