@@ -542,6 +542,44 @@
 			}
 		}
 
+		async function checkIfOwnAddress(id) {
+			let address = document.getElementById('address_' + id).value;
+			if (!address){return;}
+
+			// this calls wallet.is_address_mine(address)
+			var formData = new FormData();
+			formData.append("address", address)
+			formData.append("csrf_token", "{{ csrf_token() }}")
+			let url="{{ url_for('wallets_endpoint_api.is_address_mine', wallet_alias=wallet.alias) }}"			
+			const response = await fetch(
+				url,
+				{
+					method: 'POST',
+					body: formData
+				}
+			);
+			if(response.status != 200){
+				showError(await response.text());
+				console.log("Error while fetching fees")
+				return
+			}
+			let is_address_mine = await response.json();
+			console.log(`${address} is_mine = ${is_address_mine}`)
+			return is_address_mine;
+		}
+
+		function mark_recipient(id, is_address_mine){
+			console.log(`${id} is_mine = ${is_address_mine}`)
+
+			let html_address = document.getElementById(`address_${id}`);
+			if (is_address_mine) {
+				html_address.style.backgroundColor= '#306d30';
+			} else {
+				html_address.style.backgroundColor= "rgba(1, 1, 1, 0)";
+			}
+
+		}
+
 		function validateForm(submitted=false) {
 			console.log("validateForm is called")
 			let createPSBTButton = document.getElementById('create_psbt_btn');
@@ -564,6 +602,12 @@
 					if (document.getElementById("amount_" + recipient['id']).value == '') {
 						recipient['amount'] = 0;
 					}
+
+					checkIfOwnAddress(recipient['id']).then((is_mine) => {
+						mark_recipient(recipient['id'], is_mine );
+					});
+					
+
 					if (submitted) {
 						// Check address
 						if (!validAddress(recipient['id'])) {
