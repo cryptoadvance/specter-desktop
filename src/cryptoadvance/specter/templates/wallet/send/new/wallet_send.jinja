@@ -571,11 +571,11 @@
 		function mark_recipient(id, is_address_mine){
 			console.log(`${id} is_mine = ${is_address_mine}`)
 
-			let recipient_element = document.getElementById(`address_${id}`);
+			let html_address = document.getElementById(`address_${id}`);
 			if (is_address_mine) {
-				recipient_element.style.backgroundColor= '#306d30';
+				html_address.style.backgroundColor= '#306d30';
 			} else {
-				recipient_element.style.backgroundColor= "rgba(1, 1, 1, 0)";
+				html_address.style.backgroundColor= "rgba(1, 1, 1, 0)";
 			}
 
 		}
