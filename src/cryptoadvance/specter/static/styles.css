@@ -16,6 +16,7 @@ html, body{
     --cmap-border:        #506072;
     --cmap-border-highlight:#4B8CD8;
     --cmap-border-darker: #405062;
+    --cmap-bg-address-is-min:#306d30;    
 
     margin: 0;
     padding: 0;
