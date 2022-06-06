@@ -134,11 +134,11 @@ function numberWithCommas(x) {
 
 
 
-async function send_request(url, method_str, formData, appendt_token=true) {
+async function send_request(url, method_str, formData, append_token=true) {
 	if (!formData) {
 		formData = new FormData();
 	}
-	if (appendt_token){
+	if (append_token){
 		formData.append("csrf_token", "{{ csrf_token() }}")
 	}
 	d = {
