@@ -657,11 +657,12 @@ def utxo_csv(wallet_alias):
         return _("Failed to export wallet utxo. Error: {}").format(e), 500
 
 
-@wallets_endpoint_api.route("/wallet/<wallet_alias>/is_address_mine", methods=["POST"])
+@wallets_endpoint_api.route(
+    "/wallet/<wallet_alias>/is_address_mine/<address>", methods=["GET"]
+)
 @login_required
-def is_address_mine(wallet_alias):
+def is_address_mine(wallet_alias, address):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    address = request.form.get("address", None)
 
     # filter out invalid input
     if (not address) or not isinstance(address, str):

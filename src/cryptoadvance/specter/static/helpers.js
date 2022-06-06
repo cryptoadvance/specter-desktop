@@ -131,3 +131,31 @@ function numberWithCommas(x) {
 	}
     return x.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
+
+
+
+async function send_request(url, method_str, formData, appendt_token=true) {
+	if (!formData) {
+		formData = new FormData();
+	}
+	if (appendt_token){
+		formData.append("csrf_token", "{{ csrf_token() }}")
+	}
+	d = {
+			method: method_str,
+		}
+	if (method_str == 'POST') {
+		d['body'] = formData;
+	}
+	console.log(d)
+
+	const response = await fetch(url, d);
+	if(response.status != 200){
+		showError(await response.text());
+		console.log("Error while fetching fees")
+		return
+	}
+	return await response.json();
+}
+
+
