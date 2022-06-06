@@ -662,7 +662,16 @@ def utxo_csv(wallet_alias):
 def is_address_mine(wallet_alias):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     address = request.form.get("address", None)
-    return jsonify(wallet.is_address_mine(address)) if address else jsonify(False)
+
+    # filter out invalid input
+    if (not address) or not isinstance(address, str):
+        return jsonify(False)
+
+    # Segwit addresses are always between 14 and 74 characters long.
+    if len(address) < 14:
+        return jsonify(False)
+
+    return jsonify(wallet.is_address_mine(address))
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/send/estimatefee", methods=["POST"])
