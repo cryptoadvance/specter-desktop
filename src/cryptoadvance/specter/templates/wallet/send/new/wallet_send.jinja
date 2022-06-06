@@ -564,12 +564,19 @@
 				return
 			}
 			let is_address_mine = await response.json();
+			console.log(`${address} is_mine = ${is_address_mine}`)
 			return is_address_mine;
 		}
 
-		async function mark_recipient(id, is_address_mine){
-			let recipient_element = document.getElementById(`recipient_${id}`);
-			recipient_element.background-color: rgba(0,0,0, 0.75);
+		function mark_recipient(id, is_address_mine){
+			console.log(`${id} is_mine = ${is_address_mine}`)
+
+			let recipient_element = document.getElementById(`address_${id}`);
+			if (is_address_mine) {
+				recipient_element.style.backgroundColor= '#306d30';
+			} else {
+				recipient_element.style.backgroundColor= "rgba(1, 1, 1, 0)";
+			}
 
 		}
 
@@ -596,7 +603,10 @@
 						recipient['amount'] = 0;
 					}
 
-					mark_recipient(recipient['id'], checkIfOwnAddress(recipient['id']) );
+					checkIfOwnAddress(recipient['id']).then((is_mine) => {
+						mark_recipient(recipient['id'], is_mine );
+					});
+					
 
 					if (submitted) {
 						// Check address
