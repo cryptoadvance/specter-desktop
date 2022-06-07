@@ -1,3 +1,37 @@
+## v1.10.2 Juni 03, 2022
+- Feature: Basic auth in electron #1730 (djpnewton)
+- Feature: Multisig beginner guide #1731 (relativisticelectron)
+- Bugfix: Corrected build instructions and made virtuelenv name dynamic #1735 (relativisticelectron)
+- Bugfix: issues while using specter as library #1740 (k9ert)
+- Bugfix: PDF backup does not open for multisig #1741 (k9ert)
+- UIUX: fix typo in error_logs #1739 (Bufo)
+
+## v1.10.0 Mai 27, 2022
+- Feature: adding has_service() method to user #1732 (Kim Neunert)
+- Feature: Choose file button for labels import #1682 (Manolis)
+- Feature: Customised front end for adding Electrum devices #1622 (relativisticelectron)
+- Feature: introducing gunicorn as an alternative WSGI HTTP Server #1721 (Kim Neunert)
+- Feature: Message signing via QR code #1567 (Manolis)
+- Feature: new extensionpoint specter_persistence_callback #1723 (Kim Neunert)
+- Feature: Optimized uncle jim pdf for the Debasafebags. #1706 (f9ert)
+- Bugfix: add proper uid to initial config fixes #1714 #1715 (Kim Neunert)
+- Bugfix: better error-handling and version checks #1691 (Kim Neunert)
+- Bugfix: wrong arguments for requests_session #1719 (Kim Neunert)
+- Chore: Adjusted releasing process and adding liquidissuer  #1716 (Kim Neunert)
+- Chore: Bump ejs from 3.1.5 to 3.1.7 in /pyinstaller/electron #1697 (dependabot[bot])
+- Chore: Change Specter compatibility to ">=3.7,<3.10" #1707 (relativisticelectron)
+- Chore: Docker #1696 (Aaron Dewes)
+- Chore: embit Upgrade to 0.4.13 (ripemd160 replacement)  #1702 (relativisticelectron)
+- Chore: install_noded.sh support for elements binary #1717 (relativisticelectron)
+- Chore: misc changes #1733 (Kim Neunert)
+- Chore: Non-standard ports for test-cypress.sh #1729 (Kim Neunert)
+- Chore: Refactor UTXO scan (and timeout bugfix for utxo_scan) #1687 (Kim Neunert)
+- Chore: Removing HWIBridge initialisation on module-level #1720 (Kim Neunert)
+- Chore: Upgrade black version for pre-commit #1708 (relativisticelectron)
+- Chore: Introducing an issue template #1692 (Kim Neunert)
+- Docs: Added support for other distros (Arch/Fedora) #1713 (Ankur)
+
+
 ## v1.9.4 April 28, 2022
 - UIUX: Overhaul of UTXO list, handling of locked UTXOs and scrollbar added #1580 (Manolis)
 - Bugfix: i18n issue preventing historical proces to work in edge cases #1664 (Kim Neunert)

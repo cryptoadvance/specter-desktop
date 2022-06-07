@@ -56,7 +56,7 @@ describe('Send transactions from bitcoin hotwallets', () => {
         cy.get('#btn_new_wallet').click()
         cy.get('[href="./multisig/"]').click()
         cy.get('#hot_device_1').click()
-        cy.get('#testdevice_ghost').click()
+        cy.get('#diy_ghost').click()
         cy.get('#submit-device').click()
         cy.get('#wallet_name').type("Test Multisig Wallet 1")
 

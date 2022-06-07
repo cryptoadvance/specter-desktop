@@ -56,10 +56,8 @@ def test_fetch_wallet_addresses_for_mining(caplog, wallets_filled_data_folder):
     caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
     # Todo: instantiate a specter-testwallet
     addresses = fetch_wallet_addresses_for_mining("bitcoin", wallets_filled_data_folder)
-    assert addresses == [
-        "bcrt1q4h86vfanswhsle63hw2muv9h5a45cg2878uez5",
-        "bcrt1qcatuhg0gll3h7py4cmn53rjjn9xlsqfwj3zcej",
-    ]
+    assert "bcrt1q4h86vfanswhsle63hw2muv9h5a45cg2878uez5" in addresses
+    assert "bcrt1q4h86vfanswhsle63hw2muv9h5a45cg2878uez5" in addresses
 
 
 @pytest.mark.slow
