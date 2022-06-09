@@ -1,0 +1,85 @@
+<!-- 
+    A custom element for showing extra information.
+    It makes use of a collapsible design, where some 
+    descriptive data is hidden from the user, and can be 
+    accessed by clicking on the one-liner title present 
+    after 📚 icon.
+
+{#- Usage -
+
+    <text-explainer>
+        <span slot="title">One-Liner Text which is visible</span>
+        <div slot="content">
+            Content that is hidden by default
+        </div>
+    </text-explainer>
+
+#} 
+-->
+
+<template id="text-explainer" style="padding:10px;">
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        #toggle-explainer {
+            cursor: pointer;
+            font-size: 1.2em;
+            max-width: 300px;
+            display: block;
+            margin: 10px auto;
+        }
+
+        slot[name=content]::slotted(*) {
+            width: 100%;
+        }
+
+        #explainer-body {
+            background: var(--cmap-bg-lighter);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 0.9em
+        }
+    </style>
+
+    <div id="toggle-explainer">
+        &#128218;
+        <slot name="title"></slot>
+        <span id="drop-icon">&#9654;</span>
+    </div>
+    
+    <div id="explainer-body" class="hidden">
+        <slot name="content"></slot>
+    </div>
+    
+</template>
+
+<script type="text/javascript">
+    class TextExplainerElement extends HTMLElement {
+        constructor() {
+            super();
+            // Create a shadow root
+            var shadow = this.attachShadow({mode: 'open'});
+            var template = document.getElementById('text-explainer');
+            var clone = template.content.cloneNode(true);
+
+            this.toggleExplainer = clone.querySelector("#toggle-explainer");
+            this.explainerBody = clone.querySelector("#explainer-body");
+            this.dropIcon = clone.querySelector("#drop-icon");
+
+
+			this.toggleExplainer.onclick = () => {
+                if (this.explainerBody.classList.contains('hidden')) {
+                    this.explainerBody.classList.remove("hidden");
+                    this.dropIcon.innerHTML = '&#9660;';
+                } else {
+                    this.explainerBody.classList.add("hidden");
+                    this.dropIcon.innerHTML = '&#9654;';
+                }
+			}
+            shadow.appendChild(clone);
+        }
+    }
+
+    customElements.define('text-explainer', TextExplainerElement);
+</script>
