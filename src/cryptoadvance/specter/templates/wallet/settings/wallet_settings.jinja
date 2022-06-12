@@ -1,5 +1,6 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
 {% include "includes/file-uploader.html" %}
+{% include "includes/dnd-textarea.html" %}
 {% set tab = 'settings' %}
 {% block content %}
 	<style>
@@ -182,16 +183,12 @@
 			<form action="." method="POST" class="padded" style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				<div class="row aligned">
-					<textarea name="address_labels_data" 
-					id="address_labels_data" 
-					placeholder="{{ _('You can paste and drag & drop here:') }}&#10&#10{{ _('Electrum JSON file, Specter addresses CSV or Specter JSON file') }}"  
-					ondrop="dropHandler(event);" 
-					ondragover="dragOverHandler(event);"
-					ondragleave="dragLeaveHandler(event);" 
-					ondragexit="dragExitHandler(event);" 
-					ondragend="dragEndHandler(event);"
-					style="margin-bottom: 20px; height: 150px; font-size: 13px;">
-					</textarea>
+					<dnd-textarea 
+						name="address_labels_data" 
+						id="address_labels_data" 
+						placeholder="{{ _('You can paste and drag & drop here:') }}&#10&#10{{ _('Electrum JSON file, Specter addresses CSV or Specter JSON file') }}"  
+						style="margin-bottom: 10px;">
+					</dnd-textarea>
 					<file-uploader id="label-uploader" image_src="{{ url_for('static', filename='img/file.svg') }}" image_width="30px" button_width="137px" button_height="50px" button_color="hsl(217, 20%, 35%)">
 						<span slot="description">or upload file</span>
 					</file-uploader>
@@ -332,60 +329,7 @@
 
 {% block scripts %} 
 	<script type="text/javascript">
-		function paste_file_in_textarea(file, textarea) {
-			if (file != null  ) {
-				console.log(file.name);
-				let reader = new FileReader();
-				reader.onload = function(e) { 
-					textarea.value = reader.result;
-				}
-				reader.readAsBinaryString(file);
-			}
-		}
-
-		function dropHandler(ev) {
-			// Prevent default behavior (Prevent file from being opened)
-			ev.preventDefault();
-
-			if (ev.dataTransfer.items) {
-				// Use DataTransferItemList interface to access the file(s)
-				for (var i = 0; i < ev.dataTransfer.items.length; i++) {
-					// If dropped items aren't files, reject them
-					if (ev.dataTransfer.items[i].kind === 'file') {
-						var file = ev.dataTransfer.items[i].getAsFile();
-						paste_file_in_textarea(file, document.getElementById("address_labels_data"))
-						console.log('... file[' + i + '].name = ' + file.name);
-					}
-				}
-			} else {
-				// Use DataTransfer interface to access the file(s)
-				for (var i = 0; i < ev.dataTransfer.files.length; i++) {
-					paste_file_in_textarea(ev.dataTransfer.files[i], document.getElementById("address_labels_data"))
-					console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
-				}
-			}
-		}
-
-		function dragOverHandler(ev) {
-			// Prevent default behavior (Prevent file from being opened)
-			ev.preventDefault();
-			document.getElementById("address_labels_data").value = "Drop file here"
-		}
-
-
-		function dragLeaveHandler(ev) {
-			// Prevent default behavior (Prevent file from being opened)
-			document.getElementByID("address_labels_data").value = ""
-		}
-		function dragExitHandler(ev) {
-			// Prevent default behavior (Prevent file from being opened)
-			document.getElementByID("address_labels_data").value = ""
-		}
-		function dragEndHandler(ev) {
-			// Prevent default behavior (Prevent file from being opened)
-			document.getElementByID("address_labels_data").value = ""
-		}
-
+		
 		let uploader = document.getElementById('label-uploader');
 		uploader.addEventListener('upload', e => {
 			let result = e.detail.result;
@@ -394,7 +338,7 @@
 		});
 
 		document.addEventListener("DOMContentLoaded", function(){
-			let walletDataSpecterFormat = encodeURIComponent(`{{ wallet.to_json(for_export=True)|tojson }}`)
+			let walletDataSpecterFormat = encodeURIComponent(`{{ wallet.to_json(for_export=True)|tojson }}`);
 			document.getElementById('export_specter_format').href = "data:text/json;charset=utf-8," + walletDataSpecterFormat;
 		});
 
@@ -478,16 +422,16 @@
             }
         }
 
-        let textarea = document.getElementById("address_labels_data")
+        let textarea = document.getElementById("address_labels_data");
 		document.addEventListener('file-upload', e => {
-		let result = e.detail.result;
-		textarea.value = result
+			let result = e.detail.result;
+			textarea.value = result;
 		})
 
 		// Makes sure that the textarea for labels is cleared
 		document.addEventListener("DOMContentLoaded", () => {
-			let textarea = document.getElementById("address_labels_data")
-			textarea.value = ""
+			let textarea = document.getElementById("address_labels_data");
+			textarea.value = "";
 		})
 	</script>
 
