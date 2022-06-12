@@ -17,7 +17,7 @@
 #} 
 -->
 
-<template id="text-explainer" style="padding:10px;">
+<template id="text-explainer">
 
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <style>
@@ -26,7 +26,7 @@
             font-size: 1.2em;
             max-width: 300px;
             display: block;
-            margin: 10px auto;
+            margin: auto;
         }
 
         slot[name=content]::slotted(*) {
@@ -37,8 +37,8 @@
             background: var(--cmap-bg-lighter);
             padding: 10px;
             border-radius: 5px;
-            margin-bottom: 10px;
-            font-size: 0.9em
+            font-size: 0.9em;
+            margin-top: 10px;
         }
     </style>
 
@@ -59,15 +59,19 @@
         constructor() {
             super();
             // Create a shadow root
-            var shadow = this.attachShadow({mode: 'open'});
-            var template = document.getElementById('text-explainer');
-            var clone = template.content.cloneNode(true);
+            let shadow = this.attachShadow({mode: 'open'});
+            let template = document.getElementById('text-explainer');
+            let clone = template.content.cloneNode(true);
 
             this.toggleExplainer = clone.querySelector("#toggle-explainer");
             this.explainerBody = clone.querySelector("#explainer-body");
             this.dropIcon = clone.querySelector("#drop-icon");
 
-			this.toggleExplainer.onclick = () => {
+            shadow.appendChild(clone);
+        }
+
+        connectedCallback() {
+            this.toggleExplainer.onclick = () => {
                 if (this.explainerBody.classList.contains('hidden')) {
                     this.explainerBody.classList.remove("hidden");
                     this.dropIcon.innerHTML = '&#9660;';
@@ -76,7 +80,6 @@
                     this.dropIcon.innerHTML = '&#9654;';
                 }
 			}
-            shadow.appendChild(clone);
         }
     }
 
