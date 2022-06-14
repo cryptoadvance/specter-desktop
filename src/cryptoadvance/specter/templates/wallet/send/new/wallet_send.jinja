@@ -93,6 +93,7 @@
 				<br>
 				<br>
 			</div>
+			<div class="row break-row-mobile" id="coin-selection-row" style="margin-top: 30px;">
 			{% include "includes/tx-row.html" %}
 			{% include "includes/tx-data.html" %}
 			{% include "includes/explorer-link.html" %}
@@ -323,11 +324,18 @@
 			subtract_from_input.appendChild(opt);			
 			
 
-			if (recipient_array.length != 1){
+
+			// control visibility  and vertical spaces
+			if (recipient_array.length == 1) {
+				FeeSelectionComponent.showSubtractFrom(false);
+				document.getElementById('coin-selection-row').style['margin-top'] = '30px';
+			} else {
+				document.getElementById('coin-selection-row').style['margin-top'] = '90px';
 				if (document.getElementById('subtract').checked) {
 					FeeSelectionComponent.showSubtractFrom(true)
 				}
 			}
+
 			calculateConvertedUnit(id);
 		} 
 
@@ -365,13 +373,12 @@
 			}			
 
 
-			// control visibility 
+			// control visibility  and vertical spaces
 			if (recipient_array.length == 1) {
 				FeeSelectionComponent.showSubtractFrom(false);
+				document.getElementById('coin-selection-row').style['margin-top'] = '30px';
 			} else {
-				if (document.getElementById('subtract').checked) {
-					document.getElementById('subtract_from').style.display = 'block';
-				}
+				document.getElementById('coin-selection-row').style['margin-top'] = '90px';
 			}
 		}
 
