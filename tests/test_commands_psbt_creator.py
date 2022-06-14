@@ -33,7 +33,7 @@ def test_PsbtCreator_ui(caplog):
         "btc_amount_2": "0.003",
         "amount_unit_2": "btc",
         "amount_unit_text": "btc",
-        "subtract_from": "1",
+        "subtract_from": "0",
         "fee_option": "dynamic",
         "fee_rate": "",
         "fee_rate_dynamic": "64",
@@ -83,7 +83,7 @@ def test_PsbtCreator_text(caplog):
     # Let's mock the request.form which behaves like a dict but also needs getlist()
     request_form_data = {
         "rbf_tx_id": "",
-        "subtract_from": "1",
+        "subtract_from": "0",
         "fee_option": "dynamic",
         "fee_rate": "",
         "fee_rate_dynamic": "64",
@@ -153,7 +153,7 @@ def test_PsbtCreator_json(caplog):
                 }
             ],
             "rbf_tx_id": "",
-            "subtract_from": "1",
+            "subtract_from": "0",
             "fee_rate": "64",
             "rbf": true
         }
