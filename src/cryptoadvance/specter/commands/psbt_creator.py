@@ -321,14 +321,14 @@ class PsbtCreator:
         except JSONDecodeError as e:
             raise SpecterError(f"Error parsing json: {e}")
         subtract = bool(json_data.get("subtract", False))
-        subtract_from = int(json_data.get("subtract_from", 1))
+        subtract_from = int(json_data.get("subtract_from", 0))
 
         fee_rate = float(json_data.get("fee_rate", None))
         rbf = bool(json_data.get("rbf", False))
         rbf_tx_id = json_data.get("rbf_tx_id", "")
         kwargs = {
             "subtract": subtract,
-            "subtract_from": subtract_from - 1,
+            "subtract_from": subtract_from,
             "fee_rate": fee_rate,
             "rbf": rbf,
             "selected_coins": [],
