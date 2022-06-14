@@ -696,9 +696,7 @@
 				setVisibility('add-recipient', 'flex');
 				setVisibility('recipients-txt-container', 'none');
 				setVisibility('subtract', 'block');
-				if (recipient_array.length > 1) {
-				}
-				else {
+				if (recipient_array.length <= 1) {
 					FeeSelectionComponent.showSubtractFrom(false)
 				}
 			} else {
