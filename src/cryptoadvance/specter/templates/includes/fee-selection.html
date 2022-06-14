@@ -172,8 +172,9 @@
             this.ld.subtract.value = this.subtract.value;
             this.appendChild(this.ld.subtract);
 
-            // subtract_from (the actual input field)
+            // subtract_from (the actual input/select field)
             this.ld.subtractFromInput = this.subtractFromInput.cloneNode(true);
+            this.ld.subtractFromInput.setAttribute("hidden", "hidden");
             this.ld.subtractFromInput.name = "subtract_from";
             this.appendChild(this.ld.subtractFromInput);
 
