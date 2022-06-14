@@ -16,6 +16,8 @@ pip3 install -r test_requirements.txt
 
 export PATH=./tests/elements/bin/:./tests/bitcoin/bin/:$PATH
 
+rm -Rf ./cypress/videos ./cypress/screenshots
+
 ./utils/test-cypress.sh run
 pytest
 
