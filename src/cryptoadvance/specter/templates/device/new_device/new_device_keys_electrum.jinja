@@ -1,5 +1,6 @@
 {% extends "base.jinja" %}
 {% block main %}
+    {% include "includes/text-explainer.html" %}
 
     <style>
     .small-card:hover {
@@ -29,7 +30,7 @@
             <br>
         
             <text-explainer>
-                <span slot="title">{{ _("How to get this info from Electrum?") }} </span>
+                <span slot="title" style="font-size: 1.2em;">{{ _("How to get this info from Electrum?") }} </span>
                 <div slot="content" style="display: flex; flex-direction: column; align-items: center;">
                     <p style="max-width: 300px">
                         {{ _('You can find the master public key under "Wallet" and "Information":') }}

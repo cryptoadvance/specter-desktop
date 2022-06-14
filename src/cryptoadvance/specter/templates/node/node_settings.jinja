@@ -1,6 +1,7 @@
 {% extends "base.jinja" %}
 {% block main %}
 	{% include "includes/qr-scanner.html" %}
+	{% include "includes/text-explainer.html" %}
 	
 		{% if node_alias %}
 			<h1 id="title">{{ node.name }}</h1>
