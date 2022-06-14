@@ -16,7 +16,7 @@
         </div>
         <span id="subtract_from" style="display: none">
             <br>{{ _("Subtract from recipient number:") }} 
-            <input id="subtract_from_input" name="subtract_from" type="number" min="1" value="1" step="1" style="width: 80px; min-width: 80px;"><br>
+            <input id="subtract_from_input" name="subtract_from_stale" type="number" min="1" value="1" step="1" style="width: 80px; min-width: 80px;"><br>
         </span>
         <br>
         <div>
@@ -175,6 +175,7 @@
             // subtract_from (the actual input field)
             this.ld.subtractFromInput = this.subtractFromInput.cloneNode(true);
             this.ld.subtractFromInput.type = "hidden";
+            this.ld.subtractFromInput.name = "subtract_from";
             this.appendChild(this.ld.subtractFromInput);
 
             // This is just for exposure to the jinja template for displaying, not needed for the form POST
@@ -208,7 +209,7 @@
                 this.rbfUpdated();
             })
 
-            this.subtractFromInput.addEventListener("click", (event) => {
+            this.subtractFromInput.addEventListener("change", (event) => {
                  this.subtractUpdated();
                 })
 
@@ -330,6 +331,11 @@
             this.subtract.checked = checked
             this.subtractUpdated()
             } catch(e) {console.log(e)}   
+        }
+
+
+        setSubtractFrom(recipient) {
+            this.subtractFromInput.value = recipient
         }
 
         // Updates Light DOM values for the form
