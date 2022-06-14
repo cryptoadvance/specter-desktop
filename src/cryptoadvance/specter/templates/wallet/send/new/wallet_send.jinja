@@ -92,8 +92,8 @@
 				<br>
 				<br>
 				<br>
+				<div class="row break-row-mobile" id="vertical-space-for-subtract-fees-from-amount-checkbox" style="margin-top: 0px;"></div>
 			</div>
-			<div class="row break-row-mobile" id="coin-selection-row" style="margin-top: 0px;"></div>
 			{% include "includes/tx-row.html" %}
 			{% include "includes/tx-data.html" %}
 			{% include "includes/explorer-link.html" %}
@@ -328,9 +328,9 @@
 			// control visibility  and vertical spaces
 			if (recipient_array.length == 1) {
 				FeeSelectionComponent.showSubtractFrom(false);
-				document.getElementById('coin-selection-row').style['margin-top'] = '0px';
+				document.getElementById('vertical-space-for-subtract-fees-from-amount-checkbox').style['margin-top'] = '0px';
 			} else {
-				document.getElementById('coin-selection-row').style['margin-top'] = '60px';
+				document.getElementById('vertical-space-for-subtract-fees-from-amount-checkbox').style['margin-top'] = '60px';
 				if (document.getElementById('subtract').checked) {
 					FeeSelectionComponent.showSubtractFrom(true)
 				}
@@ -376,9 +376,9 @@
 			// control visibility  and vertical spaces
 			if (recipient_array.length == 1) {
 				FeeSelectionComponent.showSubtractFrom(false);
-				document.getElementById('coin-selection-row').style['margin-top'] = '0px';
+				document.getElementById('vertical-space-for-subtract-fees-from-amount-checkbox').style['margin-top'] = '0px';
 			} else {
-				document.getElementById('coin-selection-row').style['margin-top'] = '60px';
+				document.getElementById('vertical-space-for-subtract-fees-from-amount-checkbox').style['margin-top'] = '60px';
 			}
 		}
 
