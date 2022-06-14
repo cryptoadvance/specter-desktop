@@ -130,9 +130,9 @@
 			return recipient_array.map(({id}) => id);
 		}
 
-		function get_recipient(id) {
+		function get_recipient(recipient_id) {
 			let ids = get_recipient_ids();
-			return  recipient_array[ids.indexOf(id)];
+			return  recipient_array[ids.indexOf(recipient_id)];
 		}
 
 		// Amounts and units
@@ -316,13 +316,13 @@
 				}
 			});
 
-			// This adds the id's to the subtract_from_input
+			// This adds the id's to the subtract_from_select
 			var fee_selection_component = document.getElementById('fee-selection-component');
-			var subtract_from_input = fee_selection_component.subtractFrom.children.subtract_from_input;
+			var subtract_from_select = fee_selection_component.subtractFrom.children.subtract_from_select;
 			var opt = document.createElement('option');
 			opt.value = id;
 			opt.innerHTML = `Recipient ${id + 1}`;
-			subtract_from_input.appendChild(opt);			
+			subtract_from_select.appendChild(opt);			
 			
 
 
@@ -363,13 +363,13 @@
 				}
 			}
 
-			// This removed the id from the subtract_from_input
+			// This removed the id from the subtract_from_select
 			var fee_selection_component = document.getElementById('fee-selection-component');
-			var subtract_from_input = fee_selection_component.subtractFrom.children.subtract_from_input;
-			for  (var i = subtract_from_input.children.length -1; i >= 0; i--)   {
-				let	child =  subtract_from_input.children[i];
+			var subtract_from_select = fee_selection_component.subtractFrom.children.subtract_from_select;
+			for  (var i = subtract_from_select.children.length -1; i >= 0; i--)   {
+				let	child =  subtract_from_select.children[i];
 				if (child.value == id) {
-					subtract_from_input.removeChild(child)
+					subtract_from_select.removeChild(child)
 				}
 			}			
 
@@ -571,8 +571,8 @@
 		}
 
 
-		async function checkIfOwnAddress(id) {
-			let address = document.getElementById('address_' + id).value;
+		async function checkIfOwnAddress(recipient_id) {
+			let address = document.getElementById('address_' + recipient_id).value;
 			if (!address){return;}
 
 			let url="{{ url_for('wallets_endpoint_api.is_address_mine', wallet_alias=wallet.alias, address='this_address') }}"
@@ -582,10 +582,10 @@
 			return is_address_mine;
 		}
 
-		function mark_recipient(id, is_address_mine){
-			console.log(`Marking ${id} as is_mine=${is_address_mine}`)
+		function mark_recipient(recipient_id, is_address_mine){
+			console.log(`Marking ${recipient_id} as is_mine=${is_address_mine}`)
 
-			let html_address = document.getElementById(`address_${id}`);
+			let html_address = document.getElementById(`address_${recipient_id}`);
 			if (is_address_mine) {
 				html_address.style.backgroundColor= 'var(--cmap-bg-address-is-min)';
 			} else {
@@ -662,10 +662,10 @@
 			var recipient_ids_in_order = document.getElementById('recipient_ids_in_order')  
 			recipient_ids_in_order.value = JSON.stringify(sortable_recipient_wrapper.toArray()); 
 
-			// we need to transcribe subtract_from_input into an input field, otherwise it is not accessible in request.form
+			// we need to transcribe subtract_from_select into an input field, otherwise it is not accessible in request.form
 			var fee_selection_component = document.getElementById('fee-selection-component');
-			var subtract_from_input = fee_selection_component.subtractFrom.children.subtract_from_input;
-			document.getElementById('subtract_from').value = subtract_from_input.value; 
+			var subtract_from_select = fee_selection_component.subtractFrom.children.subtract_from_select;
+			document.getElementById('subtract_from').value = subtract_from_select.value; 
 
 			createPSBTButton.setAttribute('type', 'submit');
 			return true;
