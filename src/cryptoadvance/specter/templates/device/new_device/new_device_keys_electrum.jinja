@@ -20,27 +20,20 @@
             <h2>{{ _("Name your device: ") }}
                 <input type="text" name="device_name" placeholder="My Electrum device" id="device_name" value="{{ device_name }}" required/>
             </h2>
-            <br>
-            <br>
             <h2>{{ _("Master public key:") }}
                 <input id="master_pub_key" name="master_pub_key" value="{{ master_pub_key }}" placeholder="Your master public key" required>
             </h2>
-            <br>
-            <br>
-        
-            <text-explainer>
-                <span slot="title">{{ _("How to get this info from Electrum?") }} </span>
-                <div slot="content" style="display: flex; flex-direction: column; align-items: center;">
-                    <p style="max-width: 300px">
+            <text-explainer style="align-self: start;">
+                <span slot="title" style="font-size: 1.2em;">{{ _("How to get this info from Electrum?") }}</span>
+                <div slot="content">
+                    <p style="max-width: 300px; font-size: 1.1em;">
                         {{ _('You can find the master public key under "Wallet" and "Information":') }}
                     </p>
                     <img src="{{ url_for('static', filename='img/electrum_manual/1.png')}}" alt=_("Select Wallet  -  Information") style="width: 250px; height: 300px">
-                    <img src="{{ url_for('static', filename='img/electrum_manual/2.png')}}" alt=_("Copy the master public key and derivation path") style="width: 410px; height: 300px"> 
+                    <img src="{{ url_for('static', filename='img/electrum_manual/2.png')}}" alt=_("Copy the master public key and derivation path") style="width: 385px; height: 300px"> 
                 </div>
             </text-explainer>
-            <br>
-            <br>
-            <button type="submit" class="btn centered" style="font-size: 14px;" name="action" onsubmit="showPacman()">{{ _("Continue") }}</button>   
+            <button type="submit" class="btn centered" style="font-size: 14px; margin-top: 25px" name="action" onsubmit="showPacman()">{{ _("Continue") }}</button>   
             </div>     
         </form>
     
