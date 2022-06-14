@@ -316,13 +316,13 @@
 				}
 			});
 
-			// This adds the id's to the subtract_from_select
+			// This adds the id's to the subtract_from_recipient_id_select
 			var fee_selection_component = document.getElementById('fee-selection-component');
-			var subtract_from_select = fee_selection_component.subtractFrom.children.subtract_from_select;
+			var subtract_from_recipient_id_select = fee_selection_component.subtractFrom.children.subtract_from_recipient_id_select;
 			var opt = document.createElement('option');
 			opt.value = id;
 			opt.innerHTML = `Recipient ${id + 1}`;
-			subtract_from_select.appendChild(opt);			
+			subtract_from_recipient_id_select.appendChild(opt);			
 			
 
 
@@ -363,13 +363,13 @@
 				}
 			}
 
-			// This removed the id from the subtract_from_select
+			// This removed the id from the subtract_from_recipient_id_select
 			var fee_selection_component = document.getElementById('fee-selection-component');
-			var subtract_from_select = fee_selection_component.subtractFrom.children.subtract_from_select;
-			for  (var i = subtract_from_select.children.length -1; i >= 0; i--)   {
-				let	child =  subtract_from_select.children[i];
+			var subtract_from_recipient_id_select = fee_selection_component.subtractFrom.children.subtract_from_recipient_id_select;
+			for  (var i = subtract_from_recipient_id_select.children.length -1; i >= 0; i--)   {
+				let	child =  subtract_from_recipient_id_select.children[i];
 				if (child.value == id) {
-					subtract_from_select.removeChild(child)
+					subtract_from_recipient_id_select.removeChild(child)
 				}
 			}			
 
@@ -662,10 +662,14 @@
 			var recipient_ids_in_order = document.getElementById('recipient_ids_in_order')  
 			recipient_ids_in_order.value = JSON.stringify(sortable_recipient_wrapper.toArray()); 
 
-			// we need to transcribe subtract_from_select into an input field, otherwise it is not accessible in request.form
+			// subtract_from = number of input (starting from 0), while subtract_from_recipient_id_select is the recipient_id
 			var fee_selection_component = document.getElementById('fee-selection-component');
-			var subtract_from_select = fee_selection_component.subtractFrom.children.subtract_from_select;
-			document.getElementById('subtract_from').value = subtract_from_select.value; 
+			var subtract_from_recipient_id_select = fee_selection_component.subtractFrom.children.subtract_from_recipient_id_select;
+			let ids = get_recipient_ids();
+			console.log(ids)
+			console.log(subtract_from_recipient_id_select.value)
+			console.log(ids.indexOf(subtract_from_recipient_id_select.value))
+			document.getElementById('subtract_from').value =  sortable_recipient_wrapper.toArray().indexOf(subtract_from_recipient_id_select.value); 
 
 			createPSBTButton.setAttribute('type', 'submit');
 			return true;

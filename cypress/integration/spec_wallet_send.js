@@ -82,15 +82,15 @@ describe('Test sending transactions', () => {
         // Note: Despite identical ids the hidden inputs seem to be fetched first since they are higher up in the DOM
         cy.get('#fee-selection-component').find('#subtract').invoke('attr', 'value').should('eq', 'true')
         // Send max was applied to the third recipient, so the value (identical with the id) should be 2
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_select').should('have.value', '2');
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').should('have.value', '2');
         // the displayed value of id=2 should be 3
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_select').find(':selected').should('have.text', 'Recipient 3');
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').find(':selected').should('have.text', 'Recipient 3');
         
         // Change recipient number to 2    
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_select').select('Recipient 2')   // html select with cypress: https://www.cypress.io/blog/2020/03/20/working-with-select-elements-and-select2-widgets-in-cypress/
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_select').should('have.value', '1');
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 2')   // html select with cypress: https://www.cypress.io/blog/2020/03/20/working-with-select-elements-and-select2-widgets-in-cypress/
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').should('have.value', '1');
         // the displayed value of id=1 should be 2
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_select').find(':selected').should('have.text', 'Recipient 2');
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').find(':selected').should('have.text', 'Recipient 2');
 
         // Change it back to recipient 3
         cy.get('#send_max_2').click()
