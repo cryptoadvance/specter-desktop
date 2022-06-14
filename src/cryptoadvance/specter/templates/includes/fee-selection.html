@@ -16,7 +16,7 @@
         </div>
         <span id="subtract_from" style="display: none">
             <br>{{ _("Subtract from recipient number:") }} 
-            <input id="subtract_from_input" name="subtract_from_stale" type="number" min="1" value="1" step="1" style="width: 80px; min-width: 80px;"><br>
+            <select id="subtract_from_input" name="subtract_from_input"  style="width: 80px; min-width: 80px;" ></select><br>                       
         </span>
         <br>
         <div>
@@ -174,7 +174,6 @@
 
             // subtract_from (the actual input field)
             this.ld.subtractFromInput = this.subtractFromInput.cloneNode(true);
-            this.ld.subtractFromInput.type = "hidden";
             this.ld.subtractFromInput.name = "subtract_from";
             this.appendChild(this.ld.subtractFromInput);
 

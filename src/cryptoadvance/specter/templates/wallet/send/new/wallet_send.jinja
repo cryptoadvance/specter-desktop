@@ -274,6 +274,7 @@
 			<div>
 			`
 
+			// This adds the recipient
 			let recipients = document.getElementById('recipients');
 			let newRecipient = document.createElement('div');
 			newRecipient.innerHTML = recipientForm;
@@ -312,6 +313,16 @@
 					});
 				}
 			});
+
+			// This adds the id's to the subtract_from_input
+			var fee_selection_component = document.getElementById('fee-selection-component');
+			var subtract_from_input = fee_selection_component.subtractFrom.children.subtract_from_input;
+			var opt = document.createElement('option');
+			opt.value = id;
+			opt.innerHTML = id + 1;
+			subtract_from_input.appendChild(opt);			
+			
+
 			if (recipient_array.length != 1){
 				if (document.getElementById('subtract').checked) {
 					FeeSelectionComponent.showSubtractFrom(true)
@@ -332,10 +343,10 @@
 			let ids = get_recipient_ids();
 
 
-			//recipient.parentNode.removeChild(recipient);					
+			// This removes the recipient id from  recipient_array
 			recipient_array.splice(ids.indexOf( id), 1);
 
-
+			// This removes the recipient div 
 			for  (var i = sortable_recipient_wrapper.el.children.length -1; i >= 0; i--)   {
 				let	child =  sortable_recipient_wrapper.el.children[i];
 				if (child['id'] == id) {
@@ -343,6 +354,18 @@
 				}
 			}
 
+			// This removed the id from the subtract_from_input
+			var fee_selection_component = document.getElementById('fee-selection-component');
+			var subtract_from_input = fee_selection_component.subtractFrom.children.subtract_from_input;
+			for  (var i = subtract_from_input.children.length -1; i >= 0; i--)   {
+				let	child =  subtract_from_input.children[i];
+				if (child.value == id) {
+					subtract_from_input.removeChild(child)
+				}
+			}			
+
+
+			// control visibility 
 			if (recipient_array.length == 1) {
 				FeeSelectionComponent.showSubtractFrom(false);
 			} else {
