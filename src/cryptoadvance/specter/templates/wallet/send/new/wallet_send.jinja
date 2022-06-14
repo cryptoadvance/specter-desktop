@@ -666,9 +666,6 @@
 			var fee_selection_component = document.getElementById('fee-selection-component');
 			var subtract_from_recipient_id_select = fee_selection_component.subtractFrom.children.subtract_from_recipient_id_select;
 			let ids = get_recipient_ids();
-			console.log(ids)
-			console.log(subtract_from_recipient_id_select.value)
-			console.log(ids.indexOf(subtract_from_recipient_id_select.value))
 			document.getElementById('subtract_from').value =  sortable_recipient_wrapper.toArray().indexOf(subtract_from_recipient_id_select.value); 
 
 			createPSBTButton.setAttribute('type', 'submit');
