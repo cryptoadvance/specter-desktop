@@ -81,8 +81,8 @@ describe('Test sending transactions', () => {
         // Check the values of the hidden inputs in the light DOM which are used for the form
         // Note: Despite identical ids the hidden inputs seem to be fetched first since they are higher up in the DOM
         cy.get('#fee-selection-component').find('#subtract').invoke('attr', 'value').should('eq', 'true')
-        // Send max was applied to the third recipient, so the value should be 3 
-        cy.get('#fee-selection-component').find('#subtract_from_input').invoke('attr', 'value').should('eq', '3') 
+        // Send max was applied to the third recipient, so the value (identical with the id) should be 2
+        cy.get('#fee-selection-component').find('#subtract_from_input').invoke('attr', 'value').should('eq', '2') 
 
         // Change recipient number to 2
         // Note: No easy way to increment / decrement by clicking, see: https://stackoverflow.com/questions/47180137/incrementing-and-decrementing-the-value-of-an-input-type-number-in-cypress
