@@ -18,13 +18,8 @@
 -->
 
 <template id="text-explainer">
-
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <style>
-        :host {
-            display: block;
-        }
-
         #toggle-explainer {
             cursor: pointer;
             max-width: 400px;
@@ -39,19 +34,22 @@
 
         slot[name=content]::slotted(*) {
             width: 100%;
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
         }
 
         #explainer-body {
             background: var(--cmap-bg-lighter);
             padding: 10px;
             border-radius: 5px;
-            font-size: 0.9em;
+            border: 1.5px solid var(--cmap-border);
             margin-top: 10px;
         }
     </style>
 
     <div id="toggle-explainer">
-        &#128218;
+        <span>&#128218;</span>
         <slot name="title"></slot>
         <span id="drop-icon">&#9654;</span>
     </div>
