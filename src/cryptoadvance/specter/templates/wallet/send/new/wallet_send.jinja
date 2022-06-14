@@ -423,10 +423,9 @@
 			return (unit == 'sat' ? amount / 1e8 : amount) < 1e-8;
 		}
 
-		async function setMaxAmount(id) {
-			let recipient = get_recipient(id);
-
-
+		async function setMaxAmount(i) {
+			FeeSelectionComponent.showSubtractFrom(true)
+			FeeSelectionComponent.setSubtractFrom(id)
 			let amountInput = document.getElementById('amount_' + id);
 			if (!validAddress(id)) {
 				return;
