@@ -27,6 +27,7 @@
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="rbf_tx_id" value="{{ rbf_tx_id }}"/>
 		<input type="hidden" name="recipient_ids_in_order"  id="recipient_ids_in_order" value=""/>  
+		<input type="hidden" name="subtract_from"  id="subtract_from" value=""/>  
 		<h1 class="padded">{{ _("Create Transaction") }}</h1>
 		<div style="display: flex; justify-content: center; margin-bottom: 15px">
 			<div>{{ _("Available funds:") }} {{wallet.amount_available | btcunitamount}}
@@ -660,6 +661,11 @@
 			// this has to be set before send-form POST request 
 			var recipient_ids_in_order = document.getElementById('recipient_ids_in_order')  
 			recipient_ids_in_order.value = JSON.stringify(sortable_recipient_wrapper.toArray()); 
+
+			// we need to transcribe subtract_from_input into an input field, otherwise it is not accessible in request.form
+			var fee_selection_component = document.getElementById('fee-selection-component');
+			var subtract_from_input = fee_selection_component.subtractFrom.children.subtract_from_input;
+			document.getElementById('subtract_from').value = subtract_from_input.value; 
 
 			createPSBTButton.setAttribute('type', 'submit');
 			return true;
