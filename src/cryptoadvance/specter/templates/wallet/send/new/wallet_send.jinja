@@ -252,8 +252,8 @@
 					<span  class="recipient_button"  title="Change the order of the recipients" >&#19977;</span>   Recipient ${id+1}
 				</span>
 				<span class="recipient_button recipient_remove" title="Remove recipient ${id+1}" style="float:right" onclick="removeRecipient(${id})">&#10060;</span>
-				<span class="recipient_button recipient_move" title="Move up"  style="float:right" onclick="moveElement(${id}, 'up')" >&#8593;</span>
-				<span class="recipient_button recipient_move" title="Move down"  style="float:right" onclick="moveElement(${id}, 'down')" >&#8595;</span>
+				<span class="recipient_button recipient_move" title="Move up" id="moveElement_${id}_up"  style="float:right" onclick="moveElement(${id}, 'up')" >&#8593;</span>
+				<span class="recipient_button recipient_move" title="Move down" id="moveElement_${id}_down"  style="float:right" onclick="moveElement(${id}, 'down')" >&#8595;</span>
 
 				<div class="inner_box"  >
 					<div class="row">

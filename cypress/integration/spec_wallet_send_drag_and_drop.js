@@ -26,49 +26,29 @@ describe('Test sending transactions', () => {
         cy.get('#hot_device_1').click()
         cy.get('#wallet_name').type("Test Hot Wallet 1")
         cy.get('#keysform > .centered').click()
-        cy.get('body').contains("New wallet was created successfully!")
-        // Download PDF
-        // unfortunately this results in weird effects in cypress run
-        //cy.get('#pdf-wallet-download > img').click()
-        cy.get('#btn_continue').click()
-        //get some funds
-        cy.mine2wallet("btc")
-
-        cy.get('#btn_send').click()
-        cy.get('#address_0').type("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u")
-        cy.get('#label_0').type("Burn address")
-        cy.get('#send_max_0').click()
-        cy.get('#create_psbt_btn').click()
-        cy.get('body').contains("Paste signed transaction")
-        cy.get('#hot_device_1_tx_sign_btn').click()
-        cy.get('#hot_device_1_hot_sign_btn').click()
-        cy.get('#hot_enter_passphrase__submit').click()
-        cy.get('#broadcast_local_btn').click()
-        cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
-        .should(($div) => {
-            const n = parseFloat($div.text())
-            expect(n).to.be.equals(0)
-        })
+        cy.get('body').contains("New wallet was created successfully!") 
     })
+ 
 
-    it('Create a transaction with multiple recipients', () => {
+
+    it('check drag and drop reordering of recipients and check the fee es deducted corrrectly', () => {
         // We need new sats but mine2wallet only works if a wallet is selected
         cy.selectWallet("Test Hot Wallet 1")
         cy.mine2wallet("btc")
         cy.get('#btn_send').click()
         /// The addresses are the first three from DIY ghost
-        cy.get('#address_0').type("bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs")
+        cy.get('#address_0').invoke('val', "bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs")
         cy.get('#label_0').type("Recipient 1")
         cy.get('#amount_0').type(10)
         cy.get('#toggle_advanced').click()
         cy.get('main').scrollTo('bottom')
         cy.get('#add-recipient').click()
-        cy.get('#address_1').type("bcrt1qgzmq6e3tn67kveryf2je6nd3nv4txef4sl8wre")
+        cy.get('#address_1').invoke('val', "bcrt1qgzmq6e3tn67kveryf2je6nd3nv4txef4sl8wre")
         cy.get('#label_1').type("Recipient 2")
         cy.get('#amount_1').type(5)
         cy.get('main').scrollTo('bottom')
         cy.get('#add-recipient').click()
-        cy.get('#address_2').type("bcrt1q9mkrhmxcn7rslzfv6lke8859m7ntwudfjqmcx7")
+        cy.get('#address_2').invoke('val', "bcrt1q9mkrhmxcn7rslzfv6lke8859m7ntwudfjqmcx7")
         cy.get('#label_2').type("Recipient 3")
         cy.get('#send_max_2').click()
         cy.get('main').scrollTo('bottom')
@@ -92,8 +72,10 @@ describe('Test sending transactions', () => {
         // the displayed value of id=1 should be 2
         cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').find(':selected').should('have.text', 'Recipient 2');
 
-        // Change it back to recipient 3
-        cy.get('#send_max_2').click()
+
+        // move 1. up (so it will be moved to the end of the sortableJS list)
+        cy.get('#moveElement_0_up').click() 
+
 
         // The fee should be subtracted from the third recipient
         cy.get('#create_psbt_btn').click()
@@ -105,50 +87,5 @@ describe('Test sending transactions', () => {
         // Clean up (Hot Device 1 is still needed below)
         cy.deleteWallet("Test Hot Wallet 1")
     })
-
-
-    
-    it('Send a transaction from a multisig wallet', () => {
-        cy.get('body').then(($body) => {
-            if ($body.text().includes('Test Multisig Wallet 1')) {
-                cy.get('#wallets_list > .item > svg').click()
-                cy.get(':nth-child(6) > .right').click()
-                cy.get('#advanced_settings_tab_btn').click()
-                cy.get('.card > :nth-child(9) > .btn').click()
-            }
-        })
-        cy.get('#btn_new_wallet').click()
-        cy.get('[href="./multisig/"]').click()
-        cy.get('#hot_device_1').click()
-        cy.get('#diy_ghost').click()
-        cy.get('#submit-device').click()
-        cy.get('#wallet_name').type("Test Multisig Wallet 1")
-
-        cy.get('#keysform > .centered').click()
-        cy.get('body').contains("New wallet was created successfully!")
-        cy.get('#page_overlay_popup_cancel_button').click()
-        // Send transaction
-
-        //get some funds
-        cy.mine2wallet("btc")
-        
-        cy.get('#btn_send').click()
-        cy.get('#address_0').type("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u")
-        cy.get('#label_0').type("Burn address")
-        cy.get('#send_max_0').click()
-        cy.get('#create_psbt_btn').click()
-        cy.get('body').contains("Paste signed transaction")
-        cy.get('#hot_device_1_tx_sign_btn').click()
-        cy.get('#hot_device_1_hot_sign_btn').click()
-        cy.get('#hot_enter_passphrase__submit').click()
-        cy.get('#broadcast_local_btn').click()
-        cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
-        .should(($div) => {
-            const n = parseFloat($div.text())
-            expect(n).to.be.equals(0)
-        })
-        // Clean up
-        cy.deleteWallet("Test Multisig Wallet 1")
-        cy.deleteDevice("Hot Device 1")
-    })
+ 
 })
