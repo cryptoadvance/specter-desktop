@@ -50,29 +50,29 @@
             let template = document.getElementById('dnd-textarea');
             let clone = template.content.cloneNode(true);
 
-            this.$textarea = clone.querySelector("textarea");
+            this.textarea = clone.querySelector("textarea");
             shadow.appendChild(clone);
         }
 
         setValue(newValue) {
-            this.$textarea.value = newValue;
+            this.textarea.value = newValue;
             this.internals.setFormValue(newValue);
         }   
 
         connectedCallback() {
-            this.$textarea.addEventListener('input', e => {
+            this.textarea.addEventListener('input', e => {
                 this.setValue(e.target.value);
             });
 
-            this.$textarea.ondrop = (event) => this.dropHandler(event);
-            this.$textarea.ondragover = (event) => this.dragOverHandler(event);
-            this.$textarea.ondragleave = (event) => this.noDropHandler(event);
-            this.$textarea.ondragexit = (event) => this.noDropHandler(event);
-            this.$textarea.ondragend = (event) => this.noDropHandler(event);
+            this.textarea.ondrop = (event) => this.dropHandler(event);
+            this.textarea.ondragover = (event) => this.dragOverHandler(event);
+            this.textarea.ondragleave = (event) => this.noDropHandler(event);
+            this.textarea.ondragexit = (event) => this.noDropHandler(event);
+            this.textarea.ondragend = (event) => this.noDropHandler(event);
         }
 
         disconnectedCallback() {
-            this.$textarea.removeEventListener('input');
+            this.textarea.removeEventListener('input');
         }
         
         static get observedAttributes(){
@@ -85,16 +85,16 @@
                     setValue(newValue);
                     break;   
                 case "placeholder":
-                    this.$textarea.placeholder = newValue;
+                    this.textarea.placeholder = newValue;
                     break;
                 case "textarea-style":
-                    this.$textarea.style = newValue;
+                    this.textarea.style = newValue;
                     break;
             }
         }
 
         get value(){
-            return this.$textarea.value;
+            return this.textarea.value;
         }
 
         set value(newValue){
