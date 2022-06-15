@@ -77,7 +77,7 @@ describe('Test sending transactions', () => {
 
         // The fee should be subtracted from the third recipient
         cy.get('#create_psbt_btn').click()
-        cy.get('div.tx_info > :nth-child(3) > :nth-child(2)').then(($div) => {
+        cy.get('div.tx_info > :nth-child(2) > :nth-child(1)').then(($div) => {
             const amount = parseFloat($div.text())
             expect(amount).to.be.lte(1)
             expect(amount).to.be.gte(0.5)
@@ -131,7 +131,7 @@ describe('Test sending transactions', () => {
 
         // The fee should be subtracted from the third recipient
         cy.get('#create_psbt_btn').click()
-        cy.get('div.tx_info > :nth-child(3) > :nth-child(0)').then(($div) => {
+        cy.get('div.tx_info > :nth-child(1) > :nth-child(1)').then(($div) => {
             const amount = parseFloat($div.text())
             expect(amount).to.be.lte(3)
             expect(amount).to.be.gte(2)
