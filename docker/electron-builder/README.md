@@ -17,6 +17,6 @@ docker run --rm -ti \
 build the image like:
 
 ```
-docker build -t registry.gitlab.com/cryptoadvance/specter-desktop/electron-builder:latest .
-docker push registry.gitlab.com/cryptoadvance/specter-desktop/electron-builder:latest
+docker build -t registry.gitlab.com/relativisticelectron/specter-desktop/electron-builder:latest .
+docker push registry.gitlab.com/relativisticelectron/specter-desktop/electron-builder:latest
 ```
