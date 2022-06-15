@@ -24,14 +24,7 @@
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 10px;
-        }
-
-        slot[name=content]::slotted(*) {
-            width: 100%;
-            display: flex;
-            flex-direction: column; 
-            align-items: center;
+            gap: 5px;
         }
 
         #explainer-body {
@@ -40,6 +33,13 @@
             border-radius: 5px;
             border: 1.5px solid var(--cmap-border);
             margin-top: 10px;
+        }
+
+        slot[name=content]::slotted(*) {
+            width: 100%;
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
         }
     </style>
 
