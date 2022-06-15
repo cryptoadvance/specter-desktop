@@ -96,6 +96,9 @@ Cypress.Commands.add("deleteDevice", (name) => {
           cy.contains(name).click()
           cy.get('#forget_device').click()
           cy.reload()
+          // For hot wallets only
+          cy.task("delete:bitcoin-hotwallet")
+          cy.task("delete:elements-hotwallet")
         } 
       })
 })
@@ -162,8 +165,17 @@ Cypress.Commands.add("deleteWallet", (name) => {
   })
 })
 
+Cypress.Commands.add("selectWallet", (name) => { 
+  cy.get('body').then(($body) => {
+    if ($body.text().includes(name)) {
+        cy.contains(name).click()
+    } 
+  })
+})
+
 Cypress.Commands.add("mine2wallet", (chain) => { 
   // Fund it and check the balance
+  // Only works if a wallet is selected, use addHotWallet / selectWallet commands before if needed
   cy.get('#btn_transactions').click()
   cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") }).then(($span) => {
       const oldBalance = parseFloat($span.text())
