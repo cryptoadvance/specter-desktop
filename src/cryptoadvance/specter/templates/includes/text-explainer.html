@@ -64,21 +64,21 @@
             let template = document.getElementById('text-explainer');
             let clone = template.content.cloneNode(true);
 
-            this.$toggleExplainer = clone.querySelector("#toggle-explainer");
-            this.$explainerBody = clone.querySelector("#explainer-body");
-            this.$dropIcon = clone.querySelector("#drop-icon");
+            this.toggleExplainer = clone.querySelector("#toggle-explainer");
+            this.explainerBody = clone.querySelector("#explainer-body");
+            this.dropIcon = clone.querySelector("#drop-icon");
 
             shadow.appendChild(clone);
         }
 
         connectedCallback() {
-            this.$toggleExplainer.onclick = () => {
-                if (this.$explainerBody.classList.contains('hidden')) {
-                    this.$explainerBody.classList.remove("hidden");
-                    this.$dropIcon.innerHTML = '&#9660;';
+            this.toggleExplainer.onclick = () => {
+                if (this.explainerBody.classList.contains('hidden')) {
+                    this.explainerBody.classList.remove("hidden");
+                    this.dropIcon.innerHTML = '&#9660;';
                 } else {
-                    this.$explainerBody.classList.add("hidden");
-                    this.$dropIcon.innerHTML = '&#9654;';
+                    this.explainerBody.classList.add("hidden");
+                    this.dropIcon.innerHTML = '&#9654;';
                 }
 			}
         }
