@@ -252,6 +252,8 @@
 					<span  class="recipient_button"  title="Change the order of the recipients" >&#19977;</span>   Recipient ${id+1}
 				</span>
 				<span class="recipient_button recipient_remove" title="Remove recipient ${id+1}" style="float:right" onclick="removeRecipient(${id})">&#10060;</span>
+				<span class="recipient_button recipient_move" title="Move up"  style="float:right" onclick="moveElement(${id}, 'up')" >&#8593;</span>
+				<span class="recipient_button recipient_move" title="Move down"  style="float:right" onclick="moveElement(${id}, 'down')" >&#8595;</span>
 
 				<div class="inner_box"  >
 					<div class="row">
@@ -761,6 +763,9 @@
 			});
 		});
 
+
+
+
 		// from https://www.codingnepalweb.com/drag-drop-list-or-draggable-list-javascript/		
 		const sortable_recipient_wrapper = Sortable.create(document.querySelector(".recipient_wrapper"), {
 			dataIdAttr: 'id',
@@ -773,6 +778,33 @@
 
 			}		
 		});
+
+
+
+
+		function moveElement(recipient_id, direction) {
+			// bail out if we get input that we don't expect
+			if (["up", "down"].includes(direction) == false ) {
+				return false
+			} 
+			
+			let order = sortable_recipient_wrapper.toArray()
+			let index = order.indexOf(recipient_id)
+			
+			// pull the item we're moving out of the order
+			order.splice(index, 1)
+			
+			// put it back in at the correct position
+			if (direction == 'down') {
+				order.splice(index+1, 0, recipient_id)
+			} else if (direction == 'up') {
+				order.splice(index-1, 0, recipient_id)
+			}
+
+			sortable_recipient_wrapper.sort(order, true)
+		}
+
+
 
 
 	</script>
