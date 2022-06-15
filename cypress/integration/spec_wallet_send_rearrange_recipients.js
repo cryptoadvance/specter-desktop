@@ -85,26 +85,38 @@ describe('Test sending transactions', () => {
         cy.get('#deletepsbt_btn').click()
     })
  
-    it('check drag and drop reordering: 2 0 1 and deduct fee from 2', () => {
+    it('check drag and drop reordering: 4 1 3 and deduct fee from 1. Deleted are ids=0,2', () => {
         // We need new sats but mine2wallet only works if a wallet is selected
         cy.selectWallet("Test Hot Wallet 1")
         cy.mine2wallet("btc")
         cy.get('#btn_send').click()
         /// The addresses are the first three from DIY ghost
-        cy.get('#address_0').invoke('val', "bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs")  // pasting the address is faster than typing
-        cy.get('#label_0').type("Recipient 1")
+        cy.get('#address_0').invoke('val', "bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs")  // will be deleted, so address doesnt matter
+        cy.get('#label_0').type("Recipient 1 to be deleted")
         cy.get('#amount_0').type(1)
         cy.get('#toggle_advanced').click()
         cy.get('main').scrollTo('bottom')
+        
         cy.get('#add-recipient').click()
         cy.get('#address_1').invoke('val', "bcrt1qgzmq6e3tn67kveryf2je6nd3nv4txef4sl8wre")  // pasting the address is faster than typing
         cy.get('#label_1').type("Recipient 2")
         cy.get('#amount_1').type(2)
         cy.get('main').scrollTo('bottom')
+
         cy.get('#add-recipient').click()
-        cy.get('#address_2').invoke('val', "bcrt1q9mkrhmxcn7rslzfv6lke8859m7ntwudfjqmcx7")  // pasting the address is faster than typing
-        cy.get('#label_2').type("Recipient 3")
+        cy.get('#address_2').invoke('val', "bcrt1q9mkrhmxcn7rslzfv6lke8859m7ntwudfjqmcx7")  // will be deleted, so address doesnt matter
+        cy.get('#label_2').type("Recipient 3 to be deleted")
         cy.get('#amount_2').type(3)
+
+        cy.get('#add-recipient').click()
+        cy.get('#address_3').invoke('val', "bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs")  // pasting the address is faster than typing
+        cy.get('#label_3').type("Recipient 4")
+        cy.get('#amount_3').type(4)
+
+        cy.get('#add-recipient').click()
+        cy.get('#address_4').invoke('val', "bcrt1q9mkrhmxcn7rslzfv6lke8859m7ntwudfjqmcx7")  // pasting the address is faster than typing
+        cy.get('#label_4').type("Recipient 5")
+        cy.get('#amount_4').type(5)
         cy.get('main').scrollTo('bottom')
         // Shadow DOM
         // Check the fee selection
@@ -119,23 +131,41 @@ describe('Test sending transactions', () => {
         // Send max was applied to the third recipient, so the value (identical with the id) should be 2
 
 
-        // move 1. up (so it will be moved to the end of the sortableJS list)
-        cy.get('#moveElement_2_up').click()  // 0 1 2 --> 0 2 1
-        cy.get('#moveElement_2_up').click()  // 0 2 1 --> 2 0 1    
+        cy.get('#remove_0').click({force: true})   
+        cy.get('#remove_2').click({force: true})  
 
-        // Change recipient number to Recipient 3 (value = id = 2)
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 3')   // html select with cypress: https://www.cypress.io/blog/2020/03/20/working-with-select-elements-and-select2-widgets-in-cypress/
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').should('have.value', '2');
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').find(':selected').should('have.text', 'Recipient 3');
+        // move 1. up (so it will be moved to the end of the sortableJS list)
+        cy.get('#moveElement_4_up').click()  // 1 3 4 --> 1 4 3
+        cy.wait(500) // wait until animation finished
+        cy.get('#moveElement_4_up').click()  // 1 4 3 --> 4 1 3
+        cy.wait(500) // wait until animation finished
+
+
+        // Change recipient number to Recipient 2 (value = id = 1)
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 2')   // html select with cypress: https://www.cypress.io/blog/2020/03/20/working-with-select-elements-and-select2-widgets-in-cypress/
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').should('have.value', '1');
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').find(':selected').should('have.text', 'Recipient 2');
 
 
         // The fee should be subtracted from the third recipient
         cy.get('#create_psbt_btn').click()
         cy.get('div.tx_info > :nth-child(1) > :nth-child(1)').then(($div) => {
             const amount = parseFloat($div.text())
-            expect(amount).to.be.lte(3)
-            expect(amount).to.be.gte(2)
+            expect(amount).to.be.lte(2)
+            expect(amount).to.be.gte(1)
         })
+
+        cy.get('div.tx_info > :nth-child(0) > :nth-child(1)').then(($div) => {
+            const amount = parseFloat($div.text())
+            expect(amount).to.be.equal(5)
+        })
+        cy.get('div.tx_info > :nth-child(2) > :nth-child(1)').then(($div) => {
+            const amount = parseFloat($div.text())
+            expect(amount).to.be.equal(4)
+        })
+
+
+
         cy.get('#deletepsbt_btn').click()
         // Clean up (Hot Device 1 is still needed below)
         cy.deleteWallet("Test Hot Wallet 1")

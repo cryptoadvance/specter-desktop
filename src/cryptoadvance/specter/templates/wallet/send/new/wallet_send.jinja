@@ -251,7 +251,7 @@
 				<span class="recipient_dragger">
 					<span  class="recipient_button"  title="Change the order of the recipients" >&#19977;</span>   Recipient ${id+1}
 				</span>
-				<span class="recipient_button recipient_remove" title="Remove recipient ${id+1}" style="float:right" onclick="removeRecipient(${id})">&#10060;</span>
+				<span class="recipient_button recipient_remove" title="Remove recipient ${id+1}" id="remove_${id}" style="float:right" onclick="removeRecipient(${id})">&#10060;</span>
 				<span class="recipient_button recipient_move" title="Move up" id="moveElement_${id}_up"  style="float:right" onclick="moveElement(${id}, 'up')" >&#8593;</span>
 				<span class="recipient_button recipient_move" title="Move down" id="moveElement_${id}_down"  style="float:right" onclick="moveElement(${id}, 'down')" >&#8595;</span>
 
@@ -789,7 +789,7 @@
 			} 
 			
 			let order = sortable_recipient_wrapper.toArray()
-			let index = order.indexOf(recipient_id)
+			let index = order.indexOf(String(recipient_id))
 			
 			// pull the item we're moving out of the order
 			order.splice(index, 1)
