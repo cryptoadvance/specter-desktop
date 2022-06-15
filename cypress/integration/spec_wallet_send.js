@@ -105,8 +105,6 @@ describe('Test sending transactions', () => {
         // Clean up (Hot Device 1 is still needed below)
         cy.deleteWallet("Test Hot Wallet 1")
     })
-
-
     
     it('Send a transaction from a multisig wallet', () => {
         cy.get('body').then(($body) => {
