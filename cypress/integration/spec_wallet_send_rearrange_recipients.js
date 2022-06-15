@@ -77,10 +77,10 @@ describe('Test sending transactions', () => {
 
         // The fee should be subtracted from the third recipient
         cy.get('#create_psbt_btn').click()
-        cy.get('div.tx_info > :nth-child(2) > :nth-child(1)').then(($div) => {
-            const amount = parseFloat($div.text())
-            expect(amount).to.be.lte(1)
-            expect(amount).to.be.gte(0.5)
+        cy.get('div.tx_info > :nth-child(3) > :nth-child(1)').then(($div) => {  // nth-child is indexed from 1 https://css-tricks.com/almanac/selectors/n/nth-child/
+            var amount = parseFloat($div.text())
+            expect(amount).to.be.lt(1)
+            expect(amount).to.be.gt(0.5)
         })
         cy.get('#deletepsbt_btn').click()
     })
@@ -149,22 +149,23 @@ describe('Test sending transactions', () => {
 
         // The fee should be subtracted from the third recipient
         cy.get('#create_psbt_btn').click()
-        cy.get('div.tx_info > :nth-child(1) > :nth-child(1)').then(($div) => {
-            const amount = parseFloat($div.text())
-            expect(amount).to.be.lte(2)
-            expect(amount).to.be.gte(1)
-        })
+        var amount = 0
 
-        cy.get('div.tx_info > :nth-child(0) > :nth-child(1)').then(($div) => {
-            const amount = parseFloat($div.text())
+        cy.get('div.tx_info > :nth-child(1) > :nth-child(1)').then(($div) => {  // nth-child is indexed from 1 https://css-tricks.com/almanac/selectors/n/nth-child/
+            amount = parseFloat($div.text())
             expect(amount).to.be.equal(5)
         })
-        cy.get('div.tx_info > :nth-child(2) > :nth-child(1)').then(($div) => {
-            const amount = parseFloat($div.text())
-            expect(amount).to.be.equal(4)
+
+        cy.get('div.tx_info > :nth-child(2) > :nth-child(1)').then(($div) => {  // nth-child is indexed from 1 https://css-tricks.com/almanac/selectors/n/nth-child/
+            amount = parseFloat($div.text())
+            expect(amount).to.be.lt(2)
+            expect(amount).to.be.gt(1)
         })
 
-
+        cy.get('div.tx_info > :nth-child(3) > :nth-child(1)').then(($div) => {  // nth-child is indexed from 1 https://css-tricks.com/almanac/selectors/n/nth-child/
+            amount = parseFloat($div.text())
+            expect(amount).to.be.equal(4)
+        })
 
         cy.get('#deletepsbt_btn').click()
         // Clean up (Hot Device 1 is still needed below)

@@ -789,19 +789,36 @@
 			} 
 			
 			let order = sortable_recipient_wrapper.toArray()
+			console.log(`order  ${order}`)
 			let index = order.indexOf(String(recipient_id))
+			console.log(`recipient_id  ${recipient_id}`)
+			console.log(`index  ${index}`)
 			
 			// pull the item we're moving out of the order
 			order.splice(index, 1)
+			console.log(`order  ${order}`)
 			
 			// put it back in at the correct position
 			if (direction == 'down') {
-				order.splice(index+1, 0, recipient_id)
+				if (index>=order.length) {  // moving the last item down should put it at the beginning
+					order.splice(0, 0, recipient_id)
+				}else {
+					order.splice(index+1, 0, recipient_id)
+				}
 			} else if (direction == 'up') {
-				order.splice(index-1, 0, recipient_id)
+				if (index<=0) { // moving the first item up should put it last
+					order.splice(order.length , 0, recipient_id)
+				}else {
+					order.splice(index-1, 0, recipient_id)
+				}
+				
+				
 			}
+			console.log(`order  ${order}`)
 
 			sortable_recipient_wrapper.sort(order, true)
+			order = sortable_recipient_wrapper.toArray()
+			console.log(`order  ${order}`)
 		}
 
 
