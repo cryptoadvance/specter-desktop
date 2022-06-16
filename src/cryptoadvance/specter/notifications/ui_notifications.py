@@ -39,7 +39,11 @@ class LoggingNotifications(BaseUINotifications):
     def show(self, notification):
         if notification.type not in self.compatible_notification_types:
             return
-        logger.info(str(notification))
+        logger.info(
+            str(notification),
+            exc_info=notification.type
+            in {NotificationTypes.error, NotificationTypes.exception},
+        )
 
 
 class FlaskNotifications(BaseUINotifications):
@@ -55,4 +59,7 @@ class FlaskNotifications(BaseUINotifications):
     def show(self, notification):
         if notification.type not in self.compatible_notification_types:
             return
-        flash(f"{notification.title}\n{notification.body}", notification.type)
+        flash(
+            f"{notification.title}\n{notification.body if notification.body else ''}",
+            notification.type,
+        )

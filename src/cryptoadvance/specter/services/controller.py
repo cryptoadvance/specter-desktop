@@ -28,14 +28,16 @@ def user_secret_decrypted_required(func):
     def wrapper(*args, **kwargs):
         if app.config["LOGIN_DISABLED"]:
             # No logins means no password so no user_secret is possible
-            flash(
+            app.specter.notification_manager.create_and_show(
                 _(
                     "Service integration requires an authentication method that includes a password"
                 )
             )
             return redirect(url_for(f"settings_endpoint.auth"))
         elif not current_user.is_user_secret_decrypted:
-            flash(_("Must login again to enable protected Services-related data"))
+            app.specter.notification_manager.create_and_show(
+                _("Must login again to enable protected Services-related data")
+            )
             # Force re-login; automatically redirects back to calling page
             return app.login_manager.unauthorized()
         else:

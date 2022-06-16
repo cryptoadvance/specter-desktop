@@ -29,7 +29,10 @@ wallets_endpoint = Blueprint("wallets_endpoint", __name__)
 
 
 def handle_wallet_error(func_name, error):
-    flash(_("SpecterError while {}: {}").format(func_name, error), "error")
+    app.specter.notification_manager.create_and_show(
+        _("SpecterError while {}: {}").format(func_name, error),
+        notification_type="error",
+    )
     app.logger.error(f"SpecterError while {func_name}: {error}")
     app.specter.wallet_manager.update()
     return redirect(url_for("welcome_endpoint.about"))
@@ -88,7 +91,10 @@ def failed_wallets():
                 app.specter.wallet_manager.update()
             except Exception as e:
                 handle_exception(e)
-                flash(_("Failed to delete wallet: {}").format(str(e)), "error")
+                app.specter.notification_manager.create_and_show(
+                    _("Failed to delete wallet: {}").format(str(e)),
+                    notification_type="error",
+                )
     return redirect("/")
 
 
@@ -122,7 +128,9 @@ def new_wallet_type():
 def new_wallet(wallet_type):
     wallet_types = ["simple", "multisig", "import_wallet"]
     if wallet_type not in wallet_types:
-        flash(_("Unknown wallet type requested"), "error")
+        app.specter.notification_manager.create_and_show(
+            _("Unknown wallet type requested"), notification_type="error"
+        )
         return redirect(url_for("wallets_endpoint.new_wallet_type"))
 
     err = None
@@ -135,7 +143,9 @@ def new_wallet(wallet_type):
                     app.specter,
                 )
             except SpecterError as se:
-                flash(str(se), "error")
+                app.specter.notification_manager.create_and_show(
+                    str(se), notification_type="error"
+                )
                 return redirect(url_for("wallets_endpoint.new_wallet_type"))
             createwallet = "createwallet" in request.form
             if createwallet:
@@ -147,13 +157,19 @@ def new_wallet(wallet_type):
                 try:
                     wallet_importer.create_wallet(app.specter.wallet_manager)
                 except SpecterError as se:
-                    flash(str(se), "error")
+                    app.specter.notification_manager.create_and_show(
+                        str(se), notification_type="error"
+                    )
                     return redirect(url_for("wallets_endpoint.new_wallet_type"))
-                flash(_("Wallet imported successfully"), "info")
+                app.specter.notification_manager.create_and_show(
+                    _("Wallet imported successfully")
+                )
                 try:
                     wallet_importer.rescan_as_needed(app.specter)
                 except SpecterError as se:
-                    flash(str(se), "error")
+                    app.specter.notification_manager.create_and_show(
+                        str(se), notification_type="error"
+                    )
                 return redirect(
                     url_for(
                         "wallets_endpoint.receive",
@@ -384,7 +400,9 @@ def history(wallet_alias):
             try:
                 wallet.abandontransaction(txid)
             except SpecterError as e:
-                flash(str(e), "error")
+                app.specter.notification_manager.create_and_show(
+                    str(e), notification_type="error"
+                )
 
     # update balances in the wallet
     app.specter.check_blockheight()
@@ -473,7 +491,10 @@ def send_new(wallet_alias):
     for utxo in selected_coins:
         if utxo in frozen_utxo:
             selected_coins.remove(utxo)
-            flash(f"You've selected a frozen UTXO for a transaction.", "error")
+            app.specter.notification_manager.create_and_show(
+                f"You've selected a frozen UTXO for a transaction.",
+                notification_type="error",
+            )
             return redirect(
                 url_for("wallets_endpoint.history", wallet_alias=wallet_alias)
             )
@@ -514,7 +535,7 @@ def send_new(wallet_alias):
                     raise SpecterError("Invalid action")
 
                 if psbt["fee_rate"] - rbf_fee_rate > wallet.MIN_FEE_RATE / 10:
-                    flash(
+                    app.specter.notification_manager.create_and_show(
                         _(
                             "We had to increase the fee rate from {} to {} sat/vbyte"
                         ).format(rbf_fee_rate, psbt["fee_rate"])
@@ -530,7 +551,10 @@ def send_new(wallet_alias):
                 )
             except Exception as e:
                 handle_exception(e)
-                flash(_("Failed to perform RBF. Error: {}").format(e), "error")
+                app.specter.notification_manager.create_and_show(
+                    _("Failed to perform RBF. Error: {}").format(e),
+                    notification_type="error",
+                )
                 return redirect(
                     url_for("wallets_endpoint.history", wallet_alias=wallet_alias)
                 )
@@ -558,7 +582,10 @@ def send_new(wallet_alias):
                 fillform = True
             except Exception as e:
                 handle_exception(e)
-                flash(_("Failed to perform RBF. Error: {}").format(e), "error")
+                app.specter.notification_manager.create_and_show(
+                    _("Failed to perform RBF. Error: {}").format(e),
+                    notification_type="error",
+                )
         elif action == "signhotwallet":
             passphrase = request.form["passphrase"]
             psbt = json.loads(request.form["psbt"])
@@ -580,10 +607,15 @@ def send_new(wallet_alias):
                 except Exception as e:
                     handle_exception(e)
                     signed_psbt = None
-                    flash(_("Failed to sign PSBT: {}").format(e), "error")
+                    app.specter.notification_manager.create_and_show(
+                        _("Failed to sign PSBT: {}").format(e),
+                        notification_type="error",
+                    )
             else:
                 signed_psbt = None
-                flash(_("Device already signed the PSBT"), "error")
+                app.specter.notification_manager.create_and_show(
+                    _("Device already signed the PSBT"), notification_type="error"
+                )
             return render_template(
                 "wallet/send/sign/wallet_send_sign_psbt.jinja",
                 signed_psbt=signed_psbt,
@@ -607,7 +639,10 @@ def send_new(wallet_alias):
             rbf_utxo = wallet.get_rbf_utxo(rbf_tx_id)
         except Exception as e:
             handle_exception(e)
-            flash(_("Failed to get RBF coins. Error: {}").format(e), "error")
+            app.specter.notification_manager.create_and_show(
+                _("Failed to get RBF coins. Error: {}").format(e),
+                notification_type="error",
+            )
 
     show_advanced_settings = (
         ui_option != "ui" or subtract or fee_options != "dynamic" or not rbf
@@ -657,7 +692,9 @@ def send_pending(wallet_alias):
                 )
             except Exception as e:
                 handle_exception(e)
-                flash(_("Could not delete Pending PSBT!"), "error")
+                app.specter.notification_manager.create_and_show(
+                    _("Could not delete Pending PSBT!"), notification_type="error"
+                )
         elif action == "openpsbt":
             psbt = json.loads(request.form["pending_psbt"])
             return render_template(
@@ -694,7 +731,9 @@ def import_psbt(wallet_alias):
                 )
             except Exception as e:
                 handle_exception(e)
-                flash(_("Could not import PSBT: {}").format(e), "error")
+                app.specter.notification_manager.create_and_show(
+                    _("Could not import PSBT: {}").format(e), notification_type="error"
+                )
                 return redirect(
                     url_for("wallets_endpoint.import_psbt", wallet_alias=wallet_alias)
                 )
@@ -787,23 +826,31 @@ def settings(wallet_alias):
             )
             app.specter.info["utxorescan"] = 1
             app.specter.utxorescanwallet = wallet.alias
-            flash(
+            app.specter.notification_manager.create_and_show(
                 "Rescan started. Check the status bar on the left for progress and/or the logs for potential issues."
             )
         elif action == "abortrescanutxo":
             app.specter.node.abortrescanutxo()
             app.specter.info["utxorescan"] = None
             app.specter.utxorescanwallet = None
-            flash(_("Successfully aborted the UTXO rescan"))
+            app.specter.notification_manager.create_and_show(
+                _("Successfully aborted the UTXO rescan")
+            )
         elif action == "import_address_labels":
             address_labels = request.form["address_labels_data"]
             imported_addresses_len = wallet.import_address_labels(address_labels)
             if imported_addresses_len > 1:
-                flash(f"Successfully imported {imported_addresses_len} address labels.")
+                app.specter.notification_manager.create_and_show(
+                    f"Successfully imported {imported_addresses_len} address labels."
+                )
             elif imported_addresses_len == 1:
-                flash(f"Successfully imported {imported_addresses_len} address label.")
+                app.specter.notification_manager.create_and_show(
+                    f"Successfully imported {imported_addresses_len} address label."
+                )
             else:
-                flash("No address labels were imported.")
+                app.specter.notification_manager.create_and_show(
+                    "No address labels were imported."
+                )
         elif action == "keypoolrefill":
             delta = int(request.form["keypooladd"])
             wallet.keypoolrefill(wallet.keypool, wallet.keypool + delta)
@@ -820,11 +867,15 @@ def settings(wallet_alias):
         elif action == "rename":
             wallet_name = request.form["newtitle"]
             if not wallet_name:
-                flash(_("Wallet name cannot be empty"), "error")
+                app.specter.notification_manager.create_and_show(
+                    _("Wallet name cannot be empty"), notification_type="error"
+                )
             elif wallet_name == wallet.name:
                 pass
             elif wallet_name in app.specter.wallet_manager.wallets_names:
-                flash(_("Wallet already exists"), "error")
+                app.specter.notification_manager.create_and_show(
+                    _("Wallet already exists"), notification_type="error"
+                )
             else:
                 app.specter.wallet_manager.rename_wallet(wallet, wallet_name)
 

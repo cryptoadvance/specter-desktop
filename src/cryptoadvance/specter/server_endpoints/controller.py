@@ -3,7 +3,7 @@ import random, traceback
 from time import time
 from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import MethodNotAllowed, NotFound
-from flask import render_template, request, redirect, url_for, flash, g
+from flask import render_template, request, redirect, url_for, g
 from flask_babel import lazy_gettext as _
 from ..specter_error import SpecterError, ExtProcTimeoutException
 from pathlib import Path
@@ -50,29 +50,35 @@ rand = random.randint(0, 1e32)  # to force style refresh
 ########## exception handlers ##############
 @app.errorhandler(RpcError)
 def server_rpc_error(rpce):
-    """Specific SpecterErrors get passed on to the User as flash"""
+    """Specific SpecterErrors get passed on to the User as notification"""
     if rpce.error_code == -18:  # RPC_WALLET_NOT_FOUND
-        flash(
+        app.specter.notification_manager.create_and_show(
             _("Wallet not found. Specter reloaded all wallets, please try again."),
-            "error",
+            notification_type="error",
         )
     else:
-        flash(_("Bitcoin Core RpcError: {}").format(str(rpce)), "error")
+        app.specter.notification_manager.create_and_show(
+            _("Bitcoin Core RpcError: {}").format(str(rpce)), notification_type="error"
+        )
     try:
         app.specter.wallet_manager.update()
     except SpecterError as se:
-        flash(str(se), "error")
+        app.specter.notification_manager.create_and_show(
+            str(se), notification_type="error"
+        )
     return redirect(url_for("welcome_endpoint.about"))
 
 
 @app.errorhandler(SpecterError)
 def server_specter_error(se):
-    """Specific SpecterErrors get passed on to the User as flash"""
-    flash(str(se), "error")
+    """Specific SpecterErrors get passed on to the User as notification"""
+    app.specter.notification_manager.create_and_show(str(se), notification_type="error")
     try:
         app.specter.wallet_manager.update()
     except SpecterError as se:
-        flash(str(se), "error")
+        app.specter.notification_manager.create_and_show(
+            str(se), notification_type="error"
+        )
     if request.method == "POST":
         return redirect(request.url)
     # potentially avoiding http loops. Might be improvable but how?
@@ -109,11 +115,11 @@ def server_error_timeout(e):
         # make sure specter knows that rpc is not there
         app.specter.check()
     app.logger.error("ExternalProcessTimeoutException: %s" % e)
-    flash(
+    app.specter.notification_manager.create_and_show(
         _(
             "Bitcoin Core is not coming up in time. Maybe it's just slow but please check the logs below"
         ),
-        "warn",
+        notification_type="warning",
     )
     return redirect(
         url_for(
@@ -131,7 +137,9 @@ def server_error_csrf(e):
     app.logger.error("CSRF Exception: %s" % e)
     trace = traceback.format_exc()
     app.logger.error(trace)
-    flash(_("Session expired. Please refresh and try again."), "error")
+    app.specter.notification_manager.create_and_show(
+        _("Session expired. Please refresh and try again."), notification_type="error"
+    )
     return redirect(request.url)
 
 
@@ -141,7 +149,9 @@ def server_error_405(e):
     app.logger.error("405 MethodNotAllowed Exception: %s" % e)
     trace = traceback.format_exc()
     app.logger.error(trace)
-    flash(_("Session expired. Please refresh and try again."), "error")
+    app.specter.notification_manager.create_and_show(
+        _("Session expired. Please refresh and try again."), notification_type="error"
+    )
     return redirect(request.url)
 
 
@@ -182,13 +192,13 @@ def slow_request_detection_stop(response):
     ):
         threshold = app.config["REQUEST_TIME_WARNING_THRESHOLD"]
         if diff > threshold:
-            flash(
+            app.specter.notification_manager.create_and_show(
                 _(
                     "The request before this one took {} seconds which is longer than the threshold ({}). Checkout the perfomance-improvement-hints in the documentation".format(
                         int(diff), threshold
                     )
                 ),
-                "warning",
+                notification_type="warning",
             )
     return response
 

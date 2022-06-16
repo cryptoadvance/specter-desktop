@@ -178,9 +178,11 @@ def logout():
 
     logout_user()
     if "timeout" in request.args:
-        flash(_("You were automatically logged out"), "info")
+        app.specter.notification_manager.create_and_show(
+            _("You were automatically logged out")
+        )
     else:
-        flash(_("You were logged out"), "info")
+        app.specter.notification_manager.create_and_show(_("You were logged out"))
     return redirect(url_for("auth_endpoint.login"))
 
 
@@ -202,7 +204,7 @@ def toggle_hide_sensitive_info():
 
 ################### Util ######################
 def redirect_login(request):
-    flash(_("Logged in successfully."), "info")
+    app.specter.notification_manager.create_and_show(_("Logged in successfully."))
 
     # If the user is auto-logged out, hide_sensitive_info will be set. If they're
     #   explicitly logging in now, clear the setting and reveal user's info.

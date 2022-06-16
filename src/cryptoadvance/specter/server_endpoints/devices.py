@@ -114,7 +114,9 @@ def new_device_keys(device_type):
                             keys_range=[range_start, range_end],
                             keys_purposes=keys_purposes,
                         )
-                        flash(_("{} keys were added successfully").format(len(paths)))
+                        app.specter.notification_manager.create_and_show(
+                            _("{} keys were added successfully").format(len(paths))
+                        )
                         return redirect(
                             url_for(
                                 "devices_endpoint.device", device_alias=device.alias
@@ -135,7 +137,9 @@ def new_device_keys(device_type):
                             keys_range=[range_start, range_end],
                             keys_purposes=keys_purposes,
                         )
-                        flash(_("{} was added successfully!").format(device_name))
+                        app.specter.notification_manager.create_and_show(
+                            _("{} was added successfully!").format(device_name)
+                        )
                         return redirect(
                             url_for(
                                 "devices_endpoint.device", device_alias=device.alias
@@ -144,9 +148,9 @@ def new_device_keys(device_type):
                         )
                     except Exception as e:
                         handle_exception(e)
-                        flash(
+                        app.specter.notification_manager.create_and_show(
                             _("Failed to setup hot wallet. Error: {}").format(e),
-                            "error",
+                            notification_type="error",
                         )
                         app.specter.device_manager.remove_device(
                             device,
@@ -159,7 +163,9 @@ def new_device_keys(device_type):
         elif not err:
             if existing_device:
                 device.add_keys(keys)
-                flash(_("{} keys were added successfully").format(len(keys)))
+                app.specter.notification_manager.create_and_show(
+                    _("{} keys were added successfully").format(len(keys))
+                )
                 return redirect(
                     url_for("devices_endpoint.device", device_alias=device.alias)
                 )
@@ -176,7 +182,9 @@ def new_device_keys(device_type):
                     rand=rand,
                 )
             else:
-                flash(_("{} was added successfully!").format(device_name))
+                app.specter.notification_manager.create_and_show(
+                    _("{} was added successfully!").format(device_name)
+                )
                 return redirect(
                     url_for("devices_endpoint.device", device_alias=device.alias)
                     + "?newdevice=true"
@@ -272,15 +280,17 @@ def device_blinding_key(device_alias):
         try:
             device.set_blinding_key(blinding_key)
             if not new_device:
-                flash(_("Master blinding key was added successfully"))
+                app.specter.notification_manager.create_and_show(
+                    _("Master blinding key was added successfully")
+                )
             return redirect(
                 url_for("devices_endpoint.device", device_alias=device.alias)
                 + ("?newdevice=true" if new_device else "")
             )
         except Exception as e:
-            flash(
+            app.specter.notification_manager.create_and_show(
                 _("Invalid master blinding key! It should be in WIF or hex format."),
-                "error",
+                notification_type="error",
             )
 
     return render_template(
@@ -370,7 +380,10 @@ def new_device_manual():
                     )
                 except Exception as e:
                     handle_exception(e)
-                    flash(_("Failed to setup hot wallet. Error: {}").format(e), "error")
+                    app.specter.notification_manager.create_and_show(
+                        _("Failed to setup hot wallet. Error: {}").format(e),
+                        notification_type="error",
+                    )
                     app.specter.device_manager.remove_device(
                         device,
                         app.specter.wallet_manager,
@@ -454,11 +467,15 @@ def device(device_alias):
         elif action == "rename":
             device_name = request.form["newtitle"]
             if not device_name:
-                flash(_("Device name cannot be empty"), "error")
+                app.specter.notification_manager.create_and_show(
+                    _("Device name cannot be empty"), notification_type="error"
+                )
             elif device_name == device.name:
                 pass
             elif device_name in app.specter.device_manager.devices_names:
-                flash(_("Device already exists"), "error")
+                app.specter.notification_manager.create_and_show(
+                    _("Device already exists"), notification_type="error"
+                )
             else:
                 device.rename(device_name)
         elif action == "add_keys":

@@ -275,11 +275,11 @@ class WalletImporter:
                         {"type": "electrum", "label": f"Electrum Multisig {i}"}
                     )
                     if "seed" in d:
-                        flash(
+                        app.specter.notification_manager.create_and_show(
                             _(
                                 "The Electrum wallet contains a seed. The seed will not be imported."
                             ),
-                            "warning",
+                            notification_type="warning",
                         )
                 i += 1
             xpubs = xpubs.rstrip(",")
@@ -457,11 +457,11 @@ class WalletImporter:
                 }
             ]
             if "seed" in wallet_data["keystore"]:
-                flash(
+                app.specter.notification_manager.create_and_show(
                     _(
                         "The Electrum wallet contains a seed. The seed will not be imported."
                     ),
-                    "warning",
+                    notification_type="warning",
                 )
         # Current Specter backups
         else:

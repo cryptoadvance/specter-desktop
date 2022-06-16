@@ -16,7 +16,7 @@ import pgpy
 import requests
 from flask import Blueprint, Flask
 from flask import current_app as app
-from flask import flash, jsonify, redirect, render_template, request, send_file, url_for
+from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from cryptoadvance.specter.services.service import Service
@@ -52,7 +52,7 @@ def settings():
 @settings_endpoint.route("/general", methods=["GET", "POST"])
 @login_required
 def general():
-    current_version = notify_upgrade(app, flash)
+    current_version = notify_upgrade(app)
     explorer_id = app.specter.explorer_id
     fee_estimator = app.specter.fee_estimator
     fee_estimator_custom_url = app.specter.config.get("fee_estimator_custom_url", "")
@@ -149,11 +149,11 @@ def general():
                     # if wallet already exists in Bitcoin Core
                     # continue with the existing one
                     if "already exists" not in str(e):
-                        flash(
+                        app.specter.notification_manager.create_and_show(
                             _("Failed to import wallet {}, error: {}").format(
                                 wallet["name"], e
                             ),
-                            "error",
+                            notification_type="error",
                         )
                         handle_exception(e)
                         continue
@@ -185,24 +185,26 @@ def general():
                                 wallet["alias"], e
                             )
                         )
-                        flash(
+                        app.specter.notification_manager.create_and_show(
                             _("Failed to perform rescan for wallet: {}").format(e),
-                            "error",
+                            notification_type="error",
                         )
                     wallet_obj.getdata()
                 except Exception as e:
-                    flash(
-                        _("Failed to import wallet {}").format(wallet["name"]), "error"
+                    app.specter.notification_manager.create_and_show(
+                        _("Failed to import wallet {}").format(wallet["name"]),
+                        notification_type="error",
                     )
                     handle_exception(e)
-            flash(_("Specter data was successfully loaded from backup"), "info")
+            app.specter.notification_manager.create_and_show(
+                _("Specter data was successfully loaded from backup")
+            )
             if rescanning:
-                flash(
+                app.specter.notification_manager.create_and_show(
                     _(
                         "Wallets are rescanning for transactions history.\n\
 This may take a few hours to complete."
-                    ),
-                    "info",
+                    )
                 )
 
     return render_template(
@@ -231,10 +233,13 @@ def tor():
     param only_tor "on" or something else ("off")
     """
     if not current_user.is_admin:
-        flash(_("Only an admin is allowed to access this page."), "error")
+        app.specter.notification_manager.create_and_show(
+            _("Only an admin is allowed to access this page."),
+            notification_type="error",
+        )
         return redirect("")
     app.specter.reset_setup("torbrowser")
-    current_version = notify_upgrade(app, flash)
+    current_version = notify_upgrade(app)
     proxy_url = app.specter.proxy_url
     only_tor = app.specter.only_tor
     tor_control_port = app.specter.tor_control_port
@@ -262,38 +267,38 @@ def tor():
             if hidden_service != app.specter.config["tor_status"]:
                 if not app.config["DEBUG"]:
                     if app.specter.config["auth"].get("method", "none") == "none":
-                        flash(
+                        app.specter.notification_manager.create_and_show(
                             "Enabling Tor hidden service will expose your Specter for remote access.<br>It is therefore required that you set up authentication tab for Specter first to prevent unauthorized access.<br><br>Please go to Settings -> Authentication and set up an authentication method and retry.",
-                            "error",
+                            notification_type="error",
                         )
                     else:
                         if hasattr(current_user, "is_admin") and current_user.is_admin:
                             if not hidden_service:
                                 stop_hidden_services(app)
                                 app.specter.toggle_tor_status()
-                                flash(
-                                    "Tor hidden service turn off successfully", "info"
+                                app.specter.notification_manager.create_and_show(
+                                    "Tor hidden service turn off successfully"
                                 )
                             else:
                                 try:
                                     start_hidden_service(app)
                                     app.specter.toggle_tor_status()
-                                    flash(
+                                    app.specter.notification_manager.create_and_show(
                                         "Tor hidden service turn on successfully",
                                         "info",
                                     )
                                 except Exception as e:
                                     handle_exception(e)
-                                    flash(
+                                    app.specter.notification_manager.create_and_show(
                                         "Failed to start Tor hidden service. Make sure you have Tor running with ControlPort configured and try again. Error returned: {}".format(
                                             e
                                         ),
-                                        "error",
+                                        notification_type="error",
                                     )
                 else:
-                    flash(
+                    app.specter.notification_manager.create_and_show(
                         "Can't toggle hidden service while Specter is running in DEBUG mode",
-                        "error",
+                        notification_type="error",
                     )
 
             app.specter.check()
@@ -302,18 +307,28 @@ def tor():
             logger.info("Starting Tor...")
             try:
                 app.specter.tor_daemon.start_tor_daemon()
-                flash(_("Specter has started Tor"))
+                app.specter.notification_manager.create_and_show(
+                    _("Specter has started Tor")
+                )
             except Exception as e:
-                flash(_("Failed to start Tor, error: {}").format(e), "error")
+                app.specter.notification_manager.create_and_show(
+                    _("Failed to start Tor, error: {}").format(e),
+                    notification_type="error",
+                )
                 logger.error(f"Failed to start Tor, error: {e}")
         elif action == "stoptor":
             logger.info("Stopping Tor...")
             try:
                 app.specter.tor_daemon.stop_tor_daemon()
                 time.sleep(1)
-                flash(_("Specter stopped Tor successfully"))
+                app.specter.notification_manager.create_and_show(
+                    _("Specter stopped Tor successfully")
+                )
             except Exception as e:
-                flash(_("Failed to stop Tor, error: {}").format(e), "error")
+                app.specter.notification_manager.create_and_show(
+                    _("Failed to stop Tor, error: {}").format(e),
+                    notification_type="error",
+                )
                 logger.error(f"Failed to start Tor, error: {e}")
         elif action == "uninstalltor":
             logger.info("Uninstalling Tor...")
@@ -322,9 +337,14 @@ def tor():
                     app.specter.tor_daemon.stop_tor_daemon()
                 shutil.rmtree(os.path.join(app.specter.data_folder, "tor-binaries"))
                 os.remove(os.path.join(app.specter.data_folder, "torrc"))
-                flash(_("Tor uninstalled successfully"))
+                app.specter.notification_manager.create_and_show(
+                    _("Tor uninstalled successfully")
+                )
             except Exception as e:
-                flash(_("Failed to uninstall Tor, error: {}").format(e), "error")
+                app.specter.notification_manager.create_and_show(
+                    _("Failed to uninstall Tor, error: {}").format(e),
+                    notification_type="error",
+                )
                 logger.error(f"Failed to uninstall Tor, error: {e}")
         elif action == "test_tor":
             logger.info("Testing the Tor connection...")
@@ -338,13 +358,15 @@ def tor():
                 )
                 tor_connectable = res.status_code == 200
                 if tor_connectable:
-                    flash(_("Tor requests test completed successfully!"), "info")
+                    app.specter.notification_manager.create_and_show(
+                        _("Tor requests test completed successfully!")
+                    )
                 else:
-                    flash(
+                    app.specter.notification_manager.create_and_show(
                         _(
                             "Failed to make test request over Tor. Status-Code: {}"
                         ).format(res.status_code),
-                        "error",
+                        notification_type="error",
                     )
                     logger.error(
                         f"Failed to make test request over Tor. Status-Code: {res.status_code}"
@@ -356,9 +378,9 @@ def tor():
                         logger.error(app.specter.tor_daemon.get_logs())
                         app.specter.tor_daemon.start_tor_daemon()
             except Exception as e:
-                flash(
+                app.specter.notification_manager.create_and_show(
                     _("Failed to make test request over Tor.\nError: {}").format(e),
-                    "error",
+                    notification_type="error",
                 )
                 logger.error(f"Failed to make test request over Tor.\nError: {e}")
                 if tor_type == "builtin":
@@ -390,7 +412,7 @@ def auth():
     # TODO: Simplify this endpoint. Separate out setting the Authentication mode from all
     # the other options here: updating admin username/password, adding users, deleting
     # users, etc. Do those in simple separate screens with their own endpoints.
-    current_version = notify_upgrade(app, flash)
+    current_version = notify_upgrade(app)
     auth = app.specter.config["auth"]
     method = auth["method"]
     rate_limit = auth["rate_limit"]
@@ -407,7 +429,9 @@ def auth():
         # user_secret decrypted. Force them to login again to prevent problems if they
         # try to change their password (changing password requires re-encrypting the
         # user_secret... which we can't do if it isn't decrypted first).
-        flash(_("Must login again to before making Authentication changes"))
+        app.specter.notification_manager.create_and_show(
+            _("Must login again to before making Authentication changes")
+        )
         return redirect(
             url_for("auth_endpoint.login")
             + "?next="
@@ -437,9 +461,9 @@ def auth():
 
                 if current_user.username != specter_username:
                     if app.specter.user_manager.get_user_by_username(specter_username):
-                        flash(
+                        app.specter.notification_manager.create_and_show(
                             _("Username is already taken, please choose another one"),
-                            "error",
+                            notification_type="error",
                         )
                         return render_template(
                             "settings/auth_settings.jinja",
@@ -458,11 +482,11 @@ def auth():
 
                 if specter_password:
                     if len(specter_password) < min_chars:
-                        flash(
+                        app.specter.notification_manager.create_and_show(
                             _(
                                 "Please enter a password of a least {} characters"
                             ).format(min_chars),
-                            "error",
+                            notification_type="error",
                         )
                         return render_template(
                             "settings/auth_settings.jinja",
@@ -487,11 +511,11 @@ def auth():
                     if method == "passwordonly":
                         specter_password = request.form.get("specter_password_only")
                         if specter_password and len(specter_password) < min_chars:
-                            flash(
+                            app.specter.notification_manager.create_and_show(
                                 _(
                                     "Please enter a password of a least {} characters"
                                 ).format(min_chars),
-                                "error",
+                                notification_type="error",
                             )
                             return render_template(
                                 "settings/auth_settings.jinja",
@@ -517,11 +541,11 @@ def auth():
                             # plaintext_user_secret is not available in memory (happens
                             # when the server restarts).
                             logger.warn(e)
-                            flash(
+                            app.specter.notification_manager.create_and_show(
                                 _(
                                     "Error re-encrypting Service data. Log out and log back in before trying again."
                                 ),
-                                "error",
+                                notification_type="error",
                             )
                             return render_template(
                                 "settings/auth_settings.jinja",
@@ -539,7 +563,7 @@ def auth():
 
                         current_user.save_info()
 
-                        flash(
+                        app.specter.notification_manager.create_and_show(
                             _("Admin password successfully updated"),
                             "info",
                         )
@@ -588,16 +612,16 @@ def auth():
                 app.specter.otp_manager.add_new_user_otp(
                     {"otp": new_otp, "created_at": now, "expiry": expiry}
                 )
-                flash(
+                app.specter.notification_manager.create_and_show(
                     _("New user link generated{}: {}auth/register?otp={}").format(
                         expiry_desc, request.url_root, new_otp
                     ),
                     "info",
                 )
             else:
-                flash(
+                app.specter.notification_manager.create_and_show(
                     _("Error: Only the admin account can issue new registration links"),
-                    "error",
+                    notification_type="error",
                 )
 
         elif action == "deleteuser":
@@ -607,11 +631,14 @@ def auth():
                 # TODO: delete should be done by UserManager
                 app.specter.delete_user(user)
                 users.remove(user)
-                flash(
-                    _("User {} was deleted successfully").format(user.username), "info"
+                app.specter.notification_manager.create_and_show(
+                    _("User {} was deleted successfully").format(user.username)
                 )
             else:
-                flash(_("Error: Only the admin account can delete users"), "error")
+                app.specter.notification_manager.create_and_show(
+                    _("Error: Only the admin account can delete users"),
+                    notification_type="error",
+                )
 
     return render_template(
         "settings/auth_settings.jinja",
@@ -632,11 +659,13 @@ def auth():
 @settings_endpoint.route("/hwi", methods=["GET", "POST"])
 @login_required
 def hwi():
-    current_version = notify_upgrade(app, flash)
+    current_version = notify_upgrade(app)
     if request.method == "POST":
         hwi_bridge_url = request.form["hwi_bridge_url"]
         app.specter.update_hwi_bridge_url(hwi_bridge_url, current_user)
-        flash(_("HWIBridge URL is updated! Don't forget to whitelist Specter!"))
+        app.specter.notification_manager.create_and_show(
+            _("HWIBridge URL is updated! Don't forget to whitelist Specter!")
+        )
     return render_template(
         "settings/hwi_settings.jinja",
         specter=app.specter,
