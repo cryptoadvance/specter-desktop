@@ -82,7 +82,7 @@ async function get_new_notifications(){
 
 async function run_scheduled(){ 
     //this code runs every interval  
-  // createNotification('ja triggered notification')  // Triggering a nottification from JS works.
+  // createNotification('yes triggered notification')  // Triggering a nottification from JS works.
   get_new_notifications() 
 };
 
