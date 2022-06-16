@@ -3,7 +3,7 @@ import logging
 
 from decimal import Decimal
 from urllib.parse import urlparse
-from flask import redirect, render_template, request, url_for, flash
+from flask import redirect, render_template, request, url_for
 from flask import current_app as app
 from flask.json import jsonify
 from flask_babel import lazy_gettext as _

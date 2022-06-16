@@ -14,7 +14,7 @@ from cryptoadvance.specter.commands.psbt_creator import PsbtCreator
 from cryptoadvance.specter.wallet import Wallet
 from flask import Blueprint, stream_with_context
 from flask import current_app as app
-from flask import flash, jsonify, redirect, request, url_for
+from flask import jsonify, redirect, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_babel import lazy_gettext
 from flask_login import current_user, login_required

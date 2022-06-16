@@ -10,7 +10,7 @@ from cryptoadvance.specter.wallet import Wallet
 from cryptoadvance.specter.util.tx import is_hex, convert_rawtransaction_to_psbt
 from flask import Blueprint
 from flask import current_app as app
-from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask import jsonify, redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import login_required
 

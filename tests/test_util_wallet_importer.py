@@ -10,7 +10,7 @@ from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from mock import MagicMock, call, patch
 
 
-@patch("cryptoadvance.specter.util.wallet_importer.flash", print)
+@patch("cryptoadvance.specter.util.wallet_importer.flash", print)  # TODO!!!
 @patch("cryptoadvance.specter.util.wallet_importer._", lambda x: x)
 def test_WalletImporter_unit():
     specter_mock = MagicMock()

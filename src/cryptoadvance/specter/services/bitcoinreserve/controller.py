@@ -1,5 +1,5 @@
 import logging
-from flask import Flask, Response, redirect, render_template, request, url_for, flash
+from flask import Flask, Response, redirect, render_template, request, url_for
 from flask_login import login_required
 
 from ..controller import user_secret_decrypted_required

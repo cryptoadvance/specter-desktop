@@ -4,7 +4,7 @@ from binascii import unhexlify
 
 from flask import Blueprint
 from flask import current_app as app
-from flask import flash, make_response, redirect, render_template, request, url_for
+from flask import make_response, redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import login_required
 

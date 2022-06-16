@@ -8,7 +8,6 @@ from flask import (
     redirect,
     url_for,
     jsonify,
-    flash,
 )
 from flask_babel import lazy_gettext as _
 from flask_login import login_required, current_user
