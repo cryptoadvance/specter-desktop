@@ -101,7 +101,7 @@ class Specter:
                 js_notifications,
             ]
         )
-        js_notifications.set_callback_notification_close(
+        js_notifications.callback_notification_close = (
             self.notification_manager.callback_notification_close
         )
 

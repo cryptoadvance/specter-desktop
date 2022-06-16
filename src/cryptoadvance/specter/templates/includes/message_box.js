@@ -14,7 +14,7 @@ class MessageBox {
     }
   }
   
-  show(msg, callback, closeLabel) {
+  show(msg, callback, closeLabel, timeout=0) {
     if (msg === "" || msg === undefined || msg === null) {
       // If the 'msg' parameter is not set, throw an error
       
@@ -48,6 +48,7 @@ class MessageBox {
     
     // Container of the Message Box element
     msgboxBox.classList.add("msgbox-box");
+    msgboxBox.setAttribute("timeout", timeout);
     msgboxBox.appendChild(msgboxContent);
 
     if (option.hideCloseButton === false

@@ -23,6 +23,7 @@ class Notification:
         self.first_read = None
         self.body = body
         self.icon = None
+        self.timeout = None
         self.type = (
             notification_type if notification_type else NotificationTypes.information
         )
@@ -44,6 +45,7 @@ class Notification:
             "first_read": self.first_read,
             "body": self.body,
             "icon": self.icon,
+            "timeout": self.timeout,
             "type": self.type,
             "id": self.id,
         }

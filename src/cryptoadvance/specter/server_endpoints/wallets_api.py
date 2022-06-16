@@ -110,10 +110,10 @@ def get_new_notifications():  # GET request
         if isinstance(ui_notification, JSNotifications):
             js_notification = ui_notification
             break
-    if (
-        not js_notification
-    ):  # if there isnt a JSNotifications instance, then it is not desired to show JS notifications
-        return
+    if not js_notification:
+        return (
+            jsonify()
+        )  # if there isnt a JSNotifications instance, then it is not desired to show JS notifications
 
     return jsonify(
         js_notification.read_and_clear_js_notification_buffer()
@@ -130,12 +130,19 @@ def js_notification_close(notification_id):  # GET request
         if isinstance(ui_notification, JSNotifications):
             js_notification = ui_notification
             break
-    if (
-        not js_notification
-    ):  # if there isnt a JSNotifications instance, then it is not desired to show JS notifications
-        return
+    if not js_notification:
+        return (
+            jsonify()
+        )  # if there isnt a JSNotifications instance, then it is not desired to show JS notifications
 
     return jsonify(js_notification.js_notification_close(notification_id))
+
+
+@wallets_endpoint_api.route("/create_notification", methods=["POST"])
+@login_required
+def create_notification():
+    print(request.form)
+    return jsonify(app.specter.notification_manager.create_and_show(**request.form))
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/combine/", methods=["POST"])

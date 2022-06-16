@@ -75,12 +75,9 @@ class JSNotifications(BaseUINotifications):
             NotificationTypes.exception,
         }
         self.js_notification_buffer = []
-        self._callback_notification_close = None
+        self.callback_notification_close = None
 
-    def set_callback_notification_close(self, callback_notification_close):
-        self._callback_notification_close = callback_notification_close
-
-    def js_notification(self, notification):
+    def _js_notification(self, notification):
         "see https://notifications.spec.whatwg.org/#api for datastructure"
         return {
             "title": notification.title,
@@ -91,8 +88,8 @@ class JSNotifications(BaseUINotifications):
         }
 
     def js_notification_close(self, notification_id):
-        if self._callback_notification_close:
-            self._callback_notification_close(notification_id)
+        if self.callback_notification_close:
+            self.callback_notification_close(notification_id)
 
     def read_and_clear_js_notification_buffer(self):
         js_notification_buffer = self.js_notification_buffer
@@ -102,4 +99,4 @@ class JSNotifications(BaseUINotifications):
     def show(self, notification):
         if notification.type not in self.compatible_notification_types:
             return
-        self.js_notification_buffer.append(self.js_notification(notification))
+        self.js_notification_buffer.append(self._js_notification(notification))

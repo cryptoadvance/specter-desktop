@@ -1,10 +1,21 @@
 {% include "includes/message_box.js" %}
 
-  
+
+/*  creating a notification from JS */
+function createNotification(msg, timeout=3000, type="information"){
+    url = "{{ url_for('wallets_endpoint_api.create_notification' ) }}";
+	formData = new FormData();
+	formData.append("title", msg)
+	formData.append("timeout", timeout)
+	formData.append("notification_type", type)
+	send_request(url, 'POST', "{{ csrf_token() }}", formData)
+}
+
+
 function callback_notification_close(id){
     //console.log('closed message')
     url = "{{ url_for('wallets_endpoint_api.js_notification_close', notification_id='this_notification_id') }}";
-    fetch(url.replace('this_notification_id', id));
+    send_request(url.replace('this_notification_id', id), 'GET', "{{ csrf_token() }}")
 }
 
   
@@ -56,10 +67,8 @@ function javascript_popup_message(js_notification){
 async function get_new_notifications(){
     url = "{{ url_for('wallets_endpoint_api.get_new_notifications') }}"
     console.log(url)
-    fetch(url)
-        .then(function (response) {
-            return response.json();
-        }).then(function (js_notifications) {
+    send_request(url, 'GET', "{{ csrf_token() }}")
+        .then(function (js_notifications) {
             // do something with the response
             console.log(js_notifications)
             for (let i in js_notifications) {
@@ -73,6 +82,7 @@ async function get_new_notifications(){
 
 async function run_scheduled(){ 
     //this code runs every interval  
+  // createNotification('ja triggered notification')  // Triggering a nottification from JS works.
   get_new_notifications() 
 };
 
