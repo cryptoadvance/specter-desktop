@@ -98,6 +98,21 @@ def fees_old(blocks):
     return app.specter.estimatesmartfee(int(blocks))
 
 
+@wallets_endpoint_api.route("/get_new_notifications", methods=["GET"])
+@login_required
+def get_new_notifications():  # GET request
+    from flask import jsonify
+
+    all_notifications = app.specter.notification_manager.notifications
+    for notification in all_notifications:
+        if notification.deleted:
+            continue
+        # TODO:!!!
+
+    js_notifications = []  # TODO:!!!
+    return jsonify(js_notifications)  # serialize and use JSON headers
+
+
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/combine/", methods=["POST"])
 @login_required
 def combine(wallet_alias):

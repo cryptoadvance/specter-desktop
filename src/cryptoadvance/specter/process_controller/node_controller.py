@@ -339,6 +339,7 @@ class NodeController:
         node_path="bitcoind",
         network="regtest",
         extra_args=[],
+        enable_zmq=True,
     ):
         """returns a command to run your node (bitcoind/elementsd)"""
         btcd_cmd = '"{}" '.format(node_path)
@@ -360,6 +361,8 @@ class NodeController:
             btcd_cmd += ' -datadir="{}" '.format(datadir)
         if extra_args:
             btcd_cmd += " {}".format(" ".join(extra_args))
+        if enable_zmq:
+            btcd_cmd += " -zmqpubhashtx=tcp://127.0.0.1:29000 "
         logger.debug("constructed bitcoind-command: %s", btcd_cmd)
         return btcd_cmd
 
