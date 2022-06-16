@@ -103,8 +103,10 @@ class ServiceManager:
         if not clazz.has_blueprint:
             return
         if hasattr(clazz, "blueprint_modules"):
-            import_name = clazz.blueprint_modules
             controller_modules = clazz.blueprint_modules
+        elif hasattr(clazz, "blueprint_module"):
+            controller_modules = {"default": clazz.blueprint_module}
+        only_one_blueprint = len(controller_modules.items()) == 1
 
         def inject_stuff():
             """Can be used in all jinja2 templates"""
@@ -146,14 +148,17 @@ class ServiceManager:
 
                     logger.info("Reloading Extension controller")
                     importlib.reload(controller_module)
+                    bp_postfix = "" if only_one_blueprint else f"/{bp_key}"
                     app.register_blueprint(
-                        bp, url_prefix=f"{ext_prefix}/{bp_key}/{clazz.id}"
+                        bp, url_prefix=f"{ext_prefix}/{clazz.id}{bp_postfix}"
                     )
                 else:
                     app.register_blueprint(
-                        bp, url_prefix=f"{ext_prefix}/{bp_key}/{clazz.id}"
+                        bp, url_prefix=f"{ext_prefix}/{clazz.id}{bp_postfix}"
                     )
-                logger.info(f"  Mounted {clazz.id} to {ext_prefix}/{bp_key}/{clazz.id}")
+                logger.info(
+                    f"  Mounted {clazz.id} to {ext_prefix}/{clazz.id}{bp_postfix}"
+                )
             except AssertionError as e:
                 if str(e).startswith("A name collision"):
                     raise SpecterError(
