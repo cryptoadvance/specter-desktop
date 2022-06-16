@@ -29,6 +29,7 @@ class NotificationManager:
 
     def callback_notification_close(self, notification_id):
         notification = self.find_notification(notification_id)
-        if notification:
-            notification.deleted = True
+        if not notification:
+            return
+        notification.deleted = True
         print(f"Closed {notification}")
