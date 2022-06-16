@@ -29,6 +29,15 @@ class Notification:
         )
         self.id = None
 
+        if self.type not in {
+            NotificationTypes.debug,
+            NotificationTypes.information,
+            NotificationTypes.warning,
+            NotificationTypes.error,
+            NotificationTypes.exception,
+        }:
+            self.type = NotificationTypes.information
+
         self._set_id()
 
     def _set_id(self):

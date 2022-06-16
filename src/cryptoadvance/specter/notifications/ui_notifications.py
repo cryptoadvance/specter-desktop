@@ -77,7 +77,7 @@ class JSNotifications(BaseUINotifications):
         self.js_notification_buffer = []
         self.callback_notification_close = None
 
-    def _js_notification(self, notification):
+    def convert_to_js_notification(self, notification):
         "see https://notifications.spec.whatwg.org/#api for datastructure"
         return {
             "title": notification.title,
@@ -93,6 +93,9 @@ class JSNotifications(BaseUINotifications):
         return js_notification_buffer
 
     def show(self, notification):
+        "This will not show the notification immediately, but write it into a buffer and then it is later fetched by a javascript endless loop"
         if notification.type not in self.compatible_notification_types:
             return
-        self.js_notification_buffer.append(self._js_notification(notification))
+        self.js_notification_buffer.append(
+            self.convert_to_js_notification(notification)
+        )

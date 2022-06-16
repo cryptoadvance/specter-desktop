@@ -2,12 +2,14 @@
 
 
 /*  creating a notification from JS */
-function createNotification(msg, timeout=3000, type="information"){
+function createNotification(msg, timeout=3000, type="information", body=null, icon=null){
     url = "{{ url_for('wallets_endpoint_api.create_notification' ) }}";
 	formData = new FormData();
 	formData.append("title", msg)
 	formData.append("timeout", timeout)
 	formData.append("notification_type", type)
+	formData.append("body", body)
+	formData.append("icon", icon)
 	send_request(url, 'POST', "{{ csrf_token() }}", formData)
 }
 
@@ -83,9 +85,17 @@ async function get_new_notifications(){
 async function run_scheduled(){ 
     //this code runs every interval  
   // createNotification('yes triggered notification')  // Triggering a nottification from JS works.
-  get_new_notifications() 
+  get_new_notifications() ;
 };
 
+
+
+function test_notifications(){
+    createNotification('debug title', timeout=4000,  type='debug', body='body\nbody', icon='/path/to/icon.png');
+    createNotification('info title', timeout=4000, type='information',  body='body\nbody', icon='/path/to/icon.png');
+    createNotification('warning title', timeout=4000, type='warning',  body='body\nbody', icon='/path/to/icon.png');
+    createNotification('error title', timeout=4000, type='error',  body='body\nbody', icon='/path/to/icon.png');
+}
 
 setInterval(run_scheduled, 2000);
 
