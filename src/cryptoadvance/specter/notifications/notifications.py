@@ -39,7 +39,7 @@ class Notification:
     def __dict__(self):
         return {
             "title": self.title,
-            "date": self.date,
+            "date": self.date.isoformat(),
             "deleted": self.deleted,
             "first_read": self.first_read,
             "body": self.body,

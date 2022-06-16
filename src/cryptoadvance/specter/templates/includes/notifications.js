@@ -53,7 +53,7 @@ function javascript_popup_message(js_notification){
 
 
 
-function get_new_notifications(){
+async function get_new_notifications(){
     url = "{{ url_for('wallets_endpoint_api.get_new_notifications') }}"
     console.log(url)
     fetch(url)
@@ -71,7 +71,7 @@ function get_new_notifications(){
 
 
 
-function run_scheduled(){ 
+async function run_scheduled(){ 
     //this code runs every interval  
   get_new_notifications() 
 };
