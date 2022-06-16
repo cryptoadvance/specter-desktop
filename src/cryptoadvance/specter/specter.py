@@ -92,12 +92,17 @@ class Specter:
         self.internal_bitcoind_version = internal_bitcoind_version
 
         # setting up the notifications system
+        js_notifications = ui_notifications.JSNotifications()
         self.notification_manager = NotificationManager(
             ui_notifications=[
                 ui_notifications.FlaskNotifications(),
                 ui_notifications.PrintNotifications(),
                 ui_notifications.LoggingNotifications(),
+                js_notifications,
             ]
+        )
+        js_notifications.set_callback_notification_close(
+            self.notification_manager.callback_notification_close
         )
 
         # Migrating from Specter 1.3.1 and lower (prior to the node manager)

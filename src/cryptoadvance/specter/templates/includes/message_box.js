@@ -1,4 +1,4 @@
-
+// see https://coder-question.com/cq-blog/525543  and https://dev.to/takaneichinose/responsive-message-box-with-javascript-class-25ie
 class MessageBox {
   constructor(option) {
     this.option = option;

@@ -2,6 +2,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 import datetime
+import hashlib
 
 
 class NotificationTypes:
@@ -30,9 +31,10 @@ class Notification:
         self._set_id()
 
     def _set_id(self):
-        dict_without_id = self.__dict__()
-        del dict_without_id["id"]
-        self.id = hash(self.__str__())
+        reduced_dict = self.__dict__().copy()
+        del reduced_dict["id"]
+        del reduced_dict["deleted"]
+        self.id = hashlib.sha256(self.__str__().encode()).hexdigest()
 
     def __dict__(self):
         return {

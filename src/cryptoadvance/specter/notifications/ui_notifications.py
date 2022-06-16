@@ -63,3 +63,43 @@ class FlaskNotifications(BaseUINotifications):
             f"{notification.title}\n{notification.body if notification.body else ''}",
             notification.type,
         )
+
+
+class JSNotifications(BaseUINotifications):
+    def __init__(self):
+        super().__init__()
+        self.compatible_notification_types = {
+            NotificationTypes.information,
+            NotificationTypes.warning,
+            NotificationTypes.error,
+            NotificationTypes.exception,
+        }
+        self.js_notification_buffer = []
+        self._callback_notification_close = None
+
+    def set_callback_notification_close(self, callback_notification_close):
+        self._callback_notification_close = callback_notification_close
+
+    def js_notification(self, notification):
+        "see https://notifications.spec.whatwg.org/#api for datastructure"
+        return {
+            "title": notification.title,
+            "id": notification.id,
+            "options": {
+                "body": notification.body if notification.body else "",
+            },
+        }
+
+    def js_notification_close(self, notification_id):
+        if self._callback_notification_close:
+            self._callback_notification_close(notification_id)
+
+    def read_and_clear_js_notification_buffer(self):
+        js_notification_buffer = self.js_notification_buffer
+        self.js_notification_buffer = []
+        return js_notification_buffer
+
+    def show(self, notification):
+        if notification.type not in self.compatible_notification_types:
+            return
+        self.js_notification_buffer.append(self.js_notification(notification))

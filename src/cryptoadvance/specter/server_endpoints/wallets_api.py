@@ -31,6 +31,8 @@ from ..util.fee_estimation import FeeEstimationResultEncoder, get_fees
 from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
 from embit.descriptor.checksum import add_checksum
+from ..notifications.ui_notifications import JSNotifications
+
 
 logger = logging.getLogger(__name__)
 
@@ -103,14 +105,37 @@ def fees_old(blocks):
 def get_new_notifications():  # GET request
     from flask import jsonify
 
-    all_notifications = app.specter.notification_manager.notifications
-    for notification in all_notifications:
-        if notification.deleted:
-            continue
-        # TODO:!!!
+    js_notification = None
+    for ui_notification in app.specter.notification_manager.ui_notifications:
+        if isinstance(ui_notification, JSNotifications):
+            js_notification = ui_notification
+            break
+    if (
+        not js_notification
+    ):  # if there isnt a JSNotifications instance, then it is not desired to show JS notifications
+        return
 
-    js_notifications = []  # TODO:!!!
-    return jsonify(js_notifications)  # serialize and use JSON headers
+    return jsonify(
+        js_notification.read_and_clear_js_notification_buffer()
+    )  # serialize and use JSON headers
+
+
+@wallets_endpoint_api.route("/js_notification_close/<notification_id>", methods=["GET"])
+@login_required
+def js_notification_close(notification_id):  # GET request
+    from flask import jsonify
+
+    js_notification = None
+    for ui_notification in app.specter.notification_manager.ui_notifications:
+        if isinstance(ui_notification, JSNotifications):
+            js_notification = ui_notification
+            break
+    if (
+        not js_notification
+    ):  # if there isnt a JSNotifications instance, then it is not desired to show JS notifications
+        return
+
+    return jsonify(js_notification.js_notification_close(notification_id))
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/combine/", methods=["POST"])
