@@ -133,14 +133,11 @@ function numberWithCommas(x) {
 }
 
 
-
-async function send_request(url, method_str, formData, append_token=true) {
+async function send_request(url, method_str, csrf_token, formData) {
 	if (!formData) {
 		formData = new FormData();
 	}
-	if (append_token){
-		formData.append("csrf_token", "{{ csrf_token() }}")
-	}
+	formData.append("csrf_token", csrf_token)
 	d = {
 			method: method_str,
 		}
@@ -156,5 +153,3 @@ async function send_request(url, method_str, formData, append_token=true) {
 	}
 	return await response.json();
 }
-
-

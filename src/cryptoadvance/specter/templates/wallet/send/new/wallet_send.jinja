@@ -586,7 +586,7 @@
 			let url="{{ url_for('wallets_endpoint_api.is_address_mine', wallet_alias=wallet.alias, address='this_address') }}"
 			url = url.replace('this_address', address)			
 					
-			let is_address_mine = send_request(url, 'GET');
+			let is_address_mine = send_request(url, 'GET', "{{ csrf_token() }}");
 			return is_address_mine;
 		}
 
@@ -729,7 +729,7 @@
 				let url="{{ url_for('wallets_endpoint_api.estimate_fee', wallet_alias=wallet.alias) }}"
 				formData.append("estimate_fee", true)
 			
-				let result = await send_request(url, 'POST', formData);
+				let result = await send_request(url, 'POST', "{{ csrf_token() }}", formData);
 				console.log(result);
 				if (result.success) {
 					let psbt = result.psbt;
