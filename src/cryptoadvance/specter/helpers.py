@@ -264,15 +264,14 @@ def get_startblock_by_chain(specter):
     return startblock
 
 
-def notify_upgrade(app, flash):
-    """If a new version is available, notifies the user via flash
+def notify_upgrade(app):
+    """If a new version is available, notifies the user
     that there is an upgrade to specter.desktop
     :return the current version
     """
     if app.specter.version.upgrade:
-        flash(
-            f"Upgrade notification: new version {app.specter.version.latest} is available.",
-            "info",
+        app.specter.notification_manager.create_and_show(
+            title=f"Upgrade notification: new version {app.specter.version.latest} is available."
         )
     return app.specter.version.current
 

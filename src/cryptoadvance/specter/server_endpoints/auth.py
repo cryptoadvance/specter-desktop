@@ -3,9 +3,11 @@ import time
 
 from flask import Blueprint, Flask
 from flask import current_app as app
-from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask import jsonify, redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required, logout_user
+
+from cryptoadvance.specter.notifications import notifications
 
 from ..helpers import alias
 from ..services import ExtensionException
@@ -44,12 +46,13 @@ def login():
                     )
                     return redirect_login(request)
 
-                flash(
-                    _(
+                app.specter.notification_manager.create_and_show(
+                    title=_(
                         "We could not check your password, maybe Bitcoin Core is not running or not configured?"
                     ),
-                    "error",
+                    notification_type="error",
                 )
+
                 app.logger.info("AUDIT: Failed to check password")
                 return (
                     render_template(
@@ -83,7 +86,9 @@ def login():
                     return redirect_login(request)
 
         # Either invalid method or incorrect credentials
-        flash(_("Invalid username or password"), "error")
+        app.specter.notification_manager.create_and_show(
+            title=_("Invalid username or password"), notification_type="error"
+        )
         app.logger.info("AUDIT: Invalid password login attempt")
         return (
             render_template(
@@ -111,18 +116,17 @@ def register():
         password = request.form["password"]
         otp = request.form["otp"]
         if not username:
-            flash(
-                _("Please enter a username."),
-                "error",
+            app.specter.notification_manager.create_and_show(
+                title=_("Please enter a username."), notification_type="error"
             )
             return redirect("register?otp={}".format(otp))
         min_chars = int(app.specter.config["auth"]["password_min_chars"])
         if not password or len(password) < min_chars:
-            flash(
-                _("Please enter a password of a least {} characters.").format(
+            app.specter.notification_manager.create_and_show(
+                title=_("Please enter a password of a least {} characters.").format(
                     min_chars
                 ),
-                "error",
+                notification_type="error",
             )
             return redirect("register?otp={}".format(otp))
         if app.specter.otp_manager.validate_new_user_otp(otp):
@@ -132,8 +136,9 @@ def register():
                 i += 1
                 user_id = "{}{}".format(alias(username), i)
             if app.specter.user_manager.get_user_by_username(username):
-                flash(
-                    _("Username is already taken, please choose another one"), "error"
+                app.specter.notification_manager.create_and_show(
+                    title=_("Username is already taken, please choose another one"),
+                    notification_type="error",
                 )
                 return redirect("register?otp={}".format(otp))
             app.specter.otp_manager.remove_new_user_otp(otp)
@@ -149,20 +154,18 @@ def register():
                 config=config,
             )
 
-            flash(
-                _(
-                    "You have registered successfully, \
-please login with your new account to start using Specter"
+            app.specter.notification_manager.create_and_show(
+                title=_(
+                    "You have registered successfully, please login with your new account to start using Specter"
                 )
             )
             return redirect(url_for("auth_endpoint.login"))
         else:
-            flash(
-                _(
-                    "Invalid registration link, \
-please request a new link from the node operator."
+            app.specter.notification_manager.create_and_show(
+                title=_(
+                    "Invalid registration link, please request a new link from the node operator."
                 ),
-                "error",
+                notification_type="error",
             )
             return redirect("register?otp={}".format(otp))
     return render_template("register.jinja", specter=app.specter)

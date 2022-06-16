@@ -25,7 +25,7 @@ def index():
     if request.args.get("mode"):
         if request.args.get("mode") == "remote":
             pass
-    notify_upgrade(app, flash)
+    notify_upgrade(app)
     if len(app.specter.wallet_manager.wallets) > 0:
         if len(app.specter.wallet_manager.wallets) > 1:
             return redirect(url_for("wallets_endpoint.wallets_overview"))
@@ -37,14 +37,13 @@ def index():
                 ].alias,
             )
         )
-
     return redirect(url_for("welcome_endpoint.about"))
 
 
 @welcome_endpoint.route("/about", methods=["GET", "POST"])
 @login_required
 def about():
-    notify_upgrade(app, flash)
+    notify_upgrade(app)
     if request.method == "POST":
         action = request.form["action"]
         if action == "cancelsetup":

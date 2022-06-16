@@ -7,7 +7,6 @@ from flask import (
     redirect,
     render_template,
     request,
-    flash,
 )
 from flask import current_app as app
 from flask_cors import CORS
@@ -113,7 +112,9 @@ def hwi_bridge_settings():
         if action == "update":
             config["whitelisted_domains"] = request.form["whitelisted_domains"]
             save_hwi_bridge_config(app.specter, config)
-            flash("Whitelist is updated!")
+            app.specter.notification_manager.create_and_show(
+                title="Whitelist is updated!"
+            )
     return render_template(
         "hwi_bridge.jinja",
         specter=app.specter,

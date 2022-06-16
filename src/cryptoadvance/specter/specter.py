@@ -47,6 +47,8 @@ from .util.version import VersionChecker
 from .util.price_providers import update_price
 from .util.setup_states import SETUP_STATES
 from .util.tor import get_tor_daemon_suffix
+from .notifications.notification_manager import NotificationManager
+from .notifications import ui_notifications
 
 logger = logging.getLogger(__name__)
 
@@ -88,6 +90,15 @@ class Specter:
         self._config_manager = ConfigManager(self.data_folder, config)
 
         self.internal_bitcoind_version = internal_bitcoind_version
+
+        # setting up the notifications system
+        self.notification_manager = NotificationManager(
+            ui_notifications=[
+                ui_notifications.FlaskNotifications(),
+                ui_notifications.PrintNotifications(),
+                ui_notifications.LoggingNotifications(),
+            ]
+        )
 
         # Migrating from Specter 1.3.1 and lower (prior to the node manager)
         self.migrate_old_node_format()
