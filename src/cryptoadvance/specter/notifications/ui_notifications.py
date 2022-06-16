@@ -87,10 +87,6 @@ class JSNotifications(BaseUINotifications):
             },
         }
 
-    def js_notification_close(self, notification_id):
-        if self.callback_notification_close:
-            self.callback_notification_close(notification_id)
-
     def read_and_clear_js_notification_buffer(self):
         js_notification_buffer = self.js_notification_buffer
         self.js_notification_buffer = []

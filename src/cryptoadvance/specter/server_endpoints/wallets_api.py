@@ -130,12 +130,12 @@ def js_notification_close(notification_id):  # GET request
         if isinstance(ui_notification, JSNotifications):
             js_notification = ui_notification
             break
-    if not js_notification:
+    if not js_notification or not js_notification.callback_notification_close:
         return (
             jsonify()
         )  # if there isnt a JSNotifications instance, then it is not desired to show JS notifications
 
-    return jsonify(js_notification.js_notification_close(notification_id))
+    return jsonify(js_notification.callback_notification_close(notification_id))
 
 
 @wallets_endpoint_api.route("/create_notification", methods=["POST"])
