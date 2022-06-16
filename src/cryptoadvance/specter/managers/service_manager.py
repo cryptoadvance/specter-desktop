@@ -102,68 +102,68 @@ class ServiceManager:
     def register_blueprint_for_ext(cls, clazz, ext):
         if not clazz.has_blueprint:
             return
-        if hasattr(clazz, "blueprint_module"):
-            import_name = clazz.blueprint_module
-            controller_module = clazz.blueprint_module
-        else:
-            # The import_name helps to locate the root_path for the blueprint
-            import_name = f"cryptoadvance.specter.services.{clazz.id}.service"
-            controller_module = f"cryptoadvance.specter.services.{clazz.id}.controller"
-
-        clazz.blueprint = Blueprint(
-            f"{clazz.id}_endpoint",
-            import_name,
-            template_folder=get_template_static_folder("templates"),
-            static_folder=get_template_static_folder("static"),
-        )
+        if hasattr(clazz, "blueprint_modules"):
+            import_name = clazz.blueprint_modules
+            controller_modules = clazz.blueprint_modules
 
         def inject_stuff():
             """Can be used in all jinja2 templates"""
             return dict(specter=app.specter, service=ext)
 
-        clazz.blueprint.context_processor(inject_stuff)
+        for bp_key, bp_value in controller_modules.items():
+            bp = Blueprint(
+                f"{clazz.id}_{bp_key}_endpoint",
+                bp_value,
+                template_folder=get_template_static_folder("templates"),
+                static_folder=get_template_static_folder("static"),
+            )
 
-        # Import the controller for this service
-        logger.info(f"  Loading Controller {controller_module}")
-        controller_module = import_module(controller_module)
+            setattr(clazz, bp_key, bp)
+            bp.context_processor(inject_stuff)
 
-        # finally register the blueprint
-        if clazz.isolated_client:
-            ext_prefix = app.config["ISOLATED_CLIENT_EXT_URL_PREFIX"]
-        else:
-            ext_prefix = app.config["EXT_URL_PREFIX"]
+            # Import the controller for this service
+            logger.info(f"  Loading Controller {bp_value}")
+            controller_module = import_module(bp_value)
 
-        try:
-            if (
-                app.testing
-                and len([vf for vf in app.view_functions if vf.startswith(clazz.id)])
-                <= 1
-            ):  # the swan-static one
-                # Yet again that nasty workaround which has been described in the archblog.
-                # The easy variant can be found in server.py
-                # The good news is, that we'll only do that for testing
-                import importlib
-
-                logger.info("Reloading Extension controller")
-                importlib.reload(controller_module)
-                app.register_blueprint(
-                    clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
-                )
+            # finally register the blueprint
+            if clazz.isolated_client:
+                ext_prefix = app.config["ISOLATED_CLIENT_EXT_URL_PREFIX"]
             else:
-                app.register_blueprint(
-                    clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
-                )
-            logger.info(f"  Mounted {clazz.id} to {ext_prefix}/{clazz.id}")
-        except AssertionError as e:
-            if str(e).startswith("A name collision"):
-                raise SpecterError(
-                    f"""
-                There is a name collision for the {clazz.blueprint.name}. \n
-                This is probably because you're running in DevelopementConfig and configured
-                the extension at the same time in the EXTENSION_LIST which currently loks like this:
-                {app.config['EXTENSION_LIST']})
-                """
-                )
+                ext_prefix = app.config["EXT_URL_PREFIX"]
+
+            try:
+                if (
+                    app.testing
+                    and len(
+                        [vf for vf in app.view_functions if vf.startswith(clazz.id)]
+                    )
+                    <= 1
+                ):  # the swan-static one
+                    # Yet again that nasty workaround which has been described in the archblog.
+                    # The easy variant can be found in server.py
+                    # The good news is, that we'll only do that for testing
+                    import importlib
+
+                    logger.info("Reloading Extension controller")
+                    importlib.reload(controller_module)
+                    app.register_blueprint(
+                        bp, url_prefix=f"{ext_prefix}/{bp_key}/{clazz.id}"
+                    )
+                else:
+                    app.register_blueprint(
+                        bp, url_prefix=f"{ext_prefix}/{bp_key}/{clazz.id}"
+                    )
+                logger.info(f"  Mounted {clazz.id} to {ext_prefix}/{bp_key}/{clazz.id}")
+            except AssertionError as e:
+                if str(e).startswith("A name collision"):
+                    raise SpecterError(
+                        f"""
+                    There is a name collision for the {clazz.blueprint.name}. \n
+                    This is probably because you're running in DevelopementConfig and configured
+                    the extension at the same time in the EXTENSION_LIST which currently loks like this:
+                    {app.config['EXTENSION_LIST']})
+                    """
+                    )
 
     @classmethod
     def configure_service_for_module(cls, clazz):
