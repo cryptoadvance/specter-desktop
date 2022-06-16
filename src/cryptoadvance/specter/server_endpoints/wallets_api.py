@@ -102,22 +102,23 @@ def fees_old(blocks):
 
 @wallets_endpoint_api.route("/get_new_notifications", methods=["GET"])
 @login_required
-def get_new_notifications():  # GET request
+def get_new_notifications():
+    """
+    Gets all notifications meant for the browser to display in a dict of structure:
+        {
+            "WebAPI": [notification1, notification2, ...],
+        }
+    """
     from flask import jsonify
 
-    js_notification = None
+    js_notifications_dict = {}
     for ui_notification in app.specter.notification_manager.ui_notifications:
-        if isinstance(ui_notification, JSNotifications):
-            js_notification = ui_notification
-            break
-    if not js_notification:
-        return (
-            jsonify()
-        )  # if there isnt a JSNotifications instance, then it is not desired to show JS notifications
+        if ui_notification.web_notification_visualization:
+            js_notifications_dict[
+                ui_notification.web_notification_visualization
+            ] = ui_notification.read_and_clear_js_notification_buffer()
 
-    return jsonify(
-        js_notification.read_and_clear_js_notification_buffer()
-    )  # serialize and use JSON headers
+    return jsonify(js_notifications_dict)  # serialize and use JSON headers
 
 
 @wallets_endpoint_api.route("/js_notification_close/<notification_id>", methods=["GET"])

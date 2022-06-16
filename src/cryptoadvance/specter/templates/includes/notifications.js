@@ -14,17 +14,8 @@ function createNotification(msg, timeout=3000, type="information", body=null, ic
 }
 
 
-function callback_notification_close(id){
-    //console.log('closed message')
-    url = "{{ url_for('wallets_endpoint_api.js_notification_close', notification_id='this_notification_id') }}";
-    send_request(url.replace('this_notification_id', id), 'GET', "{{ csrf_token() }}")
-}
-
-  
-function javascript_popup_message(js_notification){
-
-    /* see https://notifications.spec.whatwg.org/#api
-    {
+    /* js_notification structure see https://notifications.spec.whatwg.org/#api
+    options : {  
         "//": "Visual Options",
         "body": "<String>",
         "icon": "<URL String>",
@@ -49,6 +40,58 @@ function javascript_popup_message(js_notification){
     }
     */
 
+function webpush_notification(js_notification) {
+    // https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API/Using_the_Notifications_API
+    var title = js_notification['title'];
+    var options = js_notification['options'];
+
+    function show_notification(){
+        let notification = new Notification(title, options);
+    };
+
+
+        if (!("Notification" in window)) {
+        console.debug("This browser does not support desktop notification");
+    }
+    // Let's check whether notification permissions have already been granted
+    else if (Notification.permission === "granted") {
+        // If it's okay let's create a notification
+        show_notification();
+    }
+    // Otherwise, we need to ask the user for permission
+    else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(function (permission) {
+        // If the user accepts, let's create a notification
+        if (permission === "granted") {
+            show_notification();
+        }        
+        else{
+         // not granted
+        }
+        });
+    }
+
+
+    
+
+      
+    // At last, if the user has denied notifications, and you
+    // want to be respectful there is no need to bother them any more.
+};
+
+
+
+
+function callback_notification_close(id){
+    //console.log('closed message')
+    url = "{{ url_for('wallets_endpoint_api.js_notification_close', notification_id='this_notification_id') }}";
+    send_request(url.replace('this_notification_id', id), 'GET', "{{ csrf_token() }}")
+}
+
+  
+function javascript_popup_message(js_notification){
+
+
     function callback_notification_close_id(){
         callback_notification_close(js_notification['id'])    
     }
@@ -69,16 +112,28 @@ function javascript_popup_message(js_notification){
 async function get_new_notifications(){
     url = "{{ url_for('wallets_endpoint_api.get_new_notifications') }}"
     console.log(url)
-    send_request(url, 'GET', "{{ csrf_token() }}")
-        .then(function (js_notifications) {
-            // do something with the response
-            console.log(js_notifications)
-            for (let i in js_notifications) {
-                javascript_popup_message(js_notifications[i]);
-            }
 
-        });
-};
+
+    function myFunction(item) {
+        sum += item;
+    }
+
+    send_request(url, 'GET', "{{ csrf_token() }}").then(function (js_notifications_dict) {
+        console.log(js_notifications_dict)
+
+        for (var web_notification_visualization in js_notifications_dict) {
+            console.log("obj." + web_notification_visualization + " = " + js_notifications_dict[web_notification_visualization]);
+            var js_notifications = js_notifications_dict[web_notification_visualization];
+            for (let i in js_notifications) {                
+                if (web_notification_visualization == 'js_message_box'){
+                    javascript_popup_message(js_notifications[i]);
+                } else if (web_notification_visualization == 'WebAPI'){
+                    webpush_notification(js_notifications[i]);
+                };
+            }            
+        }        
+    });
+}
 
 
 

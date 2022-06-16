@@ -17,6 +17,7 @@ class BaseUINotifications:
             NotificationTypes.error,
             NotificationTypes.exception,
         }
+        self.web_notification_visualization = None
 
     def show(self, notification):
         pass
@@ -76,6 +77,7 @@ class JSNotifications(BaseUINotifications):
         }
         self.js_notification_buffer = []
         self.callback_notification_close = None
+        self.web_notification_visualization = "js_message_box"
 
     def convert_to_js_notification(self, notification):
         "see https://notifications.spec.whatwg.org/#api for datastructure"
@@ -99,3 +101,9 @@ class JSNotifications(BaseUINotifications):
         self.js_notification_buffer.append(
             self.convert_to_js_notification(notification)
         )
+
+
+class WebAPINotifications(JSNotifications):
+    def __init__(self):
+        super().__init__()
+        self.web_notification_visualization = "WebAPI"  # see https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API/Using_the_Notifications_API

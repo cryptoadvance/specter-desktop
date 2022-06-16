@@ -93,15 +93,20 @@ class Specter:
 
         # setting up the notifications system
         js_notifications = ui_notifications.JSNotifications()
+        webapi_notifications = ui_notifications.WebAPINotifications()
         self.notification_manager = NotificationManager(
             ui_notifications=[
                 ui_notifications.FlaskNotifications(),
                 ui_notifications.PrintNotifications(),
                 ui_notifications.LoggingNotifications(),
                 js_notifications,
+                webapi_notifications,
             ]
         )
         js_notifications.callback_notification_close = (
+            self.notification_manager.callback_notification_close
+        )
+        webapi_notifications.callback_notification_close = (
             self.notification_manager.callback_notification_close
         )
 
