@@ -145,7 +145,7 @@ class PsbtCreator:
 
         recipient_ids_in_order = [
             int(i) for i in json.loads(request_form["recipient_ids_in_order"])
-        ]  # e.g. ['1', '0', '3', '2']
+        ]  # e.g. [1, 0, 3, 2]
         for recipient_id in recipient_ids_in_order:
             addresses.append(request_form["address_{}".format(recipient_id)])
             amount = 0.0

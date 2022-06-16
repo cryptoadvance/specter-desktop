@@ -135,6 +135,12 @@
 			return  recipient_array[ids.indexOf(recipient_id)];
 		}
 
+
+		function get_recipient_ids_in_order() {
+			const array = sortable_recipient_wrapper.toArray(); 
+			return array.map(elem=> parseInt(elem, 10))
+		}
+
 		// Amounts and units
 		var textUnit = '{{ specter.unit }}';
 		var recipient_array = [];
@@ -662,13 +668,12 @@
 
 			// this has to be set before send-form POST request 
 			var recipient_ids_in_order = document.getElementById('recipient_ids_in_order')  
-			recipient_ids_in_order.value = JSON.stringify(sortable_recipient_wrapper.toArray()); 
+			recipient_ids_in_order.value = JSON.stringify(get_recipient_ids_in_order());  
 
 			// subtract_from = number of input (starting from 0), while subtract_from_recipient_id_select is the recipient_id
 			var fee_selection_component = document.getElementById('fee-selection-component');
 			var subtract_from_recipient_id_select = fee_selection_component.subtractFrom.children.subtract_from_recipient_id_select;
-			let ids = get_recipient_ids();
-			document.getElementById('subtract_from').value =  sortable_recipient_wrapper.toArray().indexOf(subtract_from_recipient_id_select.value); 
+			document.getElementById('subtract_from').value =  get_recipient_ids_in_order().indexOf(parseInt(subtract_from_recipient_id_select.value, 10)); 
 
 			createPSBTButton.setAttribute('type', 'submit');
 			return true;
@@ -774,7 +779,7 @@
 			
 			onEnd: function(evt) {
 				console.log("Dragged id: " + evt.item.id);
-				console.log("New recipient order: " + JSON.stringify(sortable_recipient_wrapper.toArray()));
+				console.log("New recipient order: " + JSON.stringify(get_recipient_ids_in_order()));
 
 			}		
 		});
@@ -788,37 +793,30 @@
 				return false
 			} 
 			
-			let order = sortable_recipient_wrapper.toArray()
-			console.log(`order  ${order}`)
-			let index = order.indexOf(String(recipient_id))
-			console.log(`recipient_id  ${recipient_id}`)
-			console.log(`index  ${index}`)
+			let order = get_recipient_ids_in_order();
+			let index = order.indexOf(recipient_id);
 			
 			// pull the item we're moving out of the order
-			order.splice(index, 1)
-			console.log(`order  ${order}`)
+			order.splice(index, 1);
 			
 			// put it back in at the correct position
 			if (direction == 'down') {
 				if (index>=order.length) {  // moving the last item down should put it at the beginning
-					order.splice(0, 0, recipient_id)
+					order.splice(0, 0, recipient_id);
 				}else {
-					order.splice(index+1, 0, recipient_id)
+					order.splice(index+1, 0, recipient_id);
 				}
 			} else if (direction == 'up') {
 				if (index<=0) { // moving the first item up should put it last
-					order.splice(order.length , 0, recipient_id)
+					order.splice(order.length , 0, recipient_id);
 				}else {
-					order.splice(index-1, 0, recipient_id)
+					order.splice(index-1, 0, recipient_id);
 				}
 				
 				
 			}
-			console.log(`order  ${order}`)
 
-			sortable_recipient_wrapper.sort(order, true)
-			order = sortable_recipient_wrapper.toArray()
-			console.log(`order  ${order}`)
+			sortable_recipient_wrapper.sort(order, true);
 		}
 
 
