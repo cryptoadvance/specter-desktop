@@ -56,7 +56,9 @@ class LoggingNotifications(BaseUINotifications):
         )
 
 
-class FlaskNotifications(BaseUINotifications):
+class FlashNotifications(BaseUINotifications):
+    "Flask flash only appears after render_template"
+
     def __init__(self):
         super().__init__()
         self.compatible_notification_types = {
@@ -65,7 +67,7 @@ class FlaskNotifications(BaseUINotifications):
             NotificationTypes.error,
             NotificationTypes.exception,
         }
-        self.name = "flask"
+        self.name = "flash"
 
     def show(self, notification):
         if (

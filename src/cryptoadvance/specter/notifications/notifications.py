@@ -5,7 +5,7 @@ import datetime
 import hashlib
 
 
-all_target_uis = {"print", "logging", "flask", "js_logging", "js_message_box", "WebAPI"}
+all_target_uis = {"print", "logging", "flash", "js_logging", "js_message_box", "WebAPI"}
 
 
 class NotificationTypes:

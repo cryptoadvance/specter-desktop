@@ -96,7 +96,7 @@ class Specter:
         webapi_notifications = ui_notifications.WebAPINotifications()
         self.notification_manager = NotificationManager(
             ui_notifications=[
-                ui_notifications.FlaskNotifications(),
+                ui_notifications.FlashNotifications(),
                 ui_notifications.PrintNotifications(),
                 ui_notifications.LoggingNotifications(),
                 ui_notifications.JSLoggingNotifications(),

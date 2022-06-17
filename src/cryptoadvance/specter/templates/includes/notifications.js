@@ -164,7 +164,7 @@ function test_notifications(){
     createNotification('title send to js_logging and print', timeout=0,  type='debug', target_uis=['js_logging', 'print'], body='body\nbody', icon='/path/to/icon.png');
     createNotification('info for js_message_box', timeout=0, type='information',  target_uis='js_message_box', body='body\nbody', icon='/path/to/icon.png');
     createNotification('info for WebAPI', timeout=0, type='information',  target_uis='WebAPI', body='body\nbody', icon='/path/to/icon.png');
-    // createNotification('info for flask', timeout=0, type='information',  target_uis='flask', body='body\nbody', icon='/path/to/icon.png');
+    //createNotification('info for flask', timeout=0, type='information',  target_uis='flash', body='body\nbody', icon='/path/to/icon.png');
     //createNotification('warning title', timeout=0, type='warning', target_uis='all', body='body\nbody', icon='/path/to/icon.png');
     //createNotification('error title', timeout=0, type='error', target_uis='all', body='body\nbody', icon='/path/to/icon.png');
     get_new_notifications();
