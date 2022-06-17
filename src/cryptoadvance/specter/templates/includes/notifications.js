@@ -62,11 +62,12 @@ function notification_webapi_notification_unavailable(id) {
     */
 
 function webapi_notification(js_notification) {
+    console.log('webapi_notification')
     // https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API/Using_the_Notifications_API
     var title = js_notification['title'];
     var options = js_notification['options'];
 
-    function create__webapi_notification(){
+    function create_webapi_notification(){
         let notification = new Notification(title, options);
         // see https://flaviocopes.com/notifications-api/#add-an-image
         // see https://levelup.gitconnected.com/use-the-javascript-notification-api-to-display-native-popups-43f6227b9980
@@ -87,25 +88,36 @@ function webapi_notification(js_notification) {
     };
 
 
-        if (!("Notification" in window)) {
-        console.debug("This browser does not support desktop notification");
+    if (!("Notification" in window)) {
+        console.log("This browser does not support desktop notification");
         notification_webapi_notification_unavailable(js_notification['id']);
     }
     // Let's check whether notification permissions have already been granted
     else if (Notification.permission === "granted") {
         // If it's okay let's create a notification
-        create__webapi_notification();
+        create_webapi_notification();
+    }  else if (Notification.permission === "denied") {
+        // If it's okay let's create a notification
+        console.log(`Notification.requestPermission() = ${Notification.permission}`);
+        notification_webapi_notification_unavailable(js_notification['id']);  
     }
     // Otherwise, we need to ask the user for permission
-    else if (Notification.permission !== "denied") {
+    else   {
         Notification.requestPermission().then(function (permission) {
         // If the user accepts, let's create a notification
         if (permission === "granted") {
-            create__webapi_notification();
-        }        
-        else{
-         // not granted
-         notification_webapi_notification_unavailable(js_notification['id']);  
+            create_webapi_notification();
+        } else if (permission === "denied") {
+            // not granted
+            console.log(`Notification.requestPermission() = ${permission}`);
+            notification_webapi_notification_unavailable(js_notification['id']);  
+        } else {
+            // permission is probably "default", meaning the user has neither granted nor blocked the Notifications.
+            // The user can afterwards allow or block notifications.  The notification needs reboradcasting.
+            console.log(`Notification.requestPermission() = ${permission}`);
+
+            // create endless recursion loop, that only breaks if user grants or allows the notification
+            setTimeout(webapi_notification, 5000, js_notification);  
         }
         });
     }
