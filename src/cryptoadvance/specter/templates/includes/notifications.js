@@ -109,6 +109,18 @@ function javascript_popup_message(js_notification){
 
 
 
+async function show_notification(ui_name, js_notification){
+    if (ui_name == 'js_message_box'){
+        javascript_popup_message(js_notification);
+    } else if (ui_name == 'WebAPI'){
+        webpush_notification(js_notification);
+    } else if (ui_name == 'js_logging'){
+        console.log(js_notification);
+    }
+
+}
+
+
 async function get_new_notifications(){
     url = "{{ url_for('wallets_endpoint_api.get_new_notifications') }}"
     console.log(url)
@@ -119,17 +131,10 @@ async function get_new_notifications(){
     }
 
     send_request(url, 'GET', "{{ csrf_token() }}").then(function (js_notifications_dict) {
-        console.log(js_notifications_dict)
-
-        for (var web_notification_visualization in js_notifications_dict) {
-            console.log("obj." + web_notification_visualization + " = " + js_notifications_dict[web_notification_visualization]);
-            var js_notifications = js_notifications_dict[web_notification_visualization];
-            for (let i in js_notifications) {                
-                if (web_notification_visualization == 'js_message_box'){
-                    javascript_popup_message(js_notifications[i]);
-                } else if (web_notification_visualization == 'WebAPI'){
-                    webpush_notification(js_notifications[i]);
-                };
+        for (var ui_name in js_notifications_dict) {
+            console.log("obj." + ui_name + " = " + js_notifications_dict[ui_name]);
+            for (let i in js_notifications_dict[ui_name]) {  
+                show_notification(ui_name, js_notifications_dict[ui_name][i])  ;   
             }            
         }        
     });

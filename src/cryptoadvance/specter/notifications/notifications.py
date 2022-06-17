@@ -61,3 +61,13 @@ class Notification:
 
     def __str__(self):
         return str(self.__dict__())
+
+    def to_js_notification(self):
+        "see https://notifications.spec.whatwg.org/#api for datastructure"
+        return {
+            "title": self.title,
+            "id": self.id,
+            "options": {
+                "body": self.body if self.body else "",
+            },
+        }

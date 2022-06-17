@@ -113,9 +113,9 @@ def get_new_notifications():
 
     js_notifications_dict = {}
     for ui_notification in app.specter.notification_manager.ui_notifications:
-        if ui_notification.web_notification_visualization:
+        if ui_notification.name in {"WebAPI", "js_message_box", "js_logging"}:
             js_notifications_dict[
-                ui_notification.web_notification_visualization
+                ui_notification.name
             ] = ui_notification.read_and_clear_js_notification_buffer()
 
     return jsonify(js_notifications_dict)  # serialize and use JSON headers
