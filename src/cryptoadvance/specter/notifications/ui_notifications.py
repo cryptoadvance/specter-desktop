@@ -36,6 +36,7 @@ class PrintNotifications(BaseUINotifications):
         ):
             return
         print(notification)
+        return True  # successful shown
 
 
 class LoggingNotifications(BaseUINotifications):
@@ -54,6 +55,7 @@ class LoggingNotifications(BaseUINotifications):
             exc_info=notification.type
             in {NotificationTypes.error, NotificationTypes.exception},
         )
+        return True  # successful shown
 
 
 class FlashNotifications(BaseUINotifications):
@@ -79,6 +81,7 @@ class FlashNotifications(BaseUINotifications):
             f"{notification.title}\n{notification.body if notification.body else ''}",
             notification.type,
         )
+        return True  # successful shown
 
 
 class JSLoggingNotifications(BaseUINotifications):
@@ -100,6 +103,7 @@ class JSLoggingNotifications(BaseUINotifications):
         ):
             return
         self.js_notification_buffer.append(notification.to_js_notification())
+        return True  # successful shown
 
 
 class JSNotifications(JSLoggingNotifications):

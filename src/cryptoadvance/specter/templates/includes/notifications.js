@@ -20,8 +20,7 @@ function createNotification(msg, timeout=3000, type="information", target_uis='a
 
 function callback_notification_close(id){
     //console.log('closed message')
-    url = "{{ url_for('wallets_endpoint_api.js_notification_close', notification_id='this_notification_id') }}";
-    send_request(url.replace('this_notification_id', id), 'GET', "{{ csrf_token() }}")
+    createNotification('callback_notification_close', timeout=0,  type='debug', target_uis=['internal_notification'], body=id, icon='/path/to/icon.png');
 }
 
 
@@ -99,7 +98,7 @@ function webapi_notification(js_notification) {
         }        
         else{
          // not granted
-         // notification_webapi_notification_unavailable();  
+         notification_webapi_notification_unavailable();  
         }
         });
     }

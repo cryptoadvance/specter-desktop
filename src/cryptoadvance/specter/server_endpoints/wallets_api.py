@@ -121,24 +121,6 @@ def get_new_notifications():
     return jsonify(js_notifications_dict)  # serialize and use JSON headers
 
 
-@wallets_endpoint_api.route("/js_notification_close/<notification_id>", methods=["GET"])
-@login_required
-def js_notification_close(notification_id):  # GET request
-    from flask import jsonify
-
-    js_notification = None
-    for ui_notification in app.specter.notification_manager.ui_notifications:
-        if isinstance(ui_notification, JSNotifications):
-            js_notification = ui_notification
-            break
-    if not js_notification or not js_notification.callback_notification_close:
-        return (
-            jsonify()
-        )  # if there isnt a JSNotifications instance, then it is not desired to show JS notifications
-
-    return jsonify(js_notification.callback_notification_close(notification_id))
-
-
 @wallets_endpoint_api.route("/create_notification", methods=["POST"])
 @login_required
 def create_notification():
