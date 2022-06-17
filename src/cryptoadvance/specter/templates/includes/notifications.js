@@ -2,12 +2,13 @@
 
 
 /*  creating a notification from JS */
-function createNotification(msg, timeout=3000, type="information", body=null, icon=null){
+function createNotification(msg, timeout=3000, type="information", target_uis='all', body=null, icon=null){
     url = "{{ url_for('wallets_endpoint_api.create_notification' ) }}";
 	formData = new FormData();
 	formData.append("title", msg)
 	formData.append("timeout", timeout)
 	formData.append("notification_type", type)
+	formData.append("target_uis", JSON.stringify(target_uis))
 	formData.append("body", body)
 	formData.append("icon", icon)
 	send_request(url, 'POST', "{{ csrf_token() }}", formData)
@@ -123,7 +124,7 @@ async function show_notification(ui_name, js_notification){
 
 async function get_new_notifications(){
     url = "{{ url_for('wallets_endpoint_api.get_new_notifications') }}"
-    console.log(url)
+    //console.log(url)
 
 
     function myFunction(item) {
@@ -131,8 +132,9 @@ async function get_new_notifications(){
     }
 
     send_request(url, 'GET', "{{ csrf_token() }}").then(function (js_notifications_dict) {
-        for (var ui_name in js_notifications_dict) {
-            console.log("obj." + ui_name + " = " + js_notifications_dict[ui_name]);
+            //console.log(js_notifications_dict);
+            for (var ui_name in js_notifications_dict) {
+            //console.log("obj." + ui_name + " = " + js_notifications_dict[ui_name]);
             for (let i in js_notifications_dict[ui_name]) {  
                 show_notification(ui_name, js_notifications_dict[ui_name][i])  ;   
             }            
@@ -151,10 +153,13 @@ async function run_scheduled(){
 
 
 function test_notifications(){
-    createNotification('debug title', timeout=4000,  type='debug', body='body\nbody', icon='/path/to/icon.png');
-    createNotification('info title', timeout=4000, type='information',  body='body\nbody', icon='/path/to/icon.png');
-    createNotification('warning title', timeout=4000, type='warning',  body='body\nbody', icon='/path/to/icon.png');
-    createNotification('error title', timeout=4000, type='error',  body='body\nbody', icon='/path/to/icon.png');
+    createNotification('title send to js_logging and print', timeout=0,  type='debug', target_uis=['js_logging', 'print'], body='body\nbody', icon='/path/to/icon.png');
+    createNotification('info for js_message_box', timeout=0, type='information',  target_uis='js_message_box', body='body\nbody', icon='/path/to/icon.png');
+    createNotification('info for WebAPI', timeout=0, type='information',  target_uis='WebAPI', body='body\nbody', icon='/path/to/icon.png');
+    // createNotification('info for flask', timeout=0, type='information',  target_uis='flask', body='body\nbody', icon='/path/to/icon.png');
+    //createNotification('warning title', timeout=0, type='warning', target_uis='all', body='body\nbody', icon='/path/to/icon.png');
+    //createNotification('error title', timeout=0, type='error', target_uis='all', body='body\nbody', icon='/path/to/icon.png');
+    get_new_notifications();
 }
 
 setInterval(run_scheduled, 2000);

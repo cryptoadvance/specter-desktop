@@ -5,6 +5,9 @@ import datetime
 import hashlib
 
 
+all_ui_targets = {"print", "logging", "flask", "js_logging", "js_message_box", "WebAPI"}
+
+
 class NotificationTypes:
     debug = "debug"
     information = "information"
@@ -16,7 +19,9 @@ class NotificationTypes:
 class Notification:
     "A Notification is a datastructure to store title, body, ..."
 
-    def __init__(self, title, notification_type=None, body=None, **kwargs):
+    def __init__(
+        self, title, notification_type=None, body=None, target_uis="all", **kwargs
+    ):
         self.title = title
         self.date = datetime.datetime.now()
         self.deleted = False
@@ -24,6 +29,11 @@ class Notification:
         self.body = body
         self.icon = None
         self.timeout = None
+
+        self.target_uis = {target_uis} if isinstance(target_uis, str) else target_uis
+        if self.target_uis == {"all"}:
+            self.target_uis = all_ui_targets.copy()
+
         self.type = (
             notification_type if notification_type else NotificationTypes.information
         )
@@ -57,6 +67,7 @@ class Notification:
             "timeout": self.timeout,
             "type": self.type,
             "id": self.id,
+            "target_uis": self.target_uis,
         }
 
     def __str__(self):

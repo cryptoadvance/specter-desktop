@@ -99,6 +99,7 @@ class Specter:
                 ui_notifications.FlaskNotifications(),
                 ui_notifications.PrintNotifications(),
                 ui_notifications.LoggingNotifications(),
+                ui_notifications.JSLoggingNotifications(),
                 js_notifications,
                 webapi_notifications,
             ]

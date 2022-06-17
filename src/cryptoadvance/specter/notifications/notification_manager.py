@@ -13,10 +13,11 @@ class NotificationManager:
         self.notifications = []
 
     def show(self, notification):
-        "stores and forwards the notification to all self.ui_notifications"
+        "stores and forwards the notification to ui_notifications, that are in notification.target_uis"
         self.notifications.append(notification)
         for ui_notification in self.ui_notifications:
-            ui_notification.show(notification)
+            if ui_notification.name in notification.target_uis:
+                ui_notification.show(notification)
 
     def create_and_show(self, *args, **kwargs):
         notification = Notification(*args, **kwargs)
