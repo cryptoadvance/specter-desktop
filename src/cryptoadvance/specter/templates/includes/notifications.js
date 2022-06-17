@@ -116,7 +116,7 @@ function webapi_notification(js_notification) {
             // The user can afterwards allow or block notifications.  The notification needs reboradcasting.
             console.log(`Notification.requestPermission() = ${permission}`);
 
-            // create endless recursion loop, that only breaks if user grants or allows the notification
+            // create endless recursion loop, that only breaks if user grants or blocks the notification
             setTimeout(webapi_notification, 5000, js_notification);  
         }
         });
