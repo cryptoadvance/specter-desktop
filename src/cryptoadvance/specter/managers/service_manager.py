@@ -106,6 +106,11 @@ class ServiceManager:
             controller_modules = clazz.blueprint_modules
         elif hasattr(clazz, "blueprint_module"):
             controller_modules = {"default": clazz.blueprint_module}
+        else:
+            logger.error(
+                f"Extension {clazz} specifies has_blueßrint but neither blueprint_modules nor blueprint_module"
+            )
+            return
         only_one_blueprint = len(controller_modules.items()) == 1
 
         def inject_stuff():
@@ -113,14 +118,15 @@ class ServiceManager:
             return dict(specter=app.specter, service=ext)
 
         for bp_key, bp_value in controller_modules.items():
+            middple_part = "" if only_one_blueprint else f"{bp_key}_"
             bp = Blueprint(
-                f"{clazz.id}_{bp_key}_endpoint",
+                f"{clazz.id}_{middple_part}endpoint",
                 bp_value,
                 template_folder=get_template_static_folder("templates"),
                 static_folder=get_template_static_folder("static"),
             )
 
-            setattr(clazz, bp_key, bp)
+            setattr(clazz, "blueprint" if only_one_blueprint else bp_key, bp)
             bp.context_processor(inject_stuff)
 
             # Import the controller for this service
@@ -134,6 +140,7 @@ class ServiceManager:
                 ext_prefix = app.config["EXT_URL_PREFIX"]
 
             try:
+                bp_postfix = "" if only_one_blueprint else f"/{bp_key}"
                 if (
                     app.testing
                     and len(
@@ -148,7 +155,6 @@ class ServiceManager:
 
                     logger.info("Reloading Extension controller")
                     importlib.reload(controller_module)
-                    bp_postfix = "" if only_one_blueprint else f"/{bp_key}"
                     app.register_blueprint(
                         bp, url_prefix=f"{ext_prefix}/{clazz.id}{bp_postfix}"
                     )
