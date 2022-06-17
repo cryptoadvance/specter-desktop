@@ -28,7 +28,7 @@ class Notification:
         self.first_read = None
         self.body = body
         self.icon = None
-        self.timeout = None
+        self.timeout = None  # [ms]
 
         self.target_uis = {target_uis} if isinstance(target_uis, str) else target_uis
         if self.target_uis == {"all"}:
@@ -78,6 +78,8 @@ class Notification:
         return {
             "title": self.title,
             "id": self.id,
+            "type": self.type,
+            "timeout": self.timeout,
             "options": {
                 "body": self.body if self.body else "",
             },

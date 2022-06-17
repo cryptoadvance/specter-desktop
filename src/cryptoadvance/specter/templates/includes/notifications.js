@@ -11,9 +11,18 @@ function createNotification(msg, timeout=3000, type="information", target_uis='a
 	formData.append("target_uis", JSON.stringify(target_uis))
 	formData.append("body", body)
 	formData.append("icon", icon)
+	formData.append("image", icon)
 	send_request(url, 'POST', "{{ csrf_token() }}", formData)
 }
 
+
+
+
+function callback_notification_close(id){
+    //console.log('closed message')
+    url = "{{ url_for('wallets_endpoint_api.js_notification_close', notification_id='this_notification_id') }}";
+    send_request(url.replace('this_notification_id', id), 'GET', "{{ csrf_token() }}")
+}
 
 
 function notification_webapi_notification_unavailable() {
@@ -54,6 +63,21 @@ function webapi_notification(js_notification) {
 
     function show_notification(){
         let notification = new Notification(title, options);
+        // see https://flaviocopes.com/notifications-api/#add-an-image
+        // see https://levelup.gitconnected.com/use-the-javascript-notification-api-to-display-native-popups-43f6227b9980
+        // see https://www.htmlgoodies.com/html5/creating-your-own-notifications-with-the-html5-notifications-api/
+        notification.onclick = (() => {
+            // do something
+        });        
+        notification.onclose = (() => {
+            callback_notification_close(js_notification['id'])
+        });        
+        notification.onshow = (() => {
+            // do something
+        });        
+        if (js_notification['timeout']>0) {
+            setTimeout(notification.close(), js_notification['timeout']);
+        }
     };
 
 
@@ -91,12 +115,6 @@ function webapi_notification(js_notification) {
 
 
 
-function callback_notification_close(id){
-    //console.log('closed message')
-    url = "{{ url_for('wallets_endpoint_api.js_notification_close', notification_id='this_notification_id') }}";
-    send_request(url.replace('this_notification_id', id), 'GET', "{{ csrf_token() }}")
-}
-
   
 function javascript_popup_message(js_notification){
 
@@ -124,7 +142,15 @@ async function show_notification(ui_name, js_notification){
     } else if (ui_name == 'WebAPI'){
         webapi_notification(js_notification);
     } else if (ui_name == 'js_logging'){
-        console.log(js_notification);
+        if (js_notification['type'] == 'error'){
+            console.error(js_notification)
+        } else if (js_notification['type'] == 'exception'){
+            console.error(js_notification)
+        } else if (js_notification['type'] == 'warning'){
+            console.warn(js_notification)
+        } else {            
+            console.log(js_notification);
+        }
     }
 
 }
@@ -162,6 +188,7 @@ async function run_scheduled(){
 
 function test_notifications(){
     createNotification('title send to js_logging and print', timeout=0,  type='debug', target_uis=['js_logging', 'print'], body='body\nbody', icon='/path/to/icon.png');
+    createNotification('title send to js_logging and print', timeout=0,  type='warning', target_uis=['js_logging', 'print'], body='body\nbody', icon='/path/to/icon.png');
     createNotification('info for js_message_box', timeout=0, type='information',  target_uis='js_message_box', body='body\nbody', icon='/path/to/icon.png');
     createNotification('info for WebAPI', timeout=0, type='information',  target_uis='WebAPI', body='body\nbody', icon='/path/to/icon.png');
     //createNotification('info for flask', timeout=0, type='information',  target_uis='flash', body='body\nbody', icon='/path/to/icon.png');
