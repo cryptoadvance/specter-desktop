@@ -75,7 +75,7 @@ function webapi_notification(js_notification) {
         }        
         else{
          // not granted
-         notification_webapi_notification_unavailable();
+         // notification_webapi_notification_unavailable();  
         }
         });
     }
