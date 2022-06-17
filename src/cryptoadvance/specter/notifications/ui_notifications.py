@@ -18,6 +18,7 @@ class BaseUINotifications:
             NotificationTypes.exception,
         }
         self.name = "base"
+        self.is_available = True
 
     def show(self, notification):
         pass
@@ -29,7 +30,10 @@ class PrintNotifications(BaseUINotifications):
         self.name = "print"
 
     def show(self, notification):
-        if notification.type not in self.compatible_notification_types:
+        if (
+            not self.is_available
+            or notification.type not in self.compatible_notification_types
+        ):
             return
         print(notification)
 
@@ -40,7 +44,10 @@ class LoggingNotifications(BaseUINotifications):
         self.name = "logging"
 
     def show(self, notification):
-        if notification.type not in self.compatible_notification_types:
+        if (
+            not self.is_available
+            or notification.type not in self.compatible_notification_types
+        ):
             return
         logger.info(
             str(notification),
@@ -61,7 +68,10 @@ class FlaskNotifications(BaseUINotifications):
         self.name = "flask"
 
     def show(self, notification):
-        if notification.type not in self.compatible_notification_types:
+        if (
+            not self.is_available
+            or notification.type not in self.compatible_notification_types
+        ):
             return
         flash(
             f"{notification.title}\n{notification.body if notification.body else ''}",
@@ -82,7 +92,10 @@ class JSLoggingNotifications(BaseUINotifications):
 
     def show(self, notification):
         "This will not show the notification immediately, but write it into a buffer and then it is later fetched by a javascript endless loop"
-        if notification.type not in self.compatible_notification_types:
+        if (
+            not self.is_available
+            or notification.type not in self.compatible_notification_types
+        ):
             return
         self.js_notification_buffer.append(notification.to_js_notification())
 

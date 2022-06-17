@@ -12,8 +12,21 @@ class NotificationManager:
         self.ui_notifications = ui_notifications
         self.notifications = []
 
+    def deactivate_target_ui(self, target_ui):
+        for ui_notification in self.ui_notifications:
+            if ui_notification.name == target_ui:
+                ui_notification.is_active = False
+
     def show(self, notification):
         "stores and forwards the notification to ui_notifications, that are in notification.target_uis"
+        if notification.target_uis == ["internal_notification"]:
+            if notification.title == "webapi_notification_unavailable":
+                logger.info(
+                    "webapi_notification is unavailable, now deactivating this target_ui"
+                )
+                self.deactivate_target_ui("WebAPI")
+            return
+
         self.notifications.append(notification)
         for ui_notification in self.ui_notifications:
             if ui_notification.name in notification.target_uis:

@@ -15,6 +15,12 @@ function createNotification(msg, timeout=3000, type="information", target_uis='a
 }
 
 
+
+function notification_webapi_notification_unavailable() {
+    createNotification('webapi_notification_unavailable', timeout=0,  type='debug', target_uis=['internal_notification'], body='body\nbody', icon='/path/to/icon.png');
+}
+
+
     /* js_notification structure see https://notifications.spec.whatwg.org/#api
     options : {  
         "//": "Visual Options",
@@ -41,7 +47,7 @@ function createNotification(msg, timeout=3000, type="information", target_uis='a
     }
     */
 
-function webpush_notification(js_notification) {
+function webapi_notification(js_notification) {
     // https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API/Using_the_Notifications_API
     var title = js_notification['title'];
     var options = js_notification['options'];
@@ -53,6 +59,7 @@ function webpush_notification(js_notification) {
 
         if (!("Notification" in window)) {
         console.debug("This browser does not support desktop notification");
+        notification_webapi_notification_unavailable();
     }
     // Let's check whether notification permissions have already been granted
     else if (Notification.permission === "granted") {
@@ -68,6 +75,7 @@ function webpush_notification(js_notification) {
         }        
         else{
          // not granted
+         notification_webapi_notification_unavailable();
         }
         });
     }
@@ -114,7 +122,7 @@ async function show_notification(ui_name, js_notification){
     if (ui_name == 'js_message_box'){
         javascript_popup_message(js_notification);
     } else if (ui_name == 'WebAPI'){
-        webpush_notification(js_notification);
+        webapi_notification(js_notification);
     } else if (ui_name == 'js_logging'){
         console.log(js_notification);
     }

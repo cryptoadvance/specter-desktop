@@ -5,7 +5,7 @@ import datetime
 import hashlib
 
 
-all_ui_targets = {"print", "logging", "flask", "js_logging", "js_message_box", "WebAPI"}
+all_target_uis = {"print", "logging", "flask", "js_logging", "js_message_box", "WebAPI"}
 
 
 class NotificationTypes:
@@ -32,7 +32,7 @@ class Notification:
 
         self.target_uis = {target_uis} if isinstance(target_uis, str) else target_uis
         if self.target_uis == {"all"}:
-            self.target_uis = all_ui_targets.copy()
+            self.target_uis = all_target_uis.copy()
 
         self.type = (
             notification_type if notification_type else NotificationTypes.information
