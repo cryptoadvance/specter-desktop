@@ -1,4 +1,4 @@
-import logging
+import logging, datetime
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,8 @@ class NotificationManager:
     def deactivate_target_ui(self, target_ui):
         for ui_notification in self.ui_notifications:
             if ui_notification.name == target_ui:
-                ui_notification.is_active = False
+                ui_notification.is_available = False
+                logger.debug(f"deactivating {ui_notification.name }")
 
     def show(self, notification):
         """
@@ -27,9 +28,10 @@ class NotificationManager:
 
         If a target_ui of notification.target_uis is not is_available, then try with the next target_ui
         """
-
         if notification.target_uis == ["internal_notification"]:
             return
+
+        logger.debug(f"show {notification}")
 
         for ui_notification in self.ui_notifications:
             if ui_notification.name in notification.target_uis:
@@ -47,36 +49,50 @@ class NotificationManager:
                             if notification_shown:
                                 break
 
-    def treat_internal_message(self, notification):
-        "treat an internal (notification) message"
-        if notification.title == "webapi_notification_unavailable":
+    def set_notification_read_now(self, notification_id):
+        notification = self.find_notification(notification_id)
+        notification.first_shown = datetime.datetime.now()
+        logger.debug(f"set_notification_read_now {notification }")
+
+    def treat_internal_message(self, internal_notification):
+        "treat an internal_notification"
+        if internal_notification.target_uis != ["internal_notification"]:
+            return internal_notification
+        logger.debug(f"treat_internal_message {internal_notification}")
+
+        referenced_notification = self.find_notification(
+            internal_notification.body["id"]
+        )
+
+        if internal_notification.title == "webapi_notification_unavailable":
+            # deactivate target_ui and rebroadcast
             logger.info(
-                "webapi_notification is unavailable, now deactivating this target_ui"
+                "webapi_notification is unavailable, now deactivating this target_ui and rebroadcasting"
             )
             self.deactivate_target_ui("WebAPI")
-        if notification.title == "callback_notification_close":
-            notification_id = notification.body
-
-            notification = [
-                notification
-                for notification in self.notifications
-                if notification.id == notification_id
-            ]
-            if not notification:
+            if not referenced_notification:
                 return
-            else:
-                notification = notification[0]
+            self.show(referenced_notification)
 
-            # append ui_notifications to a list, that belong to notification.target_uis
+        if internal_notification.title == "notification_shown":
+            self.set_notification_read_now(referenced_notification.id)
+
+        if internal_notification.title == "callback_notification_close":
+            if not referenced_notification:
+                return
+
+            # append ui_notifications to a list, that belong to referenced_notification.target_uis
             matching_ui_notifications = []
             for ui_notification in self.ui_notifications:
-                if ui_notification.name in notification.target_uis:
+                if ui_notification.name in referenced_notification.target_uis:
                     matching_ui_notifications.append(ui_notification)
 
             # call all callback_notification_close functions of matching_ui_notifications
             for ui_notification in matching_ui_notifications:
                 if ui_notification.callback_notification_close:
-                    ui_notification.callback_notification_close(notification_id)
+                    ui_notification.callback_notification_close(
+                        referenced_notification.id
+                    )
 
     def create_notification(self, *args, **kwargs):
         """
@@ -113,6 +129,7 @@ class NotificationManager:
             return self.treat_internal_message(notification)
 
         self.notifications.append(notification)
+        logger.debug(f"Created notification {notification}")
         return notification
 
     def create_and_show(self, *args, **kwargs):
@@ -137,4 +154,4 @@ class NotificationManager:
         if not notification:
             return
         notification.deleted = True
-        print(f"Closed {notification}")
+        logger.debug(f"Closed {notification}")

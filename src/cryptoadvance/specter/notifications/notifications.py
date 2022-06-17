@@ -22,7 +22,7 @@ class Notification:
         self.title = title
         self.date = datetime.datetime.now()
         self.deleted = False
-        self.first_read = None
+        self.first_shown = None
         self.body = body
         self.icon = None
         self.timeout = None  # [ms]
@@ -56,7 +56,7 @@ class Notification:
             "title": self.title,
             "date": self.date.isoformat(),
             "deleted": self.deleted,
-            "first_read": self.first_read,
+            "first_shown": self.first_shown,
             "body": self.body,
             "icon": self.icon,
             "timeout": self.timeout,

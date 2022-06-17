@@ -20,12 +20,18 @@ function createNotification(msg, timeout=3000, type="information", target_uis='a
 
 function callback_notification_close(id){
     //console.log('closed message')
-    createNotification('callback_notification_close', timeout=0,  type='debug', target_uis=['internal_notification'], body=id, icon='/path/to/icon.png');
+    createNotification('callback_notification_close', timeout=0,  type='debug', target_uis=['internal_notification'], body=JSON.stringify({'id':id}));
 }
 
 
-function notification_webapi_notification_unavailable() {
-    createNotification('webapi_notification_unavailable', timeout=0,  type='debug', target_uis=['internal_notification'], body='body\nbody', icon='/path/to/icon.png');
+function notification_shown(id, success=true){
+    //console.log('closed message')
+    createNotification('notification_shown', timeout=0,  type='debug', target_uis=['internal_notification'], body=JSON.stringify({'id':id, 'success':success}));
+}
+
+
+function notification_webapi_notification_unavailable(id) {
+    createNotification('webapi_notification_unavailable', timeout=0,  type='debug', target_uis=['internal_notification'], body=JSON.stringify({'id':id}));
 }
 
 
@@ -60,7 +66,7 @@ function webapi_notification(js_notification) {
     var title = js_notification['title'];
     var options = js_notification['options'];
 
-    function show_notification(){
+    function create__webapi_notification(){
         let notification = new Notification(title, options);
         // see https://flaviocopes.com/notifications-api/#add-an-image
         // see https://levelup.gitconnected.com/use-the-javascript-notification-api-to-display-native-popups-43f6227b9980
@@ -77,28 +83,29 @@ function webapi_notification(js_notification) {
         if (js_notification['timeout']>0) {
             setTimeout(notification.close(), js_notification['timeout']);
         }
+        notification_shown(js_notification['id'])
     };
 
 
         if (!("Notification" in window)) {
         console.debug("This browser does not support desktop notification");
-        notification_webapi_notification_unavailable();
+        notification_webapi_notification_unavailable(js_notification['id']);
     }
     // Let's check whether notification permissions have already been granted
     else if (Notification.permission === "granted") {
         // If it's okay let's create a notification
-        show_notification();
+        create__webapi_notification();
     }
     // Otherwise, we need to ask the user for permission
     else if (Notification.permission !== "denied") {
         Notification.requestPermission().then(function (permission) {
         // If the user accepts, let's create a notification
         if (permission === "granted") {
-            show_notification();
+            create__webapi_notification();
         }        
         else{
          // not granted
-         notification_webapi_notification_unavailable();  
+         notification_webapi_notification_unavailable(js_notification['id']);  
         }
         });
     }
@@ -130,10 +137,23 @@ function javascript_popup_message(js_notification){
         //},
         callback_notification_close_id,
         closeLabel);			
+
+    notification_shown(js_notification['id'])
 }
 
 
-
+function js_logging_notification(js_notification){
+    if (js_notification['type'] == 'error'){
+        console.error(js_notification)
+    } else if (js_notification['type'] == 'exception'){
+        console.error(js_notification)
+    } else if (js_notification['type'] == 'warning'){
+        console.warn(js_notification)
+    } else {            
+        console.log(js_notification);
+    }
+    notification_shown(js_notification['id'])
+}
 
 async function show_notification(ui_name, js_notification){
     if (ui_name == 'js_message_box'){
@@ -141,15 +161,7 @@ async function show_notification(ui_name, js_notification){
     } else if (ui_name == 'WebAPI'){
         webapi_notification(js_notification);
     } else if (ui_name == 'js_logging'){
-        if (js_notification['type'] == 'error'){
-            console.error(js_notification)
-        } else if (js_notification['type'] == 'exception'){
-            console.error(js_notification)
-        } else if (js_notification['type'] == 'warning'){
-            console.warn(js_notification)
-        } else {            
-            console.log(js_notification);
-        }
+        js_logging_notification(js_notification);
     }
 
 }

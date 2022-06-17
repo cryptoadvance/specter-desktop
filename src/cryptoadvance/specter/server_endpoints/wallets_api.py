@@ -127,7 +127,12 @@ def create_notification():
     arguments = dict(request.form)
     if "target_uis" in arguments:
         arguments["target_uis"] = json.loads(arguments["target_uis"])
-    print(arguments)
+    if "body" in arguments:
+        try:
+            arguments["body"] = json.loads(arguments["body"])
+        except:
+            pass
+    logger.debug(f"wallets_endpoint_api create_notification with arguments {arguments}")
     return jsonify(app.specter.notification_manager.create_and_show(**arguments))
 
 
