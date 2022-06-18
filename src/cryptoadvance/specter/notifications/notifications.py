@@ -26,6 +26,8 @@ class Notification(dict):
         self["body"] = body
         self["timeout"] = None  # [ms]
 
+        if not target_uis:
+            target_uis = "default"
         self["target_uis"] = (
             {target_uis} if isinstance(target_uis, str) else set(target_uis)
         )
@@ -86,6 +88,8 @@ class Notification(dict):
 
         for key, value in self.items():
             if key in js_notification:
+                continue
+            if value is None:
                 continue
             js_notification["options"][key] = value
 

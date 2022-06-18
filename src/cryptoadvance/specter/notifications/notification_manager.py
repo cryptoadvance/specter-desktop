@@ -94,6 +94,12 @@ class NotificationManager:
                         referenced_notification["id"]
                     )
 
+    def get_default_target_ui_name(self):
+        return self.ui_notifications[0].name if self.ui_notifications else None
+
+    def get_all_target_ui_names(self):
+        return {ui_notification.name for ui_notification in self.ui_notifications}
+
     def create_notification(self, *args, **kwargs):
         """
         The arguments are identical to Notification(....), e.g.
@@ -108,8 +114,7 @@ class NotificationManager:
 
         notification = Notification(*args, **kwargs)
         notification.cleanup_target_uis(
-            self.ui_notifications[0].name if self.ui_notifications else None,
-            {ui_notification.name for ui_notification in self.ui_notifications},
+            self.get_default_target_ui_name(), self.get_all_target_ui_names()
         )
 
         # treat an internal (notification) message

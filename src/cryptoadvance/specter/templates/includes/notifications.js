@@ -2,7 +2,7 @@
 
 
 /*  creating a notification from JS */
-function createNotification(msg, timeout=3000, type="information", target_uis='all', body=null, icon=null){
+function createNotification(msg, timeout=5000, type="information", target_uis=null, body=null, icon=null){
     url = "{{ url_for('wallets_endpoint_api.create_notification' ) }}";
 	formData = new FormData();
 	formData.append("title", msg)
