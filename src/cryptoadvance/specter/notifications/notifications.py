@@ -14,7 +14,11 @@ class NotificationTypes:
 
 
 class Notification(dict):
-    "A Notification is a datastructure to store title, body, ..."
+    """
+    A Notification is a datastructure to store title, body, ...
+    The field names should be ideally identical to https://notifications.spec.whatwg.org/#api
+    Additional fields, like id, can be added
+    """
 
     def __init__(
         self, title, notification_type=None, body=None, target_uis="default", **kwargs
@@ -22,6 +26,7 @@ class Notification(dict):
         self["title"] = str(title)
         self["date"] = datetime.datetime.now()
         self["first_shown"] = None
+        self["image"] = None
         self["icon"] = None
         self["body"] = body
         self["timeout"] = None  # [ms]

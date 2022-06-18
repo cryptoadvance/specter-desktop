@@ -14,7 +14,7 @@ class MessageBox {
     }
   }
   
-  show(msg, callback, closeLabel, timeout=0) {
+  show(msg, callback, closeLabel, image=null, timeout=0) {
     if (msg === "" || msg === undefined || msg === null) {
       // If the 'msg' parameter is not set, throw an error
       
@@ -30,13 +30,31 @@ class MessageBox {
     const option = this.option;
 
     const msgboxBox = document.createElement("DIV");
+    const msgboxImage = document.createElement("DIV");
     const msgboxContent = document.createElement("DIV");
+    const msgboxText = document.createElement("DIV");
     const msgboxCommand = document.createElement("DIV");
     const msgboxClose = document.createElement("A");
     
+  
+      console.log('added image url ' + image)
+    if (image != null){
+      msgboxImage.classList.add("msgbox-img");
+      var img = document.createElement("img");
+      img.width = 100;
+      img.src = image;
+      msgboxImage.width = '100px';
+      msgboxImage.appendChild(img);
+      msgboxContent.appendChild(msgboxImage);
+    }
+
     // Content area of the message box
     msgboxContent.classList.add("msgbox-content");
-    msgboxContent.innerText = msg;
+    
+    // Text area of the message box
+    msgboxText.classList.add("msgbox-text");
+    msgboxText.innerText = msg;
+    msgboxContent.appendChild(msgboxText);
     
     // Command box or the button container
     msgboxCommand.classList.add("msgbox-command");
@@ -116,6 +134,7 @@ const msgboxShowMessage = document.querySelector("#msgboxShowMessage");
 const msgboxHiddenClose = document.querySelector("#msgboxHiddenClose");
 
 // Creation of Message Box class, and the sample usage
+/*
 const msgbox = new MessageBox({
   closeTime: 10000,
   hideCloseButton: false
@@ -129,3 +148,4 @@ const msgboxNoClose = new MessageBox({
 });
 
 
+*/

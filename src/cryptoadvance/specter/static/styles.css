@@ -1347,13 +1347,20 @@ input:checked + .slider:before {
  .msgbox-box:last-child {
 	 margin: 0;
 }
- .msgbox-content {
-	 font-size: inherit;
-	 padding: 10px;
-	 padding-bottom: 0.75rem;
-	 flex-shrink: 1;
+.msgbox-content {
+    font-size: inherit;
+    padding-top: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    display: flex;
 }
- .msgbox-command {
+.msgbox-img {
+    margin-right: 5px;
+}
+.msgbox-text {
+    width: 100%;
+} 
+.msgbox-command {
     padding-right: 10px;
     padding-bottom: 10px;
 	 display: flex;
