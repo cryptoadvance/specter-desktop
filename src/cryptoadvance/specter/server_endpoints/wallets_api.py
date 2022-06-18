@@ -138,7 +138,9 @@ def create_notification():
             pass
     logger.debug(f"wallets_endpoint_api create_notification with arguments {arguments}")
     return jsonify(
-        app.specter.user_manager.get_user().notification_manager.flash(**arguments)
+        app.specter.user_manager.get_user().notification_manager.create_and_show(
+            **arguments
+        )
     )
 
 

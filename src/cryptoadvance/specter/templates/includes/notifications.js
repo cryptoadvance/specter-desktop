@@ -61,7 +61,9 @@ function notification_webapi_notification_unavailable(id) {
     }
     */
 
-function webapi_notification(js_notification) {
+
+
+function webapi_notification(js_notification, retries_if_permission_default=2) {
     console.log('webapi_notification')
     // https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API/Using_the_Notifications_API
     var title = js_notification['title'];
@@ -101,7 +103,7 @@ function webapi_notification(js_notification) {
         console.log(`Notification.requestPermission() = ${Notification.permission}`);
         notification_webapi_notification_unavailable(js_notification['id']);  
     }
-    // Otherwise, we need to ask the user for permission
+    // Otherwise  "default", we need to ask the user for permission
     else   {
         Notification.requestPermission().then(function (permission) {
         // If the user accepts, let's create a notification
@@ -115,9 +117,10 @@ function webapi_notification(js_notification) {
             // permission is probably "default", meaning the user has neither granted nor blocked the Notifications.
             // The user can afterwards allow or block notifications.  The notification needs reboradcasting.
             console.log(`Notification.requestPermission() = ${permission}`);
-
-            // create endless recursion loop, that only breaks if user grants or blocks the notification
-            setTimeout(webapi_notification, 5000, js_notification);  
+            if (retries_if_permission_default>0){
+                // create recursion loop, that breaks if user grants or blocks the notification
+                setTimeout(webapi_notification, 2000, js_notification, retries_if_permission_default=retries_if_permission_default-1);  
+            }
         }
         });
     }

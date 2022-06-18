@@ -56,7 +56,7 @@ class NotificationManager:
 
     def treat_internal_message(self, internal_notification):
         "treat an internal_notification"
-        if internal_notification["target_uis"] != ["internal_notification"]:
+        if "internal_notification" not in internal_notification["target_uis"]:
             return internal_notification
         logger.debug(f"treat_internal_message {internal_notification}")
 
@@ -66,7 +66,7 @@ class NotificationManager:
 
         if internal_notification["title"] == "webapi_notification_unavailable":
             # deactivate target_ui and rebroadcast
-            logger.info(
+            logger.debug(
                 "webapi_notification is unavailable, now deactivating this target_ui and rebroadcasting"
             )
             self.deactivate_target_ui("WebAPI")
@@ -116,6 +116,7 @@ class NotificationManager:
         notification.cleanup_target_uis(
             self.get_default_target_ui_name(), self.get_all_target_ui_names()
         )
+        logger.debug(f"Middle of creating notification   {notification}")
 
         # treat an internal (notification) message
         if "internal_notification" in notification["target_uis"]:
