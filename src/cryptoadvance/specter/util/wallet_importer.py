@@ -1,7 +1,6 @@
 import json
 import logging
 from flask import current_app as app
-from flask import flash
 from cryptoadvance.specter.managers.wallet_manager import WalletManager
 
 from cryptoadvance.specter.specter_error import SpecterError
@@ -12,6 +11,7 @@ from embit.descriptor.arguments import AllowedDerivation
 from embit.liquid.descriptor import LDescriptor
 from cryptoadvance.specter.key import Key
 from flask_babel import lazy_gettext as _
+from ..notifications.flash import flash
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,10 @@ class WalletImporter:
                 self.wallet_name,
                 recv_descriptor,
                 self.cosigners_types,
-            ) = WalletImporter.parse_wallet_data_import(self.wallet_data)
+            ) = WalletImporter.parse_wallet_data_import(
+                self.wallet_data,
+                specter.user_manager.get_user().notification_manager.flash,
+            )
         except Exception as e:
             logger.warning(f"Trying to import: {wallet_json}")
             raise SpecterError(f"Unsupported wallet import format:{e}")
@@ -246,7 +249,7 @@ class WalletImporter:
         return json.dumps(self.wallet_data)
 
     @classmethod
-    def parse_wallet_data_import(cls, wallet_data):
+    def parse_wallet_data_import(cls, wallet_data, flash):
         """Parses wallet JSON for import, takes JSON in a supported format
         and returns a tuple of wallet name, wallet descriptor, and cosigners types (electrum
         and newer Specter backups).
@@ -275,7 +278,7 @@ class WalletImporter:
                         {"type": "electrum", "label": f"Electrum Multisig {i}"}
                     )
                     if "seed" in d:
-                        app.specter.user_manager.get_user().notification_manager.flash(
+                        flash(
                             _(
                                 "The Electrum wallet contains a seed. The seed will not be imported."
                             ),
@@ -457,7 +460,7 @@ class WalletImporter:
                 }
             ]
             if "seed" in wallet_data["keystore"]:
-                app.specter.user_manager.get_user().notification_manager.flash(
+                flash(
                     _(
                         "The Electrum wallet contains a seed. The seed will not be imported."
                     ),

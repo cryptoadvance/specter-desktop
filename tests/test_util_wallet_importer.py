@@ -10,11 +10,16 @@ from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from mock import MagicMock, call, patch
 
 
-@patch("cryptoadvance.specter.util.wallet_importer.flash", print)  # TODO!!!
 @patch("cryptoadvance.specter.util.wallet_importer._", lambda x: x)
 def test_WalletImporter_unit():
     specter_mock = MagicMock()
     specter_mock.chain = "regtest"
+
+    specter_mock.user_manager_mock = MagicMock()
+    user = MagicMock()
+    specter_mock.user_manager_mock.get_user = lambda x: user
+    user.notification_manager = MagicMock()
+    user.notification_manager.flash = print
 
     # coldcard, trezor import
     wallet_json = """
