@@ -13,69 +13,77 @@ class NotificationTypes:
     exception = "exception"
 
 
-class Notification:
+class Notification(dict):
     "A Notification is a datastructure to store title, body, ..."
 
-    def __init__(
-        self, title, notification_type=None, body=None, target_uis="default", **kwargs
-    ):
-        self.title = title
-        self.date = datetime.datetime.now()
-        self.deleted = False
-        self.first_shown = None
-        self.body = body
-        self.icon = None
-        self.timeout = None  # [ms]
+    def __init__(self, title, notification_type=None, target_uis="default", **kwargs):
+        self["title"] = str(title)
+        self["date"] = datetime.datetime.now()
+        self["first_shown"] = None
+        self["icon"] = None
+        self["timeout"] = None  # [ms]
 
-        self.target_uis = {target_uis} if isinstance(target_uis, str) else target_uis
+        self["target_uis"] = (
+            {target_uis} if isinstance(target_uis, str) else set(target_uis)
+        )
 
-        self.type = (
+        # clean up invalid NotificationTypes
+        self["type"] = (
             notification_type if notification_type else NotificationTypes.information
         )
-        self.id = None
-
-        if self.type not in {
+        if self["type"] not in {
             NotificationTypes.debug,
             NotificationTypes.information,
             NotificationTypes.warning,
             NotificationTypes.error,
             NotificationTypes.exception,
         }:
-            self.type = NotificationTypes.information
+            self["type"] = NotificationTypes.information
 
+        # take over all remeining kwargs
+        for key, value in kwargs.items():
+            self[key] = value
+
+        # set id (dependent on all other properties, so must eb set last)
+        self["id"] = None
         self._set_id()
 
     def _set_id(self):
-        reduced_dict = self.__dict__().copy()
+        reduced_dict = self.copy()
         del reduced_dict["id"]
-        del reduced_dict["deleted"]
-        self.id = hashlib.sha256(self.__str__().encode()).hexdigest()
+        self["id"] = hashlib.sha256(str(self).encode()).hexdigest()
 
-    def __dict__(self):
-        return {
-            "title": self.title,
-            "date": self.date.isoformat(),
-            "deleted": self.deleted,
-            "first_shown": self.first_shown,
-            "body": self.body,
-            "icon": self.icon,
-            "timeout": self.timeout,
-            "type": self.type,
-            "id": self.id,
-            "target_uis": self.target_uis,
-        }
+    def cleanup_target_uis(self, default_target_ui, all_target_uis):
+        # clean up the notification['target_uis']
+        if "target_uis" not in self:
+            self["target_uis"] = set()
 
-    def __str__(self):
-        return str(self.__dict__())
+        if "internal_notification" in self["target_uis"]:
+            # no cleanup for internal_notification
+            return
+
+        if "all" in self["target_uis"]:
+            self["target_uis"] = all_target_uis
+
+        # replace the "default" target_ui with the 0.th  ui_notifications
+        if "default" in self["target_uis"]:
+            self["target_uis"].remove("default")
+            if default_target_ui:
+                self["target_uis"].add(default_target_ui)
 
     def to_js_notification(self):
-        "see https://notifications.spec.whatwg.org/#api for datastructure"
-        return {
-            "title": self.title,
-            "id": self.id,
-            "type": self.type,
-            "timeout": self.timeout,
-            "options": {
-                "body": self.body if self.body else "",
-            },
+        "datastructure is changes such that a Notification(js_notification) can be called https://notifications.spec.whatwg.org/#api for paramters"
+        js_notification = {
+            "title": self["title"],
+            "id": self["id"],
+            "type": self["type"],
+            "timeout": self["timeout"],
+            "options": {},
         }
+
+        for key, value in self.items():
+            if key in js_notification:
+                continue
+            js_notification["options"][key] = value
+
+        return js_notification

@@ -109,7 +109,10 @@ def get_new_notifications():
             "WebAPI": [notification1, notification2, ...],
         }
     """
-    from flask import jsonify
+
+    def myjsonconverter(o):
+        if isinstance(o, datetime):
+            return o.timestamp()
 
     js_notifications_dict = {}
     for ui_notification in app.specter.notification_manager.ui_notifications:
@@ -118,18 +121,17 @@ def get_new_notifications():
             if notifications:
                 js_notifications_dict[ui_notification.name] = notifications
 
-    return jsonify(js_notifications_dict)  # serialize and use JSON headers
+    return json.dumps(js_notifications_dict, default=myjsonconverter)
 
 
 @wallets_endpoint_api.route("/create_notification", methods=["POST"])
 @login_required
 def create_notification():
     arguments = dict(request.form)
-    if "target_uis" in arguments:
-        arguments["target_uis"] = json.loads(arguments["target_uis"])
-    if "body" in arguments:
+    # try reading everything with json
+    for key in arguments:
         try:
-            arguments["body"] = json.loads(arguments["body"])
+            arguments[key] = json.loads(arguments[key])
         except:
             pass
     logger.debug(f"wallets_endpoint_api create_notification with arguments {arguments}")

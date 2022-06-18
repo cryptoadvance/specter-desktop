@@ -32,7 +32,7 @@ class PrintNotifications(BaseUINotifications):
     def show(self, notification):
         if (
             not self.is_available
-            or notification.type not in self.compatible_notification_types
+            or notification["type"] not in self.compatible_notification_types
         ):
             return
         print(notification)
@@ -47,12 +47,12 @@ class LoggingNotifications(BaseUINotifications):
     def show(self, notification):
         if (
             not self.is_available
-            or notification.type not in self.compatible_notification_types
+            or notification["type"] not in self.compatible_notification_types
         ):
             return
         logger.info(
             str(notification),
-            exc_info=notification.type
+            exc_info=notification["type"]
             in {NotificationTypes.error, NotificationTypes.exception},
         )
         return True  # successful shown
@@ -74,12 +74,12 @@ class FlashNotifications(BaseUINotifications):
     def show(self, notification):
         if (
             not self.is_available
-            or notification.type not in self.compatible_notification_types
+            or notification["type"] not in self.compatible_notification_types
         ):
             return
         flash(
-            f"{notification.title}\n{notification.body if notification.body else ''}",
-            notification.type,
+            f"{notification['title']}\n{notification['body'] if notification['body'] else ''}",
+            notification["type"],
         )
         return True  # successful shown
 
@@ -99,7 +99,7 @@ class JSLoggingNotifications(BaseUINotifications):
         "This will not show the notification immediately, but write it into a buffer and then it is later fetched by a javascript endless loop"
         if (
             not self.is_available
-            or notification.type not in self.compatible_notification_types
+            or notification["type"] not in self.compatible_notification_types
         ):
             return
         self.js_notification_buffer.append(notification.to_js_notification())

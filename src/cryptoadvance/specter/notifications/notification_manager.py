@@ -24,47 +24,47 @@ class NotificationManager:
 
     def show(self, notification):
         """
-        forwards the notification to ui_notifications, that are in notification.target_uis
+        forwards the notification to ui_notifications, that are in notification['target_uis']
 
-        If a target_ui of notification.target_uis is not is_available, then try with the next target_ui
+        If a target_ui of notification['target_uis'] is not is_available, then try with the next target_ui
         """
-        if notification.target_uis == ["internal_notification"]:
+        if notification["target_uis"] == ["internal_notification"]:
             return
 
         logger.debug(f"show {notification}")
 
         for ui_notification in self.ui_notifications:
-            if ui_notification.name in notification.target_uis:
+            if ui_notification.name in notification["target_uis"]:
 
                 notification_shown = ui_notification.show(notification)
 
-                # if not possible, then try show it with a ui_notifications that is NOT already in notification.target_uis
+                # if not possible, then try show it with a ui_notifications that is NOT already in notification['target_uis']
                 if not notification_shown:
                     logger.debug(
                         f"Trying with other ui_notifications to broadcast {notification}"
                     )
                     for ui_notification in self.ui_notifications:
-                        if ui_notification.name not in notification.target_uis:
+                        if ui_notification.name not in notification["target_uis"]:
                             notification_shown = ui_notification.show(notification)
                             if notification_shown:
                                 break
 
     def set_notification_read_now(self, notification_id):
         notification = self.find_notification(notification_id)
-        notification.first_shown = datetime.datetime.now()
+        notification["first_shown"] = datetime.datetime.now()
         logger.debug(f"set_notification_read_now {notification }")
 
     def treat_internal_message(self, internal_notification):
         "treat an internal_notification"
-        if internal_notification.target_uis != ["internal_notification"]:
+        if internal_notification["target_uis"] != ["internal_notification"]:
             return internal_notification
         logger.debug(f"treat_internal_message {internal_notification}")
 
         referenced_notification = self.find_notification(
-            internal_notification.body["id"]
+            internal_notification["body"]["id"]
         )
 
-        if internal_notification.title == "webapi_notification_unavailable":
+        if internal_notification["title"] == "webapi_notification_unavailable":
             # deactivate target_ui and rebroadcast
             logger.info(
                 "webapi_notification is unavailable, now deactivating this target_ui and rebroadcasting"
@@ -74,24 +74,24 @@ class NotificationManager:
                 return
             self.show(referenced_notification)
 
-        if internal_notification.title == "notification_shown":
-            self.set_notification_read_now(referenced_notification.id)
+        if internal_notification["title"] == "notification_shown":
+            self.set_notification_read_now(referenced_notification["id"])
 
-        if internal_notification.title == "callback_notification_close":
+        if internal_notification["title"] == "callback_notification_close":
             if not referenced_notification:
                 return
 
-            # append ui_notifications to a list, that belong to referenced_notification.target_uis
+            # append ui_notifications to a list, that belong to referenced_notification['target_uis']
             matching_ui_notifications = []
             for ui_notification in self.ui_notifications:
-                if ui_notification.name in referenced_notification.target_uis:
+                if ui_notification.name in referenced_notification["target_uis"]:
                     matching_ui_notifications.append(ui_notification)
 
             # call all callback_notification_close functions of matching_ui_notifications
             for ui_notification in matching_ui_notifications:
                 if ui_notification.callback_notification_close:
                     ui_notification.callback_notification_close(
-                        referenced_notification.id
+                        referenced_notification["id"]
                     )
 
     def create_notification(self, *args, **kwargs):
@@ -102,29 +102,18 @@ class NotificationManager:
             - body=None
             - target_uis='default'
         """
-        # clean up the kwargs['target_uis']
-        if "target_uis" in kwargs:
-            # convert to set
-            kwargs["target_uis"] = (
-                {kwargs["target_uis"]}
-                if isinstance(kwargs["target_uis"], str)
-                else kwargs["target_uis"]
-            )
-            if "all" in kwargs["target_uis"]:
-                kwargs["target_uis"] = {
-                    ui_notification.name for ui_notification in self.ui_notifications
-                }
-            # replace the "default" target_ui with the 0.th  ui_notifications
-            if "default" in kwargs["target_uis"]:
-                idx = kwargs["target_uis"].index("default")
-                kwargs["target_uis"][idx] = (
-                    {self.ui_notifications[0].name} if self.ui_notifications else {}
-                )
+        logger.debug(
+            f"Starting to ceated notification with *args, **kwargs   {args, kwargs}"
+        )
 
         notification = Notification(*args, **kwargs)
+        notification.cleanup_target_uis(
+            self.ui_notifications[0].name if self.ui_notifications else None,
+            {ui_notification.name for ui_notification in self.ui_notifications},
+        )
 
         # treat an internal (notification) message
-        if notification.target_uis == ["internal_notification"]:
+        if "internal_notification" in notification["target_uis"]:
             # in case       treat_internal_message returns a notification, then proceed with that
             return self.treat_internal_message(notification)
 
@@ -146,12 +135,13 @@ class NotificationManager:
 
     def find_notification(self, notification_id):
         for notification in self.notifications:
-            if notification.id == notification_id:
+            if notification["id"] == notification_id:
                 return notification
 
     def callback_notification_close(self, notification_id):
         notification = self.find_notification(notification_id)
         if not notification:
             return
-        notification.deleted = True
-        logger.debug(f"Closed {notification}")
+
+        del self.notifications[self.notifications.index(notification)]
+        logger.debug(f"Deleted {notification}")
