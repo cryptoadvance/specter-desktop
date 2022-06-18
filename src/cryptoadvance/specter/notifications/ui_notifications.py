@@ -88,7 +88,7 @@ class JSLoggingNotifications(BaseUINotifications):
     def __init__(self):
         super().__init__()
         self.js_notification_buffer = []
-        self.name = "js_logging"
+        self.name = "js_console"
 
     def read_and_clear_js_notification_buffer(self):
         js_notification_buffer = self.js_notification_buffer

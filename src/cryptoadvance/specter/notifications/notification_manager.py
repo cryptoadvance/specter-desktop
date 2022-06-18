@@ -89,7 +89,10 @@ class NotificationManager:
 
             # call all callback_notification_close functions of matching_ui_notifications
             for ui_notification in matching_ui_notifications:
-                if ui_notification.callback_notification_close:
+                if (
+                    "callback_notification_close" in dir(ui_notification)
+                    and ui_notification.callback_notification_close
+                ):
                     ui_notification.callback_notification_close(
                         referenced_notification["id"]
                     )
@@ -132,7 +135,7 @@ class NotificationManager:
         if len(args) == 2:
             kwargs["notification_type"] = args[1]
             del args[1]
-
+        kwargs["target_uis"] = {"flash"}
         self.create_and_show(*args, **kwargs)
 
     def create_and_show(self, *args, **kwargs):

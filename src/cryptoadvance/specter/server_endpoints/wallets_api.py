@@ -118,7 +118,7 @@ def get_new_notifications():
     for (
         ui_notification
     ) in app.specter.user_manager.get_user().notification_manager.ui_notifications:
-        if ui_notification.name in {"WebAPI", "js_message_box", "js_logging"}:
+        if ui_notification.name in {"WebAPI", "js_message_box", "js_console"}:
             notifications = ui_notification.read_and_clear_js_notification_buffer()
             if notifications:
                 js_notifications_dict[ui_notification.name] = notifications
