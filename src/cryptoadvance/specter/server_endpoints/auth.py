@@ -155,7 +155,7 @@ def register():
             )
 
             app.specter.user_manager.get_user().notification_manager.flash(
-                title=_(
+                _(
                     "You have registered successfully, please login with your new account to start using Specter"
                 )
             )

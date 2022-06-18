@@ -113,7 +113,7 @@ def hwi_bridge_settings():
             config["whitelisted_domains"] = request.form["whitelisted_domains"]
             save_hwi_bridge_config(app.specter, config)
             app.specter.user_manager.get_user().notification_manager.flash(
-                title="Whitelist is updated!"
+                "Whitelist is updated!"
             )
     return render_template(
         "hwi_bridge.jinja",
