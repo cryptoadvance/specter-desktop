@@ -101,7 +101,7 @@ class User(UserMixin):
                 ui_notifications.FlashNotifications(),  # default
                 webapi_notifications,
                 js_notifications,
-                ui_notifications.JSLoggingNotifications(),
+                ui_notifications.JSConsoleNotifications(),
                 ui_notifications.LoggingNotifications(),
                 ui_notifications.PrintNotifications(),
             ]

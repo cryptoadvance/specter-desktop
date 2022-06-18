@@ -84,7 +84,7 @@ class FlashNotifications(BaseUINotifications):
         return True  # successful shown
 
 
-class JSLoggingNotifications(BaseUINotifications):
+class JSConsoleNotifications(BaseUINotifications):
     def __init__(self):
         super().__init__()
         self.js_notification_buffer = []
@@ -106,7 +106,7 @@ class JSLoggingNotifications(BaseUINotifications):
         return True  # successful shown
 
 
-class JSNotifications(JSLoggingNotifications):
+class JSNotifications(JSConsoleNotifications):
     def __init__(self):
         super().__init__()
         self.compatible_notification_types = {
