@@ -16,6 +16,8 @@ html, body{
     --cmap-border:        #506072;
     --cmap-border-darker: #405062;
 
+    --cmap-bg-highlight: #4a90e2;
+
     margin: 0;
     padding: 0;
     background: var(--cmap-bg);
@@ -215,7 +217,7 @@ nav.side > .item, nav.side > div > .item{
     /*font-size: 0.85em;*/
 }
 nav.side > a.item.active, nav.side > div > a.item.active{
-    border-left: 3px solid #4A90E2;
+    border-left: 3px solid var(--cmap-bg-highlight);
     background: rgba(0,0,0,0.1);
     /*color: #fff;*/
 }
@@ -1327,13 +1329,15 @@ input:checked + .slider:before {
  .msgbox-box {
 	 font-size: inherit;
 	 color: #fff;
-	 background-color: var(--cmap-blue);
+	 /*background-color: var(--cmap-bg-lighter);*/
+	 background-color: var(--cmap-bg-highlight);
+     border: 2px var(--cmap-border) solid;
 	 margin: 0 0 1rem;
 	 display: flex;
 	 flex-direction: column;
 	 position: relative;
 	 border-radius: 12px;
-	 box-shadow: 0 10px 15px rgba(0, 0, 0, 0.65);
+	 box-shadow: 0 10px 15px rgba(0, 0, 0, 1);
 	 backdrop-filter: blur(4px);
 	 transition: opacity 256ms ease-in;
 }
@@ -1345,13 +1349,13 @@ input:checked + .slider:before {
 }
  .msgbox-content {
 	 font-size: inherit;
-	 padding: 1.5rem;
+	 padding: 10px;
 	 padding-bottom: 0.75rem;
 	 flex-shrink: 1;
 }
  .msgbox-command {
-	 padding: 1.5rem;
-	 padding-top: 0.75rem;
+    padding-right: 10px;
+    padding-bottom: 10px;
 	 display: flex;
 }
  .msgbox-close {
