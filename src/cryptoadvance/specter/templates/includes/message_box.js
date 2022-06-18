@@ -37,7 +37,6 @@ class MessageBox {
     const msgboxClose = document.createElement("A");
     
   
-      console.log('added image url ' + image)
     if (image != null){
       msgboxImage.classList.add("msgbox-img");
       var img = document.createElement("img");
