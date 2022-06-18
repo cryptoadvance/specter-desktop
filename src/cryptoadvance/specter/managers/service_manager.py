@@ -107,10 +107,11 @@ class ServiceManager:
         elif hasattr(clazz, "blueprint_module"):
             controller_modules = {"default": clazz.blueprint_module}
         else:
-            logger.error(
-                f"Extension {clazz} specifies has_blueßrint but neither blueprint_modules nor blueprint_module"
-            )
-            return
+            import_name = f"cryptoadvance.specter.services.{clazz.id}.service"
+            controller_modules = controller_modules = {
+                "default": f"cryptoadvance.specter.services.{clazz.id}.controller"
+            }
+
         only_one_blueprint = len(controller_modules.items()) == 1
 
         def inject_stuff():
