@@ -46,11 +46,11 @@ def login():
                     )
                     return redirect_login(request)
 
-                app.specter.user_manager.get_user().notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.flash(
                     _(
                         "We could not check your password, maybe Bitcoin Core is not running or not configured?"
                     ),
-                    notification_type="error",
+                    "error",
                 )
 
                 app.logger.info("AUDIT: Failed to check password")
@@ -86,8 +86,8 @@ def login():
                     return redirect_login(request)
 
         # Either invalid method or incorrect credentials
-        app.specter.user_manager.get_user().notification_manager.create_and_show(
-            _("Invalid username or password"), notification_type="error"
+        app.specter.user_manager.get_user().notification_manager.flash(
+            _("Invalid username or password"), "error"
         )
         app.logger.info("AUDIT: Invalid password login attempt")
         return (
@@ -116,17 +116,17 @@ def register():
         password = request.form["password"]
         otp = request.form["otp"]
         if not username:
-            app.specter.user_manager.get_user().notification_manager.create_and_show(
-                _("Please enter a username."), notification_type="error"
+            app.specter.user_manager.get_user().notification_manager.flash(
+                _("Please enter a username."), "error"
             )
             return redirect("register?otp={}".format(otp))
         min_chars = int(app.specter.config["auth"]["password_min_chars"])
         if not password or len(password) < min_chars:
-            app.specter.user_manager.get_user().notification_manager.create_and_show(
+            app.specter.user_manager.get_user().notification_manager.flash(
                 _("Please enter a password of a least {} characters.").format(
                     min_chars
                 ),
-                notification_type="error",
+                "error",
             )
             return redirect("register?otp={}".format(otp))
         if app.specter.otp_manager.validate_new_user_otp(otp):
@@ -136,9 +136,9 @@ def register():
                 i += 1
                 user_id = "{}{}".format(alias(username), i)
             if app.specter.user_manager.get_user_by_username(username):
-                app.specter.user_manager.get_user().notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.flash(
                     _("Username is already taken, please choose another one"),
-                    notification_type="error",
+                    "error",
                 )
                 return redirect("register?otp={}".format(otp))
             app.specter.otp_manager.remove_new_user_otp(otp)
@@ -154,18 +154,18 @@ def register():
                 config=config,
             )
 
-            app.specter.user_manager.get_user().notification_manager.create_and_show(
+            app.specter.user_manager.get_user().notification_manager.flash(
                 title=_(
                     "You have registered successfully, please login with your new account to start using Specter"
                 )
             )
             return redirect(url_for("auth_endpoint.login"))
         else:
-            app.specter.user_manager.get_user().notification_manager.create_and_show(
+            app.specter.user_manager.get_user().notification_manager.flash(
                 _(
                     "Invalid registration link, please request a new link from the node operator."
                 ),
-                notification_type="error",
+                "error",
             )
             return redirect("register?otp={}".format(otp))
     return render_template("register.jinja", specter=app.specter)
@@ -178,11 +178,11 @@ def logout():
 
     logout_user()
     if "timeout" in request.args:
-        app.specter.user_manager.get_user().notification_manager.create_and_show(
+        app.specter.user_manager.get_user().notification_manager.flash(
             _("You were automatically logged out")
         )
     else:
-        app.specter.user_manager.get_user().notification_manager.create_and_show(
+        app.specter.user_manager.get_user().notification_manager.flash(
             _("You were logged out")
         )
     return redirect(url_for("auth_endpoint.login"))
@@ -206,7 +206,7 @@ def toggle_hide_sensitive_info():
 
 ################### Util ######################
 def redirect_login(request):
-    app.specter.user_manager.get_user().notification_manager.create_and_show(
+    app.specter.user_manager.get_user().notification_manager.flash(
         _("Logged in successfully.")
     )
 

@@ -270,7 +270,7 @@ def notify_upgrade(app):
     :return the current version
     """
     if app.specter.version.upgrade:
-        app.specter.user_manager.get_user().notification_manager.create_and_show(
+        app.specter.user_manager.get_user().notification_manager.flash(
             title=f"Upgrade notification: new version {app.specter.version.latest} is available."
         )
     return app.specter.version.current

@@ -52,35 +52,29 @@ rand = random.randint(0, 1e32)  # to force style refresh
 def server_rpc_error(rpce):
     """Specific SpecterErrors get passed on to the User as notification"""
     if rpce.error_code == -18:  # RPC_WALLET_NOT_FOUND
-        app.specter.user_manager.get_user().notification_manager.create_and_show(
+        app.specter.user_manager.get_user().notification_manager.flash(
             _("Wallet not found. Specter reloaded all wallets, please try again."),
-            notification_type="error",
+            "error",
         )
     else:
-        app.specter.user_manager.get_user().notification_manager.create_and_show(
-            _("Bitcoin Core RpcError: {}").format(str(rpce)), notification_type="error"
+        app.specter.user_manager.get_user().notification_manager.flash(
+            _("Bitcoin Core RpcError: {}").format(str(rpce)), "error"
         )
     try:
         app.specter.wallet_manager.update()
     except SpecterError as se:
-        app.specter.user_manager.get_user().notification_manager.create_and_show(
-            str(se), notification_type="error"
-        )
+        app.specter.user_manager.get_user().notification_manager.flash(str(se), "error")
     return redirect(url_for("welcome_endpoint.about"))
 
 
 @app.errorhandler(SpecterError)
 def server_specter_error(se):
     """Specific SpecterErrors get passed on to the User as notification"""
-    app.specter.user_manager.get_user().notification_manager.create_and_show(
-        str(se), notification_type="error"
-    )
+    app.specter.user_manager.get_user().notification_manager.flash(str(se), "error")
     try:
         app.specter.wallet_manager.update()
     except SpecterError as se:
-        app.specter.user_manager.get_user().notification_manager.create_and_show(
-            str(se), notification_type="error"
-        )
+        app.specter.user_manager.get_user().notification_manager.flash(str(se), "error")
     if request.method == "POST":
         return redirect(request.url)
     # potentially avoiding http loops. Might be improvable but how?
@@ -117,11 +111,11 @@ def server_error_timeout(e):
         # make sure specter knows that rpc is not there
         app.specter.check()
     app.logger.error("ExternalProcessTimeoutException: %s" % e)
-    app.specter.user_manager.get_user().notification_manager.create_and_show(
+    app.specter.user_manager.get_user().notification_manager.flash(
         _(
             "Bitcoin Core is not coming up in time. Maybe it's just slow but please check the logs below"
         ),
-        notification_type="warning",
+        "warning",
     )
     return redirect(
         url_for(
@@ -139,8 +133,8 @@ def server_error_csrf(e):
     app.logger.error("CSRF Exception: %s" % e)
     trace = traceback.format_exc()
     app.logger.error(trace)
-    app.specter.user_manager.get_user().notification_manager.create_and_show(
-        _("Session expired. Please refresh and try again."), notification_type="error"
+    app.specter.user_manager.get_user().notification_manager.flash(
+        _("Session expired. Please refresh and try again."), "error"
     )
     return redirect(request.url)
 
@@ -151,8 +145,8 @@ def server_error_405(e):
     app.logger.error("405 MethodNotAllowed Exception: %s" % e)
     trace = traceback.format_exc()
     app.logger.error(trace)
-    app.specter.user_manager.get_user().notification_manager.create_and_show(
-        _("Session expired. Please refresh and try again."), notification_type="error"
+    app.specter.user_manager.get_user().notification_manager.flash(
+        _("Session expired. Please refresh and try again."), "error"
     )
     return redirect(request.url)
 
@@ -194,13 +188,13 @@ def slow_request_detection_stop(response):
     ):
         threshold = app.config["REQUEST_TIME_WARNING_THRESHOLD"]
         if diff > threshold:
-            app.specter.user_manager.get_user().notification_manager.create_and_show(
+            app.specter.user_manager.get_user().notification_manager.flash(
                 _(
                     "The request before this one took {} seconds which is longer than the threshold ({}). Checkout the perfomance-improvement-hints in the documentation".format(
                         int(diff), threshold
                     )
                 ),
-                notification_type="warning",
+                "warning",
             )
     return response
 

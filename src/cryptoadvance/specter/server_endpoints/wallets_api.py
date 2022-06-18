@@ -138,9 +138,7 @@ def create_notification():
             pass
     logger.debug(f"wallets_endpoint_api create_notification with arguments {arguments}")
     return jsonify(
-        app.specter.user_manager.get_user().notification_manager.create_and_show(
-            **arguments
-        )
+        app.specter.user_manager.get_user().notification_manager.flash(**arguments)
     )
 
 
@@ -631,9 +629,9 @@ def addresses_list_csv(wallet_alias):
         return response
     except Exception as e:
         handle_exception(e)
-        app.specter.user_manager.get_user().notification_manager.create_and_show(
+        app.specter.user_manager.get_user().notification_manager.flash(
             _("Failed to export addresses list. Error: {}").format(e),
-            notification_type="error",
+            "error",
         )
         return redirect(url_for("index"))
 

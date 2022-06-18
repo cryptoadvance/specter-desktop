@@ -275,7 +275,7 @@ class WalletImporter:
                         {"type": "electrum", "label": f"Electrum Multisig {i}"}
                     )
                     if "seed" in d:
-                        app.specter.user_manager.get_user().notification_manager.create_and_show(
+                        app.specter.user_manager.get_user().notification_manager.flash(
                             _(
                                 "The Electrum wallet contains a seed. The seed will not be imported."
                             ),
@@ -457,11 +457,11 @@ class WalletImporter:
                 }
             ]
             if "seed" in wallet_data["keystore"]:
-                app.specter.user_manager.get_user().notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.flash(
                     _(
                         "The Electrum wallet contains a seed. The seed will not be imported."
                     ),
-                    notification_type="warning",
+                    "warning",
                 )
         # Current Specter backups
         else:

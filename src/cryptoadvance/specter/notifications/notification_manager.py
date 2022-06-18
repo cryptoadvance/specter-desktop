@@ -98,7 +98,7 @@ class NotificationManager:
         """
         The arguments are identical to Notification(....), e.g.
             - title
-            - notification_type=None
+            - None
             - body=None
             - target_uis='default'
         """
@@ -121,11 +121,19 @@ class NotificationManager:
         logger.debug(f"Created notification {notification}")
         return notification
 
+    def flash(self, *args, **kwargs):
+        args = list(args)
+        if len(args) == 2:
+            kwargs["notification_type"] = args[1]
+            del args[1]
+
+        self.create_and_show(*args, **kwargs)
+
     def create_and_show(self, *args, **kwargs):
         """
         The arguments are identical to Notification(....), e.g.
             - title
-            - notification_type=None
+            - None
             - body=None
             - target_uis='default'
         """
