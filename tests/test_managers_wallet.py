@@ -430,7 +430,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
         wallet_name,
         recv_descriptor,
         cosigners_types,
-    ) = WalletImporter.parse_wallet_data_import(wallet_backup)
+    ) = WalletImporter.parse_wallet_data_import(wallet_backup, print)
 
     descriptor = Descriptor.parse(
         AddChecksum(recv_descriptor.split("#")[0]),
@@ -487,7 +487,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
         wallet_name,
         recv_descriptor,
         cosigners_types,
-    ) = WalletImporter.parse_wallet_data_import(wallet_backup)
+    ) = WalletImporter.parse_wallet_data_import(wallet_backup, print)
 
     descriptor = Descriptor.parse(
         AddChecksum(recv_descriptor.split("#")[0]),
@@ -610,7 +610,7 @@ def test_multisig_wallet_backup_and_restore(
         wallet_name,
         recv_descriptor,
         cosigners_types,
-    ) = WalletImporter.parse_wallet_data_import(wallet_backup)
+    ) = WalletImporter.parse_wallet_data_import(wallet_backup, print)
 
     descriptor = Descriptor.parse(
         AddChecksum(recv_descriptor.split("#")[0]),
@@ -672,7 +672,7 @@ def test_multisig_wallet_backup_and_restore(
         wallet_name,
         recv_descriptor,
         cosigners_types,
-    ) = WalletImporter.parse_wallet_data_import(wallet_backup)
+    ) = WalletImporter.parse_wallet_data_import(wallet_backup, print)
 
     descriptor = Descriptor.parse(
         AddChecksum(recv_descriptor.split("#")[0]),
