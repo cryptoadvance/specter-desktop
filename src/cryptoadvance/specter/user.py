@@ -18,6 +18,8 @@ from .persistence import read_json_file, write_json_file, delete_folder
 from .managers.wallet_manager import WalletManager
 from .managers.device_manager import DeviceManager
 from .helpers import deep_update
+from .notifications.notification_manager import NotificationManager
+from .notifications import ui_notifications
 
 
 logger = logging.getLogger(__name__)
@@ -90,6 +92,26 @@ class User(UserMixin):
 
         # Iterations will need to be increased over time to keep ahead of CPU advances.
         self.encryption_iterations = 390000
+
+        # setting up the notifications system
+        js_notifications = ui_notifications.JSNotifications()
+        webapi_notifications = ui_notifications.WebAPINotifications()
+        self.notification_manager = NotificationManager(
+            ui_notifications=[
+                ui_notifications.FlashNotifications(),  # default
+                webapi_notifications,
+                js_notifications,
+                ui_notifications.JSLoggingNotifications(),
+                ui_notifications.LoggingNotifications(),
+                ui_notifications.PrintNotifications(),
+            ]
+        )
+        js_notifications.callback_notification_close = (
+            self.notification_manager.callback_notification_close
+        )
+        webapi_notifications.callback_notification_close = (
+            self.notification_manager.callback_notification_close
+        )
 
     # TODO: User obj instantiation belongs in UserManager
     @classmethod

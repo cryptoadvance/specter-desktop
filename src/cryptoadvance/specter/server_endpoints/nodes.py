@@ -62,7 +62,7 @@ def node_settings(node_alias):
         )
 
     if not current_user.is_admin:
-        app.specter.notification_manager.create_and_show(
+        app.specter.user_manager.get_user().notification_manager.create_and_show(
             _("Only an admin is allowed to access this page"), notification_type="error"
         )
         return redirect("")
@@ -99,26 +99,26 @@ def node_settings(node_alias):
         if action == "rename":
             node_name = request.form["newtitle"]
             if not node_name:
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _("Node name cannot be empty"), notification_type="error"
                 )
             elif node_name == node.name:
                 pass
             elif node_name in app.specter.device_manager.devices_names:
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _("Node with this name already exists"), notification_type="error"
                 )
             else:
                 node.rename(node_name)
         elif action == "forget":
             if not node_alias:
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _("Failed to deleted node. Node isn't saved"),
                     notification_type="error",
                 )
             elif len(app.specter.node_manager.nodes) > 1:
                 app.specter.node_manager.delete_node(node, app.specter)
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _("Node deleted successfully")
                 )
                 return redirect(
@@ -128,7 +128,7 @@ def node_settings(node_alias):
                     )
                 )
             else:
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _(
                         "Failed to delete node. Specter must have at least one node configured"
                     ),
@@ -158,20 +158,22 @@ def node_settings(node_alias):
             if "tests" in test:
                 # If any test has failed, we notify the user that the test has not passed
                 if not test["tests"] or False in list(test["tests"].values()):
-                    app.specter.notification_manager.create_and_show(
+                    app.specter.user_manager.get_user().notification_manager.create_and_show(
                         _("Test failed: {}").format(test["err"]),
                         notification_type="error",
                     )
                 else:
-                    app.specter.notification_manager.create_and_show(_("Test passed"))
+                    app.specter.user_manager.get_user().notification_manager.create_and_show(
+                        _("Test passed")
+                    )
             elif "err" in test:
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _("Test failed: {}").format(test["err"]), notification_type="error"
                 )
         elif action == "save":
             if not node_alias:
                 if node.name in app.specter.node_manager.nodes:
-                    app.specter.notification_manager.create_and_show(
+                    app.specter.user_manager.get_user().notification_manager.create_and_show(
                         _(
                             "Node with this name already exists, please choose a different name."
                         ),
@@ -212,7 +214,7 @@ def node_settings(node_alias):
                 protocol=protocol,
             )
             if not success:
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _("Failed connecting to the node"), notification_type="error"
                 )
             if app.specter.active_node_alias == node.alias:
@@ -256,7 +258,7 @@ def internal_node_settings(node_alias):
         )
 
     if not current_user.is_admin:
-        app.specter.notification_manager.create_and_show(
+        app.specter.user_manager.get_user().notification_manager.create_and_show(
             _("Only an admin is allowed to access this page"), notification_type="error"
         )
         return redirect("")
@@ -271,20 +273,20 @@ def internal_node_settings(node_alias):
         if action == "rename":
             node_name = request.form["newtitle"]
             if not node_name:
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _("Node name must not be empty"), notification_type="error"
                 )
             elif node_name == node.name:
                 pass
             elif node_name in app.specter.device_manager.devices_names:
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     "Node with this name already exists", notification_type="error"
                 )
             else:
                 node.rename(node_name)
         elif action == "forget":
             if not node_alias:
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _("Failed to deleted node. Node isn't saved"),
                     notification_type="error",
                 )
@@ -293,7 +295,7 @@ def internal_node_settings(node_alias):
                 app.specter.node_manager.delete_node(node, app.specter)
                 if bool(request.form.get("remove_datadir", False)):
                     shutil.rmtree(os.path.expanduser(node.datadir), ignore_errors=True)
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _("Node deleted successfully")
                 )
                 return redirect(
@@ -303,7 +305,7 @@ def internal_node_settings(node_alias):
                     )
                 )
             else:
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _(
                         "Failed to delete node. Specter must have at least one node configured"
                     ),
@@ -313,29 +315,29 @@ def internal_node_settings(node_alias):
             try:
                 node.stop()
                 time.sleep(5)
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _("Specter successfully stopped Bitcoin Core")
                 )
             except Exception as e:
                 try:
                     logger.exception(e)
-                    app.specter.notification_manager.create_and_show(
+                    app.specter.user_manager.get_user().notification_manager.create_and_show(
                         _("Stopping Bitcoin Core, this might take a few moments.")
                     )
                     node.rpc.stop()
                 except Exception as ne:
                     logger.exception(ne)
-                    app.specter.notification_manager.create_and_show(
+                    app.specter.user_manager.get_user().notification_manager.create_and_show(
                         _("Failed to stop Bitcoin Core {}").format(ne),
                         notification_type="error",
                     )
         elif action == "startbitcoind":
             if node.start(timeout=120):
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _("Specter has started Bitcoin Core")
                 )
             else:
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _("Specter failed to start the node"), notification_type="error"
                 )
         elif action == "uninstall_bitcoind":
@@ -347,7 +349,7 @@ def internal_node_settings(node_alias):
                 )
                 if bool(request.form.get("remove_datadir", False)):
                     shutil.rmtree(os.path.expanduser(node.datadir), ignore_errors=True)
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _("Bitcoin Core successfully uninstalled")
                 )
                 app.specter.node_manager.delete_node(node, app.specter)
@@ -358,7 +360,7 @@ def internal_node_settings(node_alias):
                     )
                 )
             except Exception as e:
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _("Failed to remove Bitcoin Core, error: {}").format(e),
                     notification_type="error",
                 )
@@ -369,14 +371,14 @@ def internal_node_settings(node_alias):
                         app.specter, app.config["INTERNAL_BITCOIND_VERSION"]
                     )
                 except Exception as e:
-                    app.specter.notification_manager.create_and_show(
+                    app.specter.user_manager.get_user().notification_manager.create_and_show(
                         _("Failed to upgrade Bitcoin Core version, error: {}").format(
                             e
                         ),
                         notification_type="error",
                     )
             else:
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _("Bitcoin Core version is already up to date")
                 )
     return render_template(

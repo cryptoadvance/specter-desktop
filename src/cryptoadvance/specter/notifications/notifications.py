@@ -16,11 +16,14 @@ class NotificationTypes:
 class Notification(dict):
     "A Notification is a datastructure to store title, body, ..."
 
-    def __init__(self, title, notification_type=None, target_uis="default", **kwargs):
+    def __init__(
+        self, title, notification_type=None, body=None, target_uis="default", **kwargs
+    ):
         self["title"] = str(title)
         self["date"] = datetime.datetime.now()
         self["first_shown"] = None
         self["icon"] = None
+        self["body"] = body
         self["timeout"] = None  # [ms]
 
         self["target_uis"] = (

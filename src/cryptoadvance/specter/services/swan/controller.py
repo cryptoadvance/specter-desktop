@@ -39,7 +39,7 @@ def refreshtoken_required(func):
                 )
         except ServiceEncryptedStorageError as e:
             logger.debug(repr(e))
-            app.specter.notification_manager.create_and_show(
+            app.specter.user_manager.get_user().notification_manager.create_and_show(
                 "Re-login required to access your protected services data"
             )
 
@@ -120,7 +120,7 @@ def update_autowithdrawal():
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
     except SwanApiException as e:
         logger.exception(e)
-        app.specter.notification_manager.create_and_show(
+        app.specter.user_manager.get_user().notification_manager.create_and_show(
             _("Error communicating with Swan API")
         )
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.settings"))

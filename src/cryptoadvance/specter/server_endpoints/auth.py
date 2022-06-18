@@ -46,7 +46,7 @@ def login():
                     )
                     return redirect_login(request)
 
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _(
                         "We could not check your password, maybe Bitcoin Core is not running or not configured?"
                     ),
@@ -86,7 +86,7 @@ def login():
                     return redirect_login(request)
 
         # Either invalid method or incorrect credentials
-        app.specter.notification_manager.create_and_show(
+        app.specter.user_manager.get_user().notification_manager.create_and_show(
             _("Invalid username or password"), notification_type="error"
         )
         app.logger.info("AUDIT: Invalid password login attempt")
@@ -116,13 +116,13 @@ def register():
         password = request.form["password"]
         otp = request.form["otp"]
         if not username:
-            app.specter.notification_manager.create_and_show(
+            app.specter.user_manager.get_user().notification_manager.create_and_show(
                 _("Please enter a username."), notification_type="error"
             )
             return redirect("register?otp={}".format(otp))
         min_chars = int(app.specter.config["auth"]["password_min_chars"])
         if not password or len(password) < min_chars:
-            app.specter.notification_manager.create_and_show(
+            app.specter.user_manager.get_user().notification_manager.create_and_show(
                 _("Please enter a password of a least {} characters.").format(
                     min_chars
                 ),
@@ -136,7 +136,7 @@ def register():
                 i += 1
                 user_id = "{}{}".format(alias(username), i)
             if app.specter.user_manager.get_user_by_username(username):
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _("Username is already taken, please choose another one"),
                     notification_type="error",
                 )
@@ -154,14 +154,14 @@ def register():
                 config=config,
             )
 
-            app.specter.notification_manager.create_and_show(
+            app.specter.user_manager.get_user().notification_manager.create_and_show(
                 title=_(
                     "You have registered successfully, please login with your new account to start using Specter"
                 )
             )
             return redirect(url_for("auth_endpoint.login"))
         else:
-            app.specter.notification_manager.create_and_show(
+            app.specter.user_manager.get_user().notification_manager.create_and_show(
                 _(
                     "Invalid registration link, please request a new link from the node operator."
                 ),
@@ -178,11 +178,13 @@ def logout():
 
     logout_user()
     if "timeout" in request.args:
-        app.specter.notification_manager.create_and_show(
+        app.specter.user_manager.get_user().notification_manager.create_and_show(
             _("You were automatically logged out")
         )
     else:
-        app.specter.notification_manager.create_and_show(_("You were logged out"))
+        app.specter.user_manager.get_user().notification_manager.create_and_show(
+            _("You were logged out")
+        )
     return redirect(url_for("auth_endpoint.login"))
 
 
@@ -204,7 +206,9 @@ def toggle_hide_sensitive_info():
 
 ################### Util ######################
 def redirect_login(request):
-    app.specter.notification_manager.create_and_show(_("Logged in successfully."))
+    app.specter.user_manager.get_user().notification_manager.create_and_show(
+        _("Logged in successfully.")
+    )
 
     # If the user is auto-logged out, hide_sensitive_info will be set. If they're
     #   explicitly logging in now, clear the setting and reveal user's info.

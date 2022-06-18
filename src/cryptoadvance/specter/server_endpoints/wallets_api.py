@@ -115,7 +115,9 @@ def get_new_notifications():
             return o.timestamp()
 
     js_notifications_dict = {}
-    for ui_notification in app.specter.notification_manager.ui_notifications:
+    for (
+        ui_notification
+    ) in app.specter.user_manager.get_user().notification_manager.ui_notifications:
         if ui_notification.name in {"WebAPI", "js_message_box", "js_logging"}:
             notifications = ui_notification.read_and_clear_js_notification_buffer()
             if notifications:
@@ -135,7 +137,11 @@ def create_notification():
         except:
             pass
     logger.debug(f"wallets_endpoint_api create_notification with arguments {arguments}")
-    return jsonify(app.specter.notification_manager.create_and_show(**arguments))
+    return jsonify(
+        app.specter.user_manager.get_user().notification_manager.create_and_show(
+            **arguments
+        )
+    )
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/combine/", methods=["POST"])
@@ -625,7 +631,7 @@ def addresses_list_csv(wallet_alias):
         return response
     except Exception as e:
         handle_exception(e)
-        app.specter.notification_manager.create_and_show(
+        app.specter.user_manager.get_user().notification_manager.create_and_show(
             _("Failed to export addresses list. Error: {}").format(e),
             notification_type="error",
         )

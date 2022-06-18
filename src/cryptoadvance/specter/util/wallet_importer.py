@@ -1,6 +1,7 @@
 import json
 import logging
 from flask import current_app as app
+from flask import flash
 from cryptoadvance.specter.managers.wallet_manager import WalletManager
 
 from cryptoadvance.specter.specter_error import SpecterError
@@ -274,7 +275,7 @@ class WalletImporter:
                         {"type": "electrum", "label": f"Electrum Multisig {i}"}
                     )
                     if "seed" in d:
-                        app.specter.notification_manager.create_and_show(
+                        app.specter.user_manager.get_user().notification_manager.create_and_show(
                             _(
                                 "The Electrum wallet contains a seed. The seed will not be imported."
                             ),
@@ -456,7 +457,7 @@ class WalletImporter:
                 }
             ]
             if "seed" in wallet_data["keystore"]:
-                app.specter.notification_manager.create_and_show(
+                app.specter.user_manager.get_user().notification_manager.create_and_show(
                     _(
                         "The Electrum wallet contains a seed. The seed will not be imported."
                     ),

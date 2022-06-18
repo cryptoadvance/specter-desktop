@@ -112,7 +112,7 @@ def hwi_bridge_settings():
         if action == "update":
             config["whitelisted_domains"] = request.form["whitelisted_domains"]
             save_hwi_bridge_config(app.specter, config)
-            app.specter.notification_manager.create_and_show(
+            app.specter.user_manager.get_user().notification_manager.create_and_show(
                 title="Whitelist is updated!"
             )
     return render_template(
