@@ -29,6 +29,8 @@ class DiceService(Service):
     desc = "Send your bet!"
     has_blueprint = True
     blueprint_module = "k9ert.specterext.dice.controller"
+    # You can have more than one blueprint
+    # blueprint_modules = { default: "k9ert.specterext.dice.controller", "auth":"k9ert.specterext.dice.controller_auth" }
     isolated_client = False
     devstatus = devstatus_alpha
 ```
