@@ -2,16 +2,28 @@
 
 
 /*  creating a notification from JS */
-async function requestCreateNotification(title=null, timeout=5000, type="information", target_uis=null, body=null, image=null, icon=null){
-    url = "{{ url_for('wallets_endpoint_api.create_notification' ) }}";
-	formData = new FormData();
+async function requestCreateNotification(title, options){
+    function add(key){
+        if (key in options){
+            formData.append(key, options[key]);
+        }        
+    }
+    function addjson(key){
+        if (key in options){
+            formData.append(key, JSON.stringify( options[key]));
+        }        
+    }
+
+    var url = "{{ url_for('wallets_endpoint_api.create_notification' ) }}";
+	var formData = new FormData();
 	formData.append("title", title)
-	formData.append("timeout", timeout)
-	formData.append("notification_type", type)
-	formData.append("target_uis", JSON.stringify(target_uis))
-	formData.append("body", body)
-	formData.append("image", image)
-	formData.append("icon", icon)
+    add('timeout')
+    add('notification_type')
+    addjson('target_uis')
+    addjson('data')
+    add('body')
+    add('image')
+    add('icon') 
     return send_request(url, 'POST', "{{ csrf_token() }}", formData)
 }
 
@@ -20,18 +32,18 @@ async function requestCreateNotification(title=null, timeout=5000, type="informa
 
 function callback_notification_close(id, target_ui){
     //console.log('closed message')
-    requestCreateNotification('callback_notification_close', timeout=0,  type='debug', target_uis=['internal_notification'], body=JSON.stringify({'id':id, 'target_ui':target_ui}));
+    requestCreateNotification('callback_notification_close', {target_uis:['internal_notification'], data:{'id':id, 'target_ui':target_ui}});
 }
 
 
 function notification_shown(id, target_ui, success=true){
     //console.log('closed message')
-    requestCreateNotification('notification_shown', timeout=0,  type='debug', target_uis=['internal_notification'], body=JSON.stringify({'id':id, 'target_ui':target_ui, 'success':success}));
+    requestCreateNotification('notification_shown', {target_uis:['internal_notification'], data:{'id':id, 'target_ui':target_ui, 'success':success}});
 }
 
 
 function notification_target_ui_unavailable(id, target_ui) {
-    requestCreateNotification('notification_target_ui_unavailable', timeout=0,  type='debug', target_uis=['internal_notification'], body=JSON.stringify({'id':id, 'target_ui':target_ui}));
+    requestCreateNotification('notification_target_ui_unavailable', {target_uis:['internal_notification'], data:{'id':id, 'target_ui':target_ui}});
 }
 
 
@@ -217,17 +229,6 @@ async function run_scheduled(){
 };
 
 
-
-function test_notifications(){
-    requestCreateNotification('title send to js_console and print', timeout=0,  type='debug', target_uis=['js_console', 'print'], body='body\nbody', icon='/path/to/icon.png');
-    requestCreateNotification('title send to js_console and print', timeout=0,  type='warning', target_uis=['js_console', 'print'], body='body\nbody', icon='/path/to/icon.png');
-    requestCreateNotification('info for js_message_box', timeout=0, type='information',  target_uis='js_message_box', body='body\nbody', icon='/path/to/icon.png');
-    requestCreateNotification('info for WebAPI', timeout=0, type='information',  target_uis='WebAPI', body='body\nbody', icon='/path/to/icon.png');
-    //requestCreateNotification('info for flask', timeout=0, type='information',  target_uis='flash', body='body\nbody', icon='/path/to/icon.png');
-    //requestCreateNotification('warning title', timeout=0, type='warning', target_uis='all', body='body\nbody', icon='/path/to/icon.png');
-    //requestCreateNotification('error title', timeout=0, type='error', target_uis='all', body='body\nbody', icon='/path/to/icon.png');
-    get_new_notifications();
-}
 
 setInterval(run_scheduled, 2000);
 

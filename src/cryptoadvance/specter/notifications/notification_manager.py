@@ -67,15 +67,15 @@ class NotificationManager:
         logger.debug(f"treat_internal_message {internal_notification}")
 
         referenced_notification = self.find_notification(
-            internal_notification["body"]["id"]
+            internal_notification["data"]["id"]
         )
 
         if internal_notification["title"] == "notification_target_ui_unavailable":
             # deactivate target_ui and rebroadcast
             logger.debug(
-                f'{internal_notification["body"]["target_ui"]} is unavailable, now deactivating this target_ui and rebroadcasting'
+                f'{internal_notification["data"]["target_ui"]} is unavailable, now deactivating this target_ui and rebroadcasting'
             )
-            self.deactivate_target_ui(internal_notification["body"]["target_ui"])
+            self.deactivate_target_ui(internal_notification["data"]["target_ui"])
             if not referenced_notification:
                 return
             self.show(referenced_notification)
@@ -83,7 +83,7 @@ class NotificationManager:
         if internal_notification["title"] == "notification_shown":
             self.set_notification_shown(
                 referenced_notification["id"],
-                internal_notification["body"]["target_ui"],
+                internal_notification["data"]["target_ui"],
             )
 
         if internal_notification["title"] == "callback_notification_close":
@@ -104,7 +104,7 @@ class NotificationManager:
                 ):
                     ui_notification.callback_notification_close(
                         referenced_notification["id"],
-                        internal_notification["body"]["target_ui"],
+                        internal_notification["data"]["target_ui"],
                     )
 
     def get_default_target_ui_name(self):

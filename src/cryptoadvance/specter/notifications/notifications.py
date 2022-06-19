@@ -27,6 +27,7 @@ class Notification(dict):
         all_target_uis,
         notification_type=None,
         body=None,
+        data=None,
         target_uis="default",
         **kwargs,
     ):
@@ -36,6 +37,7 @@ class Notification(dict):
         self["image"] = None
         self["icon"] = None
         self["body"] = body
+        self["data"] = data
         self["timeout"] = None  # [ms]
 
         if not target_uis:
