@@ -51,10 +51,14 @@ class NotificationManager:
                             if notification_broadcasted:
                                 break
 
-    def set_notification_shown(self, notification_id):
+    def set_notification_shown(self, notification_id, target_ui):
         notification = self.find_notification(notification_id)
-        notification["last_shown_date"] = datetime.datetime.now()
-        logger.debug(f"set_notification_shown {notification }")
+        if not notification:
+            logging.warning(
+                f"set_notification_shown: Notification with id {notification_id} not found"
+            )
+            return
+        notification.set_shown(target_ui)
 
     def treat_internal_message(self, internal_notification):
         "treat an internal_notification"
@@ -77,7 +81,10 @@ class NotificationManager:
             self.show(referenced_notification)
 
         if internal_notification["title"] == "notification_shown":
-            self.set_notification_shown(referenced_notification["id"])
+            self.set_notification_shown(
+                referenced_notification["id"],
+                internal_notification["body"]["target_ui"],
+            )
 
         if internal_notification["title"] == "callback_notification_close":
             if not referenced_notification:

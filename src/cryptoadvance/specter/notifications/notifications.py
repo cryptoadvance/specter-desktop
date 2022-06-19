@@ -28,11 +28,11 @@ class Notification(dict):
         notification_type=None,
         body=None,
         target_uis="default",
-        **kwargs
+        **kwargs,
     ):
         self["title"] = str(title)
         self["date"] = datetime.datetime.now()
-        self["last_shown_date"] = None
+        self["last_shown_date"] = dict()  # structure {'target_ui' : date}
         self["image"] = None
         self["icon"] = None
         self["body"] = body
@@ -71,6 +71,10 @@ class Notification(dict):
         reduced_dict = self.copy()
         del reduced_dict["id"]
         self["id"] = hashlib.sha256(str(self).encode()).hexdigest()
+
+    def set_shown(self, target_ui, date=None):
+        self["last_shown_date"][target_ui] = date if date else datetime.datetime.now()
+        logger.debug(f"set_notification_shown {self}")
 
     def cleanup_target_uis(self, default_target_ui, all_target_uis):
         # clean up the notification['target_uis']

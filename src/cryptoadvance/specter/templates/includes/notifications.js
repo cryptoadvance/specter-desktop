@@ -24,9 +24,9 @@ function callback_notification_close(id){
 }
 
 
-function notification_shown(id, success=true){
+function notification_shown(id, target_ui, success=true){
     //console.log('closed message')
-    requestCreateNotification('notification_shown', timeout=0,  type='debug', target_uis=['internal_notification'], body=JSON.stringify({'id':id, 'success':success}));
+    requestCreateNotification('notification_shown', timeout=0,  type='debug', target_uis=['internal_notification'], body=JSON.stringify({'id':id, 'target_ui':target_ui, 'success':success}));
 }
 
 
@@ -82,7 +82,7 @@ function webapi_notification(js_notification, retries_if_permission_default=2) {
         });        
         notification.onshow = (() => {
             // do something
-            notification_shown(js_notification['id'])
+            notification_shown(js_notification['id'], 'WebAPI')
         });        
 
         function closeNotification(){notification.close()}
@@ -159,7 +159,7 @@ function javascript_popup_message(js_notification){
         image=js_notification['options']['image'],
         );			
 
-    notification_shown(js_notification['id'])
+    notification_shown(js_notification['id'], 'js_message_box')
 }
 
 
@@ -173,7 +173,7 @@ function js_logging_notification(js_notification){
     } else {            
         console.log(js_notification);
     }
-    notification_shown(js_notification['id'])
+    notification_shown(js_notification['id'], 'js_console')
 }
 
 async function show_notification(ui_name, js_notification){
