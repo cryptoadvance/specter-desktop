@@ -1,4 +1,5 @@
-describe('Test the actions in UTXO list', () => {
+describe('Test the app with multiple users', () => {
+    // This test is currently still deactivated due to:
     // See https://github.com/cypress-io/cypress/issues/21138
     if (Cypress.env("CI")) {
         const login = (name,password) => {
