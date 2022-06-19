@@ -144,7 +144,7 @@ def get_new_notifications():
 @login_required
 def create_notification():
     """
-    The request.form must contain a dict
+    The request.form must contain a dict. Only 'title' is mandatory
         {
             'title' : title,
             'timeout' : timeout,
