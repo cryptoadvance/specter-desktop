@@ -21,7 +21,14 @@ class Notification(dict):
     """
 
     def __init__(
-        self, title, notification_type=None, body=None, target_uis="default", **kwargs
+        self,
+        title,
+        default_target_ui,
+        all_target_uis,
+        notification_type=None,
+        body=None,
+        target_uis="default",
+        **kwargs
     ):
         self["title"] = str(title)
         self["date"] = datetime.datetime.now()
@@ -53,6 +60,8 @@ class Notification(dict):
         # take over all remeining kwargs
         for key, value in kwargs.items():
             self[key] = value
+
+        self.cleanup_target_uis(default_target_ui, all_target_uis)
 
         # set id (dependent on all other properties, so must eb set last)
         self["id"] = None

@@ -103,7 +103,7 @@ class NotificationManager:
     def get_all_target_ui_names(self):
         return {ui_notification.name for ui_notification in self.ui_notifications}
 
-    def create_notification(self, *args, **kwargs):
+    def create_notification(self, title, **kwargs):
         """
         The arguments are identical to Notification(....), e.g.
             - title
@@ -112,12 +112,14 @@ class NotificationManager:
             - target_uis='default'
         """
         logger.debug(
-            f"Starting to ceated notification with *args, **kwargs   {args, kwargs}"
+            f"Starting to ceated notification with title, **kwargs   {title, kwargs}"
         )
 
-        notification = Notification(*args, **kwargs)
-        notification.cleanup_target_uis(
-            self.get_default_target_ui_name(), self.get_all_target_ui_names()
+        notification = Notification(
+            title,
+            self.get_default_target_ui_name(),
+            self.get_all_target_ui_names(),
+            **kwargs,
         )
         logger.debug(f"Middle of creating notification   {notification}")
 
