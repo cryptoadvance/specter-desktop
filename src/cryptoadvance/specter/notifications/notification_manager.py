@@ -132,15 +132,10 @@ class NotificationManager:
         logger.debug(f"Created notification {notification}")
         return notification
 
-    def flash(self, *args, **kwargs):
-        args = list(args)
-        if len(args) == 2:
-            kwargs["notification_type"] = args[1]
-            del args[1]
-        kwargs["target_uis"] = {"flash"}
-        self.create_and_show(*args, **kwargs)
+    def flash(self, message: str, category: str = "message"):
+        self.create_and_show(message, notification_type=category, target_uis={"flash"})
 
-    def create_and_show(self, *args, **kwargs):
+    def create_and_show(self, title, **kwargs):
         """
         The arguments are identical to Notification(....), e.g.
             - title
@@ -148,7 +143,7 @@ class NotificationManager:
             - body=None
             - target_uis='default'
         """
-        notification = self.create_notification(*args, **kwargs)
+        notification = self.create_notification(title, **kwargs)
         if notification:
             self.show(notification)
 
