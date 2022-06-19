@@ -32,7 +32,7 @@ class Notification(dict):
     ):
         self["title"] = str(title)
         self["date"] = datetime.datetime.now()
-        self["first_shown"] = None
+        self["last_shown_date"] = None
         self["image"] = None
         self["icon"] = None
         self["body"] = body

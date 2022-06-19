@@ -82,13 +82,13 @@ function webapi_notification(js_notification, retries_if_permission_default=2) {
         });        
         notification.onshow = (() => {
             // do something
+            notification_shown(js_notification['id'])
         });        
 
         function closeNotification(){notification.close()}
         if (js_notification['timeout']>0) {
             setTimeout(closeNotification, js_notification['timeout']);
         }
-        notification_shown(js_notification['id'])
     };
 
 

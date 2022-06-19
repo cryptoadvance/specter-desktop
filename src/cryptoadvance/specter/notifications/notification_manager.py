@@ -36,23 +36,25 @@ class NotificationManager:
         for ui_notification in self.ui_notifications:
             if ui_notification.name in notification["target_uis"]:
 
-                notification_shown = ui_notification.show(notification)
+                notification_broadcasted = ui_notification.show(notification)
 
                 # if not possible, then try show it with a ui_notifications that is NOT already in notification['target_uis']
-                if not notification_shown:
+                if not notification_broadcasted:
                     logger.debug(
                         f"Trying with other ui_notifications to broadcast {notification}"
                     )
                     for ui_notification in self.ui_notifications:
                         if ui_notification.name not in notification["target_uis"]:
-                            notification_shown = ui_notification.show(notification)
-                            if notification_shown:
+                            notification_broadcasted = ui_notification.show(
+                                notification
+                            )
+                            if notification_broadcasted:
                                 break
 
-    def set_notification_read_now(self, notification_id):
+    def set_notification_shown(self, notification_id):
         notification = self.find_notification(notification_id)
-        notification["first_shown"] = datetime.datetime.now()
-        logger.debug(f"set_notification_read_now {notification }")
+        notification["last_shown_date"] = datetime.datetime.now()
+        logger.debug(f"set_notification_shown {notification }")
 
     def treat_internal_message(self, internal_notification):
         "treat an internal_notification"
@@ -75,7 +77,7 @@ class NotificationManager:
             self.show(referenced_notification)
 
         if internal_notification["title"] == "notification_shown":
-            self.set_notification_read_now(referenced_notification["id"])
+            self.set_notification_shown(referenced_notification["id"])
 
         if internal_notification["title"] == "callback_notification_close":
             if not referenced_notification:

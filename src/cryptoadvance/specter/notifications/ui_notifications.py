@@ -96,7 +96,11 @@ class JSConsoleNotifications(BaseUINotifications):
         return js_notification_buffer
 
     def show(self, notification):
-        "This will not show the notification immediately, but write it into a buffer and then it is later fetched by a javascript endless loop"
+        """
+        This will not show the notification immediately, but write it into a buffer and then it is later fetched by a javascript endless loop
+
+        It will return if the notification was broadcasted
+        """
         if (
             not self.is_available
             or notification["type"] not in self.compatible_notification_types
