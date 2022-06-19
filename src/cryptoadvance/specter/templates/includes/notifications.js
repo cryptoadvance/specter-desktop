@@ -18,9 +18,9 @@ async function requestCreateNotification(title=null, timeout=5000, type="informa
 
 
 
-function callback_notification_close(id){
+function callback_notification_close(id, target_ui){
     //console.log('closed message')
-    requestCreateNotification('callback_notification_close', timeout=0,  type='debug', target_uis=['internal_notification'], body=JSON.stringify({'id':id}));
+    requestCreateNotification('callback_notification_close', timeout=0,  type='debug', target_uis=['internal_notification'], body=JSON.stringify({'id':id, 'target_ui':target_ui}));
 }
 
 
@@ -30,8 +30,8 @@ function notification_shown(id, target_ui, success=true){
 }
 
 
-function notification_webapi_notification_unavailable(id) {
-    requestCreateNotification('webapi_notification_unavailable', timeout=0,  type='debug', target_uis=['internal_notification'], body=JSON.stringify({'id':id}));
+function notification_target_ui_unavailable(id, target_ui) {
+    requestCreateNotification('notification_target_ui_unavailable', timeout=0,  type='debug', target_uis=['internal_notification'], body=JSON.stringify({'id':id, 'target_ui':target_ui}));
 }
 
 
@@ -78,7 +78,7 @@ function webapi_notification(js_notification, retries_if_permission_default=2) {
             // do something
         });        
         notification.onclose = (() => {
-            callback_notification_close(js_notification['id'])
+            callback_notification_close(js_notification['id'], 'WebAPI')
         });        
         notification.onshow = (() => {
             // do something
@@ -94,7 +94,7 @@ function webapi_notification(js_notification, retries_if_permission_default=2) {
 
     if (!("Notification" in window)) {
         console.log("This browser does not support desktop notification");
-        notification_webapi_notification_unavailable(js_notification['id']);
+        notification_target_ui_unavailable(js_notification['id'], 'WebAPI');
     }
     // Let's check whether notification permissions have already been granted
     else if (Notification.permission === "granted") {
@@ -103,7 +103,7 @@ function webapi_notification(js_notification, retries_if_permission_default=2) {
     }  else if (Notification.permission === "denied") {
         // If it's okay let's create a notification
         console.log(`Notification.requestPermission() = ${Notification.permission}`);
-        notification_webapi_notification_unavailable(js_notification['id']);  
+        notification_target_ui_unavailable(js_notification['id'], 'WebAPI');  
     }
     // Otherwise  "default", we need to ask the user for permission
     else   {
@@ -114,7 +114,7 @@ function webapi_notification(js_notification, retries_if_permission_default=2) {
         } else if (permission === "denied") {
             // not granted
             console.log(`Notification.requestPermission() = ${permission}`);
-            notification_webapi_notification_unavailable(js_notification['id']);  
+            notification_target_ui_unavailable(js_notification['id'], 'WebAPI');  
         } else {
             // permission is probably "default", meaning the user has neither granted nor blocked the Notifications.
             // The user can afterwards allow or block notifications.  The notification needs reboradcasting.
@@ -141,7 +141,7 @@ function webapi_notification(js_notification, retries_if_permission_default=2) {
   
 function javascript_popup_message(js_notification){
     function callback_notification_close_id(){
-        callback_notification_close(js_notification['id'])    
+        callback_notification_close(js_notification['id'], 'js_message_box')    
     }
 
     var message = js_notification['title'];

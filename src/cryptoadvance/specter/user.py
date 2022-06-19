@@ -98,9 +98,9 @@ class User(UserMixin):
         webapi_notifications = ui_notifications.WebAPINotifications()
         self.notification_manager = NotificationManager(
             ui_notifications=[
-                ui_notifications.FlashNotifications(),  # default
                 webapi_notifications,
                 js_notifications,
+                ui_notifications.FlashNotifications(),  # default
                 ui_notifications.JSConsoleNotifications(),
                 ui_notifications.LoggingNotifications(),
                 ui_notifications.PrintNotifications(),

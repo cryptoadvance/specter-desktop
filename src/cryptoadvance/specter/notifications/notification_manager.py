@@ -70,12 +70,12 @@ class NotificationManager:
             internal_notification["body"]["id"]
         )
 
-        if internal_notification["title"] == "webapi_notification_unavailable":
+        if internal_notification["title"] == "notification_target_ui_unavailable":
             # deactivate target_ui and rebroadcast
             logger.debug(
-                "webapi_notification is unavailable, now deactivating this target_ui and rebroadcasting"
+                f'{internal_notification["body"]["target_ui"]} is unavailable, now deactivating this target_ui and rebroadcasting'
             )
-            self.deactivate_target_ui("WebAPI")
+            self.deactivate_target_ui(internal_notification["body"]["target_ui"])
             if not referenced_notification:
                 return
             self.show(referenced_notification)
@@ -103,7 +103,8 @@ class NotificationManager:
                     and ui_notification.callback_notification_close
                 ):
                     ui_notification.callback_notification_close(
-                        referenced_notification["id"]
+                        referenced_notification["id"],
+                        internal_notification["body"]["target_ui"],
                     )
 
     def get_default_target_ui_name(self):
@@ -161,9 +162,13 @@ class NotificationManager:
             if notification["id"] == notification_id:
                 return notification
 
-    def callback_notification_close(self, notification_id):
+    def callback_notification_close(self, notification_id, target_ui=None):
+        "Deletes the notification. It does not wait until the last of the target_uis was closed."
         notification = self.find_notification(notification_id)
         if not notification:
+            logging.debug(
+                f"callback_notification_close: Notification with id {notification_id} not found. Perhaps it was closed already in a different target_ui?"
+            )
             return
 
         del self.notifications[self.notifications.index(notification)]
