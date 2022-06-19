@@ -387,6 +387,8 @@
 		}
 
 		async function setMaxAmount(i) {
+			FeeSelectionComponent.showSubtractFrom(true)
+			FeeSelectionComponent.setSubtractFrom(i + 1)
 			let amountInput = document.getElementById('amount_' + i);
 			if (!validAddress(i)) {
 				return;

@@ -1,3 +1,11 @@
+## v1.10.2 Juni 03, 2022
+- Feature: Basic auth in electron #1730 (djpnewton)
+- Feature: Multisig beginner guide #1731 (relativisticelectron)
+- Bugfix: Corrected build instructions and made virtuelenv name dynamic #1735 (relativisticelectron)
+- Bugfix: issues while using specter as library #1740 (k9ert)
+- Bugfix: PDF backup does not open for multisig #1741 (k9ert)
+- UIUX: fix typo in error_logs #1739 (Bufo)
+
 ## v1.10.0 Mai 27, 2022
 - Feature: adding has_service() method to user #1732 (Kim Neunert)
 - Feature: Choose file button for labels import #1682 (Manolis)
