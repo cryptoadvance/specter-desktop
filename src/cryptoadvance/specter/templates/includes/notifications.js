@@ -2,17 +2,17 @@
 
 
 /*  creating a notification from JS */
-function requestCreateNotification(msg, timeout=5000, type="information", target_uis=null, body=null, image=null, icon=null){
+async function requestCreateNotification(title=null, timeout=5000, type="information", target_uis=null, body=null, image=null, icon=null){
     url = "{{ url_for('wallets_endpoint_api.create_notification' ) }}";
 	formData = new FormData();
-	formData.append("title", msg)
+	formData.append("title", title)
 	formData.append("timeout", timeout)
 	formData.append("notification_type", type)
 	formData.append("target_uis", JSON.stringify(target_uis))
 	formData.append("body", body)
 	formData.append("image", image)
 	formData.append("icon", icon)
-	send_request(url, 'POST', "{{ csrf_token() }}", formData)
+    return send_request(url, 'POST', "{{ csrf_token() }}", formData)
 }
 
 

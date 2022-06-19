@@ -104,10 +104,24 @@ def fees_old(blocks):
 @login_required
 def get_new_notifications():
     """
-    Gets all notifications meant for the browser to display in a dict of structure:
+    Returns all notifications currently waiting in the buffer to be displayed. The datastructure is like:
         {
-            "WebAPI": [notification1, notification2, ...],
+            "js_message_box": [notification1.to_js_notification(), notification2.to_js_notification(), ...],
+            "WebAPI": [notification1.to_js_notification(), notification2.to_js_notification(), ...],
         }
+
+        notification.to_js_notification() have the datastructure:
+            {
+                "title": self["title"],
+                "id": self["id"],
+                "type": self["type"],
+                "timeout": self["timeout"],
+                "options": {
+                    body = "",
+                    image = None,
+                },
+            }
+        "options" fields are optional, and can be looked up here: https://notifications.spec.whatwg.org/#dictdef-notificationoptions
     """
 
     def myjsonconverter(o):
@@ -129,6 +143,20 @@ def get_new_notifications():
 @wallets_endpoint_api.route("/create_notification", methods=["POST"])
 @login_required
 def create_notification():
+    """
+    The request.form must contain a dict
+        {
+            'title' : title,
+            'timeout' : timeout,
+            'notification_type' : notification_type,
+            'target_uis' : target_uis,
+            'body' : body,
+            'image' : image_url,
+            'icon' : icon,
+        }
+
+    If a value is itself a list or dict (like target_uis) it has to be in a json format.
+    """
     arguments = dict(request.form)
     # try reading everything with json
     for key in arguments:
@@ -136,7 +164,15 @@ def create_notification():
             arguments[key] = json.loads(arguments[key])
         except:
             pass
+
     logger.debug(f"wallets_endpoint_api create_notification with arguments {arguments}")
+
+    if "title" not in arguments or not arguments["title"]:
+        return jsonify(
+            success=False,
+            error="The create_notification POST request must contain a 'title'",
+        )
+
     return jsonify(
         app.specter.user_manager.get_user().notification_manager.create_and_show(
             **arguments

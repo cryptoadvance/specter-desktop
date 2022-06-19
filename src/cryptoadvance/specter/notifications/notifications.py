@@ -91,7 +91,22 @@ class Notification(dict):
                 self["target_uis"].add(default_target_ui)
 
     def to_js_notification(self):
-        "datastructure is changes such that a Notification(js_notification) can be called https://notifications.spec.whatwg.org/#api for paramters"
+        """
+        Returns a datastructure such that a Notification(result) can be called https://notifications.spec.whatwg.org/#api
+
+        The returned structure is:
+            {
+                "title": self["title"],
+                "id": self["id"],
+                "type": self["type"],
+                "timeout": self["timeout"],
+                "options": {
+                    body = "",
+                    image = None,
+                },
+            }
+        "options" fields are optional, and can be looked up here: https://notifications.spec.whatwg.org/#dictdef-notificationoptions
+        """
         js_notification = {
             "title": self["title"],
             "id": self["id"],
