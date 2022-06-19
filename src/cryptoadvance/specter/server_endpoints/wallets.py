@@ -19,6 +19,7 @@ from ..key import Key
 from ..managers.wallet_manager import purposes
 from ..persistence import delete_file
 from ..specter_error import SpecterError, handle_exception
+from ..notifications.current_flask_user import flash
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,7 @@ wallets_endpoint = Blueprint("wallets_endpoint", __name__)
 
 
 def handle_wallet_error(func_name, error):
-    app.specter.user_manager.get_user().notification_manager.flash(
+    flash(
         _("SpecterError while {}: {}").format(func_name, error),
         "error",
     )
@@ -91,7 +92,7 @@ def failed_wallets():
                 app.specter.wallet_manager.update()
             except Exception as e:
                 handle_exception(e)
-                app.specter.user_manager.get_user().notification_manager.flash(
+                flash(
                     _("Failed to delete wallet: {}").format(str(e)),
                     "error",
                 )
@@ -128,9 +129,7 @@ def new_wallet_type():
 def new_wallet(wallet_type):
     wallet_types = ["simple", "multisig", "import_wallet"]
     if wallet_type not in wallet_types:
-        app.specter.user_manager.get_user().notification_manager.flash(
-            _("Unknown wallet type requested"), "error"
-        )
+        flash(_("Unknown wallet type requested"), "error")
         return redirect(url_for("wallets_endpoint.new_wallet_type"))
 
     err = None
@@ -143,9 +142,7 @@ def new_wallet(wallet_type):
                     app.specter,
                 )
             except SpecterError as se:
-                app.specter.user_manager.get_user().notification_manager.flash(
-                    str(se), "error"
-                )
+                flash(str(se), "error")
                 return redirect(url_for("wallets_endpoint.new_wallet_type"))
             createwallet = "createwallet" in request.form
             if createwallet:
@@ -157,19 +154,13 @@ def new_wallet(wallet_type):
                 try:
                     wallet_importer.create_wallet(app.specter.wallet_manager)
                 except SpecterError as se:
-                    app.specter.user_manager.get_user().notification_manager.flash(
-                        str(se), "error"
-                    )
+                    flash(str(se), "error")
                     return redirect(url_for("wallets_endpoint.new_wallet_type"))
-                app.specter.user_manager.get_user().notification_manager.flash(
-                    _("Wallet imported successfully")
-                )
+                flash(_("Wallet imported successfully"))
                 try:
                     wallet_importer.rescan_as_needed(app.specter)
                 except SpecterError as se:
-                    app.specter.user_manager.get_user().notification_manager.flash(
-                        str(se), "error"
-                    )
+                    flash(str(se), "error")
                 return redirect(
                     url_for(
                         "wallets_endpoint.receive",
@@ -400,9 +391,7 @@ def history(wallet_alias):
             try:
                 wallet.abandontransaction(txid)
             except SpecterError as e:
-                app.specter.user_manager.get_user().notification_manager.flash(
-                    str(e), "error"
-                )
+                flash(str(e), "error")
 
     # update balances in the wallet
     app.specter.check_blockheight()
@@ -491,7 +480,7 @@ def send_new(wallet_alias):
     for utxo in selected_coins:
         if utxo in frozen_utxo:
             selected_coins.remove(utxo)
-            app.specter.user_manager.get_user().notification_manager.flash(
+            flash(
                 f"You've selected a frozen UTXO for a transaction.",
                 "error",
             )
@@ -535,7 +524,7 @@ def send_new(wallet_alias):
                     raise SpecterError("Invalid action")
 
                 if psbt["fee_rate"] - rbf_fee_rate > wallet.MIN_FEE_RATE / 10:
-                    app.specter.user_manager.get_user().notification_manager.flash(
+                    flash(
                         _(
                             "We had to increase the fee rate from {} to {} sat/vbyte"
                         ).format(rbf_fee_rate, psbt["fee_rate"])
@@ -551,7 +540,7 @@ def send_new(wallet_alias):
                 )
             except Exception as e:
                 handle_exception(e)
-                app.specter.user_manager.get_user().notification_manager.flash(
+                flash(
                     _("Failed to perform RBF. Error: {}").format(e),
                     "error",
                 )
@@ -582,7 +571,7 @@ def send_new(wallet_alias):
                 fillform = True
             except Exception as e:
                 handle_exception(e)
-                app.specter.user_manager.get_user().notification_manager.flash(
+                flash(
                     _("Failed to perform RBF. Error: {}").format(e),
                     "error",
                 )
@@ -607,15 +596,13 @@ def send_new(wallet_alias):
                 except Exception as e:
                     handle_exception(e)
                     signed_psbt = None
-                    app.specter.user_manager.get_user().notification_manager.flash(
+                    flash(
                         _("Failed to sign PSBT: {}").format(e),
                         "error",
                     )
             else:
                 signed_psbt = None
-                app.specter.user_manager.get_user().notification_manager.flash(
-                    _("Device already signed the PSBT"), "error"
-                )
+                flash(_("Device already signed the PSBT"), "error")
             return render_template(
                 "wallet/send/sign/wallet_send_sign_psbt.jinja",
                 signed_psbt=signed_psbt,
@@ -639,7 +626,7 @@ def send_new(wallet_alias):
             rbf_utxo = wallet.get_rbf_utxo(rbf_tx_id)
         except Exception as e:
             handle_exception(e)
-            app.specter.user_manager.get_user().notification_manager.flash(
+            flash(
                 _("Failed to get RBF coins. Error: {}").format(e),
                 "error",
             )
@@ -692,9 +679,7 @@ def send_pending(wallet_alias):
                 )
             except Exception as e:
                 handle_exception(e)
-                app.specter.user_manager.get_user().notification_manager.flash(
-                    _("Could not delete Pending PSBT!"), "error"
-                )
+                flash(_("Could not delete Pending PSBT!"), "error")
         elif action == "openpsbt":
             psbt = json.loads(request.form["pending_psbt"])
             return render_template(
@@ -731,9 +716,7 @@ def import_psbt(wallet_alias):
                 )
             except Exception as e:
                 handle_exception(e)
-                app.specter.user_manager.get_user().notification_manager.flash(
-                    _("Could not import PSBT: {}").format(e), "error"
-                )
+                flash(_("Could not import PSBT: {}").format(e), "error")
                 return redirect(
                     url_for("wallets_endpoint.import_psbt", wallet_alias=wallet_alias)
                 )
@@ -826,31 +809,23 @@ def settings(wallet_alias):
             )
             app.specter.info["utxorescan"] = 1
             app.specter.utxorescanwallet = wallet.alias
-            app.specter.user_manager.get_user().notification_manager.flash(
+            flash(
                 "Rescan started. Check the status bar on the left for progress and/or the logs for potential issues."
             )
         elif action == "abortrescanutxo":
             app.specter.node.abortrescanutxo()
             app.specter.info["utxorescan"] = None
             app.specter.utxorescanwallet = None
-            app.specter.user_manager.get_user().notification_manager.flash(
-                _("Successfully aborted the UTXO rescan")
-            )
+            flash(_("Successfully aborted the UTXO rescan"))
         elif action == "import_address_labels":
             address_labels = request.form["address_labels_data"]
             imported_addresses_len = wallet.import_address_labels(address_labels)
             if imported_addresses_len > 1:
-                app.specter.user_manager.get_user().notification_manager.flash(
-                    f"Successfully imported {imported_addresses_len} address labels."
-                )
+                flash(f"Successfully imported {imported_addresses_len} address labels.")
             elif imported_addresses_len == 1:
-                app.specter.user_manager.get_user().notification_manager.flash(
-                    f"Successfully imported {imported_addresses_len} address label."
-                )
+                flash(f"Successfully imported {imported_addresses_len} address label.")
             else:
-                app.specter.user_manager.get_user().notification_manager.flash(
-                    "No address labels were imported."
-                )
+                flash("No address labels were imported.")
         elif action == "keypoolrefill":
             delta = int(request.form["keypooladd"])
             wallet.keypoolrefill(wallet.keypool, wallet.keypool + delta)
@@ -867,15 +842,11 @@ def settings(wallet_alias):
         elif action == "rename":
             wallet_name = request.form["newtitle"]
             if not wallet_name:
-                app.specter.user_manager.get_user().notification_manager.flash(
-                    _("Wallet name cannot be empty"), "error"
-                )
+                flash(_("Wallet name cannot be empty"), "error")
             elif wallet_name == wallet.name:
                 pass
             elif wallet_name in app.specter.wallet_manager.wallets_names:
-                app.specter.user_manager.get_user().notification_manager.flash(
-                    _("Wallet already exists"), "error"
-                )
+                flash(_("Wallet already exists"), "error")
             else:
                 app.specter.wallet_manager.rename_wallet(wallet, wallet_name)
 

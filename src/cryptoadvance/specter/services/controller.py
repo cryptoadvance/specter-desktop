@@ -6,7 +6,7 @@ from flask import current_app as app
 from flask import redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
-
+from ..notifications.current_flask_user import flash
 from ..services import ExtensionException
 
 logger = logging.getLogger(__name__)
@@ -28,16 +28,14 @@ def user_secret_decrypted_required(func):
     def wrapper(*args, **kwargs):
         if app.config["LOGIN_DISABLED"]:
             # No logins means no password so no user_secret is possible
-            app.specter.user_manager.get_user().notification_manager.flash(
+            flash(
                 _(
                     "Service integration requires an authentication method that includes a password"
                 )
             )
             return redirect(url_for(f"settings_endpoint.auth"))
         elif not current_user.is_user_secret_decrypted:
-            app.specter.user_manager.get_user().notification_manager.flash(
-                _("Must login again to enable protected Services-related data")
-            )
+            flash(_("Must login again to enable protected Services-related data"))
             # Force re-login; automatically redirects back to calling page
             return app.login_manager.unauthorized()
         else:

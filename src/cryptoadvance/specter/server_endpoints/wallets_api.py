@@ -32,7 +32,7 @@ from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
 from embit.descriptor.checksum import add_checksum
 from ..notifications.ui_notifications import JSNotifications
-
+from ..notifications.current_flask_user import flash
 
 logger = logging.getLogger(__name__)
 
@@ -631,7 +631,7 @@ def addresses_list_csv(wallet_alias):
         return response
     except Exception as e:
         handle_exception(e)
-        app.specter.user_manager.get_user().notification_manager.flash(
+        flash(
             _("Failed to export addresses list. Error: {}").format(e),
             "error",
         )

@@ -21,6 +21,7 @@ from .util.bcur import bcur_decode
 import threading
 from io import BytesIO
 import re
+from .notifications.current_flask_user import flash
 
 logger = logging.getLogger(__name__)
 
@@ -270,7 +271,7 @@ def notify_upgrade(app):
     :return the current version
     """
     if app.specter.version.upgrade:
-        app.specter.user_manager.get_user().notification_manager.flash(
+        flash(
             f"Upgrade notification: new version {app.specter.version.latest} is available."
         )
     return app.specter.version.current

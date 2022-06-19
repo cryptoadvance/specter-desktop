@@ -34,6 +34,7 @@ from ..specter_error import ExtProcTimeoutException, handle_exception
 from ..util.sha256sum import sha256sum
 from ..util.shell import get_last_lines_from_file
 from ..util.tor import start_hidden_service, stop_hidden_services
+from ..notifications.current_flask_user import flash
 
 logger = logging.getLogger(__name__)
 
@@ -149,7 +150,7 @@ def general():
                     # if wallet already exists in Bitcoin Core
                     # continue with the existing one
                     if "already exists" not in str(e):
-                        app.specter.user_manager.get_user().notification_manager.flash(
+                        flash(
                             _("Failed to import wallet {}, error: {}").format(
                                 wallet["name"], e
                             ),
@@ -185,22 +186,20 @@ def general():
                                 wallet["alias"], e
                             )
                         )
-                        app.specter.user_manager.get_user().notification_manager.flash(
+                        flash(
                             _("Failed to perform rescan for wallet: {}").format(e),
                             "error",
                         )
                     wallet_obj.getdata()
                 except Exception as e:
-                    app.specter.user_manager.get_user().notification_manager.flash(
+                    flash(
                         _("Failed to import wallet {}").format(wallet["name"]),
                         "error",
                     )
                     handle_exception(e)
-            app.specter.user_manager.get_user().notification_manager.flash(
-                _("Specter data was successfully loaded from backup")
-            )
+            flash(_("Specter data was successfully loaded from backup"))
             if rescanning:
-                app.specter.user_manager.get_user().notification_manager.flash(
+                flash(
                     _(
                         "Wallets are rescanning for transactions history.\n\
 This may take a few hours to complete."
@@ -233,7 +232,7 @@ def tor():
     param only_tor "on" or something else ("off")
     """
     if not current_user.is_admin:
-        app.specter.user_manager.get_user().notification_manager.flash(
+        flash(
             _("Only an admin is allowed to access this page."),
             "error",
         )
@@ -267,7 +266,7 @@ def tor():
             if hidden_service != app.specter.config["tor_status"]:
                 if not app.config["DEBUG"]:
                     if app.specter.config["auth"].get("method", "none") == "none":
-                        app.specter.user_manager.get_user().notification_manager.flash(
+                        flash(
                             "Enabling Tor hidden service will expose your Specter for remote access.<br>It is therefore required that you set up authentication tab for Specter first to prevent unauthorized access.<br><br>Please go to Settings -> Authentication and set up an authentication method and retry.",
                             "error",
                         )
@@ -276,27 +275,25 @@ def tor():
                             if not hidden_service:
                                 stop_hidden_services(app)
                                 app.specter.toggle_tor_status()
-                                app.specter.user_manager.get_user().notification_manager.flash(
-                                    "Tor hidden service turn off successfully"
-                                )
+                                flash("Tor hidden service turn off successfully")
                             else:
                                 try:
                                     start_hidden_service(app)
                                     app.specter.toggle_tor_status()
-                                    app.specter.user_manager.get_user().notification_manager.flash(
+                                    flash(
                                         "Tor hidden service turn on successfully",
                                         "info",
                                     )
                                 except Exception as e:
                                     handle_exception(e)
-                                    app.specter.user_manager.get_user().notification_manager.flash(
+                                    flash(
                                         "Failed to start Tor hidden service. Make sure you have Tor running with ControlPort configured and try again. Error returned: {}".format(
                                             e
                                         ),
                                         "error",
                                     )
                 else:
-                    app.specter.user_manager.get_user().notification_manager.flash(
+                    flash(
                         "Can't toggle hidden service while Specter is running in DEBUG mode",
                         "error",
                     )
@@ -307,11 +304,9 @@ def tor():
             logger.info("Starting Tor...")
             try:
                 app.specter.tor_daemon.start_tor_daemon()
-                app.specter.user_manager.get_user().notification_manager.flash(
-                    _("Specter has started Tor")
-                )
+                flash(_("Specter has started Tor"))
             except Exception as e:
-                app.specter.user_manager.get_user().notification_manager.flash(
+                flash(
                     _("Failed to start Tor, error: {}").format(e),
                     "error",
                 )
@@ -321,11 +316,9 @@ def tor():
             try:
                 app.specter.tor_daemon.stop_tor_daemon()
                 time.sleep(1)
-                app.specter.user_manager.get_user().notification_manager.flash(
-                    _("Specter stopped Tor successfully")
-                )
+                flash(_("Specter stopped Tor successfully"))
             except Exception as e:
-                app.specter.user_manager.get_user().notification_manager.flash(
+                flash(
                     _("Failed to stop Tor, error: {}").format(e),
                     "error",
                 )
@@ -337,11 +330,9 @@ def tor():
                     app.specter.tor_daemon.stop_tor_daemon()
                 shutil.rmtree(os.path.join(app.specter.data_folder, "tor-binaries"))
                 os.remove(os.path.join(app.specter.data_folder, "torrc"))
-                app.specter.user_manager.get_user().notification_manager.flash(
-                    _("Tor uninstalled successfully")
-                )
+                flash(_("Tor uninstalled successfully"))
             except Exception as e:
-                app.specter.user_manager.get_user().notification_manager.flash(
+                flash(
                     _("Failed to uninstall Tor, error: {}").format(e),
                     "error",
                 )
@@ -358,11 +349,9 @@ def tor():
                 )
                 tor_connectable = res.status_code == 200
                 if tor_connectable:
-                    app.specter.user_manager.get_user().notification_manager.flash(
-                        _("Tor requests test completed successfully!")
-                    )
+                    flash(_("Tor requests test completed successfully!"))
                 else:
-                    app.specter.user_manager.get_user().notification_manager.flash(
+                    flash(
                         _(
                             "Failed to make test request over Tor. Status-Code: {}"
                         ).format(res.status_code),
@@ -378,7 +367,7 @@ def tor():
                         logger.error(app.specter.tor_daemon.get_logs())
                         app.specter.tor_daemon.start_tor_daemon()
             except Exception as e:
-                app.specter.user_manager.get_user().notification_manager.flash(
+                flash(
                     _("Failed to make test request over Tor.\nError: {}").format(e),
                     "error",
                 )
@@ -429,9 +418,7 @@ def auth():
         # user_secret decrypted. Force them to login again to prevent problems if they
         # try to change their password (changing password requires re-encrypting the
         # user_secret... which we can't do if it isn't decrypted first).
-        app.specter.user_manager.get_user().notification_manager.flash(
-            _("Must login again to before making Authentication changes")
-        )
+        flash(_("Must login again to before making Authentication changes"))
         return redirect(
             url_for("auth_endpoint.login")
             + "?next="
@@ -461,7 +448,7 @@ def auth():
 
                 if current_user.username != specter_username:
                     if app.specter.user_manager.get_user_by_username(specter_username):
-                        app.specter.user_manager.get_user().notification_manager.flash(
+                        flash(
                             _("Username is already taken, please choose another one"),
                             "error",
                         )
@@ -482,7 +469,7 @@ def auth():
 
                 if specter_password:
                     if len(specter_password) < min_chars:
-                        app.specter.user_manager.get_user().notification_manager.flash(
+                        flash(
                             _(
                                 "Please enter a password of a least {} characters"
                             ).format(min_chars),
@@ -511,7 +498,7 @@ def auth():
                     if method == "passwordonly":
                         specter_password = request.form.get("specter_password_only")
                         if specter_password and len(specter_password) < min_chars:
-                            app.specter.user_manager.get_user().notification_manager.flash(
+                            flash(
                                 _(
                                     "Please enter a password of a least {} characters"
                                 ).format(min_chars),
@@ -541,7 +528,7 @@ def auth():
                             # plaintext_user_secret is not available in memory (happens
                             # when the server restarts).
                             logger.warn(e)
-                            app.specter.user_manager.get_user().notification_manager.flash(
+                            flash(
                                 _(
                                     "Error re-encrypting Service data. Log out and log back in before trying again."
                                 ),
@@ -563,7 +550,7 @@ def auth():
 
                         current_user.save_info()
 
-                        app.specter.user_manager.get_user().notification_manager.flash(
+                        flash(
                             _("Admin password successfully updated"),
                             "info",
                         )
@@ -612,14 +599,14 @@ def auth():
                 app.specter.otp_manager.add_new_user_otp(
                     {"otp": new_otp, "created_at": now, "expiry": expiry}
                 )
-                app.specter.user_manager.get_user().notification_manager.flash(
+                flash(
                     _("New user link generated{}: {}auth/register?otp={}").format(
                         expiry_desc, request.url_root, new_otp
                     ),
                     "info",
                 )
             else:
-                app.specter.user_manager.get_user().notification_manager.flash(
+                flash(
                     _("Error: Only the admin account can issue new registration links"),
                     "error",
                 )
@@ -631,11 +618,11 @@ def auth():
                 # TODO: delete should be done by UserManager
                 app.specter.delete_user(user)
                 users.remove(user)
-                app.specter.user_manager.get_user().notification_manager.flash(
+                flash(
                     _("User {} was deleted successfully").format(user.username),
                 )
             else:
-                app.specter.user_manager.get_user().notification_manager.flash(
+                flash(
                     _("Error: Only the admin account can delete users"),
                     "error",
                 )
@@ -663,7 +650,7 @@ def hwi():
     if request.method == "POST":
         hwi_bridge_url = request.form["hwi_bridge_url"]
         app.specter.update_hwi_bridge_url(hwi_bridge_url, current_user)
-        app.specter.user_manager.get_user().notification_manager.flash(
+        flash(
             _("HWIBridge URL is updated! Don't forget to whitelist Specter!"),
         )
     return render_template(

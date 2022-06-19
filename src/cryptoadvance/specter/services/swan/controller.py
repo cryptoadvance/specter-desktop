@@ -19,6 +19,7 @@ from . import client as swan_client
 from .client import SwanApiException
 from .service import SwanService
 from ..controller import user_secret_decrypted_required
+from cryptoadvance.specter.notifications.current_flask_user import flash
 
 
 logger = logging.getLogger(__name__)
@@ -39,9 +40,7 @@ def refreshtoken_required(func):
                 )
         except ServiceEncryptedStorageError as e:
             logger.debug(repr(e))
-            app.specter.user_manager.get_user().notification_manager.flash(
-                "Re-login required to access your protected services data"
-            )
+            flash("Re-login required to access your protected services data")
 
             # Use Flask's built-in re-login w/automatic redirect back to calling page
             return app.login_manager.unauthorized()
@@ -120,9 +119,7 @@ def update_autowithdrawal():
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
     except SwanApiException as e:
         logger.exception(e)
-        app.specter.user_manager.get_user().notification_manager.flash(
-            _("Error communicating with Swan API")
-        )
+        flash(_("Error communicating with Swan API"))
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.settings"))
 
 
