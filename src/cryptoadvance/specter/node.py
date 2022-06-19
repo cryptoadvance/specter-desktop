@@ -14,8 +14,6 @@ from .rpc import (
     autodetect_rpc_confs,
     get_default_datadir,
 )
-import binascii
-from concurrent.futures import ThreadPoolExecutor
 
 logger = logging.getLogger(__name__)
 
