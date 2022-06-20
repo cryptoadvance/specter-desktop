@@ -7,7 +7,7 @@ def flash(title, **kwargs):
     )
 
 
-def create_and_show(self, title, **kwargs):
+def create_and_show(title, **kwargs):
     app.specter.notification_manager.create_and_show(
         title, app.specter.user_manager.get_user().id, **kwargs
     )
