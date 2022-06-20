@@ -48,7 +48,6 @@ module.exports = (on, config) => {
     }
   })
 
-  // For future use, not used yet
   on('task', {
     'delete:bitcoin-hotwallet': (name) => {
       console.log('connection details: %s', btc_conn)
