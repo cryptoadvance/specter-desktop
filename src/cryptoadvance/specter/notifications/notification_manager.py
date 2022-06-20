@@ -3,6 +3,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from .notifications import Notification
+from ..notifications import ui_notifications
 
 
 class NotificationManager:
@@ -16,6 +17,22 @@ class NotificationManager:
         """
         self.ui_notifications = ui_notifications if ui_notifications else []
         self.notifications = []
+
+    def register_user_ui_notifications(self, users):
+        for user in users:
+            logger.debug(f"registering notifications for user {user.id}")
+            # setting up the notification system for this user
+
+            webapi_notifications = ui_notifications.WebAPINotifications(user.id)
+            js_notifications = ui_notifications.JSNotifications(user.id)
+            self.register_ui_notification(webapi_notifications)
+            self.register_ui_notification(js_notifications)
+            self.register_ui_notification(ui_notifications.FlashNotifications(user.id))
+            self.register_ui_notification(
+                ui_notifications.JSConsoleNotifications(user.id)
+            )
+            js_notifications.on_close = self.on_close
+            webapi_notifications.on_close = self.on_close
 
     def register_ui_notification(self, ui_notification):
         self.ui_notifications.append(ui_notification)

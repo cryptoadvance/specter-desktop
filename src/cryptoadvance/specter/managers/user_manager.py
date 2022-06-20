@@ -39,13 +39,7 @@ class UserManager:
                 }
             ]
         # convert to User instances
-        logger.debug(f"==================load users")
-        self.users = [
-            User.from_json(
-                u, self.specter, notification_manager=self.specter.notification_manager
-            )
-            for u in users
-        ]
+        self.users = [User.from_json(u, self.specter) for u in users]
         if not os.path.isfile(self.users_file):
             self.save()
 
@@ -73,7 +67,6 @@ class UserManager:
             password_hash,
             config,
             self.specter,
-            notification_manager=self.specter.notification_manager,
         )
         user.decrypt_user_secret(plaintext_password)
         return self.add_user(user)
