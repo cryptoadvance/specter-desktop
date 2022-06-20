@@ -19,6 +19,7 @@ class BaseUINotifications:
         }
         self.name = "base"
         self.is_available = True
+        self.user_id = None
 
     def show(self, notification):
         pass
@@ -64,7 +65,7 @@ class LoggingNotifications(BaseUINotifications):
 class FlashNotifications(BaseUINotifications):
     "Flask flash only appears after render_template"
 
-    def __init__(self):
+    def __init__(self, user_id):
         super().__init__()
         self.compatible_notification_types = {
             NotificationTypes.information,
@@ -73,6 +74,7 @@ class FlashNotifications(BaseUINotifications):
             NotificationTypes.exception,
         }
         self.name = "flash"
+        self.user_id = user_id
 
     def show(self, notification):
         if (
@@ -89,10 +91,11 @@ class FlashNotifications(BaseUINotifications):
 
 
 class JSConsoleNotifications(BaseUINotifications):
-    def __init__(self):
+    def __init__(self, user_id):
         super().__init__()
         self.js_notification_buffer = []
         self.name = "js_console"
+        self.user_id = user_id
 
     def read_and_clear_js_notification_buffer(self):
         js_notification_buffer = self.js_notification_buffer
@@ -115,8 +118,8 @@ class JSConsoleNotifications(BaseUINotifications):
 
 
 class JSNotifications(JSConsoleNotifications):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, user_id):
+        super().__init__(user_id)
         self.compatible_notification_types = {
             NotificationTypes.information,
             NotificationTypes.warning,
@@ -128,6 +131,6 @@ class JSNotifications(JSConsoleNotifications):
 
 
 class WebAPINotifications(JSNotifications):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, user_id):
+        super().__init__(user_id)
         self.name = "WebAPI"  # see https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API/Using_the_Notifications_API

@@ -18,7 +18,6 @@ from .persistence import read_json_file, write_json_file, delete_folder
 from .managers.wallet_manager import WalletManager
 from .managers.device_manager import DeviceManager
 from .helpers import deep_update
-from .notifications.notification_manager import NotificationManager
 from .notifications import ui_notifications
 
 
@@ -75,6 +74,7 @@ class User(UserMixin):
         encrypted_user_secret=None,
         is_admin=False,
         services=[],
+        notification_manager=None,
     ):
         self.id = id
         self.username = username
@@ -89,32 +89,34 @@ class User(UserMixin):
         self.device_manager = None
         self.manager = None
         self._services = services
+        self.notification_manager = notification_manager
 
         # Iterations will need to be increased over time to keep ahead of CPU advances.
         self.encryption_iterations = 390000
 
-        # setting up the notifications system
-        webapi_notifications = ui_notifications.WebAPINotifications()
-        js_notifications = ui_notifications.JSNotifications()
-
-        # the first ui_notifications will be the "default"
-        self.notification_manager = NotificationManager(
-            ui_notifications=[
-                webapi_notifications,
-                js_notifications,
-                ui_notifications.FlashNotifications(),
-                ui_notifications.JSConsoleNotifications(),
-                ui_notifications.LoggingNotifications(),
-                ui_notifications.PrintNotifications(),
-            ]
+        logger.debug(
+            f"================================================================ {notification_manager}"
         )
-
-        js_notifications.on_close = self.notification_manager.on_close
-        webapi_notifications.on_close = self.notification_manager.on_close
+        if notification_manager:
+            logger.debug(f"registering notifications for user {id}")
+            # setting up the notification system for this user
+            webapi_notifications = ui_notifications.WebAPINotifications(id)
+            js_notifications = ui_notifications.JSNotifications(id)
+            notification_manager.register_ui_notification(webapi_notifications)
+            notification_manager.register_ui_notification(js_notifications)
+            notification_manager.register_ui_notification(
+                ui_notifications.FlashNotifications(id)
+            )
+            notification_manager.register_ui_notification(
+                ui_notifications.JSConsoleNotifications(id)
+            )
+            js_notifications.on_close = notification_manager.on_close
+            webapi_notifications.on_close = notification_manager.on_close
 
     # TODO: User obj instantiation belongs in UserManager
     @classmethod
-    def from_json(cls, user_dict, specter):
+    def from_json(cls, user_dict, specter, notification_manager=None):
+        logger.debug(f"________________________________ {notification_manager}")
         try:
             user_args = {
                 "id": user_dict["id"],
@@ -126,6 +128,7 @@ class User(UserMixin):
                 "specter": specter,
                 "encrypted_user_secret": user_dict.get("encrypted_user_secret", None),
                 "services": user_dict.get("services", []),
+                "notification_manager": notification_manager,
             }
             if not user_dict["is_admin"]:
                 user_args["config"] = user_dict["config"]

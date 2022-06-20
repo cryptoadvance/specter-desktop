@@ -129,9 +129,7 @@ def get_new_notifications():
             return o.timestamp()
 
     js_notifications_dict = {}
-    for (
-        ui_notification
-    ) in app.specter.user_manager.get_user().notification_manager.ui_notifications:
+    for ui_notification in app.specter.notification_manager.ui_notifications:
         if ui_notification.name in {"WebAPI", "js_message_box", "js_console"}:
             notifications = ui_notification.read_and_clear_js_notification_buffer()
             if notifications:
@@ -174,8 +172,8 @@ def create_notification():
         )
 
     return jsonify(
-        app.specter.user_manager.get_user().notification_manager.create_and_show(
-            **arguments
+        app.specter.notification_manager.create_and_show(
+            **arguments, user_id=app.specter.user_manager.get_user().id
         )
     )
 

@@ -25,6 +25,7 @@ class Notification(dict):
         title,
         default_target_ui,
         all_target_uis,
+        user_id,
         notification_type=None,
         body=None,
         data=None,
@@ -39,6 +40,7 @@ class Notification(dict):
         self["body"] = body
         self["data"] = data
         self["timeout"] = None  # [ms]
+        self["user_id"] = user_id
 
         if not target_uis:
             target_uis = "default"

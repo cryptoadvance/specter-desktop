@@ -1,4 +1,4 @@
-import logging, datetime
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -6,21 +6,35 @@ from .notifications import Notification
 
 
 class NotificationManager:
-    "Stores and distributes notifications to 1 or more ui_notifications"
+    "Stores and distributes notifications to ui_notifications"
 
-    def __init__(self, ui_notifications):
+    def __init__(self, ui_notifications=None):
         """
         Arguments:
-            - ui_notifications: A list of ui_notifications with the "default" one in position 0 and if (not available), the next ui_notification
+            - ui_notifications:  {user_id: [list of ui_notifications]}
+                    The "default" ui_notifications is at position 0
         """
-        self.ui_notifications = ui_notifications
+        self.ui_notifications = ui_notifications if ui_notifications else []
         self.notifications = []
+
+    def register_ui_notification(self, ui_notification):
+        self.ui_notifications.append(ui_notification)
 
     def deactivate_target_ui(self, target_ui):
         for ui_notification in self.ui_notifications:
             if ui_notification.name == target_ui:
                 ui_notification.is_available = False
                 logger.debug(f"deactivating {ui_notification.name }")
+
+    def get_ui_notification_of_user(self, user_id):
+        return {
+            ui_notification
+            for ui_notification in self.ui_notifications
+            if (
+                (ui_notification.user_id == user_id)
+                or (ui_notification.user_id is None)
+            )
+        }
 
     def show(self, notification):
         """
@@ -32,24 +46,32 @@ class NotificationManager:
             return
 
         logger.debug(f"show {notification}")
+        ui_notification_of_user = self.get_ui_notification_of_user(
+            notification["user_id"]
+        )
+        logger.debug(f"ui_notification_of_user {ui_notification_of_user}")
+        broadcast_on_ui_notification = {
+            ui_notification
+            for ui_notification in ui_notification_of_user
+            if (ui_notification.name in notification["target_uis"])
+        }
 
-        for ui_notification in self.ui_notifications:
-            if ui_notification.name in notification["target_uis"]:
+        logger.debug(f"show {notification} on {broadcast_on_ui_notification}")
 
-                notification_broadcasted = ui_notification.show(notification)
+        for ui_notification in broadcast_on_ui_notification:
+            notification_broadcasted = ui_notification.show(notification)
 
-                # if not possible, then try show it with a ui_notifications that is NOT already in notification['target_uis']
-                if not notification_broadcasted:
-                    logger.debug(
-                        f"Trying with other ui_notifications to broadcast {notification}"
-                    )
-                    for ui_notification in self.ui_notifications:
-                        if ui_notification.name not in notification["target_uis"]:
-                            notification_broadcasted = ui_notification.show(
-                                notification
-                            )
-                            if notification_broadcasted:
-                                break
+            # if not possible, then try show it with a ui_notifications that is NOT already in notification['target_uis']
+            if not notification_broadcasted:
+                logger.debug(
+                    f"Trying with other ui_notifications to broadcast {notification}"
+                )
+                for other_ui_notification in (
+                    ui_notification_of_user - broadcast_on_ui_notification
+                ):
+                    notification_broadcasted = other_ui_notification.show(notification)
+                    if notification_broadcasted:
+                        break
 
     def set_notification_shown(self, notification_id, target_ui):
         notification = self.find_notification(notification_id)
@@ -111,7 +133,7 @@ class NotificationManager:
     def get_all_target_ui_names(self):
         return {ui_notification.name for ui_notification in self.ui_notifications}
 
-    def create_notification(self, title, **kwargs):
+    def create_notification(self, title, user_id, **kwargs):
         """
         The arguments are identical to Notification(....), e.g.
             - title
@@ -127,6 +149,7 @@ class NotificationManager:
             title,
             self.get_default_target_ui_name(),
             self.get_all_target_ui_names(),
+            user_id,
             **kwargs,
         )
         logger.debug(f"Middle of creating notification   {notification}")
@@ -140,10 +163,12 @@ class NotificationManager:
         logger.debug(f"Created notification {notification}")
         return notification
 
-    def flash(self, message: str, category: str = "message"):
-        self.create_and_show(message, notification_type=category, target_uis={"flash"})
+    def flash(self, message: str, user_id, category: str = "message"):
+        self.create_and_show(
+            message, user_id, notification_type=category, target_uis={"flash"}
+        )
 
-    def create_and_show(self, title, **kwargs):
+    def create_and_show(self, title, user_id, **kwargs):
         """
         The arguments are identical to Notification(....), e.g.
             - title
@@ -151,7 +176,7 @@ class NotificationManager:
             - body=None
             - target_uis='default'
         """
-        notification = self.create_notification(title, **kwargs)
+        notification = self.create_notification(title, user_id, **kwargs)
         if notification:
             self.show(notification)
 
@@ -165,7 +190,7 @@ class NotificationManager:
         logger.debug(f"Deleted {notification}")
 
     def on_close(self, notification_id, target_ui):
-        "Deletes the notification"
+        "Deletes the notification.   target_ui is currently not used, but could be in the future"
         notification = self.find_notification(notification_id)
         if not notification:
             logging.debug(f"on_close: Notification with id {notification_id} not found")

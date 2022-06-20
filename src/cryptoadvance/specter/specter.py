@@ -47,6 +47,8 @@ from .util.version import VersionChecker
 from .util.price_providers import update_price
 from .util.setup_states import SETUP_STATES
 from .util.tor import get_tor_daemon_suffix
+from .notifications.notification_manager import NotificationManager
+from .notifications import ui_notifications
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +67,19 @@ class Specter:
         internal_bitcoind_version="",
         checker_threads=True,
     ):
+        # register the notification services that are user independent (there is only 1 console, and only 1 logging)
+        logger.debug(
+            f"=============register the notification services that are user independent (there is only 1 console, and only 1 logging) "
+        )
+        notification_manager = NotificationManager()
+        notification_manager.register_ui_notification(
+            ui_notifications.LoggingNotifications()
+        )
+        notification_manager.register_ui_notification(
+            ui_notifications.PrintNotifications()
+        )
+        self.notification_manager = notification_manager
+
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)
         data_folder = os.path.abspath(data_folder)
