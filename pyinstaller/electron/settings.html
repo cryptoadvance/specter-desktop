@@ -83,13 +83,13 @@
                 let advancedSettigns = document.getElementById('advanced_settings');
                 if (advancedSettigns.style.display === 'block') {
                     advancedSettigns.style.display = 'none';
-                    advancedButton.innerHTML = `{{ _("Advanced") }} &#9654;`;
+                    advancedButton.innerHTML = 'Advanced &#9654;';
                     if (isCoinSelectionActive()) {
                         toggleExpand();
                     }
                 } else {
                     advancedSettigns.style.display = 'block';
-                    advancedButton.innerHTML = `{{ _("Advanced") }} &#9660;`;
+                    advancedButton.innerHTML = 'Advanced &#9660;';
                 }
             }
 

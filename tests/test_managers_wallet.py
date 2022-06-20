@@ -2,9 +2,13 @@ import json
 import logging
 import os
 import time
+from unittest.mock import MagicMock
 
 import pytest
 from cryptoadvance.specter.helpers import is_testnet
+from cryptoadvance.specter.process_controller.bitcoind_controller import (
+    BitcoindPlainController,
+)
 from cryptoadvance.specter.util.mnemonic import generate_mnemonic
 from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.devices import DeviceTypes
@@ -17,7 +21,12 @@ from conftest import instantiate_bitcoind_controller
 
 @pytest.mark.slow
 def test_WalletManager(
-    docker, request, devices_filled_data_folder, device_manager, bitcoin_regtest
+    docker,
+    request,
+    devices_filled_data_folder,
+    device_manager,
+    bitcoin_regtest,
+    bitcoin_regtest2,
 ):
     wm = WalletManager(
         200100,
@@ -79,6 +88,61 @@ def test_WalletManager(
     wm.delete_wallet(multisig_wallet)
     assert not os.path.exists(wallet_fullpath)
     assert len(wm.wallets) == 1
+
+    wm.update()
+
+
+def test_WalletManager_2_nodes(
+    docker,
+    request,
+    devices_filled_data_folder,
+    device_manager,
+    bitcoin_regtest,
+    bitcoin_regtest2: BitcoindPlainController,
+    caplog,
+):
+    caplog.set_level(logging.INFO)
+    wm = WalletManager(
+        200100,
+        devices_filled_data_folder,
+        bitcoin_regtest.get_rpc(),
+        "regtest",
+        device_manager,
+        allow_threading=True,
+    )
+    # A wallet-creation needs a device
+    device = device_manager.get_by_alias("trezor")
+    assert device != None
+    # Lets's create a wallet with the WalletManager
+    wm.create_wallet("a_test_wallet", 1, "wpkh", [device.keys[5]], [device])
+    assert wm.wallets_names == ["a_test_wallet"]
+
+    # A WalletManager implicitely uses the chain as a kind of index
+    wm.update(chain="regtest2", rpc=bitcoin_regtest2.get_rpc(), use_threading=False)
+    assert wm.wallets_names == []
+    wm.create_wallet("a_regtest2_test_wallet", 1, "wpkh", [device.keys[5]], [device])
+    assert wm.wallets_names == ["a_regtest2_test_wallet"]
+    wm.create_wallet(
+        "a_second_regtest2_test_wallet", 1, "wpkh", [device.keys[5]], [device]
+    )
+    assert wm.wallets_names == [
+        "a_regtest2_test_wallet",
+        "a_second_regtest2_test_wallet",
+    ]
+
+    # you can switch bettween chains witht he update-method
+    wm.update(chain="regtest", rpc=bitcoin_regtest.get_rpc())
+    assert wm.wallets_names == ["a_test_wallet"]
+
+    # Should also use with threading
+    wm.update(chain="regtest2", rpc=bitcoin_regtest2.get_rpc(), use_threading=True)
+    assert wm.wallets_names == ["a_test_wallet"]
+
+    with pytest.raises(Exception, match="can only be changed with one another") as e:
+        wm.update(chain="regtest3")
+    with pytest.raises(Exception, match="can only be changed with one another") as e:
+        wm.update(rpc=bitcoin_regtest2.get_rpc())
+    # assert False
 
 
 @pytest.mark.slow
@@ -170,7 +234,7 @@ def test_WalletManager_check_duplicate_keys(empty_data_folder):
     wm = WalletManager(
         200100,
         empty_data_folder,
-        None,
+        MagicMock(),  # needs rpc
         "regtest",
         None,
         allow_threading=False,
