@@ -464,13 +464,30 @@ class WalletManager:
             self.delete_wallet(wallet, specter.bitcoin_datadir, specter.chain)
         delete_folder(self.data_folder)
 
-    @classmethod
-    def _check_duplicate_keys(cls, keys):
-        """raise a SpecterError when a xpub in the passed KeyList is listed twice. Should prevent MultisigWallets where
+    def _check_duplicate_keys(self, new_keys):
+        """raise a SpecterError when:
+            * a xpub in the passed KeyList is listed twice. Should prevent MultisigWallets where
         xpubs are used twice.
+            * a xpub is already used by a existing wallet
         """
         # normalizing xpubs in order to ignore slip132 differences
-        xpubs = [Key.parse_xpub(key.original).xpub for key in keys]
-        for xpub in xpubs:
-            if xpubs.count(xpub) > 1:
+        new_xpubs = [Key.parse_xpub(key.original).xpub for key in new_keys]
+
+        # Check Multisig WITHIN the set
+        for xpub in new_xpubs:
+            logger.debug(f"iterating xbub: {xpub}")
+            if new_xpubs.count(xpub) > 1:
                 raise SpecterError(_(f"xpub {xpub} seem to be used at least twice!"))
+
+        # check with existing wallets
+        existing_wallet: Wallet
+        for existing_wallet_name, existing_wallet in self.wallets.items():
+            existing_key: Key
+            for existing_key in existing_wallet.keys:
+                for new_xpub in new_xpubs:
+                    if Key.parse_xpub(existing_key.original).xpub == new_xpub:
+                        raise SpecterError(
+                            _(
+                                f"xpub {xpub} seem to be used already by {existing_wallet.name}!"
+                            )
+                        )
