@@ -22,7 +22,6 @@ class NotificationManager:
 
     def register_user_ui_notifications(self, users):
         for user in users:
-            logger.debug(f"registering notifications for user {user.id}")
             # setting up the notification system for this user
 
             webapi_notifications = ui_notifications.WebAPINotifications(user.id)
@@ -37,6 +36,9 @@ class NotificationManager:
             webapi_notifications.on_close = self.on_close
 
     def register_ui_notification(self, ui_notification):
+        logger.debug(
+            f'Registering "{ui_notification.name}" for user "{ui_notification.user_id}" in {self.__class__.__name__}'
+        )
         self.ui_notifications.append(ui_notification)
 
     def deactivate_target_ui(self, target_ui):

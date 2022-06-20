@@ -68,9 +68,6 @@ class Specter:
         checker_threads=True,
     ):
         # register the notification services that are user independent (there is only 1 console, and only 1 logging)
-        logger.debug(
-            f"=============register the notification services that are user independent (there is only 1 console, and only 1 logging) "
-        )
         notification_manager = NotificationManager()
         notification_manager.register_ui_notification(
             ui_notifications.LoggingNotifications()
