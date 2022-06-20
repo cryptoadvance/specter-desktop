@@ -7,10 +7,10 @@
 {#- Usage -
 
     <dnd-textarea
-        name = "name"
-        value = "some default text"
-        placeholder = "placeholder text"
-        textarea-style = "style to override default styling of textarea"
+        name="name"
+        value="some default text"
+        placeholder="placeholder text"
+        textarea-style="style to override default styling of textarea"
     >
     </dnd-textarea>
 
@@ -30,16 +30,15 @@
             font-size: 13px;
         }
     </style>
-
-    <textarea
-        id="textarea-content"
-        placeholder="{{ _('You can paste and drag & drop here:') }}"
-    ></textarea>
+    <textarea id="textarea-content" placeholder="{{ _('You can drag & drop here.') }}"></textarea>
 </template>
 
 <script type="text/javascript">
     class DndTextareaElement extends HTMLElement {
+        // This tells the browser to treat the element like a form control
         static formAssociated = true;
+        // For details on how to ensure that a custom element gets picked up by a parent <form> see:
+        // https://web.dev/more-capable-form-controls/#defining-a-form-associated-custom-element
 
         constructor() {
             super();    
@@ -50,29 +49,29 @@
             let template = document.getElementById('dnd-textarea');
             let clone = template.content.cloneNode(true);
 
-            this.$textarea = clone.querySelector("textarea");
+            this.textarea = clone.querySelector("textarea");
             shadow.appendChild(clone);
         }
 
         setValue(newValue) {
-            this.$textarea.value = newValue;
+            this.textarea.value = newValue;
             this.internals.setFormValue(newValue);
         }   
 
         connectedCallback() {
-            this.$textarea.addEventListener('input', e => {
+            this.textarea.addEventListener('input', e => {
                 this.setValue(e.target.value);
             });
 
-            this.$textarea.ondrop = (event) => this.dropHandler(event);
-            this.$textarea.ondragover = (event) => this.dragOverHandler(event);
-            this.$textarea.ondragleave = (event) => this.noDropHandler(event);
-            this.$textarea.ondragexit = (event) => this.noDropHandler(event);
-            this.$textarea.ondragend = (event) => this.noDropHandler(event);
+            this.textarea.ondrop = (event) => this.dropHandler(event);
+            this.textarea.ondragover = (event) => this.dragOverHandler(event);
+            this.textarea.ondragleave = (event) => this.noDropHandler(event);
+            this.textarea.ondragexit = (event) => this.noDropHandler(event);
+            this.textarea.ondragend = (event) => this.noDropHandler(event);
         }
 
         disconnectedCallback() {
-            this.$textarea.removeEventListener('input');
+            this.textarea.removeEventListener('input');
         }
         
         static get observedAttributes(){
@@ -82,21 +81,22 @@
         attributeChangedCallback(attribute, oldValue, newValue) {
             switch(attribute){
                 case "value":
-                    setValue(newValue);
+                    this.setValue(newValue);
                     break;   
                 case "placeholder":
-                    this.$textarea.placeholder = newValue;
+                    this.textarea.placeholder = newValue;
                     break;
                 case "textarea-style":
-                    this.$textarea.style = newValue;
+                    this.textarea.style = newValue;
                     break;
             }
         }
 
         get value(){
-            return this.$textarea.value;
+            return this.textarea.value;
         }
 
+        // This is essential to make the dnd-textarea compatible with, say, the file-uploader webcomponent (which is setting a new value)
         set value(newValue){
             this.setValue(newValue);
         }

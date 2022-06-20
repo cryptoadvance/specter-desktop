@@ -12,11 +12,7 @@
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			<div class="card">
 				<div class="row">
-					<dnd-textarea 
-						name="rawpsbt" 
-						id="rawpsbt"
-						placeholder="{{ _('You can paste \'PSBT or transaction\' or drag & drop the file here:') }}">
-					</dnd-textarea>
+					<dnd-textarea name="rawpsbt" id="rawpsbt" placeholder="{{ _('You can paste a PSBT or transaction and drag & drop a file here.') }}"></dnd-textarea>
 				</div>
 				<div class="row break-row-mobile">
 					<qr-scanner id="psbt-scan" style="width:50%">
