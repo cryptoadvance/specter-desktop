@@ -11,6 +11,7 @@ from embit.descriptor.arguments import AllowedDerivation
 from embit.liquid.descriptor import LDescriptor
 from cryptoadvance.specter.key import Key
 from flask_babel import lazy_gettext as _
+from ..notifications.current_flask_user import flash
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +43,7 @@ class WalletImporter:
                 self.cosigners_types,
             ) = WalletImporter.parse_wallet_data_import(
                 self.wallet_data,
-                specter.user_manager.get_user().notification_manager.flash,
+                flash,
             )
         except Exception as e:
             logger.warning(f"Trying to import: {wallet_json}")
