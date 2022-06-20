@@ -73,7 +73,6 @@ class User(UserMixin):
         encrypted_user_secret=None,
         is_admin=False,
         services=[],
-        notification_manager=None,
     ):
         self.id = id
         self.username = username
@@ -94,8 +93,7 @@ class User(UserMixin):
 
     # TODO: User obj instantiation belongs in UserManager
     @classmethod
-    def from_json(cls, user_dict, specter, notification_manager=None):
-        logger.debug(f"________________________________ {notification_manager}")
+    def from_json(cls, user_dict, specter):
         try:
             user_args = {
                 "id": user_dict["id"],
