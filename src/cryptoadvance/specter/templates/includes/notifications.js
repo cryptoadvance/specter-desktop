@@ -151,8 +151,8 @@ function webapi_notification(js_notification, retries_if_permission_default=2) {
 
 
   
-function javascript_popup_message(js_notification){
-    function on_close_id(){
+function js_message_box(js_notification){
+    function this_notification_close(){
         on_close(js_notification['id'], 'js_message_box')    
     }
 
@@ -166,7 +166,7 @@ function javascript_popup_message(js_notification){
       });
     msgbox.show(
         message,
-        on_close_id,
+        this_notification_close,
         'Close',
         image=js_notification['options']['image'],
         );			
@@ -175,7 +175,7 @@ function javascript_popup_message(js_notification){
 }
 
 
-function js_logging_notification(js_notification){
+function js_console(js_notification){
     if (js_notification['type'] == 'error'){
         console.error(js_notification)
     } else if (js_notification['type'] == 'exception'){
@@ -190,11 +190,11 @@ function js_logging_notification(js_notification){
 
 async function show_notification(ui_name, js_notification){
     if (ui_name == 'js_message_box'){
-        javascript_popup_message(js_notification);
+        js_message_box(js_notification);
     } else if (ui_name == 'WebAPI'){
         webapi_notification(js_notification);
     } else if (ui_name == 'js_console'){
-        js_logging_notification(js_notification);
+        js_console(js_notification);
     }
 
 }
