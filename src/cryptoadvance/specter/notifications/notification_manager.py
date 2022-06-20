@@ -19,21 +19,23 @@ class NotificationManager:
         """
         self.ui_notifications = ui_notifications if ui_notifications else []
         self.notifications = []
+        self.register_default_ui_notifications()
 
-    def register_user_ui_notifications(self, users):
-        for user in users:
-            # setting up the notification system for this user
+    def register_default_ui_notifications(self):
+        self.register_ui_notification(ui_notifications.LoggingNotifications())
+        self.register_ui_notification(ui_notifications.PrintNotifications())
 
-            webapi_notifications = ui_notifications.WebAPINotifications(user.id)
-            js_notifications = ui_notifications.JSNotifications(user.id)
-            self.register_ui_notification(webapi_notifications)
-            self.register_ui_notification(js_notifications)
-            self.register_ui_notification(ui_notifications.FlashNotifications(user.id))
-            self.register_ui_notification(
-                ui_notifications.JSConsoleNotifications(user.id)
-            )
-            js_notifications.on_close = self.on_close
-            webapi_notifications.on_close = self.on_close
+    def register_user_ui_notifications(self, user_id):
+        # setting up the notification system for this user
+
+        webapi_notifications = ui_notifications.WebAPINotifications(user_id)
+        js_notifications = ui_notifications.JSNotifications(user_id)
+        self.register_ui_notification(webapi_notifications)
+        self.register_ui_notification(js_notifications)
+        self.register_ui_notification(ui_notifications.FlashNotifications(user_id))
+        self.register_ui_notification(ui_notifications.JSConsoleNotifications(user_id))
+        js_notifications.on_close = self.on_close
+        webapi_notifications.on_close = self.on_close
 
     def register_ui_notification(self, ui_notification):
         logger.debug(
@@ -47,7 +49,7 @@ class NotificationManager:
                 ui_notification.is_available = False
                 logger.debug(f"deactivating {ui_notification.name }")
 
-    def get_ui_notification_of_user(self, user_id):
+    def get_ui_notifications_of_user(self, user_id):
         return {
             ui_notification
             for ui_notification in self.ui_notifications
@@ -67,8 +69,9 @@ class NotificationManager:
             return
 
         logger.debug(f"show {notification}")
-        ui_notification_of_user = self.get_ui_notification_of_user(notification.user_id)
-        logger.debug(f"ui_notification_of_user {ui_notification_of_user}")
+        ui_notification_of_user = self.get_ui_notifications_of_user(
+            notification.user_id
+        )
         broadcast_on_ui_notification = {
             ui_notification
             for ui_notification in ui_notification_of_user

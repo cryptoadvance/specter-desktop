@@ -25,6 +25,7 @@ from .services.callbacks import after_serverpy_init_app
 from .specter import Specter
 from .util.specter_migrator import SpecterMigrator
 from .notifications import ui_notifications
+from .notifications.notification_manager import NotificationManager
 
 logger = logging.getLogger(__name__)
 
@@ -151,9 +152,10 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )
 
-    specter.notification_manager.register_user_ui_notifications(
-        specter.user_manager.users
-    )
+    # register the notification services that are user independent (there is only 1 console, and only 1 logging)
+    specter.notification_manager = NotificationManager()
+    for user in specter.user_manager.users:
+        specter.notification_manager.register_user_ui_notifications(user.id)
 
     login_manager = LoginManager()
     login_manager.session_protection = app.config.get("SESSION_PROTECTION", "strong")

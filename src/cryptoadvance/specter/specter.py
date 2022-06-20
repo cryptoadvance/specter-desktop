@@ -67,15 +67,7 @@ class Specter:
         internal_bitcoind_version="",
         checker_threads=True,
     ):
-        # register the notification services that are user independent (there is only 1 console, and only 1 logging)
-        notification_manager = NotificationManager()
-        notification_manager.register_ui_notification(
-            ui_notifications.LoggingNotifications()
-        )
-        notification_manager.register_ui_notification(
-            ui_notifications.PrintNotifications()
-        )
-        self.notification_manager = notification_manager
+        self.notification_manager = None
 
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)

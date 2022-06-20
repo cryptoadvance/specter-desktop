@@ -6,6 +6,7 @@ async function requestCreateNotification(title, options){
     var url = "{{ url_for('wallets_endpoint_api.create_notification' ) }}";
 	var formData = new FormData();
 	formData.append("title", title)
+	formData.append("user_id", '{{ current_user.username }}') 
     formData.append('options', JSON.stringify( options));
     return send_request(url, 'POST', "{{ csrf_token() }}", formData)
 }
@@ -184,7 +185,7 @@ async function show_notification(ui_name, js_notification){
 
 
 async function get_new_notifications(){
-    url = "{{ url_for('wallets_endpoint_api.get_new_notifications') }}"
+    url = "{{ url_for('wallets_endpoint_api.get_new_notifications', user_id=current_user.username) }}"
     //console.log(url)
 
 

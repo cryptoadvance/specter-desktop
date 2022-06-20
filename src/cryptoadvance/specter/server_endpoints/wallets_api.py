@@ -101,9 +101,9 @@ def fees_old(blocks):
     return app.specter.estimatesmartfee(int(blocks))
 
 
-@wallets_endpoint_api.route("/get_new_notifications", methods=["GET"])
+@wallets_endpoint_api.route("/get_new_notifications/<user_id>", methods=["GET"])
 @login_required
-def get_new_notifications():
+def get_new_notifications(user_id):
     """
     Returns all notifications currently waiting in the buffer to be displayed. The datastructure is like:
         {
@@ -130,7 +130,9 @@ def get_new_notifications():
             return o.timestamp()
 
     js_notifications_dict = {}
-    for ui_notification in app.specter.notification_manager.ui_notifications:
+    for (
+        ui_notification
+    ) in app.specter.notification_manager.get_ui_notifications_of_user(user_id):
         if ui_notification.name in {"WebAPI", "js_message_box", "js_console"}:
             notifications = ui_notification.read_and_clear_js_notification_buffer()
             if notifications:
@@ -146,6 +148,7 @@ def create_notification():
     The request.form must contain a dict. Only 'title' is mandatory
         {
             'title' : title,
+            'user_id' : '{{ current_user.username }}',
             'options':{
                 'timeout' : timeout,
                 'notification_type' : notification_type,
@@ -161,22 +164,23 @@ def create_notification():
     If a value is itself a list or dict (like target_uis) it has to be in a json format.
     """
     title = request.form.get("title")
-    if not title:
+    user_id = request.form.get("user_id")
+    if not title or not user_id:
         return jsonify(
             success=False,
-            error="The create_notification POST request must contain a 'title'",
+            error="The create_notification POST request must contain a 'title' and a 'user_id'",
         )
 
     options = json.loads(request.form.get("options", "{}"))
 
     logger.debug(
-        f"wallets_endpoint_api create_notification with title  {title} and options {options}"
+        f"wallets_endpoint_api create_notification with title  {title}, user_id {user_id} and options {options}"
     )
 
     return jsonify(
         app.specter.notification_manager.create_and_show(
             title,
-            app.specter.user_manager.get_user().id,
+            user_id,
             **options,
         )
     )
