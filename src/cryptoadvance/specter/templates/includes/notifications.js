@@ -3,10 +3,9 @@
 
 /*  creating a notification from JS */
 async function requestCreateNotification(title, options){ 
-    var url = "{{ url_for('wallets_endpoint_api.create_notification' ) }}";
+    var url = "{{ url_for('wallets_endpoint_api.create_notification' , user_id=current_user.username) }}";
 	var formData = new FormData();
 	formData.append("title", title)
-	formData.append("user_id", '{{ current_user.username }}') 
     formData.append('options', JSON.stringify( options));
     return send_request(url, 'POST', "{{ csrf_token() }}", formData)
 }

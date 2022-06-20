@@ -141,14 +141,13 @@ def get_new_notifications(user_id):
     return json.dumps(js_notifications_dict, default=myjsonconverter)
 
 
-@wallets_endpoint_api.route("/create_notification", methods=["POST"])
+@wallets_endpoint_api.route("/create_notification/<user_id>", methods=["POST"])
 @login_required
-def create_notification():
+def create_notification(user_id):
     """
     The request.form must contain a dict. Only 'title' is mandatory
         {
             'title' : title,
-            'user_id' : '{{ current_user.username }}',
             'options':{
                 'timeout' : timeout,
                 'notification_type' : notification_type,
@@ -164,7 +163,6 @@ def create_notification():
     If a value is itself a list or dict (like target_uis) it has to be in a json format.
     """
     title = request.form.get("title")
-    user_id = request.form.get("user_id")
     if not title or not user_id:
         return jsonify(
             success=False,
