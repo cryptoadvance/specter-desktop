@@ -143,11 +143,7 @@ class ConfigManager(GenericDataManager):
                 # make sure the urls end with a "/"
                 explorer_data["url"] += "/"
         else:
-            chain_name = (
-                ""
-                if (chain == "main" or chain == "regtest")
-                else ("signet/" if self.chain == "signet" else "testnet/")
-            )
+            chain_name = "" if (chain == "main" or chain == "regtest") else "testnet/"
             explorer_data["url"] += chain_name
         # update the urls in the app config
         if user.is_admin:
