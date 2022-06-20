@@ -315,7 +315,6 @@ function sub_open {
     start_elementsd --reset
     start_specter --reset
   fi
-  start_specter
   $(npm bin)/cypress open
 }
 
