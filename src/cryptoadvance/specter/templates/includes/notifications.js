@@ -159,11 +159,11 @@ function js_message_box(js_notification){
 
 
 function js_console(js_notification){
-    if (js_notification['type'] == 'error'){
+    if (js_notification['notification_type'] == 'error'){
         console.error(js_notification)
-    } else if (js_notification['type'] == 'exception'){
+    } else if (js_notification['notification_type'] == 'exception'){
         console.error(js_notification)
-    } else if (js_notification['type'] == 'warning'){
+    } else if (js_notification['notification_type'] == 'warning'){
         console.warn(js_notification)
     } else {            
         console.log(js_notification);

@@ -31,6 +31,7 @@ from ..util.fee_estimation import FeeEstimationResultEncoder, get_fees
 from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
 from embit.descriptor.checksum import add_checksum
+from ..notifications.notifications import Notification
 from ..notifications.ui_notifications import JSNotifications
 from ..notifications.current_flask_user import flash
 
@@ -153,6 +154,8 @@ def create_notification():
                 'image' : image_url,
                 'icon' : icon,
             }
+
+            The options are the optional arguments of Notification()
         }
 
     If a value is itself a list or dict (like target_uis) it has to be in a json format.
@@ -165,6 +168,7 @@ def create_notification():
         )
 
     options = json.loads(request.form.get("options", "{}"))
+
     logger.debug(
         f"wallets_endpoint_api create_notification with title  {title} and options {options}"
     )
