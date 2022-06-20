@@ -94,18 +94,21 @@ class User(UserMixin):
         self.encryption_iterations = 390000
 
         # setting up the notifications system
-        js_notifications = ui_notifications.JSNotifications()
         webapi_notifications = ui_notifications.WebAPINotifications()
+        js_notifications = ui_notifications.JSNotifications()
+
+        # the first ui_notifications will be the "default"
         self.notification_manager = NotificationManager(
             ui_notifications=[
                 webapi_notifications,
                 js_notifications,
-                ui_notifications.FlashNotifications(),  # default
+                ui_notifications.FlashNotifications(),
                 ui_notifications.JSConsoleNotifications(),
                 ui_notifications.LoggingNotifications(),
                 ui_notifications.PrintNotifications(),
             ]
         )
+
         js_notifications.on_close = self.notification_manager.on_close
         webapi_notifications.on_close = self.notification_manager.on_close
 

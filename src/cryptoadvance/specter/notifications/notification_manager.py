@@ -97,15 +97,9 @@ class NotificationManager:
             if not referenced_notification:
                 return
 
-            # append ui_notifications to a list, that belong to referenced_notification['target_uis']
-            matching_ui_notifications = []
             for ui_notification in self.ui_notifications:
-                if ui_notification.name in referenced_notification["target_uis"]:
-                    matching_ui_notifications.append(ui_notification)
-
-            # call all on_close functions of matching_ui_notifications
-            for ui_notification in matching_ui_notifications:
-                if "on_close" in dir(ui_notification) and ui_notification.on_close:
+                # perhaps the target_ui was not available and it was displayed in another ui_notification. However still call the on_close of the original target_ui
+                if ui_notification.name == internal_notification["data"]["target_ui"]:
                     ui_notification.on_close(
                         referenced_notification["id"],
                         internal_notification["data"]["target_ui"],
@@ -166,14 +160,15 @@ class NotificationManager:
             if notification["id"] == notification_id:
                 return notification
 
-    def on_close(self, notification_id, target_ui=None):
-        "Deletes the notification. It does not wait until the last of the target_uis was closed."
-        notification = self.find_notification(notification_id)
-        if not notification:
-            logging.debug(
-                f"on_close: Notification with id {notification_id} not found. Perhaps it was closed already in a different target_ui?"
-            )
-            return
-
+    def delete_notification(self, notification):
         del self.notifications[self.notifications.index(notification)]
         logger.debug(f"Deleted {notification}")
+
+    def on_close(self, notification_id, target_ui):
+        "Deletes the notification"
+        notification = self.find_notification(notification_id)
+        if not notification:
+            logging.debug(f"on_close: Notification with id {notification_id} not found")
+            return
+
+        self.delete_notification(notification)
