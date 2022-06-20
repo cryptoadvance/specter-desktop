@@ -61,7 +61,13 @@ class UserManager:
 
     def create_user(self, user_id, username, plaintext_password, config):
         password_hash = hash_password(plaintext_password)
-        user = User(user_id, username, password_hash, config, self.specter)
+        user = User(
+            user_id,
+            username,
+            password_hash,
+            config,
+            self.specter,
+        )
         user.decrypt_user_secret(plaintext_password)
         return self.add_user(user)
 

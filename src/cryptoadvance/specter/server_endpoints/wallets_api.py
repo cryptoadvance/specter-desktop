@@ -31,6 +31,7 @@ from ..util.fee_estimation import FeeEstimationResultEncoder, get_fees
 from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
 from embit.descriptor.checksum import add_checksum
+from ..notifications.notifications import Notification
 from ..notifications.ui_notifications import JSNotifications
 from ..notifications.current_flask_user import flash
 
@@ -129,9 +130,7 @@ def get_new_notifications():
             return o.timestamp()
 
     js_notifications_dict = {}
-    for (
-        ui_notification
-    ) in app.specter.user_manager.get_user().notification_manager.ui_notifications:
+    for ui_notification in app.specter.notification_manager.ui_notifications:
         if ui_notification.name in {"WebAPI", "js_message_box", "js_console"}:
             notifications = ui_notification.read_and_clear_js_notification_buffer()
             if notifications:
@@ -147,35 +146,38 @@ def create_notification():
     The request.form must contain a dict. Only 'title' is mandatory
         {
             'title' : title,
-            'timeout' : timeout,
-            'notification_type' : notification_type,
-            'target_uis' : target_uis,
-            'body' : body,
-            'image' : image_url,
-            'icon' : icon,
+            'options':{
+                'timeout' : timeout,
+                'notification_type' : notification_type,
+                'target_uis' : target_uis,
+                'body' : body,
+                'image' : image_url,
+                'icon' : icon,
+            }
+
+            The options are the optional arguments of Notification()
         }
 
     If a value is itself a list or dict (like target_uis) it has to be in a json format.
     """
-    arguments = dict(request.form)
-    # try reading everything with json
-    for key in arguments:
-        try:
-            arguments[key] = json.loads(arguments[key])
-        except:
-            pass
-
-    logger.debug(f"wallets_endpoint_api create_notification with arguments {arguments}")
-
-    if "title" not in arguments or not arguments["title"]:
+    title = request.form.get("title")
+    if not title:
         return jsonify(
             success=False,
             error="The create_notification POST request must contain a 'title'",
         )
 
+    options = json.loads(request.form.get("options", "{}"))
+
+    logger.debug(
+        f"wallets_endpoint_api create_notification with title  {title} and options {options}"
+    )
+
     return jsonify(
-        app.specter.user_manager.get_user().notification_manager.create_and_show(
-            **arguments
+        app.specter.notification_manager.create_and_show(
+            title,
+            app.specter.user_manager.get_user().id,
+            **options,
         )
     )
 

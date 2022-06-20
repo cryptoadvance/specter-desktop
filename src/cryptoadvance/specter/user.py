@@ -18,8 +18,6 @@ from .persistence import read_json_file, write_json_file, delete_folder
 from .managers.wallet_manager import WalletManager
 from .managers.device_manager import DeviceManager
 from .helpers import deep_update
-from .notifications.notification_manager import NotificationManager
-from .notifications import ui_notifications
 
 
 logger = logging.getLogger(__name__)
@@ -75,6 +73,7 @@ class User(UserMixin):
         encrypted_user_secret=None,
         is_admin=False,
         services=[],
+        notification_manager=None,
     ):
         self.id = id
         self.username = username
@@ -93,28 +92,10 @@ class User(UserMixin):
         # Iterations will need to be increased over time to keep ahead of CPU advances.
         self.encryption_iterations = 390000
 
-        # setting up the notifications system
-        webapi_notifications = ui_notifications.WebAPINotifications()
-        js_notifications = ui_notifications.JSNotifications()
-
-        # the first ui_notifications will be the "default"
-        self.notification_manager = NotificationManager(
-            ui_notifications=[
-                webapi_notifications,
-                js_notifications,
-                ui_notifications.FlashNotifications(),
-                ui_notifications.JSConsoleNotifications(),
-                ui_notifications.LoggingNotifications(),
-                ui_notifications.PrintNotifications(),
-            ]
-        )
-
-        js_notifications.on_close = self.notification_manager.on_close
-        webapi_notifications.on_close = self.notification_manager.on_close
-
     # TODO: User obj instantiation belongs in UserManager
     @classmethod
-    def from_json(cls, user_dict, specter):
+    def from_json(cls, user_dict, specter, notification_manager=None):
+        logger.debug(f"________________________________ {notification_manager}")
         try:
             user_args = {
                 "id": user_dict["id"],

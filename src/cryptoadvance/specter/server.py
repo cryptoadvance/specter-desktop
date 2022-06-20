@@ -24,6 +24,7 @@ from .hwi_server import hwi_server
 from .services.callbacks import after_serverpy_init_app
 from .specter import Specter
 from .util.specter_migrator import SpecterMigrator
+from .notifications import ui_notifications
 
 logger = logging.getLogger(__name__)
 
@@ -148,6 +149,10 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     # ServiceManager will instantiate and register blueprints for extensions
     specter.service_manager = ServiceManager(
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
+    )
+
+    specter.notification_manager.register_user_ui_notifications(
+        specter.user_manager.users
     )
 
     login_manager = LoginManager()
