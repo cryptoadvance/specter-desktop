@@ -7,7 +7,7 @@ from flask import flash
 
 
 class BaseUINotifications:
-    "A base class defining functions that every user fased UI Notification display system should have"
+    "A base class defining functions that every user faced UI Notification display system should have"
 
     def __init__(self):
         self.compatible_notification_types = {
@@ -123,7 +123,7 @@ class JSNotifications(JSConsoleNotifications):
             NotificationTypes.error,
             NotificationTypes.exception,
         }
-        self.callback_notification_close = None
+        self.on_close = None
         self.name = "js_message_box"
 
 

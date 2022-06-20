@@ -61,7 +61,11 @@ class NotificationManager:
         notification.set_shown(target_ui)
 
     def treat_internal_message(self, internal_notification):
-        "treat an internal_notification"
+        """
+        Notifications with the title='internal_notification'  are not displayed to the user, but used for things like:
+        - handling callbacks  (like on_close or on_show)
+        - messaging back that a target ui is unavailable (the notification is then also rebroadcasted)
+        """
         if "internal_notification" not in internal_notification["target_uis"]:
             return internal_notification
         logger.debug(f"treat_internal_message {internal_notification}")
@@ -70,7 +74,10 @@ class NotificationManager:
             internal_notification["data"]["id"]
         )
 
-        if internal_notification["title"] == "notification_target_ui_unavailable":
+        if (
+            internal_notification["title"]
+            == "notification_deactivate_target_ui_and_rebroadcast"
+        ):
             # deactivate target_ui and rebroadcast
             logger.debug(
                 f'{internal_notification["data"]["target_ui"]} is unavailable, now deactivating this target_ui and rebroadcasting'
@@ -80,13 +87,13 @@ class NotificationManager:
                 return
             self.show(referenced_notification)
 
-        if internal_notification["title"] == "notification_shown":
+        if internal_notification["title"] == "on_show":
             self.set_notification_shown(
                 referenced_notification["id"],
                 internal_notification["data"]["target_ui"],
             )
 
-        if internal_notification["title"] == "callback_notification_close":
+        if internal_notification["title"] == "on_close":
             if not referenced_notification:
                 return
 
@@ -96,13 +103,10 @@ class NotificationManager:
                 if ui_notification.name in referenced_notification["target_uis"]:
                     matching_ui_notifications.append(ui_notification)
 
-            # call all callback_notification_close functions of matching_ui_notifications
+            # call all on_close functions of matching_ui_notifications
             for ui_notification in matching_ui_notifications:
-                if (
-                    "callback_notification_close" in dir(ui_notification)
-                    and ui_notification.callback_notification_close
-                ):
-                    ui_notification.callback_notification_close(
+                if "on_close" in dir(ui_notification) and ui_notification.on_close:
+                    ui_notification.on_close(
                         referenced_notification["id"],
                         internal_notification["data"]["target_ui"],
                     )
@@ -162,12 +166,12 @@ class NotificationManager:
             if notification["id"] == notification_id:
                 return notification
 
-    def callback_notification_close(self, notification_id, target_ui=None):
+    def on_close(self, notification_id, target_ui=None):
         "Deletes the notification. It does not wait until the last of the target_uis was closed."
         notification = self.find_notification(notification_id)
         if not notification:
             logging.debug(
-                f"callback_notification_close: Notification with id {notification_id} not found. Perhaps it was closed already in a different target_ui?"
+                f"on_close: Notification with id {notification_id} not found. Perhaps it was closed already in a different target_ui?"
             )
             return
 

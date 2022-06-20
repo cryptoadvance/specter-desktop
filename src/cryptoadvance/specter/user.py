@@ -106,12 +106,8 @@ class User(UserMixin):
                 ui_notifications.PrintNotifications(),
             ]
         )
-        js_notifications.callback_notification_close = (
-            self.notification_manager.callback_notification_close
-        )
-        webapi_notifications.callback_notification_close = (
-            self.notification_manager.callback_notification_close
-        )
+        js_notifications.on_close = self.notification_manager.on_close
+        webapi_notifications.on_close = self.notification_manager.on_close
 
     # TODO: User obj instantiation belongs in UserManager
     @classmethod

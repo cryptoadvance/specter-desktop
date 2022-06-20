@@ -30,20 +30,20 @@ async function requestCreateNotification(title, options){
 
 
 
-function callback_notification_close(id, target_ui){
+function on_close(id, target_ui){
     //console.log('closed message')
-    requestCreateNotification('callback_notification_close', {target_uis:['internal_notification'], data:{'id':id, 'target_ui':target_ui}});
+    requestCreateNotification('on_close', {target_uis:['internal_notification'], data:{'id':id, 'target_ui':target_ui}});
 }
 
 
-function notification_shown(id, target_ui, success=true){
+function on_show(id, target_ui, success=true){
     //console.log('closed message')
-    requestCreateNotification('notification_shown', {target_uis:['internal_notification'], data:{'id':id, 'target_ui':target_ui, 'success':success}});
+    requestCreateNotification('on_show', {target_uis:['internal_notification'], data:{'id':id, 'target_ui':target_ui, 'success':success}});
 }
 
 
-function notification_target_ui_unavailable(id, target_ui) {
-    requestCreateNotification('notification_target_ui_unavailable', {target_uis:['internal_notification'], data:{'id':id, 'target_ui':target_ui}});
+function notification_deactivate_target_ui_and_rebroadcast(id, target_ui) {
+    requestCreateNotification('notification_deactivate_target_ui_and_rebroadcast', {target_uis:['internal_notification'], data:{'id':id, 'target_ui':target_ui}});
 }
 
 
@@ -90,11 +90,11 @@ function webapi_notification(js_notification, retries_if_permission_default=2) {
             // do something
         });        
         notification.onclose = (() => {
-            callback_notification_close(js_notification['id'], 'WebAPI')
+            on_close(js_notification['id'], 'WebAPI')
         });        
         notification.onshow = (() => {
             // do something
-            notification_shown(js_notification['id'], 'WebAPI')
+            on_show(js_notification['id'], 'WebAPI')
         });        
 
         function closeNotification(){notification.close()}
@@ -106,7 +106,7 @@ function webapi_notification(js_notification, retries_if_permission_default=2) {
 
     if (!("Notification" in window)) {
         console.log("This browser does not support desktop notification");
-        notification_target_ui_unavailable(js_notification['id'], 'WebAPI');
+        notification_deactivate_target_ui_and_rebroadcast(js_notification['id'], 'WebAPI');
     }
     // Let's check whether notification permissions have already been granted
     else if (Notification.permission === "granted") {
@@ -115,7 +115,7 @@ function webapi_notification(js_notification, retries_if_permission_default=2) {
     }  else if (Notification.permission === "denied") {
         // If it's okay let's create a notification
         console.log(`Notification.requestPermission() = ${Notification.permission}`);
-        notification_target_ui_unavailable(js_notification['id'], 'WebAPI');  
+        notification_deactivate_target_ui_and_rebroadcast(js_notification['id'], 'WebAPI');  
     }
     // Otherwise  "default", we need to ask the user for permission
     else   {
@@ -126,7 +126,7 @@ function webapi_notification(js_notification, retries_if_permission_default=2) {
         } else if (permission === "denied") {
             // not granted
             console.log(`Notification.requestPermission() = ${permission}`);
-            notification_target_ui_unavailable(js_notification['id'], 'WebAPI');  
+            notification_deactivate_target_ui_and_rebroadcast(js_notification['id'], 'WebAPI');  
         } else {
             // permission is probably "default", meaning the user has neither granted nor blocked the Notifications.
             // The user can afterwards allow or block notifications.  The notification needs reboradcasting.
@@ -152,8 +152,8 @@ function webapi_notification(js_notification, retries_if_permission_default=2) {
 
   
 function javascript_popup_message(js_notification){
-    function callback_notification_close_id(){
-        callback_notification_close(js_notification['id'], 'js_message_box')    
+    function on_close_id(){
+        on_close(js_notification['id'], 'js_message_box')    
     }
 
     var message = js_notification['title'];
@@ -166,12 +166,12 @@ function javascript_popup_message(js_notification){
       });
     msgbox.show(
         message,
-        callback_notification_close_id,
+        on_close_id,
         'Close',
         image=js_notification['options']['image'],
         );			
 
-    notification_shown(js_notification['id'], 'js_message_box')
+    on_show(js_notification['id'], 'js_message_box')
 }
 
 
@@ -185,7 +185,7 @@ function js_logging_notification(js_notification){
     } else {            
         console.log(js_notification);
     }
-    notification_shown(js_notification['id'], 'js_console')
+    on_show(js_notification['id'], 'js_console')
 }
 
 async function show_notification(ui_name, js_notification){
