@@ -1,0 +1,153 @@
+<!-- 
+    A textarea with drag and drop functionality.
+    Upon dragging and dropping the file in the textarea, the value of the textarea will be replaced by the text content stored in the file.
+    
+    Note: The default text within the textarea should be passed using 'value' attribute instead of enclosing the text within the opening and closing tag.
+
+{#- Usage -
+
+    <dnd-textarea
+        name="name"
+        value="some default text"
+        placeholder="placeholder text"
+        textarea-style="style to override default styling of textarea"
+    >
+    </dnd-textarea>
+
+#} 
+-->
+
+<template id="dnd-textarea">
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        :host {
+            display: block;
+            width: 100%;
+        }
+        #textarea-content { 
+            height: 150px; 
+            font-size: 13px;
+        }
+    </style>
+    <textarea id="textarea-content" placeholder="{{ _('You can drag & drop here.') }}"></textarea>
+</template>
+
+<script type="text/javascript">
+    class DndTextareaElement extends HTMLElement {
+        // This tells the browser to treat the element like a form control
+        static formAssociated = true;
+        // For details on how to ensure that a custom element gets picked up by a parent <form> see:
+        // https://web.dev/more-capable-form-controls/#defining-a-form-associated-custom-element
+
+        constructor() {
+            super();    
+            this.internals = this.attachInternals();
+
+            // Create a shadow root
+            let shadow = this.attachShadow({mode: 'open'});
+            let template = document.getElementById('dnd-textarea');
+            let clone = template.content.cloneNode(true);
+
+            this.textarea = clone.querySelector("textarea");
+            shadow.appendChild(clone);
+        }
+
+        setValue(newValue) {
+            this.textarea.value = newValue;
+            this.internals.setFormValue(newValue);
+        }   
+
+        connectedCallback() {
+            this.textarea.addEventListener('input', e => {
+                this.setValue(e.target.value);
+            });
+
+            this.textarea.ondrop = (event) => this.dropHandler(event);
+            this.textarea.ondragover = (event) => this.dragOverHandler(event);
+            this.textarea.ondragleave = (event) => this.noDropHandler(event);
+            this.textarea.ondragexit = (event) => this.noDropHandler(event);
+            this.textarea.ondragend = (event) => this.noDropHandler(event);
+        }
+
+        disconnectedCallback() {
+            this.textarea.removeEventListener('input');
+        }
+        
+        static get observedAttributes(){
+            return ["value", "placeholder", "textarea-style"];
+        }
+        
+        attributeChangedCallback(attribute, oldValue, newValue) {
+            switch(attribute){
+                case "value":
+                    this.setValue(newValue);
+                    break;   
+                case "placeholder":
+                    this.textarea.placeholder = newValue;
+                    break;
+                case "textarea-style":
+                    this.textarea.style = newValue;
+                    break;
+            }
+        }
+
+        get value(){
+            return this.textarea.value;
+        }
+
+        // This is essential to make the dnd-textarea compatible with, say, the file-uploader webcomponent (which is setting a new value)
+        set value(newValue){
+            this.setValue(newValue);
+        }
+
+        paste_file_in_textarea(file) {
+            let currObj = this;
+            if (file != null  ) {
+                console.log(file.name);
+                let reader = new FileReader();
+                reader.onload = function(e) { 
+                    currObj.setValue(reader.result);
+                }
+                reader.readAsBinaryString(file);
+            }
+        }    
+
+        dropHandler(ev) {
+            // Prevent default behavior (Prevent file from being opened)
+            ev.preventDefault();
+    
+            if (ev.dataTransfer.items) {
+                // Use DataTransferItemList interface to access the file(s)
+                for (let i = 0; i < ev.dataTransfer.items.length; i++) {
+                    // If dropped items aren't files, reject them
+                    if (ev.dataTransfer.items[i].kind === 'file') {
+                        let file = ev.dataTransfer.items[i].getAsFile();
+                        this.paste_file_in_textarea(file)
+                        // console.log('... file[' + i + '].name = ' + file.name);
+                    }
+                }
+            } else {
+                // Use DataTransfer interface to access the file(s)
+                for (let i = 0; i < ev.dataTransfer.files.length; i++) {
+                    this.paste_file_in_textarea(ev.dataTransfer.files[i])
+                    // console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
+                }
+            }
+        }
+
+        dragOverHandler(ev) {
+            // Prevent default behavior (Prevent file from being opened)
+            ev.preventDefault();
+            this.setValue("Drop file here");
+        }
+
+        noDropHandler(ev) {
+            // Prevent default behavior (Prevent file from being opened)
+            ev.preventDefault();
+            this.setValue("");
+        }
+    }
+
+    customElements.define('dnd-textarea', DndTextareaElement);
+</script>
