@@ -3,6 +3,7 @@
 {% block content %}
 	{% include "includes/qr-scanner.html" %}
 	{% include "includes/file-uploader.html" %}
+	{% include "includes/dnd-textarea.html" %}
 	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
 	{{ send_nav('import_psbt', wallet_alias) }}
 		<h1 class="padded">{{ _("Import transaction") }}</h1>
@@ -11,7 +12,7 @@
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			<div class="card">
 				<div class="row">
-					<textarea name="rawpsbt" id="rawpsbt" placeholder="{{ _('Paste PSBT or transaction here') }}"></textarea>
+					<dnd-textarea name="rawpsbt" id="rawpsbt" placeholder="{{ _('You can paste a PSBT or transaction and drag & drop a file here.') }}"></dnd-textarea>
 				</div>
 				<div class="row break-row-mobile">
 					<qr-scanner id="psbt-scan" style="width:50%">
@@ -39,11 +40,11 @@
 
 {% block scripts %}
 <script type="text/javascript">
-	let textarea = document.getElementById("rawpsbt")
+	let textarea = document.getElementById("rawpsbt");
 	document.addEventListener('file-upload', e => {
 		let result = e.detail.result;
-		textarea.value = result
-	})
+		textarea.value = result;
+	});
 
 	let scanner = document.getElementById('psbt-scan');
 	if(scanner != null) {
