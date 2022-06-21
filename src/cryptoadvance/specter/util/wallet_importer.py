@@ -282,7 +282,7 @@ class WalletImporter:
                             _(
                                 "The Electrum wallet contains a seed. The seed will not be imported."
                             ),
-                            notification_type="warning",
+                            "warning",
                         )
                 i += 1
             xpubs = xpubs.rstrip(",")
