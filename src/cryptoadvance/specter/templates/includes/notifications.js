@@ -1,9 +1,11 @@
 {% include "includes/message_box.js" %}
 
 
+
+
 /*  creating a notification from JS */
 async function requestCreateNotification(title, options){ 
-    var url = "{{ url_for('wallets_endpoint_api.create_notification' , user_id=current_user.username) }}";
+    var url = "{{ url_for('wallets_endpoint_api.create_notification' ) }}";
 	var formData = new FormData();
 	formData.append("title", title)
     formData.append('options', JSON.stringify( options));
@@ -184,7 +186,7 @@ async function show_notification(ui_name, js_notification){
 
 
 async function get_new_notifications(){
-    url = "{{ url_for('wallets_endpoint_api.get_new_notifications', user_id=current_user.username) }}"
+    url = "{{ url_for('wallets_endpoint_api.get_new_notifications') }}"
     //console.log(url)
 
 
@@ -208,7 +210,12 @@ async function get_new_notifications(){
 async function run_scheduled(){ 
     //this code runs every interval  
   // requestCreateNotification('yes triggered notification')  // Triggering a nottification from JS works.
-  get_new_notifications() ;
+  if ('{{ current_user.username }}'){
+    console.log('{{ current_user.username }}')
+    get_new_notifications() ;  
+  }else{
+    // no user logged in
+  }
 };
 
 
