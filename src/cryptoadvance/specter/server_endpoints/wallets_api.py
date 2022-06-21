@@ -132,7 +132,9 @@ def get_new_notifications():
     js_notifications_dict = {}
     for (
         ui_notification
-    ) in app.specter.notification_manager.get_ui_notifications_of_user(current_user):
+    ) in app.specter.notification_manager.get_ui_notifications_of_user(
+        str(current_user)
+    ):
         if ui_notification.name in {"WebAPI", "js_message_box", "js_console"}:
             notifications = ui_notification.read_and_clear_js_notification_buffer()
             if notifications:
@@ -178,7 +180,7 @@ def create_notification():
     return jsonify(
         app.specter.notification_manager.create_and_show(
             title,
-            current_user,
+            str(current_user),
             **options,
         )
     )

@@ -27,9 +27,11 @@ function on_show(id, target_ui, success=true){
 }
 
 
-function notification_deactivate_target_ui_and_rebroadcast(id, target_ui) {
-    requestCreateNotification('notification_deactivate_target_ui_and_rebroadcast', {target_uis:['internal_notification'], data:{'id':id, 'target_ui':target_ui}});
+function set_target_ui_availability(target_ui, is_available, id=null) {
+    requestCreateNotification('set_target_ui_availability', {target_uis:['internal_notification'], data:{'id':id, 'target_ui':target_ui, 'is_available':is_available}});
 }
+
+
 
 
     /* js_notification structure see https://notifications.spec.whatwg.org/#api
@@ -58,6 +60,24 @@ function notification_deactivate_target_ui_and_rebroadcast(id, target_ui) {
     }
     */
 
+
+var webapi_has_permission = false; //global variable           
+function check_webapi_has_permission(){
+    if (!("Notification" in window)) {
+        return false
+    }
+    // Let's check whether notification permissions have already been granted
+    else if (Notification.permission === "granted") {
+        webapi_has_permission = true;
+    }  else if (Notification.permission === "denied") {
+        webapi_has_permission = false;
+    } else if (Notification.permission === "default") {
+        // the user has not chosen anything, and the permission could be requested
+        webapi_has_permission = "default";
+    }
+
+    return webapi_has_permission
+}
 
 
 function webapi_notification(js_notification, retries_if_permission_default=2) {
@@ -91,7 +111,7 @@ function webapi_notification(js_notification, retries_if_permission_default=2) {
 
     if (!("Notification" in window)) {
         console.log("This browser does not support desktop notification");
-        notification_deactivate_target_ui_and_rebroadcast(js_notification['id'], 'WebAPI');
+        set_target_ui_availability('WebAPI', false, js_notification['id']);
     }
     // Let's check whether notification permissions have already been granted
     else if (Notification.permission === "granted") {
@@ -100,7 +120,7 @@ function webapi_notification(js_notification, retries_if_permission_default=2) {
     }  else if (Notification.permission === "denied") {
         // If it's okay let's create a notification
         console.log(`Notification.requestPermission() = ${Notification.permission}`);
-        notification_deactivate_target_ui_and_rebroadcast(js_notification['id'], 'WebAPI');  
+        set_target_ui_availability('WebAPI', false, js_notification['id']);  
     }
     // Otherwise  "default", we need to ask the user for permission
     else   {
@@ -111,7 +131,7 @@ function webapi_notification(js_notification, retries_if_permission_default=2) {
         } else if (permission === "denied") {
             // not granted
             console.log(`Notification.requestPermission() = ${permission}`);
-            notification_deactivate_target_ui_and_rebroadcast(js_notification['id'], 'WebAPI');  
+            set_target_ui_availability('WebAPI', false, js_notification['id']);  
         } else {
             // permission is probably "default", meaning the user has neither granted nor blocked the Notifications.
             // The user can afterwards allow or block notifications.  The notification needs reboradcasting.
@@ -185,10 +205,36 @@ async function show_notification(ui_name, js_notification){
 }
 
 
+async function send_updated_webapi_permission(){
+    var before_webapi_has_permission =  webapi_has_permission;
+    var new_webapi_has_permission = check_webapi_has_permission();
+
+    // if something has changed
+    if (before_webapi_has_permission != new_webapi_has_permission){
+
+
+        // case: webapi was deactivated, but now is "granted"  
+        if  ((new_webapi_has_permission == 'default')|| (new_webapi_has_permission == true)){
+            set_target_ui_availability('WebAPI', true);
+            //console.log('Activating WebAPI')
+        }
+        // case: webapi was active, but now is "denied" 
+        else if   (new_webapi_has_permission == false) {
+            set_target_ui_availability('WebAPI', false);
+            //console.log('Deactivating WebAPI')            
+        }
+
+    }
+
+}
+
+
+
 async function get_new_notifications(){
+    send_updated_webapi_permission();
+
     url = "{{ url_for('wallets_endpoint_api.get_new_notifications') }}"
     //console.log(url)
-
 
     function myFunction(item) {
         sum += item;
@@ -210,17 +256,16 @@ async function get_new_notifications(){
 async function run_scheduled(){ 
     //this code runs every interval  
   // requestCreateNotification('yes triggered notification')  // Triggering a nottification from JS works.
-  if ('{{ current_user.username }}'){
-    console.log('{{ current_user.username }}')
-    get_new_notifications() ;  
-  }else{
-    // no user logged in
-  }
+  get_new_notifications() ;  
 };
 
 
+if ('{{ current_user.username }}'){
+    setInterval(run_scheduled, 2000);
+}else{
+    // no user logged in
+}
 
-setInterval(run_scheduled, 2000);
 
 
 

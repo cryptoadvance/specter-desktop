@@ -43,21 +43,36 @@ class NotificationManager:
         )
         self.ui_notifications.append(ui_notification)
 
-    def deactivate_target_ui(self, target_ui):
+    def find_target_ui(self, target_ui, user_id):
         for ui_notification in self.ui_notifications:
-            if ui_notification.name == target_ui:
-                ui_notification.is_available = False
-                logger.debug(f"deactivating {ui_notification.name }")
+            if (ui_notification.name == target_ui) and (
+                ui_notification.user_id == user_id
+            ):
+                return ui_notification
+
+    def set_target_ui_availability(self, target_ui, user_id, is_available):
+        ui_notification = self.find_target_ui(target_ui, user_id)
+        if not ui_notification:
+            logger.warning(
+                f"set_target_ui_availability: target_ui {target_ui} could not be found"
+            )
+            return
+        ui_notification.is_available = is_available
+        logger.debug(
+            f"Setting {ui_notification.name} of user {ui_notification.user_id} available = {is_available}"
+        )
 
     def get_ui_notifications_of_user(self, user_id):
-        return {
+        "Gives a back a [ui_notifications that belong to the user_id] + [ui_notifications that belong to user_id == None]"
+        return [
             ui_notification
             for ui_notification in self.ui_notifications
-            if (
-                (ui_notification.user_id == user_id)
-                or (ui_notification.user_id is None)
-            )
-        }
+            if ui_notification.user_id == user_id
+        ] + [
+            ui_notification
+            for ui_notification in self.ui_notifications
+            if ui_notification.user_id is None
+        ]
 
     def show(self, notification):
         """
@@ -68,30 +83,32 @@ class NotificationManager:
         if notification.target_uis == ["internal_notification"]:
             return
 
-        logger.debug(f"show {notification}")
         ui_notification_of_user = self.get_ui_notifications_of_user(
             notification.user_id
         )
-        broadcast_on_ui_notification = {
+        broadcast_on_ui_notification = [
             ui_notification
             for ui_notification in ui_notification_of_user
             if (ui_notification.name in notification.target_uis)
-        }
-
-        logger.debug(f"show {notification} on {broadcast_on_ui_notification}")
+        ]
 
         for ui_notification in broadcast_on_ui_notification:
             notification_broadcasted = ui_notification.show(notification)
+            logger.debug(
+                f"show {notification} on {ui_notification} returned {notification_broadcasted}, ui_notification.is_available {ui_notification.is_available}"
+            )
 
             # if not possible, then try show it with a ui_notifications that is NOT already in notification['target_uis']
             if not notification_broadcasted:
                 logger.debug(
                     f"Trying with other ui_notifications to broadcast {notification}"
                 )
-                for other_ui_notification in (
-                    ui_notification_of_user - broadcast_on_ui_notification
-                ):
+                for other_ui_notification in ui_notification_of_user:
+                    # if it is already broadcasted on this other_ui_notification by default anyway, no need to do it twice
+                    if other_ui_notification in broadcast_on_ui_notification:
+                        continue
                     notification_broadcasted = other_ui_notification.show(notification)
+                    logger.debug(f"show {notification} on {ui_notification}")
                     if notification_broadcasted:
                         break
 
@@ -118,18 +135,21 @@ class NotificationManager:
             internal_notification.data["id"]
         )
 
-        if (
-            internal_notification.title
-            == "notification_deactivate_target_ui_and_rebroadcast"
-        ):
-            # deactivate target_ui and rebroadcast
+        if internal_notification.title == "set_target_ui_availability":
             logger.debug(
                 f'{internal_notification.data["target_ui"]} is unavailable, now deactivating this target_ui and rebroadcasting'
             )
-            self.deactivate_target_ui(internal_notification.data["target_ui"])
-            if not referenced_notification:
-                return
-            self.show(referenced_notification)
+            self.set_target_ui_availability(
+                internal_notification.data["target_ui"],
+                internal_notification.user_id,
+                internal_notification.data["is_available"],
+            )
+            if not internal_notification.data["is_available"]:
+                # if it is not available rebroadcast
+                if not referenced_notification:
+                    return
+                logger.debug(f"Rebrodcasting {referenced_notification.id}")
+                self.show(referenced_notification)
 
         if internal_notification.title == "on_show":
             self.set_notification_shown(
