@@ -24,7 +24,6 @@ from .hwi_server import hwi_server
 from .services.callbacks import after_serverpy_init_app
 from .specter import Specter
 from .util.specter_migrator import SpecterMigrator
-from .notifications import ui_notifications
 from .notifications.notification_manager import NotificationManager
 
 logger = logging.getLogger(__name__)

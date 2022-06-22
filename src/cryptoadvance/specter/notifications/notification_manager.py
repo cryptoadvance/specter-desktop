@@ -1,7 +1,5 @@
 import logging
 
-from cryptoadvance.specter import notifications
-
 logger = logging.getLogger(__name__)
 
 from .notifications import Notification

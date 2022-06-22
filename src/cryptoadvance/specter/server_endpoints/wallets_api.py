@@ -31,8 +31,6 @@ from ..util.fee_estimation import FeeEstimationResultEncoder, get_fees
 from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
 from embit.descriptor.checksum import add_checksum
-from ..notifications.notifications import Notification
-from ..notifications.ui_notifications import JSNotifications
 from ..notifications.current_flask_user import flash
 from ..helpers import robust_json_dumps
 
