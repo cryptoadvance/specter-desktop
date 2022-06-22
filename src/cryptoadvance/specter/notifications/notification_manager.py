@@ -205,6 +205,7 @@ class NotificationManager:
                 )
 
     def get_default_target_ui_name(self):
+        "Returns the first ui_notifications"
         return self.ui_notifications[0].name if self.ui_notifications else None
 
     def get_all_target_ui_names(self):
@@ -237,6 +238,7 @@ class NotificationManager:
         return notification
 
     def flash(self, message: str, user_id, category: str = "message"):
+        "Creates and shows a flask flash message"
         self.create_and_show(
             message, user_id, notification_type=category, target_uis={"flash"}
         )
