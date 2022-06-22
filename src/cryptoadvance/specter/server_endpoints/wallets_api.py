@@ -34,6 +34,7 @@ from embit.descriptor.checksum import add_checksum
 from ..notifications.notifications import Notification
 from ..notifications.ui_notifications import JSNotifications
 from ..notifications.current_flask_user import flash
+from ..helpers import robust_json_dumps
 
 logger = logging.getLogger(__name__)
 
@@ -124,11 +125,6 @@ def get_new_notifications():
             }
         "options" fields are optional, and can be looked up here: https://notifications.spec.whatwg.org/#dictdef-notificationoptions
     """
-
-    def myjsonconverter(o):
-        if isinstance(o, datetime):
-            return o.timestamp()
-
     js_notifications_dict = {}
 
     if not app.specter.notification_manager:
@@ -147,14 +143,15 @@ def get_new_notifications():
             if notifications:
                 js_notifications_dict[ui_notification.name] = notifications
 
-    return json.dumps(js_notifications_dict, default=myjsonconverter)
+    return robust_json_dumps(js_notifications_dict)
 
 
 @wallets_endpoint_api.route("/create_notification/", methods=["POST"])
 @login_required
 def create_notification():
-    """
-    The request.form must contain a dict. Only 'title' is mandatory
+    """Creates a notification based on the request.form['title'] and request.form['options']
+    Example of request.form (as json string):
+
         {
             'title' : title,
             'options':{
@@ -165,12 +162,15 @@ def create_notification():
                 'image' : image_url,
                 'icon' : icon,
             }
-
-            The options are the optional arguments of Notification()
         }
+        Only 'title' is mandatory
+        The options are the optional arguments of Notification()
 
-    If a value is itself a list or dict (like target_uis) it has to be in a json format.
+
+    Returns:
+        json str: The created notification
     """
+
     title = request.form.get("title")
     if not title:
         return jsonify(
@@ -193,12 +193,16 @@ def create_notification():
         f"wallets_endpoint_api create_notification with title  {title}, user_id {current_user} and options {options}"
     )
 
-    return jsonify(
-        app.specter.notification_manager.create_and_show(
-            title,
-            str(current_user),
-            **options,
-        )
+    notification = app.specter.notification_manager.create_and_show(
+        title,
+        str(current_user),
+        **options,
+    )
+
+    return (
+        robust_json_dumps(notification.__dict__)
+        if notification
+        else robust_json_dumps(None)
     )
 
 

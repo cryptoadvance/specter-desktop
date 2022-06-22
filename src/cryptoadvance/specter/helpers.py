@@ -22,6 +22,7 @@ import threading
 from io import BytesIO
 import re
 from .notifications.current_flask_user import flash
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -307,3 +308,12 @@ def get_address_from_dict(data_dict):
     if addr and addr != "Fee":
         return addr
     raise RuntimeError(f"Missing address info in object {data_dict}")
+
+
+def robust_json_dumps(obj):
+    def default(o):
+        if isinstance(o, datetime):
+            return o.timestamp()
+        return str(o)
+
+    return json.dumps(obj, default=default)

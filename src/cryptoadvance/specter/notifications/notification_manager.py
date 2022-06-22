@@ -251,6 +251,7 @@ class NotificationManager:
         notification = self.create_notification(title, user_id, **kwargs)
         if notification:
             self.show(notification)
+        return notification
 
     def find_notification(self, notification_id):
         for notification in self.notifications:

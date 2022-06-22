@@ -9,7 +9,9 @@ async function requestCreateNotification(title, options){
 	var formData = new FormData();
 	formData.append("title", title)
     formData.append('options', JSON.stringify( options));
-    return send_request(url, 'POST', "{{ csrf_token() }}", formData)
+    response = send_request(url, 'POST', "{{ csrf_token() }}", formData)
+    // console.log(await  response)
+    return response
 }
 
 
@@ -108,7 +110,7 @@ function check_and_request_webapi_permission(f_granted, f_denied, f_default, ret
     if (!("Notification" in window)) {
         return false
     }
-    console.log(`check_and_request_webapi_permission ${retries_if_permission_default}`);
+    // console.log(`check_and_request_webapi_permission ${retries_if_permission_default}`);
     check_webapi_has_permission()
 
     if (webapi_has_permission == true) {
@@ -131,7 +133,7 @@ function check_and_request_webapi_permission(f_granted, f_denied, f_default, ret
             // retry request permission through a recursive call:
             if (retries_if_permission_default>0){
                 // create recursion loop, that breaks if user grants or blocks the notification
-                console.log(`Start recursion ${retries_if_permission_default-1}`);
+                // console.log(`Start recursion ${retries_if_permission_default-1}`);
                 setTimeout(check_and_request_webapi_permission, retry_time_distance, f_granted, f_denied, f_default, retries_if_permission_default-1, retry_time_distance);  
             } else
             // if it reached the end of the recursion without any user interaction, then
@@ -153,7 +155,7 @@ function check_and_request_webapi_permission(f_granted, f_denied, f_default, ret
  * @param {*} js_notification 
  */
 function webapi_notification(js_notification) {
-    console.log('webapi_notification')
+    // console.log('webapi_notification')
     // https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API/Using_the_Notifications_API
     var title = js_notification['title'];
     var options = js_notification['options'];
