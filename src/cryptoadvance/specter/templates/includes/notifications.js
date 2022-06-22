@@ -241,7 +241,8 @@ function js_console(js_notification){
     } else {            
         console.log(js_notification);
     }
-    on_show(js_notification['id'], 'js_console')
+    on_show(js_notification['id'], 'js_console');
+    on_close(js_notification['id'], 'js_console');
 }
 
 

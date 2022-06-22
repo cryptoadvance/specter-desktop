@@ -9,7 +9,7 @@ from flask import flash
 class BaseUINotifications:
     "A base class defining functions that every user faced UI Notification display system should have"
 
-    def __init__(self):
+    def __init__(self, on_close=None, on_show=None):
         self.compatible_notification_types = {
             NotificationTypes.debug,
             NotificationTypes.information,
@@ -20,14 +20,24 @@ class BaseUINotifications:
         self.name = "base"
         self.is_available = True
         self.user_id = None
+        self.on_close = on_close
+        self.on_show = on_show
 
     def show(self, notification):
         pass
 
 
 class PrintNotifications(BaseUINotifications):
-    def __init__(self):
-        super().__init__()
+    """
+    Notifications are shown in print()
+
+    Callback functions are:
+    - on_close(notification_id, target_ui), should be assigned to delete the message   (called immediately after showing)
+    - on_show(notification_id, target_ui)   (called immediately after showing)
+    """
+
+    def __init__(self, on_close=None, on_show=None):
+        super().__init__(on_close=on_close, on_show=on_show)
         self.name = "print"
 
     def show(self, notification):
@@ -39,12 +49,24 @@ class PrintNotifications(BaseUINotifications):
         print(notification)
 
         notification.set_shown(self.name)
+        if self.on_show:
+            self.on_show(notification.id, self.name)
+        if self.on_close:
+            self.on_close(notification.id, self.name)
         return True  # successfully broadcasted
 
 
 class LoggingNotifications(BaseUINotifications):
-    def __init__(self):
-        super().__init__()
+    """
+    Notifications are shown in logger.info()
+
+    Callback functions are:
+    - on_close(notification_id, target_ui), should be assigned to delete the message   (called immediately after showing)
+    - on_show(notification_id, target_ui)   (called immediately after showing)
+    """
+
+    def __init__(self, on_close=None, on_show=None):
+        super().__init__(on_close=on_close, on_show=on_show)
         self.name = "logging"
 
     def show(self, notification):
@@ -59,14 +81,24 @@ class LoggingNotifications(BaseUINotifications):
             in {NotificationTypes.error, NotificationTypes.exception},
         )
         notification.set_shown(self.name)
+        if self.on_show:
+            self.on_show(notification.id, self.name)
+        if self.on_close:
+            self.on_close(notification.id, self.name)
         return True  # successfully broadcasted
 
 
 class FlashNotifications(BaseUINotifications):
-    "Flask flash only appears after render_template"
+    """
+    Flask flash notifications.  They only appears after render_template is called
 
-    def __init__(self, user_id):
-        super().__init__()
+    Callback functions are:
+    - on_close(notification_id, target_ui), should be assigned to delete the message   (called immediately after showing)
+    - on_show(notification_id, target_ui)   (called immediately after showing)
+    """
+
+    def __init__(self, user_id, on_close=None, on_show=None):
+        super().__init__(on_close=on_close, on_show=on_show)
         self.compatible_notification_types = {
             NotificationTypes.information,
             NotificationTypes.warning,
@@ -87,12 +119,24 @@ class FlashNotifications(BaseUINotifications):
             notification.notification_type,
         )
         notification.set_shown(self.name)
+        if self.on_show:
+            self.on_show(notification.id, self.name)
+        if self.on_close:
+            self.on_close(notification.id, self.name)
         return True  # successfully broadcasted
 
 
 class JSConsoleNotifications(BaseUINotifications):
-    def __init__(self, user_id):
-        super().__init__()
+    """
+    Shows the notifications in the javascript console. The logic is mostly in notifications.js
+
+    Callback functions are:
+    - on_close(notification_id, target_ui), should be assigned to delete the message
+    - on_show(notification_id, target_ui)
+    """
+
+    def __init__(self, user_id, on_close=None, on_show=None):
+        super().__init__(on_close=on_close, on_show=on_show)
         self.js_notification_buffer = []
         self.name = "js_console"
         self.user_id = user_id
@@ -118,19 +162,36 @@ class JSConsoleNotifications(BaseUINotifications):
 
 
 class JSNotifications(JSConsoleNotifications):
-    def __init__(self, user_id):
-        super().__init__(user_id)
+    """
+    A javascript message box. The logic is mostly in notifications.js
+
+    Callback functions are:
+    - on_close(notification_id, target_ui), should be assigned to delete the message
+    - on_show(notification_id, target_ui)
+    """
+
+    def __init__(self, user_id, on_close=None, on_show=None):
+        super().__init__(user_id, on_close=on_close, on_show=on_show)
         self.compatible_notification_types = {
             NotificationTypes.information,
             NotificationTypes.warning,
             NotificationTypes.error,
             NotificationTypes.exception,
         }
-        self.on_close = None
         self.name = "js_message_box"
 
 
 class WebAPINotifications(JSNotifications):
-    def __init__(self, user_id):
-        super().__init__(user_id)
+    """
+    Calls push-notification-style notification, that is realized via Notification_API
+    https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API/Using_the_Notifications_API
+
+
+    Callback functions are:
+    - on_close(notification_id, target_ui), should be assigned to delete the message
+    - on_show(notification_id, target_ui)
+    """
+
+    def __init__(self, user_id, on_close=None, on_show=None):
+        super().__init__(user_id, on_close=on_close, on_show=on_show)
         self.name = "WebAPI"  # see https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API/Using_the_Notifications_API
