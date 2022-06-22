@@ -443,7 +443,9 @@ class BitcoinRPC:
         def fn(*args, **kwargs):
             r = self.multi([(method, *args)], **kwargs)[0]
             if r["error"] is not None:
-                raise RpcError("Request error: %s" % r["error"]["message"], r)
+                raise RpcError(
+                    f"Request error for method {method}: {r['error']['message']}", r
+                )
             return r["result"]
 
         return fn
