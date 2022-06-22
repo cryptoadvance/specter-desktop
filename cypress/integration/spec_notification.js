@@ -1,0 +1,32 @@
+describe('Sending notifications', () => {
+    before(() => {
+        Cypress.config('includeShadowDom', true)
+    })
+
+    // Keeps the session cookie alive, Cypress by default clears all cookies before each test
+    beforeEach(() => {
+        cy.viewport(1200,660)
+        cy.visit('/')
+        Cypress.Cookies.preserveOnce('session')
+    })
+
+    it('Create js_message_box', () => {
+        // empty so far
+        var some_title = "1234567890abcdef_____////";
+        var cmd = `requestCreateNotification('${some_title}', {target_uis:['js_message_box'], body:null, image:'/static/img/ghost_3d.png', timeout:0})`;
+
+        cy.window().then((win) => {
+            win.eval(cmd);
+        }).then((response) => {
+            cy.wait(3000).then(()=>{
+
+                cy.get('.msgbox-area').get('.msgbox-text').invoke('text').should('eq', some_title)
+                cy.get('.msgbox-area').get('.msgbox-close').click()
+                cy.get('.msgbox-area').get('.msgbox-text').should('not.exist');                    
+            })
+        });
+
+        
+    })
+
+})
