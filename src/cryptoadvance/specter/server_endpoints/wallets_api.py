@@ -67,7 +67,7 @@ def generatemnemonic():
 @login_required
 @app.csrf.exempt
 def txout_set_info():
-    res = app.specter.rpc.gettxoutsetinfo()
+    res = app.specter.rpc.gettxoutsetinfo(timeout=3600)
     return res
 
 
