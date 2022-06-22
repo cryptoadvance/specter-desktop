@@ -2,7 +2,7 @@ import json
 import logging
 import os
 import time
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from cryptoadvance.specter.helpers import is_testnet
@@ -19,6 +19,7 @@ from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from conftest import instantiate_bitcoind_controller
 
 
+@patch("cryptoadvance.specter.util.wallet_importer.flash", print)
 @pytest.mark.slow
 def test_WalletManager(
     docker,
@@ -494,7 +495,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
         wallet_name,
         recv_descriptor,
         cosigners_types,
-    ) = WalletImporter.parse_wallet_data_import(wallet_backup, print)
+    ) = WalletImporter.parse_wallet_data_import(wallet_backup)
 
     descriptor = Descriptor.parse(
         AddChecksum(recv_descriptor.split("#")[0]),
@@ -551,7 +552,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
         wallet_name,
         recv_descriptor,
         cosigners_types,
-    ) = WalletImporter.parse_wallet_data_import(wallet_backup, print)
+    ) = WalletImporter.parse_wallet_data_import(wallet_backup)
 
     descriptor = Descriptor.parse(
         AddChecksum(recv_descriptor.split("#")[0]),
@@ -674,7 +675,7 @@ def test_multisig_wallet_backup_and_restore(
         wallet_name,
         recv_descriptor,
         cosigners_types,
-    ) = WalletImporter.parse_wallet_data_import(wallet_backup, print)
+    ) = WalletImporter.parse_wallet_data_import(wallet_backup)
 
     descriptor = Descriptor.parse(
         AddChecksum(recv_descriptor.split("#")[0]),
@@ -736,7 +737,7 @@ def test_multisig_wallet_backup_and_restore(
         wallet_name,
         recv_descriptor,
         cosigners_types,
-    ) = WalletImporter.parse_wallet_data_import(wallet_backup, print)
+    ) = WalletImporter.parse_wallet_data_import(wallet_backup)
 
     descriptor = Descriptor.parse(
         AddChecksum(recv_descriptor.split("#")[0]),

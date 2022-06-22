@@ -41,10 +41,7 @@ class WalletImporter:
                 self.wallet_name,
                 recv_descriptor,
                 self.cosigners_types,
-            ) = WalletImporter.parse_wallet_data_import(
-                self.wallet_data,
-                flash,
-            )
+            ) = WalletImporter.parse_wallet_data_import(self.wallet_data)
         except Exception as e:
             logger.warning(f"Trying to import: {wallet_json}")
             raise SpecterError(f"Unsupported wallet import format:{e}")
@@ -249,7 +246,7 @@ class WalletImporter:
         return json.dumps(self.wallet_data)
 
     @classmethod
-    def parse_wallet_data_import(cls, wallet_data, flash):
+    def parse_wallet_data_import(cls, wallet_data):
         """Parses wallet JSON for import, takes JSON in a supported format
         and returns a tuple of wallet name, wallet descriptor, and cosigners types (electrum
         and newer Specter backups).
