@@ -151,7 +151,6 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )
 
-    # register the notification services that are user independent (there is only 1 console, and only 1 logging)
     specter.notification_manager = NotificationManager()
     for user in specter.user_manager.users:
         specter.notification_manager.register_user_ui_notifications(user.id)
