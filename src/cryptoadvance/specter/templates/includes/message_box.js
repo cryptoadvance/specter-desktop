@@ -14,11 +14,9 @@ class MessageBox {
     }
   }
   
-  show(msg, callback, closeLabel, image=null, timeout=0) {
-    if (msg === "" || msg === undefined || msg === null) {
-      // If the 'msg' parameter is not set, throw an error
-      
-      throw "Message is empty or not defined.";
+  show(title, msg, callback, closeLabel, image=null, timeout=0) {
+    if (title === "" || title === undefined || title === null) { 
+      throw "title is empty or not defined.";
     }
     
     if (closeLabel === undefined || closeLabel === null) {
@@ -32,6 +30,8 @@ class MessageBox {
     const msgboxBox = document.createElement("DIV");
     const msgboxImage = document.createElement("DIV");
     const msgboxContent = document.createElement("DIV");
+    const msgboxTextWrapper = document.createElement("DIV");
+    const msgboxTitle = document.createElement("DIV");
     const msgboxText = document.createElement("DIV");
     const msgboxCommand = document.createElement("DIV");
     const msgboxClose = document.createElement("A");
@@ -49,12 +49,24 @@ class MessageBox {
 
     // Content area of the message box
     msgboxContent.classList.add("msgbox-content");
-    
-    // Text area of the message box
-    msgboxText.classList.add("msgbox-text");
-    msgboxText.innerText = msg;
-    msgboxContent.appendChild(msgboxText);
-    
+
+    // title and text div
+    msgboxTextWrapper.classList.add("msgbox-text");
+    msgboxContent.appendChild(msgboxTextWrapper);
+
+    //  title 
+    msgboxTitle.classList.add("msgbox-text");
+    msgboxTitle.setAttribute('style', 'font-weight: bold; margin-bottom:8px;');    
+    msgboxTitle.innerText = title;
+    msgboxTextWrapper.appendChild(msgboxTitle);
+
+    // Text area
+    if (msg != null){
+      msgboxText.classList.add("msgbox-text");
+      msgboxText.innerText = msg;
+      msgboxTextWrapper.appendChild(msgboxText);
+    }
+        
     // Command box or the button container
     msgboxCommand.classList.add("msgbox-command");
     

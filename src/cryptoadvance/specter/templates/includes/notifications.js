@@ -209,23 +209,19 @@ function js_message_box(js_notification){
     function this_notification_close(){
         on_close(js_notification['id'], 'js_message_box')    
     }
-
-    var message = js_notification['title'];
-    if (js_notification['options']['body']) {
-        message += '\n\n' + js_notification['options']['body']
-    }
-
+ 
     msgbox = new MessageBox({
         closeTime: js_notification['timeout']
       });
     msgbox.show(
-        message,
+        js_notification['title'], 
+        js_notification['options']['body'],
         this_notification_close,
         'Close',
         image=js_notification['options']['image'],
         );			
 
-    on_show(js_notification['id'], 'js_message_box')
+    on_show(js_notification['id'], 'js_message_box');
 }
 
 
