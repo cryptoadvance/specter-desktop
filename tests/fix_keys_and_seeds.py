@@ -11,10 +11,6 @@ mnemonic_ghost_machine = (
     "ghost ghost ghost ghost ghost ghost ghost ghost ghost ghost ghost machine"
 )
 
-mnemonic_zoo_when = (
-    "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo when"
-)
-
 
 @pytest.fixture
 def mnemonic_keen_join():
@@ -105,6 +101,85 @@ def acc0key_hold_accident(acc0xpub_hold_accident, rootkey_hold_accident: HDKey):
         "wpkh",  # key_type
         "Muuh",  # purpose
         acc0xpub_hold_accident.to_base58(version=NETWORKS["test"]["xpub"]),  # xpub
+    )
+    mydict = key.json
+    print(json.dumps(mydict))
+
+    return key
+
+
+# --------------ghost-machine----------------------
+@pytest.fixture
+def mnemonic_ghost_machine():
+    return 11 * "ghost " + "machine"
+
+
+@pytest.fixture
+def seed_ghost_machine(mnemonic_ghost_machine):
+    seed = mnemonic_to_seed(mnemonic_ghost_machine)
+    print(f"Ghost Machine seed: {hexlify(seed)}")
+    return mnemonic_to_seed(mnemonic_ghost_machine)
+
+
+@pytest.fixture
+def rootkey_ghost_machine(seed_ghost_machine):
+    rootkey = HDKey.from_seed(seed_ghost_machine)
+    print(f"Ghost Machine rootkey: {rootkey.to_base58()}")
+    print(f"Ghost Machine rootkey fp: {hexlify(rootkey.my_fingerprint)}")
+    return rootkey
+
+
+@pytest.fixture
+def acc0xprv_ghost_machine(rootkey_ghost_machine: HDKey):
+    xprv = rootkey_ghost_machine.derive("m/84h/1h/0h")
+    print(f"Ghost Machine acc0xprv: {xprv.to_base58(version=NETWORKS['test']['xprv'])}")
+    return xprv
+
+
+@pytest.fixture
+def acc0xpub_ghost_machine(acc0xprv_ghost_machine: HDKey):
+    xpub = acc0xprv_ghost_machine.to_public()
+    print(f"Ghost Machine acc0xpub: {xpub.to_base58(version=NETWORKS['test']['xpub'])}")
+    return xpub
+
+
+@pytest.fixture
+def acc0key0pubkey_ghost_machine(acc0xpub_ghost_machine: HDKey):
+    pubkey = acc0xpub_ghost_machine.derive("m/0/0")
+    print("------------")
+    print(pubkey.key)
+    print(hexlify(pubkey.sec()))
+    return pubkey
+
+
+@pytest.fixture
+def acc0key0addr_ghost_machine(acc0key0pubkey_ghost_machine):
+    sc = script.p2wpkh(acc0key0pubkey_ghost_machine)
+    address = sc.address(NETWORKS["test"])
+    print(address)  # m/84'/1'/0'/0/0
+    return address
+
+
+@pytest.fixture
+def key_ghost_machine(acc0key0pubkey_ghost_machine):
+    sc = script.p2wpkh(acc0key0pubkey_ghost_machine)
+    address = sc.address(NETWORKS["test"])
+    print(address)  # m/84'/1'/0'/0/0
+    return address
+
+
+@pytest.fixture
+def acc0key_ghost_machine(acc0xpub_ghost_machine, rootkey_ghost_machine: HDKey):
+
+    key: Key = Key(
+        acc0xpub_ghost_machine.to_base58(
+            version=NETWORKS["test"]["xpub"]
+        ),  # original (ToDo: better original)
+        hexlify(rootkey_ghost_machine.my_fingerprint).decode("utf-8"),  # fingerprint
+        "m/84h/1h/0h",  # derivation
+        "wpkh",  # key_type
+        "Muuh",  # purpose
+        acc0xpub_ghost_machine.to_base58(version=NETWORKS["test"]["xpub"]),  # xpub
     )
     mydict = key.json
     print(json.dumps(mydict))

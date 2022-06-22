@@ -2,7 +2,7 @@ import json
 import logging
 import os
 import time
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from cryptoadvance.specter.helpers import is_testnet
@@ -230,15 +230,10 @@ def test_wallet_createpsbt(
     assert wallet.amount_total == wallet.amount_available
 
 
-def test_WalletManager_check_duplicate_keys(empty_data_folder):
-    wm = WalletManager(
-        200100,
-        empty_data_folder,
-        MagicMock(),  # needs rpc
-        "regtest",
-        None,
-        allow_threading=False,
-    )
+def test_WalletManager_check_duplicate_keys(
+    empty_data_folder, acc0key_ghost_machine, acc0key_hold_accident
+):
+
     key1 = Key(
         "[f3e6eaff/84h/0h/0h]xpub6C5cCQfycZrPJnNg6cDdUU5efJrab8thRQDBxSSB4gP2J3xGdWu8cqiLvPZkejtuaY9LursCn6Es9PqHgLhBktW8217BomGDVBAJjUms8iG",
         "f3e6eaff",
@@ -282,6 +277,17 @@ def test_WalletManager_check_duplicate_keys(empty_data_folder):
         "xpub6BtcNhqbaFaoG3xcuncx9xzL3X38FuWXdcdvsdG5Q99Cb4EgeVYPEYaVpX28he6472gEsCokg8v9oMVRTrZNe5LHtGSPcC5ofehYkhD1Kxy",
     )
 
+    rpc_magicmock = MagicMock()
+    rpc_magicmock.wallet.return_value = rpc_magicmock
+    rpc_magicmock.getreceivedbyaddress.return_value = 0
+    wm = WalletManager(
+        200100,
+        empty_data_folder,
+        rpc_magicmock,
+        "regtest",
+        None,
+        allow_threading=False,
+    )
     # Case 1: Identical keys
     keys = [key1, key1]
     with pytest.raises(SpecterError):
@@ -294,6 +300,26 @@ def test_WalletManager_check_duplicate_keys(empty_data_folder):
 
     keys = [key4, key5]
     wm._check_duplicate_keys(keys)
+
+    # creating a singlesig wallet
+    with patch("cryptoadvance.specter.wallet.write_json_file"):
+        wm.create_wallet(
+            "ghost_machine", 1, "wpkh", [acc0key_ghost_machine], MagicMock()
+        )
+
+    # creating similiar singlesig wallet should raise exception
+    with pytest.raises(SpecterError):
+        # xpub tpubDC4DsqH5rqHqipMNqUbDFtQT3AkKkUrvLsN6miySvortU3s1LGaNVAb7wX2No2VsuxQV82T8s3HJLv3kdx1CPjsJ3onC1Zo5mWCQzRVaWVX seem to be used already by ghost_machine!
+        with patch("cryptoadvance.specter.wallet.write_json_file"):
+            wm.create_wallet(
+                "ghost_machine2", 1, "wpkh", [acc0key_ghost_machine], MagicMock()
+            )
+
+    # Reusing a key in a multisig should not raise an exception
+    with patch("cryptoadvance.specter.wallet.write_json_file"):
+        wm.create_wallet(
+            "ghost_machine2", 1, "wpkh", [acc0key_ghost_machine, key1], MagicMock()
+        )
 
 
 def test_wallet_sortedmulti(
