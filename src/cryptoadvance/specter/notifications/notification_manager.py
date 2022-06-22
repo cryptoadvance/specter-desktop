@@ -191,9 +191,11 @@ class NotificationManager:
 
     def treat_internal_message(self, internal_notification):
         """
-        Notifications with the title='internal_notification'  are not displayed to the user, but used for things like:
-        - handling callbacks  (like on_close or on_show)
-        - messaging back that a target ui is unavailable (the notification is then also rebroadcasted)
+        Notifications with the title='internal_notification'  are not displayed to the user.
+        It allows calling the internal functions for:
+        - "on_close"
+        - "on_show"
+        - "set_target_ui_availability" (if not available, the notification is rebroadcasted)
         """
         if "internal_notification" not in internal_notification.target_uis:
             return internal_notification
@@ -203,16 +205,18 @@ class NotificationManager:
             internal_notification.data["id"]
         )
 
-        if internal_notification.title == "set_target_ui_availability":
-            self._internal_set_target_ui_availability(
-                internal_notification, referenced_notification
-            )
-
-        if internal_notification.title == "on_show":
-            self._internal_on_show(internal_notification, referenced_notification)
-
-        if internal_notification.title == "on_close":
-            self._internal_on_close(internal_notification, referenced_notification)
+        if internal_notification.title in [
+            "set_target_ui_availability",
+            "on_show",
+            "on_close",
+        ]:
+            method = getattr(self, f"_internal_{internal_notification.title}", None)
+            if method:
+                method(internal_notification, referenced_notification)
+            else:
+                logger.warning(
+                    f"Could not call the method _internal_{internal_notification.title}"
+                )
 
     def create_notification(self, title, user_id, **kwargs):
         """
