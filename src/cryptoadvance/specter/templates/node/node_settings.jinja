@@ -1,6 +1,7 @@
 {% extends "base.jinja" %}
 {% block main %}
 	{% include "includes/qr-scanner.html" %}
+	{% include "includes/text-explainer.html" %}
 	
 		{% if node_alias %}
 			<h1 id="title">{{ node.name }}</h1>
@@ -18,18 +19,19 @@
 		<div class="card" style="margin: 10px auto 15px;">
 			<h2 style="text-align: center;">{{ _("JSON-RPC configuration") }} </h2>
 			<br>
-			<span id="toggle-explainer" style="cursor: pointer;">
-                &#128218; {{ _("Need help with the setup?") }} &#9654;
-            </span>
-            <br>
-            <div id="text-explainer" class="hidden warning flex-center flex-column" style="text-align: left;">
-            	<h3 style="align-self:start;">Bitcoin</h3><br>
-				{{ _("When auto-detect is on, Specter will check for environment variables (BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT) to configure the connection or attempt to automatically locate your Bitcoin data directory and load your node configurations from it.") }}<br>
-				{{ _('If your Bitcoin Core data directory is not located at the default location, you will need to enter its path under "Bitcoin Core data directory path" to locate it.') }}<br>
-				{{ _("If you are connecting to a remote node, you need to disable auto-detect and enter the node's configurations manually below.") }} <br><br>
-				<h3 style="align-self:start;">Liquid</h3>
-				{{ _("When auto-detect is on, Specter will here only check for environment variables (ELM_RPC_USER, ELM_RPC_PASSWORD, ELM_RPC_HOST, ELM_RPC_PORT).") }}
-            </div>
+
+			<text-explainer>
+                <span slot="title">{{ _("Need help with the setup?") }} </span>
+                <div slot="content" style="font-size: 0.9em;">
+                    <h4 style="align-self:start;">Bitcoin</h4><br>
+					{{ _("When auto-detect is on, Specter will check for environment variables (BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT) to configure the connection or attempt to locate your Bitcoin data directory and load your node configurations from it.") }}<br>
+					{{ _('If your Bitcoin Core data directory is not located at the default location, you will need to enter its path under "Bitcoin Core data directory path" to locate it.') }}<br>
+					{{ _("If you are connecting to a remote node, you need to disable auto-detect and enter the node's configurations manually below.") }} <br><br>
+					<h4 style="align-self:start; margin-top: 5px">Liquid</h4>
+					{{ _("When auto-detect is on, Specter will here only check for environment variables (ELM_RPC_USER, ELM_RPC_PASSWORD, ELM_RPC_HOST, ELM_RPC_PORT).") }}
+            	</div>
+            </text-explainer>
+
             <div style="display: flex; margin-top: 20px">
 				<label style="height: 25px;">Auto-detect:&nbsp;</label>
 				<label class="switch">
@@ -226,22 +228,5 @@
 			}
 		});
 	}
-
-    function toggleExplainer() {
-        let toggle = document.getElementById('toggle-explainer');
-        let explainerText = document.getElementById('text-explainer');
-        if (explainerText.classList.contains('hidden')) {
-            explainerText.classList.remove("hidden");
-            toggle.innerHTML = '&#128218; ' + 'Need help with the setup?' + ' &#9660;';
-        } else {
-            explainerText.classList.add("hidden");
-            toggle.innerHTML = '&#128218; ' + 'Need help with the setup?' + ' &#9654;';
-        }
-    }
-    document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById('toggle-explainer').addEventListener('click', (event) => {
-            toggleExplainer();
-        });
-    })
 </script>
 {% endblock %}
