@@ -146,7 +146,7 @@ class ConfigManager(GenericDataManager):
             chain_name = (
                 ""
                 if (chain == "main" or chain == "regtest")
-                else ("signet/" if self.chain == "signet" else "testnet/")
+                else ("signet/" if chain == "signet" else "testnet/")
             )
             explorer_data["url"] += chain_name
         # update the urls in the app config
