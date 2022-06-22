@@ -9,7 +9,20 @@ from ..notifications import ui_notifications
 
 
 class NotificationManager:
-    "Stores and distributes notifications to ui_notifications"
+    """
+    This class allows to register ui_notifications (like JSNotifications)
+
+    Notifications can be created and broadcasted with self.create_and_show
+        This will forward the notification to all appropriate ui_notifications
+
+        The notifications are also stored in self.notifications and
+        deleted again in self.on_close
+
+        If the ui_notification noticed later (async), that the notification
+        was not delivered, then the ui_notification call
+        create_notification('set_target_ui_availability', user_id, target_uis=["internal_notification"], is_available=False)
+        and the ui_notification will deactivate and the notification will be rebroadcasted
+    """
 
     def __init__(self, ui_notifications=None):
         """
