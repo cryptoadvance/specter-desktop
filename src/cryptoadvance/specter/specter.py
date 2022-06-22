@@ -47,8 +47,6 @@ from .util.version import VersionChecker
 from .util.price_providers import update_price
 from .util.setup_states import SETUP_STATES
 from .util.tor import get_tor_daemon_suffix
-from .notifications.notification_manager import NotificationManager
-from .notifications import ui_notifications
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +65,9 @@ class Specter:
         internal_bitcoind_version="",
         checker_threads=True,
     ):
-        self.notification_manager = None
+        self.notification_manager = (
+            None  # the singleton instance must be assigned from outside
+        )
 
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)

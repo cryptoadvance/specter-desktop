@@ -130,6 +130,13 @@ def get_new_notifications():
             return o.timestamp()
 
     js_notifications_dict = {}
+
+    if not app.specter.notification_manager:
+        logger.warning(
+            "get_new_notifications: app.specter.notification_manager not initialized.  Returning empty js_notifications_dict"
+        )
+        return json.dumps(js_notifications_dict)
+
     for (
         ui_notification
     ) in app.specter.notification_manager.get_ui_notifications_of_user(
@@ -172,6 +179,15 @@ def create_notification():
         )
 
     options = json.loads(request.form.get("options", "{}"))
+
+    if not app.specter.notification_manager:
+        logger.warning(
+            "create_notification: app.specter.notification_manager not initialized. "
+            f"Cannot create notification with title {title} and options {options}"
+            "Using print() for the notification instead"
+        )
+        print(title, options)
+        return
 
     logger.debug(
         f"wallets_endpoint_api create_notification with title  {title}, user_id {current_user} and options {options}"
