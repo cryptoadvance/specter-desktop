@@ -8,7 +8,7 @@ from ..notifications import ui_notifications
 
 class NotificationManager:
     """
-    This class allows to register ui_notifications (like JSNotifications)
+    This class allows to register ui_notifications (like JSNotifications).
 
     Notifications can be created and broadcasted with self.create_and_show
         This will forward the notification to all appropriate ui_notifications
@@ -257,11 +257,19 @@ class NotificationManager:
                 return notification
 
     def delete_notification(self, notification):
+        if notification not in self.notifications:
+            logging.warning(
+                f"delete_notification: notification {notification} was not found in self.notifications"
+            )
+            return
+
         del self.notifications[self.notifications.index(notification)]
         logger.debug(f"Deleted {notification}")
 
     def on_close(self, notification_id, target_ui):
-        "Deletes the notification.   target_ui is currently not used, but could be in the future"
+        """This is a simple on_close for the ui_notifications.
+        It only deletes the notification.
+        """
         notification = self.find_notification(notification_id)
         if not notification:
             logging.debug(f"on_close: Notification with id {notification_id} not found")
