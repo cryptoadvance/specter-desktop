@@ -11,7 +11,6 @@ from ..helpers import alias
 from ..services import ExtensionException
 from ..user import User, hash_password, verify_password
 
-from ..notifications import notifications
 from ..notifications.current_flask_user import flash
 
 rand = random.randint(0, 1e32)  # to force style refresh
@@ -53,7 +52,6 @@ def login():
                     ),
                     "error",
                 )
-
                 app.logger.info("AUDIT: Failed to check password")
                 return (
                     render_template(

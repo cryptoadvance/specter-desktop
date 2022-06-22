@@ -21,7 +21,6 @@ from .util.bcur import bcur_decode
 import threading
 from io import BytesIO
 import re
-from .notifications.current_flask_user import flash
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -266,8 +265,8 @@ def get_startblock_by_chain(specter):
     return startblock
 
 
-def notify_upgrade(app):
-    """If a new version is available, notifies the user
+def notify_upgrade(app, flash):
+    """If a new version is available, notifies the user via flash
     that there is an upgrade to specter.desktop
     :return the current version
     """

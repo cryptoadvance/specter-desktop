@@ -53,7 +53,7 @@ def settings():
 @settings_endpoint.route("/general", methods=["GET", "POST"])
 @login_required
 def general():
-    current_version = notify_upgrade(app)
+    current_version = notify_upgrade(app, flash)
     explorer_id = app.specter.explorer_id
     fee_estimator = app.specter.fee_estimator
     fee_estimator_custom_url = app.specter.config.get("fee_estimator_custom_url", "")
@@ -238,7 +238,7 @@ def tor():
         )
         return redirect("")
     app.specter.reset_setup("torbrowser")
-    current_version = notify_upgrade(app)
+    current_version = notify_upgrade(app, flash)
     proxy_url = app.specter.proxy_url
     only_tor = app.specter.only_tor
     tor_control_port = app.specter.tor_control_port
@@ -401,7 +401,7 @@ def auth():
     # TODO: Simplify this endpoint. Separate out setting the Authentication mode from all
     # the other options here: updating admin username/password, adding users, deleting
     # users, etc. Do those in simple separate screens with their own endpoints.
-    current_version = notify_upgrade(app)
+    current_version = notify_upgrade(app, flash)
     auth = app.specter.config["auth"]
     method = auth["method"]
     rate_limit = auth["rate_limit"]
@@ -646,7 +646,7 @@ def auth():
 @settings_endpoint.route("/hwi", methods=["GET", "POST"])
 @login_required
 def hwi():
-    current_version = notify_upgrade(app)
+    current_version = notify_upgrade(app, flash)
     if request.method == "POST":
         hwi_bridge_url = request.form["hwi_bridge_url"]
         app.specter.update_hwi_bridge_url(hwi_bridge_url, current_user)

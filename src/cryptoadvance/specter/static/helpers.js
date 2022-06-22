@@ -61,11 +61,10 @@ document.addEventListener("updateAddressLabel", function (e) {
 		});
 	}
 });
+
 function showError(msg, timeout=0) {
 	return showNotification(msg, timeout, "error");
 }
-
-
 
 async function send_request(url, method_str, csrf_token, formData) {
 	if (!formData) {
@@ -88,7 +87,6 @@ async function send_request(url, method_str, csrf_token, formData) {
 	return await response.json();
 }
 
-
 function showNotification(msg, timeout=3000, type="primary") {
 	let el = document.createElement("message-box");
 	el.setAttribute("type", type);
@@ -100,8 +98,6 @@ function showNotification(msg, timeout=3000, type="primary") {
 	});
 	return el;
 }
-
-
 
 function copyText(value, msg) {
 	try {
@@ -122,11 +118,13 @@ function copyText(value, msg) {
 		showError('Unable to copy text');
 	}
 }
+
 async function wait(ms){
 	return new Promise(resolve => {
 		setTimeout(resolve, ms);
 	});
 }
+
 function capitalize(str){
 	return str.charAt(0).toUpperCase()+str.substring(1);
 }

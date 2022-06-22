@@ -1,6 +1,5 @@
 import json
 import logging
-from flask import current_app as app
 from cryptoadvance.specter.managers.wallet_manager import WalletManager
 
 from cryptoadvance.specter.specter_error import SpecterError

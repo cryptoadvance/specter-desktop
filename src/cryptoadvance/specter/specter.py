@@ -65,9 +65,9 @@ class Specter:
         internal_bitcoind_version="",
         checker_threads=True,
     ):
-        self.notification_manager = (
-            None  # the singleton instance must be assigned from outside
-        )
+
+        # the notification_manager instance must be assigned from outside
+        self.notification_manager = None
 
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)
