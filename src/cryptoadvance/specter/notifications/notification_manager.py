@@ -32,6 +32,25 @@ class NotificationManager:
         self.notifications = []
         self.register_default_ui_notifications()
 
+    def find_target_ui(self, target_ui, user_id):
+        for ui_notification in self.ui_notifications:
+            if (ui_notification.name == target_ui) and (
+                ui_notification.user_id == user_id
+            ):
+                return ui_notification
+
+    def find_notification(self, notification_id):
+        for notification in self.notifications:
+            if notification.id == notification_id:
+                return notification
+
+    def get_default_target_ui_name(self):
+        "Returns the first ui_notifications"
+        return self.ui_notifications[0].name if self.ui_notifications else None
+
+    def get_all_target_ui_names(self):
+        return {ui_notification.name for ui_notification in self.ui_notifications}
+
     def register_default_ui_notifications(self):
         self.register_ui_notification(
             ui_notifications.LoggingNotifications(on_close=self.on_close)
@@ -61,13 +80,6 @@ class NotificationManager:
         )
         self.ui_notifications.append(ui_notification)
 
-    def find_target_ui(self, target_ui, user_id):
-        for ui_notification in self.ui_notifications:
-            if (ui_notification.name == target_ui) and (
-                ui_notification.user_id == user_id
-            ):
-                return ui_notification
-
     def set_target_ui_availability(self, target_ui, user_id, is_available):
         ui_notification = self.find_target_ui(target_ui, user_id)
         if not ui_notification:
@@ -91,6 +103,142 @@ class NotificationManager:
             for ui_notification in self.ui_notifications
             if ui_notification.user_id is None
         ]
+
+    def set_notification_shown(self, notification_id, target_ui):
+        notification = self.find_notification(notification_id)
+        if not notification:
+            logging.warning(
+                f"set_notification_shown: Notification with id {notification_id} not found"
+            )
+            return
+        notification.set_shown(target_ui)
+
+    def delete_notification(self, notification):
+        if notification not in self.notifications:
+            logging.warning(
+                f"delete_notification: notification {notification} was not found in self.notifications"
+            )
+            return
+
+        del self.notifications[self.notifications.index(notification)]
+        logger.debug(f"Deleted {notification}")
+
+    def on_close(self, notification_id, target_ui):
+        """This is a simple on_close for the ui_notifications.
+        It only deletes the notification.
+        """
+        notification = self.find_notification(notification_id)
+        if not notification:
+            logging.debug(f"on_close: Notification with id {notification_id} not found")
+            return
+
+        self.delete_notification(notification)
+
+    def _internal_set_target_ui_availability(
+        self, internal_notification, referenced_notification
+    ):
+        logger.debug(
+            f'{internal_notification.data["target_ui"]} is unavailable, now deactivating this target_ui and rebroadcasting'
+        )
+        self.set_target_ui_availability(
+            internal_notification.data["target_ui"],
+            internal_notification.user_id,
+            internal_notification.data["is_available"],
+        )
+        if not internal_notification.data["is_available"]:
+            # if it is not available rebroadcast
+            if not referenced_notification:
+                logger.warning(
+                    f'Rebrodcasting of {internal_notification.data["id"]} not possible because referenced_notification={referenced_notification}'
+                )
+                return
+            logger.debug(f"Rebrodcasting {referenced_notification.id}")
+            self.show(referenced_notification)
+
+    def _internal_on_show(self, internal_notification, referenced_notification):
+        if not referenced_notification:
+            return
+
+        self.set_notification_shown(
+            referenced_notification.id,
+            internal_notification.data["target_ui"],
+        )
+        ui_notification = self.find_target_ui(
+            internal_notification.data["target_ui"], referenced_notification.user_id
+        )
+        # perhaps the target_ui was not available and it was displayed in another ui_notification.
+        # However still call on_show of the original target_ui
+        if ui_notification.on_show:
+            ui_notification.on_show(
+                referenced_notification.id,
+                internal_notification.data["target_ui"],
+            )
+
+    def _internal_on_close(self, internal_notification, referenced_notification):
+        if not referenced_notification:
+            return
+
+        ui_notification = self.find_target_ui(
+            internal_notification.data["target_ui"], referenced_notification.user_id
+        )
+        # perhaps the target_ui was not available and it was displayed in another ui_notification.
+        # However still call on_close of the original target_ui
+        if ui_notification.on_close:
+            ui_notification.on_close(
+                referenced_notification.id,
+                internal_notification.data["target_ui"],
+            )
+
+    def treat_internal_message(self, internal_notification):
+        """
+        Notifications with the title='internal_notification'  are not displayed to the user, but used for things like:
+        - handling callbacks  (like on_close or on_show)
+        - messaging back that a target ui is unavailable (the notification is then also rebroadcasted)
+        """
+        if "internal_notification" not in internal_notification.target_uis:
+            return internal_notification
+        logger.debug(f"treat_internal_message {internal_notification}")
+
+        referenced_notification = self.find_notification(
+            internal_notification.data["id"]
+        )
+
+        if internal_notification.title == "set_target_ui_availability":
+            self._internal_set_target_ui_availability(
+                internal_notification, referenced_notification
+            )
+
+        if internal_notification.title == "on_show":
+            self._internal_on_show(internal_notification, referenced_notification)
+
+        if internal_notification.title == "on_close":
+            self._internal_on_close(internal_notification, referenced_notification)
+
+    def create_notification(self, title, user_id, **kwargs):
+        """
+        Creates a notification (which adds it to self.notifications) and also broadcasts it to ui_notifications.
+        kwargs are the optional arguments of Notification
+        """
+        logger.debug(
+            f"Starting to ceated notification with title, **kwargs   {title, kwargs}"
+        )
+
+        notification = Notification(
+            title,
+            self.get_default_target_ui_name(),
+            self.get_all_target_ui_names(),
+            user_id,
+            **kwargs,
+        )
+
+        # treat an internal (notification) message
+        if "internal_notification" in notification.target_uis:
+            # in case       treat_internal_message returns a notification, then proceed with that
+            return self.treat_internal_message(notification)
+
+        self.notifications.append(notification)
+        logger.debug(f"Created notification {notification}")
+        return notification
 
     def show(self, notification):
         """
@@ -129,112 +277,6 @@ class NotificationManager:
                     if notification_broadcasted:
                         break
 
-    def set_notification_shown(self, notification_id, target_ui):
-        notification = self.find_notification(notification_id)
-        if not notification:
-            logging.warning(
-                f"set_notification_shown: Notification with id {notification_id} not found"
-            )
-            return
-        notification.set_shown(target_ui)
-
-    def treat_internal_message(self, internal_notification):
-        """
-        Notifications with the title='internal_notification'  are not displayed to the user, but used for things like:
-        - handling callbacks  (like on_close or on_show)
-        - messaging back that a target ui is unavailable (the notification is then also rebroadcasted)
-        """
-        if "internal_notification" not in internal_notification.target_uis:
-            return internal_notification
-        logger.debug(f"treat_internal_message {internal_notification}")
-
-        referenced_notification = self.find_notification(
-            internal_notification.data["id"]
-        )
-
-        if internal_notification.title == "set_target_ui_availability":
-            logger.debug(
-                f'{internal_notification.data["target_ui"]} is unavailable, now deactivating this target_ui and rebroadcasting'
-            )
-            self.set_target_ui_availability(
-                internal_notification.data["target_ui"],
-                internal_notification.user_id,
-                internal_notification.data["is_available"],
-            )
-            if not internal_notification.data["is_available"]:
-                # if it is not available rebroadcast
-                if not referenced_notification:
-                    return
-                logger.debug(f"Rebrodcasting {referenced_notification.id}")
-                self.show(referenced_notification)
-
-        if internal_notification.title == "on_show":
-            if not referenced_notification:
-                return
-
-            self.set_notification_shown(
-                referenced_notification.id,
-                internal_notification.data["target_ui"],
-            )
-            ui_notification = self.find_target_ui(
-                internal_notification.data["target_ui"], referenced_notification.user_id
-            )
-            # perhaps the target_ui was not available and it was displayed in another ui_notification.
-            # However still call on_show of the original target_ui
-            if ui_notification.on_show:
-                ui_notification.on_show(
-                    referenced_notification.id,
-                    internal_notification.data["target_ui"],
-                )
-
-        if internal_notification.title == "on_close":
-            if not referenced_notification:
-                return
-
-            ui_notification = self.find_target_ui(
-                internal_notification.data["target_ui"], referenced_notification.user_id
-            )
-            # perhaps the target_ui was not available and it was displayed in another ui_notification.
-            # However still call on_close of the original target_ui
-            if ui_notification.on_close:
-                ui_notification.on_close(
-                    referenced_notification.id,
-                    internal_notification.data["target_ui"],
-                )
-
-    def get_default_target_ui_name(self):
-        "Returns the first ui_notifications"
-        return self.ui_notifications[0].name if self.ui_notifications else None
-
-    def get_all_target_ui_names(self):
-        return {ui_notification.name for ui_notification in self.ui_notifications}
-
-    def create_notification(self, title, user_id, **kwargs):
-        """
-        Creates a notification (which adds it to self.notifications) and also broadcasts it to ui_notifications.
-        kwargs are the optional arguments of Notification
-        """
-        logger.debug(
-            f"Starting to ceated notification with title, **kwargs   {title, kwargs}"
-        )
-
-        notification = Notification(
-            title,
-            self.get_default_target_ui_name(),
-            self.get_all_target_ui_names(),
-            user_id,
-            **kwargs,
-        )
-
-        # treat an internal (notification) message
-        if "internal_notification" in notification.target_uis:
-            # in case       treat_internal_message returns a notification, then proceed with that
-            return self.treat_internal_message(notification)
-
-        self.notifications.append(notification)
-        logger.debug(f"Created notification {notification}")
-        return notification
-
     def flash(self, message: str, user_id, category: str = "message"):
         "Creates and shows a flask flash message"
         self.create_and_show(
@@ -250,29 +292,3 @@ class NotificationManager:
         if notification:
             self.show(notification)
         return notification
-
-    def find_notification(self, notification_id):
-        for notification in self.notifications:
-            if notification.id == notification_id:
-                return notification
-
-    def delete_notification(self, notification):
-        if notification not in self.notifications:
-            logging.warning(
-                f"delete_notification: notification {notification} was not found in self.notifications"
-            )
-            return
-
-        del self.notifications[self.notifications.index(notification)]
-        logger.debug(f"Deleted {notification}")
-
-    def on_close(self, notification_id, target_ui):
-        """This is a simple on_close for the ui_notifications.
-        It only deletes the notification.
-        """
-        notification = self.find_notification(notification_id)
-        if not notification:
-            logging.debug(f"on_close: Notification with id {notification_id} not found")
-            return
-
-        self.delete_notification(notification)
