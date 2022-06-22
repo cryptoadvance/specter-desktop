@@ -51,11 +51,11 @@ class MessageBox {
     msgboxContent.classList.add("msgbox-content");
 
     // title and text div
-    msgboxTextWrapper.classList.add("msgbox-text");
+    msgboxTextWrapper.classList.add("msgbox-wrapper");
     msgboxContent.appendChild(msgboxTextWrapper);
 
     //  title 
-    msgboxTitle.classList.add("msgbox-text");
+    msgboxTitle.classList.add("msgbox-title");
     msgboxTitle.setAttribute('style', 'font-weight: bold; margin-bottom:8px;');    
     msgboxTitle.innerText = title;
     msgboxTextWrapper.appendChild(msgboxTitle);

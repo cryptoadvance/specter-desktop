@@ -21,10 +21,9 @@ describe('Sending notifications', () => {
             // wait for the msgbox-area to appear, then test the content
             cy.get('.msgbox-area', { timeout: 10000 }).then(()=>{
 
-
-                cy.get('.msgbox-area').get('.msgbox-text').invoke('text').should('eq', some_title)
+                cy.get('.msgbox-area').get('.msgbox-title').invoke('text').should('eq', some_title)
                 cy.get('.msgbox-area').get('.msgbox-close').click()
-                cy.get('.msgbox-area').get('.msgbox-text').should('not.exist');                    
+                cy.get('.msgbox-area').get('.msgbox-title').should('not.exist');                    
             })
         });
 

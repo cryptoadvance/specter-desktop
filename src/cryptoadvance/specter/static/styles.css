@@ -1360,6 +1360,12 @@ input:checked + .slider:before {
 .msgbox-text {
     width: 100%;
 } 
+.msgbox-title {
+    width: 100%;
+} 
+.msgbox-wrapper {
+    width: 100%;
+} 
 .msgbox-command {
     padding-right: 10px;
     padding-bottom: 10px;
