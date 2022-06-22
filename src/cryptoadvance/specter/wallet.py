@@ -765,9 +765,10 @@ class Wallet:
             keys = [Key.from_json(key_dict) for key_dict in wallet_dict["keys"]]
             devices = wallet_dict["devices"]
         except Exception as e:
-            handle_exception(e)
-            logger.error("Could not construct a Wallet object from the data provided.")
-            return
+            logger.error(
+                f"Could not construct a Wallet object from the data provided: {wallet_dict}. Reraise {e}"
+            )
+            raise e
 
         combined_descriptor = cls.merge_descriptors(recv_descriptor, change_descriptor)
 
@@ -1333,7 +1334,15 @@ class Wallet:
                 )
         return desc
 
-    def get_descriptor(self, index=None, change=False, address=None, keep_xpubs=False):
+    def get_descriptor(
+        self,
+        index=None,
+        change=False,
+        address=None,
+        keep_xpubs=False,
+        to_string=False,
+        with_checksum=False,
+    ):
         """
         Returns address descriptor from index, change
         or from address belonging to the wallet.
@@ -1348,7 +1357,14 @@ class Wallet:
                 change = a.change
         if index is None:
             index = self.change_index if change else self.address_index
-        return self.derive_descriptor(index, change, keep_xpubs)
+        if not to_string:
+            return self.derive_descriptor(index, change, keep_xpubs)
+        else:
+            desc_string = self.derive_descriptor(index, change, keep_xpubs).to_string()
+            if with_checksum:
+                return add_checksum(desc_string)
+            else:
+                return desc_string
 
     def get_address_info(self, address) -> Address:
         # TODO: This is a misleading name. This is really fetching an Address obj

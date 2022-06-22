@@ -491,11 +491,11 @@ def addressinfo(wallet_alias):
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
         address = request.form.get("address", "")
         if address:
-            descriptor = add_checksum(
-                wallet.get_descriptor(address=address, keep_xpubs=False).to_string()
+            descriptor = wallet.get_descriptor(
+                address=address, keep_xpubs=False, to_string=True, with_checksum=True
             )
-            xpubs_descriptor = add_checksum(
-                wallet.get_descriptor(address=address, keep_xpubs=True).to_string()
+            xpubs_descriptor = wallet.get_descriptor(
+                address=address, keep_xpubs=True, to_string=True, with_checksum=True
             )
             # The last two regex groups are optional since Electrum's derivation path is shorter
             derivation_path_pattern = (
