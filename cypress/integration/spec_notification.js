@@ -18,7 +18,9 @@ describe('Sending notifications', () => {
         cy.window().then((win) => {
             win.eval(cmd);
         }).then((response) => {
-            cy.wait(3000).then(()=>{
+            // wait for the msgbox-area to appear, then test the content
+            cy.get('.msgbox-area', { timeout: 10000 }).then(()=>{
+
 
                 cy.get('.msgbox-area').get('.msgbox-text').invoke('text').should('eq', some_title)
                 cy.get('.msgbox-area').get('.msgbox-close').click()
