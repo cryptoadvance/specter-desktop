@@ -104,6 +104,7 @@ class ServiceManager:
             return
         if hasattr(clazz, "blueprint_modules"):
             controller_modules = clazz.blueprint_modules
+            setattr(clazz, "blueprints", {})
         elif hasattr(clazz, "blueprint_module"):
             controller_modules = {"default": clazz.blueprint_module}
         else:
@@ -121,13 +122,15 @@ class ServiceManager:
         for bp_key, bp_value in controller_modules.items():
             middple_part = "" if only_one_blueprint else f"{bp_key}_"
             bp = Blueprint(
-                f"{clazz.id}_{middple_part}endpoint",
+                f"{clazz.id}_{middple_part}ep",
                 bp_value,
                 template_folder=get_template_static_folder("templates"),
                 static_folder=get_template_static_folder("static"),
             )
-
-            setattr(clazz, "blueprint" if only_one_blueprint else bp_key, bp)
+            if only_one_blueprint:
+                setattr(clazz, "blueprint", bp)
+            else:
+                clazz.blueprints[bp_key] = bp
             bp.context_processor(inject_stuff)
 
             # Import the controller for this service
@@ -163,9 +166,7 @@ class ServiceManager:
                     app.register_blueprint(
                         bp, url_prefix=f"{ext_prefix}/{clazz.id}{bp_postfix}"
                     )
-                logger.info(
-                    f"  Mounted {clazz.id} to {ext_prefix}/{clazz.id}{bp_postfix}"
-                )
+                logger.info(f"  Mounted {bp} to {ext_prefix}/{clazz.id}{bp_postfix}")
             except AssertionError as e:
                 if str(e).startswith("A name collision"):
                     raise SpecterError(
