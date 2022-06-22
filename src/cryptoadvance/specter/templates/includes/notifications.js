@@ -97,14 +97,14 @@ var webapi_has_permission = false; //global variable
 
 /**
  * Checks and if necessary requests the Notification_API permission
- * @param {*} f_success   A function that is called if f_success == true
- * @param {*} f_denied    A function that is called if f_success == false
- * @param {*} f_default   A function that is called if f_success == "default"
+ * @param {*} f_granted   A function that is called if f_granted == true
+ * @param {*} f_denied    A function that is called if f_granted == false
+ * @param {*} f_default   A function that is called if f_granted == "default"
  * @param {*} retries_if_permission_default : How often should it request Notification_API permission?
  * @param {*} retry_time_distance : After how many milliseconds should it ask again for permission?
  * @returns webapi_has_permission
  */
-function check_and_request_webapi_permission(f_success, f_denied, f_default, retries_if_permission_default=5, retry_time_distance=2000){
+function check_and_request_webapi_permission(f_granted, f_denied, f_default, retries_if_permission_default=5, retry_time_distance=2000){
     if (!("Notification" in window)) {
         return false
     }
@@ -112,7 +112,7 @@ function check_and_request_webapi_permission(f_success, f_denied, f_default, ret
     check_webapi_has_permission()
 
     if (webapi_has_permission == true) {
-        f_success();
+        f_granted();
     }  else if (webapi_has_permission == false) {
         f_denied();  
     } else // if the status is undecided, then request permission
@@ -122,7 +122,7 @@ function check_and_request_webapi_permission(f_success, f_denied, f_default, ret
 
 
         if (webapi_has_permission == true) {
-            f_success();
+            f_granted();
         }  else if (webapi_has_permission == false) {
             f_denied();  
         } else if (webapi_has_permission == "default") 
@@ -132,7 +132,7 @@ function check_and_request_webapi_permission(f_success, f_denied, f_default, ret
             if (retries_if_permission_default>0){
                 // create recursion loop, that breaks if user grants or blocks the notification
                 console.log(`Start recursion ${retries_if_permission_default-1}`);
-                setTimeout(check_and_request_webapi_permission, retry_time_distance, f_success, f_denied, f_default, retries_if_permission_default-1, retry_time_distance);  
+                setTimeout(check_and_request_webapi_permission, retry_time_distance, f_granted, f_denied, f_default, retries_if_permission_default-1, retry_time_distance);  
             } else
             // if it reached the end of the recursion without any user interaction, then
             // deactivate the ui_notification 
@@ -181,7 +181,7 @@ function webapi_notification(js_notification) {
     };
 
 
-    function f_success(){
+    function f_granted(){
         create_webapi_notification();
     }
     function f_denied(){
@@ -193,7 +193,7 @@ function webapi_notification(js_notification) {
         set_target_ui_availability('WebAPI', false, js_notification['id']);  
     }
 
-    check_and_request_webapi_permission(f_success, f_denied, f_default);
+    check_and_request_webapi_permission(f_granted, f_denied, f_default);
 };
 
 
