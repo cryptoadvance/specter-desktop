@@ -149,7 +149,7 @@
                     if (this.isVerifyHwi) { 
                         addressInfoHTML += `
                         <br>
-                        <button type="button" onclick='hidePageOverlay();displayAddressOnDevice("${address}", unescape("${escape(JSON.stringify(descriptor))}"))' class="btn" style="min-width:200px; max-width:300px; margin: auto;">{{ _("Verify address on device") }}</button>`;
+                        <button type="button" onclick='hidePageOverlay();displayAddressOnDevice("${address}", "${descriptor}", "${xpubs_descriptor}")' class="btn" style="min-width:200px; max-width:300px; margin: auto;">{{ _("Verify address on device") }}</button>`;
                     }
 
                     if (this.isVerifyQR) { 

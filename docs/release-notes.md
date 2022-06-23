@@ -1,4 +1,18 @@
-## v1.10.2 Juni 03, 2022
+## v1.10.3 June 22, 2022
+- Bugfix: Display address on device #1774 (Manolis Mandrapilias)
+- Bugfix: Longer Timeout for run_the_numbers #1769 (k9ert)
+- Bugfix: Rescan won't work for fullnodes without explorer #1771 (k9ert)
+- Bugfix: Send max with multiple recipients #1744 (Harshit)
+- Bugfix: Start_specter ran twice in sub_open #1768 (k9ert)
+- Bugfix: Visual artifact in the electron settings dialog #1754 (djpnewton)
+- Chore: Making text-explainer a webcomponent #1752 (Shlok Pandey)
+- Chore: Refactor_wallet_manager #1667 (k9ert)
+- Docs: Corrected links in development.md #1742 (Ankur)
+- Feature: combined test script for cypress and pytest #1749 (relativisticelectron)
+- Feature: Drag and drop for PSBT import #1758 (Shlok Pandey)
+- UIUX: Fixed html character codes for multisig guide & polishment of about page #1743 (Manolis Mandrapilias)
+
+## v1.10.2 June 03, 2022
 - Feature: Basic auth in electron #1730 (djpnewton)
 - Feature: Multisig beginner guide #1731 (relativisticelectron)
 - Bugfix: Corrected build instructions and made virtuelenv name dynamic #1735 (relativisticelectron)
@@ -6,7 +20,7 @@
 - Bugfix: PDF backup does not open for multisig #1741 (k9ert)
 - UIUX: fix typo in error_logs #1739 (Bufo)
 
-## v1.10.0 Mai 27, 2022
+## v1.10.0 May 27, 2022
 - Feature: adding has_service() method to user #1732 (Kim Neunert)
 - Feature: Choose file button for labels import #1682 (Manolis)
 - Feature: Customised front end for adding Electrum devices #1622 (relativisticelectron)
@@ -55,7 +69,7 @@
 - Chore: Bump minimist from 1.2.5 to 1.2.6 #1639 (dependabot[bot])
 - Chore: Update elements to 0.21.0.2 #1641 (Kim Neunert)
 
-## v1.9.0 März 30, 2022
+## v1.9.0 March 30, 2022
 - Feature: added better scrollbar for all table-style-lists #1598 (relativisticelectron)
 - Feature: CLI and a publishing model for extensions #1566 (Kim Neunert)
 - Feature: Import of raw transaction #1591 (relativisticelectron)
@@ -97,7 +111,7 @@
 - Docs: Update daemon.md #1586 (GoofyAF)
 
 
-## v1.8.0 Januar 29, 2022
+## v1.8.0 January 29, 2022
 - Feature: Add Jade multisig support #1520 (Stepan Snigirev)
 - Feature: add liquid-testnet support #1527 (Stepan Snigirev)
 - Feature: Allow descriptors with xpubs but without derivations (just wpkh(xpub) ) for wallet imports  #1519 (Stepan Snigirev)
