@@ -35,7 +35,7 @@ class NotificationManager:
     def find_target_ui(self, target_ui, user_id):
         for ui_notification in self.ui_notifications:
             if (ui_notification.name == target_ui) and (
-                ui_notification.user_id == user_id
+                (ui_notification.user_id == user_id or ui_notification.user_id is None)
             ):
                 return ui_notification
 
@@ -52,27 +52,15 @@ class NotificationManager:
         return {ui_notification.name for ui_notification in self.ui_notifications}
 
     def register_default_ui_notifications(self):
-        self.register_ui_notification(
-            ui_notifications.LoggingNotifications(on_close=self.on_close)
-        )
-        self.register_ui_notification(
-            ui_notifications.PrintNotifications(on_close=self.on_close)
-        )
+        self.register_ui_notification(ui_notifications.LoggingNotifications())
+        self.register_ui_notification(ui_notifications.PrintNotifications())
 
     def register_user_ui_notifications(self, user_id):
         "setting up the notification system for this user"
-        self.register_ui_notification(
-            ui_notifications.WebAPINotifications(user_id, on_close=self.on_close)
-        )
-        self.register_ui_notification(
-            ui_notifications.JSNotifications(user_id, on_close=self.on_close)
-        )
-        self.register_ui_notification(
-            ui_notifications.FlashNotifications(user_id, on_close=self.on_close)
-        )
-        self.register_ui_notification(
-            ui_notifications.JSConsoleNotifications(user_id, on_close=self.on_close)
-        )
+        self.register_ui_notification(ui_notifications.WebAPINotifications(user_id))
+        self.register_ui_notification(ui_notifications.JSNotifications(user_id))
+        self.register_ui_notification(ui_notifications.FlashNotifications(user_id))
+        self.register_ui_notification(ui_notifications.JSConsoleNotifications(user_id))
 
     def register_ui_notification(self, ui_notification):
         logger.debug(
@@ -123,17 +111,6 @@ class NotificationManager:
         del self.notifications[self.notifications.index(notification)]
         logger.debug(f"Deleted {notification}")
 
-    def on_close(self, notification_id, target_ui):
-        """This is a simple on_close for the ui_notifications.
-        It only deletes the notification.
-        """
-        notification = self.find_notification(notification_id)
-        if not notification:
-            logging.debug(f"on_close: Notification with id {notification_id} not found")
-            return
-
-        self.delete_notification(notification)
-
     def _internal_set_target_ui_availability(
         self, internal_notification, referenced_notification
     ):
@@ -174,7 +151,21 @@ class NotificationManager:
                 internal_notification.data["target_ui"],
             )
 
+    def notification_can_be_deleted(self, notification):
+        available_target_uis = {
+            target_ui
+            for target_ui in notification.target_uis
+            if self.find_target_ui(target_ui, notification.user_id)
+            and self.find_target_ui(target_ui, notification.user_id).is_available
+        }
+        logger.debug(
+            f"available_target_uis = {available_target_uis}, was_closed_in_target_uis = {notification.was_closed_in_target_uis}"
+        )
+        # it it was closed in all available_target_uis, then go ahead and delete the notification
+        return not (available_target_uis - notification.was_closed_in_target_uis)
+
     def _internal_on_close(self, internal_notification, referenced_notification):
+        "calls on_close and deletes the notification afterwards"
         if not referenced_notification:
             return
 
@@ -188,6 +179,10 @@ class NotificationManager:
                 referenced_notification.id,
                 internal_notification.data["target_ui"],
             )
+
+        referenced_notification.set_closed(internal_notification.data["target_ui"])
+        if self.notification_can_be_deleted(referenced_notification):
+            self.delete_notification(referenced_notification)
 
     def treat_internal_message(self, internal_notification):
         """
@@ -280,6 +275,10 @@ class NotificationManager:
                     logger.debug(f"show {notification} on {ui_notification}")
                     if notification_broadcasted:
                         break
+        # for some ui_notifications, the last_shown_date and was_closed_in_target_uis is set immediately.
+        # then the message can also be delted immediately
+        if self.notification_can_be_deleted(notification):
+            self.delete_notification(notification)
 
     def flash(self, message: str, user_id, category: str = "message"):
         "Creates and shows a flask flash message"

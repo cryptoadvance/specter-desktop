@@ -26,6 +26,9 @@ class BaseUINotifications:
     def show(self, notification):
         pass
 
+    def __repr__(self):
+        return str({"class name": self.__class__.__name__, "attributes": self.__dict__})
+
 
 class PrintNotifications(BaseUINotifications):
     """
@@ -51,6 +54,7 @@ class PrintNotifications(BaseUINotifications):
         notification.set_shown(self.name)
         if self.on_show:
             self.on_show(notification.id, self.name)
+        notification.set_closed(self.name)
         if self.on_close:
             self.on_close(notification.id, self.name)
         return True  # successfully broadcasted
@@ -83,6 +87,7 @@ class LoggingNotifications(BaseUINotifications):
         notification.set_shown(self.name)
         if self.on_show:
             self.on_show(notification.id, self.name)
+        notification.set_closed(self.name)
         if self.on_close:
             self.on_close(notification.id, self.name)
         return True  # successfully broadcasted
@@ -121,6 +126,7 @@ class FlashNotifications(BaseUINotifications):
         notification.set_shown(self.name)
         if self.on_show:
             self.on_show(notification.id, self.name)
+        notification.set_closed(self.name)
         if self.on_close:
             self.on_close(notification.id, self.name)
         return True  # successfully broadcasted
