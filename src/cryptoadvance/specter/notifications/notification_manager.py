@@ -152,6 +152,7 @@ class NotificationManager:
             )
 
     def notification_can_be_deleted(self, notification):
+        "CHecks if the target_ui was set in was_closed_in_target_uis, if the target_ui is available"
         available_target_uis = {
             target_ui
             for target_ui in notification.target_uis
