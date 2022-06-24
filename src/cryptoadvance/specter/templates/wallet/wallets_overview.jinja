@@ -60,7 +60,7 @@
         <br>
         {% endif %}
     </h1>
-    <div class="table-holder">
+    <div class="table-holder scroll-table-container">
         {% include "includes/tx-row.html" %}
         {% include "includes/tx-data.html" %}
         {% include "includes/explorer-link.html" %}
@@ -72,7 +72,9 @@
             {% endif %}
             btc-unit="{{ specter.unit }}"
             hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
-            type="txlist">
+            type="txlist"
+            scrollbar-default="on"
+            table-border-radius="0px">
         </tx-table>
     </div>
     <div id="tx-popup" class="hidden"></div>
