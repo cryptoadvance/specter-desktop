@@ -929,7 +929,7 @@ table tr:hover .btn.hovering{
 .pagination-arrow {
     text-decoration: none;
     display: inline-block;
-    margin: 0px 16px 16px;
+    margin: 0px 16px 0px;
     border-radius: 50%;
     color: #fff;
     font-size: 1.5em;
