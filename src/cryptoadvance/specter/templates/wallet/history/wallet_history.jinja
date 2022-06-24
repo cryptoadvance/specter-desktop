@@ -3,7 +3,7 @@
 {% block content %}
 	{% from 'wallet/history/components/total_wallet_balances.jinja' import total_wallet_balances %}
 	{{ total_wallet_balances(wallet, specter) }}
-	<div class="table-holder">
+	<div class="table-holder scroll-table-container">
 		{% include "includes/services-data.html" %}
 		{% include "includes/tx-row.html" %}
 		{% include "includes/tx-data.html" %}
@@ -20,7 +20,7 @@
 		hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
 		wallet="{{ wallet.alias }}"
 		scrollbar-default="on"
-        scrollbar-switch="true">
+		table-border-radius="0px">
 		</tx-table>
 	</div>
 {% endblock %}

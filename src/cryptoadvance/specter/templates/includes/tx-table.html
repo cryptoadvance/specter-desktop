@@ -33,7 +33,9 @@
     blockhash="true" 
     hide-switcher="true"
     wallet="{{ wallet.alias }}"
-    scrollbar-height="333px"
+    table-height="333px"
+    table-max-height="333px"
+    table-border-radius="10px"
     scrollbar-default="off"
     scrollbar-switch="true">
 </tx-table>
@@ -181,7 +183,7 @@
             overflow-y: auto;
             scrollbar-color: hsl(217, 10%, 80%) var(--cmap-border); 
             scrollbar-width: thin;
-            border-radius: 15px;
+            border-radius: 10px;
             border: 1.5px solid var(--cmap-border);
         }
         .table-container::-webkit-scrollbar {
@@ -212,13 +214,14 @@
         :host {
             display: flex;
             flex-direction: column;
-            overflow: hidden;
             height: 100%;
         }
+        /* For giving additional height to table which fills the empty space */
+        /*
         .table-container {
             background: var(--cmap-bg-lighter);
             height: 100%;
-        }
+        } */
     </style>
 
     <nav class="switcher row">
@@ -596,7 +599,7 @@
         }
 
         static get observedAttributes() {
-            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'hide-sensitive-info', 'wallet', 'service-id', 'selected-coins', 'scrollbar-height', 'scrollbar-default', 'scrollbar-switch'];
+            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'hide-sensitive-info', 'wallet', 'service-id', 'selected-coins', 'table-height', 'table-max-height', 'table-border-radius', 'scrollbar-default', 'scrollbar-switch'];
         }
 
         connectedCallback() {
@@ -604,8 +607,14 @@
             this.managePSBTBtn.href = `{{ url_for('wallets_endpoint.send_pending', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
 
             // Scrollbar settings
-            if (this.getAttribute("scrollbar-height")) {
-                 this.tableContainer.style.height = this.getAttribute("scrollbar-height")
+            if (this.getAttribute("table-height")) {
+                this.tableContainer.style.height = this.getAttribute("table-height")
+            }
+            if (this.getAttribute("table-max-height")) {
+                this.tableContainer.style.maxHeight = this.getAttribute("table-max-height")
+            }
+            if (this.getAttribute("table-border-radius")) {
+                this.tableContainer.style.borderRadius = this.getAttribute("table-border-radius")
             }
             if (this.getAttribute("scrollbar-default") == "on") {
                 this.tableContainer.classList.add("scrollbar")
@@ -617,7 +626,7 @@
                 this.scrollbarCheckbox.checked = true
             }
 
-            // Listerning for changes in scrollbar switch
+            // Listening for changes in scrollbar switch
             this.scrollbarCheckbox.addEventListener("click", () => {
                 if (this.scrollbarCheckbox.checked) {
                     this.tableContainer.classList.add("scrollbar")
@@ -683,9 +692,11 @@
          * - type: Transactions list type to load. Either "txlist" or "utxo"
          * - hide-sensitive-info: Mask user sensitive info. Either "true" or "false"
          * - wallet: The wallet alias (null to get all wallets combined)
-         * - scrollbar-height: Height of the table container with the scrollbar
-         * - scrollbar-default: Whether scrollbar is enabled by default
-         * - scrollbar-switch: Offer a switch to turn off the scrollbar for the table
+         * - table-height: Height of the table container with the scrollbar
+         * - table-max-height: Max height of the table container with the scrollbar
+         * - table-border-radius: Sets the border-radius of the table container
+         * - scrollbar-default: Whether scrollbar is enabled by default (to use scrollbar, either provide height from an external div, or use table-height or table-max-height attributes)
+         * - scrollbar-switch: Offer a switch to turn off the scrollbar for the table (this switch can expand or shrink a table, if a particular height is provided by table-height or table-max-height attributes)
         */
         attributeChangedCallback(attrName, oldValue, newValue) {
             if (attrName != "selected-coins") {
