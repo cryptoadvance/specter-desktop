@@ -269,14 +269,15 @@ class HWIBridge(JSONRPC):
     @locked(hwilock)
     def display_address(
         self,
-        descriptor={},
+        descriptor="",
+        xpubs_descriptor="",
         device_type=None,
         path=None,
         fingerprint=None,
         passphrase="",
         chain="",
     ):
-        if descriptor == "":
+        if descriptor == "" and xpubs_descriptor == "":
             raise Exception("Descriptor must not be empty")
 
         with self._get_client(
@@ -286,19 +287,10 @@ class HWIBridge(JSONRPC):
             passphrase=passphrase,
             chain=chain,
         ) as client:
-            if descriptor.get("xpubs_descriptor", None):
-                try:
-                    status = hwi_commands.displayaddress(
-                        client, desc=descriptor["xpubs_descriptor"]
-                    )
-                except Exception:
-                    status = hwi_commands.displayaddress(
-                        client, desc=descriptor.get("descriptor", "")
-                    )
+            if xpubs_descriptor:
+                status = hwi_commands.displayaddress(client, desc=xpubs_descriptor)
             else:
-                status = hwi_commands.displayaddress(
-                    client, desc=descriptor.get("descriptor", "")
-                )
+                status = hwi_commands.displayaddress(client, desc=descriptor)
             if "error" in status:
                 raise Exception(status["error"])
             elif "address" in status:

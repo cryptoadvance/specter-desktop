@@ -54,7 +54,7 @@
         console.log(psbt);
     }
 
-    async function displayAddressOnDevice(address, descriptor){
+    async function displayAddressOnDevice(address, descriptor, xpubs_descriptor){
         let supportedDevices = [
             {% for device in wallet.devices %}
                 {% if device.supports_hwi_multisig_display_address or not wallet.is_multisig %}
@@ -76,7 +76,7 @@
         showPageOverlay('hwi_display_address');        
         let result = null;
         try {
-            result = await hwi.displayAddress(device, descriptor);
+            result = await hwi.displayAddress(device, descriptor, xpubs_descriptor);
         } catch (error) {
             handleHWIError(error);
             return null;
