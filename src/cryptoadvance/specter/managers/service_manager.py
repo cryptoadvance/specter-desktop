@@ -119,10 +119,21 @@ class ServiceManager:
             """Can be used in all jinja2 templates"""
             return dict(specter=app.specter, service=ext)
 
+        if "default" not in controller_modules.keys():
+            raise SpecterError(
+                "You need at least one Blueprint, with the key 'default'. It will be used to link to your UI"
+            )
+
         for bp_key, bp_value in controller_modules.items():
-            middple_part = "" if only_one_blueprint else f"{bp_key}_"
+            if bp_key == "":
+                raise SpecterError("Empty keys are not allowed in the blueprints map")
+            middple_part = "" if bp_key == "default" else f"{bp_key}_"
+            bp_name = f"{clazz.id}_{middple_part}endpoint"
+            logger.debug(
+                f"  Creating blueprint with name {bp_name} (middle_part:{middple_part}:"
+            )
             bp = Blueprint(
-                f"{clazz.id}_{middple_part}ep",
+                f"{clazz.id}_{middple_part}endpoint",
                 bp_value,
                 template_folder=get_template_static_folder("templates"),
                 static_folder=get_template_static_folder("static"),
@@ -135,7 +146,18 @@ class ServiceManager:
 
             # Import the controller for this service
             logger.info(f"  Loading Controller {bp_value}")
-            controller_module = import_module(bp_value)
+
+            try:
+                controller_module = import_module(bp_value)
+            except ModuleNotFoundError as e:
+                raise Exception(
+                    f"""
+                    There was an issue finding a controller module:
+                    {e}
+                    That module was specified in the Service class of service {clazz.id}
+                    check that specification in {clazz.__module__}
+                """
+                )
 
             # finally register the blueprint
             if clazz.isolated_client:
