@@ -83,6 +83,12 @@ class FileUploaderElement extends HTMLElement {
 		this.uploadButton.style.background = this.getAttribute("button_color")
 
 		let el = clone.getElementById("input-file");
+
+		el.addEventListener("click", (e) => {
+			// resets the value, such that the on_change event is called, even if the same file is uploaded twice
+			el.value = '';
+		})
+
 		el.addEventListener("change", (e) => {
 			// Only one file can be selected
 			let file = e.currentTarget.files[0];
