@@ -20,8 +20,8 @@
      - Showing validated blockhash column (set attribute `blockhash` to either "true" or "false")
      - Limiting txs/utxos to just those associated with the specified `data-service-id`.
      - Hide columns by hide-columns="category time"
-     - Scrollbar default
-     - Toggle for scrollbar
+     - Style options
+     - Scrollbar settings
 
 {#- Usage -
 
@@ -36,8 +36,9 @@
     table-height="333px"
     table-max-height="333px"
     table-border-radius="10px"
-    scrollbar-default="off"
-    scrollbar-switch="true">
+    scrollbar="on"
+    scrollbar-switch="true"
+    scrollbar-default="off">
 </tx-table>
 #} 
 -->
@@ -50,8 +51,9 @@
             display: contents;
         }
         .pagination-container {
-            text-align: center;
-            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .pagination-next, .pagination-back {
             cursor: pointer;
@@ -79,6 +81,16 @@
             justify-content: center;
             align-items: center;
             margin-bottom: 0.5em;
+            position: sticky;
+            top: 0;
+            background-color: var(--cmap-bg-lighter);
+            border: 1.5px solid var(--cmap-border);
+            z-index: 9;
+        }
+        .page-limit-div {
+            flex: 0 0 200px;
+            display: flex;
+            justify-content: space-around;
         }
         .search {
             margin: auto;
@@ -130,61 +142,56 @@
         }
         .action-teaser {
             max-width: 20em;
-            border: 1px solid var(--cmap-border);
-            background-color: var(--cmap-bg-lighter);
-            padding: 0.8em;
             text-align: center;
             font-size: 15px;
             line-height: 12px;
             font-weight: 50;
-            color: grey;
         }
         .freeze-tx-btn {
             border: 1px solid var(--cmap-border);
             border-radius: 0.5em;
-            background-color: var(--cmap-bg-lighter);
+            background-color: var(--cmap-border);
             padding: 0.8em;
             text-align: center;
             font-weight: 250;
         }
         .freeze-tx-btn:hover {
-            background-color: var(--cmap-bg-lightest);
+            background-color: var(--cmap-border);
             border: 1px solid var(--main-color);
         }
         .compose-tx-btn {
             border: 1px solid var(--cmap-border);
             border-radius: 0.5em;
-            background-color: var(--cmap-bg-lighter);
+            background-color: var(--cmap-border);
             padding: 0.8em;
             text-align: center;
             font-weight: 250;
         }
         .compose-tx-btn:hover {
-            background-color: var(--cmap-bg-lightest);
+            background-color: var(--cmap-border);
             border: 1px solid var(--main-color);
         }
         .manage-psbt-btn {
             border: 1px solid var(--cmap-border);
             border-radius: 0.5em;
-            background-color: var(--cmap-bg-lighter);
+            background-color: var(--cmap-border);
             padding: 0.8em;
             text-align: center;
             font-weight: 250;
         }
         .manage-psbt-btn:hover {
-            background-color: var(--cmap-bg-lightest);
+            background-color: var(--cmap-border);
             border: 1px solid var(--main-color);
         }
         .table-container {
             width: 100%;
             margin-bottom: 10px;
+            border: 1.5px solid var(--cmap-border);
         }
         .scrollbar {
             overflow-y: auto;
             scrollbar-color: hsl(217, 10%, 80%) var(--cmap-border); 
             scrollbar-width: thin;
-            border-radius: 10px;
-            border: 1.5px solid var(--cmap-border);
         }
         .table-container::-webkit-scrollbar {
             width: 0.3em;
@@ -216,12 +223,6 @@
             flex-direction: column;
             height: 100%;
         }
-        /* For giving additional height to table which fills the empty space */
-        /*
-        .table-container {
-            background: var(--cmap-bg-lighter);
-            height: 100%;
-        } */
     </style>
 
     <nav class="switcher row">
@@ -244,14 +245,14 @@
     </div>
     <div class="search-container">
         <!--Left part of the toolbar-->
-        <div style="flex: 0 0 200px">
+        <div class="page-limit-div">
             {% include "includes/page-limit-select.html" %}
         </div>
          <!--Middle part of the toolbar-->
         <div style="flex-grow: 0.5">
             <input class="search" type="text" placeholder="Search..."></input>
         </div>
-        <div style="flex: 0 0 50px">
+        <div style="flex: 0 0 35px">
             <tool-tip>
                 <h4 slot="title">{{ _('Search options') }}</h4>
                 <span slot="paragraph">
@@ -599,7 +600,7 @@
         }
 
         static get observedAttributes() {
-            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'hide-sensitive-info', 'wallet', 'service-id', 'selected-coins', 'table-height', 'table-max-height', 'table-border-radius', 'scrollbar-default', 'scrollbar-switch'];
+            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'hide-sensitive-info', 'wallet', 'service-id', 'selected-coins', 'table-height', 'table-max-height', 'table-border-radius', 'scrollbar', 'scrollbar-switch', 'scrollbar-default'];
         }
 
         connectedCallback() {
@@ -616,7 +617,7 @@
             if (this.getAttribute("table-border-radius")) {
                 this.tableContainer.style.borderRadius = this.getAttribute("table-border-radius")
             }
-            if (this.getAttribute("scrollbar-default") == "on") {
+            if (this.getAttribute("scrollbar") == "on") {
                 this.tableContainer.classList.add("scrollbar")
             } 
             if (this.getAttribute("scrollbar-switch") == "true") {
@@ -994,7 +995,7 @@
                         this.actionTeaserDiv.style.color = 'orange';
                     })
                     txRow.selectTxImg.addEventListener("mouseout", () => {
-                        this.actionTeaserDiv.style.color = 'grey';
+                        this.actionTeaserDiv.style.color = 'white';
                     })
                     // EventListener when hovering over categories
                     txRow.category.addEventListener("mouseover", () => {

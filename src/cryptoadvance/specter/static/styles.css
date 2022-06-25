@@ -721,11 +721,6 @@ table{
     padding: 0 30px;
     width: 100%;
 }
-/* For controlling the height of the table outside webcomponent, such that the table stretches to the remaining viewport space and becomes scrollable */
-.scroll-table-container{
-    flex: 1;
-    overflow: hidden;
-}
 .full-width{
     width: 100%;
     /*height: 100%;*/
