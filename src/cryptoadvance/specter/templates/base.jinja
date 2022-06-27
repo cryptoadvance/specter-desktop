@@ -127,7 +127,9 @@
 					{% endif %}
 					<div style="display: flex; justify-content: center; align-items: center;">
 						<div class="main-description-box">
-							<p style="font-size: 1.1em; margin-bottom: 2em; text-align: left;">{{ _("Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices.") }}</p>
+							<p style="font-size: 1.1em; margin: 1em auto 1em auto; text-align: left;">{{ _("Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices.") }} <br><br>
+							&#128217; Learn <a style="color: #fff" href="https://specter-desktop-docs.netlify.app/multisig-guide/" target="_blank">{{ _("here") }}</a> more about multisig.
+							</p>
 						</div>
 					</div>
 					{% if not specter.chain %}
@@ -241,14 +243,14 @@
 						</table>
 						<br>
 					{% endif %}
-					<p style="position: relative; z-index: 1; line-height: 24px;">{{ _('Having issues? Try reading <a href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/faq.md" target="_blank" style="color: #fff; font-size: 1.05em; font-weight: bolder;">the FAQ</a>') }}</p><br><br>
-					<span style="position: relative; z-index: 1;">{{ _("Still having issues?") }}</span><br>
+					<p style="position: relative; z-index: 1; line-height: 24px; font-size: 1.1em">&#128064;{{ _(' Have a look at our <a href="https://specter-desktop-docs.netlify.app/" target="_blank" style="color: #fff; font-weight: bolder;">documentation</a> and the <a href="https://specter-desktop-docs.netlify.app/faq/" target="_blank" style="color: #fff; font-weight: bolder;">FAQ</a>') }}</p><br>
+					<span style="position: relative; z-index: 1;">&#128583;{{ _(" Still having issues?") }}</span><br>
 					<div style="display: flex; justify-content: center;">
 						<div style="max-width: 80%;">
-							<p style="position: relative; z-index: 1;">{{ _('Feel free to <a href="https://github.com/cryptoadvance/specter-desktop/issues/new" target="_blank" style="color: #fff;">open an issue on the GitHub</a> or ask in the <a href="https://t.me/spectersupport" target="_blank" style="color: #fff;">Specter Community telegram chat</a>') }}</p>
+							<p style="position: relative; z-index: 1;">{{ _('Feel free to <a href="https://github.com/cryptoadvance/specter-desktop/issues/new" target="_blank" style="color: #fff;">open an issue on GitHub</a> or ask in the <a href="https://t.me/spectersupport" target="_blank" style="color: #fff;">Specter Community telegram chat</a>') }}</p>
 						</div>
 					</div>
-					<br><br>
+					<br>
 					<a href="https://github.com/cryptoadvance/specter-desktop#help-wanted-do-you-like-specter" target="_blank" style="position: relative; z-index: 1; color: #fff; display: inline-block;"><h2 id="help-wanted-text" style="display: inline-block;">{{ _('Help wanted: Do you like Specter?') }}</h2><img src="{{ url_for('static', filename='img/love.png') }}" width="20px" style="vertical-align: sub; margin-left: 10px;"/></a>
 					<div class="footer">
 						<span style="position: relative; z-index: 1;">{{ _("Supported and maintained by") }}:</span><br>
