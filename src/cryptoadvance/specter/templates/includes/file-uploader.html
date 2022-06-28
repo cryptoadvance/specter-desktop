@@ -85,7 +85,7 @@ class FileUploaderElement extends HTMLElement {
 		let el = clone.getElementById("input-file");
 
 		el.addEventListener("click", (e) => {
-			// resets the value, such that the on_change event is called, even if the same file is uploaded twice
+			// Needed for Chrome to ensure change event is triggered if the same file is uploaded more than once
 			el.value = '';
 		})
 
