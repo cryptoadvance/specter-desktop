@@ -88,7 +88,7 @@
             z-index: 9;
         }
         .page-limit-div {
-            flex: 0 0 200px;
+            flex-grow: 0.3;
             display: flex;
             justify-content: space-around;
         }
@@ -239,7 +239,7 @@
     </nav>
     <div class="pagination-container">
         <a class="pagination-back pagination-arrow pagination-disabled">&#8249;</a>
-        {{ _("Page") }} <input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span class="pagination-counter"></span>
+        {{ _("Page") }} &nbsp;<input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span class="pagination-counter"></span>
         <a class="pagination-next pagination-arrow pagination-disabled">&#8250;</a>
         <br>
     </div>
@@ -469,7 +469,7 @@
 
             // Initialize default sort, search, limit and page parameters
             this.idx = 0;
-            this.limit = 50;
+            this.limit = 25;
             this.search = "";
             this.sortby = "time";
             this.sortdir = "desc";
@@ -942,10 +942,14 @@
                 // If there are multiple pages show the pagination bar
                 if (this.pageCount > 1) {
                     this.paginationContainer.classList.remove('hidden');
+                    this.paginationCounter.classList.remove('hidden');
                     this.paginationCounter.innerText = `of ${this.pageCount}`;
                     this.paginationIdxInput.max = this.pageCount;
                 } else {
+                    console.log("we are running in pageCount is less or equal to 1")
                     this.paginationContainer.classList.add('hidden');
+                    this.paginationCounter.classList.add('hidden');
+
                 }
 
                 // Disable pagination back button if on the first page
