@@ -1323,18 +1323,11 @@ input:checked + .slider:before {
 .recipient_button:hover {
     background: var(--cmap-border-darker);
 }
-.recipient_dragger {
-    cursor: grab; 
-}
 .recipient_remove {
     cursor: default; 
     margin-left: 8px;
 }
-.recipient_move {
-    cursor: default; 
-    padding-left: 6px;
-    padding-right: 6px;
-}
+
 
 
 .recipient_wrapper{
@@ -1347,7 +1340,12 @@ input:checked + .slider:before {
     border-radius: 5px;
     border: 1px solid var(--cmap-border-highlight);
     padding: 5px;
+  }
+  .recipient_wrapper > * {
     margin-bottom: 10px;
+  }
+.recipient_wrapper>:last-child{
+    margin-bottom: 0px;
   }
 
   
@@ -1359,7 +1357,3 @@ input:checked + .slider:before {
     padding: 5px;
     margin-top: 5px;
   }
-  .recipient_wrapper .item:last-child{
-    margin-bottom: 0px;
-  }
-  

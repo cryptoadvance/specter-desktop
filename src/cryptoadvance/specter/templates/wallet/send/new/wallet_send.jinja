@@ -26,7 +26,7 @@
 	<form action="{{ url_for('wallets_endpoint.send_new',wallet_alias=wallet_alias) }}" id="send-form" method="POST" style="width: 100%;">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="rbf_tx_id" value="{{ rbf_tx_id }}"/>
-		<input type="hidden" name="recipient_ids_in_order"  id="recipient_ids_in_order" value=""/>  
+		<input type="hidden" name="recipient_ids"  id="recipient_ids" value=""/>  
 		<input type="hidden" name="subtract_from"  id="subtract_from" value=""/>  
 		<h1 class="padded">{{ _("Create Transaction") }}</h1>
 		<div style="display: flex; justify-content: center; margin-bottom: 15px">
@@ -114,7 +114,6 @@
 
 
 {% block scripts %}
-    <script src="{{ url_for('static', filename='Sortable.min.js') }}"></script>   <!-- v1.15.0 from https://github.com/SortableJS/Sortable/releases -->
 	<script>
 		{% if specter.is_liquid %}
 			const MIN_FEE_RATE = 0.1;
@@ -135,11 +134,6 @@
 			return  recipient_array[ids.indexOf(recipient_id)];
 		}
 
-
-		function get_recipient_ids_in_order() {
-			const array = sortable_recipient_wrapper.toArray(); 
-			return array.map(elem=> parseInt(elem, 10))
-		}
 
 		// Amounts and units
 		var textUnit = '{{ specter.unit }}';
@@ -222,6 +216,7 @@
 			
 
 			recipient_array.push(recipient);
+			console.log(recipient_array)
 			let valueOrPlaceholder = amount == 0 ? 'placeholder="0"' : `value=${amount}`
 			if (amount_unit == 'sat') {
 				amount = parseFloat(Number.parseFloat(amount * 1e8).toFixed(0));
@@ -254,12 +249,8 @@
 			{% endif %}
 			let recipientForm = `			
 			<div id="recipient_${id}" class="item" >		
-				<span class="recipient_dragger">
-					<span  class="recipient_button"  title="Change the order of the recipients" >&#19977;</span>   Recipient ${id+1}
-				</span>
+				Recipient ${id+1}
 				<span class="recipient_button recipient_remove" title="Remove recipient ${id+1}" id="remove_${id}" style="float:right" onclick="removeRecipient(${id})">&#10060;</span>
-				<span class="recipient_button recipient_move" title="Move up" id="moveElement_${id}_up"  style="float:right" onclick="moveElement(${id}, 'up')" >&#8593;</span>
-				<span class="recipient_button recipient_move" title="Move down" id="moveElement_${id}_down"  style="float:right" onclick="moveElement(${id}, 'down')" >&#8595;</span>
 
 				<div class="inner_box"  >
 					<div class="row">
@@ -363,11 +354,13 @@
 			// This removes the recipient id from  recipient_array
 			recipient_array.splice(ids.indexOf( id), 1);
 
+
+			let recipients = document.getElementById('recipients');
 			// This removes the recipient div 
-			for  (var i = sortable_recipient_wrapper.el.children.length -1; i >= 0; i--)   {
-				let	child =  sortable_recipient_wrapper.el.children[i];
+			for  (var i = recipients.children.length -1; i >= 0; i--)   {
+				let	child =  recipients.children[i];
 				if (child['id'] == id) {
-					sortable_recipient_wrapper.el.removeChild(child)
+					recipients.removeChild(child)
 				}
 			}
 
@@ -667,13 +660,13 @@
 			}
 
 			// this has to be set before send-form POST request 
-			var recipient_ids_in_order = document.getElementById('recipient_ids_in_order')  
-			recipient_ids_in_order.value = JSON.stringify(get_recipient_ids_in_order());  
+			var recipient_ids = document.getElementById('recipient_ids')  
+			recipient_ids.value = JSON.stringify(get_recipient_ids());  
 
 			// subtract_from = number of input (starting from 0), while subtract_from_recipient_id_select is the recipient_id
 			var fee_selection_component = document.getElementById('fee-selection-component');
 			var subtract_from_recipient_id_select = fee_selection_component.subtractFrom.children.subtract_from_recipient_id_select;
-			document.getElementById('subtract_from').value =  get_recipient_ids_in_order().indexOf(parseInt(subtract_from_recipient_id_select.value, 10)); 
+			document.getElementById('subtract_from').value =  get_recipient_ids().indexOf(parseInt(subtract_from_recipient_id_select.value, 10)); 
 
 			createPSBTButton.setAttribute('type', 'submit');
 			return true;
@@ -767,57 +760,6 @@
 				toggleAdvanced();
 			});
 		});
-
-
-
-
-		// from https://www.codingnepalweb.com/drag-drop-list-or-draggable-list-javascript/		
-		const sortable_recipient_wrapper = Sortable.create(document.querySelector(".recipient_wrapper"), {
-			dataIdAttr: 'id',
-			animation: 350,
-			handle: '.recipient_dragger',
-			
-			onEnd: function(evt) {
-				console.log("Dragged id: " + evt.item.id);
-				console.log("New recipient order: " + JSON.stringify(get_recipient_ids_in_order()));
-
-			}		
-		});
-
-
-
-
-		function moveElement(recipient_id, direction) {
-			// bail out if we get input that we don't expect
-			if (["up", "down"].includes(direction) == false ) {
-				return false
-			} 
-			
-			let order = get_recipient_ids_in_order();
-			let index = order.indexOf(recipient_id);
-			
-			// pull the item we're moving out of the order
-			order.splice(index, 1);
-			
-			// put it back in at the correct position
-			if (direction == 'down') {
-				if (index>=order.length) {  // moving the last item down should put it at the beginning
-					order.splice(0, 0, recipient_id);
-				}else {
-					order.splice(index+1, 0, recipient_id);
-				}
-			} else if (direction == 'up') {
-				if (index<=0) { // moving the first item up should put it last
-					order.splice(order.length , 0, recipient_id);
-				}else {
-					order.splice(index-1, 0, recipient_id);
-				}
-				
-				
-			}
-
-			sortable_recipient_wrapper.sort(order, true);
-		}
 
 
 
