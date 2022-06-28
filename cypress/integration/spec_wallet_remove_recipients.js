@@ -31,7 +31,7 @@ describe('Test sending transactions', () => {
  
 
 
-    it('Delete recipient ids=0,2', () => {
+    it('Delete recipient ids=0,2. Remaining ids=1,3,4 => Recipients 2,4,5', () => {
         // We need new sats but mine2wallet only works if a wallet is selected
         cy.selectWallet("Test Hot Wallet 1")
         cy.mine2wallet("btc")
@@ -81,6 +81,9 @@ describe('Test sending transactions', () => {
         cy.get('#remove_2').click({force: true})  
 
         // Change recipient number to Recipient 2 (value = id = 1)
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').should('have.length', 3)           
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 4')   // select all Recipients, to check that the correct recipients are present
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 5')   // select all Recipients, to check that the correct recipients are present
         cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 2')   // html select with cypress: https://www.cypress.io/blog/2020/03/20/working-with-select-elements-and-select2-widgets-in-cypress/
         cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').should('have.value', '1');
         cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').find(':selected').should('have.text', 'Recipient 2');
