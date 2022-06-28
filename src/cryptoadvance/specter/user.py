@@ -70,6 +70,7 @@ class User(UserMixin):
         password_hash,
         config,
         specter,
+        jwt_secret,
         encrypted_user_secret=None,
         is_admin=False,
         services=[],
@@ -77,6 +78,7 @@ class User(UserMixin):
         self.id = id
         self.username = username
         self.password_hash = password_hash
+        self.jwt_secret = jwt_secret
         self.config = config
         self.encrypted_user_secret = encrypted_user_secret
         self.plaintext_user_secret = None
@@ -98,6 +100,7 @@ class User(UserMixin):
             user_args = {
                 "id": user_dict["id"],
                 "username": user_dict["username"],
+                "jwt_secret": user_dict["jwt_secret"],
                 "password_hash": user_dict[
                     "password"
                 ],  # TODO: Migrate attr name to "password_hash"?
@@ -242,6 +245,7 @@ class User(UserMixin):
             "username": self.username,
             "password": self.password_hash,  # TODO: Migrate attr name to "password_hash"?
             "is_admin": self.is_admin,
+            "jwt_secret": self.jwt_secret,
             "encrypted_user_secret": self.encrypted_user_secret,
             "services": self.services,
         }
