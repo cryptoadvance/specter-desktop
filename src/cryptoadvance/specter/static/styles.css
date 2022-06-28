@@ -205,6 +205,8 @@ main{
     /*justify-content: center;*/
     padding: 0;
     /*padding: 30px 0 20px 0;*/
+    height: 100vh;
+    box-sizing: border-box;
 }
 nav.side > .item, nav.side > div > .item{
     padding: 10px 0;
@@ -783,6 +785,7 @@ main {
   overflow-y: scroll;
   scrollbar-color: hsl(217, 10%, 80%) var(--cmap-border);
   scrollbar-width: thin;
+  overflow-x: hidden;
 }
 /* Not supported by Firefox & Safari on iOS */
 main::-webkit-scrollbar {
@@ -921,7 +924,7 @@ table tr:hover .btn.hovering{
 .pagination-arrow {
     text-decoration: none;
     display: inline-block;
-    margin: 0px 16px 16px;
+    margin: 0px 16px 0px;
     border-radius: 50%;
     color: #fff;
     font-size: 1.5em;
