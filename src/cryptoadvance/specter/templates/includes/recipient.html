@@ -10,27 +10,6 @@
 #} 
 -->
 
-<template id="recipient-box">
-
-	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-	<style>
-		:host {
-			display: block;
-			width: 100%;
-		}
-
-		#textarea-content {
-			height: 150px;
-			font-size: 13px;
-		}
-	</style>
-
-	<textarea id="textarea-content" placeholder="{{ _('You can drag & drop here.') }}"></textarea>
-	<input type="text" id="address" name="address" placeholder='{{ _("Recipient address") }}'>
-
-
-</template>
-
 
 <script type="text/javascript">
 	class RecipientBox extends HTMLElement {
@@ -66,19 +45,22 @@
 
 			shadowRoot.innerHTML = ` 
 				<input type="text"  id="line1"    placeholder='1'>
-				<input type="text"  id="line2"    placeholder='1'> `;
+				<input type="text"  id="line2"    placeholder='1'> 
+				<textarea  id="text3"  ></textarea>
+				`;
 
 
 			this.inputs = {};
-
-			this.ids = [ "line1", "line2",  ];
-			for (var i in this.ids)	{
-				var id = this.ids[i];
-				var element = this.shadowRoot.getElementById(id);
-				if (element){
-					this.inputs[id] = element;
+			var form_class_names = ['input', 'textarea']
+			for (var j in form_class_names) {
+				var input_fields = this.shadowRoot.querySelectorAll(form_class_names[j]);
+				for(var i = 0; i < input_fields.length; i++) {
+					var input_field = input_fields[i];
+					console.log(j, i, input_field)
+					this.inputs[input_field.id] = input_field;
 				}
 			}
+			console.log('Constructed the following objects that will be available as in request.form')
 			console.log(this.inputs)
 
 
@@ -87,53 +69,52 @@
 
 
 		static get observedAttributes() {
-			var attributes = ["value" ];
-			for (var i in this.ids)	{
-				var id = this.ids[i];
-				attributes.push(id);
-			}			
+			var ids = ["line1", "line2", "text3"]   // this is called even before the constructor
+			var attributes = ["value"];
+			for (var i in  ids) {
+				attributes.push(ids[i]);
+			}
+			console.log(attributes)
 			return attributes;
 		}
 
 
 
 		connectedCallback() {
-			this.inputs['line1'].addEventListener("change", (event) => {
-				this.internals.setFormValue(this.value);
-				console.log(this.value);
-			})
-			this.inputs['line2'].addEventListener("change", (event) => {
-				this.internals.setFormValue(this.value);
-				console.log(this.value);
-			})
+			for (var i in this.inputs ) {
+				var input_field = this.inputs[i];
+				console.log(i);
+				console.log(input_field);
+
+				input_field.addEventListener("change", (event) => {
+					this.internals.setFormValue(this.value);
+					console.log(`${input_field.id}  changed to ${this.value}`);
+				})
+			}
+
 		}
 
 		disconnectedCallback() {
-			this.inputs['line1'].removeEventListener('change');
-			this.inputs['line2'].removeEventListener('change');
+			for (var i in this.inputs ) {
+				this.inputs[i].removeEventListener('change');
+			}
 		}
 
 
 
 
-		setFormValue(){
+		setFormValue() {
 			this.internals.setFormValue(this.value);
 		}
 
 		attributeChangedCallback(attribute, oldValue, newValue) {
-			switch (attribute) {
-				case "value":
-					setValue(newValue);
-					break;
-				case "line1":
-					this.inputs['line1'].value = newValue;
-					setFormValue();
-					break;
-				case "line2":
-					this.inputs['line2'].value = newValue;
-					setFormValue();
-					break;					
-			}
+			//console.log(`Called  attributeChangedCallback with ${attribute}   =  ${newValue}  ;  Object.keys(this.inputs) = ${Object.keys(this.inputs)}`)
+			if (attribute=="value"){
+				setValue(newValue);
+			} else if (Object.keys(this.inputs).includes(attribute) ) {
+				this.inputs[attribute].value = newValue;
+			} 
+
 		}
 
 		// This is essential to make the recipient-box compatible with setting a new value
@@ -141,29 +122,30 @@
 			this.setValue(newValue);
 		}
 		setValue(newValue) {
-			var dict = JSON.parse(newValue); 
-			this.inputs['line1'].value = dict['line1'];
-			this.inputs['line2'].value = dict['line2'];
-			setFormValue();
+			var dict = JSON.parse(newValue);
+			for (var i in this.inputs ) {
+				this.inputs[i].value = dict[i]
+			} 
+			this.setFormValue();
 		}
 		get value() {
-			return JSON.stringify({
-				line1: this.inputs['line1'].value,
-				line2: this.inputs['line2'].value,
-			});
+			var dict = {}
+			for (var i in this.inputs ) {
+				dict[i] = this.inputs[i].value;
+			} 
+
+			return JSON.stringify(dict);
 		}
 
 		static get properties() {
 			return {
-				value: { type: String }
+				value: {
+					type: String
+				}
 			};
 		}
 
-		
+
 	}
 	customElements.define('recipient-box', RecipientBox);
-
-
-
-
 </script>

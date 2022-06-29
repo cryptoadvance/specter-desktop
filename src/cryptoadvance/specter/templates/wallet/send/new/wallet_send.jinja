@@ -25,7 +25,7 @@
 	</message-box>
 
 	<form action="{{ url_for('wallets_endpoint.send_new',wallet_alias=wallet_alias) }}" id="send-form" method="POST" style="width: 100%;">
-		<recipient-box name="recipient-box"  line1='sssss'  line2='dddd'></recipient-box>	
+		<recipient-box name="recipient-box" id='4'  line1='sssss'  line2='dddd'  text3='ssddd'></recipient-box>	
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="rbf_tx_id" value="{{ rbf_tx_id }}"/>
 		<input type="hidden" name="recipient_ids"  id="recipient_ids" value=""/>  
