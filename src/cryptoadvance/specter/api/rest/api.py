@@ -16,6 +16,7 @@ from ...specter_error import SpecterError
 from ...util.fee_estimation import get_fees
 
 from .. import auth
+from .jwt import TokenResource
 from .resource_healthz import ResourceLiveness, ResourceReadyness
 from .resource_psbt import ResourcePsbt
 from .resource_specter import ResourceSpecter

@@ -70,7 +70,7 @@ class User(UserMixin):
         password_hash,
         config,
         specter,
-        jwt_secret,
+        jwt_token,
         encrypted_user_secret=None,
         is_admin=False,
         services=[],
@@ -78,7 +78,7 @@ class User(UserMixin):
         self.id = id
         self.username = username
         self.password_hash = password_hash
-        self.jwt_secret = jwt_secret
+        self.jwt_token = jwt_token
         self.config = config
         self.encrypted_user_secret = encrypted_user_secret
         self.plaintext_user_secret = None
@@ -100,7 +100,7 @@ class User(UserMixin):
             user_args = {
                 "id": user_dict["id"],
                 "username": user_dict["username"],
-                "jwt_secret": user_dict["jwt_secret"],
+                "jwt_token": user_dict.get("jwt_token", None),
                 "password_hash": user_dict[
                     "password"
                 ],  # TODO: Migrate attr name to "password_hash"?
@@ -203,6 +203,16 @@ class User(UserMixin):
         if autosave:
             self.save_info()
 
+    def save_jwt_token(self, jwt_token):
+        self.jwt_token = jwt_token
+        self.save_info()
+
+    def delete_jwt_token(
+        self,
+    ):
+        self.jwt_token = None
+        self.save_info()
+
     def set_password(self, plaintext_password):
         """Hash the incoming plaintext password and update the encrypted user_secret as
         needed.
@@ -245,7 +255,7 @@ class User(UserMixin):
             "username": self.username,
             "password": self.password_hash,  # TODO: Migrate attr name to "password_hash"?
             "is_admin": self.is_admin,
-            "jwt_secret": self.jwt_secret,
+            "jwt_token": self.jwt_token,
             "encrypted_user_secret": self.encrypted_user_secret,
             "services": self.services,
         }
