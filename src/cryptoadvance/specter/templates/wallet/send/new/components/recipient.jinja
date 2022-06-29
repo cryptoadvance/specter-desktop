@@ -34,12 +34,83 @@
 		}
 
 
+
+
+
+		addRecipient(id, addr, amount, amount_unit, label) {
+			var recipient = {
+				'amount':amount,
+				'unit':amount_unit,
+				'label':label,
+				'id':id,
+			};
+			
+
+			let valueOrPlaceholder = amount == 0 ? 'placeholder="0"' : `value=${amount}`
+			if (amount_unit == 'sat') {
+				amount = parseFloat(Number.parseFloat(amount * 1e8).toFixed(0));
+				if (amount == 'NaN') {
+					amount = '-'
+				}
+			}
+			let step = 1;
+			if (amount_unit == 'btc') {
+				step = 1e-8;
+			}
+			let satChecked = amount_unit == 'btc' ? '' : 'checked';
+			let btcChecked = amount_unit == 'btc' ? 'checked' : '';
+			let convertedUnit = amount_unit == 'btc' ? 'sat' : 'BTC';
+			{% if specter.is_liquid and wallet.balance.get("assets", {}) %}
+				let assetSelector = `
+				<select name="amount_unit_${id}" style="width: 100px;" onchange="toggleUnit(this, ${id})">
+					<option value="btc">LBTC</option>
+					<option value="sat">L-sat (10⁻⁸ LBTC)</option>
+				{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
+					<option value="{{asset}}">{{asset | assetlabel}}</option>
+				{% endfor %}
+				</select>
+				`;
+			{% else %}
+				let assetSelector = `
+				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${id}" value="sat" onchange="toggleUnit(this, ${id})" ${satChecked}>sat</label>
+				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${id}" value="btc" onchange="toggleUnit(this, ${id})" ${btcChecked}>BTC</label>
+				`;
+			{% endif %}
+			let recipientForm = `			
+			<div id="recipient_${id}" class="item" >		
+				Recipient ${id+1}
+				<span class="recipient_button recipient_remove" title="Remove recipient ${id+1}" id="remove_${id}" style="float:right" onclick="removeRecipient(${id})">&#10060;</span>
+
+				<div class="inner_box"  >
+					<div class="row">
+						<input type="text" id="address_${id}" name="address_${id}" oninput="validateForm()" value="${addr}" placeholder='{{ _("Recipient address") }}'> &nbsp;
+						<qr-scanner id="address-scan-${id}" style="margin-top: 3px;">
+							<a slot="button" class="btn" style="height: 35px;">
+							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Scan") }}</a>
+						</qr-scanner>
+					</div>				
+					<input type="text" style="margin-top: 3px;" id="label_${id}" name="label_${id}" value="${label}"  placeholder='{{ _("Address label") }}''>
+					<br>
+					{{ _("Amount:") }}<br>
+					<input style="width: 200px" type="number" name="amount_${id}" oninput="calculateConvertedUnit(${id})" id="amount_${id}" min=0 step="${step}" autocomplete="off" ${valueOrPlaceholder}>
+					<input type="hidden" name="btc_amount_${id}" id="btc_amount_${id}">
+					<div class="mobile-only" style="margin-top: 10px;"></div>
+					${assetSelector}
+					<span class="note max-btn" style="margin-left: 5px;" id="send_max_${id}" onclick="setMaxAmount(${id})">({{ _("send max") }})</span>
+					<div>
+						<span class="note" id="converted_unit_amount_${id}">-</span> <span class="note" id="converted_unit_label_${id}">${convertedUnit}</span> <span class="note" id="converted_unit_alt_${id}"></span>
+					</div>
+				</div>
+			<div>
+			`
+			return recipientForm
+		}
 		getHTML(){
-			return ` 
-				<input type="text"  id="line1"    placeholder='1'>
-				<input type="text"  id="line2"    placeholder='1'> 
-				<textarea  id="text3"  ></textarea>
-				`
+			var addr = '';
+			var amount = 0;
+			var amount_unit = 'btc';
+			var label = '';
+			return this.addRecipient(0, addr, amount, amount_unit, label)
 		}
 
 		buildHTML(){
