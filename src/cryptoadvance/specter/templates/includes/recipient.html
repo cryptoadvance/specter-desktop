@@ -19,19 +19,20 @@
 
 <template id="recipient-box">
 
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-        :host {
-            display: block;
-            width: 100%;
-        }
-        #textarea-content { 
-            height: 150px; 
-            font-size: 13px;
-        }
-    </style>
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+	<style>
+		:host {
+			display: block;
+			width: 100%;
+		}
 
-    <textarea id="textarea-content" placeholder="{{ _('You can drag & drop here.') }}"></textarea>
+		#textarea-content {
+			height: 150px;
+			font-size: 13px;
+		}
+	</style>
+
+	<textarea id="textarea-content" placeholder="{{ _('You can drag & drop here.') }}"></textarea>
 	<input type="text" id="address" name="address" placeholder='{{ _("Recipient address") }}'>
 
 
@@ -39,15 +40,12 @@
 
 
 <script type="text/javascript">
+	class RenderBox extends HTMLElement {
+		// see https://css-tricks.com/creating-custom-form-controls-with-elementinternals/ 
+		static formAssociated = true;
 
-    class RenderBox extends HTMLElement {
-		static get formAssociated() {
-			// see https://css-tricks.com/creating-custom-form-controls-with-elementinternals/
-			return true;
-		}
-		
 		static get styles() {
-			return css`
+			return css `
 			:host {
 				display: block;
 				width: 100%;
@@ -62,171 +60,211 @@
 		constructor() {
 			super();
 			this.internals = this.attachInternals();
-		}
+			// Create a shadow root
+			let shadowRoot = this.attachShadow({
+				mode: 'open'
+			});
 
-
-		render() {
-			return this.innerHTML`
+			shadowRoot.innerHTML = `
 			<form>
-				<textarea id="textarea-content" placeholder="{{ _('You can drag & drop here.') }}"></textarea>
-				<input type="text" id="address" name="address" placeholder='{{ _("Recipient address") }}'>
-			</form>
-			`;
+				<input type="text"  id="line-1"    placeholder='1'>
+				<input type="text"  id="line-2"    placeholder='1'>
+			</form>`;
+
+			this.line1 = this.shadowRoot.getElementById('line-1');
+			this.line2 = this.shadowRoot.getElementById('line-2');
+			this.line1.addEventListener("change", (event) => {
+				console.log(this.value)
+			})
+			this.line2.addEventListener("change", (event) => {
+				console.log(this.value)
+			})
 		}
-		
-		_setValue() {
-			const form = this.shadowRoot.querySelector('form');
-			const formData = new FormData(form);
-			this.internals.setFormValue(formData);
-			console.log(form, formData.get('line-1'))
+
+
+
+
+		static get observedAttributes() {
+			return [ "line1", "line2"];
 		}
+
+		attributeChangedCallback(attribute, oldValue, newValue) {
+			switch (attribute) {
+				case "line1":
+					this.line1.value = newValue;
+					break;
+				case "line2":
+					this.line2.value = newValue;
+					break;
+			}
+		}
+
+		// This is essential to make the recipient-box compatible with setting a new value
+		set value(newValue) {
+			this.setValue(newValue);
+		}
+		setValue(newValue) {
+			var dict = JSON.parse(newValue); 
+			this.line1.value = dict['line1'];
+			this.line2.value = dict['line2'];
+			//this.internals.setFormValue(newValue);
+		}
+		get value() {
+			return JSON.stringify({
+				line1: this.line1.value,
+				line2: this.line2.value,
+			});
+		}
+
 	}
-    customElements.define('render-box', RenderBox);
+	customElements.define('render-box', RenderBox);
 
 
 
 
-    class RecipientBox extends HTMLElement {
-        // This tells the browser to treat the element like a form control
-        static formAssociated = true;
-        // For details on how to ensure that a custom element gets picked up by a parent <form> see:
-        // https://web.dev/more-capable-form-controls/#defining-a-form-associated-custom-element
+	class RecipientBox extends HTMLElement {
+		// This tells the browser to treat the element like a form control
+		static formAssociated = true;
+		// For details on how to ensure that a custom element gets picked up by a parent <form> see:
+		// https://web.dev/more-capable-form-controls/#defining-a-form-associated-custom-element
 
-        constructor() {
-            super();    
-            this.internals = this.attachInternals();
+		constructor() {
+			super();
+			this.internals = this.attachInternals();
 
-            // Create a shadow root
-            let shadow = this.attachShadow({mode: 'open'});
-            let template = document.getElementById('recipient-box');
-            let clone = template.content.cloneNode(true);
+			// Create a shadow root
+			let shadow = this.attachShadow({
+				mode: 'open'
+			});
+			let template = document.getElementById('recipient-box');
+			let clone = template.content.cloneNode(true);
 
-            this.textarea = clone.querySelector("textarea"); 
-			console.log(this.textarea )
-            this.address_input = clone.getElementById("address");
+			this.textarea = clone.querySelector("textarea");
+			console.log(this.textarea)
+			this.address_input = clone.getElementById("address");
 			console.log(this.address_input)
 
 
-            shadow.appendChild(clone);
-        }
+			shadow.appendChild(clone);
+		}
 
 
 
-        setValue(newValue) {
-            this.textarea.value = newValue;
-            this.internals.setFormValue(newValue);
-        }   
-        setAddressValue(newValue) {
-            this.address_input.value = newValue;
-            this.internals.setFormValue(newValue);
-        }   
+		setValue(newValue) {
+			this.textarea.value = newValue;
+			this.internals.setFormValue(newValue);
+		}
+		setAddressValue(newValue) {
+			this.address_input.value = newValue;
+			this.internals.setFormValue(newValue);
+		}
 
-        connectedCallback() {
-            this.textarea.addEventListener('input', e => {
-                this.setValue(e.target.value);
-            });
-            this.address_input.addEventListener('input', e => {
-                this.setAddressValue(e.target.value);
-            });
+		connectedCallback() {
+			this.textarea.addEventListener('input', e => {
+				this.setValue(e.target.value);
+			});
+			this.address_input.addEventListener('input', e => {
+				this.setAddressValue(e.target.value);
+			});
 
-            this.textarea.ondrop = (event) => this.dropHandler(event);
-            this.textarea.ondragover = (event) => this.dragOverHandler(event);
-            this.textarea.ondragleave = (event) => this.noDropHandler(event);
-            this.textarea.ondragexit = (event) => this.noDropHandler(event);
-            this.textarea.ondragend = (event) => this.noDropHandler(event);
-        }
+			this.textarea.ondrop = (event) => this.dropHandler(event);
+			this.textarea.ondragover = (event) => this.dragOverHandler(event);
+			this.textarea.ondragleave = (event) => this.noDropHandler(event);
+			this.textarea.ondragexit = (event) => this.noDropHandler(event);
+			this.textarea.ondragend = (event) => this.noDropHandler(event);
+		}
 
-        disconnectedCallback() {
-            this.textarea.removeEventListener('input');
-            this.address_input.removeEventListener('input');
-        }
-        
-        static get observedAttributes(){
-            return ["value", "address_value", "placeholder", "textarea-style"];
-        }
-        
-        attributeChangedCallback(attribute, oldValue, newValue) {
-            switch(attribute){
-                case "value":
-                    this.setValue(newValue);
-                    break;   
+		disconnectedCallback() {
+			this.textarea.removeEventListener('input');
+			this.address_input.removeEventListener('input');
+		}
+
+		static get observedAttributes() {
+			return ["value", "address_value", "placeholder", "textarea-style"];
+		}
+
+		attributeChangedCallback(attribute, oldValue, newValue) {
+			switch (attribute) {
+				case "value":
+					this.setValue(newValue);
+					break;
 				case "address_value":
-                    this.setAddressValue(newValue);
-                    break;   
-                case "placeholder":
-                    this.textarea.placeholder = newValue;
-                    break;
-                case "textarea-style":
-                    this.textarea.style = newValue;
-                    break;
-            }
-        }
+					this.setAddressValue(newValue);
+					break;
+				case "placeholder":
+					this.textarea.placeholder = newValue;
+					break;
+				case "textarea-style":
+					this.textarea.style = newValue;
+					break;
+			}
+		}
 
-        get value(){
-            return this.textarea.value;
-        }
+		get value() {
+			return this.textarea.value;
+		}
 
-        get Addressvalue(){
-            return this.address_input.value;
-        }
+		get Addressvalue() {
+			return this.address_input.value;
+		}
 
-        // This is essential to make the recipient-box compatible with, say, the file-uploader webcomponent (which is setting a new value)
-        set value(newValue){
-            this.setValue(newValue);
-        }
+		// This is essential to make the recipient-box compatible with, say, the file-uploader webcomponent (which is setting a new value)
+		set value(newValue) {
+			this.setValue(newValue);
+		}
 
-        // This is essential to make the recipient-box compatible with, say, the file-uploader webcomponent (which is setting a new value)
-        set address(newValue){
-            this.setAddressValue(newValue);
-        }
+		// This is essential to make the recipient-box compatible with, say, the file-uploader webcomponent (which is setting a new value)
+		set address(newValue) {
+			this.setAddressValue(newValue);
+		}
 
-        paste_file_in_textarea(file) {
-            let currObj = this;
-            if (file != null  ) {
-                console.log(file.name);
-                let reader = new FileReader();
-                reader.onload = function(e) { 
-                    currObj.setValue(reader.result);
-                }
-                reader.readAsBinaryString(file);
-            }
-        }    
+		paste_file_in_textarea(file) {
+			let currObj = this;
+			if (file != null) {
+				console.log(file.name);
+				let reader = new FileReader();
+				reader.onload = function (e) {
+					currObj.setValue(reader.result);
+				}
+				reader.readAsBinaryString(file);
+			}
+		}
 
-        dropHandler(ev) {
-            // Prevent default behavior (Prevent file from being opened)
-            ev.preventDefault();
-    
-            if (ev.dataTransfer.items) {
-                // Use DataTransferItemList interface to access the file(s)
-                for (let i = 0; i < ev.dataTransfer.items.length; i++) {
-                    // If dropped items aren't files, reject them
-                    if (ev.dataTransfer.items[i].kind === 'file') {
-                        let file = ev.dataTransfer.items[i].getAsFile();
-                        this.paste_file_in_textarea(file)
-                        // console.log('... file[' + i + '].name = ' + file.name);
-                    }
-                }
-            } else {
-                // Use DataTransfer interface to access the file(s)
-                for (let i = 0; i < ev.dataTransfer.files.length; i++) {
-                    this.paste_file_in_textarea(ev.dataTransfer.files[i])
-                    // console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
-                }
-            }
-        }
+		dropHandler(ev) {
+			// Prevent default behavior (Prevent file from being opened)
+			ev.preventDefault();
 
-        dragOverHandler(ev) {
-            // Prevent default behavior (Prevent file from being opened)
-            ev.preventDefault();
-            this.setValue("Drop file here");
-        }
+			if (ev.dataTransfer.items) {
+				// Use DataTransferItemList interface to access the file(s)
+				for (let i = 0; i < ev.dataTransfer.items.length; i++) {
+					// If dropped items aren't files, reject them
+					if (ev.dataTransfer.items[i].kind === 'file') {
+						let file = ev.dataTransfer.items[i].getAsFile();
+						this.paste_file_in_textarea(file)
+						// console.log('... file[' + i + '].name = ' + file.name);
+					}
+				}
+			} else {
+				// Use DataTransfer interface to access the file(s)
+				for (let i = 0; i < ev.dataTransfer.files.length; i++) {
+					this.paste_file_in_textarea(ev.dataTransfer.files[i])
+					// console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
+				}
+			}
+		}
 
-        noDropHandler(ev) {
-            // Prevent default behavior (Prevent file from being opened)
-            ev.preventDefault();
-            this.setValue("");
-        }
-    }
+		dragOverHandler(ev) {
+			// Prevent default behavior (Prevent file from being opened)
+			ev.preventDefault();
+			this.setValue("Drop file here");
+		}
 
-    customElements.define('recipient-box', RecipientBox);
+		noDropHandler(ev) {
+			// Prevent default behavior (Prevent file from being opened)
+			ev.preventDefault();
+			this.setValue("");
+		}
+	}
+
+	customElements.define('recipient-box', RecipientBox);
 </script>
