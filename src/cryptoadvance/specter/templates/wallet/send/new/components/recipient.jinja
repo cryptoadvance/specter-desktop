@@ -28,15 +28,7 @@
 
 
 
-		addRecipient(id, addr, amount, amount_unit, label) {
-			var recipient = {
-				'amount':amount,
-				'unit':amount_unit,
-				'label':label,
-				'id':id,
-			};
-			
-
+		addRecipient(title, addr, amount, amount_unit, label) { 
 			let valueOrPlaceholder = amount == 0 ? 'placeholder="0"' : `value=${amount}`
 			if (amount_unit == 'sat') {
 				amount = parseFloat(Number.parseFloat(amount * 1e8).toFixed(0));
@@ -53,7 +45,7 @@
 			let convertedUnit = amount_unit == 'btc' ? 'sat' : 'BTC';
 			{% if specter.is_liquid and wallet.balance.get("assets", {}) %}
 				let assetSelector = `
-				<select name="amount_unit_${id}" style="width: 100px;" onchange="toggleUnit(this, ${id})">
+				<select name="amount_unit" style="width: 100px;" onchange="toggleUnit(this)">
 					<option value="btc">LBTC</option>
 					<option value="sat">L-sat (10⁻⁸ LBTC)</option>
 				{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
@@ -63,34 +55,35 @@
 				`;
 			{% else %}
 				let assetSelector = `
-				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${id}" value="sat" onchange="toggleUnit(this, ${id})" ${satChecked}>sat</label>
-				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_${id}" value="btc" onchange="toggleUnit(this, ${id})" ${btcChecked}>BTC</label>
+				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit" value="sat" onchange="toggleUnit(this)" ${satChecked}>sat</label>
+				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit" value="btc" onchange="toggleUnit(this)" ${btcChecked}>BTC</label>
 				`;
 			{% endif %}
 			let recipientForm = `			
 		    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-			<div id="recipient_${id}" class="item" >		
-				Recipient ${id+1}
-				<span class="recipient_button recipient_remove" title="Remove recipient ${id+1}" id="remove_${id}" style="float:right" onclick="removeRecipient(${id})">&#10060;</span>
+
+			<div id="recipient" class="item" >		
+				${title}
+				<span class="recipient_button recipient_remove" title="Remove recipient" id="remove" style="float:right" onclick="removeRecipient()">&#10060;</span>
 
 				<div class="inner_box"  >
 					<div class="row">
-						<input type="text" id="address_${id}" name="address_${id}" oninput="validateForm()" value="${addr}" placeholder='{{ _("Recipient address") }}'> &nbsp;
-						<qr-scanner id="address-scan-${id}" style="margin-top: 3px;">
+						<input type="text" id="address" name="address" oninput="validateForm()" value="${addr}" placeholder='{{ _("Recipient address") }}'> &nbsp;
+						<qr-scanner id="address-scan" style="margin-top: 3px;">
 							<a slot="button" class="btn" style="height: 35px;">
 							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Scan") }}</a>
 						</qr-scanner>
 					</div>				
-					<input type="text" style="margin-top: 3px;" id="label_${id}" name="label_${id}" value="${label}"  placeholder='{{ _("Address label") }}''>
+					<input type="text" style="margin-top: 3px;" id="label" name="label" value="${label}"  placeholder='{{ _("Address label") }}''>
 					<br>
 					{{ _("Amount:") }}<br>
-					<input style="width: 200px" type="number" name="amount_${id}" oninput="calculateConvertedUnit(${id})" id="amount_${id}" min=0 step="${step}" autocomplete="off" ${valueOrPlaceholder}>
-					<input type="hidden" name="btc_amount_${id}" id="btc_amount_${id}">
+					<input style="width: 200px" type="number" name="amount" oninput="calculateConvertedUnit()" id="amount" min=0 step="${step}" autocomplete="off" ${valueOrPlaceholder}>
+					<input type="hidden" name="btc_amount" id="btc_amount">
 					<div class="mobile-only" style="margin-top: 10px;"></div>
 					${assetSelector}
-					<span class="note max-btn" style="margin-left: 5px;" id="send_max_${id}" onclick="setMaxAmount(${id})">({{ _("send max") }})</span>
+					<span class="note max-btn" style="margin-left: 5px;" id="send_max" onclick="setMaxAmount()">({{ _("send max") }})</span>
 					<div>
-						<span class="note" id="converted_unit_amount_${id}">-</span> <span class="note" id="converted_unit_label_${id}">${convertedUnit}</span> <span class="note" id="converted_unit_alt_${id}"></span>
+						<span class="note" id="converted_unit_amount">-</span> <span class="note" id="converted_unit_label">${convertedUnit}</span> <span class="note" id="converted_unit_alt"></span>
 					</div>
 				</div>
 			<div>
@@ -102,7 +95,7 @@
 			var amount = 0;
 			var amount_unit = 'btc';
 			var label = '';
-			return this.addRecipient(0, addr, amount, amount_unit, label)
+			return this.addRecipient(addr, amount, amount_unit, label)
 		}
 
 		buildHTML(){
@@ -113,8 +106,44 @@
 
 			shadowRoot.innerHTML = this.getHTML();
 
-			this.inputs = {};
 
+			
+			shadowRoot.getElementById('address-scan').addEventListener('scan', e=>{
+				let addr = e.detail.result;
+				if(addr == null){
+					return;
+				}
+				// remove bitcoin: stuff
+				if(addr.indexOf("bitcoin:") >= 0){
+					addr = addr.substr(addr.indexOf("bitcoin:")+8);
+				}
+				let arr = addr.split("?");
+				addr = arr[0];
+				shadowRoot.getElementById("address").value = addr;
+				let evt = new Event('input');
+				shadowRoot.getElementById("address").dispatchEvent(evt);
+				// parse metadata like amount and message
+				if(arr.length > 1){
+					arr = arr[1].split("&");
+					arr.forEach((e)=>{
+						if(e.startsWith("amount=")){
+							let val = parseFloat(e.substr(7));
+							if(recipient['unit'] == 'sat'){
+								val = Math.round(val*1e8);
+							}
+							shadowRoot.getElementById("amount").value = val;
+							let evt = new Event('input');
+							shadowRoot.getElementById("amount").dispatchEvent(evt);
+						}
+						if(e.startsWith("message=") || e.startsWith("label=")){
+							shadowRoot.getElementById("label").value = e.split("=")[1];
+						}
+					});
+				}
+			});
+
+			// fill this.inputs with the input fields
+			this.inputs = {};
 			var form_class_names = ['input', 'textarea'];
 			for (var j in form_class_names) {
 				var input_fields = shadowRoot.querySelectorAll(form_class_names[j]);
@@ -215,6 +244,56 @@
 			};
 		}
 
+
+
+
+
+		toggleUnit(unitSelected) {
+			recipient['unit'] = unitSelected.value;
+			let unitLabelEl = document.getElementById('converted_unit_label_' + id);
+			if(recipient['unit'] == 'sat'){
+				unitLabelEl.innerHTML = 'BTC';
+			}else if(recipient['unit'] == 'btc'){
+				unitLabelEl.innerHTML = 'sat';
+			}else{
+				unitLabelEl.innerHTML = '';
+			}
+			document.getElementById('amount').setAttribute('step', recipient['unit'] == 'sat' ? '1' : '1e-8');
+			this.calculateConvertedUnit();
+		}
+
+		calculateConvertedUnit() {
+			const { shadowRoot } = this;
+			let amountInput = shadowRoot.getElementById('recipients').getElementById('amount');
+
+			let recipient = get_recipient(id);
+			recipient['amount'] = parseFloat(amountInput.value);
+
+			let convertedAmount = parseFloat(Number.parseFloat(recipient['amount'] / (recipient['unit'] == 'sat' ? 1e8 : 1e-8)).toFixed((recipient['unit'] == 'sat' ? 8 : 0)));
+			if (convertedAmount == 'NaN') {
+				convertedAmount = '-'
+			}
+			document.getElementById('btc_amount_' + id).value = (recipient['unit'] == 'sat' ? recipient['amount'] / 1e8 : recipient['amount']);
+
+			if(recipient['unit'] == 'sat' || recipient['unit'] == 'btc'){
+				document.getElementById('converted_unit_amount_' + id).innerHTML = (isNaN(convertedAmount) ? '-' : convertedAmount.toFixed(8).replace(/(\.0+|0+)$/, ''));
+			{% if specter.price_check %}
+				let altRate = parseFloat('{{ specter.alt_rate }}');
+				let altSymbol = '{{ specter.alt_symbol }}';
+				let altAmount = parseFloat((altRate * parseFloat(document.getElementById('btc_amount_' + id).value)).toFixed(2))
+				if (!isNaN(altAmount) && (altSymbol && altRate)) {
+					document.getElementById('converted_unit_alt_' + id).innerHTML = '&nbsp;(' + altAmount + altSymbol + ')';
+				} else {
+					document.getElementById('converted_unit_alt_' + id).innerHTML = '';
+				}
+			{% endif %}
+			}else{
+				document.getElementById('converted_unit_amount_' + id).innerHTML = '&nbsp;';
+				document.getElementById('converted_unit_alt_' + id).innerHTML = '&nbsp;';
+			}
+			
+			validateForm();
+		}
 
 	}
 	customElements.define('recipient-box', RecipientBox);
