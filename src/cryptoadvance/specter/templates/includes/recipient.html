@@ -41,6 +41,10 @@
 
 <script type="text/javascript">
 	class RenderBox extends HTMLElement {
+		// This tells the browser to treat the element like a form control
+		static formAssociated = true;
+		// For details on how to ensure that a custom element gets picked up by a parent <form> see:
+		// https://web.dev/more-capable-form-controls/#defining-a-form-associated-custom-element
 		// see https://css-tricks.com/creating-custom-form-controls-with-elementinternals/ 
 		static formAssociated = true;
 
@@ -57,6 +61,7 @@
 			`;
 		}
 
+
 		constructor() {
 			super();
 			this.internals = this.attachInternals();
@@ -65,14 +70,16 @@
 				mode: 'open'
 			});
 
-			shadowRoot.innerHTML = `
-			<form>
+			shadowRoot.innerHTML = ` 
 				<input type="text"  id="line-1"    placeholder='1'>
-				<input type="text"  id="line-2"    placeholder='1'>
-			</form>`;
+				<input type="text"  id="line-2"    placeholder='1'> `;
 
 			this.line1 = this.shadowRoot.getElementById('line-1');
 			this.line2 = this.shadowRoot.getElementById('line-2');
+		}
+
+
+		connectedCallback() {
 			this.line1.addEventListener("change", (event) => {
 				console.log(this.value)
 			})
@@ -81,15 +88,22 @@
 			})
 		}
 
+		disconnectedCallback() {
+			this.line1.removeEventListener('change');
+			this.line2.removeEventListener('change');
+		}
 
 
 
 		static get observedAttributes() {
-			return [ "line1", "line2"];
+			return [ "value", "line1", "line2"];
 		}
 
 		attributeChangedCallback(attribute, oldValue, newValue) {
 			switch (attribute) {
+				case "value":
+					setValue(newValue);
+					break;
 				case "line1":
 					this.line1.value = newValue;
 					break;
@@ -116,6 +130,13 @@
 			});
 		}
 
+		static get properties() {
+			return {
+				value: { type: String }
+			};
+		}
+
+		
 	}
 	customElements.define('render-box', RenderBox);
 
