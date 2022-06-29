@@ -14,7 +14,7 @@
 	</style>
 
 	{% include "includes/qr-scanner.html" %}
-	{% include "includes/recipient.html" %}
+	{% include "wallet/send/new/components/recipient.jinja" %}
 
 	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
 	{{ send_nav('send_new', wallet_alias) }}

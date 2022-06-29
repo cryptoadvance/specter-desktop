@@ -40,6 +40,8 @@
 			super();
 			console.log('After super')
 
+			console.log({{ wallet.name }}) 
+			
 			this.internals = this.attachInternals();
 			// Create a shadow root
 			let shadowRoot = this.attachShadow({
