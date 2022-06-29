@@ -21,16 +21,7 @@
 		static formAssociated = true;
 
 		static get styles() {
-			return css `
-			:host {
-				display: block;
-				width: 100%;
-			}
-			#textarea-content { 
-				height: 150px; 
-				font-size: 13px;
-			}
-			`;
+			return css ` `;
 		}
 
 
@@ -77,6 +68,7 @@
 				`;
 			{% endif %}
 			let recipientForm = `			
+		    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 			<div id="recipient_${id}" class="item" >		
 				Recipient ${id+1}
 				<span class="recipient_button recipient_remove" title="Remove recipient ${id+1}" id="remove_${id}" style="float:right" onclick="removeRecipient(${id})">&#10060;</span>
