@@ -40,7 +40,7 @@
 
 
 <script type="text/javascript">
-	class RenderBox extends HTMLElement {
+	class RecipientBox extends HTMLElement {
 		// This tells the browser to treat the element like a form control
 		static formAssociated = true;
 		// For details on how to ensure that a custom element gets picked up by a parent <form> see:
@@ -153,89 +153,9 @@
 
 		
 	}
-	customElements.define('render-box', RenderBox);
-
-
-
-
-	class RecipientBox extends HTMLElement {
-		// This tells the browser to treat the element like a form control
-		static formAssociated = true;
-		// For details on how to ensure that a custom element gets picked up by a parent <form> see:
-		// https://web.dev/more-capable-form-controls/#defining-a-form-associated-custom-element
-
-		constructor() {
-			super();
-			this.internals = this.attachInternals();
-
-			// Create a shadow root
-			let shadow = this.attachShadow({
-				mode: 'open'
-			});
-			let template = document.getElementById('recipient-box');
-			let clone = template.content.cloneNode(true);
-
-			this.textarea = clone.querySelector("textarea");
-			console.log(this.textarea)
-			this.address_input = clone.getElementById("address");
-			console.log(this.address_input)
-
-
-			shadow.appendChild(clone);
-		}
-
-
-
-		setValue(newValue) {
-			this.textarea.value = newValue;
-			this.internals.setFormValue(newValue);
-		}
-		setAddressValue(newValue) {
-			this.address_input.value = newValue;
-			this.internals.setFormValue(newValue);
-		}
-
-
-		static get observedAttributes() {
-			return ["address_value" ];
-		}
-
-		attributeChangedCallback(attribute, oldValue, newValue) {
-			switch (attribute) {
-				case "value":
-					this.setValue(newValue);
-					break;
-				case "address_value":
-					this.setAddressValue(newValue);
-					break;
-				case "placeholder":
-					this.textarea.placeholder = newValue;
-					break;
-				case "textarea-style":
-					this.textarea.style = newValue;
-					break;
-			}
-		}
-
-		get value() {
-			return this.textarea.value;
-		}
-
-		get Addressvalue() {
-			return this.address_input.value;
-		}
-
-		// This is essential to make the recipient-box compatible with, say, the file-uploader webcomponent (which is setting a new value)
-		set value(newValue) {
-			this.setValue(newValue);
-		}
-
-		// This is essential to make the recipient-box compatible with, say, the file-uploader webcomponent (which is setting a new value)
-		set address(newValue) {
-			this.setAddressValue(newValue);
-		}
-
-	}
-
 	customElements.define('recipient-box', RecipientBox);
+
+
+
+
 </script>
