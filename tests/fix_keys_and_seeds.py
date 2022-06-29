@@ -41,8 +41,12 @@ def seed_hold_accident(mnemonic_hold_accident):
 @pytest.fixture
 def rootkey_hold_accident(seed_hold_accident):
     rootkey = HDKey.from_seed(seed_hold_accident)
-    print(f"Hold Accident rootkey: {rootkey.to_base58()}")
+    print(f"Hold Accident rootkey (xprv): {rootkey.to_base58()}")
     # xprv9s21ZrQH143K45uYUg7zhHku3bik5a2nw8XcanYCUGHn7RE1Bhkr53RWcjAQVFDTmruDceNDAGbc7yYsZCGveKMDrPr18hMsMcvYTGJ4Mae
+    print(
+        f"Hold Accident rootkey (tprv): {rootkey.to_base58(version=NETWORKS['test']['xprv'])}"
+    )
+    # tprv8ZgxMBicQKsPeu959EyVrwNtMj8xK64oGgSjTCxexEnFu1y6B56bannxXuL4Vcbn9JRzcjyyKdBQaq6cgQcsTNcpP34Jo45vGifxtuf9VGZ
     print(f"Hold Accident rootkey fp: {hexlify(rootkey.my_fingerprint)}")
     return rootkey
 

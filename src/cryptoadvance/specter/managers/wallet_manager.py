@@ -299,6 +299,11 @@ class WalletManager:
         self._wallets[self.chain] = value
 
     def create_wallet(self, name, sigs_required, key_type, keys, devices, **kwargs):
+        """Creates a wallet of class self.WalletClass which is either Wallet or LWallet
+        The alias of the wallet might differ if a wallet with that name (alias) has
+        already been created on the Node.
+        Internally, the self.WalletClass.create() method is used
+        """
         try:
             walletsindir = [
                 wallet["name"] for wallet in self.rpc.listwalletdir()["wallets"]

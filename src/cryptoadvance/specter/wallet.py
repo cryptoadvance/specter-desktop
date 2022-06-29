@@ -96,7 +96,7 @@ class Wallet:
         """creates a wallet. Very inconvenient to call as it has a lot of mandatory Parameters.
             You better use either the Wallet.from_json() or the WalletManager.create_wallet() method.
         :param string name: a not necessarily unique name
-        :param string alias: A unique alias. Might get modified automatically if not unique
+        :param string alias: A unique alias which gets used as the name of the wallet on bitcoin-core's side.
         :param string: irrelevan description
         :param string address_type: one of bech32, p2sh-segwit, taproot
         :param string address: the current free recv_address
@@ -1265,6 +1265,10 @@ class Wallet:
         return json.dumps(account_map_dict)
 
     def getnewaddress(self, change=False, save=True):
+        """Get a new address via its descriptor. This will cause a keypoolrefill if the it's exhausted
+        This will skip addresses which are reserved by plugins.
+        By default, this will cause a save_to_file unless save=False
+        """
         if change:
             self.change_index += 1
             index = self.change_index
