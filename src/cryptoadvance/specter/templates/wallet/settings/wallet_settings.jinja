@@ -91,7 +91,7 @@
 				{% endif %}
 			{% endfor %}
 			{% if supports_export_to_device != [] %}
-				<h2 class="subtitle">{{ _("Export wallet to device") }}</h1>
+				<h2 class="subtitle">{{ _("Export wallet to device") }}</h2>
 				<p class="center">
 					{{ _("Export this wallet to a device by scanning its QR code or importing its data file.") }}
 				</p>
@@ -220,7 +220,7 @@
 				</div>
 			</form>
 			<div class="section-separator"></div>
-			<h2 class="subtitle">{{ _("Blockchain rescan") }}</h2>
+			<h2 class="subtitle" id = "blockchain-rescan">{{ _("Blockchain rescan") }}</h2>
 			<form action="." method="POST" class="padded" style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				{% if wallet.rescan_progress %}
@@ -433,6 +433,18 @@
 			let textarea = document.getElementById("address_labels_data");
 			textarea.value = "";
 		})
+
+	//scrolltoRescanBlockchain is called when the user clicks the "Rescan blockchain" button.
+	//rescan blockchain button prompt in the wallet history tab
+    function scrolltoRescanBlockchain()
+	{
+		setSettingsView("advanced");
+		document.getElementById('blockchain-rescan').scrollIntoView();
+	}
+	{% if scroll_to_rescan_blockchain %}
+        scrolltoRescanBlockchain();
+    {% endif %}
+
 	</script>
 
 {% endblock %}

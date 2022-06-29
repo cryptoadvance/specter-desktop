@@ -926,8 +926,11 @@
                     this.emptyRow.classList.remove('hidden');
                     this.emptyRow.children[1].innerText = '{{ _("No transactions found...") }}';
                     this.pageCount = 1;
+                    //show rescan button
+                    document.getElementById("no-transaction").style.display = "block";
                 } else {
                     this.emptyRow.classList.add('hidden');
+                    document.getElementById("no-transaction").style.display = "none";
                 }
 
                 // If index is greater than the pages count fetch again for the last page
