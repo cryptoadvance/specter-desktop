@@ -36,7 +36,9 @@
 
 
 		constructor() {
+			console.log('Before super')
 			super();
+			console.log('After super')
 			this.internals = this.attachInternals();
 			// Create a shadow root
 			let shadowRoot = this.attachShadow({
@@ -69,12 +71,8 @@
 
 
 		static get observedAttributes() {
-			var ids = ["line1", "line2", "text3"]   // this is called even before the constructor
-			var attributes = ["value"];
-			for (var i in  ids) {
-				attributes.push(ids[i]);
-			}
-			console.log(attributes)
+			// define the attributes that can be defined via <recipient-box name="recipient-box" id='4'></recipient-box>	
+			var attributes = ["value", "name", "id"];
 			return attributes;
 		}
 
@@ -83,9 +81,6 @@
 		connectedCallback() {
 			for (var i in this.inputs ) {
 				var input_field = this.inputs[i];
-				console.log(i);
-				console.log(input_field);
-
 				input_field.addEventListener("change", (event) => {
 					this.internals.setFormValue(this.value);
 					console.log(`${input_field.id}  changed to ${this.value}`);
@@ -108,9 +103,13 @@
 		}
 
 		attributeChangedCallback(attribute, oldValue, newValue) {
-			//console.log(`Called  attributeChangedCallback with ${attribute}   =  ${newValue}  ;  Object.keys(this.inputs) = ${Object.keys(this.inputs)}`)
+			console.log(`Called  attributeChangedCallback with ${attribute}   =  ${newValue}  ;  Object.keys(this.inputs) = ${Object.keys(this.inputs)}`)
 			if (attribute=="value"){
 				setValue(newValue);
+			} else if (attribute=="name"){
+				this.name = newValue;
+			} else if (attribute=="id"){
+				this.id = newValue;
 			} else if (Object.keys(this.inputs).includes(attribute) ) {
 				this.inputs[attribute].value = newValue;
 			} 
