@@ -39,6 +39,7 @@
 			console.log('Before super')
 			super();
 			console.log('After super')
+
 			this.internals = this.attachInternals();
 			// Create a shadow root
 			let shadowRoot = this.attachShadow({
@@ -103,6 +104,7 @@
 		}
 
 		attributeChangedCallback(attribute, oldValue, newValue) {
+			if (oldValue == newValue){return}
 			console.log(`Called  attributeChangedCallback with ${attribute}   =  ${newValue}  ;  Object.keys(this.inputs) = ${Object.keys(this.inputs)}`)
 			if (attribute=="value"){
 				setValue(newValue);
