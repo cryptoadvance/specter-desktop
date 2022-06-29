@@ -34,31 +34,27 @@
 		}
 
 
+		getHTML(){
+			return ` 
+				<input type="text"  id="line1"    placeholder='1'>
+				<input type="text"  id="line2"    placeholder='1'> 
+				<textarea  id="text3"  ></textarea>
+				`
+		}
 
-		constructor() {
-			console.log('Before super')
-			super();
-			console.log('After super')
-
-			console.log({{ wallet.name }}) 
-			
-			this.internals = this.attachInternals();
+		buildHTML(){
 			// Create a shadow root
 			let shadowRoot = this.attachShadow({
 				mode: 'open'
 			});
 
-			shadowRoot.innerHTML = ` 
-				<input type="text"  id="line1"    placeholder='1'>
-				<input type="text"  id="line2"    placeholder='1'> 
-				<textarea  id="text3"  ></textarea>
-				`;
-
+			shadowRoot.innerHTML = this.getHTML();
 
 			this.inputs = {};
-			var form_class_names = ['input', 'textarea']
+
+			var form_class_names = ['input', 'textarea'];
 			for (var j in form_class_names) {
-				var input_fields = this.shadowRoot.querySelectorAll(form_class_names[j]);
+				var input_fields = shadowRoot.querySelectorAll(form_class_names[j]);
 				for(var i = 0; i < input_fields.length; i++) {
 					var input_field = input_fields[i];
 					console.log(j, i, input_field)
@@ -67,7 +63,15 @@
 			}
 			console.log('Constructed the following objects that will be available as in request.form')
 			console.log(this.inputs)
+		}
 
+		constructor() {
+			super();
+			
+			this.internals = this.attachInternals();
+			this.inputs = {};
+
+			this.buildHTML()
 
 			this.internals.setFormValue(this.value);
 		}
