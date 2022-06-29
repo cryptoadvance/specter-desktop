@@ -946,10 +946,8 @@
                     this.paginationCounter.innerText = `of ${this.pageCount}`;
                     this.paginationIdxInput.max = this.pageCount;
                 } else {
-                    console.log("we are running in pageCount is less or equal to 1")
                     this.paginationContainer.classList.add('hidden');
                     this.paginationCounter.classList.add('hidden');
-
                 }
 
                 // Disable pagination back button if on the first page
