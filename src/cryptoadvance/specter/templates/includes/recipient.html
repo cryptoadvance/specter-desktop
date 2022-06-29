@@ -1,16 +1,9 @@
 <!-- 
-    A textarea with drag and drop functionality.
-    Upon dragging and dropping the file in the textarea, the value of the textarea will be replaced by the text content stored in the file.
-    
-    Note: The default text within the textarea should be passed using 'value' attribute instead of enclosing the text within the opening and closing tag.
+    A recipient form that returns a Jsonified dictionary of address, label and amount
 
 {#- Usage -
 
     <recipient-box
-        name="name"
-        value="some default text"
-        placeholder="placeholder text"
-        textarea-style="style to override default styling of textarea"
     >
     </recipient-box>
 
@@ -62,6 +55,7 @@
 		}
 
 
+
 		constructor() {
 			super();
 			this.internals = this.attachInternals();
@@ -71,42 +65,56 @@
 			});
 
 			shadowRoot.innerHTML = ` 
-				<input type="text"  id="line-1"    placeholder='1'>
-				<input type="text"  id="line-2"    placeholder='1'> `;
-
-			this.line1 = this.shadowRoot.getElementById('line-1');
-			this.line2 = this.shadowRoot.getElementById('line-2');
+				<input type="text"  id="line1"    placeholder='1'>
+				<input type="text"  id="line2"    placeholder='1'> `;
 
 
+			this.inputs = {};
 
+			this.ids = [ "line1", "line2",  ];
+			for (var i in this.ids)	{
+				var id = this.ids[i];
+				var element = this.shadowRoot.getElementById(id);
+				if (element){
+					this.inputs[id] = element;
+				}
+			}
+			console.log(this.inputs)
 
 
 			this.internals.setFormValue(this.value);
 		}
 
 
+		static get observedAttributes() {
+			var attributes = ["value" ];
+			for (var i in this.ids)	{
+				var id = this.ids[i];
+				attributes.push(id);
+			}			
+			return attributes;
+		}
+
+
 
 		connectedCallback() {
-			this.line1.addEventListener("change", (event) => {
+			this.inputs['line1'].addEventListener("change", (event) => {
 				this.internals.setFormValue(this.value);
 				console.log(this.value);
 			})
-			this.line2.addEventListener("change", (event) => {
+			this.inputs['line2'].addEventListener("change", (event) => {
 				this.internals.setFormValue(this.value);
 				console.log(this.value);
 			})
 		}
 
 		disconnectedCallback() {
-			this.line1.removeEventListener('change');
-			this.line2.removeEventListener('change');
+			this.inputs['line1'].removeEventListener('change');
+			this.inputs['line2'].removeEventListener('change');
 		}
 
 
 
-		static get observedAttributes() {
-			return ["value", "line1", "line2",  ];
-		}
 
 		setFormValue(){
 			this.internals.setFormValue(this.value);
@@ -118,11 +126,11 @@
 					setValue(newValue);
 					break;
 				case "line1":
-					this.line1.value = newValue;
+					this.inputs['line1'].value = newValue;
 					setFormValue();
 					break;
 				case "line2":
-					this.line2.value = newValue;
+					this.inputs['line2'].value = newValue;
 					setFormValue();
 					break;					
 			}
@@ -134,14 +142,14 @@
 		}
 		setValue(newValue) {
 			var dict = JSON.parse(newValue); 
-			this.line1.value = dict['line1'];
-			this.line2.value = dict['line2'];
+			this.inputs['line1'].value = dict['line1'];
+			this.inputs['line2'].value = dict['line2'];
 			setFormValue();
 		}
 		get value() {
 			return JSON.stringify({
-				line1: this.line1.value,
-				line2: this.line2.value,
+				line1: this.inputs['line1'].value,
+				line2: this.inputs['line2'].value,
 			});
 		}
 
