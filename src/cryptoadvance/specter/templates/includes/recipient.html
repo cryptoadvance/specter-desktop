@@ -76,15 +76,24 @@
 
 			this.line1 = this.shadowRoot.getElementById('line-1');
 			this.line2 = this.shadowRoot.getElementById('line-2');
+
+
+
+
+
+			this.internals.setFormValue(this.value);
 		}
+
 
 
 		connectedCallback() {
 			this.line1.addEventListener("change", (event) => {
-				console.log(this.value)
+				this.internals.setFormValue(this.value);
+				console.log(this.value);
 			})
 			this.line2.addEventListener("change", (event) => {
-				console.log(this.value)
+				this.internals.setFormValue(this.value);
+				console.log(this.value);
 			})
 		}
 
@@ -96,7 +105,11 @@
 
 
 		static get observedAttributes() {
-			return [ "value", "line1", "line2"];
+			return ["value", "line1", "line2",  ];
+		}
+
+		setFormValue(){
+			this.internals.setFormValue(this.value);
 		}
 
 		attributeChangedCallback(attribute, oldValue, newValue) {
@@ -106,10 +119,12 @@
 					break;
 				case "line1":
 					this.line1.value = newValue;
+					setFormValue();
 					break;
 				case "line2":
 					this.line2.value = newValue;
-					break;
+					setFormValue();
+					break;					
 			}
 		}
 
@@ -121,7 +136,7 @@
 			var dict = JSON.parse(newValue); 
 			this.line1.value = dict['line1'];
 			this.line2.value = dict['line2'];
-			//this.internals.setFormValue(newValue);
+			setFormValue();
 		}
 		get value() {
 			return JSON.stringify({
@@ -180,28 +195,9 @@
 			this.internals.setFormValue(newValue);
 		}
 
-		connectedCallback() {
-			this.textarea.addEventListener('input', e => {
-				this.setValue(e.target.value);
-			});
-			this.address_input.addEventListener('input', e => {
-				this.setAddressValue(e.target.value);
-			});
-
-			this.textarea.ondrop = (event) => this.dropHandler(event);
-			this.textarea.ondragover = (event) => this.dragOverHandler(event);
-			this.textarea.ondragleave = (event) => this.noDropHandler(event);
-			this.textarea.ondragexit = (event) => this.noDropHandler(event);
-			this.textarea.ondragend = (event) => this.noDropHandler(event);
-		}
-
-		disconnectedCallback() {
-			this.textarea.removeEventListener('input');
-			this.address_input.removeEventListener('input');
-		}
 
 		static get observedAttributes() {
-			return ["value", "address_value", "placeholder", "textarea-style"];
+			return ["address_value" ];
 		}
 
 		attributeChangedCallback(attribute, oldValue, newValue) {
@@ -239,52 +235,6 @@
 			this.setAddressValue(newValue);
 		}
 
-		paste_file_in_textarea(file) {
-			let currObj = this;
-			if (file != null) {
-				console.log(file.name);
-				let reader = new FileReader();
-				reader.onload = function (e) {
-					currObj.setValue(reader.result);
-				}
-				reader.readAsBinaryString(file);
-			}
-		}
-
-		dropHandler(ev) {
-			// Prevent default behavior (Prevent file from being opened)
-			ev.preventDefault();
-
-			if (ev.dataTransfer.items) {
-				// Use DataTransferItemList interface to access the file(s)
-				for (let i = 0; i < ev.dataTransfer.items.length; i++) {
-					// If dropped items aren't files, reject them
-					if (ev.dataTransfer.items[i].kind === 'file') {
-						let file = ev.dataTransfer.items[i].getAsFile();
-						this.paste_file_in_textarea(file)
-						// console.log('... file[' + i + '].name = ' + file.name);
-					}
-				}
-			} else {
-				// Use DataTransfer interface to access the file(s)
-				for (let i = 0; i < ev.dataTransfer.files.length; i++) {
-					this.paste_file_in_textarea(ev.dataTransfer.files[i])
-					// console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
-				}
-			}
-		}
-
-		dragOverHandler(ev) {
-			// Prevent default behavior (Prevent file from being opened)
-			ev.preventDefault();
-			this.setValue("Drop file here");
-		}
-
-		noDropHandler(ev) {
-			// Prevent default behavior (Prevent file from being opened)
-			ev.preventDefault();
-			this.setValue("");
-		}
 	}
 
 	customElements.define('recipient-box', RecipientBox);
