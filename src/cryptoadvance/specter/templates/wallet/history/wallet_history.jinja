@@ -21,8 +21,8 @@
 		wallet="{{ wallet.alias }}">
 		</tx-table>
 	</div>
-	 <div id = "no-transaction" >
+	 <div id="no-transaction" >
 	 <a href="{{ url_for('wallets_endpoint.settings', wallet_alias=wallet_alias, rescan_blockchain=True) }}" class="btn">
-        Go to advanced settings and rescan blockchain</a>
+        Go to rescan blockchain</a>
 	</div>
 {% endblock %}

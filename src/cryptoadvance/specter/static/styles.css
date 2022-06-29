@@ -345,7 +345,7 @@ nav .separator{
     background: var(--cmap-border);
     border: 1px solid transparent;
     border-radius: 4px;
-    padding: 8px 15px 8px 10px;
+    padding: 8px 10px 8px 10px;
     color: #fff;
     font-size: 0.85em;
     text-align: center;

@@ -828,9 +828,7 @@ def settings(wallet_alias):
             else:
                 app.specter.wallet_manager.rename_wallet(wallet, wallet_name)
 
-# to scroll to rescan section
-# pass query string rescan_blockchain form the URL to the template
-    scroll_to_rescan_blockchain = request.args.get("rescan_blockchain")    
+    scroll_to_rescan_blockchain = request.args.get("rescan_blockchain")
     return render_template(
         "wallet/settings/wallet_settings.jinja",
         purposes=purposes,
