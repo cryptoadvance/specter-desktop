@@ -15,26 +15,26 @@
 
 	<div id="recipient" class="item" >		
 				<span id='title'><!-- the title comes in here--></span>		
-				<span class="recipient_button recipient_remove" title="Remove recipient" id="remove" style="float:right" onclick="removeRecipient()">&#10060;</span>
+				<span class="recipient_button recipient_remove" title="Remove recipient" id="remove" style="float:right">&#10060;</span>
 
 				<div class="inner_box"  >
 					<div class="row">
-						<input type="text" id="address" name="address" oninput="validateForm()" value="${addr}" placeholder='{{ _("Recipient address") }}'> &nbsp;
+						<input type="text" id="address" name="address" oninput="validateForm()" value="" placeholder='{{ _("Recipient address") }}'> &nbsp;
 						<qr-scanner id="address-scan" style="margin-top: 3px;">
 							<a slot="button" class="btn" style="height: 35px;">
 							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Scan") }}</a>
 						</qr-scanner>
 					</div>				
-					<input type="text" style="margin-top: 3px;" id="label" name="label" value="${label}"  placeholder='{{ _("Address label") }}''>
+					<input type="text" style="margin-top: 3px;" id="label" name="label" value=""  placeholder='{{ _("Address label") }}''>
 					<br>
 					{{ _("Amount:") }}<br>
-					<input style="width: 200px" type="number" name="amount" oninput="calculateConvertedUnit()" id="amount" min=0 step="${step}" autocomplete="off" placeholder="0"> <!-- the value comes in here-->
+					<input style="width: 200px" type="number" name="amount" id="amount" min=0 step="1" autocomplete="off" placeholder="0"> <!-- the value comes in here-->
 					<input type="hidden" name="btc_amount" id="btc_amount">
 					<div class="mobile-only" style="margin-top: 10px;"></div>
 					<span id='asset_selector'><!-- the assetSelector comes in here--></span>
 					<span class="note max-btn" style="margin-left: 5px;" id="send_max" onclick="setMaxAmount()">({{ _("send max") }})</span>
 					<div>
-						<span class="note" id="converted_unit_amount">-</span> <span class="note" id="converted_unit_label">${convertedUnit}</span> <span class="note" id="converted_unit_alt"></span>
+						<span class="note" id="converted_unit_amount">-</span> <span class="note" id="converted_unit_label"><!-- the convertedUnit comes in here--></span> <span class="note" id="converted_unit_alt"></span>
 					</div>
 				</div>
 			<div>
@@ -42,7 +42,7 @@
 
 
 
-<script type="module">
+<script type="text/javascript">
 	class RecipientBox extends HTMLElement {
 		// This tells the browser to treat the element like a form control
 		static formAssociated = true;
@@ -62,8 +62,9 @@
 			
 			this.internals = this.attachInternals();
 			this.inputs = {};
+			this.recipient_id = null;
 
-			this.buildHTML()
+			this.buildHTML();
 
 			this.internals.setFormValue(this.value);
 		}
@@ -75,7 +76,6 @@
 				this.shadowRoot.getElementById('amount').value = amount;
 			}
 			
-
 
 			if (amount_unit == 'sat') {
 				amount = parseFloat(Number.parseFloat(amount * 1e8).toFixed(0));
@@ -90,6 +90,8 @@
 			let satChecked = amount_unit == 'btc' ? '' : 'checked';
 			let btcChecked = amount_unit == 'btc' ? 'checked' : '';
 			let convertedUnit = amount_unit == 'btc' ? 'sat' : 'BTC';
+			this.shadowRoot.getElementById("converted_unit_label").innerText = convertedUnit;
+			
 			{% if specter.is_liquid and wallet.balance.get("assets", {}) %}
 				let assetSelector = `
 				<select name="amount_unit" style="width: 100px;" onchange="toggleUnit(this)">
@@ -116,6 +118,18 @@
 			this.shadowRoot.getElementById('title').innerText = newValue;
 		}		
 
+		setLabel(newValue){
+			this.shadowRoot.getElementById('label').value = newValue;
+		}		
+
+		setAddress(newValue){
+			this.shadowRoot.getElementById('address').value = newValue;
+		}		
+
+		setStep(newValue){
+			this.shadowRoot.getElementById('amount').step = newValue;
+		}		
+
 		buildHTML(){
 			// Create a shadow root
 			this.attachShadow({
@@ -125,8 +139,8 @@
 			var template_content = document.getElementById('recipient-box').content;
             this.clone = template_content.cloneNode(true);
 
-			this.clone.getElementById('address-scan').addEventListener('scan', e=>{
-				let addr = e.detail.result;
+			this.clone.getElementById('address-scan').addEventListener('scan', event=>{
+				let addr = event.detail.result;
 				if(addr == null){
 					return;
 				}
@@ -159,6 +173,15 @@
 				}
 			});
 
+			this.clone.getElementById('remove').addEventListener('click', event=>{
+				console.log(event)
+				removeRecipient(this.recipient_id)
+			});			
+
+			this.clone.getElementById('amount').addEventListener('input', event=>{
+				this.calculateConvertedUnit()
+			});			
+
 			// fill this.inputs with the input fields, so they this.value = Json(all input fields) 
 			this.inputs = {};
 			var form_class_names = ['input', 'textarea'];
@@ -177,17 +200,13 @@
 		}
 
 
-		static get observedAttributes() {
-			// define the attributes that can be defined via <recipient-box name="recipient-box" id='4'></recipient-box>	
-			var attributes = ["value", "name", "id", "title"];
-			return attributes;
-		}
 
 
+		
 
 		connectedCallback() {
 			for (var i in this.inputs ) {
-				var input_field = this.inputs[i];
+				var input_field = this.inputs[i];			
 				input_field.addEventListener("change", (event) => {
 					this.internals.setFormValue(this.value);
 					console.log(`${input_field.id}  changed to ${this.value}`);
@@ -209,6 +228,11 @@
 			this.internals.setFormValue(this.value);
 		}
 
+		static get observedAttributes() {
+			// define the attributes that can be defined via <recipient-box name="recipient-box" id='4'></recipient-box>	
+			var attributes = ["value", "name", "id", "title", "address", "label", "step", "recipient_id"];
+			return attributes;
+		}
 
 		attributeChangedCallback(attribute, oldValue, newValue) {
 			if (oldValue == newValue){return}
@@ -217,14 +241,22 @@
 				setValue(newValue);
 			} else if (attribute=="name"){
 				this.name = newValue;
+			} else if (attribute=="address"){
+				setAddress(newValue);
 			} else if (attribute=="title"){
 				this.setTitle(newValue);
+			} else if (attribute=="recipient_id"){
+				this.recipient_id = newValue;
+			} else if (attribute=="label"){
+				this.setLabel(newValue);
+			} else if (attribute=="step"){
+				this.setStep(newValue);
 			} else if (attribute=="id"){
 				this.id = newValue;
 			} else if (Object.keys(this.inputs).includes(attribute) ) {
 				this.inputs[attribute].value = newValue;
 			} 
-
+			
 		}
 
 		// This is essential to make the recipient-box compatible with setting a new value
@@ -276,7 +308,7 @@
 		calculateConvertedUnit() {
 			let amountInput = this.shadowRoot.getElementById('amount');
 
-			let recipient = get_recipient(id);
+			let recipient = get_recipient(this.recipient_id);
 			recipient['amount'] = parseFloat(amountInput.value);
 
 			let convertedAmount = parseFloat(Number.parseFloat(recipient['amount'] / (recipient['unit'] == 'sat' ? 1e8 : 1e-8)).toFixed((recipient['unit'] == 'sat' ? 8 : 0)));
