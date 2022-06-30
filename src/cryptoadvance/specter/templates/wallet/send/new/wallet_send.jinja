@@ -144,10 +144,9 @@
 			for  (var i in recipient_ids)   {
 				var recipient_id = recipient_ids[i];
 				let recipient = document.getElementById(`recipient_${recipient_id}`);
-				data[i] = recipient.value;
+				data[recipient_id] = recipient.value;
 			}
 
-			console.log(data)
 			return data;
 		}
 
