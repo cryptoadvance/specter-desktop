@@ -26,7 +26,7 @@
 
 				<div class="recipient_wrapper_inner_box"  >
 					<div class="row">
-						<input type="text" id="address" name="address" oninput="validateForm()" value="" placeholder='{{ _("Recipient address") }}'> &nbsp;
+						<input type="text" id="address" name="address" value="" placeholder='{{ _("Recipient address") }}'> &nbsp;
 						<qr-scanner id="address-scan" style="margin-top: 3px;">
 							<a slot="button" class="btn" style="height: 35px;">
 							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Scan") }}</a>
@@ -59,6 +59,7 @@
 			this.recipient_id = null;
 			this.amount = null;
 			this.unit =  null;
+			this.shoud_mark_own_address_green =  true;
 
 			this.buildHTML();
 		}
@@ -145,6 +146,10 @@
             this.clone = template_content.cloneNode(true);
 
 
+			this.clone.getElementById('address').addEventListener('input', event=>{
+				this.dispatchAddressOnInput();
+			});			
+
 
 
 			this.clone.getElementById('address-scan').addEventListener('scan', event=>{
@@ -213,6 +218,21 @@
 		}
 
 
+		mark_adddress_green_if_mine(){
+			// mark own addresses green
+			this.is_address_my_own().then((is_mine) => {
+				this.mark_recipient(is_mine);
+			});
+		}
+
+		dispatchAddressOnInput(result) {
+			if (this.shoud_mark_own_address_green){
+				this.mark_adddress_green_if_mine();
+			}
+			this.dispatchEvent(new CustomEvent('address-input', {
+				detail: {result},
+			}));
+		}
 
 
 		on_input_field_change(input_field){
@@ -357,7 +377,7 @@
 
 
 
-		async checkIfOwnAddress() {
+		async is_address_my_own() {
 			let address = this.shadowRoot.getElementById('address').value;
 			if (!address){return;}
 

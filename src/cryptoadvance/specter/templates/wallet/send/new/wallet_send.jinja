@@ -225,6 +225,9 @@
 			newRecipient.id = `recipient_${recipient_id}`;
 			newRecipient.recipient_id = recipient_id;
 			newRecipient.title = `Recipient ${recipient_id+1}`;
+			newRecipient.addEventListener('address-input', (event) => {
+				validateForm()
+			})
 			recipients.appendChild(newRecipient);
 
 
@@ -447,15 +450,7 @@
 			// this assures that the 'recipient_dicts' input has the newest recipient_dicts
 			document.getElementById('recipient_dicts').value  = JSON.stringify(get_recipient_dicts());  
 
-			// mark own addresses green
-			let recipients = document.getElementById('recipients');
-			for  (var i = recipients.children.length -1; i >= 0; i--)   {
-				let	child =  recipients.children[i];
-				child.checkIfOwnAddress().then((is_mine) => {
-					child.mark_recipient(is_mine);
-				});
-			}
-			
+
 						
 						
 
