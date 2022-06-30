@@ -234,7 +234,7 @@
 			var subtract_from_recipient_id_select = fee_selection_component.subtractFrom.children.subtract_from_recipient_id_select;
 			var opt = document.createElement('option');
 			opt.value = recipient_id;
-			opt.innerHTML = `Recipient ${recipient_id + 1}`;
+			opt.innerHTML = newRecipient.title;
 			subtract_from_recipient_id_select.appendChild(opt);			
 			
 
@@ -441,34 +441,24 @@
 		}
 
 
-		async function checkIfOwnAddress(recipient_id) {
-			let address = document.getElementById(`recipient_${recipient_id}`).shadowRoot.getElementById('address').value;
-			if (!address){return;}
-
-			let url="{{ url_for('wallets_endpoint_api.is_address_mine', wallet_alias=wallet.alias, address='this_address') }}"
-			url = url.replace('this_address', address)			
-					
-			let is_address_mine = send_request(url, 'GET', "{{ csrf_token() }}");
-			return is_address_mine;
-		}
-
-		function mark_recipient(recipient_id, is_address_mine){
-			console.log(`Marking ${recipient_id} as is_mine=${is_address_mine}`)
-
-			let html_address = document.getElementById(`recipient_${recipient_id}`).shadowRoot.getElementById(`address`);
-			if (is_address_mine) {
-				html_address.style.backgroundColor= 'var(--cmap-bg-address-is-mine)';
-			} else {
-				html_address.style.backgroundColor= "rgba(1, 1, 1, 0)";
-			}
-
-		}
-
 		function validateForm(submitted=false) {
 			const recipient_dicts = get_recipient_values();
 
 			// this assures that the 'recipient_dicts' input has the newest recipient_dicts
 			document.getElementById('recipient_dicts').value  = JSON.stringify(get_recipient_values());  
+
+			// mark own addresses green
+			let recipients = document.getElementById('recipients');
+			for  (var i = recipients.children.length -1; i >= 0; i--)   {
+				let	child =  recipients.children[i];
+				child.checkIfOwnAddress().then((is_mine) => {
+					child.mark_recipient(is_mine);
+				});
+			}
+			
+						
+						
+
 
 			console.log("validateForm is called")
 			let createPSBTButton = document.getElementById('create_psbt_btn');
@@ -493,10 +483,6 @@
 						recipient.amount = 0;
 					}
 
-					checkIfOwnAddress(recipient.recipient_id).then((is_mine) => {
-						mark_recipient(recipient.recipient_id, is_mine );
-					});
-					
 
 					if (submitted) {
 						// Check address
