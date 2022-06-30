@@ -1,5 +1,5 @@
 <!-- 
-    A recipient form that returns a dictionary of address, label and amount
+    A recipient form. The .value property returns a dictionary of address, label, amount and more
 
 {#- Usage -
 
@@ -18,6 +18,14 @@
 	It exposes the events:
 	  - 'address-input'
 	  - 'unit-change'
+
+
+	It has the attributes: ["value", "name", "id", "title", "address", "label", "step", "recipient_id"]
+			These attributes will be assigned to the appropriate html elements
+
+	It has the properties:
+	  - 'value' , which returns a dict with important attributes and input fields
+					it can also be set, where it writes the content back into the input fields
 
 #} 
 -->
@@ -48,7 +56,6 @@
 					<br>
 					{{ _("Amount:") }}<br>
 					<input style="width: 200px" type="number" name="amount_input" id="amount_input" min=0 step='1e-8' autocomplete="off" placeholder="0"> <!-- the value comes in here-->
-					<input type="hidden" name="btc_amount" id="btc_amount">
 					<div class="mobile-only" style="margin-top: 10px;"></div>
 					<span id='asset_selector'><!-- the assetSelector comes in here--></span>
 					<span class="note max-btn" style="margin-left: 5px;" id="send_max">({{ _("send max") }})</span>
@@ -67,16 +74,67 @@
 			super();
 			
 			this.internals = this.attachInternals();
-			this.inputs = {};
-			this.recipient_id = null;
-			this.amount = null;
-			this.unit =  null;
+			this.recipient_id = null;	// MUST be set for a functioning instance
+			this.inputs = {};   		// this is a dictionary containing all inputs, such they are easily accessible 
+			this.amount = null;   		// will be calculated from the inputs
+			this.btc_amount = null; 	// will be calculated from the inputs
+			this.unit =  null;			// will be calculated from the inputs
 
-			this.buildHTML();
+			this.buildHTML();			// created the html
+			this.attachListeners();		// attaches the listeners to some html objects
 		}
 
 
 
+		setTitle(newValue){
+			this.shadowRoot.getElementById('title').innerText = newValue;
+		}		
+
+		setLabel(newValue){
+			this.shadowRoot.getElementById('label').value = newValue;
+		}		
+
+		setAddress(newValue){
+			this.shadowRoot.getElementById('address').value = newValue;
+		}		
+
+		setStep(newValue){
+			this.shadowRoot.getElementById('amount_input').step = newValue;
+		}		
+
+
+		// creates the entire html code (without event listeners)  mainly from the template
+		// and it also populates the dictionary this.inputs
+		buildHTML(){
+			// Create a shadow root
+			this.attachShadow({
+				mode: 'open'
+			});
+
+			var template_content = document.getElementById('recipient-box').content;
+            this.clone = template_content.cloneNode(true);
+
+
+			// fill this.inputs with the input fields, so they this.value = dict of all input fields
+			this.inputs = {};
+			var form_class_names = ['input', 'textarea'];
+			for (var j in form_class_names) {
+				var input_fields = this.clone.querySelectorAll(form_class_names[j]);
+				for(var i = 0; i < input_fields.length; i++) {
+					var input_field = input_fields[i];
+					console.log(j, i, input_field)
+					this.inputs[input_field.id] = input_field;
+				}
+			}
+
+
+            this.shadowRoot.appendChild(this.clone);
+			this.add_assetSelector_to_shadowRoot('', 'btc')			
+		}
+
+
+
+		// add the html code for the assetSelector
 		add_assetSelector_to_shadowRoot(amount, amount_unit) { 
 			if (amount >= 0){
 				this.shadowRoot.getElementById('amount_input').value = amount;
@@ -117,6 +175,13 @@
 
 			this.shadowRoot.getElementById('asset_selector').innerHTML = assetSelector;
 
+
+		} 
+
+
+
+		// adds EventListeners to various inputs
+		attachListeners(){
 			this.shadowRoot.querySelectorAll('[name="amount_unit"]').forEach(input => {
 				input.addEventListener('change',() => {
 					this.toggleUnit(input.value);
@@ -131,42 +196,14 @@
 				}	
 			}); 	
 
-		} 
 
-
-		setTitle(newValue){
-			this.shadowRoot.getElementById('title').innerText = newValue;
-		}		
-
-		setLabel(newValue){
-			this.shadowRoot.getElementById('label').value = newValue;
-		}		
-
-		setAddress(newValue){
-			this.shadowRoot.getElementById('address').value = newValue;
-		}		
-
-		setStep(newValue){
-			this.shadowRoot.getElementById('amount_input').step = newValue;
-		}		
-
-		buildHTML(){
-			// Create a shadow root
-			this.attachShadow({
-				mode: 'open'
-			});
-
-			var template_content = document.getElementById('recipient-box').content;
-            this.clone = template_content.cloneNode(true);
-
-
-			this.clone.getElementById('address').addEventListener('input', event=>{
+			this.shadowRoot.getElementById('address').addEventListener('input', event=>{
 				this.dispatchAddressOnInput();
 			});			
 
 
 
-			this.clone.getElementById('address-scan').addEventListener('scan', event=>{
+			this.shadowRoot.getElementById('address-scan').addEventListener('scan', event=>{
 				let addr = event.detail.result;
 				if(addr == null){
 					return;
@@ -177,9 +214,9 @@
 				}
 				let arr = addr.split("?");
 				addr = arr[0];
-				this.clone.getElementById("address").value = addr;
+				this.shadowRoot.getElementById("address").value = addr;
 				let evt = new Event('input');
-				this.clone.getElementById("address").dispatchEvent(evt);
+				this.shadowRoot.getElementById("address").dispatchEvent(evt);
 				// parse metadata like amount and message
 				if(arr.length > 1){
 					arr = arr[1].split("&");
@@ -189,47 +226,35 @@
 							if(this.unit == 'sat'){
 								val = Math.round(val*1e8);
 							}
-							this.clone.getElementById("amount_input").value = val;
+							this.shadowRoot.getElementById("amount_input").value = val;
 							let evt = new Event('input');
-							this.clone.getElementById("amount_input").dispatchEvent(evt);
+							this.shadowRoot.getElementById("amount_input").dispatchEvent(evt);
 						}
 						if(e.startsWith("message=") || e.startsWith("label=")){
-							this.clone.getElementById("label").value = e.split("=")[1];
+							this.shadowRoot.getElementById("label").value = e.split("=")[1];
 						}
 					});
 				}
 			});
 
 			
-			this.clone.getElementById('send_max').addEventListener('click', event=>{
+			this.shadowRoot.getElementById('send_max').addEventListener('click', event=>{
 				console.log(event)
 				setMaxAmount(this.recipient_id)
 			});			
 
-			this.clone.getElementById('remove').addEventListener('click', event=>{
+			this.shadowRoot.getElementById('remove').addEventListener('click', event=>{
 				console.log(event)
 				removeRecipient(this.recipient_id)
 			});			
 
-			this.clone.getElementById('amount_input').addEventListener('input', event=>{
+			this.shadowRoot.getElementById('amount_input').addEventListener('input', event=>{
 				this.calculateConvertedUnit()
 			});			
 
-			// fill this.inputs with the input fields, so they this.value = dict of all input fields
-			this.inputs = {};
-			var form_class_names = ['input', 'textarea'];
-			for (var j in form_class_names) {
-				var input_fields = this.clone.querySelectorAll(form_class_names[j]);
-				for(var i = 0; i < input_fields.length; i++) {
-					var input_field = input_fields[i];
-					console.log(j, i, input_field)
-					this.inputs[input_field.id] = input_field;
-				}
-			}
 
-            this.shadowRoot.appendChild(this.clone);
-			this.add_assetSelector_to_shadowRoot('', 'btc')			
 		}
+
 
 
 		mark_adddress_green_if_mine(){
@@ -307,17 +332,21 @@
 			for (var i in this.inputs ) {
 				if  (Object.keys(this.inputs).includes(i) ){
 					this.inputs[i].value = dict[i];
-				}
+				}  
 			} 
 		}
 
 		// Returns a dict with important attributes and input fields
 		get value() {
+			// include some attributes from the class (these are typically static (like id) or derived from inputs (such as amount, unit, btc_amount))
 			var dict = {
 				unit:this.unit,
 				amount:this.amount,
+				btc_amount:this.btc_amount,
 				recipient_id:this.recipient_id,
 			}
+
+			// include all inputs that are in this.inputs  (should be all)
 			for (var i in this.inputs ) {
 				if (!i) {continue}  // no empty keys
 				dict[i] = this.inputs[i].value;
@@ -363,14 +392,14 @@
 			if (convertedAmount == 'NaN') {
 				convertedAmount = '-'
 			}
-			this.shadowRoot.getElementById('btc_amount').value = (this.unit == 'sat' ? this.amount / 1e8 : this.amount);
+			this.btc_amount = (this.unit == 'sat' ? this.amount / 1e8 : this.amount);
 
 			if(this.unit == 'sat' || this.unit == 'btc'){
 				this.shadowRoot.getElementById('converted_unit_amount').innerHTML = (isNaN(convertedAmount) ? '-' : convertedAmount.toFixed(8).replace(/(\.0+|0+)$/, ''));
 			{% if specter.price_check %}
 				let altRate = parseFloat('{{ specter.alt_rate }}');
 				let altSymbol = '{{ specter.alt_symbol }}';
-				let altAmount = parseFloat((altRate * parseFloat(this.shadowRoot.getElementById('btc_amount').value)).toFixed(2))
+				let altAmount = parseFloat((altRate * this.btc_amount).toFixed(2))
 				if (!isNaN(altAmount) && (altSymbol && altRate)) {
 					this.shadowRoot.getElementById('converted_unit_alt').innerHTML = '&nbsp;(' + altAmount + altSymbol + ')';
 				} else {

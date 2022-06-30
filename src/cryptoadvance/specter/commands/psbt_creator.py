@@ -145,7 +145,7 @@ class PsbtCreator:
 
         recipient_dicts = json.loads(request_form["recipient_dicts"])
         print(recipient_dicts)
-        for recipient_id, recipient_dict in recipient_dicts.items():
+        for recipient_dict in recipient_dicts.values():
             addresses.append(recipient_dict["address"])
             amount = 0.0
             try:
