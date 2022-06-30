@@ -27,7 +27,6 @@
 	<form action="{{ url_for('wallets_endpoint.send_new',wallet_alias=wallet_alias) }}" id="send-form" method="POST" style="width: 100%;">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="rbf_tx_id" value="{{ rbf_tx_id }}"/>
-		<input type="hidden" name="recipient_ids"  id="recipient_ids" value=""/>  
 		<input type="hidden" name="recipient_dicts"  id="recipient_dicts" value=""/>  
 		<input type="hidden" name="subtract_from"  id="subtract_from" value=""/>  
 		<h1 class="padded">{{ _("Create Transaction") }}</h1>

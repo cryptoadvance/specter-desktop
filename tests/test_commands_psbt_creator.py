@@ -17,21 +17,6 @@ def test_PsbtCreator_ui(caplog):
     # Let's mock the request.form which behaves like a dict but also needs getlist()
     request_form_data = {
         "rbf_tx_id": "",
-        "address_0": "BCRT1qgc6h85z43g3ss2dl5zdrzrp3ef6av4neqcqhh8",  # will need normalisation
-        "label_0": "someLabel",
-        "amount_0": "0.1",
-        "btc_amount_0": "0.1",
-        "amount_unit_0": "btc",
-        "address_3": "bcrt1q3kfetuxpxvujasww6xas94nawklvpz0e52uw8a",
-        "label_3": "someOtherLabel",
-        "amount_3": "111211",
-        "btc_amount_3": "0.00111211",
-        "amount_unit_3": "sat",
-        "address_4": "bcrt1qfvkcy2keql72s8ev87ek93uxuq3xxsx9l0n03r",
-        "label_4": "'<script>console.log('I escaped')</script>'",
-        "amount_4": "0.003",
-        "btc_amount_4": "0.003",
-        "amount_unit_4": "btc",
         "amount_unit_text": "btc",
         "subtract_from": "0",
         "fee_option": "dynamic",
@@ -39,7 +24,7 @@ def test_PsbtCreator_ui(caplog):
         "fee_rate_dynamic": "64",
         "rbf": "on",
         "action": "createpsbt",
-        "recipient_ids": "[0, 3, 4]",
+        "recipient_dicts": '{"0":{"unit":"btc","amount":0.1,"recipient_id":0,"address":"BCRT1qgc6h85z43g3ss2dl5zdrzrp3ef6av4neqcqhh8","label":"someLabel","amount_input":"0.1","btc_amount":"0.1"},"1":{"unit":"sat","amount":111211,"recipient_id":1,"address":"bcrt1q3kfetuxpxvujasww6xas94nawklvpz0e52uw8a","label":"someOtherLabel","amount_input":"111211","btc_amount":"0.00111211"},"2":{"unit":"btc","amount":0.003,"recipient_id":2,"address":"bcrt1qfvkcy2keql72s8ev87ek93uxuq3xxsx9l0n03r","label":"<script>console.log(\'I escaped\')</script>","amount_input":"0.003","btc_amount":"0.003"}}',
     }
 
     psbt_creator: PsbtCreator = PsbtCreator(
