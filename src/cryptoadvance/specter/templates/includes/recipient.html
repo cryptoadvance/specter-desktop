@@ -13,11 +13,11 @@
 <template id="recipient-box">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 
-	<div id="recipient" class="item" >		
+	<div id="recipient" class="recipient_wrapper_item" >		
 				<span id='title'><!-- the title comes in here--></span>		
 				<span class="recipient_button recipient_remove" title="Remove recipient" id="remove" style="float:right">&#10060;</span>
 
-				<div class="inner_box"  >
+				<div class="recipient_wrapper_inner_box"  >
 					<div class="row">
 						<input type="text" id="address" name="address" oninput="validateForm()" value="" placeholder='{{ _("Recipient address") }}'> &nbsp;
 						<qr-scanner id="address-scan" style="margin-top: 3px;">

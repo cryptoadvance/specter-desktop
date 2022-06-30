@@ -1320,21 +1320,21 @@ input:checked + .slider:before {
   }
 
 
-.item{
+.recipient_wrapper_item{
     border-radius: 5px;
     border: 1px solid var(--cmap-border-highlight);
     padding: 5px;
     margin-bottom: 10px;
   }
     
-.inner_box{
+  .recipient_wrapper_inner_box{
     border-radius: 5px;
     border: 1px solid var(--cmap-border);
     padding: 5px;
     margin-top: 5px;
   }
 
-.item:last-child{
+  .recipient_wrapper_item:last-child{
     margin-bottom: 0px;
   }
     
