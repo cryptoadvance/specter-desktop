@@ -28,6 +28,7 @@
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="rbf_tx_id" value="{{ rbf_tx_id }}"/>
 		<input type="hidden" name="recipient_ids"  id="recipient_ids" value=""/>  
+		<input type="hidden" name="recipient_data"  id="recipient_data" value=""/>  
 		<input type="hidden" name="subtract_from"  id="subtract_from" value=""/>  
 		<h1 class="padded">{{ _("Create Transaction") }}</h1>
 		<div style="display: flex; justify-content: center; margin-bottom: 15px">
@@ -128,6 +129,18 @@
 
 		function get_recipient_ids() {
 			return recipient_array.map(({recipient_id}) => recipient_id);
+		}
+
+		function get_recipient_data() {
+			data = [];
+
+			var recipient_ids = get_recipient_ids();
+			for  (var i in recipient_ids)   {
+				let recipient = document.getElementById(`recipient_${recipient_id}`);
+				data.push(recipient.value);
+			}
+
+			return data;
 		}
 
 		function get_recipient(recipient_id) {
@@ -533,6 +546,12 @@
 			// this has to be set before send-form POST request 
 			var recipient_ids = document.getElementById('recipient_ids')  
 			recipient_ids.value = JSON.stringify(get_recipient_ids());  
+
+			// this has to be set before send-form POST request 
+			var recipient_data = document.getElementById('recipient_data')  
+			recipient_data.value = JSON.stringify(get_recipient_data());  
+			console.log(get_recipient_data())
+
 
 			// subtract_from = number of input (starting from 0), while subtract_from_recipient_id_select is the recipient_id
 			var fee_selection_component = document.getElementById('fee-selection-component');

@@ -1,5 +1,5 @@
 <!-- 
-    A recipient form that returns a Jsonified dictionary of address, label and amount
+    A recipient form that returns a dictionary of address, label and amount
 
 {#- Usage -
 
@@ -45,17 +45,10 @@
 <script type="text/javascript">
 	class RecipientBox extends HTMLElement {
 		// This tells the browser to treat the element like a form control
-		static formAssociated = true;
+		// static formAssociated = true;  // this doesn't work with dynamically created instances
 		// For details on how to ensure that a custom element gets picked up by a parent <form> see:
 		// https://web.dev/more-capable-form-controls/#defining-a-form-associated-custom-element
 		// see https://css-tricks.com/creating-custom-form-controls-with-elementinternals/ 
-		static formAssociated = true;
-
-		static get styles() {
-			return css ` `;
-		}
-
-
 
 		constructor() {
 			super();
@@ -65,8 +58,6 @@
 			this.recipient_id = null;
 
 			this.buildHTML();
-
-			this.internals.setFormValue(this.value);
 		}
 
 
@@ -173,6 +164,9 @@
 				}
 			});
 
+			
+
+
 			this.clone.getElementById('remove').addEventListener('click', event=>{
 				console.log(event)
 				removeRecipient(this.recipient_id)
@@ -182,7 +176,7 @@
 				this.calculateConvertedUnit()
 			});			
 
-			// fill this.inputs with the input fields, so they this.value = Json(all input fields) 
+			// fill this.inputs with the input fields, so they this.value = dict of all input fields
 			this.inputs = {};
 			var form_class_names = ['input', 'textarea'];
 			for (var j in form_class_names) {
@@ -202,13 +196,11 @@
 
 
 
-		
 
 		connectedCallback() {
 			for (var i in this.inputs ) {
 				var input_field = this.inputs[i];			
 				input_field.addEventListener("change", (event) => {
-					this.internals.setFormValue(this.value);
 					console.log(`${input_field.id}  changed to ${this.value}`);
 				})
 			}
@@ -223,10 +215,6 @@
 
 
 
-
-		setFormValue() {
-			this.internals.setFormValue(this.value);
-		}
 
 		static get observedAttributes() {
 			// define the attributes that can be defined via <recipient-box name="recipient-box" id='4'></recipient-box>	
@@ -264,11 +252,9 @@
 			this.setValue(newValue);
 		}
 		setValue(newValue) {
-			var dict = JSON.parse(newValue);
 			for (var i in this.inputs ) {
 				this.inputs[i].value = dict[i]
 			} 
-			this.setFormValue();
 		}
 		get value() {
 			var dict = {}
@@ -276,7 +262,7 @@
 				dict[i] = this.inputs[i].value;
 			} 
 
-			return JSON.stringify(dict);
+			return dict;
 		}
 
 		static get properties() {
