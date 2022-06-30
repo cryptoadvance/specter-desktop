@@ -3,9 +3,21 @@
 
 {#- Usage -
 
-    <recipient-box
-    >
-    </recipient-box>
+    <recipient-box id=`recipient_0`  recipient_id=0   title=`Recipient 1`></recipient-box>
+
+	or via the class:
+			let newRecipient = new RecipientBox();
+			newRecipient.id = `recipient_${recipient_id}`;
+			newRecipient.recipient_id = recipient_id;
+			newRecipient.title = `Recipient ${recipient_id+1}`;
+			newRecipient.addEventListener('address-input', (event) => {
+				validateForm()
+			})
+
+
+	It exposes the events:
+	  - 'address-input'
+	  - 'unit-change'
 
 #} 
 -->
@@ -109,10 +121,13 @@
 			this.shadowRoot.querySelectorAll('[name="amount_unit"]').forEach(input => {
 				input.addEventListener('change',() => {
 					this.toggleUnit(input.value);
+
+					this.dispatchEvent(new CustomEvent('unit-change'));
 				});	
 
+
+				// set unit at instance creation
 				if (input.checked){
-					// set initial unit
 					this.toggleUnit(input.value);
 				}	
 			}); 	
@@ -229,9 +244,7 @@
 			if (this.shoud_mark_own_address_green){
 				this.mark_adddress_green_if_mine();
 			}
-			this.dispatchEvent(new CustomEvent('address-input', {
-				detail: {result},
-			}));
+			this.dispatchEvent(new CustomEvent('address-input'));
 		}
 
 
@@ -372,7 +385,6 @@
 				this.shadowRoot.getElementById('converted_unit_alt').innerHTML = '&nbsp;';
 			}
 			
-			validateForm();
 		}
 
 

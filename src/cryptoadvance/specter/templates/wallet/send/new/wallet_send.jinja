@@ -226,8 +226,14 @@
 			newRecipient.recipient_id = recipient_id;
 			newRecipient.title = `Recipient ${recipient_id+1}`;
 			newRecipient.addEventListener('address-input', (event) => {
+				console.log('Called address-input Listener')
 				validateForm()
 			})
+			newRecipient.addEventListener('unit-change', (event) => {
+				console.log('Called unit-change Listener')
+				validateForm()
+			})
+
 			recipients.appendChild(newRecipient);
 
 
