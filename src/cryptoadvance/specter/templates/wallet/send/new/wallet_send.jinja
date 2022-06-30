@@ -14,7 +14,7 @@
 	</style>
 
 	{% include "includes/qr-scanner.html" %}
-	{% include "wallet/send/new/components/recipient.jinja" %}
+	{% include "includes/recipient.html" %}
 
 	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
 	{{ send_nav('send_new', wallet_alias) }}
@@ -221,7 +221,7 @@
 			recipient_array.push(recipient);
 			console.log(recipient_array) 
 			let recipientForm = `	
-			<recipient-box name="recipient-box" id="recipient_${id}"  ></recipient-box>	 
+			<recipient-box name="recipient-box"  id="recipient_${id}" title="Recipient ${id+1}" ></recipient-box>	 
 			`
 
 			// This adds the recipient
@@ -329,7 +329,7 @@
 		async function setMaxAmount(id) {
 			FeeSelectionComponent.showSubtractFrom(true)
 			FeeSelectionComponent.setSubtractFrom(id)
-			let amountInput = document.getElementById('amount_' + id);
+			let amountInput = document.getElementById(`recipient_${id}`).shadowRoot.getElementById('amount');
 			if (!validAddress(id)) {
 				return;
 			}
@@ -374,8 +374,8 @@
 				showError(`{{ _("Amount entered is invalid!") }}`, 5000);
 				return false;
 			}
-			if (id) {
-				let amountInput = document.getElementById('amount_' + id);
+			if (id) {				
+				let amountInput = document.getElementById(`recipient_${id}`).shadowRoot.getElementById('amount');
 				if (coinselectionWebcomponent != null) {
 					amountInput.max = coinselectionWebcomponent.getSpendableAmount(unit);
 				} else {
@@ -407,7 +407,7 @@
 		// Returns true if the address is valid 
 		function validAddress(id) {
 			let reWhite = /\s/;
-			let addressInput = document.getElementById('address_' + id);
+			let addressInput = document.getElementById(`recipient_${id}`).shadowRoot.getElementById('address' + id);
 			if (!addressInput.value) {
 				showError(`{{ _("You provided no address.") }}`, 5000);
 				return false
@@ -444,7 +444,7 @@
 
 
 		async function checkIfOwnAddress(recipient_id) {
-			let address = document.getElementById('address_' + recipient_id).value;
+			let address = document.getElementById(`recipient_${recipient_id}`).shadowRoot.getElementById('address').value;
 			if (!address){return;}
 
 			let url="{{ url_for('wallets_endpoint_api.is_address_mine', wallet_alias=wallet.alias, address='this_address') }}"
@@ -457,7 +457,7 @@
 		function mark_recipient(recipient_id, is_address_mine){
 			console.log(`Marking ${recipient_id} as is_mine=${is_address_mine}`)
 
-			let html_address = document.getElementById(`address_${recipient_id}`);
+			let html_address = document.getElementById(`recipient_${recipient_id}`).shadowRoot.getElementById(`address`);
 			if (is_address_mine) {
 				html_address.style.backgroundColor= 'var(--cmap-bg-address-is-mine)';
 			} else {
@@ -485,7 +485,7 @@
 							assetAmounts[recipient['unit']] = recipient['amount'];
 						}
 					}
-					if (document.getElementById("amount_" + recipient['id']).value == '') {
+					if (document.getElementById(`recipient_${recipient['id']}`).shadowRoot.getElementById('amount').value == '') {
 						recipient['amount'] = 0;
 					}
 

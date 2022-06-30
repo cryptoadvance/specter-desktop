@@ -26,6 +26,17 @@
 
 
 
+		constructor() {
+			super();
+			
+			this.internals = this.attachInternals();
+			this.inputs = {};
+
+			this.buildHTML()
+
+			this.internals.setFormValue(this.value);
+		}
+
 
 
 		addRecipient(title, addr, amount, amount_unit, label) { 
@@ -63,7 +74,7 @@
 		    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 
 			<div id="recipient" class="item" >		
-				${title}
+				<span id='title'>${title}</span>				
 				<span class="recipient_button recipient_remove" title="Remove recipient" id="remove" style="float:right" onclick="removeRecipient()">&#10060;</span>
 
 				<div class="inner_box"  >
@@ -91,24 +102,25 @@
 			return recipientForm
 		}
 		getHTML(){
+			var title = '';
 			var addr = '';
 			var amount = 0;
 			var amount_unit = 'btc';
 			var label = '';
-			return this.addRecipient(addr, amount, amount_unit, label)
+			return this.addRecipient(title, addr, amount, amount_unit, label)
 		}
 
 		buildHTML(){
 			// Create a shadow root
-			let shadowRoot = this.attachShadow({
+			this.attachShadow({
 				mode: 'open'
 			});
-
-			shadowRoot.innerHTML = this.getHTML();
+      		this.close = this.close.bind(this);
+			this.shadowRoot.innerHTML = this.getHTML();
 
 
 			
-			shadowRoot.getElementById('address-scan').addEventListener('scan', e=>{
+			this.shadowRoot.getElementById('address-scan').addEventListener('scan', e=>{
 				let addr = e.detail.result;
 				if(addr == null){
 					return;
@@ -146,7 +158,7 @@
 			this.inputs = {};
 			var form_class_names = ['input', 'textarea'];
 			for (var j in form_class_names) {
-				var input_fields = shadowRoot.querySelectorAll(form_class_names[j]);
+				var input_fields = this.shadowRoot.querySelectorAll(form_class_names[j]);
 				for(var i = 0; i < input_fields.length; i++) {
 					var input_field = input_fields[i];
 					console.log(j, i, input_field)
@@ -157,21 +169,10 @@
 			console.log(this.inputs)
 		}
 
-		constructor() {
-			super();
-			
-			this.internals = this.attachInternals();
-			this.inputs = {};
-
-			this.buildHTML()
-
-			this.internals.setFormValue(this.value);
-		}
-
 
 		static get observedAttributes() {
 			// define the attributes that can be defined via <recipient-box name="recipient-box" id='4'></recipient-box>	
-			var attributes = ["value", "name", "id"];
+			var attributes = ["value", "name", "id", "title"];
 			return attributes;
 		}
 
@@ -201,6 +202,10 @@
 			this.internals.setFormValue(this.value);
 		}
 
+		setTitle(newValue){
+			this.shadowRoot.getElementById('title').innerText = newValue;
+		}
+
 		attributeChangedCallback(attribute, oldValue, newValue) {
 			if (oldValue == newValue){return}
 			console.log(`Called  attributeChangedCallback with ${attribute}   =  ${newValue}  ;  Object.keys(this.inputs) = ${Object.keys(this.inputs)}`)
@@ -208,6 +213,8 @@
 				setValue(newValue);
 			} else if (attribute=="name"){
 				this.name = newValue;
+			} else if (attribute=="title"){
+				this.setTitle(newValue);
 			} else if (attribute=="id"){
 				this.id = newValue;
 			} else if (Object.keys(this.inputs).includes(attribute) ) {
@@ -250,7 +257,7 @@
 
 		toggleUnit(unitSelected) {
 			recipient['unit'] = unitSelected.value;
-			let unitLabelEl = document.getElementById('converted_unit_label_' + id);
+			let unitLabelEl = this.shadowRoot.getElementById('converted_unit_label');
 			if(recipient['unit'] == 'sat'){
 				unitLabelEl.innerHTML = 'BTC';
 			}else if(recipient['unit'] == 'btc'){
@@ -258,13 +265,12 @@
 			}else{
 				unitLabelEl.innerHTML = '';
 			}
-			document.getElementById('amount').setAttribute('step', recipient['unit'] == 'sat' ? '1' : '1e-8');
+			this.shadowRoot.getElementById('amount').setAttribute('step', recipient['unit'] == 'sat' ? '1' : '1e-8');
 			this.calculateConvertedUnit();
 		}
 
 		calculateConvertedUnit() {
-			const { shadowRoot } = this;
-			let amountInput = shadowRoot.getElementById('recipients').getElementById('amount');
+			let amountInput = this.shadowRoot.getElementById('amount');
 
 			let recipient = get_recipient(id);
 			recipient['amount'] = parseFloat(amountInput.value);
@@ -273,23 +279,23 @@
 			if (convertedAmount == 'NaN') {
 				convertedAmount = '-'
 			}
-			document.getElementById('btc_amount_' + id).value = (recipient['unit'] == 'sat' ? recipient['amount'] / 1e8 : recipient['amount']);
+			this.shadowRoot.getElementById('btc_amount').value = (recipient['unit'] == 'sat' ? recipient['amount'] / 1e8 : recipient['amount']);
 
 			if(recipient['unit'] == 'sat' || recipient['unit'] == 'btc'){
-				document.getElementById('converted_unit_amount_' + id).innerHTML = (isNaN(convertedAmount) ? '-' : convertedAmount.toFixed(8).replace(/(\.0+|0+)$/, ''));
+				this.shadowRoot.getElementById('converted_unit_amount').innerHTML = (isNaN(convertedAmount) ? '-' : convertedAmount.toFixed(8).replace(/(\.0+|0+)$/, ''));
 			{% if specter.price_check %}
 				let altRate = parseFloat('{{ specter.alt_rate }}');
 				let altSymbol = '{{ specter.alt_symbol }}';
-				let altAmount = parseFloat((altRate * parseFloat(document.getElementById('btc_amount_' + id).value)).toFixed(2))
+				let altAmount = parseFloat((altRate * parseFloat(this.shadowRoot.getElementById('btc_amount').value)).toFixed(2))
 				if (!isNaN(altAmount) && (altSymbol && altRate)) {
-					document.getElementById('converted_unit_alt_' + id).innerHTML = '&nbsp;(' + altAmount + altSymbol + ')';
+					this.shadowRoot.getElementById('converted_unit_alt').innerHTML = '&nbsp;(' + altAmount + altSymbol + ')';
 				} else {
-					document.getElementById('converted_unit_alt_' + id).innerHTML = '';
+					this.shadowRoot.getElementById('converted_unit_alt').innerHTML = '';
 				}
 			{% endif %}
 			}else{
-				document.getElementById('converted_unit_amount_' + id).innerHTML = '&nbsp;';
-				document.getElementById('converted_unit_alt_' + id).innerHTML = '&nbsp;';
+				this.shadowRoot.getElementById('converted_unit_amount').innerHTML = '&nbsp;';
+				this.shadowRoot.getElementById('converted_unit_alt').innerHTML = '&nbsp;';
 			}
 			
 			validateForm();
