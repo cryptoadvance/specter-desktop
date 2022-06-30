@@ -71,7 +71,6 @@
 			this.recipient_id = null;
 			this.amount = null;
 			this.unit =  null;
-			this.shoud_mark_own_address_green =  true;
 
 			this.buildHTML();
 		}
@@ -241,9 +240,7 @@
 		}
 
 		dispatchAddressOnInput(result) {
-			if (this.shoud_mark_own_address_green){
-				this.mark_adddress_green_if_mine();
-			}
+			this.mark_adddress_green_if_mine();
 			this.dispatchEvent(new CustomEvent('address-input'));
 		}
 
