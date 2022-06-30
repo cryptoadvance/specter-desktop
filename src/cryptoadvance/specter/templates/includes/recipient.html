@@ -13,6 +13,13 @@
 <template id="recipient-box">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 
+	<style>
+		.max-btn:hover {
+			text-decoration: underline;
+			cursor: pointer;
+		} 
+	</style>
+
 	<div id="recipient" class="recipient_wrapper_item" >		
 				<span id='title'><!-- the title comes in here--></span>		
 				<span class="recipient_button recipient_remove" title="Remove recipient" id="remove" style="float:right">&#10060;</span>
@@ -32,7 +39,7 @@
 					<input type="hidden" name="btc_amount" id="btc_amount">
 					<div class="mobile-only" style="margin-top: 10px;"></div>
 					<span id='asset_selector'><!-- the assetSelector comes in here--></span>
-					<span class="note max-btn" style="margin-left: 5px;" id="send_max" onclick="setMaxAmount()">({{ _("send max") }})</span>
+					<span class="note max-btn" style="margin-left: 5px;" id="send_max">({{ _("send max") }})</span>
 					<div>
 						<span class="note" id="converted_unit_amount">-</span> <span class="note" id="converted_unit_label"><!-- the convertedUnit comes in here--></span> <span class="note" id="converted_unit_alt"></span>
 					</div>
@@ -137,6 +144,9 @@
 			var template_content = document.getElementById('recipient-box').content;
             this.clone = template_content.cloneNode(true);
 
+
+
+
 			this.clone.getElementById('address-scan').addEventListener('scan', event=>{
 				let addr = event.detail.result;
 				if(addr == null){
@@ -172,7 +182,10 @@
 			});
 
 			
-
+			this.clone.getElementById('send_max').addEventListener('click', event=>{
+				console.log(event)
+				setMaxAmount(this.recipient_id)
+			});			
 
 			this.clone.getElementById('remove').addEventListener('click', event=>{
 				console.log(event)
