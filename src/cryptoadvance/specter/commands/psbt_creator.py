@@ -145,7 +145,7 @@ class PsbtCreator:
 
         recipient_dicts = json.loads(request_form["recipient_dicts"])
         print(recipient_dicts)
-        for recipient_dict in recipient_dicts:
+        for recipient_id, recipient_dict in recipient_dicts.items():
             addresses.append(recipient_dict["address"])
             amount = 0.0
             try:
@@ -155,7 +155,7 @@ class PsbtCreator:
             if isnan(amount):
                 amount = 0.0
             amounts.append(amount)
-            unit = recipient_dict["amount_unit"]
+            unit = recipient_dict["unit"]
             if specter.is_liquid and unit in ["sat", "btc"]:
                 unit = specter.default_asset
             amount_units.append(unit)

@@ -142,6 +142,7 @@
 
 			var recipient_ids = get_recipient_ids();
 			for  (var i in recipient_ids)   {
+				var recipient_id = recipient_ids[i];
 				let recipient = document.getElementById(`recipient_${recipient_id}`);
 				data[i] = recipient.value;
 			}
