@@ -132,7 +132,7 @@
 			return ids
 		}
 
-		function get_recipient_values() {
+		function get_recipient_dicts() {
 			data = {};
 
 			var recipient_ids = get_recipient_ids();
@@ -318,7 +318,7 @@
 		}
 
 		async function setMaxAmount(recipient_id) {
-			const recipient_dicts = get_recipient_values();
+			const recipient_dicts = get_recipient_dicts();
 			const recipient = recipient_dicts[recipient_id];
 
 
@@ -442,10 +442,10 @@
 
 
 		function validateForm(submitted=false) {
-			const recipient_dicts = get_recipient_values();
+			const recipient_dicts = get_recipient_dicts();
 
 			// this assures that the 'recipient_dicts' input has the newest recipient_dicts
-			document.getElementById('recipient_dicts').value  = JSON.stringify(get_recipient_values());  
+			document.getElementById('recipient_dicts').value  = JSON.stringify(get_recipient_dicts());  
 
 			// mark own addresses green
 			let recipients = document.getElementById('recipients');
