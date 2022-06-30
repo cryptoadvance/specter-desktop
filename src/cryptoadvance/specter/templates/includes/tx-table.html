@@ -87,10 +87,8 @@
             border: 1.5px solid var(--cmap-border);
             z-index: 9;
         }
-        .page-limit-div {
-            flex-grow: 0.3;
-            display: flex;
-            justify-content: space-around;
+        .page-limit-label {
+            margin-left: 5px;
         }
         .search {
             margin: auto;
@@ -245,9 +243,7 @@
     </div>
     <div class="search-container">
         <!--Left part of the toolbar-->
-        <div class="page-limit-div">
-            {% include "includes/page-limit-select.html" %}
-        </div>
+        {% include "includes/page-limit-select.html" %}
          <!--Middle part of the toolbar-->
         <div style="flex-grow: 0.5">
             <input class="search" type="text" placeholder="Search..."></input>
@@ -942,12 +938,12 @@
                 // If there are multiple pages show the pagination bar
                 if (this.pageCount > 1) {
                     this.paginationContainer.classList.remove('hidden');
-                    this.paginationCounter.classList.remove('hidden');
+                    this.paginationContainer.classList.add('pagination-container');
                     this.paginationCounter.innerText = `of ${this.pageCount}`;
                     this.paginationIdxInput.max = this.pageCount;
                 } else {
+                    this.paginationContainer.classList.remove('pagination-container');
                     this.paginationContainer.classList.add('hidden');
-                    this.paginationCounter.classList.add('hidden');
                 }
 
                 // Disable pagination back button if on the first page
