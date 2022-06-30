@@ -132,17 +132,27 @@
 			return ids
 		}
 
+		// combines all recipient.value's to a list
 		function get_recipient_dicts() {
-			data = {};
+			data = [];
 
 			var recipient_ids = get_recipient_ids();
 			for  (var i in recipient_ids)   {
 				var recipient_id = recipient_ids[i];
 				let recipient = document.getElementById(`recipient_${recipient_id}`);
-				data[recipient_id] = recipient.value;
+				data.push(recipient.value);
 			}
 
 			return data;
+		}
+
+		function get_recipient_dict(recipient_id) {
+			recipient_dicts = get_recipient_dicts() 
+			for  (var i in recipient_dicts)   {
+				if (recipient_dicts[i].recipient_id == recipient_id){
+					return recipient_dicts[i]
+				}
+			}
 		}
 
 
@@ -328,7 +338,7 @@
 
 		async function setMaxAmount(recipient_id) {
 			const recipient_dicts = get_recipient_dicts();
-			const recipient = recipient_dicts[recipient_id];
+			const recipient = get_recipient_dict(recipient_id);
 
 
 			FeeSelectionComponent.showSubtractFrom(true)
@@ -341,7 +351,7 @@
 
 
 			let othersAmount = 0;
-			for(let j in Object.keys(recipient_dicts)) {		
+			for(let j in recipient_dicts) {		
 				other_recipient = recipient_dicts[j]		;
 				if (other_recipient.recipient_id != recipient_id) {
 					let unit = other_recipient.unit;
