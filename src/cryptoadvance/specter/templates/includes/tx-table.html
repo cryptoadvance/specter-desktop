@@ -20,8 +20,8 @@
      - Showing validated blockhash column (set attribute `blockhash` to either "true" or "false")
      - Limiting txs/utxos to just those associated with the specified `data-service-id`.
      - Hide columns by hide-columns="category time"
-     - Enable scrollbar
-     - Toggle for scrollbar
+     - Style options
+     - Scrollbar settings
 
 {#- Usage -
 
@@ -33,9 +33,12 @@
     blockhash="true" 
     hide-switcher="true"
     wallet="{{ wallet.alias }}"
-    scrollbar-height="333px"
-    scrollbar-default="off"
-    compact-switch="true">
+    table-height="333px"
+    table-max-height="333px"
+    table-border-radius="10px"
+    scrollbar="on"
+    scrollbar-switch="true"
+    scrollbar-default="off">
 </tx-table>
 #} 
 -->
@@ -48,8 +51,9 @@
             display: contents;
         }
         .pagination-container {
-            text-align: center;
-            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .pagination-next, .pagination-back {
             cursor: pointer;
@@ -77,6 +81,16 @@
             justify-content: center;
             align-items: center;
             margin-bottom: 0.5em;
+            position: sticky;
+            top: 0;
+            background-color: var(--cmap-bg-lighter);
+            border: 1.5px solid var(--cmap-border);
+            z-index: 9;
+        }
+        .page-limit-div {
+            flex: 0 0 200px;
+            display: flex;
+            justify-content: space-around;
         }
         .search {
             margin: auto;
@@ -128,67 +142,65 @@
         }
         .action-teaser {
             max-width: 20em;
-            border: 1px solid var(--cmap-border);
-            background-color: var(--cmap-bg-lighter);
-            padding: 0.8em;
             text-align: center;
             font-size: 15px;
             line-height: 12px;
             font-weight: 50;
-            color: grey;
         }
         .freeze-tx-btn {
             border: 1px solid var(--cmap-border);
             border-radius: 0.5em;
-            background-color: var(--cmap-bg-lighter);
+            background-color: var(--cmap-border);
             padding: 0.8em;
             text-align: center;
             font-weight: 250;
         }
         .freeze-tx-btn:hover {
-            background-color: var(--cmap-bg-lightest);
+            background-color: var(--cmap-border);
             border: 1px solid var(--main-color);
         }
         .compose-tx-btn {
             border: 1px solid var(--cmap-border);
             border-radius: 0.5em;
-            background-color: var(--cmap-bg-lighter);
+            background-color: var(--cmap-border);
             padding: 0.8em;
             text-align: center;
             font-weight: 250;
         }
         .compose-tx-btn:hover {
-            background-color: var(--cmap-bg-lightest);
+            background-color: var(--cmap-border);
             border: 1px solid var(--main-color);
         }
         .manage-psbt-btn {
             border: 1px solid var(--cmap-border);
             border-radius: 0.5em;
-            background-color: var(--cmap-bg-lighter);
+            background-color: var(--cmap-border);
             padding: 0.8em;
             text-align: center;
             font-weight: 250;
         }
         .manage-psbt-btn:hover {
-            background-color: var(--cmap-bg-lightest);
+            background-color: var(--cmap-border);
             border: 1px solid var(--main-color);
         }
         .table-container {
-            width:  100%;
+            width: 100%;
+            margin-bottom: 10px;
+            border: 1.5px solid var(--cmap-border);
         }
         .scrollbar {
-            min-height: 350px;
-            overflow-y: scroll;
+            overflow-y: auto;
             scrollbar-color: hsl(217, 10%, 80%) var(--cmap-border); 
-            scrollbar-width: thin; 
+            scrollbar-width: thin;
         }
         .table-container::-webkit-scrollbar {
-            width: 0.4em;
+            width: 0.3em;
         }
         .table-container::-webkit-scrollbar-track {
-            background: var(--cmap-bg);
+            background: var(--cmap-border);
             border-radius: 100vw;
-            margin-top: 4em;
+            margin-top: 0.3em;
+            margin-bottom: 0.3em;
         }
         .table-container::-webkit-scrollbar-thumb {
             background: hsl(217, 10%, 80%);
@@ -197,11 +209,19 @@
         .table-container::-webkit-scrollbar-thumb:hover {
             background: white;
         }
+        .table-container::-webkit-scrollbar:horizontal {
+            display: none;
+        }
         .scrollbar-checkbox-div {
             margin-left: 15px;
         }
         input:checked + .slider {
-            background-color: var(--cmap-border);
+            background-color: hsl(217, 30%, 50%);
+        }
+        :host {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
     </style>
 
@@ -225,14 +245,14 @@
     </div>
     <div class="search-container">
         <!--Left part of the toolbar-->
-        <div style="flex: 0 0 200px">
+        <div class="page-limit-div">
             {% include "includes/page-limit-select.html" %}
         </div>
          <!--Middle part of the toolbar-->
         <div style="flex-grow: 0.5">
             <input class="search" type="text" placeholder="Search..."></input>
         </div>
-        <div style="flex: 0 0 50px">
+        <div style="flex: 0 0 35px">
             <tool-tip>
                 <h4 slot="title">{{ _('Search options') }}</h4>
                 <span slot="paragraph">
@@ -269,7 +289,7 @@
             <a id="manage-psbt-btn" type="button" class="btn manage-psbt-btn hidden" href="">{{ _("Manage unsigned PSBT") }}</a>
         </div>
         <div id="scrollbar-checkbox-div" class="scrollbar-checkbox-div row hidden">
-            {{ _("Compact table") }} &nbsp;&nbsp;
+            {{ _("Table scrollbar") }} &nbsp;&nbsp;
             <label class="switch">
                 <input type="checkbox" id="scrollbar-checkbox" class="scrollbar-checkbox" name="scrollbar-checkbox">
                 <span class="slider"></span>
@@ -580,14 +600,34 @@
         }
 
         static get observedAttributes() {
-            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'hide-sensitive-info', 'wallet', 'service-id', 'selected-coins', 'scrollbar-height', 'scrollbar-default', 'compact-switch'];
+            return ['blockhash', 'btc-unit', 'price', 'symbol', 'type', 'hide-sensitive-info', 'wallet', 'service-id', 'selected-coins', 'table-height', 'table-max-height', 'table-border-radius', 'scrollbar', 'scrollbar-switch', 'scrollbar-default'];
         }
 
         connectedCallback() {
             // Manage PSBT
             this.managePSBTBtn.href = `{{ url_for('wallets_endpoint.send_pending', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
 
-            // Listerning for changes in compact table
+            // Scrollbar settings
+            if (this.getAttribute("table-height")) {
+                this.tableContainer.style.height = this.getAttribute("table-height")
+            }
+            if (this.getAttribute("table-max-height")) {
+                this.tableContainer.style.maxHeight = this.getAttribute("table-max-height")
+            }
+            if (this.getAttribute("table-border-radius")) {
+                this.tableContainer.style.borderRadius = this.getAttribute("table-border-radius")
+            }
+            if (this.getAttribute("scrollbar") == "on") {
+                this.tableContainer.classList.add("scrollbar")
+            } 
+            if (this.getAttribute("scrollbar-switch") == "true") {
+                this.scrollbarCheckboxDiv.classList.remove("hidden")
+            }
+            if (this.getAttribute("scrollbar-default") == "on" || this.getAttribute("scrollbar-switch") == "true") {
+                this.scrollbarCheckbox.checked = true
+            }
+
+            // Listening for changes in scrollbar switch
             this.scrollbarCheckbox.addEventListener("click", () => {
                 if (this.scrollbarCheckbox.checked) {
                     this.tableContainer.classList.add("scrollbar")
@@ -653,18 +693,13 @@
          * - type: Transactions list type to load. Either "txlist" or "utxo"
          * - hide-sensitive-info: Mask user sensitive info. Either "true" or "false"
          * - wallet: The wallet alias (null to get all wallets combined)
-         * - scrollbar-height: Height of the table container with the scrollbar
-         * - scrollbar-default: Whether scrollbar is enabled by default
-         * - compact-switch: Offer a switch to change between long and compact list
+         * - table-height: Height of the table container with the scrollbar
+         * - table-max-height: Max height of the table container with the scrollbar
+         * - table-border-radius: Sets the border-radius of the table container
+         * - scrollbar-default: Whether scrollbar is enabled by default (to use scrollbar, either provide height from an external div, or use table-height or table-max-height attributes)
+         * - scrollbar-switch: Offer a switch to turn off the scrollbar for the table (this switch can expand or shrink a table, if a particular height is provided by table-height or table-max-height attributes)
         */
         attributeChangedCallback(attrName, oldValue, newValue) {
-            this.tableContainer.style.height = this.getAttribute("scrollbar-height")
-            if (this.getAttribute("scrollbar-default") == "on") {
-                this.tableContainer.classList.add("scrollbar")
-            } 
-            if (this.getAttribute("compact-switch") == "true") {
-                this.scrollbarCheckboxDiv.classList.remove("hidden")
-            }
             if (attrName != "selected-coins") {
                 if (this.getAttribute('blockhash') == 'true' && this.getAttribute('type') == "txlist" && this.getAttribute('wallet')) {
                         this.blockhashHeader.classList.remove('hidden');
@@ -960,7 +995,7 @@
                         this.actionTeaserDiv.style.color = 'orange';
                     })
                     txRow.selectTxImg.addEventListener("mouseout", () => {
-                        this.actionTeaserDiv.style.color = 'grey';
+                        this.actionTeaserDiv.style.color = 'white';
                     })
                     // EventListener when hovering over categories
                     txRow.category.addEventListener("mouseover", () => {
