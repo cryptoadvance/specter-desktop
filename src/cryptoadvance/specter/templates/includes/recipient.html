@@ -65,7 +65,7 @@
 
 
 
-		modifyTemplate(amount, amount_unit) { 
+		add_assetSelector_to_shadowRoot(amount, amount_unit) { 
 			if (amount >= 0){
 				this.shadowRoot.getElementById('amount_input').value = amount;
 			}
@@ -207,11 +207,9 @@
 					this.inputs[input_field.id] = input_field;
 				}
 			}
-			console.log('Constructed the following objects that will be available as in request.form')
-			console.log(this.inputs)
 
             this.shadowRoot.appendChild(this.clone);
-			this.modifyTemplate('', 'btc')			
+			this.add_assetSelector_to_shadowRoot('', 'btc')			
 		}
 
 
