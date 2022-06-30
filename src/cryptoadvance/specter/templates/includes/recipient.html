@@ -10,8 +10,39 @@
 #} 
 -->
 
+<template id="recipient-box">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 
-<script type="text/javascript">
+	<div id="recipient" class="item" >		
+				<span id='title'><!-- the title comes in here--></span>		
+				<span class="recipient_button recipient_remove" title="Remove recipient" id="remove" style="float:right" onclick="removeRecipient()">&#10060;</span>
+
+				<div class="inner_box"  >
+					<div class="row">
+						<input type="text" id="address" name="address" oninput="validateForm()" value="${addr}" placeholder='{{ _("Recipient address") }}'> &nbsp;
+						<qr-scanner id="address-scan" style="margin-top: 3px;">
+							<a slot="button" class="btn" style="height: 35px;">
+							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Scan") }}</a>
+						</qr-scanner>
+					</div>				
+					<input type="text" style="margin-top: 3px;" id="label" name="label" value="${label}"  placeholder='{{ _("Address label") }}''>
+					<br>
+					{{ _("Amount:") }}<br>
+					<input style="width: 200px" type="number" name="amount" oninput="calculateConvertedUnit()" id="amount" min=0 step="${step}" autocomplete="off" placeholder="0"> <!-- the value comes in here-->
+					<input type="hidden" name="btc_amount" id="btc_amount">
+					<div class="mobile-only" style="margin-top: 10px;"></div>
+					<span id='asset_selector'><!-- the assetSelector comes in here--></span>
+					<span class="note max-btn" style="margin-left: 5px;" id="send_max" onclick="setMaxAmount()">({{ _("send max") }})</span>
+					<div>
+						<span class="note" id="converted_unit_amount">-</span> <span class="note" id="converted_unit_label">${convertedUnit}</span> <span class="note" id="converted_unit_alt"></span>
+					</div>
+				</div>
+			<div>
+</template>
+
+
+
+<script type="module">
 	class RecipientBox extends HTMLElement {
 		// This tells the browser to treat the element like a form control
 		static formAssociated = true;
@@ -39,8 +70,13 @@
 
 
 
-		addRecipient(title, addr, amount, amount_unit, label) { 
-			let valueOrPlaceholder = amount == 0 ? 'placeholder="0"' : `value=${amount}`
+		modifyTemplate(amount, amount_unit) { 
+			if (amount >= 0){
+				this.shadowRoot.getElementById('amount').value = amount;
+			}
+			
+
+
 			if (amount_unit == 'sat') {
 				amount = parseFloat(Number.parseFloat(amount * 1e8).toFixed(0));
 				if (amount == 'NaN') {
@@ -70,57 +106,26 @@
 				<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit" value="btc" onchange="toggleUnit(this)" ${btcChecked}>BTC</label>
 				`;
 			{% endif %}
-			let recipientForm = `			
-		    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 
-			<div id="recipient" class="item" >		
-				<span id='title'>${title}</span>				
-				<span class="recipient_button recipient_remove" title="Remove recipient" id="remove" style="float:right" onclick="removeRecipient()">&#10060;</span>
 
-				<div class="inner_box"  >
-					<div class="row">
-						<input type="text" id="address" name="address" oninput="validateForm()" value="${addr}" placeholder='{{ _("Recipient address") }}'> &nbsp;
-						<qr-scanner id="address-scan" style="margin-top: 3px;">
-							<a slot="button" class="btn" style="height: 35px;">
-							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Scan") }}</a>
-						</qr-scanner>
-					</div>				
-					<input type="text" style="margin-top: 3px;" id="label" name="label" value="${label}"  placeholder='{{ _("Address label") }}''>
-					<br>
-					{{ _("Amount:") }}<br>
-					<input style="width: 200px" type="number" name="amount" oninput="calculateConvertedUnit()" id="amount" min=0 step="${step}" autocomplete="off" ${valueOrPlaceholder}>
-					<input type="hidden" name="btc_amount" id="btc_amount">
-					<div class="mobile-only" style="margin-top: 10px;"></div>
-					${assetSelector}
-					<span class="note max-btn" style="margin-left: 5px;" id="send_max" onclick="setMaxAmount()">({{ _("send max") }})</span>
-					<div>
-						<span class="note" id="converted_unit_amount">-</span> <span class="note" id="converted_unit_label">${convertedUnit}</span> <span class="note" id="converted_unit_alt"></span>
-					</div>
-				</div>
-			<div>
-			`
-			return recipientForm
-		}
-		getHTML(){
-			var title = '';
-			var addr = '';
-			var amount = 0;
-			var amount_unit = 'btc';
-			var label = '';
-			return this.addRecipient(title, addr, amount, amount_unit, label)
-		}
+			this.shadowRoot.getElementById('asset_selector').innerHTML = assetSelector;
+		} 
+
+
+		setTitle(newValue){
+			this.shadowRoot.getElementById('title').innerText = newValue;
+		}		
 
 		buildHTML(){
 			// Create a shadow root
 			this.attachShadow({
 				mode: 'open'
 			});
-      		this.close = this.close.bind(this);
-			this.shadowRoot.innerHTML = this.getHTML();
 
+			var template_content = document.getElementById('recipient-box').content;
+            this.clone = template_content.cloneNode(true);
 
-			
-			this.shadowRoot.getElementById('address-scan').addEventListener('scan', e=>{
+			this.clone.getElementById('address-scan').addEventListener('scan', e=>{
 				let addr = e.detail.result;
 				if(addr == null){
 					return;
@@ -131,9 +136,9 @@
 				}
 				let arr = addr.split("?");
 				addr = arr[0];
-				shadowRoot.getElementById("address").value = addr;
+				this.clone.getElementById("address").value = addr;
 				let evt = new Event('input');
-				shadowRoot.getElementById("address").dispatchEvent(evt);
+				this.clone.getElementById("address").dispatchEvent(evt);
 				// parse metadata like amount and message
 				if(arr.length > 1){
 					arr = arr[1].split("&");
@@ -143,22 +148,22 @@
 							if(recipient['unit'] == 'sat'){
 								val = Math.round(val*1e8);
 							}
-							shadowRoot.getElementById("amount").value = val;
+							this.clone.getElementById("amount").value = val;
 							let evt = new Event('input');
-							shadowRoot.getElementById("amount").dispatchEvent(evt);
+							this.clone.getElementById("amount").dispatchEvent(evt);
 						}
 						if(e.startsWith("message=") || e.startsWith("label=")){
-							shadowRoot.getElementById("label").value = e.split("=")[1];
+							this.clone.getElementById("label").value = e.split("=")[1];
 						}
 					});
 				}
 			});
 
-			// fill this.inputs with the input fields
+			// fill this.inputs with the input fields, so they this.value = Json(all input fields) 
 			this.inputs = {};
 			var form_class_names = ['input', 'textarea'];
 			for (var j in form_class_names) {
-				var input_fields = this.shadowRoot.querySelectorAll(form_class_names[j]);
+				var input_fields = this.clone.querySelectorAll(form_class_names[j]);
 				for(var i = 0; i < input_fields.length; i++) {
 					var input_field = input_fields[i];
 					console.log(j, i, input_field)
@@ -167,6 +172,8 @@
 			}
 			console.log('Constructed the following objects that will be available as in request.form')
 			console.log(this.inputs)
+
+            this.shadowRoot.appendChild(this.clone);
 		}
 
 
@@ -202,9 +209,6 @@
 			this.internals.setFormValue(this.value);
 		}
 
-		setTitle(newValue){
-			this.shadowRoot.getElementById('title').innerText = newValue;
-		}
 
 		attributeChangedCallback(attribute, oldValue, newValue) {
 			if (oldValue == newValue){return}
