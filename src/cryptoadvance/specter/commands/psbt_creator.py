@@ -143,25 +143,24 @@ class PsbtCreator:
         amounts = []
         amount_units = []
 
-        recipient_ids = [
-            int(i) for i in json.loads(request_form["recipient_ids"])
-        ]  # e.g. [1, 0, 3, 2]
-        for recipient_id in recipient_ids:
-            addresses.append(request_form["address_{}".format(recipient_id)])
+        recipient_dicts = json.loads(request_form["recipient_dicts"])
+        print(recipient_dicts)
+        for recipient_dict in recipient_dicts:
+            addresses.append(recipient_dict["address"])
             amount = 0.0
             try:
-                amount = float(request_form["btc_amount_{}".format(recipient_id)])
+                amount = float(recipient_dict["btc_amount"])
             except ValueError:
                 pass
             if isnan(amount):
                 amount = 0.0
             amounts.append(amount)
-            unit = request_form["amount_unit_{}".format(recipient_id)]
+            unit = recipient_dict["amount_unit"]
             if specter.is_liquid and unit in ["sat", "btc"]:
                 unit = specter.default_asset
             amount_units.append(unit)
-            labels.append(request_form["label_{}".format(recipient_id)])
-            if request_form["label_{}".format(recipient_id)] != "":
+            labels.append(recipient_dict["label"])
+            if recipient_dict["label"] != "":
                 wallet.setlabel(addresses[-1], labels[-1])
 
         return addresses, labels, amounts, amount_units

@@ -28,7 +28,7 @@
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="rbf_tx_id" value="{{ rbf_tx_id }}"/>
 		<input type="hidden" name="recipient_ids"  id="recipient_ids" value=""/>  
-		<input type="hidden" name="recipient_values"  id="recipient_values" value=""/>  
+		<input type="hidden" name="recipient_dicts"  id="recipient_dicts" value=""/>  
 		<input type="hidden" name="subtract_from"  id="subtract_from" value=""/>  
 		<h1 class="padded">{{ _("Create Transaction") }}</h1>
 		<div style="display: flex; justify-content: center; margin-bottom: 15px">
@@ -273,9 +273,7 @@
 			// This removes the recipient div 
 			for  (var i = recipients.children.length -1; i >= 0; i--)   {
 				let	child =  recipients.children[i];
-				console.log(i, recipient_id, child.recipient_id)
 				if (child.recipient_id == recipient_id) {
-					console.log('remove')
 					recipients.removeChild(child)
 				}
 			}
@@ -325,8 +323,8 @@
 		}
 
 		async function setMaxAmount(recipient_id) {
-			const recipient_values = get_recipient_values();
-			const recipient = recipient_values[recipient_id];
+			const recipient_dicts = get_recipient_values();
+			const recipient = recipient_dicts[recipient_id];
 
 
 			FeeSelectionComponent.showSubtractFrom(true)
@@ -339,8 +337,8 @@
 
 
 			let othersAmount = 0;
-			for(let j in Object.keys(recipient_values)) {		
-				other_recipient = recipient_values[j]		;
+			for(let j in Object.keys(recipient_dicts)) {		
+				other_recipient = recipient_dicts[j]		;
 				if (other_recipient.recipient_id != recipient_id) {
 					let unit = other_recipient.unit;
 					let amount = other_recipient.amount;
@@ -472,10 +470,10 @@
 		}
 
 		function validateForm(submitted=false) {
-			const recipient_values = get_recipient_values();
+			const recipient_dicts = get_recipient_values();
 
-			// this assures that the 'recipient_values' input has the newest recipient_values
-			document.getElementById('recipient_values') .value  = JSON.stringify(get_recipient_values());  
+			// this assures that the 'recipient_dicts' input has the newest recipient_dicts
+			document.getElementById('recipient_dicts').value  = JSON.stringify(get_recipient_values());  
 
 			console.log("validateForm is called")
 			let createPSBTButton = document.getElementById('create_psbt_btn');
@@ -484,8 +482,9 @@
 			let totalAmount = 0.0;
 			let assetAmounts = {};
 			if (document.getElementById('ui-radio-btn').checked) {
-				for(let i in recipient_values) {
-					let recipient = recipient_values[i];
+				for(let i in recipient_dicts) {
+					let recipient = recipient_dicts[i];
+					console.log(recipient)
 					if(recipient.unit == 'btc' || recipient.unit == 'sat'){
 						totalAmount += (recipient.unit == 'sat' ? recipient.amount / 1e8 : recipient.amount);
 					}else{

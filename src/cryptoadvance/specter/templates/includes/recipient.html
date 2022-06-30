@@ -58,9 +58,9 @@
 
 
 
-		modifyTemplate(amount, amount_unit, shadowRoot) { 
+		modifyTemplate(amount, amount_unit) { 
 			if (amount >= 0){
-				shadowRoot.getElementById('amount_input').value = amount;
+				this.shadowRoot.getElementById('amount_input').value = amount;
 			}
 			
 
@@ -77,7 +77,7 @@
 			let satChecked = amount_unit == 'btc' ? '' : 'checked';
 			let btcChecked = amount_unit == 'btc' ? 'checked' : '';
 			let convertedUnit = amount_unit == 'btc' ? 'sat' : 'BTC';
-			shadowRoot.getElementById("converted_unit_label").innerText = convertedUnit;
+			this.shadowRoot.getElementById("converted_unit_label").innerText = convertedUnit;
 			
 			{% if specter.is_liquid and wallet.balance.get("assets", {}) %}
 				let assetSelector = `
@@ -96,14 +96,17 @@
 					`;
 			{% endif %}
 
+			this.shadowRoot.getElementById('asset_selector').innerHTML = assetSelector;
 
-
-			shadowRoot.getElementById('asset_selector').innerHTML = assetSelector;
-
-			shadowRoot.querySelectorAll('[name="amount_unit"]').forEach(input => {
+			this.shadowRoot.querySelectorAll('[name="amount_unit"]').forEach(input => {
 				input.addEventListener('change',() => {
 					this.toggleUnit(input.value);
-				});			
+				});	
+
+				if (input.checked){
+					// set initial unit
+					this.toggleUnit(input.value);
+				}	
 			}); 	
 
 		} 
@@ -169,7 +172,6 @@
 			});
 
 			
-			this.modifyTemplate('', 'BTC', this.clone)			
 
 
 			this.clone.getElementById('remove').addEventListener('click', event=>{
@@ -196,25 +198,29 @@
 			console.log(this.inputs)
 
             this.shadowRoot.appendChild(this.clone);
+			this.modifyTemplate('', 'btc')			
 		}
 
 
 
 
+		on_input_field_change(input_field){
+			
+			console.log(`${input_field.id}  changed to ${this.value}`);
+		}
+
 
 		connectedCallback() {
 			for (var i in this.inputs ) {
 				var input_field = this.inputs[i];			
-				input_field.addEventListener("change", (event) => {
-					console.log(`${input_field.id}  changed to ${this.value}`);
-				})
+				input_field.addEventListener("change", (e) => this.on_input_field_change(input_field))
 			}
 
 		}
 
 		disconnectedCallback() {
 			for (var i in this.inputs ) {
-				this.inputs[i].removeEventListener('change');
+				this.inputs[i].removeEventListener('change', (e) => this.on_input_field_change(input_field));
 			}
 		}
 
@@ -263,6 +269,8 @@
 				}
 			} 
 		}
+
+		// Returns a dict with important attributes and input fields
 		get value() {
 			var dict = {
 				unit:this.unit,
@@ -270,6 +278,7 @@
 				recipient_id:this.recipient_id,
 			}
 			for (var i in this.inputs ) {
+				if (!i) {continue}  // no empty keys
 				dict[i] = this.inputs[i].value;
 			} 
 
