@@ -1320,10 +1320,49 @@ input:checked + .slider:before {
   }
 
 
-
-  .recipient_wrapper .inner_box{
+.item{
+    border-radius: 5px;
+    border: 1px solid var(--cmap-border-highlight);
+    padding: 5px;
+    margin-bottom: 10px;
+  }
+    
+.inner_box{
     border-radius: 5px;
     border: 1px solid var(--cmap-border);
     padding: 5px;
     margin-top: 5px;
   }
+
+.item:last-child{
+    margin-bottom: 0px;
+  }
+    
+
+
+ 
+.recipient_button{
+      background: var(--cmap-border);
+      padding-left: 2px;
+      padding-right: 2px;
+      margin-left: 2px;
+      margin-right: 2px; 
+      border-radius: 3px;
+      width: fit-content;
+      border: none;    
+    }
+.recipient_button:hover {
+    background: var(--cmap-border-darker);
+}
+.recipient_dragger {
+    cursor: grab; 
+}
+.recipient_remove {
+    cursor: default; 
+    margin-left: 8px;
+}
+.recipient_move {
+    cursor: default; 
+    padding-left: 6px;
+    padding-right: 6px;
+}
