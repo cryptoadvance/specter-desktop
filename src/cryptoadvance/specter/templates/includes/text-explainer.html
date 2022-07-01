@@ -1,0 +1,88 @@
+<!-- 
+    A custom element for showing extra information.
+    It makes use of a collapsible design, where some 
+    descriptive data is hidden from the user, and can be 
+    accessed by clicking on the one-liner title present 
+    after 📚 icon.
+
+{#- Usage -
+
+    <text-explainer>
+        <span slot="title">One-Liner Text which is visible</span>
+        <div slot="content">
+            Content that is hidden by default
+        </div>
+    </text-explainer>
+
+#} 
+-->
+
+<template id="text-explainer">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        #toggle-explainer {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #explainer-body {
+            background: var(--cmap-bg-lighter);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1.5px solid var(--cmap-border);
+            margin-top: 10px;
+        }
+
+        slot[name=content]::slotted(*) {
+            width: 100%;
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+        }
+    </style>
+
+    <div id="toggle-explainer">
+        <span>&#128218;</span>
+        <slot name="title"></slot>
+        <span id="drop-icon">&#9654;</span>
+    </div>
+    
+    <div id="explainer-body" class="hidden">
+        <slot name="content"></slot>
+    </div>
+    
+</template>
+
+<script type="text/javascript">
+    class TextExplainerElement extends HTMLElement {
+        constructor() {
+            super();
+            // Create a shadow root
+            let shadow = this.attachShadow({mode: 'open'});
+            let template = document.getElementById('text-explainer');
+            let clone = template.content.cloneNode(true);
+
+            this.toggleExplainer = clone.querySelector("#toggle-explainer");
+            this.explainerBody = clone.querySelector("#explainer-body");
+            this.dropIcon = clone.querySelector("#drop-icon");
+
+            shadow.appendChild(clone);
+        }
+
+        connectedCallback() {
+            this.toggleExplainer.onclick = () => {
+                if (this.explainerBody.classList.contains('hidden')) {
+                    this.explainerBody.classList.remove("hidden");
+                    this.dropIcon.innerHTML = '&#9660;';
+                } else {
+                    this.explainerBody.classList.add("hidden");
+                    this.dropIcon.innerHTML = '&#9654;';
+                }
+			}
+        }
+    }
+
+    customElements.define('text-explainer', TextExplainerElement);
+</script>

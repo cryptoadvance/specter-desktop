@@ -83,6 +83,12 @@ class FileUploaderElement extends HTMLElement {
 		this.uploadButton.style.background = this.getAttribute("button_color")
 
 		let el = clone.getElementById("input-file");
+
+		el.addEventListener("click", (e) => {
+			// Needed for Chrome to ensure change event is triggered if the same file is uploaded more than once
+			el.value = '';
+		})
+
 		el.addEventListener("change", (e) => {
 			// Only one file can be selected
 			let file = e.currentTarget.files[0];
