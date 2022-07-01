@@ -37,32 +37,32 @@ describe('Test sending transactions', () => {
         cy.mine2wallet("btc")
         cy.get('#btn_send').click()
         /// The addresses are the first three from DIY ghost
-        cy.get('#address_0').invoke('val', "bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs")  // will be deleted, so address doesnt matter
-        cy.get('#label_0').type("Recipient 1 to be deleted")
-        cy.get('#amount_0').type(1)
+        cy.get('#recipient_0').find('#address').invoke('val', "bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs")  // will be deleted, so address doesnt matter
+        cy.get('#recipient_0').find('#label').type("Recipient 1 to be deleted")
+        cy.get('#recipient_0').find('#amount').type(1)
         cy.get('#toggle_advanced').click()
         cy.get('main').scrollTo('bottom')
         
         cy.get('#add-recipient').click()
-        cy.get('#address_1').invoke('val', "bcrt1qgzmq6e3tn67kveryf2je6nd3nv4txef4sl8wre")  // pasting the address is faster than typing
-        cy.get('#label_1').type("Recipient 2")
-        cy.get('#amount_1').type(2)
+        cy.get('#recipient_1').find('#address').invoke('val', "bcrt1qgzmq6e3tn67kveryf2je6nd3nv4txef4sl8wre")  // pasting the address is faster than typing
+        cy.get('#recipient_1').find('#label').type("Recipient 2")
+        cy.get('#recipient_1').find('#amount').type(2)
         cy.get('main').scrollTo('bottom')
 
         cy.get('#add-recipient').click()
-        cy.get('#address_2').invoke('val', "bcrt1q9mkrhmxcn7rslzfv6lke8859m7ntwudfjqmcx7")  // will be deleted, so address doesnt matter
-        cy.get('#label_2').type("Recipient 3 to be deleted")
-        cy.get('#amount_2').type(3)
+        cy.get('#recipient_2').find('#address').invoke('val', "bcrt1q9mkrhmxcn7rslzfv6lke8859m7ntwudfjqmcx7")  // will be deleted, so address doesnt matter
+        cy.get('#recipient_2').find('#label').type("Recipient 3 to be deleted")
+        cy.get('#recipient_2').find('#amount').type(3)
 
         cy.get('#add-recipient').click()
-        cy.get('#address_3').invoke('val', "bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs")  // pasting the address is faster than typing
-        cy.get('#label_3').type("Recipient 4")
-        cy.get('#amount_3').type(4)
+        cy.get('#recipient_3').find('#address').invoke('val', "bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs")  // pasting the address is faster than typing
+        cy.get('#recipient_3').find('#label').type("Recipient 4")
+        cy.get('#recipient_3').find('#amount').type(4)
 
         cy.get('#add-recipient').click()
-        cy.get('#address_4').invoke('val', "bcrt1q9mkrhmxcn7rslzfv6lke8859m7ntwudfjqmcx7")  // pasting the address is faster than typing
-        cy.get('#label_4').type("Recipient 5")
-        cy.get('#amount_4').type(5)
+        cy.get('#recipient_4').find('#address').invoke('val', "bcrt1q9mkrhmxcn7rslzfv6lke8859m7ntwudfjqmcx7")  // pasting the address is faster than typing
+        cy.get('#recipient_4').find('#label').type("Recipient 5")
+        cy.get('#recipient_4').find('#amount').type(5)
         cy.get('main').scrollTo('bottom')
         // Shadow DOM
         // Check the fee selection
@@ -77,8 +77,8 @@ describe('Test sending transactions', () => {
         // Send max was applied to the third recipient, so the value (identical with the id) should be 2
 
 
-        cy.get('#remove_0').click({force: true})   
-        cy.get('#remove_2').click({force: true})  
+        cy.get('#recipient_0').find('#remove').click({force: true})   
+        cy.get('#recipient_2').find('#remove').click({force: true})  
 
         // Change recipient number to Recipient 2 (value = id = 1)
         cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').should('have.length', 3)           

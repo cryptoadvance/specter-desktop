@@ -343,7 +343,7 @@
 
 			FeeSelectionComponent.showSubtractFrom(true)
 			FeeSelectionComponent.setSubtractFrom(recipient_id)
-			let amountInput = document.getElementById(`recipient_${recipient_id}`).shadowRoot.getElementById('amount_input');
+			let amountInput = document.getElementById(`recipient_${recipient_id}`).shadowRoot.getElementById('amount');
 			if (!validAddress(recipient_id)) {
 				return;
 			}
@@ -391,7 +391,7 @@
 				return false;
 			}
 			if (recipient_id) {				
-				let amountInput = document.getElementById(`recipient_${recipient_id}`).shadowRoot.getElementById('amount_input');
+				let amountInput = document.getElementById(`recipient_${recipient_id}`).shadowRoot.getElementById('amount');
 				if (coinselectionWebcomponent != null) {
 					amountInput.max = coinselectionWebcomponent.getSpendableAmount(unit);
 				} else {
@@ -490,7 +490,7 @@
 							assetAmounts[recipient.unit] = recipient.amount;
 						}
 					}
-					if (document.getElementById(`recipient_${recipient.recipient_id}`).shadowRoot.getElementById('amount_input').value == '') {
+					if (document.getElementById(`recipient_${recipient.recipient_id}`).shadowRoot.getElementById('amount').value == '') {
 						recipient.amount = 0;
 					}
 

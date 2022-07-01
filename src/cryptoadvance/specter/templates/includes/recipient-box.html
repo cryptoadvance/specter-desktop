@@ -55,7 +55,7 @@
 					<input type="text" style="margin-top: 3px;" id="label" name="label" value=""  placeholder='{{ _("Address label") }}''>
 					<br>
 					{{ _("Amount:") }}<br>
-					<input style="width: 200px" type="number" name="amount_input" id="amount_input" min=0 step='1e-8' autocomplete="off" placeholder="0"> <!-- the value comes in here-->
+					<input style="width: 200px" type="number" name="amount" id="amount" min=0 step='1e-8' autocomplete="off" placeholder="0"> <!-- the value comes in here-->
 					<div class="mobile-only" style="margin-top: 10px;"></div>
 					<span id='asset_selector'><!-- the assetSelector comes in here--></span>
 					<span class="note max-btn" style="margin-left: 5px;" id="send_max">({{ _("send max") }})</span>
@@ -99,7 +99,7 @@
 		}		
 
 		setStep(newValue){
-			this.shadowRoot.getElementById('amount_input').step = newValue;
+			this.shadowRoot.getElementById('amount').step = newValue;
 		}		
 
 
@@ -137,7 +137,7 @@
 		// add the html code for the assetSelector
 		add_assetSelector_to_shadowRoot(amount, amount_unit) { 
 			if (amount >= 0){
-				this.shadowRoot.getElementById('amount_input').value = amount;
+				this.shadowRoot.getElementById('amount').value = amount;
 			}
 			
 
@@ -226,9 +226,9 @@
 							if(this.unit == 'sat'){
 								val = Math.round(val*1e8);
 							}
-							this.shadowRoot.getElementById("amount_input").value = val;
+							this.shadowRoot.getElementById("amount").value = val;
 							let evt = new Event('input');
-							this.shadowRoot.getElementById("amount_input").dispatchEvent(evt);
+							this.shadowRoot.getElementById("amount").dispatchEvent(evt);
 						}
 						if(e.startsWith("message=") || e.startsWith("label=")){
 							this.shadowRoot.getElementById("label").value = e.split("=")[1];
@@ -248,7 +248,7 @@
 				removeRecipient(this.recipient_id)
 			});			
 
-			this.shadowRoot.getElementById('amount_input').addEventListener('input', event=>{
+			this.shadowRoot.getElementById('amount').addEventListener('input', event=>{
 				this.calculateConvertedUnit()
 			});			
 
@@ -346,11 +346,9 @@
 				recipient_id:this.recipient_id,
 			}
 
-			// include all inputs that are in this.inputs  (should be all)
-			for (var i in this.inputs ) {
-				if (!i) {continue}  // no empty keys
-				dict[i] = this.inputs[i].value;
-			} 
+			// add relevant inputs
+			dict['label'] = this.inputs['label'].value; 
+			dict['address'] = this.inputs['address'].value;
 
 			return dict;
 		}
@@ -378,13 +376,13 @@
 			}else{
 				unitLabelEl.innerHTML = '';
 			}
-			this.shadowRoot.getElementById('amount_input').setAttribute('step', this.unit == 'sat' ? '1' : '1e-8');
+			this.shadowRoot.getElementById('amount').setAttribute('step', this.unit == 'sat' ? '1' : '1e-8');
 			this.calculateConvertedUnit();
 		}
 
 		calculateConvertedUnit() {
 			console.log('calculateConvertedUnit')
-			let amountInput = this.shadowRoot.getElementById('amount_input');
+			let amountInput = this.shadowRoot.getElementById('amount');
 
 			this.amount = parseFloat(amountInput.value);
 

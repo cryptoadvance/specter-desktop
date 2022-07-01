@@ -24,9 +24,9 @@ def test_PsbtCreator_ui(caplog):
         "fee_rate_dynamic": "64",
         "rbf": "on",
         "action": "createpsbt",
-        "recipient_dicts": '[{"unit":"btc","amount":0.1,"recipient_id":0,"address":"BCRT1qgc6h85z43g3ss2dl5zdrzrp3ef6av4neqcqhh8","label":"someLabel","amount_input":"0.1","btc_amount":"0.1"},'
-        '{"unit":"sat","amount":111211,"recipient_id":1,"address":"bcrt1q3kfetuxpxvujasww6xas94nawklvpz0e52uw8a","label":"someOtherLabel","amount_input":"111211","btc_amount":"0.00111211"},'
-        '{"unit":"btc","amount":0.003,"recipient_id":2,"address":"bcrt1qfvkcy2keql72s8ev87ek93uxuq3xxsx9l0n03r","label":"<script>console.log(\'I escaped\')</script>","amount_input":"0.003","btc_amount":"0.003"}]',
+        "recipient_dicts": '[{"unit":"btc","amount":0.1,"recipient_id":0,"address":"BCRT1qgc6h85z43g3ss2dl5zdrzrp3ef6av4neqcqhh8","label":"someLabel","btc_amount":"0.1"},'
+        '{"unit":"sat","amount":111211,"recipient_id":1,"address":"bcrt1q3kfetuxpxvujasww6xas94nawklvpz0e52uw8a","label":"someOtherLabel","btc_amount":"0.00111211"},'
+        '{"unit":"btc","amount":0.003,"recipient_id":2,"address":"bcrt1qfvkcy2keql72s8ev87ek93uxuq3xxsx9l0n03r","label":"<script>console.log(\'I escaped\')</script>","btc_amount":"0.003"}]',
     }
 
     psbt_creator: PsbtCreator = PsbtCreator(

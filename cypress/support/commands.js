@@ -202,9 +202,9 @@ Cypress.Commands.add("mine2wallet", (chain) => {
 // Quick and easy way to fill out the send form and create a psbt
 Cypress.Commands.add("createPsbt", (address, label="a_label", amount=0.01) => { 
   cy.get('#btn_send').click()
-  cy.get('#address_0').type(address)
-  cy.get('#label_0').type(label)
+  cy.get('#recipient_0').shadow().find('#address').type(address)
+  cy.get('#recipient_0').shadow().find('#label').type(label)
   //cy.get('#send_max_0').click()
-  cy.get('#amount_0').type(amount)
+  cy.get('#recipient_0').shadow().find('#amount').type(amount)
   cy.get('#create_psbt_btn').click()
 })

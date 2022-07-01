@@ -8,7 +8,6 @@
       "spec_ghost_machine.js",
       "spec_qr_signing.js",
       "spec_wallet_send.js",
-      "spec_wallet_remove_recipients.js",
       "spec_wallet_utxo.js",
       "spec_plugins.js",
       "spec_elm_single_segwit_wallet.js",
@@ -19,5 +18,5 @@
     "env": {
       "broadcast_timeout":"8000"
     },
-    "includeShadowDom": false 
+    "includeShadowDom": false
 }
