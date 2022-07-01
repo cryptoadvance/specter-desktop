@@ -28,7 +28,9 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
     - echo "  --> Version of python, virtualenv and pip3"
     - python3 --version && virtualenv --version && pip3 --version
     - echo "  --> Executables in tests/elements/src"
-    - find tests/elements/src -maxdepth 1 -type f -executable -exec ls -ld {} \;
+    - find tests/elements/src -maxdepth 1 -type f -executable -exec ls -ld {} \; || true
+    - echo "  --> Executables in tests/elements/bin"
+    - find tests/elements/bin -maxdepth 1 -type f -executable -exec ls -ld {} \; || true
     - echo "  --> Executables in tests/bitcoin/src"
     - find tests/bitcoin/src -maxdepth 1 -type f -executable -exec ls -ld {} \; || true
     - echo "  --> Executables in tests/bitcoin/bin"
