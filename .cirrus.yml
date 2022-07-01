@@ -125,7 +125,8 @@ enhanced_tests_task:
     - source ./.env/bin/activate
     - echo $PATH
     #- pip3 install -e .
-    - pytest tests/traffic_gen.py
+    # let's be generous and fill the cache
+    #- pytest tests/traffic_gen.py
   always:
     junit_artifacts:
       path: "./testresults.xml"
