@@ -29,8 +29,6 @@ class DiceService(Service):
     desc = "Send your bet!"
     has_blueprint = True
     blueprint_module = "k9ert.specterext.dice.controller"
-    # You can have more than one blueprint
-    # blueprint_modules = { default: "k9ert.specterext.dice.controller", "auth":"k9ert.specterext.dice.controller_auth" }
     isolated_client = False
     devstatus = devstatus_alpha
 ```
@@ -42,6 +40,45 @@ The `id` needs to be unique within a specific specter-instance where this extens
 If the extension has a UI (currently all of them have one), `has_blueprint` is True. `The blueprint_module` is referencing the controller-module where endpoints are defined. It's recommended to follow the format `org.specterext.extions-id.controller`.
 `isolated_client` Should not be used yet. It is determining where in the url-path-tree the blueprint will be mounted. This might have an impact on whether the extension's frontend-client has access to the cookie used in specter. Check `config.py` for details.
 `devstatus` is one of `devstatus_alpha`, `devstatus_beta` or `devstatus_prod` defined in `cryptoadvance.specter.services.service`. Each specter-instance will have a config-variable  called `SERVICES_DEVSTATUS_THRESHOLD` (prod in Production and alpha in Development) and depending on that, the plugin will be available to the user.
+
+## Frontend aspects
+
+As stated, you can have your own frontend with a blueprint. If you only have one, it needs to have a `/` route in order to be linkable from the `choose your plugin` page. 
+If you create your extension with a blueprint, it'll create also a controller for you which, simplified, look like this:
+```
+rubberduck_endpoint = ScratchpadService.blueprint
+
+def ext() -> ScratchpadService:
+    ''' convenience for getting the extension-object'''
+    return app.specter.ext["rubberduck"]
+
+def specter() -> Specter:
+    ''' convenience for getting the specter-object'''
+    return app.specter
+
+
+@rubberduck.route("/")
+@login_required
+@user_secret_decrypted_required
+def index():
+    return render_template(
+        "rubberduck/index.jinja",
+    )
+[...]
+```
+ But you can also have more than one blueprint. Define them like this in your service-class:
+```
+    blueprint_modules = { 
+        "default" : "mynym.specterext.rubberduck.controller",
+        "ui" : "mynym.specterext.rubberduck.controller_ui"
+    }
+```
+You have to have a default-blueprint which has the above mentioned index-page.
+In your controller, the endpoint needs to be specified like this:
+```
+ui = RubberduckService.blueprints["ui"]
+```
+
 
 ## Data-Storage
 Effort has been taken to provide `Service` data storage that is separate from existing data stores in order to keep those areas clean and simple. Where touchpoints are unavoidable, they are kept to the absolute bare minimum (e.g. `User.services` list, `Address.service_id` field).
