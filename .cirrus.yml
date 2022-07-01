@@ -39,7 +39,8 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
     - tests/bitcoin/src/bitcoind -version | head -1 || true
     - tests/bitcoin/bin/bitcoind -version | head -1 || true
     - echo "  --> elements version"
-    - tests/elements/src/elementsd -version | head -1
+    - tests/elements/src/elementsd -version | head -1 || true
+    - tests/elements/bin/elementsd -version | head -1 || true
 
   pip_script:
     #folder: /tmp/cirrus-ci-build/.env
