@@ -88,7 +88,10 @@ cypress_test_task:
     cypress_videos_artifacts:
       path: "./cypress/videos/**"
 
-enhanced_test_task:
+# The tests in this section might take a significant time and might be too much for merge decisions
+# Or maybe it doesn't matter whether they take so much time?
+# It's just the merging parties which merge many PRs one after another which might make that anoying
+enhanced_tests_task:
   pre_prep_script: 
     - apt-get update && apt-get install -y --no-install-recommends python3-dev python3-pip wget
   bitcoind_installation_cache:
