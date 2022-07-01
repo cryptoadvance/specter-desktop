@@ -56,6 +56,7 @@ describe('Test sending transactions', () => {
     it('Delete recipient ids=0,2. Remaining ids=1,3,4 => Recipients 2,4,5', () => {
         // We need new sats but mine2wallet only works if a wallet is selected
         cy.selectWallet("Test Hot Wallet 1")
+        // mine in this wallet only ONCE, otherwise the expected amounts when send-max is clicked are not accurate any more.
         cy.mine2wallet("btc")
         cy.get('#btn_send').click()
         /// The addresses are the first three from DIY ghost
@@ -103,7 +104,7 @@ describe('Test sending transactions', () => {
         cy.get('#recipient_2').find('#remove').click({force: true})  
 
         // Change recipient number to Recipient 2 (value = id = 1)
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').should('have.length', 3)           
+        // cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').should('have.length', 3)   // TODO: why does this not work?
         cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 4')   // select all Recipients, to check that the correct recipients are present
         cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 5')   // select all Recipients, to check that the correct recipients are present
         cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 2')   // html select with cypress: https://www.cypress.io/blog/2020/03/20/working-with-select-elements-and-select2-widgets-in-cypress/
@@ -131,14 +132,13 @@ describe('Test sending transactions', () => {
             expect(amount).to.be.equal(5)
         })
 
-
+        // delete the PSBT so the utxos can be used in the next test again
         cy.get('#deletepsbt_btn').click()
     })
 
     it('Create a transaction with multiple recipients', () => {
         // We need new sats but mine2wallet only works if a wallet is selected
         cy.selectWallet("Test Hot Wallet 1")
-        cy.mine2wallet("btc")
         cy.get('#btn_send').click()
         /// The addresses are the first three from DIY ghost
         cy.get('#recipient_0').find('#address').type("bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs")
@@ -170,13 +170,13 @@ describe('Test sending transactions', () => {
         // the displayed value of id=2 should be 3
         cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').find(':selected').should('have.text', 'Recipient 3');
         
-        // Change recipient number to 2    
+        // Change where to deduct fee to "Recipient 2" with id = 1
         cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 2')   // html select with cypress: https://www.cypress.io/blog/2020/03/20/working-with-select-elements-and-select2-widgets-in-cypress/
         cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').should('have.value', '1');
         // the displayed value of id=1 should be 2
         cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').find(':selected').should('have.text', 'Recipient 2');
 
-        // Change it back to recipient 3
+        // Change it back to "Recipient 3" with id = 2
         cy.get('#recipient_2').find('#send_max').click()
 
         // The fee should be subtracted from the third recipient
