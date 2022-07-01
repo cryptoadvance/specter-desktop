@@ -50,7 +50,6 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
     - source ./.env/bin/activate
     - pip3 install -r requirements.txt --require-hashes && pip3 install -r test_requirements.txt
   install_script: 
-    - ls -l ./tests/elements/src/ 
     - source ./.env/bin/activate
     - pip3 install -e .
 
