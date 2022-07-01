@@ -95,7 +95,9 @@ def pytest_generate_tests(metafunc):
             metafunc.parametrize("docker", [False], scope="session")
 
 
-def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=[]):
+def instantiate_bitcoind_controller(
+    docker, request, rpcport=18543, extra_args=[]
+) -> BitcoindPlainController:
     # logging.getLogger().setLevel(logging.DEBUG)
     requested_version = request.config.getoption("--bitcoind-version")
     log_stdout = str2bool(request.config.getoption("--bitcoind-log-stdout"))
@@ -181,6 +183,20 @@ def bitcoind_path():
 @pytest.fixture(scope="session")
 def bitcoin_regtest(docker, request):
     bitcoind_regtest = instantiate_bitcoind_controller(docker, request, extra_args=None)
+    try:
+        assert bitcoind_regtest.get_rpc().test_connection()
+        assert not bitcoind_regtest.datadir is None
+        yield bitcoind_regtest
+    finally:
+        bitcoind_regtest.stop_bitcoind()
+
+
+@pytest.fixture(scope="session")
+def bitcoin_regtest2(docker, request):
+    """If a test needs two nodes ..."""
+    bitcoind_regtest = instantiate_bitcoind_controller(
+        docker, request, rpcport=18544, extra_args=None
+    )
     try:
         assert bitcoind_regtest.get_rpc().test_connection()
         assert not bitcoind_regtest.datadir is None
