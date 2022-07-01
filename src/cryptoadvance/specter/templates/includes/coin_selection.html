@@ -1,4 +1,7 @@
 <template id="coin-selection">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+    </style>
     <span class="toggle_coinselection" style="cursor: pointer;">{{ _("Coin selection") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
     <br>
     <div class="coinselection_div" style="margin: auto; max-width: 90%; display: none;">
@@ -12,9 +15,8 @@
             type="utxo" hide-columns="category time txid confirmations action" 
             blockhash="true" hide-switcher="true"
             wallet="{{ wallet.alias }}"
-            scrollbar-height="400px"
-            scrollbar-default="on"
-            compact-switch="false">
+            table-max-height="600px"
+            scrollbar="on">
         </tx-table>
     </div> 
 </template>
