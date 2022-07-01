@@ -1327,7 +1327,7 @@ input:checked + .slider:before {
     border-radius: 5px;
     border: 1px solid var(--cmap-border-highlight);
     padding: 5px;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
   }
     
   .recipient_wrapper_inner_box{
@@ -1336,11 +1336,6 @@ input:checked + .slider:before {
     padding: 5px;
     margin-top: 5px;
   }
-
-  .recipient_wrapper_item:last-child{
-    margin-bottom: 0px;
-  }
-    
 
 
  
