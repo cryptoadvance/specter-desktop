@@ -13,7 +13,7 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
       - cat tests/bitcoin_gitrev_pinned 2> /dev/null || true
       - cat /etc/os-release | grep VERSION
       - cat ./tests/install_noded.sh
-      - echo "binary" # if the next line is --binary, otherwise compile. Not doing that correctly will break a proper caching switching between both
+      - echo "binary" # if the next line is --bitcoin binary, otherwise use echo "compile" - this ensures different caching keys.
     populate_script: ./tests/install_noded.sh --debug --bitcoin binary
   elementsd_installation_cache:
     folder: ./tests/elements
