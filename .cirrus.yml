@@ -22,7 +22,7 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
       - cat tests/elements_gitrev_pinned 2> /dev/null || true
       - cat /etc/os-release | grep VERSION
       - cat ./tests/install_noded.sh
-      - echo "binary" # if the next line is --binary, otherwise compile. Not doing that correctly will break a proper caching switching between both
+      - echo "binary" # if the next line is --elements binary, otherwise use echo "compile" - this ensures different caching keys.
     populate_script: ./tests/install_noded.sh --debug --elements binary
   verify_script: 
     - echo "  --> Version of python, virtualenv and pip3"
