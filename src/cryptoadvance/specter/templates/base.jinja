@@ -321,6 +321,14 @@
 					);
 				});
 			{% endif %}
+
+
+			websocket = new WebSocket("ws://localhost:5051/");
+
+			websocket.addEventListener('message', (event) => {
+				console.log(event.data)
+			})
+
 		</script>
 	{% endif %}
 	{% block scripts %}
