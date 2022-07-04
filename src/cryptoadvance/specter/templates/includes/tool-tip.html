@@ -1,97 +1,92 @@
 <!--
-HTML tags for title and paragraph can be set on demand, also possible to just use a paragraph.
-You can also change the default width of the tool-tip.
+Best to be used within a flex container to ensure responsiveness of the width for the tooltip text.
+Dispatches custom mouseover and mouseout events that can be listened for in another webcomponent / jinja file etc.
+HTML tags for title and paragraph can be set on demand, also possible to just use a paragraph, like so:
+
+this.tooltip.addEventListener("customhover", () => {
+    ...
+})
+this.tooltip.addEventListener("customout", () => {
+    ...
+})
 
 {# - Usage -
-<tool-tip width="325px">
-    <h4 slot="title">{{ _("Merkle Proof Validation") }}</h4>
-    <span slot="paragraph">
-        {{ _('Specter Desktop validates <a href="https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki" target="_blank">BIP 37</a> Merkle Proofs from your full node <strong>guaranteeing</strong> that transactions displayed as confirmed have been included in the specified block hash.') }}<br><br>
-        {{ _("However, a compromised full node could return a fake block that was never mined.") }}
-        {{ _("To be sure, you could double check the block hash in other locations (other nodes, block explorers, etc).") }}
-    </span>
-</tool-tip>
+<div id="tooltip-container" class="tooltip-little-grow tooltip-width">
+    <tool-tip>
+        <h4 slot="title">{{ _('Search options') }}</h4>
+        <span slot="paragraph">
+            {{ _("You can search using addresses, tx-IDs, labels, confirmations or amounts.") }}<br><br>
+            {{ _('Search like this in the time field:') }} <code>%d.%m.%Y %H:%M</code><br><br>
+            {{ _('Search like this for amounts:') }} <br>
+            <code> 1</code> {{ _("for anything more than 1") }}<br>
+            <code>< 1</code> {{ _("for less than 1 BTC (don't forget the space)") }}<br>
+        </span>
+    </tool-tip>
+</div>
 #}
 -->
 
-<template id="tool-tip-template-id">
+<template id="tooltip-template-id">
     <style>
-        .tool-tip {
-            display: inline-block;
-            position: relative;
+        .tooltip {
+            display: flex;
+            align-items: center;
             margin-left: 0.5em;
+            position: relative;
         }
-        .tool-tip .tool-tip__icon {
-            color: #fff;
-            background: #27b1f0;
-            border-radius: 10px;
+        .tooltip__icon {
+            background: none;
             cursor: pointer;
-            display: inline-block;
-            font-style: italic;
-            font-family: times new roman;
-            height: 20px;
-            line-height: 1.3em;
-            text-align: center;
-            width: 20px;
+            height: 1.3em;
+            width: 1.3em;
         }
-        .tool-tip .tool-tip__info {
+        .tooltip__box {
             display: none;
-            background: #262626;
-            border: 1px solid #27b1f0;
-            border-radius: 3px;
-            padding: 1em;
             position: absolute;
             left: 30px;
             top: -20px;
-            width: 250px;
+            background: var(--cmap-bg-lightest);
+            border: 1.5px solid var(--cmap-border);
+            border-radius: 10px;
+            padding: 10px;
             z-index: 2;
         }
-        .tool-tip .tool-tip__info:before, .tool-tip .tool-tip__info:after {
+        /* This makes the arrow */
+        .tooltip__box:before {
             content: "";
             position: absolute;
             left: -10px;
-            top: 7px;
+            top: 20px;
             border-style: solid;
             border-width: 10px 10px 10px 0;
-            border-color: transparent #27b1f0;
+            border-color: transparent var(--cmap-border);
         }
-        .tool-tip .tool-tip__info:after {
-            border-right-color: #262626;
+        .title {
+            color: white;
         }
-        .tool-tip .tool-tip__info .info {
-            display: block;
-        }
-        .tool-tip .tool-tip__info .info__title {
-            color: #4A90E2;
-            font-weight: 400;
-        }
-        .tool-tip .tool-tip__info .paragraph {
+        .paragraph {
             display: block;
             font-weight: 100;
             font-size: 14px;
         }
-        .tool-tip:hover .tool-tip__info, .tool-tip:focus .tool-tip__info {
-            display: inline-block;
-        }
-
-        a:focus + .tool-tip_basic .tool-tip__info {
-            display: inline-block;
+        .tooltip:hover .tooltip__box {
+            display: flex;
+            flex-direction: column;
         }
         @media (hover: none) {
-            .tool-tip {
+            .tooltip {
                 display: none;
             }
         }
     </style>
 
-    <div class="tool-tip">
-        <i class="tool-tip__icon">i</i>
-        <div class="tool-tip__info" id="tool-tip-box">
-            <slot name="title" class="info__title"></slot>
+    <div class="tooltip">
+        <img class="tooltip__icon" src="{{ url_for('static', filename='img/light-bulb.svg') }}"></img>
+        <div class="tooltip__box" id="tooltip-box">
+            <slot name="title" class="title"></slot>
             <slot name="paragraph" class="paragraph"></slot>
         </div>
     </div>
-    
 </template>
   
 <script type="module">
@@ -99,10 +94,18 @@ You can also change the default width of the tool-tip.
         constructor() {
             super();
             var shadowRoot = this.attachShadow({mode: 'open'});
-            var template = document.getElementById('tool-tip-template-id');
+            var template = document.getElementById('tooltip-template-id');
             var clone = template.content.cloneNode(true);
-            this.tooltipBox = clone.getElementById("tool-tip-box")
-            this.tooltipBox.style.width = this.getAttribute("width");
+            this.tooltipDiv = clone.querySelector('.tooltip')
+            // CustomEvent that can be picked up to adjust flex properties in the parent
+            this.tooltipDiv.addEventListener("mouseover", () => {
+                let event = new CustomEvent('customhover')
+                this.dispatchEvent(event);
+            })
+            this.tooltipDiv.addEventListener("mouseout", () => {
+                let event = new CustomEvent('customout')
+                this.dispatchEvent(event);
+            })
             shadowRoot.appendChild(clone);
         }
     }
