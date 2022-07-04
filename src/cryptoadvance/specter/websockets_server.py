@@ -45,7 +45,7 @@ class WebsocketsServer:
                     for connection in list(connected_websockets)
                 ]
             )
-            return "Successfully sent {message} to {connected_websockets}"
+            return f"Successfully sent {message} to {connected_websockets}"
         else:
             return f'connected_websockets is empty. Nowhere to send "{message}"'
 
@@ -71,12 +71,9 @@ class WebsocketsServer:
         loop.run_forever()  # this is missing
         loop.close()
 
-    def start(self, in_new_thread=True):
-        if in_new_thread:
-            t = threading.Thread(target=self._forever_websockets_server)
-            t.start()
-        else:
-            self._forever_websockets_server()
+    def start(self):
+        t = threading.Thread(target=self._forever_websockets_server)
+        t.start()
 
 
 class WebsocketsClient:
@@ -95,7 +92,6 @@ class WebsocketsClient:
 
     async def _send_message_to_server(self, message, websocket, expected_answers=1):
         answers = []
-        print("Client: connected")
         await websocket.send(message)
         for i in range(expected_answers):
             answer = await websocket.recv()
@@ -105,6 +101,7 @@ class WebsocketsClient:
 
     async def _forever_queue_worker(self):
         async with websockets.connect(f"ws://{self.domain}:{self.port}") as websocket:
+            print("Client: connected")
             while True:  #  this is an endless loop waiting for new queue items
                 item = self.q.get()
                 await self._send_message_to_server(item, websocket)
@@ -116,13 +113,10 @@ class WebsocketsClient:
         loop.run_until_complete(self._forever_queue_worker())
         loop.close()
 
-    def start(self, in_new_thread=True):
+    def start(self):
         try:
-            if in_new_thread:
-                t = threading.Thread(target=self._forever_websockets_client)
-                t.start()
-            else:
-                self._forever_websockets_client()
+            t = threading.Thread(target=self._forever_websockets_client)
+            t.start()
         finally:
             self.q.join()  # block until all tasks are done
 
