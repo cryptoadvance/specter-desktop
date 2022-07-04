@@ -200,6 +200,10 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
                         * {orgname}.specterext.{module_name}.service
                         Maybe you did forget to do this:
                         $ pip3 install -e .
+
+                        OR The Module has been found, but had issues finding Modules itself
+
+                        {e}
                         """
                             )
                         else:
