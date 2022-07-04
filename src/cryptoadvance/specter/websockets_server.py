@@ -98,7 +98,7 @@ class WebsocketsClient:
 
     async def _forever_queue_worker(self):
         async with websockets.connect(f"ws://{self.domain}:{self.port}") as websocket:
-            while True:
+            while True:  #  this is an endless loop waiting for new queue items
                 item = self.q.get()
                 await self._send_message_to_server(item, websocket)
                 self.q.task_done()
