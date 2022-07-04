@@ -11,6 +11,10 @@ import threading
 
 
 class WebsocketsServer:
+    """
+    A forever lived websockets server in a different thread
+    """
+
     def __init__(self):
         self.domain = "localhost"
         self.port = "5051"
@@ -76,7 +80,10 @@ class WebsocketsServer:
 
 
 class WebsocketsClient:
-    "keeps an open websocket connection"
+    """
+    Keeps an open websocket connection to the server in a different thread.
+    If  a message is entered into the Queue (self.q), then it will be picked up and send to the websockets server
+    """
 
     def __init__(self):
         self.domain = "localhost"
