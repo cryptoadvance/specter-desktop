@@ -1,11 +1,9 @@
-import os
 import logging
 
 logger = logging.getLogger(__name__)
 
 
 import asyncio
-import os
 import time
 import websockets
 import threading
@@ -15,27 +13,34 @@ class WebsocketsServer:
     def __init__(self):
         self.domain = "localhost"
         self.port = "5051"
-        self.connections = set()
+        self.connected_websockets = set()
 
     async def register(self, websocket):
         print(f"register {websocket}")
-        self.connections.add(websocket)
+        self.connected_websockets.add(websocket)
 
     async def unregister(self, websocket):
         print(f"unregister {websocket}")
-        self.connections.remove(websocket)
+        self.connected_websockets.remove(websocket)
 
-    async def send_messages_to_all(self, message, websocket):
-        if self.connections:
-            print(f"Sending messages to all {self.connections}")
+    async def send_messages_to_all_connected_websockets(
+        self, message, connected_websockets=None
+    ):
+        if connected_websockets is None:
+            connected_websockets = self.connected_websockets
+
+        if connected_websockets:
+            print(f"Sending messages to all {connected_websockets}")
             await asyncio.wait(
                 [
                     connection.send(f"Server answers {message}")
-                    for connection in list(self.connections)
+                    for connection in list(connected_websockets)
                 ]
             )
         else:
-            logger.warning(f'connection_list is empty. Nowhere to send "{message}".')
+            logger.warning(
+                f'connected_websockets is empty. Nowhere to send "{message}".'
+            )
 
     async def handler(self, websocket, path):  # don't remove path
         await self.register(websocket)
@@ -43,7 +48,7 @@ class WebsocketsServer:
             await websocket.send("Connected")
             async for message in websocket:  # this is an endless loop waiting for incoming websocket messages
                 print(f"Do sync stuff with message: {message}")
-                await self.send_messages_to_all(message, websocket)
+                await self.send_messages_to_all_connected_websockets(message)
         finally:
             await self.unregister(websocket)
 
@@ -58,7 +63,7 @@ class WebsocketsServer:
         loop.run_forever()  # this is missing
         loop.close()
 
-    def start_server_thread(self, in_new_thread=True):
+    def start(self, in_new_thread=True):
         if in_new_thread:
             t = threading.Thread(target=self.start_forever_websockets_server)
             t.start()
@@ -84,7 +89,7 @@ class WebsocketsClient:
 
 
 ws = WebsocketsServer()
-ws.start_server_thread()
+ws.start()
 
 
 client = WebsocketsClient()
