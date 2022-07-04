@@ -72,12 +72,15 @@ class WebsocketsClient:
         self.port = "5051"
 
     async def send_message(self, message, expected_answers=2):
+        messages = []
         async with websockets.connect(f"ws://{self.domain}:{self.port}") as websocket:
             print("Client: connected")
             await websocket.send(message)
             for i in range(expected_answers):
                 msg = await websocket.recv()
+                messages.append(msg)
                 print(f"Client: Answer {i} from server: {msg}")
+        return messages
 
 
 ws = WebsocketsServer()
@@ -88,7 +91,7 @@ client = WebsocketsClient()
 
 
 async def f():
-    await client.send_message(f"Main thread: loop {i}")
+    return await client.send_message(f"Main thread: loop {i}")
 
 
 for i in range(1000):
@@ -96,4 +99,5 @@ for i in range(1000):
         f"Loop {i} --------------------------------------------------------------------------"
     )
     time.sleep(2)
-    asyncio.get_event_loop().run_until_complete(f())
+    messages = asyncio.get_event_loop().run_until_complete(f())
+    print(messages)
