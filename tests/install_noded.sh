@@ -259,7 +259,7 @@ function sub_binary {
         find ./"$node_impl"/bin -maxdepth 1 -type f -executable -exec ls -ld {} \;
     fi
     echo "    --> checking for ${node_impl}d"
-    test -x ./bitcoin/bin/${node_impl}d || exit 2
+    test -x ./${node_impl}/bin/${node_impl}d || exit 2
     echo "    --> Finished installing ${node_impl}d binary"
     END=$(date +%s)
     DIFF=$(echo "$END - $START" | bc)

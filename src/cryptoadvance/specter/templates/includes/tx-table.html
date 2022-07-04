@@ -85,12 +85,10 @@
             top: 0;
             background-color: var(--cmap-bg-lighter);
             border: 1.5px solid var(--cmap-border);
-            z-index: 9;
+            z-index: 3;
         }
-        .page-limit-div {
-            flex: 0 0 200px;
-            display: flex;
-            justify-content: space-around;
+        .page-limit-label {
+            margin-left: 5px;
         }
         .search {
             margin: auto;
@@ -239,15 +237,13 @@
     </nav>
     <div class="pagination-container">
         <a class="pagination-back pagination-arrow pagination-disabled">&#8249;</a>
-        {{ _("Page") }} <input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span class="pagination-counter"></span>
+        {{ _("Page") }} &nbsp;<input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span class="pagination-counter"></span>
         <a class="pagination-next pagination-arrow pagination-disabled">&#8250;</a>
         <br>
     </div>
     <div class="search-container">
         <!--Left part of the toolbar-->
-        <div class="page-limit-div">
-            {% include "includes/page-limit-select.html" %}
-        </div>
+        {% include "includes/page-limit-select.html" %}
          <!--Middle part of the toolbar-->
         <div style="flex-grow: 0.5">
             <input class="search" type="text" placeholder="Search..."></input>
@@ -469,7 +465,7 @@
 
             // Initialize default sort, search, limit and page parameters
             this.idx = 0;
-            this.limit = 50;
+            this.limit = 25;
             this.search = "";
             this.sortby = "time";
             this.sortdir = "desc";
@@ -942,9 +938,11 @@
                 // If there are multiple pages show the pagination bar
                 if (this.pageCount > 1) {
                     this.paginationContainer.classList.remove('hidden');
+                    this.paginationContainer.classList.add('pagination-container');
                     this.paginationCounter.innerText = `of ${this.pageCount}`;
                     this.paginationIdxInput.max = this.pageCount;
                 } else {
+                    this.paginationContainer.classList.remove('pagination-container');
                     this.paginationContainer.classList.add('hidden');
                 }
 
