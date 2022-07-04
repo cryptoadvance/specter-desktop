@@ -12,6 +12,8 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
       - cat pytest.ini | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep bitcoin |  cut -d' ' -f2 
       - cat tests/bitcoin_gitrev_pinned 2> /dev/null || true
       - cat /etc/os-release | grep VERSION
+      - cat ./tests/install_noded.sh
+      - echo "binary" # if the next line is --bitcoin binary, otherwise use echo "compile" - this ensures different caching keys.
     populate_script: ./tests/install_noded.sh --debug --bitcoin binary
   elementsd_installation_cache:
     folder: ./tests/elements
@@ -19,12 +21,16 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
       - cat pytest.ini | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep elements |  cut -d' ' -f2 
       - cat tests/elements_gitrev_pinned 2> /dev/null || true
       - cat /etc/os-release | grep VERSION
+      - cat ./tests/install_noded.sh
+      - echo "binary" # if the next line is --elements binary, otherwise use echo "compile" - this ensures different caching keys.
     populate_script: ./tests/install_noded.sh --debug --elements binary
   verify_script: 
     - echo "  --> Version of python, virtualenv and pip3"
     - python3 --version && virtualenv --version && pip3 --version
     - echo "  --> Executables in tests/elements/src"
-    - find tests/elements/src -maxdepth 1 -type f -executable -exec ls -ld {} \;
+    - find tests/elements/src -maxdepth 1 -type f -executable -exec ls -ld {} \; || true
+    - echo "  --> Executables in tests/elements/bin"
+    - find tests/elements/bin -maxdepth 1 -type f -executable -exec ls -ld {} \; || true
     - echo "  --> Executables in tests/bitcoin/src"
     - find tests/bitcoin/src -maxdepth 1 -type f -executable -exec ls -ld {} \; || true
     - echo "  --> Executables in tests/bitcoin/bin"
@@ -33,7 +39,8 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
     - tests/bitcoin/src/bitcoind -version | head -1 || true
     - tests/bitcoin/bin/bitcoind -version | head -1 || true
     - echo "  --> elements version"
-    - tests/elements/src/elementsd -version | head -1
+    - tests/elements/src/elementsd -version | head -1 || true
+    - tests/elements/bin/elementsd -version | head -1 || true
 
   pip_script:
     #folder: /tmp/cirrus-ci-build/.env
@@ -43,7 +50,6 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
     - source ./.env/bin/activate
     - pip3 install -r requirements.txt --require-hashes && pip3 install -r test_requirements.txt
   install_script: 
-    - ls -l ./tests/elements/src/ 
     - source ./.env/bin/activate
     - pip3 install -e .
 

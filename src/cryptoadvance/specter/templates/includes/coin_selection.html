@@ -2,8 +2,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <style>
     </style>
-    <span class="toggle_coinselection" style="cursor: pointer;">{{ _("Coin selection") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
-    <br>
+    <span class="toggle_coinselection" style="cursor: pointer; margin-bottom: 5px; display: block">{{ _("Coin selection") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
     <div class="coinselection_div" style="margin: auto; max-width: 90%; display: none;">
         <div class="errorMessagesDiv">
             <message-box type="error" style="display: none;"></message-box>
