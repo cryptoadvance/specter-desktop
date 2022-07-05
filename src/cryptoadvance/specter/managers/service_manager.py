@@ -102,68 +102,103 @@ class ServiceManager:
     def register_blueprint_for_ext(cls, clazz, ext):
         if not clazz.has_blueprint:
             return
-        if hasattr(clazz, "blueprint_module"):
-            import_name = clazz.blueprint_module
-            controller_module = clazz.blueprint_module
+        if hasattr(clazz, "blueprint_modules"):
+            controller_modules = clazz.blueprint_modules
+            setattr(clazz, "blueprints", {})
+        elif hasattr(clazz, "blueprint_module"):
+            controller_modules = {"default": clazz.blueprint_module}
         else:
-            # The import_name helps to locate the root_path for the blueprint
             import_name = f"cryptoadvance.specter.services.{clazz.id}.service"
-            controller_module = f"cryptoadvance.specter.services.{clazz.id}.controller"
+            controller_modules = controller_modules = {
+                "default": f"cryptoadvance.specter.services.{clazz.id}.controller"
+            }
 
-        clazz.blueprint = Blueprint(
-            f"{clazz.id}_endpoint",
-            import_name,
-            template_folder=get_template_static_folder("templates"),
-            static_folder=get_template_static_folder("static"),
-        )
+        only_one_blueprint = len(controller_modules.items()) == 1
 
         def inject_stuff():
             """Can be used in all jinja2 templates"""
             return dict(specter=app.specter, service=ext)
 
-        clazz.blueprint.context_processor(inject_stuff)
+        if "default" not in controller_modules.keys():
+            raise SpecterError(
+                "You need at least one Blueprint, with the key 'default'. It will be used to link to your UI"
+            )
 
-        # Import the controller for this service
-        logger.info(f"  Loading Controller {controller_module}")
-        controller_module = import_module(controller_module)
-
-        # finally register the blueprint
-        if clazz.isolated_client:
-            ext_prefix = app.config["ISOLATED_CLIENT_EXT_URL_PREFIX"]
-        else:
-            ext_prefix = app.config["EXT_URL_PREFIX"]
-
-        try:
-            if (
-                app.testing
-                and len([vf for vf in app.view_functions if vf.startswith(clazz.id)])
-                <= 1
-            ):  # the swan-static one
-                # Yet again that nasty workaround which has been described in the archblog.
-                # The easy variant can be found in server.py
-                # The good news is, that we'll only do that for testing
-                import importlib
-
-                logger.info("Reloading Extension controller")
-                importlib.reload(controller_module)
-                app.register_blueprint(
-                    clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
-                )
+        for bp_key, bp_value in controller_modules.items():
+            if bp_key == "":
+                raise SpecterError("Empty keys are not allowed in the blueprints map")
+            middple_part = "" if bp_key == "default" else f"{bp_key}_"
+            bp_name = f"{clazz.id}_{middple_part}endpoint"
+            logger.debug(
+                f"  Creating blueprint with name {bp_name} (middle_part:{middple_part}:"
+            )
+            bp = Blueprint(
+                f"{clazz.id}_{middple_part}endpoint",
+                bp_value,
+                template_folder=get_template_static_folder("templates"),
+                static_folder=get_template_static_folder("static"),
+            )
+            if only_one_blueprint:
+                setattr(clazz, "blueprint", bp)
             else:
-                app.register_blueprint(
-                    clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
-                )
-            logger.info(f"  Mounted {clazz.id} to {ext_prefix}/{clazz.id}")
-        except AssertionError as e:
-            if str(e).startswith("A name collision"):
-                raise SpecterError(
+                clazz.blueprints[bp_key] = bp
+            bp.context_processor(inject_stuff)
+
+            # Import the controller for this service
+            logger.info(f"  Loading Controller {bp_value}")
+
+            try:
+                controller_module = import_module(bp_value)
+            except ModuleNotFoundError as e:
+                raise Exception(
                     f"""
-                There is a name collision for the {clazz.blueprint.name}. \n
-                This is probably because you're running in DevelopementConfig and configured
-                the extension at the same time in the EXTENSION_LIST which currently loks like this:
-                {app.config['EXTENSION_LIST']})
+                    There was an issue finding a controller module:
+                    {e}
+                    That module was specified in the Service class of service {clazz.id}
+                    check that specification in {clazz.__module__}
                 """
                 )
+
+            # finally register the blueprint
+            if clazz.isolated_client:
+                ext_prefix = app.config["ISOLATED_CLIENT_EXT_URL_PREFIX"]
+            else:
+                ext_prefix = app.config["EXT_URL_PREFIX"]
+
+            try:
+                bp_postfix = "" if only_one_blueprint else f"/{bp_key}"
+                if (
+                    app.testing
+                    and len(
+                        [vf for vf in app.view_functions if vf.startswith(clazz.id)]
+                    )
+                    <= 1
+                ):  # the swan-static one
+                    # Yet again that nasty workaround which has been described in the archblog.
+                    # The easy variant can be found in server.py
+                    # The good news is, that we'll only do that for testing
+                    import importlib
+
+                    logger.info("Reloading Extension controller")
+                    importlib.reload(controller_module)
+                    app.register_blueprint(
+                        bp, url_prefix=f"{ext_prefix}/{clazz.id}{bp_postfix}"
+                    )
+                else:
+                    app.register_blueprint(
+                        bp, url_prefix=f"{ext_prefix}/{clazz.id}{bp_postfix}"
+                    )
+                logger.info(f"  Mounted {bp} to {ext_prefix}/{clazz.id}{bp_postfix}")
+            except AssertionError as e:
+                if str(e).startswith("A name collision"):
+                    raise SpecterError(
+                        f"""
+                    There is a name collision for the {clazz.blueprint.name}. \n
+                    This is probably because you're running in DevelopementConfig and configured
+                    the extension at the same time in the EXTENSION_LIST which currently loks like this:
+                    {app.config['EXTENSION_LIST']})
+                    """
+                    )
 
     @classmethod
     def configure_service_for_module(cls, clazz):
