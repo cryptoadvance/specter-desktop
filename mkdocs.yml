@@ -55,3 +55,4 @@ plugins:
       css_style:
         width: "100%"
         height: "22.172vw"
+  - search

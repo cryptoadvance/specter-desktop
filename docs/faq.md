@@ -362,7 +362,7 @@ This is a known issue. See [here](https://github.com/cryptoadvance/specter-deskt
 * Make sure to not use the Safari-Browser. Chrome is the best option, Firefox should work as well. 
 * Make sure that your USB-cable is working. Often enough they are not working anymore. 
 * Also, make sure to upgrade to the latest firmware, ledger but also others are known to not work with specific older versions. 
-* On Linux, there is also something called [udev-rules](../udev/README.md) which have to be installed.
+* On Linux, there is also something called [udev-rules](https://github.com/cryptoadvance/specter-desktop/tree/master/udev) which have to be installed.
 * Then, there might be confusion about the computer to plug it in. Do you run specter locally or on some remote-computer? Without the hwi-bridge, you need to plug your hardware wallet in the USB-port of the computer you're running specter on. If you want to use your computer and not the remote one, checkout the [HWIBridge](./hwibridge.md)
 * Also unplug other maybe exotic USB hardware like game-controllers, printers and basically everything, just for testing purposes.
 * If you're using the hwi-bridge, skip it for testing purposes and use specter locally to let it connect to your local 
