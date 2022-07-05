@@ -12,6 +12,7 @@ import asyncio
 import time, json
 import websockets
 import threading
+from flask import current_app as app
 
 
 class WebsocketsBase:
@@ -51,37 +52,58 @@ class WebsocketsServer(WebsocketsBase):
     A forever lived websockets server in a different thread
     """
 
-    def __init__(self):
+    def __init__(self, user_manager):
         super().__init__()
         self.connections = list()
         self.admin_tokens = list()
+        self.user_manager = user_manager
 
     def get_connection_user_tokens(self):
         return [d["user_token"] for d in self.connections]
+
+    def get_admin_tokens(self):
+        return [d["user_token"] for d in self.admin_tokens]
 
     def get_connection(self, user_token):
         for d in self.connections:
             if d["user_token"] == user_token:
                 return d["websocket"]
 
-    def register_admin_token(self, user_token):
+    def user_of_user_token(self, user_token):
+        for u in self.user_manager.users:
+            if u.websocket_token == user_token:
+                return u
+
+    def set_as_admin(self, user_token):
         new_entry = {"user_token": user_token}
-        logger.info(f"register_admin_token {new_entry}")
+        logger.info(f"set_as_admin {new_entry}")
         self.admin_tokens.append(new_entry)
 
-    def unregister_admin_token(self, user_token):
-        logger.info(f"unregister {user_token}")
+    def remove_admin(self, user_token):
+        logger.info(f"remove_admin {user_token}")
         self.admin_tokens = [
             d for d in self.admin_tokens if d["user_token"] != user_token
         ]
 
     async def register(self, user_token, websocket):
-        new_entry = {"user_token": user_token, "websocket": websocket}
-        if user_token in self.admin_tokens:
-            logger.info(f"ADMIN:  register {new_entry}")
+        if not user_token:
+            logger.warning(f"no user_token given")
+            return
+
+        logger.info(f"register  {user_token},  admins = {self.get_admin_tokens()}")
+        if user_token in self.get_admin_tokens():
+            logger.info(f"register websocket connection for user with ADMIN rights")
         else:
-            logger.info(f"register {new_entry}")
-        self.connections.append(new_entry)
+            user = self.user_of_user_token(user_token)
+            # If it is not an admin AND the token is unknown, then reject connection
+            if not user:
+                logger.warning(f"user_token {user_token} not found in users")
+                return
+            logger.info(
+                f"register websocket connection for flask user '{user.username}'"
+            )
+
+        self.connections.append({"user_token": user_token, "websocket": websocket})
 
     async def unregister(self, websocket):
         logger.info(f"unregister {websocket}")
@@ -149,16 +171,14 @@ class WebsocketsServer(WebsocketsBase):
                 try:
                     logger.info(f"Do stuff with message: {message}")
                     message_dictionary = json.loads(message)
-                    if (
-                        message_dictionary.get("type") == "authentication"
-                    ) and message_dictionary.get("user_token"):
+                    if message_dictionary.get("type") == "authentication":
                         await self.register(
                             message_dictionary.get("user_token"), websocket
                         )
                     else:
                         await self.process_incoming_message(message_dictionary)
                 except:
-                    logger.info(f"message {message} caused an error")
+                    logger.error(f"message {message} caused an error", exc_info=True)
                 if self.quit:
                     break  # self.quit not working yet
         finally:
@@ -213,8 +233,8 @@ class WebsocketsClient(WebsocketsBase):
 
 def run_server_and_client():
     client = WebsocketsClient()
-    ws = WebsocketsServer()
-    ws.register_admin_token(
+    ws = WebsocketsServer(app.specter.user_manager)
+    ws.set_as_admin(
         client.user_token
     )  # this ensures that this client has rights to send to other users
 
