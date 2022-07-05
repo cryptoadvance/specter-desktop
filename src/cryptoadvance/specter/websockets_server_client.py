@@ -181,6 +181,8 @@ class WebsocketsServer(WebsocketsBase):
                     logger.error(f"message {message} caused an error", exc_info=True)
                 if self.quit:
                     break  # self.quit not working yet
+        except websockets.exceptions.ConnectionClosedError as e:
+            logger.warning("Server Connection dropped")
         finally:
             await self.unregister(websocket)
 
