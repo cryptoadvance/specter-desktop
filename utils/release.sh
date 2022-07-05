@@ -118,13 +118,17 @@ function main() {
 
         echo "Here are the release-notes:"
         echo "--------------------------------------------------"
-        echo "## ${new_version} $(date +'%B %d, %Y')" > docs/new_release_notes.md
-        docker run registry.gitlab.com/cryptoadvance/specter-desktop/github-changelog:latest --github-token $GH_TOKEN --branch master cryptoadvance specter-desktop $latest_version | sort >> docs/new_release_notes.md
+        echo "# Release Notes" > docs/new_release_notes.md
         echo "" >> docs/new_release_notes.md
+        echo "## ${new_version} $(date +'%B %d, %Y')" >> docs/new_release_notes.md
+        docker run registry.gitlab.com/cryptoadvance/specter-desktop/github-changelog:latest --github-token $GH_TOKEN --branch master cryptoadvance specter-desktop $latest_version | sort >> docs/new_release_notes.md
+        
+
         cat docs/new_release_notes.md
         echo "--------------------------------------------------"
 
         cp docs/release-notes.md docs/release-notes.md.orig
+        sed -i '1,2d/' docs/release-notes.md.orig # Assuming the release-Notes start with # Release Notes\n
         cat docs/new_release_notes.md docs/release-notes.md.orig >  docs/release-notes.md
         rm docs/release-notes.md.orig docs/new_release_notes.md
 
