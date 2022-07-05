@@ -1,7 +1,32 @@
 <!--
-Best to be used within a flex container to ensure responsiveness of the width for the tooltip text.
-Dispatches custom mouseover and mouseout events that can be listened for in another webcomponent / jinja file etc.
-HTML tags for title and paragraph can be set on demand, also possible to just use a paragraph, like so:
+Tooltips can be used in two ways:
+
+1) Within a flex container
+This enables responsiveness of the width for the tooltip text. Ideally, put the tooltips on the same DOM level as the div / element the tooltip is intended for.
+
+{# - Usage -
+    <div class="search-container">
+        <div style="flex-grow: 0.2">
+            <input class="search" type="text" placeholder="Search..."></input>
+        </div>
+        <div id="tooltip-container" class="tooltip-little-grow tooltip-width">
+            <tool-tip>
+                <h4 slot="title">{{ _('Search options') }}</h4>
+                <span slot="paragraph">
+                    {{ _("You can search using addresses, tx-IDs, labels, confirmations or amounts.") }}<br><br>
+                    {{ _('Search like this in the time field:') }} <code>%d.%m.%Y %H:%M</code><br><br>
+                    {{ _('Search like this for amounts:') }} <br>
+                    <code> 1</code> {{ _("for anything more than 1") }}<br>
+                    <code>< 1</code> {{ _("for less than 1 BTC (don't forget the space)") }}<br>
+                </span>
+            </tool-tip>
+        </div>
+    </div>
+#}
+
+Repsonsiveness can be hooked up in the target jinja file etc. via eventListeners since the
+the webcomponent dispatches custom mouseover and mouseout events that can be listened for.
+Like so:
 
 this.tooltip.addEventListener("customhover", () => {
     ...
@@ -10,19 +35,19 @@ this.tooltip.addEventListener("customout", () => {
     ...
 })
 
+2) Within other div such as buttons
+Set the within attribute to true in this case (to adjust the positioning, otherwise the arrow will no be visible). You can also set a fixed width if you wish. With this approach it is not guarenteed that the
+
 {# - Usage -
-<div id="tooltip-container" class="tooltip-little-grow tooltip-width">
-    <tool-tip>
-        <h4 slot="title">{{ _('Search options') }}</h4>
-        <span slot="paragraph">
-            {{ _("You can search using addresses, tx-IDs, labels, confirmations or amounts.") }}<br><br>
-            {{ _('Search like this in the time field:') }} <code>%d.%m.%Y %H:%M</code><br><br>
-            {{ _('Search like this for amounts:') }} <br>
-            <code> 1</code> {{ _("for anything more than 1") }}<br>
-            <code>< 1</code> {{ _("for less than 1 BTC (don't forget the space)") }}<br>
-        </span>
+<button type="button" class="btn freeze-tx-btn">
+    Un/Freeze UTXOs
+    <tool-tip width="250px" within="true">
+    <span slot="paragraph" style="text-align: start;">
+        {{ _("Freezing a UTXO will make Specter disallow spending it.") }}<br><br>
+        {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }}
+    </span>
     </tool-tip>
-</div>
+</button>
 #}
 -->
 
@@ -106,7 +131,21 @@ this.tooltip.addEventListener("customout", () => {
                 let event = new CustomEvent('customout')
                 this.dispatchEvent(event);
             })
+            this.tooltipBox = clone.getElementById("tooltip-box")
             shadowRoot.appendChild(clone);
+        }
+
+        static get observedAttributes() {
+            return ['width', 'within'];
+        }
+
+        connectedCallback() {
+            if (this.getAttribute("width")) {
+                this.tooltipBox.style.width = this.getAttribute("width");
+            }
+            if (this.getAttribute("within")) {
+                this.tooltipBox.style.left = "60px";
+            }
         }
     }
 customElements.define('tool-tip', TooltipElement);

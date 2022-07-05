@@ -80,6 +80,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            gap: 10px;
             flex-wrap: wrap;
             margin-bottom: 0.5em;
             position: sticky;
@@ -87,6 +88,7 @@
             background-color: var(--cmap-bg-lighter);
             border: 1.5px solid var(--cmap-border);
             z-index: 9;
+            padding: 5px 5px 5px 5px;
         }
         .page-limit-label {
             margin-left: 5px;
@@ -95,7 +97,10 @@
             margin: auto;
         }
         .tooltip-width {
-            max-width: 250px;
+            max-width: 350px;
+        }
+        .tooltip-no-grow {
+            flex-grow: 0; 
         }
         .tooltip-little-grow {
             flex-grow: 0.2; 
@@ -141,7 +146,7 @@
             margin: auto;
         }
         .selected-rows-action-box {
-            float: right;
+            align-items: center;
         }
         .selected-rows-action-box .btn {
             width: 200px;
@@ -258,7 +263,7 @@
         <div style="flex-grow: 0.2">
             <input class="search" type="text" placeholder="Search..."></input>
         </div>
-        <div id="tooltip-container" class="tooltip-little-grow tooltip-width">
+        <div id="tooltip-container" class="tooltip-no-grow tooltip-width">
             <tool-tip>
                 <h4 slot="title">{{ _('Search options') }}</h4>
                 <span slot="paragraph">
@@ -271,21 +276,20 @@
             </tool-tip>
         </div>
         <!--Right part of the toolbar-->
-        <div id="action-teaser" class="action-teaser hidden" style="margin-right: 5px;"> 
+        <div id="action-teaser" class="action-teaser hidden" style="margin-right: 5px; margin-left: 5px;"> 
             <span id="action-teaser-text" class="action-teaser-text">Select checkboxes for actions</span>
         </div>
         <div class="selected-rows-action-box row hidden">
             <form class="freeze-tx-form" method="POST">
                 <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="button" class="btn freeze-tx-btn">
-                <tool-tip>
-                    <h4 slot="title">{{ _('Freezing UTXOs') }}</h4>
-                    <span slot="paragraph">
+                    Un/Freeze UTXOs
+                <tool-tip width="250px" within="true">
+                    <span slot="paragraph" style="text-align: start;">
                         {{ _("Freezing a UTXO will make Specter disallow spending it.") }}<br><br>
                         {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }}
                     </span>
-                </tool-tip>&nbsp;&nbsp;
-                Un/Freeze UTXOs
+                </tool-tip>
                 </button>
             </form>
             <form class="compose-tx-form" method="POST">
@@ -329,8 +333,12 @@
                     <th value="time"     class="column-time time-header">{{ _("Time") }}<div class="time-arrow up-arrow"></div></th>
                     <th value="confirmations" class="column-confirmations confirmations-header">{{ _("Confirmations") }}<div class="confirmations-arrow"></div></th>
                     <th value="blockhash" class="column-blockhash optional hidden blockhash-header">
-                        {{ _("Block Hash") }}
-                        {% include "includes/merkletooltip.html" %}
+                        <div style="display: flex">
+                            <span>{{ _("Block Hash") }}</span>
+                            <div id="tooltip-container" style="min-width: 175px;">
+                                {% include "includes/merkletooltip.html" %}
+                            </div>
+                        </div>
                     </th>
                     <th class="column-action" style="width: 50px; padding: 10px;">
                         <button type="button" class="export-btn btn" style="width: 50px;">
@@ -377,19 +385,21 @@
             var clone = style.cloneNode(true);
             this.el = clone.querySelector(".tx-table");
             this.tbody = clone.querySelector(".tx-tbody");
-            this.tableContainer = clone.getElementById("table-container")
-            // Tooltip
-            this.tooltip = clone.querySelector('tool-tip')
-            this.tooltipContainer = clone.getElementById('tooltip-container')
-
-            this.tooltip.addEventListener("customhover", () => {
-                this.tooltipContainer.classList.remove("tooltip-little-grow")
-                this.tooltipContainer.classList.add("tooltip-max-grow")
-            })
-            this.tooltip.addEventListener("customout", () => {
-                this.tooltipContainer.classList.remove("tooltip-max-grow")
-                this.tooltipContainer.classList.add("tooltip-little-grow")
-            })
+            this.tableContainer = clone.getElementById("table-container");
+            
+            // Hook up tooltips width responsiveness
+            this.tooltips = clone.querySelectorAll('tool-tip');
+            this.tooltipContainers = clone.querySelectorAll('#tooltip-container');
+            this.tooltips.forEach((tooltip, index) => tooltip.addEventListener('customhover', () => {
+                this.tooltipContainers[index].classList.remove("tooltip-no-grow");
+                this.tooltipContainers[index].classList.add("tooltip-max-grow");
+                })
+            )
+            this.tooltips.forEach((tooltip, index) => tooltip.addEventListener('customout', () => {
+                this.tooltipContainers[index].classList.remove("tooltip-max-grow");
+                this.tooltipContainers[index].classList.add("tooltip-no-grow");
+                })
+            )
 
             // Empty row element
             this.emptyRow = clone.querySelector(".empty");
