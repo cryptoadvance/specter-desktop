@@ -1,6 +1,7 @@
 import csv
 import json
 import logging
+import threading
 import time
 from binascii import b2a_base64
 from datetime import datetime
@@ -36,6 +37,8 @@ logger = logging.getLogger(__name__)
 
 wallets_endpoint_api = Blueprint("wallets_endpoint_api", __name__)
 
+get_txout_set_info_lock = threading.Lock()
+
 
 @wallets_endpoint_api.route("/wallets_loading/", methods=["GET", "POST"])
 @login_required
@@ -67,8 +70,13 @@ def generatemnemonic():
 @login_required
 @app.csrf.exempt
 def txout_set_info():
-    res = app.specter.rpc.gettxoutsetinfo(timeout=3600)
-    return res
+    if get_txout_set_info_lock.locked():
+        return {
+            "error": "Run the numbers is quite work intensive and there is already a call running. Stay calm and let it do its work!"
+        }, 420
+    with get_txout_set_info_lock:
+        res = app.specter.rpc.gettxoutsetinfo(timeout=3600)
+        return res
 
 
 @wallets_endpoint_api.route("/get_scantxoutset_status")
