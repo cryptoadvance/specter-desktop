@@ -22,6 +22,7 @@ from .helpers import (
     is_liquid,
 )
 from hwilib.devices.bitbox02 import Bitbox02Client
+from hwilib.devices.trezorlib.transport import get_transport
 from .devices.hwi.specter_diy import SpecterClient
 from .devices.hwi.jade import JadeClient
 
@@ -196,6 +197,7 @@ class HWIBridge(JSONRPC):
             with self._get_client(
                 device_type=device_type, path=path, passphrase=passphrase, chain=chain
             ) as client:
+                logger.debug(f"client is : {client}")
                 return hwi_commands.send_pin(client, pin)
         else:
             raise Exception(
@@ -461,8 +463,10 @@ class HWIBridge(JSONRPC):
                 ).to_string()
                 zpub = convert_xpub_prefix(xpub, b"\x04\xb2\x47\x46")
                 xpubs += "[{}/84'/0'/{}']{}\n".format(master_fpr, account, zpub)
-            except Exception:
-                logger.warning("Failed to import native Segwit singlesig mainnet key.")
+            except Exception as e:
+                logger.warning(
+                    f"Failed to import native Segwit singlesig mainnet key: {e}"
+                )
 
             try:
                 # Multisig nested Segwit
@@ -471,8 +475,10 @@ class HWIBridge(JSONRPC):
                 ).to_string()
                 Ypub = convert_xpub_prefix(xpub, b"\x02\x95\xb4\x3f")
                 xpubs += "[{}/48'/0'/{}'/1']{}\n".format(master_fpr, account, Ypub)
-            except Exception:
-                logger.warning("Failed to import Nested Segwit multisig mainnet key.")
+            except Exception as e:
+                logger.warning(
+                    f"Failed to import Nested Segwit multisig mainnet key: {e}"
+                )
 
             try:
                 # Multisig native Segwit
@@ -481,8 +487,10 @@ class HWIBridge(JSONRPC):
                 ).to_string()
                 Zpub = convert_xpub_prefix(xpub, b"\x02\xaa\x7e\xd3")
                 xpubs += "[{}/48'/0'/{}'/2']{}\n".format(master_fpr, account, Zpub)
-            except Exception:
-                logger.warning("Failed to import native Segwit multisig mainnet key.")
+            except Exception as e:
+                logger.warning(
+                    f"Failed to import native Segwit multisig mainnet key {e}"
+                )
 
             # And testnet
             client.chain = Chain.TEST
@@ -494,8 +502,10 @@ class HWIBridge(JSONRPC):
                 ).to_string()
                 upub = convert_xpub_prefix(xpub, b"\x04\x4a\x52\x62")
                 xpubs += "[{}/49'/1'/{}']{}\n".format(master_fpr, account, upub)
-            except Exception:
-                logger.warning("Failed to import Nested Segwit singlesig testnet key.")
+            except Exception as e:
+                logger.warning(
+                    f"Failed to import Nested Segwit singlesig testnet key: {e}"
+                )
 
             try:
                 # Testnet native Segwit
@@ -504,8 +514,10 @@ class HWIBridge(JSONRPC):
                 ).to_string()
                 vpub = convert_xpub_prefix(xpub, b"\x04\x5f\x1c\xf6")
                 xpubs += "[{}/84'/1'/{}']{}\n".format(master_fpr, account, vpub)
-            except Exception:
-                logger.warning("Failed to import native Segwit singlesig testnet key.")
+            except Exception as e:
+                logger.warning(
+                    f"Failed to import native Segwit singlesig testnet key: {e}"
+                )
 
             try:
                 # Testnet multisig nested Segwit
@@ -514,9 +526,9 @@ class HWIBridge(JSONRPC):
                 ).to_string()
                 Upub = convert_xpub_prefix(xpub, b"\x02\x42\x89\xef")
                 xpubs += "[{}/48'/1'/{}'/1']{}\n".format(master_fpr, account, Upub)
-            except Exception:
+            except Exception as e:
                 logger.warning(
-                    "Failed to import Nested Segwit multisigsig testnet key."
+                    f"Failed to import Nested Segwit multisigsig testnet key: {e}"
                 )
 
             try:
@@ -526,8 +538,10 @@ class HWIBridge(JSONRPC):
                 ).to_string()
                 Vpub = convert_xpub_prefix(xpub, b"\x02\x57\x54\x83")
                 xpubs += "[{}/48'/1'/{}'/2']{}\n".format(master_fpr, account, Vpub)
-            except Exception:
-                logger.warning("Failed to import native Segwit multisig testnet key.")
+            except Exception as e:
+                logger.warning(
+                    f"Failed to import native Segwit multisig testnet key: {e}"
+                )
 
             # Do proper cleanup otherwise have to reconnect device to access again
             client.close()
