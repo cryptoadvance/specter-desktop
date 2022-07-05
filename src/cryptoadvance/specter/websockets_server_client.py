@@ -1,8 +1,10 @@
 import logging
 from queue import Queue
-from urllib import response
 
 logger = logging.getLogger(__name__)
+
+logging.basicConfig()
+logging.getLogger().setLevel(logging.INFO)
 
 
 import secrets
@@ -19,7 +21,7 @@ class WebsocketsBase:
 
     def __init__(self):
         self.domain = "localhost"
-        self.port = "5051"
+        self.port = "5086"
         self.quit = False
 
     def forever_function(self):
@@ -62,13 +64,13 @@ class WebsocketsServer(WebsocketsBase):
             if d["user_token"] == user_token:
                 return d["websocket"]
 
-    async def register_internal_token(self, user_token):
+    def register_admin_token(self, user_token):
         new_entry = {"user_token": user_token}
-        print(f"register_internal_token {new_entry}")
+        logger.info(f"register_admin_token {new_entry}")
         self.admin_tokens.append(new_entry)
 
-    async def unregister_internal_token(self, user_token):
-        print(f"unregister {user_token}")
+    def unregister_admin_token(self, user_token):
+        logger.info(f"unregister {user_token}")
         self.admin_tokens = [
             d for d in self.admin_tokens if d["user_token"] != user_token
         ]
@@ -76,13 +78,13 @@ class WebsocketsServer(WebsocketsBase):
     async def register(self, user_token, websocket):
         new_entry = {"user_token": user_token, "websocket": websocket}
         if user_token in self.admin_tokens:
-            print(f"ADMIN:  register {new_entry}")
+            logger.info(f"ADMIN:  register {new_entry}")
         else:
-            print(f"register {new_entry}")
+            logger.info(f"register {new_entry}")
         self.connections.append(new_entry)
 
     async def unregister(self, websocket):
-        print(f"unregister {websocket}")
+        logger.info(f"unregister {websocket}")
         self.connections = [d for d in self.connections if d["websocket"] != websocket]
 
     async def send_to_websocket(self, message_dictionary, websocket):
@@ -109,7 +111,7 @@ class WebsocketsServer(WebsocketsBase):
             for recipient_token in recipient_tokens
             if recipient_token in self.get_connection_user_tokens()
         ]
-        print(f"possbile_recipient_tokens {possbile_recipient_tokens}")
+        logger.info(f"possbile_recipient_tokens {possbile_recipient_tokens}")
         if message_dictionary.get("user_token") in self.admin_tokens:
             valid_recipient_tokens = possbile_recipient_tokens
         else:
@@ -122,12 +124,12 @@ class WebsocketsServer(WebsocketsBase):
         return valid_recipient_tokens
 
     async def process_incoming_message(self, message_dictionary):
-        print(f'starting to process_incoming_message "{message_dictionary}"')
+        logger.info(f'starting to process_incoming_message "{message_dictionary}"')
         valid_recipient_tokens = self.get_valid_recipients_of_message(
             message_dictionary
         )
         if not valid_recipient_tokens:
-            print(
+            logger.info(
                 f'No valid_recipient_tokens found. Nowhere to send "{message_dictionary}"'
             )
             return
@@ -145,7 +147,7 @@ class WebsocketsServer(WebsocketsBase):
         try:
             async for message in websocket:  # this is an endless loop waiting for incoming websocket messages
                 try:
-                    print(f"Do stuff with message: {message}")
+                    logger.info(f"Do stuff with message: {message}")
                     message_dictionary = json.loads(message)
                     if (
                         message_dictionary.get("type") == "authentication"
@@ -156,7 +158,7 @@ class WebsocketsServer(WebsocketsBase):
                     else:
                         await self.process_incoming_message(message_dictionary)
                 except:
-                    print(f"message {message} caused an error")
+                    logger.info(f"message {message} caused an error")
                 if self.quit:
                     break  # self.quit not working yet
         finally:
@@ -180,22 +182,22 @@ class WebsocketsClient(WebsocketsBase):
     def send(self, message_dictionary):
         full_dict = message_dictionary.copy()
         full_dict["user_token"] = self.user_token
-        print(f"adding to queue {message_dictionary}")
+        logger.info(f"adding to queue {message_dictionary}")
         self.q.put(json.dumps(full_dict))
 
     async def _send_message_to_server(self, message, websocket, expected_answers=0):
         answers = []
-        print(f"_send_message_to_server {message}")
+        logger.info(f"_send_message_to_server {message}")
         await websocket.send(message)
         for i in range(expected_answers):
             answer = await websocket.recv()
             answers.append(answer)
-            print(f"Client: Answer {i} from server: {answer}")
+            logger.info(f"Client: Answer {i} from server: {answer}")
         return answers
 
     async def forever_function(self):
         async with websockets.connect(f"ws://{self.domain}:{self.port}") as websocket:
-            print("Client: connected")
+            logger.info("Client: connected")
             while not self.quit:  #  this is an endless loop waiting for new queue items
                 item = self.q.get()
                 await self._send_message_to_server(item, websocket)
@@ -205,33 +207,38 @@ class WebsocketsClient(WebsocketsBase):
         self.q.join()  # block until all tasks are done
 
     def authenticate(self):
+        logger.info("authenticate")
         self.send({"type": "authentication", "user_token": self.user_token})
 
 
-client = WebsocketsClient()
-ws = WebsocketsServer()
-ws.admin_tokens.append(
-    client.user_token
-)  # this ensures that this client has rights to send to other users
+def run_server_and_client():
+    client = WebsocketsClient()
+    ws = WebsocketsServer()
+    ws.register_admin_token(
+        client.user_token
+    )  # this ensures that this client has rights to send to other users
+
+    ws.start()
+    client.start()
+    client.authenticate()
+    return ws, client
 
 
-ws.start()
-client.start()
-client.authenticate()
+if __name__ == "__main__":
+    ws, client = run_server_and_client()
 
+    # get into the server loop via a queue
 
-# get into the server loop via a queue
+    for i in range(100):
+        time.sleep(2)
+        client.send(
+            {
+                "type": "message",
+                "message": f"loop {i}",
+                "recipient_tokens": ws.get_connection_user_tokens(),
+            }
+        )
 
-for i in range(100):
+    client.quit = True
     time.sleep(2)
-    client.send(
-        {
-            "type": "message",
-            "message": f"loop {i}",
-            "recipient_tokens": ws.get_connection_user_tokens(),
-        }
-    )
-
-client.quit = True
-time.sleep(2)
-ws.quit = True
+    ws.quit = True

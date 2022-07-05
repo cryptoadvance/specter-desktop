@@ -324,8 +324,8 @@
 
 
 
-
-			websocket = new WebSocket("ws://localhost:5051/");
+			ip_address = "{{ request.host.split(':')[0] }}"
+			websocket = new WebSocket(`ws://${ip_address}:5086/`);
 			websocket.addEventListener('message', (event) => {
 				console.log(event.data)
 			})
