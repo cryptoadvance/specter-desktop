@@ -18,6 +18,7 @@ class WebsocketsBase:
     def __init__(self):
         self.domain = "localhost"
         self.port = "5051"
+        self.quit = False
 
     def forever_function(self):
         "This is the function that will contain an endless loop"
@@ -27,7 +28,7 @@ class WebsocketsBase:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(self.forever_function())
-        loop.run_forever()
+        loop.run_forever()  # this is needed for the server, and does nothing for the client
         loop.close()
 
     def finally_at_stop(self):
@@ -87,6 +88,8 @@ class WebsocketsServer(WebsocketsBase):
                     message, exclude_websockets={websocket}
                 )
                 await websocket.send(msg)
+                if self.quit:
+                    break  # self.quit not working yet
         finally:
             await self.unregister(websocket)
 
@@ -119,7 +122,7 @@ class WebsocketsClient(WebsocketsBase):
     async def forever_function(self):
         async with websockets.connect(f"ws://{self.domain}:{self.port}") as websocket:
             print("Client: connected")
-            while True:  #  this is an endless loop waiting for new queue items
+            while not self.quit:  #  this is an endless loop waiting for new queue items
                 item = self.q.get()
                 await self._send_message_to_server(item, websocket)
                 self.q.task_done()
@@ -138,6 +141,10 @@ client.start()
 
 # get into the server loop via a queue
 
-for i in range(1000):
+for i in range(100):
     time.sleep(2)
     client.send(f"loop {i}")
+
+client.quit = True
+time.sleep(2)
+ws.quit = True
