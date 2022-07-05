@@ -1,11 +1,13 @@
 import logging
 from queue import Queue
+from urllib import response
 
 logger = logging.getLogger(__name__)
 
 
+import secrets
 import asyncio
-import time
+import time, json
 import websockets
 import threading
 
@@ -49,45 +51,91 @@ class WebsocketsServer(WebsocketsBase):
 
     def __init__(self):
         super().__init__()
-        self.connected_websockets = set()
+        self.connections = list()
+        self.admin_tokens = list()
 
-    async def register(self, websocket):
-        print(f"register {websocket}")
-        self.connected_websockets.add(websocket)
+    def get_connection_user_tokens(self):
+        return [d["user_token"] for d in self.connections]
+
+    def get_connection(self, user_token):
+        for d in self.connections:
+            if d["user_token"] == user_token:
+                return d["websocket"]
+
+    async def register_internal_token(self, user_token):
+        new_entry = {"user_token": user_token}
+        print(f"register_internal_token {new_entry}")
+        self.admin_tokens.append(new_entry)
+
+    async def unregister_internal_token(self, user_token):
+        print(f"unregister {user_token}")
+        self.admin_tokens = [
+            d for d in self.admin_tokens if d["user_token"] != user_token
+        ]
+
+    async def register(self, user_token, websocket):
+        new_entry = {"user_token": user_token, "websocket": websocket}
+        print(f"register {new_entry}")
+        self.connections.append(new_entry)
 
     async def unregister(self, websocket):
         print(f"unregister {websocket}")
-        self.connected_websockets.remove(websocket)
+        self.connections = [d for d in self.connections if d["websocket"] != websocket]
 
-    async def send_messages_to_all_connected_websockets(
-        self, message, connected_websockets=None, exclude_websockets=None
+    async def send_to_websocket(self, message_dictionary, websocket):
+        response = await websocket.send(
+            json.dumps(self.clean_message(message_dictionary))
+        )
+        return response
+
+    def clean_message(
+        self, message_dictionary, keys=["user_token", "recipient_tokens"]
     ):
-        if connected_websockets is None:
-            connected_websockets = self.connected_websockets
-        connected_websockets = set(connected_websockets)
-        for ws in exclude_websockets:
-            connected_websockets.remove(ws)
+        new_dict = message_dictionary.copy()
+        for key in keys:
+            if key in new_dict:
+                del new_dict[key]
+        return new_dict
 
-        if connected_websockets:
-            await asyncio.wait(
-                [
-                    connection.send(f"Server broadcasts: {message}")
-                    for connection in list(connected_websockets)
-                ]
+    async def send(self, message_dictionary):
+        print(f'starting to send "{message_dictionary}"')
+        recipient_tokens = message_dictionary.get("recipient_tokens")
+        valid_recipient_tokens = [
+            recipient_token
+            for recipient_token in recipient_tokens
+            if recipient_token in self.get_connection_user_tokens()
+        ]
+        if not valid_recipient_tokens:
+            print(
+                f'No valid_recipient_tokens found. Nowhere to send "{message_dictionary}"'
             )
-            return f"Successfully sent {message} to {connected_websockets}"
-        else:
-            return f'connected_websockets is empty. Nowhere to send "{message}"'
+            return
+
+        await asyncio.wait(
+            [
+                self.send_to_websocket(
+                    message_dictionary, self.get_connection(recipient_token)
+                )
+                for recipient_token in valid_recipient_tokens
+            ]
+        )
 
     async def _forever_listener(self, websocket, path):  # don't remove path
-        await self.register(websocket)
         try:
             async for message in websocket:  # this is an endless loop waiting for incoming websocket messages
-                print(f"Do sync stuff with message: {message}")
-                msg = await self.send_messages_to_all_connected_websockets(
-                    message, exclude_websockets={websocket}
-                )
-                await websocket.send(msg)
+                try:
+                    print(f"Do stuff with message: {message}")
+                    message_dictionary = json.loads(message)
+                    if (
+                        message_dictionary.get("type") == "authentication"
+                    ) and message_dictionary.get("user_token"):
+                        await self.register(
+                            message_dictionary.get("user_token"), websocket
+                        )
+                    else:
+                        await self.send(message_dictionary)
+                except:
+                    print(f"message {message} caused an error")
                 if self.quit:
                     break  # self.quit not working yet
         finally:
@@ -106,12 +154,17 @@ class WebsocketsClient(WebsocketsBase):
     def __init__(self):
         super().__init__()
         self.q = Queue()
+        self.user_token = secrets.token_urlsafe(128)
 
-    def send(self, message):
-        self.q.put(message)
+    def send(self, message_dictionary):
+        full_dict = message_dictionary.copy()
+        full_dict["user_token"] = self.user_token
+        print(f"adding to queue {message_dictionary}")
+        self.q.put(json.dumps(full_dict))
 
-    async def _send_message_to_server(self, message, websocket, expected_answers=1):
+    async def _send_message_to_server(self, message, websocket, expected_answers=0):
         answers = []
+        print(f"_send_message_to_server {message}")
         await websocket.send(message)
         for i in range(expected_answers):
             answer = await websocket.recv()
@@ -143,7 +196,13 @@ client.start()
 
 for i in range(100):
     time.sleep(2)
-    client.send(f"loop {i}")
+    client.send(
+        {
+            "type": "message",
+            "message": f"loop {i}",
+            "recipient_tokens": ws.get_connection_user_tokens(),
+        }
+    )
 
 client.quit = True
 time.sleep(2)

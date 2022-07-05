@@ -100,6 +100,12 @@ def fees_old(blocks):
     return app.specter.estimatesmartfee(int(blocks))
 
 
+@wallets_endpoint_api.route("/get_user_websocket_token/", methods=["GET"])
+@login_required
+def get_user_websocket_token():
+    return json.dumps(app.specter.user_manager.get_user().websocket_token)
+
+
 @wallets_endpoint_api.route("/get_new_notifications/", methods=["GET"])
 @login_required
 def get_new_notifications():

@@ -323,11 +323,19 @@
 			{% endif %}
 
 
-			websocket = new WebSocket("ws://localhost:5051/");
 
+
+			websocket = new WebSocket("ws://localhost:5051/");
 			websocket.addEventListener('message', (event) => {
 				console.log(event.data)
 			})
+			send_request("{{ url_for('wallets_endpoint_api.get_user_websocket_token') }}", 'GET', 
+						"{{ csrf_token() }}").then(function (user_token) {
+				console.log(`user_token = ${user_token}`);		
+				websocket.send(JSON.stringify( {'type':'authentication', 'user_token': user_token}));
+
+
+			});			
 
 		</script>
 	{% endif %}

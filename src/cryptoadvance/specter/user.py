@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import shutil
+import secrets
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
@@ -82,6 +83,7 @@ class User(UserMixin):
         self.plaintext_user_secret = None
         self.is_admin = is_admin
         self.uid = specter.config["uid"]
+        self.websocket_token = secrets.token_urlsafe(128)
         self.specter = specter
         self.wallet_manager = None
         self.device_manager = None
