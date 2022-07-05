@@ -27,7 +27,7 @@ nav:
       - build-instructions.md
       - 'Continuous Integration': continuous-integration.md
       - cypress-testing.md
-      - services/services.md
+      - extensions.md
       - 'Architectural Notes': architecture.md
       - 'Some Random Dev Thoughts': archblog.md
     - API:
@@ -41,7 +41,7 @@ nav:
 theme: 
   name: readthedocs
 markdown_extensions:
-  - mdx_truly_sane_lists
+  - mdx_truly_sane_lists # pip3 install mdx_truly_sane_lists mkdocs-video
 plugins:
   - mkdocs-video:
       mark: "small_video"

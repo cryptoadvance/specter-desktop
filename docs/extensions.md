@@ -1,20 +1,109 @@
-# Third-Party Service Integrations
+# Extensions
 
 A developer's guide for the Specter Desktop `Extension` framework. 
 
 We currently rework the naming of extensions/plugins/services. If not otherwise stated, you can see those three terms as the same, for now.
+
+# TL;DR
+
+You can create an extension with an up to date specter-desktop as simple as this:
+```
+$ pip3 install cryptoadvance.specter --upgrade
+$ mkdir /tmp/rubberduck && cd /tmp/rubberduck
+$ python3 -m cryptoadvance.specter ext gen
+rubberduck python3 -m cryptoadvance.specter ext gen                                  
+
+            We need an ID and a prefix for your extension. It'll 
+            reflect in the package-layout. The id should be a 
+            short string.
+            The prefix is usually something like your github-username 
+            or github organisation-name. Both will be used to to 
+            create the directory structure 
+            ( like ./src/mycorpname/specterext/myextension )
+            and it will be used to prepare the files in order to 
+            publish this extension to pypi.
+
+        
+What should be the ID of your extension (lowercase only): rubberduck
+what should be the prefix?: mynym
+
+            Should the extension be working in isolated_client-mode?
+            In that case it's won't share the session-cookie with 
+            specter and the integration can only happen on server-side?
+        
+Should the extension work in isolated client mode (y/n)?: n
+    --> Created requirements.txt
+    --> Created .gitignore
+    --> Created src/mynym/specterext/rubberduck/service.py
+    --> Created src/mynym/specterext/rubberduck/controller.py
+    --> Created src/mynym/specterext/rubberduck/config.py
+    --> Created src/mynym/specterext/rubberduck/__init__.py
+    --> Created src/mynym/specterext/rubberduck/__main__.py
+    --> Created src/mynym/specterext/rubberduck/templates/rubberduck/index.jinja
+    --> Created src/mynym/specterext/rubberduck/static/rubberduck/css/styles.css
+    --> Created src/mynym/specterext/rubberduck/static/rubberduck/img/ghost.png (via Github)
+    --> Created src/mynym/specterext/rubberduck/static/rubberduck/img/logo.jpeg (via Github)
+    --> Created src/mynym/specterext/rubberduck/templates/rubberduck/base.jinja
+    --> Created src/mynym/specterext/rubberduck/templates/rubberduck/transactions.jinja
+    --> Created src/mynym/specterext/rubberduck/templates/rubberduck/settings.jinja
+    --> Created src/mynym/specterext/rubberduck/templates/rubberduck/components/rubberduck_menu.jinja
+    --> Created src/mynym/specterext/rubberduck/templates/rubberduck/components/rubberduck_tab.jinja
+    --> Created pytest.ini
+    --> Created tests/conftest.py
+    --> Created tests/fix_ghost_machine.py
+    --> Created tests/fix_devices_and_wallets.py
+    --> Created tests/fix_testnet.py
+    --> Created tests/fix_keys_and_seeds.py
+    --> Created pyproject.toml
+    --> Created setup.py
+    --> Created setup.cfg
+    --> Created MANIFEST.in
+
+        Congratulations, you've created a new extension
+
+        Here is how to get it tor run on your Development Environment:
+            pip3 install -e .
+            python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
+            # point your browser to http://localhost:25441
+            # "choose Services" --> rubberduck
+
+        If you want to package it, you can build it like this:
+            python3 -m pip install --upgrade build
+            python3 -m build
+            # install it like this:
+            pip3 install dist/mynym_rubberduck-0.0.1-py3-none-any.whl
+
+        In order to use your extension in production, please refer to 
+        the Readme.md in the dummy-extension-repo.
+        https://github.com/cryptoadvance/specterext-dummy#how-to-get-this-to-production
+    
+        To publish your package
+
+            python3 -m pip install --upgrade twine
+            python3 -m twine upload --repository testpypi dist/*
+
+        You can get all these information again via:
+        python3 -m cryptoadvance.specter ext gen --help
+$ 
+```
+The last output gives hints on how to see the result. The created file-structure looks like this and you will feel right at home if you have some knowledge about how flask works:
+
+
+![](./images/extensions_file_layout.png)
+
+
 
 
 ## Concept
 As much as possible, each `Service` implementation should be entirely self-contained with little or no custom code altering existing/core Specter functionality. There is a name for that: Extension-/Pluginframework.
 The term `extension` will be used for all sorts extensions whereas `plugin` will be used as a component which can be de-/activated by a user.
 
-All extensions are completely sperated in a specific folder-structure. There are internal extensions which `SHOULD` be located in `cryptoadvance.specterext.id_of_extension` but at least 2 extensions are still at the deprecated location of `cryptoadvance.specter.services`. However that does not mean that an extension needs to be located in the same repository than specter itself. There can and will be extensions which are located in their own repositories.
+All extensions are completely seperated in a specific folder-structure. There are internal extensions which `SHOULD` be located in `cryptoadvance.specterext.id_of_extension` but at least 2 extensions are still at the deprecated location of `cryptoadvance.specter.services`. However that does not mean that an extension needs to be located in the same repository than specter itself. Extensions can be located in their own repository even if they are incorporated into the official specter-release.
 
 Independent whether an extension is shipped with the official specter-release-binaries and whether it's an internal (which is shipped) or external extension (which might be shipped), the creation of extensions is already heavily supported and encouraged.
 Whether an extension is shipped with the official binary is entirely the choice of the Specter Team. However, you can simply develop extensions and use them on production (only for technical personel) as described in `specterext-dummy` (see below).
 
-A description of how to create your own extension can be found at the [dummy-extension](https://github.com/cryptoadvance/specterext-dummy/). You will need to choose an organisation or username if you create one. This is used for package-structure.
+A description of how to create your own extension can be found above. You will need to choose an organisation or username if you create one. This is used for package-structure.
 
 All the attributes of an extension are currently (json-support is planned sooner or later) defined as attributes of a class which is derived from the class `Service` (should be renamed). That class has attributes which are essential. So let's discuss them briefly.
 
@@ -106,7 +195,7 @@ class ProductionConfig(BaseConfig):
 In your code, you can access the correct value as in any other flask-code, like `api_url = app.config.get("SWAN_API_URL")`. If the instance is running a config (e.g. `DevelopmentConfig`) which is not available in your service-specific config (as above), the inheritance-hirarchy from the mainconfig will get traversed and the first hit will get get configured. In this example, it would be `BaseConfig`.
 
 ### ServiceEncryptedStorage
-Most `Service`s will require user secrets (e.g. API key and secret). Each Specter `User` will have their own on-disk encrypted `ServiceEncryptedStorage` with filename `<username>_services.json`. Note that the user's secrets for all `Service`s will be stored in this one file.
+Some `Service`s will require user secrets (e.g. API key and secret). Each Specter `User` will have their own on-disk encrypted `ServiceEncryptedStorage` with filename `<username>_services.json`. Note that the user's secrets for all `Service`s will be stored in this one file.
 
 This is built upon the `GenericDataManager` class which supports optional encrypted fields. In this case all fields are encrypted. The `GenericDataManager` encryption can only be unlocked by each `User`'s individual `user_secret` that itself is stored encrypted on-disk; it is decrypted to memory when the `User` logs in.
 
@@ -158,45 +247,9 @@ Unfortunately, the two unencrypted classes are derived from the encrypted one ra
 ### callback methods
 Your service-class will inherit a callback-method which will get called for various reasons with the "reason" being a string as the first parameter. Checkout the `cryptoadvance.specter.services.callbacks` file for the specific callbacks.
 
-Some important one is the `after_serverpy_init_app` which passes a `Scheduler` class which can be used to setup regular tasks.
+Some important one is the `after_serverpy_init_app` which passes a `Scheduler` class which can be used to setup regular tasks. A list of currently implemented callback-methods along with their descriptions are available in [`/src/cryptoadvance/specter/services/callbacks.py`](https://github.com/cryptoadvance/specter-desktop/blob/master/src/cryptoadvance/specter/services/callbacks.py).
 
 
 ### `controller.py`
-The minimal url routes for `Service` selection and management.
-
-
-## Implementation Class Structure
-Child implementation classes (e.g. `SwanService`) should be self-contained within their own subdirectory in `services`. e.g.:
-```
-cryptoadvance.specter.services.swan
-```
-
-Each implementation must have the following required components:
-```
-/static/<service_id>
-/templates/<service_id>
-controller.py
-service.py
-```
-
-This makes each implementation its own Flask `Blueprint`.
-
-### `/static`
-Because of Flask `Blueprint` imports, you can just add static files here and reference them (e.g. "static/<service_id>/img/blah.png") as if they were in the main `/static` files root dir.
-
-### `/templates/<service_id>`
-Again, Flask `Blueprint`s import the `/templates` directory as-is, but to avoid namespace collisions on the template files (e.g. `/templates/index.html`) they should be contained within a subdirectory named with the `Service.id` (e.g. `/templates/swan/index.html`)
-
-### `Service` Implementation Class
-Must inherit from `Service` and provide any additional functionality needed. The `Service` implementation class is meant to be the main hub for all things related to that particular `Service`. In general, external code would ideally only interact with the `Service` implementation class (e.g. )
-
-### `controller.py`
-Flask `Blueprint` for any endpoints required by this `Service`.
-
-The coding philosophy should be to keep this code as simple as possible and keep most or all of the actual logic in the `Service` implementation class.
-
-### Additional Files
-The `SwanService` also includes an `api.py` to separate its back-end API calls from the user-facing `controller.py` endpoints. In general this is recommended to provide a clear separation.
-
-An individual `Service` implementation may add whatever additional files or classes it needs.
+The minimal url routes for `Service` selection and management. As usualy in flask, `templates` and `static` resources are in their respective subfolder. Please note that there is an additional directory with the ID of the extension which looks redundant at first. This is due to the way blueprints are loading templates and ensures that there are no naming collisions. Maybe at a later stage, this can be used to let plugins override other plugin's templates.
 
