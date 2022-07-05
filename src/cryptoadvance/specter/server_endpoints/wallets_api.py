@@ -73,10 +73,14 @@ def txout_set_info():
     if get_txout_set_info_lock.locked():
         return {
             "error": "Run the numbers is quite work intensive and there is already a call running. Stay calm and let it do its work!"
-        }, 420
+        }, 429
     with get_txout_set_info_lock:
-        res = app.specter.rpc.gettxoutsetinfo(timeout=3600)
-        return res
+        try:
+            res = app.specter.rpc.gettxoutsetinfo(timeout=3600)
+            return res, 200
+        except Exception as e:
+            logger.exception(e)
+            return {"error": str(e)}, 429
 
 
 @wallets_endpoint_api.route("/get_scantxoutset_status")
