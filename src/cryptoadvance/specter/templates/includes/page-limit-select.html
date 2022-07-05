@@ -1,26 +1,34 @@
 <div style="display: flex; align-items: center;">
     <style>
         .page-limit-label {
-            float: left;
+            flex: 1 0 auto;
         }
         .page-limit-fieldset {
-            float: left;
             border: none;
             margin-top: 4px; /*to better vertically align on tx history / utxo list overview*/
-            display: inline;
         }
-        .page-limit-fieldset > select {
-            min-width: 5em;
+        .page-limit-select {
+            background-color: var(--cmap-bg-lighter);
+            background-repeat: no-repeat;
+            appearance: none; /* Remove default arrow */
+            background-image: url(/../../static/img/down-arrow.svg);
+            background-position: right;
+            background-size: 1.3em;
+            min-width: 80px;
+        }
+        .page-limit-option {
+            background-color: var(--cmap-bg-lighter);
         }
     </style>
     <span class="page-limit-label">{{ _("Page limit") }}: </span>
     <fieldset class="page-limit-fieldset">
         <select class="page-limit-select">
-            <option value="10">10</option>
-            <option value="25" selected>25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-            <option value="0">{{ _("All") }}</option>
+            <option value="" class="page-limit-option" disabled="disabled">Entries</option>
+            <option value="10" class="page-limit-option">10</option>
+            <option value="25" selected class="page-limit-option">25</option>
+            <option value="50" class="page-limit-option">50</option>
+            <option value="100" class="page-limit-option">100</option>
+            <option value="0" class="page-limit-option">{{ _("All") }}</option>
         </select>
     </fieldset>
 </div>

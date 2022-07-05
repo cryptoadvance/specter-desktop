@@ -1,6 +1,6 @@
 from . import DeviceTypes
 from .hwi_device import HWIDevice
-from .hwi.keepkey import KeepkeyClient
+from hwilib.devices.keepkey import KeepkeyClient
 
 
 class Keepkey(HWIDevice):
