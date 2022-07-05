@@ -1,3 +1,5 @@
+# Release Notes
+
 ## v1.10.3 June 22, 2022
 - Bugfix: Display address on device #1774 (Manolis Mandrapilias)
 - Bugfix: Longer Timeout for run_the_numbers #1769 (k9ert)

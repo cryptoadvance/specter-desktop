@@ -4,7 +4,7 @@ A developer's guide for the Specter Desktop `Extension` framework.
 
 We currently rework the naming of extensions/plugins/services. If not otherwise stated, you can see those three terms as the same, for now.
 
-# TL;DR
+## TL;DR
 
 You can create an extension with an up to date specter-desktop as simple as this:
 ```
