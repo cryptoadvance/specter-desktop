@@ -325,17 +325,29 @@
 
 
 			ip_address = "{{ request.host.split(':')[0] }}"
-			websocket = new WebSocket(`ws://${ip_address}:5086/`);
-			websocket.addEventListener('message', (event) => {
-				console.log(event.data)
-			})
-			send_request("{{ url_for('wallets_endpoint_api.get_user_websocket_token') }}", 'GET', 
-						"{{ csrf_token() }}").then(function (user_token) {
-				console.log(`user_token = ${user_token}`);		
-				websocket.send(JSON.stringify( {'type':'authentication', 'user_token': user_token}));
+			const  websocket = new WebSocket(`ws://${ip_address}:5086/`);
+
+			// Do something when the websocket connection is open
+			websocket.addEventListener("open", (ev) => {
+
+				send_request("{{ url_for('wallets_endpoint_api.get_user_websocket_token') }}", 'GET', 
+							"{{ csrf_token() }}").then(function (user_token) {
+					console.log(`user_token = ${user_token}`);		
+					websocket.send(JSON.stringify( {'type':'authentication', 'user_token': user_token}));
+					websocket.send(JSON.stringify( {'type':'message', 'message':'This message is sent to the server and then returned', 'user_token': user_token, 'recipient_tokens':[user_token]}));
 
 
-			});			
+				});			
+
+
+				websocket.addEventListener('message', (event) => {
+					console.log(event.data)
+				});
+
+
+			});
+
+
 
 		</script>
 	{% endif %}
