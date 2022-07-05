@@ -10,16 +10,45 @@ import websockets
 import threading
 
 
-class WebsocketsServer:
+class WebsocketsBase:
     """
-    A forever lived websockets server in a different thread
+    A base class that keeps a websockets connection or server running forever in a different thread
     """
 
     def __init__(self):
         self.domain = "localhost"
         self.port = "5051"
+
+    def forever_function(self):
+        "This is the function that will contain an endless loop"
+        pass
+
+    def _forever_thread(self):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(self.forever_function())
+        loop.run_forever()
+        loop.close()
+
+    def finally_at_stop(self):
+        pass
+
+    def start(self):
+        try:
+            t = threading.Thread(target=self._forever_thread)
+            t.start()
+        finally:
+            self.finally_at_stop()
+
+
+class WebsocketsServer(WebsocketsBase):
+    """
+    A forever lived websockets server in a different thread
+    """
+
+    def __init__(self):
+        super().__init__()
         self.connected_websockets = set()
-        self.q = Queue()
 
     async def register(self, websocket):
         print(f"register {websocket}")
@@ -61,30 +90,18 @@ class WebsocketsServer:
         finally:
             await self.unregister(websocket)
 
-    def _forever_websockets_server(self):
-        print("Starting websocker server")
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        ws_server = websockets.serve(self._forever_listener, self.domain, self.port)
-
-        loop.run_until_complete(ws_server)
-        loop.run_forever()  # this is missing
-        loop.close()
-
-    def start(self):
-        t = threading.Thread(target=self._forever_websockets_server)
-        t.start()
+    def forever_function(self):
+        return websockets.serve(self._forever_listener, self.domain, self.port)
 
 
-class WebsocketsClient:
+class WebsocketsClient(WebsocketsBase):
     """
     Keeps an open websocket connection to the server in a different thread.
     If  a message is entered into the Queue (self.q), then it will be picked up and send to the websockets server
     """
 
     def __init__(self):
-        self.domain = "localhost"
-        self.port = "5051"
+        super().__init__()
         self.q = Queue()
 
     def send(self, message):
@@ -99,7 +116,7 @@ class WebsocketsClient:
             print(f"Client: Answer {i} from server: {answer}")
         return answers
 
-    async def _forever_queue_worker(self):
+    async def forever_function(self):
         async with websockets.connect(f"ws://{self.domain}:{self.port}") as websocket:
             print("Client: connected")
             while True:  #  this is an endless loop waiting for new queue items
@@ -107,18 +124,8 @@ class WebsocketsClient:
                 await self._send_message_to_server(item, websocket)
                 self.q.task_done()
 
-    def _forever_websockets_client(self):
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(self._forever_queue_worker())
-        loop.close()
-
-    def start(self):
-        try:
-            t = threading.Thread(target=self._forever_websockets_client)
-            t.start()
-        finally:
-            self.q.join()  # block until all tasks are done
+    def finally_at_stop(self):
+        self.q.join()  # block until all tasks are done
 
 
 ws = WebsocketsServer()
