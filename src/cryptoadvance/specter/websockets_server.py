@@ -75,7 +75,10 @@ class WebsocketsServer(WebsocketsBase):
 
     async def register(self, user_token, websocket):
         new_entry = {"user_token": user_token, "websocket": websocket}
-        print(f"register {new_entry}")
+        if user_token in self.admin_tokens:
+            print(f"ADMIN:  register {new_entry}")
+        else:
+            print(f"register {new_entry}")
         self.connections.append(new_entry)
 
     async def unregister(self, websocket):
@@ -97,14 +100,32 @@ class WebsocketsServer(WebsocketsBase):
                 del new_dict[key]
         return new_dict
 
-    async def send(self, message_dictionary):
-        print(f'starting to send "{message_dictionary}"')
+    def get_valid_recipients_of_message(self, message_dictionary):
+        "Controls that only the admin can send to all users.  Users can only send to themselves."
         recipient_tokens = message_dictionary.get("recipient_tokens")
-        valid_recipient_tokens = [
+
+        possbile_recipient_tokens = [
             recipient_token
             for recipient_token in recipient_tokens
             if recipient_token in self.get_connection_user_tokens()
         ]
+        print(f"possbile_recipient_tokens {possbile_recipient_tokens}")
+        if message_dictionary.get("user_token") in self.admin_tokens:
+            valid_recipient_tokens = possbile_recipient_tokens
+        else:
+            valid_recipient_tokens = (
+                [message_dictionary.get("user_token")]
+                if message_dictionary.get("user_token") in possbile_recipient_tokens
+                else []
+            )
+
+        return valid_recipient_tokens
+
+    async def process_incoming_message(self, message_dictionary):
+        print(f'starting to process_incoming_message "{message_dictionary}"')
+        valid_recipient_tokens = self.get_valid_recipients_of_message(
+            message_dictionary
+        )
         if not valid_recipient_tokens:
             print(
                 f'No valid_recipient_tokens found. Nowhere to send "{message_dictionary}"'
@@ -133,7 +154,7 @@ class WebsocketsServer(WebsocketsBase):
                             message_dictionary.get("user_token"), websocket
                         )
                     else:
-                        await self.send(message_dictionary)
+                        await self.process_incoming_message(message_dictionary)
                 except:
                     print(f"message {message} caused an error")
                 if self.quit:
@@ -183,13 +204,20 @@ class WebsocketsClient(WebsocketsBase):
     def finally_at_stop(self):
         self.q.join()  # block until all tasks are done
 
-
-ws = WebsocketsServer()
-ws.start()
+    def authenticate(self):
+        self.send({"type": "authentication", "user_token": self.user_token})
 
 
 client = WebsocketsClient()
+ws = WebsocketsServer()
+ws.admin_tokens.append(
+    client.user_token
+)  # this ensures that this client has rights to send to other users
+
+
+ws.start()
 client.start()
+client.authenticate()
 
 
 # get into the server loop via a queue
