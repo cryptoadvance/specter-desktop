@@ -43,6 +43,7 @@ theme:
 markdown_extensions:
   - mdx_truly_sane_lists # pip3 install mdx_truly_sane_lists mkdocs-video
 plugins:
+  - search
   - mkdocs-video:
       mark: "small_video"
       css_style:
@@ -55,12 +56,4 @@ plugins:
       css_style:
         width: "100%"
         height: "22.172vw"
-  - search
-  - git-authors:
-      show_contribution: true
-      show_line_count: true
-      count_empty_lines: true
-      fallback_to_empty: false
-      exclude:
-        - index.md
-      enabled: true
+
