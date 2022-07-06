@@ -124,7 +124,7 @@ class WebsocketsServer(WebsocketsBase):
             if d["websocket"] == websocket:
                 return d["user_token"]
 
-    def get_connection(self, user_token):
+    def get_connection_by_token(self, user_token):
         for d in self.connections:
             if d["user_token"] == user_token:
                 return d["websocket"]
@@ -225,17 +225,16 @@ class WebsocketsServer(WebsocketsBase):
 
         logger.debug(f'send_to_websockets "{message_dictionary}"')
 
-        recipient_user_id = self.get_connection(
+        recipient_user = self.user_manager.get_user(
             message_dictionary["options"]["user_id"]
         )
-        recipient_user = self.user_manager.get_user(recipient_user_id)
         if not recipient_user:
             logger.warning(
-                f"No recipient_user for recipient_user_id {recipient_user_id} could be found"
+                f"No recipient_user for recipient_user_id {recipient_user.name} could be found"
             )
             return
 
-        websocket = self.get_connection(recipient_user.websocket_token)
+        websocket = self.get_connection_by_token(recipient_user.websocket_token)
         if not websocket:
             logger.warning(
                 f"No websocket for this recipient_user.websocket_token could be found"
