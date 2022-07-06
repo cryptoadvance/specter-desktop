@@ -25,10 +25,18 @@ def generate_jwt(user):
 
 
 @rest_resource
-class TokenResource(AdminResource):
+class ResourceJWT(AdminResource):
     endpoints = ["/v1alpha/token/"]
 
     def get(self):
+        user = auth.current_user()
+        user_details = app.specter.user_manager.get_user(user)
+        jwt_token = user_details.jwt_token
+        if jwt_token is None:
+            return {"message": "Token does not exist"}, 404
+        return {"message": "Token exists"}, 200
+
+    def post(self):
         user = auth.current_user()
         user_details = app.specter.user_manager.get_user(user)
         jwt_token = user_details.jwt_token
@@ -45,14 +53,14 @@ class TokenResource(AdminResource):
                 "message": "Token generated",
                 "username": user_details.username,
                 "jwt_token": jwt_token,
-            }
-        return {"message": "Token already exists", "jwt_token": jwt_token}
+            }, 201
+        return {"message": "Token already exists", "jwt_token": jwt_token}, 200
 
     def delete(self):
         user = auth.current_user()
         user_details = app.specter.user_manager.get_user(user)
         jwt_token = user_details.jwt_token
         if jwt_token is None:
-            return {"message": "Token does not exist"}
+            return {"message": "Token does not exist"}, 404
         user_details.delete_jwt_token()
-        return {"message": "Token deleted"}
+        return {"message": "Token deleted"}, 200
