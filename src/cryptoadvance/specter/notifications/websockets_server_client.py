@@ -1,3 +1,6 @@
+"""
+This file enabled to keep an open websocket connection with the browser sessions.
+"""
 import logging
 from queue import Queue
 
@@ -63,6 +66,44 @@ class WebsocketsServer(WebsocketsBase):
 
     Before the python websocket connection is established, the set_as_admin method should be called to inform self that this user_token will be an admin
         Otherwise the user_token will not be found in user_manager.....websocket_token and rejected
+
+
+
+    1.   Javascript creates a message
+        ┌───────────────────────┐                           ┌───────────────────────┐
+        │                       │     websocket.send        │                       │
+        │  Browser javascript   ├─────────────────────────► │   WebsocketsServer    │
+        │                       │                           │                       │
+        └───────────────────────┘                           └───────────┬───────────┘
+                                                                        │
+                                                                        │ notification_manager.create_and_show
+                                                                        │
+                                                                        ▼
+                                                            ┌───────────────────────┐
+                                                            │                       │
+                                                            │  NotificationManager  │
+                                                            │                       │
+                                                            └───────────────────────┘
+
+    2.    A UI_Notification creates a message for the browser to show
+        ┌───────────────────────┐                           ┌───────────────────────┐
+        │                       │ websockets_client.send    │                       │
+        │ JSConsoleNotifications├─────────────────────────► │   WebsocketsClient    │
+        │                       │                           │                       │
+        └───────────────────────┘                           └───────────┬───────────┘
+                                                                        │
+                                                                        │
+                                                                        │ websockets_client.send
+                                                                        │
+                                                                        ▼
+        ┌───────────────────────┐                           ┌───────────────────────┐
+        │                       │                           │                       │
+        │ Browser javascript    │     websocket.send        │                       │
+        │                       │◄──────────────────────────┤  WebsocketsServer     │
+        │ websocket.on_message  │                           │                       │
+        │                       │                           │                       │
+        └───────────────────────┘                           └───────────────────────┘
+
     """
 
     def __init__(self, user_manager, notification_manager):

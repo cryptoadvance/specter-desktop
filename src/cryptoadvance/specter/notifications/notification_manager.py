@@ -11,16 +11,54 @@ class NotificationManager:
     """
     This class allows to register ui_notifications (like JSNotifications).
 
-    Notifications can be created and broadcasted with self.create_and_show
+    1. Notifications can be created and broadcasted with self.create_and_show
         This will forward the notification to all appropriate ui_notifications
+        The notifications are also stored in self.notifications
+    2. Internal notifications will not be shown, but
+        a) deletes the message again from self.notifications
+        b) trigger functions like ui_notifications.on_close
 
-        The notifications are also stored in self.notifications and
-        deleted again in self.on_close
-
-        If the ui_notification noticed later (async), that the notification
-        was not delivered, then the ui_notification call
+        If the ui_notification noticed later (async), that the notification was not delivered, then the ui_notification call
         create_notification('set_target_ui_availability', user_id, target_uis=["internal_notification"], is_available=False)
         and the ui_notification will deactivate and the notification will be rebroadcasted
+
+
+
+    1.  Notifications to UINotifications
+                                                                ┌───────────────────────┐
+                                        ┌─────────────────────► │  FlashNotifications   │
+                                        │                       └───────────────────────┘
+              ┌───────────────────────┐ │                       ┌───────────────────────┐
+              │  NotificationManager  │ ├─────────────────────► │ JSConsoleNotifications│
+              │   .create_and_show    │ │                       │                       │
+              └───────────────────────┘ │                       └───────────────────────┘
+                                        │                       ┌───────────────────────┐
+                                        └──────────────────────►│   JSNotifications     │
+                                                                └───────────────────────┘
+
+    2. internal_notification  at the example of on_close
+
+                  ┌───────────────────────┐
+                  │                       │  if "internal_notification" in notification.target_uis:
+                  │  NotificationManager  │ ──────────────────────────────────────►┐
+                  │   .create_and_show    │                                        │
+                  └───────────────────────┘                                        ▼
+                                                                 ┌────────────────────────────┐
+                                                                 │  NotificationManager       │
+                                                                 │   .treat_internal_message  │
+                                                                 │     e.g. on_close          │
+                                                                 └─────────────────┬──────────┘
+                                                                                   │ on_close
+                                                                                   ▼
+                   ┌───────────────────────┐                         ┌───────────────────────┐
+                   │   JSNotifications     │ ◄─────────────────────┐ │   NotificationManager │
+                   │   .on_close           │                       │ │   ._internal_on_close │
+                   └───────────────────────┘                       │ └───────────────────────┘
+                   ┌───────────────────────┐                       │
+                   │  NotificationManager  │                       │
+                   │  .delete_notification │ ◄─────────────────────┘
+                   └───────────────────────┘
+
     """
 
     def __init__(self, user_manager, ui_notifications=None):
