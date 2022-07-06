@@ -24,6 +24,7 @@ class WebsocketsBase:
         self.domain = "localhost"
         self.port = "5086"
         self.quit = False
+        self.started = False
 
     def forever_function(self):
         "This is the function that will contain an endless loop"
@@ -32,7 +33,12 @@ class WebsocketsBase:
     def _forever_thread(self):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
+
+        logger.info(f"------> starting {self.__class__.__name__}")
         loop.run_until_complete(self.forever_function())
+        self.started = True
+        logger.info(f"------> {self.__class__.__name__}  started")
+
         loop.run_forever()  # this is needed for the server, and does nothing for the client
         loop.close()
 
@@ -283,6 +289,12 @@ def run_server_and_client(user_manager, notification_manager):
     )  # this ensures that this client has rights to send to other users
 
     ws.start()
+    # now I have to wait until the server is started
+    for i in range(50):
+        if ws.started:
+            break
+        time.sleep(i / 10)  # sleep for 0.1 seconds
+
     client.start()
     client.authenticate()
     return ws, client
