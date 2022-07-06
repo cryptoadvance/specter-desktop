@@ -155,7 +155,11 @@ class JSConsoleNotifications(BaseUINotifications):
         ):
             return
 
-        self.websockets_client.send(notification.to_js_notification())
+        # convert to json object and set the target_ui as only self.name.
+        # The Notification manager handles sending to other target_uis
+        js_notification = notification.to_js_notification()
+        js_notification["options"]["target_uis"] = [self.name]
+        self.websockets_client.send(js_notification)
         return True  # successfully broadcasted
 
 

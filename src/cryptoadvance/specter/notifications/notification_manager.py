@@ -201,14 +201,21 @@ class NotificationManager:
                 internal_notification.data["target_ui"],
             )
 
-    def notification_can_be_deleted(self, notification):
-        "CHecks if the target_ui was set in was_closed_in_target_uis, if the target_ui is available"
+    def notification_can_be_deleted(self, notification, on_close_was_called=False):
+        "Checks if the target_ui was set in was_closed_in_target_uis, if the target_ui is available"
         available_target_uis = {
             target_ui
             for target_ui in notification.target_uis
             if self.find_target_ui(target_ui, notification.user_id)
             and self.find_target_ui(target_ui, notification.user_id).is_available
         }
+
+        if not on_close_was_called and not available_target_uis:
+            logger.debug(
+                f"None of the notification.target_uis {notification.target_uis} are available and on_close was not called yet."
+                " Keeping this transaction, such that it can be rebroadcastes later."
+            )
+            return False
         logger.debug(
             f"available_target_uis = {available_target_uis}, was_closed_in_target_uis = {notification.was_closed_in_target_uis}"
         )
@@ -232,7 +239,9 @@ class NotificationManager:
             )
 
         referenced_notification.set_closed(internal_notification.data["target_ui"])
-        if self.notification_can_be_deleted(referenced_notification):
+        if self.notification_can_be_deleted(
+            referenced_notification, on_close_was_called=True
+        ):
             self.delete_notification(referenced_notification)
 
     def treat_internal_message(self, internal_notification):
@@ -322,8 +331,13 @@ class NotificationManager:
                     # if it is already broadcasted on this other_ui_notification by default anyway, no need to do it twice
                     if other_ui_notification in broadcast_on_ui_notification:
                         continue
+                    logger.debug(
+                        f"broadcast_on_ui_notification {broadcast_on_ui_notification} , other_ui_notification {other_ui_notification}"
+                    )
                     notification_broadcasted = other_ui_notification.show(notification)
-                    logger.debug(f"show {notification} on {ui_notification}")
+                    logger.debug(
+                        f"Rebroadcast on {other_ui_notification.name} of {notification} "
+                    )
                     if notification_broadcasted:
                         break
         # for some ui_notifications, the last_shown_date and was_closed_in_target_uis is set immediately.

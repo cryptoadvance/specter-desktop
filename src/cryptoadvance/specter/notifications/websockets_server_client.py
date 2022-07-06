@@ -262,9 +262,7 @@ class WebsocketsServer(WebsocketsBase):
             )
             await self.send_to_websockets(message_dictionary, user_token)
         else:
-            logger.debug(
-                f"message from user {user_token} recieved. Creating Notification"
-            )
+            logger.debug(f"message from user recieved. Creating Notification")
             self.create_notification(message_dictionary, user_token)
 
     async def _forever_listener(self, websocket, path):  # don't remove path
