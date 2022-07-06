@@ -129,7 +129,7 @@ class WebsocketsServer(WebsocketsBase):
             if d["user_token"] == user_token:
                 return d["websocket"]
 
-    def user_of_user_token(self, user_token):
+    def get_user_of_user_token(self, user_token):
         for u in self.user_manager.users:
             if u.websocket_token == user_token:
                 return u
@@ -153,7 +153,7 @@ class WebsocketsServer(WebsocketsBase):
         if user_token in self.get_admin_tokens():
             logger.debug(f"register websocket connection for user with ADMIN rights")
         else:
-            user = self.user_of_user_token(user_token)
+            user = self.get_user_of_user_token(user_token)
             # If it is not an admin AND the token is unknown, then reject connection
             if not user:
                 logger.warning(f"user_token {user_token} not found in users")
@@ -165,7 +165,15 @@ class WebsocketsServer(WebsocketsBase):
         self.connections.append({"user_token": user_token, "websocket": websocket})
 
     async def unregister(self, websocket):
-        logger.debug(f"unregister {websocket}")
+        user_token = self.get_token_of_websocket(websocket)
+        user = self.get_user_of_user_token(user_token)
+        self.get_admin_tokens
+        username = (
+            user.username
+            if user
+            else ("ADMIN" if user_token in self.get_admin_tokens() else "unknown")
+        )
+        logger.debug(f"unregister {websocket} belonging to {username}")
         self.connections = [d for d in self.connections if d["websocket"] != websocket]
 
     def create_notification(self, message_dictionary, user_token):
@@ -195,8 +203,8 @@ class WebsocketsServer(WebsocketsBase):
 
         # Identify the user_token (and then the user_id) based on the websocket connection.
         user_id = (
-            self.user_of_user_token(user_token).username
-            if self.user_of_user_token(user_token)
+            self.get_user_of_user_token(user_token).username
+            if self.get_user_of_user_token(user_token)
             else None
         )
         if not user_id:
@@ -268,16 +276,15 @@ class WebsocketsServer(WebsocketsBase):
     async def _forever_listener(self, websocket, path):  # don't remove path
         try:
             async for message in websocket:  # this is an endless loop waiting for incoming websocket messages
-                try:
-                    logger.debug(f"_forever_listener recieved message: {message}")
-                    message_dictionary = json.loads(message)
-                    await self.process_incoming_message(message_dictionary, websocket)
-                except:
-                    logger.error(f"message {message} caused an error", exc_info=True)
+                logger.debug(f"_forever_listener recieved message: {message}")
+                message_dictionary = json.loads(message)
+                await self.process_incoming_message(message_dictionary, websocket)
                 if self.quit:
                     break  # self.quit not working yet
         except websockets.exceptions.ConnectionClosedError as e:
-            logger.warning("Server Connection dropped")
+            logger.error(
+                f"WebsocketsServer: Connection {websocket} dropped. Will it reconnect?"
+            )
         finally:
             await self.unregister(websocket)
 
@@ -311,12 +318,15 @@ class WebsocketsClient(WebsocketsBase):
         return answers
 
     async def forever_function(self):
-        async with websockets.connect(f"ws://{self.domain}:{self.port}") as websocket:
+        async with websockets.connect(
+            f"ws://{self.domain}:{self.port}", timeout=None
+        ) as websocket:
             logger.debug("Client: connected")
             while not self.quit:  #  this is an endless loop waiting for new queue items
                 item = self.q.get()
                 await self._send_message_to_server(item, websocket)
                 self.q.task_done()
+        logger.debug("WebsocketsClient forever_function ended")
 
     def finally_at_stop(self):
         self.q.join()  # block until all tasks are done

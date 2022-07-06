@@ -297,8 +297,8 @@ function connect_and_authenticate_websocket(){
     websocket.onopen = function(e) {
         send_request("{{ url_for('wallets_endpoint_api.get_user_websocket_token') }}", 'GET', 
                     "{{ csrf_token() }}").then(function (user_token) {
-            console.log(`user_token = ${user_token}`);		
             websocket.send(JSON.stringify( {'type':'authentication', 'user_token': user_token}));
+            console.log(`websocket connection open and authenticated`);		
             //websocket.send(JSON.stringify( {'title':'This message is sent to the server and then returned', options: {target_uis:['js_console']}  }));
         });			
     };
@@ -312,10 +312,10 @@ function connect_and_authenticate_websocket(){
     };
 
     websocket.onclose = function(e) {
-        console.log('Websocket was closed. Reconnect will be attempted in 1 second.', e.reason);
+        console.log('Websocket was closed. Reconnect will be attempted in 10 second.', e.reason);
         setTimeout(function() {
             connect_and_authenticate_websocket();
-        }, 1000);
+        }, 10000);
     };
 
     websocket.onerror = function(err) {
