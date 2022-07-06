@@ -286,34 +286,45 @@ async function send_updated_webapi_permission(){
 
 
 
+var  websocket = null;
 
-// Create the websocket 
-ip_address = "{{ request.host.split(':')[0] }}"
-const  websocket = new WebSocket(`ws://${ip_address}:5086/`);
+function connect_and_authenticate_websocket(){
+    // Create the websocket 
+    ip_address = "{{ request.host.split(':')[0] }}"
+    websocket = new WebSocket(`ws://${ip_address}:5086/`);
 
-// Authenticate and add listeners when the websocket connection is open
-websocket.addEventListener("open", (ev) => {
+    // Authenticate and add listeners when the websocket connection is open
+    websocket.onopen = function(e) {
+        send_request("{{ url_for('wallets_endpoint_api.get_user_websocket_token') }}", 'GET', 
+                    "{{ csrf_token() }}").then(function (user_token) {
+            console.log(`user_token = ${user_token}`);		
+            websocket.send(JSON.stringify( {'type':'authentication', 'user_token': user_token}));
+            //websocket.send(JSON.stringify( {'title':'This message is sent to the server and then returned', options: {target_uis:['js_console']}  }));
+        });			
+    };
 
-    send_request("{{ url_for('wallets_endpoint_api.get_user_websocket_token') }}", 'GET', 
-                "{{ csrf_token() }}").then(function (user_token) {
-        console.log(`user_token = ${user_token}`);		
-        websocket.send(JSON.stringify( {'type':'authentication', 'user_token': user_token}));
-        //websocket.send(JSON.stringify( {'title':'This message is sent to the server and then returned', options: {target_uis:['js_console']}  }));
-
-
-    });			
-
-
-    websocket.addEventListener('message', (message) => {
+    websocket.onmessage = function(message) {
         var js_notification = JSON.parse(message.data);
         var target_uis = js_notification["options"]['target_uis'];
         for (let i in target_uis) {  
             show_notification(target_uis[i], js_notification)  ;   
         }               
-    });
+    };
+
+    websocket.onclose = function(e) {
+        console.log('Websocket was closed. Reconnect will be attempted in 1 second.', e.reason);
+        setTimeout(function() {
+            connect_and_authenticate_websocket();
+        }, 1000);
+    };
+
+    websocket.onerror = function(err) {
+        console.error('Socket encountered error: ', err.message, 'Closing socket');
+        // websocket.close();
+    };    
 
 
-});
+}
 
-
+connect_and_authenticate_websocket()
 
