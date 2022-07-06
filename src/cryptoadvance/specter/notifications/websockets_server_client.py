@@ -278,7 +278,6 @@ class WebsocketsClient(WebsocketsBase):
 
 
 def run_server_and_client(user_manager, notification_manager):
-    client = WebsocketsClient()
     ws = WebsocketsServer(user_manager, notification_manager)
     ws.set_as_admin(
         client.user_token
@@ -291,6 +290,7 @@ def run_server_and_client(user_manager, notification_manager):
             break
         time.sleep(i / 10)  # sleep for 0.1 seconds
 
+    client = WebsocketsClient()
     client.start()
     client.authenticate()
     return ws, client
