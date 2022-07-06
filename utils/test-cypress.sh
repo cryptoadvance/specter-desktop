@@ -337,6 +337,14 @@ function sub_run {
   fi
 }
 
+function sub_basics {
+  start_bitcoind 
+  start_elementsd
+  start_specter
+  $(npm bin)/cypress run --spec $(./utils/cypress_basics.py) --config video=false
+  $(npm bin)/cypress open
+}
+
 function sub_snapshot {
   spec_file=$1
   # We'll create a snapshot BEFORE this spec-file has been tested:
