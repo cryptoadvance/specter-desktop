@@ -371,6 +371,8 @@
 
             // Empty row element
             this.emptyRow = clone.querySelector(".empty");
+            // Attribute that can be accessed by jinja files to detetmine whether there are any tx
+            this.noTransaction = ""
 
             // Blockhash header and empty column
             this.blockhashHeader = clone.querySelector(".blockhash-header");
@@ -828,7 +830,6 @@
                 formData.append('service_id', this.serviceId);
             }
             formData.append('csrf_token', '{{ csrf_token() }}');
-            console.log(url)
             try {
                 let callId = this.callId;
                 const response = await fetch(
@@ -922,11 +923,10 @@
                     this.emptyRow.classList.remove('hidden');
                     this.emptyRow.children[1].innerText = '{{ _("No transactions found...") }}';
                     this.pageCount = 1;
-                    //show rescan button
-                    document.getElementById("no-transaction").style.display = "flex";
+                    this.noTransaction = true
                 } else {
                     this.emptyRow.classList.add('hidden');
-                    document.getElementById("no-transaction").style.display = "none";
+                    this.noTransaction = false
                 }
 
                 // If index is greater than the pages count fetch again for the last page

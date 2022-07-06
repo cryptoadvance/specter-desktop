@@ -22,6 +22,5 @@ describe('Ghost machine', () => {
         // unfortunately this results in weird effects in cypress run
         //cy.get('#pdf-wallet-download > img').click()
         cy.get('#btn_continue').click()
-        cy.mine2wallet("btc")
     })
 })
