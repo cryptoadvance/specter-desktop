@@ -3,9 +3,6 @@ from queue import Queue
 
 logger = logging.getLogger(__name__)
 
-logging.basicConfig()
-logging.getLogger().setLevel(logging.INFO)
-
 
 import secrets
 import asyncio
@@ -34,10 +31,10 @@ class WebsocketsBase:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
-        logger.info(f"------> starting {self.__class__.__name__}")
+        logger.debug(f"------> starting {self.__class__.__name__}")
         loop.run_until_complete(self.forever_function())
         self.started = True
-        logger.info(f"------> {self.__class__.__name__}  started")
+        logger.debug(f"------> {self.__class__.__name__}  started")
 
         loop.run_forever()  # this is needed for the server, and does nothing for the client
         loop.close()
@@ -88,11 +85,11 @@ class WebsocketsServer(WebsocketsBase):
 
     def set_as_admin(self, user_token):
         new_entry = {"user_token": user_token}
-        logger.info(f"set_as_admin {new_entry}")
+        logger.debug(f"set_as_admin {new_entry}")
         self.admin_tokens.append(new_entry)
 
     def remove_admin(self, user_token):
-        logger.info(f"remove_admin {user_token}")
+        logger.debug(f"remove_admin {user_token}")
         self.admin_tokens = [
             d for d in self.admin_tokens if d["user_token"] != user_token
         ]
@@ -102,23 +99,22 @@ class WebsocketsServer(WebsocketsBase):
             logger.warning(f"no user_token given")
             return
 
-        logger.info(f"register  {user_token},  admins = {self.get_admin_tokens()}")
         if user_token in self.get_admin_tokens():
-            logger.info(f"register websocket connection for user with ADMIN rights")
+            logger.debug(f"register websocket connection for user with ADMIN rights")
         else:
             user = self.user_of_user_token(user_token)
             # If it is not an admin AND the token is unknown, then reject connection
             if not user:
                 logger.warning(f"user_token {user_token} not found in users")
                 return
-            logger.info(
+            logger.debug(
                 f"register websocket connection for flask user '{user.username}'"
             )
 
         self.connections.append({"user_token": user_token, "websocket": websocket})
 
     async def unregister(self, websocket):
-        logger.info(f"unregister {websocket}")
+        logger.debug(f"unregister {websocket}")
         self.connections = [d for d in self.connections if d["websocket"] != websocket]
 
     def create_notification(self, message_dictionary, user_token):
@@ -159,7 +155,7 @@ class WebsocketsServer(WebsocketsBase):
             assert user_token not in self.get_admin_tokens()
             return
 
-        logger.info(
+        logger.debug(
             f"create_notification with title  {title}, user_id {user_id} and options {options}"
         )
 
@@ -176,7 +172,7 @@ class WebsocketsServer(WebsocketsBase):
         """
         assert admin_token in self.get_admin_tokens()
 
-        logger.info(f'send_to_websockets "{message_dictionary}"')
+        logger.debug(f'send_to_websockets "{message_dictionary}"')
 
         recipient_user_id = self.get_connection(
             message_dictionary["options"]["user_id"]
@@ -211,12 +207,12 @@ class WebsocketsServer(WebsocketsBase):
         if message_dictionary.get("type") == "authentication":
             await self.register(message_dictionary.get("user_token"), websocket)
         elif user_token and user_token in self.get_admin_tokens():
-            logger.info(
-                f"message from user {user_token} with admin_token recieved. Sending to websockets"
+            logger.debug(
+                f"message from user with admin_token recieved. Sending to websockets"
             )
             await self.send_to_websockets(message_dictionary, user_token)
         else:
-            logger.info(
+            logger.debug(
                 f"message from user {user_token} recieved. Creating Notification"
             )
             self.create_notification(message_dictionary, user_token)
@@ -225,7 +221,7 @@ class WebsocketsServer(WebsocketsBase):
         try:
             async for message in websocket:  # this is an endless loop waiting for incoming websocket messages
                 try:
-                    logger.info(f"Do stuff with message: {message}")
+                    logger.debug(f"_forever_listener recieved message: {message}")
                     message_dictionary = json.loads(message)
                     await self.process_incoming_message(message_dictionary, websocket)
                 except:
@@ -257,17 +253,17 @@ class WebsocketsClient(WebsocketsBase):
 
     async def _send_message_to_server(self, message, websocket, expected_answers=0):
         answers = []
-        logger.info(f"_send_message_to_server {message}")
+        logger.debug(f"_send_message_to_server {message}")
         await websocket.send(message)
         for i in range(expected_answers):
             answer = await websocket.recv()
             answers.append(answer)
-            logger.info(f"Client: Answer {i} from server: {answer}")
+            logger.debug(f"Client: Answer {i} from server: {answer}")
         return answers
 
     async def forever_function(self):
         async with websockets.connect(f"ws://{self.domain}:{self.port}") as websocket:
-            logger.info("Client: connected")
+            logger.debug("Client: connected")
             while not self.quit:  #  this is an endless loop waiting for new queue items
                 item = self.q.get()
                 await self._send_message_to_server(item, websocket)
@@ -277,7 +273,7 @@ class WebsocketsClient(WebsocketsBase):
         self.q.join()  # block until all tasks are done
 
     def authenticate(self):
-        logger.info("authenticate")
+        logger.debug("authenticate")
         self.send({"type": "authentication", "user_token": self.user_token})
 
 
