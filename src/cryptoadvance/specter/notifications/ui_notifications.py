@@ -156,13 +156,6 @@ class JSConsoleNotifications(BaseUINotifications):
             return
 
         self.websockets_client.send(notification.to_js_notification())
-
-        notification.set_shown(self.name)
-        if self.on_show:
-            self.on_show(notification.id, self.name)
-        notification.set_closed(self.name)
-        if self.on_close:
-            self.on_close(notification.id, self.name)
         return True  # successfully broadcasted
 
 

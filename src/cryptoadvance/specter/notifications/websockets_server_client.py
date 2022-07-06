@@ -12,7 +12,6 @@ import asyncio
 import time, json
 import websockets
 import threading
-from flask import jsonify
 from ..helpers import robust_json_dumps
 
 
@@ -154,7 +153,7 @@ class WebsocketsServer(WebsocketsBase):
             assert user_token not in self.get_admin_tokens()
             return
 
-        logger.debug(
+        logger.info(
             f"create_notification with title  {title}, user_id {user_id} and options {options}"
         )
 
@@ -287,23 +286,3 @@ def run_server_and_client(user_manager, notification_manager):
     client.start()
     client.authenticate()
     return ws, client
-
-
-if __name__ == "__main__":
-    ws, client = run_server_and_client()
-
-    # get into the server loop via a queue
-
-    for i in range(100):
-        time.sleep(2)
-        client.send(
-            {
-                "type": "message",
-                "message": f"loop {i}",
-                "recipient_tokens": ws.get_connection_user_tokens(),
-            }
-        )
-
-    client.quit = True
-    time.sleep(2)
-    ws.quit = True
