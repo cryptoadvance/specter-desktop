@@ -175,8 +175,8 @@ class JSNotifications(JSConsoleNotifications):
     - on_show(notification_id, target_ui)
     """
 
-    def __init__(self, user_id, on_close=None, on_show=None):
-        super().__init__(user_id, on_close=on_close, on_show=on_show)
+    def __init__(self, user_id, websockets_client, on_close=None, on_show=None):
+        super().__init__(user_id, websockets_client, on_close=on_close, on_show=on_show)
         self.compatible_notification_types = {
             NotificationTypes.information,
             NotificationTypes.warning,
@@ -197,6 +197,6 @@ class WebAPINotifications(JSNotifications):
     - on_show(notification_id, target_ui)
     """
 
-    def __init__(self, user_id, on_close=None, on_show=None):
-        super().__init__(user_id, on_close=on_close, on_show=on_show)
+    def __init__(self, user_id, websockets_client, on_close=None, on_show=None):
+        super().__init__(user_id, websockets_client, on_close=on_close, on_show=on_show)
         self.name = "WebAPI"  # see https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API/Using_the_Notifications_API

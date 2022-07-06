@@ -63,8 +63,12 @@ class NotificationManager:
 
     def register_user_ui_notifications(self, user_id):
         "setting up the notification system for this user"
-        # self.register_ui_notification(ui_notifications.WebAPINotifications(user_id))
-        # self.register_ui_notification(ui_notifications.JSNotifications(user_id))
+        self.register_ui_notification(
+            ui_notifications.WebAPINotifications(user_id, self.websockets_client)
+        )
+        self.register_ui_notification(
+            ui_notifications.JSNotifications(user_id, self.websockets_client)
+        )
         self.register_ui_notification(ui_notifications.FlashNotifications(user_id))
         self.register_ui_notification(
             ui_notifications.JSConsoleNotifications(user_id, self.websockets_client)
