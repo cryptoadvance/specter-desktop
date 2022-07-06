@@ -52,7 +52,17 @@ class WebsocketsBase:
 
 class WebsocketsServer(WebsocketsBase):
     """
-    A forever lived websockets server in a different thread
+    A forever lived websockets server in a different thread.
+
+    The server has 2 main functions:
+    1. Recieve messages from webbrowser websocket connections and call notification_manager.create_and_show
+    2. Recieve messages (notifications) from python websocket connection and send them to the webbrowser websocket connections
+
+    When registering the websocket connection, the webbrowser websocket connection has to authenticate with a user_token,
+        which is checked against user_manager.....websocket_token  to make sure this is a legitimate user
+
+    Before the python websocket connection is established, the set_as_admin method should be called to inform self that this user_token will be an admin
+        Otherwise the user_token will not be found in user_manager.....websocket_token and rejected
     """
 
     def __init__(self, user_manager, notification_manager):
@@ -240,7 +250,8 @@ class WebsocketsServer(WebsocketsBase):
 class WebsocketsClient(WebsocketsBase):
     """
     Keeps an open websocket connection to the server in a different thread.
-    If  a message is entered into the Queue (self.q), then it will be picked up and send to the websockets server
+
+    Its main function is to send messages from python to the WebsocketsServer, via self.send().
     """
 
     def __init__(self):
