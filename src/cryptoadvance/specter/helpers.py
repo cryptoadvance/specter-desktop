@@ -313,6 +313,8 @@ def robust_json_dumps(obj):
     def default(o):
         if isinstance(o, datetime):
             return o.timestamp()
+        if isinstance(o, set):
+            return list(o)
         return str(o)
 
     return json.dumps(obj, default=default)

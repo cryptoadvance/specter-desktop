@@ -317,11 +317,45 @@ async function get_new_notifications(){
 
 
 
+
+
+// The websocket part
+ip_address = "{{ request.host.split(':')[0] }}"
+const  websocket = new WebSocket(`ws://${ip_address}:5086/`);
+
+// Do something when the websocket connection is open
+websocket.addEventListener("open", (ev) => {
+
+    send_request("{{ url_for('wallets_endpoint_api.get_user_websocket_token') }}", 'GET', 
+                "{{ csrf_token() }}").then(function (user_token) {
+        console.log(`user_token = ${user_token}`);		
+        websocket.send(JSON.stringify( {'type':'authentication', 'user_token': user_token}));
+        websocket.send(JSON.stringify( {'title':'This message is sent to the server and then returned', options: {target_uis:['js_console']}  }));
+
+
+    });			
+
+
+    websocket.addEventListener('message', (message) => {
+        var js_notification = JSON.parse(message.data);
+        var target_uis = js_notification["options"]['target_uis'];
+        for (let i in target_uis) {  
+            show_notification(target_uis[i], js_notification)  ;   
+        }               
+    });
+
+
+});
+
+
+
+
+
 /**
  * If a user is logged in then get the notifications from python
  */
 if ('{{ current_user.username }}'){
-    setInterval(get_new_notifications, 2000);
+    //setInterval(get_new_notifications, 2000);
 }else{
     // no user logged in
 }

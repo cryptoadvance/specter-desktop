@@ -12,7 +12,8 @@ import asyncio
 import time, json
 import websockets
 import threading
-from flask import current_app as app
+from flask import jsonify
+from ..helpers import robust_json_dumps
 
 
 class WebsocketsBase:
@@ -52,17 +53,23 @@ class WebsocketsServer(WebsocketsBase):
     A forever lived websockets server in a different thread
     """
 
-    def __init__(self, user_manager):
+    def __init__(self, user_manager, notification_manager):
         super().__init__()
         self.connections = list()
         self.admin_tokens = list()
         self.user_manager = user_manager
+        self.notification_manager = notification_manager
 
     def get_connection_user_tokens(self):
         return [d["user_token"] for d in self.connections]
 
     def get_admin_tokens(self):
         return [d["user_token"] for d in self.admin_tokens]
+
+    def get_token_of_websocket(self, websocket):
+        for d in self.connections:
+            if d["websocket"] == websocket:
+                return d["user_token"]
 
     def get_connection(self, user_token):
         for d in self.connections:
@@ -109,61 +116,105 @@ class WebsocketsServer(WebsocketsBase):
         logger.info(f"unregister {websocket}")
         self.connections = [d for d in self.connections if d["websocket"] != websocket]
 
-    async def send_to_websocket(self, message_dictionary, websocket):
-        response = await websocket.send(
-            json.dumps(self.clean_message(message_dictionary))
+    def create_notification(self, message_dictionary, user_token):
+        """Creates a notification based on the title, options contained in message_dictionary
+        Example of message_dictionary:
+
+            {
+                'title' : title,
+                'options':{
+                    'timeout' : timeout,
+                    'notification_type' : notification_type,
+                    'target_uis' : target_uis,
+                    'body' : body,
+                    'image' : image_url,
+                    'icon' : icon,
+                }
+            }
+            Only 'title' is mandatory
+            The options are the optional arguments of Notification()
+        """
+        if "title" not in message_dictionary:
+            logger.warning(f"No title in {message_dictionary}")
+            return
+
+        title = message_dictionary["title"]
+        options = message_dictionary.get("options", {})
+
+        # Identify the user_token (and then the user_id) based on the websocket connection.
+        user_id = (
+            self.user_of_user_token(user_token).username
+            if self.user_of_user_token(user_token)
+            else None
         )
-        return response
+        if not user_id:
+            logger.warning(f"No user_id found for user_token {user_token}.")
 
-    def clean_message(
-        self, message_dictionary, keys=["user_token", "recipient_tokens"]
-    ):
-        new_dict = message_dictionary.copy()
-        for key in keys:
-            if key in new_dict:
-                del new_dict[key]
-        return new_dict
+            # Admins should not create notifications here, but in the Notification Manager
+            assert user_token not in self.get_admin_tokens()
+            return
 
-    def get_valid_recipients_of_message(self, message_dictionary):
-        "Controls that only the admin can send to all users.  Users can only send to themselves."
-        recipient_tokens = message_dictionary.get("recipient_tokens")
-
-        possbile_recipient_tokens = [
-            recipient_token
-            for recipient_token in recipient_tokens
-            if recipient_token in self.get_connection_user_tokens()
-        ]
-        logger.info(f"possbile_recipient_tokens {possbile_recipient_tokens}")
-        if message_dictionary.get("user_token") in self.admin_tokens:
-            valid_recipient_tokens = possbile_recipient_tokens
-        else:
-            valid_recipient_tokens = (
-                [message_dictionary.get("user_token")]
-                if message_dictionary.get("user_token") in possbile_recipient_tokens
-                else []
-            )
-
-        return valid_recipient_tokens
-
-    async def process_incoming_message(self, message_dictionary):
-        logger.info(f'starting to process_incoming_message "{message_dictionary}"')
-        valid_recipient_tokens = self.get_valid_recipients_of_message(
-            message_dictionary
+        logger.debug(
+            f"create_notification with title  {title}, user_id {user_id} and options {options}"
         )
-        if not valid_recipient_tokens:
-            logger.info(
-                f'No valid_recipient_tokens found. Nowhere to send "{message_dictionary}"'
+
+        notification = self.notification_manager.create_and_show(
+            title,
+            user_id,
+            **options,
+        )
+
+    async def send_to_websockets(self, message_dictionary, admin_token):
+        """
+        This sends out messages to the connected websockets, which are associated with message_dictionary['options']['user_id']
+        This method shall only called by an admin user
+        """
+        assert admin_token in self.get_admin_tokens()
+
+        logger.info(f'send_to_websockets "{message_dictionary}"')
+
+        recipient_user_id = self.get_connection(
+            message_dictionary["options"]["user_id"]
+        )
+        recipient_user = self.user_manager.get_user(recipient_user_id)
+        if not recipient_user:
+            logger.warning(
+                f"No recipient_user for recipient_user_id {recipient_user_id} could be found"
             )
             return
 
-        await asyncio.wait(
-            [
-                self.send_to_websocket(
-                    message_dictionary, self.get_connection(recipient_token)
-                )
-                for recipient_token in valid_recipient_tokens
-            ]
-        )
+        websocket = self.get_connection(recipient_user.websocket_token)
+        if not websocket:
+            logger.warning(
+                f"No websocket for this recipient_user.websocket_token could be found"
+            )
+            return
+
+        response = await websocket.send(robust_json_dumps(message_dictionary))
+        return response
+
+    async def process_incoming_message(self, message_dictionary, websocket):
+        """
+        This listens to messages. They can come from connections with and without admin tokens.
+
+        If this is a websocket authentication, it will so self.register,
+        otherwise just forward to to the notification_manager via self.create_notification
+        """
+
+        user_token = self.get_token_of_websocket(websocket)
+
+        if message_dictionary.get("type") == "authentication":
+            await self.register(message_dictionary.get("user_token"), websocket)
+        elif user_token and user_token in self.get_admin_tokens():
+            logger.info(
+                f"message from user {user_token} with admin_token recieved. Sending to websockets"
+            )
+            await self.send_to_websockets(message_dictionary, user_token)
+        else:
+            logger.info(
+                f"message from user {user_token} recieved. Creating Notification"
+            )
+            self.create_notification(message_dictionary, user_token)
 
     async def _forever_listener(self, websocket, path):  # don't remove path
         try:
@@ -171,12 +222,7 @@ class WebsocketsServer(WebsocketsBase):
                 try:
                     logger.info(f"Do stuff with message: {message}")
                     message_dictionary = json.loads(message)
-                    if message_dictionary.get("type") == "authentication":
-                        await self.register(
-                            message_dictionary.get("user_token"), websocket
-                        )
-                    else:
-                        await self.process_incoming_message(message_dictionary)
+                    await self.process_incoming_message(message_dictionary, websocket)
                 except:
                     logger.error(f"message {message} caused an error", exc_info=True)
                 if self.quit:
@@ -202,10 +248,7 @@ class WebsocketsClient(WebsocketsBase):
         self.user_token = secrets.token_urlsafe(128)
 
     def send(self, message_dictionary):
-        full_dict = message_dictionary.copy()
-        full_dict["user_token"] = self.user_token
-        logger.info(f"adding to queue {message_dictionary}")
-        self.q.put(json.dumps(full_dict))
+        self.q.put(robust_json_dumps(message_dictionary))
 
     async def _send_message_to_server(self, message, websocket, expected_answers=0):
         answers = []
@@ -233,9 +276,9 @@ class WebsocketsClient(WebsocketsBase):
         self.send({"type": "authentication", "user_token": self.user_token})
 
 
-def run_server_and_client():
+def run_server_and_client(user_manager, notification_manager):
     client = WebsocketsClient()
-    ws = WebsocketsServer(app.specter.user_manager)
+    ws = WebsocketsServer(user_manager, notification_manager)
     ws.set_as_admin(
         client.user_token
     )  # this ensures that this client has rights to send to other users

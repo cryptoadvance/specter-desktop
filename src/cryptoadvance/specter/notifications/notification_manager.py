@@ -4,6 +4,7 @@ logger = logging.getLogger(__name__)
 
 from .notifications import Notification
 from ..notifications import ui_notifications
+from ..notifications import websockets_server_client
 
 
 class NotificationManager:
@@ -22,7 +23,7 @@ class NotificationManager:
         and the ui_notification will deactivate and the notification will be rebroadcasted
     """
 
-    def __init__(self, ui_notifications=None):
+    def __init__(self, user_manager, ui_notifications=None):
         """
         Arguments:
             - ui_notifications:  {user_id: [list of ui_notifications]}
@@ -31,6 +32,11 @@ class NotificationManager:
         self.ui_notifications = ui_notifications if ui_notifications else []
         self.notifications = []
         self.register_default_ui_notifications()
+
+        (
+            self.websockets_server,
+            self.websockets_client,
+        ) = websockets_server_client.run_server_and_client(user_manager, self)
 
     def find_target_ui(self, target_ui, user_id):
         for ui_notification in self.ui_notifications:
@@ -57,10 +63,12 @@ class NotificationManager:
 
     def register_user_ui_notifications(self, user_id):
         "setting up the notification system for this user"
-        self.register_ui_notification(ui_notifications.WebAPINotifications(user_id))
-        self.register_ui_notification(ui_notifications.JSNotifications(user_id))
+        # self.register_ui_notification(ui_notifications.WebAPINotifications(user_id))
+        # self.register_ui_notification(ui_notifications.JSNotifications(user_id))
         self.register_ui_notification(ui_notifications.FlashNotifications(user_id))
-        self.register_ui_notification(ui_notifications.JSConsoleNotifications(user_id))
+        self.register_ui_notification(
+            ui_notifications.JSConsoleNotifications(user_id, self.websockets_client)
+        )
 
     def register_ui_notification(self, ui_notification):
         logger.debug(

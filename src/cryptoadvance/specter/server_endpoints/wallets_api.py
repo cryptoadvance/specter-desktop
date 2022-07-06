@@ -143,7 +143,7 @@ def get_new_notifications():
         str(current_user)
     ):
         if ui_notification.name in {"WebAPI", "js_message_box", "js_console"}:
-            notifications = ui_notification.read_and_clear_js_notification_buffer()
+            notifications = []
             if notifications:
                 js_notifications_dict[ui_notification.name] = notifications
 

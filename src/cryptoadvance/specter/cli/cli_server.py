@@ -14,7 +14,6 @@ from urllib.parse import urlparse
 from ..server import create_app, init_app
 from ..util.tor import start_hidden_service, stop_hidden_services
 from ..specter_error import SpecterError
-from ..notifications import websockets_server_client
 
 logger = logging.getLogger(__name__)
 
@@ -187,11 +186,6 @@ def server(
             else:
                 app.tor_service_id = None
                 app.tor_enabled = False
-
-            (
-                app.websockets_server,
-                app.websockets_client,
-            ) = websockets_server_client.run_server_and_client()
 
             app.run(debug=debug, **kwargs)
             stop_hidden_services(app)
