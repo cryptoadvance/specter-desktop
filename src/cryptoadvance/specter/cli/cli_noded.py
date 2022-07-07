@@ -444,18 +444,18 @@ def miner_loop(node_impl, my_node, data_folder, mining_every_x_seconds, echo):
 
 
 def mine_2_specter_wallets(node_impl, my_node, data_folder, echo):
-    """Get each specter-wallet some coins"""
+    """Sending coins to all Specter wallets, except for "Fresh wallet" which is not supposed to have any tx"""
 
     from ..process_controller.node_controller import fetch_wallet_addresses_for_mining
 
+    # Using the dict key, not the wallet name
+    exception = "fresh_wallet"
     try:
-
-        for address in fetch_wallet_addresses_for_mining(node_impl, data_folder):
-            echo("")
+        for address in fetch_wallet_addresses_for_mining(
+            node_impl, data_folder, exception
+        ):
             echo(f"Mining to address {address}")
             my_node.testcoin_faucet(address)
-            # my_node.mine(address=address)
-        # my_node.mine(block_count=100)
     except FileNotFoundError:
-        # might happen if there no ~/.specter folder yet
+        # might happen if there is no ~/.specter folder yet
         pass
