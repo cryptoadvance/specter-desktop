@@ -15,8 +15,7 @@ describe('Test the UI related to a blockchain rescan', () => {
         cy.addDevice('Trezor hold', 'Trezor', 'hold_accident')
         cy.addWallet('Fresh wallet', 'Trezor hold', 'segwit', false)
         cy.get('#btn_transactions').click()
-        cy.get('#rescan-hint > p').contains('Is this not a fresh wallet?')
-        cy.get('#rescan-hint > .btn').click()
+        cy.get('#rescan-hint > .btn', { timeout: 6000 }).click()
         cy.get('#blockchain-rescan').should('be.visible')
         // TODO: Do we keep this wallet and this device or teardown?
     })
