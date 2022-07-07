@@ -40,7 +40,6 @@
  	const txTableWebComponent = document.getElementById('tx-table-webcomponent')
  	const rescanHint = document.getElementById('rescan-hint')
  	document.addEventListener('readystatechange', event => {
- 		if (event.target.readyState === 'complete') {
  			if (txTableWebComponent.noTransaction === true) {
  				console.log("Showing the rescan hint.")
  				rescanHint.classList.remove('hidden')
@@ -51,7 +50,6 @@
  				rescanHint.classList.remove('showRescanHint')
  				rescanHint.classList.add('hidden')
  			}
- 		}
  	})
  	</script>
 {% endblock %}
