@@ -42,10 +42,12 @@
  	document.addEventListener('readystatechange', event => {
  		if (event.target.readyState === 'complete') {
  			if (txTableWebComponent.noTransaction === true) {
+ 				console.log("Showing the rescan hint.")
  				rescanHint.classList.remove('hidden')
  				rescanHint.classList.add('showRescanHint')
  			}
  			else {
+ 				console.log("Disabling the rescan hint.")
  				rescanHint.classList.remove('showRescanHint')
  				rescanHint.classList.add('hidden')
  			}

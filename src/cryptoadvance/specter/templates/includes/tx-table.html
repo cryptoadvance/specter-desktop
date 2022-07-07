@@ -372,7 +372,7 @@
             // Empty row element
             this.emptyRow = clone.querySelector(".empty");
             // Attribute that can be accessed by jinja files to detetmine whether there are any tx
-            this.noTransaction = ""
+            this.noTransaction = false
 
             // Blockhash header and empty column
             this.blockhashHeader = clone.querySelector(".blockhash-header");
@@ -918,14 +918,21 @@
                 }
                 // Pagination
                 this.pageCount = jsonResponse.pageCount;
+
                 // Show empty row if no transaction found
                 if (this.pageCount == 0 || txlist.length == 0) {
                     this.emptyRow.classList.remove('hidden');
                     this.emptyRow.children[1].innerText = '{{ _("No transactions found...") }}';
                     this.pageCount = 1;
-                    this.noTransaction = true
                 } else {
                     this.emptyRow.classList.add('hidden');
+                }
+
+                // Setting noTransaction
+                if (txlist.length == 0) {
+                    this.noTransaction = true
+                }
+                else {
                     this.noTransaction = false
                 }
 
