@@ -289,39 +289,50 @@ async function send_updated_webapi_permission(){
 var  websocket = null;
 
 function connect_and_authenticate_websocket(){
-    // Create the websocket 
-    ip_address = "{{ request.host.split(':')[0] }}"
-    websocket = new WebSocket(`ws://${ip_address}:5086/`);
+    // get necessary info for the opening of the websocket
+    send_request("{{ url_for('wallets_endpoint_api.get_websockets_info') }}", 'GET', 
+                    "{{ csrf_token() }}").then(function (websockets_info) {
+        // Create the websocket  
+        var port = websockets_info['port']
+        var user_token = websockets_info['user_token']
 
-    // Authenticate and add listeners when the websocket connection is open
-    websocket.onopen = function(e) {
-        send_request("{{ url_for('wallets_endpoint_api.get_user_websocket_token') }}", 'GET', 
-                    "{{ csrf_token() }}").then(function (user_token) {
-            websocket.send(JSON.stringify( {'type':'authentication', 'user_token': user_token}));
+        ip_address = "{{ request.host.split(':')[0] }}"
+        websocket = new WebSocket(`ws://${ip_address}:${port}/`);
+
+
+        
+
+        // Authenticate and add listeners when the websocket connection is open
+        websocket.onopen = function(e) {
+            websocket.send(JSON.stringify( {'type':'authentication', 'user_token': websockets_info['user_token']}));
             console.log(`websocket connection open and authenticated`);		
             //websocket.send(JSON.stringify( {'title':'This message is sent to the server and then returned', options: {target_uis:['js_console']}  }));
-        });			
-    };
+        };
 
-    websocket.onmessage = function(message) {
-        var js_notification = JSON.parse(message.data);
-        var target_uis = js_notification["options"]['target_uis'];
-        for (let i in target_uis) {  
-            show_notification(target_uis[i], js_notification)  ;   
-        }               
-    };
+        websocket.onmessage = function(message) {
+            var js_notification = JSON.parse(message.data);
+            var target_uis = js_notification["options"]['target_uis'];
+            for (let i in target_uis) {  
+                show_notification(target_uis[i], js_notification)  ;   
+            }               
+        };
 
-    websocket.onclose = function(e) {
-        console.log('Websocket was closed. Reconnect will be attempted in 10 second.', e.reason);
-        setTimeout(function() {
-            connect_and_authenticate_websocket();
-        }, 10000);
-    };
+        websocket.onclose = function(e) {
+            console.log('Websocket was closed. Reconnect will be attempted in 10 second.', e.reason);
+            setTimeout(function() {
+                connect_and_authenticate_websocket();
+            }, 10000);
+        };
 
-    websocket.onerror = function(err) {
-        console.error('Socket encountered error: ', err.message, 'Closing socket');
-        // websocket.close();
-    };    
+        websocket.onerror = function(err) {
+            console.error('Socket encountered error: ', err.message, 'Closing socket');
+            // websocket.close();
+        };    
+
+    });		
+
+    
+
 
 
 }

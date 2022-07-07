@@ -151,7 +151,9 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )
 
-    specter.notification_manager = NotificationManager(specter.user_manager)
+    specter.notification_manager = NotificationManager(
+        app.config["WEBSOCKETS_PORT"], specter.user_manager
+    )
     for user in specter.user_manager.users:
         specter.notification_manager.register_user_ui_notifications(user.id)
 

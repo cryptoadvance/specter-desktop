@@ -20,9 +20,9 @@ class WebsocketsBase:
     A base class that keeps a websockets connection or server running forever in a different thread
     """
 
-    def __init__(self):
-        self.domain = "localhost"
-        self.port = "5086"
+    def __init__(self, port):
+        self.domain = "localhost"  # the client and server always run on localhost
+        self.port = port
         self.quit = False
         self.started = False
 
@@ -106,8 +106,8 @@ class WebsocketsServer(WebsocketsBase):
 
     """
 
-    def __init__(self, user_manager, notification_manager):
-        super().__init__()
+    def __init__(self, port, user_manager, notification_manager):
+        super().__init__(port)
         self.connections = list()
         self.admin_tokens = list()
         self.user_manager = user_manager
@@ -302,8 +302,8 @@ class WebsocketsClient(WebsocketsBase):
     Its main function is to send messages from python to the WebsocketsServer, via self.send().
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, port):
+        super().__init__(port)
         self.q = Queue()
         self.user_token = secrets.token_urlsafe(128)
 
@@ -340,15 +340,15 @@ class WebsocketsClient(WebsocketsBase):
         self.send({"type": "authentication", "user_token": self.user_token})
 
 
-def run_server_and_client(user_manager, notification_manager):
-    client = WebsocketsClient()
-    ws = WebsocketsServer(user_manager, notification_manager)
+def run_websockets_server_and_client(port, user_manager, notification_manager):
+    client = WebsocketsClient(port)
+    ws = WebsocketsServer(port, user_manager, notification_manager)
     ws.set_as_admin(
         client.user_token
     )  # this ensures that this client has rights to send to other users
 
     ws.start()
-    # now I have to wait until the server is started
+    # now I have to wait until the server is started and is ready to recieve messages
     for i in range(50):
         if ws.started:
             break

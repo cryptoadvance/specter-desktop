@@ -100,10 +100,15 @@ def fees_old(blocks):
     return app.specter.estimatesmartfee(int(blocks))
 
 
-@wallets_endpoint_api.route("/get_user_websocket_token/", methods=["GET"])
+@wallets_endpoint_api.route("/get_websockets_info/", methods=["GET"])
 @login_required
-def get_user_websocket_token():
-    return json.dumps(app.specter.user_manager.get_user().websocket_token)
+def get_websockets_info():
+    return json.dumps(
+        {
+            "user_token": app.specter.user_manager.get_user().websocket_token,
+            "port": app.config["WEBSOCKETS_PORT"],
+        }
+    )
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/combine/", methods=["POST"])

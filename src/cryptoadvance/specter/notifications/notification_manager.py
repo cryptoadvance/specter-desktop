@@ -61,7 +61,7 @@ class NotificationManager:
 
     """
 
-    def __init__(self, user_manager, ui_notifications=None):
+    def __init__(self, websockets_port, user_manager, ui_notifications=None):
         """
         Arguments:
             - ui_notifications:  {user_id: [list of ui_notifications]}
@@ -74,7 +74,9 @@ class NotificationManager:
         (
             self.websockets_server,
             self.websockets_client,
-        ) = websockets_server_client.run_server_and_client(user_manager, self)
+        ) = websockets_server_client.run_websockets_server_and_client(
+            websockets_port, user_manager, self
+        )
 
     def find_target_ui(self, target_ui, user_id):
         for ui_notification in self.ui_notifications:
