@@ -289,7 +289,10 @@ class WebsocketsServer(WebsocketsBase):
             await self.unregister(websocket)
 
     def forever_function(self):
-        return websockets.serve(self._forever_listener, self.domain, self.port)
+        # the ping_interval=None is crucial, otherwise the connection will break after 30 seconds or so https://stackoverflow.com/questions/54101923/1006-connection-closed-abnormally-error-with-python-3-7-websockets
+        return websockets.serve(
+            self._forever_listener, self.domain, self.port, ping_interval=None
+        )
 
 
 class WebsocketsClient(WebsocketsBase):
@@ -311,6 +314,7 @@ class WebsocketsClient(WebsocketsBase):
         answers = []
         logger.debug(f"_send_message_to_server {message}")
         await websocket.send(message)
+        logger.debug(f"_send_message_to_server SENT {message}")
         for i in range(expected_answers):
             answer = await websocket.recv()
             answers.append(answer)
@@ -319,7 +323,7 @@ class WebsocketsClient(WebsocketsBase):
 
     async def forever_function(self):
         async with websockets.connect(
-            f"ws://{self.domain}:{self.port}", timeout=None
+            f"ws://{self.domain}:{self.port}", timeout=None, ping_interval=None
         ) as websocket:
             logger.debug("Client: connected")
             while not self.quit:  #  this is an endless loop waiting for new queue items
