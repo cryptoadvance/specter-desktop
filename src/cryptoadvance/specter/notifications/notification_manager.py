@@ -74,8 +74,11 @@ class NotificationManager:
         (
             self.websockets_server,
             self.websockets_client,
-        ) = websockets_server_client.run_websockets_server_and_client(
+        ) = websockets_server_client.create_websockets_server_and_client(
             websockets_port, user_manager, self
+        )
+        websockets_server_client.run_websockets_server_and_client(
+            self.websockets_server, self.websockets_client
         )
 
     def find_target_ui(self, target_ui, user_id):

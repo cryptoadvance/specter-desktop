@@ -25,6 +25,10 @@ class WebsocketsBase:
         self.port = port
         self.quit = False
         self.started = False
+        self.loop = None
+
+    def quit_now(self):
+        self.quit = True
 
     def forever_function(self):
         "This is the function that will contain an endless loop"
@@ -32,15 +36,19 @@ class WebsocketsBase:
 
     def _forever_thread(self):
         loop = asyncio.new_event_loop()
+        self.loop = loop
         asyncio.set_event_loop(loop)
 
-        logger.debug(f"------> starting {self.__class__.__name__}")
+        logger.debug(f"------> starting forever_function of {self.__class__.__name__}")
         loop.run_until_complete(self.forever_function())
         self.started = True
-        logger.debug(f"------> {self.__class__.__name__}  started")
+        logger.debug(f"------> complete forever_function of {self.__class__.__name__}")
 
-        loop.run_forever()  # this is needed for the server, and does nothing for the client
+        if not self.quit:
+            loop.run_forever()  # this is needed for the server, and does nothing for the client
+        logger.debug(f"------> after run_forever of {self.__class__.__name__}")
         loop.close()
+        logger.debug(f"loop of {self.__class__.__name__} was shut down")
 
     def finally_at_stop(self):
         pass
@@ -112,6 +120,12 @@ class WebsocketsServer(WebsocketsBase):
         self.admin_tokens = list()
         self.user_manager = user_manager
         self.notification_manager = notification_manager
+
+    def quit_now(self):
+        super().quit_now()
+        if self.loop:
+            logger.debug(f"quit_now in {self.__class__.__name__}")
+            self.loop.call_soon_threadsafe(self.loop.stop)
 
     def get_connection_user_tokens(self):
         return [d["user_token"] for d in self.connections]
@@ -307,6 +321,10 @@ class WebsocketsClient(WebsocketsBase):
         self.q = Queue()
         self.user_token = secrets.token_urlsafe(128)
 
+    def quit_now(self):
+        super().quit_now()
+        self.q.put("quit")
+
     def send(self, message_dictionary):
         self.q.put(robust_json_dumps(message_dictionary))
 
@@ -328,6 +346,9 @@ class WebsocketsClient(WebsocketsBase):
             logger.debug("Client: connected")
             while not self.quit:  #  this is an endless loop waiting for new queue items
                 item = self.q.get()
+                if item == "quit":
+                    logger.debug(f'quitting Queue loop because item == "{item}"')
+                    return
                 await self._send_message_to_server(item, websocket)
                 self.q.task_done()
         logger.debug("WebsocketsClient forever_function ended")
@@ -340,13 +361,16 @@ class WebsocketsClient(WebsocketsBase):
         self.send({"type": "authentication", "user_token": self.user_token})
 
 
-def run_websockets_server_and_client(port, user_manager, notification_manager):
+def create_websockets_server_and_client(port, user_manager, notification_manager):
     client = WebsocketsClient(port)
     ws = WebsocketsServer(port, user_manager, notification_manager)
     ws.set_as_admin(
         client.user_token
     )  # this ensures that this client has rights to send to other users
+    return ws, client
 
+
+def run_websockets_server_and_client(ws, client):
     ws.start()
     # now I have to wait until the server is started and is ready to recieve messages
     for i in range(50):
@@ -358,4 +382,3 @@ def run_websockets_server_and_client(port, user_manager, notification_manager):
 
     client.start()
     client.authenticate()
-    return ws, client
