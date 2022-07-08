@@ -340,17 +340,21 @@ class WebsocketsClient(WebsocketsBase):
         return answers
 
     async def forever_function(self):
-        async with websockets.connect(
+        self.websocket = await websockets.connect(
             f"ws://{self.domain}:{self.port}", timeout=None, ping_interval=None
-        ) as websocket:
-            logger.debug("Client: connected")
-            while not self.quit:  #  this is an endless loop waiting for new queue items
-                item = self.q.get()
-                if item == "quit":
-                    logger.debug(f'quitting Queue loop because item == "{item}"')
-                    return
-                await self._send_message_to_server(item, websocket)
-                self.q.task_done()
+        )
+
+        logger.debug("Client: connected")
+        while not self.quit:  #  this is an endless loop waiting for new queue items
+            item = self.q.get()
+            if item == "quit":
+                logger.debug(f'quitting Queue loop because item == "{item}"')
+                # do not do  "await self.websocket.close() " here because it takes about 10 seconds
+                return
+            await self._send_message_to_server(item, self.websocket)
+            self.q.task_done()
+
+        self.websocket.close()
         logger.debug("WebsocketsClient forever_function ended")
 
     def finally_at_stop(self):
