@@ -11,9 +11,14 @@ describe('Sending notifications', () => {
     })
 
     it('Create js_message_box', () => {
-        // empty so far
+        // wait until page fully loaded
+        cy.wait(1000)
+
+
+
         var some_title = "1234567890abcdef_____////";
-        var cmd = `requestCreateNotification('${some_title}', {target_uis:['js_message_box'], body:null, image:'/static/img/ghost_3d.png', timeout:0})`;
+        var cmd = `CreateNotification('${some_title}', {target_uis:['js_message_box'], image:'/static/img/ghost_3d.png', timeout:0})`;
+        
 
         cy.window().then((win) => {
             win.eval(cmd);

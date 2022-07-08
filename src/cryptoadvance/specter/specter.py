@@ -160,6 +160,9 @@ class Specter:
             if not node.external_node:
                 node.stop()
 
+        self.notification_manager.websockets_server.quit_now()
+        self.notification_manager.websockets_client.quit_now()
+
         logger.info("Closing Specter after cleanup")
         # For some reason we need to explicitely exit here. Otherwise it will hang
         exit(0)

@@ -136,7 +136,13 @@ def server(
                 if os.path.isfile(filename):
                     extra_files.append(filename)
 
-    kwargs = {"host": host, "port": app.config["PORT"], "extra_files": extra_files}
+    # 'use_reloader': False prevents that a..run runs twice when in debug mode. See https://stackoverflow.com/questions/9449101/how-to-stop-flask-from-initialising-twice-in-debug-mode
+    kwargs = {
+        "host": host,
+        "port": app.config["PORT"],
+        "extra_files": extra_files,
+        "use_reloader": False,
+    }
     kwargs = configure_ssl(kwargs, app.config, ssl)
 
     if hwibridge:
@@ -186,6 +192,7 @@ def server(
             else:
                 app.tor_service_id = None
                 app.tor_enabled = False
+
             app.run(debug=debug, **kwargs)
             stop_hidden_services(app)
         finally:

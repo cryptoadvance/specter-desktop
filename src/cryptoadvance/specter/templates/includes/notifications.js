@@ -4,33 +4,27 @@
 
 
 /*  creating a notification from JS */
-async function requestCreateNotification(title, options){ 
-    var url = "{{ url_for('wallets_endpoint_api.create_notification' ) }}";
-	var formData = new FormData();
-	formData.append("title", title)
-    formData.append('options', JSON.stringify( options));
-    response = send_request(url, 'POST', "{{ csrf_token() }}", formData)
-    // console.log(await  response)
-    return response
+async function CreateNotification(title, options){ 
+    websocket.send(JSON.stringify( {'title':title, 'options': options}));
 }
 
 
 
 
 function on_close(id, target_ui){
-    //console.log('closed message')
-    requestCreateNotification('on_close', {target_uis:['internal_notification'], data:{'id':id, 'target_ui':target_ui}});
+    //console.log('closed message')    
+    CreateNotification('on_close', {target_uis:['internal_notification'], data:{'id':id, 'target_ui':target_ui}});
 }
 
 
 function on_show(id, target_ui, success=true){
     //console.log('closed message')
-    requestCreateNotification('on_show', {target_uis:['internal_notification'], data:{'id':id, 'target_ui':target_ui, 'success':success}});
+    CreateNotification('on_show', {target_uis:['internal_notification'], data:{'id':id, 'target_ui':target_ui, 'success':success}});
 }
 
 
 function set_target_ui_availability(target_ui, is_available, id=null) {
-    requestCreateNotification('set_target_ui_availability', {target_uis:['internal_notification'], data:{'id':id, 'target_ui':target_ui, 'is_available':is_available}});
+    CreateNotification('set_target_ui_availability', {target_uis:['internal_notification'], data:{'id':id, 'target_ui':target_ui, 'is_available':is_available}});
 }
 
 
@@ -290,45 +284,58 @@ async function send_updated_webapi_permission(){
 }
 
 
-/**
- * GET the new notifications from python and show them
- */
-async function get_new_notifications(){
-    send_updated_webapi_permission();
 
-    url = "{{ url_for('wallets_endpoint_api.get_new_notifications') }}"
-    //console.log(url)
 
-    function myFunction(item) {
-        sum += item;
-    }
+var  websocket = null;
 
-    send_request(url, 'GET', "{{ csrf_token() }}").then(function (js_notifications_dict) {
-        //console.log(js_notifications_dict);
-        for (var target_ui in js_notifications_dict) {
-            //console.log("obj." + target_ui + " = " + js_notifications_dict[target_ui]);
-            for (let i in js_notifications_dict[target_ui]) {  
-                show_notification(target_ui, js_notifications_dict[target_ui][i])  ;   
-            }            
-        }        
-    });
+function connect_and_authenticate_websocket(){
+    // get necessary info for the opening of the websocket
+    send_request("{{ url_for('wallets_endpoint_api.get_websockets_info') }}", 'GET', 
+                    "{{ csrf_token() }}").then(function (websockets_info) {
+        // Create the websocket  
+        var port = websockets_info['port']
+        var user_token = websockets_info['user_token']
+
+        ip_address = "{{ request.host.split(':')[0] }}"
+        websocket = new WebSocket(`ws://${ip_address}:${port}/`);
+
+
+        
+
+        // Authenticate and add listeners when the websocket connection is open
+        websocket.onopen = function(e) {
+            websocket.send(JSON.stringify( {'type':'authentication', 'user_token': websockets_info['user_token']}));
+            console.log(`websocket connection open and authenticated`);		
+            //websocket.send(JSON.stringify( {'title':'This message is sent to the server and then returned', options: {target_uis:['js_console']}  }));
+        };
+
+        websocket.onmessage = function(message) {
+            var js_notification = JSON.parse(message.data);
+            var target_uis = js_notification["options"]['target_uis'];
+            for (let i in target_uis) {  
+                show_notification(target_uis[i], js_notification)  ;   
+            }               
+        };
+
+        websocket.onclose = function(e) {
+            console.log('Websocket was closed. Reconnect will be attempted in 10 second.', e.reason);
+            setTimeout(function() {
+                connect_and_authenticate_websocket();
+            }, 10000);
+        };
+
+        websocket.onerror = function(err) {
+            console.error('Socket encountered error: ', err.message, 'Closing socket');
+            // websocket.close();
+        };    
+
+    });		
+
+    
+
+
+
 }
 
-
-
-
-/**
- * If a user is logged in then get the notifications from python
- */
-if ('{{ current_user.username }}'){
-    setInterval(get_new_notifications, 2000);
-}else{
-    // no user logged in
-}
-
-
-
-
-
-
+connect_and_authenticate_websocket()
 

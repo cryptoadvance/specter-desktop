@@ -4,25 +4,64 @@ logger = logging.getLogger(__name__)
 
 from .notifications import Notification
 from ..notifications import ui_notifications
+from ..notifications import websockets_server_client
 
 
 class NotificationManager:
     """
     This class allows to register ui_notifications (like JSNotifications).
 
-    Notifications can be created and broadcasted with self.create_and_show
+    1. Notifications can be created and broadcasted with self.create_and_show
         This will forward the notification to all appropriate ui_notifications
+        The notifications are also stored in self.notifications
+    2. Internal notifications will not be shown, but
+        a) deletes the message again from self.notifications
+        b) trigger functions like ui_notifications.on_close
 
-        The notifications are also stored in self.notifications and
-        deleted again in self.on_close
-
-        If the ui_notification noticed later (async), that the notification
-        was not delivered, then the ui_notification call
+        If the ui_notification noticed later (async), that the notification was not delivered, then the ui_notification call
         create_notification('set_target_ui_availability', user_id, target_uis=["internal_notification"], is_available=False)
         and the ui_notification will deactivate and the notification will be rebroadcasted
+
+
+
+    1.  Notifications to UINotifications
+                                                                ┌───────────────────────┐
+                                        ┌─────────────────────► │  FlashNotifications   │
+                                        │                       └───────────────────────┘
+              ┌───────────────────────┐ │                       ┌───────────────────────┐
+              │  NotificationManager  │ ├─────────────────────► │ JSConsoleNotifications│
+              │   .create_and_show    │ │                       │                       │
+              └───────────────────────┘ │                       └───────────────────────┘
+                                        │                       ┌───────────────────────┐
+                                        └──────────────────────►│   JSNotifications     │
+                                                                └───────────────────────┘
+
+    2. internal_notification  at the example of on_close
+
+                  ┌───────────────────────┐
+                  │                       │  if "internal_notification" in notification.target_uis:
+                  │  NotificationManager  │ ──────────────────────────────────────►┐
+                  │   .create_and_show    │                                        │
+                  └───────────────────────┘                                        ▼
+                                                                 ┌────────────────────────────┐
+                                                                 │  NotificationManager       │
+                                                                 │   .treat_internal_message  │
+                                                                 │     e.g. on_close          │
+                                                                 └─────────────────┬──────────┘
+                                                                                   │ on_close
+                                                                                   ▼
+                   ┌───────────────────────┐                         ┌───────────────────────┐
+                   │   JSNotifications     │ ◄─────────────────────┐ │   NotificationManager │
+                   │   .on_close           │                       │ │   ._internal_on_close │
+                   └───────────────────────┘                       │ └───────────────────────┘
+                   ┌───────────────────────┐                       │
+                   │  NotificationManager  │                       │
+                   │  .delete_notification │ ◄─────────────────────┘
+                   └───────────────────────┘
+
     """
 
-    def __init__(self, ui_notifications=None):
+    def __init__(self, websockets_port, user_manager, ui_notifications=None):
         """
         Arguments:
             - ui_notifications:  {user_id: [list of ui_notifications]}
@@ -31,6 +70,16 @@ class NotificationManager:
         self.ui_notifications = ui_notifications if ui_notifications else []
         self.notifications = []
         self.register_default_ui_notifications()
+
+        (
+            self.websockets_server,
+            self.websockets_client,
+        ) = websockets_server_client.create_websockets_server_and_client(
+            websockets_port, user_manager, self
+        )
+        websockets_server_client.run_websockets_server_and_client(
+            self.websockets_server, self.websockets_client
+        )
 
     def find_target_ui(self, target_ui, user_id):
         for ui_notification in self.ui_notifications:
@@ -57,10 +106,16 @@ class NotificationManager:
 
     def register_user_ui_notifications(self, user_id):
         "setting up the notification system for this user"
-        self.register_ui_notification(ui_notifications.WebAPINotifications(user_id))
-        self.register_ui_notification(ui_notifications.JSNotifications(user_id))
+        self.register_ui_notification(
+            ui_notifications.WebAPINotifications(user_id, self.websockets_client)
+        )
+        self.register_ui_notification(
+            ui_notifications.JSNotifications(user_id, self.websockets_client)
+        )
         self.register_ui_notification(ui_notifications.FlashNotifications(user_id))
-        self.register_ui_notification(ui_notifications.JSConsoleNotifications(user_id))
+        self.register_ui_notification(
+            ui_notifications.JSConsoleNotifications(user_id, self.websockets_client)
+        )
 
     def register_ui_notification(self, ui_notification):
         logger.debug(
@@ -151,14 +206,21 @@ class NotificationManager:
                 internal_notification.data["target_ui"],
             )
 
-    def notification_can_be_deleted(self, notification):
-        "CHecks if the target_ui was set in was_closed_in_target_uis, if the target_ui is available"
+    def notification_can_be_deleted(self, notification, on_close_was_called=False):
+        "Checks if the target_ui was set in was_closed_in_target_uis, if the target_ui is available"
         available_target_uis = {
             target_ui
             for target_ui in notification.target_uis
             if self.find_target_ui(target_ui, notification.user_id)
             and self.find_target_ui(target_ui, notification.user_id).is_available
         }
+
+        if not on_close_was_called and not available_target_uis:
+            logger.debug(
+                f"None of the notification.target_uis {notification.target_uis} are available and on_close was not called yet."
+                " Keeping this transaction, such that it can be rebroadcastes later."
+            )
+            return False
         logger.debug(
             f"available_target_uis = {available_target_uis}, was_closed_in_target_uis = {notification.was_closed_in_target_uis}"
         )
@@ -182,7 +244,9 @@ class NotificationManager:
             )
 
         referenced_notification.set_closed(internal_notification.data["target_ui"])
-        if self.notification_can_be_deleted(referenced_notification):
+        if self.notification_can_be_deleted(
+            referenced_notification, on_close_was_called=True
+        ):
             self.delete_notification(referenced_notification)
 
     def treat_internal_message(self, internal_notification):
@@ -272,8 +336,13 @@ class NotificationManager:
                     # if it is already broadcasted on this other_ui_notification by default anyway, no need to do it twice
                     if other_ui_notification in broadcast_on_ui_notification:
                         continue
+                    logger.debug(
+                        f"broadcast_on_ui_notification {broadcast_on_ui_notification} , other_ui_notification {other_ui_notification}"
+                    )
                     notification_broadcasted = other_ui_notification.show(notification)
-                    logger.debug(f"show {notification} on {ui_notification}")
+                    logger.debug(
+                        f"Rebroadcast on {other_ui_notification.name} of {notification} "
+                    )
                     if notification_broadcasted:
                         break
         # for some ui_notifications, the last_shown_date and was_closed_in_target_uis is set immediately.
