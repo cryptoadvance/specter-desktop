@@ -40,15 +40,15 @@ class WebsocketsBase:
         asyncio.set_event_loop(loop)
 
         logger.debug(f"------> starting forever_function of {self.__class__.__name__}")
-        try:
-            loop.run_until_complete(self.forever_function())
-        except OSError as e:
-            logger.warning(
-                f"An OSError occurred. Assuming the port {self.port} is blocked and retrying with port {self.port + 1 }",
-                exc_info=True,
-            )
-            self.port += 1
-            self.start()
+        while True:
+            try:
+                loop.run_until_complete(self.forever_function())
+                break
+            except OSError as e:
+                logger.error(
+                    f"An OSError occurred. Assuming the port {self.port} is blocked and retrying with port {self.port + 1 }"
+                )
+                self.port += 1
         self.started = True
         logger.debug(f"------> complete forever_function of {self.__class__.__name__}")
 
@@ -392,5 +392,8 @@ def run_websockets_server_and_client(ws, client):
         if i == 49:
             logger.error(f'The server never reached the "started" state.')
 
+    client.port = (
+        ws.port
+    )  # ensure that even if the port changed in the server, the client can connect
     client.start()
     client.authenticate()
