@@ -202,10 +202,10 @@ Cypress.Commands.add("mine2wallet", (chain) => {
 // Quick and easy way to fill out the send form and create a psbt
 Cypress.Commands.add("createPsbt", (address, label="a_label", amount=0.01) => { 
   cy.get('#btn_send').click()
-  // it is not clear why .shadow() is needed here to find the elements in the ShadowDOM, but not in the other cypresss tests 
-  cy.get('#recipient_0').shadow().find('#address').type(address)   
-  cy.get('#recipient_0').shadow().find('#label').type(label)
+  // it is not clear why .shadow(), or { includeShadowDom: true } is needed here to find the elements in the ShadowDOM, but not in the other cypresss tests 
+  cy.get('#recipient_0').find('#address', { includeShadowDom: true }).type(address)   
+  cy.get('#recipient_0').find('#label', { includeShadowDom: true }).type(label)
   //cy.get('#send_max_0').click()
-  cy.get('#recipient_0').shadow().find('#amount').type(amount)
+  cy.get('#recipient_0').find('#amount', { includeShadowDom: true }).type(amount)
   cy.get('#create_psbt_btn').click()
 })
