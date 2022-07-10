@@ -1,6 +1,16 @@
 <script>
+    highlighted_elements = []
+
+    function reset_highlight(){
+        for (var i in highlighted_elements){ 
+            highlighted_elements[i].element.style.backgroundColor = highlighted_elements[i].previous_color;
+        }
+
+    }
+
 
     function global_search(search_term){
+        reset_highlight();
         if (search_term==""){return}
 
 
@@ -15,8 +25,10 @@
                 var html_element = answer.list[i];
                 if (html_element.result > 0){
                     console.log(`setting green ${html_element.id}`);
-                    if (html_element.id == "") {continue}
-                    document.getElementById(html_element.id).style.backgroundColor = 'green';
+                    found_element = document.getElementById(html_element.id);
+                    if (!found_element) {continue}
+                    highlighted_elements.push({element:found_element, previous_color:found_element.style.backgroundColor});
+                    found_element.style.backgroundColor = 'green';
                 }                
             }
             
