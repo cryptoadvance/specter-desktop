@@ -253,6 +253,9 @@ class CypressTestConfig(TestConfig):
     BITCOIN_RPC_TIMEOUT = 30
     LIQUID_RPC_TIMEOUT = 40
 
+    # websockets specifig configurations
+    WEBSOCKETS_PORT = 25445
+
 
 class ProductionConfig(BaseConfig):
     # Injectable, as having a random SECRET-KEY won't work for gunicorn using more than one worker (might have more issues with multiple workers, though)
