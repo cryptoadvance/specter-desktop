@@ -70,7 +70,9 @@ class User(UserMixin):
         password_hash,
         config,
         specter,
+        jwt_token_id,
         jwt_token,
+        tokens = {},
         encrypted_user_secret=None,
         is_admin=False,
         services=[],
@@ -78,7 +80,9 @@ class User(UserMixin):
         self.id = id
         self.username = username
         self.password_hash = password_hash
+        self.jwt_token_id = jwt_token_id
         self.jwt_token = jwt_token
+        self.tokens = tokens
         self.config = config
         self.encrypted_user_secret = encrypted_user_secret
         self.plaintext_user_secret = None
@@ -100,7 +104,9 @@ class User(UserMixin):
             user_args = {
                 "id": user_dict["id"],
                 "username": user_dict["username"],
+                "jwt_token_id": user_dict.get("jwt_token_id", None),
                 "jwt_token": user_dict.get("jwt_token", None),
+                "tokens": user_dict.get("tokens", {}),
                 "password_hash": user_dict[
                     "password"
                 ],  # TODO: Migrate attr name to "password_hash"?
@@ -203,13 +209,25 @@ class User(UserMixin):
         if autosave:
             self.save_info()
 
-    def save_jwt_token(self, jwt_token):
+    def get_all_tokens(self):
+        self.tokens = json.dumps(self.tokens.copy())
+        self.tokens = json.loads(self.tokens)
+        return self.tokens
+        
+    def append_token(self, jwt_token_id, jwt_token):
+        self.tokens = self.tokens.copy()
+        self.tokens[jwt_token_id] = jwt_token
+        self.save_info()
+
+    def save_jwt_token(self, jwt_token_id, jwt_token):
+        self.jwt_token_id = jwt_token_id
         self.jwt_token = jwt_token
         self.save_info()
 
-    def delete_jwt_token(
-        self,
-    ):
+    def delete_jwt_token(self, jwt_token_id):
+        self.tokens = self.tokens.copy()
+        del self.tokens[jwt_token_id]
+        self.jwt_token_id = None
         self.jwt_token = None
         self.save_info()
 
@@ -255,7 +273,9 @@ class User(UserMixin):
             "username": self.username,
             "password": self.password_hash,  # TODO: Migrate attr name to "password_hash"?
             "is_admin": self.is_admin,
+            "jwt_token_id": self.jwt_token_id,
             "jwt_token": self.jwt_token,
+            "tokens": self.tokens,
             "encrypted_user_secret": self.encrypted_user_secret,
             "services": self.services,
         }
