@@ -1,0 +1,13 @@
+<script>
+
+    function global_search(search_term){
+        let url="{{ url_for('welcome_endpoint.global_search', search_term='search_term') }}";
+        url = url.replace('search_term', search_term);
+        console.log(url)
+        send_request(url, 'GET', "{{ csrf_token() }}").then((answer)=> {
+            console.log(answer)
+        });
+    }
+</script>
+
+<input  name="global_search" placeholder="Type to search" oninput="global_search(this.value)"/>
