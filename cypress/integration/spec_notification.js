@@ -12,7 +12,7 @@ describe('Sending notifications', () => {
 
     it('Create js_message_box', () => {
         // wait until page fully loaded
-        cy.wait(1000)
+        cy.wait(5000)
 
 
 
