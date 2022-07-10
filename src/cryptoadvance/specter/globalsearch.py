@@ -75,6 +75,14 @@ def build_html_elements(specter):
                 url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
             ],
         )
+        current_recieve_address = HtmlElement(
+            sidebar_wallet,
+            id="btn_receive",
+            function=lambda x: x in wallet.address,
+            visible_on_endpoints=[
+                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
+            ],
+        )
 
     for wallet in specter.wallet_manager.wallets.values():
         add_all_in_wallet(wallet)
