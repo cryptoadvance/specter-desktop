@@ -65,12 +65,15 @@ def build_html_elements(specter):
     html_root = HtmlElement(None)
     wallets = HtmlElement(html_root, id="toggle_wallets_list")
 
+    def search_in_list(search_term, l):
+        return len([item for item in l if search_term in item])
+
     def add_all_in_wallet(wallet):
         sidebar_wallet = HtmlElement(wallets, id=f"{wallet.alias}-sidebar-list-item")
         addresses = HtmlElement(
             sidebar_wallet,
             id="btn_addresses",
-            function=lambda x: int(bool(wallet.is_address_mine(x))),
+            function=lambda x: search_in_list(x, wallet.wallet_addresses),
             visible_on_endpoints=[
                 url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
             ],
@@ -78,7 +81,7 @@ def build_html_elements(specter):
         current_recieve_address = HtmlElement(
             sidebar_wallet,
             id="btn_receive",
-            function=lambda x: x in wallet.address,
+            function=lambda x: search_in_list(x, [wallet.address]),
             visible_on_endpoints=[
                 url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
             ],
