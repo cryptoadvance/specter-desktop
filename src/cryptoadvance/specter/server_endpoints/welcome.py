@@ -8,9 +8,8 @@ from flask import flash, make_response, redirect, render_template, request, url_
 from flask_babel import lazy_gettext as _
 from flask_login import login_required
 
-from ..helpers import notify_upgrade, robust_json_dumps
+from ..helpers import notify_upgrade
 from ..managers.wallet_manager import purposes
-from ..globalsearch import do_global_search
 
 logger = logging.getLogger(__name__)
 
@@ -18,12 +17,6 @@ rand = random.randint(0, 1e32)  # to force style refresh
 
 # Setup endpoint blueprint
 welcome_endpoint = Blueprint("welcome_endpoint", __name__)
-
-
-@welcome_endpoint.route("/global_search/<search_term>", methods=["GET"])
-@login_required
-def global_search(search_term):
-    return robust_json_dumps(do_global_search(search_term, app.specter))
 
 
 @welcome_endpoint.route("/")

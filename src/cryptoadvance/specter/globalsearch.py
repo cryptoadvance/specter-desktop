@@ -7,12 +7,12 @@ logger = logging.getLogger(__name__)
 class HtmlElement:
     "This is a way to reconstruct the HTML Logical UI Tree and sum up results nicely"
 
-    def __init__(self, parent, html_ids=None, function=None, children=None):
+    def __init__(self, parent, id=None, function=None, children=None):
         self.parent = parent
         if self.parent:
             self.parent.children.add(self)
         self.children = children if children else set()
-        self.html_ids = html_ids if html_ids else set()
+        self.id = id if id else set()
         self._result = None
         self.function = function
 
@@ -38,12 +38,18 @@ class HtmlElement:
             end_nodes += child.calculate_end_nodes()
         return end_nodes
 
-    def __repr__(self) -> str:
+    def flattened_sub_tree_as_json(self):
+        result_list = [self.to_json()]
+        for child in self.children:
+            result_list += child.flattened_sub_tree_as_json()
+        return result_list
+
+    def to_json(self):
         d = {}
-        d["html_ids"] = self.html_ids
+        d["id"] = self.id
         d["children"] = self.children
         d["result"] = self.result
-        return str(d)
+        return d
 
 
 HTML_ROOT = None
@@ -51,15 +57,13 @@ HTML_ROOT = None
 
 def build_html_elements(specter):
     html_root = HtmlElement(None)
-    wallets = HtmlElement(html_root, html_ids=["toggle_wallets_list"])
+    wallets = HtmlElement(html_root, id="toggle_wallets_list")
 
     def add_all_in_wallet(wallet):
-        sidebar_wallet = HtmlElement(
-            wallets, html_ids=[f"{wallet.alias}-sidebar-list-item"]
-        )
+        sidebar_wallet = HtmlElement(wallets, id=f"{wallet.alias}-sidebar-list-item")
         addresses = HtmlElement(
             sidebar_wallet,
-            html_ids=["btn_addresses"],
+            id="btn_addresses",
             function=lambda x: int(bool(wallet.is_address_mine(x))),
         )
 
@@ -83,4 +87,4 @@ def do_global_search(search_term, specter):
 
     results = apply_search_on_dict(search_term, HTML_ROOT)
     print(results)
-    return results
+    return {"tree": results, "list": results.flattened_sub_tree_as_json()}

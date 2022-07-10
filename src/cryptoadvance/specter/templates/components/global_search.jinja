@@ -1,11 +1,26 @@
 <script>
 
     function global_search(search_term){
-        let url="{{ url_for('welcome_endpoint.global_search', search_term='search_term') }}";
+        if (search_term==""){return}
+
+
+        let url="{{ url_for('wallets_endpoint_api.global_search', search_term='search_term') }}";
         url = url.replace('search_term', search_term);
         console.log(url)
         send_request(url, 'GET', "{{ csrf_token() }}").then((answer)=> {
+            if (!answer){return}
             console.log(answer)
+            
+            for (var i in answer.list){
+                var html_element = answer.list[i];
+                if (html_element.result > 0){
+                    console.log(`setting green ${html_element.id}`);
+                    if (html_element.id == "") {continue}
+                    document.getElementById(html_element.id).style.backgroundColor = 'green';
+                }                
+            }
+            
+
         });
     }
 </script>
