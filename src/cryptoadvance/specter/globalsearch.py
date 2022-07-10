@@ -65,15 +65,34 @@ def build_html_elements(specter):
     html_root = HtmlElement(None)
     wallets = HtmlElement(html_root, id="toggle_wallets_list")
 
-    def search_in_list(search_term, l):
-        return len([item for item in l if search_term in item])
+    def search_in_structure(search_term, l):
+        count = 0
+        for item in l:
+            if isinstance(item, dict):
+                count += search_in_structure(search_term, item.values())
+            elif isinstance(item, list):
+                count += search_in_structure(search_term, item)
+            elif search_term in str(item):
+                count += 1
+        return count
 
     def add_all_in_wallet(wallet):
         sidebar_wallet = HtmlElement(wallets, id=f"{wallet.alias}-sidebar-list-item")
+        print([tx.__dict__() for tx in wallet.transactions.values()])
+        transactions = HtmlElement(
+            sidebar_wallet,
+            id="btn_transactions",
+            function=lambda x: search_in_structure(
+                x, [tx.__dict__() for tx in wallet.transactions.values()]
+            ),
+            visible_on_endpoints=[
+                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
+            ],
+        )
         addresses = HtmlElement(
             sidebar_wallet,
             id="btn_addresses",
-            function=lambda x: search_in_list(x, wallet.wallet_addresses),
+            function=lambda x: search_in_structure(x, wallet.wallet_addresses),
             visible_on_endpoints=[
                 url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
             ],
@@ -81,7 +100,7 @@ def build_html_elements(specter):
         current_recieve_address = HtmlElement(
             sidebar_wallet,
             id="btn_receive",
-            function=lambda x: search_in_list(x, [wallet.address]),
+            function=lambda x: search_in_structure(x, [wallet.address]),
             visible_on_endpoints=[
                 url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
             ],
