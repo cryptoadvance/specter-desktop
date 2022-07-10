@@ -9,6 +9,26 @@
     }
 
 
+    function endpoint_visible(allowed_endpoint){
+        return ('{{ url_for(request.endpoint, **request.view_args) }}'.indexOf(allowed_endpoint) >= 0)
+    }
+
+    function process_found_element(html_element){
+        if (html_element.result <= 0){return}
+
+        if (!endpoint_visible(html_element.visible_on_endpoints)){return}
+
+        console.log(`setting green ${html_element.id}`);
+        found_element = document.getElementById(html_element.id);
+        if (!found_element) {return}
+        highlighted_elements.push({element:found_element, previous_color:found_element.style.backgroundColor});
+        found_element.style.backgroundColor = 'green';    
+
+    }
+
+    
+
+
     function global_search(search_term){
         reset_highlight();
         if (search_term==""){return}
@@ -23,18 +43,16 @@
             
             for (var i in answer.list){
                 var html_element = answer.list[i];
-                if (html_element.result > 0){
-                    console.log(`setting green ${html_element.id}`);
-                    found_element = document.getElementById(html_element.id);
-                    if (!found_element) {continue}
-                    highlighted_elements.push({element:found_element, previous_color:found_element.style.backgroundColor});
-                    found_element.style.backgroundColor = 'green';
-                }                
+                process_found_element(html_element) ;
             }
             
 
         });
     }
+
+
 </script>
 
 <input  name="global_search" placeholder="Type to search" oninput="global_search(this.value)"/>
+
+

@@ -1,13 +1,17 @@
 import os
 import logging
 
+from flask import url_for
+
 logger = logging.getLogger(__name__)
 
 
 class HtmlElement:
     "This is a way to reconstruct the HTML Logical UI Tree and sum up results nicely"
 
-    def __init__(self, parent, id=None, function=None, children=None):
+    def __init__(
+        self, parent, id=None, function=None, children=None, visible_on_endpoints="/"
+    ):
         self.parent = parent
         if self.parent:
             self.parent.children.add(self)
@@ -15,6 +19,7 @@ class HtmlElement:
         self.id = id if id else set()
         self._result = None
         self.function = function
+        self.visible_on_endpoints = visible_on_endpoints
 
     @property
     def result(self):
@@ -49,6 +54,7 @@ class HtmlElement:
         d["id"] = self.id
         d["children"] = self.children
         d["result"] = self.result
+        d["visible_on_endpoints"] = self.visible_on_endpoints
         return d
 
 
@@ -65,6 +71,9 @@ def build_html_elements(specter):
             sidebar_wallet,
             id="btn_addresses",
             function=lambda x: int(bool(wallet.is_address_mine(x))),
+            visible_on_endpoints=[
+                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
+            ],
         )
 
     for wallet in specter.wallet_manager.wallets.values():
