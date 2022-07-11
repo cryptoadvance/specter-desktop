@@ -56,12 +56,12 @@ class HtmlElement:
             node.result = None
 
     def flattened_sub_tree_as_json(self):
-        result_list = [self.to_json()]
+        result_list = [self.json()]
         for child in self.children:
             result_list += child.flattened_sub_tree_as_json()
         return result_list
 
-    def to_json(self):
+    def json(self):
         d = {}
         d["id"] = self.id
         d["children"] = self.children
@@ -75,6 +75,13 @@ HTML_ROOT = None
 
 
 def build_html_elements(specter):
+    """
+    This builds all HtmlElements that should be highlighted during a search.
+    It also encodes which functions will be used for searching.
+
+    Returns:
+        HtmlElement: This is the html_root, which has all children linked inside
+    """
     html_root = HtmlElement(None)
     wallets = HtmlElement(html_root, id="toggle_wallets_list")
     devices = HtmlElement(html_root, id="toggle_devices_list")
@@ -224,6 +231,7 @@ def build_html_elements(specter):
 
 
 def apply_search_on_dict(search_term, html_root):
+    "Given an html_root it will call the child.function for all childs that do not have any children"
     end_nodes = html_root.calculate_end_nodes()
     for end_node in end_nodes:
         end_node.result = end_node.function(search_term)
@@ -231,8 +239,7 @@ def apply_search_on_dict(search_term, html_root):
 
 
 def do_global_search(search_term, specter):
-    print(f"search_term  =  {search_term}")
-
+    "Builds the HTML Tree if ncessary (only do it once) and then calls the functions in it to search for the search_term"
     global HTML_ROOT
     if not HTML_ROOT:
         HTML_ROOT = build_html_elements(specter)

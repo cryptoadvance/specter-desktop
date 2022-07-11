@@ -2,6 +2,9 @@
     var changed_elements = [];
     var timeOutIds = [];
 
+    /**
+    Resets the highlighting of previously highlighted elements
+    */
     function reset_highlight(){
         console.log('before resetting')
         console.log(changed_elements)
@@ -11,11 +14,16 @@
     }
 
 
-    function endpoint_visible(allowed_endpoint){
+    function endpoint_is_visible(allowed_endpoint){
         return ('{{ url_for(request.endpoint, **request.view_args) }}'.indexOf(allowed_endpoint) >= 0)
     }
 
 
+    /**
+    Fetches an element by the id. 
+    If it is below a shadowRoot the argument should be 
+        ids = [f"addresses-table-{wallet.alias}","shadowRoot","receive-addresses-view-btn"]
+    */
     function element_by_ids(ids){
         if (!ids) {return null};
 
@@ -45,6 +53,9 @@
         return last_found_element
     }
 
+    /**
+    It transferred the search_term to another input (such as a input that filters a table)
+    */
     function apply_filter_to_input(html_element, search_term){
         if (!html_element.filter_via_input_ids) {return};
     
@@ -61,6 +72,9 @@
         }
     }
 
+    /**
+    Applies the new style (like background color) to an html_element
+    */
     function apply_new_style(found_element){
         console.log(`setting green ${found_element.id}`);
 
@@ -77,24 +91,26 @@
         found_element.style.backgroundColor = 'var(--cmap-blue-darker)';    
     }
 
-    function process_found_element(html_element, search_term){
-        if (!endpoint_visible(html_element.visible_on_endpoints)){return};
+    /**
+    Takes a HtmlElement.json()  and does all necessary operations
+    */
+    function process_html_element(html_element, search_term){
+        if (!endpoint_is_visible(html_element.visible_on_endpoints)){return};
         apply_filter_to_input(html_element, search_term);
 
-        if (html_element.result == null){return}
-        if (html_element.result <= 0){return}
+        if (html_element.result == null){return};
+        if (html_element.result <= 0){return};
 
         var found_element = element_by_ids(html_element.id); 
-        if (!found_element) {return}
-        apply_new_style(found_element)
-
-
-
+        if (!found_element) {return};
+        apply_new_style(found_element);
     }
 
     
 
-
+    /**
+    Sends the search_term to an endpoint, gets the answer back and then calls process_html_element
+    */    
     function global_search(search_term){
         reset_highlight();
         var formData = new FormData();
@@ -107,7 +123,7 @@
             
             for (var i in answer.list){
                 var html_element = answer.list[i];
-                process_found_element(html_element, answer.search_term) ;
+                process_html_element(html_element, answer.search_term) ;
             }
             
 
