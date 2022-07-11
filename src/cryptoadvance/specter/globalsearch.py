@@ -95,9 +95,6 @@ def build_html_elements(specter):
         transactions = HtmlElement(
             sidebar_wallet,
             id="btn_transactions",
-            function=lambda x: search_in_structure(
-                x, [tx.__dict__() for tx in wallet.transactions.values()]
-            ),
             visible_on_endpoints=[
                 url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
             ],
@@ -107,6 +104,33 @@ def build_html_elements(specter):
                 "search_input",
             ),
         )
+        transactions_history = HtmlElement(
+            transactions,
+            id=(
+                f"tx-table-{wallet.alias}",
+                "shadowRoot",
+                "btn_history",
+            ),
+            function=lambda x: search_in_structure(
+                x, [tx.__dict__() for tx in wallet.transactions.values()]
+            ),
+            visible_on_endpoints=[
+                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
+            ],
+        )
+        transactions_history = HtmlElement(
+            transactions,
+            id=(
+                f"tx-table-{wallet.alias}",
+                "shadowRoot",
+                "btn_utxo",
+            ),
+            function=lambda x: search_in_structure(x, wallet.full_utxo),
+            visible_on_endpoints=[
+                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
+            ],
+        )
+
         addresses = HtmlElement(
             sidebar_wallet,
             id="btn_addresses",
