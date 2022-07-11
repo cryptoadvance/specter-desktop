@@ -121,7 +121,9 @@ def build_html_elements(specter):
                 "shadowRoot",
                 "receive-addresses-view-btn",
             ),
-            function=lambda x: search_in_structure(x, wallet.addresses),
+            function=lambda x: search_in_structure(
+                x, wallet.addresses_info(is_change=False)
+            ),
             visible_on_endpoints=[
                 url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
             ],
@@ -133,7 +135,9 @@ def build_html_elements(specter):
                 "shadowRoot",
                 "change-addresses-view-btn",
             ),
-            function=lambda x: search_in_structure(x, wallet.change_addresses),
+            function=lambda x: search_in_structure(
+                x, wallet.addresses_info(is_change=True)
+            ),
             visible_on_endpoints=[
                 url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
             ],
@@ -167,12 +171,14 @@ def build_html_elements(specter):
         )
 
     def add_all_in_devices(device):
-        sidebar_device = HtmlElement(devices, id=f"device_list_item_{device.name}")
+        sidebar_device = HtmlElement(devices, id=f"device_list_item_{device.alias}")
         device_keys = HtmlElement(
             sidebar_device,
             id="title",
             function=lambda x: search_in_structure(x, [key for key in device.keys]),
-            visible_on_endpoints=["/"],
+            visible_on_endpoints=[
+                url_for("devices_endpoint.device", device_alias=device.alias)
+            ],
         )
 
     for wallet in specter.wallet_manager.wallets.values():

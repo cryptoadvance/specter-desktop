@@ -1,13 +1,12 @@
 <script>
-    highlighted_elements = []
+    var changed_elements = [];
 
     function reset_highlight(){
-        for (var i in highlighted_elements){ 
-            highlighted_elements[i].element.style.backgroundColor = highlighted_elements[i].previous_color;
-        }
-
-        highlighted_elements=[]
-
+        console.log('before resetting')
+        console.log(changed_elements)
+        for (var i in changed_elements){ 
+            changed_elements[i].element.style = changed_elements[i].old_style;
+        } 
     }
 
 
@@ -61,6 +60,23 @@
         }
     }
 
+    function apply_new_style(found_element){
+        console.log(`setting green ${found_element.id}`);
+
+        // add the found_element to changed_elements  if it is not in there already
+        element_already_exists = false;
+        for (var i in changed_elements){
+            if (changed_elements[i].element == found_element){
+                element_already_exists = true;
+            }
+        }
+        if (!element_already_exists){
+            changed_elements.push({element:found_element, old_style:found_element.style});
+        }
+        found_element.style.backgroundColor = 'green';    
+
+    }
+
     function process_found_element(html_element, search_term){
         if (!endpoint_visible(html_element.visible_on_endpoints)){return};
         apply_filter_to_input(html_element, search_term);
@@ -68,13 +84,10 @@
         if (html_element.result == null){return}
         if (html_element.result <= 0){return}
 
-
-        console.log(`setting green ${html_element.id}`);
-
         var found_element = element_by_ids(html_element.id); 
         if (!found_element) {return}
-        highlighted_elements.push({element:found_element, previous_color:found_element.style.backgroundColor});
-        found_element.style.backgroundColor = 'green';    
+        apply_new_style(found_element)
+
 
 
     }
@@ -90,7 +103,7 @@
         let url="{{ url_for('wallets_endpoint_api.global_search' ) }}";
         send_request(url, 'POST', "{{ csrf_token() }}", formData).then((answer)=> {
             if (!answer){return}
-            console.log(answer)
+            //console.log(answer)
             
             for (var i in answer.list){
                 var html_element = answer.list[i];
