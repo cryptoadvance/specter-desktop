@@ -227,7 +227,7 @@ class TxList(dict, AbstractTxListContext):
         if self:
             # Dump all transactions to binary files
             # This happens only if they have not been dumped before
-            for tx in self.values():
+            for tx in list(self.values()):
                 tx.dump()
             write_csv(self.path, list(self.values()), self.ItemCls)
             self._file_exists = True

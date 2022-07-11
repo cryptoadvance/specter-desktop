@@ -1,5 +1,6 @@
 <script>
     var changed_elements = [];
+    var timeOutIds = [];
 
     function reset_highlight(){
         console.log('before resetting')
@@ -114,8 +115,28 @@
     }
 
 
+    /**
+    This function starts global_search with a delay
+
+    If a new delayed_global_search is called, it will stop all old Timeouts.
+
+    This ensures only the newest search is actually performed.
+    */
+    function delayed_global_search(search_term){
+        // stop old processes
+        for (var i = timeOutIds.length; i >= 0; i--) {
+            clearTimeout(timeOutIds[i]);      
+            console.log(`Stopped ${timeOutIds[i]}`)
+            timeOutIds.splice(i, 1);
+        }
+        
+        const timeOutId = setTimeout(() => global_search(search_term), 100);
+        timeOutIds.push(timeOutId);
+    }
+
+
 </script>
 
 <span style="font-size:2em; margin-left:5px; margin-right:5px;"> &#128269;</span>
-<input  id="global_search_input" placeholder="Search..." style="width:200px; height:40px; transform:translate(-1%, 10%)" oninput="global_search(this.value)"/>
+<input  id="global_search_input" placeholder="Search..." style="width:200px; height:40px; transform:translate(-1%, 10%)" oninput="delayed_global_search(this.value)"/>
 
