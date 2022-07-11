@@ -243,4 +243,8 @@ def do_global_search(search_term, specter):
     if search_term:
         apply_search_on_dict(search_term, HTML_ROOT)
     print(HTML_ROOT.flattened_sub_tree_as_json())
-    return {"tree": HTML_ROOT, "list": HTML_ROOT.flattened_sub_tree_as_json()}
+    return {
+        "tree": HTML_ROOT,
+        "list": HTML_ROOT.flattened_sub_tree_as_json(),
+        "search_term": search_term,
+    }
