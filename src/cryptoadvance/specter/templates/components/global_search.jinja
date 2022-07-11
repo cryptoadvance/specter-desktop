@@ -84,12 +84,11 @@
 
     function global_search(search_term){
         reset_highlight();
+        var formData = new FormData();
+        formData.append('global_search_input', document.getElementById('global_search_input').value);
 
-
-        let url="{{ url_for('wallets_endpoint_api.global_search', search_term='search_term') }}";
-        url = url.replace('search_term', encodeURIComponent(JSON.stringify( search_term)));
-        console.log(url)
-        send_request(url, 'GET', "{{ csrf_token() }}").then((answer)=> {
+        let url="{{ url_for('wallets_endpoint_api.global_search' ) }}";
+        send_request(url, 'POST', "{{ csrf_token() }}", formData).then((answer)=> {
             if (!answer){return}
             console.log(answer)
             
@@ -105,6 +104,6 @@
 
 </script>
 
-<input  name="global_search" placeholder="Type to search" oninput="global_search(this.value)"/>
+<input  id="global_search_input" placeholder="Type to search" oninput="global_search(this.value)"/>
 
 

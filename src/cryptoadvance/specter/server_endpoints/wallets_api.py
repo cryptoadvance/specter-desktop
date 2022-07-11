@@ -102,10 +102,12 @@ from ..globalsearch import do_global_search
 from ..helpers import robust_json_dumps
 
 
-@wallets_endpoint_api.route("/global_search/<search_term>", methods=["GET"])
+@wallets_endpoint_api.route("/global_search", methods=["POST"])
 @login_required
-def global_search(search_term):
-    return robust_json_dumps(do_global_search(json.loads(search_term), app.specter))
+def global_search():
+    search_term = request.form.get("global_search_input")
+    print(search_term)
+    return robust_json_dumps(do_global_search(search_term, app.specter))
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/combine/", methods=["POST"])

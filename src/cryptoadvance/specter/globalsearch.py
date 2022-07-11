@@ -77,6 +77,7 @@ HTML_ROOT = None
 def build_html_elements(specter):
     html_root = HtmlElement(None)
     wallets = HtmlElement(html_root, id="toggle_wallets_list")
+    devices = HtmlElement(html_root, id="toggle_devices_list")
 
     def search_in_structure(search_term, l):
         count = 0
@@ -165,8 +166,19 @@ def build_html_elements(specter):
             ],
         )
 
+    def add_all_in_devices(device):
+        sidebar_device = HtmlElement(devices, id=f"device_list_item_{device.name}")
+        device_keys = HtmlElement(
+            sidebar_device,
+            id="title",
+            function=lambda x: search_in_structure(x, [key for key in device.keys]),
+            visible_on_endpoints=["/"],
+        )
+
     for wallet in specter.wallet_manager.wallets.values():
         add_all_in_wallet(wallet)
+    for device in specter.device_manager.devices.values():
+        add_all_in_devices(device)
     return html_root
 
 
@@ -178,6 +190,8 @@ def apply_search_on_dict(search_term, html_root):
 
 
 def do_global_search(search_term, specter):
+    print(f"search_term  =  {search_term}")
+
     global HTML_ROOT
     if not HTML_ROOT:
         HTML_ROOT = build_html_elements(specter)
