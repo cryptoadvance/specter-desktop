@@ -111,14 +111,12 @@ def build_html_elements(specter):
                 "shadowRoot",
                 "btn_history",
             ),
-            function=lambda x: search_in_structure(
-                x, [tx.__dict__() for tx in wallet.transactions.values()]
-            ),
+            function=lambda x: search_in_structure(x, wallet.txlist()),
             visible_on_endpoints=[
                 url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
             ],
         )
-        transactions_history = HtmlElement(
+        transactions_utxo = HtmlElement(
             transactions,
             id=(
                 f"tx-table-{wallet.alias}",
