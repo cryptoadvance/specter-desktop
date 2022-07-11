@@ -31,6 +31,8 @@ from ..util.fee_estimation import FeeEstimationResultEncoder, get_fees
 from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
 from embit.descriptor.checksum import add_checksum
+from ..global_search import do_global_search
+from ..helpers import robust_json_dumps
 
 logger = logging.getLogger(__name__)
 
@@ -96,10 +98,6 @@ def fees():
 def fees_old(blocks):
     """Is this endpoint even used? It has been migrated from controller.py and renamed to fees_old"""
     return app.specter.estimatesmartfee(int(blocks))
-
-
-from ..globalsearch import do_global_search
-from ..helpers import robust_json_dumps
 
 
 @wallets_endpoint_api.route("/global_search", methods=["POST"])

@@ -73,8 +73,7 @@
         if (!element_already_exists){
             changed_elements.push({element:found_element, old_style:found_element.style});
         }
-        found_element.style.backgroundColor = 'green';    
-
+        found_element.style.backgroundColor = 'var(--cmap-blue-darker)';    
     }
 
     function process_found_element(html_element, search_term){

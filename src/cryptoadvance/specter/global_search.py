@@ -92,6 +92,14 @@ def build_html_elements(specter):
 
     def add_all_in_wallet(wallet):
         sidebar_wallet = HtmlElement(wallets, id=f"{wallet.alias}-sidebar-list-item")
+        wallet_names = HtmlElement(
+            sidebar_wallet,
+            id="title",
+            function=lambda x: search_in_structure(x, [wallet.alias]),
+            visible_on_endpoints=[
+                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
+            ],
+        )
         transactions = HtmlElement(
             sidebar_wallet,
             id="btn_transactions",
