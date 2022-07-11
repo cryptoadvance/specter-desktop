@@ -50,6 +50,11 @@ class HtmlElement:
             end_nodes += child.calculate_end_nodes()
         return end_nodes
 
+    def reset_results(self):
+        end_nodes = self.calculate_end_nodes()
+        for node in end_nodes:
+            node.result = None
+
     def flattened_sub_tree_as_json(self):
         result_list = [self.to_json()]
         for child in self.children:
@@ -86,7 +91,6 @@ def build_html_elements(specter):
 
     def add_all_in_wallet(wallet):
         sidebar_wallet = HtmlElement(wallets, id=f"{wallet.alias}-sidebar-list-item")
-        print([tx.__dict__() for tx in wallet.transactions.values()])
         transactions = HtmlElement(
             sidebar_wallet,
             id="btn_transactions",
@@ -105,11 +109,27 @@ def build_html_elements(specter):
         addresses = HtmlElement(
             sidebar_wallet,
             id="btn_addresses",
-            function=lambda x: search_in_structure(x, wallet.wallet_addresses),
             visible_on_endpoints=[
                 url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
             ],
         )
+        addresses_recieve = HtmlElement(
+            addresses,
+            id="receive-addresses-view-btn",
+            function=lambda x: search_in_structure(x, wallet.addresses),
+            visible_on_endpoints=[
+                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
+            ],
+        )
+        addresses_change = HtmlElement(
+            addresses,
+            id="change-addresses-view-btn",
+            function=lambda x: search_in_structure(x, wallet.change_addresses),
+            visible_on_endpoints=[
+                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
+            ],
+        )
+
         current_recieve_address = HtmlElement(
             sidebar_wallet,
             id="btn_receive",
@@ -135,8 +155,11 @@ def do_global_search(search_term, specter):
     global HTML_ROOT
     if not HTML_ROOT:
         HTML_ROOT = build_html_elements(specter)
+    else:
+        HTML_ROOT.reset_results()
     print(HTML_ROOT)
 
-    apply_search_on_dict(search_term, HTML_ROOT)
+    if search_term:
+        apply_search_on_dict(search_term, HTML_ROOT)
     print(HTML_ROOT.flattened_sub_tree_as_json())
     return {"tree": HTML_ROOT, "list": HTML_ROOT.flattened_sub_tree_as_json()}

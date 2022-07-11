@@ -6,6 +6,8 @@
             highlighted_elements[i].element.style.backgroundColor = highlighted_elements[i].previous_color;
         }
 
+        highlighted_elements=[]
+
     }
 
 
@@ -46,6 +48,7 @@
         if (!endpoint_visible(html_element.visible_on_endpoints)){return}
         apply_filter_to_input(html_element, search_term);
 
+        if (!html_element.result){return}
         if (html_element.result <= 0){return}
 
 
