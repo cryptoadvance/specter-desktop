@@ -86,7 +86,7 @@ def build_html_elements(specter):
                 count += search_in_structure(search_term, item.values())
             elif isinstance(item, list):
                 count += search_in_structure(search_term, item)
-            elif search_term in str(item):
+            elif search_term.lower() in str(item).lower():
                 count += 1
         return count
 
@@ -196,9 +196,14 @@ def build_html_elements(specter):
 
     def add_all_in_devices(device):
         sidebar_device = HtmlElement(devices, id=f"device_list_item_{device.alias}")
-        device_keys = HtmlElement(
+        device_names = HtmlElement(
             sidebar_device,
             id="title",
+            function=lambda x: search_in_structure(x, [device.alias]),
+        )
+        device_keys = HtmlElement(
+            sidebar_device,
+            id="keys-table-header-key",
             function=lambda x: search_in_structure(x, [key for key in device.keys]),
             visible_on_endpoints=[
                 url_for("devices_endpoint.device", device_alias=device.alias)
