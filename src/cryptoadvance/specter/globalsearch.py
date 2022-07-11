@@ -10,7 +10,13 @@ class HtmlElement:
     "This is a way to reconstruct the HTML Logical UI Tree and sum up results nicely"
 
     def __init__(
-        self, parent, id=None, function=None, children=None, visible_on_endpoints="/"
+        self,
+        parent,
+        id=None,
+        function=None,
+        children=None,
+        visible_on_endpoints="/",
+        filter_via_input_ids=None,
     ):
         self.parent = parent
         if self.parent:
@@ -20,6 +26,7 @@ class HtmlElement:
         self._result = None
         self.function = function
         self.visible_on_endpoints = visible_on_endpoints
+        self.filter_via_input_ids = filter_via_input_ids
 
     @property
     def result(self):
@@ -55,6 +62,7 @@ class HtmlElement:
         d["children"] = self.children
         d["result"] = self.result
         d["visible_on_endpoints"] = self.visible_on_endpoints
+        d["filter_via_input_ids"] = self.filter_via_input_ids
         return d
 
 
@@ -88,6 +96,11 @@ def build_html_elements(specter):
             visible_on_endpoints=[
                 url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
             ],
+            filter_via_input_ids=(
+                f"tx-table-{wallet.alias}",
+                "shadowRoot",
+                "search_input",
+            ),
         )
         addresses = HtmlElement(
             sidebar_wallet,
@@ -124,6 +137,6 @@ def do_global_search(search_term, specter):
         HTML_ROOT = build_html_elements(specter)
     print(HTML_ROOT)
 
-    results = apply_search_on_dict(search_term, HTML_ROOT)
-    print(results)
-    return {"tree": results, "list": results.flattened_sub_tree_as_json()}
+    apply_search_on_dict(search_term, HTML_ROOT)
+    print(HTML_ROOT.flattened_sub_tree_as_json())
+    return {"tree": HTML_ROOT, "list": HTML_ROOT.flattened_sub_tree_as_json()}

@@ -18,7 +18,8 @@
 		blockhash="{{ specter.config.validate_merkle_proofs | lower }}"
 		type="{{ tx_list_type }}"
 		hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
-		wallet="{{ wallet.alias }}">
+		wallet="{{ wallet.alias }}"
+		id="tx-table-{{ wallet.alias }}">
 		</tx-table>
 	</div>
 {% endblock %}
