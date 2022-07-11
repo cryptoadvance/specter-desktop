@@ -115,7 +115,11 @@ def build_html_elements(specter):
         )
         addresses_recieve = HtmlElement(
             addresses,
-            id="receive-addresses-view-btn",
+            id=(
+                f"addresses-table-{wallet.alias}",
+                "shadowRoot",
+                "receive-addresses-view-btn",
+            ),
             function=lambda x: search_in_structure(x, wallet.addresses),
             visible_on_endpoints=[
                 url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
@@ -123,7 +127,11 @@ def build_html_elements(specter):
         )
         addresses_change = HtmlElement(
             addresses,
-            id="change-addresses-view-btn",
+            id=(
+                f"addresses-table-{wallet.alias}",
+                "shadowRoot",
+                "change-addresses-view-btn",
+            ),
             function=lambda x: search_in_structure(x, wallet.change_addresses),
             visible_on_endpoints=[
                 url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
