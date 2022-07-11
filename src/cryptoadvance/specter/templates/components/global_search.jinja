@@ -87,7 +87,7 @@
 
 
         let url="{{ url_for('wallets_endpoint_api.global_search', search_term='search_term') }}";
-        url = url.replace('search_term', JSON.stringify( search_term));
+        url = url.replace('search_term', encodeURIComponent(JSON.stringify( search_term)));
         console.log(url)
         send_request(url, 'GET', "{{ csrf_token() }}").then((answer)=> {
             if (!answer){return}

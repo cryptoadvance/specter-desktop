@@ -138,10 +138,28 @@ def build_html_elements(specter):
             ],
         )
 
-        current_recieve_address = HtmlElement(
+        recieve = HtmlElement(
             sidebar_wallet,
             id="btn_receive",
             function=lambda x: search_in_structure(x, [wallet.address]),
+            visible_on_endpoints=[
+                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
+            ],
+        )
+
+        send = HtmlElement(
+            sidebar_wallet,
+            id="btn_send",
+            visible_on_endpoints=[
+                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
+            ],
+        )
+        unsigned = HtmlElement(
+            send,
+            id="btn_send_pending",
+            function=lambda x: search_in_structure(
+                x, [psbt.to_dict() for psbt in wallet.pending_psbts.values()]
+            ),
             visible_on_endpoints=[
                 url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
             ],
