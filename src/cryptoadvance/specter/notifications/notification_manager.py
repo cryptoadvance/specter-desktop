@@ -135,16 +135,26 @@ class NotificationManager:
             f"Setting {ui_notification.name} of user {ui_notification.user_id} available = {is_available}"
         )
 
-    def get_ui_notifications_of_user(self, user_id):
+    def get_ui_notifications_of_user(
+        self, user_id, callable_from_any_thread_required=True
+    ):
         "Gives a back a [ui_notifications that belong to the user_id] + [ui_notifications that belong to user_id == None]"
         return [
             ui_notification
             for ui_notification in self.ui_notifications
-            if ui_notification.user_id == user_id
+            if (ui_notification.user_id == user_id)
+            and (
+                ui_notification.callable_from_any_thread
+                or not callable_from_any_thread_required
+            )
         ] + [
             ui_notification
             for ui_notification in self.ui_notifications
             if ui_notification.user_id is None
+            and (
+                ui_notification.callable_from_any_thread
+                or not callable_from_any_thread_required
+            )
         ]
 
     def set_notification_shown(self, notification_id, target_ui):

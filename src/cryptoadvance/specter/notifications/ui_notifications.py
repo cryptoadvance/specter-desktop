@@ -21,6 +21,7 @@ class BaseUINotifications:
         self.name = "base"
         self.is_available = True
         self.user_id = None
+        self.callable_from_any_thread = True
         self.on_close = on_close
         self.on_show = on_show
 
@@ -113,6 +114,7 @@ class FlashNotifications(BaseUINotifications):
         }
         self.name = "flash"
         self.user_id = user_id
+        self.callable_from_any_thread = False
 
     def show(self, notification):
         if (
