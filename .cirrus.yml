@@ -53,21 +53,6 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
     - source ./.env/bin/activate
     - pip3 install -e .
 
-test_task:
-  pre_prep_script: 
-    - apt-get update && apt-get install -y --no-install-recommends python3-dev python3-pip wget
-  << : *PREP_STUFF_TEMPLATE
-  test_script: 
-    - source ./.env/bin/activate
-    - echo $PATH
-    #- pip3 install -e .
-    - pytest --cov=cryptoadvance --junitxml=./testresults.xml
-  always:
-    junit_artifacts:
-      path: "./testresults.xml"
-      format: junit
-  
-
 cypress_test_task:
   container:
     image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python:v9.5.4
