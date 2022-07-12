@@ -213,6 +213,9 @@ def build_html_elements(specter):
             sidebar_device,
             id="title",
             function=lambda x: search_in_structure(x, [device.alias]),
+            visible_on_endpoints=[
+                url_for("devices_endpoint.device", device_alias=device.alias)
+            ],
         )
         device_keys = HtmlElement(
             sidebar_device,
