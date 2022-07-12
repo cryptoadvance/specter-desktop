@@ -309,6 +309,7 @@ wallets_endpoint_api.fees
 wallets_endpoint_api.generatemnemonic
 wallets_endpoint_api.get_label
 wallets_endpoint_api.get_scantxoutset_status
+wallets_endpoint_api.get_websockets_info
 wallets_endpoint_api.pending_psbt_list
 wallets_endpoint_api.rescan_progress
 wallets_endpoint_api.set_label
