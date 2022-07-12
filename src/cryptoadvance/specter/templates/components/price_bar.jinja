@@ -1,4 +1,18 @@
 <style>
+    .left-toolbar {
+        {% if session["is_language_rtl"] %}
+            border-radius: 0 0 15px 0;
+        {% else %}
+            border-radius: 0 0 0 15px;
+        {% endif %}
+    }
+    .left-toolbar:hover {
+        {% if session["is_language_rtl"] %}
+            border-radius: 0 0 15px 0;
+        {% else %}
+            border-radius: 0 0 0 15px;
+        {% endif %}
+    }
     #price_provider option[disabled] {
         display: none;
     }
@@ -19,7 +33,7 @@
         }
     }
 </style>
-<a id="price-bar-btn" title="Bitcoin price" type="button" style="cursor: pointer; background: #4a90e2; color: #fff; padding: 0px 20px;" class="settings-bar-btn" onclick="showPageOverlay('price-popup')">
+<a id="price-bar-btn" title="Bitcoin price" type="button" style="cursor: pointer; background: #4a90e2; color: #fff; padding: 0px 20px;" class="settings-bar-btn left-toolbar" onclick="showPageOverlay('price-popup')">
     {% if specter.price_check %}
         <div title="Price settings">
             <span>{{ 1 | altunit}}</span>
