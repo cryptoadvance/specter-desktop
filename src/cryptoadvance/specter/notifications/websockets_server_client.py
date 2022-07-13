@@ -23,12 +23,12 @@ class WebsocketsBase:
     def __init__(self, port):
         self.domain = "127.0.0.1"  # the client and server always run on 127.0.0.1
         self.port = port
-        self.quit = False
+        self._quit = False
         self.started = False
         self.loop = None
 
-    def quit_now(self):
-        self.quit = True
+    def quit(self):
+        self._quit = True
 
     def forever_function(self):
         "This is the function that will contain an endless loop"
@@ -44,7 +44,7 @@ class WebsocketsBase:
         self.started = True
         logger.debug(f"------> complete forever_function of {self.__class__.__name__}")
 
-        if not self.quit:
+        if not self._quit:
             loop.run_forever()  # this is needed for the server, and does nothing for the client
         logger.debug(f"------> after run_forever of {self.__class__.__name__}")
         loop.close()
@@ -121,10 +121,10 @@ class WebsocketsServer(WebsocketsBase):
         self.user_manager = user_manager
         self.notification_manager = notification_manager
 
-    def quit_now(self):
-        super().quit_now()
+    def quit(self):
+        super().quit()
         if self.loop:
-            logger.debug(f"quit_now in {self.__class__.__name__}")
+            logger.debug(f"quit in {self.__class__.__name__}")
             self.loop.call_soon_threadsafe(self.loop.stop)
 
     def get_connection_user_tokens(self):
@@ -293,8 +293,8 @@ class WebsocketsServer(WebsocketsBase):
                 logger.debug(f"_forever_listener recieved message: {message}")
                 message_dictionary = json.loads(message)
                 await self.process_incoming_message(message_dictionary, websocket)
-                if self.quit:
-                    break  # self.quit not working yet
+                if self._quit:
+                    break  # self._quit not working yet
         except websockets.exceptions.ConnectionClosedError as e:
             logger.error(
                 f"WebsocketsServer: Connection {websocket} dropped. Will it reconnect?"
@@ -321,8 +321,8 @@ class WebsocketsClient(WebsocketsBase):
         self.q = Queue()
         self.user_token = secrets.token_urlsafe(128)
 
-    def quit_now(self):
-        super().quit_now()
+    def quit(self):
+        super().quit()
         self.q.put("quit")
 
     def send(self, message_dictionary):
@@ -345,7 +345,7 @@ class WebsocketsClient(WebsocketsBase):
         )
 
         logger.debug("Client: connected")
-        while not self.quit:  #  this is an endless loop waiting for new queue items
+        while not self._quit:  #  this is an endless loop waiting for new queue items
             item = self.q.get()
             if item == "quit":
                 logger.debug(f'quitting Queue loop because item == "{item}"')
