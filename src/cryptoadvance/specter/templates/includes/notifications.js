@@ -344,3 +344,15 @@ function connect_and_authenticate_websocket(){
 
 connect_and_authenticate_websocket()
 
+
+
+
+
+/**
+ * If a user is logged in then regularrly check the WebAPI notification permission
+ */
+ if ('{{ current_user.username }}'){
+    setInterval(send_updated_webapi_permission, 3000);
+}else{
+    // no user logged in
+}
