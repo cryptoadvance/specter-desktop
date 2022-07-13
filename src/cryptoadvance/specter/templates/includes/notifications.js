@@ -165,7 +165,7 @@ function webapi_notification(js_notification) {
         // see https://levelup.gitconnected.com/use-the-javascript-notification-api-to-display-native-popups-43f6227b9980
         // see https://www.htmlgoodies.com/html5/creating-your-own-notifications-with-the-html5-notifications-api/
         notification.onclick = (() => {
-            // do something
+            // not implemented yet
         });        
         notification.onclose = (() => {
             on_close(js_notification['id'], 'WebAPI');
