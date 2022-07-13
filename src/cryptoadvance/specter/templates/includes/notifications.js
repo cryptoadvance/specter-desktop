@@ -119,7 +119,7 @@ function check_and_request_webapi_permission(f_granted, f_denied, f_default, ret
     } else // if the status is undecided, then request permission
     if (webapi_has_permission == "default") { 
         Notification.requestPermission().then(function (permission) {
-        check_webapi_has_permission()
+        check_webapi_has_permission();
 
 
         if (webapi_has_permission == true) {
@@ -168,11 +168,11 @@ function webapi_notification(js_notification) {
             // do something
         });        
         notification.onclose = (() => {
-            on_close(js_notification['id'], 'WebAPI')
+            on_close(js_notification['id'], 'WebAPI');
         });        
         notification.onshow = (() => {
             // do something
-            on_show(js_notification['id'], 'WebAPI')
+            on_show(js_notification['id'], 'WebAPI');
         });        
 
         function closeNotification(){notification.close()}
@@ -230,11 +230,11 @@ function js_message_box(js_notification){
  */
 function js_console(js_notification){
     if (js_notification['notification_type'] == 'error'){
-        console.error(js_notification)
+        console.error(js_notification);
     } else if (js_notification['notification_type'] == 'exception'){
-        console.error(js_notification)
+        console.error(js_notification);
     } else if (js_notification['notification_type'] == 'warning'){
-        console.warn(js_notification)
+        console.warn(js_notification);
     } else {            
         console.log(js_notification);
     }
@@ -276,12 +276,12 @@ async function send_updated_webapi_permission(){
         // case: webapi was deactivated, but now is "granted"  
         if  ((new_webapi_has_permission == 'default')|| (new_webapi_has_permission == true)){
             set_target_ui_availability('WebAPI', true);
-            console.log('Activating WebAPI')
+            console.log('Activating WebAPI');
         }
         // case: webapi was active, but now is "denied" 
         else if   (new_webapi_has_permission == false) {
             set_target_ui_availability('WebAPI', false);
-            console.log('Deactivating WebAPI')            
+            console.log('Deactivating WebAPI');            
         }
 
     }
@@ -298,10 +298,10 @@ function connect_and_authenticate_websocket(){
     send_request("{{ url_for('wallets_endpoint_api.get_websockets_info') }}", 'GET', 
                     "{{ csrf_token() }}").then(function (websockets_info) {
         // Create the websocket  
-        var port = websockets_info['port']
-        var user_token = websockets_info['user_token']
+        var port = websockets_info['port'];
+        var user_token = websockets_info['user_token'];
 
-        ip_address = "{{ request.host.split(':')[0] }}"
+        ip_address = "{{ request.host.split(':')[0] }}";
         websocket = new WebSocket(`ws://${ip_address}:${port}/`);
 
 
@@ -318,7 +318,7 @@ function connect_and_authenticate_websocket(){
             var js_notification = JSON.parse(message.data);
             var target_uis = js_notification["options"]['target_uis'];
             for (let i in target_uis) {  
-                show_notification(target_uis[i], js_notification)  ;   
+                show_notification(target_uis[i], js_notification);   
             }               
         };
 
@@ -330,7 +330,7 @@ function connect_and_authenticate_websocket(){
         };
 
         websocket.onerror = function(err) {
-            console.error('Socket encountered error: ', err.message, 'Closing socket');
+            console.error('Socket encountered error: ', err.message);
             // websocket.close();
         };    
 
