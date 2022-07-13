@@ -359,18 +359,18 @@ class NotificationManager:
                 )
                 # I have to restrict the ui_notifications that are used as a backup to callable_from_any_thread_required
                 # because it it not possible to call a flash notification from another thread (that  failed doing a WebAPI notification)
-                for other_ui_notification in self._get_ui_notifications_of_user(
+                for backup_ui_notification in self._get_ui_notifications_of_user(
                     notification.user_id, callable_from_any_thread_required=True
                 ):
-                    # if it is already broadcasted on this other_ui_notification by default anyway, no need to do it twice
-                    if other_ui_notification in broadcast_on_ui_notification:
+                    # if it is already broadcasted on this backup_ui_notification by default anyway, no need to do it twice
+                    if backup_ui_notification in broadcast_on_ui_notification:
                         continue
                     logger.debug(
-                        f"broadcast_on_ui_notification {broadcast_on_ui_notification} , other_ui_notification {other_ui_notification}"
+                        f"broadcast_on_ui_notification {broadcast_on_ui_notification} , backup_ui_notification {backup_ui_notification}"
                     )
-                    notification_broadcasted = other_ui_notification.show(notification)
+                    notification_broadcasted = backup_ui_notification.show(notification)
                     logger.debug(
-                        f"Rebroadcast on {other_ui_notification.name} of {notification} "
+                        f"Rebroadcast on {backup_ui_notification.name} of {notification} "
                     )
                     if notification_broadcasted:
                         break
