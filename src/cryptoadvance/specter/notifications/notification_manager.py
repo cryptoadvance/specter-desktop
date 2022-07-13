@@ -134,7 +134,7 @@ class NotificationManager:
                 return notification
 
     def _get_ui_notifications_of_user(
-        self, user_id, callable_from_any_thread_required=True
+        self, user_id, callable_from_any_thread_required=False
     ):
         "Gives a back a [ui_notifications that belong to the user_id] + [ui_notifications that belong to user_id == None]"
         return [
@@ -357,7 +357,9 @@ class NotificationManager:
                 logger.debug(
                     f"Trying with other ui_notifications to broadcast {notification}"
                 )
-                for other_ui_notification in ui_notification_of_user:
+                for other_ui_notification in self._get_ui_notifications_of_user(
+                    notification.user_id, callable_from_any_thread_required=True
+                ):
                     # if it is already broadcasted on this other_ui_notification by default anyway, no need to do it twice
                     if other_ui_notification in broadcast_on_ui_notification:
                         continue
