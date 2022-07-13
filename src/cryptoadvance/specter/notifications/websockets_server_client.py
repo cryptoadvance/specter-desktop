@@ -21,7 +21,7 @@ class WebsocketsBase:
     """
 
     def __init__(self, port):
-        self.domain = "localhost"  # the client and server always run on localhost
+        self.domain = "127.0.0.1"  # the client and server always run on 127.0.0.1
         self.port = port
         self.quit = False
         self.started = False
