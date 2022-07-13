@@ -338,16 +338,16 @@ class NotificationManager:
         if notification.target_uis == ["internal_notification"]:
             return
 
-        ui_notification_of_user = self._get_ui_notifications_of_user(
+        ui_notifications_of_user = self._get_ui_notifications_of_user(
             notification.user_id
         )
-        broadcast_on_ui_notification = [
+        broadcast_on_ui_notifications = [
             ui_notification
-            for ui_notification in ui_notification_of_user
+            for ui_notification in ui_notifications_of_user
             if (ui_notification.name in notification.target_uis)
         ]
 
-        for ui_notification in broadcast_on_ui_notification:
+        for ui_notification in broadcast_on_ui_notifications:
             logger.debug(f"show {notification} on {ui_notification}")
 
             notification_broadcasted = ui_notification.show(notification)
@@ -363,10 +363,10 @@ class NotificationManager:
                     notification.user_id, callable_from_any_thread_required=True
                 ):
                     # if it is already broadcasted on this backup_ui_notification by default anyway, no need to do it twice
-                    if backup_ui_notification in broadcast_on_ui_notification:
+                    if backup_ui_notification in broadcast_on_ui_notifications:
                         continue
                     logger.debug(
-                        f"broadcast_on_ui_notification {broadcast_on_ui_notification} , backup_ui_notification {backup_ui_notification}"
+                        f"broadcast_on_ui_notifications {broadcast_on_ui_notifications} , backup_ui_notification {backup_ui_notification}"
                     )
                     notification_broadcasted = backup_ui_notification.show(notification)
                     logger.debug(
