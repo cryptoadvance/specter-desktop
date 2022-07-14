@@ -1147,6 +1147,10 @@ nav.collapse-on-mobile a.mobile-nav-icon {
   }
 }
 @media (max-width: 690px){
+    .table-holder{
+        padding-left: 10px;
+        padding-right: 10px;
+    }
     .card{
         border-width: 0px;
         width: auto;
