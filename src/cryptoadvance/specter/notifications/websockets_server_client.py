@@ -39,14 +39,20 @@ class WebsocketsBase:
         self.loop = loop
         asyncio.set_event_loop(loop)
 
-        logger.debug(f"------> starting forever_function of {self.__class__.__name__}")
+        logger.debug(
+            f"------> starting forever_function of {self.__class__.__name__} on port {self.port}"
+        )
         loop.run_until_complete(self.forever_function())
         self.started = True
-        logger.debug(f"------> complete forever_function of {self.__class__.__name__}")
+        logger.debug(
+            f"------> complete forever_function of {self.__class__.__name__} on port {self.port}"
+        )
 
         if not self._quit:
             loop.run_forever()  # this is needed for the server, and does nothing for the client
-        logger.debug(f"------> after run_forever of {self.__class__.__name__}")
+        logger.debug(
+            f"------> after run_forever of {self.__class__.__name__}  on port {self.port}"
+        )
         loop.close()
         logger.debug(f"loop of {self.__class__.__name__} was shut down")
 
