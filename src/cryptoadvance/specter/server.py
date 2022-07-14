@@ -19,6 +19,7 @@ from jinja2 import select_autoescape
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.wrappers import Response
+from werkzeug.serving import is_running_from_reloader
 
 from .hwi_server import hwi_server
 from .services.callbacks import after_serverpy_init_app
@@ -151,8 +152,12 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )
 
+    websockets_port = app.config["WEBSOCKETS_PORT"]
+    if is_running_from_reloader():
+        # if the flask reloader starts a second instance of everything, make sure the server and client use a different port
+        websockets_port += 1
     specter.notification_manager = NotificationManager(
-        app.config["WEBSOCKETS_PORT"], specter.user_manager
+        websockets_port, specter.user_manager
     )
     for user in specter.user_manager.users:
         specter.notification_manager.register_user_ui_notifications(user.id)
