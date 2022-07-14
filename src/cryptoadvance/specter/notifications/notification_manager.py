@@ -82,10 +82,10 @@ class NotificationManager:
         )
 
     def quit(self):
-        if self.notification_manager.websockets_server:
-            self.notification_manager.websockets_server.quit()
-        if self.notification_manager.websockets_client:
-            self.notification_manager.websockets_client.quit()
+        if self.websockets_server:
+            self.websockets_server.quit()
+        if self.websockets_client:
+            self.websockets_client.quit()
 
     def _register_default_ui_notifications(self):
         "Registers up the logging and print UINotifications, that can be used by alll users  (user_id=None)"
