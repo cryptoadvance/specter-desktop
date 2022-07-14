@@ -66,20 +66,25 @@ class NotificationManager:
         Arguments:
             - ui_notifications:  {user_id: [list of ui_notifications]}
                     The "default" ui_notifications is at position 0
+
+            websockets_port = -1 disables the websocket part
         """
         self.ui_notifications = ui_notifications if ui_notifications else []
         self.notifications = []
         self._register_default_ui_notifications()
 
-        (
-            self.websockets_server,
-            self.websockets_client,
-        ) = websockets_server_client.create_websockets_server_and_client(
-            websockets_port, user_manager, self
-        )
-        websockets_server_client.run_websockets_server_and_client(
-            self.websockets_server, self.websockets_client
-        )
+        self.websockets_server = None
+        self.websockets_client = None
+        if websockets_port != -1:
+            (
+                self.websockets_server,
+                self.websockets_client,
+            ) = websockets_server_client.create_websockets_server_and_client(
+                websockets_port, user_manager, self
+            )
+            websockets_server_client.run_websockets_server_and_client(
+                self.websockets_server, self.websockets_client
+            )
 
     def quit(self):
         if self.websockets_server:

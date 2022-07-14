@@ -3,7 +3,6 @@ import os
 import pytest
 import sys
 from flask import Blueprint
-from flask import current_app as app
 from cryptoadvance.specter.server import create_app, init_app
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.config import TestConfig
@@ -44,7 +43,6 @@ def test_home(caplog, client):
     assert b"Invalid username or password" in result.data
     result = login(client, "blub")
     assert b"Invalid username or password" in result.data
-    app.specter.notification_manager.quit()  # needed, otherwise pytest times out
 
 
 @pytest.mark.slow
@@ -54,7 +52,6 @@ def test_settings_general(caplog, client):
     assert result.status_code == 200  # OK.
     assert b"Network:" in result.data
     assert b"regtest" in result.data
-    app.specter.notification_manager.quit()  # needed, otherwise pytest times out
 
 
 @pytest.mark.slow
@@ -98,7 +95,6 @@ def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
     # assert b'btc Hot Wallet' in result.data # Not sure why this doesn't work
     assert b"myNiceDevice" in result.data
     assert b"btchot" in result.data
-    app.specter.notification_manager.quit()  # needed, otherwise pytest times out
 
 
 def test_APP_URL_PREFIX(caplog):
@@ -108,6 +104,7 @@ def test_APP_URL_PREFIX(caplog):
         config={
             "APP_URL_PREFIX": "/someprefix",
             "SPECTER_URL_PREFIX": "",
+            "WEBSOCKETS_PORT": -1,  # disabled
             "EXT_URL_PREFIX": "/spc/ext",
             "SPECTER_DATA_FOLDER": os.path.expanduser("~/.specter_testing"),
         }
@@ -132,7 +129,6 @@ def test_APP_URL_PREFIX(caplog):
     # The swan extension will automatically redirect to /settings/auth
     assert result.status_code == 302
     assert result.location.endswith("/someprefix/settings/auth")
-    app.specter.notification_manager.quit()  # needed, otherwise pytest times out
 
 
 def test_SPECTER_URL_PREFIX(caplog):
@@ -142,6 +138,7 @@ def test_SPECTER_URL_PREFIX(caplog):
         config={
             "SPECTER_API_ACTIVE": True,
             "APP_URL_PREFIX": "",
+            "WEBSOCKETS_PORT": -1,  # disabled
             "SPECTER_URL_PREFIX": "/someprefix",
             "EXT_URL_PREFIX": "/someprefix/extensions",
             "SPECTER_DATA_FOLDER": os.path.expanduser("~/.specter_testing"),
@@ -168,7 +165,6 @@ def test_SPECTER_URL_PREFIX(caplog):
     # The swan extension will automatically redirect to /settings/auth
     assert result.status_code == 302
     assert result.location.endswith("/someprefix/settings/auth")
-    app.specter.notification_manager.quit()  # needed, otherwise pytest times out
 
 
 def login(client, password):
@@ -385,4 +381,3 @@ welcome_endpoint.index"""
     assert report["wallets"] >= 39
     assert report["api"] >= 7
     assert report["all"] >= 138
-    app.specter.notification_manager.quit()  # needed, otherwise pytest times out
