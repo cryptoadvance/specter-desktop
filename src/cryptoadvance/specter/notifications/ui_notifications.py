@@ -161,6 +161,9 @@ class JSConsoleNotifications(BaseUINotifications):
         # The Notification manager handles sending to other target_uis
         js_notification = notification.to_js_notification()
         js_notification["options"]["target_uis"] = [self.name]
+        if not self.websockets_client:
+            self.is_available = False
+            return False
         self.websockets_client.send(js_notification)
         return True  # successfully broadcasted
 
