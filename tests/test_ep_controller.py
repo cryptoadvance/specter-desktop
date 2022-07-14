@@ -44,7 +44,6 @@ def test_home(caplog, client):
     assert b"Invalid username or password" in result.data
     result = login(client, "blub")
     assert b"Invalid username or password" in result.data
-    app.specter.notification_manager.quit()  # needed, otherwise pytest times out
 
 
 @pytest.mark.slow
@@ -54,7 +53,6 @@ def test_settings_general(caplog, client):
     assert result.status_code == 200  # OK.
     assert b"Network:" in result.data
     assert b"regtest" in result.data
-    app.specter.notification_manager.quit()  # needed, otherwise pytest times out
 
 
 @pytest.mark.slow
@@ -98,7 +96,6 @@ def test_settings_general_restore_wallet(bitcoin_regtest, caplog, client):
     # assert b'btc Hot Wallet' in result.data # Not sure why this doesn't work
     assert b"myNiceDevice" in result.data
     assert b"btchot" in result.data
-    app.specter.notification_manager.quit()  # needed, otherwise pytest times out
 
 
 def test_APP_URL_PREFIX(caplog):
@@ -114,7 +111,6 @@ def test_APP_URL_PREFIX(caplog):
     )
     client = myapp.test_client()
     login(client, "secret")
-    app.specter.notification_manager.quit()  # needed, otherwise pytest times out
 
     # Specter
     result = client.get("/")
@@ -149,7 +145,7 @@ def test_SPECTER_URL_PREFIX(caplog):
     )
     client = myapp.test_client()
     login(client, "secret")
-    app.specter.notification_manager.quit()  # needed, otherwise pytest times out
+
     result = client.get("/")
     # The effect is almost the same but you get one more convenient redirect
     assert result.status_code == 302  # REDIRECT.

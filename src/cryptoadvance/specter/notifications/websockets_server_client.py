@@ -386,9 +386,13 @@ def run_websockets_server_and_client(ws, client):
     for i in range(50):
         if ws.started:
             break
-        time.sleep(i / 10)  # sleep for 0.1 seconds
+        time.sleep(0.1)  # sleep for 0.1 seconds
         if i == 49:
-            logger.error(f'The server never reached the "started" state.')
+            ws.quit()
+            logger.error(
+                f'The server never reached the "started" state. Quitting the server and do not attempt to start the client.'
+            )
+            return
 
     client.port = (
         ws.port
