@@ -144,6 +144,7 @@
             font-size: 15px;
             line-height: 12px;
             font-weight: 50;
+            margin-right: 10px;
         }
         .freeze-tx-btn {
             border: 1px solid var(--cmap-border);
@@ -222,6 +223,14 @@
             flex-direction: column;
             height: 100%;
         } 
+
+        @media (max-width: 690px){
+            .search-container {
+                justify-content: normal;
+                overflow-x: scroll;
+            }
+        }
+
     </style>
 
     <nav class="switcher row">
