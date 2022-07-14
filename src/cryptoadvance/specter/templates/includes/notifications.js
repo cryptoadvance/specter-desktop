@@ -9,10 +9,14 @@
  * Example:
  * CreateNotification('this is the title', {target_uis:['js_message_box', 'WebAPI'], body:'body line 1\nline 2', image:'/static/img/ghost_3d.png', timeout:3000})
  */ 
-async function CreateNotification(title, options){ 
-    websocket.send(JSON.stringify( {'title':title, 'options': options}));
+ async function CreateNotification(title, options){ 
+    if (websocket.readyState === WebSocket.OPEN) {
+        websocket.send(JSON.stringify( {'title':title, 'options': options}));
+    } else {
+        // If the socket is not open yet, retry in 1 s
+        setTimeout(CreateNotification, 1000, title, options);  
+    }
 }
-
 
 
 
