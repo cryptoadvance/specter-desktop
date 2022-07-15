@@ -1,14 +1,6 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
 {% set tab = 'history' %}
 {% block content %}
-	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-	<style>
-		.showRescanHint {
-			display: flex; 
-			flex-direction: column; 
-			align-items: center;
-		}
-	</style>
 	{% from 'wallet/history/components/total_wallet_balances.jinja' import total_wallet_balances %}
 	{{ total_wallet_balances(wallet, specter) }}
 	<div class="table-holder">
@@ -29,28 +21,6 @@
 		wallet="{{ wallet.alias }}">
 		</tx-table>
 	</div>
-	<div id="rescan-hint" class="hidden">
-		<p>{{_('Is this not a fresh wallet? Did you expect transactions here? Then click') }} &#128071; {{_('to find them') }}</p>
-	 	<a href="{{ url_for('wallets_endpoint.settings', wallet_alias=wallet_alias, rescan_blockchain=True) }}" class="btn" style="max-width: 175px;">Go to blockchain rescan</a>
-	</div>
 {% endblock %}
 
-{% block scripts %}
-	<script type="text/javascript">
- 	const txTableWebComponent = document.getElementById('tx-table-webcomponent')
- 	const rescanHint = document.getElementById('rescan-hint')
- 	document.addEventListener('readystatechange', event => {
- 			if (txTableWebComponent.noTransaction === true) {
- 				console.log("Showing the rescan hint.")
- 				rescanHint.classList.remove('hidden')
- 				rescanHint.classList.add('showRescanHint')
- 			}
- 			else {
- 				console.log("Disabling the rescan hint.")
- 				rescanHint.classList.remove('showRescanHint')
- 				rescanHint.classList.add('hidden')
- 			}
- 	})
- 	</script>
-{% endblock %}
 
