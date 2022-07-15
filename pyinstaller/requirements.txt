@@ -21,8 +21,8 @@ macholib==1.14 \
     --hash=sha256:0c436bc847e7b1d9bda0560351bf76d7caf930fb585a828d13608839ef42c432 \
     --hash=sha256:c500f02867515e6c60a27875b408920d18332ddf96b4035ef03beddd782d4281
     # via -r requirements.in
-pefile==2019.4.18 \
-    --hash=sha256:a5d6e8305c6b210849b47a6174ddf9c452b2888340b8177874b862ba6c207645
+pefile==2022.5.30 \
+    --hash=sha256:a5488a3dd1fd021ce33f969780b88fe0f7eebb76eb20996d7318f307612a045b
     # via -r requirements.in
 pyinstaller-hooks-contrib==2022.8 \
     --hash=sha256:c4210fc50282c9c6a918e485e0bfae9405592390508e3be9fde19acc2213da56 \

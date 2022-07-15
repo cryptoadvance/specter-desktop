@@ -1,5 +1,5 @@
 pyinstaller==5.2
-pefile
+pefile==2022.5.30
 macholib
 pywin32-ctypes
 babel
