@@ -19,5 +19,11 @@
     "env": {
       "broadcast_timeout":"8000"
     },
-    "includeShadowDom": false 
+    "includeShadowDom": false,
+    "reporter": "junit",
+    "reporterOptions": {
+      "mochaFile": "cypresstest-output.xml",
+      "toConsole": true
+    }
+
 }
