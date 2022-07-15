@@ -35,20 +35,38 @@ this.tooltip.addEventListener("customout", () => {
     ...
 })
 
+If you don't care about responsiveness, just use the tooltips like so, you can change the standard width via the width attribute.
+
+{#
+    <div style="display: flex;">
+        <span>{{ _("Load Specter backup") }}:</span>
+        <tool-tip>
+            <span slot="paragraph">
+                {{ _("Please make sure to unzip the backup file first, then upload the extracted folder.") }}
+                {{ _("This will restore your wallets and devices.") }}<br>
+                {{ _("Loading devices or wallets with names identical to existing ones may overwrite the existing ones.") }}        
+            </span>
+        </tool-tip>
+    </div>
+#}
+
 2) Within other div such as buttons
-Set the within attribute to true in this case (to adjust the positioning, otherwise the arrow will no be visible). You can also set a fixed width if you wish. With this approach it is not guarenteed that the
+Set the within attribute to true in this case (to adjust the positioning, otherwise the arrow will no be visible). With this approach it is not guarenteed that there will be no overflowing at edges etc.
 
 {# - Usage -
 <button type="button" class="btn freeze-tx-btn">
     Un/Freeze UTXOs
     <tool-tip width="250px" within="true">
-    <span slot="paragraph" style="text-align: start;">
-        {{ _("Freezing a UTXO will make Specter disallow spending it.") }}<br><br>
-        {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }}
-    </span>
+        <h1 slot="title">{{ _('Freezing UTXO') }}</h1>
+        <span slot="paragraph" style="text-align: start;">
+            {{ _("Freezing a UTXO will make Specter disallow spending it.") }}<br><br>
+            {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }}
+        </span>
     </tool-tip>
 </button>
 #}
+
+2) Within other div such as buttons
 -->
 
 <template id="tooltip-template-id">
@@ -75,6 +93,7 @@ Set the within attribute to true in this case (to adjust the positioning, otherw
             border-radius: 10px;
             padding: 10px;
             z-index: 2;
+            width: 200px;
         }
         /* This makes the arrow */
         .tooltip__box:before {
@@ -88,11 +107,14 @@ Set the within attribute to true in this case (to adjust the positioning, otherw
         }
         .title {
             color: white;
+            text-align: start;
         }
         .paragraph {
             display: block;
             font-weight: 100;
             font-size: 14px;
+            text-align: start;
+            color: white;
         }
         .tooltip:hover .tooltip__box {
             display: flex;
