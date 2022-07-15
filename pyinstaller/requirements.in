@@ -1,4 +1,4 @@
-pyinstaller==4.9
+pyinstaller==5.2
 pefile
 macholib
 pywin32-ctypes
