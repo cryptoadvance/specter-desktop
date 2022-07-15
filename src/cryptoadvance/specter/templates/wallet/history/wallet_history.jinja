@@ -9,7 +9,7 @@
 		{% include "includes/tx-data.html" %}
 		{% include "includes/explorer-link.html" %}
 		{% include "includes/tx-table.html" %}
-		<tx-table  id="tx-table-webcomponent"
+		<tx-table
 		{% if specter.price_check and (specter.alt_rate and specter.alt_symbol) %}
 			price="{{ specter.alt_rate }}"
 			symbol="{{ specter.alt_symbol }}"
