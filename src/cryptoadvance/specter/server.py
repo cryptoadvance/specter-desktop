@@ -152,8 +152,8 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )
 
-    websockets_port = app.config["WEBSOCKETS_PORT"]
-    if is_running_from_reloader() and websockets_port != -1:
+    websockets_port = app.config["SPECTER_WEBSOCKETS_PORT"]
+    if is_running_from_reloader() and app.config["SPECTER_WEBSOCKETS_ACTIVE"]:
         # if the flask reloader starts a second instance of everything, make sure the server and client use a different port
         websockets_port += 1
     specter.notification_manager = NotificationManager(

@@ -190,7 +190,8 @@ class BaseConfig(object):
     SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
 
     # websockets specifig configurations
-    WEBSOCKETS_PORT = os.getenv("WEBSOCKETS_PORT", 5087)
+    SPECTER_WEBSOCKETS_PORT = os.getenv("SPECTER_WEBSOCKETS_PORT", 5087)
+    SPECTER_WEBSOCKETS_ACTIVE = os.getenv("SPECTER_WEBSOCKETS_PORT", True)
 
 
 class DevelopmentConfig(BaseConfig):
@@ -231,7 +232,7 @@ class TestConfig(BaseConfig):
     LIQUID_RPC_TIMEOUT = 60
 
     # websockets specifig configurations
-    WEBSOCKETS_PORT = -1  # disabled
+    SPECTER_WEBSOCKETS_ACTIVE = False
 
 
 class CypressTestConfig(TestConfig):
@@ -257,7 +258,7 @@ class CypressTestConfig(TestConfig):
     LIQUID_RPC_TIMEOUT = 40
 
     # websockets specifig configurations
-    WEBSOCKETS_PORT = os.getenv("WEBSOCKETS_PORT", 25445)
+    SPECTER_WEBSOCKETS_ACTIVE = True
 
 
 class ProductionConfig(BaseConfig):

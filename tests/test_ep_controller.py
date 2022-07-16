@@ -104,7 +104,7 @@ def test_APP_URL_PREFIX(caplog):
         config={
             "APP_URL_PREFIX": "/someprefix",
             "SPECTER_URL_PREFIX": "",
-            "WEBSOCKETS_PORT": -1,  # disabled
+            "SPECTER_WEBSOCKET_ACTIVE": False,
             "EXT_URL_PREFIX": "/spc/ext",
             "SPECTER_DATA_FOLDER": os.path.expanduser("~/.specter_testing"),
         }
@@ -138,7 +138,7 @@ def test_SPECTER_URL_PREFIX(caplog):
         config={
             "SPECTER_API_ACTIVE": True,
             "APP_URL_PREFIX": "",
-            "WEBSOCKETS_PORT": -1,  # disabled
+            "SPECTER_WEBSOCKET_ACTIVE": False,
             "SPECTER_URL_PREFIX": "/someprefix",
             "EXT_URL_PREFIX": "/someprefix/extensions",
             "SPECTER_DATA_FOLDER": os.path.expanduser("~/.specter_testing"),
