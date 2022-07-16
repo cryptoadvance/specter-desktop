@@ -87,7 +87,7 @@
                     </p>
                     <span class="note">
                     {{ _("To pair your Passport with Specter, navigate to Pair Wallet –> Specter and follow the instructions on your Passport.")}}<br>
-                    {{_("If your webcam is having difficulty scanning QR codes on Passport’s screen, we recommend using a microSD.") }}
+                    {{ _("If your webcam is having difficulty scanning QR codes on Passport’s screen, we recommend using a microSD.") }}
                     </span>
                 </div>
                 <div id="hwi-only-instructions" {%if device_class.device_type in ['bitcoincore', 'bitcoincore_watchonly', 'cobo', 'coldcard', 'electrum', 'other', 'specter']%}class="hidden"{% endif %}>

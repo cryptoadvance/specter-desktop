@@ -47,7 +47,7 @@
 									<span class="info">
 										<span class="info__title">{{ _("Using an airgapped device with QR codes") }}<br><br></span>
 										{{ _("Scan QR codes with extended public keys one by one.") }}<br><br>										
-										{{ _("We recommend importing ")}}<b>{{_('Native Segwit')}}</b>{{_(' and ')}}<b>{{_('Segwit Multisig')}}</b>{{_(' keys.')}}
+										{{ _("We recommend importing ")}}<b>{{ _('Native Segwit')}}</b>{{ _(' and ')}}<b>{{ _('Segwit Multisig')}}</b>{{ _(' keys.')}}
 									</span>
 								</p>
 							</div>
@@ -80,9 +80,9 @@
 				<p class="note center" style="text-decoration: underline; cursor: pointer;" onclick="showPageOverlay('usb_import_account_number')">{{ _("Specify account number (advanced)") }}</p>
 				<div class="hidden" id="usb_import_account_number">
 					<h1>{{ _("Select the account you wish to import") }}</h1>
-					<p class="center" style="max-width: 500px; margin: 5px auto;">{{ _("You can set which account number you wish to import.")}}<br>{{_("Account derivation uses the number choosen here to derive an xpub as specified in") }} <a style="color: #fff" href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#account" target="_blank">BIP44</a>.</p>
+					<p class="center" style="max-width: 500px; margin: 5px auto;">{{ _("You can set which account number you wish to import.")}}<br>{{ _("Account derivation uses the number choosen here to derive an xpub as specified in") }} <a style="color: #fff" href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#account" target="_blank">BIP44</a>.</p>
 					Account # <input type="number" step="1" min="0" value="0" id="usb_account_number" style="max-width: 100px; min-width: 100px;"><br><br>
-					<p class="note center">{{ _("This is an advanced feature.")}}<br>{{_("If you're not familiar with account derivations please leave this as 0.") }}</p><br>
+					<p class="note center">{{ _("This is an advanced feature.")}}<br>{{ _("If you're not familiar with account derivations please leave this as 0.") }}</p><br>
 					<button class="btn centered" type="button" onclick="hidePageOverlay()">{{ _("Close") }}</button>
 				</div>
 				<div class="note">
@@ -101,7 +101,7 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 				<br>
 				<p class="note" style="border-radius: 5px; padding: 20px; background: rgba(0,0,0,0.1); color: #ccc;">
 					<span style="display: inline-block;font-weight: bold; margin-bottom: 8px;">⚠️ {{ _("A note on hot wallets") }}:</span><br>
-					{{ _('This will create a ')}}<a style="color: #ddd;" href="https://en.bitcoin.it/wiki/Hot_wallet" target="_blank">{{_('hot wallet')}}</a>{{_(' on your Bitcoin Core node.')}}<br>
+					{{ _('This will create a ')}}<a style="color: #ddd;" href="https://en.bitcoin.it/wiki/Hot_wallet" target="_blank">{{ _('hot wallet')}}</a>{{ _(' on your Bitcoin Core node.')}}<br>
 					{{ _("Hot wallets are considered less secure and are not recommended for use with significant amounts. Use with caution and beware the potential risks.") }}
 				</p>
 				<p>{{ _("Enter you mnemonic here or use the randomly generated one") }}:</p>
@@ -147,7 +147,7 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 					<br>
 					<p>{{ _("Derivation paths") }}:<br>
 					<span class="note">
-					{{ _("Enter each derivation path as a separate line. Start each path with an ")}}<code>m</code>{{_('. No trailing slash.')}}</span>
+					{{ _("Enter each derivation path as a separate line. Start each path with an ")}}<code>m</code>{{ _('. No trailing slash.')}}</span>
 					</p>
 					<textarea name="derivation_paths" placeholder='{{ _("Specify derivation paths to import for the wallet") }}'>
 m/84h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h
