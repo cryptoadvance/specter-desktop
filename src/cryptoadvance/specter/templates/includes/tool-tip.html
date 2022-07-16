@@ -2,7 +2,7 @@
 Tooltips can be used in two ways:
 
 1) Within a flex container
-This enables responsiveness of the width for the tooltip text. Ideally, put the tooltips on the same DOM level as the div / element the tooltip is intended for.
+This also enables responsiveness of the width for the tooltip text. Ideally, put the tooltips on the same DOM level as the div / element the tooltip is intended for.
 
 {# - Usage -
     <div class="search-container">
@@ -35,7 +35,7 @@ this.tooltip.addEventListener("customout", () => {
     ...
 })
 
-If you don't care about responsiveness, just use the tooltips like so, you can change the standard width via the width attribute.
+If you don't care about responsiveness, just use the tooltips like so, you can set a width via the width attribute.
 
 {#
     <div style="display: flex;">
@@ -51,22 +51,20 @@ If you don't care about responsiveness, just use the tooltips like so, you can c
 #}
 
 2) Within other div such as buttons
-Set the within attribute to true in this case (to adjust the positioning, otherwise the arrow will no be visible). With this approach it is not guarenteed that there will be no overflowing at edges etc.
+You can use the move-right attribute, to move the tooltip to the right if necessary.
 
 {# - Usage -
 <button type="button" class="btn freeze-tx-btn">
     Un/Freeze UTXOs
-    <tool-tip width="250px" within="true">
-        <h1 slot="title">{{ _('Freezing UTXO') }}</h1>
-        <span slot="paragraph" style="text-align: start;">
+    <tool-tip width="250px" move-right="true">
+        <h4 slot="title">{{ _('Freezing UTXO') }}</h4>
+        <span slot="paragraph">
             {{ _("Freezing a UTXO will make Specter disallow spending it.") }}<br><br>
             {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }}
         </span>
     </tool-tip>
 </button>
 #}
-
-2) Within other div such as buttons
 -->
 
 <template id="tooltip-template-id">
@@ -89,11 +87,10 @@ Set the within attribute to true in this case (to adjust the positioning, otherw
             left: 30px;
             top: -20px;
             background: var(--cmap-bg-lightest);
-            border: 1.5px solid var(--cmap-border);
+            border: 1.5px solid var(--default-color);
             border-radius: 10px;
             padding: 10px;
-            z-index: 2;
-            width: 200px;
+            z-index: 4;
         }
         /* This makes the arrow */
         .tooltip__box:before {
@@ -103,17 +100,20 @@ Set the within attribute to true in this case (to adjust the positioning, otherw
             top: 20px;
             border-style: solid;
             border-width: 10px 10px 10px 0;
-            border-color: transparent var(--cmap-border);
+            border-color: transparent var(--default-color);
         }
         .title {
-            color: white;
             text-align: start;
+            font-size: 15px;
+            font-weight: bold;
+            color: white;
         }
         .paragraph {
             display: block;
-            font-weight: 100;
-            font-size: 14px;
             text-align: start;
+            font-size: 13px;
+            font-weight: 300;
+            line-height: 1.3;
             color: white;
         }
         .tooltip:hover .tooltip__box {
@@ -158,14 +158,14 @@ Set the within attribute to true in this case (to adjust the positioning, otherw
         }
 
         static get observedAttributes() {
-            return ['width', 'within'];
+            return ['width', 'move'];
         }
 
         connectedCallback() {
             if (this.getAttribute("width")) {
                 this.tooltipBox.style.width = this.getAttribute("width");
             }
-            if (this.getAttribute("within")) {
+            if (this.getAttribute("move-right")) {
                 this.tooltipBox.style.left = "60px";
             }
         }

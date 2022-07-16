@@ -56,7 +56,7 @@
                     {% if specter.price_check %} 
                         <span class="note" style="color: grey">({{ wallet.amount_immature | altunit }})</span>
                     {% endif %}
-                    <tool-tip>
+                    <tool-tip width="200px">
                         <h4 slot="title">{{ _("What are immature outputs?") }}</h4>
                         <span slot="paragraph">
                         {{ _('The UTXO of coinbase transactions (mining rewards) have the special condition that they cannot be spent for at least 100 blocks. Their amount is not included in the total balance here. You see these outputs because you are using regtest and have mined blocks.') }}
@@ -75,7 +75,7 @@
                     {% if specter.price_check %} 
                         <span class="note" style="color: grey">({{ wallet.amount_immature | altunit }})</span>
                     {% endif %}
-                    <tool-tip>
+                    <tool-tip width="200px">
                         <h4 slot="title">{{ _("What are immature outputs?") }}</h4>
                         <span slot="paragraph">
                         {{ _('The UTXO of coinbase transactions (mining rewards) have the special condition that they cannot be spent for at least 100 blocks. Their amount is not included in the total balance here.') }}

@@ -41,35 +41,29 @@
 					<qr-scanner id="xpub-scan" style="width:50%">
 						<a slot="button" href="#" class="btn" style="margin: 8px;">
 							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin-right: 2px;" class="svg-white"> {{ _("Scan") }}
-							<div class="tool-tip">
-								<i class="tool-tip__icon">i</i>
-								<p class="tool-tip__info">
-									<span class="info">
-										<span class="info__title">{{ _("Using an airgapped device with QR codes") }}<br><br></span>
-										{{ _("Scan QR codes with extended public keys one by one.") }}<br><br>
-										{{ _("We recommend importing <b>Native Segwit</b> and <b>Segwit Multisig</b> keys.") }}
-									</span>
-								</p>
-							</div>
-					</a>
+							<tool-tip width="200px">
+						        <h4 slot="title">{{ _("Using an airgapped device with QR codes") }}</h4>
+						        <span slot="paragraph">
+									{{ _("Scan QR codes with extended public keys one by one.") }}<br>
+									{{ _("We recommend importing <b>Native Segwit</b> and <b>Segwit Multisig</b> keys.") }}
+						        </span>
+						    </tool-tip>
+						</a>
 					</qr-scanner>
 					<input type="file" id="file" class="inputfile" multiple/>
 					<label for="file" class="btn" style="margin: 8px;">
 						<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 26px; margin-right: 2px;" class="svg-white">
 						{{ _("Choose files") }}
-						<div class="tool-tip">
-							<i class="tool-tip__icon">i</i>
-							<p class="tool-tip__info">
-								<span class="info">
-									<span class="info__title">{{ _("Using an airgapped ColdCard with MicroSD") }}<br><br></span>
-									{{ _("Export extended public keys for single-key wallets to the SD card from") }}<br>
-									<b>Advanced → MicroSD → Export Wallet → Generic JSON</b><br><br>
-									{{ _("To export multisignature pubkeys go to") }} <br>
-									<b>Settings → Multisig Wallets → Export XPUB</b>
-									{{ _("We recommend using Native Segwit.") }}
-								</span>
-							</p>
-						</div>
+						<tool-tip width="200px">
+					        <h4 slot="title">{{ _("Using an airgapped ColdCard with MicroSD") }}</h4>
+					        <span slot="paragraph">
+								{{ _("Export extended public keys for single-key wallets to the SD card from") }}<br>
+								<b>Advanced → MicroSD → Export Wallet → Generic JSON</b><br><br>
+								{{ _("To export multisignature pubkeys go to") }} <br>
+								<b>Settings → Multisig Wallets → Export XPUB</b>
+								{{ _("We recommend using Native Segwit.") }}
+					        </span>
+						</tool-tip>
 					</label>
 				</div>
 				<div class="row">

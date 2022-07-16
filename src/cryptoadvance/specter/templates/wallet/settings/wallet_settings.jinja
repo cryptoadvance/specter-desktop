@@ -266,16 +266,13 @@
 					</div>
 					<button type="submit" name="action" value="rescanutxo" class="btn" style="max-width: 180px; margin-left: 20px">
 						{{ _("Rescan UTXO") }}
-						<div class="tool-tip">
-							<i class="tool-tip__icon">i</i>
-							<p class="tool-tip__info">
-								<span class="info">
-									<span class="info__title">{{ _("Rescanning UTXO set") }}</span><br><br>
-									{{ _("Only unspent transactions will be imported, so you won't see the full history, but your balance will be there.") }}<br><br>
-									<b>{{ _("Note:") }}</b> {{ _("Make sure you have enough addresses in the keypool, otherwise not all unspent transactions may be found.") }}
-								</span>
-							</p>
-						</div>
+						<tool-tip width="180px">
+        					<h4 slot="title">{{ _("Rescanning UTXO set") }}</h4>
+					        <span slot="paragraph">
+								{{ _("Only unspent transactions will be imported, so you won't see the full history, but your balance will be there.") }}<br>
+								<b>{{ _("Note:") }}</b> {{ _("Make sure you have enough addresses in the keypool, otherwise not all unspent transactions may be found.") }}
+					        </span>
+					    </tool-tip>
 					</button>
 				</div>
 				{% if specter.info['pruned']  %}

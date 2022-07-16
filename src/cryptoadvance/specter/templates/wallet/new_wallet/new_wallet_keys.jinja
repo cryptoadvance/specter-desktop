@@ -44,36 +44,28 @@
 			</div>
 			<br>
 		{% endif %}
-		<div class="center" style="max-width: 500px; margin: auto;">
-			<div style="display: inline-block; text-align: center; margin-top: 10px;">
+		<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 500px; margin: auto;">
+			<div style="display: flex; gap: 3px; margin-top: 10px;">
 				<input form="keysform" type="checkbox" name="rescanblockchain" id="rescan" class="inline" onchange="toggleScanOptions(this)">
 				<label for="rescan">{{ _("Scan for existing funds?") }}</label>
-				<div class="tool-tip">
-					<i class="tool-tip__icon">i</i>
-					<p class="tool-tip__info">
-						<span class="info">
-							<span class="info__title">{{ _("Importing an existing wallet") }}<br></span>
-							{{ _("Check this option to scan the blockchain for existing wallet balance and history.") }}
-						</span>
-					</p>
-				</div>
+				<tool-tip width="200px">
+            		<span slot="paragraph">
+						{{ _("Check this option if the wallet has past transactions: the blockchain will be scanned for those and the wallet balance will be calculated.") }}      
+            		</span>
+        		</tool-tip>
 			</div>
-			<div id="scan-options" class="hidden">
+			<div id="scan-options" class="hidden" style="text-align: center;">
 				<br>
-				<div>
+				<div style="display: flex; justify-content: center">
 					{{ _("Rescan type:") }} 
 					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="full_rescan_option" value="full" onclick="toggleFullRescanOption(this)" checked>{{ _("Full rescan") }}</label>
 					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px" name="full_rescan_option" value="utxo" onclick="toggleFullRescanOption(this);">{{ _("UTXO only") }}</label>
-					<div class="tool-tip">
-						<i class="tool-tip__icon">i</i>
-						<p class="tool-tip__info">
-							<span class="info">
-								<span class="info__title">{{ _("Choosing Rescan Type") }}<br></span>
-								{{ _("Full rescan is a relativly slow process which looks for and imports the full wallet transaction history and balance.") }}<br><br>
-								{{ _("UTXO only is a fast rescan option which only looks for existing balances (UTXO), but will not import the full transaction history.") }}
-							</span>
-						</p>
-					</div>
+					<tool-tip width="200px">
+            			<span slot="paragraph">
+							{{ _("Full rescan is a slow process which searches for and imports the full wallet transaction history and balance.") }}<br>
+							{{ _("UTXO only is fast and looks only for existing balances (UTXO) and will not import the full transaction history.") }}
+            			</span>
+        			</tool-tip>
 				</div>
 				<br>
 				<div id="full-scan-options">
@@ -93,14 +85,11 @@
 				</div>
 				<div id="utxo-scan-options" style="display: none">
 					{% if specter.info['pruned']  %}
-						<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> {{ _("fetch missing data from block explorer") }}
-							<tool-tip>
-							    <h4 slot="title">{{ _("Fetch missing data") }}</h4>
-							    <span slot="paragraph">
-									{{ _("You are using a pruned node. Blocks for some transactions may be missing.") }}<br><br>
-									{{ _("Check this checkbox if you want to fetch missing information from block explorer.") }}
-							    </span>
-							</tool-tip>
+						<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> {{ _("Fetch missing data from block explorer") }}
+							<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
+								{{ _("You are using a pruned node. Blocks for some transactions may be missing.") }}
+								{{ _("Check this checkbox if you want to fetch missing information from a block explorer.") }}
+							</span>
 						</label>
 						<div id="utxo-explorer">
 							<br>

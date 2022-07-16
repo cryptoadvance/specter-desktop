@@ -284,7 +284,7 @@
                 <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="button" class="btn freeze-tx-btn">
                     Un/Freeze UTXOs
-                    <tool-tip within="true">
+                    <tool-tip width="200px" move-right="true">
                         <span slot="paragraph">
                             {{ _("Freezing a UTXO will make Specter disallow spending it.") }}<br><br>
                             {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }}
