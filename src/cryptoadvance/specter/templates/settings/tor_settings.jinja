@@ -94,11 +94,11 @@
 		<br><br>
 		<h2 style="text-align: center; color: #ccc;">{{ _("Additional Options") }}</h2>
 		<div style="width: 580px; margin: auto;">
-			{% if not debug %}
+			{% if debug %}
 				<div style="display: flex; align-items: center;">
 					<p style="font-size: 1.1em">{{ _("Enable Tor hidden service") }}</p>
 					<div id="tooltip-container" class="tooltip-little-grow tooltip-width">
-						<tool-tip>
+						<tool-tip id="tooltips-tor">
 						    <h4 slot="title">{{ _("Tor hidden service") }}</h4>
 						    <span slot="paragraph">
 								{{ _("Running Specter behind a Tor hidden service allows you to acccess Specter over Tor from anywhere via a Tor supporting browser.") }}
@@ -127,7 +127,7 @@
 			<div style="display: flex; align-items: center;">
 				<p style="font-size: 1.1em; display: flex">{{ _("Force external calls over Tor?") }}</p>
 				<div id="tooltip-container" class="tooltip-little-grow tooltip-width">
-					<tool-tip>
+					<tool-tip id="tooltips-tor">
 					    <h4 slot="title">{{ _("Tor Only mode") }}</h4>
 					    <span slot="paragraph">
 							{{ _("Some optional Specter functionality, like rescanning UTXO on a pruned node or getting the Bitcoin price, might make calls to external APIs and services.") }}<br><br>
@@ -173,16 +173,16 @@
 			}
 
 			// Hook up responsiveness for tooltips
-			const tooltips = document.querySelectorAll('tool-tip');
+			const tooltips = document.querySelectorAll('#tooltips-tor');
             const tooltipContainers = document.querySelectorAll('#tooltip-container');
             tooltips.forEach((tooltip, index) => tooltip.addEventListener('customhover', () => {
-                tooltipContainers[index].classList.remove("tooltip-no-grow");
+                tooltipContainers[index].classList.remove("tooltip-little-grow");
                 tooltipContainers[index].classList.add("tooltip-max-grow");
                 })
             )
             tooltips.forEach((tooltip, index) => tooltip.addEventListener('customout', () => {
                 tooltipContainers[index].classList.remove("tooltip-max-grow");
-                tooltipContainers[index].classList.add("tooltip-no-grow");
+                tooltipContainers[index].classList.add("tooltip-little-grow");
                 })
             )
 			document.addEventListener("DOMContentLoaded", function(){
