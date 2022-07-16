@@ -61,7 +61,7 @@
 					<h1>{{ _("Scan to Verify Address on Your Device") }}</h1><br>
 					<div id="verify_address_qr_code_container"></div><br>
 					<p>
-							{{ _("Specter can verify this address if you scan it.<br>It has an address index included in the QR code.") }}
+							{{ _("Specter can verify this address if you scan it.")}}<br>{{_("It has an address index included in the QR code.") }}
 					</p><br>
 				</div>
 				<button onclick="verifyQRCode('{{ wallet.address }}', '{{ wallet.address_index | string }}')" type="button" class="btn centered padded">{{ _("Verify address via QR code") }}</button>

@@ -10,11 +10,11 @@
 				<p class="tool-tip__info">
 					<span class="info">
 						<span class="info__title">{{ _("Importing an existing wallet?") }}<br></span>
-						{{ _('After choosing device(s), click continue, then just select the:<br> "Scan for existing funds" checkbox on the next screen.') }}
+						{{ _('After choosing device(s), click continue, then just select the:')}}<br>{{_(' "Scan for existing funds" checkbox on the next screen.') }}
 						<br>
 						{% if specter.info["pruned"] %}
 							<span class="warning" style="display: inline-block;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
-								{{ _("Please Note:<br>You are using a pruned node. Wallet history may not fully appear.") }}
+								{{ _("Please Note:")}}<br>{{_("You are using a pruned node. Wallet history may not fully appear.") }}
 							</span>
 						{% endif %}
 					</span>
@@ -44,7 +44,7 @@
 					<br>
 					{% if specter.info["pruned"] %}
 						<span class="warning" style="display: inline-block;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
-							{{ _("Please Note:<br>You are using a pruned node. Wallet history may not fully appear.") }}
+							{{ _("Please Note:")}}<br>{{_("You are using a pruned node. Wallet history may not fully appear.") }}
 						</span>
 					{% endif %}
 				</span>

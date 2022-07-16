@@ -107,7 +107,7 @@
 				is-liquid="{{specter.is_liquid}}"
 				selected-coins="{{ selected_coins }}">
 			</coin-selection>
-			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">{{ _('Create <span class="optional">&nbsp;unsigned&nbsp;</span>transaction') }}</button>
+			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">{{ _('Create ')}}<span class="optional">&nbsp;{{_('unsigned')}}&nbsp;</span>{{_('transaction') }}</button>
 		</div>
 	</form>
 {% endblock %}

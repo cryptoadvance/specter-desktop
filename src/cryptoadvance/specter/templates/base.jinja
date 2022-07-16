@@ -44,6 +44,7 @@
 		{% endblock %}
 	</head>
 	<body>
+	'{{ _("Can\'t get access to the camera. Specter should run on localhost or over https to enable QR code scanning.") }}'
 	<div class="pageloader" id="pageloader"></div>
 	{% if specter.config.auth.method == "none" or current_user.is_authenticated %}
 		<!-- BC-UR2 QR code stuff -->
@@ -174,7 +175,7 @@
 												<p>{{ _("If you're running a local Bitcoin Core node, Specter should be able to auto-detect it if its data folder is located at the default location.") }}<br>
 												{{ _("In case it isn't, you might need to specify the Bitcoin Core data folder path in Specter's settings page.") }}<br>
 												{{ _("Alternatively, you can switch off auto-detect from the settings and provide the Bitcoin Core RPC credentials and host URL manually.") }}<br><br>
-												{{ _("<b>Please note:</b><br>Your node must be configured with <code>server=1</code> line in the <code>bitcoin.conf</code> file.") }}<br>
+												<b>{{ _("Please note:")}}</b><br>{{_('Your node must be configured with ')}}<code>server=1</code>{{_(' line in the ')}}<code>bitcoin.conf</code>{{_(' file.')}}<br>
 												{{ _("If you don't have that, add it and restart Bitcoin Core.") }}"
 												</p>
 												<br><br>
