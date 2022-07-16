@@ -87,7 +87,7 @@
             top: 0;
             background-color: var(--cmap-bg-lighter);
             border: 1.5px solid var(--cmap-border);
-            z-index: 9;
+            z-index: 3;
             padding: 5px 5px 5px 5px;
         }
         .page-limit-label {
@@ -252,7 +252,7 @@
     </nav>
     <div class="pagination-container">
         <a class="pagination-back pagination-arrow pagination-disabled">&#8249;</a>
-        {{ _("Page") }} <input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span class="pagination-counter"></span>
+        {{ _("Page") }} &nbsp;<input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span class="pagination-counter"></span>
         <a class="pagination-next pagination-arrow pagination-disabled">&#8250;</a>
         <br>
     </div>
@@ -497,7 +497,7 @@
 
             // Initialize default sort, search, limit and page parameters
             this.idx = 0;
-            this.limit = 50;
+            this.limit = 25;
             this.search = "";
             this.sortby = "time";
             this.sortdir = "desc";
@@ -970,9 +970,11 @@
                 // If there are multiple pages show the pagination bar
                 if (this.pageCount > 1) {
                     this.paginationContainer.classList.remove('hidden');
+                    this.paginationContainer.classList.add('pagination-container');
                     this.paginationCounter.innerText = `of ${this.pageCount}`;
                     this.paginationIdxInput.max = this.pageCount;
                 } else {
+                    this.paginationContainer.classList.remove('pagination-container');
                     this.paginationContainer.classList.add('hidden');
                 }
 
