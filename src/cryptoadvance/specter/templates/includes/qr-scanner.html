@@ -217,7 +217,7 @@ class QRScannerElement extends HTMLElement {
           this.popup.style.display = 'flex';
           this.scanner.start();
         }catch(e){
-          this.triggerError('{{ _("Can\'t start the QR scanner!") }}' + e);
+          this.triggerError('{{ _("Can\'t start the QR scanner!") }}<br>' + e);
         }
       }else{
         this.reset();
