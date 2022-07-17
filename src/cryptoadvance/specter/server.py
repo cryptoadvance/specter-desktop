@@ -12,7 +12,7 @@ from cryptoadvance.specter.util.reflection import get_template_static_folder
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, request, session, url_for
 from flask_apscheduler import APScheduler
-from flask_babel import Babel
+from .htmlsafebabel import HTMLSafeBabel
 from flask_login import LoginManager, login_user
 from flask_wtf.csrf import CSRFProtect
 from jinja2 import select_autoescape
@@ -233,7 +233,7 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
         app.config["BABEL_TRANSLATION_DIRECTORIES"] = os.path.join(
             sys._MEIPASS, "translations"
         )
-    babel = Babel(app)
+    babel = HTMLSafeBabel(app)
 
     @babel.localeselector
     def get_language_code():

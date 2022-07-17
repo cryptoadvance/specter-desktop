@@ -262,6 +262,8 @@ class HWIBridge(JSONRPC):
                     derivation, default="xpub", network=network
                 )
                 xpub = convert_xpub_prefix(xpub, slip132_prefix)
+                if derivation == "m":
+                    return "[{}]{}\n".format(master_fpr, xpub)
                 return "[{}/{}]{}\n".format(master_fpr, derivation.split("m/")[1], xpub)
             except Exception as e:
                 logger.warning(
