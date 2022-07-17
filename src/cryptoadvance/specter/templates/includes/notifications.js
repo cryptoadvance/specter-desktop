@@ -10,6 +10,7 @@
  * CreateNotification('this is the title', {target_uis:['js_message_box', 'WebAPI'], body:'body line 1\nline 2', image:'/static/img/ghost_3d.png', timeout:3000})
  */ 
  async function CreateNotification(title, options){ 
+    if (!websocket){return}
     if (websocket.readyState === WebSocket.OPEN) {
         websocket.send(JSON.stringify( {'title':title, 'options': options}));
     } else {

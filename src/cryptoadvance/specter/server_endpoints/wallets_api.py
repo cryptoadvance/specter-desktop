@@ -109,7 +109,7 @@ def get_websockets_info():
             "port": app.specter.notification_manager.websockets_server.port
             if app.specter.notification_manager.websockets_server
             else None,
-            "active": app.specter.notification_manager.websockets_active,
+            "active": bool(app.specter.notification_manager.websockets_server),
         }
     )
 
