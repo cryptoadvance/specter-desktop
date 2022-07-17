@@ -106,7 +106,10 @@ def get_websockets_info():
     return json.dumps(
         {
             "user_token": app.specter.user_manager.get_user().websocket_token,
-            "port": app.specter.notification_manager.websockets_server.port,
+            "port": app.specter.notification_manager.websockets_server.port
+            if app.specter.notification_manager.websockets_server
+            else None,
+            "active": app.specter.notification_manager.websockets_active,
         }
     )
 

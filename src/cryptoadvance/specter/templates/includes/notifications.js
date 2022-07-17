@@ -303,14 +303,19 @@ function connect_and_authenticate_websocket(){
                     "{{ csrf_token() }}").then(function (websockets_info) {
         // Create the websocket  
         var port = websockets_info['port'];
+        var active = websockets_info['active'];
         var user_token = websockets_info['user_token'];
+
+        // give up completely on websockets, if not active
+        if (!active){
+            return
+        }
 
         ip_address = "{{ request.host.split(':')[0] }}";
         websocket = new WebSocket(`ws://${ip_address}:${port}/`);
 
 
         
-
         // Authenticate and add listeners when the websocket connection is open
         websocket.onopen = function(e) {
             websocket.send(JSON.stringify( {'type':'authentication', 'user_token': websockets_info['user_token']}));

@@ -61,13 +61,13 @@ class NotificationManager:
 
     """
 
-    def __init__(self, websockets_port, user_manager, ui_notifications=None):
+    def __init__(
+        self, websockets_active, websockets_port, user_manager, ui_notifications=None
+    ):
         """
         Arguments:
             - ui_notifications:  {user_id: [list of ui_notifications]}
                     The "default" ui_notifications is at position 0
-
-            websockets_port = -1 disables the websocket part
         """
         self.ui_notifications = ui_notifications if ui_notifications else []
         self.notifications = []
@@ -75,7 +75,7 @@ class NotificationManager:
 
         self.websockets_server = None
         self.websockets_client = None
-        if websockets_port != -1:
+        if websockets_active:
             (
                 self.websockets_server,
                 self.websockets_client,
