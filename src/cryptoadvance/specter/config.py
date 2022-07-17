@@ -231,9 +231,6 @@ class TestConfig(BaseConfig):
     BITCOIN_RPC_TIMEOUT = 60
     LIQUID_RPC_TIMEOUT = 60
 
-    # websockets specifig configurations
-    SPECTER_WEBSOCKETS_ACTIVE = False
-
 
 class CypressTestConfig(TestConfig):
     SPECTER_URL_PREFIX = ""
@@ -256,9 +253,6 @@ class CypressTestConfig(TestConfig):
     )
     BITCOIN_RPC_TIMEOUT = 30
     LIQUID_RPC_TIMEOUT = 40
-
-    # websockets specifig configurations
-    SPECTER_WEBSOCKETS_ACTIVE = True
 
 
 class ProductionConfig(BaseConfig):

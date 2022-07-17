@@ -61,8 +61,9 @@ class WebsocketsBase:
 
     def start(self):
         try:
-            t = threading.Thread(target=self._forever_thread)
-            t.start()
+            self.thread = threading.Thread(target=self._forever_thread)
+            self.thread.daemon = True  # die when the main thread dies
+            self.thread.start()
         finally:
             self.finally_at_stop()
 
@@ -364,6 +365,7 @@ class WebsocketsClient(WebsocketsBase):
         logger.debug("WebsocketsClient forever_function ended")
 
     def finally_at_stop(self):
+        super().finally_at_stop()
         self.q.join()  # block until all tasks are done
 
     def authenticate(self):

@@ -145,7 +145,6 @@ class Specter:
             self.price_checker.start()
 
         if threading.current_thread() is threading.main_thread():
-            logger.debug(f"register cleanup_on_exit")
             # Python signal handlers are always executed in the main Python thread and only the main thread is allowed to set a new signal handler.
             # This is for CTRL-C --> SIGINT
             signal.signal(signal.SIGINT, self.cleanup_on_exit)
@@ -153,7 +152,6 @@ class Specter:
             signal.signal(signal.SIGTERM, self.cleanup_on_exit)
 
     def cleanup_on_exit(self, signum=0, frame=0):
-        logger.debug(f"cleanup_on_exit")
         if self._tor_daemon:
             logger.info("Specter exit cleanup: Stopping Tor daemon")
             self._tor_daemon.stop_tor_daemon()
