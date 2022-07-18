@@ -44,7 +44,7 @@
                     <br>
                     <p class="note" style="border-radius: 5px; padding: 20px; background: rgba(0,0,0,0.1); color: #ccc;">
                         <span style="display: inline-block;font-weight: bold; margin-bottom: 8px;">⚠️ A note on hot wallets:</span><br>
-                        {{ _('This will create a <a style="color: #ddd;" href="https://en.bitcoin.it/wiki/Hot_wallet" target="_blank">hot wallet</a> on your Bitcoin Core node.') }}<br>
+                        {{ _('This will create a ')}}<a style="color: #ddd;" href="https://en.bitcoin.it/wiki/Hot_wallet" target="_blank">{{ _('hot wallet')}}</a>{{ _(' on your Bitcoin Core node.')}}<br>
                         {{ _("Hot wallets are considered less secure and are not recommended for use with significant amounts. Use with caution and beware the potential risks.") }}
                     </p>
                     <p>{{ _("Enter your mnemonic here") }}{% if not existing_device %} {{ _("or use the randomly generated one") }}{% endif %}:</p>

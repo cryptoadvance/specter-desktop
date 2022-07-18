@@ -1190,7 +1190,7 @@
             }
             catch(e) {
                 console.log("Caught error: ", e);
-                showError(`{{ _("Failed to fetch wallet data! <br> Use this to ask about this error:") }} ${e}`);
+                showError(`{{ _("Failed to fetch wallet data! ")}}<br>{{ _(" Use this to ask about this error:") }} ${e}`);
             }
         }
     }

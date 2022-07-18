@@ -31,7 +31,7 @@
 
 		<div class="note optional">
 			<center>
-				<br>{{ _("<b>Segwit</b> uses bech32-encoded addresses (bc1), <b>Nested Segwit</b> makes it compatible with legacy software. Don't use legacy.") }}
+				<br><b>{{ _("Segwit")}}</b>{{ _(" uses bech32-encoded addresses (bc1), ")}}<b>{{ _("Nested Segwit")}}</b>{{ _(" makes it compatible with legacy software. Don't use legacy.")}}
 			</center>
 		</div>
 		<br>
@@ -77,10 +77,10 @@
 					{{ _("Rescan blockchain from block:") }} <input type="number" name="startblock" value="{{startblock}}" min="{{startblock}}" style="max-width: 150px; margin-left: 5px;">
 					{% if specter.info['pruned']  %}
 						<span class="warning" style="display: inline-block; max-width:300px;">
-							<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>{{ _("You are using a pruned node.<br>Wallet history may not fully appear.<br>Rescan is limited by the pruned height to block:") }} {{specter.info['pruneheight']}}
+							<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>{{ _("You are using a pruned node.")}}<br>{{ _("Wallet history may not fully appear.")}}<br>{{ _("Rescan is limited by the pruned height to block:") }} {{specter.info['pruneheight']}}
 						</span>
 					{% endif %}
-					<div class="note center" style="margin-top: 5px; line-height: 2;">{{ _("In case you're not sure, it is best to just leave the default number.<br><b>481824</b> was the first Segwit block.") }}</div>
+					<div class="note center" style="margin-top: 5px; line-height: 2;">{{ _("In case you're not sure, it is best to just leave the default number.")}}<br><b>481824</b>{{ _(" was the first Segwit block.")}}</div>
 					<br>
 				</div>
 				<div id="utxo-scan-options" style="display: none">
