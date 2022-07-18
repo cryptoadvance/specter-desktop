@@ -52,7 +52,7 @@
 			</div>
 			{% if wallet.amount_locked_unsigned  > 0 or wallet.amount_frozen > 0 %}
 			<div>
-				<tool-tip>
+				<tool-tip width="150px">
 				    <h4 slot="title">{{ _("Why is this less than my total balance?") }}</h4>
 				    <span slot="paragraph">
 						{{ _(' Frozen outputs and outputs locked in unsigned transactions are not available here.  

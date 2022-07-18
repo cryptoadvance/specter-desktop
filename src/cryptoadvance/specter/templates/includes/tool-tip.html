@@ -78,7 +78,6 @@ You can use the move-right attribute, to move the tooltip to the right if necess
         .tooltip__icon {
             background: none;
             cursor: pointer;
-            height: 1.3em;
             width: 1.3em;
         }
         .tooltip__box {
@@ -104,8 +103,9 @@ You can use the move-right attribute, to move the tooltip to the right if necess
         }
         .title {
             text-align: start;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
+            line-height: 1.1;
             color: white;
         }
         .paragraph {
@@ -128,7 +128,7 @@ You can use the move-right attribute, to move the tooltip to the right if necess
     </style>
 
     <div class="tooltip">
-        <img class="tooltip__icon" src="{{ url_for('static', filename='img/light-bulb.svg') }}"></img>
+        <img class="tooltip__icon" src="{{ url_for('static', filename='img/light-bulb.svg') }}" id="tooltip-img"></img>
         <div class="tooltip__box" id="tooltip-box">
             <slot name="title" class="title"></slot>
             <slot name="paragraph" class="paragraph"></slot>
@@ -143,17 +143,18 @@ You can use the move-right attribute, to move the tooltip to the right if necess
             var shadowRoot = this.attachShadow({mode: 'open'});
             var template = document.getElementById('tooltip-template-id');
             var clone = template.content.cloneNode(true);
-            this.tooltipDiv = clone.querySelector('.tooltip')
+            this.tooltipImg = clone.getElementById('tooltip-img');
+            this.tooltipDiv = clone.querySelector('.tooltip');
             // CustomEvent that can be picked up to adjust flex properties in the parent
             this.tooltipDiv.addEventListener("mouseover", () => {
-                let event = new CustomEvent('customhover')
+                let event = new CustomEvent('customhover');
                 this.dispatchEvent(event);
             })
             this.tooltipDiv.addEventListener("mouseout", () => {
-                let event = new CustomEvent('customout')
+                let event = new CustomEvent('customout');
                 this.dispatchEvent(event);
             })
-            this.tooltipBox = clone.getElementById("tooltip-box")
+            this.tooltipBox = clone.getElementById("tooltip-box");
             shadowRoot.appendChild(clone);
         }
 
@@ -167,6 +168,12 @@ You can use the move-right attribute, to move the tooltip to the right if necess
             }
             if (this.getAttribute("move-right")) {
                 this.tooltipBox.style.left = "60px";
+            }
+            if (this.getAttribute("image")) {
+                if (this.getAttribute("image") == "note") {
+                    this.tooltipImg.src = "{{ url_for('static', filename='img/note.svg') }}";
+                    this.tooltipImg.style.width = "1.5em";
+                }
             }
         }
     }
