@@ -60,15 +60,15 @@
                         showError(result.error)
                         return
                     }
-                    if (userBalanceFromTotal==0) {
+                    if (totalUserBalance==0) {
                         document.getElementById('total_supply').innerHTML = `Your wallet holds 0 BTC and so, you're effectively a precoiner! Get off zero! `
                         return
                     }
+                    let userBalanceFromTotal = parseFloat((100 / (result.total_amount / totalUserBalance)).toFixed(8));
                     document.getElementById('total_supply').innerHTML = `{{ _("Bitcoin Total Supply") }}: ${result.total_amount} BTC<br>` +
-                    ( userBalanceFromTotal > 1e-8 ?
-                    `<span class="note" style="margin: 7px auto;">{{ _("Your wallets hold") }} ${totalUserBalance} BTC (~${userBalanceFromTotal}% {{ _("from the total supply") }}</span>` :
-                    ''
-                    )
+                    `<span class="note" style="margin: 7px auto;">{{ _("Your wallets hold") }} ` +
+                        `${totalUserBalance} BTC (~${userBalanceFromTotal.toFixed(8)}% ` +
+                    `{{ _("from the total supply") }}</span>`
                 } catch(e) {
                     console.log('Caught error:', e);
                     showError(e)
