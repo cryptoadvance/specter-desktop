@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 import logging
 from unittest.mock import MagicMock, patch
+import mock
 
 import pytest
 from werkzeug.wrappers import Response
@@ -132,6 +133,16 @@ def test_addresses_list_to_csv(
             # assert int(addr[2]) == i
             assert bool(addr[3])
             assert float(addr[4].strip()) > 0
+
+
+def test_txout_set_info(caplog, app, client):
+    caplog.set_level(logging.DEBUG)
+    caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
+    login(client, "secret")
+    res = client.get("/wallets/get_txout_set_info")
+    assert res.status == "200 OK"
+    print(json.loads(res.data))
+    assert json.loads(res.data)["total_amount"] > 0
 
 
 # Ugly: Code duplication. Cannot import from other test_modules

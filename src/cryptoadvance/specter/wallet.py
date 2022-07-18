@@ -463,7 +463,8 @@ class Wallet:
                     for address in [
                         tx["details"][0].get("address")
                         for tx in txs.values()
-                        if tx.get("details")
+                        if tx
+                        and tx.get("details")
                         and (
                             tx.get("details")[0].get("category") != "send"
                             and tx["details"][0].get("address") not in self._addresses
@@ -1334,7 +1335,15 @@ class Wallet:
                 )
         return desc
 
-    def get_descriptor(self, index=None, change=False, address=None, keep_xpubs=False):
+    def get_descriptor(
+        self,
+        index=None,
+        change=False,
+        address=None,
+        keep_xpubs=False,
+        to_string=False,
+        with_checksum=False,
+    ):
         """
         Returns address descriptor from index, change
         or from address belonging to the wallet.
@@ -1349,7 +1358,14 @@ class Wallet:
                 change = a.change
         if index is None:
             index = self.change_index if change else self.address_index
-        return self.derive_descriptor(index, change, keep_xpubs)
+        if not to_string:
+            return self.derive_descriptor(index, change, keep_xpubs)
+        else:
+            desc_string = self.derive_descriptor(index, change, keep_xpubs).to_string()
+            if with_checksum:
+                return add_checksum(desc_string)
+            else:
+                return desc_string
 
     def get_address_info(self, address) -> Address:
         # TODO: This is a misleading name. This is really fetching an Address obj

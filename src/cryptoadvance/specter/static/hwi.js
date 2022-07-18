@@ -175,7 +175,7 @@ class HWIBridge {
     }
 
 
-    async displayAddress(device, descriptor, passphrase=""){
+    async displayAddress(device, descriptor, xpubs_descriptor, passphrase=""){
         if(!('passphrase' in device)){
             device.passphrase = passphrase;
         }
@@ -183,7 +183,8 @@ class HWIBridge {
             device_type: device.type,
             path: device.path,
             passphrase: device.passphrase,
-            descriptor: JSON.parse(descriptor),
+            descriptor: descriptor,
+            xpubs_descriptor: xpubs_descriptor,
         });
     }
 }

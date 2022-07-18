@@ -40,13 +40,15 @@ base58==2.1.0 \
     --hash=sha256:171a547b4a3c61e1ae3807224a6f7aec75e364c4395e7562649d7335768001a2 \
     --hash=sha256:8225891d501b68c843ffe30b86371f844a21c6ba00da76f52f9b998ba771fb48
     # via bitbox02
-bitbox02==5.3.0 \
-    --hash=sha256:797e6904d431f6d2ef711f169e7ce8fffc125cc8c5b3efb8187fd451f45635e1 \
-    --hash=sha256:fe0e8aeb9b32fd7d76bb3e9838895973a74dfd532a8fb8ac174a1a60214aee26
+bitbox02==6.0.0 \
+    --hash=sha256:a738f9977317c104298c0b59a0fc93c98d48a1b03d192dcd6396963d3ed58127 \
+    --hash=sha256:c136ad7a1ddd272705368ccb6906c0cd71746afaf6a1f05d8e5aaa70e04baffd
     # via hwi
 cbor==1.0.0 \
     --hash=sha256:13225a262ddf5615cbd9fd55a76a0d53069d18b07d2e9f19c39e6acb8609bbb6
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   hwi
 certifi==2021.10.8 \
     --hash=sha256:78884e7c1d4b00ce3cea67b44566851c4343c120abd683433ce934a68ea58872 \
     --hash=sha256:d62a0163eb4c2344ac042ab2bdf75399a71a2d8c7d47eac2e2ee91b9d6339569
@@ -217,9 +219,9 @@ hidapi==0.10.1 \
     # via
     #   bitbox02
     #   hwi
-hwi==2.0.2 \
-    --hash=sha256:70b83e9905d3ae7057cae516e7b26547a934cdaf1feee5ef26fe65f0ddeda058 \
-    --hash=sha256:762d5f46c31bc291dc0453530958af7f1a70854a1428b0376139c9c4aabf8c73
+hwi==2.1.0 \
+    --hash=sha256:3aec14eaecbe7f1b1c8d622c6e35d0309a12696bd35a2c8ceee21ee1754a7bc5 \
+    --hash=sha256:d09d818c91e2ae5213bc3fcf2999668f2bb9098e6bfaa6a3723400356db8fb66
     # via -r requirements.in
 idna==2.10 \
     --hash=sha256:b307872f855b18632ce0c21c5e45be78c0ea7ae4c15c828c20788b26921eb3f6 \
@@ -357,10 +359,10 @@ pyopenssl==20.0.1 \
     --hash=sha256:4c231c759543ba02560fcd2480c48dcec4dae34c9da7d3747c508227e0624b51 \
     --hash=sha256:818ae18e06922c066f777a33f1fca45786d85edfe71cd043de6379337a7f274b
     # via -r requirements.in
-pyserial==3.4 \
-    --hash=sha256:6e2d401fdee0eab996cf734e67773a0143b932772ca8b42451440cfed942c627 \
-    --hash=sha256:e0770fadba80c31013896c7e6ef703f72e7834965954a78e71a3049488d4d7d8
-    # via -r requirements.in
+pyserial==3.5 \
+    --hash=sha256:3c77e014170dfffbd816e6ffc205e9842efb10be9f58ec16d3e8675b4925cddb \
+    --hash=sha256:c4451db6ba391ca6ca299fb3ec7bae67a5c55dde170964c7a14ceefec02f2cf0
+    # via hwi
 pysocks==1.7.1 \
     --hash=sha256:08e69f092cc6dbe92a0fdd16eeb9b9ffbc13cadfe5ca4c7bd92ffb078b293299 \
     --hash=sha256:2725bd0a9925919b9b51739eea5f9e2bae91e83288108a9ad338b2e3a4435ee5 \

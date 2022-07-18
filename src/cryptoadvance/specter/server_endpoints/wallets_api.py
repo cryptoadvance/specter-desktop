@@ -1,6 +1,7 @@
 import csv
 import json
 import logging
+import threading
 import time
 from binascii import b2a_base64
 from datetime import datetime
@@ -36,6 +37,8 @@ logger = logging.getLogger(__name__)
 
 wallets_endpoint_api = Blueprint("wallets_endpoint_api", __name__)
 
+get_txout_set_info_lock = threading.Lock()
+
 
 @wallets_endpoint_api.route("/wallets_loading/", methods=["GET", "POST"])
 @login_required
@@ -67,8 +70,17 @@ def generatemnemonic():
 @login_required
 @app.csrf.exempt
 def txout_set_info():
-    res = app.specter.rpc.gettxoutsetinfo()
-    return res
+    if get_txout_set_info_lock.locked():
+        return {
+            "error": "Run the numbers is quite work intensive and there is already a call running. Stay calm and let it do its work!"
+        }, 429
+    with get_txout_set_info_lock:
+        try:
+            res = app.specter.rpc.gettxoutsetinfo(timeout=3600)
+            return res, 200
+        except Exception as e:
+            logger.exception(e)
+            return {"error": str(e)}, 429
 
 
 @wallets_endpoint_api.route("/get_scantxoutset_status")
@@ -491,11 +503,11 @@ def addressinfo(wallet_alias):
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
         address = request.form.get("address", "")
         if address:
-            descriptor = add_checksum(
-                wallet.get_descriptor(address=address, keep_xpubs=False).to_string()
+            descriptor = wallet.get_descriptor(
+                address=address, keep_xpubs=False, to_string=True, with_checksum=True
             )
-            xpubs_descriptor = add_checksum(
-                wallet.get_descriptor(address=address, keep_xpubs=True).to_string()
+            xpubs_descriptor = wallet.get_descriptor(
+                address=address, keep_xpubs=True, to_string=True, with_checksum=True
             )
             # The last two regex groups are optional since Electrum's derivation path is shorter
             derivation_path_pattern = (
