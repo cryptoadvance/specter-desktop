@@ -10,7 +10,6 @@ Flask-RESTful==0.3.9
 Flask-HTTPAuth==4.4.0
 hwi==2.1.0
 importlib_metadata==4.8.1
-pyserial==3.5
 python-dotenv==0.13.0
 requests==2.26.0
 pysocks==1.7.1

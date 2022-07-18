@@ -7,6 +7,7 @@
     - [Install dependencies:](#install-dependencies)
       - [Ubuntu/Debian:](#ubuntudebian)
       - [macOS:](#macos)
+      - [Nix:](#nix)
       - [Arch:](#arch)
       - [Fedora/CentOS:](#fedoracentos)
       - [Windows](#windows)
@@ -51,6 +52,8 @@ sudo apt install libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev build-essent
 ```
 brew install libusb
 ```
+#### Nix:
+The easiest way to get all necessary tools is to run `nix-shell` from the `utils` directory of this repository. You need to have [Nix](https://nixos.org/) installed.
 #### Arch: 
 ```
 sudo pacman -Syu && sudo pacman -S libusb
