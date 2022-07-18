@@ -97,7 +97,7 @@
                     // Likely bitbox02 pairing
                     let pairingCode = (await hwi.getBitbox02PairingCode()).code;
                     if (pairingCode) {
-                        document.getElementById('bitbox02-pairing-code').innerHTML = `{{ _("Pairing Code") }}:<br><br><b>${pairingCode}</b><br><br>{{ _("Please confirm the code matches the one displayed on your BitBox02 device.<br><br>It could take up to 20 seconds to continue after approving the pairing on the device, please be patient.") }}`;
+                        document.getElementById('bitbox02-pairing-code').innerHTML = `{{ _("Pairing Code") }}:<br><br><b>${pairingCode}</b><br><br>{{ _("Please confirm the code matches the one displayed on your BitBox02 device.")}}<br><br>{{ _("It could take up to 20 seconds to continue after approving the pairing on the device, please be patient.") }}`;
                     }
                 }   
             }
@@ -126,7 +126,7 @@
                         // Likely bitbox02 pairing
                         let pairingCode = (await hwi.getBitbox02PairingCode()).code;
                         if (pairingCode) {
-                            document.getElementById('bitbox02-pairing-code').innerHTML = `{{ _("Pairing Code") }}:<br><br><b>${pairingCode}</b><br><br>{{ _("Please confirm the code matches the one displayed on your BitBox02 device.<br><br>It could take up to 20 seconds to continue after approving the pairing on the device, please be patient.") }}`;
+                            document.getElementById('bitbox02-pairing-code').innerHTML = `{{ _("Pairing Code") }}:<br><br><b>${pairingCode}</b><br><br>{{ _("Please confirm the code matches the one displayed on your BitBox02 device.")}}<br><br>{{ _("It could take up to 20 seconds to continue after approving the pairing on the device, please be patient.") }}`;
                         }
                     }   
                 }
