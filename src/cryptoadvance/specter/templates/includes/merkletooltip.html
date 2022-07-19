@@ -1,7 +1,8 @@
 <tool-tip>
     <h4 slot="title">{{ _("Merkle Proof Validation") }}</h4>
     <span slot="paragraph">
-        {{ _('Specter Desktop validates <a href="https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki" target="_blank">BIP 37</a> Merkle Proofs from your full node <strong>guaranteeing</strong> that transactions displayed as confirmed have been included in the specified block hash.') }}<br><br>
+        {{ _('Specter Desktop validates ')}}<a href="https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki" target="_blank">{{ _('BIP 37')}}</a>
+        {{ _(' Merkle Proofs from your full node ')}}<strong>{{ _('guaranteeing')}}</strong>{{ _(' that transactions displayed as confirmed have been included in the specified block hash.')}}<br><br>
         {{ _("However, a compromised full node could return a fake block that was never mined.") }}
         {{ _("To be sure, you could double check the block hash in other locations (other nodes, block explorers, etc).") }}
     </span>

@@ -397,7 +397,11 @@ class BitcoinRPC:
         self.trace_call_after(url, payload, ts)
         self.r = r
         if r.status_code != 200:
-            logger.debug(f"last call FAILED: {r.text} (raising RpcError)")
+            logger.debug(f"last call FAILED: {r.text}")
+            if r.text.startswith("Work queue depth exceeded"):
+                raise SpecterError(
+                    "Your Bitcoind is running hot (Work queue depth exceeded)! Bitcoind gets more requests than it can process. Please refrain from doing anything for some minutes."
+                )
             raise RpcError(
                 "Server responded with error code %d: %s" % (r.status_code, r.text), r
             )

@@ -98,7 +98,7 @@ describe('Test the actions in UTXO list', () => {
 
     it('Managing unsigned transactions', () => {
         // Make an unsigned tx
-        cy.get('#address_0').type("bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs") // address from "Wallet ghost"
+        cy.get('#address_0').type("bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs") // address from "Ghost wallet"
         cy.get('#send_max_0').click()
         cy.get('#create_psbt_btn').click()
         // Check the labeling of the unsigned UTXO
