@@ -12,6 +12,14 @@
 			border-top: 1px solid #aaa;
 			margin: 40px 20px;
 		}
+		#blockchain-rescan {
+			transition: border-color 3s;
+		}
+		.animation-rescan {
+			padding-top: 5px;
+			border: 0.5px solid orange;
+			border-radius: 10px;
+		}
 	</style>
 	<br>
 	<nav class="row collapse-on-mobile">
@@ -91,7 +99,7 @@
 				{% endif %}
 			{% endfor %}
 			{% if supports_export_to_device != [] %}
-				<h2 class="subtitle">{{ _("Export wallet to device") }}</h1>
+				<h2 class="subtitle">{{ _("Export wallet to device") }}</h2>
 				<p class="center">
 					{{ _("Export this wallet to a device by scanning its QR code or importing its data file.") }}
 				</p>
@@ -220,7 +228,7 @@
 				</div>
 			</form>
 			<div class="section-separator"></div>
-			<h2 class="subtitle">{{ _("Blockchain rescan") }}</h2>
+			<h2 class="subtitle" id="blockchain-rescan">{{ _("Blockchain rescan") }}</h2>
 			<form action="." method="POST" class="padded" style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				{% if wallet.rescan_progress %}
@@ -230,7 +238,7 @@
 					</div>
 				{% else %}
 					{{ _("Rescan blockchain from block:") }}<br>
-					<div class="row aligned">
+					<div class="row aligned" style="justify-content: space-between;">
 						{% if specter.info.chain == "main" %}
 							{% if wallet.is_taproot %}
 								{% set startblock=(709632 if not specter.info['pruned'] or specter.info['pruneheight'] < 709632 else specter.info['pruneheight']) %}
@@ -240,16 +248,16 @@
 						{% else %}
 							{% set startblock=(0 if not specter.info['pruned'] else specter.info['pruneheight']) %}
 						{% endif %}
-						<input type="number" name="startblock" value="{{startblock}}" style="margin-right: 10px" min="{{startblock}}">
-						<button type="submit" name="action" value="rescanblockchain" class="btn">{{ _("Rescan") }}</button>
+						<input type="number" name="startblock" value="{{startblock}}" style="flex-basis: 220px;" min="{{startblock}}">
+						<button id="rescan-btn" type="submit" name="action" value="rescanblockchain" class="btn" style="flex-basis: 170px; flex-grow: 0;">{{ _("Rescan") }}</button>
 					</div>
 					{% if specter.info['pruned']  %}
-						<div class="note center full-width">{{ _("Note: You are using a pruned node. Rescan is limited by the pruned height to block:") }} {{specter.info['pruneheight']}}</div>
+						<div class="note full-width">{{ _("Note: You are using a pruned node. Rescan is limited by the pruned height to block:") }} {{specter.info['pruneheight']}}</div>
 					{% endif %}
 					{% if wallet.is_taproot %}
-						<div class="note center"><b>709632</b> {{ _("was the first Taproot block.") }}</div>
+						<div class="note"><b>709632</b> {{ _("was the first Taproot block.") }}</div>
 					{% else %}
-						<div class="note center"><b>481824</b> {{ _("was the first Segwit block.") }}</div>
+						<div class="note"><b>481824</b> {{ _("was the first Segwit block.") }}</div>
 					{% endif %}
 				{% endif %}
 			</form>
@@ -261,10 +269,10 @@
 					<button type="submit" name="action" value="abortrescanutxo" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Abort rescan") }}</button>
 				</div>
 				{% else %}
-				<div class="row aligned">
+				<div class="row aligned" style="justify-content: space-between;">
 					<div style="flex-grow: 1">{{ _("Or rescan only unspent transactions:") }}
 					</div>
-					<button type="submit" name="action" value="rescanutxo" class="btn" style="max-width: 180px; margin-left: 20px">
+					<button id="rescan-utxo-btn" type="submit" name="action" value="rescanutxo" class="btn" style="flex-grow: 0; max-width: 170px; max-height: 35.5px">
 						{{ _("Rescan UTXO") }}
 						<tool-tip width="150px" image="note">
         					<h4 slot="title">{{ _("Rescanning UTXO set") }}</h4>
@@ -430,6 +438,16 @@
 			let textarea = document.getElementById("address_labels_data");
 			textarea.value = "";
 		})
+
+	    function scrolltoRescanBlockchain() {
+			setSettingsView("advanced");
+			document.getElementById('blockchain-rescan').scrollIntoView();
+		}
+		// Only called when the user comes from an empty tx list to rescan
+		{% if scroll_to_rescan_blockchain %}
+	        scrolltoRescanBlockchain();
+	       	document.getElementById('blockchain-rescan').classList.add("animation-rescan")
+	    {% endif %}
 	</script>
 
 {% endblock %}
