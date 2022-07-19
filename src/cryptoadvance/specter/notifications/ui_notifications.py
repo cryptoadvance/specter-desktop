@@ -97,7 +97,7 @@ class LoggingNotifications(BaseUINotifications):
 
 class FlashNotifications(BaseUINotifications):
     """
-    Flask flash notifications.  They only appears after render_template is called
+    Flask flash notifications.  They only appears after render_template is called.
 
     Callback functions are:
     - on_close(notification_id, target_ui), should be assigned to delete the message   (called immediately after showing)
@@ -114,6 +114,10 @@ class FlashNotifications(BaseUINotifications):
         }
         self.name = "flash"
         self.user_id = user_id
+
+        #  Flash notifications will not be used as a fallback UINotification,
+        #       because they seem to be incompatible with the multi-threading approach in websockets_server_client
+        #       Hence, here we set:
         self.callable_from_any_thread = False
 
     def show(self, notification):
