@@ -72,7 +72,7 @@ class User(UserMixin):
         specter,
         jwt_token_id,
         jwt_token,
-        tokens = {},
+        jwt_tokens = {},
         encrypted_user_secret=None,
         is_admin=False,
         services=[],
@@ -82,7 +82,7 @@ class User(UserMixin):
         self.password_hash = password_hash
         self.jwt_token_id = jwt_token_id
         self.jwt_token = jwt_token
-        self.tokens = tokens
+        self.jwt_tokens = jwt_tokens
         self.config = config
         self.encrypted_user_secret = encrypted_user_secret
         self.plaintext_user_secret = None
@@ -106,7 +106,7 @@ class User(UserMixin):
                 "username": user_dict["username"],
                 "jwt_token_id": user_dict.get("jwt_token_id", None),
                 "jwt_token": user_dict.get("jwt_token", None),
-                "tokens": user_dict.get("tokens", {}),
+                "jwt_tokens": user_dict.get("jwt_tokens", {}),
                 "password_hash": user_dict[
                     "password"
                 ],  # TODO: Migrate attr name to "password_hash"?
@@ -210,13 +210,13 @@ class User(UserMixin):
             self.save_info()
 
     def get_all_tokens(self):
-        self.tokens = json.dumps(self.tokens.copy())
-        self.tokens = json.loads(self.tokens)
-        return self.tokens
+        self.jwt_tokens = json.dumps(self.jwt_tokens.copy())
+        self.jwt_tokens = json.loads(self.jwt_tokens)
+        return self.jwt_tokens
         
     def append_token(self, jwt_token_id, jwt_token):
-        self.tokens = self.tokens.copy()
-        self.tokens[jwt_token_id] = jwt_token
+        self.jwt_tokens = self.jwt_tokens.copy()
+        self.jwt_tokens[jwt_token_id] = jwt_token
         self.save_info()
 
     def save_jwt_token(self, jwt_token_id, jwt_token):
@@ -225,8 +225,8 @@ class User(UserMixin):
         self.save_info()
 
     def delete_jwt_token(self, jwt_token_id):
-        self.tokens = self.tokens.copy()
-        del self.tokens[jwt_token_id]
+        self.jwt_tokens = self.jwt_tokens.copy()
+        del self.jwt_tokens[jwt_token_id]
         self.jwt_token_id = None
         self.jwt_token = None
         self.save_info()
@@ -275,7 +275,7 @@ class User(UserMixin):
             "is_admin": self.is_admin,
             "jwt_token_id": self.jwt_token_id,
             "jwt_token": self.jwt_token,
-            "tokens": self.tokens,
+            "jwt_tokens": self.jwt_tokens,
             "encrypted_user_secret": self.encrypted_user_secret,
             "services": self.services,
         }

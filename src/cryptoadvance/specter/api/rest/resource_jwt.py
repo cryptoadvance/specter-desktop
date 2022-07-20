@@ -27,21 +27,26 @@ def generate_token_id():
 
 @rest_resource
 class ResourceJWT(SecureResource):
-
+    ''' 
+      A Resource to manage JWT tokens in order to authenticate against the REST-API
+      Other then the other Resources, this endpoint uses BasicAuth to avoid the chicken egg problem
+      This one is only to create a token. The other Resource for getting and deleting.
+      This violates the REST principles but only on the implementation-side. Happy for improvements here.
+    '''
     endpoints = ["/v1alpha/token/"]
 
-    def get(self):
+    def post(self):
         user = auth.current_user()
         user_details = app.specter.user_manager.get_user(user)
-        tokens = user_details.tokens
+        jwt_tokens = user_details.jwt_tokens
         return_dict = {
-            "tokens": tokens,
+            "jwt_tokens": jwt_tokens,
         }
-        return_dict["tokens"]=user_details.get_all_tokens()
-        tokens = return_dict["tokens"]
-        if len(tokens) == 0:
+        return_dict["jwt_tokens"]=user_details.get_all_tokens()
+        jwt_tokens = return_dict["jwt_tokens"]
+        if len(jwt_tokens) == 0:
             return {"message": "Token does not exist"}, 404
-        return {"message": "Tokens exists", "tokens": tokens}, 200
+        return {"message": "Tokens exists", "jwt_tokens": jwt_tokens}, 200
 
     def post(self):
         user = auth.current_user()
@@ -69,27 +74,29 @@ class ResourceJWT(SecureResource):
 
 @rest_resource
 class ResourceJWTById(SecureResource):
-
+    ''' 
+        A Resource to manage individual JWT token
+    '''
     endpoints = ["/v1alpha/token/<jwt_token_id>/"]
 
-    def get(self, jwt_token_id):
+    def post(self, jwt_token_id):
         user = auth.current_user()
         user_details = app.specter.user_manager.get_user(user)
-        tokens = user_details.tokens
+        jwt_tokens = user_details.jwt_tokens
         return_dict = {
-            "tokens": tokens,
+            "jwt_tokens": jwt_tokens,
         }
-        return_dict["tokens"]=user_details.get_all_tokens()
-        tokens = return_dict["tokens"]
-        if tokens[jwt_token_id] is None:
+        return_dict["jwt_tokens"]=user_details.get_all_tokens()
+        jwt_tokens = return_dict["jwt_tokens"]
+        if jwt_tokens[jwt_token_id] is None:
             return {"message": "Token does not exist"}, 404
-        return {"message": "Tokens exists", "jwt_token": tokens[jwt_token_id]}, 200
+        return {"message": "Tokens exists", "jwt_token": jwt_tokens[jwt_token_id]}, 200
 
     def delete(self, jwt_token_id):
         user = auth.current_user()
         user_details = app.specter.user_manager.get_user(user)
-        tokens = user_details.tokens
-        if tokens[jwt_token_id] is None:
+        jwt_tokens = user_details.jwt_tokens
+        if jwt_tokens[jwt_token_id] is None:
             return {"message": "Token does not exist"}, 404
         user_details.delete_jwt_token(jwt_token_id)
         return {"message": "Token deleted"}, 200
