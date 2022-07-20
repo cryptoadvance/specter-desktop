@@ -24,7 +24,6 @@
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="rbf_tx_id" value="{{ rbf_tx_id }}"/>
 		<input type="hidden" name="recipient_dicts"  id="recipient_dicts" value=""/>  
-		<input type="hidden" name="subtract_from"  id="subtract_from" value=""/>  
 		<h1 class="padded">{{ _("Create Transaction") }}</h1>
 		<div style="display: flex; justify-content: center; margin-bottom: 15px">
 			<div>{{ _("Available funds:") }} {{wallet.amount_available | btcunitamount}}
@@ -243,10 +242,7 @@
 				console.log('Called unit-change Listener')
 				validateForm()
 			})
-
 			recipients.appendChild(newRecipient);
-
-
 
 			// This adds the id's to the subtract_from_recipient_id_select
 			var fee_selection_component = document.getElementById('fee-selection-component');
@@ -256,8 +252,6 @@
 			opt.innerHTML = newRecipient.title;
 			subtract_from_recipient_id_select.appendChild(opt);			
 			
-
-
 			// control visibility  and vertical spaces
 			if (get_recipient_ids().length == 1) {
 				FeeSelectionComponent.showSubtractFrom(false);
@@ -301,7 +295,6 @@
 					subtract_from_recipient_id_select.removeChild(child)
 				}
 			}			
-
 
 			// control visibility  and vertical spaces
 			if (get_recipient_ids().length == 1) {
@@ -530,13 +523,6 @@
 					return;
 				}
 			}
-
-
-
-			// subtract_from = number of input (starting from 0), while subtract_from_recipient_id_select is the recipient_id
-			var fee_selection_component = document.getElementById('fee-selection-component');
-			var subtract_from_recipient_id_select = fee_selection_component.subtractFrom.children.subtract_from_recipient_id_select;
-			document.getElementById('subtract_from').value =  get_recipient_ids().indexOf(parseInt(subtract_from_recipient_id_select.value, 10)); 
 
 			createPSBTButton.setAttribute('type', 'submit');
 			return true;

@@ -16,7 +16,8 @@
         </div>
         <span id="subtract_from" style="display: none">
             <br>{{ _("Subtract from ") }} 
-            <select id="subtract_from_recipient_id_select" name="subtract_from_stale"  style="width: 140px; min-width: 140px;" ></select><br>                       
+            <select id="subtract_from_recipient_id_select" name="subtract_from_stale" style="width: 140px; min-width: 140px;"></select>
+            <br>                       
         </span>
         <br>
         <div>
@@ -172,15 +173,11 @@
             this.ld.subtract.value = this.subtract.value;
             this.appendChild(this.ld.subtract);
 
-            // subtract_from (the actual input/select field)
-            this.ld.subtractFromRecipientIdSelect = this.subtractFromRecipientIdSelect.cloneNode(true);
-            this.ld.subtractFromRecipientIdSelect.setAttribute("hidden", "hidden");
+            // subtract_from (for the form)
+            this.ld.subtractFromRecipientIdSelect = document.createElement("input");
+            this.ld.subtractFromRecipientIdSelect.type = "hidden";
+            this.ld.subtractFromRecipientIdSelect.name = "subtract_from";
             this.appendChild(this.ld.subtractFromRecipientIdSelect);
-
-            // This is just for exposure to the jinja template for displaying, not needed for the form POST
-            this.ld.subtractFrom = this.subtractFrom.cloneNode(true);
-            this.ld.subtractFrom.type = "hidden";
-            this.appendChild(this.ld.subtractFrom);
         }
 
         /**
