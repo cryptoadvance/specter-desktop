@@ -347,7 +347,7 @@ nav .separator{
     background: var(--cmap-border);
     border: 1px solid transparent;
     border-radius: 4px;
-    padding: 8px 15px 8px 10px;
+    padding: 8px 10px 8px 10px;
     color: #fff;
     font-size: 0.85em;
     text-align: center;
@@ -744,7 +744,7 @@ th{
     font-weight: inherit;
     border-bottom: 3px solid var(--cmap-bg-lightest);
 }
-tbody tr:hover{
+tbody tr:not(.nohover):hover{
     background: rgba(255,255,255,0.03);
     color: #fff;
 }
@@ -833,12 +833,6 @@ table a, .address-link{
 table a:hover, .address-link:hover{
     color: #fff;
     text-decoration: underline;
-}
-table .btn{
-    margin: -10px 0;
-    padding: 5px 10px;
-    width: auto;
-    min-width: 0;
 }
 table .btn.hovering{
 	opacity: 0.2;
