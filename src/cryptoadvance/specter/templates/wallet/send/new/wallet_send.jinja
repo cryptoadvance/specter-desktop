@@ -119,7 +119,7 @@
 			const NETWORK = "Bitcoin"
 		{% endif %}
 
-		function get_recipient_ids() {
+		function getRecipientIds() {
 			ids = [];
 			var children = document.getElementById(`recipients`).children;
 			for (var i = 0; i < children.length; i++) {
@@ -130,24 +130,24 @@
 		}
 
 		// combines all recipient.value's to a list
-		function get_recipient_dicts() {
+		function getRecipientDicts() {
 			data = [];
 
-			var recipient_ids = get_recipient_ids();
-			for  (var i in recipient_ids)   {
-				var recipient_id = recipient_ids[i];
-				let recipient = document.getElementById(`recipient_${recipient_id}`);
+			var recipientIds = getRecipientIds();
+			for  (var i in recipientIds)   {
+				var recipientId = recipientIds[i];
+				let recipient = document.getElementById(`recipient_${recipientId}`);
 				data.push(recipient.value);
 			}
 
 			return data;
 		}
 
-		function get_recipient_dict(recipient_id) {
-			recipient_dicts = get_recipient_dicts() 
-			for  (var i in recipient_dicts)   {
-				if (recipient_dicts[i].recipient_id == recipient_id){
-					return recipient_dicts[i]
+		function getRecipientDict(recipientId) {
+			recipientDicts = getRecipientDicts() 
+			for  (var i in recipientDicts)   {
+				if (recipientDicts[i].recipient_id == recipientId){
+					return recipientDicts[i]
 				}
 			}
 		}
@@ -202,7 +202,7 @@
 		
 		// Main part of displaying subtractFrom, the rest is with addRecipient, deleteRecipient and toggleSendUIType
 		FeeSelectionComponent.addEventListener("subtractClick", (event) => {
-			if ((get_recipient_ids().length > 1 || !document.getElementById('ui-radio-btn').checked) && document.getElementById('subtract').checked) {
+			if ((getRecipientIds().length > 1 || !document.getElementById('ui-radio-btn').checked) && document.getElementById('subtract').checked) {
 				FeeSelectionComponent.showSubtractFrom(true)
 				if (!document.getElementById('ui-radio-btn').checked) {
 					FeeSelectionComponent.addLineBreaks(2)
@@ -218,18 +218,18 @@
 
 
 		function addRecipient(addr, amount, amount_unit, label) {
-			let recipient_ids = get_recipient_ids();
-			recipient_id = 0;
-			if (recipient_ids.length > 0){
-				recipient_id = Math.max(...recipient_ids)+1
+			let recipientIds = getRecipientIds();
+			recipientId = 0;
+			if (recipientIds.length > 0){
+				recipientId = Math.max(...recipientIds)+1
 			}; 
 
 			// This adds the recipient
 			let recipients = document.getElementById('recipients');			
 			let newRecipient = new RecipientBox();
-			newRecipient.id = `recipient_${recipient_id}`;
-			newRecipient.recipient_id = recipient_id;
-			newRecipient.title = `Recipient ${recipient_id+1}`;
+			newRecipient.id = `recipient_${recipientId}`;
+			newRecipient.recipient_id = recipientId;
+			newRecipient.title = `Recipient ${recipientId+1}`;
 			newRecipient.addEventListener('address-input', (event) => {
 				console.log('Called address-input Listener')
 				validateForm()
@@ -241,15 +241,15 @@
 			recipients.appendChild(newRecipient);
 
 			// This adds the id's to the subtract_from_recipient_id_select
-			var fee_selection_component = document.getElementById('fee-selection-component');
-			var subtract_from_recipient_id_select = fee_selection_component.subtractFrom.children.subtract_from_recipient_id_select;
+			var feeSelectionComponent = document.getElementById('fee-selection-component');
+			var subtractFromRecipientIdSelect = feeSelectionComponent.subtractFrom.children.subtract_from_recipient_id_select;
 			var opt = document.createElement('option');
-			opt.value = recipient_id;
+			opt.value = recipientId;
 			opt.innerHTML = newRecipient.title;
-			subtract_from_recipient_id_select.appendChild(opt);			
+			subtractFromRecipientIdSelect.appendChild(opt);			
 			
 			// control visibility  and vertical spaces
-			if (get_recipient_ids().length == 1) {
+			if (getRecipientIds().length == 1) {
 				FeeSelectionComponent.showSubtractFrom(false);
 				document.getElementById('vertical-space-for-subtract-fees-from-amount-checkbox').style['margin-top'] = '0px';
 			} else {
@@ -259,33 +259,33 @@
 				}
 			}
 
-			document.getElementById(`recipient_${recipient_id}`).calculateConvertedUnit();
+			document.getElementById(`recipient_${recipientId}`).calculateConvertedUnit();
 		} 
 
-		function removeRecipient(recipient_id=-1) {	
-			if (get_recipient_ids().length == 1){  // should not delete the last recipient
+		function removeRecipient(recipientId=-1) {	
+			if (getRecipientIds().length == 1){  // should not delete the last recipient
 				showError(`{{ _("Cannot delete the last recipient") }}`, 5000)
 				return;
 			}
-			if (recipient_id==-1) {
-				recipient_id = get_recipient_ids().length - 1
+			if (recipientId==-1) {
+				recipientId = getRecipientIds().length - 1
 			};
 			let recipients = document.getElementById('recipients');
 
 			// This removes the recipient div 
 			for (var i = recipients.children.length -1; i >= 0; i--) {
 				let	child =  recipients.children[i];
-				if (child.recipient_id == recipient_id) {
+				if (child.recipient_id == recipientId) {
 					recipients.removeChild(child)
 				}
 			}
 
 			// This removes the recipient_id from the subtract_from_recipient_id_select
-			var subtract_from_recipient_id_select = FeeSelectionComponent.subtractFrom.children.subtract_from_recipient_id_select;
-			for (var i = subtract_from_recipient_id_select.children.length -1; i >= 0; i--) {
-				let	child =  subtract_from_recipient_id_select.children[i];
-				if (child.value == recipient_id) {
-					subtract_from_recipient_id_select.removeChild(child)
+			var subtractFromRecipientIdSelect = FeeSelectionComponent.subtractFrom.children.subtract_from_recipient_id_select;
+			for (var i = subtractFromRecipientIdSelect.children.length -1; i >= 0; i--) {
+				let	child =  subtractFromRecipientIdSelect.children[i];
+				if (child.value == recipientId) {
+					subtractFromRecipientIdSelect.removeChild(child)
 				}
 			}
 
@@ -293,7 +293,7 @@
 			FeeSelectionComponent.subtractUpdated()
 
 			// control visibility  and vertical spaces
-			if (get_recipient_ids().length == 1) {
+			if (getRecipientIds().length == 1) {
 				FeeSelectionComponent.showSubtractFrom(false);
 				document.getElementById('vertical-space-for-subtract-fees-from-amount-checkbox').style['margin-top'] = '0px';
 			} else {
@@ -324,21 +324,21 @@
 			return (unit == 'sat' ? amount / 1e8 : amount) < 1e-8;
 		}
 
-		async function setMaxAmount(recipient_id) {
-			const recipient_dicts = get_recipient_dicts();
-			const recipient = get_recipient_dict(recipient_id);
+		async function setMaxAmount(recipientId) {
+			const recipientDicts = getRecipientDicts();
+			const recipient = getRecipientDict(recipientId);
 			FeeSelectionComponent.showSubtractFrom(true)
-			FeeSelectionComponent.setSubtractFrom(recipient_id)
-			let amountInput = document.getElementById(`recipient_${recipient_id}`).shadowRoot.getElementById('amount');
-			if (!validAddress(recipient_id)) {
+			FeeSelectionComponent.setSubtractFrom(recipientId)
+			let amountInput = document.getElementById(`recipient_${recipientId}`).shadowRoot.getElementById('amount');
+			if (!validAddress(recipientId)) {
 				return;
 			}
 			FeeSelectionComponent.setSubtract(recipient.unit == 'sat' || recipient.unit == 'btc' || recipient.unit == 'lbtc');
 
 			let othersAmount = 0;
-			for(let j in recipient_dicts) {		
-				other_recipient = recipient_dicts[j]		;
-				if (other_recipient.recipient_id != recipient_id) {
+			for(let j in recipientDicts) {		
+				other_recipient = recipientDicts[j]		;
+				if (other_recipient.recipient_id != recipientId) {
 					let unit = other_recipient.unit;
 					let amount = other_recipient.amount;
 					// assets
@@ -366,17 +366,17 @@
 			}
 			amountInput.value = maxAmount;
 			
-			document.getElementById(`recipient_${recipient_id}`).calculateConvertedUnit();
+			document.getElementById(`recipient_${recipientId}`).calculateConvertedUnit();
 		}
 
 		// Form validation
-		function validateAmount(unit, amount, recipient_id, allowZero=false) {
+		function validateAmount(unit, amount, recipientId, allowZero=false) {
 			if (isNaN(amount)) {
 				showError(`{{ _("Amount entered is invalid!") }}`, 5000);
 				return false;
 			}
-			if (recipient_id) {				
-				let amountInput = document.getElementById(`recipient_${recipient_id}`).shadowRoot.getElementById('amount');
+			if (recipientId) {				
+				let amountInput = document.getElementById(`recipient_${recipientId}`).shadowRoot.getElementById('amount');
 				if (coinselectionWebcomponent != null) {
 					amountInput.max = coinselectionWebcomponent.getSpendableAmount(unit);
 				} else {
@@ -407,9 +407,9 @@
 		}
 
 		// Returns true if the address is valid 
-		function validAddress(recipient_id) {
+		function validAddress(recipientId) {
 			let reWhite = /\s/;
-			let addressInput = document.getElementById(`recipient_${recipient_id}`).shadowRoot.getElementById('address');
+			let addressInput = document.getElementById(`recipient_${recipientId}`).shadowRoot.getElementById('address');
 			if (!addressInput.value) {
 				showError(`{{ _("You provided no address.") }}`, 5000);
 				return false
@@ -445,9 +445,9 @@
 		}
 
 		function validateForm(submitted=false) {
-			const recipient_dicts = get_recipient_dicts();
-			// this assures that the 'recipient_dicts' input has the newest recipient_dicts
-			document.getElementById('recipient_dicts').value  = JSON.stringify(get_recipient_dicts());  
+			const recipientDicts = getRecipientDicts();
+			// this assures that the 'recipient_dicts' input has the newest recipientDicts
+			document.getElementById('recipient_dicts').value  = JSON.stringify(getRecipientDicts());  
 			console.log("validateForm is called")
 			let createPSBTButton = document.getElementById('create_psbt_btn');
 			// Disables submit but button still clickable before every validation
@@ -455,8 +455,8 @@
 			let totalAmount = 0.0;
 			let assetAmounts = {};
 			if (document.getElementById('ui-radio-btn').checked) {
-				for(let i in recipient_dicts) {
-					let recipient = recipient_dicts[i];
+				for(let i in recipientDicts) {
+					let recipient = recipientDicts[i];
 					console.log(recipient)
 					if(recipient.unit == 'btc' || recipient.unit == 'sat'){
 						totalAmount += (recipient.unit == 'sat' ? recipient.amount / 1e8 : recipient.amount);
@@ -509,7 +509,7 @@
 			}
 			// Necessary since recipients can be removed which leades to
 			// mismatches between the index in the get_recipient_list and the selected recipient_id
-			indexSubtractFromRecipient = get_recipient_ids().indexOf(parseInt(FeeSelectionComponent.subtractFromRecipientIdSelect.value, 10));
+			indexSubtractFromRecipient = getRecipientIds().indexOf(parseInt(FeeSelectionComponent.subtractFromRecipientIdSelect.value, 10));
 			FeeSelectionComponent.setSubtractFrom(indexSubtractFromRecipient)
 			createPSBTButton.setAttribute('type', 'submit');
 			return true;
@@ -539,7 +539,7 @@
 				setVisibility('add-recipient', 'flex');
 				setVisibility('recipients-txt-container', 'none');
 				setVisibility('subtract', 'block');
-				if (get_recipient_ids().length <= 1) {
+				if (getRecipientIds().length <= 1) {
 					FeeSelectionComponent.showSubtractFrom(false)
 				}
 			} else {
