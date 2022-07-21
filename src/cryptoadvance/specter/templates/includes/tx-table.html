@@ -216,6 +216,35 @@
         input:checked + .slider {
             background-color: hsl(217, 30%, 50%);
         }
+        .feedback-row {
+            display: flex;
+            justify-content: center;
+        }
+        .rescan-hint {
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            font-size: 1.1em;
+        }
+        .go-to-rescan-btn {
+            max-width: 175px; 
+            margin: 0 0 5px 0;
+            border: 1px solid var(--cmap-border);
+            border-radius: 0.5em;
+            background-color: var(--cmap-border);
+            padding: 0.8em;
+            text-align: center;
+            font-weight: 250;
+        }
+        .go-to-rescan-btn:hover {
+            background-color: var(--cmap-border);
+            border: 1px solid var(--main-color);
+            text-decoration: none;
+        }
+        .empty-row {
+            display: table-row;
+            text-align: center;
+        }
         :host {
             display: flex;
             flex-direction: column;
@@ -309,7 +338,7 @@
     </div>
     <div id="table-container" class="table-container">
         <table class="tx-table">
-            <thead>
+            <thead id="table-header">
                 <tr>
                     <th value="callbackaction" class="column-callbackaction customaction-header"></th>
                     <th value="category" class="column-category category-header"><div class="category-arrow"></div></th>
@@ -329,16 +358,16 @@
                     </th>
                 </tr>
             </thead>
-        <tr class="empty">
-            <td class="column-callbackaction"></td>
-            <td class="column-category"></td>
-            <td class="column-txid">{{ _("Fetching transactions...") }}</td>
-            <td class="column-label optional"></td>
-            <td class="column-amount optional"></td>
-            <td class="column-time" ></td>
-            <td class="column-confirmations"></td>
-            <td class="column-blockhash optional hidden blockhash-empty"></td>
-            <td class="column-action"></td>
+        <tr id="feedback-row" class="hidden nohover">
+            <td id="feedback-row-content">
+                <div id="rescan-hint" class="hidden">
+                    <p>{{_('Is this not a fresh wallet? Did you expect transactions here? Then click') }} &#128071; {{_('to find them') }}</p>
+                    <a id="go-to-rescan-btn" href="{{ url_for('wallets_endpoint.settings', wallet_alias=wallet_alias, rescan_blockchain=True) }}" class="go-to-rescan-btn btn">Go to blockchain rescan</a>
+                </div>
+            </td>
+        </tr>
+        <tr id="empty-row" class="hidden nohover">
+            <td id="empty-row-cell" colspan="9"></td>
         </tr>
         <tr class="summary-row hidden">
             <td class="column-callbackaction"></td>
@@ -366,11 +395,18 @@
             var style = document.getElementById('tx-table').content;
             var clone = style.cloneNode(true);
             this.el = clone.querySelector(".tx-table");
+            this.tableHeader = clone.getElementById('table-header')
             this.tbody = clone.querySelector(".tx-tbody");
             this.tableContainer = clone.getElementById("table-container")
 
-            // Empty row element
-            this.emptyRow = clone.querySelector(".empty");
+            // Feedback row
+            this.feedbackRow = clone.getElementById('feedback-row');
+            this.feedbackRowContent = clone.getElementById('feedback-row-content')
+            this.rescanHint = clone.getElementById('rescan-hint')
+
+            // Empty row
+            this.emptyRow = clone.getElementById('empty-row')
+            this.emptyRowCell = clone.getElementById('empty-row-cell')
 
             // Blockhash header and empty column
             this.blockhashHeader = clone.querySelector(".blockhash-header");
@@ -699,11 +735,9 @@
             if (attrName != "selected-coins") {
                 if (this.getAttribute('blockhash') == 'true' && this.getAttribute('type') == "txlist" && this.getAttribute('wallet')) {
                         this.blockhashHeader.classList.remove('hidden');
-                        this.blockhashEmpty.classList.remove('hidden');
                         this.blockhashSummary.classList.remove('hidden');
                 } else {
                     this.blockhashHeader.classList.add('hidden');
-                    this.blockhashEmpty.classList.add('hidden');
                     this.blockhashSummary.classList.add('hidden');
                 }
                 if (
@@ -808,8 +842,11 @@
                     }
                     break
                 default:
-                    this.export.href = ``
-                    this.emptyRow.children[1].innerText = '{{ _("Failed to fetch transactions...") }} ';
+                    this.export.href = ``;
+                    this.tableHeader.classList.add('hidden');
+                    this.feedbackRow.classList.remove('hidden');
+                    this.feedbackRow.classList.add('feedback-row');
+                    this.feedbackRowContent.innerText = '{{ _("Failed to fetch transactions ...") }} ';
                     return
             }
 
@@ -828,7 +865,9 @@
                 formData.append('service_id', this.serviceId);
             }
             formData.append('csrf_token', '{{ csrf_token() }}');
-            console.log(url)
+            this.emptyRow.classList.remove('hidden');
+            this.emptyRow.classList.add('empty-row');
+            this.emptyRowCell.innerText = '{{ _("Fetching transactions ...") }}';
             try {
                 let callId = this.callId;
                 const response = await fetch(
@@ -865,13 +904,16 @@
             //  "txlist": "[{\"txid\": \"1f2b4f9b6762ab37d3b0495cda51d8733c68a5e3a01356f0a67f215a29b2f05e\", \"blockhash\": \"05d7c1f7c4fa2a530e0916dcd15551657c22f4c30df175292b0c0b0f320adc10\", \"blockheight\": 722, \"time\": 1644162928, \"conflicts\": [], \"bip125-replaceable\": \"no\", \"vsize\": null, \"category\": \"receive\", \"address\": \"bcrt1qc3z4j7kksr3wm2heaahzx62yjrj8fn83s7x3ps\", \"amount\": 20.0, \"ismine\": true, \"confirmations\": 132, \"label\": \"Address #7\", \"validated_blockhash\": \"\", \"wallet_alias\": \"myhot_2\"}, {\"txid\": \"aafaecb085944a6fce4556885c1f10c1cd97bac146a2a0e676a2b12bcf428d3b\", \"blockhash\": \"201eea173347cdc8e8effeaf96053b5867860cec163f3eacec7c8918c94bdaaa\", \"blockheight\": 721, \"time\": 1644162928, \"conflicts\": [], \"bip125-replaceable\": \"no\", \"vsize\": null, \"category\": \"receive\", \"address\": \"bcrt1qyncynwdxmeynk245wa3f4urul3nm2v0ulfueek\", \"amount\": 20.0, \"ismine\": true, \"confirmations\": 133, \"label\": \"Address #6\", \"validated_blockhash\": \"\", \"wallet_alias\": \"myhot_2\"}, {\"txid\": \"bf34b090996dfcd2971c88f645edd4a0a0ad180e15096389d8841cf2bac0ecde\", \"blockhash\": \"07952e41edea8a9507722531e922b9d217518d6116ba4fba47c9e62ce12dee9e\", \"blockheight\": 305, \"time\": 1644159720, \"conflicts\": [], \"bip125-replaceable\": \"no\", \"vsize\": null, \"category\": \"receive\", \"address\": \"bcrt1qyncynwdxmeynk245wa3f4urul3nm2v0ulfueek\", \"amount\": 20.0, \"ismine\": true, \"confirmations\": 549, \"label\": \"Address #6\", \"validated_blockhash\": \"\", \"wallet_alias\": \"myhot_2\"}]"
             //  }
 
+            this.emptyRow.classList.remove('empty-row');
+            this.emptyRow.classList.add('hidden');
             // Clean up from existing transaction list
             this.summaryRow.classList.add('hidden');
-            this.emptyRow.children[1].innerText = '{{ _("Fetching transactions...") }}';
-            this.emptyRow.classList.remove('hidden');
             this.tbody.querySelectorAll('tx-row').forEach((row) => {row.remove()});
             if (!this.listType) {
-                this.emptyRow.children[1].innerText = '{{ _("Failed to fetch transactions...") }}';
+                this.tableHeader.classList.add('hidden');
+                this.feedbackRow.classList.remove('hidden');
+                this.feedbackRow.classList.add('feedback-row');
+                this.feedbackRow.innerText = '{{ _("Failed to fetch transactions ...") }}';
                 return
             }
 
@@ -880,7 +922,6 @@
             } else {
                 this.utxoViewBtn.classList.add("checked");
             }
-
             // Populate the table with TXRowElement objects using the fetched txlist
             if (jsonResponse.txlist) {
                 let txlist = JSON.parse(jsonResponse.txlist);
@@ -917,13 +958,19 @@
                 }
                 // Pagination
                 this.pageCount = jsonResponse.pageCount;
-                // Show empty row if no transaction found
+
+                // Show rescan hint if no transactions are found
                 if (this.pageCount == 0 || txlist.length == 0) {
-                    this.emptyRow.classList.remove('hidden');
-                    this.emptyRow.children[1].innerText = '{{ _("No transactions found...") }}';
+                    this.tableHeader.classList.add('hidden');
+                    this.feedbackRow.classList.add('feedback-row');
+                    this.rescanHint.classList.remove('hidden')
+                    this.rescanHint.classList.add('rescan-hint')
                     this.pageCount = 1;
                 } else {
-                    this.emptyRow.classList.add('hidden');
+                    this.tableHeader.classList.remove('hidden');
+                    this.feedbackRow.classList.add('hidden');
+                    this.rescanHint.classList.remove('rescan-hint')
+                    this.rescanHint.classList.add('hidden');
                 }
 
                 // If index is greater than the pages count fetch again for the last page
@@ -1158,7 +1205,7 @@
             }
             catch(e) {
                 console.log("Caught error: ", e);
-                showError(`{{ _("Failed to fetch wallet data! <br> Use this to ask about this error:") }} ${e}`);
+                showError(`{{ _("Failed to fetch wallet data! ")}}<br>{{ _(" Use this to ask about this error:") }} ${e}`);
             }
         }
     }
