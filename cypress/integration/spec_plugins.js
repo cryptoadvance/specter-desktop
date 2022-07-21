@@ -11,7 +11,7 @@ describe('Test plugins', () => {
     
     it('Associate an address with a service', () => {
         // choose address
-        cy.selectWallet("Wallet ghost")
+        cy.selectWallet("Ghost wallet")
         cy.get('main').contains('Addresses').click()
          // Click on the first address
         cy.contains('td', '#0').siblings().contains('bcrt').click()
@@ -24,7 +24,7 @@ describe('Test plugins', () => {
         cy.contains("Admin password successfully updated")
 
         // Choose address again
-        cy.selectWallet("Wallet ghost")
+        cy.selectWallet("Ghost wallet")
         cy.get('main').contains('Addresses').click()
         cy.contains('td', '#0').siblings().contains('bcrt').click()
         cy.get('#associate-btn').click()
