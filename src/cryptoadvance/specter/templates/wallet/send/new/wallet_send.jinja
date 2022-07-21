@@ -119,8 +119,6 @@
 			const NETWORK = "Bitcoin"
 		{% endif %}
 
-
-
 		function get_recipient_ids() {
 			ids = [];
 			var children = document.getElementById(`recipients`).children;
@@ -153,7 +151,6 @@
 				}
 			}
 		}
-
 
 		// Amounts and units
 		var textUnit = '{{ specter.unit }}';
@@ -226,7 +223,6 @@
 			if (recipient_ids.length > 0){
 				recipient_id = Math.max(...recipient_ids)+1
 			}; 
-			
 
 			// This adds the recipient
 			let recipients = document.getElementById('recipients');			
@@ -271,30 +267,30 @@
 				showError(`{{ _("Cannot delete the last recipient") }}`, 5000)
 				return;
 			}
-
 			if (recipient_id==-1) {
 				recipient_id = get_recipient_ids().length - 1
 			};
-
-
 			let recipients = document.getElementById('recipients');
+
 			// This removes the recipient div 
-			for  (var i = recipients.children.length -1; i >= 0; i--)   {
+			for (var i = recipients.children.length -1; i >= 0; i--) {
 				let	child =  recipients.children[i];
 				if (child.recipient_id == recipient_id) {
 					recipients.removeChild(child)
 				}
 			}
 
-			// This removed the recipient_id from the subtract_from_recipient_id_select
-			var fee_selection_component = document.getElementById('fee-selection-component');
-			var subtract_from_recipient_id_select = fee_selection_component.subtractFrom.children.subtract_from_recipient_id_select;
-			for  (var i = subtract_from_recipient_id_select.children.length -1; i >= 0; i--)   {
+			// This removes the recipient_id from the subtract_from_recipient_id_select
+			var subtract_from_recipient_id_select = FeeSelectionComponent.subtractFrom.children.subtract_from_recipient_id_select;
+			for (var i = subtract_from_recipient_id_select.children.length -1; i >= 0; i--) {
 				let	child =  subtract_from_recipient_id_select.children[i];
 				if (child.value == recipient_id) {
 					subtract_from_recipient_id_select.removeChild(child)
 				}
-			}			
+			}
+
+			// Not strictly necessary but better to have it to avoid any divergence
+			FeeSelectionComponent.subtractUpdated()
 
 			// control visibility  and vertical spaces
 			if (get_recipient_ids().length == 1) {
@@ -308,7 +304,6 @@
 		function toggleTextUnit(unitSelected) {
 			textUnit = unitSelected.value
 		}
-
 
 		function isAboveWalletBalance(unit, amount) {
 			// TODO: Currently check is disabled for RBF for simplicity, should add it back for RBF
@@ -332,8 +327,6 @@
 		async function setMaxAmount(recipient_id) {
 			const recipient_dicts = get_recipient_dicts();
 			const recipient = get_recipient_dict(recipient_id);
-
-
 			FeeSelectionComponent.showSubtractFrom(true)
 			FeeSelectionComponent.setSubtractFrom(recipient_id)
 			let amountInput = document.getElementById(`recipient_${recipient_id}`).shadowRoot.getElementById('amount');
@@ -341,7 +334,6 @@
 				return;
 			}
 			FeeSelectionComponent.setSubtract(recipient.unit == 'sat' || recipient.unit == 'btc' || recipient.unit == 'lbtc');
-
 
 			let othersAmount = 0;
 			for(let j in recipient_dicts) {		
@@ -452,18 +444,10 @@
 			}
 		}
 
-
 		function validateForm(submitted=false) {
 			const recipient_dicts = get_recipient_dicts();
-
 			// this assures that the 'recipient_dicts' input has the newest recipient_dicts
 			document.getElementById('recipient_dicts').value  = JSON.stringify(get_recipient_dicts());  
-
-
-						
-						
-
-
 			console.log("validateForm is called")
 			let createPSBTButton = document.getElementById('create_psbt_btn');
 			// Disables submit but button still clickable before every validation
@@ -523,7 +507,10 @@
 					return;
 				}
 			}
-
+			// Necessary since recipients can be removed which leades to
+			// mismatches between the index in the get_recipient_list and the selected recipient_id
+			indexSubtractFromRecipient = get_recipient_ids().indexOf(parseInt(FeeSelectionComponent.subtractFromRecipientIdSelect.value, 10));
+			FeeSelectionComponent.setSubtractFrom(indexSubtractFromRecipient)
 			createPSBTButton.setAttribute('type', 'submit');
 			return true;
 		}
