@@ -205,6 +205,8 @@ main{
     /*justify-content: center;*/
     padding: 0;
     /*padding: 30px 0 20px 0;*/
+    height: 100vh;
+    box-sizing: border-box;
 }
 nav.side > .item, nav.side > div > .item{
     padding: 10px 0;
@@ -343,7 +345,7 @@ nav .separator{
     background: var(--cmap-border);
     border: 1px solid transparent;
     border-radius: 4px;
-    padding: 8px 15px 8px 10px;
+    padding: 8px 10px 8px 10px;
     color: #fff;
     font-size: 0.85em;
     text-align: center;
@@ -740,7 +742,7 @@ th{
     font-weight: inherit;
     border-bottom: 3px solid var(--cmap-bg-lightest);
 }
-tbody tr:hover{
+tbody tr:not(.nohover):hover{
     background: rgba(255,255,255,0.03);
     color: #fff;
 }
@@ -783,6 +785,7 @@ main {
   overflow-y: scroll;
   scrollbar-color: hsl(217, 10%, 80%) var(--cmap-border);
   scrollbar-width: thin;
+  overflow-x: hidden;
 }
 /* Not supported by Firefox & Safari on iOS */
 main::-webkit-scrollbar {
@@ -828,12 +831,6 @@ table a, .address-link{
 table a:hover, .address-link:hover{
     color: #fff;
     text-decoration: underline;
-}
-table .btn{
-    margin: -10px 0;
-    padding: 5px 10px;
-    width: auto;
-    min-width: 0;
 }
 table .btn.hovering{
 	opacity: 0.2;
@@ -921,7 +918,7 @@ table tr:hover .btn.hovering{
 .pagination-arrow {
     text-decoration: none;
     display: inline-block;
-    margin: 0px 16px 16px;
+    margin: 0px 16px 0px;
     border-radius: 50%;
     color: #fff;
     font-size: 1.5em;

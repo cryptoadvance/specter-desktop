@@ -14,6 +14,7 @@ Install requirements:
 ```bash
 virtualenv --python=python3 .buildenv
 source .buildenv/bin/activate 
+pip3 install -r requirements.txt --require-hashes
 cd pyinstaller
 pip3 install -r requirements.txt --require-hashes
 ```
