@@ -1,3 +1,22 @@
+## v1.10.4 Juli 19, 2022
+- Bugfix: Better error-management for run the numbers #1790 (k9ert)
+- Bugfix: Consecutively uploading same file twice #1776 (relativisticelectron)
+- Bugfix: Fix the messed up translated html #1810 (relativisticelectron)
+- Bugfix: make translations safe in jinja2 #1793 (relativisticelectron)
+- Bugfix: NoneType has not attribute get in certain circumstances #1802 (k9ert)
+- Bugfix: Pagination in transactions and coin selection #1778 (Manolis Mandrapilias)
+- Bugfix: Search container overlaying #1787 (Manolis Mandrapilias)
+- Bugfix: support extracting xpub of master xkey derivation #1797 (hodlwave)
+- Chore: fix broken cirrus build cache for bitcoind #1786 (k9ert)
+- Chore: migrating to hwi 2.1.0 #1693 (k9ert)
+- Docs: added necessary command to build instructions #1808 (relativisticelectron)
+- Docs: Mentioning Acronis as endless pacman cause #1767 (k9ert)
+- Feature: Add nix shell #1798 (hodlwave)
+- Feature: Extensions - Making more than one Blueprint possible  #1764 (k9ert)
+- Feature: Rescan button for empty wallet #1779 (yogendra sankhla)
+- UIUX: Improve the transactions view #1746 (Manolis Mandrapilias)
+- UIUX: tooltips fix #1806 (relativisticelectron)
+
 ## v1.10.3 June 22, 2022
 - Bugfix: Display address on device #1774 (Manolis Mandrapilias)
 - Bugfix: Longer Timeout for run_the_numbers #1769 (k9ert)
