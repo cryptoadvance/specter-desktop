@@ -205,4 +205,4 @@ class WebAPINotifications(JSNotifications):
 
     def __init__(self, user_id, websockets_client, on_close=None, on_show=None):
         super().__init__(user_id, websockets_client, on_close=on_close, on_show=on_show)
-        self.name = "WebAPI"  # see https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API/Using_the_Notifications_API
+        self.name = "webapi"  # see https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API/Using_the_Notifications_API

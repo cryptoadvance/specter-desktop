@@ -38,7 +38,7 @@ class Notification:
         self.user_id = user_id
         self.date = datetime.datetime.now()
         self.last_shown_date = dict()  # structure {'target_ui' : date}
-        self.was_closed_in_target_uis = set()  # example: {'WebAPI', 'logging'}
+        self.was_closed_in_target_uis = set()  # example: {'webapi', 'logging'}
 
         if not target_uis:
             target_uis = "default"

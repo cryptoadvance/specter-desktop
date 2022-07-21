@@ -17,7 +17,7 @@ describe('Sending notifications', () => {
 
 
         var some_title = "1234567890abcdef_____////";
-        var cmd = `CreateNotification('${some_title}', {target_uis:['js_message_box'], image:'/static/img/ghost_3d.png', timeout:0})`;
+        var cmd = `createNotification('${some_title}', {target_uis:['js_message_box'], image:'/static/img/ghost_3d.png', timeout:0})`;
         
 
         cy.window().then((win) => {

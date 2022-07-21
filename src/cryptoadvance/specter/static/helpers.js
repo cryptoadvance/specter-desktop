@@ -66,7 +66,7 @@ function showError(msg, timeout=0) {
 	return showNotification(msg, timeout, "error");
 }
 
-async function send_request(url, method_str, csrf_token, formData) {
+async function sendRequest(url, method_str, csrf_token, formData) {
 	if (!formData) {
 		formData = new FormData();
 	}
