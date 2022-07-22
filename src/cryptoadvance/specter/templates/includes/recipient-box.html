@@ -351,6 +351,7 @@
 		set amount(newValue){
 			if (!this.shadowRoot) {return }
 			this.shadowRoot.getElementById('amount').value = newValue;
+			this.calculateConvertedUnit()
 		}			
 		get amount(){
 			var value = parseFloat(this.shadowRoot.getElementById('amount').value );
