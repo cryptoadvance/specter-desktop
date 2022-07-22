@@ -76,7 +76,6 @@
 			this.internals = this.attachInternals();
 			this.recipient_id = null;	// MUST be set for a functioning instance
 			this.inputs = {};   		// this is a dictionary containing all inputs, such they are easily accessible 
-			this.amount = null;   		// will be calculated from the inputs
 			this.btc_amount = null; 	// will be calculated from the inputs
 			this.unit =  null;			// will be calculated from the inputs
 
@@ -276,7 +275,7 @@
 
 
 		// this function together with attributeChangedCallback ensures that setting attributes directly in html 
-		// like <recipient-box myattribute=200></div>  works.
+		// like <recipient-box title='title'></div>  works.
 		static get observedAttributes() {
 			// define the attributes that can be defined via <recipient-box name="recipient-box" id='4'></recipient-box>	
 			var attributes = ["value", "name", "id", "title", "address", "label", "recipient_id", "max", "step", "amount"];
