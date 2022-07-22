@@ -3,13 +3,13 @@
 
 {#- Usage -
 
-    <recipient-box id=`recipient_0`  recipient_id=0   title=`Recipient 1`></recipient-box>
+    <recipient-box id=`recipient_0`  recipientId=0   title=`Recipient 1`></recipient-box>
 
 	or via the class:
 			let newRecipient = new RecipientBox();
-			newRecipient.id = `recipient_${recipient_id}`;
-			newRecipient.recipient_id = recipient_id;
-			newRecipient.title = `Recipient ${recipient_id+1}`;
+			newRecipient.id = `recipient_${recipientId}`;
+			newRecipient.recipientId = recipientId;
+			newRecipient.title = `Recipient ${recipientId+1}`;
 			newRecipient.addEventListener('address-input', (event) => {
 				validateForm()
 			})
@@ -20,7 +20,7 @@
 	  - 'unit-change'
 
 
-	It has the attributes: ["value", "name", "id", "title", "address", "label", "step", "recipient_id"]
+	It has the attributes: ["value", "name", "id", "title", "address", "label", "step", "recipientId"]
 			These attributes will be assigned to the appropriate html elements
 
 	It has the properties:
@@ -74,9 +74,9 @@
 			super();
 			
 			this.internals = this.attachInternals();
-			this.recipient_id = null;	// MUST be set for a functioning instance
+			this.recipientId = null;	// MUST be set for a functioning instance
 			this.inputs = {};   		// this is a dictionary containing all inputs, such they are easily accessible 
-			this.btc_amount = null; 	// will be calculated from the inputs
+			this.btcAmount = null; 	// will be calculated from the inputs
 			this.unit =  null;			// will be calculated from the inputs
 
 			this.buildHTML();			// created the html
@@ -222,12 +222,12 @@
 			
 			this.shadowRoot.getElementById('send_max').addEventListener('click', event=>{
 				console.log(event)
-				setMaxAmount(this.recipient_id)
+				setMaxAmount(this.recipientId)
 			});			
 
 			this.shadowRoot.getElementById('remove').addEventListener('click', event=>{
 				console.log(event)
-				removeRecipient(this.recipient_id)
+				removeRecipient(this.recipientId)
 			});			
 
 			this.shadowRoot.getElementById('amount').addEventListener('input', event=>{
@@ -278,13 +278,13 @@
 		// like <recipient-box title='title'></div>  works.
 		static get observedAttributes() {
 			// define the attributes that can be defined via <recipient-box name="recipient-box" id='4'></recipient-box>	
-			var attributes = ["value", "name", "id", "title", "address", "label", "recipient_id", "max", "step", "amount"];
+			var attributes = ["value", "name", "id", "title", "address", "label", "recipientId", "max", "step", "amount"];
 			return attributes;
 		}
 
 		attributeChangedCallback(attribute, oldValue, newValue) {
 			if (oldValue == newValue){return}
-			console.log(`Called  attributeChangedCallback with ${attribute}   =  ${newValue}  ;  Object.keys(this.inputs) = ${Object.keys(this.inputs)}`)
+			console.log(`Called  attributeChangedCallback with ${attribute}   =  ${newValue}   `)
 			if (attribute=="value"){
 				this.value = newValue;
 			} else if (attribute=="name"){
@@ -293,8 +293,8 @@
 				this.address = newValue;
 			} else if (attribute=="title"){
 				this.title = newValue;
-			} else if (attribute=="recipient_id"){
-				this.recipient_id = newValue;
+			} else if (attribute=="recipientId"){
+				this.recipientId = newValue;
 			} else if (attribute=="label"){
 				this.label = newValue;
 			} else if (attribute=="step"){
@@ -371,28 +371,23 @@
 
 		// value
 		set value(newValue) {
-			for (var i in this.inputs ) {
-				if  (Object.keys(this.inputs).includes(i) ){
-					this.inputs[i].value = newValue[i];
-				}  
+			// loop through all the keys and set the attributes
+			for (var key in newValue) {
+				attributeChangedCallback(key, null,  newValue[key]);
 			} 
 		}
 
-		// Returns a dict with important attributes and input fields
+		// Returns a dict with important attributes
+		// the keys are in python style, because they will be later sent to the python server
 		get value() {
-			// include some attributes from the class (these are typically static (like id) or derived from inputs (such as amount, unit, btc_amount))
-			var dict = {
-				unit:this.unit,
-				amount:this.amount,
-				btc_amount:this.btc_amount,
-				recipient_id:this.recipient_id,
+			return {
+				"unit":this.unit,
+				"amount":this.amount,
+				"btc_amount":this.btcAmount,
+				"recipient_id":this.recipientId,
+				"label":this.label,
+				"address":this.address,
 			}
-
-			// add relevant inputs
-			dict['label'] = this.inputs['label'].value; 
-			dict['address'] = this.inputs['address'].value;
-
-			return dict;
 		}
 
 		static get properties() {
@@ -429,14 +424,14 @@
 			if (convertedAmount == 'NaN') {
 				convertedAmount = '-'
 			}
-			this.btc_amount = (this.unit == 'sat' ? this.amount / 1e8 : this.amount);
+			this.btcAmount = (this.unit == 'sat' ? this.amount / 1e8 : this.amount);
 
 			if(this.unit == 'sat' || this.unit == 'btc'){
 				this.shadowRoot.getElementById('converted_unit_amount').innerHTML = (isNaN(convertedAmount) ? '-' : convertedAmount.toFixed(8).replace(/(\.0+|0+)$/, ''));
 			{% if specter.price_check %}
 				let altRate = parseFloat('{{ specter.alt_rate }}');
 				let altSymbol = '{{ specter.alt_symbol }}';
-				let altAmount = parseFloat((altRate * this.btc_amount).toFixed(2))
+				let altAmount = parseFloat((altRate * this.btcAmount).toFixed(2))
 				if (!isNaN(altAmount) && (altSymbol && altRate)) {
 					this.shadowRoot.getElementById('converted_unit_alt').innerHTML = '&nbsp;(' + altAmount + altSymbol + ')';
 				} else {
@@ -464,7 +459,7 @@
 		}
 
 		markRecipient(is_address_mine){
-			console.log(`Marking ${this.recipient_id} as isMine=${is_address_mine}`)
+			console.log(`Marking ${this.recipientId} as isMine=${is_address_mine}`)
 
 			let html_address = this.shadowRoot.getElementById(`address`);
 			if (is_address_mine) {

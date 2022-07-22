@@ -120,36 +120,40 @@
 		{% endif %}
 
 		function getRecipientIds() {
-			ids = [];
+			var ids = [];
 			var children = document.getElementById(`recipients`).children;
 			for (var i = 0; i < children.length; i++) {
-				ids.push(children[i].recipient_id)
+				ids.push(children[i].recipientId)
 			}
 			//console.log(`ids  ${ids}`)
 			return ids
 		}
 
-		// combines all recipient.value's to a list
-		function getRecipientDicts() {
-			data = [];
+		// combines all html recipients to a list
+		function getRecipients() {
+			var data = [];
 
 			var recipientIds = getRecipientIds();
 			for  (var i in recipientIds)   {
 				var recipientId = recipientIds[i];
 				let recipient = document.getElementById(`recipient_${recipientId}`);
-				data.push(recipient.value);
+				data.push(recipient);
 			}
 
 			return data;
 		}
 
-		function getRecipientDict(recipientId) {
-			recipientDicts = getRecipientDicts() 
-			for  (var i in recipientDicts)   {
-				if (recipientDicts[i].recipient_id == recipientId){
-					return recipientDicts[i]
-				}
+
+		// combines all recipient.value's to a list
+		function getRecipientDicts() {
+			var data = [];
+
+			var recipients = getRecipients();
+			for  (var i in recipients)   {
+				data.push(recipients[i].value);
 			}
+
+			return data;
 		}
 
 		// Amounts and units
@@ -229,7 +233,7 @@
 			let newRecipient = new RecipientBox();
 			newRecipient.myatt = 100;
 			newRecipient.id = `recipient_${recipientId}`;
-			newRecipient.recipient_id = recipientId;
+			newRecipient.recipientId = recipientId;
 			newRecipient.title = `Recipient ${recipientId+1}`;
 			newRecipient.addEventListener('address-input', (event) => {
 				console.log('Called address-input Listener')
@@ -276,12 +280,12 @@
 			// This removes the recipient div 
 			for (var i = recipients.children.length -1; i >= 0; i--) {
 				let	child =  recipients.children[i];
-				if (child.recipient_id == recipientId) {
+				if (child.recipientId == recipientId) {
 					recipients.removeChild(child)
 				}
 			}
 
-			// This removes the recipient_id from the subtract_from_recipient_id_select
+			// This removes the recipientId from the subtract_from_recipient_id_select
 			var subtractFromRecipientIdSelect = FeeSelectionComponent.subtractFrom.children.subtract_from_recipient_id_select;
 			for (var i = subtractFromRecipientIdSelect.children.length -1; i >= 0; i--) {
 				let	child =  subtractFromRecipientIdSelect.children[i];
@@ -326,8 +330,8 @@
 		}
 
 		async function setMaxAmount(recipientId) {
-			const recipientDicts = getRecipientDicts();
-			const recipient = getRecipientDict(recipientId);
+			const recipients = getRecipients();
+			const recipient = document.getElementById(`recipient_${recipientId}`);
 			FeeSelectionComponent.showSubtractFrom(true)
 			FeeSelectionComponent.setSubtractFrom(recipientId)
 			if (!validAddress(recipientId)) {
@@ -336,9 +340,9 @@
 			FeeSelectionComponent.setSubtract(recipient.unit == 'sat' || recipient.unit == 'btc' || recipient.unit == 'lbtc');
 
 			let othersAmount = 0;
-			for(let j in recipientDicts) {		
-				other_recipient = recipientDicts[j]		;
-				if (other_recipient.recipient_id != recipientId) {
+			for(let j in recipients) {		
+				other_recipient = recipients[j]		;
+				if (other_recipient.recipientId != recipientId) {
 					let unit = other_recipient.unit;
 					let amount = other_recipient.amount;
 					// assets
@@ -444,7 +448,7 @@
 		}
 
 		function validateForm(submitted=false) {
-			const recipientDicts = getRecipientDicts();
+			const recipients = getRecipients();
 			// this assures that the 'recipient_dicts' input has the newest recipientDicts
 			document.getElementById('recipient_dicts').value  = JSON.stringify(getRecipientDicts());  
 			console.log("validateForm is called")
@@ -454,8 +458,8 @@
 			let totalAmount = 0.0;
 			let assetAmounts = {};
 			if (document.getElementById('ui-radio-btn').checked) {
-				for(let i in recipientDicts) {
-					let recipient = recipientDicts[i];
+				for(let i in recipients) {
+					let recipient = recipients[i];
 					console.log(recipient)
 					if(recipient.unit == 'btc' || recipient.unit == 'sat'){
 						totalAmount += (recipient.unit == 'sat' ? recipient.amount / 1e8 : recipient.amount);
@@ -466,18 +470,18 @@
 							assetAmounts[recipient.unit] = recipient.amount;
 						}
 					}
-					if (document.getElementById(`recipient_${recipient.recipient_id}`).shadowRoot.getElementById('amount').value == '') {
+					if (document.getElementById(`recipient_${recipient.recipientId}`).shadowRoot.getElementById('amount').value == '') {
 						recipient.amount = 0;
 					}
 
 
 					if (submitted) {
 						// Check address
-						if (!validAddress(recipient.recipient_id)) {
+						if (!validAddress(recipient.recipientId)) {
 							return;
 						}
 						// Check amount
-						if (!validateAmount(recipient.unit, recipient.amount, recipient.recipient_id)) {
+						if (!validateAmount(recipient.unit, recipient.amount, recipient.recipientId)) {
 							return;
 						}
 					}
@@ -507,7 +511,7 @@
 				}
 			}
 			// Necessary since recipients can be removed which leades to
-			// mismatches between the index in the get_recipient_list and the selected recipient_id
+			// mismatches between the index in the get_recipient_list and the selected recipientId
 			indexSubtractFromRecipient = getRecipientIds().indexOf(parseInt(FeeSelectionComponent.subtractFromRecipientIdSelect.value, 10));
 			FeeSelectionComponent.setSubtractFrom(indexSubtractFromRecipient)
 			createPSBTButton.setAttribute('type', 'submit');
