@@ -1305,34 +1305,21 @@ input:checked + .slider:before {
     -ms-transform: translateX(26px);
     transform: translateX(26px);
 }
-
-
-
-
 .recipient_wrapper{
-    padding: 5px;
     width: 100%;
     border-radius: 3px;
     box-shadow: 0px 10px 15px rgba(0,0,0,0.1);
   }
-
-
 .recipient_wrapper_item{
     border-radius: 5px;
-    border: 1px solid var(--cmap-border-highlight);
+    border: 1.5px solid var(--default-color);
     padding: 5px;
     margin-bottom: 5px;
   }
-    
   .recipient_wrapper_inner_box{
-    border-radius: 5px;
-    border: 1px solid var(--cmap-border);
     padding: 5px;
     margin-top: 5px;
   }
-
-
- 
 .recipient_button{
       background: var(--cmap-border);
       padding-left: 2px;
@@ -1340,7 +1327,7 @@ input:checked + .slider:before {
       margin-left: 2px;
       margin-right: 2px; 
       border-radius: 3px;
-      width: fit-content;
+      height: 22px;
       border: none;    
     }
 .recipient_button:hover {
@@ -1349,9 +1336,9 @@ input:checked + .slider:before {
 .recipient_dragger {
     cursor: grab; 
 }
-.recipient_remove {
-    cursor: default; 
-    margin-left: 8px;
+.recipient_add {
+    margin-right: 3px;
+    height: 25px;
 }
 .recipient_move {
     cursor: default; 

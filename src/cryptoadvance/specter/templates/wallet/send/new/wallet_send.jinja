@@ -62,7 +62,7 @@
 	    </div>
 		<div class="card" style="margin: auto;">			
 			<div id="recipients" {% if ui_option != 'ui' %}class="hidden"{% else %} class="recipient_wrapper" {% endif %}></div>
-			<div id="add-recipient" title="Add a recipient" class="recipient_button" style="float:right"  onclick="addRecipient('', 0, 'btc', '')"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
+			<img src="{{ url_for('static', filename='img/add-person.svg') }}" id="add-recipient" title="Add a recipient" class="recipient_button recipient_add" style="float:right" onclick="addRecipient('', 0, 'btc', '')">
 			<div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>
 			{{ _("Unit:") }} 
 			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_text" value="sat" onchange="toggleTextUnit(this)" {% if specter.unit == 'sat' %}checked{% endif %}>sat</label>
