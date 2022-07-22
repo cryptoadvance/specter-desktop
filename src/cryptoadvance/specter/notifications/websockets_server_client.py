@@ -374,30 +374,30 @@ class WebsocketsClient(WebsocketsBase):
 
 
 def create_websockets_server_and_client(port, user_manager, notification_manager):
-    client = WebsocketsClient(port)
-    ws = WebsocketsServer(port, user_manager, notification_manager)
-    ws.set_as_admin(
-        client.user_token
-    )  # this ensures that this client has rights to send to other users
-    return ws, client
+    websockets_client = WebsocketsClient(port)
+    websockets_server = WebsocketsServer(port, user_manager, notification_manager)
+    websockets_server.set_as_admin(
+        websockets_client.user_token
+    )  # this ensures that this websockets_client has rights to send to other users
+    return websockets_server, websockets_client
 
 
-def run_websockets_server_and_client(ws, client):
-    ws.start()
+def run_websockets_server_and_client(websockets_server, websockets_client):
+    websockets_server.start()
     # now I have to wait until the server is started and is ready to recieve messages
     for i in range(50):
-        if ws.started:
+        if websockets_server.started:
             break
         time.sleep(0.1)  # sleep for 0.1 seconds
         if i == 49:
-            ws.quit()
+            websockets_server.quit()
             logger.error(
-                f'The server never reached the "started" state. Quitting the server and do not attempt to start the client.'
+                f'The server never reached the "started" state. Quitting the server and do not attempt to start the websockets_client.'
             )
             return
 
-    client.port = (
-        ws.port
-    )  # ensure that even if the port changed in the server, the client can connect
-    client.start()
-    client.authenticate()
+    websockets_client.port = (
+        websockets_server.port
+    )  # ensure that even if the port changed in the server, the websockets_client can connect
+    websockets_client.start()
+    websockets_client.authenticate()
