@@ -113,7 +113,7 @@ def create_app(config=None):
     return app
 
 
-def init_app(app: SpecterFlask, hwibridge=False, specter=None):
+def init_app(app: SpecterFlask, hwibridge=False, specter=None, **kwargs):
     """see blogpost 19nd Feb 2020"""
 
     # Configuring a prefix for the app
@@ -157,8 +157,14 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     if is_running_from_reloader():
         # if the flask reloader starts a second instance of everything, make sure the server and client are not initiated a second time
         websockets_port += 1
+
+    ssl_cert, ssl_key = kwargs["ssl_context"]
     specter.notification_manager = NotificationManager(
-        websockets_active, websockets_port, specter.user_manager
+        websockets_active,
+        websockets_port,
+        specter.user_manager,
+        ssl_cert=ssl_cert,
+        ssl_key=ssl_key,
     )
     for user in specter.user_manager.users:
         specter.notification_manager.register_user_ui_notifications(user.id)

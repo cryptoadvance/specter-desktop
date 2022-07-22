@@ -111,8 +111,14 @@ def server(
     if key:
         app.config["KEY"] = key
 
+    kwargs = {
+        "host": host,
+        "port": app.config["PORT"],
+    }
+    kwargs = configure_ssl(kwargs, app.config, ssl)
+
     app.app_context().push()
-    init_app(app, hwibridge=hwibridge)
+    init_app(app, hwibridge=hwibridge, **kwargs)
 
     if filelog:
         # again logging: Creating a logfile in SPECTER_DATA_FOLDER (which needs to exist)
@@ -135,13 +141,7 @@ def server(
                 filename = os.path.join(dirname, filename)
                 if os.path.isfile(filename):
                     extra_files.append(filename)
-
-    kwargs = {
-        "host": host,
-        "port": app.config["PORT"],
-        "extra_files": extra_files,
-    }
-    kwargs = configure_ssl(kwargs, app.config, ssl)
+    kwargs["extra_files"] = extra_files
 
     if hwibridge:
         if kwargs.get("ssl_context"):

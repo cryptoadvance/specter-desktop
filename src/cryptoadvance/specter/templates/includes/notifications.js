@@ -313,7 +313,7 @@ function connectAndAuthenticateWebsocket() {
         }
 
         ip_address = "{{ request.host.split(':')[0] }}";
-        websocket = new WebSocket(`ws://${ip_address}:${port}/`);
+        websocket = new WebSocket(`wss://${ip_address}:${port}/`);
 
 
         
@@ -352,7 +352,7 @@ function connectAndAuthenticateWebsocket() {
 
 }
 
-connectAndAuthenticateWebsocket()
+//connectAndAuthenticateWebsocket()
 
 
 
@@ -362,7 +362,14 @@ connectAndAuthenticateWebsocket()
  * If a user is logged in then regularrly check the webapi notification permission
  */
  if ('{{ current_user.username }}'){
-    setInterval(sendUpdatedWebapiPermission, 3000);
+    //setInterval(sendUpdatedWebapiPermission, 3000);
 }else{
     // no user logged in
 }
+
+
+
+var info = null;
+sendRequest("{{ url_for('wallets_endpoint_api.get_websockets_info') }}", 'GET', 
+                    "{{ csrf_token() }}").then(function (websocketsInfo) { info = websocketsInfo })
+                    

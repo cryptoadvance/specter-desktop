@@ -62,7 +62,13 @@ class NotificationManager:
     """
 
     def __init__(
-        self, websockets_active, websockets_port, user_manager, ui_notifications=None
+        self,
+        websockets_active,
+        websockets_port,
+        user_manager,
+        ui_notifications=None,
+        ssl_cert=None,
+        ssl_key=None,
     ):
         """
         Arguments:
@@ -80,7 +86,11 @@ class NotificationManager:
                 self.websockets_server,
                 self.websockets_client,
             ) = websockets_server_client.create_websockets_server_and_client(
-                websockets_port, user_manager, self
+                websockets_port,
+                user_manager,
+                self,
+                ssl_cert=ssl_cert,
+                ssl_key=ssl_key,
             )
             websockets_server_client.run_websockets_server_and_client(
                 self.websockets_server, self.websockets_client

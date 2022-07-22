@@ -13,6 +13,7 @@ import time, json
 import websockets
 import threading
 from ..helpers import robust_json_dumps
+import ssl
 
 
 class WebsocketsBase:
@@ -26,6 +27,7 @@ class WebsocketsBase:
         self._quit = False
         self.started = False
         self.loop = None
+        self.ssl_context = None
 
     def quit(self):
         self._quit = True
@@ -40,18 +42,18 @@ class WebsocketsBase:
         asyncio.set_event_loop(loop)
 
         logger.debug(
-            f"------> starting forever_function of {self.__class__.__name__} on port {self.port}"
+            f"------> starting forever_function of {self.__class__.__name__} on port {self.port} with ssl_context {self.ssl_context}"
         )
         loop.run_until_complete(self.forever_function())
         self.started = True
         logger.debug(
-            f"------> complete forever_function of {self.__class__.__name__} on port {self.port}"
+            f"------> complete forever_function of {self.__class__.__name__} on port {self.port} with ssl_context {self.ssl_context}"
         )
 
         if not self._quit:
             loop.run_forever()  # this is needed for the server, and does nothing for the client
         logger.debug(
-            f"------> after run_forever of {self.__class__.__name__}  on port {self.port}"
+            f"------> after run_forever of {self.__class__.__name__}  on port {self.port} with ssl_context {self.ssl_context}"
         )
         loop.close()
         logger.debug(f"loop of {self.__class__.__name__} was shut down")
@@ -121,12 +123,20 @@ class WebsocketsServer(WebsocketsBase):
 
     """
 
-    def __init__(self, port, user_manager, notification_manager):
+    def __init__(
+        self, port, user_manager, notification_manager, ssl_cert=None, ssl_key=None
+    ):
         super().__init__(port)
         self.connections = list()
         self.admin_tokens = list()
         self.user_manager = user_manager
         self.notification_manager = notification_manager
+
+        self.ssl_context = None
+        if ssl_cert and ssl_key:
+            self.ssl_context = ssl._create_unverified_context(ssl.PROTOCOL_TLS_SERVER)
+            # see https://pythontic.com/ssl/sslcontext/load_cert_chain
+            self.ssl_context.load_cert_chain(certfile=ssl_cert, keyfile=ssl_key)
 
     def quit(self):
         super().quit()
@@ -312,7 +322,11 @@ class WebsocketsServer(WebsocketsBase):
     def forever_function(self):
         # the ping_interval=None is crucial, otherwise the connection will break after 30 seconds or so https://stackoverflow.com/questions/54101923/1006-connection-closed-abnormally-error-with-python-3-7-websockets
         return websockets.serve(
-            self._forever_listener, self.domain, self.port, ping_interval=None
+            self._forever_listener,
+            self.domain,
+            self.port,
+            ping_interval=None,
+            ssl=self.ssl_context,
         )
 
 
@@ -323,10 +337,16 @@ class WebsocketsClient(WebsocketsBase):
     Its main function is to send messages from python to the WebsocketsServer, via self.send().
     """
 
-    def __init__(self, port):
+    def __init__(self, port, ssl_cert=None, ssl_key=None):
         super().__init__(port)
         self.q = Queue()
         self.user_token = secrets.token_urlsafe(128)
+
+        self.ssl_context = None
+        if ssl_cert and ssl_key:
+            self.ssl_context = ssl._create_unverified_context(ssl.PROTOCOL_TLS_CLIENT)
+            # see https://pythontic.com/ssl/sslcontext/load_cert_chain
+            self.ssl_context.load_cert_chain(certfile=ssl_cert, keyfile=ssl_key)
 
     def quit(self):
         super().quit()
@@ -347,8 +367,13 @@ class WebsocketsClient(WebsocketsBase):
         return answers
 
     async def forever_function(self):
+        prefix = "wss" if self.ssl_context else "ws"
+
         self.websocket = await websockets.connect(
-            f"ws://{self.domain}:{self.port}", timeout=None, ping_interval=None
+            f"{prefix}://{self.domain}:{self.port}",
+            timeout=None,
+            ping_interval=None,
+            ssl=self.ssl_context,
         )
 
         logger.debug("Client: connected")
@@ -373,9 +398,13 @@ class WebsocketsClient(WebsocketsBase):
         self.send({"type": "authentication", "user_token": self.user_token})
 
 
-def create_websockets_server_and_client(port, user_manager, notification_manager):
-    websockets_client = WebsocketsClient(port)
-    websockets_server = WebsocketsServer(port, user_manager, notification_manager)
+def create_websockets_server_and_client(
+    port, user_manager, notification_manager, ssl_cert=None, ssl_key=None
+):
+    websockets_client = WebsocketsClient(port, ssl_cert=ssl_cert, ssl_key=ssl_key)
+    websockets_server = WebsocketsServer(
+        port, user_manager, notification_manager, ssl_cert=ssl_cert, ssl_key=ssl_key
+    )
     websockets_server.set_as_admin(
         websockets_client.user_token
     )  # this ensures that this websockets_client has rights to send to other users
