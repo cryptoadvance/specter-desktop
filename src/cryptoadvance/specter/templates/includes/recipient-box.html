@@ -86,23 +86,6 @@
 
 
 
-		setTitle(newValue){
-			this.shadowRoot.getElementById('title').innerText = newValue;
-		}		
-
-		setLabel(newValue){
-			this.shadowRoot.getElementById('label').value = newValue;
-		}		
-
-		setAddress(newValue){
-			this.shadowRoot.getElementById('address').value = newValue;
-		}		
-
-		setStep(newValue){
-			this.shadowRoot.getElementById('amount').step = newValue;
-		}		
-
-
 		// creates the entire html code (without event listeners)  mainly from the template
 		// and it also populates the dictionary this.inputs
 		buildHTML(){
@@ -292,10 +275,11 @@
 
 
 
-
+		// this function together with attributeChangedCallback ensures that setting attributes directly in html 
+		// like <recipient-box myattribute=200></div>  works.
 		static get observedAttributes() {
 			// define the attributes that can be defined via <recipient-box name="recipient-box" id='4'></recipient-box>	
-			var attributes = ["value", "name", "id", "title", "address", "label", "step", "recipient_id"];
+			var attributes = ["value", "name", "id", "title", "address", "label", "recipient_id", "max", "step", "amount"];
 			return attributes;
 		}
 
@@ -315,7 +299,11 @@
 			} else if (attribute=="label"){
 				this.setLabel(newValue);
 			} else if (attribute=="step"){
-				this.setStep(newValue);
+				this.step = newValue;
+			} else if (attribute=="max"){
+				this.max = newValue;
+			} else if (attribute=="amount"){
+				this.amount = newValue;
 			} else if (attribute=="id"){
 				this.id = newValue;
 			} else if (Object.keys(this.inputs).includes(attribute) ) {
@@ -324,7 +312,52 @@
 			
 		}
 
-		// This is essential to make the recipient-box compatible with setting a new value
+
+
+		setTitle(newValue){
+			this.shadowRoot.getElementById('title').innerText = newValue;
+		}		
+
+		setLabel(newValue){
+			this.shadowRoot.getElementById('label').value = newValue;
+		}		
+
+		setAddress(newValue){
+			this.shadowRoot.getElementById('address').value = newValue;
+		}		
+
+
+		// step
+		set step(newValue){
+			if (!this.shadowRoot) {return }
+			this.shadowRoot.getElementById('amount').step = newValue;
+		}			
+		get step(){
+			return parseFloat(this.shadowRoot.getElementById('amount').step );
+		}		
+
+		// amount
+		set amount(newValue){
+			if (!this.shadowRoot) {return }
+			this.shadowRoot.getElementById('amount').value = newValue;
+		}			
+		get amount(){
+			var value = parseFloat(this.shadowRoot.getElementById('amount').value );
+			if (!value) {value = 0}
+			return value;
+		}		
+
+		// max
+		set max(newValue){
+			if (!this.shadowRoot) {return }
+			this.shadowRoot.getElementById('amount').max = newValue;
+		}			
+		get max(){
+			return parseFloat(this.shadowRoot.getElementById('amount').max );
+		}		
+
+
+		// value
 		set value(newValue) {
 			this.setValue(newValue);
 		}
@@ -382,9 +415,6 @@
 
 		calculateConvertedUnit() {
 			console.log('calculateConvertedUnit')
-			let amountInput = this.shadowRoot.getElementById('amount');
-
-			this.amount = parseFloat(amountInput.value);
 
 			let convertedAmount = parseFloat(Number.parseFloat(this.amount / (this.unit == 'sat' ? 1e8 : 1e-8)).toFixed((this.unit == 'sat' ? 8 : 0)));
 			if (convertedAmount == 'NaN') {

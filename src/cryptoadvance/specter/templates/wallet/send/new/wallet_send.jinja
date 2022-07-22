@@ -60,7 +60,7 @@
 	        </div>
 	        {% endif %}
 	    </div>
-		<div class="card" style="margin: auto;">
+		<div class="card" style="margin: auto;">			
 			<div id="recipients" {% if ui_option != 'ui' %}class="hidden"{% else %} class="recipient_wrapper" {% endif %}></div>
 			<div id="add-recipient" title="Add a recipient" class="recipient_button" style="float:right"  onclick="addRecipient('', 0, 'btc', '')"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
 			<div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>
@@ -227,6 +227,7 @@
 			// This adds the recipient
 			let recipients = document.getElementById('recipients');			
 			let newRecipient = new RecipientBox();
+			newRecipient.myatt = 100;
 			newRecipient.id = `recipient_${recipientId}`;
 			newRecipient.recipient_id = recipientId;
 			newRecipient.title = `Recipient ${recipientId+1}`;
@@ -329,7 +330,6 @@
 			const recipient = getRecipientDict(recipientId);
 			FeeSelectionComponent.showSubtractFrom(true)
 			FeeSelectionComponent.setSubtractFrom(recipientId)
-			let amountInput = document.getElementById(`recipient_${recipientId}`).shadowRoot.getElementById('amount');
 			if (!validAddress(recipientId)) {
 				return;
 			}
@@ -364,8 +364,8 @@
 			if (maxAmount < 0) {
 				maxAmount = 0;
 			}
-			amountInput.value = maxAmount;
-			
+			document.getElementById(`recipient_${recipientId}`).amount = maxAmount;
+				
 			document.getElementById(`recipient_${recipientId}`).calculateConvertedUnit();
 		}
 
@@ -376,11 +376,10 @@
 				return false;
 			}
 			if (recipientId) {				
-				let amountInput = document.getElementById(`recipient_${recipientId}`).shadowRoot.getElementById('amount');
 				if (coinselectionWebcomponent != null) {
-					amountInput.max = coinselectionWebcomponent.getSpendableAmount(unit);
+					document.getElementById(`recipient_${recipientId}`).max = coinselectionWebcomponent.getSpendableAmount(unit);
 				} else {
-					amountInput.max = spendableAmount
+					document.getElementById(`recipient_${recipientId}`).max = spendableAmount
 				}
 			}
 			if (!amount && !allowZero) {
