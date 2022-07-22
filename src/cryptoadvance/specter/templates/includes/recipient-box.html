@@ -287,17 +287,17 @@
 			if (oldValue == newValue){return}
 			console.log(`Called  attributeChangedCallback with ${attribute}   =  ${newValue}  ;  Object.keys(this.inputs) = ${Object.keys(this.inputs)}`)
 			if (attribute=="value"){
-				setValue(newValue);
+				this.value = newValue;
 			} else if (attribute=="name"){
 				this.name = newValue;
 			} else if (attribute=="address"){
-				setAddress(newValue);
+				this.address = newValue;
 			} else if (attribute=="title"){
-				this.setTitle(newValue);
+				this.title = newValue;
 			} else if (attribute=="recipient_id"){
 				this.recipient_id = newValue;
 			} else if (attribute=="label"){
-				this.setLabel(newValue);
+				this.label = newValue;
 			} else if (attribute=="step"){
 				this.step = newValue;
 			} else if (attribute=="max"){
@@ -306,26 +306,38 @@
 				this.amount = newValue;
 			} else if (attribute=="id"){
 				this.id = newValue;
-			} else if (Object.keys(this.inputs).includes(attribute) ) {
-				this.inputs[attribute].value = newValue;
 			} 
 			
 		}
 
 
 
-		setTitle(newValue){
+		// title
+		set title(newValue){
+			if (!this.shadowRoot) {return }
 			this.shadowRoot.getElementById('title').innerText = newValue;
+		}			
+		get title(){
+			return this.shadowRoot.getElementById('title').innerText;
 		}		
 
-		setLabel(newValue){
-			this.shadowRoot.getElementById('label').value = newValue;
-		}		
-
-		setAddress(newValue){
+		// address
+		set address(newValue){
+			if (!this.shadowRoot) {return }
 			this.shadowRoot.getElementById('address').value = newValue;
+		}			
+		get address(){
+			return this.shadowRoot.getElementById('address').value;
 		}		
 
+		// label
+		set label(newValue){
+			if (!this.shadowRoot) {return }
+			this.shadowRoot.getElementById('label').value = newValue;
+		}			
+		get label(){
+			return this.shadowRoot.getElementById('label').value;
+		}		
 
 		// step
 		set step(newValue){
@@ -359,9 +371,6 @@
 
 		// value
 		set value(newValue) {
-			this.setValue(newValue);
-		}
-		setValue(newValue) {
 			for (var i in this.inputs ) {
 				if  (Object.keys(this.inputs).includes(i) ){
 					this.inputs[i].value = newValue[i];
