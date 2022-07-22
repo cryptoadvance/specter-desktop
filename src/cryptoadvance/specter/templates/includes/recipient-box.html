@@ -373,7 +373,7 @@
 		set value(newValue) {
 			// loop through all the keys and set the attributes
 			for (var key in newValue) {
-				attributeChangedCallback(key, null,  newValue[key]);
+				this.attributeChangedCallback(key, null,  newValue[key]);
 			} 
 		}
 
