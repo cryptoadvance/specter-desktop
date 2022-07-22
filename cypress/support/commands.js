@@ -61,12 +61,8 @@ Cypress.Commands.add("addDevice", (name, device_type, mnemonic) => {
 Cypress.Commands.add("addHotDevice", (name, node_type) => { 
   // node_type is either elements or bitcoin
   cy.get('body').then(($body) => {
-      cy.task("delete:elements-hotwallet")
       if ($body.text().includes(name)) {
-        cy.get('#toggle_devices_list').click()
-        var refName = "#device_list_item_"+name.toLowerCase().replace(/ /g,"_")
-        cy.get(refName).click( {force: true} )
-        cy.get('#forget_device').click()
+        cy.deleteDevice(name)
         // We might get an error here, if the device is used in a wallet
         // We assume therefore that this is ok (see below)
       } 
@@ -149,40 +145,60 @@ Cypress.Commands.add("addHotWallet", (wallet_name, device_name, node_type, walle
     })
 })
 
-Cypress.Commands.add("addWallet", (wallet_name, device_name, wallet_type, funded, node_type) => { 
-  if (wallet_type == null) {
-    wallet_type = "segwit"
+Cypress.Commands.add("addWallet", (walletName, walletType, funded, nodeType, keyType, deviceNameOne, deviceNameTwo, deviceNameThree) => { 
+  if (walletType == null) {
+    walletType = "segwit"
   }
-  if (device_name == null) {
-    device_name = "DIY ghost"
+  if (deviceNameOne == null) {
+    deviceNameOne = "DIY ghost"
   }
   cy.get('body').then(($body) => {
-      if ($body.text().includes(wallet_name)) {
-        cy.contains(wallet_name).click()
+      if ($body.text().includes(walletName)) {
+        cy.contains(walletName).click()
         cy.get('#btn_settings' ).click( {force: true})
         cy.get('#advanced_settings_tab_btn').click()
         cy.get('#delete_wallet').click()
       }
       cy.get('#side-content').click()
       cy.get('#btn_new_wallet').click()
-      cy.get('[href="./simple/"]').click()
-      var device_button = "#"+device_name.toLowerCase().replace(/ /g,"_")
-      cy.get(device_button).click()
-      cy.get('#wallet_name').type(wallet_name)
-      if (wallet_type == "nested_segwit") {
-        cy.get('#type_nested_segwit_btn').click()
+      if (keyType == 'singlesig') {
+        cy.get('[href="./simple/"]').click()
+        var device_button = "#"+deviceNameOne.toLowerCase().replace(/ /g,"_")
+        cy.get(device_button).click()
+        cy.get('#wallet_name').type(walletName)
+        if (walletType == "nested_segwit") {
+          cy.get('#type_nested_segwit_btn').click()
+        }
+        if (walletType == "taproot") {
+          cy.get('#type_taproot_btn').click()
+        }
       }
-      if (wallet_type == "taproot") {
-        cy.get('#type_taproot_btn').click()
+      // Makes a 2 out 3 multisig
+      else if (keyType == "multisig") {
+        cy.get('[href="./multisig/"]').click()
+        var deviceButtonOne = "#"+deviceNameOne.toLowerCase().replace(/ /g,"_")
+        cy.get(deviceButtonOne).click()
+        var deviceButtonTwo = "#"+deviceNameTwo.toLowerCase().replace(/ /g,"_")
+        cy.get(deviceButtonTwo).click()
+        var deviceButtonThree = "#"+deviceNameThree.toLowerCase().replace(/ /g,"_")
+        cy.get(deviceButtonThree).click()
+        cy.get('#submit-device').click()
+        cy.get('#wallet_name').type(walletName)
+        if (walletType == "nested_segwit") {
+          cy.get('#type_nested_segwit_btn').click()
+        }
+        cy.get(':nth-child(9) > .inline').clear()
+        cy.get(':nth-child(9) > .inline').type(2)
       }
       cy.get('#keysform > .centered').click()
       cy.get('body').contains("New wallet was created successfully!")
-      cy.get('#btn_continue').click()
+      cy.get('#page_overlay_popup_cancel_button').click()
       if (funded) {
-        cy.mine2wallet(node_type)
+        cy.mine2wallet(nodeType)
       }  
     })
 })
+
 Cypress.Commands.add("deleteWallet", (name) => { 
   cy.get('body').then(($body) => {
     if ($body.text().includes(name)) {
