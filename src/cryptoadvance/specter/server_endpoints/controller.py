@@ -230,18 +230,14 @@ if app.config["SPECTER_URL_PREFIX"] != "":
         return redirect(url_for("welcome_endpoint.index"))
 
 
-from ..notifications.websockets_server_client import SimpleWebsocketServer
+from ..notifications import websockets_server_client
 
 
 @app.route("/websocket", websocket=True)
 def websocket():
-    websockets_server = SimpleWebsocketServer(
+    websockets_server_client.run_websockets_server_and_client(
         app.specter.notification_manager, app.specter.user_manager, request.environ
     )
-    app.specter.notification_manager.set_websockets_server(
-        websockets_server, request.environ
-    )
-    websockets_server.serve()
 
 
 @app.route("/healthz/liveness")

@@ -74,14 +74,12 @@ class NotificationManager:
         self.websockets_client = None
         self.ssl_cert, self.ssl_key = ssl_cert, ssl_key
 
-    def set_websockets_server(self, websockets_server, environ):
+    def set_websockets_server_and_start_client(self, websockets_server, environ):
         self.websockets_server = websockets_server
 
-        # start the delayed client (the server does not server yet)
-        self.websockets_client = websockets_server_client.SimpleWebsocketClient(
+        return websockets_server_client.SimpleWebsocketClient(
             environ, self.ssl_cert, self.ssl_key
         )
-        self.websockets_client.delayed_start_in_new_thread()
 
     def quit(self):
         return
