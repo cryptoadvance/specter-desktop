@@ -30,6 +30,8 @@ from .setup import setup_endpoint
 from .wallets import wallets_endpoint
 from .wallets_api import wallets_endpoint_api
 from ..rpc import RpcError
+import simple_websocket
+
 
 # Services live in their own separate path
 from cryptoadvance.specter.services.controller import services_endpoint
@@ -221,6 +223,22 @@ if app.config["SPECTER_URL_PREFIX"] != "":
     @app.route(f"{app.config['SPECTER_URL_PREFIX']}/")
     def index_prefix():
         return redirect(url_for("welcome_endpoint.index"))
+
+
+import simple_websocket
+
+
+@app.route("/echo", websocket=True)
+def echo():
+    ws = simple_websocket.Server(request.environ)
+    try:
+        while True:
+            data = ws.receive()
+            print(data)
+            ws.send(data)
+    except simple_websocket.ConnectionClosed:
+        pass
+    return ""
 
 
 @app.route("/healthz/liveness")
