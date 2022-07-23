@@ -60,10 +60,6 @@ class SimpleWebsocketClient:
         self.q.join()  # block until all tasks are done
 
     def start(self):
-        self.websocket = simple_websocket.Client(self.url, ssl_context=self.ssl_context)
-        logger.debug("Client: connected")
-        return
-
         try:
             self.thread = threading.Thread(target=self.forever_function)
             self.thread.daemon = True  # die when the main thread dies
@@ -128,6 +124,7 @@ class SimpleWebsocketServer:
         self.notification_manager = notification_manager
         self.user_manager = user_manager
         self.started = False
+        self.q = Queue()
 
     def serve(self):
         try:

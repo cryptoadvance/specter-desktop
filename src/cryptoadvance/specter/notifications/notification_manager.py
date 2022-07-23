@@ -84,26 +84,23 @@ class NotificationManager:
             return flask.Response(
                 self.websockets_server.serve(), mimetype="text/event-stream"
             )
+
+        print(1)
         self.websockets_server = websockets_server_client.SimpleWebsocketServer(
             self, self.user_manager, environ
         )
+        print(2)
         self.websockets_client = websockets_server_client.SimpleWebsocketClient(
             environ, self.ssl_cert, self.ssl_key
         )
-        logger.info(f"created client {self.websockets_client}")
+        print(3)
 
         self.websockets_server.set_as_admin(
             self.websockets_client.user_token
         )  # this ensures that this client has rights to send to other users
 
-        # self.websockets_client.start()
-        import simple_websocket
-
-        logger.info("before the client started")
-        websocket = simple_websocket.Client(
-            self.websockets_client.url, ssl_context=self.websockets_client.ssl_context
-        )
-        logger.info("after the client started")
+        self.websockets_client.start()
+        print(4)
 
         self.websockets_server.serve()  # runs forever
         logger.info(f"Stopped websockets_server with environ {environ}")
