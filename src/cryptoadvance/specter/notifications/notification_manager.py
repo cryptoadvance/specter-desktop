@@ -74,12 +74,8 @@ class NotificationManager:
         self.websockets_client = None
         self.ssl_cert, self.ssl_key = ssl_cert, ssl_key
 
-    def set_websockets_server_and_start_client(self, websockets_server, environ):
+    def set_websockets_server(self, websockets_server):
         self.websockets_server = websockets_server
-
-        return websockets_server_client.SimpleWebsocketClient(
-            environ, self.ssl_cert, self.ssl_key
-        )
 
     def quit(self):
         return

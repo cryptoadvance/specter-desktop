@@ -5,6 +5,7 @@ import logging, threading, time, secrets
 from queue import Queue
 
 from flask_login import current_user
+import flask
 
 logger = logging.getLogger(__name__)
 
@@ -17,53 +18,28 @@ import simple_websocket, ssl
 
 
 def run_websockets_server_and_client(notification_manager, user_manager, environ):
+    if notification_manager.websockets_server:
+        # if there is a server already, then simply return the endless serve() function
+        return flask.Response(
+            notification_manager.websockets_server.serve(), mimetype="text/event-stream"
+        )
     server = SimpleWebsocketServer(notification_manager, user_manager, environ)
-    client = notification_manager.set_websockets_server_and_start_client(
-        server, environ
+    notification_manager.set_websockets_server(server)
+    client = SimpleWebsocketClient(
+        environ, notification_manager.ssl_cert, notification_manager.ssl_key
     )
+    logger.info(f"created client {client}")
+
     server.set_as_admin(
         client.user_token
     )  # this ensures that this client has rights to send to other users
+
+    client.start()
+
     server.serve()  # runs forever
     logger.info(f"Stopped websockets_server with environ {environ}")
 
-    # now I have to wait until the server is started and is ready to recieve messages
-    for i in range(50):
-        if server.started:
-            break
-        time.sleep(0.1)  # sleep for 0.1 seconds
-        if i == 49:
-            server.quit()
-            logger.error(
-                f'The server never reached the "started" state. Quitting the server and do not attempt to start the client.'
-            )
-            return
-
-    client.start()
-    client.authenticate()
-
     return server, client
-
-
-def oldrun_websockets_server_and_client(ws, client):
-    ws.start()
-    # now I have to wait until the server is started and is ready to recieve messages
-    for i in range(50):
-        if ws.started:
-            break
-        time.sleep(0.1)  # sleep for 0.1 seconds
-        if i == 49:
-            ws.quit()
-            logger.error(
-                f'The server never reached the "started" state. Quitting the server and do not attempt to start the client.'
-            )
-            return
-
-    client.port = (
-        ws.port
-    )  # ensure that even if the port changed in the server, the client can connect
-    client.start()
-    client.authenticate()
 
 
 class SimpleWebsocketClient:
@@ -125,14 +101,16 @@ class SimpleWebsocketClient:
             self.ssl_context.load_cert_chain(certfile=ssl_cert, keyfile=ssl_key)
 
     def quit(self):
-        super().quit()
+        self._quit = True
         self.q.put("quit")
 
     def send(self, message_dictionary):
         self.q.put(robust_json_dumps(message_dictionary))
 
     def forever_function(self):
+        time.sleep(1)
         self.websocket = simple_websocket.Client(self.url, ssl_context=self.ssl_context)
+        self.authenticate()
 
         logger.debug("Client: connected")
         while not self._quit:  #  this is an endless loop waiting for new queue items
@@ -147,7 +125,6 @@ class SimpleWebsocketClient:
         logger.debug("WebsocketsClient forever_function ended")
 
     def finally_at_stop(self):
-        super().finally_at_stop()
         self.q.join()  # block until all tasks are done
 
     def authenticate(self):
@@ -171,6 +148,7 @@ class SimpleWebsocketServer:
             )
             return
         print(environ)
+        logger.info(f"Create {self.__class__.__name__}")
         self.protocol = "wss" if environ["wsgi.url_scheme"] == "https" else "ws"
         self.port = environ["SERVER_PORT"]
         self.route = environ["PATH_INFO"]
@@ -180,9 +158,9 @@ class SimpleWebsocketServer:
         self.user_manager = user_manager
         self.started = False
 
-    def serve(self):
+    def serve(self, user=None):
         try:
-            logger.info(f"{self.__class__.__name__} started")
+            logger.info(f"{self.__class__.__name__} serve() of user {user} entered")
             self.started = True
             while True:
                 data = self.server.receive()
@@ -194,6 +172,8 @@ class SimpleWebsocketServer:
                 self.create_notification(message_dictionary, current_user)
         except simple_websocket.ConnectionClosed:
             logger.info(f"Websocket connection of {self.user} closed")
+
+        logger.info(f"{self.__class__.__name__} serve() of user {user} ended")
         return ""
 
     def set_as_admin(self, user_token):
