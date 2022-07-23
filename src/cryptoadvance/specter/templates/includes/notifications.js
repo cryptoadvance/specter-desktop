@@ -12,7 +12,7 @@
  async function createNotification(title, options){ 
     if (!websocket){return}
     if (websocket.readyState === WebSocket.OPEN) {
-        websocket.send(JSON.stringify( {'title':title, 'options': options}));
+        websocket.send(JSON.stringify( {'user_token': userToken, 'title':title, 'options': options}));
     } else {
         // If the socket is not open yet, retry in 1 s
         setTimeout(createNotification, 1000, title, options);  
@@ -306,22 +306,19 @@ function connectAndAuthenticateWebsocket() {
         var route = 'websocket';
         var protocol = 'wss';
         var port = websocketsInfo['port'];
-        var active = websocketsInfo['active'];
         var userToken = websocketsInfo['user_token'];
 
-        // give up completely on websockets, if not active
-        if (!active){
-            return
-        }
 
-        ip_address = "{{ request.host.split(':')[0] }}";
-        websocket = new WebSocket(`${protocol}://${ip_address}:${port}/${route}`);
+        var ip_address = "{{ request.host.split(':')[0] }}";
+        var url = `${protocol}://${ip_address}:${port}/${route}`;
+        console.log(url)
+        websocket = new WebSocket(url);
 
 
         
         // Authenticate and add listeners when the websocket connection is open
         websocket.onopen = function(e) {
-            websocket.send(JSON.stringify( {'type':'authentication', 'user_token': userToken}));
+            websocket.send(JSON.stringify( {'user_token': userToken}));
             console.log(`websocket connection open and sent authentication`);		
             //websocket.send(JSON.stringify( {'title':'This message is sent to the server and then returned', options: {target_uis:['js_console']}  }));
         };
@@ -354,8 +351,8 @@ function connectAndAuthenticateWebsocket() {
 
 }
 
-//connectAndAuthenticateWebsocket()
 
+//connectAndAuthenticateWebsocket()
 
 
 
@@ -369,9 +366,4 @@ function connectAndAuthenticateWebsocket() {
     // no user logged in
 }
 
-
-
-var info = null;
-sendRequest("{{ url_for('wallets_endpoint_api.get_websockets_info') }}", 'GET', 
-                    "{{ csrf_token() }}").then(function (websocketsInfo) { info = websocketsInfo })
-                    
+    

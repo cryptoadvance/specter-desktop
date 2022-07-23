@@ -235,7 +235,6 @@ from ..notifications import websockets_server_client
 
 @app.route("/websocket", websocket=True)
 def websocket():
-    print(current_user.is_authenticated)
     websockets_server_client.run_websockets_server_and_client(
         app.specter.notification_manager,
         app.specter.user_manager,

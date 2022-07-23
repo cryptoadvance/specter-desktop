@@ -115,12 +115,10 @@ def fees_old(blocks):
 @wallets_endpoint_api.route("/get_websockets_info/", methods=["GET"])
 @login_required
 def get_websockets_info():
-    print(app.config)
     return json.dumps(
         {
             "user_token": app.specter.user_manager.get_user().websocket_token,
             "port": app.config["PORT"],
-            "active": bool(app.specter.notification_manager.websockets_server),
         }
     )
 

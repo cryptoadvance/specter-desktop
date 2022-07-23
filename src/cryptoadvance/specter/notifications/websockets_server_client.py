@@ -142,25 +142,21 @@ class SimpleWebsocketClient:
 
 class SimpleWebsocketServer:
     def __init__(self, notification_manager, user_manager, environ):
-        if not notification_manager:
-            logger.warning(
-                f"Could not start websocket server because notification_manager = {notification_manager}"
-            )
-            return
-        print(environ)
         logger.info(f"Create {self.__class__.__name__}")
         self.protocol = "wss" if environ["wsgi.url_scheme"] == "https" else "ws"
         self.port = environ["SERVER_PORT"]
         self.route = environ["PATH_INFO"]
+
         self.server = simple_websocket.Server(environ)
         self.admin_tokens = list()
+        self.connections = list()
         self.notification_manager = notification_manager
         self.user_manager = user_manager
         self.started = False
 
-    def serve(self, user=None):
+    def serve(self):
         try:
-            logger.info(f"{self.__class__.__name__} serve() of user {user} entered")
+            logger.info(f"{self.__class__.__name__} serve() entered")
             self.started = True
             while True:
                 data = self.server.receive()
@@ -169,12 +165,21 @@ class SimpleWebsocketServer:
                 except:
                     continue
                 print(message_dictionary)
+                self.process_incoming_message(message_dictionary)
                 self.create_notification(message_dictionary, current_user)
         except simple_websocket.ConnectionClosed:
-            logger.info(f"Websocket connection of {self.user} closed")
+            logger.info(f"Websocket connection   closed")
 
-        logger.info(f"{self.__class__.__name__} serve() of user {user} ended")
+        logger.info(f"{self.__class__.__name__} serve() ended")
         return ""
+
+    def get_admin_tokens(self):
+        return [d["user_token"] for d in self.admin_tokens]
+
+    def get_user_of_user_token(self, user_token):
+        for u in self.user_manager.users:
+            if u.websocket_token == user_token:
+                return u
 
     def set_as_admin(self, user_token):
         new_entry = {"user_token": user_token}
@@ -186,6 +191,29 @@ class SimpleWebsocketServer:
         self.admin_tokens = [
             d for d in self.admin_tokens if d["user_token"] != user_token
         ]
+
+    async def process_incoming_message(self, message_dictionary, websocket):
+        """
+        This listens to messages. They can come from connections with and without admin tokens.
+        If this is a websocket authentication, it will so self.register,
+        otherwise just forward to to the notification_manager via self.create_notification
+        """
+
+        user_token = message_dictionary.get("user_token")
+        user = self.get_user_of_user_token(user_token)
+
+        if user_token in self.get_admin_tokens():
+            logger.debug(
+                f"message from user with admin_token recieved. Sending to websockets"
+            )
+            await self.send_to_websockets(message_dictionary, user_token)
+        elif user:
+            logger.debug(f"message from user recieved. Creating Notification")
+            self.create_notification(message_dictionary, user)
+        else:
+            logger.warning(
+                "user_token {user_token} is not valid. Please provide a user_token in the message"
+            )
 
     def create_notification(self, message_dictionary, user):
         """Creates a notification based on the title, options contained in message_dictionary
@@ -213,7 +241,7 @@ class SimpleWebsocketServer:
         options = message_dictionary.get("options", {})
 
         logger.debug(
-            f"create_notification with title  {title}, user {self.user} and options {options}"
+            f"create_notification with title  {title}, user {user} and options {options}"
         )
 
         notification = self.notification_manager.create_and_show(
