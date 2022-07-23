@@ -20,7 +20,8 @@
 	  - 'unit-change'
 
 
-	It has the attributes: ["value", "name", "id", "title", "address", "label", "step", "recipientId"]
+	It has the attributes: ["value", "name", "id", "title", "address", "label", 
+								"recipientId", "max", "step", "amount", "hiddenCloseButton"]
 			These attributes will be assigned to the appropriate html elements
 
 	It has the properties:
@@ -285,7 +286,8 @@
 		// like <recipient-box title='title'></div>  works.
 		static get observedAttributes() {
 			// define the attributes that can be defined via <recipient-box name="recipient-box" id='4'></recipient-box>	
-			var attributes = ["value", "name", "id", "title", "address", "label", "recipientId", "max", "step", "amount"];
+			var attributes = ["value", "name", "id", "title", "address", "label", 
+								"recipientId", "max", "step", "amount", "hiddenCloseButton"];
 			return attributes;
 		}
 
@@ -312,7 +314,9 @@
 				this.amount = newValue;
 			} else if (attribute=="id"){
 				this.id = newValue;
-			} 
+			} else if (attribute=="hiddenCloseButton"){
+				this.hiddenCloseButton = newValue;
+			}
 			
 		}
 
@@ -366,6 +370,7 @@
 			return value;
 		}		
 
+
 		// max
 		set max(newValue){
 			if (!this.shadowRoot) {return }
@@ -407,6 +412,16 @@
 
 
 
+		// hiddenCloseButton
+		set hiddenCloseButton(newValue){
+			if (!this.shadowRoot) {return }
+			this.shadowRoot.getElementById('remove').hidden = newValue;
+		}			
+		get hiddenCloseButton(){
+			return this.shadowRoot.getElementById('remove').hidden;
+		}		
+
+		
 
 
 		toggleUnit(unit) {

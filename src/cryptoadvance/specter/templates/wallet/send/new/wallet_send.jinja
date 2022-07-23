@@ -155,6 +155,15 @@
 			return data;
 		}
 
+		function setVisibilityRemoveRecipientButton(){
+			var recipientList = getRecipients();
+			var hidden = recipientList.length == 1
+			for (var i in recipientList) {
+				recipientList[i].hiddenCloseButton = hidden;
+			}	
+
+		}
+
 		// Amounts and units
 		var textUnit = '{{ specter.unit }}';
 		// TODO: use total balance including unconfirmed
@@ -253,17 +262,8 @@
 			subtractFromRecipientIdSelect.appendChild(opt);		
 
 
-			// Make the remove button visible again for the first recipient component
-			let recipientIdsUpdated = getRecipientIds();
-			let recipientsUpdated = document.getElementById('recipients').children;
-			// recipientsUpdated is a HTML collection, so we can't use forEach
-			for (var i = 0; i < recipientsUpdated.length; i++) {
-				let	child = recipientsUpdated[i];
-				if (child.recipientId == recipientIdsUpdated[0]) {
-					let removeButton = child.shadowRoot.getElementById('remove')
-					removeButton.classList.remove('hidden')
-				}	
-			}
+			// Make the remove button visible again for all recipient components
+			setVisibilityRemoveRecipientButton();
 
 			// control visibility  and vertical spaces
 			if (getRecipientIds().length == 1) {
@@ -307,16 +307,10 @@
 			}
 
 			// Not strictly necessary but better to have it to avoid any divergence
-			FeeSelectionComponent.subtractUpdated()
+			FeeSelectionComponent.subtractUpdated();
 
 			// Hide the remove button if we only have one recipient
-			let recipientIdsUpdated = getRecipientIds();
-			let recipientsUpdated = document.getElementById('recipients').children;
-			if (recipientIdsUpdated.length == 1) {
-				let	child = recipientsUpdated[0];
-				let removeButton = child.shadowRoot.getElementById('remove')
-				removeButton.classList.add('hidden')
-			}
+			setVisibilityRemoveRecipientButton();
 
 			// control visibility  and vertical spaces
 			if (getRecipientIds().length == 1) {
@@ -627,9 +621,7 @@
 					toggleAdvanced();
 				});
 			// Hide the remove button if the page is loaded with only once recipient 
-			if (getRecipientIds().length == 1) {
-				document.getElementById(`recipient_${getRecipientIds()[0]}`).shadowRoot.getElementById('remove').classList.add('hidden')
-			}
+			setVisibilityRemoveRecipientButton();
 		});
 	</script>
 {% endblock %}
