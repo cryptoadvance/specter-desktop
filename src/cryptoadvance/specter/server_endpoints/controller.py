@@ -8,6 +8,8 @@ from flask_babel import lazy_gettext as _
 from ..notifications.current_flask_user import flash
 from ..specter_error import SpecterError, ExtProcTimeoutException
 from pathlib import Path
+import json
+from flask_login import current_user, login_required
 
 env_path = Path(".") / ".flaskenv"
 from dotenv import load_dotenv
@@ -31,6 +33,9 @@ from .wallets import wallets_endpoint
 from .wallets_api import wallets_endpoint_api
 from ..rpc import RpcError
 import simple_websocket
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # Services live in their own separate path
@@ -225,19 +230,22 @@ if app.config["SPECTER_URL_PREFIX"] != "":
         return redirect(url_for("welcome_endpoint.index"))
 
 
-import simple_websocket
-
-
 @app.route("/echo", websocket=True)
+@login_required
 def echo():
     ws = simple_websocket.Server(request.environ)
     try:
+        logger.info(f"Websocket connection of {current_user} opened")
         while True:
             data = ws.receive()
+            try:
+                message_dictionary = json.loads(data)
+            except:
+                continue
             print(data)
             ws.send(data)
     except simple_websocket.ConnectionClosed:
-        pass
+        logger.info(f"Websocket connection of {current_user} closed")
     return ""
 
 
