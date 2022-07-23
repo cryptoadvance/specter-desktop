@@ -5,6 +5,7 @@ logger = logging.getLogger(__name__)
 from .notifications import Notification
 from ..notifications import ui_notifications
 from ..notifications import websockets_server_client
+import flask
 
 
 class NotificationManager:
@@ -61,7 +62,9 @@ class NotificationManager:
 
     """
 
-    def __init__(self, ssl_cert=None, ssl_key=None, ui_notifications=None):
+    def __init__(
+        self, user_manager, ssl_cert=None, ssl_key=None, ui_notifications=None
+    ):
         """
         Arguments:
             - ui_notifications:  {user_id: [list of ui_notifications]}
@@ -69,13 +72,44 @@ class NotificationManager:
         """
         self.ui_notifications = ui_notifications if ui_notifications else []
         self.notifications = []
-        self._register_default_ui_notifications()
         self.websockets_server = None
         self.websockets_client = None
+        self.user_manager = user_manager
         self.ssl_cert, self.ssl_key = ssl_cert, ssl_key
+        self._register_default_ui_notifications()
 
-    def set_websockets_server(self, websockets_server):
-        self.websockets_server = websockets_server
+    def run_websockets_server_and_client(self, environ):
+        if self.websockets_server:
+            # if there is a server already, then simply return the endless serve() function
+            return flask.Response(
+                self.websockets_server.serve(), mimetype="text/event-stream"
+            )
+        self.websockets_server = websockets_server_client.SimpleWebsocketServer(
+            self, self.user_manager, environ
+        )
+        self.websockets_client = websockets_server_client.SimpleWebsocketClient(
+            environ, self.ssl_cert, self.ssl_key
+        )
+        logger.info(f"created client {self.websockets_client}")
+
+        self.websockets_server.set_as_admin(
+            self.websockets_client.user_token
+        )  # this ensures that this client has rights to send to other users
+
+        # self.websockets_client.start()
+        import simple_websocket
+
+        logger.info("before the client started")
+        websocket = simple_websocket.Client(
+            self.websockets_client.url, ssl_context=self.websockets_client.ssl_context
+        )
+        logger.info("after the client started")
+
+        self.websockets_server.serve()  # runs forever
+        logger.info(f"Stopped websockets_server with environ {environ}")
+
+    def get_websockets_client(self):
+        return self.websockets_client
 
     def quit(self):
         return
@@ -92,14 +126,14 @@ class NotificationManager:
     def register_user_ui_notifications(self, user_id):
         "Registers up the (default) UINotifications for this user"
         self.register_ui_notification(
-            ui_notifications.WebAPINotifications(user_id, self.websockets_client)
+            ui_notifications.WebAPINotifications(user_id, self.get_websockets_client)
         )
         self.register_ui_notification(
-            ui_notifications.JSNotifications(user_id, self.websockets_client)
+            ui_notifications.JSNotifications(user_id, self.get_websockets_client)
         )
         self.register_ui_notification(ui_notifications.FlashNotifications(user_id))
         self.register_ui_notification(
-            ui_notifications.JSConsoleNotifications(user_id, self.websockets_client)
+            ui_notifications.JSConsoleNotifications(user_id, self.get_websockets_client)
         )
 
     def register_ui_notification(self, ui_notification):

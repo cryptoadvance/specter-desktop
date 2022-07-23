@@ -298,17 +298,21 @@ async function sendUpdatedWebapiPermission(){
 
 var websocket = null;
 
-function connectAndAuthenticateWebsocket() {
+function connectWebsocket() {
     // get necessary info for the opening of the websocket
     sendRequest("{{ url_for('wallets_endpoint_api.get_websockets_info') }}", 'GET', 
                     "{{ csrf_token() }}").then(function (websocketsInfo) {
         // Create the websocket  
         var route = 'websocket';
         var protocol = 'wss';
+        if ("{{ request.scheme }}" == "http"){
+            protocol = 'ws';
+        }
+        
         var port = websocketsInfo['port'];
         userToken = websocketsInfo['user_token'];
 
-
+        
         var ip_address = "{{ request.host.split(':')[0] }}";
         var url = `${protocol}://${ip_address}:${port}/${route}`;
         console.log(url)
@@ -318,9 +322,7 @@ function connectAndAuthenticateWebsocket() {
         
         // Authenticate and add listeners when the websocket connection is open
         websocket.onopen = function(e) {
-            websocket.send(JSON.stringify( {'user_token': userToken}));
-            console.log(`websocket connection open and sent authentication`);		
-            //websocket.send(JSON.stringify( {'title':'This message is sent to the server and then returned', options: {target_uis:['js_console']}  }));
+            console.log(`websocket connection open`);		
         };
 
         websocket.onmessage = function(message) {
@@ -334,7 +336,7 @@ function connectAndAuthenticateWebsocket() {
         websocket.onclose = function(e) {
             console.log('Websocket was closed. Reconnect will be attempted in 10 seconds.', e.reason);
             setTimeout(function() {
-                connectAndAuthenticateWebsocket();
+                connectWebsocket();
             }, 10000);
         };
 
@@ -352,7 +354,7 @@ function connectAndAuthenticateWebsocket() {
 }
 
 
-connectAndAuthenticateWebsocket()
+connectWebsocket()
 
 
 

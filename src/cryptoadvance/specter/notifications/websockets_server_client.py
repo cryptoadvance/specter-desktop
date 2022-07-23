@@ -5,7 +5,6 @@ import logging, threading, time, secrets
 from queue import Queue
 
 from flask_login import current_user
-import flask
 
 logger = logging.getLogger(__name__)
 
@@ -17,42 +16,71 @@ from ..helpers import robust_json_dumps
 import simple_websocket, ssl
 
 
-def run_websockets_server_and_client(notification_manager, user_manager, environ):
-    if notification_manager.websockets_server:
-        # if there is a server already, then simply return the endless serve() function
-        return flask.Response(
-            notification_manager.websockets_server.serve(), mimetype="text/event-stream"
-        )
-    server = SimpleWebsocketServer(notification_manager, user_manager, environ)
-    notification_manager.set_websockets_server(server)
-    client = SimpleWebsocketClient(
-        environ, notification_manager.ssl_cert, notification_manager.ssl_key
-    )
-    logger.info(f"created client {client}")
-
-    server.set_as_admin(
-        client.user_token
-    )  # this ensures that this client has rights to send to other users
-
-    client.start()
-    logger.info("after the client started")
-
-    server.serve()  # runs forever
-    logger.info(f"Stopped websockets_server with environ {environ}")
-
-    return server, client
-
-
 class SimpleWebsocketClient:
+    def __init__(self, environ, ssl_cert, ssl_key):
+        self.protocol = "wss" if environ["wsgi.url_scheme"] == "https" else "ws"
+        self.url = f"{self.protocol}://{environ['SERVER_NAME']}:{environ['SERVER_PORT']}/{environ['PATH_INFO']}"
+        self.q = Queue()
+        self.user_token = secrets.token_urlsafe(128)
+        self._quit = False
+
+        self.ssl_context = None
+        if ssl_cert and ssl_key:
+            self.ssl_context = ssl._create_unverified_context(ssl.PROTOCOL_TLS_CLIENT)
+            # see https://pythontic.com/ssl/sslcontext/load_cert_chain
+            self.ssl_context.load_cert_chain(certfile=ssl_cert, keyfile=ssl_key)
+
+    def quit(self):
+        self._quit = True
+        self.q.put("quit")
+
+    def send(self, message_dictionary):
+        message_dictionary["user_token"] = self.user_token
+        logger.debug(f"queueing {message_dictionary}")
+        self.websocket.send(robust_json_dumps(message_dictionary))
+        self.q.put(robust_json_dumps(message_dictionary))
+
+    def forever_function(self):
+        logger.debug("Client: before connected")
+        self.websocket = simple_websocket.Client(self.url, ssl_context=self.ssl_context)
+
+        logger.debug("Client: connected")
+        while not self._quit:  #  this is an endless loop waiting for new queue items
+            item = self.q.get()
+            if item == "quit":
+                logger.debug(f'quitting Queue loop because item == "{item}"')
+                return
+            self.websocket.send(robust_json_dumps(item))
+            self.q.task_done()
+
+        self.websocket.close()
+        logger.debug("WebsocketsClient forever_function ended")
+
+    def finally_at_stop(self):
+        self.q.join()  # block until all tasks are done
+
+    def start(self):
+        self.websocket = simple_websocket.Client(self.url, ssl_context=self.ssl_context)
+        logger.debug("Client: connected")
+        return
+
+        try:
+            self.thread = threading.Thread(target=self.forever_function)
+            self.thread.daemon = True  # die when the main thread dies
+            self.thread.start()
+        finally:
+            self.finally_at_stop()
+
+
+class SimpleWebsocketServer:
     """
     A forever lived websockets server in a different thread.
     The server has 2 main functions:
     1. Recieve messages from webbrowser websocket connections and call notification_manager.create_and_show
     2. Recieve messages (notifications) from python websocket connection and send them to the webbrowser websocket connections
-    When registering the websocket connection, the webbrowser websocket connection has to authenticate with a user_token,
-        which is checked against user_manager.....websocket_token  to make sure this is a legitimate user
+    Each message must contain a user_token, which is checked against user_manager.user.websocket_token to make sure this is a legitimate user
     Before the python websocket connection is established, the set_as_admin method should be called to inform self that this user_token will be an admin
-        Otherwise the user_token will not be found in user_manager.....websocket_token and rejected
+        Otherwise the user_token will not be found in user_manager.user.websocket_token and rejected
     1.   Javascript creates a message
         ┌───────────────────────┐                           ┌───────────────────────┐
         │                       │     websocket.send        │                       │
@@ -88,59 +116,6 @@ class SimpleWebsocketClient:
         └───────────────────────┘                           └───────────────────────┘
     """
 
-    def __init__(self, environ, ssl_cert, ssl_key):
-        self.protocol = "wss" if environ["wsgi.url_scheme"] == "https" else "ws"
-        self.url = f"{self.protocol}://{environ['SERVER_NAME']}:{environ['SERVER_PORT']}/{environ['PATH_INFO']}"
-        self.q = Queue()
-        self.user_token = secrets.token_urlsafe(128)
-        self._quit = False
-
-        self.ssl_context = None
-        if ssl_cert and ssl_key:
-            self.ssl_context = ssl._create_unverified_context(ssl.PROTOCOL_TLS_CLIENT)
-            # see https://pythontic.com/ssl/sslcontext/load_cert_chain
-            self.ssl_context.load_cert_chain(certfile=ssl_cert, keyfile=ssl_key)
-
-    def quit(self):
-        self._quit = True
-        self.q.put("quit")
-
-    def send(self, message_dictionary):
-        self.q.put(robust_json_dumps(message_dictionary))
-
-    def forever_function(self):
-        self.websocket = simple_websocket.Client(self.url, ssl_context=self.ssl_context)
-        self.authenticate()
-
-        logger.debug("Client: connected")
-        while not self._quit:  #  this is an endless loop waiting for new queue items
-            item = self.q.get()
-            if item == "quit":
-                logger.debug(f'quitting Queue loop because item == "{item}"')
-                return
-            self.websocket.send(robust_json_dumps(item))
-            self.q.task_done()
-
-        self.websocket.close()
-        logger.debug("WebsocketsClient forever_function ended")
-
-    def finally_at_stop(self):
-        self.q.join()  # block until all tasks are done
-
-    def authenticate(self):
-        logger.debug("authenticate")
-        self.send({"type": "authentication", "user_token": self.user_token})
-
-    def start(self):
-        try:
-            self.thread = threading.Thread(target=self.forever_function)
-            self.thread.daemon = True  # die when the main thread dies
-            self.thread.start()
-        finally:
-            self.finally_at_stop()
-
-
-class SimpleWebsocketServer:
     def __init__(self, notification_manager, user_manager, environ):
         logger.info(f"Create {self.__class__.__name__}")
         self.protocol = "wss" if environ["wsgi.url_scheme"] == "https" else "ws"
