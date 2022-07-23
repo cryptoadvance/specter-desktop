@@ -25,7 +25,7 @@ This also enables responsiveness of the width for the tooltip text. Ideally, put
 #}
 
 Repsonsiveness can be hooked up in the target jinja file etc. via eventListeners since the
-the webcomponent dispatches custom mouseover and mouseout events that can be listened for.
+the web component dispatches custom mouseover and mouseout events that can be listened for.
 Like so:
 
 this.tooltip.addEventListener("customhover", () => {
@@ -35,7 +35,7 @@ this.tooltip.addEventListener("customout", () => {
     ...
 })
 
-If you don't care about responsiveness, just use the tooltips like so, you can set a width via the width attribute.
+If you don't care about responsiveness, just use the tooltips as below, you can set a width via the width attribute.
 
 {#
     <div style="display: flex;">
