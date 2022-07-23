@@ -35,6 +35,7 @@ def run_websockets_server_and_client(notification_manager, user_manager, environ
     )  # this ensures that this client has rights to send to other users
 
     client.start()
+    logger.info("after the client started")
 
     server.serve()  # runs forever
     logger.info(f"Stopped websockets_server with environ {environ}")
@@ -108,7 +109,6 @@ class SimpleWebsocketClient:
         self.q.put(robust_json_dumps(message_dictionary))
 
     def forever_function(self):
-        time.sleep(1)
         self.websocket = simple_websocket.Client(self.url, ssl_context=self.ssl_context)
         self.authenticate()
 
@@ -192,7 +192,7 @@ class SimpleWebsocketServer:
             d for d in self.admin_tokens if d["user_token"] != user_token
         ]
 
-    async def process_incoming_message(self, message_dictionary, websocket):
+    def process_incoming_message(self, message_dictionary):
         """
         This listens to messages. They can come from connections with and without admin tokens.
         If this is a websocket authentication, it will so self.register,
@@ -206,7 +206,7 @@ class SimpleWebsocketServer:
             logger.debug(
                 f"message from user with admin_token recieved. Sending to websockets"
             )
-            await self.send_to_websockets(message_dictionary, user_token)
+            self.send_to_websockets(message_dictionary, user_token)
         elif user:
             logger.debug(f"message from user recieved. Creating Notification")
             self.create_notification(message_dictionary, user)
@@ -251,7 +251,7 @@ class SimpleWebsocketServer:
         )
         return notification
 
-    async def send_to_websockets(self, message_dictionary, admin_token):
+    def send_to_websockets(self, message_dictionary, admin_token):
         """
         This sends out messages to the connected websockets, which are associated with message_dictionary['options']['user_id']
         This method shall only called by an admin user

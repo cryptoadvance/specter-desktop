@@ -1,7 +1,7 @@
 {% include "includes/message_box.js" %}
 
 
-
+var userToken = null;
 
 /**
  * creating a notification from JS
@@ -306,7 +306,7 @@ function connectAndAuthenticateWebsocket() {
         var route = 'websocket';
         var protocol = 'wss';
         var port = websocketsInfo['port'];
-        var userToken = websocketsInfo['user_token'];
+        userToken = websocketsInfo['user_token'];
 
 
         var ip_address = "{{ request.host.split(':')[0] }}";
@@ -352,7 +352,7 @@ function connectAndAuthenticateWebsocket() {
 }
 
 
-//connectAndAuthenticateWebsocket()
+connectAndAuthenticateWebsocket()
 
 
 
@@ -361,7 +361,7 @@ function connectAndAuthenticateWebsocket() {
  * If a user is logged in then regularrly check the webapi notification permission
  */
  if ('{{ current_user.username }}'){
-    //setInterval(sendUpdatedWebapiPermission, 3000);
+    setInterval(sendUpdatedWebapiPermission, 3000);
 }else{
     // no user logged in
 }
