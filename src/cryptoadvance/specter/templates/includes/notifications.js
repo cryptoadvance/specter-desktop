@@ -303,6 +303,8 @@ function connectAndAuthenticateWebsocket() {
     sendRequest("{{ url_for('wallets_endpoint_api.get_websockets_info') }}", 'GET', 
                     "{{ csrf_token() }}").then(function (websocketsInfo) {
         // Create the websocket  
+        var route = 'websocket';
+        var protocol = 'wss';
         var port = websocketsInfo['port'];
         var active = websocketsInfo['active'];
         var userToken = websocketsInfo['user_token'];
@@ -313,7 +315,7 @@ function connectAndAuthenticateWebsocket() {
         }
 
         ip_address = "{{ request.host.split(':')[0] }}";
-        websocket = new WebSocket(`wss://${ip_address}:${port}/`);
+        websocket = new WebSocket(`${protocol}://${ip_address}:${port}/${route}`);
 
 
         

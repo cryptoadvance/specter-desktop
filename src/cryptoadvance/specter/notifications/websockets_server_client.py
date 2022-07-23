@@ -13,7 +13,7 @@ import time, json
 from ..helpers import robust_json_dumps
 
 
-import simple_websocket
+import simple_websocket, ssl
 
 
 class SimpleWebsocketClient:
@@ -21,21 +21,26 @@ class SimpleWebsocketClient:
     Keeps an open websocket connection to the server
     """
 
-    def __init__(self, environ):
+    def __init__(self, environ, ssl_cert, ssl_key):
         self.protocol = "wss" if environ["wsgi.url_scheme"] == "https" else "ws"
         self.url = f"{self.protocol}://{environ['SERVER_NAME']}:{environ['SERVER_PORT']}/{environ['PATH_INFO']}"
+
+        self.ssl_context = None
+        if ssl_cert and ssl_key:
+            self.ssl_context = ssl._create_unverified_context(ssl.PROTOCOL_TLS_SERVER)
+            # see https://pythontic.com/ssl/sslcontext/load_cert_chain
+            self.ssl_context.load_cert_chain(certfile=ssl_cert, keyfile=ssl_key)
 
     def start(self, delay=1):
         "repeated try to start the client (can fail if the )"
         time.sleep(delay)
         logger.info(f"Connecting {self.__class__.__name__} to {self.url}")
-        self.client = simple_websocket.Client(self.url)
+        self.client = simple_websocket.Client(self.url, ssl_context=self.ssl_context)
 
     def send(self, message_dictionary):
         self.client.send(robust_json_dumps(message_dictionary))
 
     def delayed_start_in_new_thread(self):
-        return
         self.thread = threading.Thread(target=self.start)
         self.thread.daemon = True  # die when the main thread dies
         self.thread.start()
@@ -49,6 +54,9 @@ class SimpleWebsocketServer:
             )
             return
         print(environ)
+        self.protocol = "wss" if environ["wsgi.url_scheme"] == "https" else "ws"
+        self.port = environ["SERVER_PORT"]
+        self.route = environ["PATH_INFO"]
         self.server = simple_websocket.Server(environ)
         self.admin_tokens = list()
         self.notification_manager = notification_manager
