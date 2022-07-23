@@ -243,14 +243,22 @@
 			newRecipient.id = `recipient_${recipientId}`;
 			newRecipient.recipientId = recipientId;
 			newRecipient.title = `Recipient ${recipientId+1}`;
+			newRecipient.addEventListener('remove', (event) => {
+				removeRecipient(newRecipient.recipientId);
+			})
 			newRecipient.addEventListener('address-input', (event) => {
-				console.log('Called address-input Listener')
-				validateForm()
+				validateForm();
 			})
 			newRecipient.addEventListener('unit-change', (event) => {
-				console.log('Called unit-change Listener')
-				validateForm()
+				validateForm();
 			})
+			newRecipient.addEventListener('send-max', (event) => {
+				setMaxAmount(newRecipient.recipientId);
+			})
+
+				
+
+
 			recipients.appendChild(newRecipient);
 
 			// This adds the id's to the subtract_from_recipient_id_select

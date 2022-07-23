@@ -16,8 +16,10 @@
 
 
 	It exposes the events:
+	  - 'remove'   # is called when the remove button is clicked
 	  - 'address-input'
 	  - 'unit-change'
+	  - 'send-max'
 
 
 	It has the attributes: ["value", "name", "id", "title", "address", "label", 
@@ -25,8 +27,7 @@
 			These attributes will be assigned to the appropriate html elements
 
 	It has the properties:
-	  - 'value' , which returns a dict with the values of html classes 'input' and 'textarea', and 
-					it can also be set, where it writes the content back into these html elements
+	  - 'value' returns a dict with important attributes
 
 #} 
 -->
@@ -173,6 +174,8 @@
 
 		// adds EventListeners to various inputs
 		attachListeners(){
+			// I cannot use  getElementById , but  have to use querySelectorAll, because there are multiple unit buttons,
+			// that need to trigger the same event
 			this.shadowRoot.querySelectorAll('[name="amount_unit"]').forEach(input => {
 				input.addEventListener('change',() => {
 					this.toggleUnit(input.value);
@@ -190,7 +193,6 @@
 			this.shadowRoot.getElementById('address').addEventListener('input', event=>{
 				this.dispatchAddressOnInput();
 			});			
-
 
 
 			this.shadowRoot.getElementById('address-scan').addEventListener('scan', event=>{
@@ -229,13 +231,13 @@
 
 			
 			this.shadowRoot.getElementById('send_max').addEventListener('click', event=>{
-				console.log(event)
-				setMaxAmount(this.recipientId)
+				this.dispatchSendMax()
 			});			
+
 
 			this.shadowRoot.getElementById('remove').addEventListener('click', event=>{
 				console.log(event)
-				removeRecipient(this.recipientId)
+				this.dispatchRemove()
 			});			
 
 			this.shadowRoot.getElementById('amount').addEventListener('input', event=>{
@@ -259,25 +261,12 @@
 			this.dispatchEvent(new CustomEvent('address-input'));
 		}
 
-
-		onInputFieldChange(inputField){
-			
-			console.log(`${inputField.id}  changed to ${this.value}`);
+		dispatchRemove(result) {
+			this.dispatchEvent(new CustomEvent('remove'));
 		}
 
-
-		connectedCallback() {
-			for (var i in this.inputs ) {
-				var inputField = this.inputs[i];			
-				inputField.addEventListener("change", (e) => this.onInputFieldChange(inputField))
-			}
-
-		}
-
-		disconnectedCallback() {
-			for (var i in this.inputs ) {
-				this.inputs[i].removeEventListener('change', (e) => this.onInputFieldChange(inputField));
-			}
+		dispatchSendMax(result) {
+			this.dispatchEvent(new CustomEvent('send-max'));
 		}
 
 
