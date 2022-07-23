@@ -1,0 +1,11 @@
+{
+    "testFiles": [
+      "spec_configures_nodes.js",
+      "spec_ghost_machine.js"
+    ],
+    "baseUrl": "http://localhost:25444",
+    "env": {
+      "broadcast_timeout":"8000"
+    },
+    "includeShadowDom": false 
+}
