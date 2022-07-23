@@ -230,23 +230,18 @@ if app.config["SPECTER_URL_PREFIX"] != "":
         return redirect(url_for("welcome_endpoint.index"))
 
 
-@app.route("/echo", websocket=True)
-@login_required
-def echo():
-    ws = simple_websocket.Server(request.environ)
-    try:
-        logger.info(f"Websocket connection of {current_user} opened")
-        while True:
-            data = ws.receive()
-            try:
-                message_dictionary = json.loads(data)
-            except:
-                continue
-            print(data)
-            ws.send(data)
-    except simple_websocket.ConnectionClosed:
-        logger.info(f"Websocket connection of {current_user} closed")
-    return ""
+from ..notifications.websockets_server_client import SimpleWebsocketServer
+
+
+@app.route("/websocket", websocket=True)
+def websocket():
+    websockets_server = SimpleWebsocketServer(
+        app.specter.notification_manager, app.specter.user_manager, request.environ
+    )
+    app.specter.notification_manager.set_websockets_server(
+        websockets_server, request.environ
+    )
+    websockets_server.serve()
 
 
 @app.route("/healthz/liveness")

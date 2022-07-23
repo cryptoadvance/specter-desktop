@@ -61,15 +61,7 @@ class NotificationManager:
 
     """
 
-    def __init__(
-        self,
-        websockets_active,
-        websockets_port,
-        user_manager,
-        ui_notifications=None,
-        ssl_cert=None,
-        ssl_key=None,
-    ):
+    def __init__(self, ui_notifications=None):
         """
         Arguments:
             - ui_notifications:  {user_id: [list of ui_notifications]}
@@ -78,25 +70,18 @@ class NotificationManager:
         self.ui_notifications = ui_notifications if ui_notifications else []
         self.notifications = []
         self._register_default_ui_notifications()
-
         self.websockets_server = None
         self.websockets_client = None
-        if websockets_active:
-            (
-                self.websockets_server,
-                self.websockets_client,
-            ) = websockets_server_client.create_websockets_server_and_client(
-                websockets_port,
-                user_manager,
-                self,
-                ssl_cert=ssl_cert,
-                ssl_key=ssl_key,
-            )
-            websockets_server_client.run_websockets_server_and_client(
-                self.websockets_server, self.websockets_client
-            )
+
+    def set_websockets_server(self, websockets_server, environ):
+        self.websockets_server = websockets_server
+
+        # start the delayed client (the server does not server yet)
+        self.websockets_client = websockets_server_client.SimpleWebsocketClient(environ)
+        self.websockets_client.delayed_start_in_new_thread()
 
     def quit(self):
+        return
         if self.websockets_server:
             self.websockets_server.quit()
         if self.websockets_client:
