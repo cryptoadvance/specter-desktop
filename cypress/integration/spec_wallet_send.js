@@ -15,8 +15,8 @@ describe('Test sending transactions', () => {
         cy.addWallet('Test Hot Wallet 1', 'segwit', 'funded', 'btc', 'singlesig', 'Hot Device 1')
         cy.selectWallet("Test Hot Wallet 1")
         cy.get('#btn_send').click()
-        cy.get('#recipient_0').find('#address').type("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u", {force:true})
-        cy.get('#recipient_0').find('#label').type("Burn address", {force:true})
+        cy.get('#recipient_0').find('#address').type("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u", { force: true })
+        cy.get('#recipient_0').find('#label').type("Burn address", { force: true })
         cy.get('#recipient_0').get('#send_max').click()
         cy.get('#create_psbt_btn').click()
         cy.get('body').contains("Paste signed transaction")
@@ -39,31 +39,31 @@ describe('Test sending transactions', () => {
 
         // The addresses are the first 5 from DIY ghost
         cy.get('#recipient_0').find('#address').invoke('val', "bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs")  // will be deleted, so address doesnt matter
-        cy.get('#recipient_0').find('#label').type("Recipient 1 to be deleted", {force:true})
-        cy.get('#recipient_0').find('#amount').type(1, {force:true})
+        cy.get('#recipient_0').find('#label').type("Recipient 1 to be deleted", { force: true })
+        cy.get('#recipient_0').find('#amount').type(1, { force: true })
         cy.get('main').scrollTo('bottom')
 
         // Adding 4 more recipients
         cy.get('#add-recipient').click()
         cy.get('#recipient_1').find('#address').invoke('val', "bcrt1qgzmq6e3tn67kveryf2je6nd3nv4txef4sl8wre")  // pasting the address is faster than typing
-        cy.get('#recipient_1').find('#label').type("Recipient 2", {force:true})
-        cy.get('#recipient_1').find('#amount').type(2, {force:true})
+        cy.get('#recipient_1').find('#label').type("Recipient 2", { force: true })
+        cy.get('#recipient_1').find('#amount').type(2, { force: true })
         cy.get('main').scrollTo('bottom')
 
         cy.get('#add-recipient').click()
         cy.get('#recipient_2').find('#address').invoke('val', "bcrt1q9mkrhmxcn7rslzfv6lke8859m7ntwudfjqmcx7")  // will be deleted, so address doesnt matter
-        cy.get('#recipient_2').find('#label').type("Recipient 3 to be deleted", {force:true})
-        cy.get('#recipient_2').find('#amount').type(3, {force:true})
+        cy.get('#recipient_2').find('#label').type("Recipient 3 to be deleted", { force: true })
+        cy.get('#recipient_2').find('#amount').type(3, { force: true })
 
         cy.get('#add-recipient').click()
         cy.get('#recipient_3').find('#address').invoke('val', "bcrt1q4gs9fsf8fh4s4s8w39hxtupafm2q047fytmnxp")  // pasting the address is faster than typing
-        cy.get('#recipient_3').find('#label').type("Recipient 4", {force:true})
-        cy.get('#recipient_3').find('#amount').type(4, {force:true})
+        cy.get('#recipient_3').find('#label').type("Recipient 4", { force: true })
+        cy.get('#recipient_3').find('#amount').type(4, { force: true })
 
         cy.get('#add-recipient').click()
         cy.get('#recipient_4').find('#address').invoke('val', "bcrt1q4e8p7x6n7uhtthtelhv3mle52vsc4pqre7ddwm")  // pasting the address is faster than typing
-        cy.get('#recipient_4').find('#label').type("Recipient 5", {force:true})
-        cy.get('#recipient_4').find('#amount').type(5, {force:true})
+        cy.get('#recipient_4').find('#label').type("Recipient 5", { force: true })
+        cy.get('#recipient_4').find('#amount').type(5, { force: true })
         cy.get('main').scrollTo('bottom')
         
         // Check the fee selection
@@ -79,8 +79,8 @@ describe('Test sending transactions', () => {
         cy.get('#fee-selection-component').find('#subtract').invoke('attr', 'value').should('eq', 'true')
 
         // Remove two recipients
-        cy.get('#recipient_0').find('#remove').click({force: true})   
-        cy.get('#recipient_2').find('#remove').click({force: true})  
+        cy.get('#recipient_0').find('#remove').click({ force: true })   
+        cy.get('#recipient_2').find('#remove').click({ force: true })  
 
         // Select different recipients to subtract the fees from
         cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 4') // html select with cypress: https://www.cypress.io/blog/2020/03/20/working-with-select-elements-and-select2-widgets-in-cypress/
@@ -115,18 +115,18 @@ describe('Test sending transactions', () => {
         cy.selectWallet("Test Hot Wallet 1")
         cy.get('#btn_send').click()
         /// The addresses are the first three from DIY ghost
-        cy.get('#recipient_0').find('#address').type("bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs", {force:true})
-        cy.get('#recipient_0').find('#label').type("Recipient 1", {force:true})
-        cy.get('#recipient_0').find('#amount').type(10, {force:true})
+        cy.get('#recipient_0').find('#address').type("bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs", { force: true })
+        cy.get('#recipient_0').find('#label').type("Recipient 1", { force: true })
+        cy.get('#recipient_0').find('#amount').type(10, { force: true })
         cy.get('main').scrollTo('bottom')
         cy.get('#add-recipient').click()
-        cy.get('#recipient_1').find('#address').type("bcrt1qgzmq6e3tn67kveryf2je6nd3nv4txef4sl8wre", {force:true})
-        cy.get('#recipient_1').find('#label').type("Recipient 2", {force:true})
-        cy.get('#recipient_1').find('#amount').type(5, {force:true})
+        cy.get('#recipient_1').find('#address').type("bcrt1qgzmq6e3tn67kveryf2je6nd3nv4txef4sl8wre", { force: true })
+        cy.get('#recipient_1').find('#label').type("Recipient 2", { force: true })
+        cy.get('#recipient_1').find('#amount').type(5, { force: true })
         cy.get('main').scrollTo('bottom')
         cy.get('#add-recipient').click()
-        cy.get('#recipient_2').find('#address').type("bcrt1q9mkrhmxcn7rslzfv6lke8859m7ntwudfjqmcx7", {force:true})
-        cy.get('#recipient_2').find('#label').type("Recipient 3", {force:true})
+        cy.get('#recipient_2').find('#address').type("bcrt1q9mkrhmxcn7rslzfv6lke8859m7ntwudfjqmcx7", { force: true })
+        cy.get('#recipient_2').find('#label').type("Recipient 3", { force: true })
         // Using send max
         cy.get('#recipient_2').find('#send_max').click()
         cy.get('main').scrollTo('bottom')
@@ -165,17 +165,26 @@ describe('Test sending transactions', () => {
         cy.deleteWallet("Test Hot Wallet 1")
     })
 
-    it('Trying to remove all recipients', () => {
+    it.only('No remove button if there is only one recipient', () => {
         cy.selectWallet("Ghost wallet")
         cy.get('#btn_send').click()
-        cy.get('#recipient_0').find('#remove').click({force: true})
-        cy.contains('Cannot delete the last recipient') 
+        // No remove button when the send dialog is started with only one recipient
+        cy.get('#recipient_0').find('#remove').should('not.be.visible')
+        cy.get('#add-recipient').click()
+        // Now both remove buttons should be visible
+        cy.get('#recipient_0').find('#remove').should('be.visible')
+        cy.get('#recipient_1').find('#remove').should('be.visible')
+        // Remove button should disappear again if only one recipient (here: Recipient 3) remains 
+        cy.get('#add-recipient').click()
+        cy.get('#recipient_0').find('#remove').click({ force: true })
+        cy.get('#recipient_1').find('#remove').click({ force: true })
+        cy.get('#recipient_2').find('#remove').should('not.be.visible')
     })
 
     it('Use an address belonging to the wallet', () => {
         cy.selectWallet("Ghost wallet")
         cy.get('#btn_send').click()
-        cy.get('#recipients').find('#recipient_0').find('#address').type("bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs", {force:true})
+        cy.get('#recipients').find('#recipient_0').find('#address').type("bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs", { force: true })
         // Checking that the background colour of the address is green as it belongs to the wallet
         cy.get('#recipients').find('#recipient_0').find('#address').should('have.css', 'background-color','rgb(48, 109, 48)')
     })
@@ -185,8 +194,8 @@ describe('Test sending transactions', () => {
         cy.addHotDevice("Hot Device 2","bitcoin")
         cy.addWallet('Test Multisig Wallet', 'segwit', 'funded', 'btc', 'multisig', 'Hot Device 1', 'Hot Device 2', 'DIY ghost')        
         cy.get('#btn_send').click()
-        cy.get('#recipient_0').find('#address').type("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u", {force:true})
-        cy.get('#recipient_0').find('#label').type("Burn address", {force:true})
+        cy.get('#recipient_0').find('#address').type("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u", { force: true })
+        cy.get('#recipient_0').find('#label').type("Burn address", { force: true })
         cy.get('#recipient_0').get('#send_max').click()
         cy.get('#create_psbt_btn').click()
         cy.get('body').contains("Paste signed transaction")

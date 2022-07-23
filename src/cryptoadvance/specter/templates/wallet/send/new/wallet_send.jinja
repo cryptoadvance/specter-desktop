@@ -288,10 +288,6 @@
 		} 
 
 		function removeRecipient(recipientId=-1) {	
-			if (getRecipientIds().length == 1){  // should not delete the last recipient
-				showError(`{{ _("Cannot delete the last recipient") }}`, 5000)
-				return;
-			}
 			if (recipientId==-1) {
 				recipientId = getRecipientIds().length - 1
 			};
