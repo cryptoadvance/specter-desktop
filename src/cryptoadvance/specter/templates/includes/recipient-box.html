@@ -103,7 +103,7 @@
 			});
 
 			var template_content = document.getElementById('recipient-box').content;
-            this.clone = template_content.cloneNode(true);
+            let clone = template_content.cloneNode(true);
 
 
 			// fill this.inputs with the input and textarea fields. 
@@ -111,7 +111,7 @@
 			this.inputs = {};
 			var formClassNames = ['input', 'textarea'];
 			for (var j in formClassNames) {
-				var inputFields = this.clone.querySelectorAll(formClassNames[j]);
+				var inputFields = clone.querySelectorAll(formClassNames[j]);
 				for(var i = 0; i < inputFields.length; i++) {
 					var inputField = inputFields[i];
 					console.log(j, i, inputField)
@@ -120,7 +120,7 @@
 			}
 
 
-            this.shadowRoot.appendChild(this.clone);
+            this.shadowRoot.appendChild(clone);
 			this.addAssetSelectorToShadowRoot('', 'btc')			
 		}
 
