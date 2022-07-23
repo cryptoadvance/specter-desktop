@@ -21,7 +21,7 @@
 
 
 	It has the attributes: ["value", "name", "id", "title", "address", "label", 
-								"recipientId", "max", "step", "amount", "hiddenCloseButton"]
+								"recipientId", "max", "step", "amount", "hiddenRemoveButton"]
 			These attributes will be assigned to the appropriate html elements
 
 	It has the properties:
@@ -287,7 +287,7 @@
 		static get observedAttributes() {
 			// define the attributes that can be defined via <recipient-box name="recipient-box" id='4'></recipient-box>	
 			var attributes = ["value", "name", "id", "title", "address", "label", 
-								"recipientId", "max", "step", "amount", "hiddenCloseButton"];
+								"recipientId", "max", "step", "amount", "hiddenRemoveButton"];
 			return attributes;
 		}
 
@@ -314,8 +314,8 @@
 				this.amount = newValue;
 			} else if (attribute=="id"){
 				this.id = newValue;
-			} else if (attribute=="hiddenCloseButton"){
-				this.hiddenCloseButton = newValue;
+			} else if (attribute=="hiddenRemoveButton"){
+				this.hiddenRemoveButton = newValue;
 			}
 			
 		}
@@ -412,12 +412,12 @@
 
 
 
-		// hiddenCloseButton
-		set hiddenCloseButton(newValue){
+		// hiddenRemoveButton
+		set hiddenRemoveButton(newValue){
 			if (!this.shadowRoot) {return }
 			this.shadowRoot.getElementById('remove').hidden = newValue;
 		}			
-		get hiddenCloseButton(){
+		get hiddenRemoveButton(){
 			return this.shadowRoot.getElementById('remove').hidden;
 		}		
 
