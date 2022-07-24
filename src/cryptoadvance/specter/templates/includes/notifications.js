@@ -1,7 +1,7 @@
 {% include "includes/message_box.js" %}
 
 
-
+var userToken = null;
 
 /**
  * creating a notification from JS
@@ -12,7 +12,7 @@
  async function createNotification(title, options){ 
     if (!websocket){return}
     if (websocket.readyState === WebSocket.OPEN) {
-        websocket.send(JSON.stringify( {'title':title, 'options': options}));
+        websocket.send(JSON.stringify( {'user_token': userToken, 'title':title, 'options': options}));
     } else {
         // If the socket is not open yet, retry in 1 s
         setTimeout(createNotification, 1000, title, options);  
@@ -191,11 +191,11 @@ function webapiNotification(jsNotification) {
         createWebapiNotification();
     }
     function fDenied(){
-        console.log(`Notification.requestPermission() = ${webapiHasPermission}`);
+        console.debug(`Notification.requestPermission() = ${webapiHasPermission}`);
         setTargetUiAvailability('webapi', false, jsNotification['id']);  
     }
     function fDefault(){
-        console.log(`Notification.requestPermission() = ${webapiHasPermission}`);
+        console.debug(`Notification.requestPermission() = ${webapiHasPermission}`);
         setTargetUiAvailability('webapi', false, jsNotification['id']);  
     }
 
@@ -269,6 +269,7 @@ async function show_notification(targetUi, jsNotification){
 /**
  * Check the status of Notification_API permission call
  * setTargetUiAvailability to activate or deactivate the WebAPINotifications
+ * This allows to activate the e.g. webapi again, if the user first denied it, and then allowed it again.
  */
 async function sendUpdatedWebapiPermission(){
     var beforeWebapiHasPermission =  webapiHasPermission;
@@ -298,34 +299,41 @@ async function sendUpdatedWebapiPermission(){
 
 var websocket = null;
 
-function connectAndAuthenticateWebsocket() {
+function connectWebsocket() {
     // get necessary info for the opening of the websocket
     sendRequest("{{ url_for('wallets_endpoint_api.get_websockets_info') }}", 'GET', 
                     "{{ csrf_token() }}").then(function (websocketsInfo) {
         // Create the websocket  
-        var port = websocketsInfo['port'];
-        var active = websocketsInfo['active'];
-        var userToken = websocketsInfo['user_token'];
-
-        // give up completely on websockets, if not active
-        if (!active){
-            return
+        var route = 'websocket';
+        var protocol = 'wss';
+        if ("{{ request.scheme }}" == "http"){
+            protocol = 'ws';
         }
+        
+        var port = websocketsInfo['port'];
+        userToken = websocketsInfo['user_token'];
 
-        ip_address = "{{ request.host.split(':')[0] }}";
-        websocket = new WebSocket(`ws://${ip_address}:${port}/`);
-
+        
+        var ip_address = "{{ request.host.split(':')[0] }}";
+        var url = `${protocol}://${ip_address}:${port}/${route}`;
+        websocket = new WebSocket(url);
 
         
         // Authenticate and add listeners when the websocket connection is open
         websocket.onopen = function(e) {
-            websocket.send(JSON.stringify( {'type':'authentication', 'user_token': userToken}));
-            console.log(`websocket connection open and sent authentication`);		
-            //websocket.send(JSON.stringify( {'title':'This message is sent to the server and then returned', options: {target_uis:['js_console']}  }));
+            console.debug(`Websocket connection to ${url} is open`);		
         };
 
         websocket.onmessage = function(message) {
-            var jsNotification = JSON.parse(message.data);
+            var jsNotification = null;
+            try{ 
+                jsNotification = JSON.parse(message.data);
+            } catch(e) { 
+                console.warn(`Json could not be parsed: ` + e.message)
+                return
+            }
+
+            
             var targetUis = jsNotification["options"]['target_uis'];
             for (let i in targetUis) {  
                 show_notification(targetUis[i], jsNotification);   
@@ -333,9 +341,9 @@ function connectAndAuthenticateWebsocket() {
         };
 
         websocket.onclose = function(e) {
-            console.log('Websocket was closed. Reconnect will be attempted in 10 seconds.', e.reason);
+            console.debug('Websocket was closed. Reconnect will be attempted in 10 seconds.', e.reason);
             setTimeout(function() {
-                connectAndAuthenticateWebsocket();
+                connectWebsocket();
             }, 10000);
         };
 
@@ -352,8 +360,8 @@ function connectAndAuthenticateWebsocket() {
 
 }
 
-connectAndAuthenticateWebsocket()
 
+connectWebsocket()
 
 
 
@@ -366,3 +374,5 @@ connectAndAuthenticateWebsocket()
 }else{
     // no user logged in
 }
+
+    

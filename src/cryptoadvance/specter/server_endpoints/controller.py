@@ -8,6 +8,8 @@ from flask_babel import lazy_gettext as _
 from ..notifications.current_flask_user import flash
 from ..specter_error import SpecterError, ExtProcTimeoutException
 from pathlib import Path
+import json
+from flask_login import current_user, login_required
 
 env_path = Path(".") / ".flaskenv"
 from dotenv import load_dotenv
@@ -30,6 +32,11 @@ from .setup import setup_endpoint
 from .wallets import wallets_endpoint
 from .wallets_api import wallets_endpoint_api
 from ..rpc import RpcError
+import simple_websocket
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 # Services live in their own separate path
 from cryptoadvance.specter.services.controller import services_endpoint
@@ -221,6 +228,16 @@ if app.config["SPECTER_URL_PREFIX"] != "":
     @app.route(f"{app.config['SPECTER_URL_PREFIX']}/")
     def index_prefix():
         return redirect(url_for("welcome_endpoint.index"))
+
+
+@app.route("/websocket", websocket=True)
+def websocket():
+    logger.debug("websocket route called. This will start a new websocket connection.")
+    # this function will run forever. That is ok, because a stream is expected, similar to https://maxhalford.github.io/blog/flask-sse-no-deps/
+    #  flask.Response(stream(), mimetype='text/event-stream')
+    # if this function will end, this error will be thrown:
+    # TypeError: The view function for 'websocket' did not return a valid response. The function either returned None or ended without a return statement.
+    app.specter.notification_manager.websockets_server.serve(request.environ)
 
 
 @app.route("/healthz/liveness")

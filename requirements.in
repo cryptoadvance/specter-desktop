@@ -2,7 +2,7 @@ certifi==2021.10.08
 chardet==3.0.4
 Click==8.1.1
 Flask==2.1.1
-Werkzeug==2.0.0 # need to pin because Flask doesn't work with newer ones
+Werkzeug==2.0.3 # need to pin because Flask doesn't work with newer ones
 Flask-Babel==2.0.0
 Flask-Cors==3.0.10
 Flask-Login==0.5.0
@@ -25,7 +25,7 @@ mnemonic==0.20
 cryptography==3.4.7
 Flask-APScheduler==1.12.3
 gunicorn==20.1.0
-websockets==9.1
+simple-websocket==0.6.0
 
 # Extensions
 cryptoadvance-liquidissuer==0.2.4

@@ -5,6 +5,7 @@ logger = logging.getLogger(__name__)
 from .notifications import Notification
 from ..notifications import ui_notifications
 from ..notifications import websockets_server_client
+import flask
 
 
 class NotificationManager:
@@ -62,7 +63,14 @@ class NotificationManager:
     """
 
     def __init__(
-        self, websockets_active, websockets_port, user_manager, ui_notifications=None
+        self,
+        user_manager,
+        ip,
+        port,
+        path,
+        ssl_cert=None,
+        ssl_key=None,
+        ui_notifications=None,
     ):
         """
         Arguments:
@@ -71,22 +79,29 @@ class NotificationManager:
         """
         self.ui_notifications = ui_notifications if ui_notifications else []
         self.notifications = []
+        self.user_manager = user_manager
+        self.ssl_cert, self.ssl_key = ssl_cert, ssl_key
         self._register_default_ui_notifications()
 
-        self.websockets_server = None
-        self.websockets_client = None
-        if websockets_active:
-            (
-                self.websockets_server,
-                self.websockets_client,
-            ) = websockets_server_client.create_websockets_server_and_client(
-                websockets_port, user_manager, self
-            )
-            websockets_server_client.run_websockets_server_and_client(
-                self.websockets_server, self.websockets_client
-            )
+        self.websockets_server = websockets_server_client.WebsocketServer(
+            self, self.user_manager
+        )
+
+        self.websockets_client = websockets_server_client.WebsocketClient(
+            ip, port, path, self.ssl_cert, self.ssl_key
+        )
+
+        # setting this client admin, meaning it is allowed to send to all
+        # connected websocket connections without restrictions
+        self.websockets_server.set_as_admin(self.websockets_client.user_token)
+
+        self.websockets_client.start()
+
+    def get_websockets_client(self):
+        return self.websockets_client
 
     def quit(self):
+        return
         if self.websockets_server:
             self.websockets_server.quit()
         if self.websockets_client:
@@ -100,14 +115,14 @@ class NotificationManager:
     def register_user_ui_notifications(self, user_id):
         "Registers up the (default) UINotifications for this user"
         self.register_ui_notification(
-            ui_notifications.WebAPINotifications(user_id, self.websockets_client)
+            ui_notifications.WebAPINotifications(user_id, self.get_websockets_client)
         )
         self.register_ui_notification(
-            ui_notifications.JSNotifications(user_id, self.websockets_client)
+            ui_notifications.JSNotifications(user_id, self.get_websockets_client)
         )
         self.register_ui_notification(ui_notifications.FlashNotifications(user_id))
         self.register_ui_notification(
-            ui_notifications.JSConsoleNotifications(user_id, self.websockets_client)
+            ui_notifications.JSConsoleNotifications(user_id, self.get_websockets_client)
         )
 
     def register_ui_notification(self, ui_notification):
@@ -376,12 +391,9 @@ class NotificationManager:
                     # if it is already broadcasted on this backup_ui_notification by default anyway, no need to do it twice
                     if backup_ui_notification in broadcast_on_ui_notifications:
                         continue
-                    logger.debug(
-                        f"broadcast_on_ui_notifications {broadcast_on_ui_notifications} , backup_ui_notification {backup_ui_notification}"
-                    )
                     notification_broadcasted = backup_ui_notification.show(notification)
                     logger.debug(
-                        f"Rebroadcast on {backup_ui_notification.name} of {notification} "
+                        f"Rebroadcasted on {backup_ui_notification.name} of {notification} "
                     )
                     if notification_broadcasted:
                         break

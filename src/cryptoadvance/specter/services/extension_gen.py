@@ -97,6 +97,7 @@ class ExtGen:
         self.render(f"{package_path}/service.py")
         self.render(f"{package_path}/controller.py")
         self.render(f"{package_path}/config.py")
+        self.render(f"{package_path}/app_config.py")
         self.render(f"{package_path}/__init__.py")
         self.render(f"{package_path}/__main__.py")
         self.render(f"{package_path}/templates/dummy/index.jinja")
