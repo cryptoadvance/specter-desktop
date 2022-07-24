@@ -189,10 +189,6 @@ class BaseConfig(object):
     EXT_URL_PREFIX = "/svc"
     SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
 
-    # websockets specifig configurations
-    SPECTER_WEBSOCKETS_PORT = os.getenv("SPECTER_WEBSOCKETS_PORT", 5087)
-    SPECTER_WEBSOCKETS_ACTIVE = os.getenv("SPECTER_WEBSOCKETS_PORT", True)
-
 
 class DevelopmentConfig(BaseConfig):
     # https://stackoverflow.com/questions/22463939/demystify-flask-app-secret-key

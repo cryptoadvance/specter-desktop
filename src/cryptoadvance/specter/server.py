@@ -152,20 +152,13 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None, **kwargs):
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )
 
-    websockets_port = app.config["SPECTER_WEBSOCKETS_PORT"]
-    websockets_active = app.config["SPECTER_WEBSOCKETS_ACTIVE"]
-    if is_running_from_reloader():
-        # if the flask reloader starts a second instance of everything, make sure the server and client are not initiated a second time
-        websockets_port += 1
-
-    ssl_cert, ssl_key = kwargs.get("ssl_context", (None, None))
     specter.notification_manager = NotificationManager(
         specter.user_manager,
-        kwargs["host"],
-        kwargs["port"],
+        kwargs.get("host", "127.0.0.1"),
+        app.config["PORT"],
         "websocket",  # this is the route of app.route("/websocket", websocket=True)
-        ssl_cert,
-        ssl_key,
+        app.config["CERT"],
+        app.config["KEY"],
     )
     for user in specter.user_manager.users:
         specter.notification_manager.register_user_ui_notifications(user.id)

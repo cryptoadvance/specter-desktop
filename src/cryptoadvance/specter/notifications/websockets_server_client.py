@@ -71,9 +71,6 @@ class WebsocketServer:
 
     def serve(self, environ):
         websocket = simple_websocket.Server(environ)
-        # self.protocol = "wss" if environ["wsgi.url_scheme"] == "https" else "ws"
-        # self.port = environ["SERVER_PORT"]
-        # self.route = environ["PATH_INFO"]
         try:
             logger.info(
                 f"Started websocket connection {websocket} between the server and a new client"
