@@ -2,6 +2,7 @@
 This file enabled to keep an open websocket connection with the browser sessions.
 """
 import logging, threading, time, secrets
+from sqlite3 import connect
 from queue import Queue
 
 from flask_login import current_user
@@ -85,13 +86,10 @@ class WebsocketServer:
                 self._process_incoming_message(message_dictionary)
         except simple_websocket.ConnectionClosed:
             self._unregister(websocket)
-            logger.info(f"Websocket connection   closed")
+            logger.info(f"Websocket connection closed")
 
         logger.info(f"{self.__class__.__name__} serve() ended")
         return ""
-
-    def get_connection_user_tokens(self):
-        return [d["user_token"] for d in self.connections]
 
     def get_admin_tokens(self):
         return [d["user_token"] for d in self.admin_tokens]
@@ -101,10 +99,12 @@ class WebsocketServer:
             if d["websocket"] == websocket:
                 return d["user_token"]
 
-    def get_connection_by_token(self, user_token):
+    def get_connections_by_token(self, user_token):
+        connections = []
         for d in self.connections:
             if d["user_token"] == user_token:
-                return d["websocket"]
+                connections.append(d["websocket"])
+        return connections
 
     def get_user_of_user_token(self, user_token):
         for u in self.user_manager.users:
@@ -151,11 +151,15 @@ class WebsocketServer:
     def _unregister(self, websocket):
         user_token = self.get_token_of_websocket(websocket)
         user = self.get_user_of_user_token(user_token)
-        self.get_admin_tokens
+
         username = (
             user
             if user
-            else ("ADMIN" if user_token in self.get_admin_tokens() else "unknown")
+            else (
+                "Python ADMIN Client"
+                if user_token in self.get_admin_tokens()
+                else "unknown"
+            )
         )
         logger.debug(f"_unregister {websocket} belonging to {username}")
         self.connections = [d for d in self.connections if d["websocket"] != websocket]
@@ -224,6 +228,9 @@ class WebsocketServer:
 
         def target():
             try:
+                logger.debug(
+                    f"_send_to_websockets  {websocket} message: {message_dictionary}"
+                )
                 websocket.send(robust_json_dumps(message_dictionary))
             except simple_websocket.ConnectionClosed:
                 self._unregister(websocket)
@@ -240,8 +247,6 @@ class WebsocketServer:
         """
         assert admin_token in self.get_admin_tokens()
 
-        logger.debug(f'_send_to_websockets "{message_dictionary}"')
-
         recipient_user = self.user_manager.get_user(
             message_dictionary["options"]["user_id"]
         )
@@ -251,14 +256,14 @@ class WebsocketServer:
             )
             return
 
-        websocket = self.get_connection_by_token(recipient_user.websocket_token)
-        if not websocket:
+        connections = self.get_connections_by_token(recipient_user.websocket_token)
+        if not connections:
             logger.warning(
                 f"No websocket for this recipient_user.websocket_token could be found"
             )
             return
-
-        self._send(websocket, message_dictionary)
+        for websocket in connections:
+            self._send(websocket, message_dictionary)
 
 
 class WebsocketClient:
