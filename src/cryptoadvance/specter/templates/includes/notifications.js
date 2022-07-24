@@ -269,6 +269,7 @@ async function show_notification(targetUi, jsNotification){
 /**
  * Check the status of Notification_API permission call
  * setTargetUiAvailability to activate or deactivate the WebAPINotifications
+ * This allows to activate the e.g. webapi again, if the user first denied it, and then allowed it again.
  */
 async function sendUpdatedWebapiPermission(){
     var beforeWebapiHasPermission =  webapiHasPermission;

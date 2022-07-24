@@ -17,51 +17,7 @@ from ..helpers import robust_json_dumps
 import simple_websocket, ssl
 
 
-class SimpleWebsocketClient:
-    def __init__(self, ip, port, path, ssl_cert, ssl_key):
-        self.protocol = "wss" if ssl_cert and ssl_cert else "ws"
-        self.url = f"{self.protocol}://{ip}:{port}/{path}"
-        self.user_token = secrets.token_urlsafe(128)
-        self.connected = False
-
-        self.ssl_context = None
-        if ssl_cert and ssl_key:
-            self.ssl_context = ssl._create_unverified_context(ssl.PROTOCOL_TLS_CLIENT)
-            # see https://pythontic.com/ssl/sslcontext/load_cert_chain
-            self.ssl_context.load_cert_chain(certfile=ssl_cert, keyfile=ssl_key)
-
-    def send(self, message_dictionary):
-        if not self.connected:
-            logger.error(f"Cont Connected Error: Could not send {message_dictionary}")
-
-        message_dictionary["user_token"] = self.user_token
-        logger.debug(f"{self.__class__.__name__} sending {message_dictionary}")
-        self.websocket.send(robust_json_dumps(message_dictionary))
-
-    def start_client_server_in_other_thread(self):
-        logger.debug("Client: before connected")
-        for i in range(100):
-            time.sleep(0.1)
-            try:
-                self.websocket = simple_websocket.Client(
-                    self.url, ssl_context=self.ssl_context
-                )
-                break
-            except ConnectionRefusedError:
-                logger.debug(
-                    f"Connection of client to webserver not able to connect in loop {i} yet. Retrying..."
-                )
-
-        self.connected = True
-        logger.debug("Client: connected")
-
-    def start(self):
-        self.thread = threading.Thread(target=self.start_client_server_in_other_thread)
-        self.thread.daemon = True  # die when the main thread dies
-        self.thread.start()
-
-
-class SimpleWebsocketServer:
+class WebsocketServer:
     """
     A forever lived websockets server in a different thread.
     The server has 2 main functions:
@@ -119,17 +75,19 @@ class SimpleWebsocketServer:
         # self.port = environ["SERVER_PORT"]
         # self.route = environ["PATH_INFO"]
         try:
-            logger.info(f"Started websocket connection {websocket}")
+            logger.info(
+                f"Started websocket connection {websocket} between the server and a new client"
+            )
             while True:
                 data = websocket.receive()
                 try:
                     message_dictionary = json.loads(data)
                 except:
                     continue
-                self.register(message_dictionary.get("user_token"), websocket)
-                self.process_incoming_message(message_dictionary)
+                self._register(message_dictionary.get("user_token"), websocket)
+                self._process_incoming_message(message_dictionary)
         except simple_websocket.ConnectionClosed:
-            self.unregister(websocket)
+            self._unregister(websocket)
             logger.info(f"Websocket connection   closed")
 
         logger.info(f"{self.__class__.__name__} serve() ended")
@@ -167,23 +125,33 @@ class SimpleWebsocketServer:
             d for d in self.admin_tokens if d["user_token"] != user_token
         ]
 
-    def register(self, user_token, websocket):
+    def _register(self, user_token, websocket):
         if not user_token:
             logger.warning(f"no user_token given")
             return
 
+        d = {"user_token": user_token, "websocket": websocket}
+        if d in self.connections:
+            # no need to add the connection multiple times
+            return
+
         if user_token in self.get_admin_tokens():
-            logger.debug(f"register websocket connection for user with ADMIN rights")
+            logger.info(
+                f"python-websocket-client --> python-websocket-server was first used and registered."
+            )
         else:
             user = self.get_user_of_user_token(user_token)
             # If it is not an admin AND the token is unknown, then reject connection
             if not user:
                 logger.warning(f"user_token {user_token} not found in users")
                 return
-            logger.debug(f"register websocket connection for flask user '{user}'")
+            logger.info(
+                f"python-websocket-server --> javascript websocket-client  for flask user '{user}'  was first used and registered."
+            )
+
         self.connections.append({"user_token": user_token, "websocket": websocket})
 
-    def unregister(self, websocket):
+    def _unregister(self, websocket):
         user_token = self.get_token_of_websocket(websocket)
         user = self.get_user_of_user_token(user_token)
         self.get_admin_tokens
@@ -192,14 +160,14 @@ class SimpleWebsocketServer:
             if user
             else ("ADMIN" if user_token in self.get_admin_tokens() else "unknown")
         )
-        logger.debug(f"unregister {websocket} belonging to {username}")
+        logger.debug(f"_unregister {websocket} belonging to {username}")
         self.connections = [d for d in self.connections if d["websocket"] != websocket]
 
-    def process_incoming_message(self, message_dictionary):
+    def _process_incoming_message(self, message_dictionary):
         """
         This listens to messages. They can come from connections with and without admin tokens.
-        If this is a websocket authentication, it will so self.register,
-        otherwise just forward to to the notification_manager via self.create_notification
+        If this is a websocket authentication, it will so self._register,
+        otherwise just forward to to the notification_manager via self._create_notification
         """
 
         user_token = message_dictionary.get("user_token")
@@ -209,16 +177,16 @@ class SimpleWebsocketServer:
             logger.debug(
                 f"message from user with admin_token recieved. Sending to websockets"
             )
-            self.send_to_websockets(message_dictionary, user_token)
+            self._send_to_websockets(message_dictionary, user_token)
         elif user:
             logger.debug(f"message from user recieved. Creating Notification")
-            self.create_notification(message_dictionary, user)
+            self._create_notification(message_dictionary, user)
         else:
             logger.warning(
                 "user_token {user_token} is not valid. Please provide a user_token in the message"
             )
 
-    def create_notification(self, message_dictionary, user):
+    def _create_notification(self, message_dictionary, user):
         """Creates a notification based on the title, options contained in message_dictionary
         Example of message_dictionary:
 
@@ -244,7 +212,7 @@ class SimpleWebsocketServer:
         options = message_dictionary.get("options", {})
 
         logger.debug(
-            f"create_notification with title  {title}, user {user, type(user)} and options {options}"
+            f"_create_notification with title  {title}, user {user, type(user)} and options {options}"
         )
 
         notification = self.notification_manager.create_and_show(
@@ -254,28 +222,28 @@ class SimpleWebsocketServer:
         )
         return notification
 
-    def send(self, websocket, message_dictionary):
+    def _send(self, websocket, message_dictionary):
         "Starts a new thread and sends the data to websocket"
 
         def target():
             try:
                 websocket.send(robust_json_dumps(message_dictionary))
             except simple_websocket.ConnectionClosed:
-                self.unregister(websocket)
+                self._unregister(websocket)
 
         thread = threading.Thread(target=target)
         thread.daemon = True  # die when the main thread dies
         thread.start()
         thread.join()
 
-    def send_to_websockets(self, message_dictionary, admin_token):
+    def _send_to_websockets(self, message_dictionary, admin_token):
         """
         This sends out messages to the connected websockets, which are associated with message_dictionary['options']['user_id']
         This method shall only called by an admin user
         """
         assert admin_token in self.get_admin_tokens()
 
-        logger.debug(f'send_to_websockets "{message_dictionary}"')
+        logger.debug(f'_send_to_websockets "{message_dictionary}"')
 
         recipient_user = self.user_manager.get_user(
             message_dictionary["options"]["user_id"]
@@ -293,4 +261,48 @@ class SimpleWebsocketServer:
             )
             return
 
-        self.send(websocket, message_dictionary)
+        self._send(websocket, message_dictionary)
+
+
+class WebsocketClient:
+    """
+    Connects to the WebsocketServer; and then the self.send method can be used to send messages to the WebsocketServer
+    """
+
+    def __init__(self, ip, port, path, ssl_cert, ssl_key):
+        self.protocol = "wss" if ssl_cert and ssl_cert else "ws"
+        self.url = f"{self.protocol}://{ip}:{port}/{path}"
+        self.user_token = secrets.token_urlsafe(128)
+
+        self.ssl_context = None
+        if ssl_cert and ssl_key:
+            self.ssl_context = ssl._create_unverified_context(ssl.PROTOCOL_TLS_CLIENT)
+            # see https://pythontic.com/ssl/sslcontext/load_cert_chain
+            self.ssl_context.load_cert_chain(certfile=ssl_cert, keyfile=ssl_key)
+
+    def send(self, message_dictionary):
+        message_dictionary["user_token"] = self.user_token
+        logger.debug(f"{self.__class__.__name__} sending {message_dictionary}")
+        self.websocket.send(robust_json_dumps(message_dictionary))
+
+    def start_client_server_in_other_thread(self):
+        for i in range(100):
+            time.sleep(0.1)
+            try:
+                # if successfull this process will run forever. This is why this should run in a dedicated thread.
+                # Only for the first connection, this will not block this thread.
+                # In practice it doesn't make any difference, as long as this function is run in a separate thread.
+                logger.info(f"Connecting {self.__class__.__name__}")
+                self.websocket = simple_websocket.Client(
+                    self.url, ssl_context=self.ssl_context
+                )
+                break
+            except ConnectionRefusedError:
+                logger.debug(
+                    f"Connection of client to webserver not able to connect in loop {i} yet. Retrying..."
+                )
+
+    def start(self):
+        self.thread = threading.Thread(target=self.start_client_server_in_other_thread)
+        self.thread.daemon = True  # die when the main thread dies
+        self.thread.start()

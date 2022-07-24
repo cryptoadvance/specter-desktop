@@ -83,11 +83,11 @@ class NotificationManager:
         self.ssl_cert, self.ssl_key = ssl_cert, ssl_key
         self._register_default_ui_notifications()
 
-        self.websockets_server = websockets_server_client.SimpleWebsocketServer(
+        self.websockets_server = websockets_server_client.WebsocketServer(
             self, self.user_manager
         )
 
-        self.websockets_client = websockets_server_client.SimpleWebsocketClient(
+        self.websockets_client = websockets_server_client.WebsocketClient(
             ip, port, path, self.ssl_cert, self.ssl_key
         )
         print(3)
@@ -393,12 +393,9 @@ class NotificationManager:
                     # if it is already broadcasted on this backup_ui_notification by default anyway, no need to do it twice
                     if backup_ui_notification in broadcast_on_ui_notifications:
                         continue
-                    logger.debug(
-                        f"broadcast_on_ui_notifications {broadcast_on_ui_notifications} , backup_ui_notification {backup_ui_notification}"
-                    )
                     notification_broadcasted = backup_ui_notification.show(notification)
                     logger.debug(
-                        f"Rebroadcast on {backup_ui_notification.name} of {notification} "
+                        f"Rebroadcasted on {backup_ui_notification.name} of {notification} "
                     )
                     if notification_broadcasted:
                         break
