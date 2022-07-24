@@ -94,18 +94,11 @@ class NotificationManager:
         # setting this client admin, meaning it is allowed to send to all
         # connected websocket connections without restrictions
         self.websockets_server.set_as_admin(self.websockets_client.user_token)
-
         self.websockets_client.start()
 
-    def get_websockets_client(self):
-        return self.websockets_client
-
     def quit(self):
-        return
-        if self.websockets_server:
-            self.websockets_server.quit()
         if self.websockets_client:
-            self.websockets_client.quit()
+            self.websockets_client.quit_server()
 
     def _register_default_ui_notifications(self):
         "Registers up the logging and print UINotifications, that can be used by alll users  (user_id=None)"
@@ -115,14 +108,14 @@ class NotificationManager:
     def register_user_ui_notifications(self, user_id):
         "Registers up the (default) UINotifications for this user"
         self.register_ui_notification(
-            ui_notifications.WebAPINotifications(user_id, self.get_websockets_client)
+            ui_notifications.WebAPINotifications(user_id, self.websockets_client)
         )
         self.register_ui_notification(
-            ui_notifications.JSNotifications(user_id, self.get_websockets_client)
+            ui_notifications.JSNotifications(user_id, self.websockets_client)
         )
         self.register_ui_notification(ui_notifications.FlashNotifications(user_id))
         self.register_ui_notification(
-            ui_notifications.JSConsoleNotifications(user_id, self.get_websockets_client)
+            ui_notifications.JSConsoleNotifications(user_id, self.websockets_client)
         )
 
     def register_ui_notification(self, ui_notification):

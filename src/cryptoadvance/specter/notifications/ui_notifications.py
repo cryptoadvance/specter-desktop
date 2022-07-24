@@ -148,11 +148,11 @@ class JSConsoleNotifications(BaseUINotifications):
     - on_show(notification_id, target_ui)
     """
 
-    def __init__(self, user_id, get_websockets_client, on_close=None, on_show=None):
+    def __init__(self, user_id, websockets_client, on_close=None, on_show=None):
         super().__init__(on_close=on_close, on_show=on_show)
         self.name = "js_console"
         self.user_id = user_id
-        self.get_websockets_client = get_websockets_client
+        self.websockets_client = websockets_client
 
     def show(self, notification):
         if (
@@ -165,13 +165,13 @@ class JSConsoleNotifications(BaseUINotifications):
         # The Notification manager handles sending to other target_uis
         js_notification = notification.to_js_notification()
         js_notification["options"]["target_uis"] = [self.name]
-        if not self.get_websockets_client():
+        if not self.websockets_client:
             logger.info(
-                f"{self.__class__.__name__}.get_websockets_client of user {self.user_id} returned {self.get_websockets_client()} --> Setting is_available = false. "
+                f"{self.__class__.__name__}.websockets_client of user {self.user_id} returned {self.websockets_client} --> Setting is_available = false. "
             )
             self.is_available = False
             return False
-        self.get_websockets_client().send(js_notification)
+        self.websockets_client.send(js_notification)
         return True  # successfully broadcasted
 
 
@@ -184,10 +184,8 @@ class JSNotifications(JSConsoleNotifications):
     - on_show(notification_id, target_ui)
     """
 
-    def __init__(self, user_id, get_websockets_client, on_close=None, on_show=None):
-        super().__init__(
-            user_id, get_websockets_client, on_close=on_close, on_show=on_show
-        )
+    def __init__(self, user_id, websockets_client, on_close=None, on_show=None):
+        super().__init__(user_id, websockets_client, on_close=on_close, on_show=on_show)
         self.compatible_notification_types = {
             NotificationTypes.information,
             NotificationTypes.warning,
@@ -208,8 +206,6 @@ class WebAPINotifications(JSNotifications):
     - on_show(notification_id, target_ui)
     """
 
-    def __init__(self, user_id, get_websockets_client, on_close=None, on_show=None):
-        super().__init__(
-            user_id, get_websockets_client, on_close=on_close, on_show=on_show
-        )
+    def __init__(self, user_id, websockets_client, on_close=None, on_show=None):
+        super().__init__(user_id, websockets_client, on_close=on_close, on_show=on_show)
         self.name = "webapi"  # see https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API/Using_the_Notifications_API
