@@ -326,6 +326,7 @@ wallets_endpoint_api.wallet_overview_utxo_csv
 wallets_endpoint_api.wallets_loading
 wallets_endpoint_api.wallets_overview_txlist
 wallets_endpoint_api.wallets_overview_utxo_list
+websocket
 welcome_endpoint.about
 welcome_endpoint.get_whitepaper
 welcome_endpoint.index"""
