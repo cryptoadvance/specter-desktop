@@ -17,7 +17,10 @@ def main():
     try:
         while True:
             data = input("> ")
-            ws.send(data)
+            if data == "listen":
+                print("waiting for a message from the server")
+            else:
+                ws.send(data)
             data = ws.receive()
             print(f"< {data}")
     except (KeyboardInterrupt, EOFError, simple_websocket.ConnectionClosed):
