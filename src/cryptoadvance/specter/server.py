@@ -158,7 +158,7 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None, **kwargs):
         # if the flask reloader starts a second instance of everything, make sure the server and client are not initiated a second time
         websockets_port += 1
 
-    ssl_cert, ssl_key = kwargs["ssl_context"]
+    ssl_cert, ssl_key = kwargs.get("ssl_context", (None, None))
     specter.notification_manager = NotificationManager(
         specter.user_manager,
         kwargs["host"],

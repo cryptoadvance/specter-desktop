@@ -326,7 +326,15 @@ function connectWebsocket() {
         };
 
         websocket.onmessage = function(message) {
-            var jsNotification = JSON.parse(message.data);
+            var jsNotification = null;
+            try{ 
+                jsNotification = JSON.parse(message.data);
+            } catch(e) { 
+                console.warn(`Json could not be parsed: ` + e.message)
+                return
+            }
+
+            
             var targetUis = jsNotification["options"]['target_uis'];
             for (let i in targetUis) {  
                 show_notification(targetUis[i], jsNotification);   

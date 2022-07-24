@@ -124,7 +124,6 @@ class SimpleWebsocketServer:
                 data = websocket.receive()
                 try:
                     message_dictionary = json.loads(data)
-                    print(f"{type(message_dictionary)} is type of {message_dictionary}")
                 except:
                     continue
                 self.register(message_dictionary.get("user_token"), websocket)
