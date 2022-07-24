@@ -63,7 +63,15 @@ class NotificationManager:
     """
 
     def __init__(
-        self, user_manager, ssl_cert=None, ssl_key=None, ui_notifications=None
+        self,
+        user_manager,
+        url_scheme,
+        ip,
+        port,
+        path,
+        ssl_cert=None,
+        ssl_key=None,
+        ui_notifications=None,
     ):
         """
         Arguments:
@@ -72,26 +80,16 @@ class NotificationManager:
         """
         self.ui_notifications = ui_notifications if ui_notifications else []
         self.notifications = []
-        self.websockets_server = None
-        self.websockets_client = None
         self.user_manager = user_manager
         self.ssl_cert, self.ssl_key = ssl_cert, ssl_key
         self._register_default_ui_notifications()
 
-    def run_websockets_server_and_client(self, environ):
-        if self.websockets_server:
-            # if there is a server already, then simply return the endless serve() function
-            return flask.Response(
-                self.websockets_server.serve(), mimetype="text/event-stream"
-            )
-
-        print(1)
         self.websockets_server = websockets_server_client.SimpleWebsocketServer(
-            self, self.user_manager, environ
+            self, self.user_manager
         )
-        print(2)
+
         self.websockets_client = websockets_server_client.SimpleWebsocketClient(
-            environ, self.ssl_cert, self.ssl_key
+            url_scheme, ip, port, path, self.ssl_cert, self.ssl_key
         )
         print(3)
 
@@ -101,9 +99,6 @@ class NotificationManager:
 
         self.websockets_client.start()
         print(4)
-
-        self.websockets_server.serve()  # runs forever
-        logger.info(f"Stopped websockets_server with environ {environ}")
 
     def get_websockets_client(self):
         return self.websockets_client

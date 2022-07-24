@@ -160,7 +160,13 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None, **kwargs):
 
     ssl_cert, ssl_key = kwargs["ssl_context"]
     specter.notification_manager = NotificationManager(
-        specter.user_manager, ssl_cert, ssl_key
+        specter.user_manager,
+        "https",
+        kwargs["host"],
+        kwargs["port"],
+        "websocket",
+        ssl_cert,
+        ssl_key,
     )
     for user in specter.user_manager.users:
         specter.notification_manager.register_user_ui_notifications(user.id)

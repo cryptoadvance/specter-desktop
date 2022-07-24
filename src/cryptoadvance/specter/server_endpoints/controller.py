@@ -232,7 +232,7 @@ if app.config["SPECTER_URL_PREFIX"] != "":
 
 @app.route("/websocket", websocket=True)
 def websocket():
-    app.specter.notification_manager.run_websockets_server_and_client(request.environ)
+    app.specter.notification_manager.websockets_server.serve(request.environ)
 
 
 @app.route("/healthz/liveness")

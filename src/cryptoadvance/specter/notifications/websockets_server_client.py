@@ -6,6 +6,7 @@ from queue import Queue
 
 from flask_login import current_user
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -17,9 +18,9 @@ import simple_websocket, ssl
 
 
 class SimpleWebsocketClient:
-    def __init__(self, environ, ssl_cert, ssl_key):
-        self.protocol = "wss" if environ["wsgi.url_scheme"] == "https" else "ws"
-        self.url = f"{self.protocol}://{environ['SERVER_NAME']}:{environ['SERVER_PORT']}/{environ['PATH_INFO']}"
+    def __init__(self, url_scheme, ip, port, path, ssl_cert, ssl_key):
+        self.protocol = "wss" if url_scheme == "https" else "ws"
+        self.url = f"{self.protocol}://{ip}:{port}/{path}"
         self.q = Queue()
         self.user_token = secrets.token_urlsafe(128)
         self._quit = False
@@ -42,7 +43,17 @@ class SimpleWebsocketClient:
 
     def forever_function(self):
         logger.debug("Client: before connected")
-        self.websocket = simple_websocket.Client(self.url, ssl_context=self.ssl_context)
+        for i in range(100):
+            time.sleep(0.1)
+            try:
+                self.websocket = simple_websocket.Client(
+                    self.url, ssl_context=self.ssl_context
+                )
+                break
+            except ConnectionRefusedError:
+                logger.debug(
+                    f"Connection of client to webserver not able to connect in loop {i} yet. Retrying..."
+                )
 
         logger.debug("Client: connected")
         while not self._quit:  #  this is an endless loop waiting for new queue items
@@ -112,41 +123,52 @@ class SimpleWebsocketServer:
         └───────────────────────┘                           └───────────────────────┘
     """
 
-    def __init__(self, notification_manager, user_manager, environ):
+    def __init__(self, notification_manager, user_manager):
         logger.info(f"Create {self.__class__.__name__}")
-        self.protocol = "wss" if environ["wsgi.url_scheme"] == "https" else "ws"
-        self.port = environ["SERVER_PORT"]
-        self.route = environ["PATH_INFO"]
 
-        self.server = simple_websocket.Server(environ)
         self.admin_tokens = list()
         self.connections = list()
         self.notification_manager = notification_manager
         self.user_manager = user_manager
-        self.started = False
-        self.q = Queue()
 
-    def serve(self):
+    def serve(self, environ):
+        websocket = simple_websocket.Server(environ)
+        # self.protocol = "wss" if environ["wsgi.url_scheme"] == "https" else "ws"
+        # self.port = environ["SERVER_PORT"]
+        # self.route = environ["PATH_INFO"]
         try:
-            logger.info(f"{self.__class__.__name__} serve() entered")
-            self.started = True
+            logger.info(f"Started websocket connection {websocket}")
             while True:
-                data = self.server.receive()
+                data = websocket.receive()
+                print(f"Server revieced {data}")
                 try:
                     message_dictionary = json.loads(data)
                 except:
                     continue
-                print(message_dictionary)
+                self.register(message_dictionary.get("user_token"), websocket)
                 self.process_incoming_message(message_dictionary)
-                self.create_notification(message_dictionary, current_user)
         except simple_websocket.ConnectionClosed:
+            self.unregister(websocket)
             logger.info(f"Websocket connection   closed")
 
         logger.info(f"{self.__class__.__name__} serve() ended")
         return ""
 
+    def get_connection_user_tokens(self):
+        return [d["user_token"] for d in self.connections]
+
     def get_admin_tokens(self):
         return [d["user_token"] for d in self.admin_tokens]
+
+    def get_token_of_websocket(self, websocket):
+        for d in self.connections:
+            if d["websocket"] == websocket:
+                return d["user_token"]
+
+    def get_connection_by_token(self, user_token):
+        for d in self.connections:
+            if d["user_token"] == user_token:
+                return d["websocket"]
 
     def get_user_of_user_token(self, user_token):
         for u in self.user_manager.users:
@@ -163,6 +185,36 @@ class SimpleWebsocketServer:
         self.admin_tokens = [
             d for d in self.admin_tokens if d["user_token"] != user_token
         ]
+
+    def register(self, user_token, websocket):
+        if not user_token:
+            logger.warning(f"no user_token given")
+            return
+
+        if user_token in self.get_admin_tokens():
+            logger.debug(f"register websocket connection for user with ADMIN rights")
+        else:
+            user = self.get_user_of_user_token(user_token)
+            # If it is not an admin AND the token is unknown, then reject connection
+            if not user:
+                logger.warning(f"user_token {user_token} not found in users")
+                return
+            logger.debug(
+                f"register websocket connection for flask user '{user.username}'"
+            )
+        self.connections.append({"user_token": user_token, "websocket": websocket})
+
+    def unregister(self, websocket):
+        user_token = self.get_token_of_websocket(websocket)
+        user = self.get_user_of_user_token(user_token)
+        self.get_admin_tokens
+        username = (
+            user.username
+            if user
+            else ("ADMIN" if user_token in self.get_admin_tokens() else "unknown")
+        )
+        logger.debug(f"unregister {websocket} belonging to {username}")
+        self.connections = [d for d in self.connections if d["websocket"] != websocket]
 
     def process_incoming_message(self, message_dictionary):
         """
@@ -223,6 +275,17 @@ class SimpleWebsocketServer:
         )
         return notification
 
+    def send(self, websocket, message_dictionary):
+        "Starts a new thread and sends the data to websocket"
+
+        def target():
+            websocket.send(robust_json_dumps(message_dictionary))
+
+        thread = threading.Thread(target=target)
+        thread.daemon = True  # die when the main thread dies
+        thread.start()
+        thread.join()
+
     def send_to_websockets(self, message_dictionary, admin_token):
         """
         This sends out messages to the connected websockets, which are associated with message_dictionary['options']['user_id']
@@ -241,5 +304,11 @@ class SimpleWebsocketServer:
             )
             return
 
-        response = self.server.send(robust_json_dumps(message_dictionary))
-        return response
+        websocket = self.get_connection_by_token(recipient_user.websocket_token)
+        if not websocket:
+            logger.warning(
+                f"No websocket for this recipient_user.websocket_token could be found"
+            )
+            return
+
+        self.send(websocket, message_dictionary)

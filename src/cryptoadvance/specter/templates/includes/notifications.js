@@ -354,7 +354,7 @@ function connectWebsocket() {
 }
 
 
-//connectWebsocket()
+connectWebsocket()
 
 
 
@@ -363,7 +363,7 @@ function connectWebsocket() {
  * If a user is logged in then regularrly check the webapi notification permission
  */
  if ('{{ current_user.username }}'){
-    //setInterval(sendUpdatedWebapiPermission, 3000);
+    setInterval(sendUpdatedWebapiPermission, 3000);
 }else{
     // no user logged in
 }
