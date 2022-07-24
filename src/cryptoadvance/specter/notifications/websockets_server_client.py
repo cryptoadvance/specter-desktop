@@ -2,20 +2,12 @@
 This file enabled to keep an open websocket connection with the browser sessions.
 """
 import logging, threading, time, secrets
-from sqlite3 import connect
-from queue import Queue
-
-from flask_login import current_user
+import time, json
+from ..helpers import robust_json_dumps
+import simple_websocket, ssl
 
 
 logger = logging.getLogger(__name__)
-
-
-import time, json
-from ..helpers import robust_json_dumps
-
-
-import simple_websocket, ssl
 
 
 class WebsocketServer:
