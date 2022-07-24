@@ -7,6 +7,7 @@ app = Flask(__name__)
 @app.route("/echo", websocket=True)
 def echo():
     ws = simple_websocket.Server(request.environ)
+    print(f"Sfarting server {ws}")
     try:
         while True:
             data = ws.receive()
