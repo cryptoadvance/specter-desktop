@@ -191,11 +191,11 @@ function webapiNotification(jsNotification) {
         createWebapiNotification();
     }
     function fDenied(){
-        console.log(`Notification.requestPermission() = ${webapiHasPermission}`);
+        console.debug(`Notification.requestPermission() = ${webapiHasPermission}`);
         setTargetUiAvailability('webapi', false, jsNotification['id']);  
     }
     function fDefault(){
-        console.log(`Notification.requestPermission() = ${webapiHasPermission}`);
+        console.debug(`Notification.requestPermission() = ${webapiHasPermission}`);
         setTargetUiAvailability('webapi', false, jsNotification['id']);  
     }
 
@@ -316,14 +316,12 @@ function connectWebsocket() {
         
         var ip_address = "{{ request.host.split(':')[0] }}";
         var url = `${protocol}://${ip_address}:${port}/${route}`;
-        console.log(url)
         websocket = new WebSocket(url);
-
 
         
         // Authenticate and add listeners when the websocket connection is open
         websocket.onopen = function(e) {
-            console.log(`websocket connection open`);		
+            console.debug(`Websocket connection to ${url} is open`);		
         };
 
         websocket.onmessage = function(message) {
@@ -343,7 +341,7 @@ function connectWebsocket() {
         };
 
         websocket.onclose = function(e) {
-            console.log('Websocket was closed. Reconnect will be attempted in 10 seconds.', e.reason);
+            console.debug('Websocket was closed. Reconnect will be attempted in 10 seconds.', e.reason);
             setTimeout(function() {
                 connectWebsocket();
             }, 10000);

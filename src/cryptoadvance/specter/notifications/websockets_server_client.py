@@ -284,8 +284,9 @@ class WebsocketClient:
         self.websocket.send(robust_json_dumps(message_dictionary))
 
     def start_client_server_in_other_thread(self):
+        delay = 0.1
         for i in range(100):
-            time.sleep(0.1)
+            time.sleep(delay)
             try:
                 # if successfull this process will run forever. This is why this should run in a dedicated thread.
                 # Only for the first connection, this will not block this thread.
@@ -297,7 +298,7 @@ class WebsocketClient:
                 break
             except ConnectionRefusedError:
                 logger.debug(
-                    f"Connection of client to webserver not able to connect in loop {i} yet. Retrying..."
+                    f"Connection of {self.__class__.__name__} to websocket-server failed in loop {i}. Retrying in {delay}s..."
                 )
 
     def start(self):
