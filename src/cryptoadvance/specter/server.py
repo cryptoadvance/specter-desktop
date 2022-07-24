@@ -19,7 +19,6 @@ from jinja2 import select_autoescape
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.wrappers import Response
-from werkzeug.serving import is_running_from_reloader
 
 from .hwi_server import hwi_server
 from .services.callbacks import after_serverpy_init_app
