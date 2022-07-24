@@ -21,7 +21,6 @@ class SimpleWebsocketClient:
     def __init__(self, url_scheme, ip, port, path, ssl_cert, ssl_key):
         self.protocol = "wss" if url_scheme == "https" else "ws"
         self.url = f"{self.protocol}://{ip}:{port}/{path}"
-        self.q = Queue()
         self.user_token = secrets.token_urlsafe(128)
         self._quit = False
 
@@ -33,13 +32,11 @@ class SimpleWebsocketClient:
 
     def quit(self):
         self._quit = True
-        self.q.put("quit")
 
     def send(self, message_dictionary):
         message_dictionary["user_token"] = self.user_token
-        logger.debug(f"queueing {message_dictionary}")
+        logger.debug(f"{type(message_dictionary)} queueing {message_dictionary}")
         self.websocket.send(robust_json_dumps(message_dictionary))
-        self.q.put(robust_json_dumps(message_dictionary))
 
     def forever_function(self):
         logger.debug("Client: before connected")
@@ -57,26 +54,14 @@ class SimpleWebsocketClient:
 
         logger.debug("Client: connected")
         while not self._quit:  #  this is an endless loop waiting for new queue items
-            item = self.q.get()
-            if item == "quit":
-                logger.debug(f'quitting Queue loop because item == "{item}"')
-                return
-            self.websocket.send(robust_json_dumps(item))
-            self.q.task_done()
-
+            time.sleep(0.1)
         self.websocket.close()
         logger.debug("WebsocketsClient forever_function ended")
 
-    def finally_at_stop(self):
-        self.q.join()  # block until all tasks are done
-
     def start(self):
-        try:
-            self.thread = threading.Thread(target=self.forever_function)
-            self.thread.daemon = True  # die when the main thread dies
-            self.thread.start()
-        finally:
-            self.finally_at_stop()
+        self.thread = threading.Thread(target=self.forever_function)
+        self.thread.daemon = True  # die when the main thread dies
+        self.thread.start()
 
 
 class SimpleWebsocketServer:
@@ -140,9 +125,9 @@ class SimpleWebsocketServer:
             logger.info(f"Started websocket connection {websocket}")
             while True:
                 data = websocket.receive()
-                print(f"Server revieced {data}")
                 try:
                     message_dictionary = json.loads(data)
+                    print(f"{type(message_dictionary)} is type of {message_dictionary}")
                 except:
                     continue
                 self.register(message_dictionary.get("user_token"), websocket)
@@ -173,7 +158,7 @@ class SimpleWebsocketServer:
     def get_user_of_user_token(self, user_token):
         for u in self.user_manager.users:
             if u.websocket_token == user_token:
-                return u
+                return u.username
 
     def set_as_admin(self, user_token):
         new_entry = {"user_token": user_token}
@@ -199,9 +184,7 @@ class SimpleWebsocketServer:
             if not user:
                 logger.warning(f"user_token {user_token} not found in users")
                 return
-            logger.debug(
-                f"register websocket connection for flask user '{user.username}'"
-            )
+            logger.debug(f"register websocket connection for flask user '{user}'")
         self.connections.append({"user_token": user_token, "websocket": websocket})
 
     def unregister(self, websocket):
@@ -265,7 +248,7 @@ class SimpleWebsocketServer:
         options = message_dictionary.get("options", {})
 
         logger.debug(
-            f"create_notification with title  {title}, user {user} and options {options}"
+            f"create_notification with title  {title}, user {user, type(user)} and options {options}"
         )
 
         notification = self.notification_manager.create_and_show(

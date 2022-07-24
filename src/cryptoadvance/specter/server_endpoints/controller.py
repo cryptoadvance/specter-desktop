@@ -232,6 +232,8 @@ if app.config["SPECTER_URL_PREFIX"] != "":
 
 @app.route("/websocket", websocket=True)
 def websocket():
+    print("--------------------------------------------------")
+    print("websocket endpoint called")
     app.specter.notification_manager.websockets_server.serve(request.environ)
 
 
