@@ -77,10 +77,9 @@ class WebsocketServer:
                 self._register(message_dictionary.get("user_token"), websocket)
                 self._process_incoming_message(message_dictionary)
         except simple_websocket.ConnectionClosed:
+            logger.info(f"Websocket connection {websocket} closed")
             self._unregister(websocket)
-            logger.info(f"Websocket connection closed")
 
-        logger.info(f"{self.__class__.__name__} serve() ended")
         return ""
 
     def get_admin_tokens(self):
@@ -261,6 +260,11 @@ class WebsocketServer:
 class WebsocketClient:
     """
     Connects to the WebsocketServer; and then the self.send method can be used to send messages to the WebsocketServer
+
+
+    To ensure this client is allowed to forward notifications to all
+    websocket connections of the server we need to set
+        websockets_server.set_as_admin(websockets_client.user_token)
     """
 
     def __init__(self, ip, port, path, ssl_cert, ssl_key):

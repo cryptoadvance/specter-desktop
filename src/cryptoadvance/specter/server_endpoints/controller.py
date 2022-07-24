@@ -232,7 +232,11 @@ if app.config["SPECTER_URL_PREFIX"] != "":
 
 @app.route("/websocket", websocket=True)
 def websocket():
-    logger.debug("websocket route called. This will start a new websocket connection")
+    logger.debug("websocket route called. This will start a new websocket connection.")
+    # this function will run forever. That is ok, because a stream is expected, similar to https://maxhalford.github.io/blog/flask-sse-no-deps/
+    #  flask.Response(stream(), mimetype='text/event-stream')
+    # if this function will end, this error will be thrown:
+    # TypeError: The view function for 'websocket' did not return a valid response. The function either returned None or ended without a return statement.
     app.specter.notification_manager.websockets_server.serve(request.environ)
 
 

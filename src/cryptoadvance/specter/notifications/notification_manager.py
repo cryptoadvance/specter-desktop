@@ -90,14 +90,12 @@ class NotificationManager:
         self.websockets_client = websockets_server_client.WebsocketClient(
             ip, port, path, self.ssl_cert, self.ssl_key
         )
-        print(3)
 
-        self.websockets_server.set_as_admin(
-            self.websockets_client.user_token
-        )  # this ensures that this client has rights to send to other users
+        # setting this client admin, meaning it is allowed to send to all
+        # connected websocket connections without restrictions
+        self.websockets_server.set_as_admin(self.websockets_client.user_token)
 
         self.websockets_client.start()
-        print(4)
 
     def get_websockets_client(self):
         return self.websockets_client
