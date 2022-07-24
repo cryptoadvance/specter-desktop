@@ -118,7 +118,6 @@ def get_websockets_info():
     return json.dumps(
         {
             "user_token": app.specter.user_manager.get_user().websocket_token,
-            "port": app.config["PORT"],
         }
     )
 

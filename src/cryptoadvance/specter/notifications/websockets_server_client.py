@@ -62,26 +62,6 @@ class WebsocketServer:
         self.notification_manager = notification_manager
         self.user_manager = user_manager
 
-    def serve(self, environ):
-        websocket = simple_websocket.Server(environ)
-        try:
-            logger.info(
-                f"Started websocket connection {websocket} between the server and a new client"
-            )
-            while True:
-                data = websocket.receive()
-                try:
-                    message_dictionary = json.loads(data)
-                except:
-                    continue
-                self._register(message_dictionary.get("user_token"), websocket)
-                self._process_incoming_message(message_dictionary)
-        except simple_websocket.ConnectionClosed:
-            logger.info(f"Websocket connection {websocket} closed")
-            self._unregister(websocket)
-
-        return ""
-
     def get_admin_tokens(self):
         return [d["user_token"] for d in self.admin_tokens]
 
@@ -154,6 +134,46 @@ class WebsocketServer:
         )
         logger.debug(f"_unregister {websocket} belonging to {username}")
         self.connections = [d for d in self.connections if d["websocket"] != websocket]
+
+    def serve(self, environ):
+        "Start a server. This is an endless loop."
+        websocket = simple_websocket.Server(environ)
+        try:
+            logger.info(
+                f"Started websocket connection {websocket} between the server and a new client"
+            )
+            while True:
+                data = websocket.receive()
+                try:
+                    message_dictionary = json.loads(data)
+                except:
+                    continue
+
+                preprocessed_instruction = self._preprocess(message_dictionary)
+                if preprocessed_instruction == "quit":
+                    logger.debug("quit_server was called.")
+                    break
+                elif preprocessed_instruction == "continue":
+                    continue
+
+                self._register(message_dictionary.get("user_token"), websocket)
+                self._process_incoming_message(message_dictionary)
+        except simple_websocket.ConnectionClosed:
+            logger.info(f"Websocket connection {websocket} closed")
+        finally:
+            self._unregister(websocket)
+
+        return ""
+
+    def _preprocess(self, message_dictionary):
+        """
+        Processes special commands to manipulate the server.
+        A title 'quit_server' sent from and admin can make the websocket connection close.
+        """
+        user_token = message_dictionary.get("user_token")
+        if message_dictionary.get("title") == "quit_server":
+            # Accept the command from an admin, but disregard the command from a user
+            return "quit" if user_token in self.get_admin_tokens() else "continue"
 
     def _process_incoming_message(self, message_dictionary):
         """
@@ -305,3 +325,8 @@ class WebsocketClient:
         self.thread = threading.Thread(target=self.start_client_server_in_other_thread)
         self.thread.daemon = True  # die when the main thread dies
         self.thread.start()
+
+    def quit_server(self):
+        "Sends the command 'quit_server' to the websocket server. which then shuts down the connection."
+        message_dictionary = {"title": "quit_server"}
+        self.send(message_dictionary)

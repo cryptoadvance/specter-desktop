@@ -309,12 +309,11 @@ function connectWebsocket() {
         if ("{{ request.scheme }}" == "http"){
             protocol = 'ws';
         }
+        var ip_address = "{{ request.host.split(':')[0] }}";
+        var port = "{{ request.host.split(':')[1] }}";
         
-        var port = websocketsInfo['port'];
         userToken = websocketsInfo['user_token'];
 
-        
-        var ip_address = "{{ request.host.split(':')[0] }}";
         var url = `${protocol}://${ip_address}:${port}/${route}`;
         websocket = new WebSocket(url);
 
