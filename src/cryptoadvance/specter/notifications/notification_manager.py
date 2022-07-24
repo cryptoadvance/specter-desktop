@@ -65,7 +65,6 @@ class NotificationManager:
     def __init__(
         self,
         user_manager,
-        url_scheme,
         ip,
         port,
         path,
@@ -89,7 +88,7 @@ class NotificationManager:
         )
 
         self.websockets_client = websockets_server_client.SimpleWebsocketClient(
-            url_scheme, ip, port, path, self.ssl_cert, self.ssl_key
+            ip, port, path, self.ssl_cert, self.ssl_key
         )
         print(3)
 

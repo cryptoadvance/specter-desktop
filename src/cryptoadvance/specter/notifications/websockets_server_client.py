@@ -18,11 +18,11 @@ import simple_websocket, ssl
 
 
 class SimpleWebsocketClient:
-    def __init__(self, url_scheme, ip, port, path, ssl_cert, ssl_key):
-        self.protocol = "wss" if url_scheme == "https" else "ws"
+    def __init__(self, ip, port, path, ssl_cert, ssl_key):
+        self.protocol = "wss" if ssl_cert and ssl_cert else "ws"
         self.url = f"{self.protocol}://{ip}:{port}/{path}"
         self.user_token = secrets.token_urlsafe(128)
-        self._quit = False
+        self.connected = False
 
         self.ssl_context = None
         if ssl_cert and ssl_key:
@@ -30,15 +30,15 @@ class SimpleWebsocketClient:
             # see https://pythontic.com/ssl/sslcontext/load_cert_chain
             self.ssl_context.load_cert_chain(certfile=ssl_cert, keyfile=ssl_key)
 
-    def quit(self):
-        self._quit = True
-
     def send(self, message_dictionary):
+        if not self.connected:
+            logger.error(f"Cont Connected Error: Could not send {message_dictionary}")
+
         message_dictionary["user_token"] = self.user_token
-        logger.debug(f"{type(message_dictionary)} queueing {message_dictionary}")
+        logger.debug(f"{self.__class__.__name__} sending {message_dictionary}")
         self.websocket.send(robust_json_dumps(message_dictionary))
 
-    def forever_function(self):
+    def start_client_server_in_other_thread(self):
         logger.debug("Client: before connected")
         for i in range(100):
             time.sleep(0.1)
@@ -52,14 +52,11 @@ class SimpleWebsocketClient:
                     f"Connection of client to webserver not able to connect in loop {i} yet. Retrying..."
                 )
 
+        self.connected = True
         logger.debug("Client: connected")
-        while not self._quit:  #  this is an endless loop waiting for new queue items
-            time.sleep(0.1)
-        self.websocket.close()
-        logger.debug("WebsocketsClient forever_function ended")
 
     def start(self):
-        self.thread = threading.Thread(target=self.forever_function)
+        self.thread = threading.Thread(target=self.start_client_server_in_other_thread)
         self.thread.daemon = True  # die when the main thread dies
         self.thread.start()
 

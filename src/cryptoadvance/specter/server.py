@@ -161,10 +161,9 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None, **kwargs):
     ssl_cert, ssl_key = kwargs["ssl_context"]
     specter.notification_manager = NotificationManager(
         specter.user_manager,
-        "https",
         kwargs["host"],
         kwargs["port"],
-        "websocket",
+        "websocket",  # this is the route of app.route("/websocket", websocket=True)
         ssl_cert,
         ssl_key,
     )
