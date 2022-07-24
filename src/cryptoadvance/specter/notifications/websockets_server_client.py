@@ -189,7 +189,7 @@ class SimpleWebsocketServer:
         user = self.get_user_of_user_token(user_token)
         self.get_admin_tokens
         username = (
-            user.username
+            user
             if user
             else ("ADMIN" if user_token in self.get_admin_tokens() else "unknown")
         )
@@ -259,7 +259,10 @@ class SimpleWebsocketServer:
         "Starts a new thread and sends the data to websocket"
 
         def target():
-            websocket.send(robust_json_dumps(message_dictionary))
+            try:
+                websocket.send(robust_json_dumps(message_dictionary))
+            except simple_websocket.ConnectionClosed:
+                self.unregister(websocket)
 
         thread = threading.Thread(target=target)
         thread.daemon = True  # die when the main thread dies
