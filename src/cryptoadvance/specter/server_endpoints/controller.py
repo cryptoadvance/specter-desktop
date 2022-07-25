@@ -238,6 +238,8 @@ def websocket():
     # if this function will end, this error will be thrown:
     # TypeError: The view function for 'websocket' did not return a valid response. The function either returned None or ended without a return statement.
     app.specter.notification_manager.websockets_server.serve(request.environ)
+    # returning a string solved some error message when the function ends: https://stackoverflow.com/questions/25034123/flask-value-error-view-function-did-not-return-a-response
+    return ""
 
 
 @app.route("/healthz/liveness")
