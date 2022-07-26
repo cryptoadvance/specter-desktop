@@ -84,9 +84,7 @@
 			
 			this.internals = this.attachInternals();
 			this.recipientId = null;	// MUST be set for a functioning instance
-			this.inputs = {};   		// this is a dictionary containing all inputs, such they are easily accessible 
-			this.btcAmount = null; 	// will be calculated from the inputs
-			this.unit =  null;			// will be calculated from the inputs
+			this.unit =  null;			// will be calculated
 
 			this.buildHTML();			// created the html
 			this.attachListeners();		// attaches the listeners to some html objects
@@ -94,8 +92,7 @@
 
 
 
-		// creates the entire html code (without event listeners)  mainly from the template
-		// and it also populates the dictionary this.inputs
+		// creates the entire html code (without event listeners)  from the template
 		buildHTML(){
 			// Create a shadow root
 			this.attachShadow({
@@ -105,20 +102,11 @@
 			var template_content = document.getElementById('recipient-box').content;
             let clone = template_content.cloneNode(true);
 
-
-			// fill this.inputs with the input and textarea fields. 
-			// This dict is a quick way to look up the input fields without querying the html again
-			this.inputs = {};
-			var formClassNames = ['input', 'textarea'];
-			for (var j in formClassNames) {
-				var inputFields = clone.querySelectorAll(formClassNames[j]);
-				for(var i = 0; i < inputFields.length; i++) {
-					var inputField = inputFields[i];
-					console.log(j, i, inputField)
-					this.inputs[inputField.id] = inputField;
-				}
-			}
-
+			this.amountElement = clone.getElementById('amount');
+			this.addressElement = clone.getElementById('address');
+			this.labelElement = clone.getElementById('label');
+			this.titleElement = clone.getElementById('title'); 
+			this.removeElement = clone.getElementById('remove'); 
 
             this.shadowRoot.appendChild(clone);
 			this.addAssetSelectorToShadowRoot('', 'btc')			
@@ -129,7 +117,7 @@
 		// add the html code for the assetSelector
 		addAssetSelectorToShadowRoot(amount, amountUnit) { 
 			if (amount >= 0){
-				this.shadowRoot.getElementById('amount').value = amount;
+				this.amountElement.value = amount;
 			}
 			
 
@@ -172,7 +160,7 @@
 
 
 
-		// adds EventListeners to various inputs
+		// adds EventListeners 
 		attachListeners(){
 			// I cannot use  getElementById , but  have to use querySelectorAll, because there are multiple unit buttons,
 			// that need to trigger the same event
@@ -190,7 +178,7 @@
 			}); 	
 
 
-			this.shadowRoot.getElementById('address').addEventListener('input', event=>{
+			this.addressElement.addEventListener('input', event=>{
 				this.dispatchAddressOnInput();
 			});			
 
@@ -206,9 +194,9 @@
 				}
 				let arr = addr.split("?");
 				addr = arr[0];
-				this.shadowRoot.getElementById("address").value = addr;
+				this.addressElement.value = addr;
 				let evt = new Event('input');
-				this.shadowRoot.getElementById("address").dispatchEvent(evt);
+				this.addressElement.dispatchEvent(evt);
 				// parse metadata like amount and message
 				if(arr.length > 1){
 					arr = arr[1].split("&");
@@ -218,12 +206,12 @@
 							if(this.unit == 'sat'){
 								val = Math.round(val*1e8);
 							}
-							this.shadowRoot.getElementById("amount").value = val;
+							this.amountElement.value = val;
 							let evt = new Event('input');
-							this.shadowRoot.getElementById("amount").dispatchEvent(evt);
+							this.amountElement.dispatchEvent(evt);
 						}
 						if(e.startsWith("message=") || e.startsWith("label=")){
-							this.shadowRoot.getElementById("label").value = e.split("=")[1];
+							this.labelElement.value = e.split("=")[1];
 						}
 					});
 				}
@@ -235,12 +223,12 @@
 			});			
 
 
-			this.shadowRoot.getElementById('remove').addEventListener('click', event=>{
+			this.removeElement.addEventListener('click', event=>{
 				console.log(event)
 				this.dispatchRemove()
 			});			
 
-			this.shadowRoot.getElementById('amount').addEventListener('input', event=>{
+			this.amountElement.addEventListener('input', event=>{
 				this.calculateConvertedUnit()
 			});			
 
@@ -313,48 +301,43 @@
 
 		// title
 		set title(newValue){
-			if (!this.shadowRoot) {return }
-			this.shadowRoot.getElementById('title').innerText = newValue;
+			this.titleElement.innerText = newValue;
 		}			
 		get title(){
-			return this.shadowRoot.getElementById('title').innerText;
+			return this.titleElement.innerText;
 		}		
 
 		// address
 		set address(newValue){
-			if (!this.shadowRoot) {return }
-			this.shadowRoot.getElementById('address').value = newValue;
+			this.addressElement.value = newValue;
 		}			
 		get address(){
-			return this.shadowRoot.getElementById('address').value;
+			return this.addressElement.value;
 		}		
 
 		// label
 		set label(newValue){
-			if (!this.shadowRoot) {return }
-			this.shadowRoot.getElementById('label').value = newValue;
+			this.labelElement.value = newValue;
 		}			
 		get label(){
-			return this.shadowRoot.getElementById('label').value;
+			return this.labelElement.value;
 		}		
 
 		// step
 		set step(newValue){
-			if (!this.shadowRoot) {return }
-			this.shadowRoot.getElementById('amount').step = newValue;
+			this.amountElement.step = newValue;
 		}			
 		get step(){
-			return parseFloat(this.shadowRoot.getElementById('amount').step );
+			return parseFloat(this.amountElement.step );
 		}		
 
 		// amount
 		set amount(newValue){
-			if (!this.shadowRoot) {return }
-			this.shadowRoot.getElementById('amount').value = newValue;
+			this.amountElement.value = newValue;
 			this.calculateConvertedUnit()
 		}			
 		get amount(){
-			var value = parseFloat(this.shadowRoot.getElementById('amount').value );
+			var value = parseFloat(this.amountElement.value );
 			if (!value) {value = 0}
 			return value;
 		}		
@@ -362,11 +345,10 @@
 
 		// max
 		set max(newValue){
-			if (!this.shadowRoot) {return }
-			this.shadowRoot.getElementById('amount').max = newValue;
+			this.amountElement.max = newValue;
 		}			
 		get max(){
-			return parseFloat(this.shadowRoot.getElementById('amount').max );
+			return parseFloat(this.amountElement.max );
 		}		
 
 
@@ -400,14 +382,21 @@
 		}
 
 
+		// btcAmount
+		get btcAmount(){
+			return (this.unit == 'sat' ? this.amount / 1e8 : this.amount);
+		}		
+
+
+
 
 		// hiddenRemoveButton
 		set hiddenRemoveButton(newValue){
 			if (!this.shadowRoot) {return }
-			this.shadowRoot.getElementById('remove').hidden = newValue;
+			this.removeElement.hidden = newValue;
 		}			
 		get hiddenRemoveButton(){
-			return this.shadowRoot.getElementById('remove').hidden;
+			return this.removeElement.hidden;
 		}		
 
 		
@@ -424,7 +413,7 @@
 			}else{
 				unitLabelEl.innerHTML = '';
 			}
-			this.shadowRoot.getElementById('amount').setAttribute('step', this.unit == 'sat' ? '1' : '1e-8');
+			this.amountElement.setAttribute('step', this.unit == 'sat' ? '1' : '1e-8');
 			this.calculateConvertedUnit();
 		}
 
@@ -435,7 +424,6 @@
 			if (convertedAmount == 'NaN') {
 				convertedAmount = '-'
 			}
-			this.btcAmount = (this.unit == 'sat' ? this.amount / 1e8 : this.amount);
 
 			if(this.unit == 'sat' || this.unit == 'btc'){
 				this.shadowRoot.getElementById('converted_unit_amount').innerHTML = (isNaN(convertedAmount) ? '-' : convertedAmount.toFixed(8).replace(/(\.0+|0+)$/, ''));
@@ -459,7 +447,7 @@
 
 
 		async isAddressMyOwn() {
-			let address = this.shadowRoot.getElementById('address').value;
+			let address = this.addressElement.value;
 			if (!address){return;}
 
 			let url="{{ url_for('wallets_endpoint_api.is_address_mine', wallet_alias=wallet.alias, address='this_address') }}"
@@ -472,7 +460,7 @@
 		markRecipient(is_address_mine){
 			console.log(`Marking ${this.recipientId} as isMine=${is_address_mine}`)
 
-			let html_address = this.shadowRoot.getElementById(`address`);
+			let html_address = this.addressElement;
 			if (is_address_mine) {
 				html_address.style.backgroundColor= 'var(--cmap-bg-address-is-mine)';
 			} else {
