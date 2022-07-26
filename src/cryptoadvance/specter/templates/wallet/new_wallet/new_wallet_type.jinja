@@ -2,25 +2,19 @@
 {% block main %}
 	<div class="spacer"></div>
 	<h1>{{ _("Select the type of the wallet") }}</h1>
-	<div>
-		<center>
-			<span>{{ _("Adding a wallet with existing funds?") }}</span>
-			<div class="tool-tip">
-				<i class="tool-tip__icon">i</i>
-				<p class="tool-tip__info">
-					<span class="info">
-						<span class="info__title">{{ _("Importing an existing wallet?") }}<br></span>
-						{{ _('After choosing device(s), click continue, then just select the:')}}<br>{{ _(' "Scan for existing funds" checkbox on the next screen.') }}
-						<br>
-						{% if specter.info["pruned"] %}
-							<span class="warning" style="display: inline-block;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
-								{{ _("Please Note:")}}<br>{{ _("You are using a pruned node. Wallet history may not fully appear.") }}
-							</span>
-						{% endif %}
+	<div style="display: flex">
+		<span>{{ _("Adding a wallet with existing funds?") }}</span>
+		<tool-tip width="200px">
+			<h4 slot="title">{{ _("Importing an existing wallet?") }}</h4>
+            <span slot="paragraph">
+				{{ _('After choosing your device(s), select the "Scan for existing funds" checkbox on the next screen.') }}
+				{% if specter.info["pruned"] %}
+					<span class="warning" style="display: inline-block;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
+						{{ _("Please Note: You are using a pruned node. Wallet history may be incomplete.") }}
 					</span>
-				</p>
-			</div>
-		</center>
+				{% endif %}
+            </span>
+    	</tool-tip>
 	</div><br>
 	<nav class="row overflow">
 		<a href="./simple/" class="small-card">
@@ -32,24 +26,19 @@
 			{{ _("Multisignature wallet") }}<br><br>
 		</a>
 	</nav>
-	<div class="raw">
+	<div class="row">
 		<button onclick="showPageOverlay('account_map_import')" type="button" class="btn centered padded">
 		{{ _("Import from wallet software") }}
-		<div class="tool-tip">
-			<i class="tool-tip__icon">i</i>
-			<p class="tool-tip__info">
-				<span class="info">
-					<span class="info__title">{{ _("Import From Wallet Software") }}<br> <br></span>
+			<tool-tip width="200px">
+	        	<span slot="paragraph">
 					{{ _("Click here to import an existing wallet from a wallet software like Electrum, Fully-Noded, Sparrow Wallet, or another Specter instance.") }}
-					<br>
 					{% if specter.info["pruned"] %}
 						<span class="warning" style="display: inline-block;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
-							{{ _("Please Note:")}}<br>{{ _("You are using a pruned node. Wallet history may not fully appear.") }}
+							{{ _("Please Note: You are using a pruned node. Wallet history may be incomplete.") }}
 						</span>
-					{% endif %}
-				</span>
-			</p>
-		</div>
+					{% endif %}	
+	        	</span>
+	    	</tool-tip>
 		</button>
 	</div>
 	{% include "wallet/new_wallet/components/import_wallet_account_map.jinja" %}
