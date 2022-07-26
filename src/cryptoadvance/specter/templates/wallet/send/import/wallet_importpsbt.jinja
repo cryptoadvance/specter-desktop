@@ -18,7 +18,7 @@
 					<qr-scanner id="psbt-scan" style="width:50%">
 						<a slot="button" href="#" class="btn" style="margin: 8px;">
 							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Scan") }}
-							<tool-tip>
+							<tool-tip width="150px">
 								<h4 slot="title">{{ _('Using an airgapped device with QR codes') }}</h4>
 								<span slot="paragraph">{{ _('PSBT should be base64 encoded, raw transaction can be signed or unsigned and should be in hex.') }}
 								</span>
@@ -27,7 +27,7 @@
 					</qr-scanner>
 					<file-uploader id="psbt-uploader" image_src="{{ url_for('static', filename='img/file.svg') }}" button_width="250px">
 						<span slot="description">Choose file</span>
-						<tool-tip slot="tool-tip"> 
+						<tool-tip width="150px" slot="tool-tip"> 
 							<h4 slot="title">{{ _('Using a file') }}</h4>
 							<span slot="paragraph">{{ _("PSBT can be base64 or binary encoded, raw transaction can be signed or unsigned and should be in hex.") }}</span>
 						</tool-tip>

@@ -1,18 +1,15 @@
 <template id="fee-selection">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <div class="fee_container">
-        <div id="subtract_fees_div">
+        <div id="subtract_fees_div" style="display: flex">
             <label><input type="checkbox" class="inline" name="subtract" id="subtract" {% if subtract %}checked{% endif %}> {{ _("Subtract fees from amount") }}</label>
-            <div class="tool-tip" style="text-align: center;">
-                <i class="tool-tip__icon">i</i>
-                <p class="tool-tip__info">
-                    <span class="info">
-                        <span class="info__title">{{ _("Subtract fees from amount") }}<br><br></span>
-                        {{ _("If checked, the transaction fees will be paid off from the transaction amount.") }}<br><br>
-                        {{ _("Otherwise, the fees will be paid in addition to the amount sent.") }}
-                    </span>
-                </p>
-            </div>
+            <tool-tip width="200px">
+                <h4 slot="title">{{ _("Subtract fees from amount") }}</h4>
+                <span slot="paragraph">
+                    {{ _("If checked, the transaction fees will be paid off from the transaction amount.") }}<br><br>
+                    {{ _("Otherwise, the fees will be paid in addition to the amount sent.") }}       
+                </span>
+            </tool-tip>
         </div>
         <span id="subtract_from" style="display: none">
             <br>{{ _("Subtract from ") }} 
