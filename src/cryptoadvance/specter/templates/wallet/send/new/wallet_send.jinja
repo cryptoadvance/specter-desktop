@@ -124,7 +124,6 @@
 			for (var i = 0; i < children.length; i++) {
 				ids.push(children[i].recipientId)
 			}
-			//console.log(`ids  ${ids}`)
 			return ids
 		}
 
@@ -409,7 +408,6 @@
 				return false;
 			}
 			if (isAboveWalletBalance(unit, amount)) {
-				console.log(unit)
 				showError(`{{ _("You cannot send more than") }} ${assetBalances[unit].balance} ${assetBalances[unit].label}!`, 5000);
 				return false;
 			} 
@@ -478,7 +476,6 @@
 			if (document.getElementById('ui-radio-btn').checked) {
 				for(let i in recipients) {
 					let recipient = recipients[i];
-					console.log(recipient)
 					if(recipient.unit == 'btc' || recipient.unit == 'sat'){
 						totalAmount += (recipient.unit == 'sat' ? recipient.amount / 1e8 : recipient.amount);
 					}else{

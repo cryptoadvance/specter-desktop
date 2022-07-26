@@ -224,7 +224,6 @@
 
 
 			this.removeElement.addEventListener('click', event=>{
-				console.log(event)
 				this.dispatchRemove()
 			});			
 
@@ -270,7 +269,6 @@
 
 		attributeChangedCallback(attribute, oldValue, newValue) {
 			if (oldValue == newValue){return}
-			console.log(`Called  attributeChangedCallback with ${attribute}   =  ${newValue}   `)
 			if (attribute=="value"){
 				this.value = newValue;
 			} else if (attribute=="name"){
@@ -404,7 +402,6 @@
 
 		toggleUnit(unit) {
 			this.unit = unit;
-			console.log(`this.unit ${this.unit}`)
 			let unitLabelEl = this.shadowRoot.getElementById('converted_unit_label');
 			if(this.unit == 'sat'){
 				unitLabelEl.innerHTML = 'BTC';
@@ -418,8 +415,6 @@
 		}
 
 		calculateConvertedUnit() {
-			console.log('calculateConvertedUnit')
-
 			let convertedAmount = parseFloat(Number.parseFloat(this.amount / (this.unit == 'sat' ? 1e8 : 1e-8)).toFixed((this.unit == 'sat' ? 8 : 0)));
 			if (convertedAmount == 'NaN') {
 				convertedAmount = '-'
@@ -458,8 +453,6 @@
 		}
 
 		markRecipient(is_address_mine){
-			console.log(`Marking ${this.recipientId} as isMine=${is_address_mine}`)
-
 			let html_address = this.addressElement;
 			if (is_address_mine) {
 				html_address.style.backgroundColor= 'var(--cmap-bg-address-is-mine)';
