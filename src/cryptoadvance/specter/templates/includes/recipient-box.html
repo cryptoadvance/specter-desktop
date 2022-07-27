@@ -76,6 +76,22 @@
 </template>
 
 
+<template id="liquid-asset-selector">
+	<select id="amount_unit" name="amount_unit" style="width: 100px;" >
+		<option value="btc">LBTC</option>
+		<option value="sat">L-sat (10⁻⁸ LBTC)</option>
+	{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
+		<option value="{{asset}}">{{asset | assetlabel}}</option>
+	{% endfor %}
+	</select>
+</template>
+
+<template id="bitcoin-asset-selector">
+	<label><input id="amount_unit_sat" type="radio" class="inline" style="margin: 0 5px;" name="amount_unit"  value="sat">sat</label>
+	<label><input id="amount_unit_btc" type="radio" class="inline" style="margin: 0 5px;" name="amount_unit"  value="btc">BTC</label>
+</template>
+
+
 
 <script type="text/javascript">
 	class RecipientBox extends HTMLElement {
@@ -84,7 +100,6 @@
 			
 			this.internals = this.attachInternals();
 			this.recipientId = null;	// MUST be set for a functioning instance
-			this.unit =  null;			// will be calculated
 
 			this.buildHTML();			// created the html
 			this.attachListeners();		// attaches the listeners to some html objects
@@ -109,52 +124,48 @@
 			this.removeElement = clone.getElementById('remove'); 
 
             this.shadowRoot.appendChild(clone);
-			this.addAssetSelectorToShadowRoot('', 'btc')			
+			this.addAssetSelectorToShadowRoot()			
 		}
 
 
 
 		// add the html code for the assetSelector
-		addAssetSelectorToShadowRoot(amount, amountUnit) { 
-			if (amount >= 0){
-				this.amountElement.value = amount;
-			}
-			
-
-			if (amountUnit == 'sat') {
-				amount = parseFloat(Number.parseFloat(amount * 1e8).toFixed(0));
-				if (amount == 'NaN') {
-					amount = '-'
-				}
-			}
-			let step = 1;
-			if (amountUnit == 'btc') {
-				step = 1e-8;
-			}
-			let satChecked = amountUnit == 'btc' ? '' : 'checked';
-			let btcChecked = amountUnit == 'btc' ? 'checked' : '';
-			let convertedUnit = amountUnit == 'btc' ? 'sat' : 'BTC';
-			this.shadowRoot.getElementById("converted_unit_label").innerText = convertedUnit;
-			
+		addAssetSelectorToShadowRoot() { 
+			// add different asset selector template for bitcoin and liquid
 			{% if specter.is_liquid and wallet.balance.get("assets", {}) %}
-				let assetSelector = `
-					<select name="amount_unit" style="width: 100px;" >
-						<option value="btc">LBTC</option>
-						<option value="sat">L-sat (10⁻⁸ LBTC)</option>
-					{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
-						<option value="{{asset}}">{{asset | assetlabel}}</option>
-					{% endfor %}
-					</select>
-					`;				
+				var template_content = document.getElementById('liquid-asset-selector').content;
+				var clone = template_content.cloneNode(true);				
+
+				this.amountUnitElement = clone.getElementById('amount_unit');
+				// create custom getter and setter functions
+				this.setUnit =  (newValue) => {
+					this.amountUnitElement.value = newValue;
+					this.updateUnitLabelAndStep();
+				}
+				this.getUnit =  () => {
+					return this.amountUnitElement.value;
+				}
 			{% else %}
-				let assetSelector = `
-					<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit"  value="sat" ${satChecked}>sat</label>
-					<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit"  value="btc" ${btcChecked}>BTC</label>
-					`;
+				var template_content = document.getElementById('bitcoin-asset-selector').content;
+				var clone = template_content.cloneNode(true);				
+
+				this.amountUnitSatElement = clone.getElementById('amount_unit_sat');
+				this.amountUnitBtcElement = clone.getElementById('amount_unit_btc');
+				// create custom getter and setter functions
+				this.setUnit =  (newValue) => {
+					this.amountUnitBtcElement.checked =  newValue == 'btc';
+					this.amountUnitSatElement.checked =  newValue == 'sat';
+					this.updateUnitLabelAndStep();
+				}
+				this.getUnit =  () => {
+					return this.amountUnitBtcElement.checked  ? this.amountUnitBtcElement.value : this.amountUnitSatElement.value ;
+				}
+
+				// set the initial unit at creation
 			{% endif %}
 
-			this.shadowRoot.getElementById('asset_selector').innerHTML = assetSelector;
 
+			this.shadowRoot.getElementById('asset_selector').appendChild(clone);
 
 		} 
 
@@ -166,15 +177,10 @@
 			// that need to trigger the same event
 			this.shadowRoot.querySelectorAll('[name="amount_unit"]').forEach(input => {
 				input.addEventListener('change',() => {
-					this.toggleUnit(input.value);
+					this.updateUnitLabelAndStep();
 
 					this.dispatchEvent(new CustomEvent('unit-change'));
 				});	
-
-				// set unit at instance creation
-				if (input.checked){
-					this.toggleUnit(input.value);
-				}	
 			}); 	
 
 
@@ -262,7 +268,7 @@
 		// like <recipient-box title='title'></div>  works.
 		static get observedAttributes() {
 			// define the attributes that can be defined via <recipient-box name="recipient-box" id='4'></recipient-box>	
-			var attributes = ["value", "name", "id", "title", "address", "label", 
+			var attributes = ["value", "name", "id", "title", "address", "label", "unit", 
 								"recipientId", "max", "step", "amount", "hiddenRemoveButton"];
 			return attributes;
 		}
@@ -281,6 +287,8 @@
 				this.recipientId = newValue;
 			} else if (attribute=="label"){
 				this.label = newValue;
+			} else if (attribute=="unit"){
+				this.unit = newValue;
 			} else if (attribute=="step"){
 				this.step = newValue;
 			} else if (attribute=="max"){
@@ -321,6 +329,16 @@
 			return this.labelElement.value;
 		}		
 
+		// unit
+		set unit(newValue){
+			// this function is different for bitcoin and liquid 
+			this.setUnit(newValue);
+		}			
+		get unit(){
+			// this function is different for bitcoin and liquid 
+			return this.getUnit();
+		}				
+
 		// step
 		set step(newValue){
 			this.amountElement.step = newValue;
@@ -348,6 +366,8 @@
 		get max(){
 			return parseFloat(this.amountElement.max );
 		}		
+
+
 
 
 		// value
@@ -400,8 +420,7 @@
 		
 
 
-		toggleUnit(unit) {
-			this.unit = unit;
+		updateUnitLabelAndStep() {
 			let unitLabelEl = this.shadowRoot.getElementById('converted_unit_label');
 			if(this.unit == 'sat'){
 				unitLabelEl.innerHTML = 'BTC';
@@ -410,7 +429,7 @@
 			}else{
 				unitLabelEl.innerHTML = '';
 			}
-			this.amountElement.setAttribute('step', this.unit == 'sat' ? '1' : '1e-8');
+			this.step = this.unit == 'sat' ? 1 : 1e-8;
 			this.calculateConvertedUnit();
 		}
 

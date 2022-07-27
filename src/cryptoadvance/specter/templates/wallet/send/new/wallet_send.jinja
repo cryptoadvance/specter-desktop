@@ -228,7 +228,7 @@
 		})
 
 
-		function addRecipient(addr, amount, amount_unit, label) {
+		function addRecipient(address, amount, amount_unit, label) {
 			let recipientIds = getRecipientIds();
 			recipientId = 0;
 			if (recipientIds.length > 0) {
@@ -241,6 +241,10 @@
 			newRecipient.id = `recipient_${recipientId}`;
 			newRecipient.recipientId = recipientId;
 			newRecipient.title = `Recipient ${recipientId+1}`;
+			newRecipient.address = address;
+			newRecipient.amount = amount;
+			newRecipient.unit = amount_unit;
+			newRecipient.label = label;
 			newRecipient.addEventListener('remove', (event) => {
 				removeRecipient(newRecipient.recipientId);
 			})
