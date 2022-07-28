@@ -90,6 +90,11 @@
             z-index: 3;
             padding: 5px 5px 5px 5px;
         }
+        .search-container-left-and-middle-part {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }        
         .page-limit-label {
             margin-left: 5px;
         }
@@ -302,23 +307,25 @@
         <br>
     </div>
     <div class="search-container">
-        <!--Left part of the toolbar-->
-        {% include "includes/page-limit-select.html" %}
-         <!--Middle part of the toolbar-->
-        <div style="flex-grow: 0.2">
-            <input class="search" type="text" placeholder="Search..."></input>
-        </div>
-        <div id="tooltip-container" class="tooltip-no-grow tooltip-width">
-            <tool-tip>
-                <h4 slot="title">{{ _('Search options') }}</h4>
-                <span slot="paragraph">
-                    {{ _("You can search using addresses, tx-IDs, labels, confirmations or amounts.") }}<br><br>
-                    {{ _('Search like this in the time field:') }} <code>%d.%m.%Y %H:%M</code><br><br>
-                    {{ _('Search like this for amounts:') }} <br>
-                    <code> 1</code> {{ _("for anything more than 1") }}<br>
-                    <code>< 1</code> {{ _("for less than 1 BTC (don't forget the space)") }}<br>
-                </span>
-            </tool-tip>
+        <div class="search-container-left-and-middle-part">
+            <!--Left part of the toolbar-->
+            {% include "includes/page-limit-select.html" %}
+            <!--Middle part of the toolbar-->
+            <div style="flex-grow: 0.2">
+                <input class="search" type="text" placeholder="Search..."></input>
+            </div>        
+            <div id="tooltip-container" class="tooltip-no-grow tooltip-width">
+                <tool-tip>
+                    <h4 slot="title">{{ _('Search options') }}</h4>
+                    <span slot="paragraph">
+                        {{ _("You can search using addresses, tx-IDs, labels, confirmations or amounts.") }}<br><br>
+                        {{ _('Search like this in the time field:') }} <code>%d.%m.%Y %H:%M</code><br><br>
+                        {{ _('Search like this for amounts:') }} <br>
+                        <code> 1</code> {{ _("for anything more than 1") }}<br>
+                        <code>< 1</code> {{ _("for less than 1 BTC (don't forget the space)") }}<br>
+                    </span>
+                </tool-tip>
+            </div>
         </div>
         <!--Right part of the toolbar-->
         <div id="action-teaser" class="action-teaser hidden" style="margin-right: 5px; margin-left: 5px;"> 
