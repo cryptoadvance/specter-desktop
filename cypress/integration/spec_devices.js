@@ -1,13 +1,24 @@
 describe('Test adding different devices', () => {
     before(() => {
-        cy.viewport(1200,660)
-        cy.visit('/')
         Cypress.config('includeShadowDom', true)
     })
 
     // Keeps the session cookie alive, Cypress by default clears all cookies before each test
     beforeEach(() => {
+        cy.viewport(1200,660)
+        cy.visit('/')
         Cypress.Cookies.preserveOnce('session')
+    })
+
+    it('Filter devices', () => {
+        cy.get('#toggle_devices_list').click()
+        cy.get('#btn_new_device').click()
+        cy.contains('Select Your Device Type')
+        cy.get('#device-type-searchbar').type("Specter")
+        cy.get('#trezor_device_card').should('not.be.visible')
+        cy.get('#specter_device_card').should('be.visible')
+        cy.get('#specter_device_card').click()
+        cy.contains('Connect your Specter-DIY')
     })
 
     it('Electrum device', () => {

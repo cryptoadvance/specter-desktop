@@ -88,6 +88,10 @@ cypress_test_task:
     - source ./.env/bin/activate
     #- pip3 install -e .
     - ./utils/test-cypress.sh --debug run
+  junit_artifacts:
+    path: "cypresstest-output.xml"
+    type: text/xml
+    format: junit
   always:
     cypress_screenshots_artifacts:
       path: "./cypress/screenshots/**"

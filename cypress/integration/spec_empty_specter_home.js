@@ -1,11 +1,12 @@
 
 describe('Completely empty specter-home', () => {
-  beforeEach(() => {
+  before(() => {
     cy.task("clear:specter-home")
   })
-  it('Visits specter and clicks around', () => {
+
+  it('Click around on the welcome page', () => {
     cy.viewport(1200,660)
-    cy.visit('/')
+    cy.visit('/welcome/about')
     cy.contains('Welcome to Specter Desktop')
     cy.get('#node-switch-icon').click()
     cy.get('[href="/nodes/node/default/"]').first().click()
@@ -16,27 +17,15 @@ describe('Completely empty specter-home', () => {
     cy.contains('Authentication:')
     cy.get('[href="/settings/hwi"]').click()
     cy.contains('Hardware Devices Bridge')
-    // Hidden in Cypress behind the price 
-    // cy.get('[href="/settings/tor"]').click()
-    // cy.contains('Tor configurations')
+    cy.get('main').scrollTo('top')
+    cy.contains('Tor').click({ scrollBehavior: false })
+    cy.contains('Tor configurations')
     cy.contains("Choose plugins")
     cy.get('#btn_plugins').click()
     cy.contains("Plugins in Production")
-
-
-  })
-
-  it('Creates a device in Specter', () => {
-    cy.viewport(1200,660)
-    cy.visit('/')
-    cy.addDevice("Some Device")
-  })
-
-  it('Dummytest to enforce remove of device', () => {
-    cy.viewport(1200,660)
-    cy.visit('/')
   })
 })
+
 
 
 

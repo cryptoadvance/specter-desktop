@@ -46,7 +46,7 @@
                 </div>
                 {% endif %}
                 {% if wallet.amount_immature > 0 and specter.chain == "regtest" %}
-                <div style="color: grey">
+                <div style="color: grey; display: flex;">
                     Immature: {{ wallet.amount_immature | btcunitamount }} 
                     {% if specter.unit == 'sat' %}
                         sats
@@ -56,13 +56,16 @@
                     {% if specter.price_check %} 
                         <span class="note" style="color: grey">({{ wallet.amount_immature | altunit }})</span>
                     {% endif %}
-                    <tool-tip style="color: #fff" title='{{ _("What are immature outputs?") }}'>
+                    <tool-tip width="200px">
+                        <h4 slot="title">{{ _("What are immature outputs?") }}</h4>
+                        <span slot="paragraph">
                         {{ _('The UTXO of coinbase transactions (mining rewards) have the special condition that they cannot be spent for at least 100 blocks. Their amount is not included in the total balance here. You see these outputs because you are using regtest and have mined blocks.') }}
+                         </span>
                     </tool-tip>
                 </div>
                 {% endif %}
                 {% elif wallet.amount_immature > 0 and specter.chain == "main" %}
-                <div style="color: #ccc">
+                <div style="color: #ccc; display: flex">
                     Immature: {{ wallet.amount_immature | btcunitamount }} 
                     {% if specter.unit == 'sat' %}
                         sats
@@ -72,8 +75,11 @@
                     {% if specter.price_check %} 
                         <span class="note" style="color: grey">({{ wallet.amount_immature | altunit }})</span>
                     {% endif %}
-                    <tool-tip style="color: #fff" title='{{ _("What are immature outputs?") }}'>
+                    <tool-tip width="200px">
+                        <h4 slot="title">{{ _("What are immature outputs?") }}</h4>
+                        <span slot="paragraph">
                         {{ _('The UTXO of coinbase transactions (mining rewards) have the special condition that they cannot be spent for at least 100 blocks. Their amount is not included in the total balance here.') }}
+                        </span>
                     </tool-tip>
                 </div>
             {% endif %}
