@@ -159,7 +159,6 @@
             font-size: 15px;
             line-height: 12px;
             font-weight: 50;
-            margin-right: 10px;
         }
         .freeze-tx-btn {
             border: 1px solid var(--cmap-border);
@@ -268,19 +267,6 @@
             height: 100%;
         } 
 
-        @media (max-width: 690px){
-            .search-container {
-                justify-content: normal;
-                display: block;
-
-            }
-            .search-container {
-                justify-content: normal;
-                /*overflow-x: scroll;*/
-
-            }
-        }
-
     </style>
 
     <nav class="switcher row">
@@ -304,10 +290,10 @@
     <div class="search-container">
         <!--Left part of the toolbar-->
         {% include "includes/page-limit-select.html" %}
-        <!--Middle part of the toolbar-->
+         <!--Middle part of the toolbar-->
         <div style="flex-grow: 0.2">
             <input class="search" type="text" placeholder="Search..."></input>
-        </div>        
+        </div>
         <div id="tooltip-container" class="tooltip-no-grow tooltip-width">
             <tool-tip>
                 <h4 slot="title">{{ _('Search options') }}</h4>
