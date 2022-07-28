@@ -28,8 +28,7 @@ class PsbtCreator:
     ):
         """
         * depending of ui_option = (ui|text) Fill the payment-details in either of these:
-          * request_form: expects the payment-details in a dict request_form:
-             { "address_1":"bc1...","btc_amount_1":"0.2", "amount_unit_1":"btc", "label_1":"someLabel","address_2": ...}
+          * request_form: For details on the structure of the data for each recipient (amounts, addresses, etc.) see below at paymentinfo_from_ui
           * recipients_txt: expects the payment-details in textblock "recipients" and recipients_amount_unit for all
             amounts in recipients_txt either "sats" or "btc"
         * in both cases, the request_form also contains:
@@ -135,8 +134,13 @@ class PsbtCreator:
 
     @classmethod
     def paymentinfo_from_ui(cls, specter, wallet, request_form):
-        """calculates the correct format needed by wallet.createpsbt() out of a request-form
-        returns something like  (addresses, labels, amounts, amount_units) (all arrays)
+        """Calculates the correct format needed by wallet.createpsbt() out of a request form.
+        The recipient_dicts part in the form is a list of dicts and looks like this:
+        [{'unit': 'btc', 'amount': 1, 'btc_amount': 1, 'recipient_id': 0, 'label': '', 'address': 'bcrt1q ... 58qwn'},
+        {'unit': 'btc', 'amount': 2, 'btc_amount': 2, 'recipient_id': 1, 'label': '', 'address': 'bcrt1q ... vaa3p'},
+        {'unit': 'btc', 'amount': 3, 'btc_amount': 3, 'recipient_id': 2, 'label': '', 'address': 'bcrt1q ... n0a85'}]
+
+        Returns (addresses, labels, amounts, amount_units) (all arrays)
         """
         addresses = []
         labels = []
