@@ -70,9 +70,7 @@ class User(UserMixin):
         password_hash,
         config,
         specter,
-        jwt_token_id,
-        jwt_token,
-        jwt_tokens = {},
+        jwt_tokens={},
         encrypted_user_secret=None,
         is_admin=False,
         services=[],
@@ -80,8 +78,6 @@ class User(UserMixin):
         self.id = id
         self.username = username
         self.password_hash = password_hash
-        self.jwt_token_id = jwt_token_id
-        self.jwt_token = jwt_token
         self.jwt_tokens = jwt_tokens
         self.config = config
         self.encrypted_user_secret = encrypted_user_secret
@@ -104,8 +100,6 @@ class User(UserMixin):
             user_args = {
                 "id": user_dict["id"],
                 "username": user_dict["username"],
-                "jwt_token_id": user_dict.get("jwt_token_id", None),
-                "jwt_token": user_dict.get("jwt_token", None),
                 "jwt_tokens": user_dict.get("jwt_tokens", {}),
                 "password_hash": user_dict[
                     "password"
@@ -209,28 +203,6 @@ class User(UserMixin):
         if autosave:
             self.save_info()
 
-    def get_all_tokens(self):
-        self.jwt_tokens = json.dumps(self.jwt_tokens.copy())
-        self.jwt_tokens = json.loads(self.jwt_tokens)
-        return self.jwt_tokens
-        
-    def append_token(self, jwt_token_id, jwt_token):
-        self.jwt_tokens = self.jwt_tokens.copy()
-        self.jwt_tokens[jwt_token_id] = jwt_token
-        self.save_info()
-
-    def save_jwt_token(self, jwt_token_id, jwt_token):
-        self.jwt_token_id = jwt_token_id
-        self.jwt_token = jwt_token
-        self.save_info()
-
-    def delete_jwt_token(self, jwt_token_id):
-        self.jwt_tokens = self.jwt_tokens.copy()
-        del self.jwt_tokens[jwt_token_id]
-        self.jwt_token_id = None
-        self.jwt_token = None
-        self.save_info()
-
     def set_password(self, plaintext_password):
         """Hash the incoming plaintext password and update the encrypted user_secret as
         needed.
@@ -273,8 +245,6 @@ class User(UserMixin):
             "username": self.username,
             "password": self.password_hash,  # TODO: Migrate attr name to "password_hash"?
             "is_admin": self.is_admin,
-            "jwt_token_id": self.jwt_token_id,
-            "jwt_token": self.jwt_token,
             "jwt_tokens": self.jwt_tokens,
             "encrypted_user_secret": self.encrypted_user_secret,
             "services": self.services,
@@ -436,6 +406,39 @@ class User(UserMixin):
     def delete(self):
         # we delete wallet manager and device manager in save_info
         self.save_info(delete=True)
+
+    def add_jwt_token(self, jwt_token_id, jwt_token, jwt_token_description):
+        # Adding a newly created JWT to the hashmap
+        self.jwt_tokens[jwt_token_id] = {}
+        self.jwt_tokens[jwt_token_id]["jwt_token"] = jwt_token
+        self.jwt_tokens[jwt_token_id]["jwt_token_description"] = jwt_token_description
+        self.save_info()
+
+    def delete_jwt_token(self, jwt_token_id):
+        # Deleting a JWT from the hashmap
+        if jwt_token_id in self.jwt_tokens:
+            del self.jwt_tokens[jwt_token_id]
+            self.save_info()
+
+    def get_all_jwt_token_ids_and_descriptions(self):
+        # Getting all the JWT token IDs and descriptions from the hashmap
+        return [
+            (jwt_token_id, self.jwt_tokens[jwt_token_id]["jwt_token_description"])
+            for jwt_token_id in self.jwt_tokens
+        ]
+
+    def get_jwt_token(self, jwt_token_id):
+        # Getting a JWT token from the hashmap by ID
+        if jwt_token_id in self.jwt_tokens:
+            return self.jwt_tokens[jwt_token_id]["jwt_token_description"]
+        return None
+
+    def unique_jwt_token_description(self, jwt_token_description):
+        # Checking if the JWT token description is unique
+        return jwt_token_description not in [
+            self.jwt_tokens[jwt_token_id]["jwt_token_description"]
+            for jwt_token_id in self.jwt_tokens
+        ]
 
     def __eq__(self, other):
         if other == None:
