@@ -316,6 +316,7 @@
 		// address
 		set address(newValue){
 			this.addressElement.value = newValue;
+			this.markAdddressGreenIfMine();
 		}			
 		get address(){
 			return this.addressElement.value;
@@ -354,7 +355,6 @@
 		}			
 		get amount(){
 			var value = parseFloat(this.amountElement.value );
-			if (!value) {value = 0}
 			return value;
 		}		
 

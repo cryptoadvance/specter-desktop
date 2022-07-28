@@ -286,7 +286,6 @@
 				}
 			}
 
-			document.getElementById(`recipient_${recipientId}`).calculateConvertedUnit();
 		} 
 
 		function removeRecipient(recipientId=-1) {	
@@ -390,8 +389,6 @@
 				maxAmount = 0;
 			}
 			document.getElementById(`recipient_${recipientId}`).amount = maxAmount;
-				
-			document.getElementById(`recipient_${recipientId}`).calculateConvertedUnit();
 		}
 
 		// Form validation
@@ -432,17 +429,17 @@
 		// Returns true if the address is valid 
 		function validAddress(recipientId) {
 			let reWhite = /\s/;
-			let addressInput = document.getElementById(`recipient_${recipientId}`).shadowRoot.getElementById('address');
-			if (!addressInput.value) {
+			let address = document.getElementById(`recipient_${recipientId}`).address;
+			if (!address) {
 				showError(`{{ _("You provided no address.") }}`, 5000);
 				return false
 			}
 			// Segwit addresses are always between 14 and 74 characters long.
-			else if (addressInput.value.length < 14) {
+			else if (address.length < 14) {
 				showError(`{{ _("Please provide a valid address!") }}`, 5000);
 				return false
 			}
-			else if (reWhite.test(addressInput.value)) {
+			else if (reWhite.test(address)) {
 				showError(`{{ _("Looks like there are whitespaces in the address field.") }}`, 5000);
 				return false
 			}
@@ -488,9 +485,6 @@
 						}else{
 							assetAmounts[recipient.unit] = recipient.amount;
 						}
-					}
-					if (document.getElementById(`recipient_${recipient.recipientId}`).shadowRoot.getElementById('amount').value == '') {
-						recipient.amount = 0;
 					}
 
 
