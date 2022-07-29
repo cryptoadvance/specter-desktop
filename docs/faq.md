@@ -137,7 +137,7 @@ Yes, a Bitcoin node is needed to provide all relevant data without relying on 3r
 Yes, but if you have many older addresses you will need to re-download the blockchain in order to see your balance and transaction history, which will take some time.
 Since v0.8.0 there is a workaround as you can download history from an external blockexplorer which has privacy implications. Make sure to read the tooltip-hints when using that feature and also consider this question in the  [troubleshooting-section](#i-created-an-existing-wallets-but-even-after-rescanning-specter-couldnt-find-any-funds)..
 
-## *I get this message: "This is a development server. Do not use it in a production deployment.". Should i worry?
+## *I get this message: "This is a development server. Do not use it in a production deployment." Should I worry?*
 
 No you don't have to worry unless you plan to run specter as a public service on the internet with a growing number of people using it. That was traditionally the use-case for web-apps: Run in the open public internet getting accessed by MANY people. However, that's not how specter is meant to be used. If people get performance issues, it's most likely not because the user-base is growing on their specter but because their Raspberry Pi is too weak for that one user who is doing all sorts of other stuff on that Pi on top.
 
@@ -398,6 +398,10 @@ You can either set --host 0.0.0.0 `python -m cryptoadvance.specter server --host
 Alternatively, you can also define --port 80 if you want to have it on default http port of the computer.
 
 One drawback though is that with http and **external access** you will not get camera scanning functionality. It is an issue if you are using specter-DIY as it's necessary to scan QR codes with signed transactions. To fix that you will need a self-signed certificate, we have a document on that [here](https://github.com/cryptoadvance/specter-desktop/blob/master/docs/self-signed-certificates.md)
+
+## *How can I access the Specter Desktop web interface with my phone?*
+
+Similar as above, add `--host 0.0.0.0` when starting the Specter server (to bind the Specter server to the local IP of the machine that you are running Specter on), thus `python -m cryptoadvance.specter server --host 0.0.0.0`. You can then access the Specter server with your phone by typing `http://LOCAL_IP_OF_MACHINE_RUNNING_SPECTER:25441/` in the phone's browser. Note: Your phone and the machine running Specter have to be connected to the same LAN for this simple approach to work. You might also need to adjust your firewall settings on the machine running Specter. For remote access of your Specter server check the [Tor docs](https://docs.specter.solutions/desktop/tor/).
 
 ## *Keep getting: No matching distribution found for cryptoadvance.specter*
 
