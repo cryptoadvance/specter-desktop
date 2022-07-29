@@ -1085,6 +1085,7 @@ nav.collapse-on-mobile a.mobile-nav-icon {
     .card{
         border-width: 0px;
         width: auto;
+        padding: 10px;
     }
     nav.row{
         padding-left: 0;
