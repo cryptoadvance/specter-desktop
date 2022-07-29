@@ -33,14 +33,14 @@
         }
     </style>
     <form id="form" action="{{ url_for('devices_endpoint.new_device_mnemonic', device_type=device_type) }}" method="POST" style="width: 100%;" onsubmit="if (checkAdvancedValidState()) { showPacman(); } else { event.preventDefault(); }">
-        <div class="card center" style="width: auto; margin: 40px;" >
+        <div class="card center auto-width"   >
             <h1 style="font-size: 2em;">{{ _("Add") }} {% if existing_device %}{{ _("Keys") }}{% else %}{{ _("Device") }}{% endif %}</h1><br>
             {% if existing_device %}
                 <input type="hidden" name="existing_device" value="{{ existing_device.alias }}">
             {% endif %}
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             <div>
-                <div id="hot-wallet" style="width: 80%; max-width: 700px; margin: auto;">
+                <div id="hot-wallet" style="max-width: 700px; margin: auto;">
                     <br>
                     <p class="note" style="border-radius: 5px; padding: 20px; background: rgba(0,0,0,0.1); color: #ccc;">
                         <span style="display: inline-block;font-weight: bold; margin-bottom: 8px;">⚠️ A note on hot wallets:</span><br>

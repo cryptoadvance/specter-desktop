@@ -493,6 +493,10 @@ input:hover{
     border-radius: 4px;
     padding: 40px;
 }
+.auto-width{
+    width: auto;
+    margin: 40px;
+}
 .spacer{
     height: 50px;
     min-height: 50px;
@@ -1086,6 +1090,12 @@ nav.collapse-on-mobile a.mobile-nav-icon {
         width: auto;
         padding: 10px;
     }
+    .auto-width{
+        margin: 0px;
+    }
+    .table-holder{
+        padding: 0 10px;
+    }    
     nav.row{
         padding-left: 0;
         padding-right: 0;

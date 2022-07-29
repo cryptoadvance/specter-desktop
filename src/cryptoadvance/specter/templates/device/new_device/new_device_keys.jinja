@@ -33,7 +33,7 @@
         }
     </style>
     <form id="form" action="{{ url_for('devices_endpoint.new_device_keys', device_type=device_class.device_type) }}" method="POST" style="width: 100%;" onsubmit="showPacman();">
-        <div style="width: auto; margin: 40px;" class="card center" >
+        <div  class="card center auto-width" >
             {% if existing_device %}
                 <input type="hidden" name="existing_device" value="{{ existing_device.alias }}">
             {% endif %}

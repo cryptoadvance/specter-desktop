@@ -3,7 +3,7 @@
     {% include "includes/hwi/hwi.jinja" %}
     {% include "includes/qr-scanner.html" %}
     <form name="form" action="{{ url_for('devices_endpoint.device_blinding_key', device_alias=device.alias) }}" method="POST" style="width: 100%;" onsubmit="showPacman();">
-        <div style="width: auto; margin: 40px;" class="card center" >
+        <div  class="card center auto-width" >
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             <div>
                 <h1> {{ _("Get the master blinding key") }} </h1>
