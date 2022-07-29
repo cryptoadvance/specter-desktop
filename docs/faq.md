@@ -401,7 +401,9 @@ One drawback though is that with http and **external access** you will not get c
 
 ## *How can I access the Specter Desktop web interface with my phone?*
 
-Similar as above, add `--host 0.0.0.0` when starting the Specter server (to bind the Specter server to the local IP of the machine that you are running Specter on), thus `python -m cryptoadvance.specter server --host 0.0.0.0`. You can then access the Specter server with your phone by typing `http://LOCAL_IP_OF_MACHINE_RUNNING_SPECTER:25441/` in the phone's browser. Note: Your phone and the machine running Specter have to be connected to the same LAN for this simple approach to work. You might also need to adjust your firewall settings on the machine running Specter. For remote access of your Specter server check the [Tor docs](https://docs.specter.solutions/desktop/tor/).
+Similar as above, add `--host 0.0.0.0` when starting the Specter server (to bind the Specter server to the local IP of the machine that you are running Specter on), thus `python -m cryptoadvance.specter server --host 0.0.0.0`. You can then access the Specter server with your phone by typing `http://LOCAL_IP_OF_MACHINE_RUNNING_SPECTER:25441/` in the phone's browser. 
+
+**Note**: Your phone and the machine running Specter have to be connected to the same LAN for this simple approach to work. You might also need to adjust your firewall settings on the machine running Specter. For remote access of your Specter server check the [Tor docs](https://docs.specter.solutions/desktop/tor/).
 
 ## *Keep getting: No matching distribution found for cryptoadvance.specter*
 
