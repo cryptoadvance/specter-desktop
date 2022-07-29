@@ -5,7 +5,6 @@ logger = logging.getLogger(__name__)
 from .notifications import Notification
 from ..notifications import ui_notifications
 from ..notifications import websockets_server_client
-import flask
 
 
 class NotificationManager:
@@ -91,9 +90,9 @@ class NotificationManager:
             ip, port, path, self.ssl_cert, self.ssl_key
         )
 
-        # setting this client admin, meaning it is allowed to send to all
+        # setting this client as broadcaster, meaning it is allowed to send to all
         # connected websocket connections without restrictions
-        self.websockets_server.set_as_admin(self.websockets_client.user_token)
+        self.websockets_server.set_as_broadcaster(self.websockets_client.user_token)
         self.websockets_client.start()
 
     def quit(self):

@@ -17,7 +17,7 @@ class WebsocketServer:
     1. Recieve messages from webbrowser websocket connections and call notification_manager.create_and_show
     2. Recieve messages (notifications) from python websocket connection and send them to the webbrowser websocket connections
     Each message must contain a user_token, which is checked against user_manager.user.websocket_token to make sure this is a legitimate user
-    Before the python websocket connection is established, the set_as_admin method should be called to inform self that this user_token will be an admin
+    Before the python websocket connection is established, the set_as_broadcaster method should be called to inform self that this user_token will be an admin
         Otherwise the user_token will not be found in user_manager.user.websocket_token and rejected
     1.   Javascript creates a message
         ┌───────────────────────┐                           ┌───────────────────────┐
@@ -57,13 +57,13 @@ class WebsocketServer:
     def __init__(self, notification_manager, user_manager):
         logger.info(f"Create {self.__class__.__name__}")
 
-        self.admin_tokens = list()
+        self.broadcaster_tokens = list()
         self.connections = list()
         self.notification_manager = notification_manager
         self.user_manager = user_manager
 
-    def get_admin_tokens(self):
-        return [d["user_token"] for d in self.admin_tokens]
+    def get_broadcaster_tokens(self):
+        return [d["user_token"] for d in self.broadcaster_tokens]
 
     def get_token_of_websocket(self, websocket):
         for d in self.connections:
@@ -82,15 +82,15 @@ class WebsocketServer:
             if u.websocket_token == user_token:
                 return u.username
 
-    def set_as_admin(self, user_token):
+    def set_as_broadcaster(self, user_token):
         new_entry = {"user_token": user_token}
-        logger.debug(f"set_as_admin {new_entry}")
-        self.admin_tokens.append(new_entry)
+        logger.debug(f"set_as_broadcaster {new_entry}")
+        self.broadcaster_tokens.append(new_entry)
 
-    def remove_admin(self, user_token):
-        logger.debug(f"remove_admin {user_token}")
-        self.admin_tokens = [
-            d for d in self.admin_tokens if d["user_token"] != user_token
+    def remove_broadcaster(self, user_token):
+        logger.debug(f"remove_broadcaster {user_token}")
+        self.broadcaster_tokens = [
+            d for d in self.broadcaster_tokens if d["user_token"] != user_token
         ]
 
     def _register(self, user_token, websocket):
@@ -103,7 +103,7 @@ class WebsocketServer:
             # no need to add the connection multiple times
             return
 
-        if user_token in self.get_admin_tokens():
+        if user_token in self.get_broadcaster_tokens():
             logger.info(
                 f"python-websocket-client --> python-websocket-server was first used and registered."
             )
@@ -128,7 +128,7 @@ class WebsocketServer:
             if user
             else (
                 "Python ADMIN Client"
-                if user_token in self.get_admin_tokens()
+                if user_token in self.get_broadcaster_tokens()
                 else "unknown"
             )
         )
@@ -173,7 +173,7 @@ class WebsocketServer:
         user_token = message_dictionary.get("user_token")
         if message_dictionary.get("title") == "quit_server":
             # Accept the command from an admin, but disregard the command from a user
-            return "quit" if user_token in self.get_admin_tokens() else "continue"
+            return "quit" if user_token in self.get_broadcaster_tokens() else "continue"
 
     def _process_incoming_message(self, message_dictionary):
         """
@@ -185,9 +185,9 @@ class WebsocketServer:
         user_token = message_dictionary.get("user_token")
         user = self.get_user_of_user_token(user_token)
 
-        if user_token in self.get_admin_tokens():
+        if user_token in self.get_broadcaster_tokens():
             logger.debug(
-                f"message from user with admin_token recieved. Sending to websockets"
+                f"message from user with broadcaster_token recieved. Sending to websockets"
             )
             self._send_to_websockets(message_dictionary, user_token)
         elif user:
@@ -251,12 +251,12 @@ class WebsocketServer:
         thread.start()
         thread.join()
 
-    def _send_to_websockets(self, message_dictionary, admin_token):
+    def _send_to_websockets(self, message_dictionary, broadcaster_token):
         """
         This sends out messages to the connected websockets, which are associated with message_dictionary['options']['user_id']
         This method shall only called by an admin user
         """
-        assert admin_token in self.get_admin_tokens()
+        assert broadcaster_token in self.get_broadcaster_tokens()
 
         recipient_user = self.user_manager.get_user(
             message_dictionary["options"]["user_id"]
@@ -282,9 +282,9 @@ class WebsocketClient:
     Connects to the WebsocketServer; and then the self.send method can be used to send messages to the WebsocketServer
 
 
-    To ensure this client is allowed to forward notifications to all
+    To ensure this client is allowed to broadcast notifications to all
     websocket connections of the server we need to set
-        websockets_server.set_as_admin(websockets_client.user_token)
+        websockets_server.set_as_broadcaster(websockets_client.user_token)
     """
 
     def __init__(self, ip, port, path, ssl_cert, ssl_key):
