@@ -40,6 +40,9 @@
 			}
 		</style>
 		<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
+		<script>
+			document.documentElement.style.setProperty('--mobileDistanceElementBotomHeight', `${window.outerHeight - window.innerHeight}px`);
+		</script>
 		{% block head %}
 		{% endblock %}
 	</head>
@@ -326,7 +329,6 @@
 	{% endif %}
 	{% block scripts %}
 		<script>
-			document.documentElement.style.setProperty('--mobileDistanceElementBotomHeight', `${window.outerHeight - window.innerHeight}px`);
 			{% include "includes/language/language_js.jinja" %}
 		</script>
 	{% endblock %}
