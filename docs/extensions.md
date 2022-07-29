@@ -163,7 +163,7 @@ ui = RubberduckService.blueprints["ui"]
 ```
 
 
-## Data-Storage
+## Data storage
 Effort has been taken to provide `Service` data storage that is separate from existing data stores in order to keep those areas clean and simple. Where touchpoints are unavoidable, they are kept to the absolute bare minimum (e.g. `User.services` list, `Address.service_id` field).
 
 
@@ -177,7 +177,7 @@ Users can also manually associate an existing `Address` with a `Service` (this i
 _Note: TODO: manually un-reserve an `Address` from a `Service`._
 
 
-### Service Configuration
+### Service configuration
 In order to separate the service configuration from the main configuration, you can specify your config in a file called `config.py`. It's structure is similiar to the Specter wide `config.py`, e.g.:
 ```
 class BaseConfig():
