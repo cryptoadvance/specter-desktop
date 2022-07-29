@@ -265,6 +265,7 @@
 					</div>
 				{% endif %}
 			{% endblock %}
+	    <div id="mobile-distance-element-botom" class="mobile-distance-element-botom"></div>	
 		</main>
 	</div>
 
@@ -325,6 +326,7 @@
 	{% endif %}
 	{% block scripts %}
 		<script>
+			document.documentElement.style.setProperty('--mobileDistanceElementBotomHeight', `${window.outerHeight - window.innerHeight}px`);
 			{% include "includes/language/language_js.jinja" %}
 		</script>
 	{% endblock %}
