@@ -79,7 +79,7 @@
 <template id="liquid-asset-selector">
 	<select id="amount_unit" name="amount_unit" style="width: 100px;" >
 		<option value="btc">LBTC</option>
-		<option value="sat">L-sat (10⁻⁸ LBTC)</option>
+		<option value="sat">L-sat</option>
 	{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
 		<option value="{{asset}}">{{asset | assetlabel}}</option>
 	{% endfor %}
