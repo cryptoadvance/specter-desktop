@@ -14,7 +14,7 @@
 	<h1>{{ _("Hardware Devices Bridge") }}</h1>
 	<p class="note center">{{ _("Allows Specter to communicate with your hardware devices over USB.") }}</p>
 	<br>
-	<label class="card radio-btn" style="padding: 20px 10px 5px;">
+	<label class="card radio-btn" style="padding: 20px 10px 5px; ">
 		<div class="row">
 			<input type="radio" name="hwibridge" value="local" style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="switchHWIBridgeConfView(this.value)" {% if specter.hwi_bridge_url == '/hwi/api/'%} checked {% endif %}/>
 			<h2 style="text-align: left; margin-left: 10px;">{{ _("Local USB connection") }}</h2>
@@ -83,8 +83,8 @@
 	<button type="submit" class="btn" value="update_hwi" style="max-width: 580px;">{{ _("Save Changes") }}</button>
 	</form>
 	<br>
-	<p style="text-align: left; max-width: 580px;">{{ _("You might also need to allow Specter to communicate with the device bridge.") }}<br></p>
-	<ol style="text-align: left; max-width: 580px;line-height:2;">
+	<p style="text-align: left; max-width: 580px; margin-left:10px; margin-right:10px;">{{ _("You might also need to allow Specter to communicate with the device bridge.") }}<br></p>
+	<ol style="text-align: left; max-width: 580px;line-height:2; margin-left:10px; margin-right:10px;">
 		<li>{{ _("Access the device bridge settings.") }} <a href='{{specter.hwi_bridge_url.replace("/hwi/api", "/hwi/settings")}}' target="_blank" style="color: #fff;">Click here</a>.</li>
 		<li>{{ _("Add the domain") }} {{ url_for('index', _external=True) }} <span style="text-decoration: underline; cursor: pointer;" onclick="copyText('{{ url_for('index', _external=True) }}', '{{ _("Copied Specter URL") }}')">({{ _("copy") }}</span> {{ _("to the whitelist there.") }}<br>{{ _("Save the changes and close the window.") }}</li>
 		<li>{{ _("Connect your hardware wallet to your computer and test if Specter manage to reach it") }}<br><button class="btn" type="button" style="display: inline; width: 140px; margin-top:5px;" onclick="testHWIConnection()">{{ _("Test connection") }}</button></li>
