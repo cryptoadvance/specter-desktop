@@ -1085,6 +1085,9 @@ nav.collapse-on-mobile a.mobile-nav-icon {
   }
 }
 @media (max-width: 690px){
+    .main-page-container{
+        max-width: 90%;
+      }
     .card{
         border-width: 0px;
         width: auto;
