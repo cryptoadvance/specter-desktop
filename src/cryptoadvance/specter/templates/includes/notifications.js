@@ -366,7 +366,7 @@ connectWebsocket()
 
 
 /**
- * If a user is logged in then regularrly check the webapi notification permission
+ * If a user is logged in then regularly check if the webapi notification permission was changed
  */
  if ('{{ current_user.username }}'){
     setInterval(sendUpdatedWebapiPermission, 3000);

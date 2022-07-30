@@ -144,7 +144,6 @@ def test_SPECTER_URL_PREFIX(caplog):
     )
     client = myapp.test_client()
     login(client, "secret")
-
     result = client.get("/")
     # The effect is almost the same but you get one more convenient redirect
     assert result.status_code == 302  # REDIRECT.
