@@ -4,7 +4,6 @@ logger = logging.getLogger(__name__)
 
 from .notifications import NotificationTypes
 from flask import flash
-import json
 
 
 class BaseUINotifications:

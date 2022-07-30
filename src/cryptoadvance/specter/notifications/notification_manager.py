@@ -64,12 +64,12 @@ class NotificationManager:
     def __init__(
         self,
         user_manager,
-        ip,
+        host,
         port,
-        path,
         ssl_cert=None,
         ssl_key=None,
         ui_notifications=None,
+        enable_websockets=True,
     ):
         """
         Arguments:
@@ -82,18 +82,21 @@ class NotificationManager:
         self.ssl_cert, self.ssl_key = ssl_cert, ssl_key
         self._register_default_ui_notifications()
 
-        self.websockets_server = websockets_server_client.WebsocketServer(
-            self, self.user_manager
-        )
+        self.websockets_server = None
+        self.websockets_client = None
+        if enable_websockets:
+            self.websockets_server = websockets_server_client.WebsocketServer(
+                self, self.user_manager
+            )
 
-        self.websockets_client = websockets_server_client.WebsocketClient(
-            ip, port, path, self.ssl_cert, self.ssl_key
-        )
+            self.websockets_client = websockets_server_client.WebsocketClient(
+                host, port, "websocket", self.ssl_cert, self.ssl_key
+            )
 
-        # setting this client as broadcaster, meaning it is allowed to send to all
-        # connected websocket connections without restrictions
-        self.websockets_server.set_as_broadcaster(self.websockets_client.user_token)
-        self.websockets_client.start()
+            # setting this client as broadcaster, meaning it is allowed to send to all
+            # connected websocket connections without restrictions
+            self.websockets_server.set_as_broadcaster(self.websockets_client.user_token)
+            self.websockets_client.start()
 
     def quit(self):
         if self.websockets_client:
@@ -327,7 +330,7 @@ class NotificationManager:
         kwargs are the optional arguments of Notification
         """
         logger.debug(
-            f"Starting to ceated notification with title, **kwargs   {title, kwargs}"
+            f"Starting to create notification with title, **kwargs   {title, kwargs}"
         )
 
         notification = Notification(
@@ -401,9 +404,15 @@ class NotificationManager:
         )
 
     def create_and_show(self, title, user_id, **kwargs):
-        """
-        Creates a notification (which adds it to self.notifications) and also broadcasts it to ui_notifications.
-        kwargs are the optional arguments of Notification
+        """Creates a notification (which adds it to self.notifications) and also broadcasts it to ui_notifications.
+
+        Args:
+            title (str): _description_
+            user_id (str): The user.username (or flask.current_user), to whom the notification should be sent
+            kwargs: are the optional arguments and will be passed to Notification()
+
+        Returns:
+            Notification(): _description_
         """
         notification = self.create_notification(title, user_id, **kwargs)
         if notification:

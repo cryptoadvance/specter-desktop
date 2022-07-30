@@ -26,17 +26,18 @@ class Notification:
         default_target_ui,
         all_target_uis,
         user_id,
-        target_uis="default",
+        target_uis="default",  # "default" will be replaced by default_target_ui
         notification_type=None,
         body=None,
         data=None,
         image=None,
         icon=None,
         timeout=None,
+        date=None,
     ):
         self.title = str(title)
         self.user_id = user_id
-        self.date = datetime.datetime.now()
+        self.date = date if date else datetime.datetime.now()
         self.last_shown_date = dict()  # structure {'target_ui' : date}
         self.was_closed_in_target_uis = set()  # example: {'webapi', 'logging'}
 
@@ -45,7 +46,7 @@ class Notification:
         self.target_uis = (
             {target_uis} if isinstance(target_uis, str) else set(target_uis)
         )
-        self.cleanup_target_uis(default_target_ui, all_target_uis)
+        self.substitute_special_target_uis(default_target_ui, all_target_uis)
 
         # clean up invalid NotificationTypes
         self.notification_type = (
@@ -86,7 +87,16 @@ class Notification:
         self.was_closed_in_target_uis.add(target_ui)
         logger.debug(f"set_closed {self}")
 
-    def cleanup_target_uis(self, default_target_ui, all_target_uis):
+    def substitute_special_target_uis(self, default_target_ui, all_target_uis):
+        """
+        It replaces the valid target_uis:
+          - "default" by the  default_target_ui
+          - "all" by all_target_uis
+
+        Args:
+            default_target_ui (_type_): _description_
+            all_target_uis (_type_): _description_
+        """
         # clean up the notification['target_uis']
         if "internal_notification" in self.target_uis:
             # no cleanup for internal_notification

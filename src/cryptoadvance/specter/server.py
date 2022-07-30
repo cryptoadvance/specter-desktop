@@ -155,7 +155,6 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None, **kwargs):
         specter.user_manager,
         kwargs.get("host", "127.0.0.1"),
         app.config["PORT"],
-        "websocket",  # this is the route of app.route("/websocket", websocket=True)
         app.config["CERT"],
         app.config["KEY"],
     )

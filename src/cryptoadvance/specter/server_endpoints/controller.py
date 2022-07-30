@@ -32,7 +32,6 @@ from .setup import setup_endpoint
 from .wallets import wallets_endpoint
 from .wallets_api import wallets_endpoint_api
 from ..rpc import RpcError
-import simple_websocket
 import logging
 
 logger = logging.getLogger(__name__)
@@ -235,7 +234,12 @@ def websocket():
     logger.debug("websocket route called. This will start a new websocket connection.")
     # this function will run forever. That is ok, because a stream is expected, similar to https://maxhalford.github.io/blog/flask-sse-no-deps/
     #  flask.Response(stream(), mimetype='text/event-stream')
-    app.specter.notification_manager.websockets_server.serve(request.environ)
+    if app.specter.notification_manager.websockets_server:
+        app.specter.notification_manager.websockets_server.serve(request.environ)
+    else:
+        logger.warning(
+            "/websocket route accessed, but no websockets_server is initialized."
+        )
     # returning a string solved some error message when the function ends: https://stackoverflow.com/questions/25034123/flask-value-error-view-function-did-not-return-a-response
     return ""
 

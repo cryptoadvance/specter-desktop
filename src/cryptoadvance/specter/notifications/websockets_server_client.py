@@ -287,9 +287,9 @@ class WebsocketClient:
         websockets_server.set_as_broadcaster(websockets_client.user_token)
     """
 
-    def __init__(self, ip, port, path, ssl_cert, ssl_key):
+    def __init__(self, host, port, path, ssl_cert, ssl_key):
         self.protocol = "wss" if ssl_cert and ssl_cert else "ws"
-        self.url = f"{self.protocol}://{ip}:{port}/{path}"
+        self.url = f"{self.protocol}://{host}:{port}/{path}"
         self.user_token = secrets.token_urlsafe(128)
 
         self.ssl_context = None
