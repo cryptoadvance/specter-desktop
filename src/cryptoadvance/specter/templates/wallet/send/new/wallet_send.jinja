@@ -62,7 +62,7 @@
 	    </div>
 		<div class="card" style="margin: auto;">			
 			<div id="recipients" {% if ui_option != 'ui' %}class="hidden"{% else %} class="recipient_wrapper" {% endif %}></div>
-			<img src="{{ url_for('static', filename='img/add-person.svg') }}" id="add-recipient" title="Add a recipient" class="recipient_button recipient_add" style="float:right" onclick="addRecipient('', 0, 'btc', '')">
+			<img src="{{ url_for('static', filename='img/add-person.svg') }}" id="add-recipient" title="Add a recipient" class="recipient_button recipient_add" style="float:right" onclick="addRecipient('', '', 'btc', '')">
 			<div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>
 			{{ _("Unit:") }} 
 			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_text" value="sat" onchange="toggleTextUnit(this)" {% if specter.unit == 'sat' %}checked{% endif %}>sat</label>
@@ -612,7 +612,7 @@
 				addRecipient("{{ addr }}", {{ amount }}, "{{ amount_unit }}", "{{ label }}");
 				{% endfor %}
 			{% else %}
-				addRecipient("", 0, "btc", "");
+				addRecipient("", "", "btc", "");
 			{% endif %}
 				adjustForLiquid()
 				document.getElementById('toggle_advanced').addEventListener('click', (event) => {

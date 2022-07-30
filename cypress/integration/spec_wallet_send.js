@@ -165,7 +165,7 @@ describe('Test sending transactions', () => {
         cy.deleteWallet("Test Hot Wallet 1")
     })
 
-    it.only('No remove button if there is only one recipient', () => {
+    it('No remove button if there is only one recipient', () => {
         cy.selectWallet("Ghost wallet")
         cy.get('#btn_send').click()
         // No remove button when the send dialog is started with only one recipient
