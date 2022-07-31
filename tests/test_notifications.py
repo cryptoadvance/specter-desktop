@@ -26,10 +26,7 @@ def specter_with_user(empty_data_folder):
     yield specter
 
 
-# Create NotificationManger   and send a print notification, check that on_show and on_close was called exactly 1 once
-#  and check that delete_notification was called only once.
-#  check than that the notification database is empty.
-def test_sending_print_notification(specter_with_user: Specter, caplog):
+def test_sending_logging_notification(specter_with_user: Specter, caplog):
 
     notification_manager = NotificationManager(
         specter_with_user.user_manager,
@@ -48,15 +45,27 @@ def test_sending_print_notification(specter_with_user: Specter, caplog):
 
     # _register_default_ui_notifications should have created 2 ui_notifications accessible for all users
     assert len(ui_notifications_of_user) == 2
+    assert ui_notifications_of_user[0].name == "logging"
+    assert ui_notifications_of_user[1].name == "print"
 
     notification = notification_manager.create_notification(
         "testing title",
         user.username,
         target_uis="default",
         date=datetime.datetime(2022, 7, 31, 20, 23, 49, 541516),
+        body="testing body",
+        data={"key": 1},
+        image="someurl",
+        icon="someurl",
+        timeout=3000,
     )
     # the notification was stored in notification_manager.notifications
     assert len(notification_manager.notifications) == 1
+    assert notification_manager.notifications[0].id == notification.id
+
+    # check if the Notification was created correctly
+    notification_str = """{'title': 'testing title', 'user_id': 'someuser', 'date': datetime.datetime(2022, 7, 31, 20, 23, 49, 541516), 'last_shown_date': {}, 'was_closed_in_target_uis': set(), 'target_uis': {'logging'}, 'notification_type': 'information', 'body': 'testing body', 'data': {'key': 1}, 'image': 'someurl', 'icon': 'someurl', 'timeout': 3000, 'id': 'c8b752e0cb679ee13b44497c4b02b11cfafdd378757666b1f9ee805d4a5e7c5a'}"""
+    assert str(notification) == notification_str
 
     # capture if the notification was actually shown
     with caplog.at_level(logging.INFO):
@@ -65,11 +74,7 @@ def test_sending_print_notification(specter_with_user: Specter, caplog):
     # check if any of the INFO messages was the notification
     notification_found = False
     for record in caplog.records:
-        if (
-            record.message
-            == "{'title': 'testing title', 'user_id': 'someuser', 'date': datetime.datetime(2022, 7, 31, 20, 23, 49, 541516), 'last_shown_date': {}, 'was_closed_in_target_uis': set(), 'target_uis': {'logging'}, 'notification_type': 'information', 'body': None, 'data': None, 'image': None, 'icon': None, 'timeout': None, 'id': '66df153241a18b94cc658123edee822fb45528c30af78fc6db5a2e1606830eda'}"
-            and record.levelname == "INFO"
-        ):
+        if record.message == notification_str and record.levelname == "INFO":
             notification_found = True
     assert notification_found
 
