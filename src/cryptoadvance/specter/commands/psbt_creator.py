@@ -7,7 +7,7 @@ import requests
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.util.common import str2bool
 
-from ..helpers import is_testnet
+from ..helpers import is_testnet, normalize_address
 from ..util.descriptor import AddChecksum, Descriptor
 
 logger = logging.getLogger(__name__)
@@ -86,12 +86,7 @@ class PsbtCreator:
                 f"Unknown ui_option: {ui_option}. Valid ones are ui|text|json"
             )
         # normalizing
-        self.addresses = [
-            address.lower()
-            if address.startswith(("BC1", "TB1", "BCRT1", "EL1", "ERT1", "EX1", "LQ1"))
-            else address
-            for address in self.addresses
-        ]
+        self.addresses = [normalize_address(addr) for addr in self.addresses]
         # get kwargs
         if ui_option == "ui" or ui_option == "text":
             self.kwargs = PsbtCreator.kwargs_from_request_form(request_form)
@@ -186,7 +181,7 @@ class PsbtCreator:
                     continue
                 addresses.append(output.split(",")[0].strip())
                 if recipients_amount_unit == "sat":
-                    amounts.append(float(output.split(",")[1].strip()) / 1e8)
+                    amounts.append(round(float(output.split(",")[1].strip()) / 1e8, 8))
                 elif recipients_amount_unit == "btc":
                     amounts.append(float(output.split(",")[1].strip()))
                 else:
@@ -243,18 +238,28 @@ class PsbtCreator:
                 try:
                     amount = float(recipient["amount"])
                     if recipient["unit"] == "sat":
-                        amounts.append(float(amount / 1e8))
+                        amounts.append(round(amount / 1e8, 8))
                     elif recipient["unit"] == "btc":
                         amounts.append(amount)
                     else:
-                        raise SpecterError(
-                            f"Non-compliant json: Unknown unit {recipient['unit']}"
-                        )
+                        if specter.is_liquid:
+                            if len(recipient["unit"]) == 64:
+                                amounts.append(amount)
+                            else:
+                                raise SpecterError(
+                                    f"Non-compliant json: Unknown unit {recipient['unit']}. Accepted: sat, btc or 64-char hex asset id."
+                                )
+                        else:
+                            raise SpecterError(
+                                f"Non-compliant json: Unknown unit {recipient['unit']}"
+                            )
                 except ValueError as e:
                     raise SpecterError(
                         f"Could not parse amount {recipient.get('amount')} because {e}"
                     )
                 unit = recipient["unit"]
+                if specter.is_liquid and unit in ["sat", "btc"]:
+                    unit = specter.default_asset
                 amount_units.append(unit)
 
                 label = recipient.get("label", "")
