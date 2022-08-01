@@ -1,0 +1,71 @@
+https://html-css-js.com/?html=%3C!DOCTYPE%20html%3E%0A%3Chtml%3E%0A%3Chead%3E%0A%3Ctitle%3EHTML%20CSS%20JS%3C/title%3E%0A%3C/head%3E%0A%3Cbody%3E%0A%3Cdiv%20class=%22si$*$debar%22%3E%0A%20%20%3Cdiv%20class=%22dropdown%22%3E%0A%20%20%20%20%3Cinput/%3E%20%0A%20%20%20%20%3Cdiv%20class=%22dropdown-content%22%3E%0A%20%20%20%20%20%20%3Cdiv%20class=%22row%22%3E%0A%20%20%20%20%20%20%20%20%3Ca%20href=%22path1%22%3Epath1%3C/a%3E$**$nbsp;$**$nbsp;%3E$**$nbsp;$**$nbsp;%3Ca%20href=%22path2%22%3Epath2%3C/a%3E$**$nbsp;$**$nbsp;%3E$**$nbsp;$**$nbsp;search%20result%20%0A%20%20%20%20%20%20%3C/div%3E%20%0A%20%20%20%20%20%20%3Cdiv%20class=%22row%22%3E%0A%20%20%20%20%20%20%20%20%3Ca%20href=%22path1%22%3Epath1%3C/a%3E$**$nbsp;$**$nbsp;%3E$**$nbsp;$**$nbsp;%3Ca%20href=%22path2%22%3Epath2%3C/a%3E$**$nbsp;$**$nbsp;%3E$**$nbsp;$**$nbsp;search%20result%20%0A%20%20%20%20%20%20%3C/div%3E%20%0A%20%20%20%20%3C/div%3E%0A%20%20%3C/div%3E%0A%3C/div%3E%0A%20%20%0A%3C/body%3E%0A%3C/html%3E&css=/*%20CSS%20styles%20*/%0A.row%20%7B%0A%20%20background-color:%20lightblue;%0A%20%20padding-left:10px;%0A%20%20padding-right:2px;%0A%20%20padding-top:2px;%0A%20%20padding-bottom:2px;%0A%7D%0A.row:hover%20%7B%0A%20%20background-color:%20grey;%0A%7D%0A%0A%0A%0A.si$*$debar%20%7B%0A%20%20max-wi$*$dth:%20100px;%0A%7D%0A%0A%0A.dropdown%20%7B%0A%7D%0A%0A.dropdown-content%20%7B%0A%20%20display:%20none;%0A%20%20position:%20absolute;%0A%20%20background-color:%20rgba(1,0,0,.2);%0A%20%20wi$*$dth:%2090%25;%0A%20%20box-shadow:%200px%208px%2016px%200px%20rgba(0,0,0,1);%0A%20%20padding:%205px%205px;%0A%20%20z-index:%201;%0A%7D%0A%0A.dropdown:hover%20.dropdown-content%20%7B%0A%20%20display:%20block;%0A%7D&js=//%20JavaScript%0Adocument.getElementById('welcome').innerText%20+=%20%0A%22%20Editors%22;%0A
+
+
+
+
+
+
+
+
+/* CSS styles */
+.row {
+  background-color: lightblue;
+  padding-left:10px;
+  padding-right:2px;
+  padding-top:2px;
+  padding-bottom:2px;
+}
+.row:hover {
+  background-color: grey;
+}
+
+
+
+.sidebar {
+  max-width: 100px;
+}
+
+
+.dropdown {
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: rgba(1,0,0,.2);
+  width: 90%;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,1);
+  padding: 5px 5px;
+  z-index: 1;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>HTML CSS JS</title>
+</head>
+<body>
+<div class="sidebar">
+  <div class="dropdown">
+    <input/>
+    <div class="dropdown-content">
+      <div class="row">
+        <a href="path1">path1</a>&nbsp;&nbsp;>&nbsp;&nbsp;<a href="path2">path2</a>&nbsp;&nbsp;>&nbsp;&nbsp;search result
+      </div>
+      <div class="row">
+        <a href="path1">path1</a>&nbsp;&nbsp;>&nbsp;&nbsp;<a href="path2">path2</a>&nbsp;&nbsp;>&nbsp;&nbsp;search result
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
