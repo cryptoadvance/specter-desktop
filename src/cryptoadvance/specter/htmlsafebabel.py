@@ -1,6 +1,6 @@
 from flask_babel import Babel, get_translations
 from jinja2.utils import markupsafe
-from html.parser import HTMLParser
+import html
 
 
 class HTMLSafeBabel(Babel):
@@ -30,4 +30,4 @@ class HTMLSafeBabel(Babel):
 
         Existing entities need to be decoded first to avoid double-encoding.
         """
-        return markupsafe.Markup.escape(HTMLParser().unescape(escaped_string))
+        return markupsafe.Markup.escape(html.unescape(escaped_string))

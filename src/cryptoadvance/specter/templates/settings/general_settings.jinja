@@ -40,7 +40,7 @@
 			<h1>{{ _("Backup and Restore") }}</h1>
 			<div style="display: flex;">
 				<span>{{ _("Create Specter backup") }}:</span>
-				<tool-tip>
+				<tool-tip width="200px">
 				    <span slot="paragraph">
 				    	{{ _("This will back up your wallets and devices.") }}
 				    	{{ _("Backups are recommended but keep your backup files private, as sharing them will result in privacy leaks.") }}
@@ -55,8 +55,8 @@
 			</div>
 			<br>
 			<div style="display: flex;">
-				<span style="margin: auto 5px auto 0px;">{{ _("Load Specter backup") }}:</span>
-				<tool-tip>
+				<span>{{ _("Load Specter backup") }}:</span>
+				<tool-tip width="200px">
 				    <span slot="paragraph">
 						{{ _("Please make sure to unzip the backup file first, then upload the extracted folder.") }}
 						{{ _("This will restore your wallets and devices.") }}<br>
@@ -102,7 +102,7 @@
 			<div style="display: flex; flex-direction: column">
 				<div style="display: flex;">
 					<span>{{ _("Logging level") }}:</span>
-					<tool-tip>
+					<tool-tip width="200px">
 					    <span slot="paragraph">
 					    	{{ _("The logging level determines the amount of output that is displayed in the terminal - if you run Specter from the terminal - and in the log file which can be found here:") }} <code>{{ config.SPECTER_LOGFILE }}</code><br>
 					    	{{ _("The debug option produces the most output, the warn option the least.") }}
@@ -131,7 +131,7 @@
 			</div>
 			<div class="warning hidden" id="merkle-info-details">
 				<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
-		        {{ _('Specter Desktop validates <a href="https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki" target="_blank">BIP 37</a> Merkle Proofs from your full node <strong>guaranteeing</strong> that transactions displayed as confirmed have been included in the specified block hash.') }}<br><br>
+		        {{ _('Specter Desktop validates ')}}<a href="https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki" target="_blank">{{ _("BIP 37")}}</a>{{ _(" Merkle Proofs from your full node ")}}<strong>{{ _("guaranteeing")}}</strong>{{ _(" that transactions displayed as confirmed have been included in the specified block hash.")}}<br><br>
 		        {{ _("However, a compromised full node could return a fake block that was never mined.") }}
 		        {{ _("To be sure, you could double check the block hash in other locations (other nodes, block explorers, etc).") }}
 			</div>

@@ -174,7 +174,7 @@
 												<p>{{ _("If you're running a local Bitcoin Core node, Specter should be able to auto-detect it if its data folder is located at the default location.") }}<br>
 												{{ _("In case it isn't, you might need to specify the Bitcoin Core data folder path in Specter's settings page.") }}<br>
 												{{ _("Alternatively, you can switch off auto-detect from the settings and provide the Bitcoin Core RPC credentials and host URL manually.") }}<br><br>
-												{{ _("<b>Please note:</b><br>Your node must be configured with <code>server=1</code> line in the <code>bitcoin.conf</code> file.") }}<br>
+												<b>{{ _("Please note:")}}</b><br>{{ _('Your node must be configured with ')}}<code>server=1</code>{{ _(' line in the ')}}<code>bitcoin.conf</code>{{ _(' file.')}}<br>
 												{{ _("If you don't have that, add it and restart Bitcoin Core.") }}"
 												</p>
 												<br><br>
@@ -243,11 +243,11 @@
 						</table>
 						<br>
 					{% endif %}
-					<p style="position: relative; z-index: 1; line-height: 24px; font-size: 1.1em">&#128064;{{ _(' Have a look at our <a href="https://specter-desktop-docs.netlify.app/" target="_blank" style="color: #fff; font-weight: bolder;">documentation</a> and the <a href="https://specter-desktop-docs.netlify.app/faq/" target="_blank" style="color: #fff; font-weight: bolder;">FAQ</a>') }}</p><br>
+					<p style="position: relative; z-index: 1; line-height: 24px; font-size: 1.1em">&#128064;{{ _(' Have a look at our ')}}<a href="https://specter-desktop-docs.netlify.app/" target="_blank" style="color: #fff; font-weight: bolder;">{{ _('documentation')}}</a>{{ _(' and the ')}}<a href="https://specter-desktop-docs.netlify.app/faq/" target="_blank" style="color: #fff; font-weight: bolder;">{{ _('FAQ')}}</a></p><br>
 					<span style="position: relative; z-index: 1;">&#128583;{{ _(" Still having issues?") }}</span><br>
 					<div style="display: flex; justify-content: center;">
 						<div style="max-width: 80%;">
-							<p style="position: relative; z-index: 1;">{{ _('Feel free to <a href="https://github.com/cryptoadvance/specter-desktop/issues/new" target="_blank" style="color: #fff;">open an issue on GitHub</a> or ask in the <a href="https://t.me/spectersupport" target="_blank" style="color: #fff;">Specter Community telegram chat</a>') }}</p>
+							<p style="position: relative; z-index: 1;">{{ _('Feel free to ')}}<a href="https://github.com/cryptoadvance/specter-desktop/issues/new" target="_blank" style="color: #fff;">{{ _('open an issue on GitHub')}}</a>{{ _(' or ask in the ')}}<a href="https://t.me/spectersupport" target="_blank" style="color: #fff;">{{ _('Specter Community telegram chat')}}</a></p>
 						</div>
 					</div>
 					<br>

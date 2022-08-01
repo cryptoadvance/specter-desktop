@@ -52,7 +52,7 @@
 			</div>
 			{% if wallet.amount_locked_unsigned  > 0 or wallet.amount_frozen > 0 %}
 			<div>
-				<tool-tip>
+				<tool-tip width="150px">
 				    <h4 slot="title">{{ _("Why is this less than my total balance?") }}</h4>
 				    <span slot="paragraph">
 						{{ _(' Frozen outputs and outputs locked in unsigned transactions are not available here.  
@@ -107,7 +107,7 @@
 				is-liquid="{{specter.is_liquid}}"
 				selected-coins="{{ selected_coins }}">
 			</coin-selection>
-			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">{{ _('Create <span class="optional">&nbsp;unsigned&nbsp;</span>transaction') }}</button>
+			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">{{ _('Create ')}}<span class="optional">&nbsp;{{ _('unsigned')}}&nbsp;</span>{{ _('transaction') }}</button>
 		</div>
 	</form>
 {% endblock %}
