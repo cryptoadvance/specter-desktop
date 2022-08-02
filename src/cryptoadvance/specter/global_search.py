@@ -78,14 +78,13 @@ class HtmlElement:
 
     def childless_only_as_json(self):
         result_list = []
-        if not self.results:
-            return result_list
+
+        if not self.children:
+            return [self.json_with_results()] if self.results else []
 
         for child in self.children:
             result_list += child.childless_only_as_json()
 
-        if not self.children:
-            result_list += [self.json_with_results()]
         return result_list
 
     def json_with_results(self):
