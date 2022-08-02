@@ -87,7 +87,7 @@ Cypress.Commands.add("deleteDevice", (name) => {
     cy.get('body').then(($body) => {
         if ($body.text().includes(name)) {
           cy.get('#toggle_devices_list').click()
-          cy.contains(name).click()
+          cy.contains(name).click( {force: true} )
           cy.get('#forget_device').click()
           cy.reload()
           // For hot wallets only
@@ -251,9 +251,9 @@ Cypress.Commands.add("mine2wallet", (chain) => {
 Cypress.Commands.add("createPsbt", (address, label="a_label", amount=0.01) => { 
   cy.get('#btn_send').click()
   // it is not clear why .shadow(), or { includeShadowDom: true } is needed here to find the elements in the ShadowDOM, but not in the other cypresss tests 
-  cy.get('#recipient_0').find('#address', { includeShadowDom: true }).type(address)   
-  cy.get('#recipient_0').find('#label', { includeShadowDom: true }).type(label)
+  cy.get('#recipient_0').find('#address', { includeShadowDom: true }).type(address, { force: true })   
+  cy.get('#recipient_0').find('#label', { includeShadowDom: true }).type(label, { force: true })
   //cy.get('#send_max_0').click()
-  cy.get('#recipient_0').find('#amount', { includeShadowDom: true }).type(amount)
+  cy.get('#recipient_0').find('#amount', { includeShadowDom: true }).type(amount, { force: true })
   cy.get('#create_psbt_btn').click()
 })

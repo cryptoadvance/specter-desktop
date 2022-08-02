@@ -184,7 +184,9 @@ describe('Test sending transactions', () => {
     it('Use an address belonging to the wallet', () => {
         cy.selectWallet("Ghost wallet")
         cy.get('#btn_send').click()
-        cy.get('#recipients').find('#recipient_0').find('#address').type("bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs", { force: true })
+        cy.get('#recipient_0').find('#address').type('bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs', { force: true })
+        cy.get('#recipient_0').find('#label').type('To my own wallet', { force: true })
+        cy.get('#recipient_0').find('#amount').type(10, { force: true })
         // Checking that the background colour of the address is green as it belongs to the wallet
         cy.get('#recipients').find('#recipient_0').find('#address').should('have.css', 'background-color','rgb(48, 109, 48)')
     })
