@@ -69,18 +69,6 @@ class HtmlElement:
             result_list += child.flattened_sub_tree_as_json()
         return result_list
 
-    def childless_only_as_json(self, only_with_result=True):
-        result_list = []
-        if only_with_result and not self.results:
-            return result_list
-
-        for child in self.children:
-            result_list += child.childless_only_as_json()
-
-        if not self.children:
-            result_list += [self.json()]
-        return result_list
-
     def flattened_parent_list(self):
         parents = []
         if self.parent:
@@ -88,15 +76,36 @@ class HtmlElement:
 
         return parents
 
-    def json(self):
+    def childless_only_as_json(self):
+        result_list = []
+        if not self.results:
+            return result_list
+
+        for child in self.children:
+            result_list += child.childless_only_as_json()
+
+        if not self.children:
+            result_list += [self.json_with_results()]
+        return result_list
+
+    def json_with_results(self):
         d = {}
         d["id"] = self.id
-        # d["children"] = {child.json() for child in self.children}
-        d["parents"] = self.parent.json() if self.parent else self.parent
-        d["flattened_parent_list"] = [
+        d["flattened_parent_ids"] = [
             parent.json() for parent in self.flattened_parent_list()
         ]
         d["results"] = self.results
+        d["title"] = self.title
+        d["endpoint"] = self.endpoint
+        d["filter_via_input_ids"] = self.filter_via_input_ids
+        return d
+
+    def json(self):
+        d = {}
+        d["id"] = self.id
+        d["flattened_parent_ids"] = [
+            parent.json() for parent in self.flattened_parent_list()
+        ]
         d["title"] = self.title
         d["endpoint"] = self.endpoint
         d["filter_via_input_ids"] = self.filter_via_input_ids
@@ -310,6 +319,9 @@ def do_global_search(search_term, specter):
 
     if search_term:
         apply_search_on_dict(search_term, HTML_ROOT)
+
+    print(HTML_ROOT.childless_only_as_json())
+
     return {
         "tree": HTML_ROOT,
         "childless_only": HTML_ROOT.childless_only_as_json(),

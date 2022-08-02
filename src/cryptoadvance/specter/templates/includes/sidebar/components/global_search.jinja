@@ -170,7 +170,7 @@
             for (var i in html_element.flattened_parent_list){
                 var parent = html_element.flattened_parent_list[i];
                 // skip the html root
-                if (!parent.parents){continue}
+                if (!parent.flattened_parent_list){continue}
 
                 div.appendChild(this.htmlElementToLink(parent))
                 div.innerHTML +=  '&nbsp;&nbsp;>&nbsp;&nbsp;';
