@@ -80,7 +80,6 @@
 			this.searchInputElement.addEventListener('input', event=>{
 				this.delayed_global_search(this.searchInputElement.value);
 			});			
-
         }
 
 
@@ -147,14 +146,13 @@
 
 
         htmlElementToLink(json_structure){
-
-            var htmlElement = this.elementByIds(json_structure.id);  
+            var htmlElement = this.elementByIds(json_structure.id)
 
 
             var a = document.createElement("a");
             a.style = "color: #fff; font-weight: bolder;"                
-            a.href = htmlElement ? htmlElement.href  : '';
-            a.text = htmlElement ? htmlElement.innerText  : json_structure.title;
+            a.href = json_structure.endpoint ? json_structure.endpoint : htmlElement.href;
+            a.text = json_structure.title ? json_structure.title  : htmlElement.innerText;
             return a
         }
 

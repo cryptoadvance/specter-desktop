@@ -16,6 +16,8 @@ class HtmlElement:
         function=None,
         children=None,
         title=None,
+        endpoint=None,
+        click_on_id=False,  # some tabs do not have their own endpoint but need a click to show the tab
         filter_via_input_ids=None,
     ):
         self.parent = parent
@@ -28,6 +30,8 @@ class HtmlElement:
         self.function = function
         self.filter_via_input_ids = filter_via_input_ids
         self.title = title
+        self.endpoint = endpoint
+        self.click_on_id = click_on_id
 
     @property
     def result(self):
@@ -91,6 +95,7 @@ class HtmlElement:
         ]
         d["result"] = self.result
         d["title"] = self.title
+        d["endpoint"] = self.endpoint
         d["filter_via_input_ids"] = self.filter_via_input_ids
         return d
 
@@ -107,8 +112,18 @@ def build_html_elements(specter):
         HtmlElement: This is the html_root, which has all children linked inside
     """
     html_root = HtmlElement(None)
-    wallets = HtmlElement(html_root, id="toggle_wallets_list")
-    devices = HtmlElement(html_root, id="toggle_devices_list")
+    wallets = HtmlElement(
+        html_root,
+        id="toggle_wallets_list",
+        title="Wallets",
+        endpoint=url_for("wallets_endpoint.wallets_overview"),
+    )
+    devices = HtmlElement(
+        html_root,
+        id="toggle_devices_list",
+        title="Devices",
+        endpoint=url_for("wallets_endpoint.wallets_overview"),
+    )
 
     def search_in_structure(search_term, l):
         count = 0
@@ -122,17 +137,23 @@ def build_html_elements(specter):
         return count
 
     def add_all_in_wallet(wallet):
-        sidebar_wallet = HtmlElement(wallets, id=f"{wallet.alias}-sidebar-list-item")
+        sidebar_wallet = HtmlElement(
+            wallets,
+            id=f"{wallet.alias}-sidebar-list-item",
+            title=wallet.alias,
+        )
         wallet_names = HtmlElement(
             sidebar_wallet,
             id="title",
             title="Wallet",
+            endpoint=url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias),
             function=lambda x: search_in_structure(x, [wallet.alias]),
         )
         transactions = HtmlElement(
             sidebar_wallet,
             id="btn_transactions",
             title="Transactions",
+            endpoint=url_for("wallets_endpoint.history", wallet_alias=wallet.alias),
             filter_via_input_ids=(
                 f"tx-table-{wallet.alias}",
                 "shadowRoot",
@@ -147,6 +168,7 @@ def build_html_elements(specter):
                 "btn_history",
             ),
             title="History",
+            endpoint=url_for("wallets_endpoint.history", wallet_alias=wallet.alias),
             function=lambda x: search_in_structure(x, wallet.txlist()),
         )
         transactions_utxo = HtmlElement(
@@ -157,6 +179,7 @@ def build_html_elements(specter):
                 "btn_utxo",
             ),
             title="UTXO",
+            endpoint=url_for("wallets_endpoint.history", wallet_alias=wallet.alias),
             function=lambda x: search_in_structure(x, wallet.full_utxo),
         )
 
@@ -164,6 +187,7 @@ def build_html_elements(specter):
             sidebar_wallet,
             id="btn_addresses",
             title="Addresses",
+            endpoint=url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias),
         )
         addresses_recieve = HtmlElement(
             addresses,
@@ -173,6 +197,8 @@ def build_html_elements(specter):
                 "receive-addresses-view-btn",
             ),
             title="Recieve Addresses",
+            endpoint=url_for("wallets_endpoint.receive", wallet_alias=wallet.alias),
+            click_on_id=True,
             function=lambda x: search_in_structure(
                 x, wallet.addresses_info(is_change=False)
             ),
@@ -185,6 +211,8 @@ def build_html_elements(specter):
                 "change-addresses-view-btn",
             ),
             title="Change Addresses",
+            endpoint=url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias),
+            click_on_id=True,
             function=lambda x: search_in_structure(
                 x, wallet.addresses_info(is_change=True)
             ),
@@ -193,7 +221,8 @@ def build_html_elements(specter):
         recieve = HtmlElement(
             sidebar_wallet,
             id="btn_receive",
-            title="Change Addresses",
+            title="Recieve",
+            endpoint=url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias),
             function=lambda x: search_in_structure(x, [wallet.address]),
         )
 
@@ -201,28 +230,39 @@ def build_html_elements(specter):
             sidebar_wallet,
             id="btn_send",
             title="Send",
+            endpoint=url_for("wallets_endpoint.send_new", wallet_alias=wallet.alias),
         )
         unsigned = HtmlElement(
             send,
             id="btn_send_pending",
             title="Unsigned",
+            endpoint=url_for(
+                "wallets_endpoint.send_pending", wallet_alias=wallet.alias
+            ),
             function=lambda x: search_in_structure(
                 x, [psbt.to_dict() for psbt in wallet.pending_psbts.values()]
             ),
         )
 
     def add_all_in_devices(device):
-        sidebar_device = HtmlElement(devices, id=f"device_list_item_{device.alias}")
+        sidebar_device = HtmlElement(
+            devices,
+            id=f"device_list_item_{device.alias}",
+            title=device.alias,
+            endpoint=url_for("devices_endpoint.device", device_alias=device.alias),
+        )
         device_names = HtmlElement(
             sidebar_device,
             id="title",
             title="Devices",
+            endpoint=url_for("devices_endpoint.device", device_alias=device.alias),
             function=lambda x: search_in_structure(x, [device.alias]),
         )
         device_keys = HtmlElement(
             sidebar_device,
             id="keys-table-header-key",
             title="Keys",
+            endpoint=url_for("devices_endpoint.device", device_alias=device.alias),
             function=lambda x: search_in_structure(x, [key for key in device.keys]),
         )
 
