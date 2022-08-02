@@ -115,7 +115,7 @@ def fees_old(blocks):
 @wallets_endpoint_api.route("/global_search", methods=["POST"])
 @login_required
 def global_search():
-    search_term = request.form.get("global_search_input")
+    search_term = request.form.get("global-search-input")
     print(search_term)
     return robust_json_dumps(do_global_search(search_term.strip(), app.specter))
 

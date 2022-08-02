@@ -1,158 +1,264 @@
-<script>
-    var changed_elements = [];
-    var timeOutIds = [];
+<template id="global-search">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 
-    /**
-    Resets the highlighting of previously highlighted elements
-    */
-    function reset_highlight(){
-        console.log('before resetting')
-        console.log(changed_elements)
-        for (var i in changed_elements){ 
-            changed_elements[i].element.style = changed_elements[i].old_style;
-        } 
-    }
-
-
-    function endpoint_is_visible(allowed_endpoint){
-        return ('{{ url_for(request.endpoint, **request.view_args) }}'.indexOf(allowed_endpoint) >= 0)
-    }
-
-
-    /**
-    Fetches an element by the id. 
-    If it is below a shadowRoot the argument should be 
-        ids = [f"addresses-table-{wallet.alias}","shadowRoot","receive-addresses-view-btn"]
-    */
-    function element_by_ids(ids){
-        if (!ids) {return null};
-
-        if (typeof ids === 'string' || ids instanceof String){        
-            ids = [ids];
+    <style type="text/css">
+        .global-search-row {
+        background-color: var(--cmap-bg-lighter);
+        padding-left:10px;
+        padding-right:2px;
+        padding-top:2px;
+        padding-bottom:2px;
+        }
+        .global-search-row:hover {
+        background-color: var(--cmap-blue-darker);
         }
 
 
-        var last_found_element = document;
-        var found_element = null;
-        console.log(ids)
-        for (var i in ids){
-            if (ids[i] == 'shadowRoot'){
-                found_element = last_found_element.shadowRoot;
+        .global-search-dropdown {
+        }
+
+        .global-search-dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: var(--cmap-bg);
+        width: 90%;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,1);
+        padding: 5px 5px;
+        z-index: 1;
+        }
+
+        .global-search-dropdown:hover .global-search-dropdown-content {
+        display: block;
+        }
+    </style>
+
+    <div class="global-search-dropdown">
+        <input  id="global-search-input" title="Search for addresses, transactions, amounts, ... and click on the highlighted buttons."  
+                placeholder="Search..."/>
+        <div class="global-search-dropdown-content" id="global-search-dropdown-content">
+            <div class="global-search-row">
+                <a href="path1" style="color: #fff; font-weight: bolder;">path1</a>&nbsp;&nbsp;>&nbsp;&nbsp;<a href="path2"  style="color: #fff; font-weight: bolder;">path2</a>&nbsp;&nbsp;>&nbsp;&nbsp;search result 
+            </div> 
+            <div class="global-search-row">
+                <a href="path1"  style="color: #fff; font-weight: bolder;">path1</a>&nbsp;&nbsp;>&nbsp;&nbsp;<a href="path2"  style="color: #fff; font-weight: bolder;">path2</a>&nbsp;&nbsp;>&nbsp;&nbsp;search result 
+            </div> 
+        </div>
+    </div>
+</template>
+
+
+<script type="text/javascript">
+	class GlobalSearch extends HTMLElement {
+		constructor() {
+			super();
+
+			this.internals = this.attachInternals();
+
+            this.changed_elements = [];
+            this.timeOutIds = [];
+
+			this.buildHTML();			// created the html
+			this.attachListeners();		// attaches the listeners to some html objects
+    }
+
+
+
+
+		// creates the entire html code (without event listeners)  from the template
+		buildHTML(){
+			// Create a shadow root
+			this.attachShadow({
+				mode: 'open'
+			});
+
+			var template_content = document.getElementById('global-search').content;
+            let clone = template_content.cloneNode(true);
+
+            this.searchInputElement = clone.getElementById('global-search-input');
+            this.dropdownContentElement = clone.getElementById('global-search-dropdown-content');
+
+            this.shadowRoot.appendChild(clone);
+		}
+
+
+
+		// adds EventListeners 
+		attachListeners(){
+			this.searchInputElement.addEventListener('input', event=>{
+				this.delayed_global_search(this.searchInputElement.value);
+			});			
+
+        }
+
+
+
+        /**
+        Resets the highlighting of previously highlighted elements
+        */
+        reset_highlight(){
+            console.log('before resetting')
+            console.log(this.changed_elements)
+            for (var i in this.changed_elements){ 
+                this.changed_elements[i].element.style = this.changed_elements[i].old_style;
+            } 
+        }
+
+
+        endpoint_is_visible(allowed_endpoint){
+            return ('{{ url_for(request.endpoint, **request.view_args) }}'.indexOf(allowed_endpoint) >= 0)
+        }
+
+
+        /**
+        Fetches an element by the id. 
+        If it is below a shadowRoot the argument should be 
+            ids = [f"addresses-table-{wallet.alias}","shadowRoot","receive-addresses-view-btn"]
+        */
+        element_by_ids(ids){
+            if (!ids) {return null};
+
+            if (typeof ids === 'string' || ids instanceof String){        
+                ids = [ids];
+            }
+
+
+            var last_found_element = document;
+            var found_element = null;
+            console.log(ids)
+            for (var i in ids){
+                if (ids[i] == 'shadowRoot'){
+                    found_element = last_found_element.shadowRoot;
+                }
+                else {
+                    found_element = last_found_element.getElementById(ids[i]);
+                }
+
+                if (!found_element) {break}
+
+                last_found_element = found_element;
+            }
+
+            if (last_found_element === document){return null};
+
+            return last_found_element
+        }
+
+        /**
+        It transferred the search_term to another input (such as a input that filters a table)
+        */
+        apply_filter_to_input(html_element, search_term){
+            if (!html_element.filter_via_input_ids) {return};
+        
+            var found_element = this.element_by_ids(html_element.filter_via_input_ids);
+            if (!found_element) {return}
+            
+            console.log(found_element);
+            found_element.value = search_term;
+            if (found_element.onchange){
+                found_element.onchange();
             }
             else {
-                found_element = last_found_element.getElementById(ids[i]);
-            }
-
-            if (!found_element) {break}
-
-            last_found_element = found_element;
-        }
-
-        if (last_found_element === document){return null};
-
-        return last_found_element
-    }
-
-    /**
-    It transferred the search_term to another input (such as a input that filters a table)
-    */
-    function apply_filter_to_input(html_element, search_term){
-        if (!html_element.filter_via_input_ids) {return};
-    
-        var found_element = element_by_ids(html_element.filter_via_input_ids);
-        if (!found_element) {return}
-        
-        console.log(found_element);
-        found_element.value = search_term;
-        if (found_element.onchange){
-            found_element.onchange();
-        }
-        else {
-            console.log('No onchange connected for ',found_element)
-        }
-    }
-
-    /**
-    Applies the new style (like background color) to an html_element
-    */
-    function apply_new_style(found_element){
-        console.log(`setting green ${found_element.id}`);
-
-        // add the found_element to changed_elements  if it is not in there already
-        element_already_exists = false;
-        for (var i in changed_elements){
-            if (changed_elements[i].element == found_element){
-                element_already_exists = true;
+                console.log('No onchange connected for ',found_element)
             }
         }
-        if (!element_already_exists){
-            changed_elements.push({element:found_element, old_style:found_element.style});
+
+        /**
+        Applies the new style (like background color) to an html_element
+        */
+        apply_new_style(found_element){
+            console.log(`setting green ${found_element.id}`);
+
+            // add the found_element to this.changed_elements  if it is not in there already
+            var element_already_exists = false;
+            for (var i in this.changed_elements){
+                if (this.changed_elements[i].element == found_element){
+                    element_already_exists = true;
+                }
+            }
+            if (!element_already_exists){
+                this.changed_elements.push({element:found_element, old_style:found_element.style});
+            }
+            found_element.style.backgroundColor = 'var(--cmap-blue-darker)';    
         }
-        found_element.style.backgroundColor = 'var(--cmap-blue-darker)';    
-    }
 
-    /**
-    Takes a HtmlElement.json()  and does all necessary operations
-    */
-    function process_html_element(html_element, search_term){
-        if (!endpoint_is_visible(html_element.visible_on_endpoints)){return};
-        apply_filter_to_input(html_element, search_term);
+        /**
+        Takes a HtmlElement.json()  and does all necessary operations
+        */
+        process_html_element(html_element, search_term){
+            if (!this.endpoint_is_visible(html_element.visible_on_endpoints)){return};
+            this.apply_filter_to_input(html_element, search_term);
 
-        if (html_element.result == null){return};
-        if (html_element.result <= 0){return};
+            if (html_element.result == null){return};
+            if (html_element.result <= 0){return};
 
-        var found_element = element_by_ids(html_element.id); 
-        if (!found_element) {return};
-        apply_new_style(found_element);
-    }
+            var found_element = this.element_by_ids(html_element.id); 
+            if (!found_element) {return};
+            this.apply_new_style(found_element);
 
-    
+            return
+            var div = document.createElement("div");
+            div.class = "global-search-row";
+            var a = document.createElement("a");
+            a.style = "color: #fff; font-weight: bolder;"
+            a.href = "empty"
+            a.text = html_element.result
 
-    /**
-    Sends the search_term to an endpoint, gets the answer back and then calls process_html_element
-    */    
-    function global_search(search_term){
-        reset_highlight();
-        var formData = new FormData();
-        formData.append('global_search_input', document.getElementById('global_search_input').value);
+            this.dropdownContentElement.appendChild()
 
-        let url="{{ url_for('wallets_endpoint_api.global_search' ) }}";
-        send_request(url, 'POST', "{{ csrf_token() }}", formData).then((answer)=> {
-            if (!answer){return}
-            //console.log(answer)
+
+        }
+
+                
+
+
+        /**
+        Sends the search_term to an endpoint, gets the answer back and then calls process_html_element
+        */    
+        global_search(search_term){
+            this.reset_highlight();
+            var formData = new FormData();
+            formData.append('global-search-input', this.searchInputElement.value);
+
+            let url="{{ url_for('wallets_endpoint_api.global_search' ) }}";
+            send_request(url, 'POST', "{{ csrf_token() }}", formData).then((answer)=> {
+                if (!answer){return}
+                //console.log(answer)
+                
+                console.log(answer.tree);
+
+                for (var i in answer.list){
+                    var html_element = answer.list[i];
+                    this.process_html_element(html_element, answer.search_term) ;
+                }
+                
+
+            });
+        }
+
+
+        /**
+        This function starts global_search with a delay
+
+        If a new delayed_global_search is called, it will stop all old Timeouts.
+
+        This ensures only the newest search is actually performed.
+        */
+        delayed_global_search(search_term){
+            // stop old processes
+            for (var i = this.timeOutIds.length; i >= 0; i--) {
+                clearTimeout(this.timeOutIds[i]);      
+                console.log(`Stopped ${this.timeOutIds[i]}`)
+                this.timeOutIds.splice(i, 1);
+            }
             
-            for (var i in answer.list){
-                var html_element = answer.list[i];
-                process_html_element(html_element, answer.search_term) ;
-            }
-            
-
-        });
-    }
-
-
-    /**
-    This function starts global_search with a delay
-
-    If a new delayed_global_search is called, it will stop all old Timeouts.
-
-    This ensures only the newest search is actually performed.
-    */
-    function delayed_global_search(search_term){
-        // stop old processes
-        for (var i = timeOutIds.length; i >= 0; i--) {
-            clearTimeout(timeOutIds[i]);      
-            console.log(`Stopped ${timeOutIds[i]}`)
-            timeOutIds.splice(i, 1);
+            const timeOutId = setTimeout(() => this.global_search(search_term), 100);
+            this.timeOutIds.push(timeOutId);
         }
-        
-        const timeOutId = setTimeout(() => global_search(search_term), 100);
-        timeOutIds.push(timeOutId);
-    }
 
 
+
+
+
+	}
+	customElements.define('global-search', GlobalSearch);
 </script>
-
-<input  id="global_search_input" title="Search for addresses, transactions, amounts, ... and click on the highlighted buttons."  
-        placeholder="Search..." oninput="delayed_global_search(this.value)"/>
-
