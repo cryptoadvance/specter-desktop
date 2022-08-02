@@ -168,7 +168,11 @@ def build_html_elements(specter):
                 "btn_history",
             ),
             title="History",
-            endpoint=url_for("wallets_endpoint.history", wallet_alias=wallet.alias),
+            endpoint=url_for(
+                "wallets_endpoint.history_tx_list_type",
+                wallet_alias=wallet.alias,
+                tx_list_type="txlist",
+            ),
             function=lambda x: search_in_structure(x, wallet.txlist()),
         )
         transactions_utxo = HtmlElement(
@@ -179,7 +183,11 @@ def build_html_elements(specter):
                 "btn_utxo",
             ),
             title="UTXO",
-            endpoint=url_for("wallets_endpoint.history", wallet_alias=wallet.alias),
+            endpoint=url_for(
+                "wallets_endpoint.history_tx_list_type",
+                wallet_alias=wallet.alias,
+                tx_list_type="utxo",
+            ),
             function=lambda x: search_in_structure(x, wallet.full_utxo),
         )
 
@@ -198,7 +206,6 @@ def build_html_elements(specter):
             ),
             title="Recieve Addresses",
             endpoint=url_for("wallets_endpoint.receive", wallet_alias=wallet.alias),
-            click_on_id=True,
             function=lambda x: search_in_structure(
                 x, wallet.addresses_info(is_change=False)
             ),

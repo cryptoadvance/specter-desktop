@@ -371,8 +371,15 @@ def wallet(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/history/", methods=["GET", "POST"])
 @login_required
 def history(wallet_alias):
+    return history_tx_list_type(wallet_alias, "txlist")
+
+
+@wallets_endpoint.route(
+    "/wallet/<wallet_alias>/history/<tx_list_type>/", methods=["GET", "POST"]
+)
+@login_required
+def history_tx_list_type(wallet_alias, tx_list_type):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    tx_list_type = "txlist"
 
     if request.method == "POST":
         action = request.form["action"]
@@ -740,6 +747,7 @@ def addresses(wallet_alias):
         specter=app.specter,
         rand=rand,
         services=app.specter.service_manager.services,
+        address_type="change",
     )
 
 

@@ -1,5 +1,6 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
 {% set tab = 'history' %}
+{% set tx_list_type = tx_list_type %}
 {% block content %}
 	{% from 'wallet/history/components/total_wallet_balances.jinja' import total_wallet_balances %}
 	{{ total_wallet_balances(wallet, specter) }}
