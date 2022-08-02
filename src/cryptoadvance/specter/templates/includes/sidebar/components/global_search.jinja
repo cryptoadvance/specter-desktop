@@ -15,6 +15,7 @@
 
 
         .global-search-dropdown {
+            margin: 20px 20px 5px;
         }
 
         .global-search-dropdown-content {
@@ -150,7 +151,7 @@
 
 
             var a = document.createElement("a");
-            a.style = "color: #fff; font-weight: bolder;"                
+            a.style = "color: #fff;"                
             a.href = json_structure.endpoint ? json_structure.endpoint : htmlElement.href;
             a.text = json_structure.title ? json_structure.title  : htmlElement.innerText;
             return a
@@ -164,22 +165,20 @@
             if (html_element.result == null){return};
             
             var div = document.createElement("div");
-            div.class = "global-search-row";
-            console.log(html_element.flattened_parent_list)
+            div.className = "global-search-row";
 
             for (var i in html_element.flattened_parent_list){
                 var parent = html_element.flattened_parent_list[i];
-                // remove the html root
+                // skip the html root
                 if (!parent.parents){continue}
 
                 div.appendChild(this.htmlElementToLink(parent))
                 div.innerHTML +=  '&nbsp;&nbsp;>&nbsp;&nbsp;';
-
             }
 
 
             div.appendChild(this.htmlElementToLink(html_element))
-            div.innerHTML +=  '&nbsp;&nbsp;>&nbsp;&nbsp;';
+            div.innerHTML +=  `&nbsp;&nbsp;>&nbsp;&nbsp; Results: ${html_element.result}`;
 
             this.dropdownContentElement.appendChild(div);
         }

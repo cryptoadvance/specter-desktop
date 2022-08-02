@@ -730,6 +730,14 @@ def import_psbt(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/addresses/", methods=["GET"])
 @login_required
 def addresses(wallet_alias):
+    return addresses_with_type(wallet_alias, "recieve")
+
+
+@wallets_endpoint.route(
+    "/wallet/<wallet_alias>/addresses/<address_type>/", methods=["GET"]
+)
+@login_required
+def addresses_with_type(wallet_alias, address_type):
     """Show informations about cached addresses (wallet._addresses) of the <wallet_alias>.
     It updates balances in the wallet before renderization in order to show updated UTXO and
     balance of each address."""
@@ -747,7 +755,7 @@ def addresses(wallet_alias):
         specter=app.specter,
         rand=rand,
         services=app.specter.service_manager.services,
-        address_type="change",
+        address_type=address_type,
     )
 
 

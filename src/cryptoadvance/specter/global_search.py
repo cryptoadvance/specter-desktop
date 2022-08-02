@@ -205,7 +205,11 @@ def build_html_elements(specter):
                 "receive-addresses-view-btn",
             ),
             title="Recieve Addresses",
-            endpoint=url_for("wallets_endpoint.receive", wallet_alias=wallet.alias),
+            endpoint=url_for(
+                "wallets_endpoint.addresses_with_type",
+                wallet_alias=wallet.alias,
+                address_type="recieve",
+            ),
             function=lambda x: search_in_structure(
                 x, wallet.addresses_info(is_change=False)
             ),
@@ -218,7 +222,11 @@ def build_html_elements(specter):
                 "change-addresses-view-btn",
             ),
             title="Change Addresses",
-            endpoint=url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias),
+            endpoint=url_for(
+                "wallets_endpoint.addresses_with_type",
+                wallet_alias=wallet.alias,
+                address_type="change",
+            ),
             click_on_id=True,
             function=lambda x: search_in_structure(
                 x, wallet.addresses_info(is_change=True)
