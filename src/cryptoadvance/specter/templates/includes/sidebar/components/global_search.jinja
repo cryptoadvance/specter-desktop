@@ -145,6 +145,7 @@
             var div = document.createElement("div");
             div.className = "global-search-row";
 
+            // add all parents 
             for (var i in ui_element.flattened_parent_list){
                 console.log(`Append ${i}`)
                 var parent = ui_element.flattened_parent_list[i];
@@ -155,13 +156,20 @@
                 div.innerHTML +=  '&nbsp;&nbsp;>&nbsp;&nbsp;';
             }
             
-            div.appendChild(this.uiElementToLink(ui_element))
+            // add element to the same "parent" chain
+            var lastParent = this.uiElementToLink(ui_element);
+            div.appendChild(lastParent);
 
+            // show search result
             var span = document.createElement("span")
             span.innerHTML = this.highlightString(`&nbsp;&nbsp;>&nbsp;&nbsp; ${ui_element.results}`, search_term);
             span.style.fontSize = "small";
             div.appendChild(span);
 
+			div.addEventListener('click', event=>{
+				location.href = lastParent.href;
+			});			
+            div.style.cursor = "pointer";
             this.dropdownContentElement.appendChild(div);
         }
 
