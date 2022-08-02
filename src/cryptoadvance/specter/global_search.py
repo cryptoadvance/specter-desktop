@@ -15,17 +15,16 @@ class HtmlElement:
         id=None,
         function=None,
         children=None,
-        visible_on_endpoints="/",
         filter_via_input_ids=None,
     ):
         self.parent = parent
         if self.parent:
             self.parent.children.add(self)
         self.children = children if children else set()
+        # the id is the html id or, if needed the set of concatenated ids to get to the html element
         self.id = id if id else set()
         self._result = None
         self.function = function
-        self.visible_on_endpoints = visible_on_endpoints
         self.filter_via_input_ids = filter_via_input_ids
 
     @property
@@ -61,12 +60,34 @@ class HtmlElement:
             result_list += child.flattened_sub_tree_as_json()
         return result_list
 
+    def childless_only_as_json(self, only_with_result=True):
+        result_list = []
+        if only_with_result and not self.result:
+            return result_list
+
+        for child in self.children:
+            result_list += child.childless_only_as_json()
+
+        if not self.children:
+            result_list += [self.json()]
+        return result_list
+
+    def flattened_parent_list(self):
+        parents = []
+        if self.parent:
+            parents = self.parent.flattened_parent_list() + [self.parent]
+
+        return parents
+
     def json(self):
         d = {}
         d["id"] = self.id
-        d["children"] = self.children
+        # d["children"] = {child.json() for child in self.children}
+        d["parents"] = self.parent.json() if self.parent else self.parent
+        d["flattened_parent_list"] = [
+            parent.json() for parent in self.flattened_parent_list()
+        ]
         d["result"] = self.result
-        d["visible_on_endpoints"] = self.visible_on_endpoints
         d["filter_via_input_ids"] = self.filter_via_input_ids
         return d
 
@@ -103,16 +124,10 @@ def build_html_elements(specter):
             sidebar_wallet,
             id="title",
             function=lambda x: search_in_structure(x, [wallet.alias]),
-            visible_on_endpoints=[
-                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
-            ],
         )
         transactions = HtmlElement(
             sidebar_wallet,
             id="btn_transactions",
-            visible_on_endpoints=[
-                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
-            ],
             filter_via_input_ids=(
                 f"tx-table-{wallet.alias}",
                 "shadowRoot",
@@ -127,9 +142,6 @@ def build_html_elements(specter):
                 "btn_history",
             ),
             function=lambda x: search_in_structure(x, wallet.txlist()),
-            visible_on_endpoints=[
-                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
-            ],
         )
         transactions_utxo = HtmlElement(
             transactions,
@@ -139,17 +151,11 @@ def build_html_elements(specter):
                 "btn_utxo",
             ),
             function=lambda x: search_in_structure(x, wallet.full_utxo),
-            visible_on_endpoints=[
-                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
-            ],
         )
 
         addresses = HtmlElement(
             sidebar_wallet,
             id="btn_addresses",
-            visible_on_endpoints=[
-                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
-            ],
         )
         addresses_recieve = HtmlElement(
             addresses,
@@ -161,9 +167,6 @@ def build_html_elements(specter):
             function=lambda x: search_in_structure(
                 x, wallet.addresses_info(is_change=False)
             ),
-            visible_on_endpoints=[
-                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
-            ],
         )
         addresses_change = HtmlElement(
             addresses,
@@ -175,26 +178,17 @@ def build_html_elements(specter):
             function=lambda x: search_in_structure(
                 x, wallet.addresses_info(is_change=True)
             ),
-            visible_on_endpoints=[
-                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
-            ],
         )
 
         recieve = HtmlElement(
             sidebar_wallet,
             id="btn_receive",
             function=lambda x: search_in_structure(x, [wallet.address]),
-            visible_on_endpoints=[
-                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
-            ],
         )
 
         send = HtmlElement(
             sidebar_wallet,
             id="btn_send",
-            visible_on_endpoints=[
-                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
-            ],
         )
         unsigned = HtmlElement(
             send,
@@ -202,9 +196,6 @@ def build_html_elements(specter):
             function=lambda x: search_in_structure(
                 x, [psbt.to_dict() for psbt in wallet.pending_psbts.values()]
             ),
-            visible_on_endpoints=[
-                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
-            ],
         )
 
     def add_all_in_devices(device):
@@ -213,17 +204,11 @@ def build_html_elements(specter):
             sidebar_device,
             id="title",
             function=lambda x: search_in_structure(x, [device.alias]),
-            visible_on_endpoints=[
-                url_for("devices_endpoint.device", device_alias=device.alias)
-            ],
         )
         device_keys = HtmlElement(
             sidebar_device,
             id="keys-table-header-key",
             function=lambda x: search_in_structure(x, [key for key in device.keys]),
-            visible_on_endpoints=[
-                url_for("devices_endpoint.device", device_alias=device.alias)
-            ],
         )
 
     for wallet in specter.wallet_manager.wallets.values():
@@ -255,6 +240,7 @@ def do_global_search(search_term, specter):
     print(HTML_ROOT.flattened_sub_tree_as_json())
     return {
         "tree": HTML_ROOT,
+        "childless_only": HTML_ROOT.childless_only_as_json(),
         "list": HTML_ROOT.flattened_sub_tree_as_json(),
         "search_term": search_term,
     }

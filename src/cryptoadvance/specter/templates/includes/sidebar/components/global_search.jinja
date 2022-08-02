@@ -36,12 +36,6 @@
         <input  id="global-search-input" title="Search for addresses, transactions, amounts, ... and click on the highlighted buttons."  
                 placeholder="Search..."/>
         <div class="global-search-dropdown-content" id="global-search-dropdown-content">
-            <div class="global-search-row">
-                <a href="path1" style="color: #fff; font-weight: bolder;">path1</a>&nbsp;&nbsp;>&nbsp;&nbsp;<a href="path2"  style="color: #fff; font-weight: bolder;">path2</a>&nbsp;&nbsp;>&nbsp;&nbsp;search result 
-            </div> 
-            <div class="global-search-row">
-                <a href="path1"  style="color: #fff; font-weight: bolder;">path1</a>&nbsp;&nbsp;>&nbsp;&nbsp;<a href="path2"  style="color: #fff; font-weight: bolder;">path2</a>&nbsp;&nbsp;>&nbsp;&nbsp;search result 
-            </div> 
         </div>
     </div>
 </template>
@@ -114,7 +108,7 @@
         If it is below a shadowRoot the argument should be 
             ids = [f"addresses-table-{wallet.alias}","shadowRoot","receive-addresses-view-btn"]
         */
-        element_by_ids(ids){
+        elementByIds(ids){
             if (!ids) {return null};
 
             if (typeof ids === 'string' || ids instanceof String){        
@@ -144,12 +138,12 @@
         }
 
         /**
-        It transferred the search_term to another input (such as a input that filters a table)
+        It transferred the search_term to another input (such as an input that filters a table)
         */
         apply_filter_to_input(html_element, search_term){
             if (!html_element.filter_via_input_ids) {return};
         
-            var found_element = this.element_by_ids(html_element.filter_via_input_ids);
+            var found_element = this.elementByIds(html_element.filter_via_input_ids);
             if (!found_element) {return}
             
             console.log(found_element);
@@ -185,30 +179,52 @@
         Takes a HtmlElement.json()  and does all necessary operations
         */
         process_html_element(html_element, search_term){
-            if (!this.endpoint_is_visible(html_element.visible_on_endpoints)){return};
             this.apply_filter_to_input(html_element, search_term);
 
             if (html_element.result == null){return};
-            if (html_element.result <= 0){return};
-
-            var found_element = this.element_by_ids(html_element.id); 
-            if (!found_element) {return};
-            this.apply_new_style(found_element);
-
-            return
+            
             var div = document.createElement("div");
             div.class = "global-search-row";
+            console.log(html_element.flattened_parent_list)
+
+            for (var i in html_element.flattened_parent_list){
+
+                var parent = html_element.flattened_parent_list[i];
+                if (!parent){continue}
+                var parentElement = this.elementByIds(parent.id); 
+                if (!parentElement){
+                    console.log(`parent not found ${parent}`)
+                    continue
+                }
+
+
+                var a = document.createElement("a");
+                a.style = "color: #fff; font-weight: bolder;"                
+                a.href = parentElement.href ? parentElement.href : '';
+                a.text = `${parentElement.innerText}`
+                div.appendChild(a)
+                div.innerHTML +=  '&nbsp;&nbsp;>&nbsp;&nbsp;';
+            }
+
+
             var a = document.createElement("a");
             a.style = "color: #fff; font-weight: bolder;"
             a.href = "empty"
-            a.text = html_element.result
+            a.text = `${html_element.id} found: ${html_element.result}`
+            div.appendChild(a)
 
-            this.dropdownContentElement.appendChild()
+
+            this.dropdownContentElement.appendChild(div)            
 
 
         }
 
                 
+        clearDropdownContent(){
+            while (this.dropdownContentElement.firstChild) {
+                this.dropdownContentElement.removeChild(this.dropdownContentElement.firstChild);
+            } 
+        }
 
 
         /**
@@ -224,12 +240,18 @@
                 if (!answer){return}
                 //console.log(answer)
                 
-                console.log(answer.tree);
+                this.clearDropdownContent()
+                console.log('answer.childless_only');
+                console.log(answer.childless_only);
 
-                for (var i in answer.list){
-                    var html_element = answer.list[i];
-                    this.process_html_element(html_element, answer.search_term) ;
+                for (var i in answer.childless_only){
+                    this.process_html_element(answer.childless_only[i], answer.search_term) ;
                 }
+
+                //for (var i in answer.list){
+                //    var html_element = answer.list[i];
+                //    this.process_html_element(html_element, answer.search_term) ;
+                //}
                 
 
             });
