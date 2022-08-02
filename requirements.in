@@ -28,5 +28,5 @@ gunicorn==20.1.0
 
 # Extensions
 cryptoadvance-liquidissuer==0.2.4
-specterext-exfund==0.1.2
+specterext-exfund==0.1.3
 specterext-faucet==0.1.0
