@@ -6,32 +6,35 @@ from flask import url_for
 logger = logging.getLogger(__name__)
 
 
-class HtmlElement:
-    "This is a way to reconstruct the HTML Logical UI Tree and sum up results nicely"
+class UIElement:
+    """
+    This is a logical struture representing an UI/enpoint/HTML element, e.g., a button, a tab.
+
+    Multiple of these elements can be attached to each other, by referencing the parent element during __init__
+
+    This is not a full reconstruction of the HTML DOM tree, but only the most necessary part to represent the logical structure
+    the user sees. And only these parts which are included in the search.
+    """
 
     def __init__(
         self,
         parent,
-        id=None,
+        ids=None,
         function=None,
         children=None,
         title=None,
         endpoint=None,
-        click_on_id=False,  # some tabs do not have their own endpoint but need a click to show the tab
-        filter_via_input_ids=None,
     ):
         self.parent = parent
         if self.parent:
             self.parent.children.add(self)
         self.children = children if children else set()
-        # the id is the html id or, if needed the set of concatenated ids to get to the html element
-        self.id = id if id else set()
+        # the ids is the html id or, if needed the set of concatenated ids to get to the html element
+        self.ids = ids if ids else set()
         self._results = None
         self.function = function
-        self.filter_via_input_ids = filter_via_input_ids
         self.title = title
         self.endpoint = endpoint
-        self.click_on_id = click_on_id
 
     @property
     def results(self):
@@ -80,34 +83,23 @@ class HtmlElement:
         result_list = []
 
         if not self.children:
-            return [self.json_with_results()] if self.results else []
+            return [self.json(include_results=True)] if self.results else []
 
         for child in self.children:
             result_list += child.childless_only_as_json()
 
         return result_list
 
-    def json_with_results(self):
+    def json(self, include_results=False):
         d = {}
-        d["id"] = self.id
-        d["flattened_parent_list"] = [
-            parent.json() for parent in self.flattened_parent_list()
-        ]
-        d["results"] = self.results
-        d["title"] = self.title
-        d["endpoint"] = self.endpoint
-        d["filter_via_input_ids"] = self.filter_via_input_ids
-        return d
-
-    def json(self):
-        d = {}
-        d["id"] = self.id
+        d["ids"] = self.ids
         d["flattened_parent_list"] = [
             parent.json() for parent in self.flattened_parent_list()
         ]
         d["title"] = self.title
         d["endpoint"] = self.endpoint
-        d["filter_via_input_ids"] = self.filter_via_input_ids
+        if include_results:
+            d["results"] = self.results
         return d
 
 
@@ -127,32 +119,27 @@ def search_in_structure(search_term, structure):
 
 
 def add_all_in_wallet(html_wallets, wallet):
-    sidebar_wallet = HtmlElement(
+    sidebar_wallet = UIElement(
         html_wallets,
-        id=f"{wallet.alias}-sidebar-list-item",
+        ids=f"{wallet.alias}-sidebar-list-item",
         title=wallet.alias,
     )
-    wallet_names = HtmlElement(
+    wallet_names = UIElement(
         sidebar_wallet,
-        id="title",
+        ids="title",
         title="Wallet",
         endpoint=url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias),
         function=lambda x: search_in_structure(x, [wallet.alias]),
     )
-    transactions = HtmlElement(
+    transactions = UIElement(
         sidebar_wallet,
-        id="btn_transactions",
+        ids="btn_transactions",
         title="Transactions",
         endpoint=url_for("wallets_endpoint.history", wallet_alias=wallet.alias),
-        filter_via_input_ids=(
-            f"tx-table-{wallet.alias}",
-            "shadowRoot",
-            "search_input",
-        ),
     )
-    transactions_history = HtmlElement(
+    transactions_history = UIElement(
         transactions,
-        id=(
+        ids=(
             f"tx-table-{wallet.alias}",
             "shadowRoot",
             "btn_history",
@@ -165,9 +152,9 @@ def add_all_in_wallet(html_wallets, wallet):
         ),
         function=lambda x: search_in_structure(x, wallet.txlist()),
     )
-    transactions_utxo = HtmlElement(
+    transactions_utxo = UIElement(
         transactions,
-        id=(
+        ids=(
             f"tx-table-{wallet.alias}",
             "shadowRoot",
             "btn_utxo",
@@ -181,15 +168,15 @@ def add_all_in_wallet(html_wallets, wallet):
         function=lambda x: search_in_structure(x, wallet.full_utxo),
     )
 
-    addresses = HtmlElement(
+    addresses = UIElement(
         sidebar_wallet,
-        id="btn_addresses",
+        ids="btn_addresses",
         title="Addresses",
         endpoint=url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias),
     )
-    addresses_recieve = HtmlElement(
+    addresses_recieve = UIElement(
         addresses,
-        id=(
+        ids=(
             f"addresses-table-{wallet.alias}",
             "shadowRoot",
             "receive-addresses-view-btn",
@@ -204,9 +191,9 @@ def add_all_in_wallet(html_wallets, wallet):
             x, wallet.addresses_info(is_change=False)
         ),
     )
-    addresses_change = HtmlElement(
+    addresses_change = UIElement(
         addresses,
-        id=(
+        ids=(
             f"addresses-table-{wallet.alias}",
             "shadowRoot",
             "change-addresses-view-btn",
@@ -217,29 +204,28 @@ def add_all_in_wallet(html_wallets, wallet):
             wallet_alias=wallet.alias,
             address_type="change",
         ),
-        click_on_id=True,
         function=lambda x: search_in_structure(
             x, wallet.addresses_info(is_change=True)
         ),
     )
 
-    recieve = HtmlElement(
+    recieve = UIElement(
         sidebar_wallet,
-        id="btn_receive",
+        ids="btn_receive",
         title="Recieve",
         endpoint=url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias),
         function=lambda x: search_in_structure(x, [wallet.address]),
     )
 
-    send = HtmlElement(
+    send = UIElement(
         sidebar_wallet,
-        id="btn_send",
+        ids="btn_send",
         title="Send",
         endpoint=url_for("wallets_endpoint.send_new", wallet_alias=wallet.alias),
     )
-    unsigned = HtmlElement(
+    unsigned = UIElement(
         send,
-        id="btn_send_pending",
+        ids="btn_send_pending",
         title="Unsigned",
         endpoint=url_for("wallets_endpoint.send_pending", wallet_alias=wallet.alias),
         function=lambda x: search_in_structure(
@@ -249,22 +235,22 @@ def add_all_in_wallet(html_wallets, wallet):
 
 
 def add_all_in_devices(html_devices, device):
-    sidebar_device = HtmlElement(
+    sidebar_device = UIElement(
         html_devices,
-        id=f"device_list_item_{device.alias}",
+        ids=f"device_list_item_{device.alias}",
         title=device.alias,
         endpoint=url_for("devices_endpoint.device", device_alias=device.alias),
     )
-    device_names = HtmlElement(
+    device_names = UIElement(
         sidebar_device,
-        id="title",
+        ids="title",
         title="Devices",
         endpoint=url_for("devices_endpoint.device", device_alias=device.alias),
         function=lambda x: search_in_structure(x, [device.alias]),
     )
-    device_keys = HtmlElement(
+    device_keys = UIElement(
         sidebar_device,
-        id="keys-table-header-key",
+        ids="keys-table-header-key",
         title="Keys",
         endpoint=url_for("devices_endpoint.device", device_alias=device.alias),
         function=lambda x: search_in_structure(x, [key for key in device.keys]),
@@ -273,22 +259,22 @@ def add_all_in_devices(html_devices, device):
 
 def build_html_elements(specter):
     """
-    This builds all HtmlElements that should be highlighted during a search.
+    This builds all UIElements that should be highlighted during a search.
     It also encodes which functions will be used for searching.
 
     Returns:
-        HtmlElement: This is the html_root, which has all children linked inside
+        UIElement: This is the html_root, which has all children linked in a tree
     """
-    html_root = HtmlElement(None)
-    html_wallets = HtmlElement(
+    html_root = UIElement(None)
+    html_wallets = UIElement(
         html_root,
-        id="toggle_wallets_list",
+        ids="toggle_wallets_list",
         title="Wallets",
         endpoint=url_for("wallets_endpoint.wallets_overview"),
     )
-    html_devices = HtmlElement(
+    html_devices = UIElement(
         html_root,
-        id="toggle_devices_list",
+        ids="toggle_devices_list",
         title="Devices",
         endpoint=url_for("wallets_endpoint.wallets_overview"),
     )
@@ -300,7 +286,7 @@ def build_html_elements(specter):
     return html_root
 
 
-def apply_search_on_dict(search_term, html_root):
+def search_in_html_structure(search_term, html_root):
     "Given an html_root it will call the child.function for all childs that do not have any children"
     end_nodes = html_root.calculate_end_nodes()
     for end_node in end_nodes:
@@ -317,12 +303,11 @@ def do_global_search(search_term, specter):
         HTML_ROOT.reset_results()
 
     if search_term:
-        apply_search_on_dict(search_term, HTML_ROOT)
+        search_in_html_structure(search_term, HTML_ROOT)
 
-    print(HTML_ROOT.childless_only_as_json())
+    # print(HTML_ROOT.childless_only_as_json())
 
     return {
-        "tree": HTML_ROOT,
         "childless_only": HTML_ROOT.childless_only_as_json(),
         "search_term": search_term,
     }

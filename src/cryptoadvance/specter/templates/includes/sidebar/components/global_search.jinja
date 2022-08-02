@@ -80,21 +80,14 @@
 		// adds EventListeners 
 		attachListeners(){
 			this.searchInputElement.addEventListener('input', event=>{
-				this.delayed_global_search(this.searchInputElement.value);
+				this.delayedGlobalSearch(this.searchInputElement.value);
 			});			
         }
 
 
 
-
-
-        endpoint_is_visible(allowed_endpoint){
-            return ('{{ url_for(request.endpoint, **request.view_args) }}'.indexOf(allowed_endpoint) >= 0)
-        }
-
-
         /**
-        Fetches an element by the id. 
+        Fetches an element by the ids. 
         If it is below a shadowRoot the argument should be 
             ids = [f"addresses-table-{wallet.alias}","shadowRoot","receive-addresses-view-btn"]
         */
@@ -127,28 +120,9 @@
             return last_found_element
         }
 
-        /**
-        It transferred the search_term to another input (such as an input that filters a table)
-        */
-        apply_filter_to_input(html_element, search_term){
-            if (!html_element.filter_via_input_ids) {return};
-        
-            var found_element = this.elementByIds(html_element.filter_via_input_ids);
-            if (!found_element) {return}
-            
-            console.log(found_element);
-            found_element.value = search_term;
-            if (found_element.onchange){
-                found_element.onchange();
-            }
-            else {
-                console.log('No onchange connected for ',found_element)
-            }
-        }
-
 
         htmlElementToLink(json_structure){
-            var htmlElement = this.elementByIds(json_structure.id);           
+            var htmlElement = this.elementByIds(json_structure.ids);           
             var backupHref = htmlElement ? htmlElement.href : '';
             var backupInnerText = htmlElement ? htmlElement.innerText : '';
 
@@ -221,7 +195,7 @@
         /**
         Sends the search_term to an endpoint, gets the answer back and then calls processHtmlElement
         */    
-        global_search(search_term){
+        globalSearch(search_term){
             var formData = new FormData();
             formData.append('global-search-input', this.searchInputElement.value);
 
@@ -245,11 +219,11 @@
         /**
         This function starts global_search with a delay
 
-        If a new delayed_global_search is called, it will stop all old Timeouts.
+        If a new delayedGlobalSearch is called, it will stop all old Timeouts.
 
         This ensures only the newest search is actually performed.
         */
-        delayed_global_search(search_term){
+        delayedGlobalSearch(search_term){
             // stop old processes
             for (var i = this.timeOutIds.length; i >= 0; i--) {
                 clearTimeout(this.timeOutIds[i]);      
@@ -257,7 +231,7 @@
                 this.timeOutIds.splice(i, 1);
             }
             
-            const timeOutId = setTimeout(() => this.global_search(search_term), 100);
+            const timeOutId = setTimeout(() => this.globalSearch(search_term), 100);
             this.timeOutIds.push(timeOutId);
         }
 
