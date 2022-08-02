@@ -162,7 +162,7 @@
         Takes a HtmlElement.json()  and does all necessary operations
         */
         processHtmlElement(html_element, search_term){
-            if (html_element.result == null){return};
+            if (html_element.results == []){return};
             
             var div = document.createElement("div");
             div.className = "global-search-row";
@@ -178,9 +178,18 @@
 
 
             div.appendChild(this.htmlElementToLink(html_element))
-            div.innerHTML +=  `&nbsp;&nbsp;>&nbsp;&nbsp; Results: ${html_element.result}`;
+            div.innerHTML +=  `&nbsp;&nbsp;>&nbsp;&nbsp; Results: ${html_element.results}`;
 
             this.dropdownContentElement.appendChild(div);
+        }
+
+        addResultsHeader(results){
+            var div = document.createElement("div");
+            div.className = "global-search-row";
+            div.innerHTML =  `${results.length} results`;
+
+            this.dropdownContentElement.appendChild(div);
+
         }
 
                 
@@ -206,6 +215,7 @@
                 this.clearDropdownContent()
                 console.log('answer.childless_only');
                 console.log(answer.childless_only);
+                this.addResultsHeader(answer.childless_only)
 
                 for (var i in answer.childless_only){
                     this.processHtmlElement(answer.childless_only[i], answer.search_term) ;
