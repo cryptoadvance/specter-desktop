@@ -101,7 +101,6 @@
 
             var last_found_element = document;
             var found_element = null;
-            console.log(ids)
             for (var i in ids){
                 if (ids[i] == 'shadowRoot'){
                     found_element = last_found_element.shadowRoot;
@@ -137,7 +136,7 @@
         /**
         Takes a HtmlElement.json()  and does all necessary operations
         */
-        processHtmlElement(ui_element, search_term){
+        processHtmlElement(ui_element, searchTerm){
             if (ui_element.results == []){return};
             
             var div = document.createElement("div");
@@ -145,7 +144,6 @@
 
             // add all parents 
             for (var i in ui_element.flattened_parent_list){
-                console.log(`Append ${i}`)
                 var parent = ui_element.flattened_parent_list[i];
                 // skip the html root
                 if (parent.flattened_parent_list.length == 0){continue}
@@ -160,7 +158,7 @@
 
             // show search result
             var span = document.createElement("span")
-            span.innerHTML = this.highlightString(`&nbsp;&nbsp;>&nbsp;&nbsp; ${ui_element.results}`, search_term);
+            span.innerHTML = this.highlightString(`&nbsp;&nbsp;>&nbsp;&nbsp; ${ui_element.results}`, searchTerm);
             span.style.fontSize = "small";
             div.appendChild(span);
 
@@ -177,7 +175,7 @@
         }
 
 
-        addResultsHeader(results, search_term){
+        addResultsHeader(results, searchTerm){
             if (results.length == 0){
                 var div = document.createElement("div");
                 div.className = "global-search-row";
@@ -205,18 +203,19 @@
         }
 
         /**
-        Sends the search_term to an endpoint, gets the answer back and then calls processHtmlElement
+        Sends the searchTerm to an endpoint, gets the answer back and then calls processHtmlElement
         */    
-        globalSearch(search_term){
+        globalSearch(searchTerm){
             var formData = new FormData();
             formData.append('global-search-input', this.searchInputElement.value);
 
             let url="{{ url_for('wallets_endpoint_api.global_search' ) }}";
             send_request(url, 'POST', "{{ csrf_token() }}", formData).then((answer)=> {
-                if (!answer){
+                // this is to account for the fact that the input element can have changed during the request
+                if ((this.searchInputElement.value == "") ||  (!answer)) {
                     this.setContentVisibility(false);
                     return
-                    }
+                }
                 
                 this.clearDropdownContent()
                 // console.log(answer.childless_only);
@@ -231,6 +230,9 @@
         }
 
 
+
+
+
         /**
         This function starts global_search with a delay
 
@@ -238,15 +240,15 @@
 
         This ensures only the newest search is actually performed.
         */
-        delayedGlobalSearch(search_term){
+        delayedGlobalSearch(searchTerm){        
             // stop old processes
             for (var i = this.timeOutIds.length; i >= 0; i--) {
                 clearTimeout(this.timeOutIds[i]);      
-                console.log(`Stopped ${this.timeOutIds[i]}`)
+                //console.log(`Stopped ${this.timeOutIds[i]}`)
                 this.timeOutIds.splice(i, 1);
             }
-            
-            const timeOutId = setTimeout(() => this.globalSearch(search_term), 100);
+
+            const timeOutId = setTimeout(() => this.globalSearch(searchTerm), 100);
             this.timeOutIds.push(timeOutId);
         }
 
