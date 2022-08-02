@@ -3,33 +3,34 @@
 
     <style type="text/css">
         .global-search-row {
-        background-color: var(--cmap-bg-lighter);
-        padding-left:10px;
-        padding-right:2px;
-        padding-top:2px;
-        padding-bottom:2px;
+            background-color: var(--cmap-bg-lighter);
+            padding-left:10px;
+            padding-right:2px;
+            padding-top:2px;
+            padding-bottom:2px;
         }
         .global-search-row:hover {
-        background-color: var(--cmap-blue-darker);
+            background-color: var(--cmap-blue-darker);
         }
 
 
         .global-search-dropdown {
+            --cmap-found_term: #306d30;    
             margin: 20px 20px 5px;
         }
 
         .global-search-dropdown-content {
-        display: none;
-        position: absolute;
-        background-color: var(--cmap-bg);
-        width: 90%;
-        box-shadow: 0px 8px 16px 0px rgba(0,0,0,1);
-        padding: 5px 5px;
-        z-index: 1;
+            display: none;
+            position: absolute;
+            background-color: var(--cmap-bg);
+            width: 90%;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,1);
+            padding: 5px 5px;
+            z-index: 1;
         }
 
         .global-search-dropdown:hover .global-search-dropdown-content {
-        display: block;
+            display: block;
         }
     </style>
 
@@ -147,13 +148,14 @@
 
 
         htmlElementToLink(json_structure){
-            var htmlElement = this.elementByIds(json_structure.id)
-
+            var htmlElement = this.elementByIds(json_structure.id);           
+            var backupHref = htmlElement ? htmlElement.href : '';
+            var backupInnerText = htmlElement ? htmlElement.innerText : '';
 
             var a = document.createElement("a");
             a.style = "color: #fff;"                
-            a.href = json_structure.endpoint ? json_structure.endpoint : htmlElement.href;
-            a.text = json_structure.title ? json_structure.title  : htmlElement.innerText;
+            a.href = json_structure.endpoint ? json_structure.endpoint : backupHref;
+            a.text = json_structure.title ? json_structure.title  : backupInnerText;
             return a
         }
 
@@ -168,28 +170,44 @@
             div.className = "global-search-row";
 
             for (var i in html_element.flattened_parent_list){
+                console.log(`Append ${i}`)
                 var parent = html_element.flattened_parent_list[i];
                 // skip the html root
-                if (!parent.flattened_parent_list){continue}
+                if (parent.flattened_parent_list.length == 0){continue}
 
-                div.appendChild(this.htmlElementToLink(parent))
+                div.appendChild(this.htmlElementToLink(parent));
                 div.innerHTML +=  '&nbsp;&nbsp;>&nbsp;&nbsp;';
             }
-
-
+            
             div.appendChild(this.htmlElementToLink(html_element))
-            div.innerHTML +=  `&nbsp;&nbsp;>&nbsp;&nbsp; Results: ${html_element.results}`;
+
+            var span = document.createElement("span")
+            span.innerHTML = this.highlightString(`&nbsp;&nbsp;>&nbsp;&nbsp; ${html_element.results}`, search_term);
+            span.style.fontSize = "small";
+            div.appendChild(span);
 
             this.dropdownContentElement.appendChild(div);
         }
 
-        addResultsHeader(results){
-            var div = document.createElement("div");
-            div.className = "global-search-row";
-            div.innerHTML =  `${results.length} results`;
+        highlightString(fullText, searchTerm){             
+            var regex = new RegExp(searchTerm, "i");  
+            return fullText.replace(regex, "<span style='background-color: var(--cmap-found_term);'>$&</span>");
+        }
 
-            this.dropdownContentElement.appendChild(div);
 
+        addResultsHeader(results, search_term){
+            if (results.length == 0){
+                var div = document.createElement("div");
+                div.className = "global-search-row";
+                div.innerText = `No results found.`;
+                this.dropdownContentElement.appendChild(div);
+            } else {
+                // show nothing
+                // var div = document.createElement("div");
+                // div.className = "global-search-row";
+                // div.innerText = `${results.length} results:`;
+                // this.dropdownContentElement.appendChild(div);
+            }
         }
 
                 
@@ -213,7 +231,6 @@
                 //console.log(answer)
                 
                 this.clearDropdownContent()
-                console.log('answer.childless_only');
                 console.log(answer.childless_only);
                 this.addResultsHeader(answer.childless_only)
 

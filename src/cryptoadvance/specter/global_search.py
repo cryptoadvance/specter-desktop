@@ -90,7 +90,7 @@ class HtmlElement:
     def json_with_results(self):
         d = {}
         d["id"] = self.id
-        d["flattened_parent_ids"] = [
+        d["flattened_parent_list"] = [
             parent.json() for parent in self.flattened_parent_list()
         ]
         d["results"] = self.results
@@ -102,7 +102,7 @@ class HtmlElement:
     def json(self):
         d = {}
         d["id"] = self.id
-        d["flattened_parent_ids"] = [
+        d["flattened_parent_list"] = [
             parent.json() for parent in self.flattened_parent_list()
         ]
         d["title"] = self.title
