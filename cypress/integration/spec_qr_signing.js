@@ -12,7 +12,7 @@ describe('Test QR code signing flow', () => {
     })
 
     it('Message signing with Specter DIY', () => {
-        cy.get('.side').contains('Wallet ghost').click()
+        cy.get('.side').contains('Ghost wallet').click()
         cy.get('main').contains('Addresses').click()
         // Click on the first address
         cy.contains('td', '#0').siblings().contains('bcrt').click()
@@ -33,7 +33,7 @@ describe('Test QR code signing flow', () => {
         cy.get('#diy_ghost_qr_sign_msg_btn').should('not.exist')
         cy.get('#diy_ghost_usb_sign_msg_btn').should('exist')
         cy.get('#page_overlay_popup_cancel_button').click()
-        cy.contains("Wallet ghost").click()
+        cy.contains("Ghost wallet").click()
         cy.get('main').contains('Addresses').click()
         cy.contains('td', '#0').siblings().contains('bcrt').click()
         cy.get('#msg-signing-btn').should('exist')

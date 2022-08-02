@@ -57,4 +57,4 @@ class ElementsCore(BitcoinCore):
         if self.has_key_types(wallet_type, network=network):
             return ""
         if not is_liquid(network):
-            return "This wallet can only sign on Liquid"
+            return "This hot wallet can only sign on Liquid"
