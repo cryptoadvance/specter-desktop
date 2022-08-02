@@ -140,6 +140,8 @@ class Specter:
         if self.price_check and self.price_provider and checker_threads:
             self.price_checker.start()
 
+        self.global_search_trees = None
+
         if threading.current_thread() is threading.main_thread():
             # Python signal handlers are always executed in the main Python thread and only the main thread is allowed to set a new signal handler.
             # This is for CTRL-C --> SIGINT

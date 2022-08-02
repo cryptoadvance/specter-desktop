@@ -103,211 +103,215 @@ class UIElement:
         return d
 
 
-HTML_ROOT = None
+class GlobalSearchTrees:
+    "holds the diffferent UI roots of different users"
 
+    def __init__(self, wallet_manager, device_manager):
+        self.ui_roots = {}
+        self.wallet_manager = wallet_manager
+        self.device_manager = device_manager
 
-def search_in_structure(search_term, structure):
-    results = []
-    for item in structure:
-        if isinstance(item, dict):
-            results += search_in_structure(search_term, item.values())
-        elif isinstance(item, list):
-            results += search_in_structure(search_term, item)
-        elif search_term.lower() in str(item).lower():
-            results += [str(item)]
-    return results
+    def search_in_structure(self, search_term, structure):
+        results = []
+        for item in structure:
+            if isinstance(item, dict):
+                results += self.search_in_structure(search_term, item.values())
+            elif isinstance(item, list):
+                results += self.search_in_structure(search_term, item)
+            elif search_term.lower() in str(item).lower():
+                results += [str(item)]
+        return results
 
+    def wallet_ui_elements(self, ui_root, wallet):
+        html_wallets = UIElement(
+            ui_root,
+            ids="toggle_wallets_list",
+            title="Wallets",
+            endpoint=url_for("wallets_endpoint.wallets_overview"),
+        )
 
-def add_all_in_wallet(html_wallets, wallet):
-    sidebar_wallet = UIElement(
-        html_wallets,
-        ids=f"{wallet.alias}-sidebar-list-item",
-        title=wallet.alias,
-    )
-    wallet_names = UIElement(
-        sidebar_wallet,
-        ids="title",
-        title="Wallet",
-        endpoint=url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias),
-        function=lambda x: search_in_structure(x, [wallet.alias]),
-    )
-    transactions = UIElement(
-        sidebar_wallet,
-        ids="btn_transactions",
-        title="Transactions",
-        endpoint=url_for("wallets_endpoint.history", wallet_alias=wallet.alias),
-    )
-    transactions_history = UIElement(
-        transactions,
-        ids=(
-            f"tx-table-{wallet.alias}",
-            "shadowRoot",
-            "btn_history",
-        ),
-        title="History",
-        endpoint=url_for(
-            "wallets_endpoint.history_tx_list_type",
-            wallet_alias=wallet.alias,
-            tx_list_type="txlist",
-        ),
-        function=lambda x: search_in_structure(x, wallet.txlist()),
-    )
-    transactions_utxo = UIElement(
-        transactions,
-        ids=(
-            f"tx-table-{wallet.alias}",
-            "shadowRoot",
-            "btn_utxo",
-        ),
-        title="UTXO",
-        endpoint=url_for(
-            "wallets_endpoint.history_tx_list_type",
-            wallet_alias=wallet.alias,
-            tx_list_type="utxo",
-        ),
-        function=lambda x: search_in_structure(x, wallet.full_utxo),
-    )
+        sidebar_wallet = UIElement(
+            html_wallets,
+            ids=f"{wallet.alias}-sidebar-list-item",
+            title=wallet.alias,
+        )
+        wallet_names = UIElement(
+            sidebar_wallet,
+            ids="title",
+            title="Wallet",
+            endpoint=url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias),
+            function=lambda x: self.search_in_structure(x, [wallet.alias]),
+        )
+        transactions = UIElement(
+            sidebar_wallet,
+            ids="btn_transactions",
+            title="Transactions",
+            endpoint=url_for("wallets_endpoint.history", wallet_alias=wallet.alias),
+        )
+        transactions_history = UIElement(
+            transactions,
+            ids=(
+                f"tx-table-{wallet.alias}",
+                "shadowRoot",
+                "btn_history",
+            ),
+            title="History",
+            endpoint=url_for(
+                "wallets_endpoint.history_tx_list_type",
+                wallet_alias=wallet.alias,
+                tx_list_type="txlist",
+            ),
+            function=lambda x: self.search_in_structure(x, wallet.txlist()),
+        )
+        transactions_utxo = UIElement(
+            transactions,
+            ids=(
+                f"tx-table-{wallet.alias}",
+                "shadowRoot",
+                "btn_utxo",
+            ),
+            title="UTXO",
+            endpoint=url_for(
+                "wallets_endpoint.history_tx_list_type",
+                wallet_alias=wallet.alias,
+                tx_list_type="utxo",
+            ),
+            function=lambda x: self.search_in_structure(x, wallet.full_utxo),
+        )
 
-    addresses = UIElement(
-        sidebar_wallet,
-        ids="btn_addresses",
-        title="Addresses",
-        endpoint=url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias),
-    )
-    addresses_recieve = UIElement(
-        addresses,
-        ids=(
-            f"addresses-table-{wallet.alias}",
-            "shadowRoot",
-            "receive-addresses-view-btn",
-        ),
-        title="Recieve Addresses",
-        endpoint=url_for(
-            "wallets_endpoint.addresses_with_type",
-            wallet_alias=wallet.alias,
-            address_type="recieve",
-        ),
-        function=lambda x: search_in_structure(
-            x, wallet.addresses_info(is_change=False)
-        ),
-    )
-    addresses_change = UIElement(
-        addresses,
-        ids=(
-            f"addresses-table-{wallet.alias}",
-            "shadowRoot",
-            "change-addresses-view-btn",
-        ),
-        title="Change Addresses",
-        endpoint=url_for(
-            "wallets_endpoint.addresses_with_type",
-            wallet_alias=wallet.alias,
-            address_type="change",
-        ),
-        function=lambda x: search_in_structure(
-            x, wallet.addresses_info(is_change=True)
-        ),
-    )
+        addresses = UIElement(
+            sidebar_wallet,
+            ids="btn_addresses",
+            title="Addresses",
+            endpoint=url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias),
+        )
+        addresses_recieve = UIElement(
+            addresses,
+            ids=(
+                f"addresses-table-{wallet.alias}",
+                "shadowRoot",
+                "receive-addresses-view-btn",
+            ),
+            title="Recieve Addresses",
+            endpoint=url_for(
+                "wallets_endpoint.addresses_with_type",
+                wallet_alias=wallet.alias,
+                address_type="recieve",
+            ),
+            function=lambda x: self.search_in_structure(
+                x, wallet.addresses_info(is_change=False)
+            ),
+        )
+        addresses_change = UIElement(
+            addresses,
+            ids=(
+                f"addresses-table-{wallet.alias}",
+                "shadowRoot",
+                "change-addresses-view-btn",
+            ),
+            title="Change Addresses",
+            endpoint=url_for(
+                "wallets_endpoint.addresses_with_type",
+                wallet_alias=wallet.alias,
+                address_type="change",
+            ),
+            function=lambda x: self.search_in_structure(
+                x, wallet.addresses_info(is_change=True)
+            ),
+        )
 
-    recieve = UIElement(
-        sidebar_wallet,
-        ids="btn_receive",
-        title="Recieve",
-        endpoint=url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias),
-        function=lambda x: search_in_structure(x, [wallet.address]),
-    )
+        recieve = UIElement(
+            sidebar_wallet,
+            ids="btn_receive",
+            title="Recieve",
+            endpoint=url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias),
+            function=lambda x: self.search_in_structure(x, [wallet.address]),
+        )
 
-    send = UIElement(
-        sidebar_wallet,
-        ids="btn_send",
-        title="Send",
-        endpoint=url_for("wallets_endpoint.send_new", wallet_alias=wallet.alias),
-    )
-    unsigned = UIElement(
-        send,
-        ids="btn_send_pending",
-        title="Unsigned",
-        endpoint=url_for("wallets_endpoint.send_pending", wallet_alias=wallet.alias),
-        function=lambda x: search_in_structure(
-            x, [psbt.to_dict() for psbt in wallet.pending_psbts.values()]
-        ),
-    )
+        send = UIElement(
+            sidebar_wallet,
+            ids="btn_send",
+            title="Send",
+            endpoint=url_for("wallets_endpoint.send_new", wallet_alias=wallet.alias),
+        )
+        unsigned = UIElement(
+            send,
+            ids="btn_send_pending",
+            title="Unsigned",
+            endpoint=url_for(
+                "wallets_endpoint.send_pending", wallet_alias=wallet.alias
+            ),
+            function=lambda x: self.search_in_structure(
+                x, [psbt.to_dict() for psbt in wallet.pending_psbts.values()]
+            ),
+        )
 
+    def device_ui_elements(self, ui_root, device):
+        html_devices = UIElement(
+            ui_root,
+            ids="toggle_devices_list",
+            title="Devices",
+            endpoint=url_for("wallets_endpoint.wallets_overview"),
+        )
 
-def add_all_in_devices(html_devices, device):
-    sidebar_device = UIElement(
-        html_devices,
-        ids=f"device_list_item_{device.alias}",
-        title=device.alias,
-        endpoint=url_for("devices_endpoint.device", device_alias=device.alias),
-    )
-    device_names = UIElement(
-        sidebar_device,
-        ids="title",
-        title="Devices",
-        endpoint=url_for("devices_endpoint.device", device_alias=device.alias),
-        function=lambda x: search_in_structure(x, [device.alias]),
-    )
-    device_keys = UIElement(
-        sidebar_device,
-        ids="keys-table-header-key",
-        title="Keys",
-        endpoint=url_for("devices_endpoint.device", device_alias=device.alias),
-        function=lambda x: search_in_structure(x, [key for key in device.keys]),
-    )
+        sidebar_device = UIElement(
+            html_devices,
+            ids=f"device_list_item_{device.alias}",
+            title=device.alias,
+            endpoint=url_for("devices_endpoint.device", device_alias=device.alias),
+        )
+        device_names = UIElement(
+            sidebar_device,
+            ids="title",
+            title="Devices",
+            endpoint=url_for("devices_endpoint.device", device_alias=device.alias),
+            function=lambda x: self.search_in_structure(x, [device.alias]),
+        )
+        device_keys = UIElement(
+            sidebar_device,
+            ids="keys-table-header-key",
+            title="Keys",
+            endpoint=url_for("devices_endpoint.device", device_alias=device.alias),
+            function=lambda x: self.search_in_structure(
+                x, [key for key in device.keys]
+            ),
+        )
 
+    def build_ui_elements(self):
+        """
+        This builds all UIElements that should be highlighted during a search.
+        It also encodes which functions will be used for searching.
 
-def build_html_elements(specter):
-    """
-    This builds all UIElements that should be highlighted during a search.
-    It also encodes which functions will be used for searching.
+        Returns:
+            UIElement: This is the html_root, which has all children linked in a tree
+        """
+        ui_root = UIElement(None)
 
-    Returns:
-        UIElement: This is the html_root, which has all children linked in a tree
-    """
-    html_root = UIElement(None)
-    html_wallets = UIElement(
-        html_root,
-        ids="toggle_wallets_list",
-        title="Wallets",
-        endpoint=url_for("wallets_endpoint.wallets_overview"),
-    )
-    html_devices = UIElement(
-        html_root,
-        ids="toggle_devices_list",
-        title="Devices",
-        endpoint=url_for("wallets_endpoint.wallets_overview"),
-    )
+        for wallet in self.wallet_manager.wallets.values():
+            self.wallet_ui_elements(ui_root, wallet)
+        for device in self.device_manager.devices.values():
+            self.device_ui_elements(ui_root, device)
+        return ui_root
 
-    for wallet in specter.wallet_manager.wallets.values():
-        add_all_in_wallet(html_wallets, wallet)
-    for device in specter.device_manager.devices.values():
-        add_all_in_devices(html_devices, device)
-    return html_root
+    def search_in_html_structure(self, search_term, html_root):
+        "Given an html_root it will call the child.function for all childs that do not have any children"
+        end_nodes = html_root.calculate_end_nodes()
+        for end_node in end_nodes:
+            end_node.results = end_node.function(search_term)
+        return html_root
 
+    def do_global_search(self, user_id, search_term):
+        "Builds the UI Tree if ncessary (only do it once) and then calls the functions in it to search for the search_term"
+        if user_id not in self.ui_roots:
+            logger.debug(f"Building UI Tree for user {user_id}")
+            self.ui_roots[user_id] = self.build_ui_elements()
+        else:
+            self.ui_roots[user_id].reset_results()
 
-def search_in_html_structure(search_term, html_root):
-    "Given an html_root it will call the child.function for all childs that do not have any children"
-    end_nodes = html_root.calculate_end_nodes()
-    for end_node in end_nodes:
-        end_node.results = end_node.function(search_term)
-    return html_root
+        if search_term:
+            self.search_in_html_structure(search_term, self.ui_roots[user_id])
 
-
-def do_global_search(search_term, specter):
-    "Builds the HTML Tree if ncessary (only do it once) and then calls the functions in it to search for the search_term"
-    global HTML_ROOT
-    if not HTML_ROOT:
-        HTML_ROOT = build_html_elements(specter)
-    else:
-        HTML_ROOT.reset_results()
-
-    if search_term:
-        search_in_html_structure(search_term, HTML_ROOT)
-
-    # print(HTML_ROOT.childless_only_as_json())
-
-    return {
-        "childless_only": HTML_ROOT.childless_only_as_json(),
-        "search_term": search_term,
-    }
+        return {
+            "childless_only": self.ui_roots[user_id].childless_only_as_json(),
+            "search_term": search_term,
+        }

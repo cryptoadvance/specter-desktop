@@ -24,6 +24,7 @@ from .hwi_server import hwi_server
 from .services.callbacks import after_serverpy_init_app
 from .specter import Specter
 from .util.specter_migrator import SpecterMigrator
+from .global_search import GlobalSearchTrees
 
 logger = logging.getLogger(__name__)
 
@@ -144,6 +145,11 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
 
     # HWI
     specter.hwi = HWIBridge()
+
+    # Global Search
+    specter.global_search_trees = GlobalSearchTrees(
+        specter.wallet_manager, specter.device_manager
+    )
 
     # ServiceManager will instantiate and register blueprints for extensions
     specter.service_manager = ServiceManager(

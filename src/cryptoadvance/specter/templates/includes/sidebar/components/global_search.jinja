@@ -8,9 +8,11 @@
             padding-right:2px;
             padding-top:2px;
             padding-bottom:2px;
+            margin-bottom:2px;
+            word-wrap: break-word;
         }
         .global-search-row:hover {
-            background-color: var(--cmap-blue-darker);
+            background-color: var(--cmap-border);
         }
 
 
@@ -121,7 +123,7 @@
         }
 
 
-        htmlElementToLink(json_structure){
+        uiElementToLink(json_structure){
             var htmlElement = this.elementByIds(json_structure.ids);           
             var backupHref = htmlElement ? htmlElement.href : '';
             var backupInnerText = htmlElement ? htmlElement.innerText : '';
@@ -137,26 +139,26 @@
         /**
         Takes a HtmlElement.json()  and does all necessary operations
         */
-        processHtmlElement(html_element, search_term){
-            if (html_element.results == []){return};
+        processHtmlElement(ui_element, search_term){
+            if (ui_element.results == []){return};
             
             var div = document.createElement("div");
             div.className = "global-search-row";
 
-            for (var i in html_element.flattened_parent_list){
+            for (var i in ui_element.flattened_parent_list){
                 console.log(`Append ${i}`)
-                var parent = html_element.flattened_parent_list[i];
+                var parent = ui_element.flattened_parent_list[i];
                 // skip the html root
                 if (parent.flattened_parent_list.length == 0){continue}
 
-                div.appendChild(this.htmlElementToLink(parent));
+                div.appendChild(this.uiElementToLink(parent));
                 div.innerHTML +=  '&nbsp;&nbsp;>&nbsp;&nbsp;';
             }
             
-            div.appendChild(this.htmlElementToLink(html_element))
+            div.appendChild(this.uiElementToLink(ui_element))
 
             var span = document.createElement("span")
-            span.innerHTML = this.highlightString(`&nbsp;&nbsp;>&nbsp;&nbsp; ${html_element.results}`, search_term);
+            span.innerHTML = this.highlightString(`&nbsp;&nbsp;>&nbsp;&nbsp; ${ui_element.results}`, search_term);
             span.style.fontSize = "small";
             div.appendChild(span);
 

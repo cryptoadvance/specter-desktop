@@ -32,7 +32,6 @@ from ..util.fee_estimation import FeeEstimationResultEncoder, get_fees
 from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
 from embit.descriptor.checksum import add_checksum
-from ..global_search import do_global_search
 from ..util.common import robust_json_dumps
 
 logger = logging.getLogger(__name__)
@@ -117,7 +116,11 @@ def fees_old(blocks):
 def global_search():
     search_term = request.form.get("global-search-input")
     print(search_term)
-    return robust_json_dumps(do_global_search(search_term.strip(), app.specter))
+    return robust_json_dumps(
+        app.specter.global_search_trees.do_global_search(
+            current_user, search_term.strip()
+        )
+    )
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/combine/", methods=["POST"])
