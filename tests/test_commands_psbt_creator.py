@@ -182,28 +182,16 @@ def test_PsbtCreator_ui_liquid(caplog):
     # Let's mock the request.form which behaves like a dict but also needs getlist()
     request_form_data = {
         "rbf_tx_id": "",
-        "address_0": "el1qqgxqu7f05rm7e245nvdje28wa6fl3s0cv5lga3yahfqddgr4u8zg75nxwjmrrswvue8x2glk0rhvngz30du8gs5m3lgtfvjrx",
-        "label_0": "someLabel",
-        "amount_0": "0.1",
-        "btc_amount_0": "0.1",
-        "amount_unit_0": "btc",
-        "address_1": "EL1QQWHNYT8NSPG0PFXDZJ98ER2K66VE07D297VQ50TRGXZ2P28RJJSS69W3ZY3AUYLF60SKRL0G72V8ZTCCXZYR5WM2AQNAMNQMZ",  # will need normalisation
-        "label_1": "someOtherLabel",
-        "amount_1": "111211",
-        "btc_amount_1": "0.00111211",
-        "amount_unit_1": "sat",
-        "address_2": "AzpxZsPXCk3ct5wx9QfynivkEjHwzKELtHqWtwZ7RZKPncPtYBYn6tktDxCeMtNghMUBMw9MtD7kDcjC",
-        "label_2": "asset test",
-        "amount_2": "0.1",
-        "btc_amount_2": "0.1",
-        "amount_unit_2": "0b411a802e536a4217f46a47644c9e207db975f81e697753db2a1915d17dda79",
         "amount_unit_text": "btc",
-        "subtract_from": "1",
+        "subtract_from": "0",
         "fee_option": "dynamic",
         "fee_rate": "",
         "fee_rate_dynamic": "64",
         "rbf": "on",
         "action": "createpsbt",
+        "recipient_dicts": '[{"unit":"btc","amount":0.1,"recipient_id":0,"address":"el1qqgxqu7f05rm7e245nvdje28wa6fl3s0cv5lga3yahfqddgr4u8zg75nxwjmrrswvue8x2glk0rhvngz30du8gs5m3lgtfvjrx","label":"someLabel","btc_amount":"0.1"},'
+        '{"unit":"sat","amount":111211,"recipient_id":1,"address":"EL1QQWHNYT8NSPG0PFXDZJ98ER2K66VE07D297VQ50TRGXZ2P28RJJSS69W3ZY3AUYLF60SKRL0G72V8ZTCCXZYR5WM2AQNAMNQMZ","label":"someOtherLabel","btc_amount":"0.00111211"},'
+        '{"unit":"0b411a802e536a4217f46a47644c9e207db975f81e697753db2a1915d17dda79","amount":0.003,"recipient_id":2,"address":"AzpxZsPXCk3ct5wx9QfynivkEjHwzKELtHqWtwZ7RZKPncPtYBYn6tktDxCeMtNghMUBMw9MtD7kDcjC","label":"asset test","btc_amount":"0.003"}]',
     }
 
     psbt_creator: PsbtCreator = PsbtCreator(
@@ -215,7 +203,7 @@ def test_PsbtCreator_ui_liquid(caplog):
         "el1qqwhnyt8nspg0pfxdzj98er2k66ve07d297vq50trgxz2p28rjjss69w3zy3auylf60skrl0g72v8ztccxzyr5wm2aqnamnqmz",
         "AzpxZsPXCk3ct5wx9QfynivkEjHwzKELtHqWtwZ7RZKPncPtYBYn6tktDxCeMtNghMUBMw9MtD7kDcjC",
     ]
-    assert psbt_creator.amounts == [0.1, 0.00111211, 0.1]
+    assert psbt_creator.amounts == [0.1, 0.00111211, 0.003]
     assert psbt_creator.labels == ["someLabel", "someOtherLabel", "asset test"]
     assert psbt_creator.amount_units == [
         specter_mock.default_asset,
@@ -273,7 +261,7 @@ def test_PsbtCreator_json(caplog):
                 }
             ],
             "rbf_tx_id": "",
-            "subtract_from": "1",
+            "subtract_from": "0",
             "fee_rate": "64",
             "rbf": true
         }
