@@ -17,23 +17,16 @@ def test_PsbtCreator_ui(caplog):
     # Let's mock the request.form which behaves like a dict but also needs getlist()
     request_form_data = {
         "rbf_tx_id": "",
-        "address_0": "BCRT1qgc6h85z43g3ss2dl5zdrzrp3ef6av4neqcqhh8",  # will need normalisation
-        "label_0": "someLabel",
-        "amount_0": "0.1",
-        "btc_amount_0": "0.1",
-        "amount_unit_0": "btc",
-        "address_1": "bcrt1q3kfetuxpxvujasww6xas94nawklvpz0e52uw8a",
-        "label_1": "someOtherLabel",
-        "amount_1": "111211",
-        "btc_amount_1": "0.00111211",
-        "amount_unit_1": "sat",
         "amount_unit_text": "btc",
-        "subtract_from": "1",
+        "subtract_from": "0",
         "fee_option": "dynamic",
         "fee_rate": "",
         "fee_rate_dynamic": "64",
         "rbf": "on",
         "action": "createpsbt",
+        "recipient_dicts": '[{"unit":"btc","amount":0.1,"recipient_id":0,"address":"BCRT1qgc6h85z43g3ss2dl5zdrzrp3ef6av4neqcqhh8","label":"someLabel","btc_amount":"0.1"},'
+        '{"unit":"sat","amount":111211,"recipient_id":1,"address":"bcrt1q3kfetuxpxvujasww6xas94nawklvpz0e52uw8a","label":"someOtherLabel","btc_amount":"0.00111211"},'
+        '{"unit":"btc","amount":0.003,"recipient_id":2,"address":"bcrt1qfvkcy2keql72s8ev87ek93uxuq3xxsx9l0n03r","label":"<script>console.log(\'I escaped\')</script>","btc_amount":"0.003"}]',
     }
 
     psbt_creator: PsbtCreator = PsbtCreator(
@@ -43,10 +36,15 @@ def test_PsbtCreator_ui(caplog):
     assert psbt_creator.addresses == [
         "bcrt1qgc6h85z43g3ss2dl5zdrzrp3ef6av4neqcqhh8",
         "bcrt1q3kfetuxpxvujasww6xas94nawklvpz0e52uw8a",
+        "bcrt1qfvkcy2keql72s8ev87ek93uxuq3xxsx9l0n03r",
     ]
-    assert psbt_creator.amounts == [0.1, 0.00111211]
-    assert psbt_creator.labels == ["someLabel", "someOtherLabel"]
-    assert psbt_creator.amount_units == ["btc", "sat"]
+    assert psbt_creator.amounts == [0.1, 0.00111211, 0.003]
+    assert psbt_creator.labels == [
+        "someLabel",
+        "someOtherLabel",
+        "<script>console.log('I escaped')</script>",
+    ]
+    assert psbt_creator.amount_units == ["btc", "sat", "btc"]
     assert psbt_creator.kwargs == {
         "fee_rate": 64.0,
         "rbf": True,
@@ -72,7 +70,7 @@ def test_PsbtCreator_text(caplog):
     # Let's mock the request.form which behaves like a dict but also needs getlist()
     request_form_data = {
         "rbf_tx_id": "",
-        "subtract_from": "1",
+        "subtract_from": "0",
         "fee_option": "dynamic",
         "fee_rate": "",
         "fee_rate_dynamic": "64",
@@ -142,7 +140,7 @@ def test_PsbtCreator_json(caplog):
                 }
             ],
             "rbf_tx_id": "",
-            "subtract_from": "1",
+            "subtract_from": "0",
             "fee_rate": "64",
             "rbf": true
         }

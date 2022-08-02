@@ -12,7 +12,7 @@
   - [*What's the difference between Specter-desktop and Specter-DIY?*](#whats-the-difference-between-specter-desktop-and-specter-diy)
   - [*Is a full node necessary for using Specter-desktop?*](#is-a-full-node-necessary-for-using-specter-desktop)
   - [*Can I use pruned mode?*](#can-i-use-pruned-mode)
-  - [*I get this message: "This is a development server. Do not use it in a production deployment.". Should i worry?](#i-get-this-message-this-is-a-development-server-do-not-use-it-in-a-production-deployment-should-i-worry)
+  - [*I get this message: "This is a development server. Do not use it in a production deployment." Should I worry?*](#i-get-this-message-this-is-a-development-server-do-not-use-it-in-a-production-deployment-should-i-worry)
   - [*I'm not sure I want the Bitcoin-Core wallet functionality to be used, is that mandatory? If so, is it considered secure?*](#im-not-sure-i-want-the-bitcoin-core-wallet-functionality-to-be-used-is-that-mandatory-if-so-is-it-considered-secure)
   - [How many addresses does an HD wallet have, and are they all the same?](#how-many-addresses-does-an-hd-wallet-have-and-are-they-all-the-same)
   - [*I make unsigned transactions from my cold storage using a watching-only Electrum wallet. I use public servers instead of my own node because doing it "right" is too complicated for me. Specter may be an ideal alternative if it will connect to my **headless bitcoind node**. Will this be possible?*](#i-make-unsigned-transactions-from-my-cold-storage-using-a-watching-only-electrum-wallet-i-use-public-servers-instead-of-my-own-node-because-doing-it-right-is-too-complicated-for-me-specter-may-be-an-ideal-alternative-if-it-will-connect-to-my-headless-bitcoind-node-will-this-be-possible)
@@ -57,6 +57,7 @@
     - [Raspiblitz](#raspiblitz)
     - [umbrel](#umbrel)
   - [*How can I access the web interface if it's hosted on a headless computer?*](#how-can-i-access-the-web-interface-if-its-hosted-on-a-headless-computer)
+  - [*How can I access the Specter Desktop web interface with my phone?*](#how-can-i-access-the-specter-desktop-web-interface-with-my-phone)
   - [*Keep getting: No matching distribution found for cryptoadvance.specter*](#keep-getting-no-matching-distribution-found-for-cryptoadvancespecter)
   - [*Even after upgrading to python3 it's still looking at 2.7 version. I uninstalled 2.7, so not sure where to go next?*](#even-after-upgrading-to-python3-its-still-looking-at-27-version-i-uninstalled-27-so-not-sure-where-to-go-next)
   - [*I created an existing wallets but even after rescanning, specter couldn't find any (or not enough) funds?*](#i-created-an-existing-wallets-but-even-after-rescanning-specter-couldnt-find-any-or-not-enough-funds)
@@ -137,7 +138,7 @@ Yes, a Bitcoin node is needed to provide all relevant data without relying on 3r
 Yes, but if you have many older addresses you will need to re-download the blockchain in order to see your balance and transaction history, which will take some time.
 Since v0.8.0 there is a workaround as you can download history from an external blockexplorer which has privacy implications. Make sure to read the tooltip-hints when using that feature and also consider this question in the  [troubleshooting-section](#i-created-an-existing-wallets-but-even-after-rescanning-specter-couldnt-find-any-funds)..
 
-## *I get this message: "This is a development server. Do not use it in a production deployment.". Should i worry?
+## *I get this message: "This is a development server. Do not use it in a production deployment." Should I worry?*
 
 No you don't have to worry unless you plan to run specter as a public service on the internet with a growing number of people using it. That was traditionally the use-case for web-apps: Run in the open public internet getting accessed by MANY people. However, that's not how specter is meant to be used. If people get performance issues, it's most likely not because the user-base is growing on their specter but because their Raspberry Pi is too weak for that one user who is doing all sorts of other stuff on that Pi on top.
 
@@ -398,6 +399,12 @@ You can either set --host 0.0.0.0 `python -m cryptoadvance.specter server --host
 Alternatively, you can also define --port 80 if you want to have it on default http port of the computer.
 
 One drawback though is that with http and **external access** you will not get camera scanning functionality. It is an issue if you are using specter-DIY as it's necessary to scan QR codes with signed transactions. To fix that you will need a self-signed certificate, we have a document on that [here](https://github.com/cryptoadvance/specter-desktop/blob/master/docs/self-signed-certificates.md)
+
+## *How can I access the Specter Desktop web interface with my phone?*
+
+Similar as above, add `--host 0.0.0.0` when starting the Specter server (to bind the Specter server to the local IP of the machine that you are running Specter on), thus `python -m cryptoadvance.specter server --host 0.0.0.0`. You can then access the Specter server with your phone by typing `http://LOCAL_IP_OF_MACHINE_RUNNING_SPECTER:25441/` in the phone's browser. 
+
+**Note**: Your phone and the machine running Specter have to be connected to the same LAN for this simple approach to work. You might also need to adjust your firewall settings on the machine running Specter. For remote access of your Specter server check the [Tor docs](https://docs.specter.solutions/desktop/tor/).
 
 ## *Keep getting: No matching distribution found for cryptoadvance.specter*
 
