@@ -14,7 +14,9 @@ html, body{
     --cmap-bg-lighter:    #263044;
     --cmap-bg-lightest:   #313E50;
     --cmap-border:        #506072;
+    --cmap-border-highlight:#4B8CD8;
     --cmap-border-darker: #405062;
+    --cmap-bg-address-is-mine:#306d30;    
 
     margin: 0;
     padding: 0;
@@ -1246,4 +1248,44 @@ input:checked + .slider:before {
     -webkit-transform: translateX(26px);
     -ms-transform: translateX(26px);
     transform: translateX(26px);
+}
+.recipient_wrapper{
+    width: 100%;
+    border-radius: 3px;
+    box-shadow: 0px 10px 15px rgba(0,0,0,0.1);
+  }
+.recipient_wrapper_item{
+    border-radius: 5px;
+    border: 1.5px solid var(--default-color);
+    padding: 5px;
+    margin-bottom: 5px;
+  }
+  .recipient_wrapper_inner_box{
+    padding: 5px;
+    margin-top: 5px;
+  }
+.recipient_button{
+      background: var(--cmap-border);
+      padding-left: 2px;
+      padding-right: 2px;
+      margin-left: 2px;
+      margin-right: 2px; 
+      border-radius: 3px;
+      height: 22px;
+      border: none;    
+    }
+.recipient_button:hover {
+    background: var(--cmap-border-darker);
+}
+.recipient_dragger {
+    cursor: grab; 
+}
+.recipient_add {
+    margin-right: 3px;
+    height: 25px;
+}
+.recipient_move {
+    cursor: default; 
+    padding-left: 6px;
+    padding-right: 6px;
 }
