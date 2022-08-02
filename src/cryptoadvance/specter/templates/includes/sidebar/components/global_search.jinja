@@ -31,9 +31,7 @@
             z-index: 1;
         }
 
-        .global-search-dropdown:hover .global-search-dropdown-content {
-            display: block;
-        }
+        
     </style>
 
     <div class="global-search-dropdown">
@@ -202,6 +200,10 @@
         }
 
 
+        setContentVisibility(visible){
+            this.dropdownContentElement.style.display = visible ? "block" : "none";   
+        }
+
         /**
         Sends the search_term to an endpoint, gets the answer back and then calls processHtmlElement
         */    
@@ -211,17 +213,20 @@
 
             let url="{{ url_for('wallets_endpoint_api.global_search' ) }}";
             send_request(url, 'POST', "{{ csrf_token() }}", formData).then((answer)=> {
-                if (!answer){return}
-                //console.log(answer)
+                if (!answer){
+                    this.setContentVisibility(false);
+                    return
+                    }
                 
                 this.clearDropdownContent()
-                console.log(answer.childless_only);
+                // console.log(answer.childless_only);
                 this.addResultsHeader(answer.childless_only)
 
                 for (var i in answer.childless_only){
                     this.processHtmlElement(answer.childless_only[i], answer.search_term) ;
                 }
 
+                this.setContentVisibility(answer.childless_only.length > 0);
             });
         }
 
