@@ -15,6 +15,7 @@ class HtmlElement:
         id=None,
         function=None,
         children=None,
+        title=None,
         filter_via_input_ids=None,
     ):
         self.parent = parent
@@ -26,6 +27,7 @@ class HtmlElement:
         self._result = None
         self.function = function
         self.filter_via_input_ids = filter_via_input_ids
+        self.title = title
 
     @property
     def result(self):
@@ -88,6 +90,7 @@ class HtmlElement:
             parent.json() for parent in self.flattened_parent_list()
         ]
         d["result"] = self.result
+        d["title"] = self.title
         d["filter_via_input_ids"] = self.filter_via_input_ids
         return d
 
@@ -123,11 +126,13 @@ def build_html_elements(specter):
         wallet_names = HtmlElement(
             sidebar_wallet,
             id="title",
+            title="Wallet",
             function=lambda x: search_in_structure(x, [wallet.alias]),
         )
         transactions = HtmlElement(
             sidebar_wallet,
             id="btn_transactions",
+            title="Transactions",
             filter_via_input_ids=(
                 f"tx-table-{wallet.alias}",
                 "shadowRoot",
@@ -141,6 +146,7 @@ def build_html_elements(specter):
                 "shadowRoot",
                 "btn_history",
             ),
+            title="History",
             function=lambda x: search_in_structure(x, wallet.txlist()),
         )
         transactions_utxo = HtmlElement(
@@ -150,12 +156,14 @@ def build_html_elements(specter):
                 "shadowRoot",
                 "btn_utxo",
             ),
+            title="UTXO",
             function=lambda x: search_in_structure(x, wallet.full_utxo),
         )
 
         addresses = HtmlElement(
             sidebar_wallet,
             id="btn_addresses",
+            title="Addresses",
         )
         addresses_recieve = HtmlElement(
             addresses,
@@ -164,6 +172,7 @@ def build_html_elements(specter):
                 "shadowRoot",
                 "receive-addresses-view-btn",
             ),
+            title="Recieve Addresses",
             function=lambda x: search_in_structure(
                 x, wallet.addresses_info(is_change=False)
             ),
@@ -175,6 +184,7 @@ def build_html_elements(specter):
                 "shadowRoot",
                 "change-addresses-view-btn",
             ),
+            title="Change Addresses",
             function=lambda x: search_in_structure(
                 x, wallet.addresses_info(is_change=True)
             ),
@@ -183,16 +193,19 @@ def build_html_elements(specter):
         recieve = HtmlElement(
             sidebar_wallet,
             id="btn_receive",
+            title="Change Addresses",
             function=lambda x: search_in_structure(x, [wallet.address]),
         )
 
         send = HtmlElement(
             sidebar_wallet,
             id="btn_send",
+            title="Send",
         )
         unsigned = HtmlElement(
             send,
             id="btn_send_pending",
+            title="Unsigned",
             function=lambda x: search_in_structure(
                 x, [psbt.to_dict() for psbt in wallet.pending_psbts.values()]
             ),
@@ -203,11 +216,13 @@ def build_html_elements(specter):
         device_names = HtmlElement(
             sidebar_device,
             id="title",
+            title="Devices",
             function=lambda x: search_in_structure(x, [device.alias]),
         )
         device_keys = HtmlElement(
             sidebar_device,
             id="keys-table-header-key",
+            title="Keys",
             function=lambda x: search_in_structure(x, [key for key in device.keys]),
         )
 
