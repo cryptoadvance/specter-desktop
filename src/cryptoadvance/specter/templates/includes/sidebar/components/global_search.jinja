@@ -161,25 +161,25 @@
             // show search results
             var span = document.createElement("span")
             span.style.fontSize = "small";
-            span.innerHTML += "&nbsp;&nbsp;>&nbsp;&nbsp;" + (ui_element.results.length>1 ? '</br>' : '');
+            span.innerHTML += "&nbsp;&nbsp;>&nbsp;&nbsp;" + (ui_element.results.length>1 ? '</br>&emsp;&emsp;' : '');
             const max_number_results = 5;
             for (var i in ui_element.results){
                 if (i>max_number_results){
-                    span.innerHTML += `&emsp;&emsp;+ ${ui_element.results.length - max_number_results} more results`
+                    span.innerHTML += `+ ${ui_element.results.length - max_number_results} more results`
                     break
                 }
                 var result = ui_element.results[i];
 
                 // if a title is available for the search result display it nicer
                 if (result.title  && result.key){
-                    span.innerHTML += this.highlightString(`&emsp;&emsp;${result.title}: ${result.key}: ${result.value}`, searchTerm);;
+                    span.innerHTML += this.highlightString(`${result.title}: ${result.key}: ${result.value}`, searchTerm);;
                 } else {
-                    span.innerHTML += this.highlightString(`&emsp;&emsp;${result.value}`, searchTerm);;
+                    span.innerHTML += this.highlightString(`${result.value}`, searchTerm);;
                 }
 
                 // append newline
                 if (i < ui_element.results.length-1){
-                    span.innerHTML += ',</br>';
+                    span.innerHTML += ',</br>&emsp;&emsp;';
                 }
             }
             div.appendChild(span);
@@ -234,6 +234,7 @@
             let url="{{ url_for('wallets_endpoint_api.global_search' ) }}";
             send_request(url, 'POST', "{{ csrf_token() }}", formData).then((answer)=> {
                 // this is to account for the fact that the input element can have changed during the request
+                // if the user quickly deletes the search term again, there should be no search window appearing
                 if ((this.searchInputElement.value == "") ||  (!answer)) {
                     this.setContentVisibility(false);
                     return

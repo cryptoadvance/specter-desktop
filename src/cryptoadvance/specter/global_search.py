@@ -255,7 +255,7 @@ class GlobalSearchTrees:
             search_function=lambda x: self._search_in_structure(
                 x,
                 [psbt.to_dict() for psbt in wallet.pending_psbts.values()],
-                title_key="txid",
+                title_key="address",
             ),
         )
 
