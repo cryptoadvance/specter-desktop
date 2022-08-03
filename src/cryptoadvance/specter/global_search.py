@@ -339,9 +339,16 @@ class GlobalSearchTrees:
             end_node.results = end_node.search_function(search_term)
         return html_root
 
-    def do_global_search(self, search_term, user_id, wallet_manager, device_manager):
-        "Builds the UI Tree if ncessary (only do it once) and then calls the functions in it to search for the search_term"
-        if user_id not in self.ui_roots:
+    def do_global_search(
+        self,
+        search_term,
+        user_id,
+        wallet_manager,
+        device_manager,
+        force_build_ui_tree=False,
+    ):
+        "Builds the UI Tree if necessary (only do it once) and then calls the functions in it to search for the search_term"
+        if (user_id not in self.ui_roots) or force_build_ui_tree:
             logger.debug(f"Building UI Tree for user {user_id}")
             self.ui_roots[user_id] = self._build_ui_elements(
                 wallet_manager, device_manager
