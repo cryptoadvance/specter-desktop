@@ -76,6 +76,7 @@ def normalize_address(addr: str) -> str:
     # bitcoin hrps
     hrps = {net["bech32"] + "1" for net in NETWORKS.values()}
     # liquid hrps
+    # Blech32 addresses are intended for confidential assets
     hrps = hrps.union(
         {net["blech32"] + "1" for net in NETWORKS.values() if "blech32" in net}
     )
