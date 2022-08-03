@@ -172,7 +172,7 @@
 
                 // if a title is available for the search result display it nicer
                 if (result.title  && result.key){
-                    span.innerHTML += this.highlightString(`${result.title}: ${result.key}: ${result.value}`, searchTerm);;
+                    span.innerHTML += this.highlightString(`${result.title}&nbsp;&nbsp;>&nbsp;&nbsp;${result.key}: ${result.value}`, searchTerm);;
                 } else {
                     span.innerHTML += this.highlightString(`${result.value}`, searchTerm);;
                 }
@@ -244,8 +244,17 @@
                 console.log(answer.childless_only);
                 this.addResultsHeader(answer.childless_only)
 
+                const max_number_of_ui_elements = 100;
                 for (var i in answer.childless_only){
-                    this.processHtmlElement(answer.childless_only[i], answer.search_term) ;
+                    // break if there are too many results
+                    if (i>max_number_of_ui_elements){
+                        var div = document.createElement("div");
+                        div.className = "global-search-row";
+                        div.innerText += `+ ${answer.childless_only.length - max_number_of_ui_elements} more results`;
+                        this.dropdownContentElement.appendChild(div);
+                        break
+                    }
+                    this.processHtmlElement(answer.childless_only[i], answer.search_term) ;                    
                 }
 
                 this.setContentVisibility(answer.childless_only.length > 0);

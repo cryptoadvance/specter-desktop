@@ -115,7 +115,6 @@ def fees_old(blocks):
 @login_required
 def global_search():
     search_term = request.form.get("global-search-input")
-    print(search_term)
     return robust_json_dumps(
         app.specter.global_search_trees.do_global_search(
             current_user, search_term.strip()

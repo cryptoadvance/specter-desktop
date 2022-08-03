@@ -8,9 +8,9 @@ logger = logging.getLogger(__name__)
 
 class SearchResult:
     def __init__(self, value, title=None, key=None) -> None:
-        self.title = title
-        self.key = key
-        self.value = value
+        self.title = str(title) if title else title
+        self.key = str(key).capitalize() if key else key
+        self.value = str(value) if value else value
 
     def json(self):
         return self.__dict__
@@ -306,35 +306,33 @@ class GlobalSearchTrees:
             self._device_ui_elements(ui_root, device)
         return ui_root
 
-    def _search_in_dict(self, search_term, d, title_key=None, title_value=None):
+    def _search_in_dict(self, search_term, d, title_key=None):
         results = []
         for key, value in d.items():
             if isinstance(value, dict):
-                results += self._search_in_dict(search_term, value)
+                results += self._search_in_dict(search_term, value, title_key=title_key)
             elif isinstance(value, (list, set)):
-                results += self._search_in_structure(search_term, value)
+                results += self._search_in_structure(
+                    search_term, value, title_key=title_key
+                )
             elif search_term.lower() in str(value).lower():
-                results += [SearchResult(str(value), title=d.get(title_key), key=key)]
+                results += [SearchResult(value, title=d.get(title_key), key=key)]
         return results
 
-    def _search_in_structure(
-        self, search_term, structure, title_key=None, title_value=None
-    ):
+    def _search_in_structure(self, search_term, structure, title_key=None):
         results = []
         if isinstance(structure, dict):
             return self._search_in_dict(search_term, structure)
 
         for i, value in enumerate(structure):
             if isinstance(value, dict):
-                results += self._search_in_dict(
-                    search_term, value, title_key=title_key, title_value=title_value
-                )
+                results += self._search_in_dict(search_term, value, title_key=title_key)
             elif isinstance(value, (list, set)):
                 results += self._search_in_structure(
-                    search_term, value, title_key=title_key, title_value=title_value
+                    search_term, value, title_key=title_key
                 )
             elif search_term.lower() in str(value).lower():
-                results += [SearchResult(str(value))]
+                results += [SearchResult(value)]
         return results
 
     def _search_in_ui_structure(self, search_term, html_root):
