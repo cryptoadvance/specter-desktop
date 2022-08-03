@@ -6,6 +6,16 @@ from flask import url_for
 logger = logging.getLogger(__name__)
 
 
+class SearchResult:
+    def __init__(self, value, title=None, key=None) -> None:
+        self.title = title
+        self.key = key
+        self.value = value
+
+    def json(self):
+        return self.__dict__
+
+
 class UIElement:
     """
     This is a logical struture representing an UI/enpoint/HTML element, e.g., a button, a tab.
@@ -20,7 +30,7 @@ class UIElement:
         self,
         parent,
         ids=None,
-        function=None,
+        search_function=None,
         children=None,
         title=None,
         endpoint=None,
@@ -32,7 +42,7 @@ class UIElement:
         # the ids is the html id or, if needed the set of concatenated ids to get to the html element
         self.ids = ids if ids else set()
         self._results = None
-        self.function = function
+        self.search_function = search_function
         self.title = title
         self.endpoint = endpoint
 
@@ -48,6 +58,12 @@ class UIElement:
 
     @results.setter
     def results(self, results):
+        """
+        Set a result list for end-nodes (childless nodes)
+
+        Args:
+            results (list of SearchResult): _description_
+        """
         if self.children:
             raise "Setting results is only allowed for end nodes"
         self._results = results
@@ -99,7 +115,7 @@ class UIElement:
         d["title"] = self.title
         d["endpoint"] = self.endpoint
         if include_results:
-            d["results"] = self.results
+            d["results"] = [result.json() for result in self.results]
         return d
 
 
@@ -111,18 +127,7 @@ class GlobalSearchTrees:
         self.wallet_manager = wallet_manager
         self.device_manager = device_manager
 
-    def search_in_structure(self, search_term, structure):
-        results = []
-        for item in structure:
-            if isinstance(item, dict):
-                results += self.search_in_structure(search_term, item.values())
-            elif isinstance(item, list):
-                results += self.search_in_structure(search_term, item)
-            elif search_term.lower() in str(item).lower():
-                results += [str(item)]
-        return results
-
-    def wallet_ui_elements(self, ui_root, wallet):
+    def _wallet_ui_elements(self, ui_root, wallet):
         html_wallets = UIElement(
             ui_root,
             ids="toggle_wallets_list",
@@ -140,7 +145,7 @@ class GlobalSearchTrees:
             ids="title",
             title="Wallet",
             endpoint=url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias),
-            function=lambda x: self.search_in_structure(x, [wallet.alias]),
+            search_function=lambda x: self._search_in_structure(x, [wallet.alias]),
         )
         transactions = UIElement(
             sidebar_wallet,
@@ -161,7 +166,9 @@ class GlobalSearchTrees:
                 wallet_alias=wallet.alias,
                 tx_list_type="txlist",
             ),
-            function=lambda x: self.search_in_structure(x, wallet.txlist()),
+            search_function=lambda x: self._search_in_structure(
+                x, wallet.txlist(), title_key="txid"
+            ),
         )
         transactions_utxo = UIElement(
             transactions,
@@ -176,7 +183,9 @@ class GlobalSearchTrees:
                 wallet_alias=wallet.alias,
                 tx_list_type="utxo",
             ),
-            function=lambda x: self.search_in_structure(x, wallet.full_utxo),
+            search_function=lambda x: self._search_in_structure(
+                x, wallet.full_utxo, title_key="txid"
+            ),
         )
 
         addresses = UIElement(
@@ -198,8 +207,8 @@ class GlobalSearchTrees:
                 wallet_alias=wallet.alias,
                 address_type="recieve",
             ),
-            function=lambda x: self.search_in_structure(
-                x, wallet.addresses_info(is_change=False)
+            search_function=lambda x: self._search_in_structure(
+                x, wallet.addresses_info(is_change=False), title_key="address"
             ),
         )
         addresses_change = UIElement(
@@ -215,8 +224,8 @@ class GlobalSearchTrees:
                 wallet_alias=wallet.alias,
                 address_type="change",
             ),
-            function=lambda x: self.search_in_structure(
-                x, wallet.addresses_info(is_change=True)
+            search_function=lambda x: self._search_in_structure(
+                x, wallet.addresses_info(is_change=True), title_key="address"
             ),
         )
 
@@ -225,7 +234,9 @@ class GlobalSearchTrees:
             ids="btn_receive",
             title="Recieve",
             endpoint=url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias),
-            function=lambda x: self.search_in_structure(x, [wallet.address]),
+            search_function=lambda x: self._search_in_structure(
+                x, [wallet.address], title_key="address"
+            ),
         )
 
         send = UIElement(
@@ -241,12 +252,14 @@ class GlobalSearchTrees:
             endpoint=url_for(
                 "wallets_endpoint.send_pending", wallet_alias=wallet.alias
             ),
-            function=lambda x: self.search_in_structure(
-                x, [psbt.to_dict() for psbt in wallet.pending_psbts.values()]
+            search_function=lambda x: self._search_in_structure(
+                x,
+                [psbt.to_dict() for psbt in wallet.pending_psbts.values()],
+                title_key="txid",
             ),
         )
 
-    def device_ui_elements(self, ui_root, device):
+    def _device_ui_elements(self, ui_root, device):
         html_devices = UIElement(
             ui_root,
             ids="toggle_devices_list",
@@ -265,19 +278,19 @@ class GlobalSearchTrees:
             ids="title",
             title="Devices",
             endpoint=url_for("devices_endpoint.device", device_alias=device.alias),
-            function=lambda x: self.search_in_structure(x, [device.alias]),
+            search_function=lambda x: self._search_in_structure(x, [device.alias]),
         )
         device_keys = UIElement(
             sidebar_device,
             ids="keys-table-header-key",
             title="Keys",
             endpoint=url_for("devices_endpoint.device", device_alias=device.alias),
-            function=lambda x: self.search_in_structure(
-                x, [key for key in device.keys]
+            search_function=lambda x: self._search_in_structure(
+                x, [key for key in device.keys], title_key="purpose"
             ),
         )
 
-    def build_ui_elements(self):
+    def _build_ui_elements(self):
         """
         This builds all UIElements that should be highlighted during a search.
         It also encodes which functions will be used for searching.
@@ -288,28 +301,59 @@ class GlobalSearchTrees:
         ui_root = UIElement(None)
 
         for wallet in self.wallet_manager.wallets.values():
-            self.wallet_ui_elements(ui_root, wallet)
+            self._wallet_ui_elements(ui_root, wallet)
         for device in self.device_manager.devices.values():
-            self.device_ui_elements(ui_root, device)
+            self._device_ui_elements(ui_root, device)
         return ui_root
 
-    def search_in_html_structure(self, search_term, html_root):
-        "Given an html_root it will call the child.function for all childs that do not have any children"
+    def _search_in_dict(self, search_term, d, title_key=None, title_value=None):
+        results = []
+        for key, value in d.items():
+            if isinstance(value, dict):
+                results += self._search_in_dict(search_term, value)
+            elif isinstance(value, (list, set)):
+                results += self._search_in_structure(search_term, value)
+            elif search_term.lower() in str(value).lower():
+                results += [SearchResult(str(value), title=d.get(title_key), key=key)]
+        return results
+
+    def _search_in_structure(
+        self, search_term, structure, title_key=None, title_value=None
+    ):
+        results = []
+        if isinstance(structure, dict):
+            return self._search_in_dict(search_term, structure)
+
+        for i, value in enumerate(structure):
+            if isinstance(value, dict):
+                results += self._search_in_dict(
+                    search_term, value, title_key=title_key, title_value=title_value
+                )
+            elif isinstance(value, (list, set)):
+                results += self._search_in_structure(
+                    search_term, value, title_key=title_key, title_value=title_value
+                )
+            elif search_term.lower() in str(value).lower():
+                results += [SearchResult(str(value))]
+        return results
+
+    def _search_in_ui_structure(self, search_term, html_root):
+        "Given an html_root it will call the child.search_function for all childs that do not have any children"
         end_nodes = html_root.calculate_end_nodes()
         for end_node in end_nodes:
-            end_node.results = end_node.function(search_term)
+            end_node.results = end_node.search_function(search_term)
         return html_root
 
     def do_global_search(self, user_id, search_term):
         "Builds the UI Tree if ncessary (only do it once) and then calls the functions in it to search for the search_term"
         if user_id not in self.ui_roots:
             logger.debug(f"Building UI Tree for user {user_id}")
-            self.ui_roots[user_id] = self.build_ui_elements()
+            self.ui_roots[user_id] = self._build_ui_elements()
         else:
             self.ui_roots[user_id].reset_results()
 
-        if search_term:
-            self.search_in_html_structure(search_term, self.ui_roots[user_id])
+        if len(search_term) > 1:
+            self._search_in_ui_structure(search_term, self.ui_roots[user_id])
 
         return {
             "childless_only": self.ui_roots[user_id].childless_only_as_json(),

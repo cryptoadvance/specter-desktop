@@ -29,6 +29,8 @@
             box-shadow: 0px 8px 16px 0px rgba(0,0,0,1);
             padding: 5px 5px;
             z-index: 1;
+            overflow-y:scroll;
+            max-height: 50%;
         }
 
         
@@ -156,10 +158,30 @@
             var lastParent = this.uiElementToLink(ui_element);
             div.appendChild(lastParent);
 
-            // show search result
+            // show search results
             var span = document.createElement("span")
-            span.innerHTML = this.highlightString(`&nbsp;&nbsp;>&nbsp;&nbsp; ${ui_element.results}`, searchTerm);
             span.style.fontSize = "small";
+            span.innerHTML += "&nbsp;&nbsp;>&nbsp;&nbsp;" + (ui_element.results.length>1 ? '</br>' : '');
+            const max_number_results = 5;
+            for (var i in ui_element.results){
+                if (i>max_number_results){
+                    span.innerHTML += `&emsp;&emsp;+ ${ui_element.results.length - max_number_results} more results`
+                    break
+                }
+                var result = ui_element.results[i];
+
+                // if a title is available for the search result display it nicer
+                if (result.title  && result.key){
+                    span.innerHTML += this.highlightString(`&emsp;&emsp;${result.title}: ${result.key}: ${result.value}`, searchTerm);;
+                } else {
+                    span.innerHTML += this.highlightString(`&emsp;&emsp;${result.value}`, searchTerm);;
+                }
+
+                // append newline
+                if (i < ui_element.results.length-1){
+                    span.innerHTML += ',</br>';
+                }
+            }
             div.appendChild(span);
 
 			div.addEventListener('click', event=>{
@@ -170,7 +192,7 @@
         }
 
         highlightString(fullText, searchTerm){             
-            var regex = new RegExp(searchTerm, "i");  
+            var regex = new RegExp(searchTerm, "gi");  
             return fullText.replace(regex, "<span style='background-color: var(--cmap-found_term);'>$&</span>");
         }
 
@@ -218,7 +240,7 @@
                 }
                 
                 this.clearDropdownContent()
-                // console.log(answer.childless_only);
+                console.log(answer.childless_only);
                 this.addResultsHeader(answer.childless_only)
 
                 for (var i in answer.childless_only){
