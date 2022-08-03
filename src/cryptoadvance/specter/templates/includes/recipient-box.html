@@ -240,7 +240,7 @@
 
 
 
-		markAdddressGreenIfMine(){
+		markAddressGreenIfMine(){
 			// mark own addresses green
 			this.isAddressMyOwn().then((isMine) => {
 				this.markRecipient(isMine);
@@ -248,8 +248,13 @@
 		}
 
 		dispatchAddressOnInput(result) {
-			this.markAdddressGreenIfMine();
-			this.dispatchEvent(new CustomEvent('address-input'));
+			let address = this.addressElement.value;
+			// To reduce the fetch API calls if the address is typed
+			// TODO: If we have a better JS address validation, this can be useful here, too
+			if (address.length >= 14) {
+				this.markAddressGreenIfMine();
+				this.dispatchEvent(new CustomEvent('address-input'));
+			}
 		}
 
 		dispatchRemove(result) {
@@ -314,7 +319,7 @@
 		// address
 		set address(newValue){
 			this.addressElement.value = newValue;
-			this.markAdddressGreenIfMine();
+			this.markAddressGreenIfMine();
 		}			
 		get address(){
 			return this.addressElement.value;

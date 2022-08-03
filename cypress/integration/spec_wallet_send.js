@@ -184,7 +184,8 @@ describe('Test sending transactions', () => {
     it('Use an address belonging to the wallet', () => {
         cy.selectWallet("Ghost wallet")
         cy.get('#btn_send').click()
-        cy.get('#recipient_0').find('#address').type('bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs', { force: true })
+        // Simulating pasting the address, this also reduces the amount of fetch API calls to just one
+        cy.get('#recipient_0').find('#address').invoke('val', "bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs").trigger('input')
         cy.get('#recipient_0').find('#label').type('To my own wallet', { force: true })
         cy.get('#recipient_0').find('#amount').type(10, { force: true })
         // Checking that the background colour of the address is green as it belongs to the wallet
