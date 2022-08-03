@@ -284,8 +284,10 @@ swan_endpoint.static
 swan_endpoint.update_autowithdrawal
 swan_endpoint.withdrawals
 wallets_endpoint.addresses
+wallets_endpoint.addresses_with_type
 wallets_endpoint.failed_wallets
 wallets_endpoint.history
+wallets_endpoint.history_tx_list_type
 wallets_endpoint.import_psbt
 wallets_endpoint.new_wallet
 wallets_endpoint.new_wallet_type
