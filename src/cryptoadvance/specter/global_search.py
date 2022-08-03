@@ -122,10 +122,8 @@ class UIElement:
 class GlobalSearchTrees:
     "holds the diffferent UI roots of different users"
 
-    def __init__(self, wallet_manager, device_manager):
+    def __init__(self):
         self.ui_roots = {}
-        self.wallet_manager = wallet_manager
-        self.device_manager = device_manager
 
     def _wallet_ui_elements(self, ui_root, wallet):
         html_wallets = UIElement(
@@ -290,7 +288,7 @@ class GlobalSearchTrees:
             ),
         )
 
-    def _build_ui_elements(self):
+    def _build_ui_elements(self, wallet_manager, device_manager):
         """
         This builds all UIElements that should be highlighted during a search.
         It also encodes which functions will be used for searching.
@@ -299,10 +297,9 @@ class GlobalSearchTrees:
             UIElement: This is the html_root, which has all children linked in a tree
         """
         ui_root = UIElement(None)
-
-        for wallet in self.wallet_manager.wallets.values():
+        for wallet in wallet_manager.wallets.values():
             self._wallet_ui_elements(ui_root, wallet)
-        for device in self.device_manager.devices.values():
+        for device in device_manager.devices.values():
             self._device_ui_elements(ui_root, device)
         return ui_root
 
@@ -342,11 +339,13 @@ class GlobalSearchTrees:
             end_node.results = end_node.search_function(search_term)
         return html_root
 
-    def do_global_search(self, user_id, search_term):
+    def do_global_search(self, search_term, user_id, wallet_manager, device_manager):
         "Builds the UI Tree if ncessary (only do it once) and then calls the functions in it to search for the search_term"
         if user_id not in self.ui_roots:
             logger.debug(f"Building UI Tree for user {user_id}")
-            self.ui_roots[user_id] = self._build_ui_elements()
+            self.ui_roots[user_id] = self._build_ui_elements(
+                wallet_manager, device_manager
+            )
         else:
             self.ui_roots[user_id].reset_results()
 

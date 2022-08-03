@@ -147,9 +147,7 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     specter.hwi = HWIBridge()
 
     # Global Search
-    specter.global_search_trees = GlobalSearchTrees(
-        specter.wallet_manager, specter.device_manager
-    )
+    specter.global_search_trees = GlobalSearchTrees()
 
     # ServiceManager will instantiate and register blueprints for extensions
     specter.service_manager = ServiceManager(
