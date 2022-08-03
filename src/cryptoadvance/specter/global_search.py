@@ -41,46 +41,18 @@ class UIElement:
         self.children = children if children else set()
         # the ids is the html id or, if needed the set of concatenated ids to get to the html element
         self.ids = ids if ids else set()
-        self._results = None
         self.search_function = search_function
         self.title = title
         self.endpoint = endpoint
 
-    @property
-    def results(self):
-        if self._results:
-            return self._results
-        else:
-            flattended_list = []
-            for child in self.children:
-                flattended_list += child.results
-            return flattended_list
-
-    @results.setter
-    def results(self, results):
-        """
-        Set a result list for end-nodes (childless nodes)
-
-        Args:
-            results (list of SearchResult): _description_
-        """
-        if self.children:
-            raise "Setting results is only allowed for end nodes"
-        self._results = results
-
-    def calculate_end_nodes(self):
+    def calculate_childless_nodes(self):
         if not self.children:
             return [self]
 
-        end_nodes = []
+        childless_nodes = []
         for child in self.children:
-            end_nodes += child.calculate_end_nodes()
-        return end_nodes
-
-    def reset_results(self):
-        end_nodes = self.calculate_end_nodes()
-        for node in end_nodes:
-            node.results = []
+            childless_nodes += child.calculate_childless_nodes()
+        return childless_nodes
 
     def flattened_sub_tree_as_json(self):
         result_list = [self.json()]
@@ -99,14 +71,14 @@ class UIElement:
         result_list = []
 
         if not self.children:
-            return [self.json(include_results=True)] if self.results else []
+            return [self.json()] if self.results else []
 
         for child in self.children:
             result_list += child.childless_only_as_json()
 
         return result_list
 
-    def json(self, include_results=False):
+    def json(self):
         d = {}
         d["ids"] = self.ids
         d["flattened_parent_list"] = [
@@ -114,8 +86,6 @@ class UIElement:
         ]
         d["title"] = self.title
         d["endpoint"] = self.endpoint
-        if include_results:
-            d["results"] = [result.json() for result in self.results]
         return d
 
 
@@ -333,11 +303,18 @@ class GlobalSearchTrees:
         return results
 
     def _search_in_ui_structure(self, search_term, html_root):
-        "Given an html_root it will call the child.search_function for all childs that do not have any children"
-        end_nodes = html_root.calculate_end_nodes()
-        for end_node in end_nodes:
-            end_node.results = end_node.search_function(search_term)
-        return html_root
+        childless_nodes = html_root.calculate_childless_nodes()
+        result_dicts = []
+        for childless_node in childless_nodes:
+            result_dict = {
+                "ui_element": childless_node.json(),
+                "search_hits": [
+                    hit.json() for hit in childless_node.search_function(search_term)
+                ],
+            }
+            if result_dict["search_hits"]:
+                result_dicts.append(result_dict)
+        return result_dicts
 
     def do_global_search(
         self,
@@ -353,13 +330,14 @@ class GlobalSearchTrees:
             self.ui_roots[user_id] = self._build_ui_elements(
                 wallet_manager, device_manager
             )
-        else:
-            self.ui_roots[user_id].reset_results()
 
-        if len(search_term) > 1:
+        result_dicts = (
             self._search_in_ui_structure(search_term, self.ui_roots[user_id])
+            if len(search_term) > 1
+            else []
+        )
 
         return {
-            "childless_only": self.ui_roots[user_id].childless_only_as_json(),
+            "result_dicts": result_dicts,
             "search_term": search_term,
         }

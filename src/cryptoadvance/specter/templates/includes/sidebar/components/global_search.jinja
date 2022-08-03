@@ -122,15 +122,15 @@
         }
 
 
-        uiElementToLink(json_structure){
-            var htmlElement = this.elementByIds(json_structure.ids);           
+        uiElementToLink(ui_element){
+            var htmlElement = this.elementByIds(ui_element.ids);           
             var backupHref = htmlElement ? htmlElement.href : '';
             var backupInnerText = htmlElement ? htmlElement.innerText : '';
 
             var a = document.createElement("a");
             a.style = "color: #fff;"                
-            a.href = json_structure.endpoint ? json_structure.endpoint : backupHref;
-            a.text = json_structure.title ? json_structure.title  : backupInnerText;
+            a.href = ui_element.endpoint ? ui_element.endpoint : backupHref;
+            a.text = ui_element.title ? ui_element.title  : backupInnerText;
             return a
         }
 
@@ -138,15 +138,16 @@
         /**
         Takes a HtmlElement.json()  and does all necessary operations
         */
-        processHtmlElement(ui_element, searchTerm){
-            if (ui_element.results == []){return};
+        processHtmlElement(result_dict, searchTerm){
+            console.log(result_dict)            
+            if (result_dict.search_hits == []){return};
             
             var div = document.createElement("div");
             div.className = "global-search-row";
 
             // add all parents 
-            for (var i in ui_element.flattened_parent_list){
-                var parent = ui_element.flattened_parent_list[i];
+            for (var i in result_dict.ui_element.flattened_parent_list){
+                var parent = result_dict.ui_element.flattened_parent_list[i];
                 // skip the html root
                 if (parent.flattened_parent_list.length == 0){continue}
 
@@ -155,20 +156,20 @@
             }
             
             // add element to the same "parent" chain
-            var lastParent = this.uiElementToLink(ui_element);
+            var lastParent = this.uiElementToLink(result_dict.ui_element);
             div.appendChild(lastParent);
 
             // show search results
             var span = document.createElement("span")
             span.style.fontSize = "small";
-            span.innerHTML += "&nbsp;&nbsp;>&nbsp;&nbsp;" + (ui_element.results.length>1 ? '</br>&emsp;&emsp;' : '');
+            span.innerHTML += "&nbsp;&nbsp;>&nbsp;&nbsp;" + (result_dict.search_hits.length>1 ? '</br>&emsp;&emsp;' : '');
             const max_number_results = 5;
-            for (var i in ui_element.results){
+            for (var i in result_dict.search_hits){
                 if (i>max_number_results){
-                    span.innerHTML += `+ ${ui_element.results.length - max_number_results} more results`
+                    span.innerHTML += `+ ${result_dict.search_hits.length - max_number_results} more results`
                     break
                 }
-                var result = ui_element.results[i];
+                var result = result_dict.search_hits[i];
 
                 // if a title is available for the search result display it nicer
                 if (result.title  && result.key){
@@ -178,7 +179,7 @@
                 }
 
                 // append newline
-                if (i < ui_element.results.length-1){
+                if (i < result_dict.search_hits.length-1){
                     span.innerHTML += ',</br>&emsp;&emsp;';
                 }
             }
@@ -241,23 +242,23 @@
                 }
                 
                 this.clearDropdownContent()
-                console.log(answer.childless_only);
-                this.addResultsHeader(answer.childless_only)
+                console.log(answer.result_dicts);
+                this.addResultsHeader(answer.result_dicts)
 
                 const max_number_of_ui_elements = 100;
-                for (var i in answer.childless_only){
+                for (var i in answer.result_dicts){
                     // break if there are too many results
                     if (i>max_number_of_ui_elements){
                         var div = document.createElement("div");
                         div.className = "global-search-row";
-                        div.innerText += `+ ${answer.childless_only.length - max_number_of_ui_elements} more results`;
+                        div.innerText += `+ ${answer.result_dicts.length - max_number_of_ui_elements} more results`;
                         this.dropdownContentElement.appendChild(div);
                         break
                     }
-                    this.processHtmlElement(answer.childless_only[i], answer.search_term) ;                    
+                    this.processHtmlElement(answer.result_dicts[i], answer.search_term) ;                    
                 }
 
-                this.setContentVisibility(answer.childless_only.length > 0);
+                this.setContentVisibility(answer.result_dicts.length > 0);
             });
         }
 
