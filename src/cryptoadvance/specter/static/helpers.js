@@ -133,8 +133,6 @@ function numberWithCommas(x) {
 }
 
 
-
-
 async function send_request(url, method_str, csrf_token, formData) {
 	if (!formData) {
 		formData = new FormData();

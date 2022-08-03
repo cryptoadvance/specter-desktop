@@ -138,8 +138,7 @@
         /**
         Takes a HtmlElement.json()  and does all necessary operations
         */
-        processHtmlElement(result_dict, searchTerm){
-            console.log(result_dict)            
+        processResultDict(result_dict, searchTerm){
             if (result_dict.search_hits == []){return};
             
             var div = document.createElement("div");
@@ -226,7 +225,7 @@
         }
 
         /**
-        Sends the searchTerm to an endpoint, gets the answer back and then calls processHtmlElement
+        Sends the searchTerm to an endpoint, gets the answer back and then calls processResultDict
         */    
         globalSearch(searchTerm){
             var formData = new FormData();
@@ -242,7 +241,6 @@
                 }
                 
                 this.clearDropdownContent()
-                console.log(answer.result_dicts);
                 this.addResultsHeader(answer.result_dicts)
 
                 const max_number_of_ui_elements = 100;
@@ -255,7 +253,7 @@
                         this.dropdownContentElement.appendChild(div);
                         break
                     }
-                    this.processHtmlElement(answer.result_dicts[i], answer.search_term) ;                    
+                    this.processResultDict(answer.result_dicts[i], answer.search_term) ;                    
                 }
 
                 this.setContentVisibility(answer.result_dicts.length > 0);
