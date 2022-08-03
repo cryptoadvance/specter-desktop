@@ -172,10 +172,9 @@
 
                 // if a title is available for the search result display it nicer
                 if (result.title  && result.key){
-                    span.innerHTML += this.highlightString(`${result.title}&nbsp;&nbsp;>&nbsp;&nbsp;${result.key}: ${result.value}`, searchTerm);;
-                } else {
-                    span.innerHTML += this.highlightString(`${result.value}`, searchTerm);;
-                }
+                    span.innerHTML += `${result.title}&nbsp;&nbsp;>&nbsp;&nbsp;${result.key}: `;
+                } 
+                span.innerHTML += this.highlightString(`${result.value}`, searchTerm);
 
                 // append newline
                 if (i < result_dict.search_hits.length-1){
