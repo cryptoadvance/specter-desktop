@@ -45,20 +45,15 @@ class UIElement:
         self.title = title
         self.endpoint = endpoint
 
-    def calculate_childless_nodes(self):
-        if not self.children:
-            return [self]
+    def nodes_with_search_function(self):
+        "Typically the nodes having a search_function, are childless nodes."
+        nodes = []
+        if self.search_function:
+            nodes += [self]
 
-        childless_nodes = []
         for child in self.children:
-            childless_nodes += child.calculate_childless_nodes()
-        return childless_nodes
-
-    def flattened_sub_tree_as_json(self):
-        result_list = [self.json()]
-        for child in self.children:
-            result_list += child.flattened_sub_tree_as_json()
-        return result_list
+            nodes += child.nodes_with_search_function()
+        return nodes
 
     def flattened_parent_list(self):
         parents = []
@@ -66,17 +61,6 @@ class UIElement:
             parents = self.parent.flattened_parent_list() + [self.parent]
 
         return parents
-
-    def childless_only_as_json(self):
-        result_list = []
-
-        if not self.children:
-            return [self.json()] if self.results else []
-
-        for child in self.children:
-            result_list += child.childless_only_as_json()
-
-        return result_list
 
     def json(self):
         d = {}
@@ -287,6 +271,7 @@ class GlobalSearchTrees:
         return results
 
     def _search_in_structure(self, search_term, structure, title_key=None):
+        "Recursively goes through the dict/list/set structure and matches (case insensitive) the search_term"
         results = []
         if isinstance(structure, dict):
             return self._search_in_dict(search_term, structure)
@@ -303,13 +288,40 @@ class GlobalSearchTrees:
         return results
 
     def _search_in_ui_structure(self, search_term, html_root):
-        childless_nodes = html_root.calculate_childless_nodes()
+        """
+        Applies search_function(search_term) to all nodes, which have a search_function
+
+        Args:
+            search_term (_type_): _description_
+            html_root (_type_): _description_
+
+        Returns:
+            list of dict: Example:
+                [{
+                    'ui_element': {
+                        'ids': ('tx-table-tr', 'shadowRoot', 'btn_history'),
+                        'flattened_parent_list': [{
+                            'ids': set(),
+                            'flattened_parent_list': [],
+                            'title': None,
+                            'endpoint': None
+                        }],
+                        'title': 'History',
+                        'endpoint': '/wallets/wallet/tr/history/txlist/'
+                    },
+                    'search_hits': [{
+                        'title': '599a2780545f456b69feac58a1e4ef8271a81a367c08315cffd3e91e2e23f95a',
+                        'key': 'Blockhash',
+                        'value': '65dc072035e1f870963a111a188e14a7359454b02a09210ead68250a051f6b16'
+                    }]
+                }]
+        """
         result_dicts = []
-        for childless_node in childless_nodes:
+        for node in html_root.nodes_with_search_function():
             result_dict = {
-                "ui_element": childless_node.json(),
+                "ui_element": node.json(),
                 "search_hits": [
-                    hit.json() for hit in childless_node.search_function(search_term)
+                    hit.json() for hit in node.search_function(search_term)
                 ],
             }
             if result_dict["search_hits"]:
