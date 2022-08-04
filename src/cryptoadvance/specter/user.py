@@ -427,6 +427,27 @@ class User(UserMixin):
             for jwt_token_id in self.jwt_tokens
         ]
 
+    def verify_jwt_token_id_and_jwt_token(self, jwt_token_id, jwt_token):
+        # Verifying the JWT token ID and JWT token
+        if jwt_token_id in self.jwt_tokens:
+            if self.jwt_tokens[jwt_token_id]["jwt_token"] == jwt_token:
+                return True
+        return False
+
+    def get_jwt_token_id_by_jwt_token(self, jwt_token):
+        # Getting the JWT token ID by the JWT token
+        for jwt_token_id in self.jwt_tokens:
+            if self.jwt_tokens[jwt_token_id]["jwt_token"] == jwt_token:
+                return jwt_token_id
+        return None
+
+    def get_jwt_token_description_by_jwt_token(self, jwt_token):
+        # Getting the JWT token description from the hashmap by JWT token
+        for jwt_token_id in self.jwt_tokens:
+            if self.jwt_tokens[jwt_token_id]["jwt_token"] == jwt_token:
+                return self.jwt_tokens[jwt_token_id]["jwt_token_description"]
+        return None
+
     def get_jwt_token(self, jwt_token_id):
         # Getting a JWT token from the hashmap by ID
         if jwt_token_id in self.jwt_tokens:
@@ -439,6 +460,12 @@ class User(UserMixin):
             self.jwt_tokens[jwt_token_id]["jwt_token_description"]
             for jwt_token_id in self.jwt_tokens
         ]
+
+    def get_jwt_token_description(self, jwt_token_id):
+        # Getting a JWT token description from the hashmap by ID
+        if jwt_token_id in self.jwt_tokens:
+            return self.jwt_tokens[jwt_token_id]["jwt_token_description"]
+        return None
 
     def __eq__(self, other):
         if other == None:

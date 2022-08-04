@@ -3,6 +3,8 @@ from flask import current_app as app
 from flask_restful import Api, abort, reqparse
 from cryptoadvance.specter.api.rest.base import (
     BaseResource,
+    BasicAuthResource,
+    SecureResource,
     rest_resource,
     AdminResource,
 )
@@ -23,10 +25,12 @@ parser.add_argument(
 )
 
 
-def generate_jwt(user):
+def generate_jwt(user, jwt_token_id, jwt_token_description):
     # Generates a JWT token for the user
     payload = {
         "user": user.username,
+        "jwt_token_id": jwt_token_id,
+        "description": jwt_token_description,
         "exp": datetime.datetime.utcnow() + datetime.timedelta(days=1),
     }
     return jwt.encode(payload, app.config["SECRET_KEY"], algorithm="HS256")
@@ -38,7 +42,7 @@ def generate_token_id():
 
 
 @rest_resource
-class ResourceJWT(SecureResource):
+class ResourceJWT(BasicAuthResource):
     """
     A Resource to manage JWT tokens in order to authenticate against the REST-API
     Other then the other Resources, this endpoint uses BasicAuth to avoid the chicken egg problem
@@ -64,7 +68,7 @@ class ResourceJWT(SecureResource):
         user_details = app.specter.user_manager.get_user(user)
         jwt_token_id = generate_token_id()
         jwt_token_description = data["jwt_token_description"]
-        jwt_token = generate_jwt(user_details)
+        jwt_token = generate_jwt(user_details, jwt_token_id, jwt_token_description)
         if user_details.unique_jwt_token_description(jwt_token_description):
             user_details.add_jwt_token(jwt_token_id, jwt_token, jwt_token_description)
             return {
@@ -93,8 +97,14 @@ class ResourceJWTById(SecureResource):
         user_details = app.specter.user_manager.get_user(user)
         jwt_tokens = user_details.jwt_tokens
         jwt_token = user_details.get_jwt_token(jwt_token_id)
-        if jwt_tokens[jwt_token_id] is None:
-            return {"message": "Token does not exist"}, 404
+
+        if (
+            not user_details.verify_jwt_token_id_and_jwt_token(jwt_token_id, jwt_token)
+            and jwt_tokens[jwt_token_id] is None
+        ):
+            return {
+                "message": "Token does not exist, make sure to enter correct token id"
+            }, 404
         return {"message": "Tokens exists", "jwt_token_description": jwt_token}, 200
 
     def delete(self, jwt_token_id):
@@ -102,7 +112,15 @@ class ResourceJWTById(SecureResource):
         user = auth.current_user()
         user_details = app.specter.user_manager.get_user(user)
         jwt_tokens = user_details.jwt_tokens
-        if jwt_tokens[jwt_token_id] is None:
-            return {"message": "Token does not exist"}, 404
+        jwt_token = user_details.get_jwt_token(jwt_token_id)
+
+        if (
+            not user_details.verify_jwt_token_id_and_jwt_token(jwt_token_id, jwt_token)
+            and jwt_tokens[jwt_token_id] is None
+        ):
+            return {
+                "message": "Token does not exist, make sure to enter correct token id"
+            }, 404
+
         user_details.delete_jwt_token(jwt_token_id)
         return {"message": "Token deleted"}, 200
