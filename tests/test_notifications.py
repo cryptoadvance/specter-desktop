@@ -80,3 +80,71 @@ def test_sending_logging_notification(specter_with_user: Specter, caplog):
 
     # the notification was deleted again
     assert len(notification_manager.notifications) == 0
+
+
+def mock_flash(*args, **kwargs):
+    flash_message = str((args, kwargs))
+    print(flash_message)
+    logger.warning(flash_message)
+
+
+# check that register_user_ui_notifications registers the flash message
+# check that flash messages would send the correct message to flash
+@patch("cryptoadvance.specter.notifications.ui_notifications.flash", mock_flash)
+def test_sending_flash_notification(specter_with_user: Specter, caplog):
+
+    notification_manager = NotificationManager(
+        specter_with_user.user_manager,
+        host="localhost",
+        port="1234",
+        ssl_cert=None,
+        ssl_key=None,
+        enable_websockets=False,
+    )
+
+    # do not take the admin user but the "someuser", just to make sure "someuser" can use the  default_ui_notifications
+    user = specter_with_user.user_manager.get_user("someuser")
+    notification_manager.register_user_ui_notifications(user.username)
+
+    ui_notifications_of_user = notification_manager._get_ui_notifications_of_user(
+        user.username
+    )
+
+    # _register_default_ui_notifications should have created 2 ui_notifications accessible for all users
+    assert len(ui_notifications_of_user) == 3
+    assert ui_notifications_of_user[0].name == "flash"
+    assert ui_notifications_of_user[1].name == "logging"
+    assert ui_notifications_of_user[2].name == "print"
+
+    notification = notification_manager.create_notification(
+        "testing title",
+        user.username,
+        target_uis="flash",
+        date=datetime.datetime(2022, 7, 31, 20, 23, 49, 541516),
+        body="testing body",
+        data={"key": 1},
+        image="someurl",
+        icon="someurl",
+        timeout=3000,
+    )
+    # the notification was stored in notification_manager.notifications
+    assert len(notification_manager.notifications) == 1
+    assert notification_manager.notifications[0].id == notification.id
+
+    # check if the Notification was created correctly
+    notification_str = """{'title': 'testing title', 'user_id': 'someuser', 'date': datetime.datetime(2022, 7, 31, 20, 23, 49, 541516), 'last_shown_date': {}, 'was_closed_in_target_uis': set(), 'target_uis': {'flash'}, 'notification_type': 'information', 'body': 'testing body', 'data': {'key': 1}, 'image': 'someurl', 'icon': 'someurl', 'timeout': 3000, 'id': '56daf971f214d75949a8888654f398d8b8efe14ab027afa1b3393835d4d3edd8'}"""
+    assert str(notification) == notification_str
+
+    # capture if the notification was actually shown. Set it it warning, to only cature the mock_flash message
+    with caplog.at_level(logging.WARNING):
+        notification_manager.show(notification)
+
+    # check if any of the INFO messages was the notification
+    assert (
+        caplog.records[-1].message
+        == """(('testing title\\ntesting body', 'information'), {})"""
+    )
+    assert caplog.records[-1].levelname == "WARNING"
+
+    # the notification was deleted again
+    assert len(notification_manager.notifications) == 0

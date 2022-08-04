@@ -149,6 +149,8 @@ class JSConsoleNotifications(BaseUINotifications):
 
     def __init__(self, user_id, websockets_client, on_close=None, on_show=None):
         super().__init__(on_close=on_close, on_show=on_show)
+        if not websockets_client:
+            raise Exception("websockets_client not set")
         self.name = "js_console"
         self.user_id = user_id
         self.websockets_client = websockets_client

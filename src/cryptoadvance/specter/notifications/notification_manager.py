@@ -109,16 +109,22 @@ class NotificationManager:
 
     def register_user_ui_notifications(self, user_id):
         "Registers up the (default) UINotifications for this user"
-        self.register_ui_notification(
-            ui_notifications.WebAPINotifications(user_id, self.websockets_client)
-        )
-        self.register_ui_notification(
-            ui_notifications.JSNotifications(user_id, self.websockets_client)
-        )
+        if self.websockets_server:
+            self.register_ui_notification(
+                ui_notifications.WebAPINotifications(user_id, self.websockets_client)
+            )
+
+        if self.websockets_server:
+            self.register_ui_notification(
+                ui_notifications.JSNotifications(user_id, self.websockets_client)
+            )
+
         self.register_ui_notification(ui_notifications.FlashNotifications(user_id))
-        self.register_ui_notification(
-            ui_notifications.JSConsoleNotifications(user_id, self.websockets_client)
-        )
+
+        if self.websockets_server:
+            self.register_ui_notification(
+                ui_notifications.JSConsoleNotifications(user_id, self.websockets_client)
+            )
 
     def register_ui_notification(self, ui_notification):
         """
