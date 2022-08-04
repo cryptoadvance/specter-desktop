@@ -684,6 +684,24 @@ def utxo_csv(wallet_alias):
         return _("Failed to export wallet utxo. Error: {}").format(e), 500
 
 
+@wallets_endpoint_api.route(
+    "/wallet/<wallet_alias>/is_address_mine/<address>", methods=["GET"]
+)
+@login_required
+def is_address_mine(wallet_alias, address):
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+
+    # filter out invalid input
+    if (not address) or not isinstance(address, str):
+        return jsonify(False)
+
+    # Segwit addresses are always between 14 and 74 characters long.
+    if len(address) < 14:
+        return jsonify(False)
+
+    return jsonify(wallet.is_address_mine(address))
+
+
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/send/estimatefee", methods=["POST"])
 @login_required
 def estimate_fee(wallet_alias):

@@ -26,5 +26,4 @@
       "mochaFile": "cypresstest-output.xml",
       "toConsole": true
     }
-
 }

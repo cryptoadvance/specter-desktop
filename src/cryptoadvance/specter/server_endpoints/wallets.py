@@ -469,7 +469,7 @@ def send_new(wallet_alias):
     recipients_txt = ""
     fillform = False
     subtract = False
-    subtract_from = 1
+    subtract_from = 0
     fee_options = "dynamic"
     rbf = not app.specter.is_liquid
     rbf_utxo = []

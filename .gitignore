@@ -39,3 +39,4 @@ tests/elements
 signing_dir
 site
 docs/README.md
+cypresstest-output.xml
