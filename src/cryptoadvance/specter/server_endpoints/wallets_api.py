@@ -1,6 +1,7 @@
 import csv
 import json
 import logging
+import threading
 import time
 from binascii import b2a_base64
 from datetime import datetime
@@ -36,6 +37,8 @@ logger = logging.getLogger(__name__)
 
 wallets_endpoint_api = Blueprint("wallets_endpoint_api", __name__)
 
+get_txout_set_info_lock = threading.Lock()
+
 
 @wallets_endpoint_api.route("/wallets_loading/", methods=["GET", "POST"])
 @login_required
@@ -67,8 +70,17 @@ def generatemnemonic():
 @login_required
 @app.csrf.exempt
 def txout_set_info():
-    res = app.specter.rpc.gettxoutsetinfo(timeout=3600)
-    return res
+    if get_txout_set_info_lock.locked():
+        return {
+            "error": "Run the numbers is quite work intensive and there is already a call running. Stay calm and let it do its work!"
+        }, 429
+    with get_txout_set_info_lock:
+        try:
+            res = app.specter.rpc.gettxoutsetinfo(timeout=3600)
+            return res, 200
+        except Exception as e:
+            logger.exception(e)
+            return {"error": str(e)}, 429
 
 
 @wallets_endpoint_api.route("/get_scantxoutset_status")
@@ -655,6 +667,24 @@ def utxo_csv(wallet_alias):
     except Exception as e:
         handle_exception(e)
         return _("Failed to export wallet utxo. Error: {}").format(e), 500
+
+
+@wallets_endpoint_api.route(
+    "/wallet/<wallet_alias>/is_address_mine/<address>", methods=["GET"]
+)
+@login_required
+def is_address_mine(wallet_alias, address):
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+
+    # filter out invalid input
+    if (not address) or not isinstance(address, str):
+        return jsonify(False)
+
+    # Segwit addresses are always between 14 and 74 characters long.
+    if len(address) < 14:
+        return jsonify(False)
+
+    return jsonify(wallet.is_address_mine(address))
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/send/estimatefee", methods=["POST"])

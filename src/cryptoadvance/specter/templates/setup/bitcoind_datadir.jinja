@@ -10,7 +10,7 @@
             <span class="slider"></span>
         </label>&nbsp;&nbsp;
         </p>
-        <tool-tip>
+        <tool-tip width="150px">
             <h4 slot="title">{{ _("What is QuickSync?") }}</h4>
             <span slot="paragraph">
             {{ _("QuickSync will set up your new node from a trusted state of the blockchain.") }}<br><br>
@@ -86,7 +86,7 @@
         <button type="button" class="btn wizard-btn action" id="setup-bitcoind-dir-button" onclick="setupBitcoindDirectory()">{{ _("Start Syncing!") }}</button>
     </div>
     <div id="override-data-folder-popup" class="hidden" style="margin: auto;">
-        <p>{{ _("Your Bitcoin Core data folder seems to be already used.<br>Would you like to override it or select a different folder path?") }}
+        <p>{{ _("Your Bitcoin Core data folder seems to be already used.")}}<br>{{ _("Would you like to override it or select a different folder path?") }}
         </p><br>
         <div class="row">
             <button type="button" class="btn" onclick="hidePageOverlay()">{{ _("Edit path") }}</button>&nbsp;&nbsp;

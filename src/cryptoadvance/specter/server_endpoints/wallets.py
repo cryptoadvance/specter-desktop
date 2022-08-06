@@ -462,7 +462,7 @@ def send_new(wallet_alias):
     recipients_txt = ""
     fillform = False
     subtract = False
-    subtract_from = 1
+    subtract_from = 0
     fee_options = "dynamic"
     rbf = not app.specter.is_liquid
     rbf_utxo = []
@@ -828,6 +828,7 @@ def settings(wallet_alias):
             else:
                 app.specter.wallet_manager.rename_wallet(wallet, wallet_name)
 
+    scroll_to_rescan_blockchain = request.args.get("rescan_blockchain")
     return render_template(
         "wallet/settings/wallet_settings.jinja",
         purposes=purposes,
@@ -836,4 +837,5 @@ def settings(wallet_alias):
         specter=app.specter,
         rand=rand,
         error=error,
+        scroll_to_rescan_blockchain=scroll_to_rescan_blockchain,
     )

@@ -10,6 +10,11 @@ Sometimes some devices attached via USB are blocking the startup. We had that in
 Maybe there is another instance (still) running. Check that via opening your brower here: [http://localhost:25441](http://localhost:25441)
 If that's the case, the most easy solution is to reboot your computer.
 
+# Check security software
+Sometimes, security software is distorting the startup.
+
+E.g. Acronis is a protective system which is known to prevent starting up of Specter on windows. Other security-software might be behaving similary. For troubleshooting purposes, switch off your protective software and try again. If that helps, you need to allow specter to be running on port 25441. Check the manual on how to achieve that manually.
+
 # Check Whether the Binary is Existing
 The first thing Specter is doing if you start up the app is downloading the correct specterd from the GitHub-release page and storing that executable in the `Homefolder/.specter/specterd-binaries` subfolder. You should find a file called `specterd`.
 If the file is there but you still get the endless Pacman, try one of the following things:
