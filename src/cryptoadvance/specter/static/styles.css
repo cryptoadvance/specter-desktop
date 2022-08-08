@@ -1024,7 +1024,7 @@ nav.collapse-on-mobile a.mobile-nav-icon {
 See: https://css-tricks.com/the-trick-to-viewport-units-on-mobile/
 This style is used for a div at the bottom in the <main> element to create a distance at the bottom of the pages
 */
-.mobile-distance-element-botom {
+.mobile-distance-element-bottom {
     height: 0px;
     flex-shrink: 0;
     width: 100%;
@@ -1204,8 +1204,8 @@ This style is used for a div at the bottom in the <main> element to create a dis
     .main-page-container{
         background-image: none;
       }
-    .mobile-distance-element-botom {
-        height: var(--mobileDistanceElementBotomHeight, mobileDistanceElementBotomHeight);
+    .mobile-distance-element-bottom {
+        height: var(--mobileDistanceElementBottomHeight, 60px);
     }
 }
 
@@ -1265,9 +1265,7 @@ input:checked + .slider:before {
     transform: translateX(26px);
 }
 
-
-
-
+/************** Styles for recipient-box ********************************/
 .recipient_wrapper{
     width: 100%;
     border-radius: 3px;

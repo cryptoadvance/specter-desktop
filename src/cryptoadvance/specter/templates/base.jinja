@@ -41,7 +41,7 @@
 		</style>
 		<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
 		<script>
-			document.documentElement.style.setProperty('--mobileDistanceElementBotomHeight', `${Math.max(0, window.outerHeight - window.innerHeight)}px`);
+			document.documentElement.style.setProperty('--mobileDistanceElementBottomHeight', `${Math.max(0, window.outerHeight - window.innerHeight)}px`);
 		</script>
 		{% block head %}
 		{% endblock %}
@@ -268,7 +268,7 @@
 					</div>
 				{% endif %}
 			{% endblock %}
-	    <div id="mobile-distance-element-botom" class="mobile-distance-element-botom"></div>	
+	    <div id="mobile-distance-element-bottom" class="mobile-distance-element-bottom"></div>	
 		</main>
 	</div>
 
