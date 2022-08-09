@@ -40,9 +40,6 @@
 			}
 		</style>
 		<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
-		<script>
-			document.documentElement.style.setProperty('--mobileDistanceElementBottomHeight', `${Math.max(0, window.outerHeight - window.innerHeight)}px`);
-		</script>
 		{% block head %}
 		{% endblock %}
 	</head>
