@@ -161,7 +161,9 @@
             // show search results
             var span = document.createElement("span")
             span.style.fontSize = "small";
+            // make a line break if result_dict.search_hits.length>1
             span.innerHTML += "&nbsp;&nbsp;>&nbsp;&nbsp;" + (result_dict.search_hits.length>1 ? '</br>&emsp;&emsp;' : '');
+            // limit the number of search results in one result_dict subpoint
             const max_number_results = 5;
             for (var i in result_dict.search_hits){
                 if (i>max_number_results){
@@ -241,6 +243,7 @@
                 
                 this.clearDropdownContent()
                 this.addResultsHeader(answer.result_dicts)
+                console.log(answer.result_dicts)
 
                 const max_number_of_ui_elements = 100;
                 for (var i in answer.result_dicts){

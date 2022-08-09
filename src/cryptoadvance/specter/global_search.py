@@ -258,7 +258,7 @@ class GlobalSearchTrees:
         return ui_root
 
     def _search_in_structure(
-        self, search_term, structure, title_key=None, title=None, key=None
+        self, search_term, structure, title_key=None, _result_meta_data=None
     ):
         """
         Recursively goes through the dict/list/tuple/set structure and matches (case insensitive) the search_term
@@ -281,15 +281,20 @@ class GlobalSearchTrees:
                     search_term,
                     value,
                     title_key=title_key,
-                    title=structure.get(title_key),
-                    key=key,
+                    _result_meta_data={"title": structure.get(title_key), "key": key},
                 )
         elif isinstance(structure, (list, tuple, set)):
             for value in structure:
                 results += self._search_in_structure(
-                    search_term, value, title_key=title_key, title=title, key=key
+                    search_term,
+                    value,
+                    title_key=title_key,
+                    _result_meta_data=_result_meta_data,
                 )
+        # if it is not a list,dict,... then it is the final element that should be searched:
         elif search_term.lower() in str(structure).lower():
+            title = _result_meta_data.get("title") if _result_meta_data else None
+            key = _result_meta_data.get("key") if _result_meta_data else None
             results += [SearchResult(structure, title=title, key=key)]
 
         return results
