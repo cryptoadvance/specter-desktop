@@ -257,34 +257,41 @@ class GlobalSearchTrees:
             self._device_ui_elements(ui_root, device)
         return ui_root
 
-    def _search_in_dict(self, search_term, d, title_key=None):
-        results = []
-        for key, value in d.items():
-            if isinstance(value, dict):
-                results += self._search_in_dict(search_term, value, title_key=title_key)
-            elif isinstance(value, (list, set)):
-                results += self._search_in_structure(
-                    search_term, value, title_key=title_key
-                )
-            elif search_term.lower() in str(value).lower():
-                results += [SearchResult(value, title=d.get(title_key), key=key)]
-        return results
+    def _search_in_structure(
+        self, search_term, structure, title_key=None, title=None, key=None
+    ):
+        """
+        Recursively goes through the dict/list/tuple/set structure and matches (case insensitive) the search_term
 
-    def _search_in_structure(self, search_term, structure, title_key=None):
-        "Recursively goes through the dict/list/set structure and matches (case insensitive) the search_term"
+        Args:
+            search_term (str): _description_
+            structure (list, tuple, set, dict): _description_
+            title_key (_type_, optional): If a result is found in a dictionary, then the value of the title_key
+                                            is used as the title of the SearchResult, e.g,
+                                            the title_key="txid" is the title of a search result in a tx-dictionary.
+                                            Defaults to None.
+
+        Returns:
+            results: list of SearchResult
+        """
         results = []
         if isinstance(structure, dict):
-            return self._search_in_dict(search_term, structure)
-
-        for i, value in enumerate(structure):
-            if isinstance(value, dict):
-                results += self._search_in_dict(search_term, value, title_key=title_key)
-            elif isinstance(value, (list, set)):
+            for key, value in structure.items():
                 results += self._search_in_structure(
-                    search_term, value, title_key=title_key
+                    search_term,
+                    value,
+                    title_key=title_key,
+                    title=structure.get(title_key),
+                    key=key,
                 )
-            elif search_term.lower() in str(value).lower():
-                results += [SearchResult(value)]
+        elif isinstance(structure, (list, tuple, set)):
+            for value in structure:
+                results += self._search_in_structure(
+                    search_term, value, title_key=title_key, title=title, key=key
+                )
+        elif search_term.lower() in str(structure).lower():
+            results += [SearchResult(structure, title=title, key=key)]
+
         return results
 
     def _search_in_ui_structure(self, search_term, html_root):
