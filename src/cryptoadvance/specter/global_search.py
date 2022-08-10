@@ -1,5 +1,5 @@
 import os
-import logging
+import logging, json
 
 from flask import url_for
 
@@ -26,13 +26,16 @@ class Endpoint:
 
 
 class SearchResult:
-    def __init__(self, value, title=None, key=None) -> None:
+    def __init__(self, value, title=None, key=None, endpoint=None) -> None:
         self.title = str(title) if title else title
         self.key = str(key).capitalize() if key else key
         self.value = str(value) if value else value
+        self.endpoint = endpoint
 
     def json(self):
-        return self.__dict__
+        d = self.__dict__
+        d["endpoint"] = d["endpoint"].json() if d["endpoint"] else None
+        return d
 
 
 class UIElement:
@@ -245,6 +248,14 @@ class GlobalSearchTrees:
                 x,
                 [psbt.to_dict() for psbt in wallet.pending_psbts.values()],
                 title_key="address",
+                f_endpoint=lambda psbt_dict: Endpoint(
+                    url_for("wallets_endpoint.send_pending", wallet_alias=wallet.alias),
+                    method_str="POST",
+                    form_data={
+                        "action": "openpsbt",
+                        "pending_psbt": json.dumps(psbt_dict),
+                    },
+                ),
             ),
         )
 
@@ -301,7 +312,12 @@ class GlobalSearchTrees:
         return ui_root
 
     def _search_in_structure(
-        self, search_term, structure, title_key=None, _result_meta_data=None
+        self,
+        search_term,
+        structure,
+        title_key=None,
+        f_endpoint=None,
+        _result_meta_data=None,
     ):
         """
         Recursively goes through the dict/list/tuple/set structure and matches (case insensitive) the search_term
@@ -324,21 +340,40 @@ class GlobalSearchTrees:
                     search_term,
                     value,
                     title_key=title_key,
-                    _result_meta_data={"title": structure.get(title_key), "key": key},
+                    f_endpoint=f_endpoint,
+                    _result_meta_data={
+                        "title": structure.get(title_key),
+                        "key": key,
+                        "parent_structure": structure,
+                    },
                 )
         elif isinstance(structure, (list, tuple, set)):
             for value in structure:
+                update_dict = {"parent_structure": structure}
+                if isinstance(_result_meta_data, dict):
+                    _result_meta_data.update(update_dict)
+                else:
+                    _result_meta_data = update_dict
+
                 results += self._search_in_structure(
                     search_term,
                     value,
                     title_key=title_key,
+                    f_endpoint=f_endpoint,
                     _result_meta_data=_result_meta_data,
                 )
         # if it is not a list,dict,... then it is the final element that should be searched:
         elif search_term.lower() in str(structure).lower():
             title = _result_meta_data.get("title") if _result_meta_data else None
             key = _result_meta_data.get("key") if _result_meta_data else None
-            results += [SearchResult(structure, title=title, key=key)]
+            endpoint = (
+                f_endpoint(_result_meta_data.get("parent_structure"))
+                if f_endpoint and _result_meta_data.get("parent_structure")
+                else None
+            )
+            results += [
+                SearchResult(structure, title=title, key=key, endpoint=endpoint)
+            ]
 
         return results
 

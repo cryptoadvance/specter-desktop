@@ -135,6 +135,23 @@
         }
 
 
+        attachEndpointAction(endpoint, backup_href){
+            if (endpoint){
+                if (endpoint.method_str == 'href'){
+                    location.href = endpoint.url;
+                } else if (endpoint.method_str == 'GET' ||  endpoint.method_str == 'POST' )  {
+                    // rebuild formData
+                    var formData = new FormData();
+                    for (var key in endpoint.form_data){
+                        formData.append(key, endpoint.form_data[key])
+                    }                    
+                    send_request_no_json(endpoint.url, endpoint.method_str, "{{ csrf_token() }}", formData);
+                }
+            } else {
+                location.href = backup_href;    
+            }                    
+        }
+
         /**
         Takes a result_dict and adds it to the result list
         */
@@ -186,7 +203,7 @@
 
 
                 div_result.addEventListener('click', event=>{
-                    location.href = lastParent.href;
+                    this.attachEndpointAction(result.endpoint, lastParent.href);
                 });			
                 div_result.style.cursor = "pointer";
                 this.dropdownContentElement.appendChild(div_result);
