@@ -13,9 +13,11 @@ class Endpoint:
         It can also be a GET or POST request
 
         Args:
-            url (_type_): _description_
-            method_str (str, optional): href, form. Defaults to 'href.
-            formData (_type_, optional): _description_. Defaults to None.
+            url (str): _description_
+            method_str (str, optional): "href", "form". Defaults to "href".
+                "href" will make the url open as a simple link
+                "form" will create a form together with the formData and url and submit it.
+            formData (dict, optional): _description_. Defaults to None.
         """
         self.url = url
         self.method_str = method_str
