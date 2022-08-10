@@ -158,6 +158,10 @@ class GlobalSearchTrees:
             ),
         )
 
+        def transactions_utxo_generator():
+            for utxo in wallet.full_utxo:
+                yield utxo
+
         transactions_utxo = UIElement(
             transactions,
             ids=(
@@ -174,7 +178,7 @@ class GlobalSearchTrees:
                 )
             ),
             search_function=lambda x: self._search_in_structure(
-                x, wallet.full_utxo, title_key="txid"
+                x, transactions_utxo_generator(), title_key="txid"
             ),
         )
 
@@ -350,7 +354,8 @@ class GlobalSearchTrees:
         _result_meta_data=None,
     ):
         """
-        Recursively goes through the dict/list/tuple/set structure and matches (case insensitive) the search_term
+        Recursively goes through the list/tuple/set/GeneratorType until it hits a dict.
+        It matches then the dict.values() with the search_term  (case insensitive)
 
         Args:
             search_term (str): A string (non-case-sensitive) which will be searched for in the structure
@@ -373,17 +378,18 @@ class GlobalSearchTrees:
         results = []
         if isinstance(structure, dict):
             for key, value in structure.items():
-                results += self._search_in_structure(
-                    search_term,
-                    value,
-                    title_key=title_key,
-                    f_endpoint=f_endpoint,
-                    _result_meta_data={
-                        "title": structure.get(title_key),
-                        "key": key,
-                        "parent_structure": structure,
-                    },
-                )
+                # if it is not a list,dict,... then it is the final element that should be searched:
+                if search_term.lower() in str(value).lower():
+                    endpoint = f_endpoint(structure) if f_endpoint else None
+                    results += [
+                        SearchResult(
+                            value,
+                            title=structure.get(title_key),
+                            key=key,
+                            endpoint=endpoint,
+                        )
+                    ]
+
         elif isinstance(structure, (types.GeneratorType, list, tuple, set)):
             for value in structure:
                 update_dict = {"parent_structure": structure}
@@ -399,19 +405,6 @@ class GlobalSearchTrees:
                     f_endpoint=f_endpoint,
                     _result_meta_data=_result_meta_data,
                 )
-        # if it is not a list,dict,... then it is the final element that should be searched:
-        elif search_term.lower() in str(structure).lower():
-            title = _result_meta_data.get("title") if _result_meta_data else None
-            key = _result_meta_data.get("key") if _result_meta_data else None
-            endpoint = (
-                f_endpoint(_result_meta_data.get("parent_structure"))
-                if f_endpoint and _result_meta_data.get("parent_structure")
-                else None
-            )
-            results += [
-                SearchResult(structure, title=title, key=key, endpoint=endpoint)
-            ]
-
         return results
 
     def _search_in_ui_structure(self, search_term, html_root):
