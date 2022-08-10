@@ -150,7 +150,7 @@
                 div_result.style.fontSize = "small";
 
                 if (i>max_number_of_sub_results){
-                    div_result.innerHTML += `+ ${result_dict.search_hits.length - max_number_of_sub_results} more results`
+                    div_result.innerHTML += `+ ${result_dict.search_hits.length - max_number_of_sub_results} more results in this category`
                     div_result.addEventListener('click', event => {
                         this.buildDropdownContent(
                             searchTerm, 
