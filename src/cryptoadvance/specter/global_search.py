@@ -1,19 +1,43 @@
 import os
-import logging
+import logging, json
 
 from flask import url_for
 
 logger = logging.getLogger(__name__)
 
 
-class SearchResult:
-    def __init__(self, value, title=None, key=None) -> None:
-        self.title = str(title) if title else title
-        self.key = str(key).capitalize() if key else key
-        self.value = str(value) if value else value
+class Endpoint:
+    def __init__(self, url, method_str="href", form_data=None):
+        """
+        In the simple case this is just an url for href.
+        It can also be a GET or POST request
+
+        Args:
+            url (str): _description_
+            method_str (str, optional): "href", "form". Defaults to "href".
+                "href" will make the url open as a simple link
+                "form" will create a form together with the formData and url and submit it.
+            formData (dict, optional): _description_. Defaults to None.
+        """
+        self.url = url
+        self.method_str = method_str
+        self.form_data = form_data
 
     def json(self):
         return self.__dict__
+
+
+class SearchResult:
+    def __init__(self, value, title=None, key=None, endpoint=None) -> None:
+        self.title = str(title) if title else title
+        self.key = str(key).capitalize() if key else key
+        self.value = str(value) if value else value
+        self.endpoint = endpoint
+
+    def json(self):
+        d = self.__dict__
+        d["endpoint"] = d["endpoint"].json() if d["endpoint"] else None
+        return d
 
 
 class UIElement:
@@ -69,7 +93,7 @@ class UIElement:
             parent.json() for parent in self.flattened_parent_list()
         ]
         d["title"] = self.title
-        d["endpoint"] = self.endpoint
+        d["endpoint"] = self.endpoint.json() if self.endpoint else None
         return d
 
 
@@ -84,7 +108,7 @@ class GlobalSearchTrees:
             ui_root,
             ids="toggle_wallets_list",
             title="Wallets",
-            endpoint=url_for("wallets_endpoint.wallets_overview"),
+            endpoint=Endpoint(url_for("wallets_endpoint.wallets_overview")),
         )
 
         sidebar_wallet = UIElement(
@@ -96,14 +120,18 @@ class GlobalSearchTrees:
             sidebar_wallet,
             ids="title",
             title="Wallet",
-            endpoint=url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias),
+            endpoint=Endpoint(
+                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
+            ),
             search_function=lambda x: self._search_in_structure(x, [wallet.alias]),
         )
         transactions = UIElement(
             sidebar_wallet,
             ids="btn_transactions",
             title="Transactions",
-            endpoint=url_for("wallets_endpoint.history", wallet_alias=wallet.alias),
+            endpoint=Endpoint(
+                url_for("wallets_endpoint.history", wallet_alias=wallet.alias)
+            ),
         )
         transactions_history = UIElement(
             transactions,
@@ -113,10 +141,12 @@ class GlobalSearchTrees:
                 "btn_history",
             ),
             title="History",
-            endpoint=url_for(
-                "wallets_endpoint.history_tx_list_type",
-                wallet_alias=wallet.alias,
-                tx_list_type="txlist",
+            endpoint=Endpoint(
+                url_for(
+                    "wallets_endpoint.history_tx_list_type",
+                    wallet_alias=wallet.alias,
+                    tx_list_type="txlist",
+                )
             ),
             search_function=lambda x: self._search_in_structure(
                 x, wallet.txlist(), title_key="txid"
@@ -130,10 +160,12 @@ class GlobalSearchTrees:
                 "btn_utxo",
             ),
             title="UTXO",
-            endpoint=url_for(
-                "wallets_endpoint.history_tx_list_type",
-                wallet_alias=wallet.alias,
-                tx_list_type="utxo",
+            endpoint=Endpoint(
+                url_for(
+                    "wallets_endpoint.history_tx_list_type",
+                    wallet_alias=wallet.alias,
+                    tx_list_type="utxo",
+                )
             ),
             search_function=lambda x: self._search_in_structure(
                 x, wallet.full_utxo, title_key="txid"
@@ -144,7 +176,9 @@ class GlobalSearchTrees:
             sidebar_wallet,
             ids="btn_addresses",
             title="Addresses",
-            endpoint=url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias),
+            endpoint=Endpoint(
+                url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias)
+            ),
         )
         addresses_recieve = UIElement(
             addresses,
@@ -154,10 +188,12 @@ class GlobalSearchTrees:
                 "receive-addresses-view-btn",
             ),
             title="Recieve Addresses",
-            endpoint=url_for(
-                "wallets_endpoint.addresses_with_type",
-                wallet_alias=wallet.alias,
-                address_type="recieve",
+            endpoint=Endpoint(
+                url_for(
+                    "wallets_endpoint.addresses_with_type",
+                    wallet_alias=wallet.alias,
+                    address_type="recieve",
+                )
             ),
             search_function=lambda x: self._search_in_structure(
                 x, wallet.addresses_info(is_change=False), title_key="address"
@@ -171,10 +207,12 @@ class GlobalSearchTrees:
                 "change-addresses-view-btn",
             ),
             title="Change Addresses",
-            endpoint=url_for(
-                "wallets_endpoint.addresses_with_type",
-                wallet_alias=wallet.alias,
-                address_type="change",
+            endpoint=Endpoint(
+                url_for(
+                    "wallets_endpoint.addresses_with_type",
+                    wallet_alias=wallet.alias,
+                    address_type="change",
+                )
             ),
             search_function=lambda x: self._search_in_structure(
                 x, wallet.addresses_info(is_change=True), title_key="address"
@@ -185,7 +223,9 @@ class GlobalSearchTrees:
             sidebar_wallet,
             ids="btn_receive",
             title="Recieve",
-            endpoint=url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias),
+            endpoint=Endpoint(
+                url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias)
+            ),
             search_function=lambda x: self._search_in_structure(
                 x, [wallet.address], title_key="address"
             ),
@@ -195,19 +235,31 @@ class GlobalSearchTrees:
             sidebar_wallet,
             ids="btn_send",
             title="Send",
-            endpoint=url_for("wallets_endpoint.send_new", wallet_alias=wallet.alias),
+            endpoint=Endpoint(
+                url_for("wallets_endpoint.send_new", wallet_alias=wallet.alias)
+            ),
+        )
+
+        unsigned_f_endpoint = lambda psbt_dict: Endpoint(
+            url_for("wallets_endpoint.send_pending", wallet_alias=wallet.alias),
+            method_str="form",
+            form_data={
+                "action": "openpsbt",
+                "pending_psbt": json.dumps(psbt_dict),
+            },
         )
         unsigned = UIElement(
             send,
             ids="btn_send_pending",
             title="Unsigned",
-            endpoint=url_for(
-                "wallets_endpoint.send_pending", wallet_alias=wallet.alias
+            endpoint=Endpoint(
+                url_for("wallets_endpoint.send_pending", wallet_alias=wallet.alias)
             ),
             search_function=lambda x: self._search_in_structure(
                 x,
                 [psbt.to_dict() for psbt in wallet.pending_psbts.values()],
                 title_key="address",
+                f_endpoint=unsigned_f_endpoint,
             ),
         )
 
@@ -216,27 +268,33 @@ class GlobalSearchTrees:
             ui_root,
             ids="toggle_devices_list",
             title="Devices",
-            endpoint=url_for("wallets_endpoint.wallets_overview"),
+            endpoint=Endpoint(url_for("wallets_endpoint.wallets_overview")),
         )
 
         sidebar_device = UIElement(
             html_devices,
             ids=f"device_list_item_{device.alias}",
             title=device.alias,
-            endpoint=url_for("devices_endpoint.device", device_alias=device.alias),
+            endpoint=Endpoint(
+                url_for("devices_endpoint.device", device_alias=device.alias)
+            ),
         )
         device_names = UIElement(
             sidebar_device,
             ids="title",
             title="Devices",
-            endpoint=url_for("devices_endpoint.device", device_alias=device.alias),
+            endpoint=Endpoint(
+                url_for("devices_endpoint.device", device_alias=device.alias)
+            ),
             search_function=lambda x: self._search_in_structure(x, [device.alias]),
         )
         device_keys = UIElement(
             sidebar_device,
             ids="keys-table-header-key",
             title="Keys",
-            endpoint=url_for("devices_endpoint.device", device_alias=device.alias),
+            endpoint=Endpoint(
+                url_for("devices_endpoint.device", device_alias=device.alias)
+            ),
             search_function=lambda x: self._search_in_structure(
                 x, [key for key in device.keys], title_key="purpose"
             ),
@@ -258,7 +316,12 @@ class GlobalSearchTrees:
         return ui_root
 
     def _search_in_structure(
-        self, search_term, structure, title_key=None, _result_meta_data=None
+        self,
+        search_term,
+        structure,
+        title_key=None,
+        f_endpoint=None,
+        _result_meta_data=None,
     ):
         """
         Recursively goes through the dict/list/tuple/set structure and matches (case insensitive) the search_term
@@ -281,21 +344,40 @@ class GlobalSearchTrees:
                     search_term,
                     value,
                     title_key=title_key,
-                    _result_meta_data={"title": structure.get(title_key), "key": key},
+                    f_endpoint=f_endpoint,
+                    _result_meta_data={
+                        "title": structure.get(title_key),
+                        "key": key,
+                        "parent_structure": structure,
+                    },
                 )
         elif isinstance(structure, (list, tuple, set)):
             for value in structure:
+                update_dict = {"parent_structure": structure}
+                if isinstance(_result_meta_data, dict):
+                    _result_meta_data.update(update_dict)
+                else:
+                    _result_meta_data = update_dict
+
                 results += self._search_in_structure(
                     search_term,
                     value,
                     title_key=title_key,
+                    f_endpoint=f_endpoint,
                     _result_meta_data=_result_meta_data,
                 )
         # if it is not a list,dict,... then it is the final element that should be searched:
         elif search_term.lower() in str(structure).lower():
             title = _result_meta_data.get("title") if _result_meta_data else None
             key = _result_meta_data.get("key") if _result_meta_data else None
-            results += [SearchResult(structure, title=title, key=key)]
+            endpoint = (
+                f_endpoint(_result_meta_data.get("parent_structure"))
+                if f_endpoint and _result_meta_data.get("parent_structure")
+                else None
+            )
+            results += [
+                SearchResult(structure, title=title, key=key, endpoint=endpoint)
+            ]
 
         return results
 

@@ -129,18 +129,31 @@
 
             var a = document.createElement("a");
             a.style = "color: #fff;"                
-            a.href = ui_element.endpoint ? ui_element.endpoint : backupHref;
+            a.href = ui_element.endpoint ? ui_element.endpoint.url : backupHref;
             a.text = ui_element.title ? ui_element.title  : backupInnerText;
             return a
         }
 
 
+        attachEndpointAction(endpoint, backup_href){
+            if (endpoint){
+                if (endpoint.method_str == 'href'){
+                    location.href = endpoint.url;
+                } else if (endpoint.method_str == 'form')  {
+                    submitForm(endpoint.url, "{{ csrf_token() }}", endpoint.form_data);
+                }
+            } else {
+                location.href = backup_href;    
+            }                    
+        }
+
         /**
-        Takes a HtmlElement.json()  and does all necessary operations
+        Takes a result_dict and adds it to the result list
         */
-        processResultDict(result_dict, searchTerm){
+        addResultToResultDropbdown(result_dict, searchTerm){
             if (result_dict.search_hits == []){return};
-            
+
+            // create parent navigation header            
             var div = document.createElement("div");
             div.className = "global-search-row";
 
@@ -153,43 +166,43 @@
                 div.appendChild(this.uiElementToLink(parent));
                 div.innerHTML +=  '&nbsp;&nbsp;>&nbsp;&nbsp;';
             }
-            
-            // add element to the same "parent" chain
             var lastParent = this.uiElementToLink(result_dict.ui_element);
+            div.addEventListener('click', event=>{
+                location.href = lastParent.href;
+            });			
+            div.style.cursor = "pointer";
             div.appendChild(lastParent);
+            this.dropdownContentElement.appendChild(div);
+            
 
             // show search results
-            var span = document.createElement("span")
-            span.style.fontSize = "small";
-            // make a line break if result_dict.search_hits.length>1
-            span.innerHTML += "&nbsp;&nbsp;>&nbsp;&nbsp;" + (result_dict.search_hits.length>1 ? '</br>&emsp;&emsp;' : '');
             // limit the number of search results in one result_dict subpoint
             const max_number_results = 5;
             for (var i in result_dict.search_hits){
+                var div_result = document.createElement("div");
+                div_result.className = "global-search-row";
+                
+                div_result.style.fontSize = "small";
+
                 if (i>max_number_results){
-                    span.innerHTML += `+ ${result_dict.search_hits.length - max_number_results} more results`
+                    div_result.innerHTML += `+ ${result_dict.search_hits.length - max_number_results} more results`
                     break
                 }
                 var result = result_dict.search_hits[i];
 
                 // if a title is available for the search result display it nicer
                 if (result.title  && result.key){
-                    span.innerHTML += `${result.title}&nbsp;&nbsp;>&nbsp;&nbsp;${result.key}: `;
+                    div_result.innerHTML += `${result.title}&nbsp;&nbsp;>&nbsp;&nbsp;${result.key}: `;
                 } 
-                span.innerHTML += this.highlightString(`${result.value}`, searchTerm);
+                div_result.innerHTML += this.highlightString(`${result.value}`, searchTerm);
 
-                // append newline
-                if (i < result_dict.search_hits.length-1){
-                    span.innerHTML += ',</br>&emsp;&emsp;';
-                }
+
+                div_result.addEventListener('click', event=>{
+                    this.attachEndpointAction(result.endpoint, lastParent.href);
+                });			
+                div_result.style.cursor = "pointer";
+                this.dropdownContentElement.appendChild(div_result);
             }
-            div.appendChild(span);
-
-			div.addEventListener('click', event=>{
-				location.href = lastParent.href;
-			});			
-            div.style.cursor = "pointer";
-            this.dropdownContentElement.appendChild(div);
         }
 
         highlightString(fullText, searchTerm){             
@@ -226,7 +239,7 @@
         }
 
         /**
-        Sends the searchTerm to an endpoint, gets the answer back and then calls processResultDict
+        Sends the searchTerm to an endpoint, gets the answer back and then calls addResultToResultDropbdown
         */    
         globalSearch(searchTerm){
             var formData = new FormData();
@@ -255,7 +268,7 @@
                         this.dropdownContentElement.appendChild(div);
                         break
                     }
-                    this.processResultDict(answer.result_dicts[i], answer.search_term) ;                    
+                    this.addResultToResultDropbdown(answer.result_dicts[i], answer.search_term) ;                    
                 }
 
                 this.setContentVisibility(answer.result_dicts.length > 0);

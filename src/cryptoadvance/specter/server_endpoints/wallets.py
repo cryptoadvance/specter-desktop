@@ -667,6 +667,7 @@ def send_pending(wallet_alias):
                 flash(_("Could not delete Pending PSBT!"), "error")
         elif action == "openpsbt":
             psbt = json.loads(request.form["pending_psbt"])
+            print(psbt)
             return render_template(
                 "wallet/send/sign/wallet_send_sign_psbt.jinja",
                 psbt=psbt,

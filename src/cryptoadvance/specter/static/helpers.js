@@ -153,3 +153,31 @@ async function send_request(url, method_str, csrf_token, formData) {
 	}
 	return await response.json();
 }
+
+
+
+async function submitForm(url, csrf_token, formDataDict) {
+	var form = document.createElement("form");
+	form.action = url;
+	form.type =  "hidden";
+	form.method = "POST";
+	form.value = formDataDict["action"];
+
+	var input = document.createElement("input");
+	input.name =  "csrf_token";
+	input.value =  csrf_token;
+	form.appendChild(input);
+
+	// transfer all values from the formDataDict into input fields.
+	for (var key in formDataDict){
+		var input = document.createElement("input");
+		input.type =  "hidden";
+		input.name =  key;
+		input.value =  formDataDict[key];
+		form.appendChild(input);
+	}                
+	
+
+	document.body.appendChild(form);	
+	form.submit();
+}
