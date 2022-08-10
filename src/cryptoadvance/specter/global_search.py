@@ -115,15 +115,12 @@ class GlobalSearchTrees:
             html_wallets,
             ids=f"{wallet.alias}-sidebar-list-item",
             title=wallet.alias,
-        )
-        wallet_names = UIElement(
-            sidebar_wallet,
-            ids="title",
-            title="Wallet",
             endpoint=Endpoint(
                 url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
             ),
-            search_function=lambda x: self._search_in_structure(x, [wallet.alias]),
+            search_function=lambda x: self._search_in_structure(
+                x, {"name": wallet.alias}, title_key="name"
+            ),
         )
         transactions = UIElement(
             sidebar_wallet,
@@ -303,15 +300,9 @@ class GlobalSearchTrees:
             endpoint=Endpoint(
                 url_for("devices_endpoint.device", device_alias=device.alias)
             ),
-        )
-        device_names = UIElement(
-            sidebar_device,
-            ids="title",
-            title="Devices",
-            endpoint=Endpoint(
-                url_for("devices_endpoint.device", device_alias=device.alias)
+            search_function=lambda x: self._search_in_structure(
+                x, {"name": device.alias}, title_key="name"
             ),
-            search_function=lambda x: self._search_in_structure(x, [device.alias]),
         )
 
         def device_keys_generator():
@@ -375,11 +366,14 @@ class GlobalSearchTrees:
         Returns:
             results: list of SearchResult
         """
+
+        def is_match(search_term, value):
+            return search_term.lower() in str(value).lower()
+
         results = []
         if isinstance(structure, dict):
             for key, value in structure.items():
-                # if it is not a list,dict,... then it is the final element that should be searched:
-                if search_term.lower() in str(value).lower():
+                if is_match(search_term, value):
                     endpoint = f_endpoint(structure) if f_endpoint else None
                     results += [
                         SearchResult(
@@ -405,6 +399,17 @@ class GlobalSearchTrees:
                     f_endpoint=f_endpoint,
                     _result_meta_data=_result_meta_data,
                 )
+        else:
+            # if it is not a list,dict,... then it is the final element that should be searched:
+            if is_match(search_term, structure):
+                endpoint = f_endpoint(structure) if f_endpoint else None
+                results += [
+                    SearchResult(
+                        structure,
+                        endpoint=endpoint,
+                    )
+                ]
+
         return results
 
     def _search_in_ui_structure(self, search_term, html_root):
