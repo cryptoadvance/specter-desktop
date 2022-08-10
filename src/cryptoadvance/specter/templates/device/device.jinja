@@ -138,33 +138,34 @@
 		</div>
 	{% endif %}
 	<div class="hidden" id="new_device_popup">
-	<h1>{{ _("New device was added successfully!") }}</h1>
-	<div class="row overflow">
-		<a href="{{ url_for('devices_endpoint.new_device_type') }}" style="text-decoration: none;">
-			<div class="small-card radio">
-				<img src="{{ url_for('static', filename='img/plus.svg') }}" class="svg-white" style="transform: scale(1.5);">
-				{{ _("Add another device") }}
-			</div>
-		</a>
-		<form action="{{ url_for('wallets_endpoint.new_wallet', wallet_type='simple') }}" method="POST">
-			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-			<input type="hidden" name="device" value="{{ device.alias }}" />
-			<input type="hidden" name="action" value="preselected_device" />
-			<button type="submit" style="background: none; color: inherit; border: none; padding: 0; font: inherit; cursor: pointer; outline: inherit;">
+		<h1>{{ _("New device was added successfully!") }}</h1>
+		<div class="row overflow">
+			<a href="{{ url_for('devices_endpoint.new_device_type') }}" style="text-decoration: none;">
 				<div class="small-card radio">
-					<img src="{{ url_for('static', filename='img/key.svg') }}" class="svg-white" style="width: 120px;">
-					{{ _("Create single key wallet") }}
-				</div>
-			</button>
-		</form>
-		{% if specter.device_manager.devices | length > 1 %}
-			<a href="{{ url_for('wallets_endpoint.new_wallet', wallet_type='multisig') }}" style="text-decoration: none;">
-				<div class="small-card radio">
-					<img src="{{ url_for('static', filename='img/two-keys.svg') }}" class="svg-white" style="width: 120px;">
-					{{ _("Create multisignature wallet") }}
+					<img src="{{ url_for('static', filename='img/plus.svg') }}" class="svg-white" style="transform: scale(1.5);">
+					{{ _("Add another device") }}
 				</div>
 			</a>
-		{% endif %}
+			<form action="{{ url_for('wallets_endpoint.new_wallet', wallet_type='simple') }}" method="POST">
+				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+				<input type="hidden" name="device" value="{{ device.alias }}" />
+				<input type="hidden" name="action" value="preselected_device" />
+				<button type="submit" style="background: none; color: inherit; border: none; padding: 0; font: inherit; cursor: pointer; outline: inherit;">
+					<div class="small-card radio">
+						<img src="{{ url_for('static', filename='img/key.svg') }}" class="svg-white" style="width: 120px;">
+						{{ _("Create single key wallet") }}
+					</div>
+				</button>
+			</form>
+			{% if specter.device_manager.devices | length > 1 %}
+				<a href="{{ url_for('wallets_endpoint.new_wallet', wallet_type='multisig') }}" style="text-decoration: none;">
+					<div class="small-card radio">
+						<img src="{{ url_for('static', filename='img/two-keys.svg') }}" class="svg-white" style="width: 120px;">
+						{{ _("Create multisignature wallet") }}
+					</div>
+				</a>
+			{% endif %}
+		</div>
 	</div>
 {% endblock %}
 
