@@ -54,6 +54,10 @@
 
             this.timeOutIds = [];
 
+            this.last_answer = null; // be overwritten with the first search call
+            this.last_max_number_of_main_results = 5; // the number will be overwritten with the first search call
+            this.last_max_number_of_sub_results = 5; // the number will be overwritten with the first search call
+
 			this.buildHTML();			// created the html
 			this.attachListeners();		// attaches the listeners to some html objects
     }
@@ -88,49 +92,11 @@
 
 
 
-        /**
-        Fetches an element by the ids. 
-        If it is below a shadowRoot the argument should be 
-            ids = [f"addresses-table-{wallet.alias}","shadowRoot","receive-addresses-view-btn"]
-        */
-        elementByIds(ids){
-            if (!ids) {return null};
-
-            if (typeof ids === 'string' || ids instanceof String){        
-                ids = [ids];
-            }
-
-
-            var last_found_element = document;
-            var found_element = null;
-            for (var i in ids){
-                if (ids[i] == 'shadowRoot'){
-                    found_element = last_found_element.shadowRoot;
-                }
-                else {
-                    found_element = last_found_element.getElementById(ids[i]);
-                }
-
-                if (!found_element) {break}
-
-                last_found_element = found_element;
-            }
-
-            if (last_found_element === document){return null};
-
-            return last_found_element
-        }
-
-
         uiElementToLink(ui_element){
-            var htmlElement = this.elementByIds(ui_element.ids);           
-            var backupHref = htmlElement ? htmlElement.href : '';
-            var backupInnerText = htmlElement ? htmlElement.innerText : '';
-
             var a = document.createElement("a");
             a.style = "color: #fff;"                
-            a.href = ui_element.endpoint ? ui_element.endpoint.url : backupHref;
-            a.text = ui_element.title ? ui_element.title  : backupInnerText;
+            a.href = ui_element.endpoint ? ui_element.endpoint.url : "";
+            a.text = ui_element.title;
             return a
         }
 
@@ -151,7 +117,7 @@
         /**
         Takes a result_dict and adds it to the result list
         */
-        addResultToResultDropbdown(result_dict, searchTerm){
+        addResultToResultDropbdown(result_dict, searchTerm, max_number_of_sub_results=5){
             if (result_dict.search_hits == []){return};
 
             // create parent navigation header            
@@ -177,16 +143,23 @@
         
 
             // show search results
-            // limit the number of search results in one result_dict subpoint
-            const max_number_results = 5;
             for (var i in result_dict.search_hits){
                 var div_result = document.createElement("div");
                 div_result.className = "global-search-row";
                 
                 div_result.style.fontSize = "small";
 
-                if (i>max_number_results){
-                    div_result.innerHTML += `+ ${result_dict.search_hits.length - max_number_results} more results`
+                if (i>max_number_of_sub_results){
+                    div_result.innerHTML += `+ ${result_dict.search_hits.length - max_number_of_sub_results} more results`
+                    div_result.addEventListener('click', event => {
+                        this.buildDropdownContent(
+                            searchTerm, 
+                            this.last_answer,
+                            this.last_max_number_of_main_results, 
+                            5+max_number_of_sub_results
+                        );
+                    });
+                    this.dropdownContentElement.appendChild(div_result);
                     break
                 }
                 // it is critical that this is a const, overwise the addEventListener('click') will not referr to the current, but to the last result in the loop
@@ -240,10 +213,45 @@
             this.dropdownContentElement.style.display = visible ? "block" : "none";   
         }
 
+
+        buildDropdownContent(searchTerm, answer, max_number_of_main_results=5, max_number_of_sub_results=5){
+            this.last_max_number_of_main_results = max_number_of_main_results;
+            this.last_max_number_of_sub_results = max_number_of_sub_results;
+            this.clearDropdownContent();
+            this.addResultsHeader(answer.result_dicts);
+
+            for (var i in answer.result_dicts){
+                // if there are too many results, add a div showing missing elements
+                if (i>max_number_of_main_results){
+                    var div = document.createElement("div");
+                    div.className = "global-search-row";
+                    div.innerText += `+ ${answer.result_dicts.length - max_number_of_main_results} more results`;
+                    div.addEventListener('click', event => {
+                        this.buildDropdownContent(
+                            searchTerm, 
+                            answer,
+                            5+max_number_of_main_results, 
+                            max_number_of_sub_results
+                        );
+                    });			
+                    this.dropdownContentElement.appendChild(div);
+                    break;
+                }
+                this.addResultToResultDropbdown(
+                    answer.result_dicts[i], 
+                    answer.search_term, 
+                    max_number_of_sub_results
+                );                    
+            }
+
+            this.setContentVisibility(answer.result_dicts.length > 0);
+        }
+
+
         /**
         Sends the searchTerm to an endpoint, gets the answer back and then calls addResultToResultDropbdown
         */    
-        globalSearch(searchTerm){
+        globalSearch(searchTerm, max_number_of_main_results=5, max_number_of_sub_results=5){
             var formData = new FormData();
             formData.append('global-search-input', this.searchInputElement.value);
 
@@ -254,26 +262,15 @@
                 if ((this.searchInputElement.value == "") ||  (!answer)) {
                     this.setContentVisibility(false);
                     return
-                }
-                
-                this.clearDropdownContent()
-                this.addResultsHeader(answer.result_dicts)
-                console.log(answer.result_dicts)
+                }                
+                this.last_answer = answer;
 
-                const max_number_of_ui_elements = 100;
-                for (var i in answer.result_dicts){
-                    // break if there are too many results
-                    if (i>max_number_of_ui_elements){
-                        var div = document.createElement("div");
-                        div.className = "global-search-row";
-                        div.innerText += `+ ${answer.result_dicts.length - max_number_of_ui_elements} more results`;
-                        this.dropdownContentElement.appendChild(div);
-                        break
-                    }
-                    this.addResultToResultDropbdown(answer.result_dicts[i], answer.search_term) ;                    
-                }
-
-                this.setContentVisibility(answer.result_dicts.length > 0);
+                this.buildDropdownContent(
+                    searchTerm, 
+                    answer, 
+                    max_number_of_main_results, 
+                    max_number_of_sub_results
+                )
             });
         }
 

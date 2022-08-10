@@ -29,9 +29,9 @@ class Endpoint:
 
 class SearchResult:
     def __init__(self, value, title=None, key=None, endpoint=None) -> None:
+        self.value = str(value) if value else value
         self.title = str(title) if title else title
         self.key = str(key).capitalize() if key else key
-        self.value = str(value) if value else value
         self.endpoint = endpoint
 
     def json(self):
@@ -53,18 +53,15 @@ class UIElement:
     def __init__(
         self,
         parent,
-        ids=None,
+        title,
+        endpoint,
         search_function=None,
         children=None,
-        title=None,
-        endpoint=None,
     ):
         self.parent = parent
         if self.parent:
             self.parent.children.add(self)
         self.children = children if children else set()
-        # the ids is the html id or, if needed the set of concatenated ids to get to the html element
-        self.ids = ids if ids else set()
         self.search_function = search_function
         self.title = title
         self.endpoint = endpoint
@@ -88,7 +85,6 @@ class UIElement:
 
     def json(self):
         d = {}
-        d["ids"] = self.ids
         d["flattened_parent_list"] = [
             parent.json() for parent in self.flattened_parent_list()
         ]
@@ -106,29 +102,22 @@ class GlobalSearchTrees:
     def _wallet_ui_elements(self, ui_root, wallet):
         html_wallets = UIElement(
             ui_root,
-            ids="toggle_wallets_list",
-            title="Wallets",
-            endpoint=Endpoint(url_for("wallets_endpoint.wallets_overview")),
+            "Wallets",
+            Endpoint(url_for("wallets_endpoint.wallets_overview")),
         )
 
         sidebar_wallet = UIElement(
             html_wallets,
-            ids=f"{wallet.alias}-sidebar-list-item",
-            title=wallet.alias,
-            endpoint=Endpoint(
-                url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
-            ),
+            wallet.alias,
+            Endpoint(url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)),
             search_function=lambda x: self._search_in_structure(
                 x, {"name": wallet.alias}, title_key="name"
             ),
         )
         transactions = UIElement(
             sidebar_wallet,
-            ids="btn_transactions",
-            title="Transactions",
-            endpoint=Endpoint(
-                url_for("wallets_endpoint.history", wallet_alias=wallet.alias)
-            ),
+            "Transactions",
+            Endpoint(url_for("wallets_endpoint.history", wallet_alias=wallet.alias)),
         )
 
         def transactions_history_generator():
@@ -137,13 +126,8 @@ class GlobalSearchTrees:
 
         transactions_history = UIElement(
             transactions,
-            ids=(
-                f"tx-table-{wallet.alias}",
-                "shadowRoot",
-                "btn_history",
-            ),
-            title="History",
-            endpoint=Endpoint(
+            "History",
+            Endpoint(
                 url_for(
                     "wallets_endpoint.history_tx_list_type",
                     wallet_alias=wallet.alias,
@@ -161,13 +145,8 @@ class GlobalSearchTrees:
 
         transactions_utxo = UIElement(
             transactions,
-            ids=(
-                f"tx-table-{wallet.alias}",
-                "shadowRoot",
-                "btn_utxo",
-            ),
-            title="UTXO",
-            endpoint=Endpoint(
+            "UTXO",
+            Endpoint(
                 url_for(
                     "wallets_endpoint.history_tx_list_type",
                     wallet_alias=wallet.alias,
@@ -181,11 +160,8 @@ class GlobalSearchTrees:
 
         addresses = UIElement(
             sidebar_wallet,
-            ids="btn_addresses",
-            title="Addresses",
-            endpoint=Endpoint(
-                url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias)
-            ),
+            "Addresses",
+            Endpoint(url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias)),
         )
 
         def addresses_recieve_generator(is_change):
@@ -194,13 +170,8 @@ class GlobalSearchTrees:
 
         addresses_recieve = UIElement(
             addresses,
-            ids=(
-                f"addresses-table-{wallet.alias}",
-                "shadowRoot",
-                "receive-addresses-view-btn",
-            ),
-            title="Recieve Addresses",
-            endpoint=Endpoint(
+            "Recieve Addresses",
+            Endpoint(
                 url_for(
                     "wallets_endpoint.addresses_with_type",
                     wallet_alias=wallet.alias,
@@ -213,13 +184,8 @@ class GlobalSearchTrees:
         )
         addresses_change = UIElement(
             addresses,
-            ids=(
-                f"addresses-table-{wallet.alias}",
-                "shadowRoot",
-                "change-addresses-view-btn",
-            ),
-            title="Change Addresses",
-            endpoint=Endpoint(
+            "Change Addresses",
+            Endpoint(
                 url_for(
                     "wallets_endpoint.addresses_with_type",
                     wallet_alias=wallet.alias,
@@ -233,11 +199,8 @@ class GlobalSearchTrees:
 
         recieve = UIElement(
             sidebar_wallet,
-            ids="btn_receive",
-            title="Recieve",
-            endpoint=Endpoint(
-                url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias)
-            ),
+            "Recieve",
+            Endpoint(url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias)),
             search_function=lambda x: self._search_in_structure(
                 x, [wallet.address], title_key="address"
             ),
@@ -245,11 +208,8 @@ class GlobalSearchTrees:
 
         send = UIElement(
             sidebar_wallet,
-            ids="btn_send",
-            title="Send",
-            endpoint=Endpoint(
-                url_for("wallets_endpoint.send_new", wallet_alias=wallet.alias)
-            ),
+            "Send",
+            Endpoint(url_for("wallets_endpoint.send_new", wallet_alias=wallet.alias)),
         )
 
         def unsigned_f_endpoint(psbt_dict):
@@ -272,9 +232,8 @@ class GlobalSearchTrees:
 
         unsigned = UIElement(
             send,
-            ids="btn_send_pending",
-            title="Unsigned",
-            endpoint=Endpoint(
+            "Unsigned",
+            Endpoint(
                 url_for("wallets_endpoint.send_pending", wallet_alias=wallet.alias)
             ),
             search_function=lambda x: self._search_in_structure(
@@ -288,18 +247,14 @@ class GlobalSearchTrees:
     def _device_ui_elements(self, ui_root, device):
         html_devices = UIElement(
             ui_root,
-            ids="toggle_devices_list",
-            title="Devices",
-            endpoint=Endpoint(url_for("wallets_endpoint.wallets_overview")),
+            "Devices",
+            Endpoint(url_for("wallets_endpoint.wallets_overview")),
         )
 
         sidebar_device = UIElement(
             html_devices,
-            ids=f"device_list_item_{device.alias}",
-            title=device.alias,
-            endpoint=Endpoint(
-                url_for("devices_endpoint.device", device_alias=device.alias)
-            ),
+            device.alias,
+            Endpoint(url_for("devices_endpoint.device", device_alias=device.alias)),
             search_function=lambda x: self._search_in_structure(
                 x, {"name": device.alias}, title_key="name"
             ),
@@ -311,11 +266,8 @@ class GlobalSearchTrees:
 
         device_keys = UIElement(
             sidebar_device,
-            ids="keys-table-header-key",
-            title="Keys",
-            endpoint=Endpoint(
-                url_for("devices_endpoint.device", device_alias=device.alias)
-            ),
+            "Keys",
+            Endpoint(url_for("devices_endpoint.device", device_alias=device.alias)),
             search_function=lambda x: self._search_in_structure(
                 x, device_keys_generator(), title_key="purpose"
             ),
@@ -329,7 +281,7 @@ class GlobalSearchTrees:
         Returns:
             UIElement: This is the html_root, which has all children linked in a tree
         """
-        ui_root = UIElement(None)
+        ui_root = UIElement(None, "root", Endpoint(url_for("setup_endpoint.start")))
         for wallet in wallet_manager.wallets.values():
             self._wallet_ui_elements(ui_root, wallet)
         for device in device_manager.devices.values():
@@ -424,9 +376,7 @@ class GlobalSearchTrees:
             list of dict: Example:
                 [{
                     'ui_element': {
-                        'ids': ('tx-table-tr', 'shadowRoot', 'btn_history'),
                         'flattened_parent_list': [{
-                            'ids': set(),
                             'flattened_parent_list': [],
                             'title': None,
                             'endpoint': None
