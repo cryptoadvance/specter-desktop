@@ -156,23 +156,28 @@ async function send_request(url, method_str, csrf_token, formData) {
 
 
 
-async function submitForm(url, method_str, csrf_token, formData) {
-	if (!formData) {
-		formData = new FormData();
-	}
-	formData.append("csrf_token", csrf_token)
-	d = {
-			method: method_str,
-		}
-	if (method_str == 'POST') {
-		d['body'] = formData;
-	}
+async function submitForm(url, csrf_token, formDataDict) {
+	var form = document.createElement("form");
+	form.action = url;
+	form.type =  "hidden";
+	form.method = "POST";
+	form.value = formDataDict["action"];
 
-	console.log(d)
-	const response = await fetch(url, d);
-	if(response.status != 200){
-		showError(await response.text());
-		console.log(`Error while calling ${url} with ${method_str} ${formData}`)
-		return
-	}
+	var input = document.createElement("input");
+	input.name =  "csrf_token";
+	input.value =  csrf_token;
+	form.appendChild(input);
+
+	// transfer all values from the formDataDict into input fields.
+	for (var key in formDataDict){
+		var input = document.createElement("input");
+		input.type =  "hidden";
+		input.name =  key;
+		input.value =  formDataDict[key];
+		form.appendChild(input);
+	}                
+	
+
+	document.body.appendChild(form);	
+	form.submit();
 }

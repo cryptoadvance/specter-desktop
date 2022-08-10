@@ -139,13 +139,8 @@
             if (endpoint){
                 if (endpoint.method_str == 'href'){
                     location.href = endpoint.url;
-                } else if (endpoint.method_str == 'GET' ||  endpoint.method_str == 'POST' )  {
-                    // rebuild formData
-                    var formData = new FormData();
-                    for (var key in endpoint.form_data){
-                        formData.append(key, endpoint.form_data[key])
-                    }                    
-                    send_request_no_json(endpoint.url, endpoint.method_str, "{{ csrf_token() }}", formData);
+                } else if (endpoint.method_str == 'form')  {
+                    submitForm(endpoint.url, "{{ csrf_token() }}", endpoint.form_data);
                 }
             } else {
                 location.href = backup_href;    

@@ -14,7 +14,7 @@ class Endpoint:
 
         Args:
             url (_type_): _description_
-            method_str (str, optional): href, GET, POST. Defaults to 'href.
+            method_str (str, optional): href, form. Defaults to 'href.
             formData (_type_, optional): _description_. Defaults to None.
         """
         self.url = url
@@ -237,6 +237,15 @@ class GlobalSearchTrees:
                 url_for("wallets_endpoint.send_new", wallet_alias=wallet.alias)
             ),
         )
+
+        unsigned_f_endpoint = lambda psbt_dict: Endpoint(
+            url_for("wallets_endpoint.send_pending", wallet_alias=wallet.alias),
+            method_str="form",
+            form_data={
+                "action": "openpsbt",
+                "pending_psbt": json.dumps(psbt_dict),
+            },
+        )
         unsigned = UIElement(
             send,
             ids="btn_send_pending",
@@ -248,14 +257,7 @@ class GlobalSearchTrees:
                 x,
                 [psbt.to_dict() for psbt in wallet.pending_psbts.values()],
                 title_key="address",
-                f_endpoint=lambda psbt_dict: Endpoint(
-                    url_for("wallets_endpoint.send_pending", wallet_alias=wallet.alias),
-                    method_str="POST",
-                    form_data={
-                        "action": "openpsbt",
-                        "pending_psbt": json.dumps(psbt_dict),
-                    },
-                ),
+                f_endpoint=unsigned_f_endpoint,
             ),
         )
 
