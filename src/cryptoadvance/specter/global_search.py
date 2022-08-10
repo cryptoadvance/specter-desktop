@@ -125,12 +125,12 @@ class GlobalSearchTrees:
             for tx in wallet.txlist():
                 yield tx
 
-        def tx_f_endpoint(tx_dict):
+        def tx_f_endpoint(tx_dict, tx_list_type):
             return Endpoint(
                 url_for(
                     "wallets_endpoint.history_tx_list_type",
                     wallet_alias=wallet.alias,
-                    tx_list_type="txlist",
+                    tx_list_type=tx_list_type,
                 ),
                 method_str="form",
                 form_data={
@@ -153,7 +153,7 @@ class GlobalSearchTrees:
                 x,
                 transactions_history_generator(),
                 title_key="txid",
-                f_endpoint=tx_f_endpoint,
+                f_endpoint=lambda tx_dict: tx_f_endpoint(tx_dict, "txlist"),
             ),
         )
 
@@ -172,7 +172,10 @@ class GlobalSearchTrees:
                 )
             ),
             search_function=lambda x: self._search_in_structure(
-                x, transactions_utxo_generator(), title_key="txid"
+                x,
+                transactions_utxo_generator(),
+                title_key="txid",
+                f_endpoint=lambda tx_dict: tx_f_endpoint(tx_dict, "utxo"),
             ),
         )
 
