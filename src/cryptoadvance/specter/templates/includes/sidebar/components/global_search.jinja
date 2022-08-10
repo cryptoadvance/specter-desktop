@@ -251,7 +251,7 @@
         /**
         Sends the searchTerm to an endpoint, gets the answer back and then calls addResultToResultDropbdown
         */    
-        globalSearch(searchTerm, max_number_of_main_results=5, max_number_of_sub_results=5){
+        globalSearch(searchTerm, max_number_of_main_results=100, max_number_of_sub_results=5){
             var formData = new FormData();
             formData.append('global-search-input', this.searchInputElement.value);
 
