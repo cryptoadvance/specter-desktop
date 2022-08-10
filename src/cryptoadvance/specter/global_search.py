@@ -2,6 +2,7 @@ import os
 import logging, json
 import types
 from flask import url_for
+from .util.common import robust_json_dumps
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +125,20 @@ class GlobalSearchTrees:
             for tx in wallet.txlist():
                 yield tx
 
+        def tx_f_endpoint(tx_dict):
+            return Endpoint(
+                url_for(
+                    "wallets_endpoint.history_tx_list_type",
+                    wallet_alias=wallet.alias,
+                    tx_list_type="txlist",
+                ),
+                method_str="form",
+                form_data={
+                    "action": "open_tx_at_load",
+                    "txid": tx_dict["txid"],
+                },
+            )
+
         transactions_history = UIElement(
             transactions,
             "History",
@@ -135,7 +150,10 @@ class GlobalSearchTrees:
                 )
             ),
             search_function=lambda x: self._search_in_structure(
-                x, transactions_history_generator(), title_key="txid"
+                x,
+                transactions_history_generator(),
+                title_key="txid",
+                f_endpoint=tx_f_endpoint,
             ),
         )
 
@@ -168,6 +186,20 @@ class GlobalSearchTrees:
             for address in wallet.addresses_info(is_change=is_change):
                 yield address
 
+        def address_recieve_f_endpoint(address_dict, address_type):
+            return Endpoint(
+                url_for(
+                    "wallets_endpoint.addresses_with_type",
+                    wallet_alias=wallet.alias,
+                    address_type=address_type,
+                ),
+                method_str="form",
+                form_data={
+                    "action": "open_at_load_address_json",
+                    "address_dict": robust_json_dumps(address_dict),
+                },
+            )
+
         addresses_recieve = UIElement(
             addresses,
             "Recieve Addresses",
@@ -179,7 +211,12 @@ class GlobalSearchTrees:
                 )
             ),
             search_function=lambda x: self._search_in_structure(
-                x, addresses_recieve_generator(is_change=False), title_key="address"
+                x,
+                addresses_recieve_generator(is_change=False),
+                title_key="address",
+                f_endpoint=lambda address_dict: address_recieve_f_endpoint(
+                    address_dict, "recieve"
+                ),
             ),
         )
         addresses_change = UIElement(
@@ -193,7 +230,12 @@ class GlobalSearchTrees:
                 )
             ),
             search_function=lambda x: self._search_in_structure(
-                x, addresses_recieve_generator(is_change=True), title_key="address"
+                x,
+                addresses_recieve_generator(is_change=True),
+                title_key="address",
+                f_endpoint=lambda address_dict: address_recieve_f_endpoint(
+                    address_dict, "change"
+                ),
             ),
         )
 

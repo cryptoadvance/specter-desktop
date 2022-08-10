@@ -23,4 +23,12 @@
 			id="addresses-table-{{ wallet.alias }}"></addresses-table>
 	</div>
 	<div id="address-popup" class="hidden"></div>
+	<script type="text/javascript">
+		// enable that address details can be shown upon loading
+		if ("{{ open_at_load_address_json }}" != "None") {
+			addressTable = document.getElementById("addresses-table-{{ wallet.alias }}");		
+			var addressData = {{ open_at_load_address_json|safe }};	
+			showAddressData(addressData.amount, "",  addressData, addressTable.wallet);
+		}
+	</script>
 {% endblock %}

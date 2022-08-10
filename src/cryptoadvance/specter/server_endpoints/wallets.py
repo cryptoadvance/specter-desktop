@@ -381,6 +381,7 @@ def history(wallet_alias):
 def history_tx_list_type(wallet_alias, tx_list_type):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
 
+    open_tx_at_load = None
     if request.method == "POST":
         action = request.form["action"]
         if action == "freezeutxo":
@@ -392,6 +393,8 @@ def history_tx_list_type(wallet_alias, tx_list_type):
                 wallet.abandontransaction(txid)
             except SpecterError as e:
                 flash(str(e), "error")
+        elif action == "open_tx_at_load":
+            open_tx_at_load = request.form["txid"]
 
     # update balances in the wallet
     app.specter.check_blockheight()
@@ -403,6 +406,7 @@ def history_tx_list_type(wallet_alias, tx_list_type):
         wallet_alias=wallet_alias,
         wallet=wallet,
         tx_list_type=tx_list_type,
+        open_tx_at_load=open_tx_at_load,
         specter=app.specter,
         rand=rand,
         services=app.specter.service_manager.services,
@@ -734,7 +738,7 @@ def addresses(wallet_alias):
 
 
 @wallets_endpoint.route(
-    "/wallet/<wallet_alias>/addresses/<address_type>/", methods=["GET"]
+    "/wallet/<wallet_alias>/addresses/<address_type>/", methods=["GET", "POST"]
 )
 @login_required
 def addresses_with_type(wallet_alias, address_type):
@@ -742,6 +746,12 @@ def addresses_with_type(wallet_alias, address_type):
     It updates balances in the wallet before renderization in order to show updated UTXO and
     balance of each address."""
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+
+    open_at_load_address_json = None
+    if request.method == "POST":
+        action = request.form["action"]
+        if action == "open_at_load_address_json":
+            open_at_load_address_json = request.form["address_dict"]
 
     # update balances in the wallet
     app.specter.check_blockheight()
@@ -756,6 +766,7 @@ def addresses_with_type(wallet_alias, address_type):
         rand=rand,
         services=app.specter.service_manager.services,
         address_type=address_type,
+        open_at_load_address_json=open_at_load_address_json,
     )
 
 
