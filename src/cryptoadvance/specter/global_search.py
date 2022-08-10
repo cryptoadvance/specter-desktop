@@ -1,6 +1,6 @@
 import os
 import logging, json
-
+import types
 from flask import url_for
 
 logger = logging.getLogger(__name__)
@@ -133,6 +133,11 @@ class GlobalSearchTrees:
                 url_for("wallets_endpoint.history", wallet_alias=wallet.alias)
             ),
         )
+
+        def transactions_history_generator():
+            for tx in wallet.txlist():
+                yield tx
+
         transactions_history = UIElement(
             transactions,
             ids=(
@@ -149,9 +154,10 @@ class GlobalSearchTrees:
                 )
             ),
             search_function=lambda x: self._search_in_structure(
-                x, wallet.txlist(), title_key="txid"
+                x, transactions_history_generator(), title_key="txid"
             ),
         )
+
         transactions_utxo = UIElement(
             transactions,
             ids=(
@@ -180,6 +186,11 @@ class GlobalSearchTrees:
                 url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias)
             ),
         )
+
+        def addresses_recieve_generator(is_change):
+            for address in wallet.addresses_info(is_change=is_change):
+                yield address
+
         addresses_recieve = UIElement(
             addresses,
             ids=(
@@ -196,7 +207,7 @@ class GlobalSearchTrees:
                 )
             ),
             search_function=lambda x: self._search_in_structure(
-                x, wallet.addresses_info(is_change=False), title_key="address"
+                x, addresses_recieve_generator(is_change=False), title_key="address"
             ),
         )
         addresses_change = UIElement(
@@ -215,7 +226,7 @@ class GlobalSearchTrees:
                 )
             ),
             search_function=lambda x: self._search_in_structure(
-                x, wallet.addresses_info(is_change=True), title_key="address"
+                x, addresses_recieve_generator(is_change=True), title_key="address"
             ),
         )
 
@@ -248,6 +259,13 @@ class GlobalSearchTrees:
                 "pending_psbt": json.dumps(psbt_dict),
             },
         )
+
+        def unsigned_generator():
+            for psbt in wallet.pending_psbts.values():
+                psbt_dict = psbt.to_dict()
+                psbt_dict["psbt_label"] = wallet.getlabel(psbt_dict["address"][0])
+                yield psbt_dict
+
         unsigned = UIElement(
             send,
             ids="btn_send_pending",
@@ -257,8 +275,8 @@ class GlobalSearchTrees:
             ),
             search_function=lambda x: self._search_in_structure(
                 x,
-                [psbt.to_dict() for psbt in wallet.pending_psbts.values()],
-                title_key="address",
+                unsigned_generator(),
+                title_key="psbt_label",
                 f_endpoint=unsigned_f_endpoint,
             ),
         )
@@ -288,6 +306,11 @@ class GlobalSearchTrees:
             ),
             search_function=lambda x: self._search_in_structure(x, [device.alias]),
         )
+
+        def device_keys_generator():
+            for key in device.keys:
+                yield key
+
         device_keys = UIElement(
             sidebar_device,
             ids="keys-table-header-key",
@@ -296,7 +319,7 @@ class GlobalSearchTrees:
                 url_for("devices_endpoint.device", device_alias=device.alias)
             ),
             search_function=lambda x: self._search_in_structure(
-                x, [key for key in device.keys], title_key="purpose"
+                x, device_keys_generator(), title_key="purpose"
             ),
         )
 
@@ -327,12 +350,19 @@ class GlobalSearchTrees:
         Recursively goes through the dict/list/tuple/set structure and matches (case insensitive) the search_term
 
         Args:
-            search_term (str): _description_
-            structure (list, tuple, set, dict): _description_
+            search_term (str): A string (non-case-sensitive) which will be searched for in the structure
+            structure (list, tuple, set, dict, types.GeneratorType):
+                The structure should be non-static, meaning when the wallet information changes, the structure should be up-to-date.
+                This can be achieved with directly pointing to wallet....  objects or generating a types.GeneratorType
+                which uses wallet.... objects
             title_key (_type_, optional): If a result is found in a dictionary, then the value of the title_key
-                                            is used as the title of the SearchResult, e.g,
-                                            the title_key="txid" is the title of a search result in a tx-dictionary.
-                                            Defaults to None.
+                is used as the title of the SearchResult, e.g,
+                the title_key="txid" is the title of a search result in a tx-dictionary.
+                Defaults to None.
+            f_endpoint (_type_, optional): A function that takes the entire dict (which contains a search hit in some value)
+                and returns an instance of type Endpoint.
+                Defaults to None.
+            _result_meta_data (_type_, optional): Only for internal purposes. Leave None
 
         Returns:
             results: list of SearchResult
@@ -351,7 +381,7 @@ class GlobalSearchTrees:
                         "parent_structure": structure,
                     },
                 )
-        elif isinstance(structure, (list, tuple, set)):
+        elif isinstance(structure, (types.GeneratorType, list, tuple, set)):
             for value in structure:
                 update_dict = {"parent_structure": structure}
                 if isinstance(_result_meta_data, dict):
