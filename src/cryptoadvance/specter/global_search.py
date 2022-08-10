@@ -17,7 +17,7 @@ class Endpoint:
             method_str (str, optional): "href", "form". Defaults to "href".
                 "href" will make the url open as a simple link
                 "form" will create a form together with the formData and url and submit it.
-            formData (dict, optional): _description_. Defaults to None.
+            form_data (dict, optional): _description_. Defaults to None.
         """
         self.url = url
         self.method_str = method_str
@@ -251,19 +251,22 @@ class GlobalSearchTrees:
             ),
         )
 
-        unsigned_f_endpoint = lambda psbt_dict: Endpoint(
-            url_for("wallets_endpoint.send_pending", wallet_alias=wallet.alias),
-            method_str="form",
-            form_data={
-                "action": "openpsbt",
-                "pending_psbt": json.dumps(psbt_dict),
-            },
-        )
+        def unsigned_f_endpoint(psbt_dict):
+            return Endpoint(
+                url_for("wallets_endpoint.send_pending", wallet_alias=wallet.alias),
+                method_str="form",
+                form_data={
+                    "action": "openpsbt",
+                    "pending_psbt": json.dumps(psbt_dict),
+                },
+            )
 
         def unsigned_generator():
             for psbt in wallet.pending_psbts.values():
                 psbt_dict = psbt.to_dict()
-                psbt_dict["psbt_label"] = wallet.getlabel(psbt_dict["address"][0])
+                psbt_dict["PSBT Address label"] = wallet.getlabel(
+                    psbt_dict["address"][0]
+                )
                 yield psbt_dict
 
         unsigned = UIElement(
@@ -276,7 +279,7 @@ class GlobalSearchTrees:
             search_function=lambda x: self._search_in_structure(
                 x,
                 unsigned_generator(),
-                title_key="psbt_label",
+                title_key="PSBT Address label",
                 f_endpoint=unsigned_f_endpoint,
             ),
         )

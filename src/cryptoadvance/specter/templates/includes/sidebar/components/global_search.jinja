@@ -135,7 +135,7 @@
         }
 
 
-        attachEndpointAction(endpoint, backup_href){
+        callEndpoint(endpoint, backup_href){
             if (endpoint){
                 if (endpoint.method_str == 'href'){
                     location.href = endpoint.url;
@@ -146,6 +146,7 @@
                 location.href = backup_href;    
             }                    
         }
+
 
         /**
         Takes a result_dict and adds it to the result list
@@ -173,7 +174,7 @@
             div.style.cursor = "pointer";
             div.appendChild(lastParent);
             this.dropdownContentElement.appendChild(div);
-            
+        
 
             // show search results
             // limit the number of search results in one result_dict subpoint
@@ -188,7 +189,8 @@
                     div_result.innerHTML += `+ ${result_dict.search_hits.length - max_number_results} more results`
                     break
                 }
-                var result = result_dict.search_hits[i];
+                // it is critical that this is a const, overwise the addEventListener('click') will not referr to the current, but to the last result in the loop
+                const result = result_dict.search_hits[i];
 
                 // if a title is available for the search result display it nicer
                 if (result.title  && result.key){
@@ -197,8 +199,8 @@
                 div_result.innerHTML += this.highlightString(`${result.value}`, searchTerm);
 
 
-                div_result.addEventListener('click', event=>{
-                    this.attachEndpointAction(result.endpoint, lastParent.href);
+                div_result.addEventListener('click', event => {
+                    this.callEndpoint(result.endpoint, lastParent.href) 
                 });			
                 div_result.style.cursor = "pointer";
                 this.dropdownContentElement.appendChild(div_result);
