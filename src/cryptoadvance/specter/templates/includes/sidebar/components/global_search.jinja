@@ -88,6 +88,13 @@
 			this.searchInputElement.addEventListener('input', event=>{
 				this.delayedGlobalSearch(this.searchInputElement.value);
 			});			
+
+            this.searchInputElement.addEventListener("keydown", (event) => {
+                // handle escape
+                if (event.keyCode === 27) {
+                    this.setContentVisibility(false);
+                }
+            }); 
         }
 
 
@@ -150,7 +157,7 @@
                 resultDiv.style.fontSize = "small";
 
                 if (i>maxNumberOfResults){
-                    resultDiv.innerHTML += `+ ${resultDict.search_results.length - maxNumberOfResults} more results in this category`
+                    resultDiv.innerHTML += `+ ${resultDict.search_results.length - maxNumberOfResults} {{ _("more results in this category")}}`
                     resultDiv.addEventListener('click', event => {
                         this.buildDropdownContent(
                             searchTerm, 
@@ -225,7 +232,7 @@
                 if (i>maxNumberOfCategories){
                     var div = document.createElement("div");
                     div.className = "global-search-row";
-                    div.innerText += `+ ${answer.result_dicts.length - maxNumberOfCategories} more results`;
+                    div.innerText += `+ ${answer.result_dicts.length - maxNumberOfCategories} {{ _("more results")}}`;
                     div.addEventListener('click', event => {
                         this.buildDropdownContent(
                             searchTerm, 
