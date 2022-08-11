@@ -1,10 +1,9 @@
-# Additions to helpers.py are deprecated. Please place your helpers in utils/somewhere
-
 import binascii
 import collections
 import copy
 import hashlib
 import hmac
+import json
 import logging
 import os
 import six
