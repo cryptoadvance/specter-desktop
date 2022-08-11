@@ -168,7 +168,7 @@ async function send_request(url, method_str, csrf_token, formData) {
  * Example arguments:
  *              url = "/wallet/<wallet_alias>/history/<tx_list_type>/"
  * 				formDataDict = {
-                    "action": "open_tx_at_load",
+                    "action": "txid_to_show_on_load",
                     "txid": tx_dict["txid"],
                 },
  */

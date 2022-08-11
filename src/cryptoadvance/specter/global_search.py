@@ -242,7 +242,7 @@ class GlobalSearchTrees:
                 ),
                 method_str="form",
                 form_data={
-                    "action": "open_tx_at_load",
+                    "action": "show_tx_on_load",
                     "txid": tx_dict["txid"],
                 },
             )
@@ -306,7 +306,7 @@ class GlobalSearchTrees:
                 ),
                 method_str="form",
                 form_data={
-                    "action": "open_at_load_address_json",
+                    "action": "show_address_on_load",
                     "address_dict": robust_json_dumps(address_dict),
                 },
             )

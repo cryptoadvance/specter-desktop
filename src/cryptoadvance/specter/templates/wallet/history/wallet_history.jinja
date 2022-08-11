@@ -25,9 +25,9 @@
 	</div>
 	<script type="text/javascript">
 		// enable that tx details can be shown upon loading
-		if ("{{ open_tx_at_load }}" != "None") {
+		if ("{{ txid_to_show_on_load }}" != "None") {
 			txtable = document.getElementById("tx-table-{{ wallet.alias }}");
-			showTxData(txtable.btcUnit, txtable.price, txtable.symbol, '{{ open_tx_at_load }}', txtable.wallet)
+			showTxData(txtable.btcUnit, txtable.price, txtable.symbol, '{{ txid_to_show_on_load }}', txtable.wallet)
 		}
 	</script>
 {% endblock %}
