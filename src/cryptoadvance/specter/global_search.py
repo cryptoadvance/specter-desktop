@@ -41,9 +41,101 @@ class SearchResult:
         return d
 
 
+class SearchableStructure:
+    def __init__(
+        self, structure_or_generator_function, title_key=None, endpoint_function=None
+    ) -> None:
+        """_summary_
+
+        Args:
+            structure_or_generator_function (list, tuple, set, dict, types.GeneratorType function):
+                The structure_or_generator_function should be non-static, meaning when the wallet information changes, the structure_or_generator_function should be up-to-date.
+                This can be achieved with directly pointing to wallet....  objects or generating a types.GeneratorType
+                which uses wallet.... objects
+            title_key (_type_, optional): If a result is found in a dictionary, then the value of the title_key
+                is used as the title of the SearchResult, e.g,
+                the title_key="txid" is the title of a search result in a tx-dictionary.
+                Defaults to None.
+            endpoint_function (_type_, optional): A function that takes the entire dict (which contains a search hit in some value)
+                and returns an instance of type Endpoint.
+                Defaults to None.
+        """
+        self.structure_or_generator_function = structure_or_generator_function
+        self.title_key = title_key
+        self.endpoint_function = endpoint_function
+
+    def search(
+        self,
+        search_term,
+        structure=None,
+        _result_meta_data=None,
+    ):
+        """
+        Recursively goes through the list/tuple/set/types.GeneratorType function until it hits a dict.
+        It matches then the dict.values() with the search_term  (case insensitive)
+
+        Args:
+            search_term (str): A string (non-case-sensitive) which will be searched for in the structure
+            _result_meta_data (_type_, optional): Only for internal purposes. Leave None
+
+        Returns:
+            results: list of SearchResult
+        """
+        if structure is None:
+            structure = self.structure_or_generator_function
+        if callable(structure):
+            structure = structure()
+
+        def is_match(search_term, value):
+            return search_term.lower() in str(value).lower()
+
+        results = []
+        if isinstance(structure, dict):
+            for key, value in structure.items():
+                if is_match(search_term, value):
+                    results += [
+                        SearchResult(
+                            value,
+                            title=structure.get(self.title_key),
+                            key=key,
+                            endpoint=self.endpoint_function(structure)
+                            if self.endpoint_function
+                            else None,
+                        )
+                    ]
+
+        elif isinstance(structure, (types.GeneratorType, list, tuple, set)):
+            for value in structure:
+                update_dict = {"parent_structure": structure}
+                if isinstance(_result_meta_data, dict):
+                    _result_meta_data.update(update_dict)
+                else:
+                    _result_meta_data = update_dict
+
+                results += self.search(
+                    search_term,
+                    structure=value,
+                    _result_meta_data=_result_meta_data,
+                )
+        else:
+            # if it is not a list,dict,... then it is the final element that should be searched:
+            if is_match(search_term, structure):
+                results += [
+                    SearchResult(
+                        structure,
+                        endpoint=self.endpoint_function(structure)
+                        if self.endpoint_function
+                        else None,
+                    )
+                ]
+
+        return results
+
+
 class UIElement:
     """
-    This is a logical struture representing an UI/enpoint/HTML element, e.g., a button, a tab.
+    This is a logical struture representing an UI/enpoint/HTML element, e.g., a button, a tab, with at most 1 search function accociated.
+    E.g. the "Change Addresses" tab would be 1 UIElement
 
     Multiple of these elements can be attached to each other, by referencing the parent element during __init__
 
@@ -56,25 +148,34 @@ class UIElement:
         parent,
         title,
         endpoint,
-        search_function=None,
+        searchable_structure=None,
         children=None,
     ):
+        """
+
+        Args:
+            parent (UIElement, None): _description_
+            title (str): _description_
+            endpoint (str): _description_
+            searchable_structure (_type_, optional): _description_. Defaults to None.
+            children (UIElement, optional): _description_. Defaults to None.
+        """
         self.parent = parent
         if self.parent:
             self.parent.children.add(self)
-        self.children = children if children else set()
-        self.search_function = search_function
         self.title = title
         self.endpoint = endpoint
+        self.searchable_structure = searchable_structure
+        self.children = children if children else set()
 
-    def nodes_with_search_function(self):
+    def nodes_with_searchable_structure(self):
         "Typically the nodes having a search_function, are childless nodes."
         nodes = []
-        if self.search_function:
+        if self.searchable_structure:
             nodes += [self]
 
         for child in self.children:
-            nodes += child.nodes_with_search_function()
+            nodes += child.nodes_with_searchable_structure()
         return nodes
 
     def flattened_parent_list(self):
@@ -95,7 +196,7 @@ class UIElement:
 
 
 class GlobalSearchTrees:
-    "holds the diffferent UI roots of different users"
+    "builds the Ui Tree and holds the different UI roots of different users"
 
     def __init__(self):
         self.ui_roots = {}
@@ -107,14 +208,16 @@ class GlobalSearchTrees:
             Endpoint(url_for("wallets_endpoint.wallets_overview")),
         )
 
+        sidebar_wallet_searchable_structure = SearchableStructure(
+            {"name": wallet.alias}, title_key="name"
+        )
         sidebar_wallet = UIElement(
             html_wallets,
             wallet.alias,
             Endpoint(url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)),
-            search_function=lambda x: self._search_in_structure(
-                x, {"name": wallet.alias}, title_key="name"
-            ),
+            searchable_structure=sidebar_wallet_searchable_structure,
         )
+
         transactions = UIElement(
             sidebar_wallet,
             "Transactions",
@@ -125,7 +228,7 @@ class GlobalSearchTrees:
             for tx in wallet.txlist():
                 yield tx
 
-        def tx_f_endpoint(tx_dict, tx_list_type):
+        def tx_endpoint_function(tx_dict, tx_list_type):
             return Endpoint(
                 url_for(
                     "wallets_endpoint.history_tx_list_type",
@@ -139,6 +242,11 @@ class GlobalSearchTrees:
                 },
             )
 
+        transactions_history_searchable_structure = SearchableStructure(
+            transactions_history_generator,
+            title_key="txid",
+            endpoint_function=lambda tx_dict: tx_endpoint_function(tx_dict, "txlist"),
+        )
         transactions_history = UIElement(
             transactions,
             "History",
@@ -149,18 +257,18 @@ class GlobalSearchTrees:
                     tx_list_type="txlist",
                 )
             ),
-            search_function=lambda x: self._search_in_structure(
-                x,
-                transactions_history_generator(),
-                title_key="txid",
-                f_endpoint=lambda tx_dict: tx_f_endpoint(tx_dict, "txlist"),
-            ),
+            searchable_structure=transactions_history_searchable_structure,
         )
 
         def transactions_utxo_generator():
             for utxo in wallet.full_utxo:
                 yield utxo
 
+        transactions_utxo_searchable_structure = SearchableStructure(
+            transactions_utxo_generator,
+            title_key="txid",
+            endpoint_function=lambda tx_dict: tx_endpoint_function(tx_dict, "utxo"),
+        )
         transactions_utxo = UIElement(
             transactions,
             "UTXO",
@@ -171,12 +279,7 @@ class GlobalSearchTrees:
                     tx_list_type="utxo",
                 )
             ),
-            search_function=lambda x: self._search_in_structure(
-                x,
-                transactions_utxo_generator(),
-                title_key="txid",
-                f_endpoint=lambda tx_dict: tx_f_endpoint(tx_dict, "utxo"),
-            ),
+            searchable_structure=transactions_utxo_searchable_structure,
         )
 
         addresses = UIElement(
@@ -189,7 +292,7 @@ class GlobalSearchTrees:
             for address in wallet.addresses_info(is_change=is_change):
                 yield address
 
-        def address_recieve_f_endpoint(address_dict, address_type):
+        def address_recieve_endpoint_function(address_dict, address_type):
             return Endpoint(
                 url_for(
                     "wallets_endpoint.addresses_with_type",
@@ -203,6 +306,13 @@ class GlobalSearchTrees:
                 },
             )
 
+        addresses_recieve_searchable_structure = SearchableStructure(
+            lambda: addresses_recieve_generator(is_change=False),
+            title_key="address",
+            endpoint_function=lambda address_dict: address_recieve_endpoint_function(
+                address_dict, "recieve"
+            ),
+        )
         addresses_recieve = UIElement(
             addresses,
             "Recieve Addresses",
@@ -213,13 +323,14 @@ class GlobalSearchTrees:
                     address_type="recieve",
                 )
             ),
-            search_function=lambda x: self._search_in_structure(
-                x,
-                addresses_recieve_generator(is_change=False),
-                title_key="address",
-                f_endpoint=lambda address_dict: address_recieve_f_endpoint(
-                    address_dict, "recieve"
-                ),
+            searchable_structure=addresses_recieve_searchable_structure,
+        )
+
+        addresses_change_searchable_structure = SearchableStructure(
+            lambda: addresses_recieve_generator(is_change=True),
+            title_key="address",
+            endpoint_function=lambda address_dict: address_recieve_endpoint_function(
+                address_dict, "change"
             ),
         )
         addresses_change = UIElement(
@@ -232,23 +343,17 @@ class GlobalSearchTrees:
                     address_type="change",
                 )
             ),
-            search_function=lambda x: self._search_in_structure(
-                x,
-                addresses_recieve_generator(is_change=True),
-                title_key="address",
-                f_endpoint=lambda address_dict: address_recieve_f_endpoint(
-                    address_dict, "change"
-                ),
-            ),
+            searchable_structure=addresses_change_searchable_structure,
         )
 
+        recieve_searchable_structure = SearchableStructure(
+            [wallet.address], title_key="address"
+        )
         recieve = UIElement(
             sidebar_wallet,
             "Recieve",
             Endpoint(url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias)),
-            search_function=lambda x: self._search_in_structure(
-                x, [wallet.address], title_key="address"
-            ),
+            searchable_structure=recieve_searchable_structure,
         )
 
         send = UIElement(
@@ -257,7 +362,7 @@ class GlobalSearchTrees:
             Endpoint(url_for("wallets_endpoint.send_new", wallet_alias=wallet.alias)),
         )
 
-        def unsigned_f_endpoint(psbt_dict):
+        def unsigned_endpoint_function(psbt_dict):
             return Endpoint(
                 url_for("wallets_endpoint.send_pending", wallet_alias=wallet.alias),
                 method_str="form",
@@ -275,18 +380,18 @@ class GlobalSearchTrees:
                 )
                 yield psbt_dict
 
+        unsigned_searchable_structure = SearchableStructure(
+            unsigned_generator,
+            title_key="PSBT Address label",
+            endpoint_function=unsigned_endpoint_function,
+        )
         unsigned = UIElement(
             send,
             "Unsigned",
             Endpoint(
                 url_for("wallets_endpoint.send_pending", wallet_alias=wallet.alias)
             ),
-            search_function=lambda x: self._search_in_structure(
-                x,
-                unsigned_generator(),
-                title_key="PSBT Address label",
-                f_endpoint=unsigned_f_endpoint,
-            ),
+            searchable_structure=unsigned_searchable_structure,
         )
 
     def _device_ui_elements(self, ui_root, device):
@@ -296,26 +401,28 @@ class GlobalSearchTrees:
             Endpoint(url_for("wallets_endpoint.wallets_overview")),
         )
 
+        sidebar_device_searchable_structure = SearchableStructure(
+            {"name": device.alias}, title_key="name"
+        )
         sidebar_device = UIElement(
             html_devices,
             device.alias,
             Endpoint(url_for("devices_endpoint.device", device_alias=device.alias)),
-            search_function=lambda x: self._search_in_structure(
-                x, {"name": device.alias}, title_key="name"
-            ),
+            searchable_structure=sidebar_device_searchable_structure,
         )
 
         def device_keys_generator():
             for key in device.keys:
                 yield key
 
+        device_keys_searchable_structure = SearchableStructure(
+            device_keys_generator, title_key="purpose"
+        )
         device_keys = UIElement(
             sidebar_device,
             "Keys",
             Endpoint(url_for("devices_endpoint.device", device_alias=device.alias)),
-            search_function=lambda x: self._search_in_structure(
-                x, device_keys_generator(), title_key="purpose"
-            ),
+            searchable_structure=device_keys_searchable_structure,
         )
 
     def _build_ui_elements(self, wallet_manager, device_manager):
@@ -332,82 +439,6 @@ class GlobalSearchTrees:
         for device in device_manager.devices.values():
             self._device_ui_elements(ui_root, device)
         return ui_root
-
-    def _search_in_structure(
-        self,
-        search_term,
-        structure,
-        title_key=None,
-        f_endpoint=None,
-        _result_meta_data=None,
-    ):
-        """
-        Recursively goes through the list/tuple/set/GeneratorType until it hits a dict.
-        It matches then the dict.values() with the search_term  (case insensitive)
-
-        Args:
-            search_term (str): A string (non-case-sensitive) which will be searched for in the structure
-            structure (list, tuple, set, dict, types.GeneratorType):
-                The structure should be non-static, meaning when the wallet information changes, the structure should be up-to-date.
-                This can be achieved with directly pointing to wallet....  objects or generating a types.GeneratorType
-                which uses wallet.... objects
-            title_key (_type_, optional): If a result is found in a dictionary, then the value of the title_key
-                is used as the title of the SearchResult, e.g,
-                the title_key="txid" is the title of a search result in a tx-dictionary.
-                Defaults to None.
-            f_endpoint (_type_, optional): A function that takes the entire dict (which contains a search hit in some value)
-                and returns an instance of type Endpoint.
-                Defaults to None.
-            _result_meta_data (_type_, optional): Only for internal purposes. Leave None
-
-        Returns:
-            results: list of SearchResult
-        """
-
-        def is_match(search_term, value):
-            return search_term.lower() in str(value).lower()
-
-        results = []
-        if isinstance(structure, dict):
-            for key, value in structure.items():
-                if is_match(search_term, value):
-                    endpoint = f_endpoint(structure) if f_endpoint else None
-                    results += [
-                        SearchResult(
-                            value,
-                            title=structure.get(title_key),
-                            key=key,
-                            endpoint=endpoint,
-                        )
-                    ]
-
-        elif isinstance(structure, (types.GeneratorType, list, tuple, set)):
-            for value in structure:
-                update_dict = {"parent_structure": structure}
-                if isinstance(_result_meta_data, dict):
-                    _result_meta_data.update(update_dict)
-                else:
-                    _result_meta_data = update_dict
-
-                results += self._search_in_structure(
-                    search_term,
-                    value,
-                    title_key=title_key,
-                    f_endpoint=f_endpoint,
-                    _result_meta_data=_result_meta_data,
-                )
-        else:
-            # if it is not a list,dict,... then it is the final element that should be searched:
-            if is_match(search_term, structure):
-                endpoint = f_endpoint(structure) if f_endpoint else None
-                results += [
-                    SearchResult(
-                        structure,
-                        endpoint=endpoint,
-                    )
-                ]
-
-        return results
 
     def _search_in_ui_structure(self, search_term, html_root):
         """
@@ -437,11 +468,11 @@ class GlobalSearchTrees:
                 }]
         """
         result_dicts = []
-        for node in html_root.nodes_with_search_function():
+        for node in html_root.nodes_with_searchable_structure():
             result_dict = {
                 "ui_element": node.json(),
                 "search_hits": [
-                    hit.json() for hit in node.search_function(search_term)
+                    hit.json() for hit in node.searchable_structure.search(search_term)
                 ],
             }
             if result_dict["search_hits"]:
