@@ -494,7 +494,8 @@ class GlobalSearchTrees:
         return result_dicts
 
     def user_config(self, hide_sensitive_info):
-        "A minimalist version of building a user configuration"
+        """A minimalist version of building a user configuration,
+        that if changed shows that the UI Tree needs to be rebuild"""
         return {"hide_sensitive_info": hide_sensitive_info}
 
     def do_global_search(
