@@ -46,6 +46,17 @@
 
 
 <script type="text/javascript">
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+        }
+
+        function highlightString(fullText, searchTerm){      
+            var regex = new RegExp(escapeRegExp(searchTerm), "gi");  
+            return fullText.replace(regex, "<span style='background-color: var(--cmap-found_term);'>$&</span>");
+        }
+
+
+
 	class GlobalSearch extends HTMLElement {
 		constructor() {
 			super();
@@ -176,7 +187,7 @@
                 if (result.title  && result.key){
                     resultDiv.innerHTML += `${result.title}&nbsp;&nbsp;>&nbsp;&nbsp;${result.key}: `;
                 } 
-                resultDiv.innerHTML += this.highlightString(`${result.value}`, searchTerm);
+                resultDiv.innerHTML += highlightString(`${result.value}`, searchTerm);
 
 
                 resultDiv.addEventListener('click', event => {
@@ -185,11 +196,6 @@
                 resultDiv.style.cursor = "pointer";
                 this.dropdownContentElement.appendChild(resultDiv);
             }
-        }
-
-        highlightString(fullText, searchTerm){             
-            var regex = new RegExp(searchTerm, "gi");  
-            return fullText.replace(regex, "<span style='background-color: var(--cmap-found_term);'>$&</span>");
         }
 
 
