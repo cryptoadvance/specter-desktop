@@ -159,6 +159,19 @@ async function send_request(url, method_str, csrf_token, formData) {
 
 
 
+/**
+ * Takes a dictionary with string keys and string values, transferrs them into input fields in a form and submits this form
+ * @param {*} url :  To which url should this form be submitted
+ * @param {*} csrf_token 
+ * @param {*} formDataDict: Should be a dict with string keys and string values
+ * 
+ * Example arguments:
+ *              url = "/wallet/<wallet_alias>/history/<tx_list_type>/"
+ * 				formDataDict = {
+                    "action": "open_tx_at_load",
+                    "txid": tx_dict["txid"],
+                },
+ */
 async function submitForm(url, csrf_token, formDataDict) {
 	var form = document.createElement("form");
 	form.action = url;
