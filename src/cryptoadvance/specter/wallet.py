@@ -1720,7 +1720,10 @@ class Wallet:
             True,  # bip32-der
         )
 
-        b64psbt = r["psbt"]
+        # Always explicitly fill psbt with any missing fields
+        # TODO: Re-evaluate if this is necessary if user is running Bitcoin Core w/BIP-371 support
+        b64psbt = self.fill_psbt(r["psbt"], taproot_derivations=True)
+
         psbt = self.PSBTCls(
             b64psbt,
             self.descriptor,
@@ -1743,7 +1746,10 @@ class Wallet:
                 True,  # bip32-der
             )
 
-            b64psbt = r["psbt"]
+            # Always explicitly fill psbt with any missing fields
+            # TODO: Re-evaluate if this is necessary if user is running Bitcoin Core w/BIP-371 support
+            b64psbt = self.fill_psbt(r["psbt"], taproot_derivations=True)
+
             psbt = self.PSBTCls(
                 b64psbt,
                 self.descriptor,
@@ -1869,15 +1875,18 @@ class Wallet:
         b64psbt,
         non_witness: bool = True,
         xpubs: bool = True,
-        taproot_derivations: bool = False,
+        taproot_derivations: bool = True,
     ):
         psbt = self.PSBTCls.from_string(b64psbt)
 
         # Core doesn't fill derivations yet, so we do it ourselves
+        # Provide the BIP-371 `PSBT_IN_TAP_BIP32_DERIVATION` 0x16 field
         if taproot_derivations and self.is_taproot:
-
             net = self.network
             for sc in psbt.inputs + psbt.outputs:
+                if sc.taproot_internal_key is not None:
+                    # psbt already has Taproot fields for this `InputScope`/`OutputScope`
+                    continue
                 addr = sc.script_pubkey.address(net)
                 info = self._addresses.get(addr)
                 if info and not info.is_external:
@@ -1885,9 +1894,18 @@ class Wallet:
                         info.index, branch_index=int(info.change)
                     )
                     for k in d.keys:
-                        sc.bip32_derivations[PublicKey.parse(k.sec())] = DerivationPath(
+                        num_leaf_hashes = 0
+                        leaf_hashes = None
+                        derivation = DerivationPath(
                             k.origin.fingerprint, k.origin.derivation
                         )
+                        pub = PublicKey.from_xonly(k.xonly())
+                        sc.taproot_bip32_derivations[pub] = (
+                            num_leaf_hashes,
+                            leaf_hashes,
+                            derivation,
+                        )
+                        sc.taproot_internal_key = pub
 
         if non_witness:
             for inp in psbt.inputs:
