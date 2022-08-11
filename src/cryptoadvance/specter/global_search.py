@@ -355,7 +355,7 @@ class GlobalSearchTrees:
         receive = UIElement(
             sidebar_wallet,
             _("Receive"),
-            Endpoint(url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias)),
+            Endpoint(url_for("wallets_endpoint.receive", wallet_alias=wallet.alias)),
             searchable_category=receive_searchable_category,
         )
 
