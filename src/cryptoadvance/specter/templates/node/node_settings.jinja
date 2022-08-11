@@ -67,8 +67,7 @@
 			</div>
 			<div class="note" style="margin: 10px 0px 10px 0px;">
 				<h4 style="font-size: 1.2em;">{{ _("Default ports:") }}</h4>
-				{{ _("<b>8332</b> for mainnet, <b>18332</b> for testnet, <b>18443</b> for regtest and <b>38332</b> for signet <br>
-				<b>7041</b> for Liquid mainnet, <b>18891</b> for Liquid testnet and <b>18884</b> for Liquid regtest") }}
+				<b>8332</b>{{ _(" for mainnet, ")}}<b>18332</b>{{ _(" for testnet, ")}}<b>18443</b>{{ _(" for regtest and ")}}<b>38332</b>{{ _(" for signet ")}}<br><b>7041</b>{{ _(" for Liquid mainnet, ")}}<b>18891</b>{{ _(" for Liquid testnet and ")}}<b>18884</b>{{ _(" for Liquid regtest") }}
 			</div>
 			<div class="row">
 				<button type="submit" class="btn" name="action" value="test">{{ _("Test") }}</button>&nbsp;
@@ -87,63 +86,52 @@
 					</button>
 					{% endmacro %}
 					{% if 'connectable' in test['tests'] %}
-						<div>{{ _("Connectable") }}</div>
+						<div style="margin-right: 10px;">{{ _("Connectable") }}</div>
 						<div>{{ tick_or_cross(test['tests']['connectable']) }} </div>
 						{% if not test['tests']['connectable'] %} 
-							<tool-tip>
-    							<h4 slot="title">{{ _("Your Node can't be reached") }}</h4>
-							    <span slot="paragraph">
-									{{ _("There are a lot of potential issues preventing the connection. Please double-check the host and the port. Make sure you can reach the host and make sure that Bitcoin Core is listening on the port you have specified.") }} 
-									{{ _('For more hints, please look at this ')}}<a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">{{ _("article")}}</a>.
-							    </span>
-							</tool-tip>
+							<span class="warning">
+								{{ _("There are a lot of potential issues preventing the connection. Please double-check the host and the port. Make sure you can reach the host and make sure that Bitcoin Core is listening on the port you have specified.") }} 
+								{{ _('For more hints, please look at this') }} <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">{{ _('article.') }}</a>
+							</span>
 						{% else %}
 							<div></div>
 						{% endif %}
 					{% endif %}
 
 					{% if 'credentials' in test['tests'] %}
-						<div>Credentials</div>
+						<div style="margin-right: 10px;">Credentials</div>
 						<div> {{ tick_or_cross(test['tests']['credentials']) }} </div>
 						{% if not test['tests']['credentials'] %}
-							<tool-tip style="float: right;">
-							    <h4 slot="title">{{ _("Your Credentials don't work") }}</h4>
-							    <span slot="paragraph">
-									{{ _("Please double-check the user and the password. Have a look at the bitcoin.conf
-									for the correct values in that field.") }}
-									{{ _('For more hints, please read this ')}}<a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">{{ _("article")}}</a>.
-							    </span>
-							</tool-tip>
+							<span class="warning">
+								{{ _("Please double-check the user and the password. Have a look at the bitcoin.conf for the correct values in that field.") }}
+								{{ _('For more hints, please read this') }} <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">{{ _('article.') }}</a>
+							</span>
 						{% else %}
 							<div></div>
 						{% endif %}
 					{% endif %}
 
 					{% if 'recent_version' in test['tests'] %}
-						<div>{{ _("Version recent enough") }}</div>
+						<div style="margin-right: 10px;">{{ _("Version recent enough") }}</div>
 						<div> {{ tick_or_cross(test['tests']['recent_version']) }} </div>
 						{% if not test['tests']['recent_version'] %}
-							<tool-tip style="float: right; margin-bottom: 5px;">
-							    <h4 slot="title">{{ _("Your Core Node might be too old") }}</h4>
-							    <span slot="paragraph">
-									{{ _("Specter is working well up from Bitcoin Core version 0.17. The version of your node is too old, unfortunatley. Please upgrade!") }}
-							    </span>
-							</tool-tip>
+							<span class="warning">
+								{{ _("Your Core Node might be too old.") }}
+								{{ _("Specter is working well up from Bitcoin Core version 0.17. The version of your node is too old, unfortunatley. Please upgrade!") }}
+							</span>
 						{% else %}
 							<div></div>
 						{% endif %}
 					{% endif %}
 					
 					{% if 'wallets' in test['tests'] %}
-						<div>Wallets enabled</div>
+						<div style="margin-right: 10px;">Wallets enabled</div>
 						<div> {{ tick_or_cross(test['tests']['wallets']) }} </div>
 						{% if not test['tests']['wallets'] %}
-							<tool-tip style="float: right; margin-bottom: 5px;">
-							    <h4 slot="title">{{ _("Wallet Support in your Core Node") }}</h4>
-							    <span slot="paragraph">
-									{{ _("The RPC interface of your Core node is available, but the Core wallet API is not. Please make sure to have 'disablewallet=0' in your bitcoin.conf.") }}
-							    </span>
-							</tool-tip>
+							<span class="warning">
+								{{ _("You don't have wallet support enabled on your Core node.") }}
+								{{ _("The RPC interface of your Core node is available, but the Core wallet API is not. Please make sure to have 'disablewallet=0' in your bitcoin.conf.") }}
+							</span>
 						{% else %}
 							<div></div>
 						{% endif %}

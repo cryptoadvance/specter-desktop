@@ -17,6 +17,18 @@
 			border-bottom-left-radius: 0px;
 			border-bottom-right-radius: 0px;
 		}
+		.tooltip-width {
+            max-width: 350px;
+        }
+        .tooltip-no-grow {
+            flex-grow: 0; 
+        }
+        .tooltip-little-grow {
+            flex-grow: 0.2; 
+        }
+        .tooltip-max-grow {
+            flex-grow: 1; 
+        }
 	</style>
 	<form action="?" method="POST" onsubmit="showPacman()">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -82,18 +94,22 @@
 		<br><br>
 		<h2 style="text-align: center; color: #ccc;">{{ _("Additional Options") }}</h2>
 		<div style="width: 580px; margin: auto;">
-			{% if not debug %}
-				<tool-tip style="float: right; margin-top: 15px;">
-				    <h4 slot="title">{{ _("Tor hidden service") }}</h4>
-				    <span slot="paragraph">
-						{{ _("Running Specter behind a Tor hidden service allows you to acccess Specter over Tor from anywhere via a Tor supporting browser.") }}
-				    </span>
-				</tool-tip>
-				<label class="switch" style="float: right; margin-top: 15px;">
-					<input type="checkbox" id="hidden_service" name="hidden_service" onchange="checkAuthEabled()"{% if tor_service_id %}checked{% endif %}>
-					<span class="slider"></span>
-				</label>
-				<p style="font-size: 1.1em">{{ _("Enable Tor hidden service") }}</p>
+			{% if debug %}
+				<div style="display: flex; align-items: center;">
+					<p style="font-size: 1.1em">{{ _("Enable Tor hidden service") }}</p>
+					<div id="tooltip-container" class="tooltip-little-grow tooltip-width">
+						<tool-tip id="tooltips-tor">
+						    <h4 slot="title">{{ _("Tor hidden service") }}</h4>
+						    <span slot="paragraph">
+								{{ _("Running Specter behind a Tor hidden service allows you to acccess Specter over Tor from anywhere via a Tor supporting browser.") }}
+						    </span>
+						</tool-tip>
+					</div>
+					<label class="switch" style="margin-left: 5px;">
+						<input type="checkbox" id="hidden_service" name="hidden_service" onchange="checkAuthEabled()"{% if tor_service_id %}checked{% endif %}>
+						<span class="slider"></span>
+					</label>
+				</div>
 				<p class="note">
 				{{ _("Allows access to Specter from anywhere.") }}<br>
 				{{ _('Requires authentication to be enabled.') }} <a style="color: var(--cmap-blue);" href="{{ url_for('settings_endpoint.auth' ) }}">{{ _("Authentication settings") }}</a>
@@ -108,22 +124,26 @@
 				{% endif %}
 			{% endif %}
 			<br>
-			<tool-tip style="float: right; margin-top: 30px;">
-			    <h4 slot="title">{{ _("Tor Only mode") }}</h4>
-			    <span slot="paragraph">
-					{{ _("Some optional Specter functionality, like rescanning UTXO on a pruned node or getting the Bitcoin price, might make calls to external APIs and services.") }}<br><br>
-					{{ _("Toggle this on to ensure Specter routes all these external calls over Tor proxy.") }}<br><br>
-					{{ _("Note: Some external sources may stop working if they block Tor calls.") }}
-					{{ _("This will have a significant performance impact. Specter will be much slower!") }}
-			    </span>
-			</tool-tip>
-			<label class="switch" style="float: right; margin-top: 30px;">
-				<input type="checkbox" id="only-tor" name="only_tor" {% if only_tor %}checked{% endif %}>
-				<span class="slider"></span>
-			</label>
-			<p style="font-size: 1.1em">{{ _("Force external calls over Tor?") }}</p>
+			<div style="display: flex; align-items: center;">
+				<p style="font-size: 1.1em; display: flex">{{ _("Force external calls over Tor?") }}</p>
+				<div id="tooltip-container" class="tooltip-little-grow tooltip-width">
+					<tool-tip id="tooltips-tor">
+					    <h4 slot="title">{{ _("Tor Only mode") }}</h4>
+					    <span slot="paragraph">
+							{{ _("Some optional Specter functionality, like rescanning UTXO on a pruned node or getting the Bitcoin price, might make calls to external APIs and services.") }}<br><br>
+							{{ _("Toggle this on to ensure Specter routes all these external calls over Tor proxy.") }}<br><br>
+							{{ _("Note: Some external sources may stop working if they block Tor calls.") }}
+							{{ _("This will have a significant performance impact. Specter will be much slower!") }}
+					    </span>
+					</tool-tip>
+				</div>
+				<label class="switch" style="margin-left: 5px;">
+					<input type="checkbox" id="only-tor" name="only_tor" {% if only_tor %}checked{% endif %}>
+					<span class="slider"></span>
+				</label>
+			</div>
 			<p class="note">
-			{{ _("Route all external calls over the Tor proxy for improved privacy.") }}
+				{{ _("Route all external calls over the Tor proxy for improved privacy.") }}
 			</p>
 			<br><br>
 			<button type="submit" class="btn" name="action" value="save" style="width: 100%;">{{ _("Save changes") }}</button>
@@ -152,6 +172,19 @@
 				{% endif %}
 			}
 
+			// Hook up responsiveness for tooltips
+			const tooltips = document.querySelectorAll('#tooltips-tor');
+            const tooltipContainers = document.querySelectorAll('#tooltip-container');
+            tooltips.forEach((tooltip, index) => tooltip.addEventListener('customhover', () => {
+                tooltipContainers[index].classList.remove("tooltip-little-grow");
+                tooltipContainers[index].classList.add("tooltip-max-grow");
+                })
+            )
+            tooltips.forEach((tooltip, index) => tooltip.addEventListener('customout', () => {
+                tooltipContainers[index].classList.remove("tooltip-max-grow");
+                tooltipContainers[index].classList.add("tooltip-little-grow");
+                })
+            )
 			document.addEventListener("DOMContentLoaded", function(){
 				toggletor_type('{{ tor_type }}');
 			});
