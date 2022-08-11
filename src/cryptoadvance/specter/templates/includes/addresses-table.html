@@ -94,10 +94,10 @@
     </style>
 
     <nav class="row">
-        <button type="button" class="receive-addresses-view-btn btn radio left checked" id="receive-addresses-view-btn">
+        <button type="button" class="receive-addresses-view-btn btn radio left checked">
             {{ _("Receive Addresses") }}
         </button>
-        <button type="button" class="change-addresses-view-btn btn radio right"  id="change-addresses-view-btn">
+        <button type="button" class="change-addresses-view-btn btn radio right">
             {{ _("Change Addresses") }}
         </button>
     </nav>
@@ -419,7 +419,7 @@
             this.export.href += `?onlyCurrentType=${this.onlyCurrentTypeSwitch.checked}&addressType=${this.listType}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
 
             if (this.listType == "receive") {
-                this.switchText.innerText = '{{ _("Only receive addresses") }}: '                                
+                this.switchText.innerText = '{{ _("Only receive addresses") }}: '
             } else if (this.listType == "change") {
                 this.switchText.innerText = '{{ _("Only change addresses") }}: '
             } else {
