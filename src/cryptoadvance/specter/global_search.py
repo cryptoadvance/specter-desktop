@@ -52,10 +52,9 @@ class SearchableCategory:
     ) -> None:
         """
         Args:
-            structure_or_generator_function (list, tuple, set, dict, function returning types.GeneratorType):
+            structure_or_generator_function (list, tuple, set, dict, returning types.GeneratorType, or function returning formers):
                 The structure_or_generator_function should be non-static, meaning when the wallet information changes, the structure_or_generator_function should be up-to-date.
-                This can be achieved with directly pointing to wallet....  objects or generating a types.GeneratorType
-                which uses wallet.... objects
+                This can be achieved with a function that returns an iterable
             title_key (_type_, optional): If a result is found in a dictionary, then the value of the title_key
                 is used as the title of the SearchResult, e.g,
                 the title_key="txid" is the title of a search result in a tx-dictionary.
@@ -75,11 +74,12 @@ class SearchableCategory:
         _result_meta_data=None,
     ):
         """
-        Recursively goes through the list/tuple/set/types.GeneratorType function until it hits a dict.
+        Recursively goes through the list/tuple/set/types.GeneratorType until it hits a dict.
         It matches then the dict.values() with the search_term  (case insensitive)
 
         Args:
             search_term (str): A string (non-case-sensitive) which will be searched for in the structure
+            structure_or_generator_function (list, tuple, set, dict, returning types.GeneratorType, or function returning formers):
             _result_meta_data (_type_, optional): Only for internal purposes. Leave None
 
         Returns:
@@ -157,11 +157,13 @@ class UIElement:
         """
 
         Args:
-            parent (UIElement, None): _description_
-            title (str): _description_
-            endpoint (str): _description_
-            searchable_category (_type_, optional): _description_. Defaults to None.
-            children (UIElement, optional): _description_. Defaults to None.
+            parent (UIElement, None):
+            title (str): The title, e.g. "Receive Addresses"
+            endpoint (str): e.g. url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
+            searchable_category (_type_, optional): If this UIElement should be searchable (usually then it should not have children)
+                            then an instance of SearchableCategory can be linked. Defaults to None.
+            children (set of UIElement, optional): A set of UIElements. This is usually not necessary to set, because any child linking
+                        to this as a parent will automatically add itself in this set. Defaults to None.
         """
         self.parent = parent
         if self.parent:
@@ -199,7 +201,7 @@ class UIElement:
 
 
 class GlobalSearchTrees:
-    "builds the Ui Tree and holds the different UI roots of different users"
+    "Builds the Ui Tree and holds the different UI roots of different users"
 
     def __init__(self):
         self.ui_roots = {}
