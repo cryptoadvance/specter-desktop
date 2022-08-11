@@ -136,7 +136,10 @@
                 }
             }
 
-            if (!(this.assetsCount == 1 && Object.keys(this.addressData.assets)[0] == "{{ specter.default_asset }}") || !this.price || !this.symbol || this.hideSensitiveInfo) {
+
+            const showPriceForLiquid = (this.assetsCount == 1 && Object.keys(this.addressData.assets)[0] == "{{ specter.default_asset }}") ;
+            const isLiquid = this.assetsCount > 0;
+            if (  (isLiquid && !showPriceForLiquid) || !this.price || !this.symbol || this.hideSensitiveInfo) {
                 this.amountPrice.innerText = '';
                 this.amountPrice.classList.add('hidden');
             } else {
