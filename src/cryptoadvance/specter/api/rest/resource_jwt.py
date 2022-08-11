@@ -23,15 +23,17 @@ parser = reqparse.RequestParser()
 parser.add_argument(
     "jwt_token_description", type=str, help="JWT token description", required=True
 )
+parser.add_argument("jwt_token_life", type=int, help="JWT token life", required=True)
 
 
-def generate_jwt(user, jwt_token_id, jwt_token_description):
+def generate_jwt(user, jwt_token_id, jwt_token_description, jwt_token_life):
     # Generates a JWT token for the user
     payload = {
-        "user": user.username,
+        "username": user.username,
         "jwt_token_id": jwt_token_id,
-        "description": jwt_token_description,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(days=1),
+        "jwt_token_description": jwt_token_description,
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=jwt_token_life),
+        "iat": datetime.datetime.utcnow(),
     }
     return jwt.encode(payload, app.config["SECRET_KEY"], algorithm="HS256")
 
@@ -42,7 +44,7 @@ def generate_token_id():
 
 
 @rest_resource
-class ResourceJWT(BasicAuthResource):
+class JWTResource(BasicAuthResource):
     """
     A Resource to manage JWT tokens in order to authenticate against the REST-API
     Other then the other Resources, this endpoint uses BasicAuth to avoid the chicken egg problem
@@ -56,7 +58,7 @@ class ResourceJWT(BasicAuthResource):
         # An endpoint to get all JWT tokens' information created by the user
         user = auth.current_user()
         user_details = app.specter.user_manager.get_user(user)
-        jwt_tokens = user_details.get_all_jwt_token_ids_and_descriptions()
+        jwt_tokens = user_details.get_all_jwt_tokens_info()
         if len(jwt_tokens) == 0:
             return {"message": "Token does not exist"}, 404
         return {"message": "Tokens exists", "jwt_tokens": jwt_tokens}, 200
@@ -68,23 +70,27 @@ class ResourceJWT(BasicAuthResource):
         user_details = app.specter.user_manager.get_user(user)
         jwt_token_id = generate_token_id()
         jwt_token_description = data["jwt_token_description"]
-        jwt_token = generate_jwt(user_details, jwt_token_id, jwt_token_description)
-        if user_details.unique_jwt_token_description(jwt_token_description):
-            user_details.add_jwt_token(jwt_token_id, jwt_token, jwt_token_description)
+        jwt_token_life = data["jwt_token_life"]
+        jwt_token = generate_jwt(
+            user_details, jwt_token_id, jwt_token_description, jwt_token_life
+        )
+        if user_details.validate_jwt_token_description(jwt_token_description):
+            user_details.add_jwt_token(
+                jwt_token_id, jwt_token, jwt_token_description, jwt_token_life
+            )
             return {
                 "message": "Token generated",
                 "jwt_token_id": jwt_token_id,
                 "jwt_token": jwt_token,
                 "jwt_token_description": jwt_token_description,
+                "jwt_token_life": jwt_token_life,
             }, 201
         else:
-            return {
-                "message": "Token description already exists, please enter a new one"
-            }, 400
+            return {"message": "Token description already exists or is blank"}, 400
 
 
 @rest_resource
-class ResourceJWTById(SecureResource):
+class JWTResourceById(BasicAuthResource):
     """
     A Resource to manage individual JWT token
     """
@@ -97,7 +103,7 @@ class ResourceJWTById(SecureResource):
         user_details = app.specter.user_manager.get_user(user)
         jwt_tokens = user_details.jwt_tokens
         jwt_token = user_details.get_jwt_token(jwt_token_id)
-
+        jwt_token_life_remaining = user_details.jwt_token_life_remaining(jwt_token_id)
         if (
             not user_details.verify_jwt_token_id_and_jwt_token(jwt_token_id, jwt_token)
             and jwt_tokens[jwt_token_id] is None
@@ -105,7 +111,12 @@ class ResourceJWTById(SecureResource):
             return {
                 "message": "Token does not exist, make sure to enter correct token id"
             }, 404
-        return {"message": "Tokens exists", "jwt_token_description": jwt_token}, 200
+        return {
+            "message": "Tokens exists",
+            "jwt_token_description": jwt_token["jwt_token_description"],
+            "jwt_token_life": jwt_token["jwt_token_life"],
+            "jwt_token_life_remaining": jwt_token_life_remaining,
+        }, 200
 
     def delete(self, jwt_token_id):
         # An endpoint to delete a JWT token by id

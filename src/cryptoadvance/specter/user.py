@@ -1,17 +1,22 @@
 import base64
 import binascii
+from datetime import date, datetime
 import cryptography
 import hashlib
 import json
 import logging
 import os
 import shutil
+import time
+import jwt
+import datetime
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 from flask_login import UserMixin
+from flask import current_app as app
 
 from .specter_error import SpecterError, handle_exception
 from .persistence import read_json_file, write_json_file, delete_folder
@@ -407,11 +412,14 @@ class User(UserMixin):
         # we delete wallet manager and device manager in save_info
         self.save_info(delete=True)
 
-    def add_jwt_token(self, jwt_token_id, jwt_token, jwt_token_description):
+    def add_jwt_token(
+        self, jwt_token_id, jwt_token, jwt_token_description, jwt_token_life
+    ):
         # Adding a newly created JWT to the hashmap
         self.jwt_tokens[jwt_token_id] = {}
         self.jwt_tokens[jwt_token_id]["jwt_token"] = jwt_token
         self.jwt_tokens[jwt_token_id]["jwt_token_description"] = jwt_token_description
+        self.jwt_tokens[jwt_token_id]["jwt_token_life"] = jwt_token_life
         self.save_info()
 
     def delete_jwt_token(self, jwt_token_id):
@@ -420,12 +428,17 @@ class User(UserMixin):
             del self.jwt_tokens[jwt_token_id]
             self.save_info()
 
-    def get_all_jwt_token_ids_and_descriptions(self):
-        # Getting all the JWT token IDs and descriptions from the hashmap
-        return [
-            (jwt_token_id, self.jwt_tokens[jwt_token_id]["jwt_token_description"])
+    def get_all_jwt_tokens_info(self):
+        # Getting all the JWT token IDs, descriptions and expiry times from the hashmap
+        return {
+            jwt_token_id: {
+                "jwt_token_description": self.jwt_tokens[jwt_token_id][
+                    "jwt_token_description"
+                ],
+                "jwt_token_life": self.jwt_tokens[jwt_token_id]["jwt_token_life"],
+            }
             for jwt_token_id in self.jwt_tokens
-        ]
+        }
 
     def verify_jwt_token_id_and_jwt_token(self, jwt_token_id, jwt_token):
         # Verifying the JWT token ID and JWT token
@@ -434,38 +447,46 @@ class User(UserMixin):
                 return True
         return False
 
-    def get_jwt_token_id_by_jwt_token(self, jwt_token):
-        # Getting the JWT token ID by the JWT token
-        for jwt_token_id in self.jwt_tokens:
-            if self.jwt_tokens[jwt_token_id]["jwt_token"] == jwt_token:
-                return jwt_token_id
-        return None
-
-    def get_jwt_token_description_by_jwt_token(self, jwt_token):
-        # Getting the JWT token description from the hashmap by JWT token
-        for jwt_token_id in self.jwt_tokens:
-            if self.jwt_tokens[jwt_token_id]["jwt_token"] == jwt_token:
-                return self.jwt_tokens[jwt_token_id]["jwt_token_description"]
-        return None
-
     def get_jwt_token(self, jwt_token_id):
         # Getting a JWT token from the hashmap by ID
         if jwt_token_id in self.jwt_tokens:
-            return self.jwt_tokens[jwt_token_id]["jwt_token_description"]
+            return {
+                "jwt_token_description": self.jwt_tokens[jwt_token_id][
+                    "jwt_token_description"
+                ],
+                "jwt_token_life": self.jwt_tokens[jwt_token_id]["jwt_token_life"],
+            }
         return None
 
-    def unique_jwt_token_description(self, jwt_token_description):
-        # Checking if the JWT token description is unique
-        return jwt_token_description not in [
-            self.jwt_tokens[jwt_token_id]["jwt_token_description"]
-            for jwt_token_id in self.jwt_tokens
-        ]
-
-    def get_jwt_token_description(self, jwt_token_id):
-        # Getting a JWT token description from the hashmap by ID
+    def get_jwt_token_by_token_id(self, jwt_token_id):
+        # Getting a JWT token from the hashmap by ID
         if jwt_token_id in self.jwt_tokens:
-            return self.jwt_tokens[jwt_token_id]["jwt_token_description"]
+            return self.jwt_tokens[jwt_token_id]["jwt_token"]
         return None
+
+    def get_jwt_token_life_by_token_id(self, jwt_token_id):
+        # Getting a JWT token life from the hashmap by ID
+        if jwt_token_id in self.jwt_tokens:
+            return self.jwt_tokens[jwt_token_id]["jwt_token_life"]
+        return None
+
+    def validate_jwt_token_description(self, jwt_token_description):
+        # Checking if the JWT token description is unique and not null
+        return (
+            jwt_token_description
+            not in [
+                self.jwt_tokens[jwt_token_id]["jwt_token_description"]
+                for jwt_token_id in self.jwt_tokens
+            ]
+            and jwt_token_description != ""
+        )
+
+    def jwt_token_life_remaining(self, jwt_token_id):
+        jwt_token = self.get_jwt_token_by_token_id(jwt_token_id)
+        payload = jwt.decode(jwt_token, app.config["SECRET_KEY"], algorithms=["HS256"])
+        if (payload["exp"] - time.time()) > 0:
+            return payload["exp"] - time.time()
+        return 0
 
     def __eq__(self, other):
         if other == None:
