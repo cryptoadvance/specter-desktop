@@ -118,7 +118,11 @@ def global_search():
     user = app.specter.user_manager.get_user(current_user)
     return robust_json_dumps(
         app.specter.global_search_trees.do_global_search(
-            search_term.strip(), current_user, user.wallet_manager, user.device_manager
+            search_term.strip(),
+            current_user,
+            user.wallet_manager,
+            user.device_manager,
+            app.specter.hide_sensitive_info,
         )
     )
 

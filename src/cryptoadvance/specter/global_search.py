@@ -204,9 +204,9 @@ class GlobalSearchTrees:
     "Builds the Ui Tree and holds the different UI roots of different users"
 
     def __init__(self):
-        self.ui_roots = {}
+        self.cache = {}
 
-    def _wallet_ui_elements(self, ui_root, wallet):
+    def _wallet_ui_elements(self, ui_root, wallet, hide_sensitive_info):
         html_wallets = UIElement(
             ui_root,
             _("Wallets"),
@@ -252,18 +252,19 @@ class GlobalSearchTrees:
             title_key="txid",
             endpoint_function=lambda tx_dict: tx_endpoint_function(tx_dict, "txlist"),
         )
-        transactions_history = UIElement(
-            transactions,
-            _("History"),
-            Endpoint(
-                url_for(
-                    "wallets_endpoint.history_tx_list_type",
-                    wallet_alias=wallet.alias,
-                    tx_list_type="txlist",
-                )
-            ),
-            searchable_category=transactions_history_searchable_category,
-        )
+        if not hide_sensitive_info:
+            transactions_history = UIElement(
+                transactions,
+                _("History"),
+                Endpoint(
+                    url_for(
+                        "wallets_endpoint.history_tx_list_type",
+                        wallet_alias=wallet.alias,
+                        tx_list_type="txlist",
+                    )
+                ),
+                searchable_category=transactions_history_searchable_category,
+            )
 
         def transactions_utxo_generator():
             for utxo in wallet.full_utxo:
@@ -274,18 +275,19 @@ class GlobalSearchTrees:
             title_key="txid",
             endpoint_function=lambda tx_dict: tx_endpoint_function(tx_dict, "utxo"),
         )
-        transactions_utxo = UIElement(
-            transactions,
-            _("UTXO"),
-            Endpoint(
-                url_for(
-                    "wallets_endpoint.history_tx_list_type",
-                    wallet_alias=wallet.alias,
-                    tx_list_type="utxo",
-                )
-            ),
-            searchable_category=transactions_utxo_searchable_category,
-        )
+        if not hide_sensitive_info:
+            transactions_utxo = UIElement(
+                transactions,
+                _("UTXO"),
+                Endpoint(
+                    url_for(
+                        "wallets_endpoint.history_tx_list_type",
+                        wallet_alias=wallet.alias,
+                        tx_list_type="utxo",
+                    )
+                ),
+                searchable_category=transactions_utxo_searchable_category,
+            )
 
         addresses = UIElement(
             sidebar_wallet,
@@ -318,18 +320,19 @@ class GlobalSearchTrees:
                 address_dict, "receive"
             ),
         )
-        addresses_receive = UIElement(
-            addresses,
-            _("Receive Addresses"),
-            Endpoint(
-                url_for(
-                    "wallets_endpoint.addresses_with_type",
-                    wallet_alias=wallet.alias,
-                    address_type="receive",
-                )
-            ),
-            searchable_category=addresses_receive_searchable_category,
-        )
+        if not hide_sensitive_info:
+            addresses_receive = UIElement(
+                addresses,
+                _("Receive Addresses"),
+                Endpoint(
+                    url_for(
+                        "wallets_endpoint.addresses_with_type",
+                        wallet_alias=wallet.alias,
+                        address_type="receive",
+                    )
+                ),
+                searchable_category=addresses_receive_searchable_category,
+            )
 
         addresses_change_searchable_category = SearchableCategory(
             lambda: addresses_receive_generator(is_change=True),
@@ -338,18 +341,19 @@ class GlobalSearchTrees:
                 address_dict, "change"
             ),
         )
-        addresses_change = UIElement(
-            addresses,
-            _("Change Addresses"),
-            Endpoint(
-                url_for(
-                    "wallets_endpoint.addresses_with_type",
-                    wallet_alias=wallet.alias,
-                    address_type="change",
-                )
-            ),
-            searchable_category=addresses_change_searchable_category,
-        )
+        if not hide_sensitive_info:
+            addresses_change = UIElement(
+                addresses,
+                _("Change Addresses"),
+                Endpoint(
+                    url_for(
+                        "wallets_endpoint.addresses_with_type",
+                        wallet_alias=wallet.alias,
+                        address_type="change",
+                    )
+                ),
+                searchable_category=addresses_change_searchable_category,
+            )
 
         receive_searchable_category = SearchableCategory(
             [wallet.address], title_key="address"
@@ -361,11 +365,14 @@ class GlobalSearchTrees:
             searchable_category=receive_searchable_category,
         )
 
-        send = UIElement(
-            sidebar_wallet,
-            _("Send"),
-            Endpoint(url_for("wallets_endpoint.send_new", wallet_alias=wallet.alias)),
-        )
+        if not hide_sensitive_info:
+            send = UIElement(
+                sidebar_wallet,
+                _("Send"),
+                Endpoint(
+                    url_for("wallets_endpoint.send_new", wallet_alias=wallet.alias)
+                ),
+            )
 
         def unsigned_endpoint_function(psbt_dict):
             return Endpoint(
@@ -390,16 +397,17 @@ class GlobalSearchTrees:
             title_key="PSBT Address label",
             endpoint_function=unsigned_endpoint_function,
         )
-        unsigned = UIElement(
-            send,
-            _("Unsigned"),
-            Endpoint(
-                url_for("wallets_endpoint.send_pending", wallet_alias=wallet.alias)
-            ),
-            searchable_category=unsigned_searchable_category,
-        )
+        if not hide_sensitive_info:
+            unsigned = UIElement(
+                send,
+                _("Unsigned"),
+                Endpoint(
+                    url_for("wallets_endpoint.send_pending", wallet_alias=wallet.alias)
+                ),
+                searchable_category=unsigned_searchable_category,
+            )
 
-    def _device_ui_elements(self, ui_root, device):
+    def _device_ui_elements(self, ui_root, device, hide_sensitive_info):
         html_devices = UIElement(
             ui_root,
             _("Devices"),
@@ -423,14 +431,15 @@ class GlobalSearchTrees:
         device_keys_searchable_category = SearchableCategory(
             device_keys_generator, title_key="purpose"
         )
-        device_keys = UIElement(
-            sidebar_device,
-            _("Keys"),
-            Endpoint(url_for("devices_endpoint.device", device_alias=device.alias)),
-            searchable_category=device_keys_searchable_category,
-        )
+        if not hide_sensitive_info:
+            device_keys = UIElement(
+                sidebar_device,
+                _("Keys"),
+                Endpoint(url_for("devices_endpoint.device", device_alias=device.alias)),
+                searchable_category=device_keys_searchable_category,
+            )
 
-    def _build_ui_elements(self, wallet_manager, device_manager):
+    def _build_ui_elements(self, wallet_manager, device_manager, hide_sensitive_info):
         """
         This builds all UIElements that should be highlighted during a search.
         It also encodes which functions will be used for searching.
@@ -440,9 +449,9 @@ class GlobalSearchTrees:
         """
         ui_root = UIElement(None, "root", Endpoint(url_for("setup_endpoint.start")))
         for wallet in wallet_manager.wallets.values():
-            self._wallet_ui_elements(ui_root, wallet)
+            self._wallet_ui_elements(ui_root, wallet, hide_sensitive_info)
         for device in device_manager.devices.values():
-            self._device_ui_elements(ui_root, device)
+            self._device_ui_elements(ui_root, device, hide_sensitive_info)
         return ui_root
 
     def _search_in_ui_element(self, search_term, ui_root):
@@ -484,23 +493,36 @@ class GlobalSearchTrees:
                 result_dicts.append(result_dict)
         return result_dicts
 
+    def user_config(self, hide_sensitive_info):
+        "A minimalist version of building a user configuration"
+        return {"hide_sensitive_info": hide_sensitive_info}
+
     def do_global_search(
         self,
         search_term,
         user_id,
         wallet_manager,
         device_manager,
+        hide_sensitive_info,
         force_build_ui_tree=False,
     ):
-        "Builds the UI Tree if necessary (only do it once) and then calls the functions in it to search for the search_term"
-        if (user_id not in self.ui_roots) or force_build_ui_tree:
+        "Builds the UI Tree if non-existent, or it the config changed and then calls the functions in it to search for the search_term"
+        if (
+            force_build_ui_tree
+            or (user_id not in self.cache)
+            or self.cache[user_id]["user_config"]
+            != self.user_config(hide_sensitive_info)
+        ):
             logger.debug(f"Building UI Tree for user {user_id}")
-            self.ui_roots[user_id] = self._build_ui_elements(
-                wallet_manager, device_manager
-            )
+            self.cache[user_id] = {
+                "user_config": self.user_config(hide_sensitive_info),
+                "ui_root": self._build_ui_elements(
+                    wallet_manager, device_manager, hide_sensitive_info
+                ),
+            }
 
         result_dicts = (
-            self._search_in_ui_element(search_term, self.ui_roots[user_id])
+            self._search_in_ui_element(search_term, self.cache[user_id]["ui_root"])
             if len(search_term) > 1
             else []
         )
