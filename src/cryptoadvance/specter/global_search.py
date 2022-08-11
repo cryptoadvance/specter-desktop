@@ -29,6 +29,10 @@ class Endpoint:
 
 
 class SearchResult:
+    """
+    Contains all information for 1 single search result
+    """
+
     def __init__(self, value, title=None, key=None, endpoint=None) -> None:
         self.value = str(value) if value else value
         self.title = str(title) if title else title
@@ -41,14 +45,13 @@ class SearchResult:
         return d
 
 
-class SearchableStructure:
+class SearchableCategory:
     def __init__(
         self, structure_or_generator_function, title_key=None, endpoint_function=None
     ) -> None:
-        """_summary_
-
+        """
         Args:
-            structure_or_generator_function (list, tuple, set, dict, types.GeneratorType function):
+            structure_or_generator_function (list, tuple, set, dict, function returning types.GeneratorType):
                 The structure_or_generator_function should be non-static, meaning when the wallet information changes, the structure_or_generator_function should be up-to-date.
                 This can be achieved with directly pointing to wallet....  objects or generating a types.GeneratorType
                 which uses wallet.... objects
@@ -137,10 +140,9 @@ class UIElement:
     This is a logical struture representing an UI/enpoint/HTML element, e.g., a button, a tab, with at most 1 search function accociated.
     E.g. the "Change Addresses" tab would be 1 UIElement
 
-    Multiple of these elements can be attached to each other, by referencing the parent element during __init__
-
-    This is not a full reconstruction of the HTML DOM tree, but only the most necessary part to represent the logical structure
-    the user sees. And only these parts which are included in the search.
+    Multiple of these elements can be attached to each other, by referencing the parent element during __init__, building a tree
+    This tree is not a full reconstruction of the HTML DOM tree, but only the most necessary part to represent the logical structure
+    the user sees as "Wallets > my multisig wallet > UTXOs" labeling all results found by the SearchableCategory.
     """
 
     def __init__(
@@ -148,7 +150,7 @@ class UIElement:
         parent,
         title,
         endpoint,
-        searchable_structure=None,
+        searchable_category=None,
         children=None,
     ):
         """
@@ -157,7 +159,7 @@ class UIElement:
             parent (UIElement, None): _description_
             title (str): _description_
             endpoint (str): _description_
-            searchable_structure (_type_, optional): _description_. Defaults to None.
+            searchable_category (_type_, optional): _description_. Defaults to None.
             children (UIElement, optional): _description_. Defaults to None.
         """
         self.parent = parent
@@ -165,17 +167,17 @@ class UIElement:
             self.parent.children.add(self)
         self.title = title
         self.endpoint = endpoint
-        self.searchable_structure = searchable_structure
+        self.searchable_category = searchable_category
         self.children = children if children else set()
 
-    def nodes_with_searchable_structure(self):
+    def nodes_with_searchable_category(self):
         "Typically the nodes having a search_function, are childless nodes."
         nodes = []
-        if self.searchable_structure:
+        if self.searchable_category:
             nodes += [self]
 
         for child in self.children:
-            nodes += child.nodes_with_searchable_structure()
+            nodes += child.nodes_with_searchable_category()
         return nodes
 
     def flattened_parent_list(self):
@@ -208,14 +210,14 @@ class GlobalSearchTrees:
             Endpoint(url_for("wallets_endpoint.wallets_overview")),
         )
 
-        sidebar_wallet_searchable_structure = SearchableStructure(
+        sidebar_wallet_searchable_category = SearchableCategory(
             {"name": wallet.alias}, title_key="name"
         )
         sidebar_wallet = UIElement(
             html_wallets,
             wallet.alias,
             Endpoint(url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)),
-            searchable_structure=sidebar_wallet_searchable_structure,
+            searchable_category=sidebar_wallet_searchable_category,
         )
 
         transactions = UIElement(
@@ -242,7 +244,7 @@ class GlobalSearchTrees:
                 },
             )
 
-        transactions_history_searchable_structure = SearchableStructure(
+        transactions_history_searchable_category = SearchableCategory(
             transactions_history_generator,
             title_key="txid",
             endpoint_function=lambda tx_dict: tx_endpoint_function(tx_dict, "txlist"),
@@ -257,14 +259,14 @@ class GlobalSearchTrees:
                     tx_list_type="txlist",
                 )
             ),
-            searchable_structure=transactions_history_searchable_structure,
+            searchable_category=transactions_history_searchable_category,
         )
 
         def transactions_utxo_generator():
             for utxo in wallet.full_utxo:
                 yield utxo
 
-        transactions_utxo_searchable_structure = SearchableStructure(
+        transactions_utxo_searchable_category = SearchableCategory(
             transactions_utxo_generator,
             title_key="txid",
             endpoint_function=lambda tx_dict: tx_endpoint_function(tx_dict, "utxo"),
@@ -279,7 +281,7 @@ class GlobalSearchTrees:
                     tx_list_type="utxo",
                 )
             ),
-            searchable_structure=transactions_utxo_searchable_structure,
+            searchable_category=transactions_utxo_searchable_category,
         )
 
         addresses = UIElement(
@@ -306,7 +308,7 @@ class GlobalSearchTrees:
                 },
             )
 
-        addresses_recieve_searchable_structure = SearchableStructure(
+        addresses_recieve_searchable_category = SearchableCategory(
             lambda: addresses_recieve_generator(is_change=False),
             title_key="address",
             endpoint_function=lambda address_dict: address_recieve_endpoint_function(
@@ -323,10 +325,10 @@ class GlobalSearchTrees:
                     address_type="recieve",
                 )
             ),
-            searchable_structure=addresses_recieve_searchable_structure,
+            searchable_category=addresses_recieve_searchable_category,
         )
 
-        addresses_change_searchable_structure = SearchableStructure(
+        addresses_change_searchable_category = SearchableCategory(
             lambda: addresses_recieve_generator(is_change=True),
             title_key="address",
             endpoint_function=lambda address_dict: address_recieve_endpoint_function(
@@ -343,17 +345,17 @@ class GlobalSearchTrees:
                     address_type="change",
                 )
             ),
-            searchable_structure=addresses_change_searchable_structure,
+            searchable_category=addresses_change_searchable_category,
         )
 
-        recieve_searchable_structure = SearchableStructure(
+        recieve_searchable_category = SearchableCategory(
             [wallet.address], title_key="address"
         )
         recieve = UIElement(
             sidebar_wallet,
             "Recieve",
             Endpoint(url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias)),
-            searchable_structure=recieve_searchable_structure,
+            searchable_category=recieve_searchable_category,
         )
 
         send = UIElement(
@@ -380,7 +382,7 @@ class GlobalSearchTrees:
                 )
                 yield psbt_dict
 
-        unsigned_searchable_structure = SearchableStructure(
+        unsigned_searchable_category = SearchableCategory(
             unsigned_generator,
             title_key="PSBT Address label",
             endpoint_function=unsigned_endpoint_function,
@@ -391,7 +393,7 @@ class GlobalSearchTrees:
             Endpoint(
                 url_for("wallets_endpoint.send_pending", wallet_alias=wallet.alias)
             ),
-            searchable_structure=unsigned_searchable_structure,
+            searchable_category=unsigned_searchable_category,
         )
 
     def _device_ui_elements(self, ui_root, device):
@@ -401,28 +403,28 @@ class GlobalSearchTrees:
             Endpoint(url_for("wallets_endpoint.wallets_overview")),
         )
 
-        sidebar_device_searchable_structure = SearchableStructure(
+        sidebar_device_searchable_category = SearchableCategory(
             {"name": device.alias}, title_key="name"
         )
         sidebar_device = UIElement(
             html_devices,
             device.alias,
             Endpoint(url_for("devices_endpoint.device", device_alias=device.alias)),
-            searchable_structure=sidebar_device_searchable_structure,
+            searchable_category=sidebar_device_searchable_category,
         )
 
         def device_keys_generator():
             for key in device.keys:
                 yield key
 
-        device_keys_searchable_structure = SearchableStructure(
+        device_keys_searchable_category = SearchableCategory(
             device_keys_generator, title_key="purpose"
         )
         device_keys = UIElement(
             sidebar_device,
             "Keys",
             Endpoint(url_for("devices_endpoint.device", device_alias=device.alias)),
-            searchable_structure=device_keys_searchable_structure,
+            searchable_category=device_keys_searchable_category,
         )
 
     def _build_ui_elements(self, wallet_manager, device_manager):
@@ -431,7 +433,7 @@ class GlobalSearchTrees:
         It also encodes which functions will be used for searching.
 
         Returns:
-            UIElement: This is the html_root, which has all children linked in a tree
+            UIElement: This is the ui_root, which has all children linked in a tree
         """
         ui_root = UIElement(None, "root", Endpoint(url_for("setup_endpoint.start")))
         for wallet in wallet_manager.wallets.values():
@@ -440,13 +442,13 @@ class GlobalSearchTrees:
             self._device_ui_elements(ui_root, device)
         return ui_root
 
-    def _search_in_ui_structure(self, search_term, html_root):
+    def _search_in_ui_element(self, search_term, ui_root):
         """
-        Applies search_function(search_term) to all nodes, which have a search_function
+        Searches all nodes, which have a searchable_category
 
         Args:
             search_term (_type_): _description_
-            html_root (_type_): _description_
+            ui_root (_type_): _description_
 
         Returns:
             list of dict: Example:
@@ -460,7 +462,7 @@ class GlobalSearchTrees:
                         'title': 'History',
                         'endpoint': '/wallets/wallet/tr/history/txlist/'
                     },
-                    'search_hits': [{
+                    'search_results': [{
                         'title': '599a2780545f456b69feac58a1e4ef8271a81a367c08315cffd3e91e2e23f95a',
                         'key': 'Blockhash',
                         'value': '65dc072035e1f870963a111a188e14a7359454b02a09210ead68250a051f6b16'
@@ -468,14 +470,14 @@ class GlobalSearchTrees:
                 }]
         """
         result_dicts = []
-        for node in html_root.nodes_with_searchable_structure():
+        for node in ui_root.nodes_with_searchable_category():
             result_dict = {
                 "ui_element": node.json(),
-                "search_hits": [
-                    hit.json() for hit in node.searchable_structure.search(search_term)
+                "search_results": [
+                    hit.json() for hit in node.searchable_category.search(search_term)
                 ],
             }
-            if result_dict["search_hits"]:
+            if result_dict["search_results"]:
                 result_dicts.append(result_dict)
         return result_dicts
 
@@ -495,7 +497,7 @@ class GlobalSearchTrees:
             )
 
         result_dicts = (
-            self._search_in_ui_structure(search_term, self.ui_roots[user_id])
+            self._search_in_ui_element(search_term, self.ui_roots[user_id])
             if len(search_term) > 1
             else []
         )

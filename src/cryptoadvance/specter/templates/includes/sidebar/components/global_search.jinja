@@ -54,9 +54,9 @@
 
             this.timeOutIds = [];
 
-            this.last_answer = null; // be overwritten with the first search call
-            this.last_max_number_of_main_results = 5; // the number will be overwritten with the first search call
-            this.last_max_number_of_sub_results = 5; // the number will be overwritten with the first search call
+            this.lastAnswer = null; // be overwritten with the first search call
+            this.lastMaxNumberOfCategories = 5; // the number will be overwritten with the first search call
+            this.lastMaxNumberOfResults = 5; // the number will be overwritten with the first search call
 
 			this.buildHTML();			// created the html
 			this.attachListeners();		// attaches the listeners to some html objects
@@ -92,11 +92,11 @@
 
 
 
-        uiElementToLink(ui_element){
+        uiElementToLink(uiElement){
             var a = document.createElement("a");
             a.style = "color: #fff;"                
-            a.href = ui_element.endpoint ? ui_element.endpoint.url : "";
-            a.text = ui_element.title;
+            a.href = uiElement.endpoint ? uiElement.endpoint.url : "";
+            a.text = uiElement.title;
             return a
         }
 
@@ -115,25 +115,25 @@
 
 
         /**
-        Takes a result_dict and adds it to the result list
+        Takes a resultDict and adds it to the result list
         */
-        addResultToResultDropbdown(result_dict, searchTerm, max_number_of_sub_results=5){
-            if (result_dict.search_hits == []){return};
+        addResultDictToResultDropdown(resultDict, searchTerm, maxNumberOfResults=5){
+            if (resultDict.search_results == []){return};
 
             // create parent navigation header            
             var div = document.createElement("div");
             div.className = "global-search-row";
 
             // add all parents 
-            for (var i in result_dict.ui_element.flattened_parent_list){
-                var parent = result_dict.ui_element.flattened_parent_list[i];
+            for (var i in resultDict.ui_element.flattened_parent_list){
+                var parent = resultDict.ui_element.flattened_parent_list[i];
                 // skip the html root
                 if (parent.flattened_parent_list.length == 0){continue}
 
                 div.appendChild(this.uiElementToLink(parent));
                 div.innerHTML +=  '&nbsp;&nbsp;>&nbsp;&nbsp;';
             }
-            var lastParent = this.uiElementToLink(result_dict.ui_element);
+            var lastParent = this.uiElementToLink(resultDict.ui_element);
             div.addEventListener('click', event=>{
                 location.href = lastParent.href;
             });			
@@ -142,41 +142,41 @@
             this.dropdownContentElement.appendChild(div);
         
 
-            // show search results
-            for (var i in result_dict.search_hits){
-                var div_result = document.createElement("div");
-                div_result.className = "global-search-row";
+            // add search results
+            for (var i in resultDict.search_results){
+                var resultDiv = document.createElement("div");
+                resultDiv.className = "global-search-row";
                 
-                div_result.style.fontSize = "small";
+                resultDiv.style.fontSize = "small";
 
-                if (i>max_number_of_sub_results){
-                    div_result.innerHTML += `+ ${result_dict.search_hits.length - max_number_of_sub_results} more results in this category`
-                    div_result.addEventListener('click', event => {
+                if (i>maxNumberOfResults){
+                    resultDiv.innerHTML += `+ ${resultDict.search_results.length - maxNumberOfResults} more results in this category`
+                    resultDiv.addEventListener('click', event => {
                         this.buildDropdownContent(
                             searchTerm, 
-                            this.last_answer,
-                            this.last_max_number_of_main_results, 
-                            5+max_number_of_sub_results
+                            this.lastAnswer,
+                            this.lastMaxNumberOfCategories, 
+                            5+maxNumberOfResults
                         );
                     });
-                    this.dropdownContentElement.appendChild(div_result);
+                    this.dropdownContentElement.appendChild(resultDiv);
                     break
                 }
                 // it is critical that this is a const, overwise the addEventListener('click') will not referr to the current, but to the last result in the loop
-                const result = result_dict.search_hits[i];
+                const result = resultDict.search_results[i];
 
                 // if a title is available for the search result display it nicer
                 if (result.title  && result.key){
-                    div_result.innerHTML += `${result.title}&nbsp;&nbsp;>&nbsp;&nbsp;${result.key}: `;
+                    resultDiv.innerHTML += `${result.title}&nbsp;&nbsp;>&nbsp;&nbsp;${result.key}: `;
                 } 
-                div_result.innerHTML += this.highlightString(`${result.value}`, searchTerm);
+                resultDiv.innerHTML += this.highlightString(`${result.value}`, searchTerm);
 
 
-                div_result.addEventListener('click', event => {
+                resultDiv.addEventListener('click', event => {
                     this.callEndpoint(result.endpoint, lastParent.href) 
                 });			
-                div_result.style.cursor = "pointer";
-                this.dropdownContentElement.appendChild(div_result);
+                resultDiv.style.cursor = "pointer";
+                this.dropdownContentElement.appendChild(resultDiv);
             }
         }
 
@@ -214,33 +214,33 @@
         }
 
 
-        buildDropdownContent(searchTerm, answer, max_number_of_main_results=5, max_number_of_sub_results=5){
-            this.last_max_number_of_main_results = max_number_of_main_results;
-            this.last_max_number_of_sub_results = max_number_of_sub_results;
+        buildDropdownContent(searchTerm, answer, maxNumberOfCategories=100, maxNumberOfResults=5){
+            this.lastMaxNumberOfCategories = maxNumberOfCategories;
+            this.lastMaxNumberOfResults = maxNumberOfResults;
             this.clearDropdownContent();
             this.addResultsHeader(answer.result_dicts);
 
             for (var i in answer.result_dicts){
                 // if there are too many results, add a div showing missing elements
-                if (i>max_number_of_main_results){
+                if (i>maxNumberOfCategories){
                     var div = document.createElement("div");
                     div.className = "global-search-row";
-                    div.innerText += `+ ${answer.result_dicts.length - max_number_of_main_results} more results`;
+                    div.innerText += `+ ${answer.result_dicts.length - maxNumberOfCategories} more results`;
                     div.addEventListener('click', event => {
                         this.buildDropdownContent(
                             searchTerm, 
                             answer,
-                            5+max_number_of_main_results, 
-                            max_number_of_sub_results
+                            100+maxNumberOfCategories, 
+                            maxNumberOfResults
                         );
                     });			
                     this.dropdownContentElement.appendChild(div);
                     break;
                 }
-                this.addResultToResultDropbdown(
+                this.addResultDictToResultDropdown(
                     answer.result_dicts[i], 
                     answer.search_term, 
-                    max_number_of_sub_results
+                    maxNumberOfResults
                 );                    
             }
 
@@ -249,9 +249,9 @@
 
 
         /**
-        Sends the searchTerm to an endpoint, gets the answer back and then calls addResultToResultDropbdown
+        Sends the searchTerm to an endpoint, gets the answer back and then calls addResultDictToResultDropdown
         */    
-        globalSearch(searchTerm, max_number_of_main_results=100, max_number_of_sub_results=5){
+        globalSearch(searchTerm, maxNumberOfCategories=100, maxNumberOfResults=5){
             var formData = new FormData();
             formData.append('global-search-input', this.searchInputElement.value);
 
@@ -263,14 +263,14 @@
                     this.setContentVisibility(false);
                     return
                 }                
-                this.last_answer = answer;
+                this.lastAnswer = answer;
                 //console.log(answer)
 
                 this.buildDropdownContent(
                     searchTerm, 
                     answer, 
-                    max_number_of_main_results, 
-                    max_number_of_sub_results
+                    maxNumberOfCategories, 
+                    maxNumberOfResults
                 )
             });
         }
