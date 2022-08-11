@@ -2,6 +2,7 @@ import os
 import logging, json
 import types
 from flask import url_for
+from flask_babel import lazy_gettext as _
 from .util.common import robust_json_dumps
 
 logger = logging.getLogger(__name__)
@@ -206,7 +207,7 @@ class GlobalSearchTrees:
     def _wallet_ui_elements(self, ui_root, wallet):
         html_wallets = UIElement(
             ui_root,
-            "Wallets",
+            _("Wallets"),
             Endpoint(url_for("wallets_endpoint.wallets_overview")),
         )
 
@@ -222,7 +223,7 @@ class GlobalSearchTrees:
 
         transactions = UIElement(
             sidebar_wallet,
-            "Transactions",
+            _("Transactions"),
             Endpoint(url_for("wallets_endpoint.history", wallet_alias=wallet.alias)),
         )
 
@@ -251,7 +252,7 @@ class GlobalSearchTrees:
         )
         transactions_history = UIElement(
             transactions,
-            "History",
+            _("History"),
             Endpoint(
                 url_for(
                     "wallets_endpoint.history_tx_list_type",
@@ -273,7 +274,7 @@ class GlobalSearchTrees:
         )
         transactions_utxo = UIElement(
             transactions,
-            "UTXO",
+            _("UTXO"),
             Endpoint(
                 url_for(
                     "wallets_endpoint.history_tx_list_type",
@@ -286,15 +287,15 @@ class GlobalSearchTrees:
 
         addresses = UIElement(
             sidebar_wallet,
-            "Addresses",
+            _("Addresses"),
             Endpoint(url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias)),
         )
 
-        def addresses_recieve_generator(is_change):
+        def addresses_receive_generator(is_change):
             for address in wallet.addresses_info(is_change=is_change):
                 yield address
 
-        def address_recieve_endpoint_function(address_dict, address_type):
+        def address_receive_endpoint_function(address_dict, address_type):
             return Endpoint(
                 url_for(
                     "wallets_endpoint.addresses_with_type",
@@ -308,36 +309,36 @@ class GlobalSearchTrees:
                 },
             )
 
-        addresses_recieve_searchable_category = SearchableCategory(
-            lambda: addresses_recieve_generator(is_change=False),
+        addresses_receive_searchable_category = SearchableCategory(
+            lambda: addresses_receive_generator(is_change=False),
             title_key="address",
-            endpoint_function=lambda address_dict: address_recieve_endpoint_function(
-                address_dict, "recieve"
+            endpoint_function=lambda address_dict: address_receive_endpoint_function(
+                address_dict, "receive"
             ),
         )
-        addresses_recieve = UIElement(
+        addresses_receive = UIElement(
             addresses,
-            "Recieve Addresses",
+            _("Receive Addresses"),
             Endpoint(
                 url_for(
                     "wallets_endpoint.addresses_with_type",
                     wallet_alias=wallet.alias,
-                    address_type="recieve",
+                    address_type="receive",
                 )
             ),
-            searchable_category=addresses_recieve_searchable_category,
+            searchable_category=addresses_receive_searchable_category,
         )
 
         addresses_change_searchable_category = SearchableCategory(
-            lambda: addresses_recieve_generator(is_change=True),
+            lambda: addresses_receive_generator(is_change=True),
             title_key="address",
-            endpoint_function=lambda address_dict: address_recieve_endpoint_function(
+            endpoint_function=lambda address_dict: address_receive_endpoint_function(
                 address_dict, "change"
             ),
         )
         addresses_change = UIElement(
             addresses,
-            "Change Addresses",
+            _("Change Addresses"),
             Endpoint(
                 url_for(
                     "wallets_endpoint.addresses_with_type",
@@ -348,19 +349,19 @@ class GlobalSearchTrees:
             searchable_category=addresses_change_searchable_category,
         )
 
-        recieve_searchable_category = SearchableCategory(
+        receive_searchable_category = SearchableCategory(
             [wallet.address], title_key="address"
         )
-        recieve = UIElement(
+        receive = UIElement(
             sidebar_wallet,
-            "Recieve",
+            _("Receive"),
             Endpoint(url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias)),
-            searchable_category=recieve_searchable_category,
+            searchable_category=receive_searchable_category,
         )
 
         send = UIElement(
             sidebar_wallet,
-            "Send",
+            _("Send"),
             Endpoint(url_for("wallets_endpoint.send_new", wallet_alias=wallet.alias)),
         )
 
@@ -389,7 +390,7 @@ class GlobalSearchTrees:
         )
         unsigned = UIElement(
             send,
-            "Unsigned",
+            _("Unsigned"),
             Endpoint(
                 url_for("wallets_endpoint.send_pending", wallet_alias=wallet.alias)
             ),
@@ -399,7 +400,7 @@ class GlobalSearchTrees:
     def _device_ui_elements(self, ui_root, device):
         html_devices = UIElement(
             ui_root,
-            "Devices",
+            _("Devices"),
             Endpoint(url_for("wallets_endpoint.wallets_overview")),
         )
 
@@ -422,7 +423,7 @@ class GlobalSearchTrees:
         )
         device_keys = UIElement(
             sidebar_device,
-            "Keys",
+            _("Keys"),
             Endpoint(url_for("devices_endpoint.device", device_alias=device.alias)),
             searchable_category=device_keys_searchable_category,
         )

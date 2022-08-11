@@ -734,7 +734,7 @@ def import_psbt(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/addresses/", methods=["GET"])
 @login_required
 def addresses(wallet_alias):
-    return addresses_with_type(wallet_alias, "recieve")
+    return addresses_with_type(wallet_alias, "receive")
 
 
 @wallets_endpoint.route(
