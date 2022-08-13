@@ -412,8 +412,8 @@ six==1.16.0 \
 specterext-exfund==0.1.4 \
     --hash=sha256:d380dac8c1ee7f9640a880e5924c1d5817930a9e49f1f738680a7b134834eaa6
     # via -r requirements.in
-specterext-faucet==0.1.1 \
-    --hash=sha256:42eca49dff96e0df3247b49cb8b8940053eb73f2baa0595bf49bdc169109356a
+specterext-faucet==0.1.2 \
+    --hash=sha256:86db78a6c41688152cfeec14efafd6d06c97e6edd9735461ee897495f90cb2e8
     # via -r requirements.in
 stem==1.8.0 \
     --hash=sha256:a0b48ea6224e95f22aa34c0bc3415f0eb4667ddeae3dfb5e32a6920c185568c2
