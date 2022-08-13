@@ -413,7 +413,7 @@ specterext-exfund==0.1.4 \
     --hash=sha256:d380dac8c1ee7f9640a880e5924c1d5817930a9e49f1f738680a7b134834eaa6
     # via -r requirements.in
 specterext-faucet==0.1.1 \
-    --hash=sha256:d380dac8c1ee7f9640a880e5924c1d5817930a9e49f1f738680a7b134834eaa6
+    --hash=sha256:42eca49dff96e0df3247b49cb8b8940053eb73f2baa0595bf49bdc169109356a
     # via -r requirements.in
 stem==1.8.0 \
     --hash=sha256:a0b48ea6224e95f22aa34c0bc3415f0eb4667ddeae3dfb5e32a6920c185568c2
