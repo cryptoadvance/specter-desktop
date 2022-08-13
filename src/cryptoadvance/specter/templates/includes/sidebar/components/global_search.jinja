@@ -100,7 +100,7 @@
 				this.delayedGlobalSearch(this.searchInputElement.value);
 			});			
 
-            this.searchInputElement.addEventListener("keydown", (event) => {
+            document.addEventListener("keydown", (event) => {
                 // handle escape
                 if (event.keyCode === 27) {
                     this.setContentVisibility(false);
