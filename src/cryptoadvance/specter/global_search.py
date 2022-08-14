@@ -100,16 +100,17 @@ class SearchableCategory:
         if isinstance(structure, dict):
             for key, value in structure.items():
                 if is_match(search_term, value):
-                    results += [
-                        SearchResult(
-                            value,
-                            title=self.title_function(structure),
-                            key=key,
-                            click_action=self.click_action_function(structure)
-                            if self.click_action_function
-                            else None,
-                        )
-                    ]
+                    result = SearchResult(
+                        value,
+                        title=self.title_function(structure),
+                        key=key,
+                        click_action=self.click_action_function(structure)
+                        if self.click_action_function
+                        else None,
+                    )
+                    # avoid duplicate results
+                    if result not in results:
+                        results.append(result)
 
         elif isinstance(structure, (types.GeneratorType, list, tuple, set)):
             for value in structure:
@@ -127,14 +128,15 @@ class SearchableCategory:
         else:
             # if it is not a list,dict,... then it is the final element that should be searched:
             if is_match(search_term, structure):
-                results += [
-                    SearchResult(
-                        structure,
-                        click_action=self.click_action_function(structure)
-                        if self.click_action_function
-                        else None,
-                    )
-                ]
+                result = SearchResult(
+                    structure,
+                    click_action=self.click_action_function(structure)
+                    if self.click_action_function
+                    else None,
+                )
+                # avoid duplicate results
+                if result not in results:
+                    results.append(result)
 
         return results
 
