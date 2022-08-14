@@ -324,7 +324,7 @@ class GlobalSearchTrees:
 
         addresses_receive_searchable_category = SearchableCategory(
             lambda: addresses_receive_generator(is_change=False),
-            title_function=lambda d: d.get("address"),
+            title_function=lambda d: d.get("label"),
             click_action_function=lambda address_dict: address_receive_click_action_function(
                 address_dict, "receive"
             ),
@@ -345,7 +345,7 @@ class GlobalSearchTrees:
 
         addresses_change_searchable_category = SearchableCategory(
             lambda: addresses_receive_generator(is_change=True),
-            title_function=lambda d: d.get("address"),
+            title_function=lambda d: d.get("label"),
             click_action_function=lambda address_dict: address_receive_click_action_function(
                 address_dict, "change"
             ),
