@@ -19,6 +19,18 @@ def test_transactions(specter_regtest_configured: Specter, funded_hot_wallet_1):
     user = specter_regtest_configured.user_manager.user
     global_search_trees = GlobalSearchTrees(user.wallet_manager, user.device_manager)
 
+    # test wallet name
+    search_term = funded_hot_wallet_1.alias.upper()[3:8]
+    results = global_search_trees.do_global_search(
+        search_term, user, specter_regtest_configured.hide_sensitive_info
+    )
+    assert len(results["result_dicts"]) == 1
+    assert len(results["result_dicts"][0]["search_results"]) == 1
+    assert (
+        results["result_dicts"][0]["search_results"][0]["value"]
+        == funded_hot_wallet_1.alias
+    )
+
     unspent_list = funded_hot_wallet_1.rpc.listunspent()
     assert unspent_list  # otherwise the test will not test anything
     # logger.info(unspent_list)
