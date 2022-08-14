@@ -160,4 +160,41 @@ def test_addresses(specter_regtest_configured: Specter, unfunded_hot_wallet_1):
             else 1
         )
         assert len(results["result_dicts"][0]["search_results"]) == 1
-        assert results["result_dicts"][0]["search_results"][0] == expectation
+        # the expectation can be in results["result_dicts"][0]["search_results"][0] or in results["result_dicts"][1]["search_results"][0]
+        assert expectation in [
+            result_dict["search_results"][0] for result_dict in results["result_dicts"]
+        ]
+
+
+@patch("cryptoadvance.specter.global_search.url_for", mock_url_for)
+@patch("cryptoadvance.specter.global_search._", str)
+def test_devices(specter_regtest_configured: Specter, unfunded_hot_wallet_1):
+    user = specter_regtest_configured.user_manager.user
+    global_search_trees = GlobalSearchTrees(user.wallet_manager, user.device_manager)
+
+    # change addresses
+    devices = specter_regtest_configured.device_manager.devices.values()
+    assert devices
+    for device in devices:
+        logger.info(f"Searching for  {len(device.keys)} keys in device {device.alias}")
+
+        search_term = device.alias[3:8]
+        results = global_search_trees.do_global_search(
+            search_term, user, specter_regtest_configured.hide_sensitive_info
+        )
+        assert len(results["result_dicts"][0]["search_results"]) == 1
+        assert results["result_dicts"][0]["search_results"][0]["value"] == device.alias
+
+        for key in device.keys:
+            search_term = key.original
+            results = global_search_trees.do_global_search(
+                search_term, user, specter_regtest_configured.hide_sensitive_info
+            )
+            assert len(results["result_dicts"][0]["search_results"]) == 1
+            assert (
+                search_term in results["result_dicts"][0]["search_results"][0]["value"]
+            )
+            assert (
+                key.fingerprint
+                in results["result_dicts"][0]["search_results"][0]["value"]
+            )
