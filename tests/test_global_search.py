@@ -49,15 +49,26 @@ def test_check_utxo_and_amounts(
 
         expectations = [
             {
-                "url": f"wallets_endpoint/history_tx_list_type/{funded_hot_wallet_1.alias}/txlist"
+                "value": tx["txid"],
+                "title": tx["txid"],
+                "key": "Txid",
+                "click_action": {
+                    "url": f"wallets_endpoint/history_tx_list_type/{funded_hot_wallet_1.alias}/txlist",
+                    "method_str": "form",
+                    "form_data": {"action": "show_tx_on_load", "txid": tx["txid"]},
+                },
             },
             {
-                "url": f"wallets_endpoint/history_tx_list_type/{funded_hot_wallet_1.alias}/utxo"
+                "value": tx["txid"],
+                "title": tx["txid"],
+                "key": "Txid",
+                "click_action": {
+                    "url": f"wallets_endpoint/history_tx_list_type/{funded_hot_wallet_1.alias}/utxo",
+                    "method_str": "form",
+                    "form_data": {"action": "show_tx_on_load", "txid": tx["txid"]},
+                },
             },
         ]
         for result_dict, expectation in zip(sorted_result_dicts, expectations):
             assert len(result_dict["search_results"]) == 1
-            assert (
-                result_dict["search_results"][0]["click_action"]["url"]
-                == expectation["url"]
-            )
+            assert result_dict["search_results"][0] == expectation
