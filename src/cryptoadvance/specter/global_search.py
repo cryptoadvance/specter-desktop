@@ -8,7 +8,7 @@ from .util.common import robust_json_dumps
 logger = logging.getLogger(__name__)
 
 
-class Endpoint:
+class ClickAction:
     def __init__(self, url, method_str="href", form_data=None):
         """
         In the simple case this is just an url for href.
@@ -34,38 +34,41 @@ class SearchResult:
     Contains all information for 1 single search result
     """
 
-    def __init__(self, value, title=None, key=None, endpoint=None) -> None:
+    def __init__(self, value, title=None, key=None, click_action=None) -> None:
         self.value = str(value) if value else value
         self.title = str(title) if title else title
         self.key = str(key).capitalize() if key else key
-        self.endpoint = endpoint
+        self.click_action = click_action
 
     def json(self):
         d = self.__dict__
-        d["endpoint"] = d["endpoint"].json() if d["endpoint"] else None
+        d["click_action"] = d["click_action"].json() if d["click_action"] else None
         return d
 
 
 class SearchableCategory:
     def __init__(
-        self, structure_or_generator_function, title_key=None, endpoint_function=None
+        self,
+        structure_or_generator_function,
+        title_function=None,
+        click_action_function=None,
     ) -> None:
         """
         Args:
             structure_or_generator_function (list, tuple, set, dict, returning types.GeneratorType, or function returning formers):
                 The structure_or_generator_function should be non-static, meaning when the wallet information changes, the structure_or_generator_function should be up-to-date.
                 This can be achieved with a function that returns an iterable
-            title_key (_type_, optional): If a result is found in a dictionary, then the value of the title_key
-                is used as the title of the SearchResult, e.g,
-                the title_key="txid" is the title of a search result in a tx-dictionary.
+            title_function (function, optional): A function that takes the entire dict (which contains a search hit in some value)
+                and returns a string, which is used as the title of the SearchResult, e.g,
+                title_function = lambda d: d.get("txid").
                 Defaults to None.
-            endpoint_function (_type_, optional): A function that takes the entire dict (which contains a search hit in some value)
-                and returns an instance of type Endpoint.
+            click_action_function (_type_, optional): A function that takes the entire dict (which contains a search hit in some value)
+                and returns an instance of type ClickAction.
                 Defaults to None.
         """
         self.structure_or_generator_function = structure_or_generator_function
-        self.title_key = title_key
-        self.endpoint_function = endpoint_function
+        self.title_function = title_function
+        self.click_action_function = click_action_function
 
     def search(
         self,
@@ -100,10 +103,10 @@ class SearchableCategory:
                     results += [
                         SearchResult(
                             value,
-                            title=structure.get(self.title_key),
+                            title=self.title_function(structure),
                             key=key,
-                            endpoint=self.endpoint_function(structure)
-                            if self.endpoint_function
+                            click_action=self.click_action_function(structure)
+                            if self.click_action_function
                             else None,
                         )
                     ]
@@ -127,8 +130,8 @@ class SearchableCategory:
                 results += [
                     SearchResult(
                         structure,
-                        endpoint=self.endpoint_function(structure)
-                        if self.endpoint_function
+                        click_action=self.click_action_function(structure)
+                        if self.click_action_function
                         else None,
                     )
                 ]
@@ -150,7 +153,7 @@ class UIElement:
         self,
         parent,
         title,
-        endpoint,
+        click_action,
         searchable_category=None,
         children=None,
     ):
@@ -159,7 +162,7 @@ class UIElement:
         Args:
             parent (UIElement, None):
             title (str): The title, e.g. "Receive Addresses"
-            endpoint (str): e.g. url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
+            click_action (str): e.g. url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)
             searchable_category (_type_, optional): If this UIElement should be searchable (usually then it should not have children)
                             then an instance of SearchableCategory can be linked. Defaults to None.
             children (set of UIElement, optional): A set of UIElements. This is usually not necessary to set, because any child linking
@@ -169,7 +172,7 @@ class UIElement:
         if self.parent:
             self.parent.children.add(self)
         self.title = title
-        self.endpoint = endpoint
+        self.click_action = click_action
         self.searchable_category = searchable_category
         self.children = children if children else set()
 
@@ -196,7 +199,7 @@ class UIElement:
             parent.json() for parent in self.flattened_parent_list()
         ]
         d["title"] = self.title
-        d["endpoint"] = self.endpoint.json() if self.endpoint else None
+        d["click_action"] = self.click_action.json() if self.click_action else None
         return d
 
 
@@ -210,31 +213,31 @@ class GlobalSearchTrees:
         html_wallets = UIElement(
             ui_root,
             _("Wallets"),
-            Endpoint(url_for("wallets_endpoint.wallets_overview")),
+            ClickAction(url_for("wallets_endpoint.wallets_overview")),
         )
 
         sidebar_wallet_searchable_category = SearchableCategory(
-            {"name": wallet.alias}, title_key="name"
+            {"name": wallet.alias}, title_function=lambda d: d.get("name")
         )
         sidebar_wallet = UIElement(
             html_wallets,
             wallet.alias,
-            Endpoint(url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)),
+            ClickAction(url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)),
             searchable_category=sidebar_wallet_searchable_category,
         )
 
         transactions = UIElement(
             sidebar_wallet,
             _("Transactions"),
-            Endpoint(url_for("wallets_endpoint.history", wallet_alias=wallet.alias)),
+            ClickAction(url_for("wallets_endpoint.history", wallet_alias=wallet.alias)),
         )
 
         def transactions_history_generator():
             for tx in wallet.txlist():
                 yield tx
 
-        def tx_endpoint_function(tx_dict, tx_list_type):
-            return Endpoint(
+        def tx_click_action_function(tx_dict, tx_list_type):
+            return ClickAction(
                 url_for(
                     "wallets_endpoint.history_tx_list_type",
                     wallet_alias=wallet.alias,
@@ -249,14 +252,16 @@ class GlobalSearchTrees:
 
         transactions_history_searchable_category = SearchableCategory(
             transactions_history_generator,
-            title_key="txid",
-            endpoint_function=lambda tx_dict: tx_endpoint_function(tx_dict, "txlist"),
+            title_function=lambda d: d.get("txid"),
+            click_action_function=lambda tx_dict: tx_click_action_function(
+                tx_dict, "txlist"
+            ),
         )
         if not hide_sensitive_info:
             transactions_history = UIElement(
                 transactions,
                 _("History"),
-                Endpoint(
+                ClickAction(
                     url_for(
                         "wallets_endpoint.history_tx_list_type",
                         wallet_alias=wallet.alias,
@@ -272,14 +277,16 @@ class GlobalSearchTrees:
 
         transactions_utxo_searchable_category = SearchableCategory(
             transactions_utxo_generator,
-            title_key="txid",
-            endpoint_function=lambda tx_dict: tx_endpoint_function(tx_dict, "utxo"),
+            title_function=lambda d: d.get("txid"),
+            click_action_function=lambda tx_dict: tx_click_action_function(
+                tx_dict, "utxo"
+            ),
         )
         if not hide_sensitive_info:
             transactions_utxo = UIElement(
                 transactions,
                 _("UTXO"),
-                Endpoint(
+                ClickAction(
                     url_for(
                         "wallets_endpoint.history_tx_list_type",
                         wallet_alias=wallet.alias,
@@ -292,15 +299,17 @@ class GlobalSearchTrees:
         addresses = UIElement(
             sidebar_wallet,
             _("Addresses"),
-            Endpoint(url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias)),
+            ClickAction(
+                url_for("wallets_endpoint.addresses", wallet_alias=wallet.alias)
+            ),
         )
 
         def addresses_receive_generator(is_change):
             for address in wallet.addresses_info(is_change=is_change):
                 yield address
 
-        def address_receive_endpoint_function(address_dict, address_type):
-            return Endpoint(
+        def address_receive_click_action_function(address_dict, address_type):
+            return ClickAction(
                 url_for(
                     "wallets_endpoint.addresses_with_type",
                     wallet_alias=wallet.alias,
@@ -315,8 +324,8 @@ class GlobalSearchTrees:
 
         addresses_receive_searchable_category = SearchableCategory(
             lambda: addresses_receive_generator(is_change=False),
-            title_key="address",
-            endpoint_function=lambda address_dict: address_receive_endpoint_function(
+            title_function=lambda d: d.get("address"),
+            click_action_function=lambda address_dict: address_receive_click_action_function(
                 address_dict, "receive"
             ),
         )
@@ -324,7 +333,7 @@ class GlobalSearchTrees:
             addresses_receive = UIElement(
                 addresses,
                 _("Receive Addresses"),
-                Endpoint(
+                ClickAction(
                     url_for(
                         "wallets_endpoint.addresses_with_type",
                         wallet_alias=wallet.alias,
@@ -336,8 +345,8 @@ class GlobalSearchTrees:
 
         addresses_change_searchable_category = SearchableCategory(
             lambda: addresses_receive_generator(is_change=True),
-            title_key="address",
-            endpoint_function=lambda address_dict: address_receive_endpoint_function(
+            title_function=lambda d: d.get("address"),
+            click_action_function=lambda address_dict: address_receive_click_action_function(
                 address_dict, "change"
             ),
         )
@@ -345,7 +354,7 @@ class GlobalSearchTrees:
             addresses_change = UIElement(
                 addresses,
                 _("Change Addresses"),
-                Endpoint(
+                ClickAction(
                     url_for(
                         "wallets_endpoint.addresses_with_type",
                         wallet_alias=wallet.alias,
@@ -356,12 +365,12 @@ class GlobalSearchTrees:
             )
 
         receive_searchable_category = SearchableCategory(
-            [wallet.address], title_key="address"
+            [wallet.address], title_function=lambda d: d.get("address")
         )
         receive = UIElement(
             sidebar_wallet,
             _("Receive"),
-            Endpoint(url_for("wallets_endpoint.receive", wallet_alias=wallet.alias)),
+            ClickAction(url_for("wallets_endpoint.receive", wallet_alias=wallet.alias)),
             searchable_category=receive_searchable_category,
         )
 
@@ -369,13 +378,13 @@ class GlobalSearchTrees:
             send = UIElement(
                 sidebar_wallet,
                 _("Send"),
-                Endpoint(
+                ClickAction(
                     url_for("wallets_endpoint.send_new", wallet_alias=wallet.alias)
                 ),
             )
 
-        def unsigned_endpoint_function(psbt_dict):
-            return Endpoint(
+        def unsigned_click_action_function(psbt_dict):
+            return ClickAction(
                 url_for("wallets_endpoint.send_pending", wallet_alias=wallet.alias),
                 method_str="form",
                 form_data={
@@ -394,14 +403,14 @@ class GlobalSearchTrees:
 
         unsigned_searchable_category = SearchableCategory(
             unsigned_generator,
-            title_key="PSBT Address label",
-            endpoint_function=unsigned_endpoint_function,
+            title_function=lambda d: d.get("PSBT Address label"),
+            click_action_function=unsigned_click_action_function,
         )
         if not hide_sensitive_info:
             unsigned = UIElement(
                 send,
                 _("Unsigned"),
-                Endpoint(
+                ClickAction(
                     url_for("wallets_endpoint.send_pending", wallet_alias=wallet.alias)
                 ),
                 searchable_category=unsigned_searchable_category,
@@ -411,16 +420,16 @@ class GlobalSearchTrees:
         html_devices = UIElement(
             ui_root,
             _("Devices"),
-            Endpoint(url_for("wallets_endpoint.wallets_overview")),
+            ClickAction(url_for("wallets_endpoint.wallets_overview")),
         )
 
         sidebar_device_searchable_category = SearchableCategory(
-            {"name": device.alias}, title_key="name"
+            {"name": device.alias}, title_function=lambda d: d.get("name")
         )
         sidebar_device = UIElement(
             html_devices,
             device.alias,
-            Endpoint(url_for("devices_endpoint.device", device_alias=device.alias)),
+            ClickAction(url_for("devices_endpoint.device", device_alias=device.alias)),
             searchable_category=sidebar_device_searchable_category,
         )
 
@@ -429,13 +438,15 @@ class GlobalSearchTrees:
                 yield key
 
         device_keys_searchable_category = SearchableCategory(
-            device_keys_generator, title_key="purpose"
+            device_keys_generator, title_function=lambda d: d.get("purpose")
         )
         if not hide_sensitive_info:
             device_keys = UIElement(
                 sidebar_device,
                 _("Keys"),
-                Endpoint(url_for("devices_endpoint.device", device_alias=device.alias)),
+                ClickAction(
+                    url_for("devices_endpoint.device", device_alias=device.alias)
+                ),
                 searchable_category=device_keys_searchable_category,
             )
 
@@ -447,7 +458,7 @@ class GlobalSearchTrees:
         Returns:
             UIElement: This is the ui_root, which has all children linked in a tree
         """
-        ui_root = UIElement(None, "root", Endpoint(url_for("setup_endpoint.start")))
+        ui_root = UIElement(None, "root", ClickAction(url_for("setup_endpoint.start")))
         for wallet in wallet_manager.wallets.values():
             self._wallet_ui_elements(ui_root, wallet, hide_sensitive_info)
         for device in device_manager.devices.values():
@@ -469,10 +480,10 @@ class GlobalSearchTrees:
                         'flattened_parent_list': [{
                             'flattened_parent_list': [],
                             'title': None,
-                            'endpoint': None
+                            'click_action': None
                         }],
                         'title': 'History',
-                        'endpoint': '/wallets/wallet/tr/history/txlist/'
+                        'click_action': '/wallets/wallet/tr/history/txlist/'
                     },
                     'search_results': [{
                         'title': '599a2780545f456b69feac58a1e4ef8271a81a367c08315cffd3e91e2e23f95a',

@@ -113,18 +113,18 @@
         uiElementToLink(uiElement){
             var a = document.createElement("a");
             a.style = "color: #fff;"                
-            a.href = uiElement.endpoint ? uiElement.endpoint.url : "";
+            a.href = uiElement.click_action ? uiElement.click_action.url : "";
             a.text = uiElement.title;
             return a
         }
 
 
-        callEndpoint(endpoint, backup_href){
-            if (endpoint){
-                if (endpoint.method_str == 'href'){
-                    location.href = endpoint.url;
-                } else if (endpoint.method_str == 'form')  {
-                    submitForm(endpoint.url, "{{ csrf_token() }}", endpoint.form_data);
+        callClickAction(clickAction, backup_href){
+            if (clickAction){
+                if (clickAction.method_str == 'href'){
+                    location.href = clickAction.url;
+                } else if (clickAction.method_str == 'form')  {
+                    submitForm(clickAction.url, "{{ csrf_token() }}", clickAction.form_data);
                 }
             } else {
                 location.href = backup_href;    
@@ -191,7 +191,7 @@
 
 
                 resultDiv.addEventListener('click', event => {
-                    this.callEndpoint(result.endpoint, lastParent.href) 
+                    this.callClickAction(result.click_action, lastParent.href) 
                 });			
                 resultDiv.style.cursor = "pointer";
                 this.dropdownContentElement.appendChild(resultDiv);
