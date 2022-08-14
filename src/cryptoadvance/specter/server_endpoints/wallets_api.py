@@ -120,8 +120,6 @@ def global_search():
         app.specter.global_search_trees.do_global_search(
             search_term.strip(),
             current_user,
-            user.wallet_manager,
-            user.device_manager,
             app.specter.hide_sensitive_info,
         )
     )

@@ -217,8 +217,10 @@ class UIElement:
 class GlobalSearchTrees:
     "Builds the Ui Tree and holds the different UI roots of different users"
 
-    def __init__(self):
+    def __init__(self, wallet_manager, device_manager):
         self.cache = {}
+        self.wallet_manager = wallet_manager
+        self.device_manager = device_manager
 
     def _wallet_ui_elements(self, ui_root, wallet, hide_sensitive_info):
         html_wallets = UIElement(
@@ -461,7 +463,7 @@ class GlobalSearchTrees:
                 searchable_category=device_keys_searchable_category,
             )
 
-    def _build_ui_elements(self, wallet_manager, device_manager, hide_sensitive_info):
+    def _build_ui_elements(self, hide_sensitive_info):
         """
         This builds all UIElements that should be highlighted during a search.
         It also encodes which functions will be used for searching.
@@ -470,9 +472,9 @@ class GlobalSearchTrees:
             UIElement: This is the ui_root, which has all children linked in a tree
         """
         ui_root = UIElement(None, "root", ClickAction(url_for("setup_endpoint.start")))
-        for wallet in wallet_manager.wallets.values():
+        for wallet in self.wallet_manager.wallets.values():
             self._wallet_ui_elements(ui_root, wallet, hide_sensitive_info)
-        for device in device_manager.devices.values():
+        for device in self.device_manager.devices.values():
             self._device_ui_elements(ui_root, device, hide_sensitive_info)
         return ui_root
 
@@ -524,8 +526,6 @@ class GlobalSearchTrees:
         self,
         search_term,
         user_id,
-        wallet_manager,
-        device_manager,
         hide_sensitive_info,
         force_build_ui_tree=False,
     ):
@@ -539,9 +539,7 @@ class GlobalSearchTrees:
             logger.debug(f"Building UI Tree for user {user_id}")
             self.cache[user_id] = {
                 "user_config": self.user_config(hide_sensitive_info),
-                "ui_root": self._build_ui_elements(
-                    wallet_manager, device_manager, hide_sensitive_info
-                ),
+                "ui_root": self._build_ui_elements(hide_sensitive_info),
             }
 
         result_dicts = (
