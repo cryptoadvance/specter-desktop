@@ -204,11 +204,12 @@ class UIElement:
 
         return parents
 
-    def json(self):
+    def json(self, include_flattened_parent_list=False):
         d = {}
-        d["flattened_parent_list"] = [
-            parent.json() for parent in self.flattened_parent_list()
-        ]
+        if include_flattened_parent_list:
+            d["flattened_parent_list"] = [
+                parent.json() for parent in self.flattened_parent_list()
+            ]
         d["title"] = self.title
         d["click_action"] = self.click_action.json() if self.click_action else None
         return d
@@ -508,7 +509,7 @@ class GlobalSearchTrees:
         result_dicts = []
         for node in ui_root.nodes_with_searchable_category():
             result_dict = {
-                "ui_element": node.json(),
+                "ui_element": node.json(include_flattened_parent_list=True),
                 "search_results": [
                     hit.json() for hit in node.searchable_category.search(search_term)
                 ],

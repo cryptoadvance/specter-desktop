@@ -2,6 +2,7 @@ import logging
 import re
 from datetime import datetime
 import json
+from flask_babel.speaklater import LazyString
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,8 @@ def robust_json_dumps(obj):
             return o.timestamp()
         if isinstance(o, set):
             return list(o)
+        if isinstance(o, LazyString):
+            return str(o)
         logger.warning(
             f"robust_json_dumps could not convert {o} of type {type(o)}.  Converting to string instead."
         )
