@@ -9,11 +9,13 @@ logger = logging.getLogger(__name__)
 
 
 class ClickAction:
+    """This contains the information to describe what should happen after a click.
+    In the simple case this is just an url for a link/href.
+    It can also be a form submission to the url.
+    """
+
     def __init__(self, url, method_str="href", form_data=None):
         """
-        In the simple case this is just an url for href.
-        It can also be a GET or POST request
-
         Args:
             url (str): _description_
             method_str (str, optional): "href", "form". Defaults to "href".
@@ -35,6 +37,13 @@ class SearchResult:
     """
 
     def __init__(self, value, title=None, key=None, click_action=None) -> None:
+        """
+        Args:
+            value (any): E.g. the string in which the search_term was found
+            title (str, optional): The title of the search result, e.g. the "Address #2". Defaults to None.
+            key (str, optional): E.g. "Blockhash", meaning the search_term was found in the blockhash. Defaults to None.
+            click_action (ClickAction, optional): An instance of type ClickAction. Defaults to None.
+        """
         self.value = str(value) if value else value
         self.title = str(title) if title else title
         self.key = str(key).capitalize() if key else key
@@ -126,7 +135,7 @@ class SearchableCategory:
                     _result_meta_data=_result_meta_data,
                 )
         else:
-            # if it is not a list,dict,... then it is the final element that should be searched:
+            # if it is not a list,dict,... then it is the final element, e.g., a string, that should be searched:
             if is_match(search_term, structure):
                 result = SearchResult(
                     structure,
