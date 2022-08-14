@@ -15,26 +15,24 @@ def mock_url_for(url, **kwargs):
 
 @patch("cryptoadvance.specter.global_search.url_for", mock_url_for)
 @patch("cryptoadvance.specter.global_search._", str)
-def test_check_utxo_and_amounts(
-    specter_regtest_configured: Specter, funded_hot_wallet_1
-):
+def test_transactions(specter_regtest_configured: Specter, funded_hot_wallet_1):
     user = specter_regtest_configured.user_manager.user
-    logger.info(funded_hot_wallet_1)
     global_search_trees = GlobalSearchTrees(user.wallet_manager, user.device_manager)
 
-    unspent_list = (
-        funded_hot_wallet_1.rpc.listunspent()
-    )  # to be able to ref in stable way
-    assert len(unspent_list) > 1  # otherwise the test will not test anything
-    logger.info(unspent_list)
+    unspent_list = funded_hot_wallet_1.rpc.listunspent()
+    assert unspent_list  # otherwise the test will not test anything
+    # logger.info(unspent_list)
 
+    # test ALL utxos, to ensure that the search really can find ALL information
+    logger.info(f"Searching for  {len(unspent_list)} unspent transactions and utxo")
     for tx in unspent_list:
+        # test txids
         search_term = tx["txid"].upper()  # checks the case insensitive search
         results = global_search_trees.do_global_search(
             search_term, user, specter_regtest_configured.hide_sensitive_info
         )
 
-        logger.info(results)
+        # logger.info(results)
         assert results["search_term"] == search_term
         assert (
             len(results["result_dicts"]) == 2
@@ -72,3 +70,94 @@ def test_check_utxo_and_amounts(
         for result_dict, expectation in zip(sorted_result_dicts, expectations):
             assert len(result_dict["search_results"]) == 1
             assert result_dict["search_results"][0] == expectation
+
+    # test amount search of the 1. utxo
+    search_amount = "1.0"
+    # count how many of the other utxos also have this amount
+    number_of_utxos_with_this_amount = len(
+        [
+            utxo
+            for utxo in unspent_list
+            if search_amount.lower() in str(utxo["amount"]).lower()
+        ]
+    )
+    assert number_of_utxos_with_this_amount > 0
+    results = global_search_trees.do_global_search(
+        str(search_amount), user, specter_regtest_configured.hide_sensitive_info
+    )
+
+    sorted_result_dicts = sorted(
+        results["result_dicts"],
+        key=lambda result_dict: result_dict["search_results"][0]["click_action"]["url"],
+    )
+    tx_result = sorted_result_dicts[0]
+    len(tx_result["search_results"]) == number_of_utxos_with_this_amount
+
+
+@patch("cryptoadvance.specter.global_search.url_for", mock_url_for)
+@patch("cryptoadvance.specter.global_search._", str)
+def test_addresses(specter_regtest_configured: Specter, unfunded_hot_wallet_1):
+    user = specter_regtest_configured.user_manager.user
+    global_search_trees = GlobalSearchTrees(user.wallet_manager, user.device_manager)
+
+    # change addresses
+    addresses = unfunded_hot_wallet_1.addresses_info(is_change=True)
+    logger.info(f"Searching for  {len(addresses)} change addresses")
+    assert addresses
+    for i, address in enumerate(addresses):
+        search_term = address["address"].upper()  # checks the case insensitive search
+        results = global_search_trees.do_global_search(
+            search_term, user, specter_regtest_configured.hide_sensitive_info
+        )
+        assert results["search_term"] == search_term
+
+        expectation = {
+            "value": address["address"],
+            "title": f"Change #{i}",
+            "key": "Address",
+            "click_action": {
+                "url": f"wallets_endpoint/addresses_with_type/{unfunded_hot_wallet_1.alias}/change",
+                "method_str": "form",
+                "form_data": {
+                    "action": "show_address_on_load",
+                    "address_dict": f'{{"index": {i}, "address": "{address["address"]}", "label": "Change #{i}", "amount": 0, "used": false, "utxo": 0, "type": "change", "service_id": null}}',
+                },
+            },
+        }
+        assert len(results["result_dicts"]) == 1
+        assert len(results["result_dicts"][0]["search_results"]) == 1
+        assert results["result_dicts"][0]["search_results"][0] == expectation
+
+    # receive addresses
+    addresses = unfunded_hot_wallet_1.addresses_info(is_change=False)
+    logger.info(f"Searching for  {len(addresses)} receive addresses")
+    assert addresses
+    for i, address in enumerate(addresses):
+        search_term = address["address"].upper()  # checks the case insensitive search
+        results = global_search_trees.do_global_search(
+            search_term, user, specter_regtest_configured.hide_sensitive_info
+        )
+
+        assert results["search_term"] == search_term
+
+        expectation = {
+            "value": address["address"],
+            "title": f"Address #{i}",
+            "key": "Address",
+            "click_action": {
+                "url": f"wallets_endpoint/addresses_with_type/{unfunded_hot_wallet_1.alias}/receive",
+                "method_str": "form",
+                "form_data": {
+                    "action": "show_address_on_load",
+                    "address_dict": f'{{"index": {i}, "address": "{address["address"]}", "label": "Address #{i}", "amount": 0, "used": false, "utxo": 0, "type": "receive", "service_id": null}}',
+                },
+            },
+        }
+
+        assert (
+            len(results["result_dicts"]) == 2
+            if unfunded_hot_wallet_1.address == address["address"]
+            else 1
+        )
+        assert len(results["result_dicts"][0]["search_results"]) == 1
+        assert results["result_dicts"][0]["search_results"][0] == expectation
