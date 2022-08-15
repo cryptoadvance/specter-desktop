@@ -336,7 +336,6 @@ class WalletManager:
         if w:
             self.wallets[name] = w
             logger.info(f"Successfully created Wallet {name}")
-            logger.info(f"There are now {len(self.wallets)} in self.wallets")
             return w
         else:
             raise ("Failed to create new wallet")
