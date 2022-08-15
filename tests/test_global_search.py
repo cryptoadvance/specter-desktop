@@ -25,10 +25,16 @@ def test_transactions(specter_regtest_configured: Specter, funded_hot_wallet_1):
         search_term, user, specter_regtest_configured.hide_sensitive_info
     )
     assert len(results["result_dicts"]) == 1
-    assert len(results["result_dicts"][0]["search_results"]) == 1
+    assert len(results["result_dicts"][0]["search_results"]) == 2
+    assert results["result_dicts"][0]["search_results"][0]["key"] == "Alias"
     assert (
         results["result_dicts"][0]["search_results"][0]["value"]
         == funded_hot_wallet_1.alias
+    )
+    assert results["result_dicts"][0]["search_results"][1]["key"] == "Name"
+    assert (
+        results["result_dicts"][0]["search_results"][1]["value"]
+        == funded_hot_wallet_1.name
     )
 
     unspent_list = funded_hot_wallet_1.rpc.listunspent()
@@ -194,8 +200,11 @@ def test_devices(specter_regtest_configured: Specter, unfunded_hot_wallet_1):
         results = global_search_trees.do_global_search(
             search_term, user, specter_regtest_configured.hide_sensitive_info
         )
-        assert len(results["result_dicts"][0]["search_results"]) == 1
+        assert len(results["result_dicts"][0]["search_results"]) == 2
+        assert results["result_dicts"][0]["search_results"][0]["key"] == "Alias"
         assert results["result_dicts"][0]["search_results"][0]["value"] == device.alias
+        assert results["result_dicts"][0]["search_results"][1]["key"] == "Name"
+        assert results["result_dicts"][0]["search_results"][1]["value"] == device.name
 
         for key in device.keys:
             search_term = key.original

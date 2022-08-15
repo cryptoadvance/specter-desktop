@@ -17,6 +17,7 @@ describe('Test sending transactions', () => {
         // check the #0 Receive address is found
         cy.get('#global-search-input').clear()
         cy.get('#global-search-input').type("bcrt1", {force:true})
+        cy.get('#global-search-dropdown-content', { timeout: 3000 }).should('be.visible');
         cy.get('#global-search-dropdown-content').contains('Address #0',  { matchCase: false })
 
         // check varias names and alias'
@@ -24,6 +25,7 @@ describe('Test sending transactions', () => {
         for (var i in searchTerms){
             cy.get('#global-search-input').clear()
             cy.get('#global-search-input').type(searchTerms[i], {force:true})
+            cy.get('#global-search-dropdown-content', { timeout: 3000 }).should('be.visible');
             cy.get('#global-search-dropdown-content').contains(searchTerms[i],  { matchCase: false })    
         }
 
