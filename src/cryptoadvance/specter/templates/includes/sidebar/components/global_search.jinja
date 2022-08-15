@@ -277,7 +277,6 @@
                     return
                 }                
                 this.lastAnswer = answer;
-                //console.log(answer)
 
                 this.buildDropdownContent(
                     searchTerm, 
@@ -301,13 +300,14 @@
         */
         delayedGlobalSearch(searchTerm){        
             // stop old processes
-            for (var i = this.timeOutIds.length; i >= 0; i--) {
-                clearTimeout(this.timeOutIds[i]);      
-                //console.log(`Stopped ${this.timeOutIds[i]}`)
-                this.timeOutIds.splice(i, 1);
+            while (this.timeOutIds.length > 0) {
+                clearTimeout(this.timeOutIds[0]);      
+                // console.log(`Stopped timeOutId ${this.timeOutIds[0]} `)
+                this.timeOutIds.splice(0, 1);
             }
 
             const timeOutId = setTimeout(() => this.globalSearch(searchTerm), 100);
+            // console.log(`Started timeOutId ${timeOutId} `)
             this.timeOutIds.push(timeOutId);
         }
 
