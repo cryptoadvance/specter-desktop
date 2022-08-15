@@ -215,13 +215,11 @@ class UIElement:
         return d
 
 
-class GlobalSearchTrees:
+class GlobalSearchTree:
     "Builds the Ui Tree and holds the different UI roots of different users"
 
-    def __init__(self, wallet_manager, device_manager):
+    def __init__(self):
         self.cache = {}
-        self.wallet_manager = wallet_manager
-        self.device_manager = device_manager
 
     def _wallet_ui_elements(self, ui_root, wallet, hide_sensitive_info):
         html_wallets = UIElement(
@@ -467,7 +465,7 @@ class GlobalSearchTrees:
                 searchable_category=device_keys_searchable_category,
             )
 
-    def _build_ui_elements(self, hide_sensitive_info):
+    def _build_ui_elements(self, user_config):
         """
         This builds all UIElements that should be highlighted during a search.
         It also encodes which functions will be used for searching.
@@ -476,10 +474,14 @@ class GlobalSearchTrees:
             UIElement: This is the ui_root, which has all children linked in a tree
         """
         ui_root = UIElement(None, "root", ClickAction(url_for("setup_endpoint.start")))
-        for wallet in self.wallet_manager.wallets.values():
-            self._wallet_ui_elements(ui_root, wallet, hide_sensitive_info)
-        for device in self.device_manager.devices.values():
-            self._device_ui_elements(ui_root, device, hide_sensitive_info)
+        for wallet in user_config["wallets"]:
+            self._wallet_ui_elements(
+                ui_root, wallet, user_config["hide_sensitive_info"]
+            )
+        for device in user_config["devices"]:
+            self._device_ui_elements(
+                ui_root, device, user_config["hide_sensitive_info"]
+            )
         return ui_root
 
     def _search_in_ui_element(self, search_term, ui_root):
@@ -521,29 +523,39 @@ class GlobalSearchTrees:
                 result_dicts.append(result_dict)
         return result_dicts
 
-    def user_config(self, hide_sensitive_info):
+    def user_config(self, hide_sensitive_info, wallets, devices):
         """A minimalist version of building a user configuration,
         that if changed shows that the UI Tree needs to be rebuild"""
-        return {"hide_sensitive_info": hide_sensitive_info}
+        return {
+            "hide_sensitive_info": hide_sensitive_info,
+            "wallets": wallets,
+            "devices": devices,
+        }
 
     def do_global_search(
         self,
         search_term,
         user_id,
         hide_sensitive_info,
+        wallets,
+        devices,
         force_build_ui_tree=False,
     ):
         "Builds the UI Tree if non-existent, or it the config changed and then calls the functions in it to search for the search_term"
+        user_config = self.user_config(
+            hide_sensitive_info, list(wallets.values()), list(devices.values())
+        )
         if (
             force_build_ui_tree
             or (user_id not in self.cache)
-            or self.cache[user_id]["user_config"]
-            != self.user_config(hide_sensitive_info)
+            or self.cache[user_id]["user_config"] != user_config
         ):
-            logger.debug(f"Building UI Tree for user {user_id}")
+            logger.debug(
+                f'Building GlobalSearchTree for user {user_id} with {len(user_config["wallets"])} wallets and {len(user_config["devices"])} devices'
+            )
             self.cache[user_id] = {
-                "user_config": self.user_config(hide_sensitive_info),
-                "ui_root": self._build_ui_elements(hide_sensitive_info),
+                "user_config": user_config,
+                "ui_root": self._build_ui_elements(user_config),
             }
 
         result_dicts = (

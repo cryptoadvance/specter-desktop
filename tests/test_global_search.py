@@ -4,7 +4,7 @@ from cryptoadvance.specter.wallet import Wallet
 import logging
 
 logger = logging.getLogger(__name__)
-from cryptoadvance.specter.global_search import GlobalSearchTrees
+from cryptoadvance.specter.global_search import GlobalSearchTree
 from unittest.mock import MagicMock, patch
 from fix_devices_and_wallets import create_hot_wallet_device, create_hot_wallet_with_ID
 
@@ -17,12 +17,16 @@ def mock_url_for(url, **kwargs):
 @patch("cryptoadvance.specter.global_search._", str)
 def test_transactions(specter_regtest_configured: Specter, funded_hot_wallet_1):
     user = specter_regtest_configured.user_manager.user
-    global_search_trees = GlobalSearchTrees(user.wallet_manager, user.device_manager)
+    global_search_tree = GlobalSearchTree()
 
     # test wallet name
     search_term = funded_hot_wallet_1.alias.upper()[3:8]
-    results = global_search_trees.do_global_search(
-        search_term, user, specter_regtest_configured.hide_sensitive_info
+    results = global_search_tree.do_global_search(
+        search_term,
+        user,
+        specter_regtest_configured.hide_sensitive_info,
+        specter_regtest_configured.wallet_manager.wallets,
+        specter_regtest_configured.device_manager.devices,
     )
     assert len(results["result_dicts"]) == 1
     assert len(results["result_dicts"][0]["search_results"]) == 2
@@ -46,8 +50,12 @@ def test_transactions(specter_regtest_configured: Specter, funded_hot_wallet_1):
     for tx in unspent_list:
         # test txids
         search_term = tx["txid"].upper()  # checks the case insensitive search
-        results = global_search_trees.do_global_search(
-            search_term, user, specter_regtest_configured.hide_sensitive_info
+        results = global_search_tree.do_global_search(
+            search_term,
+            user,
+            specter_regtest_configured.hide_sensitive_info,
+            specter_regtest_configured.wallet_manager.wallets,
+            specter_regtest_configured.device_manager.devices,
         )
 
         # logger.info(results)
@@ -100,8 +108,12 @@ def test_transactions(specter_regtest_configured: Specter, funded_hot_wallet_1):
         ]
     )
     assert number_of_utxos_with_this_amount > 0
-    results = global_search_trees.do_global_search(
-        str(search_amount), user, specter_regtest_configured.hide_sensitive_info
+    results = global_search_tree.do_global_search(
+        str(search_amount),
+        user,
+        specter_regtest_configured.hide_sensitive_info,
+        specter_regtest_configured.wallet_manager.wallets,
+        specter_regtest_configured.device_manager.devices,
     )
 
     sorted_result_dicts = sorted(
@@ -116,7 +128,7 @@ def test_transactions(specter_regtest_configured: Specter, funded_hot_wallet_1):
 @patch("cryptoadvance.specter.global_search._", str)
 def test_addresses(specter_regtest_configured: Specter, unfunded_hot_wallet_1):
     user = specter_regtest_configured.user_manager.user
-    global_search_trees = GlobalSearchTrees(user.wallet_manager, user.device_manager)
+    global_search_tree = GlobalSearchTree()
 
     # change addresses
     addresses = unfunded_hot_wallet_1.addresses_info(is_change=True)
@@ -124,8 +136,12 @@ def test_addresses(specter_regtest_configured: Specter, unfunded_hot_wallet_1):
     assert addresses
     for i, address in enumerate(addresses):
         search_term = address["address"].upper()  # checks the case insensitive search
-        results = global_search_trees.do_global_search(
-            search_term, user, specter_regtest_configured.hide_sensitive_info
+        results = global_search_tree.do_global_search(
+            search_term,
+            user,
+            specter_regtest_configured.hide_sensitive_info,
+            specter_regtest_configured.wallet_manager.wallets,
+            specter_regtest_configured.device_manager.devices,
         )
         assert results["search_term"] == search_term
 
@@ -152,8 +168,12 @@ def test_addresses(specter_regtest_configured: Specter, unfunded_hot_wallet_1):
     assert addresses
     for i, address in enumerate(addresses):
         search_term = address["address"].upper()  # checks the case insensitive search
-        results = global_search_trees.do_global_search(
-            search_term, user, specter_regtest_configured.hide_sensitive_info
+        results = global_search_tree.do_global_search(
+            search_term,
+            user,
+            specter_regtest_configured.hide_sensitive_info,
+            specter_regtest_configured.wallet_manager.wallets,
+            specter_regtest_configured.device_manager.devices,
         )
 
         assert results["search_term"] == search_term
@@ -188,7 +208,7 @@ def test_addresses(specter_regtest_configured: Specter, unfunded_hot_wallet_1):
 @patch("cryptoadvance.specter.global_search._", str)
 def test_devices(specter_regtest_configured: Specter, unfunded_hot_wallet_1):
     user = specter_regtest_configured.user_manager.user
-    global_search_trees = GlobalSearchTrees(user.wallet_manager, user.device_manager)
+    global_search_tree = GlobalSearchTree()
 
     # change addresses
     devices = specter_regtest_configured.device_manager.devices.values()
@@ -197,8 +217,12 @@ def test_devices(specter_regtest_configured: Specter, unfunded_hot_wallet_1):
         logger.info(f"Searching for  {len(device.keys)} keys in device {device.alias}")
 
         search_term = device.alias[3:8]
-        results = global_search_trees.do_global_search(
-            search_term, user, specter_regtest_configured.hide_sensitive_info
+        results = global_search_tree.do_global_search(
+            search_term,
+            user,
+            specter_regtest_configured.hide_sensitive_info,
+            specter_regtest_configured.wallet_manager.wallets,
+            specter_regtest_configured.device_manager.devices,
         )
         assert len(results["result_dicts"][0]["search_results"]) == 2
         assert results["result_dicts"][0]["search_results"][0]["key"] == "Alias"
@@ -208,8 +232,12 @@ def test_devices(specter_regtest_configured: Specter, unfunded_hot_wallet_1):
 
         for key in device.keys:
             search_term = key.original
-            results = global_search_trees.do_global_search(
-                search_term, user, specter_regtest_configured.hide_sensitive_info
+            results = global_search_tree.do_global_search(
+                search_term,
+                user,
+                specter_regtest_configured.hide_sensitive_info,
+                specter_regtest_configured.wallet_manager.wallets,
+                specter_regtest_configured.device_manager.devices,
             )
             assert len(results["result_dicts"][0]["search_results"]) == 1
             assert (

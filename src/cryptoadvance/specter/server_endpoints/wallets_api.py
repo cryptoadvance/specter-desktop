@@ -117,10 +117,12 @@ def global_search():
     search_term = request.form.get("global-search-input")
     user = app.specter.user_manager.get_user(current_user)
     return robust_json_dumps(
-        app.specter.global_search_trees.do_global_search(
+        app.specter.global_search_tree.do_global_search(
             search_term.strip(),
             current_user,
             app.specter.hide_sensitive_info,
+            app.specter.wallet_manager.wallets,
+            app.specter.device_manager.devices,
         )
     )
 
