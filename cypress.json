@@ -9,6 +9,7 @@
       "spec_rescan.js",
       "spec_qr_signing.js",
       "spec_wallet_send.js",
+      "spec_global_search.js",
       "spec_wallet_utxo.js",
       "spec_plugins.js",
       "spec_elm_single_segwit_wallet.js",

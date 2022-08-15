@@ -231,11 +231,12 @@ class GlobalSearchTrees:
         )
 
         sidebar_wallet_searchable_category = SearchableCategory(
-            {"name": wallet.alias}, title_function=lambda d: d.get("name")
+            {"alias": wallet.alias, "name": wallet.name},
+            title_function=lambda d: d.get("name"),
         )
         sidebar_wallet = UIElement(
             html_wallets,
-            wallet.alias,
+            wallet.name,
             ClickAction(url_for("wallets_endpoint.wallet", wallet_alias=wallet.alias)),
             searchable_category=sidebar_wallet_searchable_category,
         )
@@ -438,11 +439,12 @@ class GlobalSearchTrees:
         )
 
         sidebar_device_searchable_category = SearchableCategory(
-            {"name": device.alias}, title_function=lambda d: d.get("name")
+            {"alias": device.alias, "name": device.name},
+            title_function=lambda d: d.get("name"),
         )
         sidebar_device = UIElement(
             html_devices,
-            device.alias,
+            device.name,
             ClickAction(url_for("devices_endpoint.device", device_alias=device.alias)),
             searchable_category=sidebar_device_searchable_category,
         )
