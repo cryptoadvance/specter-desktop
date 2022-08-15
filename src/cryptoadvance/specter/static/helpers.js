@@ -149,7 +149,7 @@ async function send_request(url, method_str, csrf_token, formData) {
 	}
 
 	const response = await fetch(url, d);
-	if(response.status != 200){
+	if(!response.ok){
 		showError(await response.text());
 		console.log(`Error while calling ${url} with ${method_str} ${formData}`)
 		return

@@ -13,17 +13,18 @@ describe('Test sending transactions', () => {
     it('Search', () => {
         cy.addHotDevice("Hot Device 1","bitcoin")
         cy.addWallet('Test Hot Wallet 1', 'segwit', 'funded', 'btc', 'singlesig', 'Hot Device 1')
-        cy.selectWallet("Test Hot Wallet 1")
 
         // check the #0 Receive address is found
-        cy.get('#global-search-input').type("bcrt1", { force: true })
-        cy.get('#global-search-dropdown-content').contains('Receive Address #0')
+        cy.get('#global-search-input').clear()
+        cy.get('#global-search-input').type("bcrt1", {force:true})
+        cy.get('#global-search-dropdown-content').contains('Address #0',  { matchCase: false })
 
         // check varias names and alias'
-        var searchTerms = ['Test Hot Wallet 1', 'Test_Hot_Wallet_1', "Hot Device 1", "Hot_Device_1"];
+        var searchTerms = ['Address #0', 'Change #10', 'Test Hot Wallet 1', 'Test_Hot_Wallet_1', "Hot Device 1", "Hot_Device_1"];
         for (var i in searchTerms){
-            cy.get('#global-search-input').type(searchTerms[i], { force: true })
-            cy.get('#global-search-dropdown-content').contains(searchTerms[i])    
+            cy.get('#global-search-input').clear()
+            cy.get('#global-search-input').type(searchTerms[i], {force:true})
+            cy.get('#global-search-dropdown-content').contains(searchTerms[i],  { matchCase: false })    
         }
 
     })
