@@ -380,7 +380,8 @@ class GlobalSearchTrees:
             )
 
         receive_searchable_category = SearchableCategory(
-            [wallet.address], title_function=lambda d: d.get("address")
+            {"address": wallet.address, "label": wallet.getlabel(wallet.address)},
+            title_function=lambda d: d.get("label"),
         )
         receive = UIElement(
             sidebar_wallet,
