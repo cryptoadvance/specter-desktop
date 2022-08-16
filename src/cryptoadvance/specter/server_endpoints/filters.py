@@ -54,20 +54,20 @@ def btcamount_fixed_decimals(context, value):
     if value < 0 and app.specter.is_liquid:
         return "Confidential"
     value = round(float(value), 8)
-
-    def replace_char(text, position, new_str):
-        return "".join([(c if i != position else new_str) for i, c in enumerate(text)])
-
     formatted_amount = "{:,.8f}".format(value)
+
+    def replace_substring(text, start_position, length, new_str):
+        return text[:start_position] + new_str + text[start_position + length :]
+
     # strip last digits for better readability and replace with invisible characters
     for i in reversed(range(len(formatted_amount))):
         if formatted_amount[i] == "0":
             # replace with https://unicode-table.com/en/2007/
-            formatted_amount = replace_char(formatted_amount, i, " ")
+            formatted_amount = replace_substring(formatted_amount, i, 1, " ")
             continue
         elif formatted_amount[i] == ".":
             # replace with https://unicode-table.com/en/2008/
-            formatted_amount = replace_char(formatted_amount, i, " ")
+            formatted_amount = replace_substring(formatted_amount, i, 1, " ")
         break
     return formatted_amount
 
