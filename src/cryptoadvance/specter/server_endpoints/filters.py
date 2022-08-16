@@ -1,5 +1,4 @@
 from datetime import datetime
-from operator import invert
 from flask import current_app as app
 from flask import Blueprint
 from jinja2 import pass_context
@@ -63,14 +62,12 @@ def btcamount(context, value):
     # strip last digits for better readability and replace with invisible characters
     for i in reversed(range(len(formatted_amount))):
         if formatted_amount[i] == "0":
-            formatted_amount = replace_char(
-                formatted_amount, i, " "
-            )  # the https://unicode-table.com/en/2007/
+            # replace with https://unicode-table.com/en/2007/
+            formatted_amount = replace_char(formatted_amount, i, " ")
             continue
         elif formatted_amount[i] == ".":
-            formatted_amount = replace_char(
-                formatted_amount, i, " "
-            )  # https://unicode-table.com/en/2008/
+            # replace with https://unicode-table.com/en/2008/
+            formatted_amount = replace_char(formatted_amount, i, " ")
         break
     return formatted_amount
 
@@ -91,21 +88,6 @@ def feerate(context, value):
     if value <= 1.02:
         value = 1
     return "{:,.2f}".format(value).rstrip("0").rstrip(".")
-
-
-@pass_context
-@filters_bp.app_template_filter("btcunitamount")
-def btcunitamount(context, value):
-    if app.specter.hide_sensitive_info:
-        return "#########"
-    if value is None:
-        return "Unknown"
-    if value < 0 and app.specter.is_liquid:
-        return "Confidential"
-    if app.specter.unit != "sat":
-        return btcamount(context, value)
-    value = float(value)
-    return "{:,.0f}".format(round(value * 1e8))
 
 
 @pass_context
