@@ -18,13 +18,10 @@
         font-weight: inherit;
         border-bottom: initial;
         padding:initial;
+        padding-left:5px;
     }
     tr {
         background: initial;
-    }
-    th:last-child {
-        text-align: right;
-        padding-left:10px;
     }
     .btn {
         font-size: 0.9em;
@@ -38,6 +35,9 @@
         width: initial;
         min-width: initial;
     }
+    .right-align {
+        text-align: right;
+    }
 </style>
     <div style="display: flex; flex-direction: column; min-width: 300px; align-items: center">
         <span style="line-height:30px; font-size: 1.1em;">{{ title }}</span>
@@ -45,42 +45,51 @@
             <table>
                 <tr>
                     <th>Total amount:</th>
-                    <th><span id="fullbalance_amount">{{ amount_total | btcunitamount }}</span>
+                    <th class="right-align"><span id="fullbalance_amount">{{ amount_total | btcunitamount }}</span></th>
+                    <th>
                         {% if specter.unit == 'sat' %}
                             sats
                         {% else %}
                             {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
                         {% endif %}
                         {% if specter.price_check %} 
-                            <span class="note">({{ amount_total | altunit }})</span>
+                            <th class="right-align">
+                                <span class="note">({{ amount_total | altunit }})</span>
+                            </th> 
                         {% endif %}
                     </th> 
                 </tr>                             
                 {% if amount_unconfirmed > 0 or amount_immature > 0 %}
                     <tr>
                         <th>Confirmed:</th>
-                        <th>{{ amount_confirmed | btcunitamount }}
+                        <th class="right-align">{{ amount_confirmed | btcunitamount }}</th>
+                        <th>
                             {% if specter.unit == 'sat' %}
                                 sats
                             {% else %}
                                 {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
                             {% endif %}
                             {% if specter.price_check %} 
-                                <span class="note">({{ amount_confirmed | altunit }})</span>
+                                <th class="right-align">
+                                    <span class="note">({{ amount_confirmed | altunit }})</span>
+                                </th> 
                             {% endif %}
                         </th>
                     </tr>                             
                     {% if amount_unconfirmed > 0 %}
                     <tr>
                         <th>Unconfirmed:</th>
-                        <th>{{ amount_unconfirmed | btcunitamount }}
+                        <th class="right-align">{{ amount_unconfirmed | btcunitamount }}</th>
+                        <th>
                             {% if specter.unit == 'sat' %}
                                 sats
                             {% else %}
                                 {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
                             {% endif %}
                             {% if specter.price_check %} 
-                                <span class="note">({{ amount_unconfirmed | altunit }})</span>
+                                <th class="right-align">
+                                    <span class="note">({{ amount_unconfirmed | altunit }})</span>
+                                </th> 
                             {% endif %}
                         </th>
                     </tr>                             
@@ -97,14 +106,17 @@
                             </span>
                         </tool-tip>
                     </th>
-                    <th>{{ amount_immature | btcunitamount }} 
+                    <th class="right-align">{{ amount_immature | btcunitamount }}</th>
+                    <th> 
                         {% if specter.unit == 'sat' %}
                             sats
                         {% else %}
                             {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
                         {% endif %}
                         {% if specter.price_check %} 
-                            <span class="note" style="color: grey">({{ amount_immature | altunit }})</span>
+                            <th class="right-align">
+                                <span class="note" style="color: grey">({{ amount_immature | altunit }})</span>
+                            </th>
                         {% endif %}
                     </th>
                 </tr>                             
@@ -113,19 +125,18 @@
                     {% if balance.get("assets", {}) %}
                     <tr>                             
                         <th>Liquid Assets:</th>
-                        <th>
+                        <th colspan="2">
                             {% include 'includes/overlay/liquid_assets_registry.html' %}
                             <button type="button" class="btn" onclick="showPageOverlay('liquid-assets-registry')">{{ _("Show assets list") }}</button>
                         </th>
                     </tr>                             
                         {% for asset in balance.get("assets",{}).keys() | sort %}
                             <th></th>
-                            <th>
                             {% set balance = balance.get("assets",{}).get(asset, {}) %}
-                            <div style="margin: 0 10px; display: inline-block;">
-                                {{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcamount }}
+                            <th class="right-align">
+                                {{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcamount }}</th>
+                            <th>
                                 <asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}" edit-mode="enabled"></asset-label>
-                            </div>
                             </th>
                         {% endfor %}
                     {% endif %}
