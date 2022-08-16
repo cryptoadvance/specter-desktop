@@ -48,7 +48,13 @@ def sum_with_subdicts(context, dicts, attribute=None):
 
 @pass_context
 @filters_bp.app_template_filter("btcamount_fixed_decimals")
-def btcamount_fixed_decimals(context, value):
+def btcamount_fixed_decimals(
+    context,
+    value,
+    maximum_digits_to_strip=7,
+    minimum_digits_to_strip=6,
+    enable_digit_spaces_for_counting=True,
+):
     if value is None:
         return "Unknown"
     if value < 0 and app.specter.is_liquid:
@@ -56,19 +62,36 @@ def btcamount_fixed_decimals(context, value):
     value = round(float(value), 8)
     formatted_amount = "{:,.8f}".format(value)
 
-    def replace_substring(text, start_position, length, new_str):
-        return text[:start_position] + new_str + text[start_position + length :]
+    def replace_substring(text, start_position, replace_length, new_str):
+        return text[:start_position] + new_str + text[start_position + replace_length :]
 
-    # strip last digits for better readability and replace with invisible characters
+    count_digits_that_can_be_stripped = 0
     for i in reversed(range(len(formatted_amount))):
         if formatted_amount[i] == "0":
-            # replace with https://unicode-table.com/en/2007/
-            formatted_amount = replace_substring(formatted_amount, i, 1, " ")
+            count_digits_that_can_be_stripped += 1
             continue
-        elif formatted_amount[i] == ".":
-            # replace with https://unicode-table.com/en/2008/
-            formatted_amount = replace_substring(formatted_amount, i, 1, " ")
         break
+
+    if count_digits_that_can_be_stripped >= minimum_digits_to_strip:
+        for i in reversed(range(len(formatted_amount))):
+            if (
+                formatted_amount[i] == "0"
+                and len(formatted_amount) - i <= maximum_digits_to_strip
+            ):
+                # replace with https://unicode-table.com/en/2007/
+                formatted_amount = replace_substring(formatted_amount, i, 1, " ")
+                continue
+            # the following if branch is only relevant if last_digits_to_strip == 8, i.e. all digits can be stripped
+            elif formatted_amount[i] == ".":
+                # replace with https://unicode-table.com/en/2008/
+                formatted_amount = replace_substring(formatted_amount, i, 1, " ")
+            break
+
+    if enable_digit_spaces_for_counting:
+        # strip last digits for better readability and replace with invisible characters
+        for i in [-3, -7]:
+            formatted_amount = replace_substring(formatted_amount, i, 0, " ")
+
     return formatted_amount
 
 
