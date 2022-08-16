@@ -42,6 +42,7 @@ def sum_with_subdicts(context, dicts, attribute=None):
         for k, v in getattr(d, attribute).items():
             if k not in summed_dict:
                 summed_dict[k] = 0
+            print(v)
             summed_dict[k] += v
     return summed_dict
 

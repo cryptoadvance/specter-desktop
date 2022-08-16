@@ -18,64 +18,23 @@
     {% include "includes/address-label.html" %}
     <h1 id="title">{{ _("Wallets Overview") }}</h1>
     <p style="width: 80%; text-align: center; margin-left: auto; margin-right: auto;">{{ _("Here you can see the combined balance and transactions history of all your Specter wallets.") }}</p>
-    <h1>
-        {% from 'wallet/history/components/total_wallet_balances.jinja' import total_wallet_balances %}
-        {% set amount_total = specter.wallet_manager.wallets.values() | sum(attribute='amount_total') %}
-        {% set amount_confirmed = specter.wallet_manager.wallets.values() | sum(attribute='amount_confirmed') %}
-        {% set amount_unconfirmed = specter.wallet_manager.wallets.values() | sum(attribute='amount_unconfirmed') %}
-        {% set amount_immature = specter.wallet_manager.wallets.values() | sum(attribute='amount_immature') %}
-        {% set balance = specter.wallet_manager.wallets.values() | sum_with_subdicts(attribute='balance') %}
-        {% set rescan_progress = specter.wallet_manager.wallets.values() | any_attribute(attribute='rescan_progress') %}
-        {{ total_wallet_balances(
-            "Total balance:",
-            amount_total, 
-            amount_confirmed,
-            amount_unconfirmed, 
-            amount_immature, 
-            balance, 
-            rescan_progress, 
-            "", 
-            specter) }}
-        <span style="color: #fff">
-            {% set fullbalance = specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') %}
-            {% set balance = specter.wallet_manager.joined_balance() %}
-            <span id="fullbalance_amount">{{ fullbalance | btcunitamount }}</span>
-            {% if specter.unit == 'sat' %}
-                sats
-            {% else %}
-                {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
-            {% endif %}
-        </span><br>
-        <span class="note">{{ fullbalance | altunit }}</span>
-        {% if balance.get("untrusted_pending", 0) or balance.get("immature", 0) %}<br>
-            <small>( {{ balance.get("trusted", 0) | btcunitamount }} {{ _("confirmed") }},
-                     {% if balance.get("untrusted_pending", 0) %}
-                        {{ balance.get("untrusted_pending", 0) | btcunitamount }} {{ _("pending") }}
-                     {% endif %}
-                     {% if balance.get("immature", 0) %}
-                        {{ balance.get("immature", 0) | btcunitamount }} {{ _("immature") }}
-                     {% endif %}
-            )</small>
-        {% endif %}
-        {% if specter.is_liquid %}
-        {% if balance.get("assets", {}) %}
-            <div style="margin-bottom: 15px;">
-                <small style="line-height:30px">{{ _("Assets:") }}<br>
-                {% for asset in balance.get("assets",{}).keys() | sort %}
-                    {% set asset_balance = balance.get("assets",{}).get(asset, {}) %}
-                    <div style="margin: 0 10px; display: inline-block;">
-                        {{ (asset_balance.get("trusted", 0) + asset_balance.get("untrusted_pending", 0) + asset_balance.get("immature", 0)) | btcamount }}
-                        <asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}" edit-mode="enabled"></asset-label>
-                    </div>
-                {% endfor %}
-                </small>
-            </div>
-        {% endif %}
-        {% include 'includes/overlay/liquid_assets_registry.html' %}
-        <small><button type="button" class="btn" style="margin: auto;" onclick="showPageOverlay('liquid-assets-registry')">{{ _("Show assets list") }}</button></small>
-        <br>
-        {% endif %}
-    </h1>
+    {% from 'wallet/history/components/total_wallet_balances.jinja' import total_wallet_balances %}
+    {% set amount_total = specter.wallet_manager.wallets.values() | sum(attribute='amount_total') %}
+    {% set amount_confirmed = specter.wallet_manager.wallets.values() | sum(attribute='amount_confirmed') %}
+    {% set amount_unconfirmed = specter.wallet_manager.wallets.values() | sum(attribute='amount_unconfirmed') %}
+    {% set amount_immature = specter.wallet_manager.wallets.values() | sum(attribute='amount_immature') %}
+    {% set balance = specter.wallet_manager.joined_balance() %}
+    {% set rescan_progress = specter.wallet_manager.wallets.values() | any_attribute(attribute='rescan_progress') %}
+    {{ total_wallet_balances(
+        "Total balance:",
+        amount_total, 
+        amount_confirmed,
+        amount_unconfirmed, 
+        amount_immature, 
+        balance, 
+        rescan_progress, 
+        "", 
+        specter) }}
     <div class="table-holder">
         {% include "includes/tx-row.html" %}
         {% include "includes/tx-data.html" %}
