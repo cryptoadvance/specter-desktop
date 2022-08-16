@@ -19,7 +19,23 @@
     <h1 id="title">{{ _("Wallets Overview") }}</h1>
     <p style="width: 80%; text-align: center; margin-left: auto; margin-right: auto;">{{ _("Here you can see the combined balance and transactions history of all your Specter wallets.") }}</p>
     <h1>
-        <small style="line-height:30px">Total balance:</small><br>
+        {% from 'wallet/history/components/total_wallet_balances.jinja' import total_wallet_balances %}
+        {% set amount_total = specter.wallet_manager.wallets.values() | sum(attribute='amount_total') %}
+        {% set amount_confirmed = specter.wallet_manager.wallets.values() | sum(attribute='amount_confirmed') %}
+        {% set amount_unconfirmed = specter.wallet_manager.wallets.values() | sum(attribute='amount_unconfirmed') %}
+        {% set amount_immature = specter.wallet_manager.wallets.values() | sum(attribute='amount_immature') %}
+        {% set balance = specter.wallet_manager.wallets.values() | sum_with_subdicts(attribute='balance') %}
+        {% set rescan_progress = specter.wallet_manager.wallets.values() | any_attribute(attribute='rescan_progress') %}
+        {{ total_wallet_balances(
+            "Total balance:",
+            amount_total, 
+            amount_confirmed,
+            amount_unconfirmed, 
+            amount_immature, 
+            balance, 
+            rescan_progress, 
+            "", 
+            specter) }}
         <span style="color: #fff">
             {% set fullbalance = specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') %}
             {% set balance = specter.wallet_manager.joined_balance() %}
