@@ -45,7 +45,7 @@
             <table>
                 <tr>
                     <th>Total amount:</th>
-                    <th class="right-align"><span id="fullbalance_amount">{{ amount_total | btcamount_fixed_decimals }}</span></th>
+                    <th class="right-align"><span id="fullbalance_amount">{{ amount_total | btcunitamount_fixed_decimals }}</span></th>
                     <th>
                         {% if specter.unit == 'sat' %}
                             sats
@@ -62,7 +62,7 @@
                 {% if amount_unconfirmed > 0 or amount_immature > 0 %}
                     <tr>
                         <th>Confirmed:</th>
-                        <th class="right-align">{{ amount_confirmed | btcamount_fixed_decimals }}</th>
+                        <th class="right-align">{{ amount_confirmed | btcunitamount_fixed_decimals }}</th>
                         <th>
                             {% if specter.unit == 'sat' %}
                                 sats
@@ -79,7 +79,7 @@
                     {% if amount_unconfirmed > 0 %}
                     <tr>
                         <th>Unconfirmed:</th>
-                        <th class="right-align">{{ amount_unconfirmed | btcamount_fixed_decimals }}</th>
+                        <th class="right-align">{{ amount_unconfirmed | btcunitamount_fixed_decimals }}</th>
                         <th>
                             {% if specter.unit == 'sat' %}
                                 sats
@@ -106,7 +106,7 @@
                             </span>
                         </tool-tip>
                     </th>
-                    <th class="right-align">{{ amount_immature | btcamount_fixed_decimals }}</th>
+                    <th class="right-align">{{ amount_immature | btcunitamount_fixed_decimals }}</th>
                     <th> 
                         {% if specter.unit == 'sat' %}
                             sats
@@ -134,7 +134,7 @@
                             <th></th>
                             {% set balance = balance.get("assets",{}).get(asset, {}) %}
                             <th class="right-align">
-                                {{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcamount }}</th>
+                                {{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcunitamount_fixed_decimals }}</th>
                             <th>
                                 <asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}" edit-mode="enabled"></asset-label>
                             </th>

@@ -47,23 +47,33 @@ def sum_with_subdicts(context, dicts, attribute=None):
 
 
 @pass_context
-@filters_bp.app_template_filter("btcamount_fixed_decimals")
-def btcamount_fixed_decimals(
+@filters_bp.app_template_filter("btcunitamount_fixed_decimals")
+def btcunitamount_fixed_decimals(
     context,
     value,
     maximum_digits_to_strip=7,
     minimum_digits_to_strip=6,
     enable_digit_spaces_for_counting=True,
 ):
+    def replace_substring(text, start_position, replace_length, new_str):
+        return text[:start_position] + new_str + text[start_position + replace_length :]
+
+    if app.specter.hide_sensitive_info:
+        return "#########"
     if value is None:
         return "Unknown"
     if value < 0 and app.specter.is_liquid:
         return "Confidential"
+    if app.specter.unit == "sat":
+        formatted_amount = "{:,.0f}".format(round(float(value) * 1e8))
+        if enable_digit_spaces_for_counting:
+            # strip last digits for better readability and replace with invisible characters
+            for i in [-3, -7]:
+                formatted_amount = replace_substring(formatted_amount, i, 0, " ")
+        return formatted_amount
+
     value = round(float(value), 8)
     formatted_amount = "{:,.8f}".format(value)
-
-    def replace_substring(text, start_position, replace_length, new_str):
-        return text[:start_position] + new_str + text[start_position + replace_length :]
 
     count_digits_that_can_be_stripped = 0
     for i in reversed(range(len(formatted_amount))):
