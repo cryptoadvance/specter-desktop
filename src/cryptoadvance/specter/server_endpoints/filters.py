@@ -47,8 +47,8 @@ def sum_with_subdicts(context, dicts, attribute=None):
 
 
 @pass_context
-@filters_bp.app_template_filter("btcamount")
-def btcamount(context, value):
+@filters_bp.app_template_filter("btcamount_fixed_decimals")
+def btcamount_fixed_decimals(context, value):
     if value is None:
         return "Unknown"
     if value < 0 and app.specter.is_liquid:
@@ -70,6 +70,17 @@ def btcamount(context, value):
             formatted_amount = replace_char(formatted_amount, i, " ")
         break
     return formatted_amount
+
+
+@pass_context
+@filters_bp.app_template_filter("btcamount")
+def btcamount(context, value):
+    if value is None:
+        return "Unknown"
+    if value < 0 and app.specter.is_liquid:
+        return "Confidential"
+    value = round(float(value), 8)
+    return "{:,.8f}".format(value).rstrip("0").rstrip(".")
 
 
 @pass_context
