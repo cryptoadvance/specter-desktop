@@ -1,9 +1,8 @@
 
 {# 
     total_wallet_balances - Title showing the wallet total balance + amount confirmed and unconfirmed (if there is any unconfirmed amount).
-    Parameters:
-    - wallet: Wallet object
-    - specter: Specter object
+    Calling example:
+        total_wallet_balances("", wallet.amount_total, wallet.amount_confirmed,  wallet.amount_unconfirmed, wallet.amount_immature, wallet.balance, wallet.rescan_progress, wallet.alias, specter)
  #}
 {% macro total_wallet_balances(title, amount_total, amount_confirmed, amount_unconfirmed, amount_immature, balance, rescan_progress, alias, specter) -%}
 <style type="text/css">

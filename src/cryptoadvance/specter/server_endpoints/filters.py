@@ -29,9 +29,14 @@ def timedatetime(context, s):
 
 
 @pass_context
-@filters_bp.app_template_filter("any_attribute")
-def any_attribute(context, values, attribute=None):
-    return any([getattr(value, attribute) for value in values])
+@filters_bp.app_template_filter("average_of_attribute")
+def average_of_attribute(context, values, attribute=None):
+    dicts = [
+        getattr(value, attribute)
+        for value in values
+        if getattr(value, attribute) is not None
+    ]
+    return sum(dicts) / len(dicts) if dicts else None
 
 
 @pass_context
