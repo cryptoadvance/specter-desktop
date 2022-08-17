@@ -78,6 +78,7 @@ class SearchableCategory:
             click_action_function (_type_, optional): A function that takes the entire dict (which contains a search hit in some value)
                 and returns an instance of type ClickAction.
                 Defaults to None.
+            locale (str or `Locale` object, optional): a `Locale` object or a locale identifier, e.g. 'en_US'
         """
         self.structure_or_generator_function = structure_or_generator_function
         self.title_function = title_function
