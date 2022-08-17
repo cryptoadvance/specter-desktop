@@ -108,14 +108,18 @@ class SearchableCategory:
             structure = structure()
 
         def get_search_hit(search_term, value, key=None):
+            # for dates search additionally the formatted date_time
             if key in ["time", "blocktime"] and isinstance(value, (int, float)):
-                value = format_datetime(
+                date_time_value = format_datetime(
                     datetime.fromtimestamp(value),
                     locale=self.language_code if self.language_code else LC_TIME,
                 )
+                found = search_term.lower() in str(date_time_value).lower()
+                if found:
+                    return date_time_value
 
             found = search_term.lower() in str(value).lower()
-            return str(value) if found else None
+            return value if found else None
 
         results = []
         if isinstance(structure, dict):
