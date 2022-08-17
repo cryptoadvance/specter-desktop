@@ -123,6 +123,7 @@ def global_search():
             app.specter.hide_sensitive_info,
             app.specter.wallet_manager.wallets,
             app.specter.device_manager.devices,
+            language_code=app.get_language_code(),
         )
     )
 

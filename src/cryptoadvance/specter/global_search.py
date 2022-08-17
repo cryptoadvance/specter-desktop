@@ -1,9 +1,12 @@
+from locale import LC_TIME
 import os
 import logging, json
 import types
 from flask import url_for
 from flask_babel import lazy_gettext as _
 from .util.common import robust_json_dumps
+from datetime import datetime
+from babel.dates import format_datetime
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +64,7 @@ class SearchableCategory:
         structure_or_generator_function,
         title_function=None,
         click_action_function=None,
+        language_code=None,
     ) -> None:
         """
         Args:
@@ -78,6 +82,7 @@ class SearchableCategory:
         self.structure_or_generator_function = structure_or_generator_function
         self.title_function = title_function
         self.click_action_function = click_action_function
+        self.language_code = language_code
 
     def search(
         self,
@@ -102,15 +107,23 @@ class SearchableCategory:
         if callable(structure):
             structure = structure()
 
-        def is_match(search_term, value):
-            return search_term.lower() in str(value).lower()
+        def get_search_hit(search_term, value, key=None):
+            if key in ["time", "blocktime"] and isinstance(value, (int, float)):
+                value = format_datetime(
+                    datetime.fromtimestamp(value),
+                    locale=self.language_code if self.language_code else LC_TIME,
+                )
+
+            found = search_term.lower() in str(value).lower()
+            return str(value) if found else None
 
         results = []
         if isinstance(structure, dict):
             for key, value in structure.items():
-                if is_match(search_term, value):
+                search_hit = get_search_hit(search_term, value, key=key)
+                if search_hit:
                     result = SearchResult(
-                        value,
+                        search_hit,
                         title=self.title_function(structure),
                         key=key,
                         click_action=self.click_action_function(structure)
@@ -136,9 +149,10 @@ class SearchableCategory:
                 )
         else:
             # if it is not a list,dict,... then it is the final element, e.g., a string, that should be searched:
-            if is_match(search_term, structure):
+            search_hit = get_search_hit(search_term, structure)
+            if search_hit:
                 result = SearchResult(
-                    structure,
+                    search_hit,
                     click_action=self.click_action_function(structure)
                     if self.click_action_function
                     else None,
@@ -221,7 +235,9 @@ class GlobalSearchTree:
     def __init__(self):
         self.cache = {}
 
-    def _wallet_ui_elements(self, ui_root, wallet, hide_sensitive_info):
+    def _wallet_ui_elements(
+        self, ui_root, wallet, hide_sensitive_info, language_code=None
+    ):
         html_wallets = UIElement(
             ui_root,
             _("Wallets"),
@@ -231,6 +247,7 @@ class GlobalSearchTree:
         sidebar_wallet_searchable_category = SearchableCategory(
             {"alias": wallet.alias, "name": wallet.name},
             title_function=lambda d: d.get("name"),
+            language_code=language_code,
         )
         sidebar_wallet = UIElement(
             html_wallets,
@@ -269,6 +286,7 @@ class GlobalSearchTree:
             click_action_function=lambda tx_dict: tx_click_action_function(
                 tx_dict, "txlist"
             ),
+            language_code=language_code,
         )
         if not hide_sensitive_info:
             transactions_history = UIElement(
@@ -294,6 +312,7 @@ class GlobalSearchTree:
             click_action_function=lambda tx_dict: tx_click_action_function(
                 tx_dict, "utxo"
             ),
+            language_code=language_code,
         )
         if not hide_sensitive_info:
             transactions_utxo = UIElement(
@@ -341,6 +360,7 @@ class GlobalSearchTree:
             click_action_function=lambda address_dict: address_receive_click_action_function(
                 address_dict, "receive"
             ),
+            language_code=language_code,
         )
         if not hide_sensitive_info:
             addresses_receive = UIElement(
@@ -362,6 +382,7 @@ class GlobalSearchTree:
             click_action_function=lambda address_dict: address_receive_click_action_function(
                 address_dict, "change"
             ),
+            language_code=language_code,
         )
         if not hide_sensitive_info:
             addresses_change = UIElement(
@@ -380,6 +401,7 @@ class GlobalSearchTree:
         receive_searchable_category = SearchableCategory(
             {"address": wallet.address, "label": wallet.getlabel(wallet.address)},
             title_function=lambda d: d.get("label"),
+            language_code=language_code,
         )
         receive = UIElement(
             sidebar_wallet,
@@ -419,6 +441,7 @@ class GlobalSearchTree:
             unsigned_generator,
             title_function=lambda d: d.get("PSBT Address label"),
             click_action_function=unsigned_click_action_function,
+            language_code=language_code,
         )
         if not hide_sensitive_info:
             unsigned = UIElement(
@@ -476,7 +499,10 @@ class GlobalSearchTree:
         ui_root = UIElement(None, "root", ClickAction(url_for("setup_endpoint.start")))
         for wallet in user_config["wallets"]:
             self._wallet_ui_elements(
-                ui_root, wallet, user_config["hide_sensitive_info"]
+                ui_root,
+                wallet,
+                user_config["hide_sensitive_info"],
+                language_code=user_config["language_code"],
             )
         for device in user_config["devices"]:
             self._device_ui_elements(
@@ -523,13 +549,14 @@ class GlobalSearchTree:
                 result_dicts.append(result_dict)
         return result_dicts
 
-    def user_config(self, hide_sensitive_info, wallets, devices):
+    def user_config(self, hide_sensitive_info, wallets, devices, language_code):
         """A minimalist version of building a user configuration,
         that if changed shows that the UI Tree needs to be rebuild"""
         return {
             "hide_sensitive_info": hide_sensitive_info,
             "wallets": wallets,
             "devices": devices,
+            "language_code": language_code,
         }
 
     def do_global_search(
@@ -539,11 +566,15 @@ class GlobalSearchTree:
         hide_sensitive_info,
         wallets,
         devices,
+        language_code=None,
         force_build_ui_tree=False,
     ):
         "Builds the UI Tree if non-existent, or it the config changed and then calls the functions in it to search for the search_term"
         user_config = self.user_config(
-            hide_sensitive_info, list(wallets.values()), list(devices.values())
+            hide_sensitive_info,
+            list(wallets.values()),
+            list(devices.values()),
+            language_code,
         )
         if (
             force_build_ui_tree
