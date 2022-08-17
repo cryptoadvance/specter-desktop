@@ -3,6 +3,7 @@ from flask import current_app as app
 from flask import Blueprint
 from jinja2 import pass_context
 from ..helpers import to_ascii20
+from ..util.common import satamount_formatted, btcamount_formatted
 
 filters_bp = Blueprint("filters", __name__)
 
@@ -55,9 +56,6 @@ def btcunitamount_fixed_decimals(
     minimum_digits_to_strip=6,
     enable_digit_spaces_for_counting=True,
 ):
-    def replace_substring(text, start_position, replace_length, new_str):
-        return text[:start_position] + new_str + text[start_position + replace_length :]
-
     if app.specter.hide_sensitive_info:
         return "#########"
     if value is None:
@@ -65,44 +63,16 @@ def btcunitamount_fixed_decimals(
     if value < 0 and app.specter.is_liquid:
         return "Confidential"
     if app.specter.unit == "sat":
-        formatted_amount = "{:,.0f}".format(round(float(value) * 1e8))
-        if enable_digit_spaces_for_counting:
-            # strip last digits for better readability and replace with invisible characters
-            for i in [-3, -7]:
-                formatted_amount = replace_substring(formatted_amount, i, 0, " ")
-        return formatted_amount
+        return satamount_formatted(
+            value, enable_digit_spaces_for_counting=enable_digit_spaces_for_counting
+        )
 
-    value = round(float(value), 8)
-    formatted_amount = "{:,.8f}".format(value)
-
-    count_digits_that_can_be_stripped = 0
-    for i in reversed(range(len(formatted_amount))):
-        if formatted_amount[i] == "0":
-            count_digits_that_can_be_stripped += 1
-            continue
-        break
-
-    if count_digits_that_can_be_stripped >= minimum_digits_to_strip:
-        for i in reversed(range(len(formatted_amount))):
-            if (
-                formatted_amount[i] == "0"
-                and len(formatted_amount) - i <= maximum_digits_to_strip
-            ):
-                # replace with https://unicode-table.com/en/2007/
-                formatted_amount = replace_substring(formatted_amount, i, 1, " ")
-                continue
-            # the following if branch is only relevant if last_digits_to_strip == 8, i.e. all digits can be stripped
-            elif formatted_amount[i] == ".":
-                # replace with https://unicode-table.com/en/2008/
-                formatted_amount = replace_substring(formatted_amount, i, 1, " ")
-            break
-
-    if enable_digit_spaces_for_counting:
-        # strip last digits for better readability and replace with invisible characters
-        for i in [-3, -7]:
-            formatted_amount = replace_substring(formatted_amount, i, 0, " ")
-
-    return formatted_amount
+    return btcamount_formatted(
+        value,
+        maximum_digits_to_strip=maximum_digits_to_strip,
+        minimum_digits_to_strip=minimum_digits_to_strip,
+        enable_digit_spaces_for_counting=enable_digit_spaces_for_counting,
+    )
 
 
 @pass_context
