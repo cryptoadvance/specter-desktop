@@ -41,7 +41,9 @@
 </style>
     <div style="display: flex; flex-direction: column; min-width: 300px; align-items: center">
         <div class="smaller-card">            
-            <div style="text-align: center; width:100%; line-height:30px; font-size: 1.1em;">{{ title }}</div>
+            {% if title %}
+                <div style="text-align: center; width:100%; line-height:30px; font-size: 1.1em;">{{ title }}</div>
+            {% endif %}
             <table>
                 <tr>
                     <th>Total amount:</th>

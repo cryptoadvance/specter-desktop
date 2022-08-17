@@ -2,7 +2,7 @@
 {% set tab = 'history' %}
 {% block content %}
 	{% from 'wallet/history/components/total_wallet_balances.jinja' import total_wallet_balances %}
-	{{ total_wallet_balances("Balance:", wallet.amount_total, wallet.amount_confirmed,  wallet.amount_unconfirmed, wallet.amount_immature, wallet.balance, wallet.rescan_progress, wallet.alias, specter) }}
+	{{ total_wallet_balances("", wallet.amount_total, wallet.amount_confirmed,  wallet.amount_unconfirmed, wallet.amount_immature, wallet.balance, wallet.rescan_progress, wallet.alias, specter) }}
 	<div class="table-holder">
 		{% include "includes/services-data.html" %}
 		{% include "includes/tx-row.html" %}
