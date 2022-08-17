@@ -40,19 +40,6 @@ def average_of_attribute(context, values, attribute=None):
 
 
 @pass_context
-@filters_bp.app_template_filter("sum_with_subdicts")
-def sum_with_subdicts(context, dicts, attribute=None):
-    summed_dict = {}
-    for d in dicts:
-        for k, v in getattr(d, attribute).items():
-            if k not in summed_dict:
-                summed_dict[k] = 0
-            print(v)
-            summed_dict[k] += v
-    return summed_dict
-
-
-@pass_context
 @filters_bp.app_template_filter("btcunitamount_fixed_decimals")
 def btcunitamount_fixed_decimals(
     context,
