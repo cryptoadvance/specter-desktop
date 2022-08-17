@@ -457,7 +457,9 @@ class GlobalSearchTree:
                 searchable_category=unsigned_searchable_category,
             )
 
-    def _device_ui_elements(self, ui_root, device, hide_sensitive_info):
+    def _device_ui_elements(
+        self, ui_root, device, hide_sensitive_info, language_code=None
+    ):
         html_devices = UIElement(
             ui_root,
             _("Devices"),
@@ -467,6 +469,7 @@ class GlobalSearchTree:
         sidebar_device_searchable_category = SearchableCategory(
             {"alias": device.alias, "name": device.name},
             title_function=lambda d: d.get("name"),
+            language_code=language_code,
         )
         sidebar_device = UIElement(
             html_devices,
@@ -480,7 +483,9 @@ class GlobalSearchTree:
                 yield key
 
         device_keys_searchable_category = SearchableCategory(
-            device_keys_generator, title_function=lambda d: d.get("purpose")
+            device_keys_generator,
+            title_function=lambda d: d.get("purpose"),
+            language_code=language_code,
         )
         if not hide_sensitive_info:
             device_keys = UIElement(
