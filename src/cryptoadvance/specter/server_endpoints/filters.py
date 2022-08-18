@@ -55,9 +55,7 @@ def btcunitamount_fixed_decimals(
     if value < 0 and app.specter.is_liquid:
         return "Confidential"
     if app.specter.unit == "sat":
-        return satamount_formatted(
-            value, enable_digit_spaces_for_counting=enable_digit_spaces_for_counting
-        )
+        return satamount_formatted(value)
 
     return btcamount_formatted(
         value,

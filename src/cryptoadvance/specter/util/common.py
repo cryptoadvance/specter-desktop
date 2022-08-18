@@ -27,16 +27,8 @@ def replace_substring(text, start_position, replace_length, new_str):
     return text[:start_position] + new_str + text[start_position + replace_length :]
 
 
-def satamount_formatted(
-    value,
-    enable_digit_spaces_for_counting=True,
-):
-    formatted_amount = "{:,.0f}".format(round(float(value) * 1e8))
-    if enable_digit_spaces_for_counting:
-        # strip last digits for better readability and replace with invisible characters
-        for i in [-3, -7]:
-            formatted_amount = replace_substring(formatted_amount, i, 0, " ")
-    return formatted_amount
+def satamount_formatted(value):
+    return "{:,.0f}".format(round(float(value) * 1e8))
 
 
 def btcamount_formatted(
