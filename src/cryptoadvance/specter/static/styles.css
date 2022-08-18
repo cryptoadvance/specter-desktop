@@ -1021,6 +1021,18 @@ nav.collapse-on-mobile a.mobile-nav-icon {
     display: none;
 }
 
+
+/* The viewable height is often smaller than the height given by the browser. 
+See: https://css-tricks.com/the-trick-to-viewport-units-on-mobile/
+This style is used for a div at the bottom in the <main> element to create a distance at the bottom of the pages
+*/
+.mobile-distance-element-bottom {
+    height: 0px;
+    flex-shrink: 0;
+    width: 100%;
+  }
+
+
 @media (max-width: 1100px){
   #side-content{
     position: absolute;
@@ -1194,6 +1206,9 @@ nav.collapse-on-mobile a.mobile-nav-icon {
     .main-page-container{
         background-image: none;
       }
+    .mobile-distance-element-bottom {
+        height: var(--mobileDistanceElementBottomHeight, 60px);
+    }
 }
 
 /************** Switch checkbox styles ********************************/

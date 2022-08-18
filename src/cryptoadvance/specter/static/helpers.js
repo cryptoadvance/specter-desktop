@@ -62,6 +62,8 @@ document.addEventListener("updateAddressLabel", function (e) {
 	}
 });
 
+document.documentElement.style.setProperty('--mobileDistanceElementBottomHeight', `${Math.max(0, window.outerHeight - window.innerHeight)}px`);
+
 function showError(msg, timeout=0) {
 	return showNotification(msg, timeout, "error");
 }
