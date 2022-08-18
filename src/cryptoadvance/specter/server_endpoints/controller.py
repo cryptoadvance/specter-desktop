@@ -235,3 +235,19 @@ def readyness():
     except Exception as e:
         return {"message": "i am not ready"}, 500
     return {"message": "i am ready"}
+
+
+from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+import json
+
+
+@app.route("/send_command", methods=["POST"])
+@login_required
+def send_command():
+    if request.method == "POST":
+        command = json.loads(request.form["command"])
+        answer = app.console.exec_command(command)
+        print(answer)
+        return jsonify(answer)
+    return jsonify("Not a POST command.")

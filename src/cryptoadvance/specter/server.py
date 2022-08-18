@@ -24,6 +24,7 @@ from .hwi_server import hwi_server
 from .services.callbacks import after_serverpy_init_app
 from .specter import Specter
 from .util.specter_migrator import SpecterMigrator
+from .console import Console
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +108,7 @@ def create_app(config=None):
     )
     csrf.init_app(app)
     app.csrf = csrf
+    app.console = Console()
 
     return app
 

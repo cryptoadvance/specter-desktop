@@ -327,6 +327,18 @@
 	{% block scripts %}
 		<script>
 			{% include "includes/language/language_js.jinja" %}
+
+
+			async function send_command(command) {
+				var formData = new FormData();
+				let url="{{ url_for('send_command') }}"
+				formData.append("command", JSON.stringify(command))
+			
+				send_request(url, 'POST', "{{ csrf_token() }}", formData).then((answer)=>{
+					console.log(answer);
+				})				
+			}
+
 		</script>
 	{% endblock %}
 	</body>
