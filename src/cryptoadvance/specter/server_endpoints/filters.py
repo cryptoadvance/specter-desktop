@@ -30,7 +30,7 @@ def timedatetime(context, s):
 
 @pass_context
 @filters_bp.app_template_filter("average_of_attribute")
-def average_of_attribute(context, values, attribute=None):
+def average_of_attribute(context, values, attribute):
     dicts = [
         getattr(value, attribute)
         for value in values

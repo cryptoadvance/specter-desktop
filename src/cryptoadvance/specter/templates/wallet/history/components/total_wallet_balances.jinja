@@ -1,7 +1,20 @@
 
 {# 
     total_wallet_balances - Title showing the wallet total balance + amount confirmed and unconfirmed (if there is any unconfirmed amount).
-    Calling example:
+
+    total_wallet_balances(
+            _("Some customizable text"),
+            amount_total, 
+            amount_confirmed,
+            amount_unconfirmed, 
+            amount_immature, 
+            balance,            # needs to be passed for liquid
+            rescan_progress,    # True, False, 0..1. False or 0, to disable.
+            "",                 # wallet_alias to check the rescan_progress.   
+                                #   If the wallet name exists it shows specter.info["utxorescan"], otherwise rescan_progress is used
+            specter) 
+
+    Calling example for a single wallet:
         total_wallet_balances("", wallet.amount_total, wallet.amount_confirmed,  wallet.amount_unconfirmed, wallet.amount_immature, wallet.balance, wallet.rescan_progress, wallet.alias, specter)
  #}
 {% macro total_wallet_balances(title, amount_total, amount_confirmed, amount_unconfirmed, amount_immature, balance, rescan_progress, alias, specter) -%}
