@@ -1,0 +1,92 @@
+{% extends "devhelp/components/devhelp_tab.jinja" %}
+{% block title %}address-data{% endblock %}
+{% set tab = 'html' %}
+{% block content %}
+
+<h1>total_wallet_balances</h1>
+
+{% from 'wallet/history/components/total_wallet_balances.jinja' import total_wallet_balances %}
+
+<h3>Usage</h3>
+<pre>
+     total_wallet_balances(
+        _("Some customizable text"),
+        amount_total, 
+        amount_confirmed,
+        amount_unconfirmed, 
+        amount_immature, 
+        balance,            # needs to be passed for liquid
+        rescan_progress,    # Whether to show the rescan progress
+        "",                 # wallet_alias to check the rescan_progress
+        specter) 
+
+
+</pre>
+
+<h3>Example without rescanning</h3>
+
+<pre>
+    total_wallet_balances(
+        _("Some customizable text"),
+        1.03247981, 
+        1.0324798,
+        1.032479, 
+        1.03247, 
+        None, 
+        False, 
+        "", 
+        specter
+    )
+</pre>
+
+{{ total_wallet_balances(
+    _("Some customizable text"),
+    1.03247981, 
+    1.0324798,
+    1.032479, 
+    1.03247, 
+    None, 
+    False, 
+    "", 
+    specter) }}
+
+
+<h3>Example with rescanning</h3>
+
+<p>
+    You can pass True to scanning the blockchain, setting values to 0 will simply ommit them. But it needs to be consistent. 
+    You cannot have an immature amount without having an unconfirmed amount.
+</p>
+
+<pre>
+    total_wallet_balances(
+        _("Some customizable text"),
+        1.03247981, 
+        1.03247981,
+        0, 
+        2, 
+        None, 
+        True, 
+        "dsddsd", 
+        specter
+    )
+</pre>
+
+{{ total_wallet_balances(
+    _("Some customizable text"),
+    1.03247981, 
+    1.03247981,
+    0, 
+    2, 
+    None, 
+    True, 
+    "dsddsd", 
+    specter) }}
+
+
+
+{% endblock %}
+
+{% block scripts %}
+
+{% endblock %}
