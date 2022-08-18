@@ -3,15 +3,15 @@
     total_wallet_balances - Title showing the wallet total balance + amount confirmed and unconfirmed (if there is any unconfirmed amount).
 
     total_wallet_balances(
-            _("Some customizable text"),
+            _("Some title"),
             amount_total, 
             amount_confirmed,
             amount_unconfirmed, 
             amount_immature, 
             balance,            # needs to be passed for liquid
-            rescan_progress,    # True, False, 0..1. False or 0, to disable.
-            "",                 # wallet_alias to check the rescan_progress.   
-                                #   If the wallet name exists it shows specter.info["utxorescan"], otherwise rescan_progress is used
+            rescan_progress,    # Possible values: True, False, 0..1.    Disable: False or 0,  Enable otherwise.
+            wallet_alias,       # wallet_alias to check the rescan_progress.   
+                                #   If the wallet alias exists it shows specter.info["utxorescan"], otherwise rescan_progress is used
             specter) 
 
     Calling example for a single wallet:
