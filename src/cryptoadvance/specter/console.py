@@ -7,26 +7,20 @@ logger = logging.getLogger(__name__)
 
 
 class Console:
-    def __init__(self, parent=None):
-        self.history = []
+    def __init__(self):
         self.namespace = {}
-        self.construct = []
-
         self.updateNamespace({"run": self.run_script})
 
     def run_script(self, filename):
         with open(filename) as f:
             script = f.read()
-
         return self.exec_command(script)
 
     def updateNamespace(self, namespace):
         self.namespace.update(namespace)
 
     def exec_command(self, command):
-        output = None
-
-        if type(self.namespace.get(command)) == type(lambda: None):
+        if callable(self.namespace.get(command)):
             return "'{}' is a function. Type '{}()' to use it in the Python console.".format(
                 command, command
             )
@@ -54,4 +48,3 @@ class Console:
             for i in (3, 2, 1, -1):
                 traceback_lines.pop(i)
             return "\n".join(traceback_lines)
-        return output
