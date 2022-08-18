@@ -1,20 +1,9 @@
 # source: http://stackoverflow.com/questions/2758159/how-to-embed-a-python-interpreter-in-a-pyqt-widget
 
-import sys
 import traceback
+import logging
 
-from black import out
-
-
-class stdoutProxy:
-    def __init__(self):
-        self.text = ""
-
-    def flush(self):
-        pass
-
-    def write(self, text):
-        self.text += text.rstrip("\n")
+logger = logging.getLogger(__name__)
 
 
 class Console:
@@ -39,8 +28,7 @@ class Console:
             self.exec_command(command)
 
     def exec_command(self, command):
-        sys.stdout = stdoutProxy()
-        tmp_stdout = sys.stdout
+        output = None
 
         if type(self.namespace.get(command)) == type(lambda: None):
             return "'{}' is a function. Type '{}()' to use it in the Python console.".format(
@@ -48,14 +36,9 @@ class Console:
             )
 
         try:
-            try:
-                # eval is generally considered bad practice. use it wisely!
-                result = eval(command, self.namespace, self.namespace)
-                if result is not None:
-                    tmp_stdout.write(repr(result))
-            except SyntaxError:
-                # exec is generally considered bad practice. use it wisely!
-                exec(command, self.namespace, self.namespace)
+            # eval is generally considered bad practice. use it wisely!
+            logger.info(f'Executing console command "{command}"')
+            return eval(command, self.namespace, self.namespace)
         except SystemExit:
             self.close()
         except BaseException:
@@ -63,6 +46,5 @@ class Console:
             # Remove traceback mentioning this file, and a linebreak
             for i in (3, 2, 1, -1):
                 traceback_lines.pop(i)
-            tmp_stdout.write("\n".join(traceback_lines))
-        sys.stdout = tmp_stdout
-        return tmp_stdout.text
+            return "\n".join(traceback_lines)
+        return output
