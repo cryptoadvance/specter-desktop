@@ -254,7 +254,7 @@ def send_command():
             "This command allows arbitrary access to Specter.\n"
             "You can irreparabily damage your specter configuration.\n"
             "Please use it with extreme care!!! Run your command again to execute it.\n\n"
-            "--> Never copy&paste something you do not FULLY understand. <--"
+            "--> Never copy&paste anything you do not FULLY understand. <--"
         )
     if current_user != "admin":
         return robust_json_dumps(f"Access forbidden for user '{current_user}'!")
