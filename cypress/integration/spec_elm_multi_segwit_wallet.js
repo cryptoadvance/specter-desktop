@@ -5,6 +5,7 @@ describe('Operating with an Elements multisig wallet', () => {
         cy.visit('/')
         cy.get('#node-switch-icon').click()
         cy.get('#elements_node-select-node-form > .item > div').click()
+        cy.get('[value="save"]').click()
         
         // Delete wallets if existing
         cy.deleteWallet("Elm Multi Segwit Wallet")
