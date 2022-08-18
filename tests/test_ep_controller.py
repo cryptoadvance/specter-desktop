@@ -248,8 +248,8 @@ nodes_endpoint.node_settings
 nodes_endpoint.switch_node
 price_endpoint.toggle
 price_endpoint.update
-readyness
 python_command
+readyness
 services_endpoint.associate_addr
 services_endpoint.choose
 set_language_code
