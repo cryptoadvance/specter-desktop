@@ -240,15 +240,16 @@ def readyness():
 from flask import jsonify, request
 from flask_login import current_user, login_required
 import json
+from ..util.common import robust_json_dumps
 
 
 @app.route("/send_command", methods=["POST"])
 @login_required
 def send_command():
     if current_user != "admin":
-        return jsonify(f"Access forbidden for user '{current_user}'!")
+        return robust_json_dumps(f"Access forbidden for user '{current_user}'!")
     if not app.config["DEVELOPER_JAVASCRIPT_PYTHON_CONSOLE"]:
-        return jsonify(
+        return robust_json_dumps(
             "DEVELOPER_JAVASCRIPT_PYTHON_CONSOLE disabled in Specter configuration.  "
             "This is an advanced option and should be used with great care!!!"
         )
@@ -256,7 +257,7 @@ def send_command():
         command = request.form["command"]
         result = app.console.exec_command(command)
         try:
-            return jsonify(result)
-        except TypeError:
-            return jsonify(str(result))
-    return jsonify("Not a 'POST' command.")
+            return robust_json_dumps(result)
+        except:
+            return robust_json_dumps(str(result))
+    return robust_json_dumps("Not a 'POST' command.")
