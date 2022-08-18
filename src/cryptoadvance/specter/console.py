@@ -36,16 +36,22 @@ class Console:
             )
 
         try:
-            # eval is generally considered bad practice. use it wisely!
-            logger.info(f'Executing console command "{command}"')
-            if command.endswith("."):
-                return {
-                    "vars": eval(
-                        f"vars({command[:-1]})", self.namespace, self.namespace
-                    ),
-                    "dir": eval(f"dir({command[:-1]})", self.namespace, self.namespace),
-                }
-            return eval(command, self.namespace, self.namespace)
+            try:
+                # eval is generally considered bad practice. use it wisely!
+                logger.info(f'Executing console command "{command}"')
+                if command.endswith("."):
+                    return {
+                        "vars": eval(
+                            f"vars({command[:-1]})", self.namespace, self.namespace
+                        ),
+                        "dir": eval(
+                            f"dir({command[:-1]})", self.namespace, self.namespace
+                        ),
+                    }
+                return eval(command, self.namespace, self.namespace)
+            except SyntaxError:
+                # exec is generally considered bad practice. use it wisely!
+                return exec(command, self.namespace, self.namespace)
         except SystemExit:
             self.close()
         except BaseException:
