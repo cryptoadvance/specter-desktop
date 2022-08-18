@@ -257,7 +257,7 @@ def python_command():
             "Please use it with extreme care!!! Run your command again to execute it.\n\n"
             "--> Never copy&paste anything you do not FULLY understand. <--"
         )
-    if current_user != "admin":
+    if current_user != "admin" or not app.specter.user_manager.user.is_admin:
         return robust_json_dumps(f"Access forbidden for user '{current_user}'!")
     if not app.config["DEVELOPER_JAVASCRIPT_PYTHON_CONSOLE"]:
         return robust_json_dumps(
