@@ -246,7 +246,7 @@ import json
 @login_required
 def send_command():
     if current_user != "admin":
-        return jsonify("Unallowed access")
+        return jsonify(f"Access forbidden for user '{current_user}'!")
     if not app.config["DEVELOPER_JAVASCRIPT_PYTHON_CONSOLE"]:
         return jsonify(
             "DEVELOPER_JAVASCRIPT_PYTHON_CONSOLE disabled in Specter configuration.  "
