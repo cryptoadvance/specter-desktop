@@ -5,8 +5,11 @@ from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import MethodNotAllowed, NotFound
 from flask import render_template, request, redirect, url_for, flash, g
 from flask_babel import lazy_gettext as _
+from flask_login import current_user, login_required
 from ..specter_error import SpecterError, ExtProcTimeoutException
 from pathlib import Path
+from ..util.common import robust_json_dumps
+
 
 env_path = Path(".") / ".flaskenv"
 from dotenv import load_dotenv
@@ -237,15 +240,22 @@ def readyness():
     return {"message": "i am ready"}
 
 
-from flask import jsonify, request
-from flask_login import current_user, login_required
-import json
-from ..util.common import robust_json_dumps
+NEVER_CALLED_SEND_COMMAND = True
 
 
 @app.route("/send_command", methods=["POST"])
 @login_required
 def send_command():
+    global NEVER_CALLED_SEND_COMMAND
+    if NEVER_CALLED_SEND_COMMAND:
+        NEVER_CALLED_SEND_COMMAND = False
+        return robust_json_dumps(
+            "!!!DANGER!!!\n"
+            "This command allows arbitrary access to Specter.\n"
+            "You can irreparabily damage your specter configuration.\n"
+            "Please use it with extreme care!!! Run your command again to execute it.\n\n"
+            "--> Never copy&paste something you do not FULLY understand. <--"
+        )
     if current_user != "admin":
         return robust_json_dumps(f"Access forbidden for user '{current_user}'!")
     if not app.config["DEVELOPER_JAVASCRIPT_PYTHON_CONSOLE"]:
