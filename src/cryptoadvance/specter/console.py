@@ -18,14 +18,10 @@ class Console:
         with open(filename) as f:
             script = f.read()
 
-        self.exec_command(script)
+        return self.exec_command(script)
 
     def updateNamespace(self, namespace):
         self.namespace.update(namespace)
-
-    def run_command(self, command):
-        if command:
-            self.exec_command(command)
 
     def exec_command(self, command):
         output = None
