@@ -245,6 +245,8 @@ import json
 @app.route("/send_command", methods=["POST"])
 @login_required
 def send_command():
+    if current_user != "admin":
+        return jsonify("Unallowed access")
     if request.method == "POST":
         command = json.loads(request.form["command"])
         answer = app.console.exec_command(command)

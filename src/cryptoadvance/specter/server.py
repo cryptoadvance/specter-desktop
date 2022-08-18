@@ -54,6 +54,16 @@ class SpecterFlask(Flask):
         session["language_code"] = language_code
         session["is_language_rtl"] = language_code in self.config["RTL_LANGUAGES"]
 
+    def update_console(self):
+        if not self.console:
+            logger.warning("self.console not set")
+            return
+        self.console.updateNamespace(
+            {
+                "app": self,
+            }
+        )
+
 
 def calc_module_name(config):
     """tiny helper to make passing configs more convenient"""
@@ -109,6 +119,7 @@ def create_app(config=None):
     csrf.init_app(app)
     app.csrf = csrf
     app.console = Console()
+    app.update_console()
 
     return app
 
