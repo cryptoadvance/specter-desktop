@@ -52,8 +52,6 @@ class Console:
             except SyntaxError:
                 # exec is generally considered bad practice. use it wisely!
                 return exec(command, self.namespace, self.namespace)
-        except SystemExit:
-            self.close()
         except BaseException:
             traceback_lines = traceback.format_exc().split("\n")
             # Remove traceback mentioning this file, and a linebreak

@@ -240,15 +240,15 @@ def readyness():
     return {"message": "i am ready"}
 
 
-NEVER_CALLED_SEND_COMMAND = True
+NEVER_CALLED_PYTHON_COMMAND = True
 
 
-@app.route("/send_command", methods=["POST"])
+@app.route("/python_command", methods=["POST"])
 @login_required
-def send_command():
-    global NEVER_CALLED_SEND_COMMAND
-    if NEVER_CALLED_SEND_COMMAND:
-        NEVER_CALLED_SEND_COMMAND = False
+def python_command():
+    global NEVER_CALLED_PYTHON_COMMAND
+    if NEVER_CALLED_PYTHON_COMMAND:
+        NEVER_CALLED_PYTHON_COMMAND = False
         return robust_json_dumps(
             "!!!DANGER!!!\n"
             "This command allows arbitrary access to Specter.\n"
@@ -264,11 +264,12 @@ def send_command():
             "DEVELOPER_JAVASCRIPT_PYTHON_CONSOLE disabled in Specter configuration.  "
             "This is an advanced option and should be used with great care!!!"
         )
-    if request.method == "POST":
-        command = request.form["command"]
-        result = app.console.exec_command(command)
-        try:
-            return robust_json_dumps(result)
-        except:
-            return robust_json_dumps(str(result))
-    return robust_json_dumps("Not a 'POST' command.")
+    if request.method != "POST":
+        return robust_json_dumps("Not a 'POST' command.")
+
+    command = request.form["command"]
+    result = app.console.exec_command(command)
+    try:
+        return robust_json_dumps(result)
+    except:
+        return robust_json_dumps(str(result))

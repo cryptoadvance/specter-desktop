@@ -156,5 +156,3 @@ async function send_request(url, method_str, csrf_token, formData) {
 	}
 	return await response.json();
 }
-
-

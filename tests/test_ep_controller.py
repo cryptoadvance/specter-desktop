@@ -249,7 +249,7 @@ nodes_endpoint.switch_node
 price_endpoint.toggle
 price_endpoint.update
 readyness
-send_command
+python_command
 services_endpoint.associate_addr
 services_endpoint.choose
 set_language_code
