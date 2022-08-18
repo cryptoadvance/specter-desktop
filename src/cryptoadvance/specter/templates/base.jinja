@@ -332,11 +332,16 @@
 			async function send_command(command) {
 				var formData = new FormData();
 				let url="{{ url_for('send_command') }}"
-				formData.append("command", JSON.stringify(command))
+				formData.append("command", command)
 			
-				send_request(url, 'POST', "{{ csrf_token() }}", formData).then((answer)=>{
-					console.log(answer);
-				})				
+				const answer = await send_request(url, 'POST', "{{ csrf_token() }}", formData);
+				try {
+					return JSON.parse(answer)
+				} catch(e) {
+					return answer
+				} 
+
+				
 			}
 
 		</script>
