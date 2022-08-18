@@ -247,8 +247,13 @@ import json
 def send_command():
     if current_user != "admin":
         return jsonify("Unallowed access")
+    if not app.config["DEVELOPER_JAVASCRIPT_PYTHON_CONSOLE"]:
+        return jsonify(
+            "DEVELOPER_JAVASCRIPT_PYTHON_CONSOLE disabled in Specter configuration.  "
+            "This is an advanced option and should be used with great care!!!"
+        )
     if request.method == "POST":
         command = request.form["command"]
         answer = app.console.exec_command(command)
         return jsonify(answer)
-    return jsonify("Not a POST command.")
+    return jsonify("Not a 'POST' command.")
