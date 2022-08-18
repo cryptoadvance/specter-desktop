@@ -252,7 +252,8 @@ def send_command():
         return robust_json_dumps(
             "!!!DANGER!!!\n"
             "This command allows arbitrary access to Specter.\n"
-            "You can irreparabily damage your specter configuration.\n"
+            "You can irreparabily damage your specter configuration and\n"
+            "all funds on !!!HOT!!! wallets can be lost!\n"
             "Please use it with extreme care!!! Run your command again to execute it.\n\n"
             "--> Never copy&paste anything you do not FULLY understand. <--"
         )
