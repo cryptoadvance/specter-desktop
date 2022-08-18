@@ -38,6 +38,9 @@ class Console:
         try:
             # eval is generally considered bad practice. use it wisely!
             logger.info(f'Executing console command "{command}"')
+            if command.endswith("."):
+                dir_command = f"dir({command[:-1]})"
+                return eval(dir_command, self.namespace, self.namespace)
             return eval(command, self.namespace, self.namespace)
         except SystemExit:
             self.close()

@@ -254,5 +254,9 @@ def send_command():
         )
     if request.method == "POST":
         command = request.form["command"]
-        return jsonify(app.console.exec_command(command))
+        result = app.console.exec_command(command)
+        try:
+            return jsonify(result)
+        except TypeError:
+            return jsonify(str(result))
     return jsonify("Not a 'POST' command.")
