@@ -5,10 +5,8 @@ from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import MethodNotAllowed, NotFound
 from flask import render_template, request, redirect, url_for, flash, g
 from flask_babel import lazy_gettext as _
-from flask_login import current_user, login_required
 from ..specter_error import SpecterError, ExtProcTimeoutException
 from pathlib import Path
-
 
 env_path = Path(".") / ".flaskenv"
 from dotenv import load_dotenv

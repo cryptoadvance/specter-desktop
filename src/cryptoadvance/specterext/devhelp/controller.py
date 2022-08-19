@@ -8,7 +8,6 @@ from .service import DevhelpService
 from cryptoadvance.specter.wallet import Wallet
 from cryptoadvance.specter.util.common import robust_json_dumps
 
-
 logger = logging.getLogger(__name__)
 
 devhelp_endpoint = DevhelpService.blueprint
@@ -90,6 +89,11 @@ def python_command():
         )
     if current_user != "admin" or not app.specter.user_manager.user.is_admin:
         return robust_json_dumps(f"Access forbidden for user '{current_user}'!")
+    if not app.config["DEVELOPER_JAVASCRIPT_PYTHON_CONSOLE"]:
+        return robust_json_dumps(
+            "DEVELOPER_JAVASCRIPT_PYTHON_CONSOLE disabled in Specter configuration.  "
+            "This is an advanced option and should be used with great care!!!"
+        )
     if request.method != "POST":
         return robust_json_dumps("Not a 'POST' command.")
 
