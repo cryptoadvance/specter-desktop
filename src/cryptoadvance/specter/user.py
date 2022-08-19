@@ -436,6 +436,7 @@ class User(UserMixin):
                     "jwt_token_description"
                 ],
                 "jwt_token_life": self.jwt_tokens[jwt_token_id]["jwt_token_life"],
+                "jwt_token_reamining_life": self.jwt_token_life_remaining(jwt_token_id),
             }
             for jwt_token_id in self.jwt_tokens
         }
@@ -482,8 +483,14 @@ class User(UserMixin):
         )
 
     def jwt_token_life_remaining(self, jwt_token_id):
+        # Calculates the remaining life of a JWT token
         jwt_token = self.get_jwt_token_by_token_id(jwt_token_id)
-        payload = jwt.decode(jwt_token, app.config["SECRET_KEY"], algorithms=["HS256"])
+        payload = jwt.decode(
+            jwt_token,
+            app.config["SECRET_KEY"],
+            algorithms=["HS256"],
+            options={"verify_signature": False},
+        )
         if (payload["exp"] - time.time()) > 0:
             return payload["exp"] - time.time()
         return 0

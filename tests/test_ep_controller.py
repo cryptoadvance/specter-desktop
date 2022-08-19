@@ -190,8 +190,8 @@ def view_function_report(myapp):
     view_function_list = """api_bp.api
 api_bp.resourceliveness
 api_bp.resourcepsbt
-api_bp.resourcejwt
-api_bp.resourcejwybyid
+api_bp.jwtresource
+api_bp.jwtresourcebyid
 api_bp.resourcereadyness
 api_bp.resourcespecter
 api_bp.resourcetxlist
