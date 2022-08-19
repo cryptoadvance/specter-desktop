@@ -18,6 +18,14 @@ class Console:
 
     def updateNamespace(self, namespace):
         self.namespace.update(namespace)
+        # adding help message with the available keys
+        self.namespace.update(
+            {
+                "help": f"You can try calling any of the following objects: {list(self.namespace.keys())}\n"
+                f"Use a trainling '.' to get available methods and propeties, e.g. try: '{list(self.namespace.keys())[-1]}.'\n"
+                "The command 'run' can execute python scripts, e.g., run('myscript.py')"
+            }
+        )
 
     def exec_command(self, command):
         if callable(self.namespace.get(command)):
