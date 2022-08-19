@@ -98,12 +98,13 @@ def python_command():
         return robust_json_dumps("Not a 'POST' command.")
 
     # The following commented lines are a further restriction of this endpoint, by limiting it only to regtest and testnet
-    allowed_chains = ["regtest", "testnet", "liquidtestnet", "liquidregtest"]
-    if app.specter.chain not in allowed_chains:
-        return robust_json_dumps(
-            f"This command is only allowed for {allowed_chains}. "
-            "The current chain is {app.specter.chain}"
-        )
+    # uncomment these lines to enable the restriction
+    # ----------------------------------------------
+    # allowed_chains = ['regtest', 'testnet', 'liquidtestnet', 'liquidregtest']
+    # if app.specter.chain not in allowed_chains:
+    #     return robust_json_dumps(f"This command is only allowed for {allowed_chains}. "
+    #                              "The current chain is {app.specter.chain}")
+    # ----------------------------------------------
 
     command = request.form["command"]
     result = DevhelpService.console.exec_command(command)
