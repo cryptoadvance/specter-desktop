@@ -86,7 +86,7 @@
         </div>
         <select name="notification_type" id="notification_type" tabindex="2">
             <option value="debug">debug</option>
-            <option value="information">information</option>
+            <option value="information"  selected>information</option>
             <option value="warning">warning</option>
             <option value="flash">error</option>
             <option value="exception">exception</option>
@@ -97,6 +97,7 @@
             <span>An optional image:</span>
         </div>
         <p><input type="text" id="msgBody" name="msgBody" value="Some body text here!"></p>
+        <p><input type="timeout" id="timeout" value=3000></p>
 
         <br><br>
         <input name="Submit" class="btn" type="submit" value="Submit" />
@@ -112,6 +113,7 @@
         var msgBody = document.getElementById("msgBody").value;
         var targetUis = document.getElementById("target_uis").value;
         var notificationType = document.getElementById("notification_type").value;
+        var timeout = document.getElementById("timeout").value;
         console.log(notificationType)
         createNotification(title,
             {
@@ -119,7 +121,7 @@
                 notification_type: notificationType,
                 body: msgBody,
                 image:'/static/img/ghost_3d.png', 
-                timeout:0
+                timeout:parseInt(timeout)
             }
         )
         
