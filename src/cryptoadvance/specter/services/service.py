@@ -192,3 +192,7 @@ class Service:
     @classmethod
     def on_user_login(cls):
         pass
+
+    @classmethod
+    def get_html_inject_in_basejinja(cls):
+        pass

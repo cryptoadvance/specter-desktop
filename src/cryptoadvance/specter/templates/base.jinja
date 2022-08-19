@@ -44,6 +44,7 @@
 		{% endblock %}
 	</head>
 	<body>
+	{% include "services/html_inject_in_basejinja.jinja" %}
 	<div class="pageloader" id="pageloader"></div>
 	{% if specter.config.auth.method == "none" or current_user.is_authenticated %}
 		<!-- BC-UR2 QR code stuff -->
@@ -58,7 +59,6 @@
 		{% endif %}
 	{% endif %}
 	{% include "includes/message-box.html" %}
-	{% include "includes/python-command.html" %}
 	{% include "includes/tool-tip.html" %}
 	<div class="row holder">
 		{% block sidebar %}
