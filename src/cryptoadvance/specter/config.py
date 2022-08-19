@@ -188,7 +188,6 @@ class BaseConfig(object):
     SPECTER_URL_PREFIX = ""
     EXT_URL_PREFIX = "/svc"
     SESSION_COOKIE_PATH = SPECTER_URL_PREFIX
-    DEVELOPER_JAVASCRIPT_PYTHON_CONSOLE = False
 
 
 class DevelopmentConfig(BaseConfig):
@@ -208,7 +207,6 @@ class DevelopmentConfig(BaseConfig):
 
     # Developing Extensions should be possible in DevelopmentConfig
     SERVICES_LOAD_FROM_CWD = True
-    DEVELOPER_JAVASCRIPT_PYTHON_CONSOLE = True
 
 
 class TestConfig(BaseConfig):

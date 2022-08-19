@@ -24,7 +24,6 @@ from .hwi_server import hwi_server
 from .services.callbacks import after_serverpy_init_app
 from .specter import Specter
 from .util.specter_migrator import SpecterMigrator
-from .console import Console
 
 logger = logging.getLogger(__name__)
 
@@ -53,16 +52,6 @@ class SpecterFlask(Flask):
     def set_language_code(self, language_code):
         session["language_code"] = language_code
         session["is_language_rtl"] = language_code in self.config["RTL_LANGUAGES"]
-
-    def update_console(self):
-        if not self.console:
-            logger.warning("self.console not set")
-            return
-        self.console.updateNamespace(
-            {
-                "app": self,
-            }
-        )
 
 
 def calc_module_name(config):
@@ -118,8 +107,6 @@ def create_app(config=None):
     )
     csrf.init_app(app)
     app.csrf = csrf
-    app.console = Console()
-    app.update_console()
 
     return app
 

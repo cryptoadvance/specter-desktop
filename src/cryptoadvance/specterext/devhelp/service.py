@@ -4,6 +4,7 @@ from flask import render_template
 from cryptoadvance.specter.services.service import Service, devstatus_alpha
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.wallet import Wallet
+from .console import Console
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,12 @@ class DevhelpService(Service):
     has_blueprint = True
     blueprint_module = "cryptoadvance.specterext.devhelp.controller"
     devstatus = devstatus_alpha
+    console = Console()
+    console.updateNamespace(
+        {
+            "app": app,
+        }
+    )
 
     sort_priority = 2
 

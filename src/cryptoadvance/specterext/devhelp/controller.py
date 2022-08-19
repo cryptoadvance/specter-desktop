@@ -90,25 +90,19 @@ def python_command():
         )
     if current_user != "admin" or not app.specter.user_manager.user.is_admin:
         return robust_json_dumps(f"Access forbidden for user '{current_user}'!")
-    if not app.config["DEVELOPER_JAVASCRIPT_PYTHON_CONSOLE"]:
-        return robust_json_dumps(
-            "DEVELOPER_JAVASCRIPT_PYTHON_CONSOLE disabled in Specter configuration.  "
-            "This is an advanced option and should be used with great care!!!"
-        )
     if request.method != "POST":
         return robust_json_dumps("Not a 'POST' command.")
 
     # The following commented lines are a further restriction of this endpoint, by limiting it only to regtest and testnet
-    # uncomment these lines to enable the restriction
-    # ----------------------------------------------
-    # allowed_chains = ['regtest', 'testnet', 'liquidtestnet', 'liquidregtest']
-    # if app.specter.chain not in allowed_chains:
-    #     return robust_json_dumps(f"This command is only allowed for {allowed_chains}. "
-    #                              "The current chain is {app.specter.chain}")
-    # ----------------------------------------------
+    allowed_chains = ["regtest", "testnet", "liquidtestnet", "liquidregtest"]
+    if app.specter.chain not in allowed_chains:
+        return robust_json_dumps(
+            f"This command is only allowed for {allowed_chains}. "
+            "The current chain is {app.specter.chain}"
+        )
 
     command = request.form["command"]
-    result = app.console.exec_command(command)
+    result = DevhelpService.console.exec_command(command)
     try:
         return robust_json_dumps(result)
     except:
