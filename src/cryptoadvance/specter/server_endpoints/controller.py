@@ -8,7 +8,6 @@ from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from ..specter_error import SpecterError, ExtProcTimeoutException
 from pathlib import Path
-from ..util.common import robust_json_dumps
 
 
 env_path = Path(".") / ".flaskenv"
@@ -238,47 +237,3 @@ def readyness():
     except Exception as e:
         return {"message": "i am not ready"}, 500
     return {"message": "i am ready"}
-
-
-NEVER_CALLED_PYTHON_COMMAND = True
-
-
-@app.route("/python_command", methods=["POST"])
-@login_required
-def python_command():
-    global NEVER_CALLED_PYTHON_COMMAND
-    if NEVER_CALLED_PYTHON_COMMAND:
-        NEVER_CALLED_PYTHON_COMMAND = False
-        return robust_json_dumps(
-            "!!!DANGER!!!\n"
-            "This command allows arbitrary access to Specter.\n"
-            "You can irreparabily damage your specter configuration and\n"
-            "all funds on !!!HOT!!! wallets can be lost!\n"
-            "Please use it with extreme care!!! Run your command again to execute it.\n\n"
-            "--> Never copy&paste anything you do not FULLY understand. <--"
-        )
-    if current_user != "admin" or not app.specter.user_manager.user.is_admin:
-        return robust_json_dumps(f"Access forbidden for user '{current_user}'!")
-    if not app.config["DEVELOPER_JAVASCRIPT_PYTHON_CONSOLE"]:
-        return robust_json_dumps(
-            "DEVELOPER_JAVASCRIPT_PYTHON_CONSOLE disabled in Specter configuration.  "
-            "This is an advanced option and should be used with great care!!!"
-        )
-    if request.method != "POST":
-        return robust_json_dumps("Not a 'POST' command.")
-
-    # The following commented lines are a further restriction of this endpoint, by limiting it only to regtest and testnet
-    # uncomment these lines to enable the restriction
-    # ----------------------------------------------
-    # allowed_chains = ['regtest', 'testnet', 'liquidtestnet', 'liquidregtest']
-    # if app.specter.chain not in allowed_chains:
-    #     return robust_json_dumps(f"This command is only allowed for {allowed_chains}. "
-    #                              "The current chain is {app.specter.chain}")
-    # ----------------------------------------------
-
-    command = request.form["command"]
-    result = app.console.exec_command(command)
-    try:
-        return robust_json_dumps(result)
-    except:
-        return robust_json_dumps(str(result))

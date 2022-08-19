@@ -3,7 +3,7 @@
     // This function is located here and not in helpers.js, because "{{ csrf_token() }}" will be filled out automatically by jinja2
     async function pythonCommand(command) {
         var formData = new FormData();
-        let url="{{ url_for('python_command') }}"
+        let url="{{ url_for('devhelp_endpoint.python_command') }}"
         formData.append("command", command)
     
         const answer = await send_request(url, 'POST', "{{ csrf_token() }}", formData);
