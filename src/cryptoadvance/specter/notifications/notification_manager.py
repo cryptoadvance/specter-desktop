@@ -161,7 +161,7 @@ class NotificationManager:
                 return notification
 
     def _get_ui_notifications_of_user(
-        self, user_id, callable_from_any_thread_required=False
+        self, user_id, callable_from_any_session_required=False
     ):
         "Gives a back a [ui_notifications that belong to the user_id] + [ui_notifications that belong to user_id == None]"
         return [
@@ -169,16 +169,16 @@ class NotificationManager:
             for ui_notification in self.ui_notifications
             if (ui_notification.user_id == user_id)
             and (
-                ui_notification.callable_from_any_thread
-                or not callable_from_any_thread_required
+                ui_notification.callable_from_any_session
+                or not callable_from_any_session_required
             )
         ] + [
             ui_notification
             for ui_notification in self.ui_notifications
             if ui_notification.user_id is None
             and (
-                ui_notification.callable_from_any_thread
-                or not callable_from_any_thread_required
+                ui_notification.callable_from_any_session
+                or not callable_from_any_session_required
             )
         ]
 
@@ -384,10 +384,10 @@ class NotificationManager:
                 logger.debug(
                     f"Trying with other ui_notifications to broadcast {notification}"
                 )
-                # I have to restrict the ui_notifications that are used as a backup to callable_from_any_thread_required
+                # I have to restrict the ui_notifications that are used as a backup to callable_from_any_session_required
                 # because it it not possible to call a flash notification from another thread (that  failed doing a webapi notification)
                 for backup_ui_notification in self._get_ui_notifications_of_user(
-                    notification.user_id, callable_from_any_thread_required=True
+                    notification.user_id, callable_from_any_session_required=True
                 ):
                     # if it is already broadcasted on this backup_ui_notification by default anyway, no need to do it twice
                     if backup_ui_notification in broadcast_on_ui_notifications:

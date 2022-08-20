@@ -20,7 +20,7 @@ class BaseUINotifications:
         self.name = "base"
         self.is_available = True
         self.user_id = None
-        self.callable_from_any_thread = True
+        self.callable_from_any_session = True
         self.on_close = on_close
         self.on_show = on_show
 
@@ -98,6 +98,17 @@ class FlashNotifications(BaseUINotifications):
     """
     Flask flash notifications.  They only appears after render_template is called.
 
+    Flask flash are dependent on the current flask.session. This prevents flash and with it FlashNotifications.show
+    from showing up in the current session, if called from outside the current session.
+
+    Example what will work (because of the same flask.session):
+    - and endpoint is called triggering flash or FlashNotifications.show
+
+    Example what will NOT work:
+    - flash or FlashNotifications.show is called from via a websocket connection, e.g.,
+        createNotification('flash title', {target_uis:'flash'})
+        The websocket connection does not have access to the current flask.session.
+
     Callback functions are:
     - on_close(notification_id, target_ui), should be assigned to delete the message   (called immediately after showing)
     - on_show(notification_id, target_ui)   (called immediately after showing)
@@ -115,9 +126,8 @@ class FlashNotifications(BaseUINotifications):
         self.user_id = user_id
 
         #  Flash notifications will not be used as a fallback UINotification,
-        #       because they seem to be incompatible with the multi-threading approach in websockets_server_client
-        #       Hence, here we set:
-        self.callable_from_any_thread = False
+        #       because they are not callable_from_any_session.
+        self.callable_from_any_session = False
 
     def show(self, notification):
         if (
