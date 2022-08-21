@@ -3,6 +3,6 @@ describe('Ghost machine', () => {
         cy.viewport(1200,660)
         cy.visit('/')
         cy.addDevice('DIY ghost', 'Specter-DIY', 'ghost_machine')
-        cy.addWallet('Ghost wallet', null, 'segwit', 'funded', 'btc')
+        cy.addWallet('Ghost wallet', 'segwit', 'funded', 'btc', 'singlesig', 'DIY ghost')
     })
 })

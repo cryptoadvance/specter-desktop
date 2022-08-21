@@ -11,33 +11,13 @@ describe('Test sending transactions', () => {
     })
 
     it('Send a standard transaction', () => {
-        // empty so far
         cy.addHotDevice("Hot Device 1","bitcoin")
-        cy.get('body').then(($body) => {
-            if ($body.text().includes('Test Hot Wallet 1')) {
-                cy.get('#wallets_list > .item > svg').click()
-                cy.get(':nth-child(6) > .right').click()
-                cy.get('#advanced_settings_tab_btn').click()
-                cy.get('.card > :nth-child(9) > .btn').click()
-            }
-        })
-        cy.get('#btn_new_wallet').click()
-        cy.get('[href="./simple/"]').click()
-        cy.get('#hot_device_1').click()
-        cy.get('#wallet_name').type("Test Hot Wallet 1")
-        cy.get('#keysform > .centered').click()
-        cy.get('body').contains("New wallet was created successfully!")
-        // Download PDF
-        // unfortunately this results in weird effects in cypress run
-        //cy.get('#pdf-wallet-download > img').click()
-        cy.get('#btn_continue').click()
-        //get some funds
-        cy.mine2wallet("btc")
-
+        cy.addWallet('Test Hot Wallet 1', 'segwit', 'funded', 'btc', 'singlesig', 'Hot Device 1')
+        cy.selectWallet("Test Hot Wallet 1")
         cy.get('#btn_send').click()
-        cy.get('#address_0').type("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u")
-        cy.get('#label_0').type("Burn address")
-        cy.get('#send_max_0').click()
+        cy.get('#recipient_0').find('#address').type("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u", { force: true })
+        cy.get('#recipient_0').find('#label').type("Burn address", { force: true })
+        cy.get('#recipient_0').get('#send_max').click()
         cy.get('#create_psbt_btn').click()
         cy.get('body').contains("Paste signed transaction")
         cy.get('#hot_device_1_tx_sign_btn').click()
@@ -50,48 +30,129 @@ describe('Test sending transactions', () => {
             expect(n).to.be.equals(0)
         })
     })
-
-    it('Create a transaction with multiple recipients', () => {
+    
+    it('Adding and deleting recipients', () => {
         // We need new sats but mine2wallet only works if a wallet is selected
         cy.selectWallet("Test Hot Wallet 1")
         cy.mine2wallet("btc")
         cy.get('#btn_send').click()
-        /// The addresses are the first three from DIY ghost
-        cy.get('#address_0').type("bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs")
-        cy.get('#label_0').type("Recipient 1")
-        cy.get('#amount_0').type(10)
+
+        // The addresses are the first 5 from DIY ghost
+        cy.get('#recipient_0').find('#address').invoke('val', "bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs")  // will be deleted, so address doesnt matter
+        cy.get('#recipient_0').find('#label').type("Recipient 1 to be deleted", { force: true })
+        cy.get('#recipient_0').find('#amount').type(1, { force: true })
+        cy.get('main').scrollTo('bottom')
+
+        // Adding 4 more recipients
+        cy.get('#add-recipient').click()
+        cy.get('#recipient_1').find('#address').invoke('val', "bcrt1qgzmq6e3tn67kveryf2je6nd3nv4txef4sl8wre")  // pasting the address is faster than typing
+        cy.get('#recipient_1').find('#label').type("Recipient 2", { force: true })
+        cy.get('#recipient_1').find('#amount').type(2, { force: true })
+        cy.get('main').scrollTo('bottom')
+
+        cy.get('#add-recipient').click()
+        cy.get('#recipient_2').find('#address').invoke('val', "bcrt1q9mkrhmxcn7rslzfv6lke8859m7ntwudfjqmcx7")  // will be deleted, so address doesnt matter
+        cy.get('#recipient_2').find('#label').type("Recipient 3 to be deleted", { force: true })
+        cy.get('#recipient_2').find('#amount').type(3, { force: true })
+
+        cy.get('#add-recipient').click()
+        cy.get('#recipient_3').find('#address').invoke('val', "bcrt1q4gs9fsf8fh4s4s8w39hxtupafm2q047fytmnxp")  // pasting the address is faster than typing
+        cy.get('#recipient_3').find('#label').type("Recipient 4", { force: true })
+        cy.get('#recipient_3').find('#amount').type(4, { force: true })
+
+        cy.get('#add-recipient').click()
+        cy.get('#recipient_4').find('#address').invoke('val', "bcrt1q4e8p7x6n7uhtthtelhv3mle52vsc4pqre7ddwm")  // pasting the address is faster than typing
+        cy.get('#recipient_4').find('#label').type("Recipient 5", { force: true })
+        cy.get('#recipient_4').find('#amount').type(5, { force: true })
+        cy.get('main').scrollTo('bottom')
+        
+        // Check the fee selection
         cy.get('#toggle_advanced').click()
-        cy.get('main').scrollTo('bottom')
-        cy.get('#add-recipient').click()
-        cy.get('#address_1').type("bcrt1qgzmq6e3tn67kveryf2je6nd3nv4txef4sl8wre")
-        cy.get('#label_1').type("Recipient 2")
-        cy.get('#amount_1').type(5)
-        cy.get('main').scrollTo('bottom')
-        cy.get('#add-recipient').click()
-        cy.get('#address_2').type("bcrt1q9mkrhmxcn7rslzfv6lke8859m7ntwudfjqmcx7")
-        cy.get('#label_2').type("Recipient 3")
-        cy.get('#send_max_2').click()
-        cy.get('main').scrollTo('bottom')
-        // Shadow DOM
-        // Check whether the subtract fees box is ticked
+        cy.get('#fee-selection-component').find('.fee_container').find('input#subtract').click()
         cy.get('#fee-selection-component').find('.fee_container').find('input#subtract').invoke('prop', 'checked').should('eq', true)
-        // Check whether the recipient number input field is visible (shadow DOM)
+
+        // Check whether the recipient number select field is visible
         cy.get('#fee-selection-component').find('.fee_container').find('span#subtract_from').should('be.visible')
-        // Light DOM
+
         // Check the values of the hidden inputs in the light DOM which are used for the form
         // Note: Despite identical ids the hidden inputs seem to be fetched first since they are higher up in the DOM
         cy.get('#fee-selection-component').find('#subtract').invoke('attr', 'value').should('eq', 'true')
-        // Send max was applied to the third recipient, so the value should be 3 
-        cy.get('#fee-selection-component').find('#subtract_from_input').invoke('attr', 'value').should('eq', '3') 
 
-        // Change recipient number to 2
-        // Note: No easy way to increment / decrement by clicking, see: https://stackoverflow.com/questions/47180137/incrementing-and-decrementing-the-value-of-an-input-type-number-in-cypress
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_input').clear()
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_input').click().type('2{enter}')
-        cy.get('#fee-selection-component').find('#subtract_from_input').invoke('attr', 'value').should('eq', '2')
+        // Remove two recipients
+        cy.get('#recipient_0').find('#remove').click({ force: true })   
+        cy.get('#recipient_2').find('#remove').click({ force: true })  
 
-        // Change it back to recipient 3
-        cy.get('#send_max_2').click()
+        // Select different recipients to subtract the fees from
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 4') // html select with cypress: https://www.cypress.io/blog/2020/03/20/working-with-select-elements-and-select2-widgets-in-cypress/
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 5')  
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 2')   
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').should('have.value', '1');
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').find(':selected').should('have.text', 'Recipient 2');
+
+        cy.get('#create_psbt_btn').click()
+        var amount = 0
+
+        // The fee should be subtracted from recipient 2, so the amount should be less than 2
+        cy.get('div.tx_info > :nth-child(1) > :nth-child(1)').then(($div) => {  // nth-child is indexed from 1 https://css-tricks.com/almanac/selectors/n/nth-child/
+            amount = parseFloat($div.text())
+            expect(amount).to.be.lt(2)
+            expect(amount).to.be.gt(1)
+        })
+        cy.get('div.tx_info > :nth-child(2) > :nth-child(1)').then(($div) => {
+            amount = parseFloat($div.text())
+            expect(amount).to.be.equal(4)
+        })
+        cy.get('div.tx_info > :nth-child(3) > :nth-child(1)').then(($div) => {
+            amount = parseFloat($div.text())
+            expect(amount).to.be.equal(5)
+        })
+
+        // Delete the PSBT so the utxos can be used in the next test again
+        cy.get('#deletepsbt_btn').click()
+    })
+
+    it('Create a transaction with multiple recipients and use send max', () => {
+        cy.selectWallet("Test Hot Wallet 1")
+        cy.get('#btn_send').click()
+        /// The addresses are the first three from DIY ghost
+        cy.get('#recipient_0').find('#address').type("bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs", { force: true })
+        cy.get('#recipient_0').find('#label').type("Recipient 1", { force: true })
+        cy.get('#recipient_0').find('#amount').type(10, { force: true })
+        cy.get('main').scrollTo('bottom')
+        cy.get('#add-recipient').click()
+        cy.get('#recipient_1').find('#address').type("bcrt1qgzmq6e3tn67kveryf2je6nd3nv4txef4sl8wre", { force: true })
+        cy.get('#recipient_1').find('#label').type("Recipient 2", { force: true })
+        cy.get('#recipient_1').find('#amount').type(5, { force: true })
+        cy.get('main').scrollTo('bottom')
+        cy.get('#add-recipient').click()
+        cy.get('#recipient_2').find('#address').type("bcrt1q9mkrhmxcn7rslzfv6lke8859m7ntwudfjqmcx7", { force: true })
+        cy.get('#recipient_2').find('#label').type("Recipient 3", { force: true })
+        // Using send max
+        cy.get('#recipient_2').find('#send_max').click()
+        cy.get('main').scrollTo('bottom')
+     
+        // Check whether the subtract fees box is ticked (we used send max)
+        cy.get('#toggle_advanced').click()
+        cy.get('#fee-selection-component').find('.fee_container').find('input#subtract').invoke('prop', 'checked').should('eq', true)
+        
+        // Check whether the recipient number input field is visible
+        cy.get('#fee-selection-component').find('.fee_container').find('span#subtract_from').should('be.visible')
+        
+        // Check the values of the hidden inputs in the light DOM which are used for the form
+        // Note: Despite identical ids the hidden inputs seem to be fetched first since they are higher up in the DOM
+        cy.get('#fee-selection-component').find('#subtract').invoke('attr', 'value').should('eq', 'true')
+        
+        // Check whether send max set subtract_from to Recipient 3
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').should('have.value', '2');
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').find(':selected').should('have.text', 'Recipient 3');
+        
+        // Select Recipient 2 to subract the fee from
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 2')
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').should('have.value', '1');
+        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').find(':selected').should('have.text', 'Recipient 2');
+
+        // Change it back to Recipient 3
+        cy.get('#recipient_2').find('#send_max').click()
 
         // The fee should be subtracted from the third recipient
         cy.get('#create_psbt_btn').click()
@@ -104,38 +165,48 @@ describe('Test sending transactions', () => {
         cy.deleteWallet("Test Hot Wallet 1")
     })
 
-    it('Send a transaction from a multisig wallet', () => {
-        cy.get('body').then(($body) => {
-            if ($body.text().includes('Test Multisig Wallet 1')) {
-                cy.get('#wallets_list > .item > svg').click()
-                cy.get(':nth-child(6) > .right').click()
-                cy.get('#advanced_settings_tab_btn').click()
-                cy.get('.card > :nth-child(9) > .btn').click()
-            }
-        })
-        cy.get('#btn_new_wallet').click()
-        cy.get('[href="./multisig/"]').click()
-        cy.get('#hot_device_1').click()
-        cy.get('#diy_ghost').click()
-        cy.get('#submit-device').click()
-        cy.get('#wallet_name').type("Test Multisig Wallet 1")
-
-        cy.get('#keysform > .centered').click()
-        cy.get('body').contains("New wallet was created successfully!")
-        cy.get('#page_overlay_popup_cancel_button').click()
-        // Send transaction
-
-        //get some funds
-        cy.mine2wallet("btc")
-        
+    it('No remove button if there is only one recipient', () => {
+        cy.selectWallet("Ghost wallet")
         cy.get('#btn_send').click()
-        cy.get('#address_0').type("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u")
-        cy.get('#label_0').type("Burn address")
-        cy.get('#send_max_0').click()
+        // No remove button when the send dialog is started with only one recipient
+        cy.get('#recipient_0').find('#remove').should('not.be.visible')
+        cy.get('#add-recipient').click()
+        // Now both remove buttons should be visible
+        cy.get('#recipient_0').find('#remove').should('be.visible')
+        cy.get('#recipient_1').find('#remove').should('be.visible')
+        // Remove button should disappear again if only one recipient (here: Recipient 3) remains 
+        cy.get('#add-recipient').click()
+        cy.get('#recipient_0').find('#remove').click({ force: true })
+        cy.get('#recipient_1').find('#remove').click({ force: true })
+        cy.get('#recipient_2').find('#remove').should('not.be.visible')
+    })
+
+    it('Use an address belonging to the wallet', () => {
+        cy.selectWallet("Ghost wallet")
+        cy.get('#btn_send').click()
+        // Simulating pasting the address, this also reduces the amount of fetch API calls to just one
+        cy.get('#recipient_0').find('#address').invoke('val', "bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs").trigger('input')
+        cy.get('#recipient_0').find('#label').type('To my own wallet', { force: true })
+        cy.get('#recipient_0').find('#amount').type(10, { force: true })
+        // Checking that the background colour of the address is green as it belongs to the wallet
+        cy.get('#recipients').find('#recipient_0').find('#address').should('have.css', 'background-color','rgb(48, 109, 48)')
+    })
+    
+    it('Send a transaction from a multisig wallet', () => {
+        // We need a second hot wallet
+        cy.addHotDevice("Hot Device 2","bitcoin")
+        cy.addWallet('Test Multisig Wallet', 'segwit', 'funded', 'btc', 'multisig', 'Hot Device 1', 'Hot Device 2', 'DIY ghost')        
+        cy.get('#btn_send').click()
+        cy.get('#recipient_0').find('#address').type("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u", { force: true })
+        cy.get('#recipient_0').find('#label').type("Burn address", { force: true })
+        cy.get('#recipient_0').get('#send_max').click()
         cy.get('#create_psbt_btn').click()
         cy.get('body').contains("Paste signed transaction")
         cy.get('#hot_device_1_tx_sign_btn').click()
         cy.get('#hot_device_1_hot_sign_btn').click()
+        cy.get('#hot_enter_passphrase__submit').click()
+        cy.get('#hot_device_2_tx_sign_btn').click()
+        cy.get('#hot_device_2_hot_sign_btn').click()
         cy.get('#hot_enter_passphrase__submit').click()
         cy.get('#broadcast_local_btn').click()
         cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
@@ -144,7 +215,7 @@ describe('Test sending transactions', () => {
             expect(n).to.be.equals(0)
         })
         // Clean up
-        cy.deleteWallet("Test Multisig Wallet 1")
+        cy.deleteWallet("Test Multisig Wallet")
         cy.deleteDevice("Hot Device 1")
     })
 })

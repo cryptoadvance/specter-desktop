@@ -142,7 +142,7 @@
 			<div class="section-separator"></div>
 			<div class="row center" style="align-items: center;">
 				<h2 class="subtitle">{{ _("Printable PDF backup") }}</h2>
-				<tool-tip width="33px">
+				<tool-tip width="180px">
 				    <span slot="paragraph">
 				    	{{ _("This backup includes all the information you need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core.") }}
 	    				{{ _("It is recommended that you keep this file private. It contains all the information to track your balance and associate transactions with your wallet.") }}
@@ -167,7 +167,7 @@
 			<div class="section-separator"></div>
 			<div class="row center" style="align-items: center;">
 				<h2 class="subtitle">{{ _("Uncle Jim PDF") }}</h2>
-				<tool-tip>
+				<tool-tip width="180px">
 				    <span slot="paragraph">
 						{{ _('The PDF lists many singlesig addresses in QR code format, as well as the descriptor of the wallet as a QR code with which the wallet can be imported to Specter Desktop at any time.') }}
 						{{ _('There are checkboxes to keep track of which addresses were used already.') }}
@@ -203,7 +203,7 @@
 				</div>
 				<div class="row center">
 					<button type="submit" name="action" value="import_address_labels" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Import") }}
-						<tool-tip width="325px">
+						<tool-tip width="200px">
 							<span slot="paragraph">
 								{{ _('The expected format for Electrum contains:') }}<br>
 								{{ _('{"8a5e4...": "some tx id label", "bc1qj3...": "some address label"}') }}<br><br>
@@ -274,29 +274,26 @@
 					</div>
 					<button id="rescan-utxo-btn" type="submit" name="action" value="rescanutxo" class="btn" style="flex-grow: 0; max-width: 170px; max-height: 35.5px">
 						{{ _("Rescan UTXO") }}
-						<div class="tool-tip">
-							<i class="tool-tip__icon">i</i>
-							<p class="tool-tip__info">
-								<span class="info">
-									<span class="info__title">{{ _("Rescanning UTXO set") }}</span><br><br>
-									{{ _("Only unspent transactions will be imported, so you won't see the full history, but your balance will be there.") }}<br><br>
-									<b>{{ _("Note:") }}</b> {{ _("Make sure you have enough addresses in the keypool, otherwise not all unspent transactions may be found.") }}
-								</span>
-							</p>
-						</div>
+						<tool-tip width="150px" image="note">
+        					<h4 slot="title">{{ _("Rescanning UTXO set") }}</h4>
+					        <span slot="paragraph">
+								{{ _("Only unspent transactions will be imported, so you won't see the full history, but your balance will be there.") }}<br>
+								<b>{{ _("Note:") }}</b> {{ _("Make sure you have enough addresses in the keypool, otherwise not all unspent transactions may be found.") }}
+					        </span>
+					    </tool-tip>
 					</button>
 				</div>
-				{% if specter.info['pruned']  %}
+				{% if specter.info['pruned'] %}
 					<div class="row" style="margin-top: 10px">
 						<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> {{ _("fetch missing data from block explorer") }}
-							<tool-tip>
-							    <h4 slot="title">{{ _("Fetch missing data") }}</h4>
-							    <span slot="paragraph">
-							    	{{ _("You are using a pruned node. Blocks for some transactions may be missing.") }}<br><br>
-									{{ _("Check this checkbox if you want to fetch missing information from block explorer.") }}
-							    </span>
-							</tool-tip>
 						</label>
+						<tool-tip width="150px" image="note">
+						    <h4 slot="title">{{ _("Fetch missing data") }}</h4>
+						    <span slot="paragraph">
+						    	{{ _("You are using a pruned node. Blocks for some transactions may be missing.") }}<br><br>
+								{{ _("Check this checkbox if you want to fetch missing information from block explorer.") }}
+						    </span>
+						</tool-tip>
 					</div>
 					<div id="utxo-explorer">
 						<br>

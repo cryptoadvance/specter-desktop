@@ -61,6 +61,9 @@ document.addEventListener("updateAddressLabel", function (e) {
 		});
 	}
 });
+
+document.documentElement.style.setProperty('--mobileDistanceElementBottomHeight', `${Math.max(0, window.outerHeight - window.innerHeight)}px`);
+
 function showError(msg, timeout=0) {
 	return showNotification(msg, timeout, "error");
 }
@@ -130,4 +133,26 @@ function numberWithCommas(x) {
 		return x.split(".")[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '.' + x.split(".")[1];
 	}
     return x.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+
+async function send_request(url, method_str, csrf_token, formData) {
+	if (!formData) {
+		formData = new FormData();
+	}
+	formData.append("csrf_token", csrf_token)
+	d = {
+			method: method_str,
+		}
+	if (method_str == 'POST') {
+		d['body'] = formData;
+	}
+
+	const response = await fetch(url, d);
+	if(response.status != 200){
+		showError(await response.text());
+		console.log(`Error while calling ${url} with ${method_str} ${formData}`)
+		return
+	}
+	return await response.json();
 }
