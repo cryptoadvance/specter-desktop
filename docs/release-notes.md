@@ -1,4 +1,6 @@
-# Release Notes
+## v1.10.5 Juli 21, 2022
+- Bugfix: startup issues for MacOS App 1815 #1816 (relativisticelectron)
+- Feature: generate app_config.py in extgen #1801 (k9ert)
 
 ## v1.10.4 Juli 19, 2022
 - Bugfix: Better error-management for run the numbers #1790 (k9ert)
