@@ -119,7 +119,7 @@ class DiceService(Service):
 This defines the base `Service` class (to be renamed to "Extension") that all extensions must inherit from. This also enables `extension` auto-discovery. Any feature that is common to most or all `Service` integrations should be implemented here.
 With inheriting from `Service` you get some usefull methods explained later.
 
-The `id` needs to be unique within a specific Specter instance where this extension is part of. The `name` is the display name as shown to the user in the plugin area (there is not a technical difference between extensions and plugins yet). The `icon` will be used where labels are used to be diplayed if this extension is reserving addresses. The `logo` and the `desc` (a short description of the extension) is also used in the plugin area ("choose plugins").
+The `id` needs to be unique within a specific specter-instance where this extension is part of. The `name` is the displayname as shown to the user in the plugin-area (currently there is not yet a technical difference between extensions and plugins). The `icon` will be used where labels are used to be diplayed if this extension is reserving addresses. The `logo` and the `desc`ription is also used in the plugin-area ("choose plugins").
 If the extension has a UI (currently all of them have one), `has_blueprint` is True. `The blueprint_module` is referencing the controller module where endpoints are defined. It's recommended to follow the format `org.specterext.extions-id.controller`.
 `isolated_client` should not be used yet. It is determining where in the url-path tree the blueprint will be mounted. This might have an impact on whether the extension's frontend client has access to the cookie used in Specter. Check `config.py` for details.
 `devstatus` is one of `devstatus_alpha`, `devstatus_beta` or `devstatus_prod` defined in `cryptoadvance.specter.services.service`. Each Specter instance will have a config variable  called `SERVICES_DEVSTATUS_THRESHOLD` (prod in Production and alpha in Development) and depending on that, the plugin will be available to the user.
@@ -163,10 +163,6 @@ ui = RubberduckService.blueprints["ui"]
 ```
 
 
-## Data storage
-Effort has been taken to provide `Service` data storage that is separate from existing data stores in order to keep those areas clean and simple. Where touchpoints are unavoidable, they are kept to the absolute bare minimum (e.g. `User.services` list, `Address.service_id` field).
-
-
 ## `Address`-Level Integration
 An `Address` can be associated with a `Service` (e.g. addr X received a smash buy from `Service` Foo) via the `Address.service_id` field.
 
@@ -176,17 +172,12 @@ Users can also manually associate an existing `Address` with a `Service` (this i
 
 _Note: TODO: manually un-reserve an `Address` from a `Service`._
 
+## Data storage
+Effort has been taken to provide `Service` data storage that is separate from existing data stores in order to keep those areas clean and simple. Where touchpoints are unavoidable, they are kept to the absolute bare minimum (e.g. `User.services` list in `users.json`, `Address.service_id` field).
+As an extension developer, you have the choice to completely manage your own persistence or rely/use one of the two options: You either have data which need encryption (via the passwords of the users) or you don't have that requirement.
 
-### Service configuration
-In order to separate the service configuration from the main configuration, you can specify your config in a file called `config.py`. It's structure is similiar to the Specter wide `config.py`, e.g.:
-```
-class BaseConfig():
-    SWAN_API_URL="https://dev-api.swanbitcoin.com"
 
-class ProductionConfig(BaseConfig):
-    SWAN_API_URL="https://api.swanbitcoin.com"
-```
-In your code, you can access the correct value as in any other Flask code, like `api_url = app.config.get("SWAN_API_URL")`. If the instance is running a config (e.g. `DevelopmentConfig`) which is not available in your service-specific config (as above), the inheritance hierarchy from the main config will get traversed and the first hit will get configured. In this example, it would be `BaseConfig`.
+
 
 ### ServiceEncryptedStorage
 Some `Services` will require user secrets (e.g. API key and secret). Each Specter `User` will have their own on-disk encrypted `ServiceEncryptedStorage` with filename `<username>_services.json`. Note that the user's secrets for all `Services` will be stored in this one file.
@@ -238,6 +229,17 @@ Unfortunately, the two unencrypted classes are derived from the encrypted one ra
 
 [![](https://mermaid.ink/img/pako:eNqVVMFuwjAM_ZUqJzaVw66IIU0D7bRd0G6VItO4LFvqoCRlqhj_PpeWASLduhyiqH7v-dlOsxO5VSgmIjfg_VzD2kGZUcKr3Z-Q0Ol8DgGegWCNLpl-jcfJEt1W57ig3NWbgGoZrONoS-oJXjBfCaPcPxI-ENkAQVvyF7RHS4VeVw5WBpea1gaDpZbZZ6eT_9VyzMK18_8oZeIuE8l4fMsn4tOQRvZm7FPra24XZgLjK4--38BFTe1-uCORAe3acLOk1KSDlCOPpkgTxSBZWKPQpUlniUcnP7C-f7GENycmQYnSFvLdc7zQBk-hn1r4OxrlTxFjQY3ORKSHbUfcn3vuqTFm_MIyt4h3pX1zraTCA_0sX0b9ya5varxPB7DUKk0-wfC1HSh_PeJdFB7_Mc6sTKf--Hk2G96769lHhJrlW7xc1bJp538qGpQjJnVqhUhFia4ErfiROwhlIrxhiZmY8FFhAZUJmciogVYbHj8ulOb8YlKA8ZgKqIJd1pSLSXAVHkHdW9mh9t9YNMxZ)](https://mermaid-js.github.io/mermaid-live-editor/edit#pako:eNqVVMFuwjAM_ZUqJzaVw66IIU0D7bRd0G6VItO4LFvqoCRlqhj_PpeWASLduhyiqH7v-dlOsxO5VSgmIjfg_VzD2kGZUcKr3Z-Q0Ol8DgGegWCNLpl-jcfJEt1W57ig3NWbgGoZrONoS-oJXjBfCaPcPxI-ENkAQVvyF7RHS4VeVw5WBpea1gaDpZbZZ6eT_9VyzMK18_8oZeIuE8l4fMsn4tOQRvZm7FPra24XZgLjK4--38BFTe1-uCORAe3acLOk1KSDlCOPpkgTxSBZWKPQpUlniUcnP7C-f7GENycmQYnSFvLdc7zQBk-hn1r4OxrlTxFjQY3ORKSHbUfcn3vuqTFm_MIyt4h3pX1zraTCA_0sX0b9ya5varxPB7DUKk0-wfC1HSh_PeJdFB7_Mc6sTKf--Hk2G96769lHhJrlW7xc1bJp538qGpQjJnVqhUhFia4ErfiROwhlIrxhiZmY8FFhAZUJmciogVYbHj8ulOb8YlKA8ZgKqIJd1pSLSXAVHkHdW9mh9t9YNMxZ)
 
+
+### Service configuration
+In order to separate the service-configuration from the main-configuration, you can specify your config in a file called `config.py`. It's structure is similiar to the specter-wide `config.py`, e.g.:
+```
+class BaseConfig():
+    SWAN_API_URL="https://dev-api.swanbitcoin.com"
+
+class ProductionConfig(BaseConfig):
+    SWAN_API_URL="https://api.swanbitcoin.com"
+```
+In your code, you can access the correct value as in any other flask-code, like `api_url = app.config.get("SWAN_API_URL")`. If the instance is running a config (e.g. `DevelopmentConfig`) which is not available in your service-specific config (as above), the inheritance-hirarchy from the mainconfig will get traversed and the first hit will get get configured. In this example, it would be `BaseConfig`.
 ### Callback methods
 Your service class will inherit a callback-method which will get called for various reasons with the "reason" being a string as the first parameter. Checkout the `cryptoadvance.specter.services.callbacks` file for the specific callbacks.
 

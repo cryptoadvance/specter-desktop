@@ -53,7 +53,7 @@ function main() {
 
     if ! [ "$(git remote -v | grep upstream | grep 'git@github.com:cryptoadvance/specter-desktop.git' | wc -l)" = "2" ]; then
         echo "    --> You don't have the correct upstream-remote. You need this to release. Please do this:"
-        echo "git remote add upstream git@gitlab.com:cryptoadvance/specter-cloud.git "
+        echo "git remote add upstream git@github.com:cryptoadvance/specter-desktop.git "
         exit 2
     fi
 
