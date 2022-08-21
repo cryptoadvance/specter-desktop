@@ -84,7 +84,7 @@ sudo yum -y install libusb libudev-devel libffi libffi-devel openssl-devel && su
 
 
 ### Set up virtualenv
-Note that `hwi-1.2.0` needs Python 3.6-3.8. If you have Python 3.9 installed then be sure to also install an old Python version and pass it to `virtualenv` (e.g. `virtualenv --python3.8 .env`).
+Note that `hwi-1.2.0` needs Python 3.6-3.8. If you have Python 3.9 installed then be sure to also install an old Python version and pass it to `virtualenv` (e.g. `virtualenv --python=python3.8 .env`).
 
 ```sh
 git clone https://github.com/cryptoadvance/specter-desktop.git
