@@ -79,6 +79,22 @@ In your controller, the endpoint needs to be specified like this:
 ui = RubberduckService.blueprints["ui"]
 ```
 
+You might have an extension which wants to inject e.g. javascript code into each and every page of specter-desktop. The extension needs to be activated for the user, though. You can do that via overwriting one of the `inject_in_basejinja_*` methods in your service-class:
+```
+    @classmethod
+    def inject_in_basejinja_head(cls):
+        ''' e.g. rendering some snippet '''
+        return render_template("devhelp/html_inject_in_basejinja_head.jinja")
+
+    @classmethod
+    def inject_in_basejinja_body_top(cls):
+        ''' or directly returning text '''
+        return "<script>console.log('Hello from body top')"
+
+    @classmethod
+    def inject_in_basejinja_body_bottom(cls):
+        return "something here"
+```
 
 ## Data-Storage
 Effort has been taken to provide `Service` data storage that is separate from existing data stores in order to keep those areas clean and simple. Where touchpoints are unavoidable, they are kept to the absolute bare minimum (e.g. `User.services` list, `Address.service_id` field).

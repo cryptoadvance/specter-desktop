@@ -57,5 +57,5 @@ class DevhelpService(Service):
         cls.update_current_user_service_data({cls.SPECTER_WALLET_ALIAS: wallet.alias})
 
     @classmethod
-    def get_html_inject_in_basejinja(cls):
+    def inject_in_basejinja_body_top(cls):
         return render_template("devhelp/html_inject_in_basejinja.jinja")
