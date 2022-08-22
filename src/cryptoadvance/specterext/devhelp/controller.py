@@ -35,6 +35,12 @@ def html_component(html_component):
     )
 
 
+@devhelp_endpoint.route("/console", methods=["GET"])
+@login_required
+def console():
+    return render_template("devhelp/dev-console.jinja")
+
+
 @devhelp_endpoint.route("/settings", methods=["GET"])
 @login_required
 @user_secret_decrypted_required

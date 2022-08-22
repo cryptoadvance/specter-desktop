@@ -1,0 +1,46 @@
+{% extends "devhelp/components/devhelp_tab.jinja" %}
+{% block title %}DevConsole{% endblock %}
+{% set tab = 'console' %}
+{% block content %}
+
+<div class="card" style="width:1000px">
+    <p>
+        Python-expressions here:
+    </p>
+    <form name="console" onSubmit="return handleIt()">
+
+        <div style="display: flex;">
+            <span>Code:</span>
+        </div>
+        <p><input type="text" id="msgBody" name="msgBody" value="app.specter"></p>
+
+        <br><br>
+        <input name="Submit" class="btn" type="submit" value="Submit" />
+    </form>
+
+    <p>
+        Output
+    </p>
+    <pre>
+        <div id="output"></div>
+    </pre>
+</div>
+
+
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    function handleIt() {
+        var msgBody = document.getElementById("msgBody").value;
+        a = pythonCommand(msgBody).then((data) => { 
+                document.getElementById("output").append(data)
+                document.getElementById("output").append("\n")
+        })
+        console.log(a)
+        return false
+    }
+
+</script>
+{% endblock %}
