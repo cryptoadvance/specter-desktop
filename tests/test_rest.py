@@ -128,7 +128,7 @@ def test_rr_psbt_post(specter_regtest_configured, bitcoin_regtest, client, caplo
                 }
             ],
             "rbf_tx_id": "",
-            "subtract_from": "1",
+            "subtract_from": "0",
             "fee_rate": "64",
             "rbf": true
         }
