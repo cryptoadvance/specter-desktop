@@ -24,14 +24,13 @@ def index():
 
 @devhelp_endpoint.route("/html/<html_component>")
 @login_required
-@user_secret_decrypted_required
 def html_component(html_component):
     associated_wallet: Wallet = DevhelpService.get_associated_wallet()
     return render_template(
         f"devhelp/html/{html_component}",
         wallet=associated_wallet,
         services=app.specter.service_manager.services,
-        address=associated_wallet.get_address(3),
+        address=associated_wallet.get_address(3) if associated_wallet else None,
     )
 
 
