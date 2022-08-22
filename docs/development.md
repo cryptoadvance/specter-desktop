@@ -84,7 +84,8 @@ sudo yum -y install libusb libudev-devel libffi libffi-devel openssl-devel && su
 
 
 ### Set up virtualenv
-Note that `hwi-1.2.0` needs Python 3.6-3.8. If you have Python 3.9 installed then be sure to also install an old Python version and pass it to `virtualenv` (e.g. `virtualenv --python=python3.8 .env`).
+Specter is using `hwi-2.1.0` which by now supports higher Python versions than Specter itself. Specter currently supports Python 3.7-3.9.
+If you have Python 3.10 as your global version then be sure to also install an old Python version and pass it to `virtualenv` (e.g. `virtualenv --python=python3.8 .env`) or use pyenv.
 
 ```sh
 git clone https://github.com/cryptoadvance/specter-desktop.git
