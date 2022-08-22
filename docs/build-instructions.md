@@ -31,6 +31,11 @@ source .buildenv/bin/activate
 
 ### specterd Linux and MacOS
 
+Below doesn't seem to work properly, at least on MacOS, better use the build script. For MacOS, that would be:
+```bash
+./utils/build-osx.sh --version 0.0.0-pre1 specterd
+```
+
 ```bash
 cd pyinstaller
 # prerequisites

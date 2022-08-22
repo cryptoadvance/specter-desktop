@@ -68,7 +68,7 @@ WantedBy=multi-user.target
 
 You can check the status of specter.service by running `systemctl status specter.service` or for debugging, you can get more information by running `sudo journalctl -fu specter.service`
 
-The commented section of the service file above refers to an optional reverse proxy setup which is covered in the [reverse_proxy.md](reverse_proxy.md) document.
+The commented section of the service file above refers to an optional reverse proxy setup which is covered in the [reverse_proxy.md](reverse-proxy.md) document.
 
 ## bitcoind as a Service
 
