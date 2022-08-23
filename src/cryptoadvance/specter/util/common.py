@@ -1,4 +1,10 @@
+import logging
 import re
+from datetime import datetime
+import json
+from flask_babel.speaklater import LazyString
+
+logger = logging.getLogger(__name__)
 
 
 def str2bool(my_str):
@@ -21,3 +27,19 @@ def camelcase2snake_case(name):
 
 def snake_case2camelcase(word):
     return "".join(x.capitalize() or "_" for x in word.split("_"))
+
+
+def robust_json_dumps(obj):
+    def default(o):
+        if isinstance(o, datetime):
+            return o.timestamp()
+        if isinstance(o, set):
+            return list(o)
+        if isinstance(o, LazyString):
+            return str(o)
+        logger.warning(
+            f"robust_json_dumps could not convert {o} of type {type(o)}.  Converting to string instead."
+        )
+        return str(o)
+
+    return json.dumps(obj, default=default)
