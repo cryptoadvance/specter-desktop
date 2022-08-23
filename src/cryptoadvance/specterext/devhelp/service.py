@@ -7,6 +7,7 @@ from cryptoadvance.specter.wallet import Wallet
 from .console import Console
 import flask
 import flask_login
+from flask_login import current_user
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,8 @@ class DevhelpService(Service):
             "app": app,
             "flask": flask,
             "flask_login": flask_login,
+            "current_user": current_user,
+            "namespace": console.namespace,
         }
     )
 
