@@ -24,27 +24,20 @@ parser = reqparse.RequestParser()
 parser.add_argument(
     "jwt_token_description", type=str, help="JWT token description", required=True
 )
-parser.add_argument("jwt_token_life", type=int, help="JWT token life", required=True)
-parser.add_argument(
-    "jwt_token_life_unit", type=str, help="JWT token life unit", required=True
-)
+parser.add_argument("jwt_token_life", type=str, help="JWT token life", required=True)
+# parser.add_argument(
+#     "jwt_token_life_unit", type=str, help="JWT token life unit", required=True
+# )
 
 
-def generate_jwt(
-    user, jwt_token_id, jwt_token_description, jwt_token_life, jwt_token_life_unit
-):
+def generate_jwt(user, jwt_token_id, jwt_token_description, jwt_token_life):
     # Generates a JWT token for the user
-
-    # pytimeparse has been used to parse different time units to seconds
-    # For eg: "jwt_token_life_unit": "1 hour" will be parsed to 3600 seconds
-    # For more information visit: https://pypi.org/project/pytimeparse/
-    parsed_time = parse(str(jwt_token_life) + " " + jwt_token_life_unit)
 
     payload = {
         "username": user.username,
         "jwt_token_id": jwt_token_id,
         "jwt_token_description": jwt_token_description,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=parsed_time),
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=jwt_token_life),
         "iat": datetime.datetime.utcnow(),
     }
     return jwt.encode(payload, app.config["SECRET_KEY"], algorithm="HS256")
@@ -82,16 +75,17 @@ class JWTResource(BasicAuthResource):
         user_details = app.specter.user_manager.get_user(user)
         jwt_token_id = generate_token_id()
         jwt_token_description = data["jwt_token_description"]
-        jwt_token_life = data["jwt_token_life"]
-        jwt_token_life_unit = data["jwt_token_life_unit"]
+
+        # pytimeparse has been used to parse different time units to seconds
+        # For eg: "jwt_token_life_unit": "1 hour" will be parsed to 3600 seconds
+        # For more information visit: https://pypi.org/project/pytimeparse/
+        jwt_token_life = parse(data["jwt_token_life"])
         jwt_token = generate_jwt(
             user_details,
             jwt_token_id,
             jwt_token_description,
             jwt_token_life,
-            jwt_token_life_unit,
         )
-        jwt_token_life = str(jwt_token_life) + " " + jwt_token_life_unit
         if user_details.validate_jwt_token_description(jwt_token_description):
             user_details.add_jwt_token(
                 jwt_token_id,
@@ -125,11 +119,9 @@ class JWTResourceById(BasicAuthResource):
         jwt_tokens = user_details.jwt_tokens
         jwt_token = user_details.get_jwt_token(jwt_token_id)
         jwt_token_life_remaining = user_details.jwt_token_life_remaining(jwt_token_id)
-        current_status = (
-            f"Token {jwt_token_id} expires in {jwt_token_life_remaining} seconds"
-        )
+        expiry_status = f"Valid"
         if jwt_token_life_remaining == 0:
-            current_status = f"Token {jwt_token_id} expired"
+            expiry_status = f"Expired"
         if (
             not user_details.verify_jwt_token_id_and_jwt_token(jwt_token_id, jwt_token)
             and jwt_tokens[jwt_token_id] is None
@@ -142,7 +134,7 @@ class JWTResourceById(BasicAuthResource):
             "jwt_token_description": jwt_token["jwt_token_description"],
             "jwt_token_life": jwt_token["jwt_token_life"],
             "jwt_token_life_remaining": jwt_token_life_remaining,
-            "current_status": current_status,
+            "expiry_status": expiry_status,
         }, 200
 
     def delete(self, jwt_token_id):

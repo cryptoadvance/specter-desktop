@@ -436,7 +436,7 @@ class User(UserMixin):
                     "jwt_token_description"
                 ],
                 "jwt_token_life": self.jwt_tokens[jwt_token_id]["jwt_token_life"],
-                "jwt_token_reamining_life": self.jwt_token_life_remaining(jwt_token_id),
+                "jwt_token_remaining_life": self.jwt_token_life_remaining(jwt_token_id),
             }
             for jwt_token_id in self.jwt_tokens
         }
@@ -491,6 +491,7 @@ class User(UserMixin):
             algorithms=["HS256"],
             options={"verify_signature": False},
         )
+
         if (payload["exp"] - time.time()) > 0:
             return payload["exp"] - time.time()
         return 0
