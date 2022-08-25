@@ -14,18 +14,11 @@ class MessageBox {
     }
   }
   
-  show(title, msg, callback, closeLabel, image=null, timeout=0) {
+  show(title) {
     if (title === "" || title === undefined || title === null) { 
       throw "title is empty or not defined.";
     }
     
-    if (closeLabel === undefined || closeLabel === null) {
-      // Of the close label is undefined, or if it is null
-      
-      closeLabel = "Close";
-    }
-    
-    const option = this.option;
 
     const msgboxBox = document.createElement("DIV");
     const msgboxImage = document.createElement("DIV");
@@ -37,11 +30,11 @@ class MessageBox {
     const msgboxClose = document.createElement("A");
     
   
-    if (image != null){
+    if (this.option.image != null){
       msgboxImage.classList.add("msgbox-img");
       var img = document.createElement("img");
       img.width = 100;
-      img.src = image;
+      img.src = this.option.image;
       msgboxImage.width = '100px';
       msgboxImage.appendChild(img);
       msgboxContent.appendChild(msgboxImage);
@@ -61,9 +54,9 @@ class MessageBox {
     msgboxTextWrapper.appendChild(msgboxTitle);
 
     // Text area
-    if (msg != null){
+    if (this.option.body != null){
       msgboxText.classList.add("msgbox-text");
-      msgboxText.innerText = msg;
+      msgboxText.innerText = this.option.body;
       msgboxTextWrapper.appendChild(msgboxText);
     }
         
@@ -73,15 +66,21 @@ class MessageBox {
     // Close button of the message box
     msgboxClose.classList.add("msgbox-close");
     msgboxClose.setAttribute("href", "#");
-    msgboxClose.innerText = closeLabel;
+    if (this.option.closeLabel === undefined || this.option.closeLabel === null) {
+      this.option.closeLabel = "Close";
+    }        
+    msgboxClose.innerText = this.option.closeLabel;
     
     // Container of the Message Box element
     msgboxBox.classList.add("msgbox-box");
-    msgboxBox.setAttribute("timeout", timeout);
+    if (this.option.backgroundColor){
+      msgboxBox.style.backgroundColor = this.option.backgroundColor;
+    }
+    msgboxBox.setAttribute("timeout", this.option.timeout);
     msgboxBox.appendChild(msgboxContent);
 
-    if (option.hideCloseButton === false
-        || option.hideCloseButton === undefined) {
+    if (this.option.hideCloseButton === false
+        || this.option.hideCloseButton === undefined) {
       // If the hideCloseButton flag is false, or if it is undefined
       
       // Append the close button to the container
@@ -102,13 +101,13 @@ class MessageBox {
       
       this.msgboxTimeout = null;
 
-      this.hide(msgboxBox, callback);
+      this.hide(msgboxBox, this.option.onClose);
     };
 
-    if (option.closeTime > 0) {
+    if (this.option.timeout > 0) {
       this.msgboxTimeout = setTimeout(() => {
-        this.hide(msgboxBox, callback);
-      }, option.closeTime);
+        this.hide(msgboxBox, this.option.onClose);
+      }, this.option.timeout);
     }
   }
   
@@ -147,14 +146,14 @@ const msgboxHiddenClose = document.querySelector("#msgboxHiddenClose");
 // Creation of Message Box class, and the sample usage
 /*
 const msgbox = new MessageBox({
-  closeTime: 10000,
+  timeout: 10000,
   hideCloseButton: false
 });
 const msgboxPersistent = new MessageBox({
-  closeTime: 0
+  timeout: 0
 });
 const msgboxNoClose = new MessageBox({
-  closeTime: 5000,
+  timeout: 5000,
   hideCloseButton: true
 });
 

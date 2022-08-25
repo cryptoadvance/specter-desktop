@@ -211,19 +211,24 @@ function webapiNotification(jsNotification) {
  */
 function jsMessageBox(jsNotification){
     function thisNotificationClose(){
-        onClose(jsNotification['id'], 'js_message_box')    
+        onClose(jsNotification['id'], 'js_message_box')            
     }
- 
+
+    var backgroundColor = null;
+    if (jsNotification['notification_type']){
+        backgroundColor = `var(--cmap-msgbox-${jsNotification['notification_type']})`
+    }
+
     msgbox = new MessageBox({
-        closeTime: jsNotification['timeout']
+        body: jsNotification['options']['body'],
+        image: jsNotification['options']['image'],
+        timeout: jsNotification['timeout'],
+        closeLabel: 'Close',
+        'onClose': thisNotificationClose,
+        hideCloseButton: false,
+        backgroundColor: backgroundColor,
       });
-    msgbox.show(
-        jsNotification['title'], 
-        jsNotification['options']['body'],
-        thisNotificationClose,
-        'Close',
-        image=jsNotification['options']['image'],
-        );			
+    msgbox.show(jsNotification['title']);			
 
     onShow(jsNotification['id'], 'js_message_box');
 }
@@ -349,7 +354,11 @@ function connectWebsocket() {
         websocket.onerror = function(err) {
             console.error('Socket encountered error: ', err.message);
             // websocket.close();
-        };    
+        }; 
+        
+        
+        // send any initial message to deliver the user_token. Without it python cannot associate this connection to any user
+        sendUpdatedWebapiPermission()
 
     });		
 
