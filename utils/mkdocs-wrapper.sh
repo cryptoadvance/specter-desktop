@@ -13,7 +13,7 @@ echo "    --> Starting mkdocs-wrapper.sh"
 # * Build command: ./utils/mkdocs-wrapper.sh build
 # * Publish directory: site
 # In the Environment Variables, you have to set:
-# PYTHON_VERSION 3.8
+# PYTHON_VERSION 3.10
 
 # We're using mkdocs for creating the static pages
 # We don't pin this dependency as this is not relevant for either testing or
