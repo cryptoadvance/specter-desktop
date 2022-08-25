@@ -66,7 +66,7 @@ def is_testnet(chain):
 
 
 def is_liquid(chain):
-    return chain not in ["main", "regtest", "test", "signet", "None", "none", None, ""]
+    return chain in ["liquidv1", "liquidtestnet", "elementsregtest", "elreg"]
 
 
 def normalize_address(addr: str) -> str:

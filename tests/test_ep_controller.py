@@ -204,6 +204,8 @@ devices_endpoint.new_device_keys
 devices_endpoint.new_device_manual
 devices_endpoint.new_device_mnemonic
 devices_endpoint.new_device_type
+exfund_endpoint.index
+exfund_endpoint.static
 hwi_server.api
 hwi_server.hwi_bridge_settings
 hwi_server.index
