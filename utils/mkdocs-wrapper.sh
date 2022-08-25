@@ -31,8 +31,8 @@ if [ "$1" = "build" ]; then
     echo "    --> Copying and adjusting README.md"
     cp README.md docs
     sed -i 's/docs\///g' docs/README.md
+    sed -i 's/Checkout our Documentation at.*//' docs/README.md
     sed -i 's/\.\.\/README.md/README.m/g' docs/*.md
-
 fi
 
 echo "    --> now running mkdocs $1 $2"

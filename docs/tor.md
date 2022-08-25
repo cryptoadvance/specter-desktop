@@ -2,13 +2,13 @@
 
 When using Specter Desktop, there might be certain cases where you would want to make calls over the Tor network. The simplest way to setup Tor integration with Specter Desktop is to click on the "Get Started" button of the welcome page and follow the setup wizard, which will install and configure Tor for you. You can also access it by going to `Settings -> Tor` tab, and clicking on "Setup Tor".
 
-<img width="956" alt="Screen Shot 2021-04-24 at 10 42 08" src="./images/tor/get-started-setup.png">
+<img width="956" alt="get-started-setup.png" src="../images/tor/get-started-setup.png">
 
-<img width="1043" alt="Screen Shot 2021-04-24 at 10 43 42" src="./images/tor/tor-config-setup.png">
+<img width="1043" alt="tor-config-setup.png" src="../images/tor/tor-config-setup.png">
 
 These will take you through the one click setup process, just click "Setup Tor" and Specter will take care of installing, configuring and running the Tor daemon.
 
-<img width="732" alt="Screen Shot 2021-04-24 at 10 42 17" src="./images/tor/setup-tor-daemon.png">
+<img width="732" alt="Screen Shot 2021-04-24 at 10 42 17" src="../images/tor/setup-tor-daemon.png">
 
 ## Running Specter Desktop over a Tor hidden service
 
@@ -22,7 +22,7 @@ Make sure authentication is enabled to avoid access to your Specter by random st
 
 After setting up authentication, running the hidden service to remotely access specter is as easy as going to the `Settings -> Tor` tab, scrolling to the bottom and clicking the "Start" button under the "Tor Hidden Service" section.
 
-<img width="755" alt="Screen Shot 2021-04-24 at 10 58 30" src="./images/tor/tor-hidden-service.png">
+<img width="755" alt="Screen Shot 2021-04-24 at 10 58 30" src="../images/tor/tor-hidden-service.png">
 
 ## Manual Tor configurations
 
