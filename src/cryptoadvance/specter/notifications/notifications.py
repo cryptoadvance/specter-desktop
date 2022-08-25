@@ -142,3 +142,9 @@ class Notification:
             js_notification["options"][key] = value
 
         return js_notification
+
+    def to_text(self):
+        s = self.title
+        if self.body:
+            s += f"\n{self.body}"
+        return s

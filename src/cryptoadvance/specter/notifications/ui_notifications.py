@@ -80,8 +80,21 @@ class LoggingNotifications(BaseUINotifications):
             or notification.notification_type not in self.compatible_notification_types
         ):
             return
-        logger.info(
-            str(notification),
+
+        logger_func = logger.info
+        if notification.notification_type == NotificationTypes.debug:
+            logger_func = logger.debug
+        elif notification.notification_type == NotificationTypes.information:
+            logger_func = logger.info
+        elif notification.notification_type == NotificationTypes.warning:
+            logger_func = logger.warning
+        elif notification.notification_type == NotificationTypes.error:
+            logger_func = logger.error
+        elif notification.notification_type == NotificationTypes.exception:
+            logger_func = logger.exception
+
+        logger_func(
+            notification.to_text(),
             exc_info=notification.notification_type
             in {NotificationTypes.error, NotificationTypes.exception},
         )
@@ -136,7 +149,7 @@ class FlashNotifications(BaseUINotifications):
         ):
             return
         flash(
-            f"{notification.title}\n{notification.body if notification.body else ''}",
+            notification.to_text(),
             notification.notification_type,
         )
         notification.set_shown(self.name)

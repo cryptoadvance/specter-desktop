@@ -88,7 +88,7 @@
             <option value="debug">debug</option>
             <option value="information"  selected>information</option>
             <option value="warning">warning</option>
-            <option value="flash">error</option>
+            <option value="error">error</option>
             <option value="exception">exception</option>
         </select>
         <br><br>
@@ -96,7 +96,10 @@
         <div style="display: flex;">
             <span>An optional image:</span>
         </div>
-        <p><input type="text" id="msgBody" name="msgBody" value="Some body text here!"></p>
+        <p><input type="text" id="image_url" name="image_url" value="/static/img/ghost_3d.png"></p>
+        <div style="display: flex;">
+            <span>Timeout:</span>
+        </div>
         <p><input type="timeout" id="timeout" value=3000></p>
 
         <br><br>
@@ -113,6 +116,7 @@
         var msgBody = document.getElementById("msgBody").value;
         var targetUis = document.getElementById("target_uis").value;
         var notificationType = document.getElementById("notification_type").value;
+        var image_url = document.getElementById("image_url").value;
         var timeout = document.getElementById("timeout").value;
         console.log(notificationType)
         createNotification(title,
@@ -120,7 +124,7 @@
                 target_uis:[targetUis], 
                 notification_type: notificationType,
                 body: msgBody,
-                image:'/static/img/ghost_3d.png', 
+                image:image_url, 
                 timeout:parseInt(timeout)
             }
         )
