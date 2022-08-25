@@ -7,7 +7,7 @@ import requests
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.util.common import str2bool
 
-from ..helpers import is_testnet
+from ..helpers import is_testnet, normalize_address
 from ..util.descriptor import AddChecksum, Descriptor
 
 logger = logging.getLogger(__name__)
@@ -28,8 +28,7 @@ class PsbtCreator:
     ):
         """
         * depending of ui_option = (ui|text) Fill the payment-details in either of these:
-          * request_form: expects the payment-details in a dict request_form:
-             { "address_1":"bc1...","btc_amount_1":"0.2", "amount_unit_1":"btc", "label_1":"someLabel","address_2": ...}
+          * request_form: For details on the structure of the data for each recipient (amounts, addresses, etc.) see below at paymentinfo_from_ui
           * recipients_txt: expects the payment-details in textblock "recipients" and recipients_amount_unit for all
             amounts in recipients_txt either "sats" or "btc"
         * in both cases, the request_form also contains:
@@ -87,12 +86,7 @@ class PsbtCreator:
                 f"Unknown ui_option: {ui_option}. Valid ones are ui|text|json"
             )
         # normalizing
-        self.addresses = [
-            address.lower()
-            if address.startswith(("BC1", "TB1", "BCRT1", "EL1", "ERT1", "EX1", "LQ1"))
-            else address
-            for address in self.addresses
-        ]
+        self.addresses = [normalize_address(addr) for addr in self.addresses]
         # get kwargs
         if ui_option == "ui" or ui_option == "text":
             self.kwargs = PsbtCreator.kwargs_from_request_form(request_form)
@@ -135,32 +129,39 @@ class PsbtCreator:
 
     @classmethod
     def paymentinfo_from_ui(cls, specter, wallet, request_form):
-        """calculates the correct format needed by wallet.createpsbt() out of a request-form
-        returns something like  (addresses, labels, amounts, amount_units) (all arrays)
+        """Calculates the correct format needed by wallet.createpsbt() out of a request form.
+        The recipient_dicts part in the form is a list of dicts and looks like this:
+        [{'unit': 'btc', 'amount': 1, 'btc_amount': 1, 'recipient_id': 0, 'label': '', 'address': 'bcrt1q ... 58qwn'},
+        {'unit': 'btc', 'amount': 2, 'btc_amount': 2, 'recipient_id': 1, 'label': '', 'address': 'bcrt1q ... vaa3p'},
+        {'unit': 'btc', 'amount': 3, 'btc_amount': 3, 'recipient_id': 2, 'label': '', 'address': 'bcrt1q ... n0a85'}]
+
+        Returns (addresses, labels, amounts, amount_units) (all arrays)
         """
-        i = 0
         addresses = []
         labels = []
         amounts = []
         amount_units = []
-        while "address_{}".format(i) in request_form:
-            addresses.append(request_form["address_{}".format(i)])
+
+        recipient_dicts = json.loads(request_form["recipient_dicts"])
+        print(recipient_dicts)
+        for recipient_dict in recipient_dicts:
+            addresses.append(recipient_dict["address"])
             amount = 0.0
             try:
-                amount = float(request_form["btc_amount_{}".format(i)])
+                amount = float(recipient_dict["btc_amount"])
             except ValueError:
                 pass
             if isnan(amount):
                 amount = 0.0
             amounts.append(amount)
-            unit = request_form["amount_unit_{}".format(i)]
+            unit = recipient_dict["unit"]
             if specter.is_liquid and unit in ["sat", "btc"]:
                 unit = specter.default_asset
             amount_units.append(unit)
-            labels.append(request_form["label_{}".format(i)])
-            if request_form["label_{}".format(i)] != "":
-                wallet.setlabel(addresses[i], labels[i])
-            i += 1
+            labels.append(recipient_dict["label"])
+            if recipient_dict["label"] != "":
+                wallet.setlabel(addresses[-1], labels[-1])
+
         return addresses, labels, amounts, amount_units
 
     @classmethod
@@ -170,7 +171,6 @@ class PsbtCreator:
         """calculates the correct format needed by wallet.createpsbt() out of a request-form
         out of a textbox holding addresses and amounts.
         """
-        i = 0
         addresses = []
         labels = []
         amounts = []
@@ -181,7 +181,7 @@ class PsbtCreator:
                     continue
                 addresses.append(output.split(",")[0].strip())
                 if recipients_amount_unit == "sat":
-                    amounts.append(float(output.split(",")[1].strip()) / 1e8)
+                    amounts.append(round(float(output.split(",")[1].strip()) / 1e8, 8))
                 elif recipients_amount_unit == "btc":
                     amounts.append(float(output.split(",")[1].strip()))
                 else:
@@ -238,18 +238,28 @@ class PsbtCreator:
                 try:
                     amount = float(recipient["amount"])
                     if recipient["unit"] == "sat":
-                        amounts.append(float(amount / 1e8))
+                        amounts.append(round(amount / 1e8, 8))
                     elif recipient["unit"] == "btc":
                         amounts.append(amount)
                     else:
-                        raise SpecterError(
-                            f"Non-compliant json: Unknown unit {recipient['unit']}"
-                        )
+                        if specter.is_liquid:
+                            if len(recipient["unit"]) == 64:
+                                amounts.append(amount)
+                            else:
+                                raise SpecterError(
+                                    f"Non-compliant json: Unknown unit {recipient['unit']}. Accepted: sat, btc or 64-char hex asset id."
+                                )
+                        else:
+                            raise SpecterError(
+                                f"Non-compliant json: Unknown unit {recipient['unit']}. This could be caused by using a special name for your Elements regtest."
+                            )
                 except ValueError as e:
                     raise SpecterError(
                         f"Could not parse amount {recipient.get('amount')} because {e}"
                     )
                 unit = recipient["unit"]
+                if specter.is_liquid and unit in ["sat", "btc"]:
+                    unit = specter.default_asset
                 amount_units.append(unit)
 
                 label = recipient.get("label", "")
@@ -264,7 +274,7 @@ class PsbtCreator:
         """calculates the needed kwargs fow wallet.createpsbt() out of a request_form"""
         # Who pays the fees?
         subtract = str2bool(request_form.get("subtract", False))
-        subtract_from = int(request_form.get("subtract_from", 1))
+        subtract_from = int(request_form.get("subtract_from", 0))
         fee_option = request_form.get("fee_option")
         fee_rate = None
         if fee_option:
@@ -296,7 +306,7 @@ class PsbtCreator:
         rbf_tx_id = request_form.get("rbf_tx_id", "")
         kwargs = {
             "subtract": subtract,
-            "subtract_from": subtract_from - 1,
+            "subtract_from": subtract_from,
             "fee_rate": fee_rate,
             "rbf": rbf,
             "selected_coins": selected_coins,
@@ -319,14 +329,14 @@ class PsbtCreator:
         except JSONDecodeError as e:
             raise SpecterError(f"Error parsing json: {e}")
         subtract = bool(json_data.get("subtract", False))
-        subtract_from = int(json_data.get("subtract_from", 1))
+        subtract_from = int(json_data.get("subtract_from", 0))
 
         fee_rate = float(json_data.get("fee_rate", None))
         rbf = bool(json_data.get("rbf", False))
         rbf_tx_id = json_data.get("rbf_tx_id", "")
         kwargs = {
             "subtract": subtract,
-            "subtract_from": subtract_from - 1,
+            "subtract_from": subtract_from,
             "fee_rate": fee_rate,
             "rbf": rbf,
             "selected_coins": [],

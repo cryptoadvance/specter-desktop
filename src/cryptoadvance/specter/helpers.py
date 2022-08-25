@@ -16,6 +16,7 @@ from embit.psbt import PSBT
 from embit.transaction import Transaction
 from embit.liquid.pset import PSET
 from embit.liquid.transaction import LTransaction
+from embit.liquid.networks import NETWORKS
 from .persistence import read_json_file, write_json_file
 from .util.bcur import bcur_decode
 import threading
@@ -64,7 +65,24 @@ def is_testnet(chain):
 
 
 def is_liquid(chain):
-    return chain not in ["main", "regtest", "test", "signet", "None", "none", None, ""]
+    return chain in ["liquidv1", "liquidtestnet", "elementsregtest", "elreg"]
+
+
+def normalize_address(addr: str) -> str:
+    """
+    Normalized address to canonical form.
+    Upper bech32 -> lower bech32, but doesn't touch base58 addresses.
+    """
+    # bitcoin hrps
+    hrps = {net["bech32"] + "1" for net in NETWORKS.values()}
+    # liquid hrps
+    # Blech32 addresses are intended for confidential assets
+    hrps = hrps.union(
+        {net["blech32"] + "1" for net in NETWORKS.values() if "blech32" in net}
+    )
+    if addr.lower().startswith(tuple(hrps)):
+        return addr.lower()
+    return addr
 
 
 def locked(customlock=defaultlock):

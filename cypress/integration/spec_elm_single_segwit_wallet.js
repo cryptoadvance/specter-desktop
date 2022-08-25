@@ -37,11 +37,6 @@ describe('Operating with an elements singlesig wallet', () => {
                 expect(newBalance).to.be.lte(oldBalance - 1.5)
             })
         })
-
-        // Workaround: Transaction does not disappear
-        cy.get('#btn_send').click()
-        // The "delete" button in the first psbt
-        cy.get('.row > :nth-child(2) > .btn').click()
     })
 
     it('send unconfidential transaction from segwit', () => {
@@ -83,11 +78,6 @@ describe('Operating with an elements singlesig wallet', () => {
                 expect(newBalance).to.be.lte(oldBalance - 1.5)
             })
         })
-
-        // Workaround: Transaction does not disappear
-        cy.get('#btn_send').click()
-        // The "delete" button in the first psbt
-        cy.get('.row > :nth-child(2) > .btn').click()
     })
 
     it('send unconfidential transaction from nested segwit', () => {

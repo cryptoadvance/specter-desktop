@@ -204,6 +204,8 @@ devices_endpoint.new_device_keys
 devices_endpoint.new_device_manual
 devices_endpoint.new_device_mnemonic
 devices_endpoint.new_device_type
+exfund_endpoint.index
+exfund_endpoint.static
 hwi_server.api
 hwi_server.hwi_bridge_settings
 hwi_server.index
@@ -309,6 +311,7 @@ wallets_endpoint_api.fees
 wallets_endpoint_api.generatemnemonic
 wallets_endpoint_api.get_label
 wallets_endpoint_api.get_scantxoutset_status
+wallets_endpoint_api.is_address_mine
 wallets_endpoint_api.pending_psbt_list
 wallets_endpoint_api.rescan_progress
 wallets_endpoint_api.set_label

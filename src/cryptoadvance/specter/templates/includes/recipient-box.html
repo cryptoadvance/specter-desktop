@@ -1,0 +1,489 @@
+<!-- 
+    A recipient form. The .value property returns a dictionary of address, label, amount and more
+
+{#- Usage -
+
+    <recipient-box id=`recipient_0`  recipientId=0   title=`Recipient 1`></recipient-box>
+
+	or via the class:
+			let newRecipient = new RecipientBox();
+			newRecipient.id = `recipient_${recipientId}`;
+			newRecipient.recipientId = recipientId;
+			newRecipient.title = `Recipient ${recipientId+1}`;
+			newRecipient.addEventListener('address-input', (event) => {
+				validateForm()
+			})
+
+
+	It exposes the events:
+	  - 'remove'   # is called when the remove button is clicked
+	  - 'address-input'
+	  - 'unit-change'
+	  - 'send-max'
+
+
+	It has the attributes: ["value", "name", "id", "title", "address", "label", 
+								"recipientId", "max", "step", "amount", "hiddenRemoveButton"]
+			These attributes will be assigned to the appropriate html elements
+
+	It has the properties:
+	  - 'value' returns a dict with important attributes
+
+#} 
+-->
+
+<template id="recipient-box">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+
+	<style>
+		.max-btn:hover {
+			text-decoration: underline;
+			cursor: pointer;
+		}
+		.address {
+			padding: 7px;
+		}
+		.address-label {
+			padding: 7px;
+			margin-top: 5px;
+			margin-bottom: 5px;
+		}
+	</style>
+
+	<div id="recipient" class="recipient_wrapper_item" >		
+				<span id='title'><!-- the title comes in here--></span>		
+				<img src="{{ url_for('static', filename='img/close.svg') }}" class="recipient_button recipient_remove" title="Remove recipient" id="remove" style="float:right">
+				<div class="recipient_wrapper_inner_box"  >
+					<div class="row" style="gap: 5px">
+						<input type="text" id="address" name="address" class="address" value="" placeholder='{{ _("Recipient address") }}'>
+						<qr-scanner id="address-scan" style="margin-top: 3px;">
+							<a slot="button" class="btn" style="height: 35px;">
+							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Scan") }}</a>
+						</qr-scanner>
+					</div>				
+					<input type="text" id="label" class="address-label" name="label" value="" placeholder='{{ _("Address label") }}'>
+					<br>
+					{{ _("Amount:") }}<br>
+					<input style="width: 200px" type="number" name="amount" id="amount" min=0 step='1e-8' autocomplete="off" placeholder="0"> <!-- the value comes in here-->
+					<div class="mobile-only" style="margin-top: 10px;"></div>
+					<span id='asset_selector'><!-- the assetSelector comes in here--></span>
+					<span class="note max-btn" style="margin-left: 5px;" id="send_max">({{ _("send max") }})</span>
+					<div>
+						<span class="note" id="converted_unit_amount">-</span> <span class="note" id="converted_unit_label"><!-- the convertedUnit comes in here--></span> <span class="note" id="converted_unit_alt"></span>
+					</div>
+				</div>
+			<div>
+</template>
+
+
+<template id="liquid-asset-selector">
+	<select id="amount_unit" name="amount_unit" style="width: 100px;" >
+		<option value="btc">LBTC</option>
+		<option value="sat">L-sat</option>
+	{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
+		<option value="{{asset}}">{{asset | assetlabel}}</option>
+	{% endfor %}
+	</select>
+</template>
+
+<template id="bitcoin-asset-selector">
+	<label><input id="amount_unit_sat" type="radio" class="inline" style="margin: 0 5px;" name="amount_unit"  value="sat">sat</label>
+	<label><input id="amount_unit_btc" type="radio" class="inline" style="margin: 0 5px;" name="amount_unit"  value="btc">BTC</label>
+</template>
+
+
+
+<script type="text/javascript">
+	class RecipientBox extends HTMLElement {
+		constructor() {
+			super();
+			
+			this.internals = this.attachInternals();
+			this.recipientId = null;	// MUST be set for a functioning instance
+
+			this.buildHTML();			// created the html
+			this.attachListeners();		// attaches the listeners to some html objects
+		}
+
+
+
+		// creates the entire html code (without event listeners)  from the template
+		buildHTML(){
+			// Create a shadow root
+			this.attachShadow({
+				mode: 'open'
+			});
+
+			var template_content = document.getElementById('recipient-box').content;
+            let clone = template_content.cloneNode(true);
+
+			this.amountElement = clone.getElementById('amount');
+			this.addressElement = clone.getElementById('address');
+			this.labelElement = clone.getElementById('label');
+			this.titleElement = clone.getElementById('title'); 
+			this.removeElement = clone.getElementById('remove'); 
+
+            this.shadowRoot.appendChild(clone);
+			this.addAssetSelectorToShadowRoot()			
+		}
+
+
+
+		// add the html code for the assetSelector
+		addAssetSelectorToShadowRoot() { 
+			// add different asset selector template for bitcoin and liquid
+			{% if specter.is_liquid and wallet.balance.get("assets", {}) %}
+				var template_content = document.getElementById('liquid-asset-selector').content;
+				var clone = template_content.cloneNode(true);				
+
+				this.amountUnitElement = clone.getElementById('amount_unit');
+				// create custom getter and setter functions
+				this.setUnit =  (newValue) => {
+					this.amountUnitElement.value = newValue;
+					this.updateUnitLabelAndStep();
+				}
+				this.getUnit =  () => {
+					return this.amountUnitElement.value;
+				}
+			{% else %}
+				var template_content = document.getElementById('bitcoin-asset-selector').content;
+				var clone = template_content.cloneNode(true);				
+
+				this.amountUnitSatElement = clone.getElementById('amount_unit_sat');
+				this.amountUnitBtcElement = clone.getElementById('amount_unit_btc');
+				// create custom getter and setter functions
+				this.setUnit =  (newValue) => {
+					this.amountUnitBtcElement.checked =  newValue == 'btc';
+					this.amountUnitSatElement.checked =  newValue == 'sat';
+					this.updateUnitLabelAndStep();
+				}
+				this.getUnit =  () => {
+					return this.amountUnitBtcElement.checked  ? this.amountUnitBtcElement.value : this.amountUnitSatElement.value ;
+				}
+			{% endif %}
+
+
+			this.shadowRoot.getElementById('asset_selector').appendChild(clone);
+
+		} 
+
+
+
+		// adds EventListeners 
+		attachListeners(){
+			// I cannot use  getElementById , but  have to use querySelectorAll, because there are multiple unit buttons,
+			// that need to trigger the same event
+			this.shadowRoot.querySelectorAll('[name="amount_unit"]').forEach(input => {
+				input.addEventListener('change',() => {
+					this.updateUnitLabelAndStep();
+
+					this.dispatchEvent(new CustomEvent('unit-change'));
+				});	
+			}); 	
+
+
+			this.addressElement.addEventListener('input', event=>{
+				this.dispatchAddressOnInput();
+			});			
+
+
+			this.shadowRoot.getElementById('address-scan').addEventListener('scan', event=>{
+				let addr = event.detail.result;
+				if(addr == null){
+					return;
+				}
+				// remove bitcoin: stuff
+				if(addr.indexOf("bitcoin:") >= 0){
+					addr = addr.substr(addr.indexOf("bitcoin:")+8);
+				}
+				let arr = addr.split("?");
+				addr = arr[0];
+				this.addressElement.value = addr;
+				let evt = new Event('input');
+				this.addressElement.dispatchEvent(evt);
+				// parse metadata like amount and message
+				if(arr.length > 1){
+					arr = arr[1].split("&");
+					arr.forEach((e)=>{
+						if(e.startsWith("amount=")){
+							let val = parseFloat(e.substr(7));
+							if(this.unit == 'sat'){
+								val = Math.round(val*1e8);
+							}
+							this.amountElement.value = val;
+							let evt = new Event('input');
+							this.amountElement.dispatchEvent(evt);
+						}
+						if(e.startsWith("message=") || e.startsWith("label=")){
+							this.labelElement.value = e.split("=")[1];
+						}
+					});
+				}
+			});
+
+			
+			this.shadowRoot.getElementById('send_max').addEventListener('click', event=>{
+				this.dispatchSendMax()
+			});			
+
+
+			this.removeElement.addEventListener('click', event=>{
+				this.dispatchRemove()
+			});			
+
+			this.amountElement.addEventListener('input', event=>{
+				this.calculateConvertedUnit()
+			});			
+
+
+		}
+
+
+
+		markAddressGreenIfMine(){
+			// mark own addresses green
+			this.isAddressMyOwn().then((isMine) => {
+				this.markRecipient(isMine);
+			});
+		}
+
+		dispatchAddressOnInput(result) {
+			let address = this.addressElement.value;
+			// To reduce the fetch API calls if the address is typed
+			// TODO: If we have a better JS address validation, this can be useful here, too
+			if (address.length >= 14) {
+				this.markAddressGreenIfMine();
+				this.dispatchEvent(new CustomEvent('address-input'));
+			}
+		}
+
+		dispatchRemove(result) {
+			this.dispatchEvent(new CustomEvent('remove'));
+		}
+
+		dispatchSendMax(result) {
+			this.dispatchEvent(new CustomEvent('send-max'));
+		}
+
+
+
+		// this function together with attributeChangedCallback ensures that setting attributes directly in html 
+		// like <recipient-box title='title'></div>  works.
+		static get observedAttributes() {
+			// define the attributes that can be defined via <recipient-box name="recipient-box" id='4'></recipient-box>	
+			var attributes = ["value", "name", "id", "title", "address", "label", "unit", 
+								"recipientId", "max", "step", "amount", "hiddenRemoveButton"];
+			return attributes;
+		}
+
+		attributeChangedCallback(attribute, oldValue, newValue) {
+			if (oldValue == newValue){return}
+			if (attribute=="value"){
+				this.value = newValue;
+			} else if (attribute=="name"){
+				this.name = newValue;
+			} else if (attribute=="address"){
+				this.address = newValue;
+			} else if (attribute=="title"){
+				this.title = newValue;
+			} else if (attribute=="recipientId"){
+				this.recipientId = newValue;
+			} else if (attribute=="label"){
+				this.label = newValue;
+			} else if (attribute=="unit"){
+				this.unit = newValue;
+			} else if (attribute=="step"){
+				this.step = newValue;
+			} else if (attribute=="max"){
+				this.max = newValue;
+			} else if (attribute=="amount"){
+				this.amount = newValue;
+			} else if (attribute=="id"){
+				this.id = newValue;
+			} else if (attribute=="hiddenRemoveButton"){
+				this.hiddenRemoveButton = newValue;
+			}
+			
+		}
+
+
+
+		// title
+		set title(newValue){
+			this.titleElement.innerText = newValue;
+		}			
+		get title(){
+			return this.titleElement.innerText;
+		}		
+
+		// address
+		set address(newValue){
+			this.addressElement.value = newValue;
+			this.markAddressGreenIfMine();
+		}			
+		get address(){
+			return this.addressElement.value;
+		}		
+
+		// label
+		set label(newValue){
+			this.labelElement.value = newValue;
+		}			
+		get label(){
+			return this.labelElement.value;
+		}		
+
+		// unit
+		set unit(newValue){
+			// this function is different for bitcoin and liquid 
+			this.setUnit(newValue);
+		}			
+		get unit(){
+			// this function is different for bitcoin and liquid 
+			return this.getUnit();
+		}				
+
+		// step
+		set step(newValue){
+			this.amountElement.step = newValue;
+		}			
+		get step(){
+			return parseFloat(this.amountElement.step );
+		}		
+
+		// amount
+		set amount(newValue){
+			this.amountElement.value = newValue;
+			this.calculateConvertedUnit()
+		}			
+		get amount(){
+			var value = parseFloat(this.amountElement.value );
+			return value;
+		}		
+
+
+		// max
+		set max(newValue){
+			this.amountElement.max = newValue;
+		}			
+		get max(){
+			return parseFloat(this.amountElement.max );
+		}		
+
+
+
+
+		// value
+		set value(newValue) {
+			// loop through all the keys and set the attributes
+			for (var key in newValue) {
+				this.attributeChangedCallback(key, null,  newValue[key]);
+			} 
+		}
+
+		// Returns a dict with important attributes
+		// the keys are in python style, because they will be later sent to the python server
+		get value() {
+			return {
+				"unit":this.unit,
+				"amount":this.amount,
+				"btc_amount":this.btcAmount,
+				"recipient_id":this.recipientId,
+				"label":this.label,
+				"address":this.address,
+			}
+		}
+
+		static get properties() {
+			return {
+				value: {
+					type: String
+				}
+			};
+		}
+
+
+		// btcAmount
+		get btcAmount(){
+			return (this.unit == 'sat' ? this.amount / 1e8 : this.amount);
+		}		
+
+
+
+
+		// hiddenRemoveButton
+		set hiddenRemoveButton(newValue){
+			if (!this.shadowRoot) {return }
+			this.removeElement.hidden = newValue;
+		}			
+		get hiddenRemoveButton(){
+			return this.removeElement.hidden;
+		}		
+
+		
+
+
+		updateUnitLabelAndStep() {
+			let unitLabelEl = this.shadowRoot.getElementById('converted_unit_label');
+			if(this.unit == 'sat'){
+				unitLabelEl.innerHTML = 'BTC';
+			}else if(this.unit == 'btc'){
+				unitLabelEl.innerHTML = 'sat';
+			}else{
+				unitLabelEl.innerHTML = '';
+			}
+			this.step = this.unit == 'sat' ? 1 : 1e-8;
+			this.calculateConvertedUnit();
+		}
+
+		calculateConvertedUnit() {
+			let convertedAmount = parseFloat(Number.parseFloat(this.amount / (this.unit == 'sat' ? 1e8 : 1e-8)).toFixed((this.unit == 'sat' ? 8 : 0)));
+			if (convertedAmount == 'NaN') {
+				convertedAmount = '-'
+			}
+
+			if(this.unit == 'sat' || this.unit == 'btc'){
+				this.shadowRoot.getElementById('converted_unit_amount').innerHTML = (isNaN(convertedAmount) ? '-' : convertedAmount.toFixed(8).replace(/(\.0+|0+)$/, ''));
+			{% if specter.price_check %}
+				let altRate = parseFloat('{{ specter.alt_rate }}');
+				let altSymbol = '{{ specter.alt_symbol }}';
+				let altAmount = parseFloat((altRate * this.btcAmount).toFixed(2))
+				if (!isNaN(altAmount) && (altSymbol && altRate)) {
+					this.shadowRoot.getElementById('converted_unit_alt').innerHTML = '&nbsp;(' + altAmount + altSymbol + ')';
+				} else {
+					this.shadowRoot.getElementById('converted_unit_alt').innerHTML = '';
+				}
+			{% endif %}
+			}else{
+				this.shadowRoot.getElementById('converted_unit_amount').innerHTML = '&nbsp;';
+				this.shadowRoot.getElementById('converted_unit_alt').innerHTML = '&nbsp;';
+			}
+			
+		}
+
+
+
+		async isAddressMyOwn() {
+			let address = this.addressElement.value;
+			if (!address){return;}
+
+			let url="{{ url_for('wallets_endpoint_api.is_address_mine', wallet_alias=wallet.alias, address='this_address') }}"
+			url = url.replace('this_address', address)			
+					
+			let is_address_mine = send_request(url, 'GET', "{{ csrf_token() }}");
+			return is_address_mine;
+		}
+
+		markRecipient(is_address_mine){
+			let html_address = this.addressElement;
+			if (is_address_mine) {
+				html_address.style.backgroundColor= 'var(--cmap-bg-address-is-mine)';
+			} else {
+				html_address.style.backgroundColor= "rgba(1, 1, 1, 0)";
+			}
+
+		}
+
+	}
+	customElements.define('recipient-box', RecipientBox);
+</script>
