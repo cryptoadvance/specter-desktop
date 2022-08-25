@@ -227,6 +227,7 @@
 
         disableExplorerLink() {
             this.explorerLink.classList.remove('explorer-link');
+            this.explorerLink.removeAttribute('href')
             this.explorerLink.style['text-decoration'] = 'none';
             this.explorerLink.onclick = () => {return false;}
         }
