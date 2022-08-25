@@ -49,34 +49,6 @@ function setTargetUiAvailability(targetUi, isAvailable, id=null) {
 
 
 
-    /* jsNotification structure see https://notifications.spec.whatwg.org/#api
-    options : {  
-        "//": "Visual Options",
-        "body": "<String>",
-        "icon": "<URL String>",
-        "image": "<URL String>",
-        "badge": "<URL String>",
-        "vibrate": "<Array of Integers>",
-        "sound": "<URL String>",
-        "dir": "<String of 'auto' | 'ltr' | 'rtl'>",
-    
-        "//": "Behavioral Options",
-        "tag": "<String>",
-        "data": "<Anything>",
-        "requireInteraction": "<boolean>",
-        "renotify": "<Boolean>",
-        "silent": "<Boolean>",
-    
-        "//": "Both visual & behavioral options",
-        "actions": "<Array of Strings>",
-    
-        "//": "Information Option. No visual affect.",
-        "timestamp": "<Long>"
-    }
-    */
-
-
-
 var webapiHasPermission = false; //global variable           
 /**
  * This function just checks if Notification_API is granted and writes the result
@@ -162,10 +134,20 @@ function checkAndRequestWebapiPermission(fGranted, fDenied, fDefault, retries_if
 
 
 
+
+
+
+
 /**
  * Created a Notifications_API notification similar to a push-notification.
  * It also asks for permission, if possible.
  * @param {*} jsNotification 
+ * 
+ * 
+    In prinicple the jsNotification['options'] in can include all items listed in https://notifications.spec.whatwg.org/#api . 
+    they are however not all used on all platforms, see https://developer.mozilla.org/en-US/docs/Web/API/notification#browser_compatibility
+
+ * 
  */
 function webapiNotification(jsNotification) {
     // console.log('webapiNotification')
@@ -216,7 +198,14 @@ function webapiNotification(jsNotification) {
 
 /**
  * Creates a javascript popup message.
+ * 
  * @param {*} jsNotification 
+ * 
+ * Used options:
+     - notification_type
+     - body
+     - image
+     - timeout
  */
 function jsMessageBox(jsNotification){
     function thisNotificationClose(){
@@ -266,6 +255,27 @@ function js_console(jsNotification){
  * Shows the jsNotification in the targetUi
  * @param {*} targetUi 
  * @param {*} jsNotification 
+ * 
+ * 
+ * 
+     jsNotification is the data structure usually created in python by notification.to_js_notification()
+    An example jsNotification looks like:
+        {
+            "title": title,
+            "id": id,
+            "notification_type": notification_type,
+            "timeout": timeout,
+            "options": {
+                body = "",
+                image = None,
+            },
+        }
+    
+        In prinicple the options dict can include all items listed in https://notifications.spec.whatwg.org/#api . 
+        - Only some of the are used in js_message_box (see jsMessageBox), 
+            and even in web_api they are not all used on all platforms, see https://developer.mozilla.org/en-US/docs/Web/API/notification#browser_compatibility
+        - js_logging will display the entire jsNotification data structure.
+
  */
 async function show_notification(targetUi, jsNotification){
     if (targetUi == 'js_message_box'){
