@@ -1,0 +1,8 @@
+{% for _,service in specter.service_manager.services.items() %}
+    {% if service.id in current_user.services %}
+        {% set html_inject_in_basejinja = service.inject_in_basejinja_body_top() %}
+        {% if html_inject_in_basejinja %}
+            {{ html_inject_in_basejinja | safe }}
+        {% endif %}
+    {% endif %}
+{% endfor %}

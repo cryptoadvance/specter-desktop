@@ -26,8 +26,8 @@ pip3 install mkdocs mkdocs-video  mdx_truly_sane_lists
 if [ "$1" = "build" ]; then
     cp README.md docs
     sed -i 's/docs\///g' docs/README.md
+    sed -i 's/Checkout our Documentation at.*//' docs/README.md
     sed -i 's/\.\.\/README.md/README.m/g' docs/*.md
-
 fi
 
 

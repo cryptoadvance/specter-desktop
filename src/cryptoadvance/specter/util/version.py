@@ -159,7 +159,6 @@ class VersionChecker:
                 requests_session = self.specter.requests_session(force_tor=False)
             else:
                 requests_session = requests.Session()
-            print(requests_session.get().json())
             releases = (
                 requests_session.get(f"https://pypi.org/pypi/{self.name}/json")
                 .json()["releases"]
