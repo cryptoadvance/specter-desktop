@@ -313,7 +313,9 @@ def new_wallet(wallet_type):
                             ]["url"]
                     wallet.rescanutxo(
                         explorer,
-                        app.specter.requests_session(explorer.endswith(".onion")),
+                        app.specter.requests_session(
+                            explorer and explorer.endswith(".onion")
+                        ),
                         app.specter.only_tor,
                     )
                     app.specter.info["utxorescan"] = 1
@@ -462,7 +464,7 @@ def send_new(wallet_alias):
     recipients_txt = ""
     fillform = False
     subtract = False
-    subtract_from = 1
+    subtract_from = 0
     fee_options = "dynamic"
     rbf = not app.specter.is_liquid
     rbf_utxo = []
