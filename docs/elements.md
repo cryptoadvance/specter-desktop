@@ -5,10 +5,10 @@ This document is a description on how to get started with elements/liquid. We'll
 
 After that, we'll explain how to connect your Specter Desktop to that node, create wallets and receive some coins (via sideshift.ai). Signing transactions is nowhere different than in any other Hotwallet.
 
-# Elements Installation
+## Elements Installation
 The Elements's instalaation is highly dependent to your system. Choose a fitting [artifact](https://github.com/ElementsProject/elements/releases) and install them. 
 
-# Liquid Node
+## Liquid Node
 In order to validate Peg-Ins, you'll need RPC-access to your Bitcoin-Core node. I did this with a fullnode, it might also work with a pruned node (not tested, though).
 
 First, we need to create the `elements.conf` file which is located in the `datadir`. If you don't specify the datadir at startup, the standard-directory is `<homefolder>/.elements/elements.conf`. Here is an example:
@@ -40,7 +40,7 @@ A successfull startup will result in validating the blocks. Currently the blockh
 
 It took about 12 hours for a full-sync in my case on a Intel Quadcore Gen 6 3.50GHz.
 
-# Liquid Configuration in Specter
+## Liquid Configuration in Specter
 
 You're probably familiar with this part. On the upper-left, click on the `two arrows -> connect a new node -> Connect existing node`. Here is a screenshots with the values fitting to the configuration above:
 
@@ -54,7 +54,7 @@ As you can your wallets disappeared but your devices did not. The shown wallets 
 
 ![](./images/elements/nodechoose.png)
 
-# Hotwallet-Creation
+## Hotwallet-Creation
 
 The process of creating a Liquid Hotwallet is very similiar to creating a Bitcoin-Core Hotwallet. First you need to create a Hotwallet-Device `Add new device -> Elements Core (hot wallet) -> Continue -> Enter Name -> Continue` (Don't forget to note the seed).
 After that, you can directly create a single key wallet: `Create single key wallet -> Enter Name -> Create Wallet`. You can download the usual Backup Pdf.
@@ -63,7 +63,7 @@ So if you now get a receive-address, you have to choose between a Confidential a
 
 ![](./images/elements/receive.png)
 
-# Fund the wallet
+## Fund the wallet
 
 There are many ways you can fund your wallet. Let's assume you have Bitcoin and want to receive LiquidBtc (LBTC). At [https://sideswap.io/peg-in-out/](https://sideswap.io/peg-in-out/) you can Peg-In some Btc as a service. At [https://sideshift.ai/](https://sideshift.ai/) you can [https://sideshift.ai/btc/liquid](swap) BTC agains LBTC (and [vice versa](https://sideshift.ai/liquid/btc)).
 
@@ -73,9 +73,9 @@ As an example, let'S choose sideshift.ai to swap some BTC to LBTC.
 
 ![](./images/elements/txs.png)
 
-## Advanced stuff: Elements Compilation
+### Advanced stuff: Elements Compilation
 
-# Elements Compilation
+## Elements Compilation
 
 Since `v1.7.0`, It's no longer needed to compile Elements yourself as Specter is now working with Elements [0.21.0](https://github.com/ElementsProject/elements/releases/tag/elements-0.21.0).
 However, maybe you want to compile it for some reason, so here is a quick guide on how to do that.
