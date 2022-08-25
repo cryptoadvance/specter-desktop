@@ -8,6 +8,15 @@ var userToken = null;
  * 
  * Example:
  * createNotification('this is the title', {target_uis:['js_message_box', 'webapi'], body:'body line 1\nline 2', image:'/static/img/ghost_3d.png', timeout:3000})
+ * 
+ * Options dictionary can include:
+        target_uis:  list of target_uis, e.g., ['js_message_box', 'webapi']    //  "default" will be replaced by default_target_ui
+        notification_type: string,e.g. "information", all possibilities are: "debug", "information", "warning", "error", "exception"
+        body: string
+        data: any kind of data, which will be stored in the notification
+        image: image url
+        icon: currently only used for web_api (see https://notifications.spec.whatwg.org/#api ) , and not even on all platforms there
+        timeout: [ms] after which the notification will close automatically. 
  */ 
  async function createNotification(title, options){ 
     if (!websocket){return}
