@@ -152,4 +152,6 @@ class Notification:
         s = self.title
         if self.body:
             s += f"\n{self.body}"
+        if self.data:
+            s += f"\nData: {self.data}"
         return s
