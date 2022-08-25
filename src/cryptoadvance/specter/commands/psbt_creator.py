@@ -251,7 +251,7 @@ class PsbtCreator:
                                 )
                         else:
                             raise SpecterError(
-                                f"Non-compliant json: Unknown unit {recipient['unit']}"
+                                f"Non-compliant json: Unknown unit {recipient['unit']}. This could be caused by using a special name for your Elements regtest."
                             )
                 except ValueError as e:
                     raise SpecterError(
