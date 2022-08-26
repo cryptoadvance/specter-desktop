@@ -20,3 +20,6 @@ build the image like:
 docker build -t registry.gitlab.com/relativisticelectron/specter-desktop/electron-builder:latest .
 docker push registry.gitlab.com/relativisticelectron/specter-desktop/electron-builder:latest
 ```
+
+
+'electron-builder:latest' is based on Ubuntu jammy 22.04, see: https://github.com/electron-userland/electron-builder/pull/6922  and  https://github.com/cryptoadvance/specter-desktop/pull/1688
