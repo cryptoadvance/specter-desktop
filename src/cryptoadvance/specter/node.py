@@ -397,7 +397,7 @@ class Node:
         self.utxorescanwallet = None
 
     def check_blockheight(self):
-        return self.info["blocks"] != self.rpc.getblockcount()
+        return self.info.get("blocks") != self.rpc.getblockcount()
 
     def is_liquid(self):
         return is_liquid(self.chain)
