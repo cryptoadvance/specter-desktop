@@ -1,3 +1,24 @@
+# Release Notes
+
+## v1.12.0 August 26, 2022
+- Feature: add faucet and exfund extensions #1820 (Stepan Snigirev)
+- Feature: Dev tools - Adding full python access via javascript for developers #1842 (relativisticelectron)
+- UIUX: Complete overhaul of the tooltips used in Specter Desktop #1813 (Manolis Mandrapilias)
+- UIUX: Easier adding and deleting of recipients #1782 (relativisticelectron)
+- UIUX: Optimize tx-table for mobile screen #1804 (relativisticelectron)
+- Mobile: Some extra height in mobile browsers #1827 (relativisticelectron)
+- Bugfix: Allow mouse selection during address label editing for Firefox #1825 (relativisticelectron)
+- Bugfix: Another broken html part and b tag #1823 (relativisticelectron)
+- Bugfix: Fiat price in address table not visible #1836 (relativisticelectron)
+- Bugfix: remove print statement with buggy expression #1822 (k9ert)
+- Bugfix: fix explorer issue #1838 #1839 (relativisticelectron)
+- Chore: Detecting Liquid chain #1851 (Manolis Mandrapilias)
+- Chore: Fix psbt creator api to work with liquid assets when using json #1831 (Stepan Snigirev)
+- Chore: Upgrade pyinstaller from 4.9 to 5.2 #1807 (k9ert)
+- Docs: Add mobile access question to the FAQ #1829 (Manolis Mandrapilias)
+- Docs: some doc fixes, refactorings and ext clarification #1789 (k9ert)
+- Docs: Supported Python versions #1847 (Willie Wheeler)
+
 ## v1.10.5 Juli 21, 2022
 - Bugfix: startup issues for MacOS App 1815 #1816 (relativisticelectron)
 - Feature: generate app_config.py in extgen #1801 (k9ert)
