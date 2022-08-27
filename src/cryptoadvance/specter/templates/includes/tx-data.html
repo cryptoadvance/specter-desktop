@@ -161,6 +161,10 @@
                         if("assetlabel" in spentOutput){
                             assetlabel = spentOutput.assetlabel;
                         }
+                        if (assetlabel == ""){
+                            assetlabel = "BTC"
+                        }                    
+                        assetlabel = {% if specter.is_testnet %}"t"{%endif%} + assetlabel
                         if (spentOutput.value) {
                             value = parseFloat(spentOutput.value.toFixed(8));
                             if(assetlabel == "LBTC" || assetlabel == ""){
@@ -186,14 +190,16 @@
                         }
 
                         addressAndValue = `<br>
-                            {{ _("Address:") }} <address-label 
+                            {{ _("Address:") }} 
+                            <address-label 
                                 data-copy-hidden="true"
                                 data-address="${address}"
                                 data-wallet="${this.wallet}"
                                 ${labelAttr}
-                                ${serviceIdAttr}
-                            /><br>
-                            {{ _("Value:") }} ${value} ${assetlabel} ${price}`;
+                                ${serviceIdAttr}>
+                            </address-label><br>
+                            {{ _("Value:") }} ${value} ${assetlabel} ${price}
+                            `;
                     }
 
                     if ('coinbase' in rawtx.vin[i]) {
@@ -210,7 +216,7 @@
                         <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
                             <b>{{ _("Input #") }}${i}</b><br><br>
                             {{ _("Transaction id") }}: <explorer-link style="word-break: break-all;" data-type="tx" data-value="${rawtx.vin[i].txid}"></explorer-link><br>
-                            {{ _("Output #") }}" ${rawtx.vin[i].vout}
+                            {{ _("Output Index: ") }}${rawtx.vin[i].vout}
                             ${addressAndValue}
                         </p>
                     `;
@@ -235,6 +241,10 @@
                     if("assetlabel" in rawtx.vout[i]){
                         assetlabel = rawtx.vout[i].assetlabel;
                     }
+                    if (assetlabel == ""){
+                        assetlabel = "BTC"
+                    }                    
+                    assetlabel = {% if specter.is_testnet %}"t"{%endif%} + assetlabel
                     if (rawtx.vout[i].value) {
                         value = parseFloat(rawtx.vout[i].value.toFixed(8));
                         if(assetlabel == "LBTC" || assetlabel == ""){
@@ -270,13 +280,14 @@
                     rawtxHTML += `
                     <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
                         <b>{{ _("Output #${i}") }}</b><br><br>
-                        {{ _("Address:") }} <address-label
+                        {{ _("Address:") }} 
+                        <address-label
                             data-copy-hidden="true"
                             data-address="${address}"
                             data-wallet="${this.wallet}"
                             ${labelAttr}
-                            ${serviceIdAttr}
-                        /><br/>
+                            ${serviceIdAttr}>
+                        </address-label><br>
                         {{ _("Value:") }} ${value} ${assetlabel} ${price}
                     </p>
                     `;
