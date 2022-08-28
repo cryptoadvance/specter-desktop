@@ -15,9 +15,13 @@
                 newLabel = "sat";
             } 
         } 
-        if (!newLabel.startsWith("t")){
-            newLabel = {% if specter.is_testnet %}"t"{%endif%} + newLabel;
-        }
+
+        {% if specter.is_testnet %}
+            if (!newLabel.startsWith("t")){
+                newLabel = "t" + newLabel;
+            }
+        {%endif%}
+        
         return newLabel;
     }
 
