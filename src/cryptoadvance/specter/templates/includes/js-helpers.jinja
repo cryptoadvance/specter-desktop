@@ -46,11 +46,8 @@
     function assetLabelIsBitcoin(assetLabel){
         if (!assetLabel){
             return true            
-        }
-        if([null, "", "LBTC", "BTC", "tBTC", "tLBTC"].indexOf(assetLabel) > -1){
-            return true
-        }
-        return false
+        } 
+        return ([null, "", "LBTC", "BTC", "tBTC", "tLBTC"].indexOf(assetLabel) > -1)
     }
 
     // Calculates and formats the price as a span class="note"
