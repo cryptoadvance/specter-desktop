@@ -1894,14 +1894,14 @@ class Wallet:
                         info.index, branch_index=int(info.change)
                     )
                     for k in d.keys:
-                        num_leaf_hashes = 0
-                        leaf_hashes = None
+                        # TODO: support keysigns from within the taptree (note: embit
+                        # must be updated first).
+                        leaf_hashes = []
                         derivation = DerivationPath(
                             k.origin.fingerprint, k.origin.derivation
                         )
                         pub = PublicKey.from_xonly(k.xonly())
                         sc.taproot_bip32_derivations[pub] = (
-                            num_leaf_hashes,
                             leaf_hashes,
                             derivation,
                         )
