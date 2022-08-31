@@ -4,6 +4,7 @@ from flask import render_template
 from cryptoadvance.specter.services.service import Service, devstatus_alpha
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.wallet import Wallet
+from cryptoadvance.specter import util
 from .console import Console
 import flask
 import flask_login
@@ -23,13 +24,7 @@ class DevhelpService(Service):
     devstatus = devstatus_alpha
     console = Console()
     console.updateNamespace(
-        {
-            "app": app,
-            "flask": flask,
-            "flask_login": flask_login,
-            "current_user": current_user,
-            "namespace": console.namespace,
-        }
+        {"app": app, "flask": flask, "flask_login": flask_login, "util": util}
     )
 
     sort_priority = 2

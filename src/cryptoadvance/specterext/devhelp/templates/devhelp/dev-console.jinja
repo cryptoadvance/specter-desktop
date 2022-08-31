@@ -31,6 +31,10 @@
     <pre>
     await pythonCommand("app.specter") 
     </pre>
+    Some usefull idioms:
+    <pre>
+    list(flask_login.current_user.wallet_manager.wallets)
+    </pre>
 
     <p>
         Output
@@ -58,7 +62,7 @@
         a = pythonCommand(command).then((result) => {
             var pre = document.createElement("pre");
             pre.append(counter + " > " + command + "\n")
-            if (command.endsWith(".")) {
+            if (command.endsWith(".") && (! (typeof(result) == "string"))) {
                 start.insertBefore(pre,start.children[0])
                 
                 var varHider = document.createElement("input");
@@ -105,11 +109,13 @@
 
 
             } else {
-                pre.append("    " + result + "\n")
+                if (result == "") {
+                    result = "(empty string)"
+                }
+                pre.append("    " + result.toString() + "\n")
                 start.insertBefore(pre,start.children[0])
             }
 
-            console.log(result)
         })
         counter++
         return false
