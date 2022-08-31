@@ -60,18 +60,18 @@ def btcamount_formatted(
                 and len(formatted_amount) - i <= maximum_digits_to_strip
             ):
                 # replace with https://unicode-table.com/en/2007/
-                formatted_amount = replace_substring(formatted_amount, i, 1, " ")
+                formatted_amount = replace_substring(formatted_amount, i, 1, "\u2007")
                 continue
             # the following if branch is only relevant if last_digits_to_strip == 8, i.e. all digits can be stripped
             elif formatted_amount[i] == ".":
                 # replace with https://unicode-table.com/en/2008/
-                formatted_amount = replace_substring(formatted_amount, i, 1, " ")
+                formatted_amount = replace_substring(formatted_amount, i, 1, "\u2008")
             break
 
     if enable_digit_spaces_for_counting:
         # strip last digits for better readability and replace with invisible characters
         for i in [-3, -7]:
-            formatted_amount = replace_substring(formatted_amount, i, 0, " ")
+            formatted_amount = replace_substring(formatted_amount, i, 0, "\u2008")
 
     return formatted_amount
 
