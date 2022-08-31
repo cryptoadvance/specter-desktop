@@ -15,3 +15,6 @@ def test_ConfigManager(empty_data_folder):
     user_mock = Mock()
     cm.update_explorer("CUSTOM", {"url": "meh"}, user_mock, "regtest")
     cm.update_fee_estimator("bitcoin_core", "blub", user_mock)
+    # Check defaults for hiding sensitive info
+    assert cm.data["hide_sensitive_info"] == False
+    assert cm.data["autohide_sensitive_info_timeout_minutes"] == None
