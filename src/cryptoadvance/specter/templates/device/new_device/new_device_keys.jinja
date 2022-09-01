@@ -91,7 +91,7 @@
                     </span>
                 </div>
                 <div id="hwi-only-instructions" {%if device_class.device_type in ['bitcoincore', 'bitcoincore_watchonly', 'cobo', 'coldcard', 'electrum', 'other', 'specter']%}class="hidden"{% endif %}>
-                    <p>{{ _("Connect your hardware device to the computer via USB.") }}<p>
+                    <p>{{ _("Connect your hardware device to the computer via USB.") }}</p>
                     {% if device_class.device_type == 'ledger' %}
                         <p>NOTE: You must open the Bitcoin app on the Ledger before you can upload your keys.</p>
                     {% endif %}
