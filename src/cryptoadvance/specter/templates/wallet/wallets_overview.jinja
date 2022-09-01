@@ -26,7 +26,7 @@
     {% set balance = specter.wallet_manager.joined_balance() %}
     {% set rescan_progress = specter.wallet_manager.wallets.values() | average_of_attribute(attribute='rescan_progress')   %}
     {{ total_wallet_balances(
-        _("Summed Wallet Balances"),
+        _("Combined Wallet Balances"),
         amount_total, 
         amount_confirmed,
         amount_unconfirmed, 
