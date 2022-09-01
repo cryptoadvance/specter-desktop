@@ -1323,7 +1323,7 @@ input:checked + .slider:before {
 }
 
 .last_digits_in_btcamount_formatted{
-    color: #5b5b5a;
+    color: #797979;
     padding-left:2px;
 }
 .thousand_digits_in_btcamount_formatted{
