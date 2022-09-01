@@ -50,9 +50,10 @@ def verify_token(jwt_token):
         return username
     except jwt.ExpiredSignatureError:
         logger.info(f"Token expired. Please create a new one")
-        return {"message": "Token expired. Please create a new one"}
+        return abort(401)
     except jwt.InvalidTokenError:
-        return {"message": "Invalid token. Please create a new one"}
+        logger.info(f"Invalid token. Please create a new one")
+        return abort(401)
 
 
 def require_admin(func):

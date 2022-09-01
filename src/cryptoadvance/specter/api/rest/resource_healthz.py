@@ -6,6 +6,7 @@ https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-read
 import json
 import logging
 from os import abort
+from .base import TokenAuthResource
 
 from cryptoadvance.specter.api.rest.base import BaseResource, rest_resource
 from flask import current_app as app
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 @rest_resource
-class ResourceLiveness(BaseResource):
+class ResourceLiveness(TokenAuthResource):
     """/api/healthz/liveness
     Whether the app is up and running although it might not have connection to DB/nodes etc.
     """

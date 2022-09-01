@@ -72,6 +72,12 @@ class BaseResource(Resource):
 class SecureResource(BaseResource):
     """A REST-resource which makes sure that the user is Authenticated"""
 
+    method_decorators = [error_handling, auth.login_required]
+
+
+class TokenAuthResource(BaseResource):
+    """A REST-resource which makes sure that the user is Authenticated with a JWT-Token"""
+
     method_decorators = [error_handling, token_auth.login_required]
 
 
