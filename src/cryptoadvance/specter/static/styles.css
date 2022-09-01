@@ -1310,3 +1310,23 @@ input:checked + .slider:before {
     padding-left: 6px;
     padding-right: 6px;
 }
+
+
+/* styles for btcamount_formatted */
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.last_digits_in_btcamount_formatted{
+    color: #5b5b5a;
+    padding-left:2px;
+}
+.thousand_digits_in_btcamount_formatted{
+    color: #919191;
+    padding-left:2px;
+}
