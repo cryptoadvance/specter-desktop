@@ -59,7 +59,7 @@
             <table>
                 <tr>
                     <th>Total amount:</th>
-                    <th class="right-align"><span id="fullbalance_amount">{{ amount_total | btcunitamount_fixed_decimals }}</span></th>
+                    <th class="right-align"><span id="fullbalance_amount">{{ amount_total | btcunitamount_fixed_decimals | safe }}</span></th>
                     <th>
                         {% if specter.unit == 'sat' %}
                             sats
@@ -76,7 +76,7 @@
                 {% if amount_unconfirmed > 0 or amount_immature > 0 %}
                     <tr>
                         <th>Confirmed:</th>
-                        <th class="right-align">{{ amount_confirmed | btcunitamount_fixed_decimals }}</th>
+                        <th class="right-align">{{ amount_confirmed | btcunitamount_fixed_decimals | safe }}</th>
                         <th>
                             {% if specter.unit == 'sat' %}
                                 sats
@@ -93,7 +93,7 @@
                     {% if amount_unconfirmed > 0 %}
                     <tr>
                         <th>Unconfirmed:</th>
-                        <th class="right-align">{{ amount_unconfirmed | btcunitamount_fixed_decimals }}</th>
+                        <th class="right-align">{{ amount_unconfirmed | btcunitamount_fixed_decimals | safe }}</th>
                         <th>
                             {% if specter.unit == 'sat' %}
                                 sats
@@ -110,7 +110,7 @@
                     {% endif %}
                 {% endif %}
                 {% if amount_immature > 0  %}
-                <tr style="color: grey;">
+                <tr>
                     <th>Immature:
                         <tool-tip width="200px">
                             <h4 slot="title">{{ _("What are immature outputs?") }}</h4>
@@ -120,7 +120,7 @@
                             </span>
                         </tool-tip>
                     </th>
-                    <th class="right-align">{{ amount_immature | btcunitamount_fixed_decimals }}</th>
+                    <th class="right-align">{{ amount_immature | btcunitamount_fixed_decimals | safe }}</th>
                     <th> 
                         {% if specter.unit == 'sat' %}
                             sats
@@ -129,7 +129,7 @@
                         {% endif %}
                         {% if specter.price_check %} 
                             <th class="right-align">
-                                <span class="note" style="color: grey">({{ amount_immature | altunit }})</span>
+                                <span class="note">({{ amount_immature | altunit }})</span>
                             </th>
                         {% endif %}
                     </th>
@@ -148,7 +148,7 @@
                             <th></th>
                             {% set balance = balance.get("assets",{}).get(asset, {}) %}
                             <th class="right-align">
-                                {{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcunitamount_fixed_decimals }}</th>
+                                {{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcunitamount_fixed_decimals | safe }}</th>
                             <th>
                                 <asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}" edit-mode="enabled"></asset-label>
                             </th>

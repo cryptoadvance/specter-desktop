@@ -46,7 +46,7 @@ def btcunitamount_fixed_decimals(
     value,
     maximum_digits_to_strip=7,
     minimum_digits_to_strip=6,
-    enable_digit_spaces_for_counting=True,
+    enable_digit_formatting=True,
 ):
     if app.specter.hide_sensitive_info:
         return "#########"
@@ -61,7 +61,7 @@ def btcunitamount_fixed_decimals(
         value,
         maximum_digits_to_strip=maximum_digits_to_strip,
         minimum_digits_to_strip=minimum_digits_to_strip,
-        enable_digit_spaces_for_counting=enable_digit_spaces_for_counting,
+        enable_digit_formatting=enable_digit_formatting,
     )
 
 

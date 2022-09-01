@@ -41,7 +41,7 @@ def btcamount_formatted(
     value,
     maximum_digits_to_strip=7,
     minimum_digits_to_strip=6,
-    enable_digit_spaces_for_counting=True,
+    enable_digit_formatting=True,
 ):
     value = round(float(value), 8)
     formatted_amount = "{:,.8f}".format(value)
@@ -60,18 +60,21 @@ def btcamount_formatted(
                 and len(formatted_amount) - i <= maximum_digits_to_strip
             ):
                 # replace with https://unicode-table.com/en/2007/
-                formatted_amount = replace_substring(formatted_amount, i, 1, " ")
+                formatted_amount = replace_substring(formatted_amount, i, 1, "\u2007")
                 continue
             # the following if branch is only relevant if last_digits_to_strip == 8, i.e. all digits can be stripped
             elif formatted_amount[i] == ".":
                 # replace with https://unicode-table.com/en/2008/
-                formatted_amount = replace_substring(formatted_amount, i, 1, " ")
+                formatted_amount = replace_substring(formatted_amount, i, 1, "\u2008")
             break
 
-    if enable_digit_spaces_for_counting:
-        # strip last digits for better readability and replace with invisible characters
-        for i in [-3, -7]:
-            formatted_amount = replace_substring(formatted_amount, i, 0, " ")
+    if enable_digit_formatting:
+        formatted_amount = f'{formatted_amount[:-6]}<span class="thousand_digits_in_btcamount_formatted">{formatted_amount[-6:-3]}</span><span class="last_digits_in_btcamount_formatted">{formatted_amount[-3:]}</span>'
+
+    # make sure the spaces are non-selectable
+    formatted_amount = re.sub(
+        r"(\u2007|\u2008)", r'<span class="unselectable">\1</span>', formatted_amount
+    )
 
     return formatted_amount
 
