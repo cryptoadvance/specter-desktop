@@ -31,6 +31,31 @@
         .xpubs_edit {
             visibility: hidden;
         }
+        .generate_mnemonic_reminder {
+            margin-top: 0.5em;
+            margin-bottom: 0.25em;
+        }
+        .mnemonic_table td {
+            border-bottom: 0;
+            border-left: 1px solid var(--cmap-bg-lightest);
+            border-right: 1px solid var(--cmap-bg-lightest);
+        }
+        .seedqr_support {
+            width: auto;
+            margin-top: 1em;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .seedqr_support td {
+            padding: 10px 5px
+        }
+        .seedqr_support .label {
+            text-align: right;
+        }
+        .seeqr-scan {
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
     </style>
     <form id="form" action="{{ url_for('devices_endpoint.new_device_mnemonic', device_type=device_type) }}" method="POST" style="width: 100%;" onsubmit="if (checkAdvancedValidState()) { showPacman(); } else { event.preventDefault(); }">
         <div class="card center" style="width: auto; margin: 40px;" >
@@ -42,22 +67,28 @@
             <div>
                 <div id="hot-wallet" style="width: 80%; max-width: 700px; margin: auto;">
                     <br>
-                    <p class="note" style="border-radius: 5px; padding: 20px; background: rgba(0,0,0,0.1); color: #ccc;">
-                        <span style="display: inline-block;font-weight: bold; margin-bottom: 8px;">⚠️ A note on hot wallets:</span><br>
-                        {{ _('This will create a ')}}<a style="color: #ddd;" href="https://en.bitcoin.it/wiki/Hot_wallet" target="_blank">{{ _('hot wallet')}}</a>{{ _(' on your Bitcoin Core node.')}}<br>
-                        {{ _("Hot wallets are considered less secure and are not recommended for use with significant amounts. Use with caution and beware the potential risks.") }}
+                    {% if not existing_device %}
+                        <p class="note" style="border-radius: 5px; padding: 20px; background: rgba(0,0,0,0.1); color: #ccc;">
+                            <span style="display: inline-block;font-weight: bold; margin-bottom: 8px;">⚠️ A note on hot wallets:</span><br>
+                            {{ _('This will create a ')}}<a style="color: #ddd;" href="https://en.bitcoin.it/wiki/Hot_wallet" target="_blank">{{ _('hot wallet')}}</a>{{ _(' on your Bitcoin Core node.')}}<br>
+                            {{ _("Hot wallets are considered less secure and are not recommended for use with significant amounts. Use with caution and beware the potential risks.") }}
+                        </p>
+                    {% endif %}
+                    <p>
+                        {% if existing_device %}
+                            {{ _("Re-enter your mnemonic in order to derive new keys") }}
+                        {% endif %}
                     </p>
-                    <p>{{ _("Enter your mnemonic here") }}{% if not existing_device %} {{ _("or use the randomly generated one") }}{% endif %}:</p>
-                    {% if not existing_device %}<p><b>{{ _("Make sure to backup these words!") }}</b></p>{% endif %}
                     {% set wordslist = mnemonic.split(' ') %}
                     {% if not existing_device %}
-                    <nav class="row">
-                        <button type="button" id="generate_mnemonic_btn" class="btn radio left checked" onclick="setMnemonicView('generate')"> {{ _("Generate") }} </button>
-                        <button type="button" id="import_mnemonic_btn" class="btn radio right" onclick="setMnemonicView('import')"> {{ _("Import") }} </button>
-                    </nav>
+                        <nav class="row">
+                            <button type="button" id="generate_mnemonic_btn" class="btn radio left checked" onclick="setMnemonicView('generate')"> {{ _("Generate") }} </button>
+                            <button type="button" id="import_mnemonic_btn" class="btn radio " onclick="setMnemonicView('import')"> {{ _("Import") }} </button>
+                            <button type="button" id="scan_seedqr_btn" class="btn radio right" onclick="setMnemonicView('seedqr')"> {{ _("Scan SeedQR") }} </button>
+                        </nav>
                     {% endif %}
                     <input id="mnemonic_value" type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
-                    <textarea id="import_mnemonic" class="hidden" id="txt" placeholder='{{ _("Enter your mnemonic here (English, Spanish and Italian are supported)") }}'></textarea>
+
                     <div id="generated_mnemonic" {% if existing_device %}class="hidden"{% endif %}>
                         <div id="generated_mnemonic_row" class="row center break-row-mobile" style="max-height: 30px;">
                             <fieldset style="border:none; display: inline;"> 
@@ -69,22 +100,39 @@
                             <button type="button" class="btn" style="max-width: 200px; margin-top: 9px;" onclick="generateMnemonic()">{{ _("Generate New Mnemonic") }}</button>
                         </div>
                         <br>
-                        <table id="mnemonic_table">
-                            {% for i in range(wordslist|length // 4) %}
-                                <tr>
-                                    <td id="mnemonicwo">{{ 4 * i + 1 }}. {{ wordslist[4 * i] }}</td>
-                                    <td>{{ 4 * i + 2 }}. {{ wordslist[4 * i + 1] }}</td>
-                                    <td>{{ 4 * i + 3 }}. {{ wordslist[4 * i + 2] }}</td>
-                                    <td>{{ 4 * i + 4 }}. {{ wordslist[4 * i + 3] }}</td>
-                                </tr>
-                            {% endfor %}
+                        <div id="generate_mnemonic_reminder" class="hidden generate_mnemonic_reminder"><b>{{ _("Make sure to backup these words!") }}</b></div>
+                        <table id="mnemonic_table" class="mnemonic_table">
                         </table>
                     </div>
+
+                    <textarea id="import_mnemonic" class="hidden" id="txt" placeholder='{{ _("Enter your mnemonic here (English, Spanish, and Italian are supported)") }}'></textarea>
+
+
+                    <div id="scan_seedqr" class="hidden">
+                        <div class="note">
+                            <table class="seedqr_support">
+                                <tr>
+                                    <td class="label">Standard SeedQR:</td><td>&#9989; supported</td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Compact SeedQR:</td><td>&#10060; not yet supported</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <br/>
+                        <qr-scanner id="seedqr-scan">
+                            <a slot="button" href="#" class="btn seeqr-scan" style="max-width: 250px; width: 250px; margin: 10px;">
+                                <img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
+                                {{ _("Scan SeedQR") }}
+                            </a>
+                        </qr-scanner>
+                    </div>
+
                 </div>
-				<br>
+                <br>
                 <span id="toggle-advanced" style="cursor: pointer;" onclick="toggleAdvanced()">{{ _("Advanced") }} &#9654;</span>
-				<br>
-				<br>
+                <br>
+                <br>
                 <div id="advanced-settings" class="hidden" style="width: 400px; margin: auto;">
                     <label>{{ _("Encrypt Wallet File:") }} </label>
                     <input type="password" name="file_password" id="file_password" class="inline" placeholder="password">
@@ -105,6 +153,7 @@
     </form>
 {% endblock %}
 
+
 {% block scripts %}
     <script>
         let hiddenAdvancedConfirmed = false;
@@ -112,6 +161,17 @@
             {% if existing_device %}
                 setMnemonicView('import');
             {% endif %}
+
+            document.getElementById("submit-mnemonic").addEventListener("click", function(e) {
+                e.preventDefault();
+                var mnemonicValue = document.getElementById("mnemonic_value").value;
+
+                if (mnemonicValue === "undefined" || mnemonicValue.length == 0) {
+                    showError(`{{ _("You must generate a mnemonic or import an existing one.") }}`);
+                } else {
+                    document.getElementById("form").submit();
+                }
+            });
         });
 
         function checkAdvancedValidState() {
@@ -135,67 +195,104 @@
         function setMnemonicView(view) {
             var generatedMnemonic = document.getElementById("generated_mnemonic");
             var importMnemonic = document.getElementById("import_mnemonic");
+            var scanSeedQR = document.getElementById("scan_seedqr");
+
             var generateMnemonicBtn = document.getElementById("generate_mnemonic_btn");
             var importMnemonicBtn = document.getElementById("import_mnemonic_btn");
+            var scanSeedQRBtn = document.getElementById("scan_seedqr_btn");
+
             var mnemonicValue = document.getElementById("mnemonic_value");
+
             if (view == 'generate') {
                 generatedMnemonic.style.display = 'block';
+
+                // Make sure misc generate elements are visible; seedqr might've disabled these.
+                document.getElementById("generated_mnemonic_row").style.display = 'flex';
+                document.getElementById("generate_mnemonic_reminder").style.display = 'initial';
+
                 importMnemonic.style.display = 'none';
+                scanSeedQR.style.display = 'none';
                 generateMnemonicBtn.className = generateMnemonicBtn.className += ' checked';
                 importMnemonicBtn.className = importMnemonicBtn.className.replace(/checked/, '');
+                scanSeedQRBtn.className = scanSeedQRBtn.className.replace(/checked/, '');
                 mnemonicValue.value = '{{ mnemonic }}'
-            } else {
+
+            } else if (view == 'import') {
                 generatedMnemonic.style.display = 'none';
                 importMnemonic.style.display = 'block';
-                {% if not existing_device %}
-                    generateMnemonicBtn.className = generateMnemonicBtn.className.replace(/checked/, '');
-                    importMnemonicBtn.className = importMnemonicBtn.className += ' checked';
-                {% endif %}
+                scanSeedQR.style.display = 'none';
+                generateMnemonicBtn.className = generateMnemonicBtn.className.replace(/checked/, '');
+                importMnemonicBtn.className = importMnemonicBtn.className += ' checked';
+                scanSeedQRBtn.className = scanSeedQRBtn.className.replace(/checked/, '');
                 mnemonicValue.value = importMnemonic.value;
                 importMnemonic.addEventListener("input", function() {
                     mnemonicValue.value = importMnemonic.value;
                 });
+
+            } else if (view == 'seedqr') {
+                generatedMnemonic.style.display = 'none';
+                importMnemonic.style.display = 'none';
+                scanSeedQR.style.display = 'block';
+                generateMnemonicBtn.className = generateMnemonicBtn.className.replace(/checked/, '');
+                importMnemonicBtn.className = importMnemonicBtn.className.replace(/checked/, '');
+                scanSeedQRBtn.className = scanSeedQRBtn.className += ' checked';
             }
         }
 
+
+        function showMnemonic() {
+            let mnemonic = document.getElementById("mnemonic_value").value;
+            let wordslist = mnemonic.split(' ');
+            let mnemonicTable = document.getElementById("mnemonic_table");
+
+            // iterate through the rows...
+            let numCols = 4;
+            if (wordslist.length == 12) {
+                numCols = 2;
+            }
+            let numRows = parseInt(wordslist.length / numCols);
+            let buf = "";
+            for(let i=0; i < numRows; i++) {
+                // ...but number down each column
+                buf += `<tr class="nohover">`;
+                for (let j=0; j < numCols; j++) {
+                    buf += `<td><span class="note">${ numRows*j + i + 1 }.</span>&nbsp;${ wordslist[numRows*j + i] }</td>`
+                }
+                buf += `</tr>`;
+            }
+            mnemonicTable.innerHTML = buf;
+        }
+
+
         async function generateMnemonic() {
-			let url = `{{ url_for('wallets_endpoint_api.generatemnemonic') }}`;
+            let url = `{{ url_for('wallets_endpoint_api.generatemnemonic') }}`;
             var formData = new FormData(document.getElementById('form'));
-			try {
-				const response = await fetch(
-					url,
-					{
-						method: 'POST',
-						body: formData
-					}
-				);
-				if(response.status != 200){
-					showError(await response.text());
-					return;
-				}
-				const jsonResponse = await response.json();
+            try {
+                const response = await fetch(
+                    url,
+                    {
+                        method: 'POST',
+                        body: formData
+                    }
+                );
+                if(response.status != 200){
+                    showError(await response.text());
+                    return;
+                }
+                const jsonResponse = await response.json();
                 let mnemonic = jsonResponse.mnemonic;
 
                 document.getElementById("mnemonic_value").value = mnemonic;
-                let wordslist = mnemonic.split(' ');
-                let mnemonicTable = document.getElementById("mnemonic_table");
-                mnemonicTable.innerHTML = ``;
-    
-                for(let i=0; i < wordslist.length / 4; i++) {
-                    mnemonicTable.innerHTML += `
-                        <tr>
-                            <td id="mnemonicwo">${ 4 * i + 1 }. ${ wordslist[4 * i] }</td>
-                            <td>${ 4 * i + 2 }. ${ wordslist[4 * i + 1] }</td>
-                            <td>${ 4 * i + 3 }. ${ wordslist[4 * i + 2] }</td>
-                            <td>${ 4 * i + 4 }. ${ wordslist[4 * i + 3] }</td>
-                        </tr>
-                    `
-                }
-			} catch(e) {
-				console.log("Caught error: ", e);
-				showError(e);
-			}
-		}
+
+                showMnemonic();
+
+                document.getElementById("generate_mnemonic_reminder").classList.remove("hidden");
+            } catch(e) {
+                console.log("Caught error: ", e);
+                showError(e);
+            }
+        }
+
 
         function toggleAdvanced() {
             let advancedButton = document.getElementById('toggle-advanced');
@@ -208,5 +305,66 @@
                 advancedButton.innerHTML = `{{ _("Advanced") }} &#9660;`;
             }
         }
+
+
+        let scanner = document.getElementById('seedqr-scan');
+        if (scanner != null) {
+            scanner.addEventListener('scan', async (e) => {
+                let result = e.detail.result;
+                if(result==null){
+                    return;
+                }
+
+                if (result.startsWith("StandardSeedQR:")) {
+                    let digitstream = result.substring("StandardSeedQR:".length);
+                    parseSeedQR(digitstream, null);
+
+                } else if (result.startsWith("CompactSeedQR:")) {
+                    let bytestream = result.substring("CompactSeedQR:".length);
+                    parseSeedQR(null, bytestream);
+                }
+            });
+        }
+
+
+        async function parseSeedQR(digitstream, bytestream) {
+            let url = `{{ url_for('wallets_endpoint_api.parse_seedqr') }}`;
+            let formData = new FormData();
+            formData.append('csrf_token', '{{ csrf_token() }}');
+            formData.append('digitstream', digitstream);
+            formData.append('bytestream', bytestream);
+
+            try {
+                const response = await fetch(
+                    url,
+                    {
+                        method: 'POST',
+                        body: formData,
+                    }
+                );
+                if(response.status != 200){
+                    showError(await response.text());
+                    return;
+                }
+                const jsonResponse = await response.json();
+                let mnemonic = jsonResponse.mnemonic;
+
+                document.getElementById("mnemonic_value").value = mnemonic;
+
+                // Swap the display option back to the import textarea
+                document.getElementById("generated_mnemonic").style.display = 'block';
+                document.getElementById("generated_mnemonic_row").style.display = 'none';
+                document.getElementById("generate_mnemonic_reminder").style.display = 'none';
+                document.getElementById("import_mnemonic").style.display = 'none';
+                document.getElementById("scan_seedqr").style.display = 'none';
+
+                showMnemonic();
+            } catch(e) {
+                console.log("Caught error: ", e);
+                showError(e);
+            }
+        }
+
+
     </script>
 {% endblock %}

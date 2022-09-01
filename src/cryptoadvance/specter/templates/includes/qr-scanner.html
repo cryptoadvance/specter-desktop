@@ -109,6 +109,14 @@ class QRScannerElement extends HTMLElement {
         let re4 = /UR:BYTES\//;
         let p4 = result.match(re4);
 
+        // 12-word or 24-word Standard SeedQR
+        let re5 = /^[0-9]{48}$|^[0-9]{96}$/;
+        let p5 = result.match(re5);
+
+        // TODO: Enable Compact SeedQR support when the QR parser can read the binary data.
+        // Compact SeedQR: 12-word = 16 bytes; 24-word = 32 bytes
+        // let p6 = result.length == 16 || result.length == 32
+
         if (p3 || (p4 && !p2)){
           try {
             this.bcur2decoder.receivePart(result);
@@ -173,6 +181,17 @@ class QRScannerElement extends HTMLElement {
           this.partial_qr.parts = [];
           this.partial_qr.len = 0;
         }
+
+        if (p5) {
+          result = "StandardSeedQR:" + result;
+        }
+
+        // TODO: Enable Compact SeedQR support when the QR parser can read the binary data.
+        // if (p6) {
+        //   // Let the caller parse the Compact SeedQR byte stream
+        //   result = "CompactSeedQR:" + result;
+        // }
+
         // if we are done
         this.removeAttribute('open');
         this.triggerResult(result);

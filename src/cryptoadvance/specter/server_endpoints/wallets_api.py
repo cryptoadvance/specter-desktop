@@ -30,6 +30,7 @@ from ..util.base43 import b43_decode
 from ..util.descriptor import Descriptor
 from ..util.fee_estimation import FeeEstimationResultEncoder, get_fees
 from ..util.price_providers import get_price_at
+from ..util import seedqr
 from ..util.tx import decoderawtransaction
 from embit.descriptor.checksum import add_checksum
 
@@ -63,6 +64,22 @@ def generatemnemonic():
             strength=int(request.form["strength"]),
             language_code=app.get_language_code(),
         )
+    }
+
+
+@wallets_endpoint_api.route("/parse_seedqr/", methods=["POST"])
+@login_required
+def parse_seedqr():
+    digitstream = request.form.get("digitstream")
+    bytestream = request.form.get("bytestream")
+
+    if digitstream:
+        mnemonic = seedqr.parse_standard_seedqr(digitstream)
+    else:
+        mnemonic = seedqr.parse_compact_seedqr(bytestream)
+
+    return {
+        "mnemonic": " ".join(mnemonic),
     }
 
 

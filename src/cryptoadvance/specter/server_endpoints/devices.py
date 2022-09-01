@@ -296,6 +296,10 @@ def device_blinding_key(device_alias):
 @devices_endpoint.route("/new_device_manual/", methods=["GET", "POST"])
 @login_required
 def new_device_manual():
+    """
+    Linked from Add Devices device type selection screen (/devices/new_device_type/)
+    at the very bottom as: "Manual configuration".
+    """
     err = None
     device_type = ""
     device_name = ""
@@ -467,6 +471,10 @@ def device(device_alias):
                 strength=strength, language_code=app.get_language_code()
             )
             if device.hot_wallet:
+                # TODO: Should not re-use this same jinja template that is used to set
+                # up a new hot device; should at least return redirect to that view
+                # with any additional params to let it know it's "add" instead of
+                # "create".
                 return render_template(
                     "device/new_device/new_device_mnemonic.jinja",
                     mnemonic=mnemonic,

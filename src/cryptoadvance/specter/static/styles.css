@@ -612,6 +612,10 @@ textarea{
     width: 12px;
     margin-right: 10px;
 }
+.centered{
+    margin-left: auto;
+    margin-right: auto;
+}
 .btn.centered{
     margin-left: auto;
     margin-right: auto;
