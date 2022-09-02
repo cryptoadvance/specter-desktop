@@ -3,6 +3,7 @@ import re
 from datetime import datetime
 import json
 from flask_babel.speaklater import LazyString
+from typing import Union
 
 logger = logging.getLogger(__name__)
 
@@ -33,16 +34,16 @@ def replace_substring(text, start_position, replace_length, new_str):
     return text[:start_position] + new_str + text[start_position + replace_length :]
 
 
-def satamount_formatted(value):
+def format_btc_amount_as_sats(value: Union[float, str]) -> str:
     return "{:,.0f}".format(round(float(value) * 1e8))
 
 
-def btcamount_formatted(
-    value,
+def format_btc_amount(
+    value: Union[float, str],
     maximum_digits_to_strip=7,
     minimum_digits_to_strip=6,
     enable_digit_formatting=True,
-):
+) -> str:
     value = round(float(value), 8)
     formatted_amount = "{:,.8f}".format(value)
 

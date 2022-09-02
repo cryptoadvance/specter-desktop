@@ -3,7 +3,7 @@ from flask import current_app as app
 from flask import Blueprint
 from jinja2 import pass_context
 from ..helpers import to_ascii20
-from ..util.common import satamount_formatted, btcamount_formatted
+from ..util.common import format_btc_amount_as_sats, format_btc_amount
 
 filters_bp = Blueprint("filters", __name__)
 
@@ -55,9 +55,9 @@ def btcunitamount_fixed_decimals(
     if value < 0 and app.specter.is_liquid:
         return "Confidential"
     if app.specter.unit == "sat":
-        return satamount_formatted(value)
+        return format_btc_amount_as_sats(value)
 
-    return btcamount_formatted(
+    return format_btc_amount(
         value,
         maximum_digits_to_strip=maximum_digits_to_strip,
         minimum_digits_to_strip=minimum_digits_to_strip,
