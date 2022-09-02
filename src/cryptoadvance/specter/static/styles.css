@@ -1312,7 +1312,7 @@ input:checked + .slider:before {
 }
 
 
-/* styles for btcamount_formatted */
+/* styles for format_btc_amount */
 .unselectable {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
