@@ -39,8 +39,6 @@ def parse_compact_seedqr(bytestream: str, wordlist: List[str] = WORDLIST) -> Lis
     """
     Reads a Compact SeedQR bytestream and returns its associated mnemonic
     """
-    print(bytestream)
-
     # The bytestream should be either:
     #   * 16 bytes (12-word mnemonic)
     #   * 32 bytes (24-word mnemonic)
