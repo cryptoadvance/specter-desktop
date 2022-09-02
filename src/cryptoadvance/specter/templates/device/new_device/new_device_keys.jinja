@@ -74,11 +74,15 @@
                     {{ _("Scan your Cobo Vault master public key or upload a wallet export file.") }}<br>
                     </p>
                     <span class="note">
-                    {{ _("To get the master public keys QR codes to scan:<br><br>
-                    For single sig, click on: Setting -> Watch-Only Wallet -> Generic Wallet, Click the top right 3 dots (...) -> Wallet Info ->Toggle Address Type, then select the wallet address type you would like to use for your wallet.<br><br>
-                    For multisig, click on: Multisig Wallet -> Click the top right 3 dots (...) -> Show/Export XPUB, then select the wallet address type you would like to use for your wallet.<br>
-                    Cobo Vault will then display the QR code which you should scan into Specter.<br><br>
-                    To import with SD card, click on \"touch here to export the file with microSD\" on the same screen as the QR code.") }}
+                    {{ _("To get the master public keys QR codes to scan:") }}
+                    <br><br>
+                    {{ _("For single sig, click on: Setting &rarr; Watch-Only Wallet &rarr; Generic Wallet, Click the top right 3 dots (...) &rarr; Wallet Info &rarr; Toggle Address Type, then select the wallet address type you would like to use for your wallet.") }}
+                    <br><br>
+                    {{ _("For multisig, click on: Multisig Wallet &rarr; Click the top right 3 dots (...) &rarr; Show/Export XPUB, then select the wallet address type you would like to use for your wallet.") }}
+                    <br>
+                    {{ _("Cobo Vault will then display the QR code which you should scan into Specter.") }}
+                    <br><br>
+                    {{ _("To import with SD card, click on \"touch here to export the file with microSD\" on the same screen as the QR code.") }}
                     </span>
                 </div>
                 <div id="passport-instructions" {%if device_class.device_type != 'passport' %}class="hidden"{% endif %}>
