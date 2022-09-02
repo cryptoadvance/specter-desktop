@@ -79,14 +79,12 @@
                             {{ _("Re-enter your mnemonic in order to derive new keys") }}
                         {% endif %}
                     </p>
-                    {% set wordslist = mnemonic.split(' ') %}
-                    {% if not existing_device %}
-                        <nav class="row">
-                            <button type="button" id="generate_mnemonic_btn" class="btn radio left checked" onclick="setMnemonicView('generate')"> {{ _("Generate") }} </button>
-                            <button type="button" id="import_mnemonic_btn" class="btn radio " onclick="setMnemonicView('import')"> {{ _("Import") }} </button>
-                            <button type="button" id="scan_seedqr_btn" class="btn radio right" onclick="setMnemonicView('seedqr')"> {{ _("Scan SeedQR") }} </button>
-                        </nav>
-                    {% endif %}
+                    {% set wordslist = mnemonic.split(' ') %}                    
+                    <nav class="row">
+                        <button type="button" id="generate_mnemonic_btn" class="btn radio left checked {% if existing_device %}hidden{% endif %}" onclick="setMnemonicView('generate')"> {{ _("Generate") }} </button>
+                        <button type="button" id="import_mnemonic_btn" class="btn radio {% if existing_device %}left{% endif %}" onclick="setMnemonicView('import')"> {{ _("Import") }} </button>
+                        <button type="button" id="scan_seedqr_btn" class="btn radio right" onclick="setMnemonicView('seedqr')"> {{ _("Scan SeedQR") }} </button>
+                    </nav>
                     <input id="mnemonic_value" type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
 
                     <div id="generated_mnemonic" {% if existing_device %}class="hidden"{% endif %}>
