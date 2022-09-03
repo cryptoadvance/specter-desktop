@@ -11,7 +11,7 @@
             balance,            # needs to be passed for liquid
             rescan_progress,    # Possible values: True, False, 0..1.    Disable: False or 0,  Enable otherwise.
             wallet_alias,       # wallet_alias to check the rescan_progress.   
-                                #   If the wallet alias exists it shows specter.info["utxorescan"], otherwise rescan_progress is used
+                                # If the wallet alias exists it shows specter.info["utxorescan"], otherwise rescan_progress is used
             specter) 
 
     Calling example for a single wallet:
@@ -20,7 +20,7 @@
 {% macro total_wallet_balances(title, amount_total, amount_confirmed, amount_unconfirmed, amount_immature, balance, rescan_progress, alias, specter) -%}
 <style type="text/css">
     table {
-        font-size: 0.9em;
+        font-size: 1.1em;
         border: none;
         border-collapse: initial;
     } 
@@ -50,11 +50,14 @@
     .right-align {
         text-align: right;
     }
+    h4 {
+        font-weight: unset;
+    }
 </style>
     <div style="display: flex; flex-direction: column; min-width: 300px; align-items: center">
         <div class="smaller-card">            
             {% if title %}
-                <div style="text-align: center; width:100%; line-height:30px; font-size: 1.1em;">{{ title }}</div>
+                <div style="text-align: center; width:100%; line-height:30px; font-size: 1.2em;">{{ title }}</div>
             {% endif %}
             <table>
                 <tr>
@@ -111,7 +114,8 @@
                 {% endif %}
                 {% if amount_immature > 0  %}
                 <tr>
-                    <th>Immature:
+                    <th style="display: flex;">
+                        <span>Immature:</span>
                         <tool-tip width="200px">
                             <h4 slot="title">{{ _("What are immature outputs?") }}</h4>
                             <span slot="paragraph">
@@ -119,8 +123,8 @@
                             {% if specter.chain == "regtest" %}{{ _('You see these outputs because you are using regtest and have mined blocks.')}}{% endif %}
                             </span>
                         </tool-tip>
-                    </th>
                     <th class="right-align">{{ amount_immature | btcunitamount_fixed_decimals | safe }}</th>
+                    </th>      
                     <th> 
                         {% if specter.unit == 'sat' %}
                             sats
@@ -159,12 +163,21 @@
         </div>
     </div>
     {% if rescan_progress or specter.utxorescanwallet == alias %}
-        <span id="wallet_rescan_data" style="display: contents;">
-            <h2>Rescanning blockchain: <span id="{{ alias }}_balances_wallet_rescan_percents">{{ "%.2f"|format(specter.info["utxorescan"] if specter.utxorescanwallet == alias else rescan_progress * 100) }}</span>%</h2>
-            <span class="warning">
-                <img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
-                Total balance and transactions history may show outdated data during scanning.<br>Please wait until the scanning is complete before you start using the wallet.
-            </span>
-        </span>
+        <div id="wallet_rescan_data" style="display: contents;">
+            {% if rescan_progress %}
+                <h4>Rescanning blockchain: <span id="{{ alias }}_balances_wallet_rescan_percents">{{ rescan_progress * 100 }}</span>%</h4>
+                <span class="warning">
+                    <img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"><br>
+                    Total balance and transactions history may show outdated data during scanning.<br>Please wait until the scanning is complete before you start using the wallet.
+                </span>
+            {% endif %}
+            {% if specter.utxorescanwallet == alias %}
+                <h4>Scanning the UTXO set: <span id="{{ alias }}_balances_wallet_rescan_percents">{{ specter.info["utxorescan"] }}</span>%</h4>
+                <span class="warning">
+                    <img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"><br>
+                    Total balance may show outdated data during scanning.<br>Please wait until the scanning is complete before you start using the wallet.
+                </span>
+            {% endif %}
+        </div>
     {% endif %}
 {%- endmacro %}
