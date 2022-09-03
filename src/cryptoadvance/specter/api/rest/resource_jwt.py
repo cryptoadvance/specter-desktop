@@ -25,14 +25,12 @@ parser.add_argument(
     "jwt_token_description", type=str, help="JWT token description", required=True
 )
 parser.add_argument("jwt_token_life", type=str, help="JWT token life", required=True)
-# parser.add_argument(
-#     "jwt_token_life_unit", type=str, help="JWT token life unit", required=True
-# )
 
 
 def generate_jwt(user, jwt_token_id, jwt_token_description, jwt_token_life):
     # Generates a JWT token for the user
 
+    # payload which will be encoded in the JWT token
     payload = {
         "username": user.username,
         "jwt_token_id": jwt_token_id,

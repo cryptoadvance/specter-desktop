@@ -8,7 +8,7 @@ from flask import current_app as app, request
 from ...wallet import Wallet
 from ...commands.psbt_creator import PsbtCreator
 
-from .. import auth
+from .. import token_auth
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class ResourcePsbt(SecureResource):
 
     def get(self, wallet_alias):
         # ToDo: check whether the user has access to the wallet
-        user = auth.current_user()
+        user = token_auth.current_user()
         wallet: Wallet = app.specter.user_manager.get_user(
             user
         ).wallet_manager.get_by_alias(wallet_alias)
@@ -29,7 +29,7 @@ class ResourcePsbt(SecureResource):
         return {"result": pending_psbts or {}}
 
     def post(self, wallet_alias):
-        user = auth.current_user()
+        user = token_auth.current_user()
         wallet: Wallet = app.specter.user_manager.get_user(
             user
         ).wallet_manager.get_by_alias(wallet_alias)

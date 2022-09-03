@@ -4,7 +4,7 @@ import logging
 from cryptoadvance.specter.api.rest.base import AdminResource, rest_resource
 from flask import current_app as app
 
-from .. import auth
+from .. import token_auth
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class ResourceTXlist(AdminResource):
     endpoints = ["/v1alpha/specter/full_txlist/"]
 
     def get(self):
-        user = auth.current_user()
+        user = token_auth.current_user()
         wallet_manager = app.specter.user_manager.get_user(user).wallet_manager
         validate_merkle_proofs = app.specter.config.get("validate_merkle_proofs")
         idx = 0

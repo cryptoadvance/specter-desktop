@@ -15,7 +15,7 @@ from ...specter_error import SpecterError
 
 from ...util.fee_estimation import get_fees
 
-from .. import auth
+from .. import token_auth
 from .resource_jwt import JWTResource, JWTResourceById
 from .resource_healthz import ResourceLiveness, ResourceReadyness
 from .resource_psbt import ResourcePsbt
@@ -31,7 +31,7 @@ class ResourceWallet(SecureResource):
     endpoints = ["/v1alpha/wallets/<wallet_alias>/"]
 
     def get(self, wallet_alias):
-        user = auth.current_user()
+        user = token_auth.current_user()
         try:
             wallet: Wallet = app.specter.user_manager.get_user(
                 user
