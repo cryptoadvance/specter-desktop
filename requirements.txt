@@ -429,8 +429,8 @@ six==1.16.0 \
     #   pgpy
     #   pyopenssl
     #   python-dateutil
-specterext-exfund==0.1.6 \
-    --hash=sha256:8f31a6da089a3c7b4bfac50775bc2481ab88a65fec58300321d7516916c51f61
+specterext-exfund==0.1.7 \
+    --hash=sha256:d686e2d0c35064265f2ecebd71d906825ad1c917046e494526a12e80539de7f3
     # via -r requirements.in
 specterext-faucet==0.1.2 \
     --hash=sha256:86db78a6c41688152cfeec14efafd6d06c97e6edd9735461ee897495f90cb2e8

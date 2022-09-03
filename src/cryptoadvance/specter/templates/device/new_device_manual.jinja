@@ -204,8 +204,8 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 			});
 		}
 	}
+	const deviceType = document.getElementById("device_type");
 	function checkType() {
-		var deviceType = document.getElementById("device_type");
 		if (!deviceType.value) {
 			type_reminder.style.display = 'block';
 		} else {
@@ -240,7 +240,6 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
             {% endfor %}
 			
 		}
-		var deviceType = document.getElementById("device_type");
 		var typeReminder = document.getElementById("type_reminder");
 
 		if(deviceType!=null){
@@ -272,8 +271,12 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 	{% include "device/components/add_keys.js" %}
 
 	document.getElementById('askhwi').addEventListener('click', async e=>{
+		// Ensure that device type was selected
+		if (!checkType()) {
+			return
+		}
 		// detect devices
-		let devices = await enumerate();
+		let devices = await enumerate(deviceType.value);
 		if(devices == null){
 			return
 		}
