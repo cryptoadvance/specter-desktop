@@ -40,6 +40,25 @@ def format_btc_amount(
     minimum_digits_to_strip=6,
     enable_digit_formatting=True,
 ) -> str:
+    """
+    Formats the btc amount such that it can be right aligned such
+    that the decimal separator will be always at the same x position.
+
+    Stripping trailing 0's is done via just making the 0's transparent.
+
+    Args:
+        value (Union[float, str]): Will convert string to float.
+            The float is expected to be in the unit (L)BTC with 8 relevant digits
+        maximum_digits_to_strip (int, optional): No more than maximum_digits_to_strip
+            trailing 0's will be stripped. Defaults to 7.
+        minimum_digits_to_strip (int, optional): Only strip any trailing 0's if
+            there are at least minimum_digits_to_strip. Defaults to 6.
+        enable_digit_formatting (bool, optional): Will group the Satoshis into blocks of 3,
+            e.g. 0.03 123 456, and color the blocks. Defaults to True.
+
+    Returns:
+        str: The formatted btc amount as html code.
+    """
     value = round(float(value), 8)
     formatted_amount = "{:,.8f}".format(value)
 
@@ -52,17 +71,21 @@ def format_btc_amount(
 
     array = list(formatted_amount)
     if count_digits_that_can_be_stripped >= minimum_digits_to_strip:
+        # loop through the float number, e.g. 0.03 000 000, from the right and replace 0's or the '.' until you hit anything != 0
         for i in reversed(range(len(array))):
             if array[i] == "0" and len(array) - i <= maximum_digits_to_strip:
                 array[
                     i
                 ] = f'<span class="unselectable transparent-text">{array[i]}</span>'
+                # since this digit == 0, then continue the loop and check the next digit
                 continue
             # the following if branch is only relevant if last_digits_to_strip == 8, i.e. all digits can be stripped
             elif formatted_amount[i] == ".":
                 array[
                     i
                 ] = f'<span class="unselectable transparent-text">{array[i]}</span>'
+                # since this character == '.', then the loop must be broken now
+            # always break the loop. Only the digit == 0 can prevent this break
             break
 
     if enable_digit_formatting:
