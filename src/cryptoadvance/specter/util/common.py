@@ -30,10 +30,6 @@ def snake_case2camelcase(word):
     return "".join(x.capitalize() or "_" for x in word.split("_"))
 
 
-def replace_substring(text, start_position, replace_length, new_str):
-    return text[:start_position] + new_str + text[start_position + replace_length :]
-
-
 def format_btc_amount_as_sats(value: Union[float, str]) -> str:
     return "{:,.0f}".format(round(float(value) * 1e8))
 
@@ -54,30 +50,28 @@ def format_btc_amount(
             continue
         break
 
+    array = list(formatted_amount)
     if count_digits_that_can_be_stripped >= minimum_digits_to_strip:
-        for i in reversed(range(len(formatted_amount))):
-            if (
-                formatted_amount[i] == "0"
-                and len(formatted_amount) - i <= maximum_digits_to_strip
-            ):
-                # replace with https://unicode-table.com/en/2007/
-                formatted_amount = replace_substring(formatted_amount, i, 1, "\u2007")
+        for i in reversed(range(len(array))):
+            if array[i] == "0" and len(array) - i <= maximum_digits_to_strip:
+                array[
+                    i
+                ] = f'<span class="unselectable transparent-text">{array[i]}</span>'
                 continue
             # the following if branch is only relevant if last_digits_to_strip == 8, i.e. all digits can be stripped
             elif formatted_amount[i] == ".":
-                # replace with https://unicode-table.com/en/2008/
-                formatted_amount = replace_substring(formatted_amount, i, 1, "\u2008")
+                array[
+                    i
+                ] = f'<span class="unselectable transparent-text">{array[i]}</span>'
             break
 
     if enable_digit_formatting:
-        formatted_amount = f'{formatted_amount[:-6]}<span class="thousand_digits_in_btcamount_formatted">{formatted_amount[-6:-3]}</span><span class="last_digits_in_btcamount_formatted">{formatted_amount[-3:]}</span>'
+        array[-6] = f'<span class="thousand_digits_in_btcamount_formatted">{array[-6]}'
+        array[-4] = f"{array[-4]}</span>"
+        array[-3] = f'<span class="last_digits_in_btcamount_formatted">{array[-3]}'
+        array[-1] = f"{array[-1]}</span>"
 
-    # make sure the spaces are non-selectable
-    formatted_amount = re.sub(
-        r"(\u2007|\u2008)", r'<span class="unselectable">\1</span>', formatted_amount
-    )
-
-    return formatted_amount
+    return "".join(array)
 
 
 def robust_json_dumps(obj):
