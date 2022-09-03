@@ -18,22 +18,25 @@
         balance,            # needs to be passed for liquid
         rescan_progress,    # Possible values: True, False, 0..1.    Disable: False or 0,  Enable otherwise.
         wallet_alias,       # wallet_alias to check the rescan_progress.   
-                            #   If the wallet alias exists it shows specter.info["utxorescan"], otherwise rescan_progress is used
+                            # If the wallet alias exists it shows specter.info["utxorescan"], otherwise rescan_progress is used
         specter) 
 
 
 </pre>
 
-<h3>Example without rescanning</h3>
+<h2>Example without rescanning</h2>
+<p>For the macro to correctly display the strings, the values for the amounts have to have 8 decimals.<br>
+   Truncation of 0s depends   on the defaults chosen in filters.py
+</p>
 
 <pre>
     total_wallet_balances(
         _("Some customizable text"),
-        1.03247981, 
-        1.0324798,
-        1.032479, 
-        1.03247, 
-        None, 
+        2.02067075, 
+        1.02065575,
+        1.00001500, 
+        0.00020000, 
+        0, 
         False, 
         "",
         specter
@@ -42,32 +45,27 @@
 
 {{ total_wallet_balances(
     _("Some customizable text"),
-    1.03247981, 
-    1.0324798,
-    1.032479, 
-    1.03247, 
+    2.02067075, 
+    1.02065575,
+    1.00001500, 
+    0.00020000, 
     None, 
     False, 
     "", 
     specter) }}
 
-
-<h3>Example with rescanning</h3>
-
-<p>
-    You can pass True to scanning the blockchain, setting values to 0 will simply ommit them. But it needs to be consistent. 
-    You cannot have an immature amount without having an unconfirmed amount.
-</p>
+<h2 style="margin-top: 20px">Example with full blockchain rescan</h2>
+<p>Here we are simulating the rendering of the display if a full rescan is under way (thus the additional box below).</p>
 
 <pre>
     total_wallet_balances(
         _("Some customizable text"),
-        1.03247981, 
-        1.03247981,
-        0, 
-        2, 
+        2.02067075, 
+        1.02065575,
+        1.00001500, 
+        2.00000000, 
         None, 
-        True, 
+        0.33, 
         "some_existent_wallet_alias", 
         specter
     )
@@ -75,19 +73,16 @@
 
 {{ total_wallet_balances(
     _("Some customizable text"),
-    1.03247981, 
-    1.03247981,
-    0, 
-    2, 
+    2.02067075, 
+    1.02065575,
+    1.00001500, 
+    2.00000000,
     None, 
-    True, 
+    0.33, 
     "some_existent_wallet_alias", 
     specter) }}
-
-
 
 {% endblock %}
 
 {% block scripts %}
-
 {% endblock %}

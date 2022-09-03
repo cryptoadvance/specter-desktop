@@ -1311,8 +1311,7 @@ input:checked + .slider:before {
     padding-right: 6px;
 }
 
-
-/* styles for format_btc_amount */
+/************** Styles for formatting btc amounts ********************************/
 .unselectable {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
