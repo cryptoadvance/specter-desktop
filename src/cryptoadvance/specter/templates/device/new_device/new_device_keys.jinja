@@ -6,6 +6,9 @@
         td {
             text-align: left;
         }
+        .xpubs-table{
+            overflow-x: auto;
+        }
 
         @media screen and (max-width:720px) {
             #device_setup_wizard th, #device_setup_wizard td { 
@@ -99,16 +102,18 @@
                     </p>
                 </div>
                 <br>
-                <table>
-                    <thead>
-                    <tr>
-                        <th></th><th>{{ _("Purpose") }}</th><th>{{ _("Derivation") }}</th><th>XPUB</th><th><button type="button" class="btn" style="width: 60px;" id="edit-xpubs-table-btn" onclick="editXpubsTable(this)">{{ _("Edit") }}</button></th>
-                    </tr>
-                    </thead>
-                    <tbody id="xpubs_table">
-                    </tbody>
-                    <input id="xpubs-table-rows-count" name="xpubs_rows_count" type="hidden"/>
-                </table>
+                <div class="xpubs-table">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th></th><th>{{ _("Purpose") }}</th><th>{{ _("Derivation") }}</th><th>XPUB</th><th><button type="button" class="btn" style="width: 60px;" id="edit-xpubs-table-btn" onclick="editXpubsTable(this)">{{ _("Edit") }}</button></th>
+                        </tr>
+                        </thead>
+                        <tbody id="xpubs_table">
+                        </tbody>
+                        <input id="xpubs-table-rows-count" name="xpubs_rows_count" type="hidden"/>
+                    </table>
+                </div>
                 <br>
                 <div class="row overflow">
                     <div id="connect-hwi" style="max-width: 250px; width: 250px; margin: 10px;" class="btn {% if not device_class.hwi_support %}hidden{% endif %}">
