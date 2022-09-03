@@ -30,10 +30,6 @@ def snake_case2camelcase(word):
     return "".join(x.capitalize() or "_" for x in word.split("_"))
 
 
-def replace_substring(text, start_position, replace_length, new_str):
-    return text[:start_position] + new_str + text[start_position + replace_length :]
-
-
 def format_btc_amount_as_sats(value: Union[float, str]) -> str:
     return "{:,.0f}".format(round(float(value) * 1e8))
 
