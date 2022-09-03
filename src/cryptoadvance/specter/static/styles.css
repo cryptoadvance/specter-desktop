@@ -1324,11 +1324,11 @@ input:checked + .slider:before {
 .transparent-text{
     color: #00000000;
 }
-.last_digits_in_btcamount_formatted{
+.last-digits-in-btc-amount{
     color: #797979;
     padding-left:2px;
 }
-.thousand_digits_in_btcamount_formatted{
+.thousand-digits-in-btc-amount{
     color: #919191;
     padding-left:2px;
 }

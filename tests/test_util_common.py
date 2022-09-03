@@ -37,17 +37,17 @@ def test_format_btc_amount():
     btc_amount = 1.05678000
     assert (
         format_btc_amount(btc_amount)
-        == """1.05<span class="thousand_digits_in_btcamount_formatted">678</span>\
-<span class="last_digits_in_btcamount_formatted">000</span>"""
+        == """1.05<span class="thousand-digits-in-btc-amount">678</span>\
+<span class="last-digits-in-btc-amount">000</span>"""
     )
     # All 0s stripped
     btc_amount = 1.05000000  # 1.05
     assert (
         format_btc_amount(btc_amount)
-        == """1.05<span class="thousand_digits_in_btcamount_formatted">\
+        == """1.05<span class="thousand-digits-in-btc-amount">\
 <span class="unselectable transparent-text">0</span><span class="unselectable transparent-text">0</span>\
 <span class="unselectable transparent-text">0</span></span>\
-<span class="last_digits_in_btcamount_formatted">\
+<span class="last-digits-in-btc-amount">\
 <span class="unselectable transparent-text">0</span><span class="unselectable transparent-text">0</span>\
 <span class="unselectable transparent-text">0</span></span>"""
     )
@@ -55,8 +55,8 @@ def test_format_btc_amount():
     btc_amount = 1.05678000  # 1.05678
     assert (
         format_btc_amount(btc_amount, minimum_digits_to_strip=3)
-        == """1.05<span class="thousand_digits_in_btcamount_formatted">678</span>\
-<span class="last_digits_in_btcamount_formatted">\
+        == """1.05<span class="thousand-digits-in-btc-amount">678</span>\
+<span class="last-digits-in-btc-amount">\
 <span class="unselectable transparent-text">0</span>\
 <span class="unselectable transparent-text">0</span>\
 <span class="unselectable transparent-text">0</span></span>"""

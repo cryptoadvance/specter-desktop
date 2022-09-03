@@ -89,9 +89,9 @@ def format_btc_amount(
             break
 
     if enable_digit_formatting:
-        array[-6] = f'<span class="thousand_digits_in_btcamount_formatted">{array[-6]}'
+        array[-6] = f'<span class="thousand-digits-in-btc-amount">{array[-6]}'
         array[-4] = f"{array[-4]}</span>"
-        array[-3] = f'<span class="last_digits_in_btcamount_formatted">{array[-3]}'
+        array[-3] = f'<span class="last-digits-in-btc-amount">{array[-3]}'
         array[-1] = f"{array[-1]}</span>"
 
     return "".join(array)
