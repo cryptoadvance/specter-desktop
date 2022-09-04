@@ -238,7 +238,8 @@
         // Gets executed after fee initialisation
         initWithFees() {
             // this.feesSlider.min is set above via min_fee
-            this.feesSlider.max = Math.floor(this.fees["fastestFee"] * 1.4)
+            this.feesSlider.max = Math.ceil(this.fees["fastestFee"] * 1.4)
+            this.feesSlider.step = Math.min(1, (this.feesSlider.max - this.feesSlider.min)/10); 
             let sliderMin = this.fees["minimumFee"]
             let sliderMax = this.fees["fastestFee"]
             let average = Math.floor((sliderMin + sliderMax) / 2)
