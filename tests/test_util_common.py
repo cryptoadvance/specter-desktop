@@ -51,6 +51,17 @@ def test_format_btc_amount():
 <span class="unselectable transparent-text">0</span><span class="unselectable transparent-text">0</span>\
 <span class="unselectable transparent-text">0</span></span>"""
     )
+    # Maximum amount of 0s stripped
+    btc_amount = 40.00000000  # 40.0
+    assert (
+        format_btc_amount(btc_amount)
+        == """40.0<span class="unselectable transparent-text">0</span><span class="thousand-digits-in-btc-amount">\
+<span class="unselectable transparent-text">0</span><span class="unselectable transparent-text">0</span>\
+<span class="unselectable transparent-text">0</span></span>\
+<span class="last-digits-in-btc-amount">\
+<span class="unselectable transparent-text">0</span><span class="unselectable transparent-text">0</span>\
+<span class="unselectable transparent-text">0</span></span>"""
+    )
     # Last three 0s stripped
     btc_amount = 1.05678000  # 1.05678
     assert (

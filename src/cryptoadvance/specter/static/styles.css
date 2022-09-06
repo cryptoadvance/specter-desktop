@@ -1321,14 +1321,14 @@ input:checked + .slider:before {
     user-select: none;
 }
 
-.transparent-text{
-    color: #00000000;
-}
-.last-digits-in-btc-amount{
-    color: #797979;
-    padding-left:2px;
+.transparent-text {
+    opacity: 0;
 }
 .thousand-digits-in-btc-amount{
     color: #919191;
-    padding-left:2px;
+    padding-left: 2px;
+}
+.last-digits-in-btc-amount{
+    color: #797979;
+    padding-left: 2px;
 }

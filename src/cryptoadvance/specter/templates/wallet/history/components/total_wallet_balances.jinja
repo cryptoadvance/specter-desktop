@@ -62,7 +62,7 @@
             <table>
                 <tr>
                     <th>Total amount:</th>
-                    <th class="right-align"><span id="fullbalance_amount">{{ amount_total | btcunitamount_fixed_decimals | safe }}</span></th>
+                    <th id="fullbalance_amount" class="right-align">{{ amount_total | btcunitamount_fixed_decimals | safe }}</th>
                     <th>
                         {% if specter.unit == 'sat' %}
                             sats
@@ -79,7 +79,7 @@
                 {% if amount_unconfirmed > 0 or amount_immature > 0 %}
                     <tr>
                         <th>Confirmed:</th>
-                        <th class="right-align">{{ amount_confirmed | btcunitamount_fixed_decimals | safe }}</th>
+                        <th id="confirmed_amount" class="right-align">{{ amount_confirmed | btcunitamount_fixed_decimals | safe }}</th>
                         <th>
                             {% if specter.unit == 'sat' %}
                                 sats
@@ -96,7 +96,7 @@
                     {% if amount_unconfirmed > 0 %}
                     <tr>
                         <th>Unconfirmed:</th>
-                        <th class="right-align">{{ amount_unconfirmed | btcunitamount_fixed_decimals | safe }}</th>
+                        <th id="unconfirmed_amount" class="right-align">{{ amount_unconfirmed | btcunitamount_fixed_decimals | safe }}</th>
                         <th>
                             {% if specter.unit == 'sat' %}
                                 sats
