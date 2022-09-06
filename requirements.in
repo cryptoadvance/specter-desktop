@@ -29,5 +29,5 @@ simple-websocket==0.6.0
 
 # Extensions
 cryptoadvance-liquidissuer==0.2.4
-specterext-exfund==0.1.6
+specterext-exfund==0.1.7
 specterext-faucet==0.1.2
