@@ -12,24 +12,8 @@ from cryptoadvance.specter.managers.device_manager import DeviceManager
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
-
+from cryptoadvance.specter.user import User
 from fix_devices_and_wallets import create_hot_wallet_with_ID
-
-
-def encode_jwt_token(
-    username: str, jwt_token_id: str, jwt_token_description: str, exp: float
-) -> str:
-    """
-    Creates a JWT token for the given payload
-    """
-    payload = {
-        "username": username,
-        "jwt_token_id": jwt_token_id,
-        "jwt_token_description": jwt_token_description,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=exp),
-        "iat": datetime.datetime.utcnow(),
-    }
-    return jwt.encode(payload, app.config["SECRET_KEY"], algorithm="HS256")
 
 
 def almost_equal(a: Number, b: Number, precision: float = 0.01) -> bool:
@@ -67,7 +51,7 @@ def test_rr_psbt_get(client, specter_regtest_configured, bitcoin_regtest, caplog
     # Admin but not authorized (admin is NOT allowed to read everything)
     headers = {
         "Authorization": "Bearer "
-        + encode_jwt_token(
+        + User.generate_jwt_token(
             "someuser", "tokenid", "tokendescription", random.randrange(100, 200)
         )
     }
@@ -81,7 +65,7 @@ def test_rr_psbt_get(client, specter_regtest_configured, bitcoin_regtest, caplog
     # Proper authorized (the wallet is owned by someuser)
     headers = {
         "Authorization": "Bearer "
-        + encode_jwt_token(
+        + User.generate_jwt_token(
             "someuser", "tokenid", "tokendescription", random.randrange(100, 200)
         )
     }
@@ -102,7 +86,7 @@ def test_rr_psbt_post(specter_regtest_configured, bitcoin_regtest, client, caplo
 
     headers = {
         "Authorization": "Bearer "
-        + encode_jwt_token(
+        + User.generate_jwt_token(
             "someuser", "tokenid", "tokendescription", random.randrange(100, 200)
         ),
         "Content-type": "application/json",
@@ -173,7 +157,7 @@ def test_rr_psbt_post(specter_regtest_configured, bitcoin_regtest, client, caplo
 def create_a_simple_wallet(specter: Specter, bitcoin_regtest):
     """ToDo: Could potentially do this with a fixture but this is only relevant for this file only"""
     payload = jwt.decode(
-        encode_jwt_token(
+        User.generate_jwt_token(
             "someuser", "tokenid", "tokendescription", random.randrange(100, 200)
         ),
         app.config["SECRET_KEY"],

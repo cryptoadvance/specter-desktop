@@ -27,25 +27,6 @@ parser.add_argument(
 parser.add_argument("jwt_token_life", type=str, help="JWT token life", required=True)
 
 
-def generate_jwt(user, jwt_token_id, jwt_token_description, jwt_token_life):
-    # Generates a JWT token for the user
-
-    # payload which will be encoded in the JWT token
-    payload = {
-        "username": user.username,
-        "jwt_token_id": jwt_token_id,
-        "jwt_token_description": jwt_token_description,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=jwt_token_life),
-        "iat": datetime.datetime.utcnow(),
-    }
-    return jwt.encode(payload, app.config["SECRET_KEY"], algorithm="HS256")
-
-
-def generate_token_id():
-    # Generates a unique token id
-    return str(uuid.uuid4())
-
-
 @rest_resource
 class JWTResource(BasicAuthResource):
     """
@@ -63,23 +44,23 @@ class JWTResource(BasicAuthResource):
         user_details = app.specter.user_manager.get_user(user)
         jwt_tokens = user_details.get_all_jwt_tokens_info()
         if len(jwt_tokens) == 0:
-            return {"message": "Token does not exist"}, 404
-        return {"message": "Tokens exists", "jwt_tokens": jwt_tokens}, 200
+            return {"message": "Tokens does not exist"}, 404
+        return {"message": "Tokens exist", "jwt_tokens": jwt_tokens}, 200
 
     def post(self):
         # An endpoint to create a JWT token
         user = auth.current_user()
         data = parser.parse_args()
         user_details = app.specter.user_manager.get_user(user)
-        jwt_token_id = generate_token_id()
+        jwt_token_id = user_details.generate_token_id()
         jwt_token_description = data["jwt_token_description"]
 
         # pytimeparse has been used to parse different time units to seconds
         # For eg: "jwt_token_life_unit": "1 hour" will be parsed to 3600 seconds
         # For more information visit: https://pypi.org/project/pytimeparse/
         jwt_token_life = parse(data["jwt_token_life"])
-        jwt_token = generate_jwt(
-            user_details,
+        jwt_token = user_details.generate_jwt_token(
+            user_details.username,
             jwt_token_id,
             jwt_token_description,
             jwt_token_life,
@@ -128,7 +109,7 @@ class JWTResourceById(BasicAuthResource):
                 "message": "Token does not exist, make sure to enter correct token id"
             }, 404
         return {
-            "message": "Tokens exists",
+            "message": "Token exists",
             "jwt_token_description": jwt_token["jwt_token_description"],
             "jwt_token_life": jwt_token["jwt_token_life"],
             "jwt_token_life_remaining": jwt_token_life_remaining,

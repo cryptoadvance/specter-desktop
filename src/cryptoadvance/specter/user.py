@@ -10,6 +10,7 @@ import shutil
 import time
 import jwt
 import datetime
+import uuid
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
@@ -495,6 +496,28 @@ class User(UserMixin):
         if (payload["exp"] - time.time()) > 0:
             return payload["exp"] - time.time()
         return 0
+
+    @staticmethod
+    def generate_jwt_token(
+        username, jwt_token_id, jwt_token_description, jwt_token_life
+    ):
+        # Generates a JWT token for the user
+
+        # payload which will be encoded in the JWT token
+        payload = {
+            "username": username,
+            "jwt_token_id": jwt_token_id,
+            "jwt_token_description": jwt_token_description,
+            "exp": datetime.datetime.utcnow()
+            + datetime.timedelta(seconds=jwt_token_life),
+            "iat": datetime.datetime.utcnow(),
+        }
+        return jwt.encode(payload, app.config["SECRET_KEY"], algorithm="HS256")
+
+    @staticmethod
+    def generate_token_id():
+        # Generates a unique token id
+        return str(uuid.uuid4())
 
     def __eq__(self, other):
         if other == None:
