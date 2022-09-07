@@ -30,8 +30,35 @@ def snake_case2camelcase(word):
     return "".join(x.capitalize() or "_" for x in word.split("_"))
 
 
-def format_btc_amount_as_sats(value: Union[float, str]) -> str:
-    return "{:,.0f}".format(round(float(value) * 1e8))
+def format_btc_amount_as_sats(
+    value: Union[float, str],
+    enable_digit_formatting=True,
+) -> str:
+    s = "{:,.0f}".format(round(float(value) * 1e8))
+
+    # combine the "," with the left number to an array
+    array = []
+    for letter in s:
+        if letter == ",":
+            array[-1] += letter
+        else:
+            array.append(letter)
+
+    if enable_digit_formatting:
+        if len(array) >= 4:
+            left_index = -6 if len(array) >= 6 else -len(array)
+            array[
+                left_index
+            ] = f'<span class="thousand-digits-in-sats-amount">{array[left_index]}'
+            array[-4] = f"{array[-4]}</span>"
+
+        left_index = -3 if len(array) >= 3 else -len(array)
+        array[
+            left_index
+        ] = f'<span class="last-digits-in-sats-amount">{array[left_index]}'
+        array[-1] = f"{array[-1]}</span>"
+
+    return "".join(array)
 
 
 def format_btc_amount(
