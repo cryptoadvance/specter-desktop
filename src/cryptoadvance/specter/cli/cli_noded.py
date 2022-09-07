@@ -352,7 +352,15 @@ def noded(
 
     if node_impl == "elements":
         prepare_elements_default_wallet(my_node)
+    # To stop the Python process
+    exit = Event()
 
+    def exit_now(signo, _frame):
+        exit.set()
+
+    for sig in ("HUP", "INT"):
+        signal.signal(getattr(signal, "SIG" + sig), exit_now)
+    # Mining loop or NOP loop (necessary to keep the Python process running)
     if mining:
         miner_loop(
             node_impl,
@@ -361,6 +369,9 @@ def noded(
             mining_every_x_seconds,
             echo,
         )
+    else:
+        while True:
+            time.sleep(10)
 
 
 def prepare_elements_default_wallet(my_node):
@@ -401,13 +412,7 @@ def miner_loop(node_impl, my_node, data_folder, mining_every_x_seconds, echo):
         f"height: {my_node.rpcconn.get_rpc().getblockchaininfo()['blocks']} | ",
         nl=False,
     )
-    exit = Event()
 
-    def exit_now(signo, _frame):
-        exit.set()
-
-    for sig in ("HUP", "INT"):
-        signal.signal(getattr(signal, "SIG" + sig), exit_now)
     prevent_mining_file = Path("prevent_mining")
     i = 0
     while True:
