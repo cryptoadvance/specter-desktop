@@ -11,7 +11,7 @@ describe('Test rendering of balances and amounts', () => {
         Cypress.Cookies.preserveOnce('session')
     })
 
-    it('Total balance of 40 BTC', () => {
+    it('Total balance of 20 BTC', () => {
         /* This how the DOM looks like
         <th id="fullbalance_amount" class="right-align">
             40.0
@@ -29,7 +29,7 @@ describe('Test rendering of balances and amounts', () => {
         </th>
         */
         cy.selectWallet('Ghost wallet')
-        cy.get('#fullbalance_amount').should('have.text', '40.00000000') // should('have.text') returns ALL textContents (descendants and unvisible text)
+        cy.get('#fullbalance_amount').should('have.text', '20.00000000') // should('have.text') returns ALL textContents (descendants and unvisible text)
         cy.get('#fullbalance_amount').find('span').first().should('have.text', '0').and('not.be.visible')
         cy.get('#fullbalance_amount').find('.thousand-digits-in-btc-amount').children().each((element) => {
             cy.wrap(element).should('have.text', '0') 
