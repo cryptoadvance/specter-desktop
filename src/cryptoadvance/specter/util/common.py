@@ -49,13 +49,13 @@ def format_btc_amount_as_sats(
             left_index = -6 if len(array) >= 6 else -len(array)
             array[
                 left_index
-            ] = f'<span class="thousand-digits-in-btc-amount">{array[left_index]}'
+            ] = f'<span class="thousand-digits-in-sats-amount">{array[left_index]}'
             array[-4] = f"{array[-4]}</span>"
 
         left_index = -3 if len(array) >= 3 else -len(array)
         array[
             left_index
-        ] = f'<span class="last-digits-in-btc-amount">{array[left_index]}'
+        ] = f'<span class="last-digits-in-sats-amount">{array[left_index]}'
         array[-1] = f"{array[-1]}</span>"
 
     return "".join(array)

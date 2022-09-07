@@ -1332,3 +1332,9 @@ input:checked + .slider:before {
     color: #797979;
     padding-left: 2px;
 }
+.thousand-digits-in-sats-amount{
+    color: #919191;
+}
+.last-digits-in-sats-amount{
+    color: #797979;
+}

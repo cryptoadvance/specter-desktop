@@ -76,10 +76,22 @@ def test_format_btc_amount():
 
 def test_format_btc_amount_as_sats():
     btc_amount = 0.00560000
-    assert format_btc_amount_as_sats(btc_amount) == "560,000"
+    assert (
+        format_btc_amount_as_sats(btc_amount)
+        == '<span class="thousand-digits-in-sats-amount">560,</span><span class="last-digits-in-sats-amount">000</span>'
+    )
     btc_amount = 0.10560000
-    assert format_btc_amount_as_sats(btc_amount) == "10,560,000"
+    assert (
+        format_btc_amount_as_sats(btc_amount)
+        == '10,<span class="thousand-digits-in-sats-amount">560,</span><span class="last-digits-in-sats-amount">000</span>'
+    )
     btc_amount = 1.0
-    assert format_btc_amount_as_sats(btc_amount) == "100,000,000"
+    assert (
+        format_btc_amount_as_sats(btc_amount)
+        == '100,<span class="thousand-digits-in-sats-amount">000,</span><span class="last-digits-in-sats-amount">000</span>'
+    )
     btc_amount = 1.56000000
-    assert format_btc_amount_as_sats(btc_amount) == "156,000,000"
+    assert (
+        format_btc_amount_as_sats(btc_amount)
+        == '156,<span class="thousand-digits-in-sats-amount">000,</span><span class="last-digits-in-sats-amount">000</span>'
+    )
