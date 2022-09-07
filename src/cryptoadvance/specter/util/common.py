@@ -32,7 +32,7 @@ def snake_case2camelcase(word):
 
 def format_btc_amount_as_sats(
     value: Union[float, str],
-    enable_digit_formatting=True,
+    enable_digit_formatting=False,
 ) -> str:
     s = "{:,.0f}".format(round(float(value) * 1e8))
 
