@@ -31,9 +31,18 @@ def snake_case2camelcase(word):
 
 
 def format_btc_amount_as_sats(
-    value: Union[float, str], enable_digit_formatting=True
+    value: Union[float, str],
+    enable_digit_formatting=True,
 ) -> str:
-    array = list("{:,.0f}".format(round(float(value) * 1e8)))
+    s = "{:,.0f}".format(round(float(value) * 1e8))
+
+    # combine the "," with the left number to an array
+    array = []
+    for letter in s:
+        if letter == ",":
+            array[-1] += letter
+        else:
+            array.append(letter)
 
     if enable_digit_formatting:
         if len(array) >= 4:
