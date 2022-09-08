@@ -61,10 +61,10 @@ describe('Test the fee UI', () => {
         cy.get('#fee_rate_speed_text').should('have.text', 'Overpaid! (10 minutes)')
     })
 
-    it('Using dynamic mode with non-integer fees', () => {
+    it('Using dynamic mode with low non-integer fees', () => {
         // Fees: {"fastestFee": 1.1, "halfHourFee": 1, "hourFee": 1, "minimumFee": 1}
         cy.selectWallet('Ghost wallet')
-        cy.intercept('GET', '/wallets/fees', { fixture: 'fees/non-integer_fees.json' })
+        cy.intercept('GET', '/wallets/fees', { fixture: 'fees/low_non-integer_fees.json' })
         cy.get('#btn_send').click()
         cy.get('#toggle_advanced').click()
         // Preselected dynamic fee rate
