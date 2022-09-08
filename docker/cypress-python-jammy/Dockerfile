@@ -1,4 +1,4 @@
-FROM registry.gitlab.com/relativisticelectron/specter-desktop/cypress-base-ubuntu-jammy:latest
+FROM registry.gitlab.com/cryptoadvance/specter-desktop/cypress-base-ubuntu-jammy:20220908
 
 RUN apt-get update && apt-get install -y \
     python3-pip python3-virtualenv zip unzip file apt libusb-1.0-0-dev libudev-dev \

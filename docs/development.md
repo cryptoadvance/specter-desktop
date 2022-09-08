@@ -160,7 +160,7 @@ pytest
 OR run against bitcoind in Docker (deprecated):
 ```
 # Pull the bitcoind image if you haven't already:
-docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:v0.20.1
+docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:v0.22.0
 
 # install prerequisites
 pip3 install docker
