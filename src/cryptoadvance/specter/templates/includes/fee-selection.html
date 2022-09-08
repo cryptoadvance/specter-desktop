@@ -238,12 +238,13 @@
         // Gets executed after fee initialisation
         initWithFees() {
             // this.feesSlider.min is set above via min_fee
-            // For low fee environment
+            // For low fee environment, API results are integers
             if (this.fees["fastestFee"] == 1) {
                 this.feesSlider.max = 1.5
             }
             else {
-                this.feesSlider.max = Math.floor(this.fees["fastestFee"] * 1.4)
+                let feeSliderMax = Math.floor(this.fees["fastestFee"] * 1.4)
+                this.feesSlider.max =  feeSliderMax >= 2 ? feeSliderMax : 2
             }
             // Avoid calculating the default value with a very high fastestFee
             if (this.fees["fastestFee"] > 2 * this.fees["halfHourFee"]) {

@@ -14,7 +14,7 @@ describe('Test the fee UI', () => {
     })
 
     it('Using dynamic mode with normal fees', () => {
-        // Normal fees: {"fastestFee": 9, "halfHourFee": 5, "hourFee": 3, "minimumFee": 1}
+        // Fees: {"fastestFee": 9, "halfHourFee": 5, "hourFee": 3, "minimumFee": 1}
         cy.selectWallet('Ghost wallet')
         cy.intercept('GET', '/wallets/fees', { fixture: 'fees/normal_fees.json' })
         cy.get('#btn_send').click()
@@ -42,7 +42,7 @@ describe('Test the fee UI', () => {
     })
 
     it('Using dynamic mode with low fees', () => {
-        // Low fees: {"fastestFee": 1, "halfHourFee": 1, "hourFee": 1, "minimumFee": 1}
+        // Fees: {"fastestFee": 1, "halfHourFee": 1, "hourFee": 1, "minimumFee": 1}
         cy.selectWallet('Ghost wallet')
         cy.intercept('GET', '/wallets/fees', { fixture: 'fees/low_fees.json' })
         cy.get('#btn_send').click()
@@ -61,8 +61,28 @@ describe('Test the fee UI', () => {
         cy.get('#fee_rate_speed_text').should('have.text', 'Overpaid! (10 minutes)')
     })
 
+    it('Using dynamic mode with non-integer fees', () => {
+        // Fees: {"fastestFee": 1.1, "halfHourFee": 1, "hourFee": 1, "minimumFee": 1}
+        cy.selectWallet('Ghost wallet')
+        cy.intercept('GET', '/wallets/fees', { fixture: 'fees/non-integer_fees.json' })
+        cy.get('#btn_send').click()
+        cy.get('#toggle_advanced').click()
+        // Preselected dynamic fee rate
+        cy.get('#fee_rate_dynamic_text').should('have.text', '1')
+        // Speed text
+        cy.get('#fee_rate_speed_text').should('have.text', 'Fast (30 minutes)')
+        // Slider 
+        cy.get('#fees_slider').should('have.value', '1')
+        cy.get('#fees_slider').invoke('attr', 'min').should('eq', '1')
+        cy.get('#fees_slider').invoke('attr', 'max').should('eq', '2')
+        // Simulate sliding to 1.1
+        cy.get('#fees_slider').invoke('val', '1.1').trigger('input')
+        cy.get('#fees_slider').should('have.value', '1.1')
+        cy.get('#fee_rate_speed_text').should('have.text', 'Very fast (10 minutes)')
+    })
+
     it('Using dynamic mode with high fees', () => {
-        // High fees: {"fastestFee": 14, "halfHourFee": 10, "hourFee": 7, "minimumFee": 1}
+        // Fees: {"fastestFee": 14, "halfHourFee": 10, "hourFee": 7, "minimumFee": 1}
         cy.selectWallet('Ghost wallet')
         cy.intercept('GET', '/wallets/fees', { fixture: 'fees/high_fees.json' })
         cy.get('#btn_send').click()
@@ -86,7 +106,7 @@ describe('Test the fee UI', () => {
     })
 
     it('Using dynamic mode with asymmetric fees', () => {
-        // Asymmetric fees: {"fastestFee": 13, "halfHourFee": 4, "hourFee": 2, "minimumFee": 1}
+        // Fees: {"fastestFee": 13, "halfHourFee": 4, "hourFee": 2, "minimumFee": 1}
         cy.selectWallet('Ghost wallet')
         cy.intercept('GET', '/wallets/fees', { fixture: 'fees/asymmetric_fees.json' })
         cy.get('#btn_send').click()
