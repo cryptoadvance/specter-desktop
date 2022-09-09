@@ -158,7 +158,7 @@ release_electron_linux_windows:
   only: 
     - tags
   before_script:
-    - python -V  # Print out python version for debugging
+    - python3 -V  # Print out python version for debugging
     - apt update
     - apt install -y unzip libusb-1.0-0-dev libudev-dev # usb-support in hidapi
     - pip3 install virtualenv
