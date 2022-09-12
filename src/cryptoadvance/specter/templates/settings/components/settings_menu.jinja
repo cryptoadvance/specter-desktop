@@ -6,15 +6,15 @@
     - active_menuitem: Current active tab. Options: 'general', 'bitcoin_core', 'auth'.
     - current_user: The current user.
  #}
-{% macro settings_menu(active_menuitem, current_user, setting_exts={}) -%}
+{% macro settings_menu(active_menuitem, current_user, ext_settingstabs={}) -%}
 
 	<nav class="row collapse-on-mobile">
 		{{ settings_menu_item('general', _('General'), active_menuitem, isLeft=true) }}
 		{{ settings_menu_item('auth', _('Authentication'), active_menuitem, isRight=false) }}
 		{{ settings_menu_item('hwi', _('USB Devices'), active_menuitem, isRight=(not current_user.is_admin)) }}
-		{% for ext_id, setting_ext in setting_exts.items() %}
-			{% for setting_ext_item in setting_ext %}
-				{{ settings_menu_item(setting_ext_item["endpoint"], _(setting_ext_item["title"]), active_menuitem, isRight=false, blueprint=ext_id+"_endpoint") }}
+		{% for ext_id, settingstabs in ext_settingstabs.items() %}
+			{% for settingstab in settingstabs %}
+				{{ settings_menu_item(settingstab["endpoint"], _(settingstab["title"]), active_menuitem, isRight=false, blueprint=ext_id+"_endpoint") }}
 			{% endfor %}
 		{% endfor %}
 		{% if current_user.is_admin %}

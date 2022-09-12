@@ -48,10 +48,10 @@ def inject_common_stuff():
     """Can be used in all jinja2 templates of this Blueprint
     Injects the additional settings_tabs via extentions
     """
-    setting_exts = app.specter.service_manager.execute_ext_callbacks(
-        callbacks.setting_exts
+    ext_settingstabs = app.specter.service_manager.execute_ext_callbacks(
+        callbacks.add_settingstabs
     )
-    return dict(setting_exts=setting_exts)
+    return dict(ext_settingstabs=ext_settingstabs)
 
 
 @settings_endpoint.route("/", methods=["GET"])

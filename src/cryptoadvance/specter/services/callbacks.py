@@ -25,8 +25,9 @@ after_serverpy_init_app = "after_serverpy_init_app"
 
 """ Extensions which want to extend the settings dialog
     needs to return something like: return [{"title": "token", "endpoint":"settings_token"}]
+    Check the extension-docs for a comprehensive example.
 """
-setting_exts = "setting_exts"
+add_settingstabs = "add_settingstabs"
 
 """
     This one is called, whenever a file is persisted. To call external scripts in another
