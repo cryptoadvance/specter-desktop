@@ -65,7 +65,7 @@ class ConfigManager(GenericDataManager):
             "fee_estimator": "bitcoin_core",
             "fee_estimator_custom_url": "",
             "hide_sensitive_info": False,
-            "autohide_sensitive_info_timeout_minutes": 20,
+            "autohide_sensitive_info_timeout_minutes": None,
             "autologout_timeout_hours": 4,
             # TODO: remove
             "bitcoind": False,
