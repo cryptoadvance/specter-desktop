@@ -82,7 +82,12 @@
                 }
         // detect device
         if (devicePath == null) {
+            if (deviceTypes == 'ledger') {
+             showHWIProgress(`{{ _("Detecting...") }}`, `{{ _("Plug in your Ledger. Make sure you have opened the Bitcoin app on your Ledger otherwise Specter can't detect the device.") }}`);
+            }
+            else {
             showHWIProgress(`{{ _("Detecting...") }}`, `{{ _("Plug in your device") }}`);
+            }   
         }
         let result = [];
         let retryCounter = 0;
