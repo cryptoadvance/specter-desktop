@@ -368,10 +368,18 @@ def noded(
             config_obj["SPECTER_DATA_FOLDER"],
             mining_every_x_seconds,
             echo,
+            exit,
         )
     else:
-        while True:
-            time.sleep(10)
+        while not exit.is_set():
+            try:
+                exit.wait(10)
+            except Exception as e:
+                logger.info(
+                    f"Caught {e}, Couldn't mine, assume SIGTERM occured => exiting!"
+                )
+                break
+        echo(f"THE_END")
 
 
 def prepare_elements_default_wallet(my_node):
@@ -397,7 +405,7 @@ def prepare_elements_default_wallet(my_node):
         rpc.generatetoaddress(101, unconfidential)
 
 
-def miner_loop(node_impl, my_node, data_folder, mining_every_x_seconds, echo):
+def miner_loop(node_impl, my_node, data_folder, mining_every_x_seconds, echo, exit):
     "An endless loop mining bitcoin"
 
     echo(
@@ -415,7 +423,7 @@ def miner_loop(node_impl, my_node, data_folder, mining_every_x_seconds, echo):
 
     prevent_mining_file = Path("prevent_mining")
     i = 0
-    while True:
+    while not exit.is_set():
         try:
             current_height = my_node.rpcconn.get_rpc().getblockchaininfo()["blocks"]
             exit.wait(mining_every_x_seconds)
@@ -441,11 +449,11 @@ def miner_loop(node_impl, my_node, data_folder, mining_every_x_seconds, echo):
             logger.debug(
                 f"Caught {e}, Couldn't mine, assume SIGTERM occured => exiting!"
             )
-            echo(f"THE_END(@height:{current_height})")
-            if prevent_mining_file.is_file():
-                echo("Deleting file prevent_mining")
-                prevent_mining_file.unlink()
             break
+    if prevent_mining_file.is_file():
+        echo("Deleting file prevent_mining")
+        prevent_mining_file.unlink()
+    echo(f"THE_END(@height:{current_height})")
 
 
 def mine_2_specter_wallets(node_impl, my_node, data_folder, echo):
