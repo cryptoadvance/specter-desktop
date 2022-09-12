@@ -10,8 +10,8 @@ from embit.descriptor import Key as DescriptorKey
 from embit.descriptor.arguments import AllowedDerivation
 from embit.liquid.descriptor import LDescriptor
 from cryptoadvance.specter.key import Key
-from flask import flash
 from flask_babel import lazy_gettext as _
+from ..server import flash
 
 logger = logging.getLogger(__name__)
 

@@ -10,7 +10,7 @@ from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.services import callbacks
 from cryptoadvance.specter.util.reflection import get_template_static_folder
 from dotenv import load_dotenv
-from flask import Flask, jsonify, redirect, request, session, url_for
+from flask import Flask, jsonify, redirect, request, session, url_for, flash
 from flask_apscheduler import APScheduler
 from .htmlsafebabel import HTMLSafeBabel
 from flask_login import LoginManager, login_user
@@ -60,6 +60,14 @@ def calc_module_name(config):
         return config
     else:
         return "cryptoadvance.specter.config." + config
+
+
+def flash(*args, **kwargs):
+    """An indirection in order to potentially handle that differently
+    THis function could potentially be placed in util but as it might
+    use the service_manager, we place it here for now.
+    """
+    flash(*args, **kwargs)
 
 
 def create_app(config=None):

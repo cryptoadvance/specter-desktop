@@ -16,7 +16,7 @@ import pgpy
 import requests
 from flask import Blueprint, Flask
 from flask import current_app as app
-from flask import flash, jsonify, redirect, render_template, request, send_file, url_for
+from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from cryptoadvance.specter.services.service import Service
@@ -30,6 +30,7 @@ from ..helpers import (
     set_loglevel,
 )
 from ..persistence import write_devices, write_wallet
+from ..server import flash
 from ..specter_error import ExtProcTimeoutException, handle_exception
 from ..util.sha256sum import sha256sum
 from ..util.shell import get_last_lines_from_file

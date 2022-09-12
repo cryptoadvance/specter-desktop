@@ -1,12 +1,16 @@
-from ..services.callbacks import flask_before_request
-import random, traceback
+import random
+import traceback
+from pathlib import Path
 from time import time
+
+from flask import g, redirect, render_template, request, url_for
+from flask_babel import lazy_gettext as _
 from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import MethodNotAllowed, NotFound
-from flask import render_template, request, redirect, url_for, flash, g
-from flask_babel import lazy_gettext as _
-from ..specter_error import SpecterError, ExtProcTimeoutException
-from pathlib import Path
+
+from ..server import flash
+from ..services.callbacks import flask_before_request
+from ..specter_error import ExtProcTimeoutException, SpecterError
 
 env_path = Path(".") / ".flaskenv"
 from dotenv import load_dotenv
@@ -14,12 +18,15 @@ from dotenv import load_dotenv
 load_dotenv(env_path)
 
 from flask import current_app as app
+
 from .filters import filters_bp
 
 app.register_blueprint(filters_bp)
 
-# Setup specter endpoints
-from .welcome import welcome_endpoint
+# Services live in their own separate path
+from cryptoadvance.specter.services.controller import services_endpoint
+
+from ..rpc import RpcError
 from .auth import auth_endpoint
 from .devices import devices_endpoint
 from .nodes import nodes_endpoint
@@ -28,10 +35,9 @@ from .settings import settings_endpoint
 from .setup import setup_endpoint
 from .wallets import wallets_endpoint
 from .wallets_api import wallets_endpoint_api
-from ..rpc import RpcError
 
-# Services live in their own separate path
-from cryptoadvance.specter.services.controller import services_endpoint
+# Setup specter endpoints
+from .welcome import welcome_endpoint
 
 spc_prefix = app.config["SPECTER_URL_PREFIX"]
 app.register_blueprint(welcome_endpoint, url_prefix=f"{spc_prefix}/welcome")

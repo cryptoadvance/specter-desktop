@@ -20,6 +20,8 @@ from ..wallet import (  # TODO: `purposes` unused here, but other files rely on 
     Wallet,
     purposes,
 )
+from flask import current_app
+
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +69,7 @@ class WalletManager:
         The _update internal method will resync the internal status with Bitcoin Core
         use_threading : for the _update method which is heavily communicating with Bitcoin Core
         """
+        print(f"wallet_manager --- update: chain {chain}")
         if (chain is None and rpc is not None) or (chain is not None and rpc is None):
             raise Exception(
                 f"Chain ({chain}) and rpc ({rpc}) can only be changed with one another"
@@ -119,6 +122,8 @@ class WalletManager:
             logger.info(
                 "Specter seems to be disconnected from Bitcoin Core. Skipping wallets update."
             )
+        print(f"wallet_manager --- self: chain {self.chain} self.rpc: {self.rpc}")
+        print(f"wallet_manager --- ")
 
     def _update(self, wallets_update_list: Dict):
         """Effectively a three way sync. The three data sources are:

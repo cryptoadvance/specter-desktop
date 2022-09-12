@@ -15,7 +15,7 @@ from cryptoadvance.specter.commands.psbt_creator import PsbtCreator
 from cryptoadvance.specter.wallet import Wallet
 from flask import Blueprint, stream_with_context
 from flask import current_app as app
-from flask import flash, jsonify, redirect, request, url_for
+from flask import jsonify, redirect, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_babel import lazy_gettext
 from flask_login import current_user, login_required
@@ -24,6 +24,7 @@ from werkzeug.wrappers import Response
 from ..helpers import bcur2base64
 from ..util.mnemonic import generate_mnemonic
 from ..rpc import RpcError
+from ..server import flash
 from ..server_endpoints.filters import assetlabel
 from ..specter_error import SpecterError, handle_exception
 from ..util.base43 import b43_decode
