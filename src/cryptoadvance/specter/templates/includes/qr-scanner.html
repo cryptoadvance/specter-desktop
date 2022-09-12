@@ -185,6 +185,10 @@ class QRScannerElement extends HTMLElement {
         if (p5) {
           result = "StandardSeedQR:" + result;
         }
+        else {
+          // TODO: Adapt if there is Compact SeedQR support
+          this.triggerError('{{ _("Invalid SeedQR! Only Standard SeedQR format with 12- and 24-word mnemonics supported.") }}');
+        }
 
         // TODO: Enable Compact SeedQR support when the QR parser can read the binary data.
         // if (p6) {

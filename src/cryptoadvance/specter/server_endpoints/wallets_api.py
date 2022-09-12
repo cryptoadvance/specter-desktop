@@ -74,8 +74,12 @@ def parse_seedqr():
     bytestream = request.form.get("bytestream")
 
     if digitstream:
-        mnemonic = seedqr.parse_standard_seedqr(digitstream)
+        try:
+            mnemonic = seedqr.parse_standard_seedqr(digitstream)
+        except SpecterError as se:
+            return jsonify(success=False, error=str(se))
     else:
+        # TODO: Better error handling
         mnemonic = seedqr.parse_compact_seedqr(bytestream)
 
     return {

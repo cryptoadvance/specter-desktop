@@ -345,6 +345,10 @@
                     return;
                 }
                 const jsonResponse = await response.json();
+                if (jsonResponse.success == false) {
+                    showError(jsonResponse.error)
+                    return
+                }
                 let mnemonic = jsonResponse.mnemonic;
 
                 document.getElementById("mnemonic_value").value = mnemonic;
