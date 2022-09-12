@@ -22,9 +22,21 @@ If someone does not want the download, he can manually choose a specterd-binary 
 
 So let's cover the build of the specterd-binary first. Below is a manual description of the build-process. There are acripts which are doing this but they are partially optimized for the CI-system. Check the `pyinstaller/build-*` scripts for details.
 
+First set the virtualenv:
+
+```bash
+virtualenv --python=python3 .buildenv
+source .buildenv/bin/activate 
+```
+
 ### specterd Linux and MacOS
 
+Below doesn't seem to work properly, at least on MacOS, better use the build script. For MacOS, that would be:
+```bash
+./utils/build-osx.sh --version 0.0.0-pre1 specterd
 ```
+
+```bash
 cd pyinstaller
 # prerequisites
 pip3 install -r requirements.txt --require-hashes
@@ -50,7 +62,7 @@ pyinstaller.exe specterd.spec
 
 ### Electron Linux
 The prerequisite for an electron build is a successfull specterd-build above. So now we need to bake the hash and a way how to retrieve the specterd-file when the electron-app is started:
-```
+```bash
 cd electron
 # You have to decide about a version
 npm i

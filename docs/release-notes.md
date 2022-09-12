@@ -1,4 +1,119 @@
-## v1.9.0 März 30, 2022
+# Release Notes
+
+## v1.12.0 August 26, 2022
+- Feature: add faucet and exfund extensions #1820 (Stepan Snigirev)
+- Feature: Dev tools - Adding full python access via javascript for developers #1842 (relativisticelectron)
+- UIUX: Complete overhaul of the tooltips used in Specter Desktop #1813 (Manolis Mandrapilias)
+- UIUX: Easier adding and deleting of recipients #1782 (relativisticelectron)
+- UIUX: Optimize tx-table for mobile screen #1804 (relativisticelectron)
+- Mobile: Some extra height in mobile browsers #1827 (relativisticelectron)
+- Bugfix: Allow mouse selection during address label editing for Firefox #1825 (relativisticelectron)
+- Bugfix: Another broken html part and b tag #1823 (relativisticelectron)
+- Bugfix: Fiat price in address table not visible #1836 (relativisticelectron)
+- Bugfix: remove print statement with buggy expression #1822 (k9ert)
+- Bugfix: fix explorer issue #1838 #1839 (relativisticelectron)
+- Chore: Detecting Liquid chain #1851 (Manolis Mandrapilias)
+- Chore: Fix psbt creator api to work with liquid assets when using json #1831 (Stepan Snigirev)
+- Chore: Upgrade pyinstaller from 4.9 to 5.2 #1807 (k9ert)
+- Docs: Add mobile access question to the FAQ #1829 (Manolis Mandrapilias)
+- Docs: some doc fixes, refactorings and ext clarification #1789 (k9ert)
+- Docs: Supported Python versions #1847 (Willie Wheeler)
+
+## v1.10.5 Juli 21, 2022
+- Bugfix: startup issues for MacOS App 1815 #1816 (relativisticelectron)
+- Feature: generate app_config.py in extgen #1801 (k9ert)
+
+## v1.10.4 Juli 19, 2022
+- Bugfix: Better error-management for run the numbers #1790 (k9ert)
+- Bugfix: Consecutively uploading same file twice #1776 (relativisticelectron)
+- Bugfix: Fix the messed up translated html #1810 (relativisticelectron)
+- Bugfix: make translations safe in jinja2 #1793 (relativisticelectron)
+- Bugfix: NoneType has not attribute get in certain circumstances #1802 (k9ert)
+- Bugfix: Pagination in transactions and coin selection #1778 (Manolis Mandrapilias)
+- Bugfix: Search container overlaying #1787 (Manolis Mandrapilias)
+- Bugfix: support extracting xpub of master xkey derivation #1797 (hodlwave)
+- Chore: fix broken cirrus build cache for bitcoind #1786 (k9ert)
+- Chore: migrating to hwi 2.1.0 #1693 (k9ert)
+- Docs: added necessary command to build instructions #1808 (relativisticelectron)
+- Docs: Mentioning Acronis as endless pacman cause #1767 (k9ert)
+- Feature: Add nix shell #1798 (hodlwave)
+- Feature: Extensions - Making more than one Blueprint possible  #1764 (k9ert)
+- Feature: Rescan button for empty wallet #1779 (yogendra sankhla)
+- UIUX: Improve the transactions view #1746 (Manolis Mandrapilias)
+- UIUX: tooltips fix #1806 (relativisticelectron)
+
+## v1.10.3 June 22, 2022
+- Bugfix: Display address on device #1774 (Manolis Mandrapilias)
+- Bugfix: Longer Timeout for run_the_numbers #1769 (k9ert)
+- Bugfix: Rescan won't work for fullnodes without explorer #1771 (k9ert)
+- Bugfix: Send max with multiple recipients #1744 (Harshit)
+- Bugfix: Start_specter ran twice in sub_open #1768 (k9ert)
+- Bugfix: Visual artifact in the electron settings dialog #1754 (djpnewton)
+- Chore: Making text-explainer a webcomponent #1752 (Shlok Pandey)
+- Chore: Refactor_wallet_manager #1667 (k9ert)
+- Docs: Corrected links in development.md #1742 (Ankur)
+- Feature: combined test script for cypress and pytest #1749 (relativisticelectron)
+- Feature: Drag and drop for PSBT import #1758 (Shlok Pandey)
+- UIUX: Fixed html character codes for multisig guide & polishment of about page #1743 (Manolis Mandrapilias)
+
+## v1.10.2 June 03, 2022
+- Feature: Basic auth in electron #1730 (djpnewton)
+- Feature: Multisig beginner guide #1731 (relativisticelectron)
+- Bugfix: Corrected build instructions and made virtuelenv name dynamic #1735 (relativisticelectron)
+- Bugfix: issues while using specter as library #1740 (k9ert)
+- Bugfix: PDF backup does not open for multisig #1741 (k9ert)
+- UIUX: fix typo in error_logs #1739 (Bufo)
+
+## v1.10.0 May 27, 2022
+- Feature: adding has_service() method to user #1732 (Kim Neunert)
+- Feature: Choose file button for labels import #1682 (Manolis)
+- Feature: Customised front end for adding Electrum devices #1622 (relativisticelectron)
+- Feature: introducing gunicorn as an alternative WSGI HTTP Server #1721 (Kim Neunert)
+- Feature: Message signing via QR code #1567 (Manolis)
+- Feature: new extensionpoint specter_persistence_callback #1723 (Kim Neunert)
+- Feature: Optimized uncle jim pdf for the Debasafebags. #1706 (f9ert)
+- Bugfix: add proper uid to initial config fixes #1714 #1715 (Kim Neunert)
+- Bugfix: better error-handling and version checks #1691 (Kim Neunert)
+- Bugfix: wrong arguments for requests_session #1719 (Kim Neunert)
+- Chore: Adjusted releasing process and adding liquidissuer  #1716 (Kim Neunert)
+- Chore: Bump ejs from 3.1.5 to 3.1.7 in /pyinstaller/electron #1697 (dependabot[bot])
+- Chore: Change Specter compatibility to ">=3.7,<3.10" #1707 (relativisticelectron)
+- Chore: Docker #1696 (Aaron Dewes)
+- Chore: embit Upgrade to 0.4.13 (ripemd160 replacement)  #1702 (relativisticelectron)
+- Chore: install_noded.sh support for elements binary #1717 (relativisticelectron)
+- Chore: misc changes #1733 (Kim Neunert)
+- Chore: Non-standard ports for test-cypress.sh #1729 (Kim Neunert)
+- Chore: Refactor UTXO scan (and timeout bugfix for utxo_scan) #1687 (Kim Neunert)
+- Chore: Removing HWIBridge initialisation on module-level #1720 (Kim Neunert)
+- Chore: Upgrade black version for pre-commit #1708 (relativisticelectron)
+- Chore: Introducing an issue template #1692 (Kim Neunert)
+- Docs: Added support for other distros (Arch/Fedora) #1713 (Ankur)
+
+
+## v1.9.4 April 28, 2022
+- UIUX: Overhaul of UTXO list, handling of locked UTXOs and scrollbar added #1580 (Manolis)
+- Bugfix: i18n issue preventing historical proces to work in edge cases #1664 (Kim Neunert)
+- Feature: More languages supported for BIP39 mnemonic import #1660 (Kim Neunert/Manolis)
+- Docs: Architectural notes #1673 (Kim Neunert)
+- Docs: Fix extra / in url in service.md #1659 (Brendan Murphy)
+- Chore: Bump electron from 11.5.0 to 13.6.9 #1647 (Kim Neunert)
+- Chore: Bump async from 3.2.0 to 3.2.3 #1674 (dependabot[bot])
+- Chore: Bump minimist from 1.2.5 to 1.2.6 in /pyinstaller/electron #1637 (dependabot[bot])
+- Chore: Updating cypress from 7.1.0 to 9.5.4  #1672 #1676 (Kim Neunert)
+- Chore: Upgrade flask (and others) from 1.1.4 to 2.1.1 #1666 (Kim Neunert)
+
+## v1.9.2 April 04, 2022
+- Bugfix: Tzdata module missing on windows fixes #1653 #1654 (Kim Neunert)
+
+## v1.9.1 April 02, 2022
+- Bugfix: opening non-installed extensions in new window #1650 (Kim Neunert)
+- Bugfix: price provider uses wrong user #1640 (Kim Neunert)
+- Bugfix: Restore editing of labels #1649 (Kim Neunert)
+- Chore: Bump ansi-regex from 4.1.0 to 4.1.1 in /pyinstaller/electron #1643 (dependabot[bot])
+- Chore: Bump minimist from 1.2.5 to 1.2.6 #1639 (dependabot[bot])
+- Chore: Update elements to 0.21.0.2 #1641 (Kim Neunert)
+
+## v1.9.0 March 30, 2022
 - Feature: added better scrollbar for all table-style-lists #1598 (relativisticelectron)
 - Feature: CLI and a publishing model for extensions #1566 (Kim Neunert)
 - Feature: Import of raw transaction #1591 (relativisticelectron)
@@ -40,7 +155,7 @@
 - Docs: Update daemon.md #1586 (GoofyAF)
 
 
-## v1.8.0 Januar 29, 2022
+## v1.8.0 January 29, 2022
 - Feature: Add Jade multisig support #1520 (Stepan Snigirev)
 - Feature: add liquid-testnet support #1527 (Stepan Snigirev)
 - Feature: Allow descriptors with xpubs but without derivations (just wpkh(xpub) ) for wallet imports  #1519 (Stepan Snigirev)

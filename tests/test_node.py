@@ -3,6 +3,7 @@ import pytest
 import tempfile
 
 from cryptoadvance.specter.node import Node
+from cryptoadvance.specter.helpers import is_liquid
 from mock import MagicMock, call, patch
 
 
@@ -55,7 +56,9 @@ def test_Node_btc(bitcoin_regtest):
         print(f"info = {node.info}")
         # something like:
         # {'chain': 'regtest', 'blocks': 100, 'headers': 100, 'bestblockhash': '5277c27b3b5e8aad8e079a928e4675931ea1638a28c7a33bae4ef26425402259', 'difficulty': 4.656542373906925e-10, 'mediantime': 1622635607, 'verificationprogress': 1, 'initialblockdownload': False, 'chainwork': '00000000000000000000000000000000000000000000000000000000000000ca', 'size_on_disk': 30477, 'pruned': False, 'softforks': {'bip34': {'type': 'buried', 'active': False, 'height': 500}, 'bip66': {'type': 'buried', 'active': False, 'height': 1251}, 'bip65': {'type': 'buried', 'active': False, 'height': 1351}, 'csv': {'type': 'buried', 'active': False, 'height': 432}, 'segwit': {'type': 'buried', 'active': True, 'height': 0}, 'testdummy': {'type': 'bip9', 'bip9': {'status': 'defined', 'start_time': 0, 'timeout': 9223372036854775807, 'since': 0}, 'active': False}}, 'warnings': '', 'mempool_info': {'loaded': True, 'size': 0, 'bytes': 0, 'usage': 0, 'maxmempool': 300000000, 'mempoolminfee': 1e-05, 'minrelaytxfee': 1e-05}, 'uptime': 480, 'blockfilterindex': False, 'utxorescan': None}
-        assert node.info["chain"] == "regtest"
+        chain = node.info["chain"]
+        assert chain == "regtest"
+        assert is_liquid(chain) == False
 
         print(f"network_info = {node.network_info}")
         # something like:
@@ -115,7 +118,9 @@ def test_Node_elm(elements_elreg):
         print(f"info = {node.info}")
         # something like:
         # {'chain': 'regtest', 'blocks': 100, 'headers': 100, 'bestblockhash': '5277c27b3b5e8aad8e079a928e4675931ea1638a28c7a33bae4ef26425402259', 'difficulty': 4.656542373906925e-10, 'mediantime': 1622635607, 'verificationprogress': 1, 'initialblockdownload': False, 'chainwork': '00000000000000000000000000000000000000000000000000000000000000ca', 'size_on_disk': 30477, 'pruned': False, 'softforks': {'bip34': {'type': 'buried', 'active': False, 'height': 500}, 'bip66': {'type': 'buried', 'active': False, 'height': 1251}, 'bip65': {'type': 'buried', 'active': False, 'height': 1351}, 'csv': {'type': 'buried', 'active': False, 'height': 432}, 'segwit': {'type': 'buried', 'active': True, 'height': 0}, 'testdummy': {'type': 'bip9', 'bip9': {'status': 'defined', 'start_time': 0, 'timeout': 9223372036854775807, 'since': 0}, 'active': False}}, 'warnings': '', 'mempool_info': {'loaded': True, 'size': 0, 'bytes': 0, 'usage': 0, 'maxmempool': 300000000, 'mempoolminfee': 1e-05, 'minrelaytxfee': 1e-05}, 'uptime': 480, 'blockfilterindex': False, 'utxorescan': None}
-        assert node.info["chain"] == "elreg"
+        chain = node.info["chain"]
+        assert chain == "elreg"
+        assert is_liquid(chain) == True
 
         print(f"network_info = {node.network_info}")
         # something like:

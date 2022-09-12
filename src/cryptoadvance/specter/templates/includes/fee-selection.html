@@ -1,22 +1,20 @@
 <template id="fee-selection">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <div class="fee_container">
-        <div id="subtract_fees_div">
+        <div id="subtract_fees_div" style="display: flex">
             <label><input type="checkbox" class="inline" name="subtract" id="subtract" {% if subtract %}checked{% endif %}> {{ _("Subtract fees from amount") }}</label>
-            <div class="tool-tip" style="text-align: center;">
-                <i class="tool-tip__icon">i</i>
-                <p class="tool-tip__info">
-                    <span class="info">
-                        <span class="info__title">{{ _("Subtract fees from amount") }}<br><br></span>
-                        {{ _("If checked, the transaction fees will be paid off from the transaction amount.") }}<br><br>
-                        {{ _("Otherwise, the fees will be paid in addition to the amount sent.") }}
-                    </span>
-                </p>
-            </div>
+            <tool-tip width="200px">
+                <h4 slot="title">{{ _("Subtract fees from amount") }}</h4>
+                <span slot="paragraph">
+                    {{ _("If checked, the transaction fees will be paid off from the transaction amount.") }}<br><br>
+                    {{ _("Otherwise, the fees will be paid in addition to the amount sent.") }}       
+                </span>
+            </tool-tip>
         </div>
         <span id="subtract_from" style="display: none">
-            <br>{{ _("Subtract from recipient number:") }} 
-            <input id="subtract_from_input" name="subtract_from" type="number" min="1" value="1" step="1" style="width: 80px; min-width: 80px;"><br>
+            <br>{{ _("Subtract from ") }} 
+            <select id="subtract_from_recipient_id_select" name="subtract_from_stale" style="width: 140px; min-width: 140px;"></select>
+            <br>                       
         </span>
         <br>
         <div>
@@ -56,7 +54,7 @@
      * The API for this component works in a way that it manages 5 hidden inputs which will expose the
      * choice of the user.
      * * <input type="checkbox" class="rbf-checkbox inline hidden" name="rbf" id="rbf">
-     * * <input id="subtract_from_input" name="subtract_from" type="number" class="hidden">
+     * * <input id="subtract_from_recipient_id_select" name="subtract_from" type="number" class="hidden">
      * * <input type="hidden" value="dynamic" name="fee_option">
      * * <input type="number" class="fee_rate hidden" name="fee_rate" id="fee_rate" value="0.1">
      * * <input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="0.1" class="hidden">
@@ -109,7 +107,7 @@
             // Subtract
             this.subtract = clone.querySelector("#subtract")            
             this.subtractFrom = clone.querySelector("#subtract_from")
-            this.subtractFromInput = clone.querySelector("#subtract_from_input")
+            this.subtractFromRecipientIdSelect = clone.querySelector("#subtract_from_recipient_id_select")
 
             // Presets
             this.feeOptionPreset = this.getAttribute('fee-option-preset') == null ? "dynamic" : this.getAttribute('fee-option-preset')
@@ -172,15 +170,11 @@
             this.ld.subtract.value = this.subtract.value;
             this.appendChild(this.ld.subtract);
 
-            // subtract_from (the actual input field)
-            this.ld.subtractFromInput = this.subtractFromInput.cloneNode(true);
-            this.ld.subtractFromInput.type = "hidden";
-            this.appendChild(this.ld.subtractFromInput);
-
-            // This is just for exposure to the jinja template for displaying, not needed for the form POST
-            this.ld.subtractFrom = this.subtractFrom.cloneNode(true);
-            this.ld.subtractFrom.type = "hidden";
-            this.appendChild(this.ld.subtractFrom);
+            // subtract_from (for the form)
+            this.ld.subtractFromRecipientIdSelect = document.createElement("input");
+            this.ld.subtractFromRecipientIdSelect.type = "hidden";
+            this.ld.subtractFromRecipientIdSelect.name = "subtract_from";
+            this.appendChild(this.ld.subtractFromRecipientIdSelect);
         }
 
         /**
@@ -208,7 +202,7 @@
                 this.rbfUpdated();
             })
 
-            this.subtractFromInput.addEventListener("click", (event) => {
+            this.subtractFromRecipientIdSelect.addEventListener("change", (event) => {
                  this.subtractUpdated();
                 })
 
@@ -332,12 +326,17 @@
             } catch(e) {console.log(e)}   
         }
 
+        setSubtractFrom(recipientId) {
+            this.subtractFromRecipientIdSelect.value = recipientId
+            this.ld.subtractFromRecipientIdSelect.value = recipientId
+        }
+
         // Updates Light DOM values for the form
         subtractUpdated() {
             if (this.subtract.checked) {
                 this.ld.subtract.value = "true"
                 this.ld.subtract.checked = true
-                this.ld.subtractFromInput.value = this.subtractFromInput.value
+                this.ld.subtractFromRecipientIdSelect.value = this.subtractFromRecipientIdSelect.value
             }
             else {
                 this.ld.subtract.value = "false"

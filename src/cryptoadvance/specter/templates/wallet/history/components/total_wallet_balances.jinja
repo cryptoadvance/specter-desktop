@@ -6,27 +6,84 @@
     - specter: Specter object
  #}
 {% macro total_wallet_balances(wallet, specter) -%}
-    <h1>
-        <small style="line-height:30px">Total balance:</small><br>
-        <span style="color: #fff">
-            <span id="fullbalance_amount">{{ wallet.fullbalance | btcunitamount }}</span>
-            {% if specter.unit == 'sat' %}
-				sats
-			{% else %}
-				{% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
-			{% endif %}
-        </span><br>
-        <span class="note">{{ wallet.fullbalance | altunit }}</span>
-        {% if wallet.balance.get("untrusted_pending", 0) or wallet.balance.get("immature", 0) %}<br>
-            <small>( {{ wallet.balance.get("trusted", 0) | btcunitamount }} confirmed,
-                     {% if wallet.balance.get("untrusted_pending", 0) %}
-                        {{ wallet.balance.get("untrusted_pending", 0) | btcunitamount }} pending
-                     {% endif %}
-                     {% if wallet.balance.get("immature", 0) %}
-                        {{ wallet.balance.get("immature", 0) | btcunitamount }} immature
-                     {% endif %}
-            )</small>
-        {% endif %}
+    <div style="display: flex; flex-direction: column; min-width: 300px; align-items: center">
+        <span style="line-height:30px; font-size: 1.1em;">Balance:</span>
+        <div class="smaller-card">
+            <div> 
+                Total amount: <span id="fullbalance_amount">{{ wallet.amount_total | btcunitamount }}</span>
+                {% if specter.unit == 'sat' %}
+                    sats
+                {% else %}
+                    {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
+                {% endif %}
+                {% if specter.price_check %} 
+                    <span class="note">({{ wallet.amount_total | altunit }})</span>
+                {% endif %}
+            </div>
+            {% if wallet.amount_unconfirmed > 0 or wallet.amount_immature > 0 %}
+                <div>
+                    Confirmed: {{ wallet.amount_confirmed | btcunitamount }}
+                    {% if specter.unit == 'sat' %}
+                        sats
+                    {% else %}
+                        {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
+                    {% endif %}
+                    {% if specter.price_check %} 
+                        <span class="note">({{ wallet.amount_confirmed | altunit }})</span>
+                    {% endif %}
+                </div>
+                {% if wallet.amount_unconfirmed > 0 %}
+                <div>
+                    Unconfirmed: {{ wallet.amount_unconfirmed | btcunitamount }}
+                    {% if specter.unit == 'sat' %}
+                        sats
+                    {% else %}
+                        {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
+                    {% endif %}
+                    {% if specter.price_check %} 
+                        <span class="note">({{ wallet.amount_unconfirmed | altunit }})</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% if wallet.amount_immature > 0 and specter.chain == "regtest" %}
+                <div style="color: grey; display: flex;">
+                    Immature: {{ wallet.amount_immature | btcunitamount }} 
+                    {% if specter.unit == 'sat' %}
+                        sats
+                    {% else %}
+                        {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
+                    {% endif %}
+                    {% if specter.price_check %} 
+                        <span class="note" style="color: grey">({{ wallet.amount_immature | altunit }})</span>
+                    {% endif %}
+                    <tool-tip width="200px">
+                        <h4 slot="title">{{ _("What are immature outputs?") }}</h4>
+                        <span slot="paragraph">
+                        {{ _('The UTXO of coinbase transactions (mining rewards) have the special condition that they cannot be spent for at least 100 blocks. Their amount is not included in the total balance here. You see these outputs because you are using regtest and have mined blocks.') }}
+                         </span>
+                    </tool-tip>
+                </div>
+                {% endif %}
+                {% elif wallet.amount_immature > 0 and specter.chain == "main" %}
+                <div style="color: #ccc; display: flex">
+                    Immature: {{ wallet.amount_immature | btcunitamount }} 
+                    {% if specter.unit == 'sat' %}
+                        sats
+                    {% else %}
+                        {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
+                    {% endif %}
+                    {% if specter.price_check %} 
+                        <span class="note" style="color: grey">({{ wallet.amount_immature | altunit }})</span>
+                    {% endif %}
+                    <tool-tip width="200px">
+                        <h4 slot="title">{{ _("What are immature outputs?") }}</h4>
+                        <span slot="paragraph">
+                        {{ _('The UTXO of coinbase transactions (mining rewards) have the special condition that they cannot be spent for at least 100 blocks. Their amount is not included in the total balance here.') }}
+                        </span>
+                    </tool-tip>
+                </div>
+            {% endif %}
+        </div>
         {% if specter.is_liquid %}
         {% if wallet.balance.get("assets", {}) %}
             <div style="margin-bottom: 15px;">
@@ -47,7 +104,7 @@
         </small>
         <br>
         {% endif %}
-    </h1>
+    </div>
     {% if wallet.rescan_progress or specter.utxorescanwallet == wallet.alias %}
         <span id="wallet_rescan_data" style="display: contents;">
             <h2>Rescanning blockchain: <span id="{{ wallet.alias }}_balances_wallet_rescan_percents">{{ "%.2f"|format(specter.info["utxorescan"] if specter.utxorescanwallet == wallet.alias else wallet.rescan_progress * 100) }}</span>%</h2>

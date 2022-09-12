@@ -9,7 +9,7 @@ import requests
 import urllib3
 
 from .helpers import is_ip_private
-from .specter_error import SpecterError
+from .specter_error import SpecterError, handle_exception
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +81,8 @@ def _get_rpcconfig(datadir=get_default_datadir()):
                         config["bitcoin.conf"][net.strip()][k.strip()] = v.strip()
                     else:
                         current[k.strip()] = v.strip()
-        except Exception:
+        except Exception as e:
+            handle_exception(e)
             print("Can't open %s file" % bitcoin_conf_file)
     folders = {"main": "", "test": "testnet3", "regtest": "regtest", "signet": "signet"}
     for chain in folders:
@@ -93,7 +94,8 @@ def _get_rpcconfig(datadir=get_default_datadir()):
                     user, password = content.split(":")
                     obj = {"user": user, "password": password, "port": RPC_PORTS[chain]}
                     config["cookies"].append(obj)
-            except:
+            except Exception as e:
+                handle_exception(e)
                 print("Can't open %s file" % fname)
     return config
 
@@ -372,6 +374,7 @@ class BitcoinRPC:
             if kwargs.get("no_wait"):
                 # Used for rpc calls that don't immediately return (e.g. rescanblockchain) so we don't
                 # expect any data back anyway. __getattr__ expects a list of formatted json.
+                self.trace_call_after(url, payload, timeout)
                 return [{"error": None, "result": None}]
 
             logger.error(
@@ -394,7 +397,11 @@ class BitcoinRPC:
         self.trace_call_after(url, payload, ts)
         self.r = r
         if r.status_code != 200:
-            logger.debug(f"last call FAILED: {r.text} (raising RpcError)")
+            logger.debug(f"last call FAILED: {r.text}")
+            if r.text.startswith("Work queue depth exceeded"):
+                raise SpecterError(
+                    "Your Bitcoind is running hot (Work queue depth exceeded)! Bitcoind gets more requests than it can process. Please refrain from doing anything for some minutes."
+                )
             raise RpcError(
                 "Server responded with error code %d: %s" % (r.status_code, r.text), r
             )
@@ -440,7 +447,9 @@ class BitcoinRPC:
         def fn(*args, **kwargs):
             r = self.multi([(method, *args)], **kwargs)[0]
             if r["error"] is not None:
-                raise RpcError("Request error: %s" % r["error"]["message"], r)
+                raise RpcError(
+                    f"Request error for method {method}: {r['error']['message']}", r
+                )
             return r["result"]
 
         return fn

@@ -1,6 +1,8 @@
 <template id="coin-selection">
-    <span class="toggle_coinselection" style="cursor: pointer;">{{ _("Coin selection") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
-    <br>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+    </style>
+    <span class="toggle_coinselection" style="cursor: pointer; margin-bottom: 5px; display: block">{{ _("Coin selection") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
     <div class="coinselection_div" style="margin: auto; max-width: 90%; display: none;">
         <div class="errorMessagesDiv">
             <message-box type="error" style="display: none;"></message-box>
@@ -10,7 +12,10 @@
             btc-unit="{{ specter.unit }}"
             hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
             type="utxo" hide-columns="category time txid confirmations action" 
-            blockhash="true" hide-switcher="true">
+            blockhash="true" hide-switcher="true"
+            wallet="{{ wallet.alias }}"
+            table-max-height="600px"
+            scrollbar="on">
         </tx-table>
     </div> 
 </template>
@@ -26,11 +31,11 @@
         <coin-selection  
             id="coinselection-webcomponent"
             wallet-alias="{{wallet.alias}}"
-            spendable-amount='{{ wallet.full_available_balance | btcamount }}'
+            spendable-amount='{{ wallet.amount_available | btcamount }}'
             is-liquid="{{specter.is_liquid}}"
             selected-coins="{{ selected_coins }}">
         </coin-selection>
-        Internally, a tx-table is used which is customizable in order to be usefull here.
+        Internally, a tx-table is used which is customizable in order to be useful here.
         We're using the asset_balance endpoint to get Liquid assets.
      */
     class CoinSelection extends HTMLElement {
@@ -71,16 +76,12 @@
             if (this.getAttribute("is-liquid") == "True") {
                 this.classList.add("hidden")
             }
-
-            this.txtable.setAttribute("wallet", this.walletAlias)
-
             let selectedCoins = JSON.parse(this.getAttribute('selected-coins').replace(/'/g, '"'));
             if (selectedCoins.length > 0) {
                 this.txtable.setAttribute("selected-coins", JSON.stringify(selectedCoins))
                 // unfold if we have preselected coins
                 this.toggleCoinselection()
             }
-
         }
 
         /**
@@ -117,7 +118,7 @@
             let spendableAmount;
             if (!this.isCoinSelectionActive()) {
                 if(unit == 'btc' || unit == 'sat'){
-                    spendableAmount = '{{ wallet.full_available_balance }}';
+                    spendableAmount = '{{ wallet.amount_available }}';
                 } else {        
                     if (unit in assetBalances){
                         return assetBalances[unit].balance;
@@ -155,6 +156,7 @@
             this.txtable.getSelectedTxs().forEach( (tx) => {
                 sum = sum + tx.amount
             })
+            sum = Number.parseFloat(sum.toFixed(8))
             return sum
         }
     

@@ -5,7 +5,10 @@ import re
 import threading
 import time
 import os
+from urllib.error import HTTPError
 import requests
+from requests.exceptions import ConnectionError
+from urllib3.exceptions import NewConnectionError
 import importlib_metadata
 
 from cryptoadvance.specter.specter_error import SpecterError
@@ -51,7 +54,9 @@ class VersionChecker:
         """Checks for updates once per hour"""
         while self.running:
             self.current, self.latest, self.upgrade = self.get_version_info()
-            logger.info(f"version checked. upgrade: {self.upgrade}")
+            logger.info(
+                f"version checked, install_type {self.installation_type} curr: {self.current} latest: {self.latest} ==> upgrade: {self.upgrade}"
+            )
             time.sleep(dt)
 
     def _get_current_version(self):
@@ -78,7 +83,7 @@ class VersionChecker:
             logger.warning(
                 "We're checking here for a different binary than specter-desktop. We're hopefully in a pytest"
             )
-        latest = VersionChecker._get_latest_version_from_github()
+        latest = self._get_latest_version_from_github()
         return current, latest
 
     def _get_pip_version(self):
@@ -86,6 +91,7 @@ class VersionChecker:
         returns current, latest
         """
         current = self._get_current_version()
+        latest = "unknown"
         try:
             if self.specter:
                 requests_session = self.specter.requests_session(force_tor=False)
@@ -97,8 +103,19 @@ class VersionChecker:
                 .json()["releases"]
                 .keys()
             )
-
-            latest = list(releases)[-1]
+            releases = list(releases)
+            for i in range(-1, 0 - len(releases), -1):
+                # for some stupid reason, rc-versions are BEFORE the real versions
+                if not releases[i][:-1].endswith("rc"):
+                    latest = releases[i]
+                    break
+        except (
+            HTTPError,
+            ConnectionError,
+            ConnectionRefusedError,
+            NewConnectionError,
+        ) as e:
+            logger.error(f"{e} while checking for new pypi version")
         except Exception as e:
             logger.exception(e)
             latest = "unknown"
@@ -142,13 +159,11 @@ class VersionChecker:
                 requests_session = self.specter.requests_session(force_tor=False)
             else:
                 requests_session = requests.Session()
-            print(requests_session.get().json())
             releases = (
                 requests_session.get(f"https://pypi.org/pypi/{self.name}/json")
                 .json()["releases"]
                 .keys()
             )
-
             latest = list(releases)[-1]
         except Exception as e:
             logger.exception(e)

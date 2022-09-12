@@ -5,7 +5,11 @@
 - [Development](#development)
   - [How to run the Application](#how-to-run-the-application)
     - [Install dependencies:](#install-dependencies)
-      - [Ubuntu/Debian/macOS](#ubuntudebianmacos)
+      - [Ubuntu/Debian:](#ubuntudebian)
+      - [macOS:](#macos)
+      - [Nix:](#nix)
+      - [Arch:](#arch)
+      - [Fedora/CentOS:](#fedoracentos)
       - [Windows](#windows)
     - [Set up virtualenv](#set-up-virtualenv)
       - [If `pip install` fails on `cryptography==3.4.x`](#if-pip-install-fails-on-cryptography34x)
@@ -39,12 +43,24 @@
 
 ### Install dependencies:
 
-#### Ubuntu/Debian/macOS
+#### Ubuntu/Debian:
 ```
 sudo apt install libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev build-essential
-
-# macOS:
+```
+#### macOS:
+```
 brew install libusb
+```
+#### Nix:
+The easiest way to get all necessary tools is to run `nix-shell` from the `utils` directory of this repository. You need to have [Nix](https://nixos.org/) installed.
+#### Arch: 
+```
+sudo pacman -Syu && sudo pacman -S libusb
+```
+#### Fedora/CentOS:
+```
+sudo yum -y install libusb libudev-devel libffi libffi-devel openssl-devel && sudo yum groupinstall "Development Tools" "Development Libraries"
+
 ```
 
 #### Windows
@@ -68,7 +84,8 @@ brew install libusb
 
 
 ### Set up virtualenv
-Note that `hwi-1.2.0` needs Python 3.6-3.8. If you have Python 3.9 installed then be sure to also install an old Python version and pass it to `virtualenv` (e.g. `virtualenv --python3.8 .env`).
+Specter is using `hwi-2.1.0` which by now supports higher Python versions than Specter itself. Specter currently supports Python 3.7-3.9.
+If you have Python 3.10 as your global version then be sure to also install an old Python version and pass it to `virtualenv` (e.g. `virtualenv --python=python3.8 .env`) or use pyenv.
 
 ```sh
 git clone https://github.com/cryptoadvance/specter-desktop.git
@@ -211,7 +228,7 @@ it each time it's starting with the genesis-block. This has some implications:
 * Depending on whether you do one or the other, you cannot rely on transactionIDs. So if you run a test standalone twice, you can assert txids but you can't any longer when you run all the tests
 
 ### Cypress UI-testing
-Cypress is just awesome. It's quite easy to create Frontend-tests and it's even recording all tests and you can immediately see how it went. So each test-run, the tests are kept for one day (see the ["artifacts-section"](https://github.com/k9ert/specter-desktop/blob/cypress/.gitlab-ci.yml#L53-L58)) and you can watch them by browsing the artifacts on any gitlab-job-page (right-hand-side marked with "Job artifacts").
+Cypress is just awesome. It's quite easy to create Frontend-tests and it's even recording all tests and you can immediately see how it went. So each test-run, the tests are kept for one day (see the ["artifacts-section"](https://github.com/cryptoadvance/specter-desktop/blob/master/.gitlab-ci.yml) and you can watch them by browsing the artifacts on any gitlab-job-page (right-hand-side marked with "Job artifacts").
 
 Executing the tests is done via `./utils/test-cypress.sh`:
 ```
@@ -224,7 +241,7 @@ Executing the tests is done via `./utils/test-cypress.sh`:
 ```
 The test_specifications which get executed are specified in `cypress.json`.
 
-More details on cypress-testing can be found in [cypress-testing.md](docs/cypress-testing.md).
+More details on cypress-testing can be found in [cypress-testing.md](./cypress-testing.md).
 Make sure to read it. The tooling we created around cypress might be quite helpful in daily development.
 In short, you can do this and the last command will give you a reliable development-environment which is the very same whenever you start it anew:
 ```
@@ -241,7 +258,7 @@ Other than Django, Flask is not opionoated at all. You can do all sorts of thing
 One strange thing which we're doing to get the tests working is forcing the reload of the controller-code (if necessary) [here](https://github.com/cryptoadvance/specter-desktop/blob/master/src/cryptoadvance/specter/server.py#L88-L93).
 
 The if-clause might be quite brittle which would result in very strange 404 in test_controller.
-Check the [archblog](./docs/archblog.md) for a better explanation.
+Check the [archblog](./archblog.md) for a better explanation.
 If Someone could figure out a better way to do that avoiding this strange this ... very welcome.
 
 ## More on the bitcoind requirements

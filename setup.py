@@ -61,7 +61,7 @@ setup(
         "Operating System :: OS Independent",
         "Framework :: Flask",
     ],
-    python_requires=">=3.6,<3.10",
+    python_requires=">=3.7,<3.10",
     cmdclass={
         "install": InstallWithBabelCompile,
         # The rest is convenience but not strictly necessary for the automation:
@@ -70,4 +70,8 @@ setup(
         "init_catalog": babel.init_catalog,
         "update_catalog": babel.update_catalog,
     },
+    entry_points="""
+        [console_scripts]
+        specter=cryptoadvance.specter.cli:entry_point
+    """,
 )

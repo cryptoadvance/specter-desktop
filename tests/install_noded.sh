@@ -82,7 +82,7 @@ function calc_pytestinit_nodeimpl_version {
     # addopts = --bitcoind-version v22.0 --elementsd-version v0.20.99
     # special treatments for bitcoin and elements necessary, see below
     local node_impl=$1
-    if cat ../pytest.ini | grep -q "addopts = --${node_impl}d-version" ; then
+    if cat ../pytest.ini | grep -q "${node_impl}d-version" ; then
         # in this case, we use the expected version from the test also as the tag to be checked out
         # i admit that this is REALLY ugly. Happy for any recommendations to do that more easy
         PINNED=$(cat ../pytest.ini | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep ${node_impl} |  cut -d' ' -f2)
@@ -221,10 +221,6 @@ function sub_compile {
 
 function sub_binary {
     node_impl=$1
-    if [ "$node_impl" = "elements" ]; then
-        echo "    --> binary installation of elements not supported, exiting"
-        exit 2
-    fi
     echo "    --> install_noded.sh Start $(date) (binary) for node_impl $node_impl"
     START=$(date +%s)
     check_binary_prerequisites
@@ -234,31 +230,37 @@ function sub_binary {
     # remove the v-prefix
     version=$(echo $version | sed -e 's/v//')
     if [ $(uname) = "Darwin" ]; then
-        binary_file=bitcoin-${version}-osx64.tar.gz
+        binary_file=${node_impl}-${version}-osx64.tar.gz
     else
-        binary_file=bitcoin-${version}-x86_64-linux-gnu.tar.gz
+        binary_file=${node_impl}-${version}-x86_64-linux-gnu.tar.gz
     fi
     if [[ ! -f $binary_file ]]; then
-        wget https://bitcoincore.org/bin/bitcoin-core-${version}/${binary_file}
-    fi
-    tar -xzf ${binary_file}
-    if [[ -d ./bitcoin ]]; then
-        if [[ -d ./bitcoin/src ]]; then
-            mv ./bitcoin ./bitcoin-src
-        else
-            rm -rf ./bitcoin
+        if [ "$node_impl" = "elements" ]; then
+            wget https://github.com/ElementsProject/elements/releases/download/${version}/${binary_file}
+        fi
+        if [ "$node_impl" = "bitcoin" ]; then
+            wget https://bitcoincore.org/bin/bitcoin-core-${version}/${binary_file}
         fi
     fi
-    ln -s ./bitcoin-${version} bitcoin
+
+    tar -xzf ${binary_file}
+    if [[ -d ./"$node_impl" ]]; then
+        if [[ -d ./"$node_impl"/src ]]; then
+            mv ./"$node_impl" ./"$node_impl"-src
+        else
+            rm -rf ./"$node_impl"
+        fi
+    fi
+    ln -s ./"$node_impl"-${version} "$node_impl"
     echo "    --> Listing binaries"
     if [ $(uname) = "Darwin" ]; then
-        find ./bitcoin/bin -maxdepth 1 -type f -perm +111 -exec ls -ld {} \;
+        find ./"$node_impl"/bin -maxdepth 1 -type f -perm +111 -exec ls -ld {} \;
     else
-        find ./bitcoin/bin -maxdepth 1 -type f -executable -exec ls -ld {} \;
+        find ./"$node_impl"/bin -maxdepth 1 -type f -executable -exec ls -ld {} \;
     fi
-    echo "    --> checking for bitcoind"
-    test -x ./bitcoin/bin/bitcoind || exit 2
-    echo "    --> Finished installing bitcoind binary"
+    echo "    --> checking for ${node_impl}d"
+    test -x ./${node_impl}/bin/${node_impl}d || exit 2
+    echo "    --> Finished installing ${node_impl}d binary"
     END=$(date +%s)
     DIFF=$(echo "$END - $START" | bc)
     echo "    --> install_noded.sh End $(date) took $DIFF seconds"

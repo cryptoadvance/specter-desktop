@@ -14,7 +14,9 @@ html, body{
     --cmap-bg-lighter:    #263044;
     --cmap-bg-lightest:   #313E50;
     --cmap-border:        #506072;
+    --cmap-border-highlight:#4B8CD8;
     --cmap-border-darker: #405062;
+    --cmap-bg-address-is-mine:#306d30;    
 
     margin: 0;
     padding: 0;
@@ -27,6 +29,9 @@ html, body{
     width: 100%;
     height: 100%;
 }
+b {
+    font-weight: bold;
+  }
 body{
     flex-direction: column;
     max-width: 100%;
@@ -141,16 +146,6 @@ ul, li{
     /*max-width: 100%;*/
     justify-content: center;
 }
-tr.unconfirmed{
-    background: var(--cmap-bg);
-    /*font-style: italic;*/
-}
-.unconfirmed td img{
-    opacity: 0.7;
-}
-.unconfirmed:hover td img{
-    opacity: 1;
-}
 .row{
     display: flex;
     flex-direction: row;
@@ -215,7 +210,8 @@ main{
     /*justify-content: center;*/
     padding: 0;
     /*padding: 30px 0 20px 0;*/
-    overflow-y: scroll;
+    height: 100vh;
+    box-sizing: border-box;
 }
 nav.side > .item, nav.side > div > .item{
     padding: 10px 0;
@@ -246,7 +242,6 @@ nav.side > a.item.active, nav.side > div > a.item.active{
     max-width: 90%;
     padding-left: 1em;
     padding-right: 1em;
-    padding-top: .5em;
     margin-bottom: 1em;
     background-color: #263044;
     border: 1px solid #CCCCCC;
@@ -355,7 +350,7 @@ nav .separator{
     background: var(--cmap-border);
     border: 1px solid transparent;
     border-radius: 4px;
-    padding: 8px 15px 8px 10px;
+    padding: 8px 10px 8px 10px;
     color: #fff;
     font-size: 0.85em;
     text-align: center;
@@ -430,6 +425,10 @@ h1{
 h2{
     font-size: 1.25em;
     margin: 0 0 0px 0;
+}
+h4 {
+    font-size: 1em;
+    margin: 0 0 5px 0;
 }
 input, textarea, .input, select{
     border: 1px solid var(--cmap-border);
@@ -519,6 +518,24 @@ input:hover{
 }
 .flex-item{
     margin: 0.5em;
+}
+.smaller-card{
+    min-width: 220px;
+    padding: 15px;
+    background: var(--cmap-bg-lighter);
+    border: 2px solid var(--cmap-border);
+    border-radius: 4px;
+    color: #fff;
+    font-size: 0.9em;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    margin: 5px;
+}
+.smaller-card:hover{
+    border: 2px solid hsl(217, 15%, 55%);
 }
 .small-card{
     min-width: 220px;
@@ -707,8 +724,6 @@ table{
 .table-holder{
     padding: 0 30px;
     width: 100%;
-    overflow-y: scroll;
-    /*overflow-x: scroll;*/
 }
 .full-width{
     width: 100%;
@@ -731,7 +746,7 @@ th{
     font-weight: inherit;
     border-bottom: 3px solid var(--cmap-bg-lightest);
 }
-tbody tr:hover{
+tbody tr:not(.nohover):hover{
     background: rgba(255,255,255,0.03);
     color: #fff;
 }
@@ -741,29 +756,75 @@ tbody tr:hover{
 .tx{
     max-width: 200px;
 }
-.scroll{
+
+/* Scroll functionality along x axis
+   (mainly used for xpub keys)
+*/
+
+.scroll {
     padding: 0 10px;
 }
-.scroll > *{
+.scroll > * {
     /* ugly fix for firefox - scrolling child element */
     display: block;
     overflow-x: scroll;
     width: 100%;
     padding: 20px 0;
 }
-.scroll > *::-webkit-scrollbar,
-#side-content::-webkit-scrollbar,
-main::-webkit-scrollbar,
-pre::-webkit-scrollbar{
-  display: none;
-}
-/* Hide scrollbar for IE, Edge and Firefox */
-td.scroll > *,
-#side-content,
-main,pre{
+/* Hide scrollbar thumb and track for IE, Edge and Firefox */
+td.scroll > *, pre {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
-  scrollbar-height: none;  /* Firefox */
+}
+/* Hide scrollbar thumb and track for Chrome */
+td.scroll > *::-webkit-scrollbar,
+pre::-webkit-scrollbar {
+    display: none;
+}
+
+/* Standard scrollbar along y axis
+scrollbar-color and scrollbar-width only supported by Firefox */
+
+main {
+  overflow-y: scroll;
+  scrollbar-color: hsl(217, 10%, 80%) var(--cmap-border);
+  scrollbar-width: thin;
+  overflow-x: hidden;
+}
+/* Not supported by Firefox & Safari on iOS */
+main::-webkit-scrollbar {
+  width: 0.5em;
+}
+main::-webkit-scrollbar:horizontal {
+  display: none;
+}
+main::-webkit-scrollbar-track {
+    background: var(--cmap-bg);
+    border-radius: 100vw;
+    margin-top: 3.5em;
+    margin-bottom: 1em;
+}
+main::-webkit-scrollbar-track:active {
+    background: hsl(217, 15%, 55%);
+    border-radius: 100vw;
+    margin-top: 3.5em;
+    margin-bottom: 1em;
+}
+main::-webkit-scrollbar-thumb {
+    background: hsl(217, 10%, 80%);
+    border-radius: 100vw;
+}
+main::-webkit-scrollbar-thumb:hover {
+    background: white;
+}
+
+/* No scrollbar for side-content */
+#side-content::-webkit-scrollbar {
+    display: none;
+}
+
+#side-content {
+    scrollbar-width: none;
 }
 
 table a, .address-link{
@@ -774,12 +835,6 @@ table a, .address-link{
 table a:hover, .address-link:hover{
     color: #fff;
     text-decoration: underline;
-}
-table .btn{
-    margin: -10px 0;
-    padding: 5px 10px;
-    width: auto;
-    min-width: 0;
 }
 table .btn.hovering{
 	opacity: 0.2;
@@ -867,7 +922,7 @@ table tr:hover .btn.hovering{
 .pagination-arrow {
     text-decoration: none;
     display: inline-block;
-    margin: 0px 16px 16px;
+    margin: 0px 16px 0px;
     border-radius: 50%;
     color: #fff;
     font-size: 1.5em;
@@ -931,64 +986,6 @@ table tr:hover .btn.hovering{
     margin-top: 2em;
     float: right;
 }
-
-/************** Tool Tip Styles ********************************/
-.tool-tip {
-    display: inline-block;
-    position: relative;
-    margin-left: 0.5em;
-}
-.tool-tip .tool-tip__icon {
-    color: #fff;
-    background: #27b1f0;
-    border-radius: 10px;
-    cursor: pointer;
-    display: inline-block;
-    font-style: italic;
-    font-family: times new roman;
-    height: 20px;
-    line-height: 1.3em;
-    text-align: center;
-    width: 20px;
-}
-.tool-tip .tool-tip__info {
-    display: none;
-    background: #262626;
-    border: 1px solid #27b1f0;
-    border-radius: 3px;
-    padding: 1em;
-    position: absolute;
-    left: 30px;
-    top: -20px;
-    width: 250px;
-    z-index: 2;
-}
-.tool-tip .tool-tip__info:before, .tool-tip .tool-tip__info:after {
-    content: "";
-    position: absolute;
-    left: -10px;
-    top: 7px;
-    border-style: solid;
-    border-width: 10px 10px 10px 0;
-    border-color: transparent #27b1f0;
-}
-.tool-tip .tool-tip__info:after {
-    left: -8px;
-    border-right-color: #262626;
-}
-.tool-tip .tool-tip__info .info {
-    display: block;
-}
-.tool-tip .tool-tip__info .info__title {
-    color: #4A90E2;
-}
-.tool-tip:hover .tool-tip__info, .tool-tip:focus .tool-tip__info {
-    display: inline-block;
-}
-
-a:focus + .tool-tip .tool-tip__info {
-    display: inline-block;
-}
 .switch-label {
     height: 25px;
     vertical-align: sub;
@@ -1021,6 +1018,18 @@ a:focus + .tool-tip .tool-tip__info {
 nav.collapse-on-mobile a.mobile-nav-icon {
     display: none;
 }
+
+
+/* The viewable height is often smaller than the height given by the browser. 
+See: https://css-tricks.com/the-trick-to-viewport-units-on-mobile/
+This style is used for a div at the bottom in the <main> element to create a distance at the bottom of the pages
+*/
+.mobile-distance-element-bottom {
+    height: 0px;
+    flex-shrink: 0;
+    width: 100%;
+  }
+
 
 @media (max-width: 1100px){
   #side-content{
@@ -1090,6 +1099,10 @@ nav.collapse-on-mobile a.mobile-nav-icon {
   }
 }
 @media (max-width: 690px){
+    .table-holder{
+        padding-left: 10px;
+        padding-right: 10px;
+    }
     .card{
         border-width: 0px;
         width: auto;
@@ -1195,6 +1208,9 @@ nav.collapse-on-mobile a.mobile-nav-icon {
     .main-page-container{
         background-image: none;
       }
+    .mobile-distance-element-bottom {
+        height: var(--mobileDistanceElementBottomHeight, 60px);
+    }
 }
 
 /************** Switch checkbox styles ********************************/
@@ -1251,4 +1267,46 @@ input:checked + .slider:before {
     -webkit-transform: translateX(26px);
     -ms-transform: translateX(26px);
     transform: translateX(26px);
+}
+
+/************** Styles for recipient-box ********************************/
+.recipient_wrapper{
+    width: 100%;
+    border-radius: 3px;
+    box-shadow: 0px 10px 15px rgba(0,0,0,0.1);
+  }
+.recipient_wrapper_item{
+    border-radius: 5px;
+    border: 1.5px solid var(--default-color);
+    padding: 5px;
+    margin-bottom: 5px;
+  }
+  .recipient_wrapper_inner_box{
+    padding: 5px;
+    margin-top: 5px;
+  }
+.recipient_button{
+      background: var(--cmap-border);
+      padding-left: 2px;
+      padding-right: 2px;
+      margin-left: 2px;
+      margin-right: 2px; 
+      border-radius: 3px;
+      height: 22px;
+      border: none;    
+    }
+.recipient_button:hover {
+    background: var(--cmap-border-darker);
+}
+.recipient_dragger {
+    cursor: grab; 
+}
+.recipient_add {
+    margin-right: 3px;
+    height: 25px;
+}
+.recipient_move {
+    cursor: default; 
+    padding-left: 6px;
+    padding-right: 6px;
 }

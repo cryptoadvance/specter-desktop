@@ -4,6 +4,7 @@
 
 - [Specter Desktop](#specter-desktop)
   - [DISCLAIMER](#disclaimer)
+  - [Video Walkthrough](#video-walkthrough)
   - [Why?](#why)
   - [Help wanted: Do you like Specter?](#help-wanted-do-you-like-specter)
   - [How to run](#how-to-run)
@@ -33,6 +34,9 @@
 This software might be ready to be used but at your own risk.
 
 If something doesn't work open an issue here or ask a question in our [Telegram group](https://t.me/spectersupport).
+
+## Video Walkthrough
+![video](https://www.youtube.com/embed/v3SEp0SkOWs) [Watch here](https://www.youtube.com/watch?v=v3SEp0SkOWs)
 
 ## Why?
 
@@ -68,12 +72,14 @@ The easiest way to run Specter Desktop is by installing the Specter Desktop app,
 With this method, all you need to do is just download the right file for your operating system and install it like a normal desktop app (Debian buster is only [partially supported](https://github.com/cryptoadvance/specter-desktop/issues/769))
 
 ### Installing Specter from Pip
-* Specter requires Python version 3.6 to 3.8. We will support python 3.9 when HWI adds support for it.
+* Specter requires Python version 3.7 to 3.9.
 * Bitcoin Core node should be at least v0.19+, better if it's the latest one from [bitcoincore.org](https://bitcoincore.org/en/download/).
 * HWI support requires `libusb` 
   * Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev python3-dev`
   * macOS: `brew install libusb`
   * Windows: follow instructions in [`windows.md`](docs/windows.md)
+  * Arch: `sudo pacman -Syu && sudo pacman -S libusb`
+  * Fedora/CentOS: `sudo yum -y install libusb libudev-devel python3-devel`
  * Install Specter
 ```sh
 pip3 install cryptoadvance.specter

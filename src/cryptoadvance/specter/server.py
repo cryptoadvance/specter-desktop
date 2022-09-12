@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 from pathlib import Path
+from cryptoadvance.specter.hwi_rpc import HWIBridge
 
 from cryptoadvance.specter.liquid.rpc import LiquidRPC
 from cryptoadvance.specter.managers.service_manager import ServiceManager
@@ -11,7 +12,7 @@ from cryptoadvance.specter.util.reflection import get_template_static_folder
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, request, session, url_for
 from flask_apscheduler import APScheduler
-from flask_babel import Babel
+from .htmlsafebabel import HTMLSafeBabel
 from flask_login import LoginManager, login_user
 from flask_wtf.csrf import CSRFProtect
 from jinja2 import select_autoescape
@@ -93,6 +94,8 @@ def create_app(config=None):
         template_folder=get_template_static_folder("templates"),
         static_folder=get_template_static_folder("static"),
     )
+    app.tor_service_id = None
+    app.tor_enabled = False
     app.jinja_env.autoescape = select_autoescape(default_for_string=True, default=True)
     logger.info(f"Configuration: {config}")
     app.config.from_object(config)
@@ -139,13 +142,16 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
             internal_bitcoind_version=app.config["INTERNAL_BITCOIND_VERSION"],
         )
 
+    # HWI
+    specter.hwi = HWIBridge()
+
     # ServiceManager will instantiate and register blueprints for extensions
     specter.service_manager = ServiceManager(
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )
 
     login_manager = LoginManager()
-    login_manager.session_protection = "strong"
+    login_manager.session_protection = app.config.get("SESSION_PROTECTION", "strong")
     login_manager.init_app(app)  # Enable Login
     login_manager.login_view = "auth_endpoint.login"  # Enable redirects if unauthorized
     app.config["SESSION_COOKIE_SAMESITE"] = "Strict"
@@ -180,7 +186,7 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
             from cryptoadvance.specter.server_endpoints import controller
             from cryptoadvance.specter.services import controller as serviceController
 
-            if app.config.get("TESTING") and len(app.view_functions) <= 20:
+            if app.config.get("TESTING") and len(app.view_functions) <= 50:
                 # Need to force a reload as otherwise the import is skipped
                 # in pytest, the app is created anew for each test
                 # But we shouldn't do that if not necessary as this would result in
@@ -214,7 +220,7 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
         app.config["BABEL_TRANSLATION_DIRECTORIES"] = os.path.join(
             sys._MEIPASS, "translations"
         )
-    babel = Babel(app)
+    babel = HTMLSafeBabel(app)
 
     @babel.localeselector
     def get_language_code():
@@ -255,12 +261,12 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     return app
 
 
-def create_and_init():
+def create_and_init(config="cryptoadvance.specter.config.ProductionConfig"):
     """This method can be used to fill the FLASK_APP-env variable like
     export FLASK_APP="src/cryptoadvance/specter/server:create_and_init()"
     See Development.md to use this for debugging
     """
-    app = create_app()
-    app.app_context().push()
-    init_app(app)
+    app = create_app(config)
+    with app.app_context():
+        init_app(app)
     return app

@@ -18,7 +18,6 @@ from .helpers import deep_update, hwi_get_config, save_hwi_bridge_config
 hwi_server = Blueprint("hwi_server", __name__)
 CORS(hwi_server)
 rand = random.randint(0, 1e32)  # to force style refresh
-hwi = HWIBridge()
 
 
 @hwi_server.route("/", methods=["GET"])
@@ -63,12 +62,12 @@ def api():
                 )
     try:
         data = json.loads(request.data)
-    except:
+    except Exception as e:
         return (
             jsonify(
                 {
                     "jsonrpc": "2.0",
-                    "error": {"code": -32700, "message": "Parse error"},
+                    "error": {"code": -32700, "message": f"Parse error:{str(e)}"},
                     "id": None,
                 }
             ),
@@ -103,7 +102,7 @@ def api():
         response = json.loads(forwarded_request.content)
         return jsonify(response)
 
-    return jsonify(hwi.jsonrpc(data))
+    return jsonify(app.specter.hwi.jsonrpc(data))
 
 
 @hwi_server.route("/settings/", methods=["GET", "POST"])

@@ -1,101 +1,181 @@
-<template id="tooltip">
+<!--
+Tooltips can be used in two ways:
+
+1) Within a flex container
+This also enables responsiveness of the width for the tooltip text. Ideally, put the tooltips on the same DOM level as the div / element the tooltip is intended for.
+
+{# - Usage -
+    <div class="search-container">
+        <div style="flex-grow: 0.2">
+            <input class="search" type="text" placeholder="Search..."></input>
+        </div>
+        <div id="tooltip-container" class="tooltip-little-grow tooltip-width">
+            <tool-tip>
+                <h4 slot="title">{{ _('Search options') }}</h4>
+                <span slot="paragraph">
+                    {{ _("You can search using addresses, tx-IDs, labels, confirmations or amounts.") }}<br><br>
+                    {{ _('Search like this in the time field:') }} <code>%d.%m.%Y %H:%M</code><br><br>
+                    {{ _('Search like this for amounts:') }} <br>
+                    <code> 1</code> {{ _("for anything more than 1") }}<br>
+                    <code>< 1</code> {{ _("for less than 1 BTC (don't forget the space)") }}<br>
+                </span>
+            </tool-tip>
+        </div>
+    </div>
+#}
+
+Repsonsiveness can be hooked up in the target jinja file etc. via eventListeners since the
+the web component dispatches custom mouseover and mouseout events that can be listened for.
+Like so:
+
+this.tooltip.addEventListener("customhover", () => {
+    ...
+})
+this.tooltip.addEventListener("customout", () => {
+    ...
+})
+
+If you don't care about responsiveness, just use the tooltips as below, you can set a width via the width attribute.
+
+{#
+    <div style="display: flex;">
+        <span>{{ _("Load Specter backup") }}:</span>
+        <tool-tip>
+            <span slot="paragraph">
+                {{ _("Please make sure to unzip the backup file first, then upload the extracted folder.") }}
+                {{ _("This will restore your wallets and devices.") }}<br>
+                {{ _("Loading devices or wallets with names identical to existing ones may overwrite the existing ones.") }}        
+            </span>
+        </tool-tip>
+    </div>
+#}
+
+2) Within other div such as buttons
+You can use the move-right attribute, to move the tooltip to the right if necessary.
+
+{# - Usage -
+<button type="button" class="btn freeze-tx-btn">
+    Un/Freeze UTXOs
+    <tool-tip width="250px" move-right="true">
+        <h4 slot="title">{{ _('Freezing UTXO') }}</h4>
+        <span slot="paragraph">
+            {{ _("Freezing a UTXO will make Specter disallow spending it.") }}<br><br>
+            {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }}
+        </span>
+    </tool-tip>
+</button>
+#}
+-->
+
+<template id="tooltip-template-id">
     <style>
-        .tool-tip {
-            display: inline-block;
-            position: relative;
+        .tooltip {
+            display: flex;
+            align-items: center;
             margin-left: 0.5em;
+            position: relative;
         }
-        .tool-tip .tool-tip__icon {
-            color: #fff;
-            background: #27b1f0;
-            border-radius: 10px;
+        .tooltip__icon {
+            background: none;
             cursor: pointer;
-            display: inline-block;
-            font-style: italic;
-            font-family: times new roman;
-            height: 20px;
-            line-height: 1.3em;
-            text-align: center;
-            width: 20px;
+            width: 1.3em;
         }
-        .tool-tip .tool-tip__info {
+        .tooltip__box {
             display: none;
-            background: #262626;
-            border: 1px solid #27b1f0;
-            border-radius: 3px;
-            padding: 1em;
             position: absolute;
             left: 30px;
             top: -20px;
-            width: 250px;
-            z-index: 2;
+            background: var(--cmap-bg-lightest);
+            border: 1.5px solid var(--default-color);
+            border-radius: 10px;
+            padding: 10px;
+            z-index: 4;
         }
-        .tool-tip .tool-tip__info:before, .tool-tip .tool-tip__info:after {
+        /* This makes the arrow */
+        .tooltip__box:before {
             content: "";
             position: absolute;
             left: -10px;
-            top: 7px;
+            top: 20px;
             border-style: solid;
             border-width: 10px 10px 10px 0;
-            border-color: transparent #27b1f0;
+            border-color: transparent var(--default-color);
         }
-        .tool-tip .tool-tip__info:after {
-            left: -8px;
-            border-right-color: #262626;
+        .title {
+            text-align: start;
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 1.1;
+            color: white;
         }
-        .tool-tip .tool-tip__info .info {
+        .paragraph {
             display: block;
+            text-align: start;
+            font-size: 13px;
+            font-weight: 300;
+            line-height: 1.3;
+            color: white;
         }
-        .tool-tip .tool-tip__info .info__title {
-            color: #4A90E2;
-        }
-        .tool-tip:hover .tool-tip__info, .tool-tip:focus .tool-tip__info {
-            display: inline-block;
-        }
-
-        a:focus + .tool-tip .tool-tip__info {
-            display: inline-block;
+        .tooltip:hover .tooltip__box {
+            display: flex;
+            flex-direction: column;
         }
         @media (hover: none) {
-            .tool-tip {
+            .tooltip {
                 display: none;
             }
         }
     </style>
-    <div class="tool-tip">
-        <i class="tool-tip__icon">i</i>
-        <p class="tool-tip__info">
-        <span class="info">
-            <span class="info__title"></span><br><br>
-            <slot></slot>
-        </span>
-        </p>
+
+    <div class="tooltip">
+        <img class="tooltip__icon" src="{{ url_for('static', filename='img/light-bulb.svg') }}" id="tooltip-img"></img>
+        <div class="tooltip__box" id="tooltip-box">
+            <slot name="title" class="title"></slot>
+            <slot name="paragraph" class="paragraph"></slot>
+        </div>
     </div>
-  </template>
+</template>
   
-  <script type="text/javascript">
-  class TooltipElement extends HTMLElement {
-    constructor() {
-        super();
-        // Create a shadow root
-        var shadow = this.attachShadow({mode: 'open'});
-        var style = document.getElementById('tooltip').content;
-        var clone = style.cloneNode(true);
+<script type="module">
+    class TooltipElement extends HTMLElement {
+        constructor() {
+            super();
+            var shadowRoot = this.attachShadow({mode: 'open'});
+            var template = document.getElementById('tooltip-template-id');
+            var clone = template.content.cloneNode(true);
+            this.tooltipImg = clone.getElementById('tooltip-img');
+            this.tooltipDiv = clone.querySelector('.tooltip');
+            // CustomEvent that can be picked up to adjust flex properties in the parent
+            this.tooltipDiv.addEventListener("mouseover", () => {
+                let event = new CustomEvent('customhover');
+                this.dispatchEvent(event);
+            })
+            this.tooltipDiv.addEventListener("mouseout", () => {
+                let event = new CustomEvent('customout');
+                this.dispatchEvent(event);
+            })
+            this.tooltipBox = clone.getElementById("tooltip-box");
+            shadowRoot.appendChild(clone);
+        }
 
-        this.titleText = clone.querySelector(".info__title");
+        static get observedAttributes() {
+            return ['width', 'move'];
+        }
 
-        // Attach the created element to the shadow dom
-        shadow.appendChild(clone);
+        connectedCallback() {
+            if (this.getAttribute("width")) {
+                this.tooltipBox.style.width = this.getAttribute("width");
+            }
+            if (this.getAttribute("move-right")) {
+                this.tooltipBox.style.left = "60px";
+            }
+            if (this.getAttribute("image")) {
+                if (this.getAttribute("image") == "note") {
+                    this.tooltipImg.src = "{{ url_for('static', filename='img/note.svg') }}";
+                    this.tooltipImg.style.width = "1.5em";
+                }
+            }
+        }
     }
-
-    static get observedAttributes() {
-        return ['title'];
-    }
-
-    attributeChangedCallback(attrName, oldValue, newValue) {
-      let title = this.getAttribute('title');
-      this.titleText.innerHTML = title;
-    }
-  }
-  customElements.define('tool-tip', TooltipElement);
-  </script>
+customElements.define('tool-tip', TooltipElement);
+</script>

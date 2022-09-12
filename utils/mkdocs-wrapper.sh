@@ -15,7 +15,7 @@
 # We're using mkdocs for creating the static pages
 # We don't pin this dependency as this is not relevant for either testing or
 # production. Therefore it's easier to simply let it upgrade automatically:
-pip3 install mkdocs 
+pip3 install mkdocs mkdocs-video  mdx_truly_sane_lists
 # At the sime of this comment, we had: mkdocs==1.2.3
 
 
@@ -26,8 +26,8 @@ pip3 install mkdocs
 if [ "$1" = "build" ]; then
     cp README.md docs
     sed -i 's/docs\///g' docs/README.md
+    sed -i 's/Checkout our Documentation at.*//' docs/README.md
     sed -i 's/\.\.\/README.md/README.m/g' docs/*.md
-
 fi
 
 

@@ -118,6 +118,33 @@ switch (process.platform) {
 logger.info("Using version " + appSettings.specterdVersion);
 logger.info("Using platformName " + platformName);
 
+let trySavedAuth = true
+app.on('login', function(event, webContents, request, authInfo, callback) {
+  event.preventDefault();
+  appSettings = getAppSettings(); // ensure latest settings are used
+  if (appSettings.basicAuth && trySavedAuth) {
+    callback(appSettings.basicAuthUser, appSettings.basicAuthPass);
+  } else {
+    let user = '';
+    let pass = '';
+    let win = createNewWindow('basic_auth.html', 800, 600, mainWindow, true);
+    win.show();
+    win.on('close', (event) => {
+      win = null;
+      callback(user, pass);
+    });
+    ipcMain.once('basic-auth', (event, creds) => {
+      if (win != null) {
+        user = creds.username;
+        pass = creds.password;
+        win.close();
+      }
+    });
+  }
+  // if we are prompted for auth again show the auth dialog
+  trySavedAuth = false;
+})
+
 function createWindow (specterURL) {  
   if (!mainWindow) {
     initMainWindow()
@@ -481,13 +508,20 @@ function setMainMenu() {
 }
 
 
-function openNewWindow(htmlContentFile) {
+function createNewWindow(htmlContentFile, width, height, parent, modal) {
+  if (! width) {width=700}
+  if (! height) {height=750}
+  if (! parent) {parent=null}
+  if (! modal) {modal=false}
   prefWindow = new BrowserWindow({
-    width: 700,
-    height: 750,
+    width: width,
+    height: height,
+    parent: parent,
+    modal: modal,
     autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: true,
+      contextIsolation: false, // acceptable as this is not the mainwindow. No remote content!
       enableRemoteModule: true,
       
     }
@@ -497,16 +531,18 @@ function openNewWindow(htmlContentFile) {
     shell.openExternal(url);
   });
   prefWindow.loadURL(`file://${__dirname}/${htmlContentFile}`)
-  prefWindow.show()
+  return prefWindow
 }
 
 
 function openPreferences() {
-  openNewWindow("settings.html")
+  createNewWindow("settings.html", 800, 750, mainWindow).show()
 }
 
 function openErrorLog() {
-  openNewWindow("error_logs.html")
+  width = parseInt(dimensions.width * 0.7),
+  height = parseInt(dimensions.height * 0.7)
+  createNewWindow("error_logs.html", width, height).show()
 }
 
 function showError(error) {

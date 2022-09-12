@@ -28,7 +28,12 @@ from cryptoadvance.specter.util.wallet_importer import WalletImporter
 
 logger = logging.getLogger(__name__)
 
-pytest_plugins = ["ghost_machine", "devices_and_wallets"]
+pytest_plugins = [
+    "fix_ghost_machine",
+    "fix_keys_and_seeds",
+    "fix_devices_and_wallets",
+    "fix_testnet",
+]
 
 # This is from https://stackoverflow.com/questions/132058/showing-the-stack-trace-from-a-running-python-application
 # it enables stopping a hanging test via sending the pytest-process a SIGUSR2 (12)
@@ -90,7 +95,9 @@ def pytest_generate_tests(metafunc):
             metafunc.parametrize("docker", [False], scope="session")
 
 
-def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=[]):
+def instantiate_bitcoind_controller(
+    docker, request, rpcport=18543, extra_args=[]
+) -> BitcoindPlainController:
     # logging.getLogger().setLevel(logging.DEBUG)
     requested_version = request.config.getoption("--bitcoind-version")
     log_stdout = str2bool(request.config.getoption("--bitcoind-log-stdout"))
@@ -176,6 +183,20 @@ def bitcoind_path():
 @pytest.fixture(scope="session")
 def bitcoin_regtest(docker, request):
     bitcoind_regtest = instantiate_bitcoind_controller(docker, request, extra_args=None)
+    try:
+        assert bitcoind_regtest.get_rpc().test_connection()
+        assert not bitcoind_regtest.datadir is None
+        yield bitcoind_regtest
+    finally:
+        bitcoind_regtest.stop_bitcoind()
+
+
+@pytest.fixture(scope="session")
+def bitcoin_regtest2(docker, request):
+    """If a test needs two nodes ..."""
+    bitcoind_regtest = instantiate_bitcoind_controller(
+        docker, request, rpcport=18544, extra_args=None
+    )
     try:
         assert bitcoind_regtest.get_rpc().test_connection()
         assert not bitcoind_regtest.datadir is None
@@ -322,13 +343,7 @@ def devices_filled_data_folder(empty_data_folder):
 
 @pytest.fixture
 def wallets_filled_data_folder(devices_filled_data_folder):
-    os.makedirs(os.path.join(devices_filled_data_folder, "wallets", "regtest"))
-    with open(
-        os.path.join(devices_filled_data_folder, "wallets", "regtest", "simple.json"),
-        "w",
-    ) as json_file:
-        json_file.write(
-            """
+    simple_json = """
 {
     "alias": "simple",
     "fullpath": "/home/kim/.specter/wallets/regtest/simple.json",
@@ -354,9 +369,56 @@ def wallets_filled_data_folder(devices_filled_data_folder):
     "device_type": "trezor",
     "address_type": "bech32"
 }
-
 """
-        )
+    another_wallet_json = """
+{
+    "name": "sdsd",
+    "alias": "sdsd",
+    "description": "Single (Segwit)",
+    "address_type": "bech32",
+    "address": "bcrt1q4h86vfanswhsle63hw2muv9h5a45cg2878uez5",
+    "address_index": 0,
+    "change_address": "bcrt1qxsj28ddr95xvp7xjyzkkfq6qknrn4kap30zkut",
+    "change_index": 0,
+    "keypool": 60,
+    "change_keypool": 20,
+    "recv_descriptor": "wpkh([41490ec7/84h/1h/0h]tpubDCTPz7KwyetfhQNMSWiK34pPR2zSTsTybrMPgRVAzouNLqtgsv51o81KjccmTbjkWJ8mVhRJM1LxZD6AfRH2635tHpHeCAKW446iwADNv7C/0/*)#rn833s5g",
+    "change_descriptor": "wpkh([41490ec7/84h/1h/0h]tpubDCTPz7KwyetfhQNMSWiK34pPR2zSTsTybrMPgRVAzouNLqtgsv51o81KjccmTbjkWJ8mVhRJM1LxZD6AfRH2635tHpHeCAKW446iwADNv7C/1/*)#j8zsv9ys",
+    "keys": [
+        {
+            "original": "vpub5YRErYARy1rFj1oGKc9yQyJ1jybtbEyvDziem5eFttPiVMbXJNtoQZ2DTAcowHUfu7NFPAiJtaop6TNRqAbkc8GPVY9VLp2HveP2PygjuYh",
+            "fingerprint": "41490ec7",
+            "derivation": "m/84h/1h/0h",
+            "type": "wpkh",
+            "purpose": "#0 Single Sig (Segwit)",
+            "xpub": "tpubDCTPz7KwyetfhQNMSWiK34pPR2zSTsTybrMPgRVAzouNLqtgsv51o81KjccmTbjkWJ8mVhRJM1LxZD6AfRH2635tHpHeCAKW446iwADNv7C"
+        }
+    ],
+    "devices": [
+        "dsds"
+    ],
+    "sigs_required": 1,
+    "blockheight": 0,
+    "pending_psbts": {},
+    "frozen_utxo": [],
+    "last_block": "187e2db380eb6d901efd87188f00c7074506c9c3813b8ecec7300ecc4e55eb46"
+}
+"""
+
+    os.makedirs(os.path.join(devices_filled_data_folder, "wallets", "regtest"))
+    with open(
+        os.path.join(devices_filled_data_folder, "wallets", "regtest", "simple.json"),
+        "w",
+    ) as json_file:
+        json_file.write(simple_json)
+    os.makedirs(os.path.join(devices_filled_data_folder, "wallets_someuser", "regtest"))
+    with open(
+        os.path.join(
+            devices_filled_data_folder, "wallets_someuser", "regtest", "simple.json"
+        ),
+        "w",
+    ) as json_file:
+        json_file.write(another_wallet_json)
     return devices_filled_data_folder  # and with wallets obviously
 
 
@@ -429,36 +491,6 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
     specter.user_manager.save()
     specter.check()
 
-    assert not someuser.wallet_manager.working_folder is None
-
-    # Create a Wallet
-    wallet_json = '{"label": "a_simple_wallet", "blockheight": 0, "descriptor": "wpkh([1ef4e492/84h/1h/0h]tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc/0/*)#xp8lv5nr", "devices": [{"type": "trezor", "label": "trezor"}]} '
-    wallet_importer = WalletImporter(
-        wallet_json, specter, device_manager=someuser.device_manager
-    )
-    wallet_importer.create_nonexisting_signers(
-        someuser.device_manager,
-        {"unknown_cosigner_0_name": "trezor", "unknown_cosigner_0_type": "trezor"},
-    )
-    dm: DeviceManager = someuser.device_manager
-    wallet = wallet_importer.create_wallet(someuser.wallet_manager)
-    try:
-        # fund it with some coins
-        bitcoin_regtest.testcoin_faucet(address=wallet.getnewaddress())
-        # make sure it's confirmed
-        bitcoin_regtest.mine()
-        # Realize that the wallet has funds:
-        wallet.update()
-    except SpecterError as se:
-        if str(se).startswith("Timeout"):
-            pytest.fail(
-                "We got a Bitcoin-RPC timeout while setting up the test, minting some coins. Test Error! Check cpu/mem utilastion and btc/elem logs!"
-            )
-            return
-        else:
-            raise se
-
-    assert wallet.fullbalance >= 20
     assert not specter.wallet_manager.working_folder is None
     try:
         yield specter

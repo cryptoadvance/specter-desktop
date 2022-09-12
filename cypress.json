@@ -4,15 +4,25 @@
       "spec_setup_tor.js",
       "spec_empty_specter_home.js",
       "spec_configures_nodes.js",
-      "spec_node_configured.js",
+      "spec_devices.js",
+      "spec_ghost_machine.js",
+      "spec_rescan.js",
+      "spec_qr_signing.js",
       "spec_wallet_send.js",
       "spec_wallet_utxo.js",
       "spec_plugins.js",
       "spec_elm_single_segwit_wallet.js",
-      "spec_elm_multi_segwit_wallet.js"
+      "spec_elm_multi_segwit_wallet.js",
+      "spec_multiuser_sessions.js"
     ],
     "baseUrl": "http://localhost:25444",
     "env": {
       "broadcast_timeout":"8000"
+    },
+    "includeShadowDom": false,
+    "reporter": "junit",
+    "reporterOptions": {
+      "mochaFile": "cypresstest-output.xml",
+      "toConsole": true
     }
 }

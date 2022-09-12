@@ -5,6 +5,7 @@ from importlib import import_module
 from inspect import isclass
 from pathlib import Path
 from pkgutil import iter_modules
+import sys
 from typing import Dict, List
 
 from cryptoadvance.specter.config import ProductionConfig
@@ -101,67 +102,103 @@ class ServiceManager:
     def register_blueprint_for_ext(cls, clazz, ext):
         if not clazz.has_blueprint:
             return
-        if hasattr(clazz, "blueprint_module"):
-            import_name = clazz.blueprint_module
-            controller_module = clazz.blueprint_module
+        if hasattr(clazz, "blueprint_modules"):
+            controller_modules = clazz.blueprint_modules
+            setattr(clazz, "blueprints", {})
+        elif hasattr(clazz, "blueprint_module"):
+            controller_modules = {"default": clazz.blueprint_module}
         else:
-            # The import_name helps to locate the root_path for the blueprint
             import_name = f"cryptoadvance.specter.services.{clazz.id}.service"
-            controller_module = f"cryptoadvance.specter.services.{clazz.id}.controller"
+            controller_modules = controller_modules = {
+                "default": f"cryptoadvance.specter.services.{clazz.id}.controller"
+            }
 
-        clazz.blueprint = Blueprint(
-            f"{clazz.id}_endpoint",
-            import_name,
-            template_folder=get_template_static_folder("templates"),
-            static_folder=get_template_static_folder("static"),
-        )
+        only_one_blueprint = len(controller_modules.items()) == 1
 
         def inject_stuff():
             """Can be used in all jinja2 templates"""
             return dict(specter=app.specter, service=ext)
 
-        clazz.blueprint.context_processor(inject_stuff)
-
-        # Import the controller for this service
-        logger.info(f"  Loading Controller {controller_module}")
-        controller_module = import_module(controller_module)
-
-        # finally register the blueprint
-        if clazz.isolated_client:
-            ext_prefix = app.config["ISOLATED_CLIENT_EXT_URL_PREFIX"]
-        else:
-            ext_prefix = app.config["EXT_URL_PREFIX"]
-
-        try:
-            app.register_blueprint(
-                clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
+        if "default" not in controller_modules.keys():
+            raise SpecterError(
+                "You need at least one Blueprint, with the key 'default'. It will be used to link to your UI"
             )
-            logger.info(f"  Mounted {clazz.id} to {ext_prefix}/{clazz.id}")
-            if (
-                app.testing
-                and len([vf for vf in app.view_functions if vf.startswith(clazz.id)])
-                <= 1
-            ):  # the swan-static one
-                # Yet again that nasty workaround which has been described in the archblog.
-                # The easy variant can be found in server.py
-                # The good news is, that we'll only do that for testing
-                import importlib
 
-                logger.info("Reloading Extension controller")
-                importlib.reload(controller_module)
-                app.register_blueprint(
-                    clazz.blueprint, url_prefix=f"{ext_prefix}/{clazz.id}"
-                )
-        except AssertionError as e:
-            if str(e).startswith("A name collision"):
-                raise SpecterError(
+        for bp_key, bp_value in controller_modules.items():
+            if bp_key == "":
+                raise SpecterError("Empty keys are not allowed in the blueprints map")
+            middple_part = "" if bp_key == "default" else f"{bp_key}_"
+            bp_name = f"{clazz.id}_{middple_part}endpoint"
+            logger.debug(
+                f"  Creating blueprint with name {bp_name} (middle_part:{middple_part}:"
+            )
+            bp = Blueprint(
+                f"{clazz.id}_{middple_part}endpoint",
+                bp_value,
+                template_folder=get_template_static_folder("templates"),
+                static_folder=get_template_static_folder("static"),
+            )
+            if only_one_blueprint:
+                setattr(clazz, "blueprint", bp)
+            else:
+                clazz.blueprints[bp_key] = bp
+            bp.context_processor(inject_stuff)
+
+            # Import the controller for this service
+            logger.info(f"  Loading Controller {bp_value}")
+
+            try:
+                controller_module = import_module(bp_value)
+            except ModuleNotFoundError as e:
+                raise Exception(
                     f"""
-                There is a name collision for the {clazz.blueprint.name}. \n
-                This is probably because you're running in DevelopementConfig and configured
-                the extension at the same time in the EXTENSION_LIST which currently loks like this:
-                {app.config['EXTENSION_LIST']})
+                    There was an issue finding a controller module:
+                    {e}
+                    That module was specified in the Service class of service {clazz.id}
+                    check that specification in {clazz.__module__}
                 """
                 )
+
+            # finally register the blueprint
+            if clazz.isolated_client:
+                ext_prefix = app.config["ISOLATED_CLIENT_EXT_URL_PREFIX"]
+            else:
+                ext_prefix = app.config["EXT_URL_PREFIX"]
+
+            try:
+                bp_postfix = "" if only_one_blueprint else f"/{bp_key}"
+                if (
+                    app.testing
+                    and len(
+                        [vf for vf in app.view_functions if vf.startswith(clazz.id)]
+                    )
+                    <= 1
+                ):  # the swan-static one
+                    # Yet again that nasty workaround which has been described in the archblog.
+                    # The easy variant can be found in server.py
+                    # The good news is, that we'll only do that for testing
+                    import importlib
+
+                    logger.info("Reloading Extension controller")
+                    importlib.reload(controller_module)
+                    app.register_blueprint(
+                        bp, url_prefix=f"{ext_prefix}/{clazz.id}{bp_postfix}"
+                    )
+                else:
+                    app.register_blueprint(
+                        bp, url_prefix=f"{ext_prefix}/{clazz.id}{bp_postfix}"
+                    )
+                logger.info(f"  Mounted {bp} to {ext_prefix}/{clazz.id}{bp_postfix}")
+            except AssertionError as e:
+                if str(e).startswith("A name collision"):
+                    raise SpecterError(
+                        f"""
+                    There is a name collision for the {clazz.blueprint.name}. \n
+                    This is probably because you're running in DevelopementConfig and configured
+                    the extension at the same time in the EXTENSION_LIST which currently loks like this:
+                    {app.config['EXTENSION_LIST']})
+                    """
+                    )
 
     @classmethod
     def configure_service_for_module(cls, clazz):
@@ -225,10 +262,15 @@ class ServiceManager:
         """
         if callback_id not in dir(callbacks):
             raise Exception(f"Non existing callback_id: {callback_id}")
+        # No debug statement here possible as this is called for every request and would flood the logs
+        # logger.debug(f"Executing callback {callback_id}")
         return_values = {}
-        logger.debug(f"Executing callback {callback_id}")
         for ext in self.services.values():
-            if hasattr(ext, "callback"):
+            if hasattr(ext, f"callback_{callback_id}"):
+                return_values[ext.id] = getattr(ext, f"callback_{callback_id}")(
+                    *args, **kwargs
+                )
+            elif hasattr(ext, "callback"):
                 return_values[ext.id] = ext.callback(callback_id, *args, **kwargs)
         return return_values
 
@@ -287,7 +329,7 @@ class ServiceManager:
 
     @classmethod
     def get_service_x_dirs(cls, x):
-        """returns a list of package-directories which represents a specific service.
+        """returns a list of package-directories which each represents a specific service.
         This is used EXCLUSIVELY by the pyinstaller-hook packaging specter to add templates/static
         When this gets called, CWD is ./pyinstaller
         """
@@ -296,21 +338,37 @@ class ServiceManager:
             Path(Path(_get_module_from_class(clazz).__file__).parent, x)
             for clazz in get_subclasses_for_clazz(Service)
         ]
+        logger.debug(f"Initial arr:")
+        for element in arr:
+            logger.debug(element)
+        # /home/kim/src/specter-desktop/.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/bitcoinreserve/templates
+        # /home/kim/src/specter-desktop/.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/swan/templates
+
         arr = [path for path in arr if path.is_dir()]
         # Those pathes are absolute. Let's make them relative:
         arr = [Path(*path.parts[-6:]) for path in arr]
 
-        # ... and a as the pyinstaller is in a subdir, let's add ..
-        arr = [Path("..", path) for path in arr]
+        virtuelenv_path = os.path.relpath(os.environ["VIRTUAL_ENV"], ".")
 
-        # Non cryptoadvance extensions sitting in src/org/specterext/... need to be added, too
+        if os.name == "nt":
+            virtualenv_search_path = Path(virtuelenv_path, "Lib")
+        else:
+            # let's calcultate so that we get something like:
+            # virtualenv_search_path = Path("..", ".buildenv", "lib", "python3.8")
+            site_package = [path for path in sys.path if "site-packages" in path][0]
+            site_package = Path(virtuelenv_path, *(Path(site_package).parts[-3:-1]))
+            virtualenv_search_path = site_package
+
+        # ... and as the classes are in the .buildenv (see build-unix.sh) let's add ..
+        arr = [Path(virtualenv_search_path, path) for path in arr]
+
+        # Non internal-repo extensions sitting in org/specterext/... need to be added, too
         src_org_specterext_exts = search_dirs_in_path(
-            "../src/", return_without_extid=False
+            virtualenv_search_path, return_without_extid=False
         )
         src_org_specterext_exts = [Path(path, x) for path in src_org_specterext_exts]
 
         arr.extend(src_org_specterext_exts)
-        # Not only relative, as the pyinstaller is in a subdir, let's add ..
 
         return arr
 

@@ -6,7 +6,7 @@ However, sometimes you want to test a new feature from a PR, a release candidate
 
 We'll discuss here some hints on separating environments and maybe even running installations in parallel. At the end, we will show how to make a copy of the production system and let it run completely in parallel with the existing system. But, first, let's look at the building blocks.
 
-# On specterd, branches and PRs
+## On specterd, branches and PRs
 
 We'll assume here, that you're a little familiar with the command line. If a change has been made but not yet released, there are several ways how the change could already be available. Here are the possibilities:
 
@@ -24,7 +24,7 @@ git pull https://github.com/k9ert/specter-desktop.git service_swan
 Adjust the branch/user accordingly. After that, continue to setup your environment as described in the link above.
 If you need a more comprehensive guide, you can check out (what a pun!) [this blog post](https://snyk.io/blog/git-checkout-remote-branch/).
 
-# specterd binary or source cli
+## specterd binary or source cli
 
 No matter whether you've downloaded a specterd binary or you've cloned/checked out a specific environment, you're ready to start Specter via the cli. A specterd would be started as follows
 ```
@@ -95,7 +95,7 @@ Initializing HWI...
 ```
 As you can see from the output, Specter is now running on your local machine and you can go visit it by following the link shown: [http://127.0.0.1:25441/](http://127.0.0.1:25441/). You can stop Specter again, by pressing `CTRL+C` in the terminal.
 
-# The specter-data folder and port
+## The specter-data folder and port
 
 As almost all programs on a computer Specter needs a place to store its data. Specter uses no databases only files on disk. These files are all located in a single directory, usually in your homefolder called `.specter`. The dot in the name makes that directory hidden, so you might need to switch to `show-hidden-files` in your filebrowser or use the a-switch in ls (`ls -a`).
 
@@ -117,7 +117,7 @@ $ ./specterd server --specter-data-folder ~/.specter_manual_test --port 26441
 ```
 You will then find this instance running at [http://127.0.0.1:26441/](http://127.0.0.1:26441/). The nice thing is, that you can run Specter instances in parallel if they run on different ports.
 
-# Configurations
+## Configurations
 
 Running a development environment has different requirements than a production env, e.g.:
 * You want debugging messages
@@ -130,7 +130,7 @@ That set of configurations can be passed over by referencing the `DevelopmentCon
 $ ./specterd server --config DevelopmentConfig --debug
 ```
 
-# Walkthrough
+## Walkthrough
 
 So let's assume you want to run a test system almost completely separate from your production system. The only thing which is shared is the external Bitcoin Core node. So here are the steps:
 

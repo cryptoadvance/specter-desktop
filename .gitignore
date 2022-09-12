@@ -2,10 +2,12 @@ __pycache__
 .pytest_cache
 *.pyc
 .env
+.buildenv
 .venv
 .tor_service_key
 build
 dist
+release
 *.egg-info
 .vscode
 .idea
@@ -30,9 +32,11 @@ node_modules
 btcd-conn.json
 elmd-conn.json
 tests/bitcoin*
+tests/elements*
 token.sh
 src/cryptoadvance/specter/translations/**/messages.mo
 tests/elements
 signing_dir
 site
 docs/README.md
+cypresstest-output.xml

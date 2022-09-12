@@ -17,8 +17,11 @@
 						{{ device_name }}
 					</div>
 					{% if not device.has_key_types(wallet_type, specter.chain) %}
-						<tool-tip title="Device cannot be selected" style="position: absolute; top: 30px; left: 25px;">
-							{{device.no_key_found_reason(wallet_type, specter.chain)}}
+						<tool-tip width="150px" image="note" style="position: absolute; top: 30px; left: 25px;">
+						    <span slot="paragraph">
+						    	{{ _("The device cannot be selected:") }} <br>
+						        {{device.no_key_found_reason(wallet_type, specter.chain)}}
+						    </span>
 						</tool-tip>
 					{% endif %}
 				</label>
@@ -35,9 +38,9 @@
 		<div class="note">
 			<center>
 				{% if wallet_type == 'multisig' %}
-					{{ _("We use sorted multisig (BIP-67), so <b>order is NOT important.</b>") }}<br>
+					{{ _("We use sorted multisig (BIP-67), so ")}}<b>{{ _("order is NOT important.") }}</b><br>
 					<br>
-					{{ _('Be aware of <a style="color: #fff" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/multisig-security-tradeoffs.md" target="_blank">multisig security tradeoffs</a>.') }}<br>
+					{{ _('Please read the ')}}<a style="color: #fff" href="https://specter-desktop-docs.netlify.app/multisig-guide/" target="_blank">{{ _("multisig guide")}}</a>.<br>
 					<br>
 				{% endif %}
 			</center>
