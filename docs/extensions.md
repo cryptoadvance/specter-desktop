@@ -104,7 +104,7 @@ All the attributes of an extension are currently (json support is planned) defin
 
 ## Extension attributes
 Here is an example. This class definition MUST be stored in a file called "service.py" within a package with the name `org-id.specterext.extions-id`.
-```
+```python
 class DiceService(Service):
     id = "dice"
     name = "Specter Dice"
@@ -128,7 +128,7 @@ If the extension has a UI (currently all of them have one), `has_blueprint` is T
 
 As stated, you can have your own frontend with a blueprint. If you only have one, it needs to have a `/` route in order to be linkable from the `choose your plugin` page. 
 If you create your extension with a blueprint, it'll also create a controller for you which, simplified, looks like this:
-```
+```python
 rubberduck_endpoint = ScratchpadService.blueprint
 
 def ext() -> ScratchpadService:
@@ -150,7 +150,7 @@ def index():
 [...]
 ```
  But you can also have more than one blueprint. Define them like this in your service class:
-```
+```python
     blueprint_modules = { 
         "default" : "mynym.specterext.rubberduck.controller",
         "ui" : "mynym.specterext.rubberduck.controller_ui"
@@ -158,12 +158,12 @@ def index():
 ```
 You have to have a default blueprint which has the above mentioned index page.
 In your controller, the endpoint needs to be specified like this:
-```
+```python
 ui = RubberduckService.blueprints["ui"]
 ```
 
 You might have an extension which wants to inject e.g. javascript code into each and every page of specter-desktop. The extension needs to be activated for the user, though. You can do that via overwriting one of the `inject_in_basejinja_*` methods in your service-class:
-```
+```python
     @classmethod
     def inject_in_basejinja_head(cls):
         ''' e.g. rendering some snippet '''
@@ -212,14 +212,14 @@ This is also where `Service`-wide configuration or other information should be s
 Because the `ServiceEncryptedStorage` is specific to each individual user, this manager provides convenient access to automatically retrieve the `current_user` from the Flask context and provide the correct user's `ServiceEncryptedStorage`. It is implemented as a `Singleton` which can be retrieved simply by importing the class and calling `get_instance()`.
 
 This simplifies code to just asking for:
-```
+```python
 from .service_encrypted_storage import ServiceEncryptedStorageManager
 
 ServiceEncryptedStorageManager.get_instance().get_current_user_service_data(service_id=some_service_id)
 ```
 
 As a further convenience, the `Service` base class itself encapsulates `Service`-aware access to this per-`User` encrypted storage:
-```
+```python
 @classmethod
 def get_current_user_service_data(cls) -> dict:
     return ServiceEncryptedStorageManager.get_instance().get_current_user_service_data(service_id=cls.id)
@@ -248,7 +248,7 @@ Unfortunately, the two unencrypted classes are derived from the encrypted one ra
 
 ### Service configuration
 In order to separate the service-configuration from the main-configuration, you can specify your config in a file called `config.py`. It's structure is similiar to the specter-wide `config.py`, e.g.:
-```
+```python
 class BaseConfig():
     SWAN_API_URL="https://dev-api.swanbitcoin.com"
 
@@ -263,4 +263,49 @@ Some important one is the `after_serverpy_init_app` which passes a `Scheduler` c
 
 ### `controller.py`
 The minimal url routes for `Service` selection and management. As usualy in Flask, `templates` and `static` resources are in their respective subfolders. Please note that there is an additional directory with the id of the extension which looks redundant at first. This is due to the way blueprints are loading templates and ensures that there are no naming collisions. Maybe at a later stage, this can be used to let plugins override other plugin's templates.
+
+### Extending the Settings Dialog
+You can extend the settings dialog with your own templates. To do that, create a callback-method in your service like:
+```python
+    def callback_setting_exts(self):
+        return [{"title": "myexttitle", "endpoint":"myext_something"}]
+```
+In this case, this would add a tab called "myexttitle" and you're now suppose to provide an endpoint in your controller which looks e.g. like this:
+
+```python
+@myext_endpoint.route("/settings_something", methods=["GET"])
+def myext_something():
+    return render_template(
+        "myext/some_settingspage.jinja"
+    )
+```
+
+The `some_settingspage.jinja` should probably look exactly like all the other setting-pages and you would do this like this:
+
+```jinja
+{% extends "base.jinja" %}
+{% block main %}
+	<form action="?" method="POST" onsubmit="showPacman()">
+		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+		<h1 id="title" class="settings-title">Settings</h1>
+		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
+		{{ settings_menu('myext_something', current_user, setting_exts) }}
+		<div class="card" style="margin: 20px auto;">
+			<h1>{{ _("Something something") }} </h1>
+		</div>
+	</form>
+{% endblock %}
+```
+
+In order for this to work, you would need to define `setting_exts` above. Those are the tabs from all the extensions which are contributing tabs to the settings. So you have to specify them like this in your controller:
+
+```python
+@myext_endpoint.context_processor
+def inject_common_stuff():
+    """Can be used in all jinja2 templates"""
+    setting_exts = app.specter.service_manager.execute_ext_callbacks(
+        callbacks.setting_exts
+    )
+    return dict(setting_exts=setting_exts)
+```
 
