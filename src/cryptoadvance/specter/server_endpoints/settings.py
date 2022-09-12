@@ -45,12 +45,13 @@ settings_endpoint = Blueprint("settings_endpoint", __name__)
 
 @settings_endpoint.context_processor
 def inject_common_stuff():
-    """Can be used in all jinja2 templates"""
-    settings_exts = app.specter.service_manager.execute_ext_callbacks(
+    """Can be used in all jinja2 templates of this Blueprint
+    Injects the additional settings_tabs via extentions
+    """
+    setting_exts = app.specter.service_manager.execute_ext_callbacks(
         callbacks.setting_exts
     )
-    settings_exts = settings_exts["scratchpad"]
-    return dict(settings_exts=settings_exts)
+    return dict(setting_exts=setting_exts)
 
 
 @settings_endpoint.route("/", methods=["GET"])

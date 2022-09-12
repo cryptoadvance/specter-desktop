@@ -9,7 +9,7 @@
 	{% include "includes/hwi/hwi.jinja" %}
 	<h1 id="title" class="settings-title">{{ _("Settings") }}</h1>
 	{% from 'settings/components/settings_menu.jinja' import settings_menu %}
-	{{ settings_menu('hwi', current_user, settings_exts) }}
+	{{ settings_menu('hwi', current_user, setting_exts) }}
 	<br>
 	<h1>{{ _("Hardware Devices Bridge") }}</h1>
 	<p class="note center">{{ _("Allows Specter to communicate with your hardware devices over USB.") }}</p>
