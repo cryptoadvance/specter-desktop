@@ -3,7 +3,7 @@ This file enabled to keep an open websocket connection with the browser sessions
 """
 import logging, threading, time, secrets
 import time, json
-from ..helpers import robust_json_dumps
+from ..util.common import robust_json_dumps
 import simple_websocket, ssl
 
 

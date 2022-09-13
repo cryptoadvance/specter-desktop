@@ -325,17 +325,3 @@ def get_address_from_dict(data_dict):
     if addr and addr != "Fee":
         return addr
     raise RuntimeError(f"Missing address info in object {data_dict}")
-
-
-def robust_json_dumps(obj):
-    def default(o):
-        if isinstance(o, datetime):
-            return o.timestamp()
-        if isinstance(o, set):
-            return list(o)
-        logger.warning(
-            f"robust_json_dumps could not convert {o} of type {type(o)}.  Converting to string instead."
-        )
-        return str(o)
-
-    return json.dumps(obj, default=default)
