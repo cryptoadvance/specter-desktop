@@ -33,7 +33,7 @@ from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
 from embit.descriptor.checksum import add_checksum
 from ..notifications.current_flask_user import flash
-from ..helpers import robust_json_dumps
+from ..util.common import robust_json_dumps
 
 logger = logging.getLogger(__name__)
 
