@@ -62,14 +62,6 @@ def calc_module_name(config):
         return "cryptoadvance.specter.config." + config
 
 
-def flash(*args, **kwargs):
-    """An indirection in order to potentially handle that differently
-    THis function could potentially be placed in util but as it might
-    use the service_manager, we place it here for now.
-    """
-    flash(*args, **kwargs)
-
-
 def create_app(config=None):
     """config is either a string:
     * if it's with dots, it's fqn classname
