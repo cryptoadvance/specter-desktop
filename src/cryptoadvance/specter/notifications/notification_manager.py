@@ -13,7 +13,22 @@ class NotificationManager:
 
     1. Notifications can be created and broadcasted with self.create_and_show
         This will forward the notification to all appropriate ui_notifications
-        The notifications are also stored in self.notifications
+        The notifications are also stored in self.notifications.
+
+        Notifications has optimistic notification delivery, meaning:
+        - the ui_notifications (like JSNotifications) immediately returns True, meaning the notification
+            was delivered, if the ui_notification is not deactivated or has other reasons to deny delivery immediately.
+        - If the ui_notifications (like JSNotifications) then later detects it failed to deliver
+            after all, the ui_notification has to send a set_target_ui_availability (data.is_available=False, data.notification_id),
+            which deactivates the ui_notification and rebroadcasts the notification on other available ui_notifications
+        - This optimistic notification delivery was chosen, mainly because the ui_notifications vary greatly
+            preventing a common timeout. Only the ui_notification knows how long and best it should retry displaying the notification.
+            The best example is Notification_API, which may not have the permission to display yet, but can ask for permission
+            repeatedly. The user has the choice to grant it or to deny it, or to wait.
+            The print notification on the other hand will always work.
+        - final confirmation that the message was seen by the user in the on_show notification sent by the ui_notification
+
+
     2. Internal notifications will not be shown, but
         a) deletes the message again from self.notifications
         b) trigger functions like ui_notifications.on_close
@@ -161,7 +176,7 @@ class NotificationManager:
                 return notification
 
     def _get_ui_notifications_of_user(
-        self, user_id, callable_from_any_thread_required=False
+        self, user_id, callable_from_any_session_required=False
     ):
         "Gives a back a [ui_notifications that belong to the user_id] + [ui_notifications that belong to user_id == None]"
         return [
@@ -169,16 +184,16 @@ class NotificationManager:
             for ui_notification in self.ui_notifications
             if (ui_notification.user_id == user_id)
             and (
-                ui_notification.callable_from_any_thread
-                or not callable_from_any_thread_required
+                ui_notification.callable_from_any_session
+                or not callable_from_any_session_required
             )
         ] + [
             ui_notification
             for ui_notification in self.ui_notifications
             if ui_notification.user_id is None
             and (
-                ui_notification.callable_from_any_thread
-                or not callable_from_any_thread_required
+                ui_notification.callable_from_any_session
+                or not callable_from_any_session_required
             )
         ]
 
@@ -230,9 +245,9 @@ class NotificationManager:
         )
         if not internal_notification.data["is_available"]:
             # if it is not available rebroadcast
-            if not referenced_notification:
+            if not referenced_notification and internal_notification.data.get("id"):
                 logger.warning(
-                    f'Rebrodcasting of {internal_notification.data["id"]} not possible because referenced_notification={referenced_notification}'
+                    f'Rebrodcasting of {internal_notification.data.get("id")} not possible because referenced_notification={referenced_notification}'
                 )
                 return
             logger.debug(f"Rebrodcasting {referenced_notification.id}")
@@ -314,7 +329,7 @@ class NotificationManager:
         logger.debug(f"_treat_internal_message {internal_notification}")
 
         referenced_notification = self.get_notification_by_id(
-            internal_notification.data["id"]
+            internal_notification.data.get("id")
         )
 
         if internal_notification.title in [
@@ -384,10 +399,10 @@ class NotificationManager:
                 logger.debug(
                     f"Trying with other ui_notifications to broadcast {notification}"
                 )
-                # I have to restrict the ui_notifications that are used as a backup to callable_from_any_thread_required
+                # I have to restrict the ui_notifications that are used as a backup to callable_from_any_session_required
                 # because it it not possible to call a flash notification from another thread (that  failed doing a webapi notification)
                 for backup_ui_notification in self._get_ui_notifications_of_user(
-                    notification.user_id, callable_from_any_thread_required=True
+                    notification.user_id, callable_from_any_session_required=True
                 ):
                     # if it is already broadcasted on this backup_ui_notification by default anyway, no need to do it twice
                     if backup_ui_notification in broadcast_on_ui_notifications:

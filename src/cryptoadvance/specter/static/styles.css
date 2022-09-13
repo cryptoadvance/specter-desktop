@@ -20,6 +20,13 @@ html, body{
 
     --cmap-bg-highlight: #4a90e2;
 
+    /* msgbox colors*/
+    --cmap-msgbox-debug: #000000;
+    --cmap-msgbox-information: #4a90e2;
+    --cmap-msgbox-warning: #FF9A00;
+    --cmap-msgbox-error: #951E2D;
+    --cmap-msgbox-exception: #951E2D;
+
     margin: 0;
     padding: 0;
     background: var(--cmap-bg);
@@ -1286,12 +1293,12 @@ input:checked + .slider:before {
 	 bottom: 15px;
 	 left: 20px;
 	 right: 20px;
+     z-index: 10;
 }
  .msgbox-box {
 	 font-size: inherit;
 	 color: #fff;
-	 /*background-color: var(--cmap-bg-lighter);*/
-	 background-color: var(--cmap-bg-highlight);
+	 background-color: var(--cmap-msgbox-information);
      border: 2px var(--cmap-border) solid;
 	 margin: 0 0 1rem;
 	 display: flex;

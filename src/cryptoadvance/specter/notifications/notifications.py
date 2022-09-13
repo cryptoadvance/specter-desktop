@@ -113,20 +113,25 @@ class Notification:
 
     def to_js_notification(self):
         """
-        Returns a datastructure such that a Notification(result) can be called https://notifications.spec.whatwg.org/#api
-
-        The returned structure is:
+        Returns the following data structure:
             {
                 "title": title,
                 "id": id,
                 "notification_type": notification_type,
                 "timeout": timeout,
                 "options": {
-                    body = "",
-                    image = None,
+                    ....
                 },
             }
-        "options" fields are optional, and can be looked up here: https://notifications.spec.whatwg.org/#dictdef-notificationoptions
+
+            The "options" dict is contains self.__dict__.items(), unless they are included in the main dict.
+            The "options" dict could contain all fields as https://notifications.spec.whatwg.org/#api ,
+                however not even for target_uis = 'web_api' are all fields supported
+
+            The following circular call , will preserve only the (optional) arguments supported by Notification.__init__()
+                        (python) js_notification = notification.to_js_notification()
+                    --> (javascript) createNotification(js_notification['title'], js_notification['options']) --> title, options
+                    --> (python) notification = Notification(title, ...,  **options)
         """
         js_notification = {
             "title": self.title,
@@ -142,3 +147,11 @@ class Notification:
             js_notification["options"][key] = value
 
         return js_notification
+
+    def to_text(self):
+        s = self.title
+        if self.body:
+            s += f"\n{self.body}"
+        if self.data:
+            s += f"\nData: {self.data}"
+        return s

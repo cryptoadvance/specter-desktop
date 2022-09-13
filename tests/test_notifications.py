@@ -73,8 +73,9 @@ def test_sending_logging_notification(specter_with_user: Specter, caplog):
 
     # check if any of the INFO messages was the notification
     notification_found = False
+    logger.debug(caplog.records[-1])
     for record in caplog.records:
-        if record.message == notification_str and record.levelname == "INFO":
+        if record.message == notification.to_text() and record.levelname == "INFO":
             notification_found = True
     assert notification_found
 
@@ -142,7 +143,7 @@ def test_sending_flash_notification(specter_with_user: Specter, caplog):
     # check if any of the INFO messages was the notification
     assert (
         caplog.records[-1].message
-        == """(('testing title\\ntesting body', 'information'), {})"""
+        == """(("testing title\\ntesting body\\nData: {\'key\': 1}", \'information\'), {})"""
     )
     assert caplog.records[-1].levelname == "WARNING"
 
