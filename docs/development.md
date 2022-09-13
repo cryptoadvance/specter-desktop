@@ -34,6 +34,7 @@
     - [Some words about dependencies](#some-words-about-dependencies)
     - [Some words specific to the frontend](#some-words-specific-to-the-frontend)
     - [Some words about style](#some-words-about-style)
+    - [Troubleshooting and migration to python3.10](#troubleshooting-and-migration-to-python310)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -84,7 +85,8 @@ sudo yum -y install libusb libudev-devel libffi libffi-devel openssl-devel && su
 
 
 ### Set up virtualenv
-Note that `hwi-1.2.0` needs Python 3.6-3.8. If you have Python 3.9 installed then be sure to also install an old Python version and pass it to `virtualenv` (e.g. `virtualenv --python3.8 .env`).
+Specter is using `hwi-2.1.0` which by now supports higher Python versions than Specter itself. Specter currently supports Python 3.7-3.9.
+If you have Python 3.10 as your global version then be sure to also install an old Python version and pass it to `virtualenv` (e.g. `virtualenv --python=python3.8 .env`) or use pyenv.
 
 ```sh
 git clone https://github.com/cryptoadvance/specter-desktop.git
@@ -158,7 +160,7 @@ pytest
 OR run against bitcoind in Docker (deprecated):
 ```
 # Pull the bitcoind image if you haven't already:
-docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:v0.20.1
+docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:v0.22.0
 
 # install prerequisites
 pip3 install docker
@@ -457,4 +459,30 @@ We're aware that currently the app is not very compatible on different browsers 
   * nice orange #F5A623
   * nice blue #4A90E2
 * A designer would probably rant about all these bad choices. Professional help, especially in the frontend, is very much appreciated.
+
+### Troubleshooting and migration to python3.10
+We're currently migrating to python3.10 while alos supporting older versions. This is creating some extra challenges for those that want to run 3.10 but don't have 3.10 available in their standard-package. So here are some hints on how to get that going.
+
+`pyenv` is a great tool to granually install. The [installation](https://github.com/pyenv/pyenv#basic-github-checkout) worked great. However, i don't want to pyenv to screw up my existing python setup. So i only use pyenv if i explicitely do (put that in a script):
+```
+export PYENV_ROOT="$HOME/.pyenv"
+command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
+echo "    --> now do:omething like:"
+echo "        pyenv shell 3.10.4"
+```
+So i'm using `pyenv shell` but before you install now a 3.10 version via `pyenv install 3.10.4` make sure to install sqlite3:
+```
+sudo apt-get install sqlite3 libbz2-dev 
+```
+If you miss that, you might later have issues while pre-commit-hooks kick in, something like `No module named '_sqlite3`.
+
+Now you can switch your shell to use python 3.10 via `pyenv shell 3.10.4` and after that create your extra virtualenv which uses 3.10:
+```
+python3 -m virtualenv --python=python3.10 .env310
+```
+
+
+
 

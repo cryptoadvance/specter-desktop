@@ -192,3 +192,30 @@ class Service:
     @classmethod
     def on_user_login(cls):
         pass
+
+    @classmethod
+    def inject_in_basejinja_head(cls):
+        """overwrite this method to inject a snippet of code in specter's base.jinja
+        the snippet will be placed at the end of the head-section
+        a typical implementation would be something like:
+        return render_template("myext/inject_in_basejinja_head.jinja")
+        """
+        pass
+
+    @classmethod
+    def inject_in_basejinja_body_top(cls):
+        """overwrite this method to inject a snippet of code in specter's base.jinja
+        the snippet will be placed at the top of the body-section
+        a typical implementation would be something like:
+        return render_template("myext/inject_in_basejinja_body_top.jinja")
+        """
+        pass
+
+    @classmethod
+    def inject_in_basejinja_body_bottom(cls):
+        """overwrite this method to inject a snippet of code in specter's base.jinja
+        the snippet will be placed at the top of the body-section
+        a typical implementation would be something like:
+        return render_template("myext/inject_in_basejinja_body_bottom.jinja")
+        """
+        pass

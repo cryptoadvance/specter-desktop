@@ -43,10 +43,12 @@
 		<script>
 			{% include "includes/notifications.js" %}
 		</script>
+		{% include "services/inject_in_basejinja_head.jinja" %}
 		{% block head %}
 		{% endblock %}
 	</head>
 	<body>
+	{% include "services/inject_in_basejinja_body_top.jinja" %}
 	<div class="pageloader" id="pageloader"></div>
 	{% if specter.config.auth.method == "none" or current_user.is_authenticated %}
 		<!-- BC-UR2 QR code stuff -->
@@ -333,5 +335,6 @@
 			{% include "includes/language/language_js.jinja" %}
 		</script>
 	{% endblock %}
+	{% include "services/inject_in_basejinja_body_bottom.jinja" %}
 	</body>
 </html>

@@ -1101,6 +1101,10 @@ This style is used for a div at the bottom in the <main> element to create a dis
   }
 }
 @media (max-width: 690px){
+    .table-holder{
+        padding-left: 10px;
+        padding-right: 10px;
+    }
     .card{
         border-width: 0px;
         width: auto;

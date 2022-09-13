@@ -173,6 +173,8 @@ class BaseConfig(object):
         "cryptoadvance.specterext.liquidissuer.service",
         "cryptoadvance.specter.services.bitcoinreserve.service",
         "cryptoadvance.specterext.devhelp.service",
+        "cryptoadvance.specterext.exfund.service",
+        "cryptoadvance.specterext.faucet.service",
     ]
 
     # This is just a placeholder in order to be aware that you cannot set this

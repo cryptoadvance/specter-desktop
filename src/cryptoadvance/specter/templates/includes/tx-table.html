@@ -149,7 +149,7 @@
             align-items: center;
         }
         .selected-rows-action-box .btn {
-            width: 200px;
+            min-width: 170px;
             margin: 5px;
             height: 38px;
         }
@@ -265,6 +265,11 @@
             flex-direction: column;
             height: 100%;
         }
+        @media (max-width: 690px){
+            .selected-rows-action-box{
+                flex-direction: column;
+            }
+        }
     </style>
 
     <nav class="switcher row">
@@ -359,7 +364,7 @@
                     <th value="txid"     class="column-txid optional txid-header">TxID<div class="txid-arrow"></div></th>
                     <th value="label"    class="column-label optional label-header">{{ _("Label") }}<div class="label-arrow"></div></th>
                     <th value="amount"   class="column-amount amount-header">{{ _("Amount") }}<div class="amount-arrow"></div></th>
-                    <th value="time"     class="column-time time-header">{{ _("Time") }}<div class="time-arrow up-arrow"></div></th>
+                    <th value="time"     class="column-time time-header optional">{{ _("Time") }}<div class="time-arrow up-arrow"></div></th>
                     <th value="confirmations" class="column-confirmations confirmations-header">{{ _("Confirmations") }}<div class="confirmations-arrow"></div></th>
                     <th value="blockhash" class="column-blockhash optional hidden blockhash-header">
                         <div style="display: flex">

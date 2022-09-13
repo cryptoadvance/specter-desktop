@@ -1,8 +1,8 @@
 container:
 #  image: python:slim
-#  image: ubuntu:focal
-#  image: python:3.8-buster
-  image: registry.gitlab.com/cryptoadvance/specter-desktop/cirrus-focal:20210831
+#  image: ubuntu:jammy
+#  image: python:3.10
+  image: registry.gitlab.com/cryptoadvance/specter-desktop/cirrus-jammy:20220908
 
 # We assume here that we're having a proper python3 system including virtualenv and pip
 prep_stuff_template: &PREP_STUFF_TEMPLATE
@@ -70,7 +70,7 @@ test_task:
 
 cypress_test_task:
   container:
-    image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python:v9.7.0
+    image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python-jammy:v9.7.0
     cpu: 6
     memory: 6G
   pre_prep_script: 
