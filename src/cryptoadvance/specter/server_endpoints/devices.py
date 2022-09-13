@@ -16,7 +16,7 @@ from ..devices.bitcoin_core import BitcoinCore
 from ..helpers import is_testnet
 from ..key import Key
 from ..managers.device_manager import get_device_class
-from ..server import flash
+from ..server_endpoints import flash
 from ..specter_error import handle_exception
 from ..util.mnemonic import generate_mnemonic, validate_mnemonic
 from ..wallet import purposes

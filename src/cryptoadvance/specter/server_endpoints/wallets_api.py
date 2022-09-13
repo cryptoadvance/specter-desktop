@@ -1,6 +1,7 @@
 import csv
 import json
 import logging
+import re
 import threading
 import time
 from binascii import b2a_base64
@@ -8,31 +9,30 @@ from datetime import datetime
 from io import StringIO
 from math import isnan
 from numbers import Number
-import re
 
 import requests
-from cryptoadvance.specter.commands.psbt_creator import PsbtCreator
-from cryptoadvance.specter.wallet import Wallet
-from flask import Blueprint, stream_with_context
+from embit.descriptor.checksum import add_checksum
+from flask import Blueprint
 from flask import current_app as app
-from flask import jsonify, redirect, request, url_for
-from flask_babel import lazy_gettext as _
+from flask import jsonify, redirect, request, stream_with_context, url_for
 from flask_babel import lazy_gettext
+from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
 
+from ..commands.psbt_creator import PsbtCreator
 from ..helpers import bcur2base64
-from ..util.mnemonic import generate_mnemonic
 from ..rpc import RpcError
-from ..server import flash
+from ..server_endpoints import flash
 from ..server_endpoints.filters import assetlabel
 from ..specter_error import SpecterError, handle_exception
 from ..util.base43 import b43_decode
 from ..util.descriptor import Descriptor
 from ..util.fee_estimation import FeeEstimationResultEncoder, get_fees
+from ..util.mnemonic import generate_mnemonic
 from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
-from embit.descriptor.checksum import add_checksum
+from ..wallet import Wallet
 
 logger = logging.getLogger(__name__)
 

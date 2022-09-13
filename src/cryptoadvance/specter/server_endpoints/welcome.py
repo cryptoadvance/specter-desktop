@@ -10,7 +10,7 @@ from flask_login import login_required
 
 from ..helpers import notify_upgrade
 from ..managers.wallet_manager import purposes
-from ..server import flash
+from ..server_endpoints import flash
 
 logger = logging.getLogger(__name__)
 

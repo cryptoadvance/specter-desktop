@@ -4,11 +4,11 @@ import time
 from flask import Blueprint, Flask
 from flask import current_app as app
 from flask import jsonify, redirect, render_template, request, url_for
-from ..server import flash
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required, logout_user
 
 from ..helpers import alias
+from ..server_endpoints import flash
 from ..services import ExtensionException
 from ..user import User, hash_password, verify_password
 

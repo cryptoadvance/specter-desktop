@@ -8,7 +8,7 @@ from flask_babel import lazy_gettext as _
 from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import MethodNotAllowed, NotFound
 
-from ..server import flash
+from ..server_endpoints import flash
 from ..services.callbacks import flask_before_request
 from ..specter_error import ExtProcTimeoutException, SpecterError
 

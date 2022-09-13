@@ -1,6 +1,6 @@
 import json, os, random, requests
 from flask import Blueprint, Flask, jsonify, url_for, redirect, render_template, request
-from .server import flash
+from .server_endpoints import flash
 from flask import current_app as app
 from flask_cors import CORS
 from .hwi_rpc import HWIBridge
