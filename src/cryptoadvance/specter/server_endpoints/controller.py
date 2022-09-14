@@ -27,6 +27,8 @@ app.register_blueprint(filters_bp)
 from cryptoadvance.specter.services.controller import services_endpoint
 
 from ..rpc import RpcError
+
+# Setup specter endpoints
 from .auth import auth_endpoint
 from .devices import devices_endpoint
 from .nodes import nodes_endpoint
@@ -35,8 +37,6 @@ from .settings import settings_endpoint
 from .setup import setup_endpoint
 from .wallets import wallets_endpoint
 from .wallets_api import wallets_endpoint_api
-
-# Setup specter endpoints
 from .welcome import welcome_endpoint
 
 spc_prefix = app.config["SPECTER_URL_PREFIX"]
