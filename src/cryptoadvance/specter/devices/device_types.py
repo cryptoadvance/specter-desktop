@@ -16,7 +16,6 @@ class DeviceTypes:
     BITBOX02 = "bitbox02"
     COBO = "cobo"
     COLDCARD = "coldcard"
-    ELECTRUM = "electrum"
     GENERICDEVICE = "other"
     JADE = "jade"
     KEEPKEY = "keepkey"
