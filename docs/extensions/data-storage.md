@@ -1,4 +1,4 @@
-## Data storage
+# Data storage
 As an extension developer, you have the choice to completely manage your own persistence. Don't hesitate to completely do your own thing. However, if your requirements are not that complicated, you can rely/use one of two options: You either have data which need encryption (via the passwords of the users) or you don't have that requirement.
 
 ## ServiceEncryptedStorage
