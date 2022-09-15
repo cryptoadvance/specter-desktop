@@ -9,6 +9,7 @@ import sys
 from typing import Dict, List
 
 from cryptoadvance.specter.config import ProductionConfig
+from cryptoadvance.specter.device import Device
 from cryptoadvance.specter.managers.singleton import ConfigurableSingletonException
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.user import User
@@ -66,6 +67,7 @@ class ServiceManager:
         for clazz in class_list:
             compare_map = {"alpha": 1, "beta": 2, "prod": 3}
             if compare_map[self.devstatus_threshold] <= compare_map[clazz.devstatus]:
+                logger.info(f"Loading Service {clazz.__name__} from {clazz.__module__}")
                 # First configure the service
                 self.configure_service_for_module(clazz)
                 # Now activate it
@@ -76,6 +78,7 @@ class ServiceManager:
                 self.specter.ext[clazz.id] = self._services[clazz.id]
                 # maybe register the blueprint
                 self.register_blueprint_for_ext(clazz, self._services[clazz.id])
+                self.add_devices_for_ext(clazz, self._services[clazz.id])
                 logger.info(f"Service {clazz.__name__} activated ({clazz.devstatus})")
             else:
                 logger.info(
@@ -201,6 +204,38 @@ class ServiceManager:
                     )
 
     @classmethod
+    def add_devices_for_ext(cls, clazz, ext):
+        if hasattr(clazz, "devices"):
+            devices_modules = clazz.devices
+        else:
+            return
+        classes = []
+        for module in devices_modules:
+            try:
+                classes.extend(
+                    get_classlist_of_type_clazz_from_modulelist(Device, [module])
+                )
+            except ModuleNotFoundError:
+                raise SpecterError(
+                    f"""
+                    The extension {ext.id} declared devices and a module called {module}
+                    But that module is not existing.
+                """
+                )
+        if len(classes) == 0:
+            raise SpecterError(
+                f"""
+                    The extension {ext.id} declared devices and a module called {module}
+                    But that module doesn't contain any devices.
+            """
+            )
+        from cryptoadvance.specter.devices import __all__ as all_devices
+
+        for device_class in classes:
+            all_devices.append(device_class)
+            logger.debug(f"  Loaded Device {device_class}")
+
+    @classmethod
     def configure_service_for_module(cls, clazz):
         """searches for ConfigClasses in the module-Directory and merges its config in the global config"""
         try:
@@ -212,7 +247,7 @@ class ServiceManager:
                 module = import_module(f"{org}.specterext.{clazz.id}.config")
             except ModuleNotFoundError:
                 logger.warning(
-                    f"Service {clazz.id} does not have a service Configuration! Skipping!"
+                    f"  Service {clazz.id} does not have a service Configuration! Skipping!"
                 )
                 return
         main_config_clazz_name = app.config.get("SPECTER_CONFIGURATION_CLASS_FULLNAME")
@@ -253,7 +288,7 @@ class ServiceManager:
                         f"Config {clazz} tries to override existing key {key}"
                     )
                 app.config[key] = getattr(clazz, key)
-                logger.debug(f"setting {key} = {app.config[key]}")
+                logger.debug(f"    setting {key} = {app.config[key]}")
 
     def execute_ext_callbacks(self, callback_id, *args, **kwargs):
         """will execute the callback function for each extension which has defined that method
