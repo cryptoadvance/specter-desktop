@@ -94,11 +94,17 @@ def get_classlist_of_type_clazz_from_modulelist(clazz, modulelist):
             if isclass(attribute):
                 if (
                     issubclass(attribute, clazz)
+                    # This works for 1 level inheritance within one module
                     and not attribute.__name__ == clazz.__name__
                 ):
-                    logger.debug(f"Adding {attribute} to {class_list}")
-                    class_list.append(attribute)
-                    logger.info(f"  Found class {attribute.__name__}")
+                    # Unfortunately the superclass gets imported if you inherit from it and counts as an attribute as well
+                    if str(attribute.__module__).startswith(fq_module_name):
+                        logger.debug(
+                            f" {attribute.__module__} <<<<-------------------------------------"
+                        )
+                        logger.debug(f"Adding {attribute} to {class_list}")
+                        class_list.append(attribute)
+                        logger.info(f"  Found class {attribute.__name__}")
     return class_list
 
 
