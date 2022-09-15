@@ -24,4 +24,5 @@ class ElectrumService(Service):
     blueprint_module = "cryptoadvance.specterext.electrum.controller"
     devices = ["cryptoadvance.specterext.electrum.devices.electrum"]
     devstatus = devstatus_prod
+    sort_priority = 99
     isolated_client = False
