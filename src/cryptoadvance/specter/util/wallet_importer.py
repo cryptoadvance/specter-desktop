@@ -10,7 +10,6 @@ from flask_babel import lazy_gettext as _
 
 from ..key import Key
 from ..managers.wallet_manager import WalletManager
-from ..server import flash
 from ..server_endpoints import flash
 from ..specter_error import SpecterError
 

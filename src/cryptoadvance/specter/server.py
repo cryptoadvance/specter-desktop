@@ -10,7 +10,7 @@ from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.services import callbacks
 from cryptoadvance.specter.util.reflection import get_template_static_folder
 from dotenv import load_dotenv
-from flask import Flask, jsonify, redirect, request, session, url_for, flash
+from flask import Flask, jsonify, redirect, request, session, url_for
 from flask_apscheduler import APScheduler
 from .htmlsafebabel import HTMLSafeBabel
 from flask_login import LoginManager, login_user

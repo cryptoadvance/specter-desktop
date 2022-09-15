@@ -20,7 +20,6 @@ from ..wallet import (  # TODO: `purposes` unused here, but other files rely on 
     Wallet,
     purposes,
 )
-from flask import current_app
 
 
 logger = logging.getLogger(__name__)
