@@ -103,7 +103,7 @@ A description of how to create your own extension can be found above.
 All the attributes of an extension are currently (json support is planned) defined as attributes of a class which is derived from the class `Service` (should be renamed). That class has attributes which are essential. So let's discuss them briefly.
 
 ## Extension attributes
-Here is an example. This class definition MUST be stored in a file called "service.py" within a package with the name `org-id.specterext.extions-id`.
+Here is an example. This class definition MUST be stored in a file called "service.py" within a package with the name `org-id.specterext.extension-id`.
 ```
 class DiceService(Service):
     id = "dice"
@@ -120,7 +120,7 @@ This defines the base `Service` class (to be renamed to "Extension") that all ex
 With inheriting from `Service` you get some usefull methods explained later.
 
 The `id` needs to be unique within a specific specter-instance where this extension is part of. The `name` is the displayname as shown to the user in the plugin-area (currently there is not yet a technical difference between extensions and plugins). The `icon` will be used where labels are used to be diplayed if this extension is reserving addresses. The `logo` and the `desc`ription is also used in the plugin-area ("choose plugins").
-If the extension has a UI (currently all of them have one), `has_blueprint` is True. `The blueprint_module` is referencing the controller module where endpoints are defined. It's recommended to follow the format `org.specterext.extions-id.controller`.
+If the extension has a UI (currently all of them have one), `has_blueprint` is True. `The blueprint_module` is referencing the controller module where endpoints are defined. It's recommended to follow the format `org.specterext.extension-id.controller`.
 `isolated_client` should not be used yet. It is determining where in the url-path tree the blueprint will be mounted. This might have an impact on whether the extension's frontend client has access to the cookie used in Specter. Check `config.py` for details.
 `devstatus` is one of `devstatus_alpha`, `devstatus_beta` or `devstatus_prod` defined in `cryptoadvance.specter.services.service`. Each Specter instance will have a config variable  called `SERVICES_DEVSTATUS_THRESHOLD` (prod in Production and alpha in Development) and depending on that, the plugin will be available to the user.
 
