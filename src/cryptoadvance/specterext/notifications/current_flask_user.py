@@ -1,5 +1,6 @@
 import logging
 from flask import current_app as app
+from flask_login import current_user
 
 logger = logging.getLogger(__name__)
 
@@ -12,16 +13,16 @@ def flash(message: str, category: str = "message"):
         )
         print(message, category)
         return
-    if not app.specter.notification_manager:
+    if not app.specter.ext.get("notifications"):
         logger.warning(
-            f"app.specter.notification_manager not initialized. Cannot print the flash notification with title {message} and category {category}"
+            f"'notifications' not initialized. Cannot print the flash notification with title {message} and category {category}"
             "Using print() for the notification instead"
         )
         print(message, category)
         return
 
-    app.specter.notification_manager.flash(
-        message, app.specter.user_manager.get_user().id, category
+    app.specter.ext.get("notifications").notification_manager.flash(
+        message, current_user, category
     )
 
 

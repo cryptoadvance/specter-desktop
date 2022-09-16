@@ -1,4 +1,5 @@
 from flask import flash as flask_flash
+from flask import current_app as app
 
 
 def flash(*args, **kwargs):
@@ -6,4 +7,7 @@ def flash(*args, **kwargs):
     This function could be placed in util but as it might
     use the service_manager, we place it here for now.
     """
-    flask_flash(*args, **kwargs)
+    if app.specter.ext.get("notifications"):
+        app.specter.ext.get("notifications").flash(*args)
+    else:
+        flask_flash(*args, **kwargs)
