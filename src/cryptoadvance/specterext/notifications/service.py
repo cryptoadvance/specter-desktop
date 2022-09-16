@@ -14,7 +14,7 @@ from flask import render_template
 from cryptoadvance.specter.wallet import Wallet
 from flask_apscheduler import APScheduler
 from .notification_manager import NotificationManager
-from .current_flask_user import flash
+from .current_flask_user import flash, create_and_show
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,9 @@ class NotificationsService(Service):
         for user in app.specter.user_manager.users:
             self.notification_manager.register_user_ui_notifications(user.id)
 
+        # add the most commonly used methods here, but one could also call notification_manager.create_and_show
         self.flash = flash
+        self.create_and_show = create_and_show
 
     # There might be other callbacks you're interested in. Check the callbacks.py in the specter-desktop source.
     # if you are, create a method here which is "callback_" + callback_id

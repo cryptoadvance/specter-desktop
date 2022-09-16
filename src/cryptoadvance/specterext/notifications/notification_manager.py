@@ -131,6 +131,8 @@ class NotificationManager:
         "Registers up the logging and print UINotifications, that can be used by alll users  (user_id=None)"
         self.register_ui_notification(ui_notifications.LoggingNotifications())
         self.register_ui_notification(ui_notifications.PrintNotifications())
+        # the flask context handles here the user assignment, such that no user_id should be given here
+        self.register_ui_notification(ui_notifications.FlashNotifications())
 
     def register_user_ui_notifications(self, user_id):
         "Registers up the (default) UINotifications for this user"
@@ -143,8 +145,6 @@ class NotificationManager:
             self.register_ui_notification(
                 ui_notifications.JSNotifications(user_id, self.websockets_client)
             )
-
-        self.register_ui_notification(ui_notifications.FlashNotifications(user_id))
 
         if self.websockets_server:
             self.register_ui_notification(
@@ -189,15 +189,21 @@ class NotificationManager:
         self, user_id, callable_from_any_session_required=False
     ):
         "Gives a back a [ui_notifications that belong to the user_id] + [ui_notifications that belong to user_id == None]"
-        return [
-            ui_notification
-            for ui_notification in self.ui_notifications
-            if (ui_notification.user_id == user_id)
-            and (
-                ui_notification.callable_from_any_session
-                or not callable_from_any_session_required
-            )
-        ] + [
+        user_targeted_ui_notification = (
+            [
+                ui_notification
+                for ui_notification in self.ui_notifications
+                if ui_notification.user_id == user_id
+                and (
+                    ui_notification.callable_from_any_session
+                    or not callable_from_any_session_required
+                )
+            ]
+            if user_id
+            else []
+        )
+
+        public_ui_notification = [
             ui_notification
             for ui_notification in self.ui_notifications
             if ui_notification.user_id is None
@@ -206,6 +212,8 @@ class NotificationManager:
                 or not callable_from_any_session_required
             )
         ]
+
+        return user_targeted_ui_notification + public_ui_notification
 
     def set_notification_shown(self, notification_id, target_ui):
         "Calls notification.set_shown"
@@ -291,6 +299,17 @@ class NotificationManager:
             if self._find_target_ui(target_ui, notification.user_id)
             and self._find_target_ui(target_ui, notification.user_id).is_available
         }
+
+        logger.warning(
+            [
+                (
+                    target_ui,
+                    notification.user_id,
+                    self._find_target_ui(target_ui, notification.user_id),
+                )
+                for target_ui in notification.target_uis
+            ]
+        )
 
         if not on_close_was_called and not available_target_uis:
             logger.debug(
@@ -393,6 +412,7 @@ class NotificationManager:
         ui_notifications_of_user = self._get_ui_notifications_of_user(
             notification.user_id
         )
+        logger.debug(f"ui_notifications_of_user {ui_notifications_of_user}")
         broadcast_on_ui_notifications = [
             ui_notification
             for ui_notification in ui_notifications_of_user
