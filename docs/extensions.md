@@ -93,7 +93,7 @@ The created file structure looks like this and you will feel right at home if yo
 As much as possible, each `extension` should be entirely self-contained with little or no custom code altering core Specter functionality. There is a name for that: Extension framework.
 The term `extension` will be used for all sorts of extensions whereas `plugin` will be used as a component which can be de-/activated by a user.
 
-All extensions are completely seperated in a specific folder structure. There are internal extensions which SHOULD be located in `cryptoadvance.specterext.id_of_extension` but at least 2 extensions are still at the deprecated location of `cryptoadvance.specter.services`. However, that does not mean that an extension needs to be located in the same repository as Specter itself. Extensions can be located in their own repository even if they are incorporated into the official Specter release.
+All extensions are completely separated in a specific folder structure. There are internal extensions which SHOULD be located in `cryptoadvance.specterext.id_of_extension` but at least 2 extensions are still at the deprecated location of `cryptoadvance.specter.services`. However, that does not mean that an extension needs to be located in the same repository as Specter itself. Extensions can be located in their own repository even if they are incorporated into the official Specter release.
 
 Independent of whether an extension is shipped with the official Specter-release binaries and whether it's an internal (which is shipped) or external extension (which might be shipped), the creation of extensions is already heavily supported and encouraged.
 Whether an extension is shipped with the official binary is ultimately a choice of the Specter team. However, you can simply develop extensions and use them on production (only for technical personel) as described in `specterext-dummy` (see below).
@@ -149,7 +149,7 @@ def index():
     )
 [...]
 ```
- But you can also have more than one blueprint. Define them like this in your service class:
+But you can also have more than one blueprint. Define them like this in your service class:
 ```
     blueprint_modules = { 
         "default" : "mynym.specterext.rubberduck.controller",
