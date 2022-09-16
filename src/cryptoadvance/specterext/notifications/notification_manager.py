@@ -100,9 +100,10 @@ class NotificationManager:
         self.websockets_server = None
         self.websockets_client = None
         if enable_websockets:
-            print("================================================")
             self.websockets_server = websockets_server_client.WebsocketServer(self)
 
+            # TODO: "svc/notifications/websocket"  should be replaced by url_for('notifications_endpoint.websocket')
+            # but this is not possible without a request context
             self.websockets_client = websockets_server_client.WebsocketClient(
                 host, port, "svc/notifications/websocket", self.ssl_cert, self.ssl_key
             )
