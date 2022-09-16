@@ -3,8 +3,9 @@ This file enabled to keep an open websocket connection with the browser sessions
 """
 import logging, threading, time, secrets
 import time, json
-from ..util.common import robust_json_dumps
+from cryptoadvance.specter.util.common import robust_json_dumps
 import simple_websocket, ssl
+from cryptoadvance.specter.specter_error import SpecterError
 
 
 logger = logging.getLogger(__name__)
@@ -54,13 +55,12 @@ class WebsocketServer:
         └───────────────────────┘                           └───────────────────────┘
     """
 
-    def __init__(self, notification_manager, user_manager):
+    def __init__(self, notification_manager):
         logger.info(f"Create {self.__class__.__name__}")
 
         self.broadcaster_tokens = list()
         self.connections = list()
         self.notification_manager = notification_manager
-        self.user_manager = user_manager
 
     def get_broadcaster_tokens(self):
         return [d["user_token"] for d in self.broadcaster_tokens]
@@ -78,9 +78,15 @@ class WebsocketServer:
         return connections
 
     def get_user_of_user_token(self, user_token):
-        for u in self.user_manager.users:
-            if u.websocket_token == user_token:
-                return u.username
+        for (
+            known_username,
+            known_token,
+        ) in self.notification_manager.websocket_tokens.items():
+            if known_token == user_token:
+                return known_username
+        raise SpecterError(
+            f"user_token {user_token} does not belong to any known user."
+        )
 
     def set_as_broadcaster(self, user_token):
         new_entry = {"user_token": user_token}

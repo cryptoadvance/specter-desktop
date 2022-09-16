@@ -1,4 +1,5 @@
 import logging
+import secrets
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +79,6 @@ class NotificationManager:
 
     def __init__(
         self,
-        user_manager,
         host,
         port,
         ssl_cert=None,
@@ -93,25 +93,34 @@ class NotificationManager:
         """
         self.ui_notifications = ui_notifications if ui_notifications else []
         self.notifications = []
-        self.user_manager = user_manager
+        self._websocket_tokens = {}
         self.ssl_cert, self.ssl_key = ssl_cert, ssl_key
         self._register_default_ui_notifications()
 
         self.websockets_server = None
         self.websockets_client = None
         if enable_websockets:
-            self.websockets_server = websockets_server_client.WebsocketServer(
-                self, self.user_manager
-            )
+            print("================================================")
+            self.websockets_server = websockets_server_client.WebsocketServer(self)
 
             self.websockets_client = websockets_server_client.WebsocketClient(
-                host, port, "websocket", self.ssl_cert, self.ssl_key
+                host, port, "svc/notifications/websocket", self.ssl_cert, self.ssl_key
             )
 
             # setting this client as broadcaster, meaning it is allowed to send to all
             # connected websocket connections without restrictions
             self.websockets_server.set_as_broadcaster(self.websockets_client.user_token)
             self.websockets_client.start()
+
+    def get_websocket_token(self, user_id):
+        if user_id not in self._websocket_tokens:
+            self._websocket_tokens[user_id] = secrets.token_urlsafe(128)
+
+        return self._websocket_tokens[user_id]
+
+    @property
+    def websocket_tokens(self):
+        return self._websocket_tokens
 
     def quit(self):
         if self.websockets_client:

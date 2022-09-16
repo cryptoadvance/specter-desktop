@@ -57,7 +57,6 @@ class NotificationsService(Service):
         self.scheduler = scheduler
 
         self.notification_manager = NotificationManager(
-            app.specter.user_manager,
             app.config.get("host", "127.0.0.1"),
             app.config["PORT"],
             app.config["CERT"],
@@ -93,5 +92,4 @@ class NotificationsService(Service):
 
     @classmethod
     def inject_in_basejinja_body_top(cls):
-        print("====================================================0")
         return render_template("notifications/html_inject_in_basejinja.jinja")

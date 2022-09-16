@@ -1,4 +1,5 @@
 import logging
+import json
 from flask import redirect, render_template, request, url_for, flash
 from flask import current_app as app
 from flask_login import login_required, current_user
@@ -8,7 +9,6 @@ from cryptoadvance.specter.services.controller import user_secret_decrypted_requ
 from cryptoadvance.specter.user import User
 from cryptoadvance.specter.wallet import Wallet
 from .service import NotificationsService
-
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +83,7 @@ def settings_post():
     )
 
 
-@app.route("/websocket", websocket=True)
+@notifications_endpoint.route("/websocket", websocket=True)
 def websocket():
     logger.debug("websocket route called. This will start a new websocket connection.")
     # this function will run forever. That is ok, because a stream is expected, similar to https://maxhalford.github.io/blog/flask-sse-no-deps/
@@ -98,3 +98,15 @@ def websocket():
         )
     # returning a string solved some error message when the function ends: https://stackoverflow.com/questions/25034123/flask-value-error-view-function-did-not-return-a-response
     return ""
+
+
+@notifications_endpoint.route("/get_websockets_info/", methods=["GET"])
+@login_required
+def get_websockets_info():
+    return json.dumps(
+        {
+            "user_token": app.specter.ext[
+                "notifications"
+            ].notification_manager.get_websocket_token(current_user.username),
+        }
+    )
