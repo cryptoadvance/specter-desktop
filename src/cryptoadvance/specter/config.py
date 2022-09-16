@@ -173,6 +173,7 @@ class BaseConfig(object):
         "cryptoadvance.specterext.liquidissuer.service",
         "cryptoadvance.specter.services.bitcoinreserve.service",
         "cryptoadvance.specterext.devhelp.service",
+        "cryptoadvance.specterext.notifications.service",
         "cryptoadvance.specterext.exfund.service",
         "cryptoadvance.specterext.faucet.service",
     ]

@@ -1,0 +1,81 @@
+{% extends "notifications/components/notifications_tab.jinja" %}
+{% block title %}Transactions{% endblock %}
+{% set tab = 'transactions' %}
+{% block content %}
+
+    <style>
+        h1 {
+            margin-top: 1em;
+        }
+        .linked_wallet {
+            margin-bottom: 3em;
+        }
+        .no_linked_wallet {
+            background-color: var(--cmap-bg-lighter);
+            border: 2px solid yellow;
+            border-radius: 0.5em;
+            padding: 2em 3em 2em 3em;
+            margin-bottom: 3em;
+        }
+        .no_linked_wallet .headline {
+            text-align: center;
+            font-size: 1.1em;
+            margin-bottom: 1em;
+        }
+        .footnote {
+            margin-top: 2em;
+            font-style: italic;
+            font-size: 0.85em;
+            color: #999;
+        }
+    </style>
+
+    <h1>Notifications Transactions</h1>
+    {% if wallet %}
+        <div class="linked_wallet">Linked wallet:
+            <a class="explorer-link" href="{{ url_for('wallets_endpoint.addresses', wallet_alias=wallet.alias) }}">{{ wallet.name }}</a><br/>
+        </div>
+
+    {% else %}
+        <div class="no_linked_wallet">
+            <div class="headline">{{ _("Linked Wallet Not Configured") }}</div>
+            <div class="note">
+                {{ _("Go to Settings to set up which wallet should be linked to this extension.") }}
+            </div>
+        </div>
+    {% endif %}
+
+    {# TODO: List total withdrawal value? Or just current value of withdrawn utxos? #}
+
+    <div class="table-holder">
+        {% include "includes/services-data.html" %}
+        {% include "includes/address-label.html" %}
+        {% include "includes/tx-row.html" %}
+        {% include "includes/tx-data.html" %}
+        {% include "includes/explorer-link.html" %}
+        {% include "includes/tx-table.html" %}
+        <tx-table
+            {% if specter.price_check and (specter.alt_rate and specter.alt_symbol) %}
+                price="{{ specter.alt_rate }}"
+                symbol="{{ specter.alt_symbol }}"
+            {% endif %}
+            btc-unit="{{ specter.unit }}"
+            hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
+            service-id="notifications"
+            type="txlist"
+        />
+    </div>
+    <div id="tx-popup" class="hidden"></div>
+
+    <div class="footnote">
+        The Transactions shown here are only the ones associated with your extension.<br>
+        You can manually associate addresses to your extension in a specific address via the <br>
+        <button type="button" id="associate-btn" class="service-btn" >📥&nbsp;Associate with a service</button> button or you can do it programmatically via<br>
+        <pre>
+            # somewhere in your controller.py
+            ext().reserve_address(wallet, address, "some Label")
+        </pre>
+        To show all transactions in the list, remove the <pre>service-id="myext"</pre> in transactions.jinja
+    </div>
+
+{% endblock %}

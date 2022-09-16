@@ -1,4 +1,4 @@
-{% include "includes/message_box.js" %}
+{% include "notifications/message_box.js" %}
 
 
 var userToken = null;

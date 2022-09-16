@@ -40,9 +40,6 @@
 			}
 		</style>
 		<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
-		<script>
-			{% include "includes/notifications.js" %}
-		</script>
 		{% include "services/inject_in_basejinja_head.jinja" %}
 		{% block head %}
 		{% endblock %}
@@ -62,7 +59,6 @@
 			{% include "includes/asset-label.html" %}
 		{% endif %}
 	{% endif %}
-	{% include "includes/message-box.html" %}
 	{% include "includes/tool-tip.html" %}
 	<div class="row holder">
 		{% block sidebar %}
