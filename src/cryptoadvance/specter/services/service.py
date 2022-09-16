@@ -50,7 +50,9 @@ class Service:
     def callback(self, callback_id, *argv, **kwargv):
         if callback_id == callbacks.after_serverpy_init_app:
             if hasattr(self, "callback_after_serverpy_init_app"):
-                self.callback_after_serverpy_init_app(kwargv["scheduler"])
+                self.callback_after_serverpy_init_app(
+                    kwargv["scheduler"], kwargv["app"]
+                )
 
     @classmethod
     def set_current_user_service_data(cls, service_data: dict):

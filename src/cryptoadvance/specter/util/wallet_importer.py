@@ -6,7 +6,7 @@ from embit.descriptor import Key as DescriptorKey
 from embit.descriptor.arguments import AllowedDerivation
 from embit.liquid.descriptor import LDescriptor
 from flask_babel import lazy_gettext as _
-from ..notifications.current_flask_user import flash
+from ..server_endpoints import flash
 
 from ..key import Key
 from ..managers.wallet_manager import WalletManager

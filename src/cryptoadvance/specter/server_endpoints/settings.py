@@ -33,7 +33,7 @@ from ..user import User, UserSecretException
 from ..util.sha256sum import sha256sum
 from ..util.shell import get_last_lines_from_file
 from ..util.tor import start_hidden_service, stop_hidden_services
-from ..notifications.current_flask_user import flash
+from ..server_endpoints import flash
 
 logger = logging.getLogger(__name__)
 

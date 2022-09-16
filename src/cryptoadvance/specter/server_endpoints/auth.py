@@ -12,7 +12,7 @@ from ..server_endpoints import flash
 from ..services import ExtensionException
 from ..user import User, hash_password, verify_password
 
-from ..notifications.current_flask_user import flash
+from ..server_endpoints import flash
 
 rand = random.randint(0, 1e32)  # to force style refresh
 last_sensitive_request = 0  # to rate limit sensitive requests

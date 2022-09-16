@@ -13,6 +13,7 @@ from flask import current_app as app
 from flask import render_template
 from cryptoadvance.specter.wallet import Wallet
 from flask_apscheduler import APScheduler
+from .notification_manager import NotificationManager
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,7 @@ class NotificationsService(Service):
     # Those will end up as keys in a json-file
     SPECTER_WALLET_ALIAS = "wallet"
 
-    def callback_after_serverpy_init_app(self, scheduler: APScheduler):
+    def callback_after_serverpy_init_app(self, scheduler: APScheduler, app):
         def every5seconds(hello, world="world"):
             with scheduler.app.app_context():
                 print(f"Called {hello} {world} every5seconds")
@@ -54,6 +55,16 @@ class NotificationsService(Service):
 
         # Maybe you should store the scheduler for later use:
         self.scheduler = scheduler
+
+        self.notification_manager = NotificationManager(
+            app.specter.user_manager,
+            app.config.get("host", "127.0.0.1"),
+            app.config["PORT"],
+            app.config["CERT"],
+            app.config["KEY"],
+        )
+        for user in app.specter.user_manager.users:
+            self.notification_manager.register_user_ui_notifications(user.id)
 
     # There might be other callbacks you're interested in. Check the callbacks.py in the specter-desktop source.
     # if you are, create a method here which is "callback_" + callback_id

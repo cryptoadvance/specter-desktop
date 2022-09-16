@@ -20,7 +20,7 @@ from ..server_endpoints import flash
 from ..specter_error import handle_exception
 from ..util.mnemonic import generate_mnemonic, validate_mnemonic
 from ..wallet import purposes
-from ..notifications.current_flask_user import flash
+from ..server_endpoints import flash
 
 logger = logging.getLogger(__name__)
 

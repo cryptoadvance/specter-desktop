@@ -111,6 +111,7 @@ def server(
     if key:
         app.config["KEY"] = key
 
+    app.config["host"] = host
     kwargs = {
         "host": host,
         "port": app.config["PORT"],
