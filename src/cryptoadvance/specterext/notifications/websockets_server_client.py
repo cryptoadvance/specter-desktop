@@ -84,9 +84,7 @@ class WebsocketServer:
         ) in self.notification_manager.websocket_tokens.items():
             if known_token == user_token:
                 return known_username
-        raise SpecterError(
-            f"user_token {user_token} does not belong to any known user."
-        )
+        logger.warning(f"No username could be found for user_token {user_token}")
 
     def set_as_broadcaster(self, user_token):
         new_entry = {"user_token": user_token}
@@ -153,6 +151,7 @@ class WebsocketServer:
                 try:
                     message_dictionary = json.loads(data)
                 except:
+                    logger.warning(f"Could not decode the json data in {data}")
                     continue
 
                 preprocessed_instruction = self._preprocess(message_dictionary)
@@ -264,16 +263,14 @@ class WebsocketServer:
         """
         assert broadcaster_token in self.get_broadcaster_tokens()
 
-        recipient_user = self.user_manager.get_user(
-            message_dictionary["options"]["user_id"]
-        )
-        if not recipient_user:
-            logger.warning(
-                f"No recipient_user for recipient_user_id {recipient_user.name} could be found"
-            )
+        if not message_dictionary["options"]["user_id"]:
+            logger.warning("No options.user_id given")
             return
 
-        connections = self.get_connections_by_token(recipient_user.websocket_token)
+        user_token = self.notification_manager.get_websocket_token(
+            message_dictionary["options"]["user_id"]
+        )
+        connections = self.get_connections_by_token(user_token)
         if not connections:
             logger.warning(
                 f"No websocket for this recipient_user.websocket_token could be found"
