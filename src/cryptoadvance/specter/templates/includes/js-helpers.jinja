@@ -25,8 +25,6 @@
         return newLabel;
     }
 
-
-
     // Formats the valueInBTC (e.g. from a tx output) to "formattedValue formattedAssetLabel"
     // e.g. 0.22569496 tBTC
     function formatBtcAmount(valueInBTC, assetLabel, convertToSat){
@@ -34,7 +32,7 @@
         var formattedValue = valueInBTC;
         if (valueInBTC) {
             value = parseFloat(valueInBTC.toFixed(8));
-            // The second condition in the if clause if True if formattedAssetLabel is euqal to any of the array
+            // The second condition in the if clause if True if formattedAssetLabel is equal to any element of the array
             if (convertToSat && (["Lsat", "sat", "tLsat", "tsat"].indexOf(formattedAssetLabel) > -1)) {
                 formattedValue = parseInt(value * 1e8)
             }

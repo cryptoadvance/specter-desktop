@@ -153,9 +153,6 @@
                         if (isMine) {
                             bgColor = '#925d07';
                         }
-
-
-
                         let labelAttr = "";
                         if ("label" in spentOutput) {
                             labelAttr = `data-label="${spentOutput.label}"`;
@@ -195,7 +192,7 @@
                         <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
                             <b>{{ _("Input #") }}${i}</b><br><br>
                             {{ _("Transaction id") }}: <explorer-link style="word-break: break-all;" data-type="tx" data-value="${rawtx.vin[i].txid}"></explorer-link><br>
-                            {{ _("Output Index: ") }}${rawtx.vin[i].vout}
+                            {{ _("Output index: ") }}${rawtx.vin[i].vout}
                             ${addressAndValue}
                         </p>
                     `;
