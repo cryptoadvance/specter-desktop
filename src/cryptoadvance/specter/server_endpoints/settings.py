@@ -19,7 +19,7 @@ from flask import current_app as app
 from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
-from cryptoadvance.specter.services.service import Service
+from cryptoadvance.specter.services.service import Service, callbacks
 
 from cryptoadvance.specter.user import User, UserSecretException
 
@@ -42,6 +42,17 @@ rand = random.randint(0, 1e32)  # to force style refresh
 
 # Setup endpoint blueprint
 settings_endpoint = Blueprint("settings_endpoint", __name__)
+
+
+@settings_endpoint.context_processor
+def inject_common_stuff():
+    """Can be used in all jinja2 templates of this Blueprint
+    Injects the additional settings_tabs via extentions
+    """
+    ext_settingstabs = app.specter.service_manager.execute_ext_callbacks(
+        callbacks.add_settingstabs
+    )
+    return dict(ext_settingstabs=ext_settingstabs)
 
 
 @settings_endpoint.route("/", methods=["GET"])
