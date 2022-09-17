@@ -14,7 +14,7 @@ from flask import render_template
 from cryptoadvance.specter.wallet import Wallet
 from flask_apscheduler import APScheduler
 from .notification_manager import NotificationManager
-from .current_flask_user import flash, create_and_show
+from flask_login import current_user, AnonymousUserMixin
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +56,7 @@ class NotificationsService(Service):
 
         # Maybe you should store the scheduler for later use:
         self.scheduler = scheduler
+        self.app = app
 
         self.notification_manager = NotificationManager(
             app.config.get("host", "127.0.0.1"),
@@ -66,12 +67,21 @@ class NotificationsService(Service):
         for user in app.specter.user_manager.users:
             self.notification_manager.register_user_ui_notifications(user.id)
 
-        # add the most commonly used methods here, but one could also call notification_manager.create_and_show
-        self.flash = flash
-        self.create_and_show = create_and_show
-
     # There might be other callbacks you're interested in. Check the callbacks.py in the specter-desktop source.
     # if you are, create a method here which is "callback_" + callback_id
+
+    def callback_flash(self, message: str, category: str = "message"):
+        username = (
+            current_user if not isinstance(current_user, AnonymousUserMixin) else None
+        )
+        return self.notification_manager.flash(message, username, category)
+
+    def callback_create_and_show_notification(self, title, **kwargs):
+        username = (
+            current_user if not isinstance(current_user, AnonymousUserMixin) else None
+        )
+
+        return self.notification_manager.create_and_show(title, username, **kwargs)
 
     @classmethod
     def get_associated_wallet(cls) -> Wallet:

@@ -300,17 +300,6 @@ class NotificationManager:
             and self._find_target_ui(target_ui, notification.user_id).is_available
         }
 
-        logger.warning(
-            [
-                (
-                    target_ui,
-                    notification.user_id,
-                    self._find_target_ui(target_ui, notification.user_id),
-                )
-                for target_ui in notification.target_uis
-            ]
-        )
-
         if not on_close_was_called and not available_target_uis:
             logger.debug(
                 f"None of the notification.target_uis {notification.target_uis} are available and on_close was not called yet."
@@ -450,7 +439,7 @@ class NotificationManager:
 
     def flash(self, message: str, user_id, category: str = "message"):
         "Creates and shows a flask flash message"
-        self.create_and_show(
+        return self.create_and_show(
             message, user_id, notification_type=category, target_uis={"flash"}
         )
 
