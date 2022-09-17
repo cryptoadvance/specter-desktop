@@ -33,34 +33,15 @@ def index():
     )
 
 
-@notifications_endpoint.route("/transactions")
-@login_required
-def transactions():
-    # The wallet currently configured for ongoing autowithdrawals
-    wallet: Wallet = NotificationsService.get_associated_wallet()
-
-    return render_template(
-        "notifications/transactions.jinja",
-        wallet=wallet,
-        services=app.specter.service_manager.services,
-    )
-
-
 @notifications_endpoint.route("/settings", methods=["GET"])
 @login_required
 @user_secret_decrypted_required
 def settings_get():
-    associated_wallet: Wallet = NotificationsService.get_associated_wallet()
-
-    # Get the user's Wallet objs, sorted by Wallet.name
-    wallet_names = sorted(current_user.wallet_manager.wallets.keys())
-    wallets = [current_user.wallet_manager.wallets[name] for name in wallet_names]
-
+    user = app.specter.user_manager.get_user()
     return render_template(
         "notifications/settings.jinja",
-        associated_wallet=associated_wallet,
-        wallets=wallets,
         cookies=request.cookies,
+        show_menu=NotificationsService.id in user.services,
     )
 
 
@@ -74,10 +55,6 @@ def settings_post():
         user.add_service(NotificationsService.id)
     else:
         user.remove_service(NotificationsService.id)
-    used_wallet_alias = request.form.get("used_wallet")
-    if used_wallet_alias != None:
-        wallet = current_user.wallet_manager.get_by_alias(used_wallet_alias)
-        NotificationsService.set_associated_wallet(wallet)
     return redirect(
         url_for(f"{ NotificationsService.get_blueprint_name()}.settings_get")
     )

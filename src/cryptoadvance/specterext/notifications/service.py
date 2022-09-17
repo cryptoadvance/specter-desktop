@@ -33,10 +33,7 @@ class NotificationsService(Service):
 
     # TODO: As more Services are integrated, we'll want more robust categorization and sorting logic
     sort_priority = 2
-
-    # ServiceEncryptedStorage field names for this service
-    # Those will end up as keys in a json-file
-    SPECTER_WALLET_ALIAS = "wallet"
+    visible_in_sidebar = False
 
     def callback_after_serverpy_init_app(self, scheduler: APScheduler, app):
         def every5seconds(hello, world="world"):
@@ -84,26 +81,14 @@ class NotificationsService(Service):
         return self.notification_manager.create_and_show(title, username, **kwargs)
 
     @classmethod
-    def get_associated_wallet(cls) -> Wallet:
-        """Get the Specter `Wallet` that is currently associated with this service"""
-        service_data = cls.get_current_user_service_data()
-        if not service_data or cls.SPECTER_WALLET_ALIAS not in service_data:
-            # Service is not initialized; nothing to do
-            return
-        try:
-            return app.specter.wallet_manager.get_by_alias(
-                service_data[cls.SPECTER_WALLET_ALIAS]
-            )
-        except SpecterError as e:
-            logger.debug(e)
-            # Referenced an unknown wallet
-            # TODO: keep ignoring or remove the unknown wallet from service_data?
-            return
+    def activate(cls):
+        user = app.specter.user_manager.get_user()
+        user.add_service(cls.id)
 
     @classmethod
-    def set_associated_wallet(cls, wallet: Wallet):
-        """Set the Specter `Wallet` that is currently associated with this Service"""
-        cls.update_current_user_service_data({cls.SPECTER_WALLET_ALIAS: wallet.alias})
+    def disable(cls):
+        user = app.specter.user_manager.get_user()
+        user.remove_service(cls.id)
 
     @classmethod
     def inject_in_basejinja_body_top(cls):

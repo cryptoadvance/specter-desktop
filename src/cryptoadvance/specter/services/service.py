@@ -38,6 +38,7 @@ class Service:
     # If the blueprint gets a "/ext" prefix (isolated_client = True), the login cookie won't work for all specter core functionality
     isolated_client = True
     devstatus = devstatus_alpha
+    visible_in_sidebar = True
 
     def __init__(self, active, specter):
         if not hasattr(self, "id"):

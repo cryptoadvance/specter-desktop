@@ -93,7 +93,7 @@ class User(UserMixin):
 
     # TODO: User obj instantiation belongs in UserManager
     @classmethod
-    def from_json(cls, user_dict, specter):
+    def from_json(cls, user_dict, specter, default_services=["notifications"]):
         try:
             user_args = {
                 "id": user_dict["id"],
@@ -104,7 +104,7 @@ class User(UserMixin):
                 "config": {},
                 "specter": specter,
                 "encrypted_user_secret": user_dict.get("encrypted_user_secret", None),
-                "services": user_dict.get("services", []),
+                "services": user_dict.get("services", default_services),
             }
             if not user_dict["is_admin"]:
                 user_args["config"] = user_dict["config"]
