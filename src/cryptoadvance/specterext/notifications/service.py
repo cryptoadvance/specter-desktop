@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 class NotificationsService(Service):
     id = "notifications"
     name = "Notifications Service"
-    icon = "notifications/img/ghost.png"
-    logo = "notifications/img/logo.jpeg"
+    icon = "notifications/img/notification.png"
+    logo = "notifications/img/notification.png"
     desc = "Where a notifications grows bigger."
     has_blueprint = True
     blueprint_module = "cryptoadvance.specterext.notifications.controller"
