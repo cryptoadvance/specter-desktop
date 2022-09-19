@@ -391,17 +391,19 @@ def prepare_elements_default_wallet(my_node):
 def endless_loop(
     node_impl, my_node, mining: Boolean, data_folder, mining_every_x_seconds, echo
 ):
-    "An endless loop which might mine bitcoin"
+    """This loop can enable continuous mining"""
 
     # To stop the Python process
     exit = Event()
 
-    def exit_now(signo, _framee):
-        echo(f"Bye bye!")
+    def exit_now(signum, frame):
+        echo(f"Signal {signum} received. Terminating the Python process. Bye, bye!")
         exit.set()
 
     signal.signal(signal.SIGINT, exit_now)
     signal.signal(signal.SIGHUP, exit_now)
+    signal.signal(signal.SIGTERM, exit_now)
+    # SIGKILL cannot be caught
 
     if mining:
         echo(
@@ -424,6 +426,7 @@ def endless_loop(
         try:
             current_height = my_node.rpcconn.get_rpc().getblockchaininfo()["blocks"]
             exit.wait(mining_every_x_seconds)
+            # Having a prevent_mining_file overrides the mining cli option
             if mining and not prevent_mining_file.is_file():
                 my_node.mine()
                 echo("%i" % (i % 10), prefix=False, nl=False)
@@ -442,7 +445,8 @@ def endless_loop(
                 continue
 
         except ConnectionError as nce:
-            # This is the main way of exiting as
+            # This terminates the Python processes if the bitcoind / elementsd (child) processes are somehow terminated
+            echo("Exiting endless loop due to lost RPC connection.")
             break
         except Exception as e:
             logger.debug(
