@@ -397,7 +397,12 @@ class Node:
         self.utxorescanwallet = None
 
     def check_blockheight(self):
-        return self.info["blocks"] != self.rpc.getblockcount()
+        if not self.rpc:
+            # if the rpc interface cannot be found, then specter should check the rpc interface.
+            # Checking the rpc interface with self.node.update_rpc() in specter.check() is done
+            # if we return True here
+            return True
+        return self.info.get("blocks") != self.rpc.getblockcount()
 
     def is_liquid(self):
         return is_liquid(self.chain)
