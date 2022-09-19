@@ -264,19 +264,46 @@ Some important one is the `after_serverpy_init_app` which passes a `Scheduler` c
 ### `controller.py`
 The minimal url routes for `Service` selection and management. As usualy in Flask, `templates` and `static` resources are in their respective subfolders. Please note that there is an additional directory with the id of the extension which looks redundant at first. This is due to the way blueprints are loading templates and ensures that there are no naming collisions. Maybe at a later stage, this can be used to let plugins override other plugin's templates.
 
-### Extending the Settings Dialog
-You can extend the settings dialog with your own templates. To do that, create a callback-method in your service like:
+### Extending Tabs
+
+You can extend the central settings Tabs and/or the wallets Tabs your own templates. To do that, create a callback-method in your service like:
+
 ```python
-    def callback_setting_exts(self):
+    def callback_add_settingstabs(self):
+        ''' Extending the settings tabs with an own tab called "myexttitle" '''
         return [{"title": "myexttitle", "endpoint":"myext_something"}]
+
+    def callback_add_wallettabs(self):
+        ''' Extending the wallets tab with an own tab called "mywalletdetails" '''
+        return [{"title": "mywalletdetails", "endpoint":"myext_mywalletdetails"}]
 ```
-In this case, this would add a tab called "myexttitle" and you're now suppose to provide an endpoint in your controller which looks e.g. like this:
+In this case, this would add a tab called "myexttitle" and you're now suppose to provide an endpoint in your controller which called `myext_something` e.g. like this:
 
 ```python
 @myext_endpoint.route("/settings_something", methods=["GET"])
 def myext_something():
     return render_template(
-        "myext/some_settingspage.jinja"
+        "myext/some_settingspage.jinja",
+        ext_settingstabs = app.specter.service_manager.execute_ext_callbacks(
+            callbacks.add_settingstabs
+        )
+    )
+```
+
+If you want to have an additional wallet-tab, you would specify something like:
+
+```python
+@myext_endpoint.route("/wallet/<wallet_alias>/mywalletdetails", methods=["GET"])
+def myext_mywalletdetails(wallet_alias):
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    return render_template(
+        "myext/mywalletdetails.jinja",
+        wallet_alias=wallet_alias,
+        wallet=wallet,
+        specter=app.specter,
+        ext_wallettabs = app.specter.service_manager.execute_ext_callbacks(
+            callbacks.add_wallettabs
+        )
     )
 ```
 
@@ -297,15 +324,16 @@ The `some_settingspage.jinja` should probably look exactly like all the other se
 {% endblock %}
 ```
 
-In order for this to work, you would need to define `setting_exts` above. Those are the tabs from all the extensions which are contributing tabs to the settings. So you have to specify them like this in your controller:
+A reasonable wallet-tab jinja template would look like this:
 
-```python
-@myext_endpoint.context_processor
-def inject_common_stuff():
-    """Can be used in all jinja2 templates"""
-    setting_exts = app.specter.service_manager.execute_ext_callbacks(
-        callbacks.setting_exts
-    )
-    return dict(setting_exts=setting_exts)
+```jinja
+{% extends "wallet/components/wallet_tab.jinja" %}
+{% set tab = 'my details' %}
+{% block content %}
+	<br>
+	<div class="center card" style="width: 610px; padding-top: 25px;">
+        Some content here for the wallet {{ wallet_alias }}
+	</div>
+{% endblock %}
 ```
 
