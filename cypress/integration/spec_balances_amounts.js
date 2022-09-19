@@ -1,5 +1,5 @@
 // 
-describe('Test rendering of balances and amounts', () => {
+describe('Test the rendering of balances and amounts', () => {
     before(() => {
         Cypress.config('includeShadowDom', true)
         cy.visit('/')
@@ -12,7 +12,7 @@ describe('Test rendering of balances and amounts', () => {
     })
 
     it('Total balance of 20 BTC', () => {
-        /* This how the DOM looks like
+        /* This is how the DOM looks like
         <th id="fullbalance_amount" class="right-align">
             20.0
             <span class="unselectable transparent-text">0</span>
@@ -42,7 +42,7 @@ describe('Test rendering of balances and amounts', () => {
     })
 
     it('Unconfirmed balance of 0.05 BTC', () => {
-        /* This how the DOM looks like
+        /* This is how the DOM looks like
         <th id="unconfirmed_amount" class="right-align">
             0.05
             <span class="thousand-digits-in-btc-amount">
@@ -75,6 +75,7 @@ describe('Test rendering of balances and amounts', () => {
         cy.get('#satoshis_hot_keys_hot_sign_btn').click()
         cy.get('#hot_enter_passphrase__submit').click()
         cy.get('#broadcast_local_btn').click()
+        cy.reload()
         cy.selectWallet('Ghost wallet')
         cy.get('#unconfirmed_amount').should('have.text', '0.05000000')
         cy.get('#unconfirmed_amount').find('.thousand-digits-in-btc-amount').children().each((element) => {
@@ -88,7 +89,7 @@ describe('Test rendering of balances and amounts', () => {
     })
 
     it('Total balance with all digits', () => {
-        /* This how the DOM looks like
+        /* This is how the DOM looks like
         <th id="fullbalance_amount" class="right-align">
             19.94
             <span class="thousand-digits-in-btc-amount">999</span>
