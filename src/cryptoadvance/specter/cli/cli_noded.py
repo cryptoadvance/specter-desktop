@@ -8,10 +8,12 @@ import sys
 import time
 from pathlib import Path
 from threading import Event
+from xmlrpc.client import Boolean
 
 import click
 import psutil
 from flask import Config
+from requests.exceptions import ConnectionError
 
 from ..config import DEFAULT_CONFIG
 from ..process_controller.elementsd_controller import ElementsPlainController
@@ -352,34 +354,15 @@ def noded(
 
     if node_impl == "elements":
         prepare_elements_default_wallet(my_node)
-    # To stop the Python process
-    exit = Event()
-
-    def exit_now(signo, _frame):
-        exit.set()
-
-    for sig in ("HUP", "INT"):
-        signal.signal(getattr(signal, "SIG" + sig), exit_now)
-    # Mining loop or NOP loop (necessary to keep the Python process running)
-    if mining:
-        miner_loop(
-            node_impl,
-            my_node,
-            config_obj["SPECTER_DATA_FOLDER"],
-            mining_every_x_seconds,
-            echo,
-            exit,
-        )
-    else:
-        while not exit.is_set():
-            try:
-                exit.wait(10)
-            except Exception as e:
-                logger.info(
-                    f"Caught {e}, Couldn't mine, assume SIGTERM occured => exiting!"
-                )
-                break
-        echo(f"THE_END")
+    # Mining/NOP loop (necessary to keep the Python process running)
+    endless_loop(
+        node_impl,
+        my_node,
+        mining,
+        config_obj["SPECTER_DATA_FOLDER"],
+        mining_every_x_seconds,
+        echo,
+    )
 
 
 def prepare_elements_default_wallet(my_node):
@@ -405,21 +388,35 @@ def prepare_elements_default_wallet(my_node):
         rpc.generatetoaddress(101, unconfidential)
 
 
-def miner_loop(node_impl, my_node, data_folder, mining_every_x_seconds, echo, exit):
-    "An endless loop mining bitcoin"
+def endless_loop(
+    node_impl, my_node, mining: Boolean, data_folder, mining_every_x_seconds, echo
+):
+    "An endless loop which might mine bitcoin"
 
-    echo(
-        "Now, mining a block every %f seconds, avoid it via --no-mining"
-        % mining_every_x_seconds
-    )
-    mine_2_specter_wallets(node_impl, my_node, data_folder, echo)
+    # To stop the Python process
+    exit = Event()
 
-    # make them spendable
-    my_node.mine(block_count=100)
-    echo(
-        f"height: {my_node.rpcconn.get_rpc().getblockchaininfo()['blocks']} | ",
-        nl=False,
-    )
+    def exit_now(signo, _framee):
+        echo(f"Bye bye!")
+        exit.set()
+
+    signal.signal(signal.SIGINT, exit_now)
+    signal.signal(signal.SIGHUP, exit_now)
+
+    if mining:
+        echo(
+            "Now, mining a block every %f seconds, avoid it via --no-mining"
+            % mining_every_x_seconds
+        )
+        mine_2_specter_wallets(node_impl, my_node, data_folder, echo)
+        # make them spendable
+        my_node.mine(block_count=100)
+        echo(
+            f"height: {my_node.rpcconn.get_rpc().getblockchaininfo()['blocks']} | ",
+            nl=False,
+        )
+    else:
+        echo("Press Ctrl-C to abort and stop the node")
 
     prevent_mining_file = Path("prevent_mining")
     i = 0
@@ -427,27 +424,29 @@ def miner_loop(node_impl, my_node, data_folder, mining_every_x_seconds, echo, ex
         try:
             current_height = my_node.rpcconn.get_rpc().getblockchaininfo()["blocks"]
             exit.wait(mining_every_x_seconds)
-            if not prevent_mining_file.is_file():
+            if mining and not prevent_mining_file.is_file():
                 my_node.mine()
-            else:
+                echo("%i" % (i % 10), prefix=False, nl=False)
+                if i % 10 == 9:
+                    echo(" ", prefix=False, nl=False)
+                i += 1
+                if i >= 50:
+                    i = 0
+                    echo("", prefix=False)
+                    echo(
+                        f"height: {current_height} | ",
+                        nl=False,
+                    )
+            elif mining:
                 echo("X", prefix=False, nl=False)
                 continue
 
-            echo("%i" % (i % 10), prefix=False, nl=False)
-            if i % 10 == 9:
-                echo(" ", prefix=False, nl=False)
-            i += 1
-            if i >= 50:
-                i = 0
-                echo("", prefix=False)
-                echo(
-                    f"height: {current_height} | ",
-                    nl=False,
-                )
-
+        except ConnectionError as nce:
+            # This is the main way of exiting as
+            break
         except Exception as e:
             logger.debug(
-                f"Caught {e}, Couldn't mine, assume SIGTERM occured => exiting!"
+                f"Caught {e.__module__}, Couldn't mine, assume SIGTERM occured => exiting!"
             )
             break
     if prevent_mining_file.is_file():
@@ -464,6 +463,7 @@ def mine_2_specter_wallets(node_impl, my_node, data_folder, echo):
     # Using the dict key, not the wallet name
     exception = "fresh_wallet"
     try:
+        logger.debug(f"Funding wallets in {data_folder}/wallets")
         for address in fetch_wallet_addresses_for_mining(
             node_impl, data_folder, exception
         ):
