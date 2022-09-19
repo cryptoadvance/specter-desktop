@@ -269,6 +269,7 @@ The minimal url routes for `Service` selection and management. As usual in Flask
 You can extend the settings dialog with your own templates. To do that, create a callback method in your service like:
 ```python
     def callback_add_settingstabs(self):
+        ''' Extending the settings tab with an own tab called "myexttitle" '''
         return [{"title": "myexttitle", "endpoint":"myext_something"}]
 
     def callback_add_wallettabs(self):
@@ -322,7 +323,10 @@ The `some_settingspage.jinja` should probably look exactly like all the other se
 {% endblock %}
 ```
 
-A reasonable wallet-tab jinja template would look like this:
+![](./images/extensions/add_settingstabs.png)
+
+
+A reasonable `mywalletdetails.jinja` would look like this:
 
 ```jinja
 {% extends "wallet/components/wallet_tab.jinja" %}
@@ -335,8 +339,5 @@ A reasonable wallet-tab jinja template would look like this:
 {% endblock %}
 ```
 
-You also need this import in your controller: 
-```python
-cryptoadvance.specter.services import callbacks
-```
+![](./images/extensions/add_wallettabs.png)
 
