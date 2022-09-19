@@ -14,7 +14,7 @@ describe('Test rendering of balances and amounts', () => {
     it('Total balance of 20 BTC', () => {
         /* This how the DOM looks like
         <th id="fullbalance_amount" class="right-align">
-            40.0
+            20.0
             <span class="unselectable transparent-text">0</span>
             <span class="thousand-digits-in-btc-amount">
                 <span class="unselectable transparent-text">0</span>

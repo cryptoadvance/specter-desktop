@@ -216,7 +216,7 @@ Cypress.Commands.add("deleteWallet", (name) => {
 Cypress.Commands.add("selectWallet", (name) => { 
   cy.get('body').then(($body) => {
     if ($body.text().includes(name)) {
-        cy.contains(name).click()
+        cy.contains(name).click( {force: true} )
     } 
   })
 })
