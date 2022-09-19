@@ -268,6 +268,8 @@ The minimal url routes for `Service` selection and management. As usual in Flask
 ### Extending the settings dialog
 You can extend the settings dialog with your own templates. To do that, create a callback method in your service like:
 ```python
+from cryptoadvance.specter.services import callbacks
+# [...]
     def callback_add_settingstabs(self):
         ''' Extending the settings tab with an own tab called "myexttitle" '''
         return [{"title": "myexttitle", "endpoint":"myext_something"}]
