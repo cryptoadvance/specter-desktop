@@ -1,6 +1,7 @@
 # Service configuration
-In order to separate the service-configuration from the main-configuration, you can specify your config in a file called `config.py`. It's structure is similiar to the specter-wide `config.py`, e.g.:
-```
+In order to separate the service-configuration from the main-configuration, you can specify your config in a file called `config.py`. Its structure is similiar to the specter-wide `config.py`, e.g.:
+
+```python
 class BaseConfig():
     MYSERVICE_API_URL="https://dev-api.myservice.com"
 

@@ -2,7 +2,7 @@
 
 ## controller.py
 
-You can have your own frontend with a blueprint. If you only have one, it needs to have a `/` route in order to be linkable from the `choose your plugin` page. 
+You can have your own frontend with a blueprint (flask blueprints are explained [here](https://realpython.com/flask-blueprint/)). If you only have one, it needs to have a `/` route in order to be linkable from the `choose your plugin` page. 
 If you create your extension with a blueprint, it'll also create a controller for you which, simplified, looks like this:
 ```
 rubberduck_endpoint = ScratchpadService.blueprint

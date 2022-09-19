@@ -6,11 +6,11 @@ to
 * Add Additional Menu Items currently in Wallets and Settings
 * Create additional Devices with the functionality you would like to have
 
-We currently rework the naming of extensions/plugins/services. If not otherwise stated, you can see those three terms as the same, for now.
+We currently rework the naming of extensions/plugins/services. If not otherwise stated, for now, they are used interchangeably
 
 ## TL;DR
 
-You can create an extension with an up to date Specter Desktop instance as simple as this:
+You can create an extension with an up to date Specter Desktop instance. Assuming that we're creating an extension called `rubberduck`, it's as simple as this:
 ```
 $ pip3 install cryptoadvance.specter --upgrade
 $ mkdir /tmp/rubberduck && cd /tmp/rubberduck
@@ -128,7 +128,7 @@ If the extension has a UI (currently all of them have one), `has_blueprint` is T
 
 In `devices`, you can specify the modules where you're implementing new Devices.
 
-`devstatus` is one of `devstatus_alpha`, `devstatus_beta` or `devstatus_prod` defined in `cryptoadvance.specter.services.service`. Each Specter instance will have a config variable  called `SERVICES_DEVSTATUS_THRESHOLD` (prod in Production and alpha in Development) and depending on that, the plugin will be available to the user.
+`devstatus` is one of `devstatus_alpha`, `devstatus_beta` or `devstatus_prod` defined in `cryptoadvance.specter.services.service`. Each Specter instance will have a config variable called `SERVICES_DEVSTATUS_THRESHOLD` (prod in Production and alpha in Development) and depending on that, the plugin will be available to the user.
 
 ## `Address`-Level Integration
 
