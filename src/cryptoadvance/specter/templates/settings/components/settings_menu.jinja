@@ -5,6 +5,8 @@
     Parameters:
     - active_menuitem: Current active tab. Options: 'general', 'bitcoin_core', 'auth'.
     - current_user: The current user.
+    - ext_settingstabs: Dictionary gathered by execute_ext_callbacks() in the service manager. Looks like this:
+    	{'rubberduck': [{'title': 'Special rubberduck settings', 'endpoint': 'special_rubberduck_settings'}]}
  #}
 {% macro settings_menu(active_menuitem, current_user, ext_settingstabs={}) -%}
 
