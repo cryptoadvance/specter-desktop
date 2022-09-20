@@ -1,4 +1,3 @@
-import cryptography
 import json
 import logging
 import os
@@ -12,16 +11,14 @@ import time
 import zipfile
 from pathlib import Path
 
+import cryptography
 import pgpy
 import requests
 from flask import Blueprint, Flask
 from flask import current_app as app
-from flask import flash, jsonify, redirect, render_template, request, send_file, url_for
+from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
-from cryptoadvance.specter.services.service import Service
-
-from cryptoadvance.specter.user import User, UserSecretException
 
 from ..helpers import (
     get_loglevel,
@@ -30,7 +27,10 @@ from ..helpers import (
     set_loglevel,
 )
 from ..persistence import write_devices, write_wallet
+from ..server_endpoints import flash
+from ..services.service import Service
 from ..specter_error import ExtProcTimeoutException, handle_exception
+from ..user import User, UserSecretException
 from ..util.sha256sum import sha256sum
 from ..util.shell import get_last_lines_from_file
 from ..util.tor import start_hidden_service, stop_hidden_services

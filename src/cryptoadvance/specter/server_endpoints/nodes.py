@@ -8,7 +8,6 @@ from flask import (
     redirect,
     url_for,
     jsonify,
-    flash,
 )
 from flask_babel import lazy_gettext as _
 from flask_login import login_required, current_user
@@ -17,6 +16,7 @@ from ..rpc import get_default_datadir
 from ..node import Node
 from ..specter_error import ExtProcTimeoutException
 from ..util.shell import get_last_lines_from_file
+from ..server_endpoints import flash
 
 logger = logging.getLogger(__name__)
 
