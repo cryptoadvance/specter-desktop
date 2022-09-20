@@ -5,6 +5,8 @@
     Parameters:
     - active_menuitem: Current active tab. Options: 'transactions', 'addresses', 'receive', 'send', 'settings'.
 	- wallet_alias: The wallet alias (used in the URL navigation).
+	- ext_wallettabs: Dictionary gathered by execute_ext_callbacks() in the service manager. Looks like this:
+		{'rubberduck': [{'title': 'Secret rubberduck wallet', 'endpoint': 'secret_rubberduck_wallet'}]}
  #}
 {% macro wallet_menu(active_menuitem, wallet_alias, ext_wallettabs) -%}
 	<nav class="row collapse-on-mobile">
