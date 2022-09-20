@@ -256,7 +256,24 @@ def decoderawtx(wallet_alias):
         wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
         txid = request.form.get("txid", "")
         if txid:
-            tx = wallet.rpc.gettransaction(txid)
+            try:
+                tx = wallet.rpc.gettransaction(txid)
+            except RpcError as e:
+                if "Invalid or non-wallet transaction id" in str(e):
+                    # Expected failure when looking up a txid that didn't originate from the
+                    # user's Wallet.
+                    logger.info("Looking up a txid that didn't originate from the user's wallet. Can't return any tx data.")
+                    return jsonify(
+                        success=False,
+                        nonWalletTxId=True,
+                    )
+                else:
+                    logger.warning(
+                        "Failed to fetch transaction data. Exception: {}".format(e)
+                    )
+                    return jsonify(
+                        success=False
+                    )
             # This is a fix for Bitcoin Core versions < v0.20
             # These do not return the blockheight as part of the `gettransaction` command
             # So here we check if this property is lacking and if so
@@ -309,15 +326,6 @@ def decoderawtx(wallet_alias):
                 tx=tx,
                 rawtx=rawtx,
                 walletName=wallet.name,
-            )
-    except RpcError as e:
-        if "Invalid or non-wallet transaction id" in str(e):
-            # Expected failure when looking up a txid that didn't originate from the
-            #   user's Wallet.
-            pass
-        else:
-            app.logger.warning(
-                "Failed to fetch transaction data. Exception: {}".format(e)
             )
     except Exception as e:
         app.logger.warning("Failed to fetch transaction data. Exception: {}".format(e))

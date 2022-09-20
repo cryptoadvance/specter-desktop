@@ -161,11 +161,11 @@
                         if ("service_id" in spentOutput) {
                             serviceIdAttr = `data-service-id="${spentOutput.service_id}"`;
                         }
-    
+                        // assetlabel only exists for Liquid, for BTC it is just null
                         var amountAndUnit = formatBtcAmount(spentOutput.value, spentOutput.assetlabel, this.btcUnit == 'sat');
                         var price = formatPrice(spentOutput.value, spentOutput.assetlabel, this.symbol, this.price); 
 
-                        addressAndValue = `<br>
+                        addressAndValue = `
                             {{ _("Address:") }} 
                             <address-label 
                                 data-copy-hidden="true"
@@ -188,14 +188,28 @@
                         `;
                         continue;
                     }
-                    rawtxHTML += `
-                        <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
-                            <b>{{ _("Input #") }}${i}</b><br><br>
-                            {{ _("Transaction id") }}: <explorer-link style="word-break: break-all;" data-type="tx" data-value="${rawtx.vin[i].txid}"></explorer-link><br>
-                            {{ _("Output index: ") }}${rawtx.vin[i].vout}
-                            ${addressAndValue}
-                        </p>
-                    `;
+                    if (jsonResponse.nonWalletTxId) {
+                        let nonWalletTxId = jsonResponse.nonWalletTxId ? `<span>Not known, this is a non-wallet txid.</span>` : null
+                        rawtxHTML += `
+                            <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
+                                <b>{{ _("Input #") }}${i}</b><br><br>
+                                {{ _("Transaction id") }}: <explorer-link style="word-break: break-all;" data-type="tx" data-value="${rawtx.vin[i].txid}"></explorer-link><br>
+                                {{ _("Output index: ") }}${rawtx.vin[i].vout}<br>
+                                {{ _("Address & value:") }} ${nonWalletTxId}
+                            </p>
+                        `;
+                    }
+                    else {
+                        rawtxHTML += `
+                            <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
+                                <b>{{ _("Input #") }}${i}</b><br><br>
+                                {{ _("Transaction id") }}: <explorer-link style="word-break: break-all;" data-type="tx" data-value="${rawtx.vin[i].txid}"></explorer-link><br>
+                                {{ _("Output index: ") }}${rawtx.vin[i].vout}<br>
+                                ${addressAndValue}
+                            </p>
+                        `;
+
+                    }
                 }
 
                 rawtxHTML += `<h3>{{ _("Outputs") }}</h3>`;
@@ -228,7 +242,7 @@
                     if ("service_id" in rawtx.vout[i]) {
                         serviceIdAttr = `data-service-id="${rawtx.vout[i].service_id}"`;
                     }
-
+                    // assetlabel only exists for Liquid, for BTC it is just null
                     var amountAndUnit = formatBtcAmount(rawtx.vout[i].value, rawtx.vout[i].assetlabel, this.btcUnit == 'sat');
                     var price = formatPrice(rawtx.vout[i].value, rawtx.vout[i].assetlabel, this.symbol, this.price); 
 
