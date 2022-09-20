@@ -94,7 +94,7 @@ The created file structure looks like this and you will feel right at home if yo
 As much as possible, each `extension` should be entirely self-contained with little or no custom code altering core Specter functionality. There is a name for that: Extension framework.
 The term `extension` will be used for all sorts of extensions whereas `plugin` will be used as a component which can be de-/activated by a user.
 
-All extensions are completely seperated in a specific folder structure. There are internal extensions which SHOULD be located in `cryptoadvance.specterext.id_of_extension` but at least 2 extensions are still at the deprecated location of `cryptoadvance.specter.services`. However, that does not mean that an extension needs to be located in the same repository as Specter itself. Extensions can be located in their own repository even if they are incorporated into the official Specter release.
+All extensions are completely separated in a specific folder structure. There are internal extensions which SHOULD be located in `cryptoadvance.specterext.id_of_extension` but at least 2 extensions are still at the deprecated location of `cryptoadvance.specter.services`. However, that does not mean that an extension needs to be located in the same repository as Specter itself. Extensions can be located in their own repository even if they are incorporated into the official Specter release.
 
 Independent of whether an extension is shipped with the official Specter-release binaries and whether it's an internal (which is shipped) or external extension (which might be shipped), the creation of extensions is already heavily supported and encouraged.
 Whether an extension is shipped with the official binary is ultimately a choice of the Specter team. However, you can simply develop extensions and use them on production (only for technical personel) as described in `specterext-dummy` (see below).
@@ -104,14 +104,15 @@ A description of how to create your own extension can be found above.
 All the attributes of an extension are currently (json support is planned) defined as attributes of a class which is derived from the class `Service` (should be renamed). That class has attributes which are essential. So let's discuss them briefly.
 
 ## Extension attributes
-Here is an example. This class definition MUST be stored in a file called "service.py" within a package with the name `org-id.specterext.extions-id`.
-```
-class DiceService(Service):
-    id = "dice"
-    name = "Specter Dice"
-    icon = "dice/dice_logo.png"
-    logo = "dice/dice_logo.png"
-    desc = "Send your bet!"
+Here is an example. This class definition MUST be stored in a file called "service.py" within a package with the name `mynym.specterext.myextensionid`. You don't have to create such files yourself. Please always use the extension generation procedure to create your extension.
+
+```python
+class MyextensionidService(Service):
+    id = "myextensionid"
+    name = "A Nice name for my Extension"
+    icon = "myextensionid/myextensionid_logo.png"
+    logo = "myextensionid/myextensionid_logo.png"
+    desc = "A nice description"
     has_blueprint = True
     blueprint_module = "mynym.specterext.myextensionid.controller"
     isolated_client = False
@@ -123,7 +124,7 @@ With inheriting from `Service` you get some usefull methods explained later.
 
 The `id` needs to be unique within a specific specter-instance where this extension is part of. The `name` is the displayname as shown to the user in the plugin-area (currently there is not yet a technical difference between extensions and plugins). The `icon` will be used where labels are used to be diplayed if this extension is reserving addresses. The `logo` and the `desc`ription is also used in the plugin-area ("choose plugins").
 
-If the extension has a UI (currently all of them have one), `has_blueprint` is True. `The blueprint_module` is referencing the controller module where endpoints are defined. It's recommended to follow the format `org.specterext.extions-id.controller`.
+If the extension has a UI (currently all of them have one), `has_blueprint` is True. `The blueprint_module` is referencing the controller module where endpoints are defined. It's recommended to follow the format `org-id.specterext.myextensionid.controller`.
 `isolated_client` should not be used yet. It is determining where in the url-path tree the blueprint will be mounted. This might have an impact on whether the extension's frontend client has access to the cookie used in Specter. Check `config.py` for details.
 
 In `devices`, you can specify the modules where you're implementing new Devices.
