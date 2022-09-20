@@ -1,0 +1,88 @@
+{% extends "devhelp/components/devhelp_tab.jinja" %}
+{% block title %}address-data{% endblock %}
+{% set tab = 'html' %}
+{% block content %}
+
+<h1>total_wallet_balances</h1>
+
+{% from 'wallet/history/components/total_wallet_balances.jinja' import total_wallet_balances %}
+
+<h3>Usage</h3>
+<pre>
+     total_wallet_balances(
+        _("Some title"),
+        amount_total, 
+        amount_confirmed,
+        amount_unconfirmed, 
+        amount_immature, 
+        balance,            # needs to be passed for liquid
+        rescan_progress,    # Possible values: True, False, 0..1.    Disable: False or 0,  Enable otherwise.
+        wallet_alias,       # wallet_alias to check the rescan_progress.   
+                            # If the wallet alias exists it shows specter.info["utxorescan"], otherwise rescan_progress is used
+        specter) 
+
+
+</pre>
+
+<h2>Example without rescanning</h2>
+<p>For the macro to correctly display the strings, the values for the amounts have to have 8 decimals.<br>
+   Truncation of 0s depends   on the defaults chosen in filters.py
+</p>
+
+<pre>
+    total_wallet_balances(
+        _("Some customizable text"),
+        2.02067075, 
+        1.02065575,
+        1.00001500, 
+        0.00020000, 
+        0, 
+        False, 
+        "",
+        specter
+    )
+</pre>
+
+{{ total_wallet_balances(
+    _("Some customizable text"),
+    2.02067075, 
+    1.02065575,
+    1.00001500, 
+    0.00020000, 
+    None, 
+    False, 
+    "", 
+    specter) }}
+
+<h2 style="margin-top: 20px">Example with full blockchain rescan</h2>
+<p>Here we are simulating the rendering of the display if a full rescan is under way (thus the additional box below).</p>
+
+<pre>
+    total_wallet_balances(
+        _("Some customizable text"),
+        2.02067075, 
+        1.02065575,
+        1.00001500, 
+        2.00000000, 
+        None, 
+        0.33, 
+        "some_existent_wallet_alias", 
+        specter
+    )
+</pre>
+
+{{ total_wallet_balances(
+    _("Some customizable text"),
+    2.02067075, 
+    1.02065575,
+    1.00001500, 
+    2.00000000,
+    None, 
+    0.33, 
+    "some_existent_wallet_alias", 
+    specter) }}
+
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
