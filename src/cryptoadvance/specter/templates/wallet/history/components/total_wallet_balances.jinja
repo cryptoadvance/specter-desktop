@@ -1,117 +1,183 @@
 
 {# 
     total_wallet_balances - Title showing the wallet total balance + amount confirmed and unconfirmed (if there is any unconfirmed amount).
-    Parameters:
-    - wallet: Wallet object
-    - specter: Specter object
+
+    total_wallet_balances(
+            _("Some title"),
+            amount_total, 
+            amount_confirmed,
+            amount_unconfirmed, 
+            amount_immature, 
+            balance,            # needs to be passed for liquid
+            rescan_progress,    # Possible values: True, False, 0..1.    Disable: False or 0,  Enable otherwise.
+            wallet_alias,       # wallet_alias to check the rescan_progress.   
+                                # If the wallet alias exists it shows specter.info["utxorescan"], otherwise rescan_progress is used
+            specter) 
+
+    Calling example for a single wallet:
+        total_wallet_balances("", wallet.amount_total, wallet.amount_confirmed,  wallet.amount_unconfirmed, wallet.amount_immature, wallet.balance, wallet.rescan_progress, wallet.alias, specter)
  #}
-{% macro total_wallet_balances(wallet, specter) -%}
+{% macro total_wallet_balances(title, amount_total, amount_confirmed, amount_unconfirmed, amount_immature, balance, rescan_progress, alias, specter) -%}
+<style type="text/css">
+    table {
+        font-size: 1.1em;
+        border: none;
+        border-collapse: initial;
+    } 
+
+    th {
+        text-align: left;
+        font-weight: inherit;
+        border-bottom: initial;
+        padding:initial;
+        padding-left:5px;
+    }
+    tr {
+        background: initial;
+    }
+    .btn {
+        font-size: 0.9em;
+    }
+    button.btn {
+        display: inline-flex;
+        font-size: 0.9em;
+        padding: 2px 10px 2px 10px;
+        height: initial;
+        min-height: initial;
+        width: initial;
+        min-width: initial;
+    }
+    .right-align {
+        text-align: right;
+    }
+    h4 {
+        font-weight: unset;
+    }
+</style>
     <div style="display: flex; flex-direction: column; min-width: 300px; align-items: center">
-        <span style="line-height:30px; font-size: 1.1em;">Balance:</span>
-        <div class="smaller-card">
-            <div> 
-                Total amount: <span id="fullbalance_amount">{{ wallet.amount_total | btcunitamount }}</span>
-                {% if specter.unit == 'sat' %}
-                    sats
-                {% else %}
-                    {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
+        <div class="smaller-card">            
+            {% if title %}
+                <div style="text-align: center; width:100%; line-height:30px; font-size: 1.2em;">{{ title }}</div>
+            {% endif %}
+            <table>
+                <tr>
+                    <th>Total amount:</th>
+                    <th id="fullbalance_amount" class="right-align">{{ amount_total | btcunitamount_fixed_decimals | safe }}</th>
+                    <th>
+                        {% if specter.unit == 'sat' %}
+                            sats
+                        {% else %}
+                            {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
+                        {% endif %}
+                        {% if specter.price_check %} 
+                            <th class="right-align">
+                                <span class="note">({{ amount_total | altunit }})</span>
+                            </th> 
+                        {% endif %}
+                    </th> 
+                </tr>                             
+                {% if amount_unconfirmed > 0 or amount_immature > 0 %}
+                    <tr>
+                        <th>Confirmed:</th>
+                        <th id="confirmed_amount" class="right-align">{{ amount_confirmed | btcunitamount_fixed_decimals | safe }}</th>
+                        <th>
+                            {% if specter.unit == 'sat' %}
+                                sats
+                            {% else %}
+                                {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
+                            {% endif %}
+                            {% if specter.price_check %} 
+                                <th class="right-align">
+                                    <span class="note">({{ amount_confirmed | altunit }})</span>
+                                </th> 
+                            {% endif %}
+                        </th>
+                    </tr>                             
+                    {% if amount_unconfirmed > 0 %}
+                    <tr>
+                        <th>Unconfirmed:</th>
+                        <th id="unconfirmed_amount" class="right-align">{{ amount_unconfirmed | btcunitamount_fixed_decimals | safe }}</th>
+                        <th>
+                            {% if specter.unit == 'sat' %}
+                                sats
+                            {% else %}
+                                {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
+                            {% endif %}
+                            {% if specter.price_check %} 
+                                <th class="right-align">
+                                    <span class="note">({{ amount_unconfirmed | altunit }})</span>
+                                </th> 
+                            {% endif %}
+                        </th>
+                    </tr>                             
+                    {% endif %}
                 {% endif %}
-                {% if specter.price_check %} 
-                    <span class="note">({{ wallet.amount_total | altunit }})</span>
+                {% if amount_immature > 0  %}
+                <tr>
+                    <th style="display: flex;">
+                        <span>Immature:</span>
+                        <tool-tip width="200px">
+                            <h4 slot="title">{{ _("What are immature outputs?") }}</h4>
+                            <span slot="paragraph">
+                            {{ _('The UTXO of coinbase transactions (mining rewards) have the special condition that they cannot be spent for at least 100 blocks. Their amount is not included in the total balance here.') }}
+                            {% if specter.chain == "regtest" %}{{ _('You see these outputs because you are using regtest and have mined blocks.')}}{% endif %}
+                            </span>
+                        </tool-tip>
+                    <th class="right-align">{{ amount_immature | btcunitamount_fixed_decimals | safe }}</th>
+                    </th>      
+                    <th> 
+                        {% if specter.unit == 'sat' %}
+                            sats
+                        {% else %}
+                            {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
+                        {% endif %}
+                        {% if specter.price_check %} 
+                            <th class="right-align">
+                                <span class="note">({{ amount_immature | altunit }})</span>
+                            </th>
+                        {% endif %}
+                    </th>
+                </tr>                             
                 {% endif %}
-            </div>
-            {% if wallet.amount_unconfirmed > 0 or wallet.amount_immature > 0 %}
-                <div>
-                    Confirmed: {{ wallet.amount_confirmed | btcunitamount }}
-                    {% if specter.unit == 'sat' %}
-                        sats
-                    {% else %}
-                        {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
+                {% if specter.is_liquid %}
+                    {% if balance.get("assets", {}) %}
+                    <tr>                             
+                        <th>Liquid Assets:</th>
+                        <th colspan="2">
+                            {% include 'includes/overlay/liquid_assets_registry.html' %}
+                            <button type="button" class="btn" onclick="showPageOverlay('liquid-assets-registry')">{{ _("Show assets list") }}</button>
+                        </th>
+                    </tr>                             
+                        {% for asset in balance.get("assets",{}).keys() | sort %}
+                            <th></th>
+                            {% set balance = balance.get("assets",{}).get(asset, {}) %}
+                            <th class="right-align">
+                                {{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcunitamount_fixed_decimals | safe }}</th>
+                            <th>
+                                <asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}" edit-mode="enabled"></asset-label>
+                            </th>
+                        {% endfor %}
                     {% endif %}
-                    {% if specter.price_check %} 
-                        <span class="note">({{ wallet.amount_confirmed | altunit }})</span>
-                    {% endif %}
-                </div>
-                {% if wallet.amount_unconfirmed > 0 %}
-                <div>
-                    Unconfirmed: {{ wallet.amount_unconfirmed | btcunitamount }}
-                    {% if specter.unit == 'sat' %}
-                        sats
-                    {% else %}
-                        {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
-                    {% endif %}
-                    {% if specter.price_check %} 
-                        <span class="note">({{ wallet.amount_unconfirmed | altunit }})</span>
-                    {% endif %}
-                </div>
                 {% endif %}
-                {% if wallet.amount_immature > 0 and specter.chain == "regtest" %}
-                <div style="color: grey; display: flex;">
-                    Immature: {{ wallet.amount_immature | btcunitamount }} 
-                    {% if specter.unit == 'sat' %}
-                        sats
-                    {% else %}
-                        {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
-                    {% endif %}
-                    {% if specter.price_check %} 
-                        <span class="note" style="color: grey">({{ wallet.amount_immature | altunit }})</span>
-                    {% endif %}
-                    <tool-tip width="200px">
-                        <h4 slot="title">{{ _("What are immature outputs?") }}</h4>
-                        <span slot="paragraph">
-                        {{ _('The UTXO of coinbase transactions (mining rewards) have the special condition that they cannot be spent for at least 100 blocks. Their amount is not included in the total balance here. You see these outputs because you are using regtest and have mined blocks.') }}
-                         </span>
-                    </tool-tip>
-                </div>
-                {% endif %}
-                {% elif wallet.amount_immature > 0 and specter.chain == "main" %}
-                <div style="color: #ccc; display: flex">
-                    Immature: {{ wallet.amount_immature | btcunitamount }} 
-                    {% if specter.unit == 'sat' %}
-                        sats
-                    {% else %}
-                        {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
-                    {% endif %}
-                    {% if specter.price_check %} 
-                        <span class="note" style="color: grey">({{ wallet.amount_immature | altunit }})</span>
-                    {% endif %}
-                    <tool-tip width="200px">
-                        <h4 slot="title">{{ _("What are immature outputs?") }}</h4>
-                        <span slot="paragraph">
-                        {{ _('The UTXO of coinbase transactions (mining rewards) have the special condition that they cannot be spent for at least 100 blocks. Their amount is not included in the total balance here.') }}
-                        </span>
-                    </tool-tip>
-                </div>
+            </table>
+        </div>
+    </div>
+    {% if rescan_progress or specter.utxorescanwallet == alias %}
+        <div id="wallet_rescan_data" style="display: contents;">
+            {% if rescan_progress %}
+                <h4>Rescanning blockchain: <span id="{{ alias }}_balances_wallet_rescan_percents">{{ rescan_progress * 100 }}</span>%</h4>
+                <span class="warning">
+                    <img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"><br>
+                    Total balance and transactions history may show outdated data during scanning.<br>Please wait until the scanning is complete before you start using the wallet.
+                </span>
+            {% endif %}
+            {% if specter.utxorescanwallet == alias %}
+                <h4>Scanning the UTXO set: <span id="{{ alias }}_balances_wallet_rescan_percents">{{ specter.info["utxorescan"] }}</span>%</h4>
+                <span class="warning">
+                    <img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"><br>
+                    Total balance may show outdated data during scanning.<br>Please wait until the scanning is complete before you start using the wallet.
+                </span>
             {% endif %}
         </div>
-        {% if specter.is_liquid %}
-        {% if wallet.balance.get("assets", {}) %}
-            <div style="margin-bottom: 15px;">
-                <small style="line-height:30px">Assets:<br>
-                {% for asset in wallet.balance.get("assets",{}).keys() | sort %}
-                    {% set balance = wallet.balance.get("assets",{}).get(asset, {}) %}
-                    <div style="margin: 0 10px; display: inline-block;">
-                        {{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcamount }}
-                        <asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}" edit-mode="enabled"></asset-label>
-                    </div>
-                {% endfor %}
-                </small>
-            </div>
-        {% endif %}
-        {% include 'includes/overlay/liquid_assets_registry.html' %}
-        <small style="line-height: 30px;">
-            <button type="button" class="btn" style="margin: auto;" onclick="showPageOverlay('liquid-assets-registry')">{{ _("Show assets list") }}</button>
-        </small>
-        <br>
-        {% endif %}
-    </div>
-    {% if wallet.rescan_progress or specter.utxorescanwallet == wallet.alias %}
-        <span id="wallet_rescan_data" style="display: contents;">
-            <h2>Rescanning blockchain: <span id="{{ wallet.alias }}_balances_wallet_rescan_percents">{{ "%.2f"|format(specter.info["utxorescan"] if specter.utxorescanwallet == wallet.alias else wallet.rescan_progress * 100) }}</span>%</h2>
-            <span class="warning">
-                <img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
-                Total balance and transactions history may show outdated data during scanning.<br>Please wait until the scanning is complete before you start using the wallet.
-            </span>
-        </span>
     {% endif %}
 {%- endmacro %}
