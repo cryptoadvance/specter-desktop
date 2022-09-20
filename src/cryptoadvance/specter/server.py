@@ -256,7 +256,7 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None, **kwargs):
     scheduler.init_app(app)
     scheduler.start()
     specter.service_manager.execute_ext_callbacks(
-        after_serverpy_init_app, scheduler=scheduler, app=app
+        after_serverpy_init_app, scheduler=scheduler
     )
     return app
 

@@ -19,7 +19,7 @@ def test_ServiceManager2(mock_specter, mock_flaskapp, caplog):
     assert sm.services["bitcoinreserve"] != None
     assert sm.services["swan"] != None
 
-    sm.execute_ext_callbacks(after_serverpy_init_app, app=mock_flaskapp, scheduler=None)
+    sm.execute_ext_callbacks(after_serverpy_init_app, scheduler=None)
 
 
 @pytest.mark.skip(reason="The .buildenv directoy does not exist on the CI-Infra")

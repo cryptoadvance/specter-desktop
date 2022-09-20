@@ -9,7 +9,6 @@ from cryptoadvance.specter.services.service import (
 
 # A SpecterError can be raised and will be shown to the user as a red banner
 from cryptoadvance.specter.specter_error import SpecterError
-from flask import current_app as app
 from flask import render_template
 from cryptoadvance.specter.wallet import Wallet
 from flask_apscheduler import APScheduler
@@ -35,7 +34,7 @@ class NotificationsService(Service):
     sort_priority = 2
     visible_in_sidebar = False
 
-    def callback_after_serverpy_init_app(self, scheduler: APScheduler, app):
+    def callback_after_serverpy_init_app(self, scheduler: APScheduler):
         """
         Args:
             scheduler (APScheduler): _description_
@@ -59,15 +58,14 @@ class NotificationsService(Service):
 
         # Maybe you should store the scheduler for later use:
         self.scheduler = scheduler
-        self.app = app
 
         self.notification_manager = NotificationManager(
-            app.config.get("HOST", "127.0.0.1"),
-            app.config["PORT"],
-            app.config["CERT"],
-            app.config["KEY"],
+            scheduler.app.config.get("HOST", "127.0.0.1"),
+            scheduler.app.config["PORT"],
+            scheduler.app.config["CERT"],
+            scheduler.app.config["KEY"],
         )
-        for user in app.specter.user_manager.users:
+        for user in scheduler.app.specter.user_manager.users:
             self.notification_manager.register_user_ui_notifications(user.id)
 
     # There might be other callbacks you're interested in. Check the callbacks.py in the specter-desktop source.
