@@ -1323,3 +1323,31 @@ input:checked + .slider:before {
     padding-left: 6px;
     padding-right: 6px;
 }
+
+/************** Styles for formatting btc amounts ********************************/
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.transparent-text {
+    opacity: 0;
+}
+.thousand-digits-in-btc-amount{
+    color: #919191;
+    padding-left: 2px;
+}
+.last-digits-in-btc-amount{
+    color: #797979;
+    padding-left: 2px;
+}
+.thousand-digits-in-sats-amount{
+    color: #919191;
+}
+.last-digits-in-sats-amount{
+    color: #797979;
+}

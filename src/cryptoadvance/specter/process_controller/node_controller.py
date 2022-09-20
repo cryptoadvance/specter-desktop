@@ -560,8 +560,6 @@ def fetch_wallet_addresses_for_mining(node_impl, data_folder, exception=None):
     Parses all the wallet jsons in the folder (default ~/.specter/wallets/regtest) and returns an array with the addresses.
     Pass a wallet name via the exception argument so that this wallet's addresses are not included.
     """
-    print(f"{data_folder}/wallets")
-    print(os.listdir(f"{data_folder}"))
     addresses_all = []
     for folder in [
         folder for folder in os.listdir(data_folder) if folder.startswith("wallets")
