@@ -62,6 +62,9 @@ class WebsocketServer:
         self.connections = list()
         self.notification_manager = notification_manager
 
+    def __repr__(self):
+        return self.__dict__
+
     def get_broadcaster_tokens(self):
         return [d["user_token"] for d in self.broadcaster_tokens]
 
@@ -301,6 +304,9 @@ class WebsocketClient:
             # see https://pythontic.com/ssl/sslcontext/load_cert_chain
             self.ssl_context.load_cert_chain(certfile=ssl_cert, keyfile=ssl_key)
 
+    def __repr__(self):
+        return self.__dict__
+
     def send(self, message_dictionary):
         message_dictionary["user_token"] = self.user_token
         logger.debug(f"{self.__class__.__name__} sending {message_dictionary}")
@@ -308,7 +314,9 @@ class WebsocketClient:
 
     def start_client_server_in_other_thread(self):
         delay = 0.1
-        for i in range(100):
+        success = False
+        retries = 100
+        for i in range(retries):
             time.sleep(delay)
             try:
                 # if successfull this process will run forever. This is why this should run in a dedicated thread.
@@ -318,11 +326,17 @@ class WebsocketClient:
                 self.websocket = simple_websocket.Client(
                     self.url, ssl_context=self.ssl_context
                 )
+                success = True
                 break
             except ConnectionRefusedError:
                 logger.debug(
                     f"Connection of {self.__class__.__name__} to websocket-server failed in loop {i}. Retrying in {delay}s..."
                 )
+        if not success:
+            logger.error(
+                f"Connection of {self.__class__.__name__} to websocket-server failed despite {retries} attempts."
+                f"\nConfiguration: {self}"
+            )
 
     def start(self):
         self.thread = threading.Thread(target=self.start_client_server_in_other_thread)
