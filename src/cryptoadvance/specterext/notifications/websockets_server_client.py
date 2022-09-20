@@ -62,8 +62,8 @@ class WebsocketServer:
         self.connections = list()
         self.notification_manager = notification_manager
 
-    def __repr__(self):
-        return self.__dict__
+    def __str__(self):
+        return str(self.__dict__)
 
     def get_broadcaster_tokens(self):
         return [d["user_token"] for d in self.broadcaster_tokens]
@@ -304,8 +304,8 @@ class WebsocketClient:
             # see https://pythontic.com/ssl/sslcontext/load_cert_chain
             self.ssl_context.load_cert_chain(certfile=ssl_cert, keyfile=ssl_key)
 
-    def __repr__(self):
-        return self.__dict__
+    def __str__(self):
+        return str(self.__dict__)
 
     def send(self, message_dictionary):
         message_dictionary["user_token"] = self.user_token
