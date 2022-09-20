@@ -36,6 +36,12 @@ class NotificationsService(Service):
     visible_in_sidebar = False
 
     def callback_after_serverpy_init_app(self, scheduler: APScheduler, app):
+        """
+        Args:
+            scheduler (APScheduler): _description_
+            app (_type_): While in other services app is optional, it is required here. python will automatically map the kwargs['app'] to this app
+        """
+
         def every5seconds(hello, world="world"):
             with scheduler.app.app_context():
                 print(f"Called {hello} {world} every5seconds")
@@ -56,7 +62,7 @@ class NotificationsService(Service):
         self.app = app
 
         self.notification_manager = NotificationManager(
-            app.config.get("host", "127.0.0.1"),
+            app.config.get("HOST", "127.0.0.1"),
             app.config["PORT"],
             app.config["CERT"],
             app.config["KEY"],

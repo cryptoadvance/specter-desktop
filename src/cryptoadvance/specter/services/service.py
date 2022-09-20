@@ -52,7 +52,7 @@ class Service:
         if callback_id == callbacks.after_serverpy_init_app:
             if hasattr(self, "callback_after_serverpy_init_app"):
                 self.callback_after_serverpy_init_app(
-                    kwargv["scheduler"], kwargv["app"]
+                    kwargv["scheduler"], app=kwargv["app"]
                 )
 
     @classmethod

@@ -57,6 +57,7 @@ class BaseConfig(object):
     # The prefix for extensions which don't get access to the session cookie (if SPECTER_URL_PREFIX isn't compromised)
     ISOLATED_CLIENT_EXT_URL_PREFIX = "/ext"
 
+    HOST = os.getenv("HOST", "127.0.0.1")
     PORT = os.getenv("PORT", 25441)
     CONNECT_TOR = _get_bool_env_var(os.getenv("CONNECT_TOR", "False"))
     SPECTER_DATA_FOLDER = os.path.expanduser(
