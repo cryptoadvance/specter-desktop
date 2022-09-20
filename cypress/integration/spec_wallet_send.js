@@ -32,7 +32,7 @@ describe('Test sending transactions', () => {
     })
 
     // Skipped for now, will only work reliably once the the Cypress tests run without mining loop
-    it.skip('Open up transaction details', () => {
+    it('Open up transaction details', () => {
         cy.selectWallet("Test Hot Wallet 1")
         cy.get('#btn_transactions').click()
         // Click on the txid in the first row
