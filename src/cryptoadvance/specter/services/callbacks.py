@@ -23,6 +23,18 @@ afterServiceManagerInit = "afterServiceManagerInit"
 """
 after_serverpy_init_app = "after_serverpy_init_app"
 
+""" Extensions which want to extend the settings dialog
+    needs to return something like: return [{"title": "token", "endpoint":"settings_token"}]
+    Check the extension-docs for a comprehensive example.
+"""
+add_settingstabs = "add_settingstabs"
+
+""" Extensions which want to extend the wallet dialog
+    needs to return something like: return [{"title": "sometitle", "endpoint":"yourendpoint"}]
+    Check the extension-docs for a comprehensive example.
+"""
+add_wallettabs = "add_wallettabs"
+
 """
     This one is called, whenever a file is persisted. To call external scripts in another
     process, you better use the SPECTER_PERSISTENCE_CALLBACK Env Var or it's asynchronous cousin
@@ -34,3 +46,13 @@ specter_persistence_callback = "specter_persistence_callback"
     Will get called before every request via the Flask's @app.before_request
 """
 flask_before_request = "flask_before_request"
+
+""" 
+    Will get called when the server_endpoints.flash is called
+"""
+flash = "flash"
+
+""" 
+    Callback that is not used yet, but could be implmented in server_endpoints just as flash
+"""
+create_and_show_notification = "create_and_show_notification"

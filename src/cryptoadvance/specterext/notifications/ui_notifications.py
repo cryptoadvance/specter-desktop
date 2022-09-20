@@ -127,7 +127,7 @@ class FlashNotifications(BaseUINotifications):
     - on_show(notification_id, target_ui)   (called immediately after showing)
     """
 
-    def __init__(self, user_id, on_close=None, on_show=None):
+    def __init__(self, on_close=None, on_show=None):
         super().__init__(on_close=on_close, on_show=on_show)
         self.compatible_notification_types = {
             NotificationTypes.information,
@@ -136,7 +136,6 @@ class FlashNotifications(BaseUINotifications):
             NotificationTypes.exception,
         }
         self.name = "flash"
-        self.user_id = user_id
 
         #  Flash notifications will not be used as a fallback UINotification,
         #       because they are not callable_from_any_session.

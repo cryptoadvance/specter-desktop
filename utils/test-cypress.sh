@@ -151,7 +151,7 @@ function start_node {
     fi
   fi
   echo "--> Starting $node_impl with $addopts ..."
-  python3 -m cryptoadvance.specter $DEBUG $node_impl $addopts --port $node_port --create-conn-json --config $SPECTER_CONFIG &
+  python3 -m cryptoadvance.specter $DEBUG $node_impl $addopts --no-mining --port $node_port --create-conn-json --config $SPECTER_CONFIG &
   if [ "$node_impl" = "bitcoind" ]; then
     bitcoind_pid=$!
   else

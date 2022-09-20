@@ -24,7 +24,6 @@ from .hwi_server import hwi_server
 from .services.callbacks import after_serverpy_init_app
 from .specter import Specter
 from .util.specter_migrator import SpecterMigrator
-from .notifications.notification_manager import NotificationManager
 
 logger = logging.getLogger(__name__)
 
@@ -151,16 +150,6 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None, **kwargs):
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )
 
-    specter.notification_manager = NotificationManager(
-        specter.user_manager,
-        kwargs.get("host", "127.0.0.1"),
-        app.config["PORT"],
-        app.config["CERT"],
-        app.config["KEY"],
-    )
-    for user in specter.user_manager.users:
-        specter.notification_manager.register_user_ui_notifications(user.id)
-
     login_manager = LoginManager()
     login_manager.session_protection = app.config.get("SESSION_PROTECTION", "strong")
     login_manager.init_app(app)  # Enable Login
@@ -267,7 +256,7 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None, **kwargs):
     scheduler.init_app(app)
     scheduler.start()
     specter.service_manager.execute_ext_callbacks(
-        after_serverpy_init_app, scheduler=scheduler
+        after_serverpy_init_app, scheduler=scheduler, app=app
     )
     return app
 

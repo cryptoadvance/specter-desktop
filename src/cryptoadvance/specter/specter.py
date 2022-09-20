@@ -66,9 +66,6 @@ class Specter:
         checker_threads=True,
     ):
 
-        # the notification_manager instance must be assigned from outside
-        self.notification_manager = None
-
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)
         data_folder = os.path.abspath(data_folder)
@@ -160,8 +157,10 @@ class Specter:
             if not node.external_node:
                 node.stop()
 
-        if self.notification_manager:
-            self.notification_manager.quit()
+        if self.service_manager.get_service("notifications").notification_manager:
+            self.service_manager.get_service(
+                "notifications"
+            ).notification_manager.quit()
 
         logger.info("Closing Specter after cleanup")
         # For some reason we need to explicitely exit here. Otherwise it will hang

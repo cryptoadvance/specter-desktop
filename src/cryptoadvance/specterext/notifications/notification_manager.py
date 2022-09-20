@@ -1,4 +1,5 @@
 import logging
+import secrets
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +79,6 @@ class NotificationManager:
 
     def __init__(
         self,
-        user_manager,
         host,
         port,
         ssl_cert=None,
@@ -93,25 +93,35 @@ class NotificationManager:
         """
         self.ui_notifications = ui_notifications if ui_notifications else []
         self.notifications = []
-        self.user_manager = user_manager
+        self._websocket_tokens = {}
         self.ssl_cert, self.ssl_key = ssl_cert, ssl_key
         self._register_default_ui_notifications()
 
         self.websockets_server = None
         self.websockets_client = None
         if enable_websockets:
-            self.websockets_server = websockets_server_client.WebsocketServer(
-                self, self.user_manager
-            )
+            self.websockets_server = websockets_server_client.WebsocketServer(self)
 
+            # TODO: "svc/notifications/websocket"  should be replaced by url_for('notifications_endpoint.websocket')
+            # but this is not possible without a request context
             self.websockets_client = websockets_server_client.WebsocketClient(
-                host, port, "websocket", self.ssl_cert, self.ssl_key
+                host, port, "svc/notifications/websocket", self.ssl_cert, self.ssl_key
             )
 
             # setting this client as broadcaster, meaning it is allowed to send to all
             # connected websocket connections without restrictions
             self.websockets_server.set_as_broadcaster(self.websockets_client.user_token)
             self.websockets_client.start()
+
+    def get_websocket_token(self, user_id):
+        if user_id not in self._websocket_tokens:
+            self._websocket_tokens[user_id] = secrets.token_urlsafe(128)
+
+        return self._websocket_tokens[user_id]
+
+    @property
+    def websocket_tokens(self):
+        return self._websocket_tokens
 
     def quit(self):
         if self.websockets_client:
@@ -121,6 +131,8 @@ class NotificationManager:
         "Registers up the logging and print UINotifications, that can be used by alll users  (user_id=None)"
         self.register_ui_notification(ui_notifications.LoggingNotifications())
         self.register_ui_notification(ui_notifications.PrintNotifications())
+        # the flask context handles here the user assignment, such that no user_id should be given here
+        self.register_ui_notification(ui_notifications.FlashNotifications())
 
     def register_user_ui_notifications(self, user_id):
         "Registers up the (default) UINotifications for this user"
@@ -133,8 +145,6 @@ class NotificationManager:
             self.register_ui_notification(
                 ui_notifications.JSNotifications(user_id, self.websockets_client)
             )
-
-        self.register_ui_notification(ui_notifications.FlashNotifications(user_id))
 
         if self.websockets_server:
             self.register_ui_notification(
@@ -179,15 +189,21 @@ class NotificationManager:
         self, user_id, callable_from_any_session_required=False
     ):
         "Gives a back a [ui_notifications that belong to the user_id] + [ui_notifications that belong to user_id == None]"
-        return [
-            ui_notification
-            for ui_notification in self.ui_notifications
-            if (ui_notification.user_id == user_id)
-            and (
-                ui_notification.callable_from_any_session
-                or not callable_from_any_session_required
-            )
-        ] + [
+        user_targeted_ui_notification = (
+            [
+                ui_notification
+                for ui_notification in self.ui_notifications
+                if ui_notification.user_id == user_id
+                and (
+                    ui_notification.callable_from_any_session
+                    or not callable_from_any_session_required
+                )
+            ]
+            if user_id
+            else []
+        )
+
+        public_ui_notification = [
             ui_notification
             for ui_notification in self.ui_notifications
             if ui_notification.user_id is None
@@ -196,6 +212,8 @@ class NotificationManager:
                 or not callable_from_any_session_required
             )
         ]
+
+        return user_targeted_ui_notification + public_ui_notification
 
     def set_notification_shown(self, notification_id, target_ui):
         "Calls notification.set_shown"
@@ -383,6 +401,7 @@ class NotificationManager:
         ui_notifications_of_user = self._get_ui_notifications_of_user(
             notification.user_id
         )
+        logger.debug(f"ui_notifications_of_user {ui_notifications_of_user}")
         broadcast_on_ui_notifications = [
             ui_notification
             for ui_notification in ui_notifications_of_user
@@ -420,7 +439,7 @@ class NotificationManager:
 
     def flash(self, message: str, user_id, category: str = "message"):
         "Creates and shows a flask flash message"
-        self.create_and_show(
+        return self.create_and_show(
             message, user_id, notification_type=category, target_uis={"flash"}
         )
 

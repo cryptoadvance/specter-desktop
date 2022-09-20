@@ -29,7 +29,6 @@ def specter_with_user(empty_data_folder):
 def test_sending_logging_notification(specter_with_user: Specter, caplog):
 
     notification_manager = NotificationManager(
-        specter_with_user.user_manager,
         host="localhost",
         port="1234",
         ssl_cert=None,
@@ -95,7 +94,6 @@ def mock_flash(*args, **kwargs):
 def test_sending_flash_notification(specter_with_user: Specter, caplog):
 
     notification_manager = NotificationManager(
-        specter_with_user.user_manager,
         host="localhost",
         port="1234",
         ssl_cert=None,

@@ -1,15 +1,15 @@
-from ..services.callbacks import flask_before_request
-import random, traceback
+import random
+import traceback
+from pathlib import Path
 from time import time
+
+from flask import g, redirect, render_template, request, url_for
+from flask_babel import lazy_gettext as _
 from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import MethodNotAllowed, NotFound
-from flask import render_template, request, redirect, url_for, g
-from flask_babel import lazy_gettext as _
-from ..notifications.current_flask_user import flash
-from ..specter_error import SpecterError, ExtProcTimeoutException
-from pathlib import Path
-import json
-from flask_login import current_user, login_required
+from ..server_endpoints import flash
+from ..services.callbacks import flask_before_request
+from ..specter_error import ExtProcTimeoutException, SpecterError
 
 env_path = Path(".") / ".flaskenv"
 from dotenv import load_dotenv
@@ -17,12 +17,17 @@ from dotenv import load_dotenv
 load_dotenv(env_path)
 
 from flask import current_app as app
+
 from .filters import filters_bp
 
 app.register_blueprint(filters_bp)
 
+# Services live in their own separate path
+from cryptoadvance.specter.services.controller import services_endpoint
+
+from ..rpc import RpcError
+
 # Setup specter endpoints
-from .welcome import welcome_endpoint
 from .auth import auth_endpoint
 from .devices import devices_endpoint
 from .nodes import nodes_endpoint
@@ -31,14 +36,11 @@ from .settings import settings_endpoint
 from .setup import setup_endpoint
 from .wallets import wallets_endpoint
 from .wallets_api import wallets_endpoint_api
-from ..rpc import RpcError
+from .welcome import welcome_endpoint
+
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-# Services live in their own separate path
-from cryptoadvance.specter.services.controller import services_endpoint
 
 spc_prefix = app.config["SPECTER_URL_PREFIX"]
 app.register_blueprint(welcome_endpoint, url_prefix=f"{spc_prefix}/welcome")
@@ -227,21 +229,6 @@ if app.config["SPECTER_URL_PREFIX"] != "":
     @app.route(f"{app.config['SPECTER_URL_PREFIX']}/")
     def index_prefix():
         return redirect(url_for("welcome_endpoint.index"))
-
-
-@app.route("/websocket", websocket=True)
-def websocket():
-    logger.debug("websocket route called. This will start a new websocket connection.")
-    # this function will run forever. That is ok, because a stream is expected, similar to https://maxhalford.github.io/blog/flask-sse-no-deps/
-    #  flask.Response(stream(), mimetype='text/event-stream')
-    if app.specter.notification_manager.websockets_server:
-        app.specter.notification_manager.websockets_server.serve(request.environ)
-    else:
-        logger.warning(
-            "/websocket route accessed, but no websockets_server is initialized."
-        )
-    # returning a string solved some error message when the function ends: https://stackoverflow.com/questions/25034123/flask-value-error-view-function-did-not-return-a-response
-    return ""
 
 
 @app.route("/healthz/liveness")

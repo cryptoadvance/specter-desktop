@@ -6,7 +6,8 @@ from flask import current_app as app
 from flask import redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
-from ..notifications.current_flask_user import flash
+
+from ..server_endpoints import flash
 from ..services import ExtensionException
 
 logger = logging.getLogger(__name__)

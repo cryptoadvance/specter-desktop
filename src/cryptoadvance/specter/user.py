@@ -6,7 +6,6 @@ import json
 import logging
 import os
 import shutil
-import secrets
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
@@ -83,7 +82,6 @@ class User(UserMixin):
         self.plaintext_user_secret = None
         self.is_admin = is_admin
         self.uid = specter.config["uid"]
-        self.websocket_token = secrets.token_urlsafe(128)
         self.specter = specter
         self.wallet_manager = None
         self.device_manager = None
@@ -95,7 +93,7 @@ class User(UserMixin):
 
     # TODO: User obj instantiation belongs in UserManager
     @classmethod
-    def from_json(cls, user_dict, specter):
+    def from_json(cls, user_dict, specter, default_services=["notifications"]):
         try:
             user_args = {
                 "id": user_dict["id"],
@@ -106,7 +104,7 @@ class User(UserMixin):
                 "config": {},
                 "specter": specter,
                 "encrypted_user_secret": user_dict.get("encrypted_user_secret", None),
-                "services": user_dict.get("services", []),
+                "services": user_dict.get("services", default_services),
             }
             if not user_dict["is_admin"]:
                 user_args["config"] = user_dict["config"]

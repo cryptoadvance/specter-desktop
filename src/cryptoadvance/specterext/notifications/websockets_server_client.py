@@ -3,8 +3,9 @@ This file enabled to keep an open websocket connection with the browser sessions
 """
 import logging, threading, time, secrets
 import time, json
-from ..util.common import robust_json_dumps
+from cryptoadvance.specter.util.common import robust_json_dumps
 import simple_websocket, ssl
+from cryptoadvance.specter.specter_error import SpecterError
 
 
 logger = logging.getLogger(__name__)
@@ -54,13 +55,12 @@ class WebsocketServer:
         └───────────────────────┘                           └───────────────────────┘
     """
 
-    def __init__(self, notification_manager, user_manager):
+    def __init__(self, notification_manager):
         logger.info(f"Create {self.__class__.__name__}")
 
         self.broadcaster_tokens = list()
         self.connections = list()
         self.notification_manager = notification_manager
-        self.user_manager = user_manager
 
     def get_broadcaster_tokens(self):
         return [d["user_token"] for d in self.broadcaster_tokens]
@@ -78,9 +78,13 @@ class WebsocketServer:
         return connections
 
     def get_user_of_user_token(self, user_token):
-        for u in self.user_manager.users:
-            if u.websocket_token == user_token:
-                return u.username
+        for (
+            known_username,
+            known_token,
+        ) in self.notification_manager.websocket_tokens.items():
+            if known_token == user_token:
+                return known_username
+        logger.warning(f"No username could be found for user_token {user_token}")
 
     def set_as_broadcaster(self, user_token):
         new_entry = {"user_token": user_token}
@@ -147,6 +151,7 @@ class WebsocketServer:
                 try:
                     message_dictionary = json.loads(data)
                 except:
+                    logger.warning(f"Could not decode the json data in {data}")
                     continue
 
                 preprocessed_instruction = self._preprocess(message_dictionary)
@@ -258,16 +263,14 @@ class WebsocketServer:
         """
         assert broadcaster_token in self.get_broadcaster_tokens()
 
-        recipient_user = self.user_manager.get_user(
-            message_dictionary["options"]["user_id"]
-        )
-        if not recipient_user:
-            logger.warning(
-                f"No recipient_user for recipient_user_id {recipient_user.name} could be found"
-            )
+        if not message_dictionary["options"]["user_id"]:
+            logger.warning("No options.user_id given")
             return
 
-        connections = self.get_connections_by_token(recipient_user.websocket_token)
+        user_token = self.notification_manager.get_websocket_token(
+            message_dictionary["options"]["user_id"]
+        )
+        connections = self.get_connections_by_token(user_token)
         if not connections:
             logger.warning(
                 f"No websocket for this recipient_user.websocket_token could be found"

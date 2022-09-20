@@ -1,4 +1,3 @@
-import cryptography
 import json
 import logging
 import os
@@ -12,6 +11,7 @@ import time
 import zipfile
 from pathlib import Path
 
+import cryptography
 import pgpy
 import requests
 from flask import Blueprint, Flask
@@ -19,10 +19,6 @@ from flask import current_app as app
 from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
-from cryptoadvance.specter.services.service import Service
-
-from cryptoadvance.specter.user import User, UserSecretException
-
 from ..helpers import (
     get_loglevel,
     get_startblock_by_chain,
@@ -30,11 +26,14 @@ from ..helpers import (
     set_loglevel,
 )
 from ..persistence import write_devices, write_wallet
+from ..server_endpoints import flash
+from ..services.service import Service, callbacks
 from ..specter_error import ExtProcTimeoutException, handle_exception
+from ..user import User, UserSecretException
 from ..util.sha256sum import sha256sum
 from ..util.shell import get_last_lines_from_file
 from ..util.tor import start_hidden_service, stop_hidden_services
-from ..notifications.current_flask_user import flash
+from ..server_endpoints import flash
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +41,17 @@ rand = random.randint(0, 1e32)  # to force style refresh
 
 # Setup endpoint blueprint
 settings_endpoint = Blueprint("settings_endpoint", __name__)
+
+
+@settings_endpoint.context_processor
+def inject_common_stuff():
+    """Can be used in all jinja2 templates of this Blueprint
+    Injects the additional settings_tabs via extentions
+    """
+    ext_settingstabs = app.specter.service_manager.execute_ext_callbacks(
+        callbacks.add_settingstabs
+    )
+    return dict(ext_settingstabs=ext_settingstabs)
 
 
 @settings_endpoint.route("/", methods=["GET"])

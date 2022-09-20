@@ -16,7 +16,7 @@ from ..rpc import get_default_datadir
 from ..node import Node
 from ..specter_error import ExtProcTimeoutException
 from ..util.shell import get_last_lines_from_file
-from ..notifications.current_flask_user import flash
+from ..server_endpoints import flash
 
 logger = logging.getLogger(__name__)
 
