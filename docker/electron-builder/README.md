@@ -1,6 +1,12 @@
 Used for building the electron-app. In short it's the /pyinstaller/build-unix.sh script which is running in this image.
 
-manually do it something like this (copied from [here](https://www.electron.build/multi-platform-build#build-electron-app-using-docker-on-a-local-machine)):
+By intention, this is using an older OS-version in order to avoid glibc-issues. For details, see:
+* https://github.com/cryptoadvance/specter-desktop/pull/1688#issuecomment-1242796681
+* https://github.com/cryptoadvance/specter-desktop/issues/373#issuecomment-695068924
+
+
+If you want to run the image manually, do something like this (copied from [here](https://www.electron.build/multi-platform-build#build-electron-app-using-docker-on-a-local-machine)):
+
 
 ```
 docker run --rm -ti \

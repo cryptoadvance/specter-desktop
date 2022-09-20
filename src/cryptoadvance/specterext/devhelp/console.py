@@ -22,7 +22,7 @@ class Console:
         self.namespace.update(
             {
                 "help": f"You can try calling any of the following objects: {list(self.namespace.keys())}\n"
-                f"Use a trainling '.' to get available methods and propeties, e.g. try: '{list(self.namespace.keys())[-1]}.'\n"
+                f"Use a trailing '.' to get available methods and propeties, e.g. try: '{list(self.namespace.keys())[-1]}.'\n"
                 "The command 'run' can execute python scripts, e.g., run('myscript.py')"
             }
         )
