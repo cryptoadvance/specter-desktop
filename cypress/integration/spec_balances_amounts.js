@@ -75,7 +75,8 @@ describe('Test the rendering of balances and amounts', () => {
         cy.get('#satoshis_hot_keys_hot_sign_btn').click()
         cy.get('#hot_enter_passphrase__submit').click()
         cy.get('#broadcast_local_btn').click()
-        cy.reload()
+        cy.selectWallet('Ghost wallet')
+        // Once again because only once doesn't work for some stupid unknown reason
         cy.selectWallet('Ghost wallet')
         cy.get('#unconfirmed_amount').should('have.text', '0.05000000')
         cy.get('#unconfirmed_amount').find('.thousand-digits-in-btc-amount').children().each((element) => {
