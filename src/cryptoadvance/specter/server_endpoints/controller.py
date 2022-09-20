@@ -36,11 +36,11 @@ from .settings import settings_endpoint
 from .setup import setup_endpoint
 from .wallets import wallets_endpoint
 from .wallets_api import wallets_endpoint_api
+from .welcome import welcome_endpoint
+
 import logging
 
 logger = logging.getLogger(__name__)
-
-from .welcome import welcome_endpoint
 
 spc_prefix = app.config["SPECTER_URL_PREFIX"]
 app.register_blueprint(welcome_endpoint, url_prefix=f"{spc_prefix}/welcome")
