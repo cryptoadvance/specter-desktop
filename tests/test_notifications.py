@@ -2,7 +2,9 @@ import logging
 from mock import MagicMock, call, patch
 import pytest
 from cryptoadvance.specter.specter import Specter, UserManager
-from cryptoadvance.specter.notifications.notification_manager import NotificationManager
+from cryptoadvance.specterext.notifications.notification_manager import (
+    NotificationManager,
+)
 import datetime
 
 logger = logging.getLogger(__name__)
@@ -42,10 +44,11 @@ def test_sending_logging_notification(specter_with_user: Specter, caplog):
         user.username
     )
 
-    # _register_default_ui_notifications should have created 2 ui_notifications accessible for all users
-    assert len(ui_notifications_of_user) == 2
+    # _register_default_ui_notifications should have created 3 ui_notifications accessible for all users
+    assert len(ui_notifications_of_user) == 3
     assert ui_notifications_of_user[0].name == "logging"
     assert ui_notifications_of_user[1].name == "print"
+    assert ui_notifications_of_user[2].name == "flash"
 
     notification = notification_manager.create_notification(
         "testing title",
@@ -90,7 +93,7 @@ def mock_flash(*args, **kwargs):
 
 # check that register_user_ui_notifications registers the flash message
 # check that flash messages would send the correct message to flash
-@patch("cryptoadvance.specter.notifications.ui_notifications.flash", mock_flash)
+@patch("cryptoadvance.specterext.notifications.ui_notifications.flash", mock_flash)
 def test_sending_flash_notification(specter_with_user: Specter, caplog):
 
     notification_manager = NotificationManager(
@@ -109,11 +112,11 @@ def test_sending_flash_notification(specter_with_user: Specter, caplog):
         user.username
     )
 
-    # _register_default_ui_notifications should have created 2 ui_notifications accessible for all users
+    # _register_default_ui_notifications should have created 3 ui_notifications accessible for all users
     assert len(ui_notifications_of_user) == 3
-    assert ui_notifications_of_user[0].name == "flash"
-    assert ui_notifications_of_user[1].name == "logging"
-    assert ui_notifications_of_user[2].name == "print"
+    assert ui_notifications_of_user[0].name == "logging"
+    assert ui_notifications_of_user[1].name == "print"
+    assert ui_notifications_of_user[2].name == "flash"
 
     notification = notification_manager.create_notification(
         "testing title",
