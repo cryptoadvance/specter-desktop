@@ -1,4 +1,4 @@
-certifi==2021.10.08 
+certifi==2021.10.08
 chardet==3.0.4
 Click==8.1.1
 Flask==2.1.1
@@ -16,7 +16,7 @@ pysocks==1.7.1
 six==1.16.0
 stem==1.8.0
 embit==0.4.13
-psutil==5.7.3
+psutil==5.9.0
 pyopenssl==20.0.1
 flask_wtf==0.15.1
 pgpy==0.5.4
@@ -24,8 +24,9 @@ cbor==1.0.0
 mnemonic==0.20
 cryptography==3.4.7
 Flask-APScheduler==1.12.3
+backports.zoneinfo==0.2.1 ; python_version < '3.10'
 gunicorn==20.1.0
-
+protobuf==3.20.1
 # Extensions
 cryptoadvance-liquidissuer==0.2.4
 specterext-exfund==0.1.7

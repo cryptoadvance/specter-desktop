@@ -92,12 +92,12 @@
 			{% with messages = get_flashed_messages(with_categories=True) %}
 				{% if messages %}
 					{% for category, message in messages | unique %}
-						<message-box type="{{ category }}">{{ message }}</message-box>
+						<message-box type="{{ category }}">{{ message | safe }}</message-box>
 					{% endfor %}
 				{% endif %}
 			{% endwith %}
 			{% if error %}
-				<message-box type="error">{{ _("ERROR:") }} {{error}}</message-box>
+				<message-box type="error">{{ _("ERROR:") }} {{error | safe }}</message-box>
 			{% endif %}
 			</div>
 
