@@ -14,7 +14,7 @@
 		{{ wallet_menu_item('send', _('Send'), wallet_alias, active_menuitem, id='btn_send') }}
 		{% for ext_id, wallettabs in ext_wallettabs.items() %}
 			{% for wallettab in wallettabs %}
-				{{ wallet_menu_item(wallettab["endpoint"], _(wallettab["title"]), active_menuitem, isRight=false, blueprint=ext_id+"_endpoint") }}
+				{{ wallet_menu_item(wallettab["endpoint"], _(wallettab["title"]), wallet_alias, active_menuitem, isRight=false, blueprint=ext_id+"_endpoint") }}
 			{% endfor %}
 		{% endfor %}
 		{{ wallet_menu_item('settings', _('Settings'), wallet_alias, active_menuitem, isRight=true, id='btn_settings') }}
