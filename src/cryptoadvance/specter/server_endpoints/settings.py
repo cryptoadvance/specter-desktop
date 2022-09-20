@@ -27,9 +27,9 @@ from ..helpers import (
 )
 from ..persistence import write_devices, write_wallet
 from ..server_endpoints import flash
-from ..services.service import Service, callbacks
-from ..specter_error import ExtProcTimeoutException, handle_exception
-from ..user import User, UserSecretException
+from ..services.service import callbacks
+from ..specter_error import handle_exception
+from ..user import UserSecretException
 from ..util.sha256sum import sha256sum
 from ..util.shell import get_last_lines_from_file
 from ..util.tor import start_hidden_service, stop_hidden_services

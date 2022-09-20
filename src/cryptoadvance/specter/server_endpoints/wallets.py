@@ -16,7 +16,7 @@ from ..key import Key
 from ..managers.wallet_manager import purposes
 from ..persistence import delete_file
 from ..server_endpoints import flash
-from ..services.service import callbacks
+from ..services import callbacks
 from ..specter_error import SpecterError, handle_exception
 from ..util.tx import convert_rawtransaction_to_psbt, is_hex
 from ..util.wallet_importer import WalletImporter

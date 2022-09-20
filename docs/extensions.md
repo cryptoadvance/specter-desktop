@@ -278,7 +278,7 @@ from cryptoadvance.specter.services import callbacks
         ''' Extending the wallets tab with an own tab called "mywalletdetails" '''
         return [{"title": "mywalletdetails", "endpoint":"myext_mywalletdetails"}]
 ```
-In this case, this would add a tab called "myexttitle" and you're now suppose to provide an endpoint in your controller which might be called `myext_something` e.g. like this:
+In this case, this would add a tab called "myexttitle" and you're now supposed to provide an endpoint in your controller which might be called `myext_something` e.g. like this:
 
 ```python
 @myext_endpoint.route("/settings_something", methods=["GET"])
@@ -291,7 +291,7 @@ def myext_something():
     )
 ```
 
-If you want to have an additional wallet-tab, you would specify something like:
+If you want to have an additional wallet tab, you would specify something like:
 
 ```python
 @myext_endpoint.route("/wallet/<wallet_alias>/mywalletdetails", methods=["GET"])

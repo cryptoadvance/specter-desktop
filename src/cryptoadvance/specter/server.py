@@ -102,6 +102,8 @@ def create_app(config=None):
     logger.info(f"SPECTER_DATA_FOLDER: {app.config['SPECTER_DATA_FOLDER']}")
     # Might be convenient to know later where it came from (see Service configuration)
     app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"] = config_name
+    if not app.config.get("ENABLE_WERZEUG_REQUEST_LOGGING"):
+        logging.getLogger("werkzeug").disabled = True
     app.wsgi_app = ProxyFix(
         app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1
     )
