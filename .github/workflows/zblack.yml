@@ -8,6 +8,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
-      - uses: psf/black@22.3.0 # the default is equivalent to `black . --diff --check`.
-        with:
-          args: ". --diff --check"
+      - uses: psf/black@stable # https://black.readthedocs.io/en/stable/integrations/github_actions.html
