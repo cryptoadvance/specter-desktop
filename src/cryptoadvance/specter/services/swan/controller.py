@@ -1,25 +1,25 @@
 import json
 import logging
-
 from decimal import Decimal
-from urllib.parse import urlparse
-from flask import redirect, render_template, request, url_for, flash
-from flask import current_app as app
-from flask.json import jsonify
-from flask_babel import lazy_gettext as _
-from flask_login import current_user, login_required
 from functools import wraps
-from cryptoadvance.specter.user import User
-from cryptoadvance.specter.wallet import Wallet
+from urllib.parse import urlparse
 
 from cryptoadvance.specter.services.service_encrypted_storage import (
     ServiceEncryptedStorageError,
 )
+from cryptoadvance.specter.user import User
+from cryptoadvance.specter.wallet import Wallet
+from flask import current_app as app
+from flask import redirect, render_template, request, url_for
+from flask.json import jsonify
+from flask_babel import lazy_gettext as _
+from flask_login import current_user, login_required
+
+from ...server_endpoints import flash
+from ..controller import user_secret_decrypted_required
 from . import client as swan_client
 from .client import SwanApiException
 from .service import SwanService
-from ..controller import user_secret_decrypted_required
-
 
 logger = logging.getLogger(__name__)
 

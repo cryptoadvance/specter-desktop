@@ -21,6 +21,7 @@ from ..wallet import (  # TODO: `purposes` unused here, but other files rely on 
     purposes,
 )
 
+
 logger = logging.getLogger(__name__)
 
 
