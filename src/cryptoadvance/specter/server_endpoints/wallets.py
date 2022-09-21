@@ -16,6 +16,7 @@ from ..key import Key
 from ..managers.wallet_manager import purposes
 from ..persistence import delete_file
 from ..server_endpoints import flash
+from ..services import callbacks
 from ..specter_error import SpecterError, handle_exception
 from ..util.tx import convert_rawtransaction_to_psbt, is_hex
 from ..util.wallet_importer import WalletImporter
@@ -47,6 +48,17 @@ def check_wallet(func):
         return func(*args, **kwargs)
 
     return wrapper
+
+
+@wallets_endpoint.context_processor
+def inject_common_stuff():
+    """Can be used in all jinja2 templates of this Blueprint
+    Injects the additional wallet_tabs via extentions
+    """
+    ext_wallettabs = app.specter.service_manager.execute_ext_callbacks(
+        callbacks.add_wallettabs
+    )
+    return dict(ext_wallettabs=ext_wallettabs)
 
 
 ################## Wallet overview #######################
