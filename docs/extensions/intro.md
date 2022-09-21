@@ -120,9 +120,9 @@ class MyextensionidService(Service):
     devstatus = devstatus_alpha
 ```
 This defines the base `Service` class (to be renamed to "Extension") that all extensions must inherit from. This also enables `extension` auto-discovery. Any feature that is common to most or all `Service` integrations should be implemented here.
-With inheriting from `Service` you get some usefull methods explained later.
+With inheriting from `Service` you get some useful methods explained later.
 
-The `id` needs to be unique within a specific specter-instance where this extension is part of. The `name` is the displayname as shown to the user in the plugin-area (currently there is not yet a technical difference between extensions and plugins). The `icon` will be used where labels are used to be diplayed if this extension is reserving addresses. The `logo` and the `desc`ription is also used in the plugin-area ("choose plugins").
+The `id` needs to be unique within a specific Specter instance where this extension is part of. The `name` is the display name as shown to the user in the plugin-area (currently there is not yet a technical difference between extensions and plugins). The `icon` will be used where labels are used to be diplayed if this extension is reserving addresses. The `logo` and the `desc`ription is also used in the plugin area ("choose plugins").
 
 If the extension has a UI (currently all of them have one), `has_blueprint` is True. `The blueprint_module` is referencing the controller module where endpoints are defined. It's recommended to follow the format `org-id.specterext.myextensionid.controller`.
 `isolated_client` should not be used yet. It is determining where in the url-path tree the blueprint will be mounted. This might have an impact on whether the extension's frontend client has access to the cookie used in Specter. Check `config.py` for details.

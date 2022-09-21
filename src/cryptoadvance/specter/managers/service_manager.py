@@ -299,11 +299,18 @@ class ServiceManager:
             raise Exception(f"Non existing callback_id: {callback_id}")
         # No debug statement here possible as this is called for every request and would flood the logs
         # logger.debug(f"Executing callback {callback_id}")
+        return_values = {}
         for ext in self.services.values():
             if hasattr(ext, f"callback_{callback_id}"):
-                getattr(ext, f"callback_{callback_id}")(*args, **kwargs)
+                return_values[ext.id] = getattr(ext, f"callback_{callback_id}")(
+                    *args, **kwargs
+                )
             elif hasattr(ext, "callback"):
-                ext.callback(callback_id, *args, **kwargs)
+                return_values[ext.id] = ext.callback(callback_id, *args, **kwargs)
+        # Filtering out all None return values
+        return_values = {k: v for k, v in return_values.items() if v is not None}
+        # logger.debug(f"return_values for callback {callback_id} {return_values}")
+        return return_values
 
     @property
     def services(self) -> Dict[str, Service]:

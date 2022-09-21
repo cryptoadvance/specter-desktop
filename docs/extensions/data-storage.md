@@ -18,14 +18,14 @@ This is also where `Service`-wide configuration or other information should be s
 Because the `ServiceEncryptedStorage` is specific to each individual user, this manager provides convenient access to automatically retrieve the `current_user` from the Flask context and provide the correct user's `ServiceEncryptedStorage`. It is implemented as a `Singleton` which can be retrieved simply by importing the class and calling `get_instance()`.
 
 This simplifies code to just asking for:
-```
+```python
 from .service_encrypted_storage import ServiceEncryptedStorageManager
 
 ServiceEncryptedStorageManager.get_instance().get_current_user_service_data(service_id=some_service_id)
 ```
 
 As a further convenience, the `Service` base class itself encapsulates `Service`-aware access to this per-`User` encrypted storage:
-```
+```python
 @classmethod
 def get_current_user_service_data(cls) -> dict:
     return ServiceEncryptedStorageManager.get_instance().get_current_user_service_data(service_id=cls.id)
