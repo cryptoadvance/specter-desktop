@@ -2,7 +2,7 @@
 
 A developer's guide for the Specter Desktop `Extension` framework. 
 
-We currently rework the naming of extensions/plugins/services. If not otherwise stated, you can see those three terms as the same, for now.
+We currently rework the naming of extensions/plugins/services. If not otherwise stated, for now, they are used interchangeably.
 
 ## TL;DR
 
@@ -104,7 +104,7 @@ All the attributes of an extension are currently (json support is planned) defin
 
 ## Extension attributes
 Here is an example. This class definition MUST be stored in a file called "service.py" within a package with the name `org-id.specterext.extions-id`.
-```
+```python
 class DiceService(Service):
     id = "dice"
     name = "Specter Dice"
@@ -117,18 +117,18 @@ class DiceService(Service):
     devstatus = devstatus_alpha
 ```
 This defines the base `Service` class (to be renamed to "Extension") that all extensions must inherit from. This also enables `extension` auto-discovery. Any feature that is common to most or all `Service` integrations should be implemented here.
-With inheriting from `Service` you get some usefull methods explained later.
+With inheriting from `Service` you get some useful methods explained later.
 
-The `id` needs to be unique within a specific specter-instance where this extension is part of. The `name` is the displayname as shown to the user in the plugin-area (currently there is not yet a technical difference between extensions and plugins). The `icon` will be used where labels are used to be diplayed if this extension is reserving addresses. The `logo` and the `desc`ription is also used in the plugin-area ("choose plugins").
+The `id` needs to be unique within a specific Specter instance where this extension is part of. The `name` is the display name as shown to the user in the plugin area (currently there is not yet a technical difference between extensions and plugins). The `icon` will be used where labels are used to be diplayed if this extension is reserving addresses. The `logo` and the `desc`ription is also used in the plugin area ("Choose plugins").
 If the extension has a UI (currently all of them have one), `has_blueprint` is True. `The blueprint_module` is referencing the controller module where endpoints are defined. It's recommended to follow the format `org.specterext.extions-id.controller`.
 `isolated_client` should not be used yet. It is determining where in the url-path tree the blueprint will be mounted. This might have an impact on whether the extension's frontend client has access to the cookie used in Specter. Check `config.py` for details.
-`devstatus` is one of `devstatus_alpha`, `devstatus_beta` or `devstatus_prod` defined in `cryptoadvance.specter.services.service`. Each Specter instance will have a config variable  called `SERVICES_DEVSTATUS_THRESHOLD` (prod in Production and alpha in Development) and depending on that, the plugin will be available to the user.
+`devstatus` is one of `devstatus_alpha`, `devstatus_beta` or `devstatus_prod` defined in `cryptoadvance.specter.services.service`. Each Specter instance will have a config variable called `SERVICES_DEVSTATUS_THRESHOLD` (prod in Production and alpha in Development) and depending on that, the plugin will be available to the user.
 
 ## Frontend aspects
 
 As stated, you can have your own frontend with a blueprint. If you only have one, it needs to have a `/` route in order to be linkable from the `choose your plugin` page. 
 If you create your extension with a blueprint, it'll also create a controller for you which, simplified, looks like this:
-```
+```python
 rubberduck_endpoint = ScratchpadService.blueprint
 
 def ext() -> ScratchpadService:
@@ -150,7 +150,7 @@ def index():
 [...]
 ```
  But you can also have more than one blueprint. Define them like this in your service class:
-```
+```python
     blueprint_modules = { 
         "default" : "mynym.specterext.rubberduck.controller",
         "ui" : "mynym.specterext.rubberduck.controller_ui"
@@ -158,12 +158,12 @@ def index():
 ```
 You have to have a default blueprint which has the above mentioned index page.
 In your controller, the endpoint needs to be specified like this:
-```
+```python
 ui = RubberduckService.blueprints["ui"]
 ```
 
-You might have an extension which wants to inject e.g. javascript code into each and every page of specter-desktop. The extension needs to be activated for the user, though. You can do that via overwriting one of the `inject_in_basejinja_*` methods in your service-class:
-```
+You might have an extension which wants to inject e.g. JavaScript code into each and every page of Specter Desktop. The extension needs to be activated for the user, though. You can do that via overwriting one of the `inject_in_basejinja_*` methods in your service class:
+```python
     @classmethod
     def inject_in_basejinja_head(cls):
         ''' e.g. rendering some snippet '''
@@ -212,14 +212,14 @@ This is also where `Service`-wide configuration or other information should be s
 Because the `ServiceEncryptedStorage` is specific to each individual user, this manager provides convenient access to automatically retrieve the `current_user` from the Flask context and provide the correct user's `ServiceEncryptedStorage`. It is implemented as a `Singleton` which can be retrieved simply by importing the class and calling `get_instance()`.
 
 This simplifies code to just asking for:
-```
+```python
 from .service_encrypted_storage import ServiceEncryptedStorageManager
 
 ServiceEncryptedStorageManager.get_instance().get_current_user_service_data(service_id=some_service_id)
 ```
 
 As a further convenience, the `Service` base class itself encapsulates `Service`-aware access to this per-`User` encrypted storage:
-```
+```python
 @classmethod
 def get_current_user_service_data(cls) -> dict:
     return ServiceEncryptedStorageManager.get_instance().get_current_user_service_data(service_id=cls.id)
@@ -248,7 +248,7 @@ Unfortunately, the two unencrypted classes are derived from the encrypted one ra
 
 ### Service configuration
 In order to separate the service-configuration from the main-configuration, you can specify your config in a file called `config.py`. It's structure is similiar to the specter-wide `config.py`, e.g.:
-```
+```python
 class BaseConfig():
     SWAN_API_URL="https://dev-api.swanbitcoin.com"
 
@@ -256,11 +256,90 @@ class ProductionConfig(BaseConfig):
     SWAN_API_URL="https://api.swanbitcoin.com"
 ```
 In your code, you can access the correct value as in any other flask-code, like `api_url = app.config.get("SWAN_API_URL")`. If the instance is running a config (e.g. `DevelopmentConfig`) which is not available in your service-specific config (as above), the inheritance-hirarchy from the mainconfig will get traversed and the first hit will get get configured. In this example, it would be `BaseConfig`.
-### Callback methods
-Your service class will inherit a callback-method which will get called for various reasons with the "reason" being a string as the first parameter. Checkout the `cryptoadvance.specter.services.callbacks` file for the specific callbacks.
 
-Some important one is the `after_serverpy_init_app` which passes a `Scheduler` class which can be used to setup regular tasks. A list of currently implemented callback-methods along with their descriptions are available in [`/src/cryptoadvance/specter/services/callbacks.py`](https://github.com/cryptoadvance/specter-desktop/blob/master/src/cryptoadvance/specter/services/callbacks.py).
+### Callback methods
+Your service class will inherit a callback method which will get called for various reasons with the "reason" being a string as the first parameter. Checkout the `cryptoadvance.specter.services.callbacks` file for the specific callbacks.
+
+Some important one is the `after_serverpy_init_app` which passes a `Scheduler` class which can be used to setup regular tasks. A list of currently implemented callback methods along with their descriptions are available in [`/src/cryptoadvance/specter/services/callbacks.py`](https://github.com/cryptoadvance/specter-desktop/blob/master/src/cryptoadvance/specter/services/callbacks.py).
 
 ### `controller.py`
-The minimal url routes for `Service` selection and management. As usualy in Flask, `templates` and `static` resources are in their respective subfolders. Please note that there is an additional directory with the id of the extension which looks redundant at first. This is due to the way blueprints are loading templates and ensures that there are no naming collisions. Maybe at a later stage, this can be used to let plugins override other plugin's templates.
+The minimal url routes for `Service` selection and management. As usual in Flask, `templates` and `static` resources are in their respective subfolders. Please note that there is an additional directory with the id of the extension which looks redundant at first. This is due to the way blueprints are loading templates and ensures that there are no naming collisions. Maybe at a later stage, this can be used to let plugins override other plugin's templates.
+
+### Extending the settings dialog
+You can extend the settings dialog with your own templates. To do that, create a callback method in your service like:
+```python
+from cryptoadvance.specter.services import callbacks
+# [...]
+    def callback_add_settingstabs(self):
+        ''' Extending the settings tab with an own tab called "myexttitle" '''
+        return [{"title": "myexttitle", "endpoint":"myext_something"}]
+
+    def callback_add_wallettabs(self):
+        ''' Extending the wallets tab with an own tab called "mywalletdetails" '''
+        return [{"title": "mywalletdetails", "endpoint":"myext_mywalletdetails"}]
+```
+In this case, this would add a tab called "myexttitle" and you're now supposed to provide an endpoint in your controller which might be called `myext_something` e.g. like this:
+
+```python
+@myext_endpoint.route("/settings_something", methods=["GET"])
+def myext_something():
+    return render_template(
+        "myext/some_settingspage.jinja",
+        ext_settingstabs = app.specter.service_manager.execute_ext_callbacks(
+            callbacks.add_settingstabs
+        )
+    )
+```
+
+If you want to have an additional wallet tab, you would specify something like:
+
+```python
+@myext_endpoint.route("/wallet/<wallet_alias>/mywalletdetails", methods=["GET"])
+def myext_mywalletdetails(wallet_alias):
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    return render_template(
+        "myext/mywalletdetails.jinja",
+        wallet_alias=wallet_alias,
+        wallet=wallet,
+        specter=app.specter,
+        ext_wallettabs = app.specter.service_manager.execute_ext_callbacks(
+            callbacks.add_wallettabs
+        )
+    )
+```
+
+The `some_settingspage.jinja` should probably look exactly like all the other setting pages and you would do this like this:
+
+```jinja
+{% extends "base.jinja" %}
+{% block main %}
+	<form action="?" method="POST" onsubmit="showPacman()">
+		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+		<h1 id="title" class="settings-title">Settings</h1>
+		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
+		{{ settings_menu('myext_something', current_user, setting_exts) }}
+		<div class="card" style="margin: 20px auto;">
+			<h1>{{ _("Something something") }} </h1>
+		</div>
+	</form>
+{% endblock %}
+```
+
+![](./images/extensions/add_settingstabs.png)
+
+
+A reasonable `mywalletdetails.jinja` would look like this:
+
+```jinja
+{% extends "wallet/components/wallet_tab.jinja" %}
+{% set tab = 'my details' %}
+{% block content %}
+	<br>
+	<div class="center card" style="width: 610px; padding-top: 25px;">
+        Some content here for the wallet {{ wallet_alias }}
+	</div>
+{% endblock %}
+```
+
+![](./images/extensions/add_wallettabs.png)
 
