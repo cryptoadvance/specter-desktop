@@ -33,7 +33,7 @@
         }
     </style>
     <form id="form" action="{{ url_for('devices_endpoint.new_device_mnemonic', device_type=device_type) }}" method="POST" style="width: 100%;" onsubmit="if (checkAdvancedValidState()) { showPacman(); } else { event.preventDefault(); }">
-        <div class="card center auto-width"   >
+        <div class="card center auto-width">
             <h1 style="font-size: 2em;">{{ _("Add") }} {% if existing_device %}{{ _("Keys") }}{% else %}{{ _("Device") }}{% endif %}</h1><br>
             {% if existing_device %}
                 <input type="hidden" name="existing_device" value="{{ existing_device.alias }}">
