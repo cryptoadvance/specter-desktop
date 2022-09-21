@@ -72,6 +72,8 @@ class WebsocketServer:
         for d in self.connections:
             if d["websocket"] == websocket:
                 return d["user_token"]
+        logger.warning(f"user_token of websocket {websocket} could not be found.")
+        return None
 
     def get_connections_by_token(self, user_token):
         connections = []
@@ -88,6 +90,7 @@ class WebsocketServer:
             if known_token == user_token:
                 return known_username
         logger.warning(f"No username could be found for user_token {user_token}")
+        return None
 
     def set_as_broadcaster(self, user_token):
         new_entry = {"user_token": user_token}
