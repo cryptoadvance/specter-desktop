@@ -262,7 +262,9 @@ def decoderawtx(wallet_alias):
                 if "Invalid or non-wallet transaction id" in str(e):
                     # Expected failure when looking up a txid that didn't originate from the
                     # user's Wallet.
-                    logger.info("Looking up a txid that didn't originate from the user's wallet. Can't return any tx data.")
+                    logger.info(
+                        "Looking up a txid that didn't originate from the user's wallet. Can't return any tx data."
+                    )
                     return jsonify(
                         success=False,
                         nonWalletTxId=True,
@@ -271,9 +273,7 @@ def decoderawtx(wallet_alias):
                     logger.warning(
                         "Failed to fetch transaction data. Exception: {}".format(e)
                     )
-                    return jsonify(
-                        success=False
-                    )
+                    return jsonify(success=False)
             # This is a fix for Bitcoin Core versions < v0.20
             # These do not return the blockheight as part of the `gettransaction` command
             # So here we check if this property is lacking and if so
