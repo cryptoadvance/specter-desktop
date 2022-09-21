@@ -28,9 +28,9 @@ from ..helpers import (
 )
 from ..persistence import write_devices, write_wallet
 from ..server_endpoints import flash
-from ..services.service import Service
-from ..specter_error import ExtProcTimeoutException, handle_exception
-from ..user import User, UserSecretException
+from ..services.service import callbacks
+from ..specter_error import handle_exception
+from ..user import UserSecretException
 from ..util.sha256sum import sha256sum
 from ..util.shell import get_last_lines_from_file
 from ..util.tor import start_hidden_service, stop_hidden_services
@@ -41,6 +41,17 @@ rand = random.randint(0, 1e32)  # to force style refresh
 
 # Setup endpoint blueprint
 settings_endpoint = Blueprint("settings_endpoint", __name__)
+
+
+@settings_endpoint.context_processor
+def inject_common_stuff():
+    """Can be used in all jinja2 templates of this Blueprint
+    Injects the additional settings_tabs via extentions
+    """
+    ext_settingstabs = app.specter.service_manager.execute_ext_callbacks(
+        callbacks.add_settingstabs
+    )
+    return dict(ext_settingstabs=ext_settingstabs)
 
 
 @settings_endpoint.route("/", methods=["GET"])
