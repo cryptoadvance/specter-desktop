@@ -1,5 +1,21 @@
 # Release Notes
 
+## v1.13.0-pre7 September 20, 2022
+- Bugfix: Add non-witness-utxos and xpubs when using hwi with ledger #1888 (Salvatore Ingala)
+- Bugfix: during loading: KeyError: 'blocks' #1859 (relativisticelectron)
+- Bugfix: Escaped HTML in messages and errors #1890 (relativisticelectron)
+- Bugfix: HTML escaped on Cobo and Coldcard Upload Keys page #1871 (wombat6)
+- Chore: Delete endpoint controller test #1872 (Manolis Mandrapilias)
+- Chore: Dynamic fee rate optimisations & Cypress tests #1878 (Manolis Mandrapilias)
+- Chore: Upgrade to python 3.10 #1688 (relativisticelectron)
+- Feature: Improve Dev-Console #1850 (k9ert)
+- Mobile: Optimisation of tx-table #1852 (Manolis Mandrapilias)
+- UIUX: Adding "Open Bitcoin app" verbiage to Ledger Upload Keys page #1868 (wombat6)
+- UIUX: Better balance display #1841 (relativisticelectron)
+- UIUX: Do not hide elements by default #1854 (relativisticelectron)
+- UIUX: Individual HWI progess for Ledger devices #1864 (Manolis Mandrapilias)
+# Release Notes
+
 ## v1.12.0 August 26, 2022
 - Feature: add faucet and exfund extensions #1820 (Stepan Snigirev)
 - Feature: Dev tools - Adding full python access via javascript for developers #1842 (relativisticelectron)

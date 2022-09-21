@@ -17,6 +17,7 @@ from ..helpers import is_testnet
 from ..key import Key
 from ..managers.device_manager import get_device_class
 from ..server_endpoints import flash
+from ..services import callbacks
 from ..specter_error import handle_exception
 from ..util.mnemonic import generate_mnemonic, validate_mnemonic
 from ..wallet import purposes
@@ -28,6 +29,17 @@ logger = logging.getLogger(__name__)
 
 # Setup endpoint blueprint
 devices_endpoint = Blueprint("devices_endpoint", __name__)
+
+
+@devices_endpoint.context_processor
+def inject_common_stuff():
+    """Can be used in all jinja2 templates of this Blueprint
+    Injects the additional wallet_tabs via extentions
+    """
+    ext_adddevicetabs = app.specter.service_manager.execute_ext_callbacks(
+        callbacks.add_adddevicetabs
+    )
+    return dict(ext_adddevicetabs=ext_adddevicetabs)
 
 
 ################## New device #######################

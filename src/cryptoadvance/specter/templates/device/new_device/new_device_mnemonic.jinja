@@ -53,6 +53,15 @@
                     {% if not existing_device %}
                     <nav class="row">
                         <button type="button" id="generate_mnemonic_btn" class="btn radio left checked" onclick="setMnemonicView('generate')"> {{ _("Generate") }} </button>
+                        {% for ext_id, adddevicetabs in ext_adddevicetabs.items() %}
+						{% for adddevicetab in adddevicetabs %}
+								<a 
+								href="{{ url_for(ext_id+'_endpoint.'+ adddevicetab['endpoint']) }}"
+								class="btn radio">
+								{{ adddevicetab['title'] }}
+								</a>
+						{% endfor %}
+					{% endfor %}
                         <button type="button" id="import_mnemonic_btn" class="btn radio right" onclick="setMnemonicView('import')"> {{ _("Import") }} </button>
                     </nav>
                     {% endif %}
