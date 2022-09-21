@@ -14,7 +14,7 @@
 	<h1>{{ _("Hardware Devices Bridge") }}</h1>
 	<p class="note center">{{ _("Allows Specter to communicate with your hardware devices over USB.") }}</p>
 	<br>
-	<label class="card radio-btn" style="padding: 20px 10px 5px; ">
+	<label class="card radio-btn" style="padding: 20px 10px 5px;">
 		<div class="row">
 			<input type="radio" name="hwibridge" value="local" style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="switchHWIBridgeConfView(this.value)" {% if specter.hwi_bridge_url == '/hwi/api/'%} checked {% endif %}/>
 			<h2 style="text-align: left; margin-left: 10px;">{{ _("Local USB connection") }}</h2>
