@@ -1,6 +1,6 @@
 import logging
 import json
-from flask import redirect, render_template, request, url_for, flash
+from flask import redirect, render_template, request, url_for, Response
 from flask import current_app as app
 from flask_login import login_required, current_user
 
@@ -73,8 +73,9 @@ def websocket():
         logger.warning(
             "/websocket route accessed, but no websockets_server is initialized."
         )
-    # returning a string solved some error message when the function ends: https://stackoverflow.com/questions/25034123/flask-value-error-view-function-did-not-return-a-response
-    return ""
+    # returning something solved some error message when the function ends: https://stackoverflow.com/questions/25034123/flask-value-error-view-function-did-not-return-a-response
+    # and this mimetype does not trigger slow_request_detection_stop
+    return Response(json.dumps({}), mimetype="application/json")
 
 
 @notifications_endpoint.route("/get_websockets_info/", methods=["GET"])
