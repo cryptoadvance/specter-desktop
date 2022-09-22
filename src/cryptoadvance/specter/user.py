@@ -54,6 +54,8 @@ class UserSecretException(Exception):
 
 
 class User(UserMixin):
+    default_services = ["notifications"]
+
     """
     The user_secret is used to encrypt/decrypt other user-specific data
     (e.g. services data). It is encrypted for storage using the user's
@@ -72,7 +74,7 @@ class User(UserMixin):
         specter,
         encrypted_user_secret=None,
         is_admin=False,
-        services=[],
+        services=None,
     ):
         self.id = id
         self.username = username
@@ -86,14 +88,14 @@ class User(UserMixin):
         self.wallet_manager = None
         self.device_manager = None
         self.manager = None
-        self._services = services
+        self._services = services if services else User.default_services
 
         # Iterations will need to be increased over time to keep ahead of CPU advances.
         self.encryption_iterations = 390000
 
     # TODO: User obj instantiation belongs in UserManager
     @classmethod
-    def from_json(cls, user_dict, specter, default_services=["notifications"]):
+    def from_json(cls, user_dict, specter, default_services=None):
         try:
             user_args = {
                 "id": user_dict["id"],
@@ -104,7 +106,10 @@ class User(UserMixin):
                 "config": {},
                 "specter": specter,
                 "encrypted_user_secret": user_dict.get("encrypted_user_secret", None),
-                "services": user_dict.get("services", default_services),
+                "services": user_dict.get(
+                    "services",
+                    default_services if default_services else cls.default_services,
+                ),
             }
             if not user_dict["is_admin"]:
                 user_args["config"] = user_dict["config"]
