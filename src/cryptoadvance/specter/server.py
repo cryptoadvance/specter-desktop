@@ -113,7 +113,7 @@ def create_app(config=None):
     return app
 
 
-def init_app(app: SpecterFlask, hwibridge=False, specter=None, **kwargs):
+def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     """see blogpost 19nd Feb 2020"""
 
     # Configuring a prefix for the app
