@@ -184,13 +184,9 @@ class WebsocketServer:
             simplified_dict["user"] = self.get_user_of_user_token(
                 connection_dict["user_token"]
             )
-            simplified_dict.update(
-                {
-                    "broadcaster": connection_dict["user_token"]
-                    in self.get_broadcaster_tokens()
-                }
+            simplified_dict["broadcaster"] = (
+                connection_dict["user_token"] in self.get_broadcaster_tokens()
             )
-
             s += f"{i}: {simplified_dict}\n"
         return s
 
