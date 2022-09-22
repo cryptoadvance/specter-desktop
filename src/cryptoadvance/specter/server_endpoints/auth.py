@@ -12,8 +12,6 @@ from ..server_endpoints import flash
 from ..services import ExtensionException
 from ..user import User, hash_password, verify_password
 
-from ..server_endpoints import flash
-
 rand = random.randint(0, 1e32)  # to force style refresh
 last_sensitive_request = 0  # to rate limit sensitive requests
 
@@ -114,7 +112,10 @@ def register():
         password = request.form["password"]
         otp = request.form["otp"]
         if not username:
-            flash(_("Please enter a username."), "error")
+            flash(
+                _("Please enter a username."),
+                "error",
+            )
             return redirect("register?otp={}".format(otp))
         min_chars = int(app.specter.config["auth"]["password_min_chars"])
         if not password or len(password) < min_chars:
@@ -133,8 +134,7 @@ def register():
                 user_id = "{}{}".format(alias(username), i)
             if app.specter.user_manager.get_user_by_username(username):
                 flash(
-                    _("Username is already taken, please choose another one"),
-                    "error",
+                    _("Username is already taken, please choose another one"), "error"
                 )
                 return redirect("register?otp={}".format(otp))
             app.specter.otp_manager.remove_new_user_otp(otp)
@@ -152,14 +152,16 @@ def register():
 
             flash(
                 _(
-                    "You have registered successfully, please login with your new account to start using Specter"
+                    "You have registered successfully, \
+please login with your new account to start using Specter"
                 )
             )
             return redirect(url_for("auth_endpoint.login"))
         else:
             flash(
                 _(
-                    "Invalid registration link, please request a new link from the node operator."
+                    "Invalid registration link, \
+please request a new link from the node operator."
                 ),
                 "error",
             )
@@ -174,9 +176,9 @@ def logout():
 
     logout_user()
     if "timeout" in request.args:
-        flash(_("You were automatically logged out"))
+        flash(_("You were automatically logged out"), "info")
     else:
-        flash(_("You were logged out"))
+        flash(_("You were logged out"), "info")
     return redirect(url_for("auth_endpoint.login"))
 
 
@@ -198,7 +200,7 @@ def toggle_hide_sensitive_info():
 
 ################### Util ######################
 def redirect_login(request):
-    flash(_("Logged in successfully."))
+    flash(_("Logged in successfully."), "info")
 
     # If the user is auto-logged out, hide_sensitive_info will be set. If they're
     #   explicitly logging in now, clear the setting and reveal user's info.

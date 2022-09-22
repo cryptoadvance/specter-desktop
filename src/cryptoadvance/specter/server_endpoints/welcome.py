@@ -38,6 +38,7 @@ def index():
                 ].alias,
             )
         )
+
     return redirect(url_for("welcome_endpoint.about"))
 
 

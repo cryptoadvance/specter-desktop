@@ -22,7 +22,6 @@ from .util.bcur import bcur_decode
 import threading
 from io import BytesIO
 import re
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -290,7 +289,8 @@ def notify_upgrade(app, flash):
     """
     if app.specter.version.upgrade:
         flash(
-            f"Upgrade notification: new version {app.specter.version.latest} is available."
+            f"Upgrade notification: new version {app.specter.version.latest} is available.",
+            "info",
         )
     return app.specter.version.current
 
