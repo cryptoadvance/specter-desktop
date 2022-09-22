@@ -6,9 +6,10 @@ import time, json
 from cryptoadvance.specter.util.common import robust_json_dumps
 import simple_websocket, ssl
 from cryptoadvance.specter.specter_error import SpecterError
-
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
+IGNORE_NOTIFICATION_TITLE = "IGNORE_NOTIFICATION_TITLE"
 
 
 class WebsocketServer:
@@ -59,6 +60,8 @@ class WebsocketServer:
         logger.info(f"Create {self.__class__.__name__}")
 
         self.broadcaster_tokens = list()
+        # self.connections matches user_tokens to websocket connections, such that a
+        # Notification can be sent to all websocket connections that are associated to this user_tokens
         self.connections = list()
         self.notification_manager = notification_manager
 
@@ -68,12 +71,18 @@ class WebsocketServer:
     def get_broadcaster_tokens(self):
         return [d["user_token"] for d in self.broadcaster_tokens]
 
-    def get_token_of_websocket(self, websocket):
+    def _get_connection_dict_of_websocket(self, websocket):
         for d in self.connections:
             if d["websocket"] == websocket:
-                return d["user_token"]
-        logger.warning(f"user_token of websocket {websocket} could not be found.")
+                return d
         return None
+
+    def get_token_of_websocket(self, websocket):
+        connection_dict = self._get_connection_dict_of_websocket(websocket)
+        if not connection_dict:
+            logger.warning(f"user_token of websocket {websocket} could not be found.")
+            return
+        return connection_dict["user_token"]
 
     def get_connections_by_token(self, user_token):
         connections = []
@@ -108,9 +117,16 @@ class WebsocketServer:
             logger.warning(f"no user_token given")
             return
 
-        d = {"user_token": user_token, "websocket": websocket}
-        if d in self.connections:
-            # no need to add the connection multiple times
+        d = {
+            "user_token": user_token,
+            "websocket": websocket,
+            "opening_time": datetime.now(),
+        }
+
+        # check if this connection exists already
+        connection_dict = self._get_connection_dict_of_websocket(websocket)
+        if connection_dict and connection_dict["user_token"] == user_token:
+            # no need to add the connection multiple times if (websocket, user_token) are identical
             return
 
         if user_token in self.get_broadcaster_tokens():
@@ -127,10 +143,17 @@ class WebsocketServer:
                 f"python-websocket-server --> javascript websocket-client  for flask user '{user}'  was first used and registered."
             )
 
-        self.connections.append({"user_token": user_token, "websocket": websocket})
+        self.connections.append(d)
+        logger.debug(self.connection_report())
 
     def _unregister(self, websocket):
-        user_token = self.get_token_of_websocket(websocket)
+        connection_dict = self._get_connection_dict_of_websocket(websocket)
+        if not connection_dict:
+            logger.warning(
+                f"_unregister failed, because {websocket} could not be found in self.connections."
+            )
+            return
+        user_token = connection_dict["user_token"]
         user = self.get_user_of_user_token(user_token)
 
         username = (
@@ -142,8 +165,34 @@ class WebsocketServer:
                 else "unknown"
             )
         )
-        logger.debug(f"_unregister {websocket} belonging to {username}")
         self.connections = [d for d in self.connections if d["websocket"] != websocket]
+        logger.debug(
+            f"Unregistered {websocket} belonging to {username}, started at {connection_dict['opening_time']}"
+        )
+        logger.debug(self.connection_report())
+
+    def connection_report(self):
+        s = f"{len(self.connections)} open connections:\n"
+        for i, connection_dict in enumerate(self.connections):
+            simplified_dict = connection_dict.copy()
+            simplified_dict["opening_time"] = connection_dict[
+                "opening_time"
+            ].isoformat()
+            simplified_dict[
+                "user_token"
+            ] = f"{connection_dict['user_token'][:5]}...{connection_dict['user_token'][-5:]}"
+            simplified_dict["user"] = self.get_user_of_user_token(
+                connection_dict["user_token"]
+            )
+            simplified_dict.update(
+                {
+                    "broadcaster": connection_dict["user_token"]
+                    in self.get_broadcaster_tokens()
+                }
+            )
+
+            s += f"{i}: {simplified_dict}\n"
+        return s
 
     def serve(self, environ, ping_interval=10):
         """
@@ -171,6 +220,8 @@ class WebsocketServer:
                     logger.warning(f"Could not decode the json data in {data}")
                     continue
 
+                self._register(message_dictionary.get("user_token"), websocket)
+
                 preprocessed_instruction = self._preprocess(message_dictionary)
                 if preprocessed_instruction == "quit":
                     logger.debug("quit_server was called.")
@@ -178,7 +229,6 @@ class WebsocketServer:
                 elif preprocessed_instruction == "continue":
                     continue
 
-                self._register(message_dictionary.get("user_token"), websocket)
                 self._process_incoming_message(message_dictionary)
         except simple_websocket.ConnectionClosed:
             logger.info(f"Websocket connection {websocket} closed")
@@ -193,6 +243,14 @@ class WebsocketServer:
         A title 'quit_server' sent from and admin can make the websocket connection close.
         """
         user_token = message_dictionary.get("user_token")
+        # if there was no user_token given, then prevent any further action with this message
+        if not user_token:
+            logger.warning(
+                f"Notification {message_dictionary} did not contain a user_token. Disregarding notification."
+            )
+            return "continue"
+        if message_dictionary.get("title") == IGNORE_NOTIFICATION_TITLE:
+            return "continue"
         if message_dictionary.get("title") == "quit_server":
             # Accept the command from an admin, but disregard the command from a user
             return "quit" if user_token in self.get_broadcaster_tokens() else "continue"
@@ -331,7 +389,6 @@ class WebsocketClient:
         success = False
         retries = 100
         for i in range(retries):
-            time.sleep(delay)
             try:
                 # if successfull this process will run forever. This is why this should run in a dedicated thread.
                 # Only for the first connection, this will not block this thread.
@@ -341,11 +398,13 @@ class WebsocketClient:
                     self.url, ssl_context=self.ssl_context
                 )
                 success = True
+                self._initialize_connection_to_server()
                 break
             except ConnectionRefusedError:
                 logger.debug(
                     f"Connection of {self.__class__.__name__} to websocket-server failed in loop {i}. Retrying in {delay}s..."
                 )
+                time.sleep(delay)
         if not success:
             logger.error(
                 f"Connection of {self.__class__.__name__} to websocket-server failed despite {retries} attempts."
@@ -361,3 +420,7 @@ class WebsocketClient:
         "Sends the command 'quit_server' to the websocket server. which then shuts down the connection."
         message_dictionary = {"title": "quit_server"}
         self.send(message_dictionary)
+
+    def _initialize_connection_to_server(self):
+        "Sends a message to the server, that does nothing, but enables the server to register the user_token to the websocket_client"
+        self.send({"title": IGNORE_NOTIFICATION_TITLE})

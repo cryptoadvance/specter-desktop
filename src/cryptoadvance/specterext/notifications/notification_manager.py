@@ -8,6 +8,9 @@ from ..notifications import ui_notifications
 from ..notifications import websockets_server_client
 
 
+INTERNAL_NOTIFICATION_TITLES = {"set_target_ui_availability", "on_show", "on_close"}
+
+
 class NotificationManager:
     """
     This class allows to register ui_notifications (like JSNotifications).
@@ -350,11 +353,7 @@ class NotificationManager:
             internal_notification.data.get("id")
         )
 
-        if internal_notification.title in [
-            "set_target_ui_availability",
-            "on_show",
-            "on_close",
-        ]:
+        if internal_notification.title in INTERNAL_NOTIFICATION_TITLES:
             method = getattr(self, f"_internal_{internal_notification.title}", None)
             if method:
                 method(internal_notification, referenced_notification)

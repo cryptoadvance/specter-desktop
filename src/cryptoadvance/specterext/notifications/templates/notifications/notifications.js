@@ -333,9 +333,11 @@ function connectWebsocket() {
         userToken = websocketsInfo['user_token'];
         websocket = new WebSocket(url);
 
-        
         // Authenticate and add listeners when the websocket connection is open
         websocket.onopen = function(e) {
+            // Sends a message to the server, that does nothing, but enables the server to register the user_token to the websocket_client
+            websocket.send(JSON.stringify({'user_token': userToken, "title": 'IGNORE_NOTIFICATION_TITLE'}));
+        
             console.debug(`Websocket connection to ${url} is open`);		
         };
 
