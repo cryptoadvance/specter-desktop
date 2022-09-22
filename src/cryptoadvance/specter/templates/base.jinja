@@ -45,7 +45,7 @@
 		{% block head %}
 		{% endblock %}
 	</head>
-	<body>
+	<body spellcheck="false">
 	{% include "services/inject_in_basejinja_body_top.jinja" %}
 	<div class="pageloader" id="pageloader"></div>
 	{% if specter.config.auth.method == "none" or current_user.is_authenticated %}
