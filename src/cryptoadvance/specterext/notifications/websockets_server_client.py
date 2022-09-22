@@ -145,15 +145,26 @@ class WebsocketServer:
         logger.debug(f"_unregister {websocket} belonging to {username}")
         self.connections = [d for d in self.connections if d["websocket"] != websocket]
 
-    def serve(self, environ):
-        "Start a server. This is an endless loop."
-        websocket = simple_websocket.Server(environ)
+    def serve(self, environ, ping_interval=10):
+        """
+        Start a server. This is an endless loop.
+        It will automatically detect and close unresponsive connections.
+
+        Args:
+            environ (_type_): a flask/werkzeug environ
+        """
+        # ping_interval!=None ensures closing of connections where there is no counterpart any more
+        websocket = simple_websocket.Server(environ, ping_interval=ping_interval)
         try:
             logger.info(
                 f"Started websocket connection {websocket} between the server and a new client"
             )
             while True:
-                data = websocket.receive()
+                # timeout is needed here otherwise the simple_websocket.Server ping_interval does not work
+                data = websocket.receive(timeout=ping_interval)
+                # If the timeout was triggered then data=None, and it should just restart receiving
+                if not data:
+                    continue
                 try:
                     message_dictionary = json.loads(data)
                 except:
