@@ -120,13 +120,11 @@ function copyText(value, msg) {
 		showError('Unable to copy text');
 	}
 }
-
 async function wait(ms){
 	return new Promise(resolve => {
 		setTimeout(resolve, ms);
 	});
 }
-
 function capitalize(str){
 	return str.charAt(0).toUpperCase()+str.substring(1);
 }

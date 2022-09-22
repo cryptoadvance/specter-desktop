@@ -606,10 +606,7 @@ def addresses_list_csv(wallet_alias):
         return response
     except Exception as e:
         handle_exception(e)
-        flash(
-            _("Failed to export addresses list. Error: {}").format(e),
-            "error",
-        )
+        flash(_("Failed to export addresses list. Error: {}").format(e), "error")
         return redirect(url_for("index"))
 
 

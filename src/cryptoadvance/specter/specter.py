@@ -65,7 +65,6 @@ class Specter:
         internal_bitcoind_version="",
         checker_threads=True,
     ):
-
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)
         data_folder = os.path.abspath(data_folder)
@@ -157,7 +156,10 @@ class Specter:
             if not node.external_node:
                 node.stop()
 
-        if self.service_manager.get_service("notifications").notification_manager:
+        if (
+            self.service_manager.get_service("notifications")
+            and self.service_manager.get_service("notifications").notification_manager
+        ):
             self.service_manager.get_service(
                 "notifications"
             ).notification_manager.quit()

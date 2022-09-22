@@ -16,12 +16,6 @@ def test_WalletImporter_unit():
     specter_mock = MagicMock()
     specter_mock.chain = "regtest"
 
-    specter_mock.user_manager_mock = MagicMock()
-    user = MagicMock()
-    specter_mock.user_manager_mock.get_user = lambda x: user
-    user.notification_manager = MagicMock()
-    user.notification_manager.flash = print
-
     # coldcard, trezor import
     wallet_json = """
         {"label": "MyTestMultisig", 

@@ -19,6 +19,7 @@ from flask import current_app as app
 from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
+
 from ..helpers import (
     get_loglevel,
     get_startblock_by_chain,
@@ -33,7 +34,6 @@ from ..user import UserSecretException
 from ..util.sha256sum import sha256sum
 from ..util.shell import get_last_lines_from_file
 from ..util.tor import start_hidden_service, stop_hidden_services
-from ..server_endpoints import flash
 
 logger = logging.getLogger(__name__)
 
@@ -204,17 +204,17 @@ def general():
                     wallet_obj.getdata()
                 except Exception as e:
                     flash(
-                        _("Failed to import wallet {}").format(wallet["name"]),
-                        "error",
+                        _("Failed to import wallet {}").format(wallet["name"]), "error"
                     )
                     handle_exception(e)
-            flash(_("Specter data was successfully loaded from backup"))
+            flash(_("Specter data was successfully loaded from backup"), "info")
             if rescanning:
                 flash(
                     _(
                         "Wallets are rescanning for transactions history.\n\
 This may take a few hours to complete."
-                    )
+                    ),
+                    "info",
                 )
 
     return render_template(
@@ -243,10 +243,7 @@ def tor():
     param only_tor "on" or something else ("off")
     """
     if not current_user.is_admin:
-        flash(
-            _("Only an admin is allowed to access this page."),
-            "error",
-        )
+        flash(_("Only an admin is allowed to access this page."), "error")
         return redirect("")
     app.specter.reset_setup("torbrowser")
     current_version = notify_upgrade(app, flash)
@@ -286,7 +283,9 @@ def tor():
                             if not hidden_service:
                                 stop_hidden_services(app)
                                 app.specter.toggle_tor_status()
-                                flash("Tor hidden service turn off successfully")
+                                flash(
+                                    "Tor hidden service turn off successfully", "info"
+                                )
                             else:
                                 try:
                                     start_hidden_service(app)
@@ -317,10 +316,7 @@ def tor():
                 app.specter.tor_daemon.start_tor_daemon()
                 flash(_("Specter has started Tor"))
             except Exception as e:
-                flash(
-                    _("Failed to start Tor, error: {}").format(e),
-                    "error",
-                )
+                flash(_("Failed to start Tor, error: {}").format(e), "error")
                 logger.error(f"Failed to start Tor, error: {e}")
         elif action == "stoptor":
             logger.info("Stopping Tor...")
@@ -329,10 +325,7 @@ def tor():
                 time.sleep(1)
                 flash(_("Specter stopped Tor successfully"))
             except Exception as e:
-                flash(
-                    _("Failed to stop Tor, error: {}").format(e),
-                    "error",
-                )
+                flash(_("Failed to stop Tor, error: {}").format(e), "error")
                 logger.error(f"Failed to start Tor, error: {e}")
         elif action == "uninstalltor":
             logger.info("Uninstalling Tor...")
@@ -343,10 +336,7 @@ def tor():
                 os.remove(os.path.join(app.specter.data_folder, "torrc"))
                 flash(_("Tor uninstalled successfully"))
             except Exception as e:
-                flash(
-                    _("Failed to uninstall Tor, error: {}").format(e),
-                    "error",
-                )
+                flash(_("Failed to uninstall Tor, error: {}").format(e), "error")
                 logger.error(f"Failed to uninstall Tor, error: {e}")
         elif action == "test_tor":
             logger.info("Testing the Tor connection...")
@@ -360,7 +350,7 @@ def tor():
                 )
                 tor_connectable = res.status_code == 200
                 if tor_connectable:
-                    flash(_("Tor requests test completed successfully!"))
+                    flash(_("Tor requests test completed successfully!"), "info")
                 else:
                     flash(
                         _(
@@ -630,13 +620,10 @@ def auth():
                 app.specter.delete_user(user)
                 users.remove(user)
                 flash(
-                    _("User {} was deleted successfully").format(user.username),
+                    _("User {} was deleted successfully").format(user.username), "info"
                 )
             else:
-                flash(
-                    _("Error: Only the admin account can delete users"),
-                    "error",
-                )
+                flash(_("Error: Only the admin account can delete users"), "error")
 
     return render_template(
         "settings/auth_settings.jinja",
@@ -661,9 +648,7 @@ def hwi():
     if request.method == "POST":
         hwi_bridge_url = request.form["hwi_bridge_url"]
         app.specter.update_hwi_bridge_url(hwi_bridge_url, current_user)
-        flash(
-            _("HWIBridge URL is updated! Don't forget to whitelist Specter!"),
-        )
+        flash(_("HWIBridge URL is updated! Don't forget to whitelist Specter!"))
     return render_template(
         "settings/hwi_settings.jinja",
         specter=app.specter,

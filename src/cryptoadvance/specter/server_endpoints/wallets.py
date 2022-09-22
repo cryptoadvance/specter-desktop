@@ -31,10 +31,7 @@ wallets_endpoint = Blueprint("wallets_endpoint", __name__)
 
 
 def handle_wallet_error(func_name, error):
-    flash(
-        _("SpecterError while {}: {}").format(func_name, error),
-        "error",
-    )
+    flash(_("SpecterError while {}: {}").format(func_name, error), "error")
     app.logger.error(f"SpecterError while {func_name}: {error}")
     app.specter.wallet_manager.update()
     return redirect(url_for("welcome_endpoint.about"))
@@ -104,10 +101,7 @@ def failed_wallets():
                 app.specter.wallet_manager.update()
             except Exception as e:
                 handle_exception(e)
-                flash(
-                    _("Failed to delete wallet: {}").format(str(e)),
-                    "error",
-                )
+                flash(_("Failed to delete wallet: {}").format(str(e)), "error")
     return redirect("/")
 
 
@@ -168,7 +162,7 @@ def new_wallet(wallet_type):
                 except SpecterError as se:
                     flash(str(se), "error")
                     return redirect(url_for("wallets_endpoint.new_wallet_type"))
-                flash(_("Wallet imported successfully"))
+                flash(_("Wallet imported successfully"), "info")
                 try:
                     wallet_importer.rescan_as_needed(app.specter)
                 except SpecterError as se:
@@ -494,10 +488,7 @@ def send_new(wallet_alias):
     for utxo in selected_coins:
         if utxo in frozen_utxo:
             selected_coins.remove(utxo)
-            flash(
-                f"You've selected a frozen UTXO for a transaction.",
-                "error",
-            )
+            flash(f"You've selected a frozen UTXO for a transaction.", "error")
             return redirect(
                 url_for("wallets_endpoint.history", wallet_alias=wallet_alias)
             )
@@ -554,10 +545,7 @@ def send_new(wallet_alias):
                 )
             except Exception as e:
                 handle_exception(e)
-                flash(
-                    _("Failed to perform RBF. Error: {}").format(e),
-                    "error",
-                )
+                flash(_("Failed to perform RBF. Error: {}").format(e), "error")
                 return redirect(
                     url_for("wallets_endpoint.history", wallet_alias=wallet_alias)
                 )
@@ -585,10 +573,7 @@ def send_new(wallet_alias):
                 fillform = True
             except Exception as e:
                 handle_exception(e)
-                flash(
-                    _("Failed to perform RBF. Error: {}").format(e),
-                    "error",
-                )
+                flash(_("Failed to perform RBF. Error: {}").format(e), "error")
         elif action == "signhotwallet":
             passphrase = request.form["passphrase"]
             psbt = json.loads(request.form["psbt"])
@@ -610,10 +595,7 @@ def send_new(wallet_alias):
                 except Exception as e:
                     handle_exception(e)
                     signed_psbt = None
-                    flash(
-                        _("Failed to sign PSBT: {}").format(e),
-                        "error",
-                    )
+                    flash(_("Failed to sign PSBT: {}").format(e), "error")
             else:
                 signed_psbt = None
                 flash(_("Device already signed the PSBT"), "error")
@@ -640,10 +622,7 @@ def send_new(wallet_alias):
             rbf_utxo = wallet.get_rbf_utxo(rbf_tx_id)
         except Exception as e:
             handle_exception(e)
-            flash(
-                _("Failed to get RBF coins. Error: {}").format(e),
-                "error",
-            )
+            flash(_("Failed to get RBF coins. Error: {}").format(e), "error")
 
     show_advanced_settings = (
         ui_option != "ui" or subtract or fee_options != "dynamic" or not rbf

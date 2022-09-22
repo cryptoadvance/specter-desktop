@@ -20,7 +20,6 @@ from ..server_endpoints import flash
 from ..specter_error import handle_exception
 from ..util.mnemonic import generate_mnemonic, validate_mnemonic
 from ..wallet import purposes
-from ..server_endpoints import flash
 
 logger = logging.getLogger(__name__)
 
@@ -371,10 +370,7 @@ def new_device_manual():
                     )
                 except Exception as e:
                     handle_exception(e)
-                    flash(
-                        _("Failed to setup hot wallet. Error: {}").format(e),
-                        "error",
-                    )
+                    flash(_("Failed to setup hot wallet. Error: {}").format(e), "error")
                     app.specter.device_manager.remove_device(
                         device,
                         app.specter.wallet_manager,

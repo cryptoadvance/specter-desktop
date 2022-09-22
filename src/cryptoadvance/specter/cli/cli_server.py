@@ -196,7 +196,6 @@ def server(
             else:
                 app.tor_service_id = None
                 app.tor_enabled = False
-
             app.run(debug=debug, **kwargs)
             stop_hidden_services(app)
         finally:

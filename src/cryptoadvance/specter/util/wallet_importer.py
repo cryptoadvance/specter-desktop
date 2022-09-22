@@ -1,12 +1,12 @@
 import json
 import logging
 
+import requests
 from embit.descriptor import Descriptor
 from embit.descriptor import Key as DescriptorKey
 from embit.descriptor.arguments import AllowedDerivation
 from embit.liquid.descriptor import LDescriptor
 from flask_babel import lazy_gettext as _
-from ..server_endpoints import flash
 
 from ..key import Key
 from ..managers.wallet_manager import WalletManager

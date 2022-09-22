@@ -107,10 +107,7 @@ def node_settings(node_alias):
                 node.rename(node_name)
         elif action == "forget":
             if not node_alias:
-                flash(
-                    _("Failed to deleted node. Node isn't saved"),
-                    "error",
-                )
+                flash(_("Failed to deleted node. Node isn't saved"), "error")
             elif len(app.specter.node_manager.nodes) > 1:
                 app.specter.node_manager.delete_node(node, app.specter)
                 flash(_("Node deleted successfully"))
@@ -151,12 +148,9 @@ def node_settings(node_alias):
             if "tests" in test:
                 # If any test has failed, we notify the user that the test has not passed
                 if not test["tests"] or False in list(test["tests"].values()):
-                    flash(
-                        _("Test failed: {}").format(test["err"]),
-                        "error",
-                    )
+                    flash(_("Test failed: {}").format(test["err"]), "error")
                 else:
-                    flash(_("Test passed"))
+                    flash(_("Test passed"), "info")
             elif "err" in test:
                 flash(_("Test failed: {}").format(test["err"]), "error")
         elif action == "save":
@@ -267,10 +261,7 @@ def internal_node_settings(node_alias):
                 node.rename(node_name)
         elif action == "forget":
             if not node_alias:
-                flash(
-                    _("Failed to deleted node. Node isn't saved"),
-                    "error",
-                )
+                flash(_("Failed to deleted node. Node isn't saved"), "error")
             elif len(app.specter.node_manager.nodes) > 1:
                 node.stop()
                 app.specter.node_manager.delete_node(node, app.specter)
@@ -302,10 +293,7 @@ def internal_node_settings(node_alias):
                     node.rpc.stop()
                 except Exception as ne:
                     logger.exception(ne)
-                    flash(
-                        _("Failed to stop Bitcoin Core {}").format(ne),
-                        "error",
-                    )
+                    flash(_("Failed to stop Bitcoin Core {}").format(ne), "error")
         elif action == "startbitcoind":
             if node.start(timeout=120):
                 flash(_("Specter has started Bitcoin Core"))
@@ -329,10 +317,7 @@ def internal_node_settings(node_alias):
                     )
                 )
             except Exception as e:
-                flash(
-                    _("Failed to remove Bitcoin Core, error: {}").format(e),
-                    "error",
-                )
+                flash(_("Failed to remove Bitcoin Core, error: {}").format(e), "error")
         elif action == "upgrade_bitcoind":
             if node.version != app.config["INTERNAL_BITCOIND_VERSION"]:
                 try:

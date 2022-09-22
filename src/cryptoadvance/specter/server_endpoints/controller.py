@@ -7,6 +7,7 @@ from flask import g, redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import MethodNotAllowed, NotFound
+
 from ..server_endpoints import flash
 from ..services.callbacks import flask_before_request
 from ..specter_error import ExtProcTimeoutException, SpecterError
@@ -37,10 +38,6 @@ from .setup import setup_endpoint
 from .wallets import wallets_endpoint
 from .wallets_api import wallets_endpoint_api
 from .welcome import welcome_endpoint
-
-import logging
-
-logger = logging.getLogger(__name__)
 
 spc_prefix = app.config["SPECTER_URL_PREFIX"]
 app.register_blueprint(welcome_endpoint, url_prefix=f"{spc_prefix}/welcome")
@@ -122,7 +119,7 @@ def server_error_timeout(e):
         _(
             "Bitcoin Core is not coming up in time. Maybe it's just slow but please check the logs below"
         ),
-        "warning",
+        "warn",
     )
     return redirect(
         url_for(
