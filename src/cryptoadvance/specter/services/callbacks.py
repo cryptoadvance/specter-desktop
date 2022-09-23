@@ -56,3 +56,9 @@ flash = "flash"
     Callback that is not used yet, but could be implmented in server_endpoints just as flash
 """
 create_and_show_notification = "create_and_show_notification"
+
+
+""" 
+    Callback that is called last in specter.cleanup_on_exit()
+"""
+cleanup_on_exit = "cleanup_on_exit"

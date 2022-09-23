@@ -84,15 +84,8 @@ class NotificationsService(Service):
 
         return self.notification_manager.create_and_show(title, username, **kwargs)
 
-    @classmethod
-    def activate(cls):
-        user = app.specter.user_manager.get_user()
-        user.add_service(cls.id)
-
-    @classmethod
-    def disable(cls):
-        user = app.specter.user_manager.get_user()
-        user.remove_service(cls.id)
+    def callback_cleanup_on_exit(self, signum=0, frame=0):
+        self.notification_manager.quit()
 
     @classmethod
     def inject_in_basejinja_body_top(cls):

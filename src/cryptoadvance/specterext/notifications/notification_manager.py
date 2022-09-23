@@ -129,6 +129,7 @@ class NotificationManager:
     def quit(self):
         if self.websockets_client:
             self.websockets_client.quit_server()
+        logger.debug(f"{self.__class__.__name__} quit was called.")
 
     def _register_default_ui_notifications(self):
         "Registers up the logging and print UINotifications, that can be used by alll users  (user_id=None)"
