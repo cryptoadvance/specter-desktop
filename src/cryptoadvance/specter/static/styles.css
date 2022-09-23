@@ -17,15 +17,7 @@ html, body{
     --cmap-border-highlight:#4B8CD8;
     --cmap-border-darker: #405062;
     --cmap-bg-address-is-mine:#306d30;    
-
     --cmap-bg-highlight: #4a90e2;
-
-    /* msgbox colors*/
-    --cmap-msgbox-debug: #000000;
-    --cmap-msgbox-information: #4a90e2;
-    --cmap-msgbox-warning: #FF9A00;
-    --cmap-msgbox-error: #951E2D;
-    --cmap-msgbox-exception: #951E2D;
 
     margin: 0;
     padding: 0;

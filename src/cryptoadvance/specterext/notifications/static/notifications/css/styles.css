@@ -1,5 +1,16 @@
 /* This is the place to put all your styles */
 
+
+html, body{
+    /* msgbox colors*/
+    --cmap-msgbox-debug: #000000;
+    --cmap-msgbox-information: #4a90e2;
+    --cmap-msgbox-warning: #FF9A00;
+    --cmap-msgbox-error: #951E2D;
+    --cmap-msgbox-exception: #951E2D;
+}
+
+
 /*****************************/
 /* MESSAGE BOX RELATED CLASS */
 /* (START) */
