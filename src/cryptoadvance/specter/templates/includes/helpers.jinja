@@ -129,10 +129,6 @@
 
     // Puts the price in a "note" span.  preText is separator text 
     function internalFormatPriceAsNote(price, preText=''){
-        {% if not specter.price_check %}
-            return ''
-        {% endif %}
-
         return `<span class="note">${preText}(${price})</span>`
     }
 
@@ -238,6 +234,10 @@
                         price='{{ specter.alt_rate }}',
                         wrapInSpan=true,
                         ){
+        {% if not specter.price_check %}
+            return ''
+        {% endif %}
+
         if ('{{ specter.hide_sensitive_info }}' == 'True'){
             return "#########"};
         if (valueInBTC == null){
@@ -258,7 +258,7 @@
                     }).rstrip('0').rstrip(`\\${decimalSeparator}`); 
 
                     formattedPrice = (symbol in ["$", "£"]) ? `${symbol}${formatted_amount}` : `${formatted_amount}${symbol}`;
-                    formattedPrice = wrapInSpan ? internalFormatPriceAsNote(formattedPrice) : formattedPrice;
+                    formattedPrice = wrapInSpan ? internalFormatPriceAsNote(formattedPrice, ' ') : formattedPrice;
                 }
             }
         }

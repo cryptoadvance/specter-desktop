@@ -31,7 +31,7 @@
 				<span id="wallet.amount_available.price"></span>
 				<script>
 					document.getElementById("wallet.amount_available").innerHTML = formatBtcAmountAndUnit({{ wallet.amount_available }})
-					document.getElementById("wallet.amount_available.price").innerHTML = formatPrice('{{ wallet.amount_available }}', ' ')
+					document.getElementById("wallet.amount_available.price").innerHTML = formatPrice('{{ wallet.amount_available }}')
 				</script>
 				{% if specter.is_liquid and wallet.balance.get("assets", {}) %}
 				<span>

@@ -32,7 +32,7 @@
             {% else %}
                 <script>
                     document.getElementById('pending_psbt.{{ pending_psbt["tx"]["txid"] }}.amount').innerHTML = formatBtcAmountAndUnit({{ pending_psbt['amount'] | sum }})
-					document.getElementById('pending_psbt.{{ pending_psbt["tx"]["txid"] }}.price').innerHTML = formatPrice('{{ (pending_psbt['amount'] | sum) }}', ' ')					
+					document.getElementById('pending_psbt.{{ pending_psbt["tx"]["txid"] }}.price').innerHTML = formatPrice('{{ (pending_psbt['amount'] | sum) }}')					
                 </script>
             {% endif %}
         </td>
