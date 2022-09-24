@@ -76,10 +76,13 @@
 		<div class="tx_info">
 			{% for i in range(psbt['address']|length) %}
 				<div style="word-break: break-all;">
+					{{ _("Sending") }} <b><span id="psbt.amount.{{i}}"><span></b>
+					<script>
+						document.getElementById("psbt.amount.{{i}}").innerHTML = btcunitamount({{ psbt["amount"][i] }})
+					</script>
 					{% if "asset" in psbt %}
-						{{ _("Sending") }} <b>{{ psbt["amount"][i] | btcamount }}</b> <asset-label data-asset="{{psbt['asset'][i]}}" data-label="{{psbt['asset'][i] | assetlabel}}"></asset-label>
-					{% else %}
-						{{ _("Sending") }} <b>{{ psbt["amount"][i] | btcunitamount }}</b>
+						<asset-label data-asset="{{psbt['asset'][i]}}" data-label="{{psbt['asset'][i] | assetlabel}}"></asset-label>
+					{% else %}            
 						{% if specter.unit == 'sat' %}
 							sats
 						{% else %}
@@ -145,10 +148,14 @@
 							<address-label data-address="{{ address }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
 							<br>
 						{% endif %}
+						<b>{{ _("Amount:") }}</b> <span id="psbt.{{loop.index0}}.amount"><span>
+						<script>
+							document.getElementById("psbt.{{loop.index0}}.amount").innerHTML = btcunitamount({{ input.get('float_amount') }})
+						</script>
 						{% if specter.is_liquid %}
-							<b>{{ _("Amount:") }}</b> {{ input.get('float_amount') | btcamount }} <asset-label data-asset="{{input['asset']}}" data-label="{{input['asset'] | assetlabel}}"></asset-label>
+							<asset-label data-asset="{{input['asset']}}" data-label="{{input['asset'] | assetlabel}}"></asset-label>
 						{% else %}
-							<b>{{ _("Amount:") }}</b> {{ input.get('float_amount') | btcamount }} {% if input.get('float_amount') != None %} BTC {% endif %} {% if specter.price_check %} <span class="note">&nbsp;({{ input.get('float_amount') | altunit }})</span> {% endif %}
+							 {% if input.get('float_amount') != None %} BTC {% endif %} {% if specter.price_check %} <span class="note">&nbsp;({{ input.get('float_amount') | altunit }})</span> {% endif %}
 						{% endif %}
 					</p>
 				{% endfor %}
@@ -167,10 +174,14 @@
 							<address-label data-address="{{ address }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
 							<br>
 						{% endif %}
+						<b>{{ _("Amount:") }}</b> <span id="psbt.{{loop.index0}}.amount"><span>
+						<script>
+							document.getElementById("psbt.{{loop.index0}}.amount").innerHTML = btcunitamount({{ output['float_amount'] }})
+						</script>
 						{% if specter.is_liquid %}
-							<b>{{ _("Amount:") }}</b> {{ output['float_amount']|btcamount }} <asset-label data-asset="{{output['asset']}}" data-label="{{output['asset'] | assetlabel}}"></asset-label>
+							<asset-label data-asset="{{output['asset']}}" data-label="{{output['asset'] | assetlabel}}"></asset-label>
 						{% else %}
-							<b>{{ _("Amount:") }}</b> {{ output['float_amount']|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ output['float_amount'] | altunit }})</span>{% endif %}
+							BTC {% if specter.price_check %}<span class="note">&nbsp;({{ output['float_amount'] | altunit }})</span>{% endif %}
 						{% endif %}
 					</p>
 				{% endfor %}

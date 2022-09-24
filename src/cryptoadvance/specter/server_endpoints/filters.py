@@ -39,17 +39,6 @@ def average_of_attribute(context, values, attribute):
 
 
 @pass_context
-@filters_bp.app_template_filter("btcamount")
-def btcamount(context, value):
-    if value is None:
-        return "Unknown"
-    if value < 0 and app.specter.is_liquid:
-        return "Confidential"
-    value = round(float(value), 8)
-    return "{:,.8f}".format(value).rstrip("0").rstrip(".")
-
-
-@pass_context
 @filters_bp.app_template_filter("btc2sat")
 def btc2sat(context, value):
     value = int(round(float(value) * 1e8))
@@ -65,21 +54,6 @@ def feerate(context, value):
     if value <= 1.02:
         value = 1
     return "{:,.2f}".format(value).rstrip("0").rstrip(".")
-
-
-@pass_context
-@filters_bp.app_template_filter("btcunitamount")
-def btcunitamount(context, value):
-    if app.specter.hide_sensitive_info:
-        return "#########"
-    if value is None:
-        return "Unknown"
-    if value < 0 and app.specter.is_liquid:
-        return "Confidential"
-    if app.specter.unit != "sat":
-        return btcamount(context, value)
-    value = float(value)
-    return "{:,.0f}".format(round(value * 1e8))
 
 
 @pass_context

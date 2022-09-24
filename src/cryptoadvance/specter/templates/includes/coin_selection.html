@@ -31,7 +31,7 @@
         <coin-selection  
             id="coinselection-webcomponent"
             wallet-alias="{{wallet.alias}}"
-            spendable-amount='{{ wallet.amount_available | btcamount }}'
+            spendable-amount='{{ wallet.amount_available }}'
             is-liquid="{{specter.is_liquid}}"
             selected-coins="{{ selected_coins }}">
         </coin-selection>

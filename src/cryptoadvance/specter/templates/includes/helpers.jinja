@@ -118,7 +118,8 @@
         value,
         maximum_digits_to_strip=7,
         minimum_digits_to_strip=6,
-        enable_digit_formatting=true
+        enable_digit_formatting=true,
+        shrink_stripped=false
     ){
         /*
         Formats the btc amount such that it can be right aligned such
@@ -161,13 +162,13 @@
             for (var j in array){
                 var i = array.length - j - 1;
                 if ((array[i] == "0") && (array.length - i <= maximum_digits_to_strip)){
-                    array[i] = `<span class="unselectable transparent-text">${array[i]}</span>`;
+                    array[i] = `<span class="unselectable transparent-text ${shrink_stripped ? 'hidden' : ''}">${array[i]}</span>`;
                     // since this digit == 0, then continue the loop and check the next digit
                     continue
                 }
                 // the following if branch is only relevant if last_digits_to_strip == 8, i.e. all digits can be stripped
                 else if (formatted_amount[i] == "."){
-                    array[i] = `<span class="unselectable transparent-text">${array[i]}</span>`;
+                    array[i] = `<span class="unselectable transparent-text ${shrink_stripped ? 'hidden' : ''}">${array[i]}</span>`;
                     // since this character == '.', then the loop must be broken now
                 }
                 // always break the loop. Only the digit == 0 can prevent this break
@@ -192,7 +193,8 @@
         value,
         maximum_digits_to_strip=7,
         minimum_digits_to_strip=6,
-        enable_digit_formatting=true){
+        enable_digit_formatting=true,
+        shrink_stripped=false){
         if ('{{ specter.hide_sensitive_info }}' == 'True'){
             return "#########"};
         if (value == null){
@@ -207,11 +209,23 @@
             value,
             maximum_digits_to_strip=maximum_digits_to_strip,
             minimum_digits_to_strip=minimum_digits_to_strip,
-            enable_digit_formatting=enable_digit_formatting
+            enable_digit_formatting=enable_digit_formatting,
+            shrink_stripped=shrink_stripped
         );
     }
 
-
-
+    function btcunitamount(
+        value,
+        maximum_digits_to_strip=7,
+        minimum_digits_to_strip=6,
+        enable_digit_formatting=true,
+    ){
+        return btcunitamount_fixed_decimals(
+        value,
+        maximum_digits_to_strip=maximum_digits_to_strip,
+        minimum_digits_to_strip=minimum_digits_to_strip,
+        enable_digit_formatting=enable_digit_formatting,
+        shrink_stripped=true)
+    }
 
 </script>
