@@ -254,17 +254,13 @@
                 }
             }
 
-            if (this.btcUnit == 'sat' && this.amount != 1e-8) {
-                this.amount = parseInt(this.amount * 1e8);
-            }
-
             if (this.amount == 1e-8 ) { //|| this.amount == 0) {
                 this.amountText.innerText = '{{ _("Confidential") }}';
             } else {
                 if(this.hideSensitiveInfo){
                     this.amountText.innerHTML = '#########';
                 }else{
-                    this.amountText.innerHTML = `${numberWithCommas(this.amount.toString())}`;
+                    this.amountText.innerHTML = btcunitamount_fixed_decimals(this.amount);
                     if("assetlabel" in this.tx){ // liquid
                         if (Array.isArray(this.tx.assetlabel)) { // multiple assets
                             let unique_assets = this.tx.assetlabel.filter((v, i, a) => { return a.indexOf(v) === i });

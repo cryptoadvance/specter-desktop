@@ -77,7 +77,7 @@
 
     function format_btc_amount_as_sats(
         value,
-        enable_digit_formatting=true,
+        enable_digit_formatting=false,
     ) {
         const locale = 'en-US';
         var s = (parseFloat(value) * 1e8).toLocaleString(locale, { 
@@ -143,28 +143,26 @@
             maximumFractionDigits: 8 
         }); 
 
+        var array = Array.from(formatted_amount);
         let thousandsSeparator = Number(1000).toLocaleString(locale).charAt(1);
         let decimalSeparator = Number(1.1).toLocaleString(locale).charAt(1);
 
         var count_digits_that_can_be_stripped = 0;
-        for (var j in formatted_amount){
-            var i = formatted_amount.length - j;
-            if (formatted_amount[i] == "0"){
+        for (var j in array){
+            var i = array.length - j - 1;
+            if (array[i] == "0"){
                 count_digits_that_can_be_stripped += 1;
                 continue
             }
             break
         }
 
-        var array = Array.from(formatted_amount);
         if (count_digits_that_can_be_stripped >= minimum_digits_to_strip){
             // loop through the float number, e.g. 0.03 000 000, from the right and replace 0's or the '.' until you hit anything != 0
             for (var j in array){
-                var i = array.length - j;
-                if ((array[i] == "0") && (len(array) - i <= maximum_digits_to_strip)){
-                    array[
-                        i
-                    ] = `<span class="unselectable transparent-text">${array[i]}</span>`;
+                var i = array.length - j - 1;
+                if ((array[i] == "0") && (array.length - i <= maximum_digits_to_strip)){
+                    array[i] = `<span class="unselectable transparent-text">${array[i]}</span>`;
                     // since this digit == 0, then continue the loop and check the next digit
                     continue
                 }
