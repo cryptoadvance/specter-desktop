@@ -40,7 +40,7 @@
             if (convertToSat && (["Lsat", "sat", "tLsat", "tsat"].indexOf(formattedUnitLabel) > -1)) {
                 formattedValue = parseInt(value * 1e8)
             }
-            formattedValue = `${numberWithCommas(formattedValue)}`;
+            formattedValue = `${numberWithCommas(value)}`;
         }
         else {
             formattedValue = '{{ _("Confidential") }}';
