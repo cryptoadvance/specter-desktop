@@ -78,7 +78,7 @@
 				<div style="word-break: break-all;">
 					{{ _("Sending") }} <b><span id="psbt.amount.{{i}}"><span></b>
 					<script>
-						document.getElementById("psbt.amount.{{i}}").innerHTML = btcunitamount({{ psbt["amount"][i] }})
+						document.getElementById("psbt.amount.{{i}}").innerHTML = formatBtcAmountAndUnit({{ psbt["amount"][i] }})
 					</script>
 					{% if "asset" in psbt %}
 						<asset-label data-asset="{{psbt['asset'][i]}}" data-label="{{psbt['asset'][i] | assetlabel}}"></asset-label>
@@ -150,7 +150,7 @@
 						{% endif %}
 						<b>{{ _("Amount:") }}</b> <span id="psbt.{{loop.index0}}.amount"><span>
 						<script>
-							document.getElementById("psbt.{{loop.index0}}.amount").innerHTML = btcunitamount({{ input.get('float_amount') }})
+							document.getElementById("psbt.{{loop.index0}}.amount").innerHTML = formatBtcAmountAndUnit({{ input.get('float_amount') }})
 						</script>
 						{% if specter.is_liquid %}
 							<asset-label data-asset="{{input['asset']}}" data-label="{{input['asset'] | assetlabel}}"></asset-label>
@@ -176,7 +176,7 @@
 						{% endif %}
 						<b>{{ _("Amount:") }}</b> <span id="psbt.{{loop.index0}}.amount"><span>
 						<script>
-							document.getElementById("psbt.{{loop.index0}}.amount").innerHTML = btcunitamount({{ output['float_amount'] }})
+							document.getElementById("psbt.{{loop.index0}}.amount").innerHTML = formatBtcAmountAndUnit({{ output['float_amount'] }})
 						</script>
 						{% if specter.is_liquid %}
 							<asset-label data-asset="{{output['asset']}}" data-label="{{output['asset'] | assetlabel}}"></asset-label>

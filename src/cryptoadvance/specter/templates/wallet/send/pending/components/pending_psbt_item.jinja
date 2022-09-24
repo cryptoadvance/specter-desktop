@@ -20,7 +20,7 @@
         <td>
             <span id='pending_psbt.{{ pending_psbt["tx"]["txid"] }}.amount'><span>
             <script>
-                document.getElementById('pending_psbt.{{ pending_psbt["tx"]["txid"] }}.amount').innerHTML = btcunitamount({{ pending_psbt['amount'] | sum }})
+                document.getElementById('pending_psbt.{{ pending_psbt["tx"]["txid"] }}.amount').innerHTML = formatBtcAmountAndUnit({{ pending_psbt['amount'] | sum }})
             </script>
             {% if specter.is_liquid %}
                 {% if pending_psbt['asset'] | unique_len == 1 %}                

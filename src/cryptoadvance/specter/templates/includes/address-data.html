@@ -119,7 +119,7 @@
                         <tr><td>{{ _("Is change address") }}:</td><td>${isChange ? '{{ _("Yes") }}' : '{{ _("No") }}'}</td></tr>
                         <tr><td>{{ _("Used") }}:</td><td>${this.used ? 'Yes' : 'No'}</td></tr>
                         <tr><td>{{ _("UTXO count") }}:</td><td>${this.utxo}</td></tr>
-                        <tr><td>{{ _("Amount") }}:</td><td>${this.amount} <span class="amount-price note ${this.amountPrice ? '' : 'hidden'}">${this.amountPrice}</span></td></tr>
+                        <tr><td>{{ _("Amount") }}:</td><td>${formatBtcAmountAndUnit(this.amount)} <span class="amount-price note ${this.amountPrice ? '' : 'hidden'}">${this.amountPrice}</span></td></tr>
                     `;
 
                     if ((typeof services !== 'undefined') && (this.serviceId in services)) {

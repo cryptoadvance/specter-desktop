@@ -162,7 +162,7 @@
                             serviceIdAttr = `data-service-id="${spentOutput.service_id}"`;
                         }
                         // assetlabel only exists for Liquid, for BTC it is just null
-                        var amountAndUnit = formatBtcAmount(spentOutput.value, spentOutput.assetlabel, this.btcUnit == 'sat');
+                        var amountAndUnit = formatBtcAmountAndUnit(spentOutput.value, spentOutput.assetlabel);
                         var price = formatPrice(spentOutput.value, spentOutput.assetlabel, this.symbol, this.price); 
 
                         addressAndValue = `
@@ -243,7 +243,7 @@
                         serviceIdAttr = `data-service-id="${rawtx.vout[i].service_id}"`;
                     }
                     // assetlabel only exists for Liquid, for BTC it is just null
-                    var amountAndUnit = formatBtcAmount(rawtx.vout[i].value, rawtx.vout[i].assetlabel, this.btcUnit == 'sat');
+                    var amountAndUnit = formatBtcAmountAndUnit(rawtx.vout[i].value, rawtx.vout[i].assetlabel);
                     var price = formatPrice(rawtx.vout[i].value, rawtx.vout[i].assetlabel, this.symbol, this.price); 
 
                     rawtxHTML += `

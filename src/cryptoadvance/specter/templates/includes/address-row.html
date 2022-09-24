@@ -148,18 +148,14 @@
                     this.amountPrice.innerText = `(${numberWithCommas((parseFloat(this.price) * this.amount).toFixed(2))}${this.symbol})`;
                 }
                 this.amountPrice.classList.remove('hidden');
-            }
-
-            if (this.btcUnit == 'sat') {
-                this.amount = parseInt(this.amount * 1e8);
-            }
+            }            
 
             if (this.assetsCount > 1) {
                 this.amountText.innerText = this.hideSensitiveInfo ? '########' : `Multiple assets`;
             } else if (this.assetsCount == 1) {
                 this.amountText.innerHTML = this.hideSensitiveInfo ? '########' : `${numberWithCommas(this.amount.toString())} <asset-label data-asset="${Object.keys(this.addressData.assets)[0]}"></asset-label>`;
             } else {
-                this.amountText.innerText = this.hideSensitiveInfo ? '########' : `${numberWithCommas(this.amount.toString())}`;
+                this.amountText.innerHTML = formatBtcAmountAndUnit(this.amount, this.btcUnit);
             }
 
             if (this.addressData.used > 0) {

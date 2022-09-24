@@ -64,7 +64,7 @@
                     <th>Total amount:</th>
                     <th id="amount_total" class="right-align"></th>
                     <script>
-                        document.getElementById('amount_total').innerHTML = btcunitamount_fixed_decimals({{ amount_total | safe }});
+                        document.getElementById('amount_total').innerHTML = formatBtcAmount({{ amount_total | safe }});
                     </script>
                     <th>
                         {% if specter.unit == 'sat' %}
@@ -84,7 +84,7 @@
                         <th>Confirmed:</th>
                         <th id="amount_confirmed" class="right-align"></th>
                         <script>
-                            document.getElementById('amount_confirmed').innerHTML = btcunitamount_fixed_decimals({{ amount_confirmed | safe }});
+                            document.getElementById('amount_confirmed').innerHTML = formatBtcAmount({{ amount_confirmed | safe }});
                         </script>
                         <th>
                             {% if specter.unit == 'sat' %}
@@ -104,7 +104,7 @@
                         <th>Unconfirmed:</th>
                         <th id="amount_unconfirmed" class="right-align"></th>
                         <script>
-                            document.getElementById('amount_unconfirmed').innerHTML = btcunitamount_fixed_decimals({{ amount_unconfirmed | safe }});
+                            document.getElementById('amount_unconfirmed').innerHTML = formatBtcAmount({{ amount_unconfirmed | safe }});
                         </script>
                         <th>
                             {% if specter.unit == 'sat' %}
@@ -134,7 +134,7 @@
                         </tool-tip>
                     <th id="amount_immature" class="right-align"></th>
                     <script>
-                        document.getElementById('amount_immature').innerHTML = btcunitamount_fixed_decimals({{ amount_immature | safe }});
+                        document.getElementById('amount_immature').innerHTML = formatBtcAmount({{ amount_immature | safe }});
                     </script>
                     </th>      
                     <th> 
@@ -165,7 +165,7 @@
                             {% set balance = balance.get("assets",{}).get(asset, {}) %}
                             <th id="assets_{{ asset }}" class="right-align"></th>
                             <script>
-                                document.getElementById('assets_{{ asset }}').innerHTML = btcunitamount_fixed_decimals({{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | safe }});        
+                                document.getElementById('assets_{{ asset }}').innerHTML = formatBtcAmount({{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | safe }});        
                             </script>
                             <th>
                                 <asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}" edit-mode="enabled"></asset-label>
