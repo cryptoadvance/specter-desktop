@@ -26,13 +26,13 @@
 		<input type="hidden" name="recipient_dicts"  id="recipient_dicts" value=""/>  
 		<h1 class="padded">{{ _("Create Transaction") }}</h1>
 		<div style="display: flex; justify-content: center; margin-bottom: 15px">
-			<div>{{ _("Available funds:") }} <span id="wallet.amount_available"></span>
+			<div>{{ _("Available funds:") }} 
+				<span id="wallet.amount_available"></span>
+				<span id="wallet.amount_available.price"></span>
 				<script>
 					document.getElementById("wallet.amount_available").innerHTML = formatBtcAmountAndUnit({{ wallet.amount_available }})
+					document.getElementById("wallet.amount_available.price").innerHTML = formatPriceAsNote('{{ wallet.amount_available | altunit }}', ' ')
 				</script>
-				{% if specter.price_check %}
-					<span class="note">{{ wallet.amount_available | altunit }}</span>
-				{% endif %}
 				{% if specter.is_liquid and wallet.balance.get("assets", {}) %}
 				<span>
 					<br>{{ _("Assets:") }}<br>

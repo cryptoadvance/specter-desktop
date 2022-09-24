@@ -18,7 +18,8 @@
             {% endif %}
         </td>
         <td>
-            <span id='pending_psbt.{{ pending_psbt["tx"]["txid"] }}.amount'><span>
+            <span id='pending_psbt.{{ pending_psbt["tx"]["txid"] }}.amount'></span>
+            <span id='pending_psbt.{{ pending_psbt["tx"]["txid"] }}.price'></span>
             {% if specter.is_liquid %}
                 <script>
                     document.getElementById('pending_psbt.{{ pending_psbt["tx"]["txid"] }}.amount').innerHTML = formatBtcAmountAndUnit({{ pending_psbt['amount'] | sum }})
@@ -31,8 +32,8 @@
             {% else %}
                 <script>
                     document.getElementById('pending_psbt.{{ pending_psbt["tx"]["txid"] }}.amount').innerHTML = formatBtcAmountAndUnit({{ pending_psbt['amount'] | sum }})
+					document.getElementById('pending_psbt.{{ pending_psbt["tx"]["txid"] }}.price').innerHTML = formatPriceAsNote('{{ (pending_psbt['amount'] | sum) | altunit }}', ' ')					
                 </script>
-                {% if specter.price_check %}<span class="note">&nbsp;({{ (pending_psbt['amount'] | sum) | altunit }})</span>{% endif %}
             {% endif %}
         </td>
         <td class="optional">

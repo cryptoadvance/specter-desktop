@@ -63,58 +63,37 @@
                 <tr>
                     <th>Total amount:</th>
                     <th id="amount_total" class="right-align"></th>
+                    <th id="amount_total_unit"></th> 
+                    <th  id="amount_total_price" class="right-align"></th> 
                     <script>
                         document.getElementById('amount_total').innerHTML = formatBtcAmount({{ amount_total | safe }}, '{{ specter.unit }}', shrink_stripped=false);
+                        document.getElementById('amount_total_unit').innerHTML = formatUnitLabel();
+                        document.getElementById('amount_total_price').innerHTML = formatPriceAsNote('{{ amount_total | altunit }}')
                     </script>
-                    <th>
-                        <span id="amount_total_unit"></span>
-                        <script>
-                            document.getElementById('amount_total_unit').innerHTML = formatUnitLabel();
-                        </script>
-                        {% if specter.price_check %} 
-                            <th class="right-align">
-                                <span class="note">({{ amount_total | altunit }})</span>
-                            </th> 
-                        {% endif %}
-                    </th> 
                 </tr>                             
                 {% if amount_unconfirmed > 0 or amount_immature > 0 %}
                     <tr>
                         <th>Confirmed:</th>
                         <th id="amount_confirmed" class="right-align"></th>
+                        <th id="amount_confirmed_unit"></th>
+                        <th id="amount_confirmed_price" class="right-align"></th> 
                         <script>
                             document.getElementById('amount_confirmed').innerHTML = formatBtcAmount({{ amount_confirmed | safe }}, '{{ specter.unit }}', shrink_stripped=false);
+                            document.getElementById('amount_confirmed_unit').innerHTML = formatUnitLabel();
+                            document.getElementById('amount_confirmed_price').innerHTML = formatPriceAsNote('{{ amount_confirmed | altunit }}')
                         </script>
-                        <th>
-                            <span id="amount_confirmed_unit"></span>
-                            <script>
-                                document.getElementById('amount_confirmed_unit').innerHTML = formatUnitLabel();
-                            </script>
-                            {% if specter.price_check %} 
-                                <th class="right-align">
-                                    <span class="note">({{ amount_confirmed | altunit }})</span>
-                                </th> 
-                            {% endif %}
-                        </th>
                     </tr>                             
                     {% if amount_unconfirmed > 0 %}
                     <tr>
                         <th>Unconfirmed:</th>
                         <th id="amount_unconfirmed" class="right-align"></th>
+                        <th id="amount_unconfirmed_unit"></th>
+                        <th id="amount_unconfirmed_price" class="right-align"></th> 
                         <script>
                             document.getElementById('amount_unconfirmed').innerHTML = formatBtcAmount({{ amount_unconfirmed | safe }}, '{{ specter.unit }}', shrink_stripped=false);
+                            document.getElementById('amount_unconfirmed_unit').innerHTML = formatUnitLabel();
+                            document.getElementById('amount_unconfirmed_price').innerHTML = formatPriceAsNote('{{ amount_unconfirmed | altunit }}')
                         </script>
-                        <th>
-                            <span id="amount_unconfirmed_unit"></span>
-                            <script>
-                                document.getElementById('amount_unconfirmed_unit').innerHTML = formatUnitLabel();
-                            </script>
-                            {% if specter.price_check %} 
-                                <th class="right-align">
-                                    <span class="note">({{ amount_unconfirmed | altunit }})</span>
-                                </th> 
-                            {% endif %}
-                        </th>
                     </tr>                             
                     {% endif %}
                 {% endif %}
@@ -130,21 +109,13 @@
                             </span>
                         </tool-tip>
                     <th id="amount_immature" class="right-align"></th>
+                    <th id="amount_immature_unit"></th>                    
+                    <th id="amount_immature_price" class="right-align"></th>                    
                     <script>
                         document.getElementById('amount_immature').innerHTML = formatBtcAmount({{ amount_immature | safe }}, '{{ specter.unit }}', shrink_stripped=false);
+                        document.getElementById('amount_immature_unit').innerHTML = formatUnitLabel();
+                        document.getElementById('amount_immature_price').innerHTML = formatPriceAsNote('{{ amount_immature | altunit }}')
                     </script>
-                    </th>      
-                    <th> 
-                        <span id="amount_immature_unit"></span>
-                        <script>
-                            document.getElementById('amount_immature_unit').innerHTML = formatUnitLabel();
-                        </script>
-                        {% if specter.price_check %} 
-                            <th class="right-align">
-                                <span class="note">({{ amount_immature | altunit }})</span>
-                            </th>
-                        {% endif %}
-                    </th>
                 </tr>                             
                 {% endif %}
                 {% if specter.is_liquid %}

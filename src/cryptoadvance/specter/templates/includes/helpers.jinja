@@ -207,13 +207,21 @@
         return ([null, "", "LBTC", "BTC", "tBTC", "tLBTC"].indexOf(unitLabel) > -1)
     }
 
+    function formatPriceAsNote(price, preText=''){
+        {% if not specter.price_check %}
+            return ''
+        {% endif %}
+
+        return `<span class="note">${preText}(${price})</span>`
+    }
+
     // Calculates and formats the price as a span class="note"
     function formatPrice(valueInBTC, unitLabel, symbol, price){
         var formattedPrice = "";
         if (valueInBTC) {
             if(unitLabelIsBitcoin(unitLabel)){
                 if (price && symbol) {
-                    formattedPrice = `<span class="note">(${symbol}${numberWithCommas((parseFloat(price) * valueInBTC).toFixed(2))})</span>`;
+                    formattedPrice = formatPriceAsNote(`${symbol}${numberWithCommas((parseFloat(price) * valueInBTC).toFixed(2))}`);
                 }
             }
         }
