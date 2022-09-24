@@ -44,7 +44,7 @@
         return array.join('')
     }
 
-    function formatBtcAmount(
+    function internalFormatBtcAmount(
         value,
         maximum_digits_to_strip=7,
         minimum_digits_to_strip=6,
@@ -156,9 +156,10 @@
 
 
 
-    // Formats the valueInBTC (e.g. from a tx output) to "formattedValue formattedUnitLabel"
-    // e.g. 0.22569496 tBTC
-    function formatBtcAmountAndUnit(valueInBTC, unitLabel='{{ specter.unit }}'){
+
+    // Formats the valueInBTC (e.g. from a tx output) to an array
+    // e.g. ["0.22569496", "tBTC"]
+    function formatBtcAmountAndUnitArray(valueInBTC, unitLabel='{{ specter.unit }}', shrink_stripped=true){
         if ('{{ specter.hide_sensitive_info }}' == 'True'){
             return "#########"};
         if (valueInBTC == null){
@@ -168,13 +169,24 @@
 
         const convertToSat = unitLabel == 'sat';
         var formattedUnitLabel = formatUnitLabel(unitLabel, convertToSat);        
-        var formattedValue = convertToSat ? internalFormatBtcAmountAsSats(valueInBTC) : formatBtcAmount(
+        var formattedValue = convertToSat ? internalFormatBtcAmountAsSats(valueInBTC) : internalFormatBtcAmount(
                                                                                             valueInBTC,
                                                                                             maximum_digits_to_strip=7,
                                                                                             minimum_digits_to_strip=6,
                                                                                             enable_digit_formatting=true,
-                                                                                            shrink_stripped=true);
-        return `${formattedValue} ${formattedUnitLabel}`;  
+                                                                                            shrink_stripped=shrink_stripped);
+        return [formattedValue, formattedUnitLabel];  
+    }
+
+    // Formats the valueInBTC (e.g. from a tx output) to an "formattedValue formattedUnitLabel"
+    // e.g. "0.22569496 tBTC"
+    function formatBtcAmountAndUnit(valueInBTC, unitLabel='{{ specter.unit }}', shrink_stripped=true){
+        return formatBtcAmountAndUnitArray(valueInBTC, unitLabel, shrink_stripped).join(' ');  
+    }
+    // Formats the valueInBTC (e.g. from a tx output) to an "formattedValue formattedUnitLabel"
+    // e.g. "0.22569496 tBTC"
+    function formatBtcAmount(valueInBTC, unitLabel='{{ specter.unit }}', shrink_stripped=true){
+        return formatBtcAmountAndUnitArray(valueInBTC, unitLabel, shrink_stripped)[0];  
     }
 
 
