@@ -85,7 +85,7 @@
 					{% else %}            
 						<script>
 							document.getElementById("psbt.amount.{{i}}").innerHTML = formatBtcAmountAndUnit({{ psbt["amount"][i] }});
-							document.getElementById("psbt.price.{{i}}").innerHTML = formatPriceAsNote('{{ psbt["amount"][i] | altunit }}', ' ');
+							document.getElementById("psbt.price.{{i}}").innerHTML = formatPrice('{{ psbt["amount"][i] }}', ' ');
 						</script>
 					{% endif %}
 					{{ _("to") }}<b>
@@ -119,7 +119,7 @@
 					<span id="totalfee.price"></span>
 					<script>
 						document.getElementById("totalfee.amount").innerHTML = formatBtcAmountAndUnit({{ psbt['fee'] }}, 'sat');
-						document.getElementById("totalfee.price").innerHTML = formatPriceAsNote('{{ psbt['fee'] | altunit }}', ' ');
+						document.getElementById("totalfee.price").innerHTML = formatPrice('{{ psbt['fee'] }}', ' ');
 					</script>
 					<br>
 					<b>{{ _("Fee rate:") }}</b>
@@ -162,7 +162,7 @@
 						{% else %}
 							<script>
 								document.getElementById("psbt.inputs.{{loop.index0}}.amount").innerHTML = formatBtcAmountAndUnit({{ input.get('float_amount') }})
-								document.getElementById("psbt.inputs.{{loop.index0}}.price").innerHTML = formatPriceAsNote('{{ input.get('float_amount') | altunit }}');
+								document.getElementById("psbt.inputs.{{loop.index0}}.price").innerHTML = formatPrice('{{ input.get('float_amount') }}');
 							</script>
 						{% endif %}
 					</p>
@@ -193,7 +193,7 @@
 						{% else %}
 							<script>
 								document.getElementById("psbt.{{loop.index0}}.amount").innerHTML = formatBtcAmountAndUnit({{ output['float_amount'] }});
-								document.getElementById("psbt.{{loop.index0}}.price").innerHTML = formatPriceAsNote('{{ output['float_amount'] | altunit }}', ' ');
+								document.getElementById("psbt.{{loop.index0}}.price").innerHTML = formatPrice('{{ output['float_amount'] }}', ' ');
 							</script>
 						{% endif %}
 					</p>

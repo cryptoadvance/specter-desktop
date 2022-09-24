@@ -57,28 +57,6 @@ def feerate(context, value):
 
 
 @pass_context
-@filters_bp.app_template_filter("altunit")
-def altunit(context, value):
-    if app.specter.hide_sensitive_info:
-        return "########"
-    if value is None:
-        return "Can't be calculated"
-    if value < 0:
-        return "-"
-    if app.specter.price_check and (app.specter.alt_rate and app.specter.alt_symbol):
-        rate = (
-            "{:,.2f}".format(float(value) * float(app.specter.alt_rate))
-            .rstrip("0")
-            .rstrip(".")
-        )
-        if app.specter.alt_symbol in ["$", "£"]:
-            return app.specter.alt_symbol + rate
-        else:
-            return rate + app.specter.alt_symbol
-    return ""
-
-
-@pass_context
 @filters_bp.app_template_filter("bytessize")
 def bytessize(context, value):
     value = float(value)

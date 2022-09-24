@@ -178,10 +178,10 @@
         var formattedUnitLabel = formatUnitLabel(unitLabel);        
         var formattedValue = convertToSat ? internalFormatBtcAmountAsSats(valueInBTC) : internalFormatBtcAmount(
                                                                                             valueInBTC,
-                                                                                            maximum_digits_to_strip=7,
-                                                                                            minimum_digits_to_strip=6,
-                                                                                            enable_digit_formatting=true,
-                                                                                            shrink_stripped=shrink_stripped);
+                                                                                            7,
+                                                                                            6,
+                                                                                            true,
+                                                                                            shrink_stripped);
         return [formattedValue, formattedUnitLabel];  
     }
 
@@ -204,7 +204,8 @@
         if (!unitLabel){
             return true            
         } 
-        return ([null, "", "LBTC", "BTC", "tBTC", "tLBTC"].indexOf(unitLabel) > -1)
+        unitLabel = unitLabel.toUpperCase();
+        return ([null, "", "LBTC", "BTC", "TBTC", "TLBTC"].indexOf(unitLabel) > -1)
     }
 
     function formatPriceAsNote(price, preText=''){
@@ -215,19 +216,41 @@
         return `<span class="note">${preText}(${price})</span>`
     }
 
+    String.prototype.rstrip = function(s) { 
+        return this.replace(new RegExp(s + "*$"),''); 
+    };
+
     // Calculates and formats the price as a span class="note"
-    function formatPrice(valueInBTC, unitLabel, symbol, price){
+    function formatPrice(valueInBTC, unitLabel='{{ specter.unit }}', symbol='{{ specter.alt_symbol }}', price='{{ specter.alt_rate }}'){
+        if ('{{ specter.hide_sensitive_info }}' == 'True'){
+            return "#########"};
+        if (valueInBTC == null){
+            return "Can't be calculated"};
+        if (valueInBTC < 0){
+            return "-"}
+
         var formattedPrice = "";
         if (valueInBTC) {
             if(unitLabelIsBitcoin(unitLabel)){
                 if (price && symbol) {
-                    formattedPrice = formatPriceAsNote(`${symbol}${numberWithCommas((parseFloat(price) * valueInBTC).toFixed(2))}`);
+                    const locale = 'en-US';
+                    let thousandsSeparator = Number(1000).toLocaleString(locale).charAt(1);
+                    let decimalSeparator = Number(1.1).toLocaleString(locale).charAt(1);
+                    var formatted_amount = (parseFloat(valueInBTC)*parseFloat(price)).toLocaleString(locale, { 
+                        minimumFractionDigits: 2, 
+                        maximumFractionDigits: 2 
+                    }).rstrip('0').rstrip(`\\${decimalSeparator}`); 
+
+                    if (symbol in ["$", "£"]){
+                        formattedPrice = formatPriceAsNote(`${symbol}${formatted_amount}`);
+                    }else{
+                        formattedPrice = formatPriceAsNote(`${formatted_amount}${symbol}`);
+                    }
                 }
             }
         }
         return formattedPrice
     }
-
 
 
 
