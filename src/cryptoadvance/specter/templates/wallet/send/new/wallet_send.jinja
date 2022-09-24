@@ -28,13 +28,8 @@
 		<div style="display: flex; justify-content: center; margin-bottom: 15px">
 			<div>{{ _("Available funds:") }} <span id="wallet.amount_available"></span>
 				<script>
-					document.getElementById("wallet.amount_available").innerHTML = formatBtcAmount({{ wallet.amount_available }})
+					document.getElementById("wallet.amount_available").innerHTML = formatBtcAmountAndUnit({{ wallet.amount_available }})
 				</script>
-				{% if specter.unit == 'sat' %}
-					sats
-				{% else %}
-					{% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
-				{% endif %}<br>
 				{% if specter.price_check %}
 					<span class="note">{{ wallet.amount_available | altunit }}</span>
 				{% endif %}
@@ -175,11 +170,11 @@
 		var assetBalances = {
 			"btc": {
 				"balance": {{ wallet.full_available_balance }},
-				"label": "{% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC",
+				"label": formatUnitLabel('BTC'),
 			},
 			"sat": {
 				"balance": Math.round({{ wallet.full_available_balance*1e8 }}),
-				"label": "sat",
+				"label": formatUnitLabel('sat'),
 			},
 		{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
 			"{{asset}}": {

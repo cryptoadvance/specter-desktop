@@ -77,17 +77,15 @@
 			{% for i in range(psbt['address']|length) %}
 				<div style="word-break: break-all;">
 					{{ _("Sending") }} <b><span id="psbt.amount.{{i}}"><span></b>
-					<script>
-						document.getElementById("psbt.amount.{{i}}").innerHTML = formatBtcAmountAndUnit({{ psbt["amount"][i] }})
-					</script>
 					{% if "asset" in psbt %}
+						<script>
+							document.getElementById("psbt.amount.{{i}}").innerHTML = formatBtcAmount({{ psbt["amount"][i] }})
+						</script>
 						<asset-label data-asset="{{psbt['asset'][i]}}" data-label="{{psbt['asset'][i] | assetlabel}}"></asset-label>
 					{% else %}            
-						{% if specter.unit == 'sat' %}
-							sats
-						{% else %}
-							{% if specter.is_testnet %}t{%endif%}BTC
-						{% endif %}
+						<script>
+							document.getElementById("psbt.amount.{{i}}").innerHTML = formatBtcAmountAndUnit({{ psbt["amount"][i] }})
+						</script>
 						{% if specter.price_check %}
 							<span class="note">({{ psbt["amount"][i] | altunit }})</span>
 						{% endif %}

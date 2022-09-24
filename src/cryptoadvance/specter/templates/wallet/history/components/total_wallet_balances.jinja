@@ -67,11 +67,10 @@
                         document.getElementById('amount_total').innerHTML = formatBtcAmount({{ amount_total | safe }}, '{{ specter.unit }}', shrink_stripped=false);
                     </script>
                     <th>
-                        {% if specter.unit == 'sat' %}
-                            sats
-                        {% else %}
-                            {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
-                        {% endif %}
+                        <span id="amount_total_unit"></span>
+                        <script>
+                            document.getElementById('amount_total_unit').innerHTML = formatUnitLabel();
+                        </script>
                         {% if specter.price_check %} 
                             <th class="right-align">
                                 <span class="note">({{ amount_total | altunit }})</span>
@@ -87,11 +86,10 @@
                             document.getElementById('amount_confirmed').innerHTML = formatBtcAmount({{ amount_confirmed | safe }}, '{{ specter.unit }}', shrink_stripped=false);
                         </script>
                         <th>
-                            {% if specter.unit == 'sat' %}
-                                sats
-                            {% else %}
-                                {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
-                            {% endif %}
+                            <span id="amount_confirmed_unit"></span>
+                            <script>
+                                document.getElementById('amount_confirmed_unit').innerHTML = formatUnitLabel();
+                            </script>
                             {% if specter.price_check %} 
                                 <th class="right-align">
                                     <span class="note">({{ amount_confirmed | altunit }})</span>
@@ -107,11 +105,10 @@
                             document.getElementById('amount_unconfirmed').innerHTML = formatBtcAmount({{ amount_unconfirmed | safe }}, '{{ specter.unit }}', shrink_stripped=false);
                         </script>
                         <th>
-                            {% if specter.unit == 'sat' %}
-                                sats
-                            {% else %}
-                                {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
-                            {% endif %}
+                            <span id="amount_unconfirmed_unit"></span>
+                            <script>
+                                document.getElementById('amount_unconfirmed_unit').innerHTML = formatUnitLabel();
+                            </script>
                             {% if specter.price_check %} 
                                 <th class="right-align">
                                     <span class="note">({{ amount_unconfirmed | altunit }})</span>
@@ -138,11 +135,10 @@
                     </script>
                     </th>      
                     <th> 
-                        {% if specter.unit == 'sat' %}
-                            sats
-                        {% else %}
-                            {% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
-                        {% endif %}
+                        <span id="amount_immature_unit"></span>
+                        <script>
+                            document.getElementById('amount_immature_unit').innerHTML = formatUnitLabel();
+                        </script>
                         {% if specter.price_check %} 
                             <th class="right-align">
                                 <span class="note">({{ amount_immature | altunit }})</span>
