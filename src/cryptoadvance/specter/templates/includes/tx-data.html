@@ -133,7 +133,7 @@
                 `;
                 rawtxHTML += `<h3>Inputs</h3>`;
                 for (let i in rawtx.vin) {
-                    let bgColor = '#131a24';
+                    let bgColor = 'var(--cmap-bg-address-is-not-mine)';
                     let addressAndValue = '';
                     let jsonResponse = await this.fetchRawTx(rawtx.vin[i].txid);
                     if (jsonResponse !== null && jsonResponse.success) {
@@ -151,7 +151,7 @@
                         }
                         let isMine = await this.fetchAddressIsMine(address);
                         if (isMine) {
-                            bgColor = '#925d07';
+                            bgColor = 'var(--cmap-bg-address-is-mine)';
                         }
                         let labelAttr = "";
                         if ("label" in spentOutput) {
@@ -226,10 +226,10 @@
                         address = rawtx.vout[i].address ? rawtx.vout[i].address : 'Unknown';
                     }
 
-                    let bgColor = '#131a24';
+                    let bgColor = 'var(--cmap-bg-address-is-not-mine)';
                     if ("index" in rawtx.vout[i]) {
                         // Only addresses from this wallet will have an index; isMine = True
-                        bgColor = '#154984';
+                        bgColor = 'var(--cmap-bg-address-is-mine)';
                     }
 
                     let labelAttr = "";

@@ -114,7 +114,7 @@
 			<div class="toggle" id="tx_details" style="word-break: break-all;">
 				<br>
 				<h2 class="tx_details_header">{{ _("Transaction Info") }}</h2>
-				<p style="text-align: left; background-color: #131a24; padding: 10px; line-height: 2; border-radius: 15px;">
+				<p style="text-align: left; background-color: var(--cmap-bg-address-is-not-mine); padding: 10px; line-height: 2; border-radius: 15px;">
 					<b>{{ _("Total fee:") }}</b> {{ psbt['fee'] | btc2sat }} sats {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['fee'] | altunit }})</span>{% endif %}<br>
 					<b>{{ _("Fee rate:") }}</b>
 					{% if 'tx_full_size' in psbt %}
@@ -129,9 +129,9 @@
 				</p>
 				<h2 class="tx_details_header">{{ _("Inputs") }} ({{psbt['inputs'] | length}})</h2>
 				{% for input in psbt['inputs'] %}
-					{% set bg_color = '#131a24' %}
+					{% set bg_color = 'var(--cmap-bg-address-is-not-mine)' %}
 					{% set address=input['address'] %}
-					{% set bg_color = '#925d07' if wallet.is_address_mine(address) else bg_color %}
+					{% set bg_color = 'var(--cmap-bg-address-is-mine)' if wallet.is_address_mine(address) else bg_color %}
 					<p class="tx_info" style="text-align: left; background-color: {{ bg_color }};">
 						<b style="margin: auto;">Input #{{loop.index0}}</b><br><br>
 						<b>{{ _("Transaction id:") }}</b><br>
@@ -155,7 +155,7 @@
 				<h2 class="tx_details_header">{{ _("Outputs") }} ({{psbt['outputs']|length}})</h2>
 				{% for output in psbt['outputs'] %}
 					{% set address = output['address'] %}
-					{% set bg_color = '#154984' if output['is_mine'] else '#131a24' %}
+					{% set bg_color = 'var(--cmap-bg-address-is-mine)' if output['is_mine'] else 'var(--cmap-bg-address-is-not-mine)' %}
 					<p class="tx_info" style="text-align: left; background-color: {{ bg_color }};">
 						<b>{{ _("Output") }} #{{loop.index0}}</b> {% if output['is_change'] %}(Change){% endif %}<br><br>
 						{% set addr_label = wallet.getlabel(address) %}
@@ -174,7 +174,7 @@
 						{% endif %}
 					</p>
 				{% endfor %}
-				{{ _("Raw PSBT:") }}<textarea id="raw-psbt" disabled style="background-color: #131a24;">{{ psbt['base64'] }}</textarea>
+				{{ _("Raw PSBT:") }}<textarea id="raw-psbt" disabled style="background-color: var(--cmap-bg-address-is-not-mine);">{{ psbt['base64'] }}</textarea>
 				<div class="row break-row-mobile" style="margin:auto">
 					<a id="download-psbt-btn" class="btn"
 					download="binary_{{ psbt['tx']['hash'] }}.psbt" href="data:application/octet-stream;base64;content-disposition=attachment,{{ psbt['base64'] }}">

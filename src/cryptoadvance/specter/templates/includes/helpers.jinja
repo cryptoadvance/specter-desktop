@@ -35,12 +35,11 @@
         var formattedUnitLabel = formatUnitLabel(unitLabel, convertToSat);
         var formattedValue = valueInBTC;
         if (valueInBTC) {
-            value = parseFloat(valueInBTC.toFixed(8));
             // The second condition in the if clause if True if formattedUnitLabel is equal to any element of the array
             if (convertToSat && (["Lsat", "sat", "tLsat", "tsat"].indexOf(formattedUnitLabel) > -1)) {
-                formattedValue = parseInt(value * 1e8)
+                formattedValue = format_btc_amount_as_sats(valueInBTC)
             }
-            formattedValue = `${numberWithCommas(formattedValue)}`;
+            formattedValue = format_btc_amount(valueInBTC);
         }
         else {
             formattedValue = '{{ _("Confidential") }}';
