@@ -3,7 +3,14 @@
 
 
 
-
+    /*
+        Formats the btc amount as sats. 
+        Args:
+            enable_digit_formatting (bool, optional): Will group the Satoshis into blocks of 3,
+                e.g. 3 123 456, and color the blocks. Defaults to false.
+        Returns:
+            str: The formatted btc amount as html code.
+        */
     function internalFormatBtcAmountAsSats(
         value,
         enable_digit_formatting=false,
@@ -44,14 +51,8 @@
         return array.join('')
     }
 
-    function internalFormatBtcAmount(
-        value,
-        maximum_digits_to_strip=7,
-        minimum_digits_to_strip=6,
-        enable_digit_formatting=true,
-        shrink_stripped=false
-    ){
-        /*
+
+    /*
         Formats the btc amount such that it can be right aligned such
         that the decimal separator will be always at the same x position.
         Stripping trailing 0's is done via just making the 0's transparent.
@@ -67,6 +68,14 @@
         Returns:
             str: The formatted btc amount as html code.
         */
+    function internalFormatBtcAmount(
+        value,
+        maximum_digits_to_strip=7,
+        minimum_digits_to_strip=6,
+        enable_digit_formatting=true,
+        shrink_stripped=false
+    ){
+       
         const locale = 'en-US';
         var formatted_amount = parseFloat(value).toLocaleString(locale, { 
             minimumFractionDigits: 8, 
@@ -117,6 +126,29 @@
         return array.join('');
     }
 
+
+    // Puts the price in a "note" span.  preText is separator text 
+    function internalFormatPriceAsNote(price, preText=''){
+        {% if not specter.price_check %}
+            return ''
+        {% endif %}
+
+        return `<span class="note">${preText}(${price})</span>`
+    }
+
+    String.prototype.rstrip = function(s) { 
+        return this.replace(new RegExp(s + "*$"),''); 
+    };
+
+
+    // Determines if an unitLabel (e.g. from a tx output) is "BTC", "LBTC", "tBTC", "tLBTC"
+    function internalUnitLabelIsBitcoin(unitLabel){
+        if (!unitLabel){
+            return true            
+        } 
+        unitLabel = unitLabel.toUpperCase();
+        return ([null, "", "LBTC", "BTC", "TBTC", "TLBTC"].indexOf(unitLabel) > -1)
+    }
 
 
 
@@ -199,29 +231,13 @@
 
 
 
-    // Determines if an unitLabel (e.g. from a tx output) is "BTC", "LBTC", "tBTC", "tLBTC"
-    function unitLabelIsBitcoin(unitLabel){
-        if (!unitLabel){
-            return true            
-        } 
-        unitLabel = unitLabel.toUpperCase();
-        return ([null, "", "LBTC", "BTC", "TBTC", "TLBTC"].indexOf(unitLabel) > -1)
-    }
-
-    function formatPriceAsNote(price, preText=''){
-        {% if not specter.price_check %}
-            return ''
-        {% endif %}
-
-        return `<span class="note">${preText}(${price})</span>`
-    }
-
-    String.prototype.rstrip = function(s) { 
-        return this.replace(new RegExp(s + "*$"),''); 
-    };
-
     // Calculates and formats the price as a span class="note"
-    function formatPrice(valueInBTC, unitLabel='{{ specter.unit }}', symbol='{{ specter.alt_symbol }}', price='{{ specter.alt_rate }}'){
+    function formatPrice(valueInBTC, 
+                        unitLabel='{{ specter.unit }}', 
+                        symbol='{{ specter.alt_symbol }}', 
+                        price='{{ specter.alt_rate }}',
+                        wrapInSpan=true,
+                        ){
         if ('{{ specter.hide_sensitive_info }}' == 'True'){
             return "#########"};
         if (valueInBTC == null){
@@ -231,7 +247,7 @@
 
         var formattedPrice = "";
         if (valueInBTC) {
-            if(unitLabelIsBitcoin(unitLabel)){
+            if(internalUnitLabelIsBitcoin(unitLabel)){
                 if (price && symbol) {
                     const locale = 'en-US';
                     let thousandsSeparator = Number(1000).toLocaleString(locale).charAt(1);
@@ -241,11 +257,8 @@
                         maximumFractionDigits: 2 
                     }).rstrip('0').rstrip(`\\${decimalSeparator}`); 
 
-                    if (symbol in ["$", "£"]){
-                        formattedPrice = formatPriceAsNote(`${symbol}${formatted_amount}`);
-                    }else{
-                        formattedPrice = formatPriceAsNote(`${formatted_amount}${symbol}`);
-                    }
+                    formattedPrice = (symbol in ["$", "£"]) ? `${symbol}${formatted_amount}` : `${formatted_amount}${symbol}`;
+                    formattedPrice = wrapInSpan ? internalFormatPriceAsNote(formattedPrice) : formattedPrice;
                 }
             }
         }
