@@ -62,7 +62,7 @@
             <table>
                 <tr>
                     <th>Total amount:</th>
-                    <th id="fullbalance_amount" class="right-align">{{ amount_total | btcunitamount_fixed_decimals | safe }}</th>
+                    <th id="amount_total" class="right-align"></th>
                     <th>
                         {% if specter.unit == 'sat' %}
                             sats
@@ -79,7 +79,7 @@
                 {% if amount_unconfirmed > 0 or amount_immature > 0 %}
                     <tr>
                         <th>Confirmed:</th>
-                        <th id="confirmed_amount" class="right-align">{{ amount_confirmed | btcunitamount_fixed_decimals | safe }}</th>
+                        <th id="amount_confirmed" class="right-align"></th>
                         <th>
                             {% if specter.unit == 'sat' %}
                                 sats
@@ -96,7 +96,7 @@
                     {% if amount_unconfirmed > 0 %}
                     <tr>
                         <th>Unconfirmed:</th>
-                        <th id="unconfirmed_amount" class="right-align">{{ amount_unconfirmed | btcunitamount_fixed_decimals | safe }}</th>
+                        <th id="amount_unconfirmed" class="right-align"></th>
                         <th>
                             {% if specter.unit == 'sat' %}
                                 sats
@@ -123,7 +123,7 @@
                             {% if specter.chain == "regtest" %}{{ _('You see these outputs because you are using regtest and have mined blocks.')}}{% endif %}
                             </span>
                         </tool-tip>
-                    <th class="right-align">{{ amount_immature | btcunitamount_fixed_decimals | safe }}</th>
+                    <th id="amount_immature" class="right-align"></th>
                     </th>      
                     <th> 
                         {% if specter.unit == 'sat' %}
@@ -151,8 +151,7 @@
                         {% for asset in balance.get("assets",{}).keys() | sort %}
                             <th></th>
                             {% set balance = balance.get("assets",{}).get(asset, {}) %}
-                            <th class="right-align">
-                                {{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcunitamount_fixed_decimals | safe }}</th>
+                            <th id="assets" class="right-align"></th>
                             <th>
                                 <asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}" edit-mode="enabled"></asset-label>
                             </th>
@@ -180,4 +179,13 @@
             {% endif %}
         </div>
     {% endif %}
+
+    <script>
+        document.getElementById('amount_total').innerHTML = btcunitamount_fixed_decimals({{ amount_total | safe }});
+        document.getElementById('amount_confirmed').innerHTML = btcunitamount_fixed_decimals({{ amount_confirmed | safe }});
+        document.getElementById('amount_unconfirmed').innerHTML = btcunitamount_fixed_decimals({{ amount_unconfirmed | safe }});
+        document.getElementById('amount_immature').innerHTML = btcunitamount_fixed_decimals({{ amount_immature | safe }});
+        document.getElementById('assets').innerHTML = btcunitamount_fixed_decimals({{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | safe }});
+        
+    </script>
 {%- endmacro %}

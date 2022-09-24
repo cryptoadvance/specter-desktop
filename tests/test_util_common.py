@@ -2,8 +2,6 @@ from cryptoadvance.specter.util.common import (
     camelcase2snake_case,
     snake_case2camelcase,
     str2bool,
-    format_btc_amount,
-    format_btc_amount_as_sats,
 )
 
 

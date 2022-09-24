@@ -72,4 +72,149 @@
 
 
 
+
+
+
+    function format_btc_amount_as_sats(
+        value,
+        enable_digit_formatting=true,
+    ) {
+        const locale = 'en-US';
+        var s = (parseFloat(value) * 1e8).toLocaleString(locale, { 
+            minimumFractionDigits: 0, 
+            maximumFractionDigits: 0 
+        });         
+
+        let thousandsSeparator = Number(1000).toLocaleString(locale).charAt(1);
+        let decimalSeparator = Number(1.1).toLocaleString(locale).charAt(1);
+        
+        // combine the thousandsSeparator with the left number to an array
+        var array = [];
+        for (var i in s){
+            var letter = s[i];
+            if (letter == thousandsSeparator){
+                array[array.length-1] += letter;
+            } else {
+                array.push(letter);
+            }
+        }
+
+        if (enable_digit_formatting){
+            const l = array.length;
+            if (l >= 4){
+                var left_index = l >= 6 ? l-6 : 0;
+                array[left_index] = `<span class="thousand-digits-in-sats-amount">${array[left_index]}`;
+                array[l-4] = `${array[l-4]}</span>`;
+            }
+
+            var left_index = l >= 3 ? l-3: 0;
+            array[left_index] = `<span class="last-digits-in-sats-amount">${array[left_index]}`;
+            array[l-1] = `${array[l-1]}</span>`;
+        }
+
+        return array.join('')
+    }
+
+    function format_btc_amount(
+        value,
+        maximum_digits_to_strip=7,
+        minimum_digits_to_strip=6,
+        enable_digit_formatting=true
+    ){
+        /*
+        Formats the btc amount such that it can be right aligned such
+        that the decimal separator will be always at the same x position.
+        Stripping trailing 0's is done via just making the 0's transparent.
+        Args:
+            value (Union[float, str]): Will convert string to float.
+                The float is expected to be in the unit (L)BTC with 8 relevant digits
+            maximum_digits_to_strip (int, optional): No more than maximum_digits_to_strip
+                trailing 0's will be stripped. Defaults to 7.
+            minimum_digits_to_strip (int, optional): Only strip any trailing 0's if
+                there are at least minimum_digits_to_strip. Defaults to 6.
+            enable_digit_formatting (bool, optional): Will group the Satoshis into blocks of 3,
+                e.g. 0.03 123 456, and color the blocks. Defaults to True.
+        Returns:
+            str: The formatted btc amount as html code.
+        */
+        const locale = 'en-US';
+        var formatted_amount = parseFloat(value).toLocaleString(locale, { 
+            minimumFractionDigits: 8, 
+            maximumFractionDigits: 8 
+        }); 
+
+        let thousandsSeparator = Number(1000).toLocaleString(locale).charAt(1);
+        let decimalSeparator = Number(1.1).toLocaleString(locale).charAt(1);
+
+        var count_digits_that_can_be_stripped = 0;
+        for (var j in formatted_amount){
+            var i = formatted_amount.length - j;
+            if (formatted_amount[i] == "0"){
+                count_digits_that_can_be_stripped += 1;
+                continue
+            }
+            break
+        }
+
+        var array = Array.from(formatted_amount);
+        if (count_digits_that_can_be_stripped >= minimum_digits_to_strip){
+            // loop through the float number, e.g. 0.03 000 000, from the right and replace 0's or the '.' until you hit anything != 0
+            for (var j in array){
+                var i = array.length - j;
+                if ((array[i] == "0") && (len(array) - i <= maximum_digits_to_strip)){
+                    array[
+                        i
+                    ] = `<span class="unselectable transparent-text">${array[i]}</span>`;
+                    // since this digit == 0, then continue the loop and check the next digit
+                    continue
+                }
+                // the following if branch is only relevant if last_digits_to_strip == 8, i.e. all digits can be stripped
+                else if (formatted_amount[i] == "."){
+                    array[i] = `<span class="unselectable transparent-text">${array[i]}</span>`;
+                    // since this character == '.', then the loop must be broken now
+                }
+                // always break the loop. Only the digit == 0 can prevent this break
+                break
+            }
+        }
+
+        const l = array.length;
+        if (enable_digit_formatting){
+            array[l-6] = `<span class="thousand-digits-in-btc-amount">${array[l-6]}`;
+            array[l-4] = `${array[l-4]}</span>`;
+            array[l-3] = `<span class="last-digits-in-btc-amount">${array[l-3]}`;
+            array[l-1] = `${array[l-1]}</span>`;
+        }
+
+        return array.join('');
+    }
+
+
+
+    function btcunitamount_fixed_decimals(
+        value,
+        maximum_digits_to_strip=7,
+        minimum_digits_to_strip=6,
+        enable_digit_formatting=true){
+        if ('{{ specter.hide_sensitive_info }}' == 'True'){
+            return "#########"};
+        if (value == null){
+            return "Unknown"};
+        if (value < 0 && '{{ specter.is_liquid }}' == 'True'){
+            return "Confidential"}
+        if ('{{ specter.unit }}' == "sat"){
+            return format_btc_amount_as_sats(value);
+        }
+
+        return format_btc_amount(
+            value,
+            maximum_digits_to_strip=maximum_digits_to_strip,
+            minimum_digits_to_strip=minimum_digits_to_strip,
+            enable_digit_formatting=enable_digit_formatting
+        );
+    }
+
+
+
+
 </script>

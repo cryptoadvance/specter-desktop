@@ -3,7 +3,6 @@ from flask import current_app as app
 from flask import Blueprint
 from jinja2 import pass_context
 from ..helpers import to_ascii20
-from ..util.common import format_btc_amount_as_sats, format_btc_amount
 
 filters_bp = Blueprint("filters", __name__)
 
@@ -37,32 +36,6 @@ def average_of_attribute(context, values, attribute):
         if getattr(value, attribute) is not None
     ]
     return sum(dicts) / len(dicts) if dicts else None
-
-
-@pass_context
-@filters_bp.app_template_filter("btcunitamount_fixed_decimals")
-def btcunitamount_fixed_decimals(
-    context,
-    value,
-    maximum_digits_to_strip=7,
-    minimum_digits_to_strip=6,
-    enable_digit_formatting=True,
-):
-    if app.specter.hide_sensitive_info:
-        return "#########"
-    if value is None:
-        return "Unknown"
-    if value < 0 and app.specter.is_liquid:
-        return "Confidential"
-    if app.specter.unit == "sat":
-        return format_btc_amount_as_sats(value)
-
-    return format_btc_amount(
-        value,
-        maximum_digits_to_strip=maximum_digits_to_strip,
-        minimum_digits_to_strip=minimum_digits_to_strip,
-        enable_digit_formatting=enable_digit_formatting,
-    )
 
 
 @pass_context
