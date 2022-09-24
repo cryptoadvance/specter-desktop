@@ -63,7 +63,7 @@ def test_format_btc_amount():
     # Last three 0s stripped
     btc_amount = 1.05678000  # 1.05678
     assert (
-        formatBtcAmount(btc_amount, minimum_digits_to_strip=3)
+        formatBtcAmount(btc_amount, minimumDigitsToStrip=3)
         == """1.05<span class="thousand-digits-in-btc-amount">678</span>\
 <span class="last-digits-in-btc-amount">\
 <span class="unselectable transparent-text">0</span>\
@@ -75,25 +75,25 @@ def test_format_btc_amount():
 def test_format_btc_amount_as_sats():
     btc_amount = 0.00560000
     assert (
-        internalFormatBtcAmountAsSats(btc_amount, enable_digit_formatting=True)
+        internalFormatBtcAmountAsSats(btc_amount, enableDigitFormatting=True)
         == '<span class="thousand-digits-in-sats-amount">560,</span><span class="last-digits-in-sats-amount">000</span>'
     )
     assert internalFormatBtcAmountAsSats(btc_amount) == "560,000"
     btc_amount = 0.10560000
     assert (
-        internalFormatBtcAmountAsSats(btc_amount, enable_digit_formatting=True)
+        internalFormatBtcAmountAsSats(btc_amount, enableDigitFormatting=True)
         == '10,<span class="thousand-digits-in-sats-amount">560,</span><span class="last-digits-in-sats-amount">000</span>'
     )
     assert internalFormatBtcAmountAsSats(btc_amount) == "10,560,000"
     btc_amount = 1.0
     assert (
-        internalFormatBtcAmountAsSats(btc_amount, enable_digit_formatting=True)
+        internalFormatBtcAmountAsSats(btc_amount, enableDigitFormatting=True)
         == '100,<span class="thousand-digits-in-sats-amount">000,</span><span class="last-digits-in-sats-amount">000</span>'
     )
     assert internalFormatBtcAmountAsSats(btc_amount) == "100,000,000"
     btc_amount = 1.56000000
     assert (
-        internalFormatBtcAmountAsSats(btc_amount, enable_digit_formatting=True)
+        internalFormatBtcAmountAsSats(btc_amount, enableDigitFormatting=True)
         == '156,<span class="thousand-digits-in-sats-amount">000,</span><span class="last-digits-in-sats-amount">000</span>'
     )
     assert internalFormatBtcAmountAsSats(btc_amount) == "156,000,000"

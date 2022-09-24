@@ -6,14 +6,14 @@
     /*
         Formats the btc amount as sats. 
         Args:
-            enable_digit_formatting (bool, optional): Will group the Satoshis into blocks of 3,
+            enableDigitFormatting (bool, optional): Will group the Satoshis into blocks of 3,
                 e.g. 3 123 456, and color the blocks. Defaults to false.
         Returns:
             str: The formatted btc amount as html code.
         */
     function internalFormatBtcAmountAsSats(
         value,
-        enable_digit_formatting=false,
+        enableDigitFormatting=false,
     ) {
         const locale = 'en-US';
         var s = (parseFloat(value) * 1e8).toLocaleString(locale, { 
@@ -35,7 +35,7 @@
             }
         }
 
-        if (enable_digit_formatting){
+        if (enableDigitFormatting){
             const l = array.length;
             if (l >= 4){
                 var left_index = l >= 6 ? l-6 : 0;
@@ -59,21 +59,21 @@
         Args:
             value (Union[float, str]): Will convert string to float.
                 The float is expected to be in the unit (L)BTC with 8 relevant digits
-            maximum_digits_to_strip (int, optional): No more than maximum_digits_to_strip
+            maximumDigitsToStrip (int, optional): No more than maximumDigitsToStrip
                 trailing 0's will be stripped. Defaults to 7.
-            minimum_digits_to_strip (int, optional): Only strip any trailing 0's if
-                there are at least minimum_digits_to_strip. Defaults to 6.
-            enable_digit_formatting (bool, optional): Will group the Satoshis into blocks of 3,
+            minimumDigitsToStrip (int, optional): Only strip any trailing 0's if
+                there are at least minimumDigitsToStrip. Defaults to 6.
+            enableDigitFormatting (bool, optional): Will group the Satoshis into blocks of 3,
                 e.g. 0.03 123 456, and color the blocks. Defaults to True.
         Returns:
             str: The formatted btc amount as html code.
         */
     function internalFormatBtcAmount(
         value,
-        maximum_digits_to_strip=7,
-        minimum_digits_to_strip=6,
-        enable_digit_formatting=true,
-        shrink_stripped=false
+        maximumDigitsToStrip=7,
+        minimumDigitsToStrip=6,
+        enableDigitFormatting=true,
+        hideStripped=false
     ){
        
         const locale = 'en-US';
@@ -86,28 +86,28 @@
         let thousandsSeparator = Number(1000).toLocaleString(locale).charAt(1);
         let decimalSeparator = Number(1.1).toLocaleString(locale).charAt(1);
 
-        var count_digits_that_can_be_stripped = 0;
+        var countDigitsThatCanBeStripped = 0;
         for (var j in array){
             var i = array.length - j - 1;
             if (array[i] == "0"){
-                count_digits_that_can_be_stripped += 1;
+                countDigitsThatCanBeStripped += 1;
                 continue
             }
             break
         }
 
-        if (count_digits_that_can_be_stripped >= minimum_digits_to_strip){
+        if (countDigitsThatCanBeStripped >= minimumDigitsToStrip){
             // loop through the float number, e.g. 0.03 000 000, from the right and replace 0's or the '.' until you hit anything != 0
             for (var j in array){
                 var i = array.length - j - 1;
-                if ((array[i] == "0") && (array.length - i <= maximum_digits_to_strip)){
-                    array[i] = `<span class="unselectable transparent-text ${shrink_stripped ? 'hidden' : ''}">${array[i]}</span>`;
+                if ((array[i] == "0") && (array.length - i <= maximumDigitsToStrip)){
+                    array[i] = `<span class="unselectable transparent-text ${hideStripped ? 'hidden' : ''}">${array[i]}</span>`;
                     // since this digit == 0, then continue the loop and check the next digit
                     continue
                 }
                 // the following if branch is only relevant if last_digits_to_strip == 8, i.e. all digits can be stripped
                 else if (formatted_amount[i] == "."){
-                    array[i] = `<span class="unselectable transparent-text ${shrink_stripped ? 'hidden' : ''}">${array[i]}</span>`;
+                    array[i] = `<span class="unselectable transparent-text ${hideStripped ? 'hidden' : ''}">${array[i]}</span>`;
                     // since this character == '.', then the loop must be broken now
                 }
                 // always break the loop. Only the digit == 0 can prevent this break
@@ -116,7 +116,7 @@
         }
 
         const l = array.length;
-        if (enable_digit_formatting){
+        if (enableDigitFormatting){
             array[l-6] = `<span class="thousand-digits-in-btc-amount">${array[l-6]}`;
             array[l-4] = `${array[l-4]}</span>`;
             array[l-3] = `<span class="last-digits-in-btc-amount">${array[l-3]}`;
@@ -194,7 +194,7 @@
 
     // Formats the valueInBTC (e.g. from a tx output) to an array
     // e.g. ["0.22569496", "tBTC"]
-    function formatBtcAmountAndUnitArray(valueInBTC, unitLabel='{{ specter.unit }}', shrink_stripped=true){
+    function formatBtcAmountAndUnitArray(valueInBTC, unitLabel='{{ specter.unit }}', hideStripped=true){
         if ('{{ specter.hide_sensitive_info }}' == 'True'){
             return ["#########"]};
         if (valueInBTC == null){
@@ -209,19 +209,19 @@
                                                                                             7,
                                                                                             6,
                                                                                             true,
-                                                                                            shrink_stripped);
+                                                                                            hideStripped);
         return [formattedValue, formattedUnitLabel];  
     }
 
     // Formats the valueInBTC (e.g. from a tx output) to an "formattedValue formattedUnitLabel"
     // e.g. "0.22569496 tBTC"
-    function formatBtcAmountAndUnit(valueInBTC, unitLabel='{{ specter.unit }}', shrink_stripped=true){
-        return formatBtcAmountAndUnitArray(valueInBTC, unitLabel, shrink_stripped).join(' ');  
+    function formatBtcAmountAndUnit(valueInBTC, unitLabel='{{ specter.unit }}', hideStripped=true){
+        return formatBtcAmountAndUnitArray(valueInBTC, unitLabel, hideStripped).join(' ');  
     }
     // Formats the valueInBTC (e.g. from a tx output) to an "formattedValue"
     // e.g. "0.22569496"
-    function formatBtcAmount(valueInBTC, unitLabel='{{ specter.unit }}', shrink_stripped=true){
-        return formatBtcAmountAndUnitArray(valueInBTC, unitLabel, shrink_stripped)[0];  
+    function formatBtcAmount(valueInBTC, unitLabel='{{ specter.unit }}', hideStripped=true){
+        return formatBtcAmountAndUnitArray(valueInBTC, unitLabel, hideStripped)[0];  
     }
 
 
