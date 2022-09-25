@@ -41,10 +41,10 @@ describe('Test sending transactions', () => {
         cy.get('.tx-data-info').contains('Transaction id:')
         cy.get('.tx-data-info').contains('Output index:') // Not sure whether it is always 1 - output ordering is random in Core ...
         cy.get('.tx-data-info').contains('Address #0')
-        cy.get('.tx-data-info').contains('Value: 20.0 tBTC')
+        cy.get('.tx-data-info').find('.tx_info').eq(0).contains('Value: 20.00000000 tBTC')
         cy.get('.tx-data-info').contains('Output #0')
         cy.get('.tx-data-info').contains('Burn address') 
-        cy.get('.tx-data-info').contains('Value: 19.9999989 tBTC') // Fees should always be the same
+        cy.get('.tx-data-info').find('.tx_info').eq(1).contains('Value: 19.99999890 tBTC')   // Fees should always be the same
         cy.get('#page_overlay_popup_cancel_button').click()
         // Change to sats and check amounts and units
         cy.get('[href="/settings/"]').click()
