@@ -87,6 +87,10 @@ Gives the token details of which the id is passed in the URL and deletes the sam
 
 **Permissions required** : None
 
+```
+curl -u admin:secret --location --request GET 'http://127.0.0.1:25441/api/v1alpha/token/<jwt_token_id>' | jq .
+```
+
 ### Success Response
 
 **Code** : `200 OK`
@@ -111,6 +115,10 @@ Gives the token details of which the id is passed in the URL and deletes the sam
 **Auth required** : Yes
 
 **Permissions required** : None
+
+```
+curl -u admin:secret --location --request DELETE 'http://127.0.0.1:25441/api/v1alpha/token/<jwt_token_id>' | jq .
+```
 
 ### Success Response
 
