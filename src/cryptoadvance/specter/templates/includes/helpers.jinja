@@ -6,6 +6,7 @@
     /*
         Formats the btc amount as sats. 
         Args:
+            value (Union[float, str]): (in BTC) Will convert string to float. 
             enableDigitFormatting (bool, optional): Will group the Satoshis into blocks of 3,
                 e.g. 3 123 456, and color the blocks. Defaults to false.
         Returns:
@@ -60,7 +61,7 @@
         that the decimal separator will be always at the same x position.
         Stripping trailing 0's is done via just making the 0's transparent.
         Args:
-            value (Union[float, str]): Will convert string to float.
+            value (Union[float, str]): (in BTC) Will convert string to float.
                 The float is expected to be in the unit (L)BTC with 8 relevant digits
             maximumDigitsToStrip (int, optional): No more than maximumDigitsToStrip
                 trailing 0's will be stripped. Defaults to 7.
@@ -140,6 +141,7 @@
 
 
     // Determines if an unit (e.g. from a tx output) is "BTC", "LBTC", "tBTC", "tLBTC"
+    // null or "" will also return true
     function internalUnitLabelIsBitcoin(unit){
         if (!unit){
             return true            
@@ -191,7 +193,7 @@
     }
 
 
-
+    // strips the right end of the text with the pattern
     function rstrip(text, pattern) { 
         return text.replace(new RegExp(pattern + "*$"),''); 
     };
@@ -200,6 +202,7 @@
 
     // Formats the valueInBTC (e.g. from a tx output) to an array
     // e.g. ["0.22569496", "tBTC"]
+    // by default targetUnit will be set to BTC for liquid to prevent any conversion of valueInBTC
     function formatBtcAmountAndUnitArray(valueInBTC, targetUnit='{{ "BTC" if specter.is_liquid else specter.unit }}', hideStripped=true){
         if ('{{ specter.hide_sensitive_info }}' == 'True'){
             return ["#########"]};
