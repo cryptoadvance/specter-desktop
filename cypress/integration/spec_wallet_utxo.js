@@ -10,7 +10,7 @@ describe('Test the actions in UTXO list', () => {
         cy.get('#toggle_devices_list').click()
         cy.addHotDevice(device_name, "bitcoin")
         cy.addHotWallet(wallet_name, device_name, "bitcoin", "segwit")
-        cy.get('#fullbalance_amount').then(($span) => {
+        cy.get('#amount_total').then(($span) => {
             const balance = parseFloat($span.text())
             if (balance <= 20) {
                 cy.log("balance " + balance + " too low. Mining!")

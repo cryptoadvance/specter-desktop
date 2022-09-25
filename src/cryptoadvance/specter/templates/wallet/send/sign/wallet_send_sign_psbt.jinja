@@ -76,16 +76,16 @@
 		<div class="tx_info">
 			{% for i in range(psbt['address']|length) %}
 				<div style="word-break: break-all;">
-					{{ _("Sending") }} <b><span id="psbt.amount.{{i}}"></span><span id="psbt.price.{{i}}"></span></b>
+					{{ _("Sending") }} <b><span id="psbt-amount-{{i}}"></span><span id="psbt-price-{{i}}"></span></b>
 					{% if "asset" in psbt %}
 						<script>
-							document.getElementById("psbt.amount.{{i}}").innerHTML = formatBtcAmount({{ psbt["amount"][i] }})
+							document.getElementById("psbt-amount-{{i}}").innerHTML = formatBtcAmount({{ psbt["amount"][i] }})
 						</script>
 						<asset-label data-asset="{{psbt['asset'][i]}}" data-label="{{psbt['asset'][i] | assetlabel}}"></asset-label>
 					{% else %}            
 						<script>
-							document.getElementById("psbt.amount.{{i}}").innerHTML = formatBtcAmountAndUnit({{ psbt["amount"][i] }});
-							document.getElementById("psbt.price.{{i}}").innerHTML = formatPrice('{{ psbt["amount"][i] }}');
+							document.getElementById("psbt-amount-{{i}}").innerHTML = formatBtcAmountAndUnit({{ psbt["amount"][i] }});
+							document.getElementById("psbt-price-{{i}}").innerHTML = formatPrice('{{ psbt["amount"][i] }}');
 						</script>
 					{% endif %}
 					{{ _("to") }}<b>
@@ -115,11 +115,11 @@
 				<h2 class="tx_details_header">{{ _("Transaction Info") }}</h2>
 				<p style="text-align: left; background-color: var(--cmap-bg-address-is-not-mine); padding: 10px; line-height: 2; border-radius: 15px;">
 					<b>{{ _("Total fee:") }}</b>
-					<span id="totalfee.amount"></span>
-					<span id="totalfee.price"></span>
+					<span id="totalfee-amount"></span>
+					<span id="totalfee-price"></span>
 					<script>
-						document.getElementById("totalfee.amount").innerHTML = formatBtcAmountAndUnit({{ psbt['fee'] }}, 'sat');
-						document.getElementById("totalfee.price").innerHTML = formatPrice('{{ psbt['fee'] }}');
+						document.getElementById("totalfee-amount").innerHTML = formatBtcAmountAndUnit({{ psbt['fee'] }}, 'sat');
+						document.getElementById("totalfee-price").innerHTML = formatPrice('{{ psbt['fee'] }}');
 					</script>
 					<br>
 					<b>{{ _("Fee rate:") }}</b>
@@ -152,17 +152,17 @@
 							<br>
 						{% endif %}
 						<b>{{ _("Amount:") }}</b> 
-						<span id="psbt.inputs.{{loop.index0}}.amount"></span>
-						<span id="psbt.inputs.{{loop.index0}}.price"></span>
+						<span id="psbt-inputs-{{loop.index0}}-amount"></span>
+						<span id="psbt-inputs-{{loop.index0}}-price"></span>
 						{% if specter.is_liquid %}
 							<script>
-								document.getElementById("psbt.inputs.{{loop.index0}}.amount").innerHTML = formatBtcAmountAndUnit({{ input.get('float_amount') }});
-								document.getElementById("psbt.inputs.{{loop.index0}}.price").innerHTML = `<asset-label data-asset="{{input['asset']}}" data-label="{{input['asset'] | assetlabel}}"></asset-label>`;
+								document.getElementById("psbt-inputs-{{loop.index0}}-amount").innerHTML = formatBtcAmountAndUnit({{ input.get('float_amount') }});
+								document.getElementById("psbt-inputs-{{loop.index0}}-price").innerHTML = `<asset-label data-asset="{{input['asset']}}" data-label="{{input['asset'] | assetlabel}}"></asset-label>`;
 							</script>							
 						{% else %}
 							<script>
-								document.getElementById("psbt.inputs.{{loop.index0}}.amount").innerHTML = formatBtcAmountAndUnit({{ input.get('float_amount') }})
-								document.getElementById("psbt.inputs.{{loop.index0}}.price").innerHTML = formatPrice('{{ input.get('float_amount') }}');
+								document.getElementById("psbt-inputs-{{loop.index0}}-amount").innerHTML = formatBtcAmountAndUnit({{ input.get('float_amount') }})
+								document.getElementById("psbt-inputs-{{loop.index0}}-price").innerHTML = formatPrice('{{ input.get('float_amount') }}');
 							</script>
 						{% endif %}
 					</p>
@@ -183,17 +183,17 @@
 							<br>
 						{% endif %}
 						<b>{{ _("Amount:") }}</b> 
-						<span id="psbt.{{loop.index0}}.amount"></span>
-						<span id="psbt.{{loop.index0}}.price"></span>
+						<span id="psbt-{{loop.index0}}-amount"></span>
+						<span id="psbt-{{loop.index0}}-price"></span>
 						{% if specter.is_liquid %}
 							<script>
-								document.getElementById("psbt.{{loop.index0}}.amount").innerHTML = formatBtcAmount({{ output['float_amount'] }});
+								document.getElementById("psbt-{{loop.index0}}-amount").innerHTML = formatBtcAmount({{ output['float_amount'] }});
 							</script>
 							<asset-label data-asset="{{output['asset']}}" data-label="{{output['asset'] | assetlabel}}"></asset-label>
 						{% else %}
 							<script>
-								document.getElementById("psbt.{{loop.index0}}.amount").innerHTML = formatBtcAmountAndUnit({{ output['float_amount'] }});
-								document.getElementById("psbt.{{loop.index0}}.price").innerHTML = formatPrice('{{ output['float_amount'] }}');
+								document.getElementById("psbt-{{loop.index0}}-amount").innerHTML = formatBtcAmountAndUnit({{ output['float_amount'] }});
+								document.getElementById("psbt-{{loop.index0}}-price").innerHTML = formatPrice('{{ output['float_amount'] }}');
 							</script>
 						{% endif %}
 					</p>

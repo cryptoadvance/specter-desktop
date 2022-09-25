@@ -11,7 +11,7 @@
 {% macro wallet_menu(active_menuitem, wallet_alias, ext_wallettabs) -%}
 	<nav class="row collapse-on-mobile">
 		{{ wallet_menu_item('history', _('Transactions'), wallet_alias, active_menuitem, isLeft=true, id='btn_transactions') }}
-		{{ wallet_menu_item('addresses', _('Addresses'), wallet_alias, active_menuitem) }}
+		{{ wallet_menu_item('addresses', _('Addresses'), wallet_alias, active_menuitem, id='btn_addresses') }}
 		{{ wallet_menu_item('receive', _('Receive'), wallet_alias, active_menuitem, id='btn_receive') }}
 		{{ wallet_menu_item('send', _('Send'), wallet_alias, active_menuitem, id='btn_send') }}
 		{% for ext_id, wallettabs in ext_wallettabs.items() %}

@@ -223,7 +223,7 @@ Cypress.Commands.add("mine2wallet", (chain) => {
   // Fund it and check the balance
   // Only works if a wallet is selected, use addHotWallet / selectWallet commands before if needed
   cy.get('#btn_transactions').click()
-  cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") }).then(($header) => {
+  cy.get('#amount_total', { timeout: Cypress.env("broadcast_timeout") }).then(($header) => {
       const oldBalance = parseFloat($header.text())
       if (chain=="elm" || chain=="elements") {
         cy.task("elm:mine")
@@ -232,7 +232,7 @@ Cypress.Commands.add("mine2wallet", (chain) => {
       } else {
         throw new Error("Unknown chain: " + chain)
       }
-      cy.waitUntil( () => cy.reload().get('#fullbalance_amount', { timeout: 3000 }) 
+      cy.waitUntil( () => cy.reload().get('#amount_total', { timeout: 3000 }) 
         .then(($header) => {
           const n = parseFloat($header.text())
           return n > oldBalance

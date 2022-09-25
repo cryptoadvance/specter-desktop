@@ -24,7 +24,7 @@ describe('Test sending transactions', () => {
         cy.get('#hot_device_1_hot_sign_btn').click()
         cy.get('#hot_enter_passphrase__submit').click()
         cy.get('#broadcast_local_btn').click()
-        cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
+        cy.get('#amount_total', { timeout: Cypress.env("broadcast_timeout") })
         .should(($div) => {
             const n = parseFloat($div.text())
             expect(n).to.be.equals(0)
@@ -240,7 +240,7 @@ describe('Test sending transactions', () => {
         cy.get('#hot_device_2_hot_sign_btn').click()
         cy.get('#hot_enter_passphrase__submit').click()
         cy.get('#broadcast_local_btn').click()
-        cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
+        cy.get('#amount_total', { timeout: Cypress.env("broadcast_timeout") })
         .should(($div) => {
             const n = parseFloat($div.text())
             expect(n).to.be.equals(0)

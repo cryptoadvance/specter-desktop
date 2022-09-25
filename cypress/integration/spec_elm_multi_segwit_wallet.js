@@ -60,7 +60,7 @@ describe('Operating with an Elements multisig wallet', () => {
         cy.visit('/')
         cy.contains("Elm Multi Segwit Wallet").click()
         
-        cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") }).then(($div) => {
+        cy.get('#amount_total', { timeout: Cypress.env("broadcast_timeout") }).then(($div) => {
             // Create PSBT
             const oldBalance = parseFloat($div.text())
             expect(oldBalance).to.be.gte(1.5)
@@ -80,7 +80,7 @@ describe('Operating with an Elements multisig wallet', () => {
             cy.get('#broadcast_local_btn').click()
             
             // Redirect to "transactions", check balance there
-            cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
+            cy.get('#amount_total', { timeout: Cypress.env("broadcast_timeout") })
             .should(($div) => {
                 const newBalance = parseFloat($div.text())
                 expect(newBalance).to.be.lte(oldBalance - 1.5)
@@ -93,7 +93,7 @@ describe('Operating with an Elements multisig wallet', () => {
         cy.visit('/')
         cy.contains("Elm Multi Segwit Wallet").click()
 
-        cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") }).then(($div) => {
+        cy.get('#amount_total', { timeout: Cypress.env("broadcast_timeout") }).then(($div) => {
             // Create PSBT
             const oldBalance = parseFloat($div.text())
             expect(oldBalance).to.be.gte(1.5)
@@ -113,7 +113,7 @@ describe('Operating with an Elements multisig wallet', () => {
             cy.get('#broadcast_local_btn').click()
             
             // Redirect to "transactions", check balance there
-            cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
+            cy.get('#amount_total', { timeout: Cypress.env("broadcast_timeout") })
             .should(($div) => {
                 const newBalance = parseFloat($div.text())
                 expect(newBalance).to.be.lte(oldBalance - 1.5)
@@ -126,7 +126,7 @@ describe('Operating with an Elements multisig wallet', () => {
         cy.visit('/')
         cy.contains("Elm Multi Nested Wallet").click()
 
-        cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") }).then(($div) => {
+        cy.get('#amount_total', { timeout: Cypress.env("broadcast_timeout") }).then(($div) => {
             // Create PSBT
             const oldBalance = parseFloat($div.text())
             expect(oldBalance).to.be.gte(1.5)
@@ -146,7 +146,7 @@ describe('Operating with an Elements multisig wallet', () => {
             cy.get('#broadcast_local_btn').click()
 
             // Redirect to "transactions", check balance there
-            cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
+            cy.get('#amount_total', { timeout: Cypress.env("broadcast_timeout") })
             .should(($div) => {
                 const newBalance = parseFloat($div.text())
                 expect(newBalance).to.be.lte(oldBalance - 1.5)
@@ -159,7 +159,7 @@ describe('Operating with an Elements multisig wallet', () => {
         cy.visit('/')
         cy.contains("Elm Multi Nested Wallet").click()
 
-        cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") }).then(($div) => {
+        cy.get('#amount_total', { timeout: Cypress.env("broadcast_timeout") }).then(($div) => {
             // Create PSBT
             const oldBalance = parseFloat($div.text())
             expect(oldBalance).to.be.gte(1.5)
@@ -179,7 +179,7 @@ describe('Operating with an Elements multisig wallet', () => {
             cy.get('#broadcast_local_btn').click()
 
             // Redirect to "transactions", check balance there
-            cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
+            cy.get('#amount_total', { timeout: Cypress.env("broadcast_timeout") })
             .should(($div) => {
                 const newBalance = parseFloat($div.text())
                 expect(newBalance).to.be.lte(oldBalance - 1.5)
