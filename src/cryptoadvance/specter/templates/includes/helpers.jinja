@@ -139,13 +139,13 @@
     }
 
 
-    // Determines if an targetUnit (e.g. from a tx output) is "BTC", "LBTC", "tBTC", "tLBTC"
-    function internalUnitLabelIsBitcoin(targetUnit){
-        if (!targetUnit){
+    // Determines if an unit (e.g. from a tx output) is "BTC", "LBTC", "tBTC", "tLBTC"
+    function internalUnitLabelIsBitcoin(unit){
+        if (!unit){
             return true            
         } 
-        targetUnit = targetUnit.toUpperCase();
-        return ([null, "", "LBTC", "BTC", "TBTC", "TLBTC"].indexOf(targetUnit) > -1)
+        unit = unit.toUpperCase();
+        return ([null, "", "LBTC", "BTC", "TBTC", "TLBTC"].indexOf(unit) > -1)
     }
 
 
@@ -203,10 +203,10 @@
     function formatBtcAmountAndUnitArray(valueInBTC, targetUnit='{{ "BTC" if specter.is_liquid else specter.unit }}', hideStripped=true){
         if ('{{ specter.hide_sensitive_info }}' == 'True'){
             return ["#########"]};
+        if ((valueInBTC < 0 || valueInBTC == null) && '{{ specter.is_liquid }}' == 'True'){
+            return ["Confidential"]}
         if (valueInBTC == null){
             return ["Unknown"]};
-        if (valueInBTC < 0 && '{{ specter.is_liquid }}' == 'True'){
-            return ["Confidential"]}
 
         const convertToSat = targetUnit == 'sat';
         var formattedUnitLabel = formatUnitLabel(targetUnit);        
@@ -235,25 +235,27 @@
 
     // Calculates and formats the price as a span class="note"
     function formatPrice(valueInBTC, 
-                        targetUnit='BTC', 
+                        unit='BTC', 
                         symbol='{{ specter.alt_symbol }}', 
                         price='{{ specter.alt_rate }}',
                         wrapInSpan=true,
-                        ){
+                        ){        
         {% if not specter.price_check %}
             return ''
         {% endif %}
 
+
         if ('{{ specter.hide_sensitive_info }}' == 'True'){
-            return "#########"};
+            return ["#########"]};
+        if ((valueInBTC < 0 || valueInBTC == null) && '{{ specter.is_liquid }}' == 'True'){
+            return [""]}
         if (valueInBTC == null){
-            return "Can't be calculated"};
-        if (valueInBTC < 0){
-            return "-"}
+            return [""]};
+
 
         var formattedPrice = "";
         if (valueInBTC) {
-            if(internalUnitLabelIsBitcoin(targetUnit)){
+            if(internalUnitLabelIsBitcoin(unit)){
                 if (price && symbol) {
                     const locale = 'en-US';
                     let thousandsSeparator = Number(1000).toLocaleString(locale).charAt(1);

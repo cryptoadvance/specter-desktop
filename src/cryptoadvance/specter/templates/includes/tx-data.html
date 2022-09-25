@@ -163,7 +163,7 @@
                         }
 
                         var amountAndUnit = formatBtcAmountAndUnit(spentOutput.value);
-                        var price = formatPrice(spentOutput.value); 
+                        var price = formatPrice(spentOutput.value, spentOutput.assetlabel);
                         // assetlabel only exists for Liquid, for BTC it is just null                    
                         if (spentOutput.assetlabel){ // if liquid
                             amountAndUnit = [formatBtcAmount(spentOutput.value  ), 
@@ -250,7 +250,7 @@
                     }
 
                     var amountAndUnit = formatBtcAmountAndUnit(rawtx.vout[i].value);
-                    var price = formatPrice(rawtx.vout[i].value); 
+                    var price = formatPrice(rawtx.vout[i].value, rawtx.vout[i].assetlabel); 
 
                     // assetlabel only exists for Liquid, for BTC it is just null                    
                     if (rawtx.vout[i].assetlabel){ // if liquid
