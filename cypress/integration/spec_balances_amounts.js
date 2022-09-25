@@ -177,8 +177,21 @@ describe('Test the rendering of balances and amounts', () => {
         // the the address balances
         cy.get('#btn_addresses').click()
 
-        //cy.get('.addr-tbody').find('tr').eq(0).find('#column-txid').find('.explorer-link').click()
-        //cy.get('.tx-data-info').contains('Value: 2,000,000,000 tsat')
+        // the 1. tx
+        cy.get('.addr-tbody').find('tr').eq(0).find('.amount').should('have.text', '20.05000000 tBTC')
+        cy.get('.addr-tbody').find('tr').eq(0).find('.amount').find('.thousand-digits-in-btc-amount').children().each((element) => {
+            cy.wrap(element).should('have.text', '0') 
+            cy.wrap(element).should('not.be.visible') 
+        });
+        cy.get('.addr-tbody').find('tr').eq(0).find('.amount').find('.last-digits-in-btc-amount').children().each((element) => {
+            cy.wrap(element).should('have.text', '0') 
+            cy.wrap(element).should('not.be.visible') 
+        });
+
+        // the 2. tx
+        cy.get('.addr-tbody').find('tr').eq(2).find('.amount').should('have.text', '0.00123400 tBTC')
+        cy.get('.addr-tbody').find('tr').eq(2).find('.amount').find('.thousand-digits-in-btc-amount').should('be.visible').should('have.text', '123') 
+        cy.get('.addr-tbody').find('tr').eq(2).find('.amount').find('.last-digits-in-btc-amount').should('be.visible').should('have.text', '400')   
 
 
     })
