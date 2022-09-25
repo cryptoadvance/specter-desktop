@@ -4,21 +4,23 @@ import random
 from functools import wraps
 
 import requests
-from cryptoadvance.specter.commands.psbt_creator import PsbtCreator
-from cryptoadvance.specter.util.wallet_importer import WalletImporter
-from cryptoadvance.specter.wallet import Wallet
-from cryptoadvance.specter.util.tx import is_hex, convert_rawtransaction_to_psbt
 from flask import Blueprint
 from flask import current_app as app
-from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask import jsonify, redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import login_required
 
+from ..commands.psbt_creator import PsbtCreator
 from ..helpers import bcur2base64, get_devices_with_keys_by_type, get_txid
 from ..key import Key
 from ..managers.wallet_manager import purposes
 from ..persistence import delete_file
+from ..server_endpoints import flash
+from ..services import callbacks
 from ..specter_error import SpecterError, handle_exception
+from ..util.tx import convert_rawtransaction_to_psbt, is_hex
+from ..util.wallet_importer import WalletImporter
+from ..wallet import Wallet
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +48,17 @@ def check_wallet(func):
         return func(*args, **kwargs)
 
     return wrapper
+
+
+@wallets_endpoint.context_processor
+def inject_common_stuff():
+    """Can be used in all jinja2 templates of this Blueprint
+    Injects the additional wallet_tabs via extentions
+    """
+    ext_wallettabs = app.specter.service_manager.execute_ext_callbacks(
+        callbacks.add_wallettabs
+    )
+    return dict(ext_wallettabs=ext_wallettabs)
 
 
 ################## Wallet overview #######################

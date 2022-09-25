@@ -215,9 +215,7 @@ Cypress.Commands.add("deleteWallet", (name) => {
 
 Cypress.Commands.add("selectWallet", (name) => { 
   cy.get('body').then(($body) => {
-    if ($body.text().includes(name)) {
-        cy.contains(name).click()
-    } 
+    cy.contains(name).click( {force: true} ) 
   })
 })
 
@@ -225,8 +223,8 @@ Cypress.Commands.add("mine2wallet", (chain) => {
   // Fund it and check the balance
   // Only works if a wallet is selected, use addHotWallet / selectWallet commands before if needed
   cy.get('#btn_transactions').click()
-  cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") }).then(($span) => {
-      const oldBalance = parseFloat($span.text())
+  cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") }).then(($header) => {
+      const oldBalance = parseFloat($header.text())
       if (chain=="elm" || chain=="elements") {
         cy.task("elm:mine")
       } else if (chain=="btc" || chain=="bitcoin") {
@@ -235,8 +233,8 @@ Cypress.Commands.add("mine2wallet", (chain) => {
         throw new Error("Unknown chain: " + chain)
       }
       cy.waitUntil( () => cy.reload().get('#fullbalance_amount', { timeout: 3000 }) 
-        .then(($span) => {
-          const n = parseFloat($span.text())
+        .then(($header) => {
+          const n = parseFloat($header.text())
           return n > oldBalance
         })
       , {

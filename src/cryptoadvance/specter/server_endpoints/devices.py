@@ -3,22 +3,22 @@ import json
 import logging
 import random
 import re
-import logging
 
 from cryptoadvance.specter.devices.device_types import DeviceTypes
 from flask import Blueprint, Flask
 from flask import current_app as app
-from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask import jsonify, redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from mnemonic import Mnemonic
 
 from ..devices.bitcoin_core import BitcoinCore
 from ..helpers import is_testnet
-from ..util.mnemonic import generate_mnemonic, validate_mnemonic
 from ..key import Key
 from ..managers.device_manager import get_device_class
+from ..server_endpoints import flash
 from ..specter_error import handle_exception
+from ..util.mnemonic import generate_mnemonic, validate_mnemonic
 from ..wallet import purposes
 
 logger = logging.getLogger(__name__)

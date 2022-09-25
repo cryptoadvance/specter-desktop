@@ -1,0 +1,75 @@
+<!-- This file contains javascript helper functions that also can use jinja -->
+<script type="text/javascript">
+
+    // Formats an unitLabel (e.g. from a tx output) to a useful unit label
+    function formatUnitLabel(unitLabel, convertToSat){
+        var newLabel = unitLabel;
+        if (newLabel == "" || !newLabel){
+            newLabel = {% if specter.is_liquid %}"LBTC"{%else%}"BTC"{%endif%} 
+        }                    
+        if (convertToSat) {
+            if(newLabel == "LBTC"){
+                newLabel = "Lsat";
+            }
+            // Liquid JSON response on testnet is already tLBTC 
+            else if (newLabel == "tLBTC") {
+                newLabel = "tLsat";
+            }
+            if(newLabel == "BTC"){
+                newLabel = "sat";
+            } 
+        } 
+
+        {% if specter.is_testnet %}
+            if (!newLabel.startsWith("t")){
+                newLabel = "t" + newLabel;
+            }
+        {%endif%}
+        
+        return newLabel;
+    }
+
+    // Formats the valueInBTC (e.g. from a tx output) to "formattedValue formattedUnitLabel"
+    // e.g. 0.22569496 tBTC
+    function formatBtcAmount(valueInBTC, unitLabel, convertToSat){
+        var formattedUnitLabel = formatUnitLabel(unitLabel, convertToSat);
+        var formattedValue = valueInBTC;
+        if (valueInBTC) {
+            value = parseFloat(valueInBTC.toFixed(8));
+            // The second condition in the if clause if True if formattedUnitLabel is equal to any element of the array
+            if (convertToSat && (["Lsat", "sat", "tLsat", "tsat"].indexOf(formattedUnitLabel) > -1)) {
+                formattedValue = parseInt(value * 1e8)
+            }
+            formattedValue = `${numberWithCommas(formattedValue)}`;
+        }
+        else {
+            formattedValue = '{{ _("Confidential") }}';
+            formattedUnitLabel = '';        
+        }
+        return `${formattedValue} ${formattedUnitLabel}`;  
+    }
+
+    // Determines if an unitLabel (e.g. from a tx output) is "BTC", "LBTC", "tBTC", "tLBTC"
+    function unitLabelIsBitcoin(unitLabel){
+        if (!unitLabel){
+            return true            
+        } 
+        return ([null, "", "LBTC", "BTC", "tBTC", "tLBTC"].indexOf(unitLabel) > -1)
+    }
+
+    // Calculates and formats the price as a span class="note"
+    function formatPrice(valueInBTC, unitLabel, symbol, price){
+        var formattedPrice = "";
+        if (valueInBTC) {
+            if(unitLabelIsBitcoin(unitLabel)){
+                if (price && symbol) {
+                    formattedPrice = `<span class="note">(${symbol}${numberWithCommas((parseFloat(price) * valueInBTC).toFixed(2))})</span>`;
+                }
+            }
+        }
+        return formattedPrice
+    }
+
+
+
+</script>

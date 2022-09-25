@@ -40,11 +40,12 @@
 			}
 		</style>
 		<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
+		{% include "includes/helpers.jinja" %}
 		{% include "services/inject_in_basejinja_head.jinja" %}
 		{% block head %}
 		{% endblock %}
 	</head>
-	<body>
+	<body spellcheck="false">
 	{% include "services/inject_in_basejinja_body_top.jinja" %}
 	<div class="pageloader" id="pageloader"></div>
 	{% if specter.config.auth.method == "none" or current_user.is_authenticated %}
@@ -91,12 +92,12 @@
 			{% with messages = get_flashed_messages(with_categories=True) %}
 				{% if messages %}
 					{% for category, message in messages | unique %}
-						<message-box type="{{ category }}">{{ message }}</message-box>
+						<message-box type="{{ category }}">{{ message | safe }}</message-box>
 					{% endfor %}
 				{% endif %}
 			{% endwith %}
 			{% if error %}
-				<message-box type="error">{{ _("ERROR:") }} {{error}}</message-box>
+				<message-box type="error">{{ _("ERROR:") }} {{error | safe }}</message-box>
 			{% endif %}
 			</div>
 
