@@ -73,7 +73,7 @@
 					<a class="settings-bar-btn" onclick="toggleHideSensitiveInfo()" style="padding: 0px 12px; cursor: pointer;" title="{{ 'Hide sensitive info' if not specter.hide_sensitive_info else 'Show sensitive info' }}">
 						<img src="{{ url_for('static', filename='img/hidden.svg' if specter.hide_sensitive_info else 'img/visible.svg') }}" style="width: 30px;" class="svg-white"/>
 					</a>
-					<a class="settings-bar-btn" href="{{ url_for('settings_endpoint.settings') }}" title="Settings" style="padding: 0px 7px;">
+					<a id="settings-bar-btn-settings" class="settings-bar-btn" href="{{ url_for('settings_endpoint.settings') }}" title="Settings" style="padding: 0px 7px;">
 						<img src="{{ url_for('static', filename='img/gear.svg') }}" style="width: 44px;" class="svg-white"/>
 					</a>
 					<a class="settings-bar-btn" href="{{ url_for('welcome_endpoint.about') }}" title="About and help">

@@ -38,7 +38,7 @@
         <div title="Price settings">
             <span id="price-bar-label"></span>
             <script>
-                document.getElementById('price-bar-label').innerHTML = formatPrice(1, '{{ specter.unit }}', '{{ specter.alt_symbol }}', '{{ specter.alt_rate }}', false)
+                document.getElementById('price-bar-label').innerHTML = formatPrice(1, 'BTC', '{{ specter.alt_symbol }}', '{{ specter.alt_rate }}', false)
             </script>        
         </div>        
     {% else %}

@@ -132,10 +132,6 @@
         return `<span class="note">${preText}(${price})</span>`
     }
 
-    String.prototype.rstrip = function(s) { 
-        return this.replace(new RegExp(s + "*$"),''); 
-    };
-
 
     // Determines if an unitLabel (e.g. from a tx output) is "BTC", "LBTC", "tBTC", "tLBTC"
     function internalUnitLabelIsBitcoin(unitLabel){
@@ -158,18 +154,18 @@
             newLabel = "BTC"
         }                    
         if (convertToSat) {
-            if(newLabel == "LBTC"){
+            if(newLabel.toUpperCase() == "LBTC"){
                 newLabel = "Lsat";
             }
             // Liquid JSON response on testnet is already tLBTC 
-            else if (newLabel == "tLBTC") {
+            else if (newLabel.toUpperCase() == "tLBTC") {
                 newLabel = "tLsat";
             }
-            if(newLabel == "BTC"){
+            if(newLabel.toUpperCase() == "BTC"){
                 newLabel = "sat";
             } 
         } else {
-            if (unitLabel == "btc") {
+            if (unitLabel.toUpperCase() == "BTC") {
                 newLabel = "BTC"
             }
         }
@@ -189,6 +185,10 @@
     }
 
 
+
+    function rstrip(text, pattern) { 
+        return text.replace(new RegExp(pattern + "*$"),''); 
+    };
 
 
 
@@ -229,7 +229,7 @@
 
     // Calculates and formats the price as a span class="note"
     function formatPrice(valueInBTC, 
-                        unitLabel='{{ specter.unit }}', 
+                        unitLabel='BTC', 
                         symbol='{{ specter.alt_symbol }}', 
                         price='{{ specter.alt_rate }}',
                         wrapInSpan=true,
@@ -255,7 +255,9 @@
                     var formatted_amount = (parseFloat(valueInBTC)*parseFloat(price)).toLocaleString(locale, { 
                         minimumFractionDigits: 2, 
                         maximumFractionDigits: 2 
-                    }).rstrip('0').rstrip(`\\${decimalSeparator}`); 
+                    });
+                    formatted_amount = rstrip(formatted_amount, '0')
+                    formatted_amount = rstrip(formatted_amount, `\\${decimalSeparator}`)
 
                     formattedPrice = (symbol in ["$", "£"]) ? `${symbol}${formatted_amount}` : `${formatted_amount}${symbol}`;
                     formattedPrice = wrapInSpan ? internalFormatPriceAsNote(formattedPrice, ' ') : formattedPrice;

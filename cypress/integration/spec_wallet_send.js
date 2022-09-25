@@ -41,7 +41,7 @@ describe('Test sending transactions', () => {
         cy.get('.tx-data-info').contains('Transaction id:')
         cy.get('.tx-data-info').contains('Output index:') // Not sure whether it is always 1 - output ordering is random in Core ...
         cy.get('.tx-data-info').contains('Address #0')
-        cy.get('.tx-data-info').contains('Value: 20 tBTC')
+        cy.get('.tx-data-info').contains('Value: 20.0 tBTC')
         cy.get('.tx-data-info').contains('Output #0')
         cy.get('.tx-data-info').contains('Burn address') 
         cy.get('.tx-data-info').contains('Value: 19.9999989 tBTC') // Fees should always be the same
@@ -220,7 +220,7 @@ describe('Test sending transactions', () => {
         cy.get('#recipient_0').find('#label').type('To my own wallet', { force: true })
         cy.get('#recipient_0').find('#amount').type(10, { force: true })
         // Checking that the background colour of the address is green as it belongs to the wallet
-        cy.get('#recipients').find('#recipient_0').find('#address').should('have.css', 'background-color','rgb(48, 109, 48)')
+        cy.get('#recipients').find('#recipient_0').find('#address').should('have.css', 'background-color','rgb(28, 65, 28)')
     })
     
     it('Send a transaction from a multisig wallet', () => {

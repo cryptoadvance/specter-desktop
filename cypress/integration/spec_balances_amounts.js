@@ -197,6 +197,35 @@ describe('Test the rendering of balances and amounts', () => {
     })
 
 
+    it('Check balances after transmitting tx in sats, Unconfirmed balance of 0.05123400 BTC', () => {
+        cy.get("#settings-bar-btn-settings").click()
+        cy.get("#select-global-bitcoin-unit").select('sat')
+        cy.get("#settings-save-btn").click()
+            
+        cy.selectWallet('Ghost wallet')
+        cy.selectWallet('Ghost wallet')       // Once again because only once doesn't work for some stupid unknown reason
+        // amount_total
+        cy.get('#amount_total').should('have.text', '4,005,123,400')
+        // amount_confirmed
+        cy.get('#amount_confirmed').should('have.text', '4,000,000,000')
+        // amount_unconfirmed
+        cy.selectWallet('Ghost wallet')
+        cy.get('#amount_unconfirmed').should('have.text', '5,123,400')
+        // the the address balances
+        cy.get('#btn_addresses').click()
+
+        // the 1. tx
+        cy.get('.addr-tbody').find('tr').eq(0).find('.amount').should('have.text', '2,005,000,000 tsat')
+        // the 2. tx
+        cy.get('.addr-tbody').find('tr').eq(2).find('.amount').should('have.text', '123,400 tsat')
+
+
+        cy.get("#settings-bar-btn-settings").click()
+        cy.get("#select-global-bitcoin-unit").select('btc')
+        cy.get("#settings-save-btn").click()
+    })
+
+
 
     it('Total balance with all digits, which is 20 tBTC - fee', () => {
         /* This is how the DOM looks like

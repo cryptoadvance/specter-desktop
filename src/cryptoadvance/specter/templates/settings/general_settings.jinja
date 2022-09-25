@@ -79,7 +79,7 @@
 
 			<h1>{{ _("Miscellaneous") }} </h1>
 			{{ _("Bitcoin unit to use") }} (BTC/sats):
-			<select name="unit">
+			<select id="select-global-bitcoin-unit" name="unit">
 				<option value="btc" {% if unit!="sat" %} selected="selected"{% endif %}>BTC</option>
 				<option value="sat" {% if unit=="sat" %} selected="selected"{% endif %}>sats</option>
 			</select>
@@ -137,7 +137,7 @@
 			</div>
 			<br>
 			<div class="row">
-				<button type="submit" class="btn" name="action" value="save">{{ _("Save") }}</button>
+				<button type="submit" class="btn" name="action" id="settings-save-btn"  value="save">{{ _("Save") }}</button>
 			</div>
 		</div>
 	</form>
