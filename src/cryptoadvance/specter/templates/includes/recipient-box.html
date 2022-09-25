@@ -437,23 +437,21 @@
 		}
 
 		calculateConvertedUnit() {
-			let convertedAmount = parseFloat(Number.parseFloat(this.amount / (this.unit == 'sat' ? 1e8 : 1e-8)).toFixed((this.unit == 'sat' ? 8 : 0)));
-			if (convertedAmount == 'NaN') {
-				convertedAmount = '-'
-			}
-
 			if(this.unit == 'sat' || this.unit == 'btc'){
-				this.shadowRoot.getElementById('converted_unit_amount').innerHTML = (isNaN(convertedAmount) ? '-' : convertedAmount.toFixed(8).replace(/(\.0+|0+)$/, ''));
-			{% if specter.price_check %}
-				let altRate = parseFloat('{{ specter.alt_rate }}');
-				let altSymbol = '{{ specter.alt_symbol }}';
-				let altAmount = parseFloat((altRate * this.btcAmount).toFixed(2))
-				if (!isNaN(altAmount) && (altSymbol && altRate)) {
-					this.shadowRoot.getElementById('converted_unit_alt').innerHTML = '&nbsp;(' + altAmount + altSymbol + ')';
-				} else {
-					this.shadowRoot.getElementById('converted_unit_alt').innerHTML = '';
+
+				// convert to BTC and Sat
+				var amountBTC = (this.unit == 'sat') ? this.amount / 1e8 : this.amount;
+				var amountSat = (this.unit == 'sat') ? this.amount : this.amount * 1e8;
+
+				// convert to other unit
+				var convertedUnit = (this.unit == 'sat') ? 'BTC' : 'sat'; 
+				var convertedAmountAndUnit = formatBtcAmountAndUnitArray(amountBTC, convertedUnit);
+				if (isNaN(this.amount)){
+					convertedAmountAndUnit[0] = '-'
 				}
-			{% endif %}
+				this.shadowRoot.getElementById('converted_unit_amount').innerHTML =  convertedAmountAndUnit[0];
+				this.shadowRoot.getElementById('converted_unit_label').innerHTML =  convertedAmountAndUnit[1];				
+				this.shadowRoot.getElementById('converted_unit_alt').innerHTML =  formatPrice(amountBTC); 
 			}else{
 				this.shadowRoot.getElementById('converted_unit_amount').innerHTML = '&nbsp;';
 				this.shadowRoot.getElementById('converted_unit_alt').innerHTML = '&nbsp;';

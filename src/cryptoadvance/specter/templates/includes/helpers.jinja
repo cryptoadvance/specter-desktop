@@ -16,6 +16,9 @@
         enableDigitFormatting=false,
     ) {
         const locale = 'en-US';
+        if (isNaN(parseFloat(value))){
+            return parseFloat(value)        
+        }
         var s = (parseFloat(value) * 1e8).toLocaleString(locale, { 
             minimumFractionDigits: 0, 
             maximumFractionDigits: 0 
@@ -75,6 +78,9 @@
         enableDigitFormatting=true,
         hideStripped=false
     ){
+        if (isNaN(parseFloat(value))){
+            return parseFloat(value)        
+        }
        
         const locale = 'en-US';
         var formatted_amount = parseFloat(value).toLocaleString(locale, { 
