@@ -156,8 +156,11 @@
 						<span id="psbt-inputs-{{loop.index0}}-price"></span>
 						{% if specter.is_liquid %}
 							<script>
-								document.getElementById("psbt-inputs-{{loop.index0}}-amount").innerHTML = formatBtcAmountAndUnit({{ input.get('float_amount') }});
-								document.getElementById("psbt-inputs-{{loop.index0}}-price").innerHTML = `<asset-label data-asset="{{input['asset']}}" data-label="{{input['asset'] | assetlabel}}"></asset-label>`;
+								document.getElementById("psbt-inputs-{{loop.index0}}-amount").innerHTML = [
+										formatBtcAmount({{ input.get('float_amount') }} ), 
+										`<asset-label data-asset="{{input['asset']}}" data-label="{{input['asset'] | assetlabel}}"></asset-label>`
+										].join(' ');
+								document.getElementById("psbt-inputs-{{loop.index0}}-price").innerHTML = '';
 							</script>							
 						{% else %}
 							<script>
@@ -183,17 +186,20 @@
 							<br>
 						{% endif %}
 						<b>{{ _("Amount:") }}</b> 
-						<span id="psbt-{{loop.index0}}-amount"></span>
-						<span id="psbt-{{loop.index0}}-price"></span>
+						<span id="psbt-outputs-{{loop.index0}}-amount"></span>
+						<span id="psbt-outputs-{{loop.index0}}-price"></span>
 						{% if specter.is_liquid %}
 							<script>
-								document.getElementById("psbt-{{loop.index0}}-amount").innerHTML = formatBtcAmount({{ output['float_amount'] }});
-							</script>
-							<asset-label data-asset="{{output['asset']}}" data-label="{{output['asset'] | assetlabel}}"></asset-label>
+								document.getElementById("psbt-outputs-{{loop.index0}}-amount").innerHTML = [
+										formatBtcAmount({{ output.get('float_amount') }} ), 
+										`<asset-label data-asset="{{output['asset']}}" data-label="{{output['asset'] | assetlabel}}"></asset-label>`
+										].join(' ');
+								document.getElementById("psbt-outputs-{{loop.index0}}-price").innerHTML = '';
+							</script>							
 						{% else %}
 							<script>
-								document.getElementById("psbt-{{loop.index0}}-amount").innerHTML = formatBtcAmountAndUnit({{ output['float_amount'] }});
-								document.getElementById("psbt-{{loop.index0}}-price").innerHTML = formatPrice('{{ output['float_amount'] }}');
+								document.getElementById("psbt-outputs-{{loop.index0}}-amount").innerHTML = formatBtcAmountAndUnit({{ output['float_amount'] }});
+								document.getElementById("psbt-outputs-{{loop.index0}}-price").innerHTML = formatPrice('{{ output['float_amount'] }}');
 							</script>
 						{% endif %}
 					</p>

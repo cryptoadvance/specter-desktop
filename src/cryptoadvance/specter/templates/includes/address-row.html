@@ -139,21 +139,19 @@
             const onlyLBTC = (this.assetsCount == 1 && Object.keys(this.addressData.assets)[0] == "{{ specter.default_asset }}");
             const isLiquid = this.assetsCount > 0;
             if ((isLiquid && !onlyLBTC) || !this.price || !this.symbol || this.hideSensitiveInfo) {
-                this.amountPrice.innerText = '';
+                this.amountPrice.innerHTML = '';
                 this.amountPrice.classList.add('hidden');
             } else {
-                if (this.symbol == "$" || this.symbol == "£") {
-                    this.amountPrice.innerText = `(${this.symbol}${numberWithCommas((parseFloat(this.price) * this.amount).toFixed(2))})`;
-                } else {
-                    this.amountPrice.innerText = `(${numberWithCommas((parseFloat(this.price) * this.amount).toFixed(2))}${this.symbol})`;
-                }
+                this.amountPrice.innerHTML = formatPrice(this.amount);
                 this.amountPrice.classList.remove('hidden');
             }            
 
             if (this.assetsCount > 1) {
                 this.amountText.innerText = this.hideSensitiveInfo ? '########' : `Multiple assets`;
             } else if (this.assetsCount == 1) {
-                this.amountText.innerHTML = this.hideSensitiveInfo ? '########' : `${numberWithCommas(this.amount.toString())} <asset-label data-asset="${Object.keys(this.addressData.assets)[0]}"></asset-label>`;
+                var convertedAmountAndUnit = formatBtcAmountAndUnitArray(this.amount);  
+                var assetLabelHTML =  this.hideSensitiveInfo ? '' : `<asset-label data-asset="${Object.keys(this.addressData.assets)[0]}"></asset-label>`;
+                this.amountText.innerHTML = [convertedAmountAndUnit[0], assetLabelHTML].join(' '); 
             } else {
                 this.amountText.innerHTML = formatBtcAmountAndUnit(this.amount, this.btcUnit);
             }

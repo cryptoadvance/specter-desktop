@@ -254,18 +254,26 @@
                 }
             }
 
-            this.amountText.innerHTML = formatBtcAmountAndUnit(this.amount);
             if("assetlabel" in this.tx){ // liquid
+                var assetLabelHTML = '';                
                 if (Array.isArray(this.tx.assetlabel)) { // multiple assets
                     let unique_assets = this.tx.assetlabel.filter((v, i, a) => { return a.indexOf(v) === i });
                     if (unique_assets.length == 1){
-                        this.amountText.innerHTML += ` <asset-label data-asset="${this.tx.asset[0]}" data-label="${this.tx.assetlabel[0]}"></asset-label>`;
+                        assetLabelHTML = ` <asset-label data-asset="${this.tx.asset[0]}" data-label="${this.tx.assetlabel[0]}"></asset-label>`;
+                    }else if (unique_assets.length == 0){
+                        assetLabelHTML = '';
                     }else{
-                        this.amountText.innerHTML = `${unique_assets.length} assets`;
+                        assetLabelHTML = `${unique_assets.length} assets`;
                     }
                 }else{
-                    this.amountText.innerHTML += ` <asset-label data-asset="${this.tx.asset}" data-label="${this.tx.assetlabel}"></asset-label>`;
+                    assetLabelHTML = ` <asset-label data-asset="${this.tx.asset}" data-label="${this.tx.assetlabel}"></asset-label>`;
                 }
+    
+                var convertedAmountAndUnit = formatBtcAmountAndUnitArray(this.amount );  
+                assetLabelHTML = this.hideSensitiveInfo ? '' : assetLabelHTML;
+                this.amountText.innerHTML = [convertedAmountAndUnit[0], assetLabelHTML].join(' ');
+            } else { // non-liquid
+                this.amountText.innerHTML = formatBtcAmountAndUnit(this.amount);
             }
 
             // Set confirmations

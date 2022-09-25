@@ -161,9 +161,15 @@
                         if ("service_id" in spentOutput) {
                             serviceIdAttr = `data-service-id="${spentOutput.service_id}"`;
                         }
-                        // assetlabel only exists for Liquid, for BTC it is just null
-                        var amountAndUnit = formatBtcAmountAndUnit(spentOutput.value, spentOutput.assetlabel);
-                        var price = formatPrice(spentOutput.value, spentOutput.assetlabel, this.symbol, this.price); 
+
+                        var amountAndUnit = formatBtcAmountAndUnit(spentOutput.value);
+                        var price = formatPrice(spentOutput.value); 
+                        // assetlabel only exists for Liquid, for BTC it is just null                    
+                        if (spentOutput.assetlabel){ // if liquid
+                            amountAndUnit = [formatBtcAmount(spentOutput.value  ), 
+                            ` <asset-label data-asset="${spentOutput.asset}" data-label="${spentOutput.assetlabel}"></asset-label>`
+                            ].join(' ');
+                        }  
 
                         addressAndValue = `
                             {{ _("Address:") }} 
@@ -242,9 +248,16 @@
                     if ("service_id" in rawtx.vout[i]) {
                         serviceIdAttr = `data-service-id="${rawtx.vout[i].service_id}"`;
                     }
-                    // assetlabel only exists for Liquid, for BTC it is just null
-                    var amountAndUnit = formatBtcAmountAndUnit(rawtx.vout[i].value, rawtx.vout[i].assetlabel);
-                    var price = formatPrice(rawtx.vout[i].value, rawtx.vout[i].assetlabel, this.symbol, this.price); 
+
+                    var amountAndUnit = formatBtcAmountAndUnit(rawtx.vout[i].value);
+                    var price = formatPrice(rawtx.vout[i].value); 
+
+                    // assetlabel only exists for Liquid, for BTC it is just null                    
+                    if (rawtx.vout[i].assetlabel){ // if liquid
+                        amountAndUnit = [formatBtcAmount(rawtx.vout[i].value  ), 
+                        ` <asset-label data-asset="${rawtx.vout[i].asset}" data-label="${rawtx.vout[i].assetlabel}"></asset-label>`
+                        ].join(' ');
+                    }  
 
                     rawtxHTML += `
                     <p class="tx_info" style="text-align: left; background-color: ${bgColor};">
