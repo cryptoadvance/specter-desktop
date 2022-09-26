@@ -17,10 +17,10 @@ class WebsocketServer:
     A forever lived websockets server in a different thread.
     The server has 2 main functions:
     1. Recieve messages from webbrowser websocket connections and call notification_manager.create_and_show
-    2. Recieve messages (notifications) from python websocket connection and send them to the webbrowser websocket connections
-    Each message must contain a user_token, which is checked against user_manager.user.websocket_token to make sure this is a legitimate user
-    Before the python websocket connection is established, the set_as_broadcaster method should be called to inform self that this user_token will be an admin
-        Otherwise the user_token will not be found in user_manager.user.websocket_token and rejected
+    2. Recieve messages (notifications) from python websocket connection (broadcaster) and send them to the webbrowser websocket connections
+    Each message must contain a user_token, which is checked against user_manager.user.websocket_token to make sure this is a legitimate user.
+    Otherwise the user_token will not be found in user_manager.user.websocket_token and rejected.
+    Before the python websocket connection is established, the set_as_broadcaster method should be called to inform self that this user_token will be a broadcaster
     1.   Javascript creates a message
         ┌───────────────────────┐                           ┌───────────────────────┐
         │                       │     websocket.send        │                       │
@@ -59,6 +59,9 @@ class WebsocketServer:
     def __init__(self, notification_manager):
         logger.info(f"Create {self.__class__.__name__}")
 
+        # a broadcaster has special rights, and can send potentially harmful messages to the websocket server,
+        # such at a Notification("quit_server"), which will quit the server
+        # It is also the only connection which makes the server send notifications to other websocket connections
         self.broadcaster_tokens = list()
         # self.connections matches user_tokens to websocket connections, such that a
         # Notification can be sent to all websocket connections that are associated to this user_tokens
@@ -255,7 +258,7 @@ class WebsocketServer:
 
     def _process_incoming_message(self, message_dictionary):
         """
-        This listens to messages. They can come from connections with and without admin tokens.
+        This listens to messages. They can come from connections with and without broadcaster tokens.
         If this is a websocket authentication, it will so self._register,
         otherwise just forward to to the notification_manager via self._create_notification
         """
