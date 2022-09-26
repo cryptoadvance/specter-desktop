@@ -147,6 +147,8 @@ class Specter:
             signal.signal(signal.SIGINT, self.cleanup_on_exit)
             # This is for kill $pid --> SIGTERM
             signal.signal(signal.SIGTERM, self.cleanup_on_exit)
+        # a list of functions that are called at cleanup_on_exit taking in each signum, frame
+        self.call_functions_at_cleanup_on_exit = []
 
     def cleanup_on_exit(self, signum=0, frame=0):
         if self._tor_daemon:
@@ -157,10 +159,8 @@ class Specter:
             if not node.external_node:
                 node.stop()
 
-        if "service_manager" in dir(self):
-            self.service_manager.execute_ext_callbacks(
-                callbacks.cleanup_on_exit, signum, frame
-            )
+        for f in self.call_functions_at_cleanup_on_exit:
+            f(signum, frame)
 
         logger.info("Closing Specter after cleanup")
         # For some reason we need to explicitely exit here. Otherwise it will hang

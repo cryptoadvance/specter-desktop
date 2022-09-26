@@ -152,6 +152,13 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )
 
+    def service_manager_cleanup_on_exit(signum, frame):
+        return specter.service_manager.execute_ext_callbacks(
+            callbacks.cleanup_on_exit, signum, frame
+        )
+
+    specter.call_functions_at_cleanup_on_exit.append(service_manager_cleanup_on_exit)
+
     login_manager = LoginManager()
     login_manager.session_protection = app.config.get("SESSION_PROTECTION", "strong")
     login_manager.init_app(app)  # Enable Login

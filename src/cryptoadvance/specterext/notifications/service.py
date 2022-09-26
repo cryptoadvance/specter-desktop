@@ -87,6 +87,7 @@ class NotificationsService(Service):
         return self.notification_manager.create_and_show(title, username, **kwargs)
 
     def callback_cleanup_on_exit(self, signum=0, frame=0):
+        logger.debug(f"callback_cleanup_on_exit called of {self.__class__.__name__}")
         self.notification_manager.quit()
 
     @classmethod
