@@ -17,7 +17,7 @@ from flask import current_app as app
 from flask import url_for
 from flask.blueprints import Blueprint
 
-from ..services.service import Service
+from ..services.service import Service, ServiceRequisite
 from ..services import callbacks, ExtensionException
 from ..services.service_encrypted_storage import (
     ServiceEncryptedStorageManager,
@@ -329,6 +329,16 @@ class ServiceManager:
             # Encrypted Service data is now orphaned since there is no
             # password. So wipe it from the disk.
             ServiceEncryptedStorageManager.get_instance().delete_all_service_data(user)
+
+    def add_required_services_to_users(self, users, force_opt_out=False):
+        "Adds the mandatory and opt_out (only if no services activated for user) services to users"
+        for service in self.services.values():
+            for user in users:
+                if service.requisite == ServiceRequisite.mandatory or (
+                    service.requisite == ServiceRequisite.opt_out
+                    and (user.services == [] or force_opt_out)
+                ):
+                    user.add_service(service.id)
 
     @classmethod
     def get_service_x_dirs(cls, x):

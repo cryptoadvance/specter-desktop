@@ -259,6 +259,7 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
 
     scheduler.init_app(app)
     scheduler.start()
+    specter.service_manager.add_required_services_to_users(specter.user_manager.users)
     specter.service_manager.execute_ext_callbacks(
         after_serverpy_init_app, scheduler=scheduler
     )
