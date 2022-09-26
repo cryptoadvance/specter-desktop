@@ -181,8 +181,10 @@ class WebsocketServer:
             simplified_dict[
                 "user_token"
             ] = f"{connection_dict['user_token'][:5]}...{connection_dict['user_token'][-5:]}"
-            simplified_dict["user"] = self.get_user_of_user_token(
-                connection_dict["user_token"]
+            simplified_dict["user"] = (
+                None
+                if connection_dict["user_token"] in self.get_broadcaster_tokens()
+                else self.get_user_of_user_token(connection_dict["user_token"])
             )
             simplified_dict["broadcaster"] = (
                 connection_dict["user_token"] in self.get_broadcaster_tokens()

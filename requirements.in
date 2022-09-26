@@ -26,7 +26,7 @@ cryptography==3.4.7
 Flask-APScheduler==1.12.3
 backports.zoneinfo==0.2.1 ; python_version < '3.10'
 gunicorn==20.1.0
-simple-websocket==0.6.0
+simple-websocket==0.8.1
 protobuf==3.20.1
 # Extensions
 cryptoadvance-liquidissuer==0.2.4
