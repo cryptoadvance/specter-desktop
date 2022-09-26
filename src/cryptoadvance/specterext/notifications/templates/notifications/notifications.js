@@ -325,8 +325,7 @@ var websocket = null;
 
 function connectWebsocket() {
     // get necessary info for the opening of the websocket
-    sendRequest("{{ url_for('notifications_endpoint.get_websockets_info') }}", 'GET', 
-                    "{{ csrf_token() }}").then(function (websocketsInfo) {
+    sendRequest("{{ url_for('notifications_endpoint.get_websockets_info') }}", 'GET').then(function (websocketsInfo) {
         // Create the websocket  
         var url = "{{ url_for('notifications_endpoint.websocket') }}";
         console.log(url)
