@@ -269,8 +269,7 @@
                     });
                     formatted_amount = rstrip(formatted_amount, '0')
                     formatted_amount = rstrip(formatted_amount, `\\${decimalSeparator}`)
-
-                    formattedPrice = (symbol in ["$", "£"]) ? `${symbol}${formatted_amount}` : `${formatted_amount}${symbol}`;
+                    formattedPrice = (["$", "£"].includes(symbol)) ? `${symbol}${formatted_amount}` : `${formatted_amount}${symbol}`;
                     formattedPrice = wrapInSpan ? internalFormatPriceAsNote(formattedPrice, ' ') : formattedPrice;
                 }
             }
