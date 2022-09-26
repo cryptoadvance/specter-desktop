@@ -157,7 +157,10 @@ class Specter:
             if not node.external_node:
                 node.stop()
 
-        self.service_manager.execute_ext_callbacks(callbacks.flash, signum, frame)
+        if "service_manager" in dir(self):
+            self.service_manager.execute_ext_callbacks(
+                callbacks.cleanup_on_exit, signum, frame
+            )
 
         logger.info("Closing Specter after cleanup")
         # For some reason we need to explicitely exit here. Otherwise it will hang
