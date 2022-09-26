@@ -27,7 +27,6 @@ class NotificationsService(Service):
     desc = "Where a notifications grows bigger."
     has_blueprint = True
     blueprint_module = "cryptoadvance.specterext.notifications.controller"
-    devices = ["cryptoadvance.specterext.notifications.devices."]
     devstatus = devstatus_prod
     isolated_client = False
 
