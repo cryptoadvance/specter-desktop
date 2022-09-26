@@ -435,21 +435,20 @@
         }
 
         getCategoryImg(category, isConfirmed) {
-            if (!isConfirmed) {
-                return `{{ url_for('static', filename='img') }}/clock.svg`;
-            }
+            var clockString = isConfirmed ? '' : '-clock';
+
             switch (category) {
                 case "send":
-                    return `{{ url_for('static', filename='img') }}/send.svg`;
+                    return `{{ url_for('static', filename='img') }}/send${clockString}.svg`;
                 case "receive":
-                    return `{{ url_for('static', filename='img') }}/receive.svg`;
+                    return `{{ url_for('static', filename='img') }}/receive${clockString}.svg`;
                 case "immature":
                 case "generate":
                     return `{{ url_for('static', filename='img') }}/gear.svg`;
                 case "selftransfer":
-                    return `{{ url_for('static', filename='img') }}/transfer.svg`;
+                    return `{{ url_for('static', filename='img') }}/transfer${clockString}.svg`;
                 case "mixed":
-                    return `{{ url_for('static', filename='img') }}/mixed.svg`;
+                    return `{{ url_for('static', filename='img') }}/mixed${clockString}.svg`;
             }
         }
     }
