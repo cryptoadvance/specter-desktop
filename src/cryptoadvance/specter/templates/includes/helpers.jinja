@@ -204,22 +204,24 @@
     // e.g. ["0.22569496", "tBTC"]
     // by default targetUnit will be set to BTC for liquid to prevent any conversion of valueInBTC
     function formatBtcAmountAndUnitArray(valueInBTC, targetUnit='{{ "BTC" if specter.is_liquid else specter.unit }}', hideStripped=true){
-        if ('{{ specter.hide_sensitive_info }}' == 'True'){
-            return ["#########"]};
-        if ((valueInBTC < 0 || valueInBTC == null) && '{{ specter.is_liquid }}' == 'True'){
-            return ["Confidential"]}
-        if (valueInBTC == null){
-            return ["Unknown"]};
+        {% if specter.hide_sensitive_info %}
+            return ["#########"];
+        {% else %}
+            if ((valueInBTC < 0 || valueInBTC == null) && '{{ specter.is_liquid }}' == 'True'){
+                return ["Confidential"]}
+            if (valueInBTC == null){
+                return ["Unknown"]};
 
-        const convertToSat = targetUnit == 'sat';
-        var formattedUnitLabel = formatUnitLabel(targetUnit);        
-        var formattedValue = convertToSat ? internalFormatBtcAmountAsSats(valueInBTC) : internalFormatBtcAmount(
-                                                                                            valueInBTC,
-                                                                                            7,
-                                                                                            6,
-                                                                                            true,
-                                                                                            hideStripped);
-        return [formattedValue, formattedUnitLabel];  
+            const convertToSat = targetUnit == 'sat';
+            var formattedUnitLabel = formatUnitLabel(targetUnit);        
+            var formattedValue = convertToSat ? internalFormatBtcAmountAsSats(valueInBTC) : internalFormatBtcAmount(
+                                                                                                valueInBTC,
+                                                                                                7,
+                                                                                                6,
+                                                                                                true,
+                                                                                                hideStripped);
+            return [formattedValue, formattedUnitLabel];  
+        {% endif %}  
     }
 
     // Formats the valueInBTC (e.g. from a tx output) to an "formattedValue formattedUnitLabel"
@@ -244,37 +246,37 @@
                         wrapInSpan=true,
                         ){        
         {% if not specter.price_check %}
-            return ''
-        {% endif %}
+            return '';
+        {% else %}
+            {% if specter.hide_sensitive_info %}
+                return ["#########"];
+            {% else %}
+                if ((valueInBTC < 0 || valueInBTC == null) && '{{ specter.is_liquid }}' == 'True'){
+                    return [""]}
+                if (valueInBTC == null){
+                    return [""]};
 
-
-        if ('{{ specter.hide_sensitive_info }}' == 'True'){
-            return ["#########"]};
-        if ((valueInBTC < 0 || valueInBTC == null) && '{{ specter.is_liquid }}' == 'True'){
-            return [""]}
-        if (valueInBTC == null){
-            return [""]};
-
-
-        var formattedPrice = "";
-        if (valueInBTC) {
-            if(internalUnitLabelIsBitcoin(unit)){
-                if (price && symbol) {
-                    const locale = 'en-US';
-                    let thousandsSeparator = Number(1000).toLocaleString(locale).charAt(1);
-                    let decimalSeparator = Number(1.1).toLocaleString(locale).charAt(1);
-                    var formatted_amount = (parseFloat(valueInBTC)*parseFloat(price)).toLocaleString(locale, { 
-                        minimumFractionDigits: 2, 
-                        maximumFractionDigits: 2 
-                    });
-                    formatted_amount = rstrip(formatted_amount, '0')
-                    formatted_amount = rstrip(formatted_amount, `\\${decimalSeparator}`)
-                    formattedPrice = (["$", "£"].includes(symbol)) ? `${symbol}${formatted_amount}` : `${formatted_amount}${symbol}`;
-                    formattedPrice = wrapInSpan ? internalFormatPriceAsNote(formattedPrice, ' ') : formattedPrice;
+                var formattedPrice = "";
+                if (valueInBTC) {
+                    if(internalUnitLabelIsBitcoin(unit)){
+                        if (price && symbol) {
+                            const locale = 'en-US';
+                            let thousandsSeparator = Number(1000).toLocaleString(locale).charAt(1);
+                            let decimalSeparator = Number(1.1).toLocaleString(locale).charAt(1);
+                            var formatted_amount = (parseFloat(valueInBTC)*parseFloat(price)).toLocaleString(locale, { 
+                                minimumFractionDigits: 2, 
+                                maximumFractionDigits: 2 
+                            });
+                            formatted_amount = rstrip(formatted_amount, '0')
+                            formatted_amount = rstrip(formatted_amount, `\\${decimalSeparator}`)
+                            formattedPrice = (["$", "£"].includes(symbol)) ? `${symbol}${formatted_amount}` : `${formatted_amount}${symbol}`;
+                            formattedPrice = wrapInSpan ? internalFormatPriceAsNote(formattedPrice, ' ') : formattedPrice;
+                        }
+                    }
                 }
-            }
-        }
-        return formattedPrice
+                return formattedPrice;
+            {% endif %}
+        {% endif %}
     }
 
 
