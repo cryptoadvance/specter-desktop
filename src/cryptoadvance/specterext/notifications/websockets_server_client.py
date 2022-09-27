@@ -138,7 +138,7 @@ class WebsocketServer:
             )
         else:
             user = self.get_user_of_user_token(user_token)
-            # If it is not an admin AND the token is unknown, then reject connection
+            # If it is not a broadcaster AND the token is unknown, then reject connection
             if not user:
                 logger.warning(f"user_token {user_token} not found in users")
                 return
@@ -163,7 +163,7 @@ class WebsocketServer:
             user
             if user
             else (
-                "Python ADMIN Client"
+                "Python broadcaster Client"
                 if user_token in self.get_broadcaster_tokens()
                 else "unknown"
             )
@@ -241,7 +241,7 @@ class WebsocketServer:
     def _preprocess(self, message_dictionary):
         """
         Processes special commands to manipulate the server.
-        A title 'quit_server' sent from and admin can make the websocket connection close.
+        A title 'quit_server' sent from and broadcaster can make the websocket connection close.
         """
         user_token = message_dictionary.get("user_token")
         # if there was no user_token given, then prevent any further action with this message
@@ -253,7 +253,7 @@ class WebsocketServer:
         if message_dictionary.get("title") == IGNORE_NOTIFICATION_TITLE:
             return "continue"
         if message_dictionary.get("title") == "quit_server":
-            # Accept the command from an admin, but disregard the command from a user
+            # Accept the command from an broadcaster, but disregard the command from a user
             return "quit" if user_token in self.get_broadcaster_tokens() else "continue"
 
     def _process_incoming_message(self, message_dictionary):
@@ -335,7 +335,7 @@ class WebsocketServer:
     def _send_to_websockets(self, message_dictionary, broadcaster_token):
         """
         This sends out messages to the connected websockets, which are associated with message_dictionary['options']['user_id']
-        This method shall only called by an admin user
+        This method shall only called by a broadcaster
         """
         assert broadcaster_token in self.get_broadcaster_tokens()
 
