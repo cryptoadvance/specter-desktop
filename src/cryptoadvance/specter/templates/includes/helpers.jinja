@@ -37,8 +37,8 @@
             var letter = s[i];
             if (letter == thousandsSeparator){
                 // Remark: i is not necessarily equal to array.length-1
-                // since array.length != letter.length (generally)
-                // here we add letter to the last entry in the array.
+                // since array.length != s.length (generally) after this loop ends.
+                // Here we add letter to the last entry in the array.
                 array[array.length-1] += letter;
             } else {
                 array.push(letter);
