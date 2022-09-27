@@ -149,9 +149,7 @@
             if (this.assetsCount > 1) {
                 this.amountText.innerText = this.hideSensitiveInfo ? '########' : `Multiple assets`;
             } else if (this.assetsCount == 1) {
-                var convertedAmountAndUnit = formatBtcAmountAndUnitArray(this.amount);  
-                var assetLabelHTML =  this.hideSensitiveInfo ? '' : `<asset-label data-asset="${Object.keys(this.addressData.assets)[0]}"></asset-label>`;
-                this.amountText.innerHTML = [convertedAmountAndUnit[0], assetLabelHTML].join(' '); 
+                this.amountText.innerHTML = formatLiquidAmountAndUnit(this.amount, Object.keys(this.addressData.assets)[0], ''); 
             } else {
                 this.amountText.innerHTML = formatBtcAmountAndUnit(this.amount, this.btcUnit);
             }

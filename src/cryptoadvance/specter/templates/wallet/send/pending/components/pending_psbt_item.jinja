@@ -22,13 +22,12 @@
             <span id='pending_psbt-{{ pending_psbt["tx"]["txid"] }}-price'></span>
             {% if specter.is_liquid %}
                 <script>
-                    document.getElementById('pending_psbt-{{ pending_psbt["tx"]["txid"] }}-amount').innerHTML = formatBtcAmountAndUnit({{ pending_psbt['amount'] | sum }})
+                    {% if pending_psbt['asset'] | unique_len == 1 %}    
+                        document.getElementById('pending_psbt-{{ pending_psbt["tx"]["txid"] }}-amount').innerHTML = formatLiquidAmountAndUnit({{ pending_psbt['amount'] | sum }}, {{pending_psbt['asset'][0]}}, {{pending_psbt['asset'][0] | assetlabel}});
+                    {% else %}
+                        document.getElementById('pending_psbt-{{ pending_psbt["tx"]["txid"] }}-amount').innerHTML = "{{ pending_psbt['asset'] | unique_len }} assets";                        
+                    {% endif %}
                 </script>
-                {% if pending_psbt['asset'] | unique_len == 1 %}                
-                    <asset-label data-asset="{{pending_psbt['asset'][0]}}" data-label="{{pending_psbt['asset'][0] | assetlabel}}"></asset-label>
-                {% else %}
-                    {{ pending_psbt['asset'] | unique_len }} assets
-                {% endif %}
             {% else %}
                 <script>
                     document.getElementById('pending_psbt-{{ pending_psbt["tx"]["txid"] }}-amount').innerHTML = formatBtcAmountAndUnit({{ pending_psbt['amount'] | sum }})

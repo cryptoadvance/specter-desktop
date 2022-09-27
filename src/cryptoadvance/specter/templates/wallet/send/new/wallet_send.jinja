@@ -39,11 +39,10 @@
 					{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
 						{% set balance = wallet.balance.get("assets",{}).get(asset, {}) %}
 						<span style="margin: 0 10px;">
-							<span id="is_liquid-{{ asset }}" style="margin: 0 10px;"></span>
-							<asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}"></asset-label>
+							<span id="is_liquid-{{ asset }}" style="margin: 0 10px;"></span> 
 						</span>
 						<script>
-							document.getElementById("is_liquid-{{ asset }}").innerHTML = formatBtcAmount({{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) }})
+							document.getElementById("is_liquid-{{ asset }}").innerHTML = formatLiquidAmountAndUnit({{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) }}, {{asset}}, {{asset | assetlabel}});   
 						</script>													
 					{% endfor %}
 				</span>

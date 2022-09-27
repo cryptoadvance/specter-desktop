@@ -79,9 +79,8 @@
 					{{ _("Sending") }} <b><span id="psbt-amount-{{i}}"></span><span id="psbt-price-{{i}}"></span></b>
 					{% if "asset" in psbt %}
 						<script>
-							document.getElementById("psbt-amount-{{i}}").innerHTML = formatBtcAmount({{ psbt["amount"][i] }})
+							document.getElementById("psbt-amount-{{i}}").innerHTML =   formatLiquidAmountAndUnit({{ psbt["amount"][i] }}, {{psbt['asset'][i]}}, {{psbt['asset'][i] | assetlabel}});
 						</script>
-						<asset-label data-asset="{{psbt['asset'][i]}}" data-label="{{psbt['asset'][i] | assetlabel}}"></asset-label>
 					{% else %}            
 						<script>
 							document.getElementById("psbt-amount-{{i}}").innerHTML = formatBtcAmountAndUnit({{ psbt["amount"][i] }});
@@ -156,10 +155,7 @@
 						<span id="psbt-inputs-{{loop.index0}}-price"></span>
 						{% if specter.is_liquid %}
 							<script>
-								document.getElementById("psbt-inputs-{{loop.index0}}-amount").innerHTML = [
-										formatBtcAmount({{ input.get('float_amount') }} ), 
-										`<asset-label data-asset="{{input['asset']}}" data-label="{{input['asset'] | assetlabel}}"></asset-label>`
-										].join(' ');
+								document.getElementById("psbt-inputs-{{loop.index0}}-amount").innerHTML =  formatLiquidAmountAndUnit({{ input.get('float_amount') }}, {{input['asset']}}, {{input['asset'] | assetlabel}});
 								document.getElementById("psbt-inputs-{{loop.index0}}-price").innerHTML = '';
 							</script>							
 						{% else %}
@@ -190,10 +186,7 @@
 						<span id="psbt-outputs-{{loop.index0}}-price"></span>
 						{% if specter.is_liquid %}
 							<script>
-								document.getElementById("psbt-outputs-{{loop.index0}}-amount").innerHTML = [
-										formatBtcAmount({{ output.get('float_amount') }} ), 
-										`<asset-label data-asset="{{output['asset']}}" data-label="{{output['asset'] | assetlabel}}"></asset-label>`
-										].join(' ');
+								document.getElementById("psbt-outputs-{{loop.index0}}-amount").innerHTML = formatLiquidAmountAndUnit({{ output.get('float_amount') }}, {{output['asset']}}, {{output['asset'] | assetlabel}}) 
 								document.getElementById("psbt-outputs-{{loop.index0}}-price").innerHTML = '';
 							</script>							
 						{% else %}

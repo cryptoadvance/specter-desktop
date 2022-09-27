@@ -166,9 +166,7 @@
                         var price = formatPrice(spentOutput.value, spentOutput.assetlabel);
                         // assetlabel only exists for Liquid, for BTC it is just null                    
                         if (spentOutput.assetlabel){ // if liquid
-                            amountAndUnit = [formatBtcAmount(spentOutput.value  ), 
-                            ` <asset-label data-asset="${spentOutput.asset}" data-label="${spentOutput.assetlabel}"></asset-label>`
-                            ].join(' ');
+                            amountAndUnit = formatLiquidAmountAndUnit(spentOutput.value, spentOutput.asset, spentOutput.assetlabel)
                         }  
 
                         addressAndValue = `
@@ -254,9 +252,7 @@
 
                     // assetlabel only exists for Liquid, for BTC it is just null                    
                     if (rawtx.vout[i].assetlabel){ // if liquid
-                        amountAndUnit = [formatBtcAmount(rawtx.vout[i].value  ), 
-                        ` <asset-label data-asset="${rawtx.vout[i].asset}" data-label="${rawtx.vout[i].assetlabel}"></asset-label>`
-                        ].join(' ');
+                        amountAndUnit = formatLiquidAmountAndUnit(rawtx.vout[i].value, rawtx.vout[i].asset, rawtx.vout[i].assetlabel)
                     }  
 
                     rawtxHTML += `

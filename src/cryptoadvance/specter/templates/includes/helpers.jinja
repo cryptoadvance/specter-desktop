@@ -151,7 +151,7 @@
 
     // Determines if an unit (e.g. from a tx output) is "BTC", "LBTC", "tBTC", "tLBTC"
     // null or "" will also return true
-    function internalUnitLabelIsBitcoin(unit){
+    function internalUnitLabelIsBTC(unit){
         if (!unit){
             return true            
         } 
@@ -164,42 +164,55 @@
 
     // Formats the network independent units to network dependent units,
     // e.g.: btc -> tBTC,  sat --> tsat ,  btc --> tLBTC, sat --> tLsat 
-    function formatUnitLabel(targetUnit='{{ "BTC" if specter.is_liquid else specter.unit }}'){ 
+    function formatUnitLabel(targetUnit='{{ specter.unit }}'){ 
         const convertToSat = targetUnit == 'sat';
+        
         var newLabel = targetUnit;
-        if (newLabel == "" || !newLabel){
-            newLabel = "BTC"
-        }                    
-        if (convertToSat) {
-            if(newLabel.toUpperCase() == "LBTC"){
-                newLabel = "Lsat";
-            }
-            // Liquid JSON response on testnet is already tLBTC 
-            else if (newLabel.toUpperCase() == "tLBTC") {
-                newLabel = "tLsat";
-            }
-            if(newLabel.toUpperCase() == "BTC"){
-                newLabel = "sat";
-            } 
-        } else {
-            if (targetUnit.toUpperCase() == "BTC") {
-                newLabel = "BTC"
-            }
+        // standardize the incoming unit
+        if ['BTC', 'LBTC', 'TBTC', 'TLBTC'].includes(  newLabel.toUpperCase() ){
+            newLabel = 'BTC';
+        }
+        if ['SAT', 'LSAT', 'TSAT', 'TLSAT'].includes(  newLabel.toUpperCase() ){
+            newLabel = 'sat';
         }
 
+        // convert to sat if necessary
+        if (convertToSat && newLabel == 'BTC') {
+            newLabel = 'sat';
+        }
+
+        {% if specter.is_liquid %}
+            if (!newLabel.startsWith("t")){
+                newLabel = "L" + newLabel;
+            }
+        {%endif%}
         {% if specter.is_testnet %}
-            {% if specter.is_liquid %}
-                if (!newLabel.startsWith("L")){
-                    newLabel = "L" + newLabel;
-                }
-            {%endif%}
             if (!newLabel.startsWith("t")){
                 newLabel = "t" + newLabel;
             }
         {%endif%}
-        
         return newLabel;
     }
+
+
+
+    // Formats the network independent units to network dependent units,
+    // e.g.: btc -> tBTC,  sat --> tsat ,  btc --> tLBTC, sat --> tLsat 
+    function formatLiquidUnitLabel(asset, assetLabel, targetUnit='{{ specter.unit }}'){ 
+        var newLabel = assetLabel;
+
+        if (newLabel == "" || !newLabel){
+            newLabel = "BTC"
+        }                    
+
+        // if the asset is BTC, then replace BTC with a nicely formatted (and converted Bitcoin unit), e.g. tLsat
+        if (internalUnitLabelIsBTC(newLabel)){
+            newLabel = formatUnitLabel(targetUnit); 
+        }
+
+        return `<asset-label data-asset="${asset}" data-label="${newLabel}"></asset-label>`;
+    }
+
 
 
     // strips the right end of the text with the pattern
@@ -209,10 +222,52 @@
 
 
 
+
+
+
+    // Formats value
+    // e.g. ["0.22569496", "<asset-label data-asset="65846551" data-label="tLBTC"></asset-label>"]
+    function formatLiquidAmountAndUnitArray(value, asset, assetLabel, targetUnit='{{ specter.unit }}', hideStripped=true){
+        {% if specter.hide_sensitive_info %}
+            return ["#########"];
+        {% else %}
+            if ((value < 0 || value == null) && '{{ specter.is_liquid }}' == 'True'){
+                return ["Confidential"]}
+            if (value == null){
+                return ["Unknown"]};
+
+            const convertToSat = targetUnit == 'sat';            
+            var formattedUnitLabel = formatLiquidUnitLabel(targetUnit, assetLabel, targetUnit);        
+            var formattedValue = (convertToSat && internalUnitLabelIsBTC(assetLabel)) ? internalFormatBtcAmountAsSats(value) : internalFormatBtcAmount(
+                                                                                                value,
+                                                                                                7,
+                                                                                                6,
+                                                                                                true,
+                                                                                                hideStripped);
+            return [formattedValue, formattedUnitLabel];  
+        {% endif %}  
+    }
+
+
+    // Formats the valueInBTC (e.g. from a tx output) to an "formattedValue formattedUnitLabel"
+    // e.g. "0.22569496 <asset-label data-asset="65846551" data-label="tLBTC"></asset-label>"
+    function formatLiquidAmountAndUnit(value, asset, assetLabel, targetUnit='{{ specter.unit }}', hideStripped=true){
+        return formatLiquidAmountAndUnitArray(value, asset, assetLabel, targetUnit, hideStripped).join(' ');  
+    }
+    // Formats the valueInBTC (e.g. from a tx output) to an "formattedValue"
+    // e.g. "0.22569496"
+    function formatLiquidAmount(value, asset, assetLabel, targetUnit='{{ specter.unit }}', hideStripped=true){
+        return formatLiquidAmountAndUnitArray(value, asset, assetLabel, targetUnit, hideStripped)[0];  
+    }
+
+
+
+
+
     // Formats the valueInBTC (e.g. from a tx output) to an array
     // e.g. ["0.22569496", "tBTC"]
     // by default targetUnit will be set to BTC for liquid to prevent any conversion of valueInBTC
-    function formatBtcAmountAndUnitArray(valueInBTC, targetUnit='{{ "BTC" if specter.is_liquid else specter.unit }}', hideStripped=true){
+    function formatBtcAmountAndUnitArray(valueInBTC, targetUnit='{{ specter.unit }}', hideStripped=true){
         {% if specter.hide_sensitive_info %}
             return ["#########"];
         {% else %}
@@ -235,12 +290,12 @@
 
     // Formats the valueInBTC (e.g. from a tx output) to an "formattedValue formattedUnitLabel"
     // e.g. "0.22569496 tBTC"
-    function formatBtcAmountAndUnit(valueInBTC, targetUnit='{{ "BTC" if specter.is_liquid else specter.unit }}', hideStripped=true){
+    function formatBtcAmountAndUnit(valueInBTC, targetUnit='{{ specter.unit }}', hideStripped=true){
         return formatBtcAmountAndUnitArray(valueInBTC, targetUnit, hideStripped).join(' ');  
     }
     // Formats the valueInBTC (e.g. from a tx output) to an "formattedValue"
     // e.g. "0.22569496"
-    function formatBtcAmount(valueInBTC, targetUnit='{{ "BTC" if specter.is_liquid else specter.unit }}', hideStripped=true){
+    function formatBtcAmount(valueInBTC, targetUnit='{{ specter.unit }}', hideStripped=true){
         return formatBtcAmountAndUnitArray(valueInBTC, targetUnit, hideStripped)[0];  
     }
 
@@ -267,7 +322,7 @@
 
                 var formattedPrice = "";
                 if (valueInBTC) {
-                    if(internalUnitLabelIsBitcoin(unit)){
+                    if(internalUnitLabelIsBTC(unit)){
                         if (price && symbol) {
                             const locale = 'en-US';
                             let thousandsSeparator = Number(1000).toLocaleString(locale).charAt(1);
