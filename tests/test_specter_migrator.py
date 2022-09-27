@@ -126,7 +126,7 @@ def test_SpecterMigrator(empty_data_folder, caplog):
         assert len(mylist) == 2
 
         mm.execute_migrations(mylist)
-        assert len(mm.mig.migration_executions) == 1
+        assert len(mm.mig.migration_executions) == 2
         assert "Setting execution log status of 1 to completed" in caplog.text
 
         assert mm.mig.migration_executions[0]["migration_id"] == 1
