@@ -16,6 +16,8 @@
         value,
         enableDigitFormatting=false,
     ) {
+        // for now 'en-US' is hard-coded, but this could be generalized to null
+        // such that the browsers locale would be used.
         const locale = 'en-US';
         if (isNaN(parseFloat(value))){
             return parseFloat(value)        
@@ -25,6 +27,7 @@
             maximumFractionDigits: 0 
         });         
 
+        // use thousandsSeparator and decimalSeparator to simplify future generalization of locale
         let thousandsSeparator = Number(1000).toLocaleString(locale).charAt(1);
         let decimalSeparator = Number(1.1).toLocaleString(locale).charAt(1);
         
@@ -33,6 +36,9 @@
         for (var i in s){
             var letter = s[i];
             if (letter == thousandsSeparator){
+                // Remark: i is not necessarily equal to array.length-1
+                // since array.length != letter.length (generally)
+                // here we add letter to the last entry in the array.
                 array[array.length-1] += letter;
             } else {
                 array.push(letter);
@@ -83,6 +89,8 @@
             return parseFloat(value)        
         }
        
+        // for now 'en-US' is hard-coded, but this could be generalized to null
+        // such that the browsers locale would be used.
         const locale = 'en-US';
         var formatted_amount = parseFloat(value).toLocaleString(locale, { 
             minimumFractionDigits: 8, 
@@ -90,6 +98,7 @@
         }); 
 
         var array = Array.from(formatted_amount);
+        // use thousandsSeparator and decimalSeparator to simplify future generalization of locale
         let thousandsSeparator = Number(1000).toLocaleString(locale).charAt(1);
         let decimalSeparator = Number(1.1).toLocaleString(locale).charAt(1);
 
