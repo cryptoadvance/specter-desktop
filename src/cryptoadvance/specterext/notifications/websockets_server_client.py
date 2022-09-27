@@ -195,7 +195,7 @@ class WebsocketServer:
             s += f"{i}: {simplified_dict}\n"
         return s
 
-    def serve(self, environ, ping_interval=10):
+    def serve(self, environ, ping_interval=30):
         """
         Start a server. This is an endless loop.
         It will automatically detect and close unresponsive connections.
