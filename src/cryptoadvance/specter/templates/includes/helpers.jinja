@@ -113,7 +113,7 @@
                     continue
                 }
                 // the following if branch is only relevant if last_digits_to_strip == 8, i.e. all digits can be stripped
-                else if (formatted_amount[i] == "."){
+                else if (formatted_amount[i] == decimalSeparator){
                     array[i] = `<span class="unselectable transparent-text ${hideStripped ? 'hidden' : ''}">${array[i]}</span>`;
                     // since this character == '.', then the loop must be broken now
                 }
