@@ -38,6 +38,9 @@
 				border-right: 0;
 				{% endif %}
 			}
+			.tr-hover:hover {
+				background: rgba(255,255,255,0.03);
+			}
 		</style>
 		<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
 		{% include "includes/helpers.jinja" %}
@@ -140,10 +143,9 @@
 						<br><br>
 					{% else %}
 						<h2 style="font-size: 1.6em; line-height: .5em; margin-top: 1em;">{{ _('Getting Started') }}</h2><br>
-
 						<table style="width: 90%; margin: auto;">
 							<tbody>
-								<tr>
+								<tr class="tr-hover">
 									<td>
 										<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not specter.chain else '') + 'tick.svg') }}" width="30px">
 									</td>
@@ -204,7 +206,7 @@
 										{% endif %}
 									</td>
 								</tr>
-								<tr>
+								<tr class="tr-hover">
 									<td>
 										<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not (specter.device_manager.devices | length) else '') + 'tick.svg') }}" width="30px">
 									</td>
@@ -216,7 +218,7 @@
 									<td style="text-align: left;">
 									</td>
 								</tr>
-								<tr>
+								<tr class="tr-hover">
 									<td>
 										<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not (specter.wallet_manager.wallets | length) else '') + 'tick.svg') }}" width="30px">
 									</td>
@@ -229,7 +231,7 @@
 									</td>
 								</tr>
 								{% if specter.chain == 'main' %}
-								<tr>
+								<tr class="tr-hover">
 									<td>
 										<img src="{{ url_for('static', filename='img/ghost_3d.png')}}" width="30px">
 									</td>
