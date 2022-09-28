@@ -17,7 +17,7 @@ from flask import current_app as app
 from flask import url_for
 from flask.blueprints import Blueprint
 
-from ..services.service import Service, ServiceRequisite
+from ..services.service import Service, ServiceOptionality
 from ..services import callbacks, ExtensionException
 from ..services.service_encrypted_storage import (
     ServiceEncryptedStorageManager,
@@ -334,8 +334,8 @@ class ServiceManager:
         "Adds the mandatory and opt_out (only if no services activated for user) services to users"
         for service in self.services.values():
             for user in users:
-                if service.requisite == ServiceRequisite.mandatory or (
-                    service.requisite == ServiceRequisite.opt_out
+                if service.optionality == ServiceOptionality.mandatory or (
+                    service.optionality == ServiceOptionality.opt_out
                     and (user.services == [] or force_opt_out)
                 ):
                     user.add_service(service.id)

@@ -5,7 +5,7 @@ from cryptoadvance.specter.services.service import (
     devstatus_alpha,
     devstatus_prod,
     devstatus_beta,
-    ServiceRequisite,
+    ServiceOptionality,
 )
 
 # A SpecterError can be raised and will be shown to the user as a red banner
@@ -32,7 +32,7 @@ class NotificationsService(Service):
 
     # TODO: As more Services are integrated, we'll want more robust categorization and sorting logic
     sort_priority = 2
-    requisite = ServiceRequisite.opt_out
+    optionality = ServiceOptionality.opt_out
     visible_in_sidebar = False
 
     def callback_after_serverpy_init_app(self, scheduler: APScheduler):

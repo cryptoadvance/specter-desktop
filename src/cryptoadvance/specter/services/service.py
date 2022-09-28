@@ -25,7 +25,7 @@ devstatus_beta = "beta"
 devstatus_prod = "prod"
 
 
-class ServiceRequisite:
+class ServiceOptionality:
     mandatory = "mandatory"
     opt_in = "opt_in"
     opt_out = "opt_out"
@@ -44,8 +44,9 @@ class Service:
     # If the blueprint gets a "/ext" prefix (isolated_client = True), the login cookie won't work for all specter core functionality
     isolated_client = True
     devstatus = devstatus_alpha
-    requisite = ServiceRequisite.opt_in
+    optionality = ServiceOptionality.opt_in
     visible_in_sidebar = True
+    requires_user_password = False
 
     def __init__(self, active, specter):
         if not hasattr(self, "id"):
