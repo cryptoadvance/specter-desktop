@@ -79,7 +79,7 @@
 					{{ _("Sending") }} <b><span id="psbt-amount-{{i}}"></span><span id="psbt-price-{{i}}"></span></b>
 					{% if "asset" in psbt %}
 						<script>
-							document.getElementById("psbt-amount-{{i}}").innerHTML =   formatLiquidAmountAndUnit({{ psbt["amount"][i] }}, {{psbt['asset'][i]}}, {{psbt['asset'][i] | assetlabel}});
+							document.getElementById("psbt-amount-{{i}}").innerHTML =   formatLiquidAmountsAndUnits({{ psbt["amount"][i] }}, '{{psbt['asset'][i]}}', '{{psbt['asset'][i] | assetlabel}}');
 						</script>
 					{% else %}            
 						<script>
@@ -155,7 +155,7 @@
 						<span id="psbt-inputs-{{loop.index0}}-price"></span>
 						{% if specter.is_liquid %}
 							<script>
-								document.getElementById("psbt-inputs-{{loop.index0}}-amount").innerHTML =  formatLiquidAmountAndUnit({{ input.get('float_amount') }}, {{input['asset']}}, {{input['asset'] | assetlabel}});
+								document.getElementById("psbt-inputs-{{loop.index0}}-amount").innerHTML =  formatLiquidAmountsAndUnits({{ input.get('float_amount') }}, "{{input['asset']}}", "{{input['asset'] | assetlabel}}");
 								document.getElementById("psbt-inputs-{{loop.index0}}-price").innerHTML = '';
 							</script>							
 						{% else %}
@@ -186,7 +186,7 @@
 						<span id="psbt-outputs-{{loop.index0}}-price"></span>
 						{% if specter.is_liquid %}
 							<script>
-								document.getElementById("psbt-outputs-{{loop.index0}}-amount").innerHTML = formatLiquidAmountAndUnit({{ output.get('float_amount') }}, {{output['asset']}}, {{output['asset'] | assetlabel}}) 
+								document.getElementById("psbt-outputs-{{loop.index0}}-amount").innerHTML = formatLiquidAmountsAndUnits({{ output.get('float_amount') }}, "{{output['asset']}}", "{{output['asset'] | assetlabel}}") 
 								document.getElementById("psbt-outputs-{{loop.index0}}-price").innerHTML = '';
 							</script>							
 						{% else %}

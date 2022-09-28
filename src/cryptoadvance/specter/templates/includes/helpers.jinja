@@ -164,15 +164,15 @@
 
     // Formats the network independent units to network dependent units,
     // e.g.: btc -> tBTC,  sat --> tsat ,  btc --> tLBTC, sat --> tLsat 
-    function formatUnitLabel(targetUnit='{{ specter.unit }}'){ 
+    function formatUnitLabel(targetUnit='{{ specter.unit }}', enableHTML=true){ 
         const convertToSat = targetUnit == 'sat';
         
         var newLabel = targetUnit;
         // standardize the incoming unit
-        if ['BTC', 'LBTC', 'TBTC', 'TLBTC'].includes(  newLabel.toUpperCase() ){
+        if (['BTC', 'LBTC', 'TBTC', 'TLBTC'].includes(  newLabel.toUpperCase() )){
             newLabel = 'BTC';
         }
-        if ['SAT', 'LSAT', 'TSAT', 'TLSAT'].includes(  newLabel.toUpperCase() ){
+        if (['SAT', 'LSAT', 'TSAT', 'TLSAT'].includes(  newLabel.toUpperCase() )){
             newLabel = 'sat';
         }
 
@@ -191,7 +191,7 @@
                 newLabel = "t" + newLabel;
             }
         {%endif%}
-        return newLabel;
+        return enableHTML ? `<nobr>${newLabel}</nobr>` : newLabel;
     }
 
 
@@ -200,17 +200,12 @@
     // e.g.: btc -> tBTC,  sat --> tsat ,  btc --> tLBTC, sat --> tLsat 
     function formatLiquidUnitLabel(asset, assetLabel, targetUnit='{{ specter.unit }}'){ 
         var newLabel = assetLabel;
-
-        if (newLabel == "" || !newLabel){
-            newLabel = "BTC"
-        }                    
-
         // if the asset is BTC, then replace BTC with a nicely formatted (and converted Bitcoin unit), e.g. tLsat
-        if (internalUnitLabelIsBTC(newLabel)){
-            newLabel = formatUnitLabel(targetUnit); 
+        if (internalUnitLabelIsBTC(assetLabel)){
+            newLabel = formatUnitLabel(targetUnit, enableHTML=false); 
         }
 
-        return `<asset-label data-asset="${asset}" data-label="${newLabel}"></asset-label>`;
+        return `<nobr><asset-label data-asset="${asset}" data-label="${newLabel}"></asset-label></nobr>`;
     }
 
 
@@ -225,43 +220,61 @@
 
 
 
-    // Formats value
+    // Formats value and unit
     // e.g. ["0.22569496", "<asset-label data-asset="65846551" data-label="tLBTC"></asset-label>"]
     function formatLiquidAmountAndUnitArray(value, asset, assetLabel, targetUnit='{{ specter.unit }}', hideStripped=true){
         {% if specter.hide_sensitive_info %}
             return ["#########"];
         {% else %}
-            if ((value < 0 || value == null) && '{{ specter.is_liquid }}' == 'True'){
+            if (value < 0 || value == null){
                 return ["Confidential"]}
-            if (value == null){
-                return ["Unknown"]};
 
             const convertToSat = targetUnit == 'sat';            
             var formattedUnitLabel = formatLiquidUnitLabel(targetUnit, assetLabel, targetUnit);        
             var formattedValue = (convertToSat && internalUnitLabelIsBTC(assetLabel)) ? internalFormatBtcAmountAsSats(value) : internalFormatBtcAmount(
-                                                                                                value,
-                                                                                                7,
-                                                                                                6,
-                                                                                                true,
-                                                                                                hideStripped);
-            return [formattedValue, formattedUnitLabel];  
+                                                                                            value,
+                                                                                            7,
+                                                                                            6,
+                                                                                            true,
+                                                                                            hideStripped);
+
+            return [formattedValue, formattedUnitLabel];              
+        {% endif %}  
+    }
+
+    // Formats value and unti.  It can handle multiple  assets as input
+    // e.g. ["0.22569496", "<asset-label data-asset="65846551" data-label="tLBTC"></asset-label>"]
+    function formatLiquidAmountsAndUnitsArray(value, assets, assetLabels, targetUnit='{{ specter.unit }}', hideStripped=true){
+        {% if specter.hide_sensitive_info %}
+            return ["#########"];
+        {% else %}
+            if (value < 0 || value == null){
+                return ["Confidential"]}
+
+            
+            if (Array.isArray(assets)) {
+                value = Array.isArray(value) ? value[0]: value;  // only take the first value, because multiple values are not displayed
+                 // multiple assets
+                let unique_assets = assets.filter((v, i, a) => { return a.indexOf(v) === i });
+                if (unique_assets.length == 1){
+                    return formatLiquidAmountAndUnitArray(value, assets[0], assetLabels[0]);
+                }else if (unique_assets.length == 0){
+                    return [''];
+                }else{
+                    return [`${unique_assets.length} assets`];
+                }
+            }else{
+                return formatLiquidAmountAndUnitArray(value, assets, assetLabels, targetUnit, hideStripped);
+            }    
         {% endif %}  
     }
 
 
     // Formats the valueInBTC (e.g. from a tx output) to an "formattedValue formattedUnitLabel"
     // e.g. "0.22569496 <asset-label data-asset="65846551" data-label="tLBTC"></asset-label>"
-    function formatLiquidAmountAndUnit(value, asset, assetLabel, targetUnit='{{ specter.unit }}', hideStripped=true){
-        return formatLiquidAmountAndUnitArray(value, asset, assetLabel, targetUnit, hideStripped).join(' ');  
+    function formatLiquidAmountsAndUnits(value, asset, assetLabel, targetUnit='{{ specter.unit }}', hideStripped=true){
+        return formatLiquidAmountsAndUnitsArray(value, asset, assetLabel, targetUnit, hideStripped).join(' ');  
     }
-    // Formats the valueInBTC (e.g. from a tx output) to an "formattedValue"
-    // e.g. "0.22569496"
-    function formatLiquidAmount(value, asset, assetLabel, targetUnit='{{ specter.unit }}', hideStripped=true){
-        return formatLiquidAmountAndUnitArray(value, asset, assetLabel, targetUnit, hideStripped)[0];  
-    }
-
-
-
 
 
     // Formats the valueInBTC (e.g. from a tx output) to an array
@@ -271,8 +284,6 @@
         {% if specter.hide_sensitive_info %}
             return ["#########"];
         {% else %}
-            if ((valueInBTC < 0 || valueInBTC == null) && '{{ specter.is_liquid }}' == 'True'){
-                return ["Confidential"]}
             if (valueInBTC == null){
                 return ["Unknown"]};
 

@@ -33,6 +33,7 @@ from ..util.mnemonic import generate_mnemonic
 from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
 from ..wallet import Wallet
+from ..helpers import get_asset_label
 
 logger = logging.getLogger(__name__)
 
@@ -493,6 +494,17 @@ def addresses_list(wallet_alias):
     address_type = request.form.get("addressType", "receive")
 
     addresses_list = wallet.addresses_info(address_type == "change")
+
+    # add the asset_label
+    for address in addresses_list:
+        if "assets" in address:
+            for asset in address["assets"]:
+                address["assets"][asset] = {
+                    "amount": address["assets"][asset],
+                    "label": get_asset_label(
+                        asset, known_assets=app.specter.asset_labels
+                    ),
+                }
 
     result = process_addresses_list(
         addresses_list, idx=idx, limit=limit, sortby=sortby, sortdir=sortdir

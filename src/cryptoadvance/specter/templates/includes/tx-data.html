@@ -164,9 +164,12 @@
 
                         var amountAndUnit = formatBtcAmountAndUnit(spentOutput.value);
                         var price = formatPrice(spentOutput.value, spentOutput.assetlabel);
+                        {% if specter.is_liquid %}
+                            amountAndUnit = formatLiquidAmountsAndUnits(spentOutput.value, spentOutput.asset, spentOutput.assetlabel);
+                        {% endif %}
+
                         // assetlabel only exists for Liquid, for BTC it is just null                    
                         if (spentOutput.assetlabel){ // if liquid
-                            amountAndUnit = formatLiquidAmountAndUnit(spentOutput.value, spentOutput.asset, spentOutput.assetlabel)
                         }  
 
                         addressAndValue = `
@@ -249,11 +252,9 @@
 
                     var amountAndUnit = formatBtcAmountAndUnit(rawtx.vout[i].value);
                     var price = formatPrice(rawtx.vout[i].value, rawtx.vout[i].assetlabel); 
-
-                    // assetlabel only exists for Liquid, for BTC it is just null                    
-                    if (rawtx.vout[i].assetlabel){ // if liquid
-                        amountAndUnit = formatLiquidAmountAndUnit(rawtx.vout[i].value, rawtx.vout[i].asset, rawtx.vout[i].assetlabel)
-                    }  
+                    {% if specter.is_liquid %}
+                        amountAndUnit = formatLiquidAmountsAndUnits(rawtx.vout[i].value, rawtx.vout[i].asset, rawtx.vout[i].assetlabel)
+                    {% endif %}
 
                     rawtxHTML += `
                     <p class="tx_info" style="text-align: left; background-color: ${bgColor};">

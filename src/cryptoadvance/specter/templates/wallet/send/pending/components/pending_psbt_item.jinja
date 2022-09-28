@@ -23,7 +23,7 @@
             {% if specter.is_liquid %}
                 <script>
                     {% if pending_psbt['asset'] | unique_len == 1 %}    
-                        document.getElementById('pending_psbt-{{ pending_psbt["tx"]["txid"] }}-amount').innerHTML = formatLiquidAmountAndUnit({{ pending_psbt['amount'] | sum }}, {{pending_psbt['asset'][0]}}, {{pending_psbt['asset'][0] | assetlabel}});
+                        document.getElementById('pending_psbt-{{ pending_psbt["tx"]["txid"] }}-amount').innerHTML = formatLiquidAmountsAndUnits({{ pending_psbt['amount'] | sum }}, "{{pending_psbt['asset'][0]}}", "{{pending_psbt['asset'][0] | assetlabel}}");
                     {% else %}
                         document.getElementById('pending_psbt-{{ pending_psbt["tx"]["txid"] }}-amount').innerHTML = "{{ pending_psbt['asset'] | unique_len }} assets";                        
                     {% endif %}

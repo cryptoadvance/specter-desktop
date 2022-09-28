@@ -69,9 +69,11 @@
             this.amount = this.getAttribute('data-amount');
             this.amountPrice = this.getAttribute('data-amount-price');
             this.address = this.getAttribute('data-address');
+            this.assets = JSON.parse(this.getAttribute('data-assets')) ;
             this.label = this.getAttribute('data-label');
             this.serviceId = this.getAttribute('data-service-id');
             this.wallet = this.getAttribute('data-address-wallet');
+            
 
             this.note.innerText = `{{ _("Loading address") }}: ${this.address} {{ _("details") }}...`;
             this.fetchAddressData();
@@ -108,6 +110,16 @@
                     let walletName = jsonResponse.walletName;
                     let address = jsonResponse.address;
                     let walletLink = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
+
+                    var formattedAmountAndUnit = formatBtcAmountAndUnit(this.amount);
+                    {% if specter.is_liquid %}
+                        var labels = [];
+                        for (var i in this.assets){
+                            labels.push(this.assets[i].label);
+                        } 
+                        formattedAmountAndUnit = formatLiquidAmountsAndUnits(this.amount, Object.keys(this.assets), labels);
+                    {% endif %}
+
                     let addressInfoHTML = `
                         <qr-code style="margin: auto;" value="bitcoin:${address}" width="256"></qr-code><br>
                         <table class="address-data-table">
@@ -118,8 +130,8 @@
                         <tr><td>{{ _("Address index") }}:</td><td>${addressIndex}</td></tr>
                         <tr><td>{{ _("Is change address") }}:</td><td>${isChange ? '{{ _("Yes") }}' : '{{ _("No") }}'}</td></tr>
                         <tr><td>{{ _("Used") }}:</td><td>${this.used ? 'Yes' : 'No'}</td></tr>
-                        <tr><td>{{ _("UTXO count") }}:</td><td>${this.utxo}</td></tr>
-                        <tr><td>{{ _("Amount") }}:</td><td>${formatBtcAmountAndUnit(this.amount)} <span class="amount-price note ${this.amountPrice ? '' : 'hidden'}">${this.amountPrice}</span></td></tr>
+                        <tr><td>{{ _("UTXO count") }}:</td><td>${this.utxo}</td></tr>                        
+                        <tr><td>{{ _("Amount") }}:</td><td>${formattedAmountAndUnit} <span class="amount-price note ${this.amountPrice ? '' : 'hidden'}">${this.amountPrice}</span></td></tr>
                     `;
 
                     if ((typeof services !== 'undefined') && (this.serviceId in services)) {

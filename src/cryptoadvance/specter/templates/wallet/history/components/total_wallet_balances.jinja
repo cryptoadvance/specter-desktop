@@ -133,7 +133,7 @@
                             <th id="assets_{{ asset }}" class="right-align"></th>
                             <th id="assets_{{ asset }}_label"></th>
                             <script>
-                                var amountAndUnitArray = formatLiquidAmountAndUnitArray({{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | safe }}, {{asset}}, {{asset | assetlabel}}, '{{ specter.unit }}', hideStripped=false)
+                                var amountAndUnitArray = formatLiquidAmountAndUnitArray({{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | safe }}, '{{asset}}', '{{asset | assetlabel}}', '{{ specter.unit }}', hideStripped=false)
                                 document.getElementById('assets_{{ asset }}').innerHTML = amountAndUnitArray[0];        
                                 document.getElementById('assets_{{ asset }}_label').innerHTML = amountAndUnitArray[1];        
                                 document.getElementById('assets_{{ asset }}_label').children[0].mode = "enabled";

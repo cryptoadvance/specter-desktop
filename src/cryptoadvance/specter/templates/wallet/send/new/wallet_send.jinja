@@ -42,7 +42,7 @@
 							<span id="is_liquid-{{ asset }}" style="margin: 0 10px;"></span> 
 						</span>
 						<script>
-							document.getElementById("is_liquid-{{ asset }}").innerHTML = formatLiquidAmountAndUnit({{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) }}, {{asset}}, {{asset | assetlabel}});   
+							document.getElementById("is_liquid-{{ asset }}").innerHTML = formatLiquidAmountsAndUnits({{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) }}, '{{asset}}', '{{asset | assetlabel}}');   
 						</script>													
 					{% endfor %}
 				</span>

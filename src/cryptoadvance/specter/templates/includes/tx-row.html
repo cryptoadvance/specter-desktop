@@ -244,31 +244,25 @@
                 this.amountPrice.innerText = '';
                 this.amountPrice.classList.add('hidden');
             } else {
-                if (this.symbol == "$" || this.symbol == "£") {
-                    this.amountPrice.innerText = `(${this.symbol}${numberWithCommas((parseFloat(this.price) * this.amount).toFixed(2))})`;
-                } else {
-                    this.amountPrice.innerText = `(${numberWithCommas((parseFloat(this.price) * this.amount).toFixed(2))}${this.symbol})`;
-                }
+                this.amountPrice.innerHTML =  formatPrice(this.amount); 
                 if(!("assetlabel" in this.tx) || this.tx.assetlabel == "LBTC"){
                     this.amountPrice.classList.remove('hidden');
                 }
             }
 
             if("assetlabel" in this.tx){ // liquid
-                var assetAmountAndUnit = '';                
                 if (Array.isArray(this.tx.assetlabel)) { // multiple assets
                     let unique_assets = this.tx.assetlabel.filter((v, i, a) => { return a.indexOf(v) === i });
                     if (unique_assets.length == 1){
-                        assetAmountAndUnit = formatLiquidAmountAndUnit(this.amount, this.tx.asset[0], this.tx.assetlabel[0])
+                        this.amountText.innerHTML = formatLiquidAmountsAndUnits(this.amount, this.tx.asset[0], this.tx.assetlabel[0])
                     }else if (unique_assets.length == 0){
-                        assetLabelHTML = '';
+                        this.amountText.innerHTML = '';
                     }else{
-                        assetLabelHTML = `${unique_assets.length} assets`;
+                        this.amountText.innerHTML = `${unique_assets.length} assets`;
                     }
                 }else{
-                    assetAmountAndUnit = formatLiquidAmountAndUnit(this.amount, this.tx.asset, this.tx.assetlabel)
+                    this.amountText.innerHTML = formatLiquidAmountsAndUnits(this.amount, this.tx.asset, this.tx.assetlabel)
                 }    
-                this.amountText.innerHTML = assetAmountAndUnit;
             } else { // non-liquid
                 this.amountText.innerHTML = formatBtcAmountAndUnit(this.amount);
             }

@@ -11,6 +11,7 @@ from embit.liquid.transaction import LTransaction
 from ..addresslist import Address
 from ..specter_error import SpecterError
 from ..wallet import *
+from ..helpers import get_asset_label
 from .addresslist import LAddressList
 from .txlist import LTxList
 from .util.pset import SpecterPSET
@@ -281,9 +282,12 @@ class LWallet(Wallet):
             ]:
                 addr_amount = addr_amount + utxo["amount"]
                 addr_utxo = addr_utxo + 1
-                addr_assets[utxo.get("asset")] = (
-                    addr_assets.get(utxo.get("asset"), 0) + utxo["amount"]
-                )
+                if utxo.get("asset") not in addr_assets:
+                    addr_assets[utxo.get("asset")] = {
+                        "label": get_asset_label(utxo.get("asset")),
+                        "amount": 0,
+                    }
+                addr_assets[utxo.get("asset")]["amount"] += utxo["amount"]
 
             addresses_info.append(
                 {

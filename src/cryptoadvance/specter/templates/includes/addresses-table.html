@@ -542,6 +542,7 @@
                 data-amount="${amount}"
                 data-amount-price="${amountPrice}"
                 data-address="${addressData.address}"
+                data-assets='${JSON.stringify(addressData.assets).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}' 
                 data-service-id="${addressData.service_id}"
                 data-label="${addressData.label}"
                 data-address-wallet="${wallet}"

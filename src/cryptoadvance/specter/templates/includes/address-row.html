@@ -75,7 +75,7 @@
             this.address.innerHTML = this.hideSensitiveInfo ? '###########################' : this.addressData.address.substring(0, 7) + "&hellip;" + this.addressData.address.substring(this.addressData.address.length - 7);
             if (!this.hideSensitiveInfo) {
                 this.address.onclick = () => {
-                    showAddressData(this.amountText.innerText, this.amountPrice.innerText, this.addressData, this.wallet);
+                    showAddressData(this.amount, this.amountPrice.innerText, this.addressData, this.wallet);
                 }
             }
 
@@ -146,13 +146,16 @@
                 this.amountPrice.classList.remove('hidden');
             }            
 
-            if (this.assetsCount > 1) {
-                this.amountText.innerText = this.hideSensitiveInfo ? '########' : `Multiple assets`;
-            } else if (this.assetsCount == 1) {
-                this.amountText.innerHTML = formatLiquidAmountAndUnit(this.amount, Object.keys(this.addressData.assets)[0], ''); 
-            } else {
+
+            {% if specter.is_liquid %}
+                var labels = [];
+                for (var i in this.addressData.assets){
+                    labels.push(this.addressData.assets[i].label);
+                }
+                this.amountText.innerHTML = formatLiquidAmountsAndUnits(this.amount, Object.keys(this.addressData.assets), labels);
+            {% else %}
                 this.amountText.innerHTML = formatBtcAmountAndUnit(this.amount, this.btcUnit);
-            }
+            {% endif %} 
 
             if (this.addressData.used > 0) {
                 this.el.classList.add('unconfirmed');
