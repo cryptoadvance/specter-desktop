@@ -242,7 +242,7 @@
         {% endif %}  
     }
 
-    // Formats value and unti.  It can handle multiple  assets as input
+    // Returns a formatted amount and unti.  It can handle multiple, or a single assets, assetLabels  as input
     // e.g. ["0.22569496", "<asset-label data-asset="65846551" data-label="tLBTC"></asset-label>"]
     function formatLiquidAmountsAndUnitsArray(value, assets, assetLabels, targetUnit='{{ specter.unit }}', hideStripped=true){
         {% if specter.hide_sensitive_info %}
@@ -270,7 +270,7 @@
     }
 
 
-    // Formats the valueInBTC (e.g. from a tx output) to an "formattedValue formattedUnitLabel"
+    // Returns a formatted amount and unti.  It can handle multiple, or a single assets, assetLabels  as input
     // e.g. "0.22569496 <asset-label data-asset="65846551" data-label="tLBTC"></asset-label>"
     function formatLiquidAmountsAndUnits(value, asset, assetLabel, targetUnit='{{ specter.unit }}', hideStripped=true){
         return formatLiquidAmountsAndUnitsArray(value, asset, assetLabel, targetUnit, hideStripped).join(' ');  
