@@ -447,7 +447,7 @@
 				var convertedUnit = (this.unit == 'sat') ? 'BTC' : 'sat'; 
 				var convertedAmountAndUnit = formatBtcAmountAndUnitArray(amountBTC, convertedUnit);
 				if (isNaN(this.amount)){
-					convertedAmountAndUnit[0] = '-'
+					convertedAmountAndUnit[0] = '-';
 				}
 				this.shadowRoot.getElementById('converted_unit_amount').innerHTML =  convertedAmountAndUnit[0];
 				this.shadowRoot.getElementById('converted_unit_label').innerHTML =  convertedAmountAndUnit[1];				

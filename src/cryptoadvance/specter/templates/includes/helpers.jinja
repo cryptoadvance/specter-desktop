@@ -19,10 +19,11 @@
         // for now 'en-US' is hard-coded, but this could be generalized to null
         // such that the browsers locale would be used.
         const locale = 'en-US';
-        if (isNaN(parseFloat(value))){
-            return parseFloat(value)        
+        value = parseFloat(value);
+        if (isNaN(value)){
+            return null;  
         }
-        var s = (parseFloat(value) * 1e8).toLocaleString(locale, { 
+        var s = (value * 1e8).toLocaleString(locale, { 
             minimumFractionDigits: 0, 
             maximumFractionDigits: 0 
         });         
@@ -85,14 +86,15 @@
         enableDigitFormatting=true,
         hideStripped=false
     ){
-        if (isNaN(parseFloat(value))){
-            return parseFloat(value)        
+        value = parseFloat(value);
+        if (isNaN(value)){
+            return null;
         }
        
         // for now 'en-US' is hard-coded, but this could be generalized to null
         // such that the browsers locale would be used.
         const locale = 'en-US';
-        var formatted_amount = parseFloat(value).toLocaleString(locale, { 
+        var formatted_amount = (value).toLocaleString(locale, { 
             minimumFractionDigits: 8, 
             maximumFractionDigits: 8 
         }); 
