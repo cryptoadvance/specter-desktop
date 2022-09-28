@@ -251,18 +251,7 @@
             }
 
             if("assetlabel" in this.tx){ // liquid
-                if (Array.isArray(this.tx.assetlabel)) { // multiple assets
-                    let unique_assets = this.tx.assetlabel.filter((v, i, a) => { return a.indexOf(v) === i });
-                    if (unique_assets.length == 1){
-                        this.amountText.innerHTML = formatLiquidAmountsAndUnits(this.amount, this.tx.asset[0], this.tx.assetlabel[0])
-                    }else if (unique_assets.length == 0){
-                        this.amountText.innerHTML = '';
-                    }else{
-                        this.amountText.innerHTML = `${unique_assets.length} assets`;
-                    }
-                }else{
-                    this.amountText.innerHTML = formatLiquidAmountsAndUnits(this.amount, this.tx.asset, this.tx.assetlabel)
-                }    
+                this.amountText.innerHTML = formatLiquidAmountsAndUnits(this.amount, this.tx.asset, this.tx.assetlabel)
             } else { // non-liquid
                 this.amountText.innerHTML = formatBtcAmountAndUnit(this.amount);
             }
