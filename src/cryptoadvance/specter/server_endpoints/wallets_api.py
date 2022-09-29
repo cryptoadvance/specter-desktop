@@ -494,17 +494,7 @@ def addresses_list(wallet_alias):
     address_type = request.form.get("addressType", "receive")
 
     addresses_list = wallet.addresses_info(address_type == "change")
-
-    # add the asset_label
-    for address in addresses_list:
-        if "assets" in address:
-            for asset in address["assets"]:
-                address["assets"][asset] = {
-                    "amount": address["assets"][asset],
-                    "label": get_asset_label(
-                        asset, known_assets=app.specter.asset_labels
-                    ),
-                }
+    addresses_list = add_known_asset_labels_to_addresses_list(addresses_list)
 
     result = process_addresses_list(
         addresses_list, idx=idx, limit=limit, sortby=sortby, sortdir=sortdir
@@ -1152,3 +1142,17 @@ def process_addresses_list(
         page_count = 1
 
     return {"addressesList": addresses_list, "pageCount": page_count}
+
+
+def add_known_asset_labels_to_addresses_list(addresses_list):
+    """
+    Overwrites the asset labels in addresses_list (if present),
+    using the known_assets
+    """
+    for address in addresses_list:
+        if "assets" in address:
+            for asset in address["assets"]:
+                address["assets"][asset]["label"] = get_asset_label(
+                    asset, known_assets=app.specter.asset_labels
+                )
+    return addresses_list
