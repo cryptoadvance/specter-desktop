@@ -106,33 +106,13 @@ describe('Test the rendering of balances and amounts', () => {
 
     it('Sending a tx with 0.001234 tBTC', () => {
         // get the ghot receive address to the clipboard
-        // cy.selectWallet('Ghost wallet')
-        // cy.selectWallet('Ghost wallet')       // Once again because only once doesn't work for some stupid unknown reason
-        // cy.get('#btn_receive').click()
-        // cy.get('#address').click()  // get receive address from ghost wallet 
         cy.selectWallet('Funding wallet')
         cy.selectWallet('Funding wallet')       // Once again because only once doesn't work for some stupid unknown reason
         cy.get('#btn_send').click()
         // check that the amount_available for sending is displayed correct
-        // cy.get('#wallet-amount_available').should('have.text', '20.00000000 tBTC') 
-        // cy.get('#wallet-amount_available').find('.thousand-digits-in-btc-amount').children().each((element) => {
-        //     cy.wrap(element).should('have.text', '0') 
-        //     cy.wrap(element).should('not.be.visible') 
-        //     cy.wrap(element).should('be.hidden') 
-        // });
-        // cy.get('#wallet-amount_available').find('.last-digits-in-btc-amount').children().each((element) => {
-        //     cy.wrap(element).should('have.text', '0') 
-        //     cy.wrap(element).should('not.be.visible') 
-        //     cy.wrap(element).should('be.hidden') 
-        // });
-
-                
-        //  using the clipboard directly doesn't work
-        // cy.window().then((win) => {
-        //     win.navigator.clipboard.readText().then((text) => {
-        //         cy.get('#recipient_0').find('#address').invoke('val', text, { force: true }) ;
-        //     });
-        // });        
+        cy.get('#wallet-amount_available').should('have.text', '19.94999291 tBTC') 
+        cy.get('#wallet-amount_available').find('.thousand-digits-in-btc-amount').should('be.visible').should('have.text', '999') 
+        cy.get('#wallet-amount_available').find('.last-digits-in-btc-amount').should('be.visible').should('have.text', '291') 
         cy.get('#recipient_0').find('#address').invoke('val', 'bcrt1q9mkrhmxcn7rslzfv6lke8859m7ntwudfjqmcx7', { force: true }) ;
         cy.get('#recipient_0').find('#amount').type(0.001234, { force: true })
         cy.get('#toggle_advanced').click()
