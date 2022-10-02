@@ -4,7 +4,7 @@ import logging, json
 import types
 from flask import url_for
 from flask_babel import lazy_gettext as _
-from .util.common import robust_json_dumps
+from cryptoadvance.specter.util.common import robust_json_dumps
 from datetime import datetime
 from babel.dates import format_datetime
 
