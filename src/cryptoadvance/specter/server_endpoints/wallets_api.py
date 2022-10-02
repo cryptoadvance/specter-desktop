@@ -112,23 +112,6 @@ def fees_old(blocks):
     return app.specter.estimatesmartfee(int(blocks))
 
 
-@wallets_endpoint_api.route("/global_search", methods=["POST"])
-@login_required
-def global_search():
-    search_term = request.form.get("global-search-input")
-    user = app.specter.user_manager.get_user(current_user)
-    return robust_json_dumps(
-        app.specter.global_search_tree.do_global_search(
-            search_term.strip(),
-            current_user,
-            app.specter.hide_sensitive_info,
-            app.specter.wallet_manager.wallets,
-            app.specter.device_manager.devices,
-            locale=app.get_language_code(),
-        )
-    )
-
-
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/combine/", methods=["POST"])
 @login_required
 def combine(wallet_alias):

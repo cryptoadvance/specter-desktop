@@ -133,8 +133,6 @@
         {% if specter.setup_status.stage != "start" and specter.rpc is none %}
             {{ sidebar_btn(url_for('setup_endpoint.' + specter.setup_status.stage), _('See setup progress'), class='btn action', icon=false) }}
         {% endif %}
-        {% include "includes/sidebar/components/global_search.jinja" %}
-        <global-search></global-search>
         <div class="separator">
             <span id="toggle_wallets_list" style="cursor: pointer;">{{ _("Wallets") }} &nbsp; &#9660;</span>
             {% if (specter.wallet_manager.wallets | length) > 1 %}

@@ -1,0 +1,8 @@
+{% extends "globalsearch/base.jinja" %}
+{% block main %}
+    <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" width="300"/>    
+    {% from 'globalsearch/components/globalsearch_menu.jinja' import globalsearch_menu with context %}
+    {{ globalsearch_menu(tab) }}
+    {% block content %}
+    {% endblock %}
+{% endblock %}
