@@ -749,10 +749,6 @@ th{
     font-weight: inherit;
     border-bottom: 3px solid var(--cmap-bg-lightest);
 }
-tbody tr:not(.nohover):hover{
-    background: rgba(255,255,255,0.03);
-    color: #fff;
-}
 .xpub{
     max-width: 300px;
 }

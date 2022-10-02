@@ -268,7 +268,7 @@
             var formData = new FormData();
             formData.append('global-search-input', this.searchInputElement.value);
 
-            let url="{{ url_for('wallets_endpoint_api.global_search' ) }}";
+            let url="{{ url_for('globalsearch_endpoint.global_search' ) }}";
             send_request(url, 'POST', "{{ csrf_token() }}", formData).then((answer)=> {
                 // this is to account for the fact that the input element can have changed during the request
                 // if the user quickly deletes the search term again, there should be no search window appearing
