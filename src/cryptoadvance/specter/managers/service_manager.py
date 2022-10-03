@@ -223,8 +223,8 @@ class ServiceManager:
             if isclass(attribute):
                 clazz = attribute
                 potential_config_classes.append(clazz)
-                if clazz.__name__.endswith(
-                    main_config_clazz_slug
+                if (
+                    clazz.__name__.split(".")[-1] == main_config_clazz_slug
                 ):  # e.g. BaseConfig or DevelopmentConfig
                     cls.import_config(clazz)
                     return
