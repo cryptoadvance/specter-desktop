@@ -138,8 +138,11 @@ def test_addresses_list_to_csv(
 def test_txout_set_info(caplog, app, client):
     caplog.set_level(logging.DEBUG)
     caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
+    logger = logging.getLogger(__file__)
     login(client, "secret")
+    logger.info(f"app.url_map {app.url_map}")
     res = client.get("/wallets/get_txout_set_info")
+    logger.info(f"response of /wallets/get_txout_set_info is {res}")
     assert res.status == "200 OK"
     print(json.loads(res.data))
     assert json.loads(res.data)["total_amount"] > 0
