@@ -232,14 +232,7 @@ class WalletManager:
                         else:
                             # Wallet is already there
                             # we only need to update
-                            try:
-
-                                self.wallets[wallet_name].update()
-                            except Exception as e:
-                                logger.info(
-                                    f"self.wallets.keys={list(self.wallets.keys())}, wallet_name={wallet_name}, existing_names={existing_names}"
-                                )
-                                raise e
+                            self.wallets[wallet_name].update()
         # only ignore rpc errors
         except RpcError as e:
             logger.error(f"Failed updating wallet manager. RPC error: {e}")
