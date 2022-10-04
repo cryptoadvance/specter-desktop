@@ -88,5 +88,5 @@ class GlobalsearchService(Service):
         return render_template("globalsearch/global_search.jinja")
 
     @classmethod
-    def inject_in_basejinja_body_top(cls):
+    def inject_in_basejinja_body_bottom(cls):
         return render_template("globalsearch/html_inject_in_basejinja.jinja")
