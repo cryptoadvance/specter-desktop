@@ -235,7 +235,7 @@ class ServiceManager:
         config_candidate_class = config_clazz.__bases__[0]
         while config_candidate_class != object:
             for clazz in potential_config_classes:
-                if clazz.__name__.endswith(config_candidate_class.__name__):
+                if clazz.__name__.split(".")[-1] == config_candidate_class.__name__:
                     cls.import_config(clazz)
                     return
             config_candidate_class = config_candidate_class.__bases__[0]
