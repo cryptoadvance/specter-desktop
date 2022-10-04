@@ -4,7 +4,7 @@ from cryptoadvance.specter.wallet import Wallet
 import logging
 
 logger = logging.getLogger(__name__)
-from cryptoadvance.specter.global_search import GlobalSearchTree
+from cryptoadvance.specterext.globalsearch.global_search import GlobalSearchTree
 from unittest.mock import MagicMock, patch
 from fix_devices_and_wallets import create_hot_wallet_device, create_hot_wallet_with_ID
 
@@ -13,8 +13,8 @@ def mock_url_for(url, **kwargs):
     return f"{url}/".replace(".", "/") + "/".join(kwargs.values())
 
 
-@patch("cryptoadvance.specter.global_search.url_for", mock_url_for)
-@patch("cryptoadvance.specter.global_search._", str)
+@patch("cryptoadvance.specterext.globalsearch.global_search.url_for", mock_url_for)
+@patch("cryptoadvance.specterext.globalsearch.global_search._", str)
 def test_transactions(specter_regtest_configured: Specter, funded_hot_wallet_1):
     user = specter_regtest_configured.user_manager.user
     global_search_tree = GlobalSearchTree()
@@ -124,8 +124,8 @@ def test_transactions(specter_regtest_configured: Specter, funded_hot_wallet_1):
     len(tx_result["search_results"]) == number_of_utxos_with_this_amount
 
 
-@patch("cryptoadvance.specter.global_search.url_for", mock_url_for)
-@patch("cryptoadvance.specter.global_search._", str)
+@patch("cryptoadvance.specterext.globalsearch.global_search.url_for", mock_url_for)
+@patch("cryptoadvance.specterext.globalsearch.global_search._", str)
 def test_addresses(specter_regtest_configured: Specter, unfunded_hot_wallet_1):
     user = specter_regtest_configured.user_manager.user
     global_search_tree = GlobalSearchTree()
@@ -204,8 +204,8 @@ def test_addresses(specter_regtest_configured: Specter, unfunded_hot_wallet_1):
         ]
 
 
-@patch("cryptoadvance.specter.global_search.url_for", mock_url_for)
-@patch("cryptoadvance.specter.global_search._", str)
+@patch("cryptoadvance.specterext.globalsearch.global_search.url_for", mock_url_for)
+@patch("cryptoadvance.specterext.globalsearch.global_search._", str)
 def test_devices(specter_regtest_configured: Specter, unfunded_hot_wallet_1):
     user = specter_regtest_configured.user_manager.user
     global_search_tree = GlobalSearchTree()
