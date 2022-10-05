@@ -1,7 +1,22 @@
+import { capitalize, numberWithCommas } from './helper-modules/formatting.js'
+import { copyText, send_request, showError, showNotification, wait } from './helper-modules/common.js'
+import { toggleMobileNav } from './helper-modules/mobile.js'
+
+// The scope of functions inside a module is not global, putting them on the window object makes them accessible outside of the module. 
+// See: https://stackoverflow.com/questions/44590393/es6-modules-undefined-onclick-function-after-import
+window.capitalize = capitalize
+window.numberWithCommas = numberWithCommas
+window.copyText = copyText
+window.send_request = send_request
+window.showError = showError
+window.showNotification = showNotification
+window.wait = wait
+window.toggleMobileNav = toggleMobileNav
+
 window.addEventListener('load', (event) => {
 	let main = document.getElementsByTagName("main")[0];
 	main.addEventListener('click', (event) => {
-		side_content = document.getElementById("side-content")
+		let side_content = document.getElementById("side-content")
 		if (side_content != null) {
 			side_content.classList.remove("active");
 		}
@@ -64,49 +79,6 @@ document.addEventListener("updateAddressLabel", function (e) {
 
 document.documentElement.style.setProperty('--mobileDistanceElementBottomHeight', `${Math.max(0, window.outerHeight - window.innerHeight)}px`);
 
-function showError(msg, timeout=0) {
-	return showNotification(msg, timeout, "error");
-}
-function showNotification(msg, timeout=3000, type="primary") {
-	let el = document.createElement("message-box");
-	el.setAttribute("type", type);
-	el.setAttribute("timeout", timeout);
-	el.innerHTML = msg;
-	document.getElementById("messages").appendChild(el);
-	el.addEventListener('click', (e)=>{
-		document.getElementById("messages").removeChild(el);
-	});
-	return el;
-}
-
-function copyText(value, msg) {
-	try {
-		var element = document.createElement("p");
-		document.getElementsByTagName("body")[0].appendChild(element);
-		element.textContent = value;
-		var selection = document.getSelection();
-		var range = document.createRange();
-		range.selectNodeContents(element);
-		selection.removeAllRanges();
-		selection.addRange(range);
-		document.execCommand("copy");
-		selection.removeAllRanges();
-		document.getElementsByTagName("body")[0].removeChild(element);
-		showNotification(msg);
-	}
-	catch (err) {
-		showError('Unable to copy text');
-	}
-}
-async function wait(ms){
-	return new Promise(resolve => {
-		setTimeout(resolve, ms);
-	});
-}
-function capitalize(str){
-	return str.charAt(0).toUpperCase()+str.substring(1);
-}
-
 // Enable navigation loader
 window.addEventListener('beforeunload', function (e) {
 	// half a second delay before we show it
@@ -114,45 +86,3 @@ window.addEventListener('beforeunload', function (e) {
 		document.getElementById("pageloader").style.display = 'block';
 	}, 200);
 });
-
-// toggle a navbar on mobile view
-function toggleMobileNav(btn, openImg, collapseImg) {
-	var x = btn.parentNode;
-	if (x.className === "row collapse-on-mobile") {
-		x.className += " responsive";
-		btn.children[0].src = collapseImg;
-	} else {
-		x.className = "row collapse-on-mobile";
-		btn.children[0].src = openImg;
-	}
-}
-
-function numberWithCommas(x) {
-	x = parseFloat(x).toString();
-	if (x.split(".").length > 1) {
-		return x.split(".")[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '.' + x.split(".")[1];
-	}
-    return x.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-
-async function send_request(url, method_str, csrf_token, formData) {
-	if (!formData) {
-		formData = new FormData();
-	}
-	formData.append("csrf_token", csrf_token)
-	d = {
-			method: method_str,
-		}
-	if (method_str == 'POST') {
-		d['body'] = formData;
-	}
-
-	const response = await fetch(url, d);
-	if(response.status != 200){
-		showError(await response.text());
-		console.log(`Error while calling ${url} with ${method_str} ${formData}`)
-		return
-	}
-	return await response.json();
-}

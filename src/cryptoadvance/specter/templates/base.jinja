@@ -42,7 +42,7 @@
 				background: rgba(255,255,255,0.03);
 			}
 		</style>
-		<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
+		<script type="module" src="{{ url_for('static', filename='helpers.js') }}"></script>
 		{% include "includes/helpers.jinja" %}
 		{% include "services/inject_in_basejinja_head.jinja" %}
 		{% block head %}
