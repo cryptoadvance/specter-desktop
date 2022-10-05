@@ -964,7 +964,6 @@
                 let txlist = JSON.parse(jsonResponse.txlist);
                 let summaryTxCount = 0;
                 let summaryAmount = 0;
-                let summaryPrice = 0;
                 for (let tx of txlist) {
                     let txRow = document.createRange().createContextualFragment(`
                     <tx-row class="txrowitem"
@@ -982,15 +981,12 @@
                     this.tbody.append(txRow);
                     summaryTxCount++;
                     summaryAmount += parseFloat(this.tbody.children[this.tbody.children.length - 1].shadowRoot.querySelector('.amount').innerText.replace(',', ''));
-                    summaryPrice += parseFloat(this.tbody.children[this.tbody.children.length - 1].shadowRoot.querySelector('.amount-price').innerText.replace(`(${this.symbol}`, '').replace(')', '').replace(',', ''));
                 }
 
                 if (summaryTxCount > 0 && this.search) {
                     this.summaryTxCount.innerText = `Transactions count: ${summaryTxCount}`;
-                    this.summaryAmount.innerHTML = `Total amount: ${numberWithCommas(summaryAmount.toFixed(8))}`;
-                    if (summaryPrice) {
-                        this.summaryAmount.innerHTML += ` <span class="note">(${this.symbol}${numberWithCommas(summaryPrice.toFixed(2))})</span>`
-                    }
+                    this.summaryAmount.innerHTML = `Total amount: ${formatBtcAmountAndUnit(summaryAmount)}`;         
+                    this.summaryAmount.innerHTML +=  ' ' + formatPrice(summaryAmount);
                     this.summaryRow.classList.remove('hidden');
                 }
                 // Pagination
