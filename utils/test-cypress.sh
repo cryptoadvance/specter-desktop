@@ -20,14 +20,21 @@ fi
 
 function check_consistency {
   if ! npm version 2> /dev/null 1>&2 ; then
-    echo "npm is not on the PATH. Please install node and bring on the PATH"
+    echo "npm is not on the PATH. Please install node and bring it on the PATH."
     exit 1
   fi
-  if ps | grep python | grep -v grep ; then # the second grep might be necessary because MacOs has a non POSIX ps
-      echo "there is still a python-process running which is suspicious. Maybe wait a few more seconds"
+  GREP_OUTPUT=$(ps | grep python | grep -v grep)
+  SPECTER_STR="cryptoadvance.specter server"
+  while read -r line; do # https://unix.stackexchange.com/questions/9784/how-can-i-read-line-by-line-from-a-variable-in-bash
+    if [[ "$line" == *"$SPECTER_STR"* ]] ; then 
+        echo "There is another Specter process running, but this is fine."
+    else
+      echo "There is a suspicious Python process running. Maybe wait a few more seconds."
       sleep 5
-      ps | grep python && (echo "please investigate or kill " && exit 1)
-  fi
+      echo "Please investigate the following process and perhaps kill: $line"
+      exit 1
+    fi
+  done <<< "$GREP_OUTPUT"
   $(npm bin)/cypress verify
 }
 
