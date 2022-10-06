@@ -20,6 +20,22 @@ def _get_module_from_class(clazz):
     return import_module(clazz.__module__)
 
 
+def get_class(fqcn: str):
+    """returns a class by a fully qualified class name like e.g. cryptoadvance.specter.node.Node"""
+    module_name = ".".join(fqcn.split(".")[:-1])
+
+    class_name = fqcn.split(".")[-1]
+    module = import_module(module_name)
+    print(module_name)
+    try:
+        my_class = getattr(module, class_name)
+    except AttributeError:
+        raise AttributeError(
+            f"module {module_name} has no class {class_name}"
+        )  # a tiny bit more specific, maybe not even worth it
+    return my_class
+
+
 def get_template_static_folder(foldername):
     """convenience-method to return static/template methods taking pyinstaller into account
     foldername can be anything but probably most reasonable template or static

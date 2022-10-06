@@ -5,9 +5,9 @@ import os
 from embit.liquid.networks import get_network
 from flask_babel import lazy_gettext as _
 from requests.exceptions import ConnectionError
-from .helpers import is_testnet, is_liquid
+from .helpers import deep_update, is_testnet, is_liquid
 from .liquid.rpc import LiquidRPC
-from .persistence import write_node
+from .persistence import BusinessObject, write_node
 from .rpc import (
     BitcoinRPC,
     RpcError,
@@ -18,7 +18,7 @@ from .rpc import (
 logger = logging.getLogger(__name__)
 
 
-class Node:
+class Node(BusinessObject):
     """A Node represents the connection to a Bitcoin and/or Liquid (Full-) node.
     It can be created via Constructor or from_json, and mainly it can give you A
     RPC-object to use the API.
@@ -113,20 +113,24 @@ class Node:
     @property
     def json(self):
         """Get a json-representation of this Node"""
-        return {
-            "name": self.name,
-            "alias": self.alias,
-            "autodetect": self.autodetect,
-            "datadir": self.datadir,
-            "user": self.user,
-            "password": self.password,
-            "port": self.port,
-            "host": self.host,
-            "protocol": self.protocol,
-            "external_node": self.external_node,
-            "fullpath": self.fullpath,
-            "node_type": self.node_type,
-        }
+        node_json = super().json
+        return deep_update(
+            node_json,
+            {
+                "name": self.name,
+                "alias": self.alias,
+                "autodetect": self.autodetect,
+                "datadir": self.datadir,
+                "user": self.user,
+                "password": self.password,
+                "port": self.port,
+                "host": self.host,
+                "protocol": self.protocol,
+                "external_node": self.external_node,
+                "fullpath": self.fullpath,
+                "node_type": self.node_type,
+            },
+        )
 
     def get_rpc(self):
         """
@@ -185,7 +189,7 @@ class Node:
             logger.error(rpce)
             return None
         except ConnectionError as e:
-            logger.error(f"{e} while get_rpc")
+            logger.error(f"{e} while get_rpc for {rpc}")
             return None
         except Exception as e:
             logger.exception(e)

@@ -5,7 +5,7 @@ import shutil
 
 from ..rpc import get_default_datadir, RPC_PORTS
 from ..specter_error import SpecterError
-from ..persistence import write_node, delete_file
+from ..persistence import BusinessObject, write_node, delete_file
 from ..helpers import alias, load_jsons
 from ..node import Node
 from ..internal_node import InternalNode
@@ -52,10 +52,7 @@ class NodeManager:
         nodes_files = load_jsons(self.data_folder, key="name")
         for node_alias in nodes_files:
             fullpath = os.path.join(self.data_folder, "%s.json" % node_alias)
-            node_class = (
-                Node if nodes_files[node_alias]["external_node"] else InternalNode
-            )
-            nodes[nodes_files[node_alias]["name"]] = node_class.from_json(
+            nodes[nodes_files[node_alias]["name"]] = BusinessObject.from_json(
                 nodes_files[node_alias],
                 self,
                 default_alias=node_alias,
@@ -147,7 +144,6 @@ class NodeManager:
     ):
         """Adding a node. Params:
         :param node_type: only valid for autodetect. Either BTC or ELM
-
         """
         if not default_alias:
             node_alias = alias(name)
@@ -176,7 +172,10 @@ class NodeManager:
             self,
         )
         logger.info(f"persisting {node} in add_node")
-        write_node(node, fullpath)
+        return self.save_node(node)
+
+    def save_node(self, node):
+        write_node(node, node.fullpath)
         self.update()  # reload files
         logger.info("Added new node {}".format(node.alias))
         return node
@@ -218,11 +217,7 @@ class NodeManager:
             network,
             self.internal_bitcoind_version,
         )
-        logger.info(f"persisting {node} in add_internal_node")
-        write_node(node, fullpath)
-        self.update()  # reload files
-        logger.info("Added new internal node {}".format(node.alias))
-        return node
+        return self.save_node(node)
 
     def delete_node(self, node, specter):
         logger.info("Deleting {}".format(node.alias))

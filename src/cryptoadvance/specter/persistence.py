@@ -13,6 +13,8 @@ import threading
 
 from flask import current_app as app
 
+from cryptoadvance.specter.util.reflection import get_class
+
 from .specter_error import SpecterError
 from .services.callbacks import specter_persistence_callback
 from .util.shell import run_shell
@@ -21,6 +23,30 @@ logger = logging.getLogger(__name__)
 
 fslock = threading.Lock()
 pclock = threading.Lock()
+
+
+class BusinessObject:
+    """An object which contains reasonable infrastructure to get un-/persisted (in json)
+    As such, other than the name implies, it doesn't contain any business specific attributes
+    Its usage is not (yet?!) supported in this persistence module but let's see
+    """
+
+    @property
+    def fqcn(self):
+        """the fully qualified class Name, e.g. "cryptoadvance.specter.node.Node"""
+        return f"{self.__class__.__module__}.{self.__class__.__name__}"
+
+    @property
+    def json(self):
+        self_json = {}
+        self_json["python_class"] = self.fqcn
+        return self_json
+
+    @classmethod
+    def from_json(cls, a_dict, *args, **kwargs):
+        """Creates a BusinessObject of the right class"""
+        clazz = get_class(a_dict["python_class"])
+        return clazz.from_json(a_dict, *args, **kwargs)
 
 
 def read_json_file(path):
