@@ -88,6 +88,7 @@ class NotificationManager:
         ssl_key=None,
         ui_notifications=None,
         enable_websockets=True,
+        notifications_endpoint_url="svc/notifications",
     ):
         """
         Arguments:
@@ -105,10 +106,14 @@ class NotificationManager:
         if enable_websockets:
             self.websockets_server = websockets_server_client.WebsocketServer(self)
 
-            # TODO: "svc/notifications/websocket"  should be replaced by url_for('notifications_endpoint.websocket')
-            # but this is not possible without a request context
+            #   '/'.join([notifications_endpoint_url, "websocket"]) should be replaced by url_for('notifications_endpoint.websocket')
+            # but this leads to an error
             self.websockets_client = websockets_server_client.WebsocketClient(
-                host, port, "svc/notifications/websocket", self.ssl_cert, self.ssl_key
+                host,
+                port,
+                "/".join([notifications_endpoint_url, "websocket"]),
+                self.ssl_cert,
+                self.ssl_key,
             )
 
             # setting this client as broadcaster, meaning it is allowed to send to all

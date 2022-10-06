@@ -399,6 +399,9 @@ class WebsocketClient:
                     self.url, ssl_context=self.ssl_context
                 )
                 success = True
+                logger.debug(
+                    f"Created {self.__class__.__name__} connection to url {self.url}"
+                )
                 self._initialize_connection_to_server()
                 break
             except ConnectionRefusedError:

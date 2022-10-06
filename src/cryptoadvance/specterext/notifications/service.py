@@ -47,6 +47,14 @@ class NotificationsService(Service):
                 print(f"Called {hello} {world} every5seconds")
 
         self.scheduler = scheduler
+
+        notifications_endpoint_url = "/".join(
+            [scheduler.app.config["EXT_URL_PREFIX"], self.id]
+        )
+        # remove leading /
+        if notifications_endpoint_url.startswith("/"):
+            notifications_endpoint_url = notifications_endpoint_url[1:]
+
         self.notification_manager = NotificationManager(
             scheduler.app.config.get("HOST", "127.0.0.1"),
             scheduler.app.config["PORT"],
@@ -55,6 +63,7 @@ class NotificationsService(Service):
             enable_websockets=scheduler.app.config[
                 "SPECTER_NOTIFICATIONS_WEBSOCKETS_ENABLED"
             ],
+            notifications_endpoint_url=notifications_endpoint_url,
         )
         for user in scheduler.app.specter.user_manager.users:
             self.notification_manager.register_user_ui_notifications(user.id)
