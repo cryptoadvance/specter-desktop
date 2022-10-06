@@ -373,7 +373,14 @@ function connectWebsocket() {
         }; 
         
         
-    });		
+    })
+    .catch(function (error) {
+        console.error('Connection to the websocket failed. Reconnect will be attempted in 10 seconds.', error.reason);
+        setTimeout(function() {
+            connectWebsocket();
+        }, 10000);
+    });
+      
 }
 
 
