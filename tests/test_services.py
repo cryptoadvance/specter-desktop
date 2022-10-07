@@ -196,6 +196,7 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
                 assert user_entry.get("encrypted_user_secret") is None
         assert found_bob
 
+        logout_user()
         # With no `user_secret` the decryption attempt must fail.
         with pytest.raises(ServiceEncryptedStorageError) as execinfo:
             storage_manager._get_current_user_service_storage()
