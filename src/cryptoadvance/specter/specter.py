@@ -20,6 +20,10 @@ from stem.control import Controller
 from urllib3.exceptions import NewConnectionError
 
 from cryptoadvance.specter.devices.device_types import DeviceTypes
+from cryptoadvance.specter.services.service_encrypted_storage import (
+    ServiceEncryptedStorageManager,
+    ServiceUnencryptedStorageManager,
+)
 
 from .helpers import clean_psbt, deep_update, is_liquid, is_testnet, get_asset_label
 from .internal_node import InternalNode
@@ -139,6 +143,16 @@ class Specter:
         )
         if self.price_check and self.price_provider and checker_threads:
             self.price_checker.start()
+
+        # Configuring the two different storages (Universal json-files)
+        logger.info("Instantiate ServiceEncryptedStorageManager")
+        self.service_encrypted_storage_manager = ServiceEncryptedStorageManager(
+            self.data_folder, self.user_manager
+        )
+        logger.info("Instantiate ServiceUnencryptedStorageManager")
+        self.service_unencrypted_storage_manager = ServiceUnencryptedStorageManager(
+            self.data_folder, self.user_manager
+        )
 
         if threading.current_thread() is threading.main_thread():
             # Python signal handlers are always executed in the main Python thread and only the main thread is allowed to set a new signal handler.

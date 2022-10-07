@@ -99,12 +99,9 @@ def test_access_encrypted_storage_after_login(app_no_node: SpecterFlask):
         config={},
     )
 
-    # The ServiceEncryptedStorageManager singleton creates a mess in the test suite. Have
-    # to override its (potentially) already-set values with references to this test's
-    # new instances and temp storage dir.
-    storage_manager = ServiceEncryptedStorageManager.get_instance()
-    storage_manager.data_folder = user_manager.data_folder
-    storage_manager.user_manager = user_manager
+    storage_manager = ServiceEncryptedStorageManager(
+        user_manager.data_folder, user_manager
+    )
     storage_manager.storage_by_user = {}
 
     # Need a simulated request context to enable `current_user` lookup
@@ -156,12 +153,9 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
         config={},
     )
 
-    # The ServiceEncryptedStorageManager singleton creates a mess in the test suite. Have
-    # to override its (potentially) already-set values with references to this test's
-    # new instances and temp storage dir.
-    storage_manager = ServiceEncryptedStorageManager.get_instance()
-    storage_manager.data_folder = user_manager.data_folder
-    storage_manager.user_manager = user_manager
+    storage_manager = ServiceEncryptedStorageManager(
+        user_manager.data_folder, user_manager
+    )
     storage_manager.storage_by_user = {}
 
     # Need a simulated request context to enable `current_user` lookup

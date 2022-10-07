@@ -54,20 +54,20 @@ class Service:
 
     @classmethod
     def set_current_user_service_data(cls, service_data: dict):
-        ServiceEncryptedStorageManager.get_instance().set_current_user_service_data(
+        app.specter.service_encrypted_storage_manager.set_current_user_service_data(
             service_id=cls.id, service_data=service_data
         )
 
     @classmethod
     def update_current_user_service_data(cls, service_data: dict):
-        ServiceEncryptedStorageManager.get_instance().update_current_user_service_data(
+        app.specter.service_encrypted_storage_manager.update_current_user_service_data(
             service_id=cls.id, service_data=service_data
         )
 
     @classmethod
     def get_current_user_service_data(cls) -> dict:
         return (
-            ServiceEncryptedStorageManager.get_instance().get_current_user_service_data(
+            app.specter.service_encrypted_storage_manager.get_current_user_service_data(
                 service_id=cls.id
             )
         )

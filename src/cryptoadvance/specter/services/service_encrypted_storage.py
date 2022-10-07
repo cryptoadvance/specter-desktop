@@ -3,7 +3,7 @@ import logging
 import os
 
 from cryptoadvance.specter.managers.genericdata_manager import GenericDataManager
-from cryptoadvance.specter.managers.singleton import ConfigurableSingleton
+from cryptoadvance.specter.managers.user_manager import UserManager
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.user import User
 
@@ -119,19 +119,15 @@ class ServiceUnencryptedStorage(ServiceEncryptedStorage):
         )
 
 
-class ServiceEncryptedStorageManager(ConfigurableSingleton):
-    """Singleton that manages access to users' ServiceApiKeyStorage; context-aware so it
+class ServiceEncryptedStorageManager:
+    """manages access to users' ServiceApiKeyStorage; context-aware so it
     knows who the current_user is for the given request context.
-
-    Requires a one-time configuration call on startup in the ServiceManager.
     """
 
-    @classmethod
-    def configure_instance(cls, data_folder, user_manager):
-        super().configure_instance()
-        cls._instance.data_folder = data_folder
-        cls._instance.user_manager = user_manager
-        cls._instance.storage_by_user = {}
+    def __init__(self, data_folder, user_manager: UserManager):
+        self.user_manager = user_manager
+        self.data_folder = data_folder
+        self.storage_by_user = {}
 
     def get_raw_encrypted_data(self, user: User) -> dict:
         """Doesn't attempt to decrypt the ServiceEncryptedStorage, just returns the
@@ -184,7 +180,7 @@ class ServiceEncryptedStorageManager(ConfigurableSingleton):
 
 
 class ServiceUnencryptedStorageManager(ServiceEncryptedStorageManager):
-    def __init__(self, user_manager, data_folder):
+    def __init__(self, data_folder, user_manager: UserManager):
         self.user_manager = user_manager
         self.data_folder = data_folder
         self.storage_by_user = {}
