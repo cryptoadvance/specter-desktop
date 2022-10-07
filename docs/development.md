@@ -443,12 +443,12 @@ If you see this to need some improvements, please make it in small steps and exp
 ### Some words about dependencies
 As a quite young project, we don't have many dependencies yet and as a quite secure-aware use-case, we don't even want to have too many dependencies. That's sometimes the reason that we decide to roll our own rather then taking in new dependencies. This is especially true for javascript. We prefer plain javascript over any kind of frameworks.
 
-If you update `requirements.in` you will need to run the following to update `requirements.txt`:
+If you update `requirements.in` you will need to run the code snippet below to generate a new `requirements.txt`. 
+In order to produce consistent values in `requirements.txt`, delete any pre-existing `requirements.txt` file before doing `pip-compile`.
 ```sh
 $ pip-compile --generate-hashes requirements.in
 ```
-
-This is good for both security and reproducibility.
+This approach is good for both security and reproducibility.
 
 ### Some words specific to the frontend
 We're aware that currently the app is not very compatible on different browsers and there is no clear strategy yet on how (and whether at all) to fix that.
