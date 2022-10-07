@@ -23,18 +23,22 @@ function check_consistency {
     echo "npm is not on the PATH. Please install node and bring it on the PATH."
     exit 1
   fi
-  GREP_OUTPUT=$(ps | grep python | grep -v grep)
-  SPECTER_STR="cryptoadvance.specter server"
-  while read -r line; do # https://unix.stackexchange.com/questions/9784/how-can-i-read-line-by-line-from-a-variable-in-bash
-    if [[ "$line" == *"$SPECTER_STR"* ]] ; then 
-        echo "There is another Specter process running, but this is fine."
-    else
-      echo "There is a suspicious Python process running. Maybe wait a few more seconds."
-      sleep 5
-      echo "Please investigate the following process and perhaps kill: $line"
-      exit 1
-    fi
-  done <<< "$GREP_OUTPUT"
+  if ! ps | grep python | grep -q -v grep; then
+    echo "There are no other Python processes running, good to go!"
+  else 
+    GREP_OUTPUT=$(ps | grep python | grep -v grep) 
+    SPECTER_STR="cryptoadvance.specter server"
+    while read -r line; do # https://unix.stackexchange.com/questions/9784/how-can-i-read-line-by-line-from-a-variable-in-bash
+      if [[ "$line" == *"$SPECTER_STR"* ]]; then 
+          echo "There is another Specter process running, this is fine."
+      else
+        echo "There is a suspicious Python process running. Maybe wait a few more seconds."
+        sleep 5
+        echo "Please investigate the following process and perhaps kill: $line"
+        exit 1
+      fi
+    done <<< "$GREP_OUTPUT"
+  fi
   $(npm bin)/cypress verify
 }
 
