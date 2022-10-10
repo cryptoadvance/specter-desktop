@@ -33,6 +33,7 @@ def test_Node_btc(bitcoin_regtest):
         del node_json["fullpath"]  # This is very different because of the tempfile
         assert node_json == {
             "name": "",
+            "python_class": "cryptoadvance.specter.node.Node",
             "alias": "",
             "autodetect": False,
             "datadir": "",
@@ -95,6 +96,7 @@ def test_Node_elm(elements_elreg):
         print(f"node.json = {node.json}")
         assert node_json == {
             "name": "",
+            "python_class": "cryptoadvance.specter.node.Node",
             "alias": "",
             "autodetect": False,
             "datadir": "",

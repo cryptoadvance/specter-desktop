@@ -6,7 +6,7 @@ import shutil
 from ..rpc import get_default_datadir, RPC_PORTS
 from ..specter_error import SpecterError
 from ..persistence import BusinessObject, write_node, delete_file
-from ..helpers import alias, load_jsons
+from ..helpers import alias, calc_fullpath, load_jsons
 from ..node import Node
 from ..internal_node import InternalNode
 from ..util.bitcoind_setup_tasks import setup_bitcoind_thread
@@ -33,14 +33,14 @@ class NodeManager:
         self.only_tor = only_tor
         self.bitcoind_path = bitcoind_path
         self.internal_bitcoind_version = internal_bitcoind_version
-        self.update(data_folder)
+        self.load_from_disk(data_folder)
         internal_nodes = [
             node for node in self.nodes.values() if not node.external_node
         ]
         for node in internal_nodes:
             node.start()
 
-    def update(self, data_folder=None):
+    def load_from_disk(self, data_folder=None):
         if data_folder is not None:
             self.data_folder = data_folder
             if data_folder.startswith("~"):
@@ -51,7 +51,7 @@ class NodeManager:
         nodes = {}
         nodes_files = load_jsons(self.data_folder, key="name")
         for node_alias in nodes_files:
-            fullpath = os.path.join(self.data_folder, "%s.json" % node_alias)
+            fullpath = calc_fullpath(self.data_folder, node_alias)
             nodes[nodes_files[node_alias]["name"]] = BusinessObject.from_json(
                 nodes_files[node_alias],
                 self,
@@ -86,8 +86,7 @@ class NodeManager:
                 external_node=True,
                 default_alias=self.DEFAULT_ALIAS,
             )
-        else:
-            self.nodes = nodes
+        self.nodes = nodes
 
     @property
     def active_node(self):
@@ -144,6 +143,8 @@ class NodeManager:
     ):
         """Adding a node. Params:
         :param node_type: only valid for autodetect. Either BTC or ELM
+        This should only be used for an external node. Use add_internal_node for internal node
+        and if you have defined your own node-type, use save_node directly. to save the node (and create it yourself)
         """
         if not default_alias:
             node_alias = alias(name)
@@ -175,8 +176,12 @@ class NodeManager:
         return self.save_node(node)
 
     def save_node(self, node):
-        write_node(node, node.fullpath)
-        self.update()  # reload files
+        fullpath = (
+            node.fullpath
+            if hasattr(node, "fullpath")
+            else calc_fullpath(self.data_folder, node.name)
+        )
+        write_node(node, fullpath)
         logger.info("Added new node {}".format(node.alias))
         return node
 
@@ -188,6 +193,10 @@ class NodeManager:
         default_alias=None,
         datadir=None,
     ):
+        """Adding an internal node. Params:
+        This should only be used for internal nodes. Use add_node for external nodes
+        and if you have defined your own node-type, use save_node directly. to save the node (and create it yourself)
+        """
         if not default_alias:
             node_alias = alias(name)
         else:
