@@ -117,7 +117,7 @@ def test_calling_method_with_non_existing_parameters(client):
     assert {  # TODO This is a temporary fix that should be handled in https://github.com/cryptoadvance/specter-desktop/pull/1693
         "error": {
             "code": -32000,
-            "message": "Internal error: HWIBridge.enumerate() got an unexpected keyword argument 'non_existing_parameter'.",
+            "message": "Internal error: enumerate() got an unexpected keyword argument 'non_existing_parameter'.",
         },
         "id": 1,
         "jsonrpc": "2.0",
