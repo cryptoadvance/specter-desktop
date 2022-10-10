@@ -28,6 +28,7 @@ class SwanService(Service):
     has_blueprint = True
     isolated_client = False
     devstatus = devstatus_prod
+    encrypt_data = True
 
     # TODO: As more Services are integrated, we'll want more robust categorization and sorting logic
     sort_priority = 1

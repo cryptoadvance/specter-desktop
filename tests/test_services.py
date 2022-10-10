@@ -170,10 +170,7 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
         config={},
     )
 
-    storage_manager = ServiceEncryptedStorageManager(
-        user_manager.data_folder, user_manager
-    )
-    storage_manager.storage_by_user = {}
+    storage_manager = app_no_node.specter.service_encrypted_storage_manager
 
     # Need a simulated request context to enable `current_user` lookup
     with app_no_node.test_request_context():
@@ -200,7 +197,7 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
         assert FakeService.id in data_on_disk
 
         # Now remove all
-        app_no_node.specter.service_manager.remove_all_services_from_user(user)
+        app_no_node.specter.service_manager.delete_services_with_encrypted_storage(user)
 
         # Verify data on disk; Bob's user should have his user_secret cleared.
         users_file = app_no_node.specter.user_manager.users_file
