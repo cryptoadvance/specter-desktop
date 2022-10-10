@@ -209,23 +209,22 @@ It is up to each `Service` implementation to decide what data is stored; the `Se
 This is also where `Service`-wide configuration or other information should be stored, _**even if it is not secret**_ (see above intro about not polluting other existing data stores).
 
 ### ServiceEncryptedStorageManager
-Because the `ServiceEncryptedStorage` is specific to each individual user, this manager provides convenient access to automatically retrieve the `current_user` from the Flask context and provide the correct user's `ServiceEncryptedStorage`. It is implemented as a `Singleton` which can be retrieved simply by importing the class and calling `get_instance()`.
+Because the `ServiceEncryptedStorage` is specific to each individual user, this manager provides convenient access to automatically retrieve the `current_user` from the Flask context and provide the correct user's `ServiceEncryptedStorage`.
 
 This simplifies code to just asking for:
 ```python
 from .service_encrypted_storage import ServiceEncryptedStorageManager
 
-ServiceEncryptedStorageManager.get_instance().get_current_user_service_data(service_id=some_service_id)
+app.specter.service_encrypted_storage_manager.get_current_user_service_data(service_id=some_service_id)
 ```
 
 As a further convenience, the `Service` base class itself encapsulates `Service`-aware access to this per-`User` encrypted storage:
 ```python
 @classmethod
 def get_current_user_service_data(cls) -> dict:
-    return ServiceEncryptedStorageManager.get_instance().get_current_user_service_data(service_id=cls.id)
+    return app.specter.service_encrypted_storage_manager.get_current_user_service_data(service_id=cls.id)
 ```
 
-Whenever possible, external code should not directly access these `Service`-related support classes but rather should ask for them through the `Service` class.
 
 ### `ServiceUnencryptedStorage`
 A disadvantage of the `ServiceEncryptedStorage` is, that the user needs to be freshly logged in in order to be able to decrypt the secrets. If you want to avoid that login but your extension should still store data on disk, you can use the `ServiceUnencryptedStorage`.
@@ -243,7 +242,7 @@ _Note: current `Service` implementations have not yet needed this feature so dis
 
 Unfortunately, the two unencrypted classes are derived from the encrypted one rather than having it the other way around or having abstract classes. This makes the diagram maybe a bit confusing.
 
-[![](https://mermaid.ink/img/pako:eNqVVMFuwjAM_ZUqJzaVw66IIU0D7bRd0G6VItO4LFvqoCRlqhj_PpeWASLduhyiqH7v-dlOsxO5VSgmIjfg_VzD2kGZUcKr3Z-Q0Ol8DgGegWCNLpl-jcfJEt1W57ig3NWbgGoZrONoS-oJXjBfCaPcPxI-ENkAQVvyF7RHS4VeVw5WBpea1gaDpZbZZ6eT_9VyzMK18_8oZeIuE8l4fMsn4tOQRvZm7FPra24XZgLjK4--38BFTe1-uCORAe3acLOk1KSDlCOPpkgTxSBZWKPQpUlniUcnP7C-f7GENycmQYnSFvLdc7zQBk-hn1r4OxrlTxFjQY3ORKSHbUfcn3vuqTFm_MIyt4h3pX1zraTCA_0sX0b9ya5varxPB7DUKk0-wfC1HSh_PeJdFB7_Mc6sTKf--Hk2G96769lHhJrlW7xc1bJp538qGpQjJnVqhUhFia4ErfiROwhlIrxhiZmY8FFhAZUJmciogVYbHj8ulOb8YlKA8ZgKqIJd1pSLSXAVHkHdW9mh9t9YNMxZ)](https://mermaid-js.github.io/mermaid-live-editor/edit#pako:eNqVVMFuwjAM_ZUqJzaVw66IIU0D7bRd0G6VItO4LFvqoCRlqhj_PpeWASLduhyiqH7v-dlOsxO5VSgmIjfg_VzD2kGZUcKr3Z-Q0Ol8DgGegWCNLpl-jcfJEt1W57ig3NWbgGoZrONoS-oJXjBfCaPcPxI-ENkAQVvyF7RHS4VeVw5WBpea1gaDpZbZZ6eT_9VyzMK18_8oZeIuE8l4fMsn4tOQRvZm7FPra24XZgLjK4--38BFTe1-uCORAe3acLOk1KSDlCOPpkgTxSBZWKPQpUlniUcnP7C-f7GENycmQYnSFvLdc7zQBk-hn1r4OxrlTxFjQY3ORKSHbUfcn3vuqTFm_MIyt4h3pX1zraTCA_0sX0b9ya5varxPB7DUKk0-wfC1HSh_PeJdFB7_Mc6sTKf--Hk2G96769lHhJrlW7xc1bJp538qGpQjJnVqhUhFia4ErfiROwhlIrxhiZmY8FFhAZUJmciogVYbHj8ulOb8YlKA8ZgKqIJd1pSLSXAVHkHdW9mh9t9YNMxZ)
+[![](https://mermaid.ink/img/pako:eNqVVD1PwzAQ_SuRp4KSgTWCAakVEywVC4pkXeNLMTjnynaKotL_jpukTaLGEDxYdt579-4j8oHlWiBLWa7A2qWErYEyo8ivdn9CQiPzJTh4BoItmuj-O0miNZq9zHFFual3DsXaaePRVhQAR8pXwkntH4aPRNqBk5rsHMupENfOHWtWpIzdZSxKklt_In-a04igYyhaqDkd7AWeX1m04QRGNbV7M-OJBh9a-LQ4lyQd5wuLqogj4Um80EqgiaMuJd96_on1w4smvOmVBCVyXfAP6_FCKuyhSy3-Oyphe0RpEItBEG5h3wmPw5wDNU4lPkrZt8jvQlrYKOQCG_nAL6Ow2fWfNt2nhsyliKMvUArnhr8e8eE3emC8g5RsC_BNzU9l_8d5HCys7DNkMSvRlCCFfzsaXcbcO5aYsdQfBZjPjGV04lU7PxJcCem9WFqAshgzqJxe15Sz1JkKz6Tu_bmwdkBvWp_vxx_pzJiR)](https://mermaid-js.github.io/mermaid-live-editor/edit#pako:eNqVVD1PwzAQ_SuRp4KSgTWCAakVEywVC4pkXeNLMTjnynaKotL_jpukTaLGEDxYdt579-4j8oHlWiBLWa7A2qWErYEyo8ivdn9CQiPzJTh4BoItmuj-O0miNZq9zHFFual3DsXaaePRVhQAR8pXwkntH4aPRNqBk5rsHMupENfOHWtWpIzdZSxKklt_In-a04igYyhaqDkd7AWeX1m04QRGNbV7M-OJBh9a-LQ4lyQd5wuLqogj4Um80EqgiaMuJd96_on1w4smvOmVBCVyXfAP6_FCKuyhSy3-Oyphe0RpEItBEG5h3wmPw5wDNU4lPkrZt8jvQlrYKOQCG_nAL6Ow2fWfNt2nhsyliKMvUArnhr8e8eE3emC8g5RsC_BNzU9l_8d5HCys7DNkMSvRlCCFfzsaXcbcO5aYsdQfBZjPjGV04lU7PxJcCem9WFqAshgzqJxe15Sz1JkKz6Tu_bmwdkBvWp_vxx_pzJiR)
 
 
 ### Service configuration
