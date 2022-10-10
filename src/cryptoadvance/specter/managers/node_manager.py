@@ -1,3 +1,4 @@
+from gc import callbacks
 import os
 import logging
 import secrets
@@ -9,6 +10,7 @@ from ..persistence import BusinessObject, write_node, delete_file
 from ..helpers import alias, calc_fullpath, load_jsons
 from ..node import Node
 from ..internal_node import InternalNode
+from ..services import callbacks
 from ..util.bitcoind_setup_tasks import setup_bitcoind_thread
 
 logger = logging.getLogger(__name__)
@@ -51,12 +53,11 @@ class NodeManager:
         nodes = {}
         nodes_files = load_jsons(self.data_folder, key="name")
         for node_alias in nodes_files:
-            fullpath = calc_fullpath(self.data_folder, node_alias)
             nodes[nodes_files[node_alias]["name"]] = BusinessObject.from_json(
                 nodes_files[node_alias],
                 self,
                 default_alias=node_alias,
-                default_fullpath=fullpath,
+                default_fullpath=fullpath(self.data_folder, node_alias),
             )
         if not nodes:
             if os.environ.get("ELM_RPC_USER"):
@@ -73,6 +74,7 @@ class NodeManager:
                     external_node=True,
                     default_alias=self.DEFAULT_ALIAS,
                 )
+            logger.info("Creating initial node-configuration")
             self.add_node(
                 node_type="BTC",
                 name="Bitcoin Core",

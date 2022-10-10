@@ -121,6 +121,11 @@ def alias(name):
     return "".join(x for x in name if x.isalnum() or x == "_").lower()
 
 
+def fullpath(data_folder, name):
+    """Quick way to get a fullpath which usually"""
+    return os.path.join(data_folder, f"{alias(name)}.json")
+
+
 def calc_fullpath(data_folder, name):
     """Get a fullpath for a Businessobject with a name quickly"""
     return os.path.join(data_folder, f"{alias(name)}.json")

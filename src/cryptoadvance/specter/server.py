@@ -142,15 +142,21 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
             data_folder=app.config["SPECTER_DATA_FOLDER"],
             config=app.config["DEFAULT_SPECTER_CONFIG"],
             internal_bitcoind_version=app.config["INTERNAL_BITCOIND_VERSION"],
+            initialize=False,
         )
 
-    # HWI
-    specter.hwi = HWIBridge()
-
     # ServiceManager will instantiate and register blueprints for extensions
+    # It's an attribute to the specter but specter is not aware of it.
+    # However some managers are aware of it and so we need to split
+    # instantiation from initializing and in between attach the service_manager
     specter.service_manager = ServiceManager(
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )
+
+    specter.initialize()
+
+    # HWI
+    specter.hwi = HWIBridge()
 
     login_manager = LoginManager()
     login_manager.session_protection = app.config.get("SESSION_PROTECTION", "strong")
