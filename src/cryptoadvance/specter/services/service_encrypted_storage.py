@@ -110,7 +110,7 @@ class ServiceUnencryptedStorage(ServiceEncryptedStorage):
                 "ServiceUnencryptedStorage needs to be initialized with disable_decrypt = True"
             )
         if disable_decrypt:
-            super().__init__(data_folder, encryption_key=None, disable_decrypt=True)
+            super().__init__(data_folder, user, disable_decrypt=True)
 
     @property
     def data_file(self):
