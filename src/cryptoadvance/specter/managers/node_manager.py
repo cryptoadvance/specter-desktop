@@ -29,6 +29,7 @@ class NodeManager:
         internal_bitcoind_version="",
         data_folder="",
     ):
+        self.nodes = {}
         self.data_folder = data_folder
         self._active_node = active_node
         self.proxy_url = proxy_url
@@ -50,18 +51,17 @@ class NodeManager:
             # creating folders if they don't exist
             if not os.path.isdir(data_folder):
                 os.mkdir(data_folder)
-        nodes = {}
         nodes_files = load_jsons(self.data_folder, key="name")
         for node_alias in nodes_files:
-            nodes[nodes_files[node_alias]["name"]] = BusinessObject.from_json(
+            self.nodes[nodes_files[node_alias]["name"]] = BusinessObject.from_json(
                 nodes_files[node_alias],
                 self,
                 default_alias=node_alias,
-                default_fullpath=fullpath(self.data_folder, node_alias),
+                default_fullpath=calc_fullpath(self.data_folder, node_alias),
             )
-        if not nodes:
+        if not self.nodes:
             if os.environ.get("ELM_RPC_USER"):
-                self.add_node(
+                self.add_external_node(
                     node_type="ELM",
                     name="Blockstream Liquid",
                     autodetect=True,
@@ -75,7 +75,7 @@ class NodeManager:
                     default_alias=self.DEFAULT_ALIAS,
                 )
             logger.info("Creating initial node-configuration")
-            self.add_node(
+            self.add_external_node(
                 node_type="BTC",
                 name="Bitcoin Core",
                 autodetect=True,
@@ -88,7 +88,13 @@ class NodeManager:
                 external_node=True,
                 default_alias=self.DEFAULT_ALIAS,
             )
-        self.nodes = nodes
+
+        # Just to be sure here ....
+        has_default_node = False
+        for name, node in self.nodes.items():
+            if node.alias == self.DEFAULT_ALIAS:
+                return
+        raise Exception("Does not have a default node!" + str(self.nodes))
 
     @property
     def active_node(self):
@@ -129,7 +135,7 @@ class NodeManager:
         for node_alias in stopped_nodes:
             self.get_by_alias(node_alias).start(timeout=60)
 
-    def add_node(
+    def add_external_node(
         self,
         node_type,
         name,
@@ -174,7 +180,8 @@ class NodeManager:
             node_type,
             self,
         )
-        logger.info(f"persisting {node} in add_node")
+        logger.info(f"persisting {node} in add_external_node")
+        self.nodes[name] = node
         return self.save_node(node)
 
     def save_node(self, node):
@@ -184,6 +191,7 @@ class NodeManager:
             else calc_fullpath(self.data_folder, node.name)
         )
         write_node(node, fullpath)
+
         logger.info("Added new node {}".format(node.alias))
         return node
 
@@ -196,7 +204,7 @@ class NodeManager:
         datadir=None,
     ):
         """Adding an internal node. Params:
-        This should only be used for internal nodes. Use add_node for external nodes
+        This should only be used for internal nodes. Use add__External_node for external nodes
         and if you have defined your own node-type, use save_node directly. to save the node (and create it yourself)
         """
         if not default_alias:
@@ -228,6 +236,7 @@ class NodeManager:
             network,
             self.internal_bitcoind_version,
         )
+        self.nodes[name] = node
         return self.save_node(node)
 
     def delete_node(self, node, specter):

@@ -18,10 +18,12 @@ from cryptoadvance.specter.process_controller.elementsd_controller import (
 def test_NodeManager(
     bitcoin_regtest: BitcoindPlainController, elements_elreg: ElementsPlainController
 ):
-    with tempfile.TemporaryDirectory("_some_datafolder_tmp") as data_folder:
+    with tempfile.TemporaryDirectory(
+        prefix="pytest_NodeManager_datafolder"
+    ) as data_folder:
         print(f"data_folder={data_folder}")
         nm = NodeManager(data_folder=data_folder)
-        nm.add_node(
+        nm.add_external_node(
             "BTC",
             "bitcoin_regtest",
             False,
@@ -33,10 +35,11 @@ def test_NodeManager(
             "http",
             external_node=True,
         )
+        # time.sleep(100)
         assert nm.nodes_names == ["Bitcoin Core", "bitcoin_regtest"]
         nm.switch_node("bitcoin_regtest")
         assert nm.active_node.get_rpc().getblockchaininfo()["chain"] == "regtest"
-        nm.add_node(
+        nm.add_external_node(
             "ELM",
             "elements_elreg",
             False,
