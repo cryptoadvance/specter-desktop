@@ -3,6 +3,7 @@ import tempfile
 import time
 import tarfile
 import os
+from unittest.mock import MagicMock
 
 import pytest
 from cryptoadvance.specter.managers.node_manager import NodeManager
@@ -35,7 +36,6 @@ def test_NodeManager(
             "http",
             external_node=True,
         )
-        # time.sleep(100)
         assert nm.nodes_names == ["Bitcoin Core", "bitcoin_regtest"]
         nm.switch_node("bitcoin_regtest")
         assert nm.active_node.get_rpc().getblockchaininfo()["chain"] == "regtest"
@@ -54,7 +54,8 @@ def test_NodeManager(
         assert nm.nodes_names == ["Bitcoin Core", "bitcoin_regtest", "elements_elreg"]
         nm.switch_node("elements_elreg")
         assert nm.active_node.get_rpc().getblockchaininfo()["chain"] == "elreg"
-        time.sleep(20)
+        nm.delete_node(nm.nodes["Bitcoin Core"], MagicMock())
+        nm.get_by_alias
 
 
 """ For some reason this breaks other tests"""

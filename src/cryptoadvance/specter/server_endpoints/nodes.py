@@ -170,7 +170,7 @@ def node_settings(node_alias):
                         specter=app.specter,
                         rand=rand,
                     )
-                node = app.specter.node_manager.add_node(
+                node = app.specter.node_manager.add_external_node(
                     "BTC",
                     node.name,
                     autodetect,
