@@ -145,8 +145,8 @@ ecdsa==0.18.0 \
     # via
     #   bitbox02
     #   hwi
-embit==0.4.13 \
-    --hash=sha256:46a5ac26f7e9132a7f60e2b1a0938f7104f841e98e23476f395b7df4f1fb7552
+embit==0.5.0 \
+    --hash=sha256:5644ae6ed07bb71bf7fb15daf7f5af73d889180e623f5ff1f35a20ad01f0405e
     # via -r requirements.in
 flask==2.1.1 \
     --hash=sha256:8a4cf32d904cf5621db9f0c9fbcd7efabf3003f22a04e4d0ce790c7137ec5264 \
@@ -191,9 +191,9 @@ gunicorn==20.1.0 \
     --hash=sha256:9dcc4547dbb1cb284accfb15ab5667a0e5d1881cc443e0677b4882a4067a807e \
     --hash=sha256:e0a968b5ba15f8a328fdfd7ab1fcb5af4470c28aaf7e55df02a99bc13138e6e8
     # via -r requirements.in
-h11==0.13.0 \
-    --hash=sha256:70813c1135087a248a4d38cc0e1a0181ffab2188141a93eaf567940c3957ff06 \
-    --hash=sha256:8ddd78563b633ca55346c8cd41ec0af27d3c79931828beffb46ce70a379e7442
+h11==0.14.0 \
+    --hash=sha256:8f19fbbe99e72420ff35c00b27a34cb9937e902a8b810e2c88300c6f0a3b699d \
+    --hash=sha256:e3fe4ac4b851c468cc8363d500db52c2ead036020723024a109d37346efaa761
     # via wsproto
 hidapi==0.12.0.post2 \
     --hash=sha256:00bad74617622b7b7abbb24eae5c11bd91957bb87217d62d8feea15c971a77b5 \
@@ -233,13 +233,13 @@ hidapi==0.12.0.post2 \
     # via
     #   bitbox02
     #   hwi
-hwi==2.1.0 \
-    --hash=sha256:3aec14eaecbe7f1b1c8d622c6e35d0309a12696bd35a2c8ceee21ee1754a7bc5 \
-    --hash=sha256:d09d818c91e2ae5213bc3fcf2999668f2bb9098e6bfaa6a3723400356db8fb66
+hwi==2.1.1 \
+    --hash=sha256:81ebb2917291c3d2ef3252f44aa141ffb8d74f0c2abfa2a98410800426c20e3f \
+    --hash=sha256:fa32223b9c26636b46eef9b5602a3d259f011f8490ae68dfb5812a5f9563d084
     # via -r requirements.in
-idna==3.3 \
-    --hash=sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff \
-    --hash=sha256:9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d
+idna==3.4 \
+    --hash=sha256:814f528e8dead7d329833b91c5faa87d60bf71824cd12a7530b5526063d02cb4 \
+    --hash=sha256:90b77e79eaa3eba6de819a0c442c0b4ceefc341a7a2ab77d7562bf49f425c5c2
     # via requests
 importlib-metadata==4.8.1 \
     --hash=sha256:b618b6d2d5ffa2f16add5697cf57a46c76a56229b0ed1c438322e4e95645bd15 \
@@ -415,9 +415,9 @@ python-dotenv==0.13.0 \
     --hash=sha256:25c0ff1a3e12f4bde8d592cc254ab075cfe734fc5dd989036716fd17ee7e5ec7 \
     --hash=sha256:3b9909bc96b0edc6b01586e1eed05e71174ef4e04c71da5786370cebea53ad74
     # via -r requirements.in
-pytz==2022.2.1 \
-    --hash=sha256:220f481bdafa09c3955dfbdddb7b57780e9a94f5127e35456a48589b9e0c0197 \
-    --hash=sha256:cea221417204f2d1a2aa03ddae3e867921971d0d76f14d87abb4414415bbdcf5
+pytz==2022.4 \
+    --hash=sha256:2c0784747071402c6e99f0bafdb7da0fa22645f06554c7ae06bf6358897e9c91 \
+    --hash=sha256:48ce799d83b6f8aab2020e369b627446696619e79645419610b9facd909b3174
     # via
     #   apscheduler
     #   babel
@@ -467,9 +467,9 @@ typing-extensions==3.10.0.2 \
     # via
     #   bitbox02
     #   hwi
-tzdata==2022.2 \
-    --hash=sha256:21f4f0d7241572efa7f7a4fdabb052e61b55dc48274e6842697ccdf5253e5451 \
-    --hash=sha256:c3119520447d68ef3eb8187a55a4f44fa455f30eb1b4238fa5691ba094f2b05b
+tzdata==2022.4 \
+    --hash=sha256:74da81ecf2b3887c94e53fc1d466d4362aaf8b26fc87cda18f22004544694583 \
+    --hash=sha256:ada9133fbd561e6ec3d1674d3fba50251636e918aa97bd59d63735bef5a513bb
     # via pytz-deprecation-shim
 tzlocal==4.2 \
     --hash=sha256:89885494684c929d9191c57aa27502afc87a579be5cdd3225c77c463ea043745 \
@@ -493,9 +493,9 @@ wtforms==3.0.1 \
     --hash=sha256:6b351bbb12dd58af57ffef05bc78425d08d1914e0fd68ee14143b7ade023c5bc \
     --hash=sha256:837f2f0e0ca79481b92884962b914eba4e72b7a2daaf1f939c890ed0124b834b
     # via flask-wtf
-zipp==3.8.1 \
-    --hash=sha256:05b45f1ee8f807d0cc928485ca40a07cb491cf092ff587c0df9cb1fd154848d2 \
-    --hash=sha256:47c40d7fe183a6f21403a199b3e4192cca5774656965b0a4988ad2f8feb5f009
+zipp==3.9.0 \
+    --hash=sha256:3a7af91c3db40ec72dd9d154ae18e008c69efe8ca88dde4f9a731bb82fe2f9eb \
+    --hash=sha256:972cfa31bc2fedd3fa838a51e9bc7e64b7fb725a8c00e7431554311f180e9980
     # via importlib-metadata
 
 # WARNING: The following packages were not pinned, but pip requires them to be
