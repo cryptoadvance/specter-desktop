@@ -77,7 +77,7 @@ The result would be something like this:
 ```
 ## Python
 
-Here is an example of using the API with python. We don't assume that you use BasicAuth via python. Instead of an example of a real token, we use `<token>` and `<toekn_id>`.
+Here is an example of using the API with python. We don't assume that you use BasicAuth via python. Instead of an example of a real token, we use `<token>` and `<token_id>`.
 
 ```python
 import requests
