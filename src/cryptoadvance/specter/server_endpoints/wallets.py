@@ -118,7 +118,7 @@ def new_wallet_type():
     try:
         # Make sure wallet is enabled on Bitcoin Core
         app.specter.rpc.listwallets()
-    except Exception as e:
+    except RpcError as e:
         handle_exception(e)
         # Hmm, would be better to be more precise with this exception. Best assumption:
         err = _(
