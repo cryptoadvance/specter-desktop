@@ -18,6 +18,10 @@ from .rpc import (
 logger = logging.getLogger(__name__)
 
 
+class AbstractNode(BusinessObject):
+    pass
+
+
 class Node(BusinessObject):
     """A Node represents the connection to a Bitcoin and/or Liquid (Full-) node.
     It can be created via Constructor or from_json, and mainly it can give you A
