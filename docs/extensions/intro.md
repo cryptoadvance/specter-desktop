@@ -90,6 +90,34 @@ The created file structure looks like this and you will feel right at home if yo
 
 ![](./images/extensions_file_layout.png)
 
+## Virtualenv Management
+
+The simplified example of creating an extension above is ommitting the use of a virtual environment. However, it's really __highly__ recommended that virtual environments are used for extension development. Without the Output above you would do something like:
+
+```
+mkdir /tmp/rubberduck && cd /tmp/rubberduck
+virtualenv --python=python3 .env
+. ./.env/bin/activate
+pip3 install cryptoadvance.specter 
+# you might want to have a specific version via:
+pip3 install cryptoadvance.specter==1.13.1
+python3 -m cryptoadvance.specter ext gen
+pip3 install -e .
+python3 -m cryptoadvance.specter server --config
+```
+
+Often enough, extension development goes hand in hand with the development of Specter Desktop iteself. Especially in the very beginning you need to constantly develop on the extension-concept on Specter Desktop while also using/consuming that functionality in an extension.
+
+In such a case, the best option is to "reuse" the virtualenv of Specter Desktop also for your extension. Other than what is described above, you would do something like the below. If you have checked out the Specter Desktop Code in parallel with the extension-code, you would ommit the creation of the virtualenv above and rather activate the existing one in your Specter Desktop Development Directory:
+
+```
+. ../specter-desktop/.env/bin/activate
+pip3 install -e .
+python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
+```
+
+More information about the development of Specter Desktop can be found [here](../development.md).
+
 ## Concept
 As much as possible, each `extension` should be entirely self-contained with little or no custom code altering core Specter functionality. There is a name for that: Extension framework.
 The term `extension` will be used for all sorts of extensions whereas `plugin` will be used as a component which can be de-/activated by a user.
