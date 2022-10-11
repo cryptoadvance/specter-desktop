@@ -498,6 +498,10 @@ input:hover{
     border-radius: 4px;
     padding: 40px;
 }
+.auto-width{
+    width: auto;
+    margin: 40px;
+}
 .spacer{
     height: 50px;
     min-height: 50px;
@@ -598,7 +602,6 @@ textarea{
     cursor: pointer;
 }
 .card .note{
-    width: 100%;
     margin-bottom: 10px;
 }
 /*.btn.btn-inline{
@@ -745,10 +748,6 @@ th{
     text-align: left;
     font-weight: inherit;
     border-bottom: 3px solid var(--cmap-bg-lightest);
-}
-tbody tr:not(.nohover):hover{
-    background: rgba(255,255,255,0.03);
-    color: #fff;
 }
 .xpub{
     max-width: 300px;
@@ -1099,6 +1098,9 @@ This style is used for a div at the bottom in the <main> element to create a dis
   }
 }
 @media (max-width: 690px){
+    .main-page-container{
+        max-width: 90%;
+      }
     .table-holder{
         padding-left: 10px;
         padding-right: 10px;
@@ -1106,7 +1108,14 @@ This style is used for a div at the bottom in the <main> element to create a dis
     .card{
         border-width: 0px;
         width: auto;
+        padding: 10px;
     }
+    .auto-width{
+        margin: 0px;
+    }
+    .table-holder{
+        padding: 0 10px;
+    }    
     nav.row{
         padding-left: 0;
         padding-right: 0;
