@@ -9,7 +9,9 @@ import requests
 import urllib3
 
 from .helpers import is_ip_private
-from .specter_error import SpecterError, handle_exception
+from .specter_error import SpecterError, handle_exception, BrokenCoreConnectionException
+from urllib3.exceptions import NewConnectionError
+from requests.exceptions import ConnectionError
 
 logger = logging.getLogger(__name__)
 
@@ -389,6 +391,9 @@ class BitcoinRPC:
             r = self.session.post(
                 url, data=json.dumps(payload), headers=headers, timeout=timeout
             )
+        except (ConnectionError, NewConnectionError, ConnectionRefusedError) as ce:
+            raise BrokenCoreConnectionException()
+
         except (requests.exceptions.Timeout, urllib3.exceptions.ReadTimeoutError) as to:
             # Timeout is effectively one of the two:
             # ConnectTimeout: The request timed out while trying to connect to the remote server

@@ -10,7 +10,11 @@ from werkzeug.exceptions import MethodNotAllowed, NotFound
 
 from ..server_endpoints import flash
 from ..services.callbacks import flask_before_request
-from ..specter_error import ExtProcTimeoutException, SpecterError
+from ..specter_error import (
+    ExtProcTimeoutException,
+    SpecterError,
+    BrokenCoreConnectionException,
+)
 
 env_path = Path(".") / ".flaskenv"
 from dotenv import load_dotenv
@@ -105,6 +109,12 @@ def server_error(e):
     trace = traceback.format_exc()
     app.logger.error(trace)
     return render_template("500.jinja", error=e, traceback=trace), 500
+
+
+@app.errorhandler(BrokenCoreConnectionException)
+def server_broken_core_connection(e):
+    flash("You got disconnected from your node (no RPC connection)", "error")
+    return redirect(url_for("welcome_endpoint.about"))
 
 
 @app.errorhandler(ExtProcTimeoutException)

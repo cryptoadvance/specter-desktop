@@ -68,10 +68,7 @@ class WalletManager:
         The _update internal method will resync the internal status with Bitcoin Core
         use_threading : for the _update method which is heavily communicating with Bitcoin Core
         """
-        if (chain is None and rpc is not None) or (chain is not None and rpc is None):
-            raise Exception(
-                f"Chain ({chain}) and rpc ({rpc}) can only be changed with one another"
-            )
+
         if self.is_loading:
             return
         self.is_loading = True
@@ -89,7 +86,7 @@ class WalletManager:
         else:
             if rpc:
                 logger.error(
-                    f"Prevented Trying to update wallet_Manager with broken {rpc}"
+                    f"Prevented trying to update Wallet Manager with broken {rpc}"
                 )
         # wallets_update_list is something like:
         # {'Specter': {'name': 'Specter', 'alias': 'pacman', ... }, 'another_wallet': { ... } }
@@ -244,7 +241,10 @@ class WalletManager:
         for wallet_name in self.wallets:
             if self.wallets[wallet_name] and self.wallets[wallet_name].alias == alias:
                 return self.wallets[wallet_name]
-        raise SpecterError("Wallet %s does not exist!" % alias)
+        raise SpecterError(
+            "Wallet %s could not be loaded. Are you connected with Bitcoin Core?"
+            % alias
+        )
 
     @property
     def failed_load_wallets(self) -> list:
