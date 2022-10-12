@@ -1,4 +1,6 @@
-import { capitalize, numberWithCommas } from './helper-modules/formatting.js'
+import { capitalize, numberWithCommas, formatUnitLabel , formatLiquidUnitLabel, rstrip, formatLiquidAmountAndUnitArray,
+	formatLiquidAmountsAndUnitsArray, formatLiquidAmountsAndUnits,
+	formatBtcAmountAndUnitArray, formatBtcAmountAndUnit, formatPrice } from './helper-modules/formatting.js'
 import { copyText, send_request, showError, showNotification, wait } from './helper-modules/common.js'
 import { toggleMobileNav } from './helper-modules/mobile.js'
 
@@ -6,6 +8,16 @@ import { toggleMobileNav } from './helper-modules/mobile.js'
 // See: https://stackoverflow.com/questions/44590393/es6-modules-undefined-onclick-function-after-import
 window.capitalize = capitalize
 window.numberWithCommas = numberWithCommas
+window.formatUnitLabel = formatUnitLabel
+window.formatLiquidUnitLabel = formatLiquidUnitLabel
+window.rstrip = rstrip
+window.formatLiquidAmountAndUnitArray = formatLiquidAmountAndUnitArray
+window.formatLiquidAmountsAndUnitsArray = formatLiquidAmountsAndUnitsArray
+window.formatLiquidAmountsAndUnits = formatLiquidAmountsAndUnits
+window.formatBtcAmountAndUnitArray = formatBtcAmountAndUnitArray
+window.formatBtcAmountAndUnit = formatBtcAmountAndUnit
+window.formatPrice = formatPrice
+
 window.copyText = copyText
 window.send_request = send_request
 window.showError = showError
@@ -86,3 +98,4 @@ window.addEventListener('beforeunload', function (e) {
 		document.getElementById("pageloader").style.display = 'block';
 	}, 200);
 });
+
