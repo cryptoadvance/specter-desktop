@@ -103,7 +103,7 @@
 				is-liquid="{{specter.is_liquid}}"
 				selected-coins="{{ selected_coins }}">
 			</coin-selection>
-			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">{{ _('Create ')}}<span class="optional">&nbsp;{{ _('unsigned')}}&nbsp;</span>{{ _('transaction') }}</button>
+			<button  type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">{{ _('Create ')}}<span class="optional">&nbsp;{{ _('unsigned')}}&nbsp;</span>{{ _('transaction') }}</button>
 		</div>
 	</form>
 {% endblock %}
@@ -230,7 +230,7 @@
 
 		function addRecipient(address, amount, amount_unit, label) {
 			let recipientIds = getRecipientIds();
-			recipientId = 0;
+			let recipientId = 0;
 			if (recipientIds.length > 0) {
 				recipientId = Math.max(...recipientIds)+1
 			}; 
@@ -525,7 +525,7 @@
 			}
 			// Necessary since recipients can be removed which leades to
 			// mismatches between the index in the get_recipient_list and the selected recipientId
-			indexSubtractFromRecipient = getRecipientIds().indexOf(parseInt(FeeSelectionComponent.subtractFromRecipientIdSelect.value, 10));
+			let indexSubtractFromRecipient = getRecipientIds().indexOf(parseInt(FeeSelectionComponent.subtractFromRecipientIdSelect.value, 10));
 			FeeSelectionComponent.setSubtractFrom(indexSubtractFromRecipient)
 			createPSBTButton.setAttribute('type', 'submit');
 			return true;
@@ -611,5 +611,9 @@
 			// Hide the remove button if the page is loaded with only once recipient 
 			setVisibilityRemoveRecipientButton();
 		});
+
+		document.getElementById('create_psbt_btn').addEventListener("click", function() {
+			validateForm(true);
+		})
 	</script>
 {% endblock %}

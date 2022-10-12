@@ -99,4 +99,4 @@ window.addEventListener('beforeunload', function (e) {
 	}, 200);
 });
 
-console.log('Loaded helpers.js')
+console.debug('Loaded helpers.js')
