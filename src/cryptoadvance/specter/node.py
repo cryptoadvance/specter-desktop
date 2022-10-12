@@ -4,6 +4,7 @@ import os
 
 from embit.liquid.networks import get_network
 from flask_babel import lazy_gettext as _
+from flask import render_template
 from requests.exceptions import ConnectionError
 from .helpers import deep_update, is_testnet, is_liquid
 from .liquid.rpc import LiquidRPC
@@ -21,8 +22,12 @@ logger = logging.getLogger(__name__)
 class AbstractNode(BusinessObject):
     pass
 
+    @classmethod
+    def rendering_table(self):
+        return render_template("node/components/bitcoin_core_info.jinja")
 
-class Node(BusinessObject):
+
+class Node(AbstractNode):
     """A Node represents the connection to a Bitcoin and/or Liquid (Full-) node.
     It can be created via Constructor or from_json, and mainly it can give you A
     RPC-object to use the API.
