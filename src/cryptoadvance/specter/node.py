@@ -15,6 +15,7 @@ from .rpc import (
     autodetect_rpc_confs,
     get_default_datadir,
 )
+from .specter_error import BrokenCoreConnectionException
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +84,10 @@ class Node(AbstractNode):
         self.manager = manager
         self.proxy_url = manager.proxy_url
         self.only_tor = manager.only_tor
-        self.rpc = self.get_rpc()
+        try:
+            self.rpc = self._get_rpc()
+        except BrokenCoreConnectionException:
+            self.rpc = None
         self._asset_labels = None
         self.check_info()
 
@@ -141,7 +145,7 @@ class Node(AbstractNode):
             },
         )
 
-    def get_rpc(self):
+    def _get_rpc(self):
         """
         Checks if config have changed, compares with old rpc
         and returns new one if necessary
@@ -252,10 +256,14 @@ class Node(AbstractNode):
             self.protocol = protocol
             update_rpc = True
         if update_rpc:
-            self.rpc = self.get_rpc()
-            if self.rpc and self.rpc.test_connection():
-                logger.debug(f"persisting {self} in update_rpc")
-                write_node(self, self.fullpath)
+            try:
+                self.rpc = self._get_rpc()
+                if self.rpc and self.rpc.test_connection():
+                    logger.debug(f"persisting {self} in update_rpc")
+                    write_node(self, self.fullpath)
+            except BrokenCoreConnectionException:
+                self._mark_node_as_broken()
+                return False
         self.check_info()
         return False if not self.rpc else self.rpc.test_connection()
 
@@ -268,7 +276,6 @@ class Node(AbstractNode):
 
     def check_info(self):
         self._is_configured = self.rpc is not None
-        self._is_running = False
         if self.rpc is not None and self.rpc.test_connection():
             try:
                 res = [
@@ -302,12 +309,8 @@ class Node(AbstractNode):
                     self.utxorescanwallet = None
                 self._network_parameters = get_network(self.chain)
                 self._is_running = True
-            except Exception as e:
-                self._info = {"chain": None}
-                self._network_info = {"subversion": "", "version": 999999}
-                self._network_parameters = get_network("main")
-                logger.error(f"connection {self.rpc} could not suceed check_info")
-                logger.exception("Exception %s while check_info()" % e)
+            except BrokenCoreConnectionException:
+                self._mark_node_as_broken()
         else:
             if self.rpc is None:
                 logger.warning(f"connection of {self} is None in check_info")
@@ -328,18 +331,14 @@ class Node(AbstractNode):
                     )
                 except Exception as e:
                     logger.exception(e)
-            self._info = {"chain": None}
-            self._network_info = {"subversion": "", "version": 999999}
-
-        if not self._is_running:
-            self._info["chain"] = None
+            self._mark_node_as_broken()
 
     def test_rpc(self):
         """tests the rpc-connection and returns a dict which helps
         to derive what might be wrong with the config
         ToDo: list an example here.
         """
-        rpc = self.get_rpc()
+        rpc = self._get_rpc()
         if rpc is None:
             return {
                 "out": "",
@@ -401,6 +400,16 @@ class Node(AbstractNode):
                 r["code"] = -1
         return r
 
+    def _mark_node_as_broken(self):
+        self._info = {"chain": None}
+        self._network_info = {"subversion": "", "version": 999999}
+        self._network_parameters = get_network("main")
+        logger.debug(
+            f"Node is not running, no RPC connection, check_info didn't succeed, setting RPC attribute to None ..."
+        )
+        self._info["chain"] = None
+        self.rpc = None
+
     def abortrescanutxo(self):
         """use this to abort a rescan as it stores some state while rescanning"""
         self.rpc.scantxoutset("abort", [])
@@ -422,7 +431,11 @@ class Node(AbstractNode):
 
     @property
     def is_running(self):
-        return self._is_running
+        if self._network_info["version"] == 999999:
+            logger.debug(f"Node is not running")
+            return False
+        else:
+            return True
 
     @property
     def is_configured(self):
