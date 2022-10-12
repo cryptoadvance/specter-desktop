@@ -78,11 +78,11 @@
 				<div style="word-break: break-all;">
 					{{ _("Sending") }} <b><span id="psbt-amount-{{i}}"></span><span id="psbt-price-{{i}}"></span></b>
 					{% if "asset" in psbt %}
-						<script>
+						<script type="module">
 							document.getElementById("psbt-amount-{{i}}").innerHTML =   formatLiquidAmountsAndUnits({{ psbt["amount"][i] }}, '{{psbt['asset'][i]}}', '{{psbt['asset'][i] | assetlabel}}');
 						</script>
 					{% else %}            
-						<script>
+						<script type="module">
 							document.getElementById("psbt-amount-{{i}}").innerHTML = formatBtcAmountAndUnit({{ psbt["amount"][i] }});
 							document.getElementById("psbt-price-{{i}}").innerHTML = formatPrice('{{ psbt["amount"][i] }}');
 						</script>
@@ -116,7 +116,7 @@
 					<b>{{ _("Total fee:") }}</b>
 					<span id="totalfee-amount"></span>
 					<span id="totalfee-price"></span>
-					<script>
+					<script type="module">
 						document.getElementById("totalfee-amount").innerHTML = formatBtcAmountAndUnit({{ psbt['fee'] }}, 'sat');
 						document.getElementById("totalfee-price").innerHTML = formatPrice('{{ psbt['fee'] }}');
 					</script>
@@ -154,12 +154,12 @@
 						<span id="psbt-inputs-{{loop.index0}}-amount"></span>
 						<span id="psbt-inputs-{{loop.index0}}-price"></span>
 						{% if specter.is_liquid %}
-							<script>
+							<script type="module">
 								document.getElementById("psbt-inputs-{{loop.index0}}-amount").innerHTML =  formatLiquidAmountsAndUnits({{ input.get('float_amount') }}, "{{input['asset']}}", "{{input['asset'] | assetlabel}}");
 								document.getElementById("psbt-inputs-{{loop.index0}}-price").innerHTML = '';
 							</script>							
 						{% else %}
-							<script>
+							<script type="module">
 								document.getElementById("psbt-inputs-{{loop.index0}}-amount").innerHTML = formatBtcAmountAndUnit({{ input.get('float_amount') }})
 								document.getElementById("psbt-inputs-{{loop.index0}}-price").innerHTML = formatPrice('{{ input.get('float_amount') }}');
 							</script>
@@ -185,12 +185,12 @@
 						<span id="psbt-outputs-{{loop.index0}}-amount"></span>
 						<span id="psbt-outputs-{{loop.index0}}-price"></span>
 						{% if specter.is_liquid %}
-							<script>
+							<script type="module">
 								document.getElementById("psbt-outputs-{{loop.index0}}-amount").innerHTML = formatLiquidAmountsAndUnits({{ output.get('float_amount') }}, "{{output['asset']}}", "{{output['asset'] | assetlabel}}") 
 								document.getElementById("psbt-outputs-{{loop.index0}}-price").innerHTML = '';
 							</script>							
 						{% else %}
-							<script>
+							<script type="module">
 								document.getElementById("psbt-outputs-{{loop.index0}}-amount").innerHTML = formatBtcAmountAndUnit({{ output['float_amount'] }});
 								document.getElementById("psbt-outputs-{{loop.index0}}-price").innerHTML = formatPrice('{{ output['float_amount'] }}');
 							</script>

@@ -29,7 +29,7 @@
 			<div>{{ _("Available funds:") }} 
 				<span id="wallet-amount_available"></span>
 				<span id="wallet-amount_available-price"></span>
-				<script>
+				<script type="module">
 					document.getElementById("wallet-amount_available").innerHTML = formatBtcAmountAndUnit({{ wallet.amount_available }})
 					document.getElementById("wallet-amount_available-price").innerHTML = formatPrice('{{ wallet.amount_available }}')
 				</script>
@@ -41,7 +41,7 @@
 						<span style="margin: 0 10px;">
 							<span id="is_liquid-{{ asset }}" style="margin: 0 10px;"></span> 
 						</span>
-						<script>
+						<script type="module">
 							document.getElementById("is_liquid-{{ asset }}").innerHTML = formatLiquidAmountsAndUnits({{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) }}, '{{asset}}', '{{asset | assetlabel}}');   
 						</script>													
 					{% endfor %}
@@ -109,7 +109,7 @@
 {% endblock %}
 
 {% block scripts %}
-	<script>
+	<script type="module">
 		{% if specter.is_liquid %}
 			const MIN_FEE_RATE = 0.1;
 			const NETWORK = "Liquid"

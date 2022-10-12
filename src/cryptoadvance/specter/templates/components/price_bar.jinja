@@ -37,7 +37,7 @@
     {% if specter.price_check %}
         <div title="Price settings">
             <span id="price-bar-label"></span>
-            <script  type="module">
+            <script type="module">
                 document.getElementById('price-bar-label').innerHTML = formatPrice(1, 'BTC', '{{ specter.alt_symbol }}', '{{ specter.alt_rate }}', false)
             </script>        
         </div>        
