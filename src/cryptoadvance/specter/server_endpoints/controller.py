@@ -101,10 +101,6 @@ def server_notFound_error(e):
 @app.errorhandler(Exception)
 def server_error(e):
     """Unspecific Exceptions get a 500 Error-Page"""
-    # if rpc is not available
-    if app.specter.rpc is None or not app.specter.rpc.test_connection():
-        # make sure specter knows that rpc is not there
-        app.specter.check()
     app.logger.error("Uncaught exception: %s" % e)
     trace = traceback.format_exc()
     app.logger.error(trace)
@@ -114,7 +110,11 @@ def server_error(e):
 @app.errorhandler(BrokenCoreConnectionException)
 def server_broken_core_connection(e):
     flash("You got disconnected from your node (no RPC connection)", "error")
-    return redirect(url_for("welcome_endpoint.about"))
+    try:
+        app.specter.check()
+        return redirect(url_for("welcome_endpoint.about"))
+    except Exception as e:
+        return server_error(e)
 
 
 @app.errorhandler(ExtProcTimeoutException)

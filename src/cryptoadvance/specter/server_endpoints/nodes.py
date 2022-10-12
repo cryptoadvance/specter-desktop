@@ -14,7 +14,7 @@ from flask_login import login_required, current_user
 from flask import current_app as app
 from ..rpc import get_default_datadir
 from ..node import Node
-from ..specter_error import ExtProcTimeoutException
+from ..specter_error import ExtProcTimeoutException, BrokenCoreConnectionException
 from ..util.shell import get_last_lines_from_file
 from ..server_endpoints import flash
 
@@ -143,16 +143,18 @@ def node_settings(node_alias):
                 "BTC",
                 node.manager,
             )
-            test = node.test_rpc()
-
-            if "tests" in test:
-                # If any test has failed, we notify the user that the test has not passed
-                if not test["tests"] or False in list(test["tests"].values()):
+            try:
+                test = node.test_rpc()
+                if "tests" in test:
+                    # If any test has failed, we notify the user that the test has not passed
+                    if not test["tests"] or False in list(test["tests"].values()):
+                        flash(_("Test failed: {}").format(test["err"]), "error")
+                    else:
+                        flash(_("Test passed"), "info")
+                elif "err" in test:
                     flash(_("Test failed: {}").format(test["err"]), "error")
-                else:
-                    flash(_("Test passed"), "info")
-            elif "err" in test:
-                flash(_("Test failed: {}").format(test["err"]), "error")
+            except BrokenCoreConnectionException:
+                flash(_("Test failed, could not connect to the node."), "error")
         elif action == "save":
             if not node_alias:
                 if node.name in app.specter.node_manager.nodes:
@@ -197,7 +199,7 @@ def node_settings(node_alias):
                 protocol=protocol,
             )
             if not success:
-                flash(_("Failed connecting to the node"), "error")
+                flash(_("Could not save, could not connect to the node"), "error")
             if app.specter.active_node_alias == node.alias:
                 app.specter.check()
 
