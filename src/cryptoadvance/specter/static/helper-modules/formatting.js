@@ -2,17 +2,6 @@ function capitalize(str){
 	return str.charAt(0).toUpperCase()+str.substring(1);
 }
 
-function numberWithCommas(x) {
-	x = parseFloat(x).toString();
-	if (x.split(".").length > 1) {
-		return x.split(".")[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '.' + x.split(".")[1];
-	}
-    return x.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-
-
-
 
 
 /*
@@ -330,17 +319,17 @@ function formatBtcAmount(valueInBTC, targetUnit=specter_unit, hideStripped=true)
 // Calculates and formats the price as a span class="note"
 function formatPrice(valueInBTC, 
 					unit='BTC', 
-					symbol='{{ specter.alt_symbol }}', 
-					price='{{ specter.alt_rate }}',
+					symbol=alt_symbol, 
+					price=alt_rate,
 					wrapInSpan=true,
 					){        
-	if (price_check_enabled){
+	if (!price_check_enabled){
 		return '';}
 	else {		
 		if (hide_sensitive_info_enabled){
 			return ["#########"];}
 		else{
-			if ((valueInBTC < 0 || valueInBTC == null) && '{{ specter.is_liquid }}' == 'True'){
+			if ((valueInBTC < 0 || valueInBTC == null) && is_liquid){
 				return [""]}
 			if (valueInBTC == null){
 				return [""]};
@@ -371,7 +360,7 @@ function formatPrice(valueInBTC,
 
 		
 
-export { capitalize, numberWithCommas, formatUnitLabel , formatLiquidUnitLabel, rstrip, formatLiquidAmountAndUnitArray,
+export { capitalize, formatUnitLabel , formatLiquidUnitLabel, rstrip, formatLiquidAmountAndUnitArray,
 	formatLiquidAmountsAndUnitsArray, formatLiquidAmountsAndUnits,
 	formatBtcAmountAndUnitArray, formatBtcAmountAndUnit, formatBtcAmount, formatPrice
 }

@@ -1,4 +1,4 @@
-import { capitalize, numberWithCommas, formatUnitLabel , formatLiquidUnitLabel, rstrip, formatLiquidAmountAndUnitArray,
+import { capitalize, formatUnitLabel , formatLiquidUnitLabel, rstrip, formatLiquidAmountAndUnitArray,
 	formatLiquidAmountsAndUnitsArray, formatLiquidAmountsAndUnits,
 	formatBtcAmountAndUnitArray, formatBtcAmountAndUnit, formatBtcAmount, formatPrice } from './helper-modules/formatting.js'
 import { copyText, send_request, showError, showNotification, wait } from './helper-modules/common.js'
@@ -7,7 +7,6 @@ import { toggleMobileNav } from './helper-modules/mobile.js'
 // The scope of functions inside a module is not global, putting them on the window object makes them accessible outside of the module. 
 // See: https://stackoverflow.com/questions/44590393/es6-modules-undefined-onclick-function-after-import
 window.capitalize = capitalize
-window.numberWithCommas = numberWithCommas
 window.formatUnitLabel = formatUnitLabel
 window.formatLiquidUnitLabel = formatLiquidUnitLabel
 window.rstrip = rstrip
