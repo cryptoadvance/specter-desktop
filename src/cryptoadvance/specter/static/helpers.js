@@ -1,6 +1,6 @@
 import { capitalize, numberWithCommas, formatUnitLabel , formatLiquidUnitLabel, rstrip, formatLiquidAmountAndUnitArray,
 	formatLiquidAmountsAndUnitsArray, formatLiquidAmountsAndUnits,
-	formatBtcAmountAndUnitArray, formatBtcAmountAndUnit, formatPrice } from './helper-modules/formatting.js'
+	formatBtcAmountAndUnitArray, formatBtcAmountAndUnit, formatBtcAmount, formatPrice } from './helper-modules/formatting.js'
 import { copyText, send_request, showError, showNotification, wait } from './helper-modules/common.js'
 import { toggleMobileNav } from './helper-modules/mobile.js'
 
@@ -16,6 +16,7 @@ window.formatLiquidAmountsAndUnitsArray = formatLiquidAmountsAndUnitsArray
 window.formatLiquidAmountsAndUnits = formatLiquidAmountsAndUnits
 window.formatBtcAmountAndUnitArray = formatBtcAmountAndUnitArray
 window.formatBtcAmountAndUnit = formatBtcAmountAndUnit
+window.formatBtcAmount = formatBtcAmount
 window.formatPrice = formatPrice
 
 window.copyText = copyText
@@ -99,3 +100,4 @@ window.addEventListener('beforeunload', function (e) {
 	}, 200);
 });
 
+console.log('Loaded helpers.js')

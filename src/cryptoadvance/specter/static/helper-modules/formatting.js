@@ -373,5 +373,5 @@ function formatPrice(valueInBTC,
 
 export { capitalize, numberWithCommas, formatUnitLabel , formatLiquidUnitLabel, rstrip, formatLiquidAmountAndUnitArray,
 	formatLiquidAmountsAndUnitsArray, formatLiquidAmountsAndUnits,
-	formatBtcAmountAndUnitArray, formatBtcAmountAndUnit, formatPrice
+	formatBtcAmountAndUnitArray, formatBtcAmountAndUnit, formatBtcAmount, formatPrice
 }
