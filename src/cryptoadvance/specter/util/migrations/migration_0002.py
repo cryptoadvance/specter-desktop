@@ -47,19 +47,20 @@ class SpecterMigration_0002(SpecterMigration):
             return
 
         nodes = {}
-        nodes_files = load_jsons(self.node_folder, key="name")
+        nodes_files = load_jsons(node_folder, key="name")
         for node_alias in nodes_files:
 
             fullpath = os.path.join(self.data_folder, "%s.json" % node_alias)
-            if nodes_files[node_alias]["external_node"]:
+            if nodes_files[node_alias].get("external_node"):
                 nodes_files[node_alias][
-                    "node_class"
+                    "python_class"
                 ] = "cryptoadvance.specter.internal_node.InternalNode"
             else:
                 nodes_files[node_alias][
-                    "node_class"
+                    "python_class"
                 ] = "cryptoadvance.specter.node.Node"
-            del nodes_files[node_alias]["external_node"]
+            if nodes_files[node_alias].get("external_node"):
+                del nodes_files[node_alias]["external_node"]
 
             write_json_file(
                 nodes_files[node_alias], nodes_files[node_alias]["fullpath"]

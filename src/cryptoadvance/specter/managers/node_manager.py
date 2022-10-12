@@ -94,7 +94,20 @@ class NodeManager:
         for name, node in self.nodes.items():
             if node.alias == self.DEFAULT_ALIAS:
                 return
-        raise Exception("Does not have a default node!" + str(self.nodes))
+        # Make sure we always have a default node
+        self.add_external_node(
+            node_type="BTC",
+            name="Bitcoin Core",
+            autodetect=True,
+            datadir=get_default_datadir(),
+            user="",
+            password="",
+            port=8332,
+            host="localhost",
+            protocol="http",
+            external_node=True,
+            default_alias=self.DEFAULT_ALIAS,
+        )
 
     @property
     def active_node(self):
