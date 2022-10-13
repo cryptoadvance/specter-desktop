@@ -1,0 +1,322 @@
+<template id="global-search">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+
+    <style type="text/css">
+        .global-search-row {
+            background-color: var(--cmap-bg-lighter);
+            padding-left:10px;
+            padding-right:2px;
+            padding-top:2px;
+            padding-bottom:2px;
+            margin-bottom:2px;
+            word-wrap: break-word;
+        }
+        .global-search-row:hover {
+            background-color: var(--cmap-border);
+        }
+
+
+        .global-search-dropdown {
+            --cmap-found_term: #306d30;    
+            margin: 20px 20px 5px;
+        }
+
+        .global-search-dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: var(--cmap-bg);
+            width: 90%;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,1);
+            padding: 5px 5px;
+            z-index: 1;
+            overflow-y:scroll;
+            max-height: 50%;
+        }
+
+        
+    </style>
+
+    <div class="global-search-dropdown">
+        <input type="search" id="global-search-input" title="Search for addresses, transactions, amounts, ..."  
+                placeholder="Search..."/>
+        <div class="global-search-dropdown-content" id="global-search-dropdown-content">
+        </div>
+    </div>
+</template>
+
+
+<script type="text/javascript">
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+        }
+
+        function highlightString(fullText, searchTerm){      
+            var regex = new RegExp(escapeRegExp(searchTerm), "gi");  
+            return fullText.replace(regex, "<span style='background-color: var(--cmap-found_term);'>$&</span>");
+        }
+
+
+
+	class GlobalSearch extends HTMLElement {
+		constructor() {
+			super();
+
+			this.internals = this.attachInternals();
+
+            this.timeOutIds = [];
+
+            this.lastAnswer = null; // be overwritten with the first search call
+            this.lastMaxNumberOfCategories = 5; // the number will be overwritten with the first search call
+            this.lastMaxNumberOfResults = 5; // the number will be overwritten with the first search call
+
+			this.buildHTML();			// created the html
+			this.attachListeners();		// attaches the listeners to some html objects
+    }
+
+
+
+
+		// creates the entire html code (without event listeners)  from the template
+		buildHTML(){
+			// Create a shadow root
+			this.attachShadow({
+				mode: 'open'
+			});
+
+			var template_content = document.getElementById('global-search').content;
+            let clone = template_content.cloneNode(true);
+
+            this.searchInputElement = clone.getElementById('global-search-input');
+            this.dropdownContentElement = clone.getElementById('global-search-dropdown-content');
+
+            this.shadowRoot.appendChild(clone);
+		}
+
+
+
+		// adds EventListeners 
+		attachListeners(){
+			this.searchInputElement.addEventListener('input', event=>{
+				this.delayedGlobalSearch(this.searchInputElement.value);
+			});			
+
+            document.addEventListener("keydown", (event) => {
+                // handle escape
+                if (event.keyCode === 27) {
+                    this.setContentVisibility(false);
+                }
+            }); 
+        }
+
+
+
+        uiElementToLink(uiElement){
+            var a = document.createElement("a");
+            a.style = "color: #fff;"                
+            a.href = uiElement.click_action ? uiElement.click_action.url : "";
+            a.text = uiElement.title;
+            return a
+        }
+
+
+        callClickAction(clickAction, backup_href){
+            if (clickAction){
+                if (clickAction.method_str == 'href'){
+                    location.href = clickAction.url;
+                } else if (clickAction.method_str == 'form')  {
+                    submitForm(clickAction.url, "{{ csrf_token() }}", clickAction.form_data);
+                }
+            } else {
+                location.href = backup_href;    
+            }                    
+        }
+
+
+        /**
+        Takes a resultDict and adds it to the result list
+        */
+        addResultDictToResultDropdown(resultDict, searchTerm, maxNumberOfResults=5){
+            if (resultDict.search_results == []){return};
+
+            // create parent navigation header            
+            var div = document.createElement("div");
+            div.className = "global-search-row";
+
+            // add all parents 
+            for (var i in resultDict.ui_element.flattened_parent_list){
+                var parent = resultDict.ui_element.flattened_parent_list[i];
+                // skip the html root
+                if (parent.title == "root"){continue}
+
+                div.appendChild(this.uiElementToLink(parent));
+                div.innerHTML +=  '&nbsp;&nbsp;>&nbsp;&nbsp;';
+            }
+            var lastParent = this.uiElementToLink(resultDict.ui_element);
+            div.addEventListener('click', event=>{
+                location.href = lastParent.href;
+            });			
+            div.style.cursor = "pointer";
+            div.appendChild(lastParent);
+            this.dropdownContentElement.appendChild(div);
+        
+
+            // add search results
+            for (var i in resultDict.search_results){
+                var resultDiv = document.createElement("div");
+                resultDiv.className = "global-search-row";
+                
+                resultDiv.style.fontSize = "small";
+
+                if (i>maxNumberOfResults){
+                    resultDiv.innerHTML += `+ ${resultDict.search_results.length - maxNumberOfResults} {{ _("more results in this category")}}`
+                    resultDiv.addEventListener('click', event => {
+                        this.buildDropdownContent(
+                            searchTerm, 
+                            this.lastAnswer,
+                            this.lastMaxNumberOfCategories, 
+                            5+maxNumberOfResults
+                        );
+                    });
+                    this.dropdownContentElement.appendChild(resultDiv);
+                    break
+                }
+                // it is critical that this is a const, overwise the addEventListener('click') will not referr to the current, but to the last result in the loop
+                const result = resultDict.search_results[i];
+
+                // if a title is available for the search result display it nicer
+                if (result.title  && result.key){
+                    resultDiv.innerHTML += `${result.title}&nbsp;&nbsp;>&nbsp;&nbsp;${result.key}: `;
+                } 
+                resultDiv.innerHTML += highlightString(`${result.value}`, searchTerm);
+
+
+                resultDiv.addEventListener('click', event => {
+                    this.callClickAction(result.click_action, lastParent.href) 
+                });			
+                resultDiv.style.cursor = "pointer";
+                this.dropdownContentElement.appendChild(resultDiv);
+            }
+        }
+
+
+        addResultsHeader(results, searchTerm){
+            if (results.length == 0){
+                var div = document.createElement("div");
+                div.className = "global-search-row";
+                div.innerText = `No results found.`;
+                this.dropdownContentElement.appendChild(div);
+            } else {
+                // show nothing
+                // var div = document.createElement("div");
+                // div.className = "global-search-row";
+                // div.innerText = `${results.length} results:`;
+                // this.dropdownContentElement.appendChild(div);
+            }
+        }
+
+                
+        clearDropdownContent(){
+            while (this.dropdownContentElement.firstChild) {
+                this.dropdownContentElement.removeChild(this.dropdownContentElement.firstChild);
+            } 
+        }
+
+
+        setContentVisibility(visible){
+            this.dropdownContentElement.style.display = visible ? "block" : "none";   
+        }
+
+
+        buildDropdownContent(searchTerm, answer, maxNumberOfCategories=100, maxNumberOfResults=5){
+            this.lastMaxNumberOfCategories = maxNumberOfCategories;
+            this.lastMaxNumberOfResults = maxNumberOfResults;
+            this.clearDropdownContent();
+            this.addResultsHeader(answer.result_dicts);
+
+            for (var i in answer.result_dicts){
+                // if there are too many results, add a div showing missing elements
+                if (i>maxNumberOfCategories){
+                    var div = document.createElement("div");
+                    div.className = "global-search-row";
+                    div.innerText += `+ ${answer.result_dicts.length - maxNumberOfCategories} {{ _("more results")}}`;
+                    div.addEventListener('click', event => {
+                        this.buildDropdownContent(
+                            searchTerm, 
+                            answer,
+                            100+maxNumberOfCategories, 
+                            maxNumberOfResults
+                        );
+                    });			
+                    this.dropdownContentElement.appendChild(div);
+                    break;
+                }
+                this.addResultDictToResultDropdown(
+                    answer.result_dicts[i], 
+                    answer.search_term, 
+                    maxNumberOfResults
+                );                    
+            }
+
+            this.setContentVisibility(answer.result_dicts.length > 0);
+        }
+
+
+        /**
+        Sends the searchTerm to an endpoint, gets the answer back and then calls addResultDictToResultDropdown
+        */    
+        globalSearch(searchTerm, maxNumberOfCategories=100, maxNumberOfResults=5){
+            var formData = new FormData();
+            formData.append('global-search-input', this.searchInputElement.value);
+
+            let url="{{ url_for('globalsearch_endpoint.global_search' ) }}";
+            send_request(url, 'POST', "{{ csrf_token() }}", formData).then((answer)=> {
+                // this is to account for the fact that the input element can have changed during the request
+                // if the user quickly deletes the search term again, there should be no search window appearing
+                if ((this.searchInputElement.value == "") ||  (!answer)) {
+                    this.setContentVisibility(false);
+                    return
+                }                
+                this.lastAnswer = answer;
+
+                this.buildDropdownContent(
+                    searchTerm, 
+                    answer, 
+                    maxNumberOfCategories, 
+                    maxNumberOfResults
+                )
+            });
+        }
+
+
+
+
+
+        /**
+        This function starts global_search with a delay
+
+        If a new delayedGlobalSearch is called, it will stop all old Timeouts.
+
+        This ensures only the newest search is actually performed.
+
+        This prevents delays, when rapid typing
+        */
+        delayedGlobalSearch(searchTerm){        
+            // stop old processes
+            while (this.timeOutIds.length > 0) {
+                clearTimeout(this.timeOutIds[0]);      
+                // console.log(`Stopped timeOutId ${this.timeOutIds[0]} `)
+                this.timeOutIds.splice(0, 1);
+            }
+
+            const timeOutId = setTimeout(() => this.globalSearch(searchTerm), 100);
+            // console.log(`Started timeOutId ${timeOutId} `)
+            this.timeOutIds.push(timeOutId);
+        }
+
+
+
+
+
+	}
+	customElements.define('global-search', GlobalSearch);
+</script>

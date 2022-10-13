@@ -241,19 +241,11 @@
 
             // Setup tabs switching
             this.receiveAddressesViewBtn.onclick = () => {
-                if (!this.receiveAddressesViewBtn.classList.contains("checked")) {
-                    this.changeAddressesViewBtn.classList.remove("checked");
-                    this.receiveAddressesViewBtn.classList.add("checked");
-                    this.setAttribute("type", "receive");
-                }
+                this.setAttribute("type", "receive");
             }
 
             this.changeAddressesViewBtn.onclick = () => {
-                if (!this.changeAddressesViewBtn.classList.contains("checked")) {
-                    this.receiveAddressesViewBtn.classList.remove("checked");
-                    this.changeAddressesViewBtn.classList.add("checked");
-                    this.setAttribute("type", "change");
-                }
+                this.setAttribute("type", "change");
             }
 
             // Init call id to avoid fetch returning after another one triggered
@@ -357,6 +349,19 @@
             shadow.appendChild(clone);
         }
 
+
+        updateCheckedButton () {
+            if (this.listType == "change") {
+                this.changeAddressesViewBtn.classList.add("checked");
+                this.receiveAddressesViewBtn.classList.remove("checked");
+            } else {
+                this.changeAddressesViewBtn.classList.remove("checked");
+                this.receiveAddressesViewBtn.classList.add("checked");
+            }
+        }
+
+
+
         static get observedAttributes() {
             return ['type', 'wallet', 'btc-unit', 'price', 'symbol', 'hide-sensitive-info'];
         }
@@ -420,6 +425,7 @@
             } else {
                 this.switchText.innerText = "";
             }
+            this.updateCheckedButton();
 
             // Prepare form data with all relevant parameters
             var formData = new FormData();

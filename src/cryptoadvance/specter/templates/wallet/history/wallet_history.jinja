@@ -1,5 +1,6 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
 {% set tab = 'history' %}
+{% set tx_list_type = tx_list_type %}
 {% block content %}
 	{% from 'wallet/history/components/total_wallet_balances.jinja' import total_wallet_balances %}
 	{{ total_wallet_balances(
@@ -27,9 +28,17 @@
 		blockhash="{{ specter.config.validate_merkle_proofs | lower }}"
 		type="{{ tx_list_type }}"
 		hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
-		wallet="{{ wallet.alias }}">
+		wallet="{{ wallet.alias }}"
+		id="tx-table-{{ wallet.alias }}">
 		</tx-table>
 	</div>
+	<script type="text/javascript">
+		// enable that tx details can be shown upon loading
+		if ("{{ txid_to_show_on_load }}" != "None") {
+			txtable = document.getElementById("tx-table-{{ wallet.alias }}");
+			showTxData(txtable.btcUnit, txtable.price, txtable.symbol, '{{ txid_to_show_on_load }}', txtable.wallet)
+		}
+	</script>
 {% endblock %}
 
 

@@ -176,6 +176,10 @@ class Wallet:
             self.save_to_file()
 
     @property
+    def transactions(self):
+        return self._transactions
+
+    @property
     def recv_descriptor(self):
         return add_checksum(str(self.descriptor.branch(0)))
 

@@ -149,10 +149,51 @@ async function send_request(url, method_str, csrf_token, formData) {
 	}
 
 	const response = await fetch(url, d);
-	if(response.status != 200){
+	if(!response.ok){
 		showError(await response.text());
 		console.log(`Error while calling ${url} with ${method_str} ${formData}`)
 		return
 	}
 	return await response.json();
+}
+
+
+
+/**
+ * Takes a dictionary with string keys and string values, transferrs them into input fields in a form and submits this form
+ * @param {*} url :  To which url should this form be submitted
+ * @param {*} csrf_token 
+ * @param {*} formDataDict: Should be a dict with string keys and string values
+ * 
+ * Example arguments:
+ *              url = "/wallet/<wallet_alias>/history/<tx_list_type>/"
+ * 				formDataDict = {
+                    "action": "txid_to_show_on_load",
+                    "txid": tx_dict["txid"],
+                },
+ */
+async function submitForm(url, csrf_token, formDataDict) {
+	var form = document.createElement("form");
+	form.action = url;
+	form.type =  "hidden";
+	form.method = "POST";
+	form.value = formDataDict["action"];
+
+	var input = document.createElement("input");
+	input.name =  "csrf_token";
+	input.value =  csrf_token;
+	form.appendChild(input);
+
+	// transfer all values from the formDataDict into input fields.
+	for (var key in formDataDict){
+		var input = document.createElement("input");
+		input.type =  "hidden";
+		input.name =  key;
+		input.value =  formDataDict[key];
+		form.appendChild(input);
+	}                
+	
+
+	document.body.appendChild(form);	
+	form.submit();
 }

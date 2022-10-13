@@ -386,9 +386,17 @@ def wallet(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/history/", methods=["GET", "POST"])
 @login_required
 def history(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    tx_list_type = "txlist"
+    return history_tx_list_type(wallet_alias, "txlist")
 
+
+@wallets_endpoint.route(
+    "/wallet/<wallet_alias>/history/<tx_list_type>/", methods=["GET", "POST"]
+)
+@login_required
+def history_tx_list_type(wallet_alias, tx_list_type):
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+
+    txid_to_show_on_load = None
     if request.method == "POST":
         action = request.form["action"]
         if action == "freezeutxo":
@@ -400,6 +408,8 @@ def history(wallet_alias):
                 wallet.abandontransaction(txid)
             except SpecterError as e:
                 flash(str(e), "error")
+        elif action == "show_tx_on_load":
+            txid_to_show_on_load = request.form["txid"]
 
     # update balances in the wallet
     app.specter.check_blockheight()
@@ -411,6 +421,7 @@ def history(wallet_alias):
         wallet_alias=wallet_alias,
         wallet=wallet,
         tx_list_type=tx_list_type,
+        txid_to_show_on_load=txid_to_show_on_load,
         specter=app.specter,
         rand=rand,
         services=app.specter.service_manager.services,
@@ -738,10 +749,24 @@ def import_psbt(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/addresses/", methods=["GET"])
 @login_required
 def addresses(wallet_alias):
+    return addresses_with_type(wallet_alias, "receive")
+
+
+@wallets_endpoint.route(
+    "/wallet/<wallet_alias>/addresses/<address_type>/", methods=["GET", "POST"]
+)
+@login_required
+def addresses_with_type(wallet_alias, address_type):
     """Show informations about cached addresses (wallet._addresses) of the <wallet_alias>.
     It updates balances in the wallet before renderization in order to show updated UTXO and
     balance of each address."""
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+
+    address_json_to_show_on_load = None
+    if request.method == "POST":
+        action = request.form["action"]
+        if action == "show_address_on_load":
+            address_json_to_show_on_load = request.form["address_dict"]
 
     # update balances in the wallet
     app.specter.check_blockheight()
@@ -755,6 +780,8 @@ def addresses(wallet_alias):
         specter=app.specter,
         rand=rand,
         services=app.specter.service_manager.services,
+        address_type=address_type,
+        address_json_to_show_on_load=address_json_to_show_on_load,
     )
 
 
