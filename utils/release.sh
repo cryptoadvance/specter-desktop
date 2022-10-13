@@ -1,4 +1,17 @@
-#!//bin/bash
+#!/bin/bash
+
+# Replacing MacOS utilities with GNU core utilities to make script more robust
+# See: https://apple.stackexchange.com/questions/69223/how-to-replace-mac-os-x-utilities-with-gnu-core-utilities
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    brew ls --versions coreutils > /dev/null; 
+    exitCode=$? 
+    if [[ $exitCode == 0 ]]; then
+      echo "Coreutils are installed via Homebrew, prepending PATH to use GNU core utilities over MacOS utilities."
+      export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+    else
+      echo "GNU core utilities not installed. Run brew install coreutils"
+    fi
+fi
 
 ask_yn() {
    while true; do
@@ -50,8 +63,8 @@ done
 
 
 function main() {
-
-    if ! [ "$(git remote -v | grep upstream | grep 'git@github.com:cryptoadvance/specter-desktop.git' | wc -l)" = "2" ]; then
+    # Sed is used as there can be whitespaces 
+    if ! [ "$(git remote -v | grep upstream | grep 'git@github.com:cryptoadvance/specter-desktop.git' |  wc -l | sed -e 's/\s*//')" = "2" ]; then
         echo "    --> You don't have the correct upstream-remote. You need this to release. Please do this:"
         echo "git remote add upstream git@github.com:cryptoadvance/specter-desktop.git "
         exit 2
