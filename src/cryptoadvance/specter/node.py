@@ -142,16 +142,20 @@ class Node:
         else:
             rpc = None
         if self.autodetect:
-            if self.port:
-                rpc_conf_arr = autodetect_rpc_confs(
-                    self.node_type,
-                    datadir=os.path.expanduser(self.datadir),
-                    port=self.port,
-                )
-            else:
-                rpc_conf_arr = autodetect_rpc_confs(
-                    self.node_type, datadir=os.path.expanduser(self.datadir)
-                )
+            try:
+                if self.port:
+                    # autodetect_rpc_confs is trying a RPC call
+                    rpc_conf_arr = autodetect_rpc_confs(
+                        self.node_type,
+                        datadir=os.path.expanduser(self.datadir),
+                        port=self.port,
+                    )
+                else:
+                    rpc_conf_arr = autodetect_rpc_confs(
+                        self.node_type, datadir=os.path.expanduser(self.datadir)
+                    )
+            except BrokenCoreConnectionException:
+                return None
             if len(rpc_conf_arr) > 0:
                 rpc = BitcoinRPC(
                     **rpc_conf_arr[0], proxy_url=self.proxy_url, only_tor=self.only_tor
@@ -175,7 +179,7 @@ class Node:
             )
 
         if rpc == None:
-            logger.error(f"connection results to None in get_rpc")
+            logger.error(f"RPC connection is None in get_rpc. Returning None ...")
             return None
         # check if it's liquid
         try:
@@ -188,8 +192,8 @@ class Node:
                 return rpc  # The user is failing to configure correctly
             logger.error(rpce)
             return None
-        except ConnectionError as e:
-            logger.error(f"{e} while get_rpc")
+        except BrokenCoreConnectionException as bcce:
+            logger.error(f"{bcce} while get_rpc")
             return None
         except Exception as e:
             logger.exception(e)
@@ -198,7 +202,7 @@ class Node:
             return rpc
         else:
             logger.debug(
-                f"connection {rpc} fails test_connection() returning None in get_rpc"
+                f"Connection {rpc} fails test_connection() in get_rpc. Returning None ..."
             )
             return None
 
@@ -331,7 +335,7 @@ class Node:
                 "out": "",
                 "err": _("Connection to node failed"),
                 "code": -1,
-                "tests": {},
+                "tests": {"connectable": False},
             }
         r = {}
         r["tests"] = {"connectable": False}
@@ -355,15 +359,14 @@ class Node:
                 r["err"] = "Wallets disabled"
 
             r["out"] = json.dumps(rpc.getblockchaininfo(), indent=4)
-        except ConnectionError as e:
-            logger.info("Caught an ConnectionError while test_rpc: %s", e)
-
+        except BrokenCoreConnectionException as bcce:
+            logger.info(f"Caught {bcce} while test_rpc")
             r["tests"]["connectable"] = False
             r["err"] = _("Failed to connect!")
             r["code"] = -1
         except RpcError as rpce:
             logger.info(
-                f"Caught an RpcError while test_rpc status_code: {rpce.status_code} error_code:{rpce.error_code}"
+                f"Caught an RpcError while test_rpc status_code: {rpce.status_code} error_code: {rpce.error_code}"
             )
             r["tests"]["connectable"] = True
             r["code"] = rpc.r.status_code
@@ -373,7 +376,7 @@ class Node:
             else:
                 r["err"] = str(rpce.status_code)
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "Caught an exception of type {} while test_rpc: {}".format(
                     type(e), str(e)
                 )
@@ -491,10 +494,9 @@ class Node:
 
     @property
     def rpc(self):
-        if not hasattr(self, "_rpc"):
-            return None
-        else:
+        if hasattr(self, "_rpc"):
             return self._rpc
+        return None
 
     @property
     def node_type(self):

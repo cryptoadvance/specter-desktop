@@ -143,18 +143,15 @@ def node_settings(node_alias):
                 "BTC",
                 node.manager,
             )
-            try:
-                test = node.test_rpc()
-                if "tests" in test:
-                    # If any test has failed, we notify the user that the test has not passed
-                    if not test["tests"] or False in list(test["tests"].values()):
-                        flash(_("Test failed: {}").format(test["err"]), "error")
-                    else:
-                        flash(_("Test passed"), "info")
-                elif "err" in test:
+            test = node.test_rpc()
+            if "tests" in test:
+                # If any test has failed, we notify the user that the test has not passed
+                if not test["tests"] or False in list(test["tests"].values()):
                     flash(_("Test failed: {}").format(test["err"]), "error")
-            except BrokenCoreConnectionException:
-                flash(_("Test failed, could not connect to the node."), "error")
+                else:
+                    flash(_("Test passed"), "info")
+            elif "err" in test:
+                flash(_("Test failed: {}").format(test["err"]), "error")
         elif action == "save":
             if not node_alias:
                 if node.name in app.specter.node_manager.nodes:
@@ -199,7 +196,7 @@ def node_settings(node_alias):
                 protocol=protocol,
             )
             if not success:
-                flash(_("Could not save, could not connect to the node"), "error")
+                flash(_("Saving failed: no connection to node"), "error")
             if app.specter.active_node_alias == node.alias:
                 app.specter.check()
 

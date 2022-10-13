@@ -84,7 +84,7 @@ class User(UserMixin):
         self.uid = specter.config["uid"]
         self.specter = specter
         self._wallet_manager = None
-        self.device_manager = None
+        self._device_manager = None
         self.manager = None
         self._services = services
 
@@ -259,6 +259,12 @@ class User(UserMixin):
             self.check_wallet_manager()
         return self._wallet_manager
 
+    @property
+    def device_manager(self):
+        if self._device_manager is None:
+            self.check_device_manager()
+        return self._device_manager
+
     def check_wallet_manager(self):
         """Updates wallet manager for this user"""
         # if chain, user or data folder changed
@@ -293,10 +299,10 @@ class User(UserMixin):
         devices_folder = os.path.join(
             self.specter.data_folder, f"devices{self.folder_id}"
         )
-        if self.device_manager is None:
-            self.device_manager = DeviceManager(devices_folder)
+        if self._device_manager is None:
+            self._device_manager = DeviceManager(devices_folder)
         else:
-            self.device_manager.update(data_folder=devices_folder)
+            self._device_manager.update(data_folder=devices_folder)
 
     # TODO: Refactor this into UserManager
     def save_info(self, delete=False):
