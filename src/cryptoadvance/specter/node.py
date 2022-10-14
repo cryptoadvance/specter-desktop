@@ -1,20 +1,17 @@
 import json
 import logging
 import os
+from os import path
 
 from embit.liquid.networks import get_network
-from flask_babel import lazy_gettext as _
 from flask import render_template
+from flask_babel import lazy_gettext as _
 from requests.exceptions import ConnectionError
-from .helpers import deep_update, is_testnet, is_liquid
+
+from .helpers import deep_update, is_liquid, is_testnet
 from .liquid.rpc import LiquidRPC
 from .persistence import BusinessObject, write_node
-from .rpc import (
-    BitcoinRPC,
-    RpcError,
-    autodetect_rpc_confs,
-    get_default_datadir,
-)
+from .rpc import BitcoinRPC, RpcError, autodetect_rpc_confs, get_default_datadir
 from .specter_error import BrokenCoreConnectionException
 
 logger = logging.getLogger(__name__)
@@ -36,8 +33,31 @@ class AbstractNode(BusinessObject):
     # So first, here are the one which return directly the content of one of those calls as dict:
     @property
     def info(self):
-        """https://developer.bitcoin.org/reference/rpc/getblockchaininfo.html"""
-        return self.rpc.getblockchaininfo()
+        """Should be somehow a combination of various info-calls from core. Could have:
+        * all the info from https://developer.bitcoin.org/reference/rpc/getblockchaininfo.html
+        * plus 'mempool_info' from https://developer.bitcoin.org/reference/rpc/getmempoolinfo.html
+        * plus uptime
+        * plus other stuff
+        We only implement a bare minimum here. See the Node-Impl for more
+        """
+        res = [
+            r["result"]
+            for r in self.rpc.multi(
+                [
+                    ("getblockchaininfo", None),
+                    ("getnetworkinfo", None),
+                    ("getmempoolinfo", None),
+                    ("uptime", None),
+                    ("getblockhash", 0),
+                    ("scantxoutset", "status", []),
+                ]
+            )
+        ]
+        info = res[0]
+        info["mempool_info"] = res[2]
+        info["uptime"] = res[3]
+
+        return info
 
     @property
     def network_info(self):
@@ -87,8 +107,29 @@ class AbstractNode(BusinessObject):
             "A Node Implementation need to implement the check_blockheight method"
         )
 
-    def rendering_table(self):
-        return render_template("node/components/bitcoin_core_info.jinja")
+    def node_info_template(self):
+        """This should return a rendered template or a template which can be rendered inside the sidebar.
+        Here are some infos for the trade-off decisions:
+        * the simplest thing is `return render_template("your_extension/templates/your_extension/...")`
+          but then you're coupling the class technically to flask and you might want to inject more stuff
+          then you're willing to hold on this instance
+        * You can simply return a template which will get subrendered as described here:
+          https://stackoverflow.com/questions/8862731/jinja-nested-rendering-on-variable-content
+          this would be implemented like, e.g.:
+            myfile_path = path.join(path.dirname(__file__), 'server_endpoints','templates','spectrum', 'components', 'bitcoin_core_info.jinja')
+            return open(myfile_path).read()
+        * Default implementation simply returns the info-object
+        """
+        # return render_template("spectrum/components/bitcoin_core_info.jinja")
+
+        myfile_path = path.join(
+            path.dirname(__file__),
+            "templates",
+            "node",
+            "components",
+            "bitcoin_core_info.jinja",
+        )
+        return open(myfile_path).read()
 
 
 class Node(AbstractNode):
@@ -578,6 +619,18 @@ class Node(AbstractNode):
         if hasattr(self, "_rpc") and value == None:
             logger.debug(f"Updating {self}.rpc {self._rpc} with None (setter)")
         self._rpc = value
+
+    # UI specific stuff
+
+    def node_info_template(self):
+        myfile_path = path.join(
+            path.dirname(__file__),
+            "templates",
+            "node",
+            "components",
+            "bitcoin_core_info.jinja",
+        )
+        return open(myfile_path).read()
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} name={self.name} fullpath={self.fullpath}>"

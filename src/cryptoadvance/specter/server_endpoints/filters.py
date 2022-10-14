@@ -20,6 +20,9 @@ def ascii20(context, name):
 @pass_context
 @filters_bp.app_template_filter("subrender")
 def subrender_filter(context, value):
+    """based on the idea here:
+    https://stackoverflow.com/questions/8862731/jinja-nested-rendering-on-variable-content
+    """
     _template = context.eval_ctx.environment.from_string(value)
     result = _template.render(**context)
     if context.eval_ctx.autoescape:
