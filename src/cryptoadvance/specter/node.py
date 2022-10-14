@@ -21,9 +21,72 @@ logger = logging.getLogger(__name__)
 
 
 class AbstractNode(BusinessObject):
-    pass
+    """This is a Node-class worth deriving from. It tries to define as many attributes as possible which are needed but probably in a very
+    inefficient way, e.g. without any caching. Feel free to improve that in subclasses and you might get inspired by existing sublasses
+    """
 
-    @classmethod
+    # Many properties are convenience properties of informations, you get from the various info-rpc-callse, namely:
+    # * getblockchaininfo
+    # * getnetworkinfo
+    # * getmempoolinfo
+    # * uptime
+    # * getblockhash
+    # * scantxoutset
+
+    # So first, here are the one which return directly the content of one of those calls as dict:
+    @property
+    def info(self):
+        """https://developer.bitcoin.org/reference/rpc/getblockchaininfo.html"""
+        return self.rpc.getblockchaininfo()
+
+    @property
+    def network_info(self):
+        """https://developer.bitcoin.org/reference/rpc/getnetworkinfo.html"""
+        return self.rpc.getnetworkinfo()
+
+    @property
+    def uptime(self):
+        """https://developer.bitcoin.org/reference/rpc/uptime.html"""
+        return self.rpc.uptime()
+
+    # Now some even more convenient properties which provide often used handpicked information from those dicts
+
+    @property
+    def chain(self):
+        """current network name (main, test, regtest)
+        might have more values in elements/liquid
+        """
+        return self.info["chain"]
+
+    @property
+    def bitcoin_core_version_raw(self):
+        return self.rpc.getnetworkinfo()["version"]
+
+    # ... and more derived properties which already calculate stuff based on those information
+
+    @property
+    def network_parameters(self):
+        return get_network(self.chain)
+
+    @property
+    def is_running(self):
+
+        # Magic values are bad
+        if self.network_info["version"] == 999999:
+            logger.debug(f"Node is not running")
+            return False
+        else:
+            return True
+
+    def check_blockheight(self):
+        """check_blockheight is a method which is probably deprecated.
+        It should return True if there are new blocks available since check_info has been called
+        (which updates the cached _info[] dict)
+        """
+        raise NotImplemented(
+            "A Node Implementation need to implement the check_blockheight method"
+        )
+
     def rendering_table(self):
         return render_template("node/components/bitcoin_core_info.jinja")
 
@@ -201,7 +264,7 @@ class Node(AbstractNode):
                 return rpc  # The user is failing to configure correctly
             logger.error(rpce)
             return None
-        except ConnectionError as e:
+        except BrokenCoreConnectionException as e:
             logger.error(f"{e} while get_rpc for {rpc}")
             return None
         except Exception as e:
@@ -428,14 +491,6 @@ class Node(AbstractNode):
 
     def is_liquid(self):
         return is_liquid(self.chain)
-
-    @property
-    def is_running(self):
-        if self._network_info["version"] == 999999:
-            logger.debug(f"Node is not running")
-            return False
-        else:
-            return True
 
     @property
     def is_configured(self):

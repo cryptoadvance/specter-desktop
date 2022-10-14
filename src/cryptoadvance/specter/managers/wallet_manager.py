@@ -16,6 +16,7 @@ from ..liquid.wallet import LWallet
 from ..persistence import delete_folder
 from ..rpc import RpcError, get_default_datadir
 from ..specter_error import SpecterError, handle_exception
+from ..util.flask import FlaskThread
 from ..wallet import (  # TODO: `purposes` unused here, but other files rely on this import
     Wallet,
     purposes,
@@ -104,7 +105,7 @@ class WalletManager:
                     wallets_files[wallet]["keys"]
                 )
             if self.allow_threading and use_threading:
-                t = threading.Thread(
+                t = FlaskThread(
                     target=self._update,
                     args=(wallets_update_list,),
                 )
@@ -114,7 +115,7 @@ class WalletManager:
                 self._update(wallets_update_list)
         else:
             self.is_loading = False
-            logger.info(
+            logger.warn(
                 "Specter seems to be disconnected from Bitcoin Core. Skipping wallets update."
             )
 
@@ -128,6 +129,9 @@ class WalletManager:
         * the unloaded wallets are loaded in Bitcoin Core
         * and, on the Specter side, the wallet objects of those unloaded wallets are reinitialised
         """
+        logger.info(
+            f"Started Updating Wallets with {len(wallets_update_list.values())} wallets"
+        )
         # list of wallets in the dict
         existing_names = list(self.wallets.keys())
         # list of wallet to keep
@@ -135,31 +139,26 @@ class WalletManager:
         try:
             if wallets_update_list:
                 loaded_wallets = self.rpc.listwallets()
-                # logger.info("Getting loaded wallets list from Bitcoin Core")
                 for wallet in wallets_update_list:
+
                     wallet_alias = wallets_update_list[wallet]["alias"]
                     wallet_name = wallets_update_list[wallet]["name"]
+                    logger.info(f"  Updating wallet {wallet_name}")
                     # wallet from json not yet loaded in Bitcoin Core?!
                     if os.path.join(self.rpc_path, wallet_alias) not in loaded_wallets:
                         try:
-                            logger.info(
-                                "Loading %s to Bitcoin Core"
-                                % wallets_update_list[wallet]["alias"]
-                            )
+                            logger.debug(f"Loading {wallet_name} to Bitcoin Core")
                             self.rpc.loadwallet(
                                 os.path.join(self.rpc_path, wallet_alias)
                             )
-                            logger.info(
-                                "Initializing %s Wallet object"
-                                % wallets_update_list[wallet]["alias"]
-                            )
+                            logger.debug("Initializing {wallet_name} Wallet object")
                             loaded_wallet = self.WalletClass.from_json(
                                 wallets_update_list[wallet],
                                 self.device_manager,
                                 self,
                             )
                             # Lock UTXO of pending PSBTs
-                            logger.info(
+                            logger.debug(
                                 "Re-locking UTXOs of wallet %s"
                                 % wallets_update_list[wallet]["alias"]
                             )
@@ -202,6 +201,7 @@ class WalletManager:
                             logger.warning(
                                 f"Couldn't load wallet {wallet_alias}. Silently ignored! Wallet error: {e}"
                             )
+                            logger.exception(e)
                             self._failed_load_wallets.append(
                                 {
                                     **wallets_update_list[wallet],
@@ -233,7 +233,10 @@ class WalletManager:
         # only ignore rpc errors
         except RpcError as e:
             logger.error(f"Failed updating wallet manager. RPC error: {e}")
-        # logger.info("Done updating wallet manager")
+        logger.info("Updating wallet manager done. Result:")
+        logger.info(f"  * failed_load_wallets: {self._failed_load_wallets}")
+        logger.info(f"  * loaded_wallets: {len(self.wallets)}")
+
         wallets_update_list = {}
         self.is_loading = False
 
