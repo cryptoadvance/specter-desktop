@@ -26,7 +26,7 @@
         </table>
         <p id="total_supply" style="line-height: 2.5;"></p>
         <div class="row">
-            <button type="button" onclick="fetchTotalSupply()" class="btn centered">
+            <button type="button" id="btn-fetch-total-supply"  class="btn centered">
                 {{ _("Run the numbers!") }}
                 <tool-tip width="200px">
                     <h4 slot="title">{{ _("Calculate the total Bitcoin supply") }}</h4>
@@ -72,6 +72,10 @@
                     return { success: false, error: e };
                 }
             }
+
+            document.getElementById('btn-fetch-total-supply').addEventListener("click", function() {
+                fetchTotalSupply();
+            })            
         </script>
         {% if current_user.is_admin %}
             <div class="row">

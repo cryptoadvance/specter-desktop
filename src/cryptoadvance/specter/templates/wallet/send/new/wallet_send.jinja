@@ -62,13 +62,13 @@
 	    </div>
 		<div class="card" style="margin: auto;">			
 			<div id="recipients" {% if ui_option != 'ui' %}class="hidden"{% else %} class="recipient_wrapper" {% endif %}></div>
-			<img src="{{ url_for('static', filename='img/add-person.svg') }}" id="add-recipient" title="Add a recipient" class="recipient_button recipient_add" style="float:right" onclick="addRecipient('', '', 'btc', '')">
+			<img src="{{ url_for('static', filename='img/add-person.svg') }}" id="add-recipient" title="Add a recipient" class="recipient_button recipient_add" style="float:right">
 			<div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>
 			{{ _("Unit:") }} 
-			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_text" value="sat" onchange="toggleTextUnit(this)" {% if specter.unit == 'sat' %}checked{% endif %}>sat</label>
-			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_text" value="btc" onchange="toggleTextUnit(this)" {% if specter.unit != 'sat' %}checked{% endif %}>BTC</label><br>
+			<label><input type="radio" class="inline" style="margin: 0 5px;" id="amount_unit_text-sat" name="amount_unit_text" value="sat" {% if specter.unit == 'sat' %}checked{% endif %}>sat</label>
+			<label><input type="radio" class="inline" style="margin: 0 5px;" id="amount_unit_text-btc" name="amount_unit_text" value="btc" {% if specter.unit != 'sat' %}checked{% endif %}>BTC</label><br>
 
-			<textarea id="recipients-txt" name="recipients" placeholder="{{ _('Enter recipient address, amount') }}" style="margin-top: 5px; font-size: 0.95em;" onblur="validateForm()">{{ recipients_txt }}</textarea>
+			<textarea id="recipients-txt" name="recipients" placeholder="{{ _('Enter recipient address, amount') }}" style="margin-top: 5px; font-size: 0.95em;">{{ recipients_txt }}</textarea>
 				<p class="note" style="line-height: 2; background-color: #16202d; padding: 10px; border-radius: 7px;">
 					{{ _("Enter each recipient address, amount as a new line:") }}<br>
 					&lt;{{ _("ADDRESS") }}1&gt;, &lt;{{ _("AMOUNT") }}1&gt;<br>
@@ -76,13 +76,13 @@
 					&lt;{{ _("ADDRESS") }}3&gt;, &lt;{{ _("AMOUNT") }}3&gt;<br>
 				</p>
 			</div>
-			<p><span id="calculated_tx_fee_label" class="note" style="margin-top: 17px;" onclick="calculateEstimatedFee()">{{ _("Calculate estimated fee") }}</span><span class="note" id="calculated_tx_fee"></span><p>
+			<p><span id="calculated_tx_fee_label" class="note" style="margin-top: 17px;">{{ _("Calculate estimated fee") }}</span><span class="note" id="calculated_tx_fee"></span><p>
 			<span id="toggle_advanced" style="cursor: pointer;">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
 			<br>
 			<div id="advanced_settings" style="margin: auto; max-width: 90%; display: {% if show_advanced_settings %}block{% else %}none{% endif %};">
 				<div>{{ _("Transaction editor:") }} 
-					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="ui_option" value="ui" onclick="toggleSendUIType(this)" {% if ui_option == 'ui' %}checked{% endif %} id="ui-radio-btn">UI</label>
-					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="ui_option" value="text" onclick="toggleSendUIType(this);" {% if ui_option != 'ui' %}checked{% endif %}>text</label>
+					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" id="input-ui_option-ui" name="ui_option" value="ui"  {% if ui_option == 'ui' %}checked{% endif %}>UI</label>
+					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" id="input-ui_option-text" name="ui_option" value="text" {% if ui_option != 'ui' %}checked{% endif %}>text</label>
 				</div><br>
 				{% include "includes/fee-selection.html" %}
 				<fee-selection id="fee-selection-component"></fee-selection>
@@ -213,15 +213,15 @@
 		
 		// Main part of displaying subtractFrom, the rest is with addRecipient, deleteRecipient and toggleSendUIType
 		FeeSelectionComponent.addEventListener("subtractClick", (event) => {
-			if ((getRecipientIds().length > 1 || !document.getElementById('ui-radio-btn').checked) && document.getElementById('subtract').checked) {
+			if ((getRecipientIds().length > 1 || !document.getElementById('input-ui_option-ui').checked) && document.getElementById('subtract').checked) {
 				FeeSelectionComponent.showSubtractFrom(true)
-				if (!document.getElementById('ui-radio-btn').checked) {
+				if (!document.getElementById('input-ui_option-ui').checked) {
 					FeeSelectionComponent.addLineBreaks(2)
 				}
 			} 
 			else {
 				FeeSelectionComponent.showSubtractFrom(false)
-				if (!document.getElementById('ui-radio-btn').checked) {
+				if (!document.getElementById('input-ui_option-ui').checked) {
 					FeeSelectionComponent.removeLineBreaks()
 				}
 			}
@@ -474,7 +474,7 @@
 			createPSBTButton.setAttribute('type', 'button');
 			let totalAmount = 0.0;
 			let assetAmounts = {};
-			if (document.getElementById('ui-radio-btn').checked) {
+			if (document.getElementById('input-ui_option-ui').checked) {
 				for(let i in recipients) {
 					let recipient = recipients[i];
 					if(recipient.unit == 'btc' || recipient.unit == 'sat'){
@@ -612,8 +612,29 @@
 			setVisibilityRemoveRecipientButton();
 		});
 
-		document.getElementById('create_psbt_btn').addEventListener("click", function() {
+		document.getElementById('create_psbt_btn').addEventListener("click", (event)=> {
 			validateForm(true);
+		})
+		document.getElementById('add-recipient').addEventListener("click", (event)=> {
+			addRecipient('', '', 'btc', '');
+		})
+		document.getElementById("amount_unit_text-sat").addEventListener("change", (event)=> {			
+			toggleTextUnit(event.target);
+		})
+		document.getElementById("amount_unit_text-btc").addEventListener("change", (event)=> {
+			toggleTextUnit(event.target);
+		})
+		document.getElementById("recipients-txt").addEventListener("blur", (event)=> {
+			validateForm();
+		})
+		document.getElementById("input-ui_option-ui").addEventListener("click", (event)=> {
+			toggleSendUIType(event.target);
+		})
+		document.getElementById("input-ui_option-text").addEventListener("click", (event)=> {
+			toggleSendUIType(event.target);
+		})
+		document.getElementById("calculated_tx_fee_label").addEventListener("click", (event)=> {
+			calculateEstimatedFee();
 		})
 	</script>
 {% endblock %}
