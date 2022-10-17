@@ -12,8 +12,10 @@ We currently rework the naming of extensions/plugins/services. If not otherwise 
 
 You can create an extension with an up to date Specter Desktop instance. Assuming that we're creating an extension called `rubberduck`, it's as simple as this:
 ```
-$ pip3 install cryptoadvance.specter --upgrade
 $ mkdir /tmp/rubberduck && cd /tmp/rubberduck
+$ virtualenv --python=python3 .env
+$ . ./.env/bin/activate
+$ pip3 install cryptoadvance.specter --upgrade
 $ python3 -m cryptoadvance.specter ext gen
                                 
             We need an id and a prefix for your extension.
@@ -88,33 +90,21 @@ $
 The created file structure looks like this and you will feel right at home if you have some knowledge about how Flask works:
 
 
-![](../images/extensions_file_layout.png)
+![](../images/extensions/extensions_file_layout.png)
 
 ## Virtualenv Management
 
-The simplified example of creating an extension above is ommitting the use of a virtual environment. However, it's really __highly__ recommended that virtual environments are used for extension development. Without the Output above you would do something like:
-
-```
-mkdir /tmp/rubberduck && cd /tmp/rubberduck
-virtualenv --python=python3 .env
-. ./.env/bin/activate
-pip3 install cryptoadvance.specter 
-# you might want to have a specific version via:
-pip3 install cryptoadvance.specter==1.13.1
-python3 -m cryptoadvance.specter ext gen
-pip3 install -e .
-python3 -m cryptoadvance.specter server --config
-```
-
 Often enough, extension development goes hand in hand with the development of Specter Desktop iteself. Especially in the very beginning you need to constantly develop on the extension-concept on Specter Desktop while also using/consuming that functionality in an extension.
 
-In such a case, the best option is to "reuse" the virtualenv of Specter Desktop also for your extension. Other than what is described above, you would do something like the below. If you have checked out the Specter Desktop Code in parallel with the extension-code, you would ommit the creation of the virtualenv above and rather activate the existing one in your Specter Desktop Development Directory:
+In such a case, the current best option is to "reuse" the virtualenv of Specter Desktop also for your extension. Other than what is described above, you would do something like the below. If you have checked out the Specter Desktop Code in parallel with the extension-code, you would ommit the creation of the virtualenv above and rather activate the existing one in your Specter Desktop Development Directory:
 
 ```
 . ../specter-desktop/.env/bin/activate
 pip3 install -e .
 python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
 ```
+
+Another, maybe even better option, would be to not reuse the Virtual Environment from specter-desktop to install the extension in editable mode, but to do it the other way around: Installing specter-desktop in editable mode in the virtualenv of the extension. However, that needs to be tested.
 
 More information about the development of Specter Desktop can be found [here](../development.md).
 
