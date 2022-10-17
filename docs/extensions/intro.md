@@ -2,9 +2,9 @@
 
 Extensions is a way to extend Specter Desktop in a way which does not need PRs in the core-project. They can be used
 to 
-* create elaborated Frontends on top of Specter Desktop or even replace the whole Frontend
-* Add Additional Menu Items currently in Wallets and Settings
-* Create additional Devices with the functionality you would like to have
+- create elaborated Frontends on top of Specter Desktop or even replace the whole Frontend
+- Add Additional Menu Items currently in Wallets and Settings
+- Create additional Devices with the functionality you would like to have
 
 We currently rework the naming of extensions/plugins/services. If not otherwise stated, for now, they are used interchangeably
 
@@ -88,7 +88,7 @@ $
 The created file structure looks like this and you will feel right at home if you have some knowledge about how Flask works:
 
 
-![](./images/extensions_file_layout.png)
+![](../images/extensions_file_layout.png)
 
 ## Virtualenv Management
 
