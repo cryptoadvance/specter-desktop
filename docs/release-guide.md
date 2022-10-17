@@ -10,7 +10,7 @@ git remote -v
 ```
 - You need a GitHub token:
 If you don't have one, get one here https://github.com/settings/tokens and make sure to tick the boxes for repo and workflow as below:
-![](./images/github-token.png)
+![](./images/release-guide/github-token.png)
 Using the new token, run
  ```bash
  export GH_TOKEN=YOURTOKEN
@@ -36,7 +36,7 @@ There exists a mirror  of the GitHub repo on GitLab, but only when a tag is crea
 https://gitlab.com/cryptoadvance/specter-desktop/-/pipelines
 
 There are three stages:
-![](./images/overview-gitlab-pipline.png)
+![](./images/release-guide/overview-gitlab-pipline.png)
 
 The first relevant stage is "releasing". Here, the Windows, Linux and pip release are created and uploaded to the Specter Desktop GitHub releases page. After this stage, the following artificats should be available:
 
@@ -80,7 +80,7 @@ Don't forget to delete the two MacOS files (`SHA256SUMS-macos` and `SHA256SUMS-m
 
 This should be the final result of all uploaded assets and files:
 
-![](./images/final-view-of-assets.png)
+![](./images/release-guide/final-view-of-assets.png)
 
 ### Trouble shooting
 If the MacOS signatures are missing, the following Exception will be raised:
@@ -90,7 +90,7 @@ If the MacOS signatures are missing, the following Exception will be raised:
   Exception: Status-cod04 for url ... )
 ```
 If the macOS binaries arrive on GitHub too late, you have to manually delete the already created `SHA256SUMS` and `SHA256SUMS.asc` and rerun the job release signatures in the latest stage on GitLab:
-![](./images/rerun-release-signatures.png)
+![](./images/release-guide/rerun-release-signatures.png)
 
 ### Editing the text on the GitHub release page
 We are running a script here to create a markdown file that can be used for copy and paste.
@@ -114,10 +114,10 @@ Go to "Pages"
 Edit "Specter Desktop - Elementor" with Elementor
 Click somewhere on 1 (see screenshot), then somewhere on 2, select all, delete, and paste
 `download-page_current.html`
-![](./images/website-1.png)
+![](./images/release-guide/website-1.png)
 Then click update
 Be careful, not to paste the templates, otherwise you will see nasty jinja tags. 
 
 Do the same for this part of the website, just, in this case, replace it with 
 `download-page_releases.html`
-![](./images/website-2.png)
+![](./images/release-guide/website-2.png)
