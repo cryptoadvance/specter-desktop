@@ -1,6 +1,6 @@
 # Release Notes
 
-## v1.13.1 October 17, 2022
+## v1.13.1 Oktober 17, 2022
 - Bugfix: Hover effect in balance display #1904 (Manolis Mandrapilias)
 - Bugfix: Remove black empty bar in tx-table after search #1912 (relativisticelectron)
 - Bugfix: upgrade hwi to 2.1.1 to fix #1840 #1909 (k9ert)
