@@ -1,5 +1,15 @@
 # Release Notes
 
+## v1.13.1 Oktober 17, 2022
+- Bugfix: Hover effect in balance display #1904 (Manolis Mandrapilias)
+- Bugfix: Remove black empty bar in tx-table after search #1912 (relativisticelectron)
+- Bugfix: upgrade hwi to 2.1.1 to fix #1840 #1909 (k9ert)
+- Chore: macos release-script fixes #1897 (Manolis Mandrapilias)
+- Chore: More precise grep in Cypress bash script #1911 (Manolis Mandrapilias)
+- Chore: Update icon used in Electron app #1903 (d11n)
+- Privacy: Disabeling spellcheck to avoid any leakage to 3rd party servers #1892 (relativisticelectron)
+- UIUX: Clearer unconfirmed transaction icons #1899 (relativisticelectron)
+
 ## v1.13.0 September 22, 2022
 - Feature: Improve Dev-Console #1850 (k9ert)
 - Feature: Menu extensions can extend menus #1648 (k9ert)
