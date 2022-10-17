@@ -10,7 +10,9 @@ git remote -v
 ```
 - You need a GitHub token:
 If you don't have one, get one here https://github.com/settings/tokens and make sure to tick the boxes for repo and workflow as below:
+
 ![](./images/release-guide/github-token.png)
+
 Using the new token, run
  ```bash
  export GH_TOKEN=YOURTOKEN
@@ -90,6 +92,7 @@ If the MacOS signatures are missing, the following Exception will be raised:
   Exception: Status-cod04 for url ... )
 ```
 If the macOS binaries arrive on GitHub too late, you have to manually delete the already created `SHA256SUMS` and `SHA256SUMS.asc` and rerun the job release signatures in the latest stage on GitLab:
+
 ![](./images/release-guide/rerun-release-signatures.png)
 
 ### Editing the text on the GitHub release page
@@ -114,10 +117,12 @@ Go to "Pages"
 Edit "Specter Desktop - Elementor" with Elementor
 Click somewhere on 1 (see screenshot), then somewhere on 2, select all, delete, and paste
 `download-page_current.html`
+
 ![](./images/release-guide/website-1.png)
 Then click update
 Be careful, not to paste the templates, otherwise you will see nasty jinja tags. 
 
 Do the same for this part of the website, just, in this case, replace it with 
 `download-page_releases.html`
+
 ![](./images/release-guide/website-2.png)
