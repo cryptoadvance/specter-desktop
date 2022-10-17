@@ -50,11 +50,11 @@
 - Docs: some doc fixes, refactorings and ext clarification #1789 (k9ert)
 - Docs: Supported Python versions #1847 (Willie Wheeler)
 
-## v1.10.5 Juli 21, 2022
+## v1.10.5 July 21, 2022
 - Bugfix: startup issues for MacOS App 1815 #1816 (relativisticelectron)
 - Feature: generate app_config.py in extgen #1801 (k9ert)
 
-## v1.10.4 Juli 19, 2022
+## v1.10.4 July 19, 2022
 - Bugfix: Better error-management for run the numbers #1790 (k9ert)
 - Bugfix: Consecutively uploading same file twice #1776 (relativisticelectron)
 - Bugfix: Fix the messed up translated html #1810 (relativisticelectron)
