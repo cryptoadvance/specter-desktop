@@ -1,7 +1,7 @@
 # Release Guide
 
 ## Creating release notes
-#### Pre-requisites
+### Pre-requisites
 - You need the correct upstream master. You should see
 ```bash 
 git remote -v | grep upstream                                                                  
@@ -16,6 +16,7 @@ Using the new token, run
  ```bash
  export GH_TOKEN=YOURTOKEN
  ```
+- You need Docker running
 - Checkout the master branch and ensure a clean workspace.
 
 Now, you can run
@@ -26,12 +27,12 @@ Or, if you want to directly set the new version:
 ```bash
 ./utils/release.sh --new-version v1.13.1 --release-notes
 ```
-### Creating a new tag
+## Creating a new tag
 Update your master branch after the release notes PR ([example](http:/https://github.com/cryptoadvance/specter-desktop/commit/65ff6959d7fd85cba745e4d454b30031839f857f/)) has been merged and then run:
 ```bash
 git tag v1.13.1 && git push upstream v1.13.1
 ```
-### GitLab - releasing stage
+## GitLab - releasing stage
 Creating a tag triggers the release process of the GitLab runners. 
 There exists a mirror  of the GitHub repo on GitLab, but only when a tag is created on GitHub will the release part of the runners execute. You can check the status here: 
 https://gitlab.com/cryptoadvance/specter-desktop/-/pipelines
@@ -54,7 +55,7 @@ The three jobs in more detail:
 
 For details look at `.gitlab-ci.yml`
 
-### MacOS
+## MacOS
 Ideally, directly after the tag is created, start with the MacOS release. This has to be done manually, for now. There is a script for this:
 ```bash
 ./utils/build-osx.sh  --version v1.13.1 --appleid "Satoshi Nakamoto (appleid)" --mail "satoshi@gmx.com" make-hash specterd electron sign upload
@@ -67,7 +68,7 @@ This script also runs `github.py upload `, so two more binares and the hash and 
 - SHA256SUMS-macos
 - SHA256SUMS-macos.asc
 
-### GitLab - post releasing
+## GitLab - post releasing
 Back to GitLab, the final stage is "post releasing". 
 
 In this stage, the invididual SHA256-hashes and signatures are combined into two final files:
@@ -77,13 +78,13 @@ In this stage, the invididual SHA256-hashes and signatures are combined into two
 Everything, apart from the MacOS files, are pulled from the GitLab environment, the MacOS files from GitHub.
 Don't forget to delete the two MacOS files (`SHA256SUMS-macos` and `SHA256SUMS-macos.asc`) on the GitHub release page in the end.
 
-### All assets on GitHub
+## All assets on GitHub
 
 This should be the final result of all uploaded assets and files:
 
 ![](./images/release-guide/final-view-of-assets.png)
 
-### Trouble shooting
+## Trouble shooting
 If the MacOS signatures are missing, the following Exception will be raised:
 ```bash
   File "/builds/cryptoadvance/specter-desktop/utils/github.py", line 295, in download_artifact
@@ -94,7 +95,7 @@ If the macOS binaries arrive on GitHub too late, you have to manually delete the
 
 ![](./images/release-guide/rerun-release-signatures.png)
 
-### Editing the text on the GitHub release page
+## Editing the text on the GitHub release page
 We are running a script here to create a markdown file that can be used for copy and paste.
 Checkout this repo: `git@github.com:cryptoadvance/corp-notes.git`
 `cd download`
@@ -104,7 +105,7 @@ Follow the instructions in `README.md`
 The result `gh_page.md` can then be found in the build directory.
 Edit the release on GitHub and paste this md-file there.
 
-### Website 
+## Website 
 The above script also produces html files for the website (in the same directory):
 - `download-page_current.html`
 - `download-page_releases.html`
