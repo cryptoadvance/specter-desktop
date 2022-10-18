@@ -244,16 +244,16 @@
                 this.amountPrice.innerText = '';
                 this.amountPrice.classList.add('hidden');
             } else {
-                this.amountPrice.innerHTML =  formatPrice(this.amount); 
+                this.amountPrice.innerHTML =  Specter.format.price(this.amount); 
                 if(!("assetlabel" in this.tx) || this.tx.assetlabel == "LBTC"){
                     this.amountPrice.classList.remove('hidden');
                 }
             }
 
             if("assetlabel" in this.tx){ // liquid
-                this.amountText.innerHTML = formatLiquidAmountsAndUnits(this.amount, this.tx.asset, this.tx.assetlabel)
+                this.amountText.innerHTML = Specter.format.liquidAmountsAndUnits(this.amount, this.tx.asset, this.tx.assetlabel)
             } else { // non-liquid
-                this.amountText.innerHTML = formatBtcAmountAndUnit(this.amount);
+                this.amountText.innerHTML = Specter.format.btcAmountAndUnit(this.amount);
             }
 
             // Set confirmations

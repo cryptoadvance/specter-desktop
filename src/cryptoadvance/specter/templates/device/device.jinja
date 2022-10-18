@@ -234,10 +234,10 @@
 				showNotification(`{{ _("Message was signed successfully!") }}`)
 			}
 			else if (signature === undefined) {
-				showError(`{{ _("No signature received from the device. Did you cancel the signing?") }}`, 3000)
+				Specter.common.showError(`{{ _("No signature received from the device. Did you cancel the signing?") }}`, 3000)
 			}
 			else {
-				showError(`{{ _("Message signing failed.") }}`, 3000)
+				Specter.common.showError(`{{ _("Message signing failed.") }}`, 3000)
 			}
 		}
 

@@ -48,13 +48,13 @@
                             method: 'GET'
                         }
                     ).catch((err) => {
-                        showError(err)
+                        Specter.common.showError(err)
                         return
                     });
                     let result = await response.json();
                     console.log(result)
                     if (result.error) {
-                        showError(result.error)
+                        Specter.common.showError(result.error)
                         return
                     }
                     if (totalUserBalance==0) {
@@ -68,7 +68,7 @@
                     `{{ _("from the total supply") }}</span>`
                 } catch(e) {
                     console.log('Caught error:', e);
-                    showError(e)
+                    Specter.common.showError(e)
                     return { success: false, error: e };
                 }
             }

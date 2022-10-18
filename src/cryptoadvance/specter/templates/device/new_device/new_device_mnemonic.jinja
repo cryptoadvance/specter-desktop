@@ -125,7 +125,7 @@
                 )
             ) {
                 toggleAdvanced();
-                showError(`{{ _("You have set values in the Advanced section but left it hidden. Please verify they are correct or delete them, then click again to submit.") }}`)
+                Specter.common.showError(`{{ _("You have set values in the Advanced section but left it hidden. Please verify they are correct or delete them, then click again to submit.") }}`)
                 hiddenAdvancedConfirmed = true;
                 return false;   
             }
@@ -170,7 +170,7 @@
 					}
 				);
 				if(response.status != 200){
-					showError(await response.text());
+					Specter.common.showError(await response.text());
 					return;
 				}
 				const jsonResponse = await response.json();
@@ -193,7 +193,7 @@
                 }
 			} catch(e) {
 				console.log("Caught error: ", e);
-				showError(e);
+				Specter.common.showError(e);
 			}
 		}
 

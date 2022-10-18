@@ -918,7 +918,7 @@
                     return;
                 }
                 if(response.status != 200){
-                    showError(await response.text());
+                    Specter.common.showError(await response.text());
                     return;
                 }
                 const jsonResponse = await response.json();
@@ -927,10 +927,10 @@
                     this.render(jsonResponse, showBlockhash)
                     return
                 };
-                showError(`{{ _("Failed to fetch transactions list.") }}`)
+                Specter.common.showError(`{{ _("Failed to fetch transactions list.") }}`)
             } catch(e) {
                 console.log("Caught error: ", e);
-                showError(`{{ _("Failed to fetch transactions list.") }}: ${e}`);
+                Specter.common.showError(`{{ _("Failed to fetch transactions list.") }}: ${e}`);
             }
         }
         
@@ -985,8 +985,8 @@
 
                 if (summaryTxCount > 0 && this.search) {
                     this.summaryTxCount.innerText = `Transactions count: ${summaryTxCount}`;
-                    this.summaryAmount.innerHTML = `Total amount: ${formatBtcAmountAndUnit(summaryAmount)}`;         
-                    this.summaryAmount.innerHTML +=  ' ' + formatPrice(summaryAmount);
+                    this.summaryAmount.innerHTML = `Total amount: ${Specter.format.btcAmountAndUnit(summaryAmount)}`;         
+                    this.summaryAmount.innerHTML +=  ' ' + Specter.format.price(summaryAmount);
                     this.summaryRow.classList.remove('hidden');
                 }
                 // Pagination
@@ -1229,7 +1229,7 @@
             try {
                 const response = await fetch(url, {method: 'GET',});
                 if (response.status != 200) {
-                    showError(`{{ _("Error while fetching wallet data:") }} ${response.statusText}`)
+                    Specter.common.showError(`{{ _("Error while fetching wallet data:") }} ${response.statusText}`)
                 }
                 else {
                     let pending_psbts_json = await response.json()
@@ -1240,7 +1240,7 @@
             }
             catch(e) {
                 console.log("Caught error: ", e);
-                showError(`{{ _("Failed to fetch wallet data! ")}}<br>{{ _(" Use this to ask about this error:") }} ${e}`);
+                Specter.common.showError(`{{ _("Failed to fetch wallet data! ")}}<br>{{ _(" Use this to ask about this error:") }} ${e}`);
             }
         }
     }

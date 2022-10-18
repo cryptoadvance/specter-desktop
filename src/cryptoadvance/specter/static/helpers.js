@@ -1,45 +1,44 @@
-import { capitalize, formatUnitLabel , formatLiquidUnitLabel, rstrip, formatLiquidAmountAndUnitArray,
-	formatLiquidAmountsAndUnitsArray, formatLiquidAmountsAndUnits,
-	formatBtcAmountAndUnitArray, formatBtcAmountAndUnit, formatBtcAmount, formatPrice } from './helper-modules/format.js'
-import { copyText, send_request, showError, showNotification, wait } from './helper-modules/common.js'
-import { toggleMobileNav } from './helper-modules/mobile.js'
+import * as formatModule from './helper-modules/format.js'
+import * as commonModule from './helper-modules/common.js'
+import * as mobileModule from './helper-modules/mobile.js'
 
 // The scope of functions inside a module is not global, putting them on the window object makes them accessible outside of the module. 
 // See: https://stackoverflow.com/questions/44590393/es6-modules-undefined-onclick-function-after-import
-
 // A central JS Specter object which itself has different objects to attach JS functions as methods to
 // For example: 
 // The capitalize function from ./helper-modules/format.js would be accessed like so:
 // Specter.format.capitalize()
+
 window.Specter = {}
-function attachToSpecter(category, name, helperFunction) {
+function attachToSpecter(name, helperFunction, category) {
   if (typeof(window.Specter) === 'undefined') {
     window.Specter = {} 
   }
-  Specter[`${category}`] = {}
+  if (typeof(Specter[`${category}`]) === 'undefined') {
+    Specter[`${category}`] = {}
+  }
   // TODO: Do we have to test if that key already exists?
   Specter[`${category}`][`${name}`] = helperFunction
 }
-attachToSpecter('format', 'capitalize', capitalize)
 
-// window.capitalize = capitalize
-window.formatUnitLabel = formatUnitLabel
-window.formatLiquidUnitLabel = formatLiquidUnitLabel
-window.rstrip = rstrip
-window.formatLiquidAmountAndUnitArray = formatLiquidAmountAndUnitArray
-window.formatLiquidAmountsAndUnitsArray = formatLiquidAmountsAndUnitsArray
-window.formatLiquidAmountsAndUnits = formatLiquidAmountsAndUnits
-window.formatBtcAmountAndUnitArray = formatBtcAmountAndUnitArray
-window.formatBtcAmountAndUnit = formatBtcAmountAndUnit
-window.formatBtcAmount = formatBtcAmount
-window.formatPrice = formatPrice
+// Adding format functions to Specter.format
+for (let functionName in formatModule) {
+	attachToSpecter(functionName, formatModule[functionName], 'format')	
+}
 
-window.copyText = copyText
-window.send_request = send_request
-window.showError = showError
-window.showNotification = showNotification
-window.wait = wait
-window.toggleMobileNav = toggleMobileNav
+// Adding common functions to Specter.common
+for (let functionName in commonModule) {
+	attachToSpecter(functionName, commonModule[functionName], 'common')	
+}
+
+// Adding mobile functions to Specter.mobile
+for (let functionName in mobileModule) {
+	attachToSpecter(functionName, mobileModule[functionName], 'mobile')	
+}
+
+// window.copyText = copyText // TODO
+// window.showNotification = showNotification // TODO
+// window.toggleMobileNav = toggleMobileNav // TODO
 
 window.addEventListener('load', (event) => {
 	let main = document.getElementsByTagName("main")[0];

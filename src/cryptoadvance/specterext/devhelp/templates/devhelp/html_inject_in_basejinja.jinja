@@ -5,7 +5,7 @@
         let url="{{ url_for('devhelp_endpoint.python_command') }}"
         formData.append("command", command)
     
-        const answer = await send_request(url, 'POST', "{{ csrf_token() }}", formData);
+        const answer = await Specter.common.send_request(url, 'POST', "{{ csrf_token() }}", formData);
         try {
             return JSON.parse(answer)
         } catch(e) {

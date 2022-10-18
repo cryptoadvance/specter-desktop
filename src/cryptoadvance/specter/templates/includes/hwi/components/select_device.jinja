@@ -27,7 +27,7 @@
             }else if('needs_passphrase_sent' in dev && dev.needs_passphrase_sent){
                 mfp = "needs password";
             }
-            btn.innerHTML = `${capitalize(dev.type)} - ${mfp}`;
+            btn.innerHTML = `${Specter.format.capitalize(dev.type)} - ${mfp}`;
             btn.addEventListener('click', e=>{
                 selectedDevice = dev;
             });
@@ -35,7 +35,7 @@
         });
         showPageOverlay("hwi_selector");
         while(selectedDevice == null){
-            await wait(100);
+            await Specter.common.wait(100);
             if(!overlayIsActive()){
                 console.log("cancelled");
                 return null;
@@ -50,7 +50,7 @@
             return null;
         }
 
-        showHWIProgress(`{{ _("Processing...") }}`, `{{ _("Keep your") }} ${capitalize(selectedDevice.type)} {{ _("connected") }}.`);
+        showHWIProgress(`{{ _("Processing...") }}`, `{{ _("Keep your") }} ${Specter.format.capitalize(selectedDevice.type)} {{ _("connected") }}.`);
         // Get the device again as it is now unlocked and the fingerprint is available
         let rescanDevices = await enumerate(selectedDevice.type, selectedDevice.path, passphrase);
         if (rescanDevices.length == 1) {
@@ -99,7 +99,7 @@
             return;
         }
         let device = await selectDevice(devices, '');
-        showHWIProgress(`{{ _("Processing...") }}`, `{{ _("Keep your") }} ${capitalize(device.type)} {{ _("connected") }}.`);
+        showHWIProgress(`{{ _("Processing...") }}`, `{{ _("Keep your") }} ${Specter.format.capitalize(device.type)} {{ _("connected") }}.`);
         let result = null;
         try {
             result = await hwi.togglePassphrase(device);
@@ -140,7 +140,7 @@
             handleHWIError(`{{ _("Selected device does not have matching signing key.") }}`);
             return;
         }
-        showHWIProgress(`{{ _("Signing message...") }}`, `{{ _("Confirm on your") }} ${capitalize(device.type)}.`);
+        showHWIProgress(`{{ _("Signing message...") }}`, `{{ _("Confirm on your") }} ${Specter.format.capitalize(device.type)}.`);
         let signature = null;
         try {
             signature = await hwi.signMessage(device, message, derivationPath);

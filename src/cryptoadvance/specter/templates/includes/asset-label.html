@@ -169,7 +169,7 @@
                         this.label.innerText = this.asset
                     }
                 } else {
-                    showError(`{{ _("Failed to update asset label. Please refresh the page and try again.") }}`)
+                    Specter.common.showError(`{{ _("Failed to update asset label. Please refresh the page and try again.") }}`)
                 }
             }
         
@@ -210,7 +210,7 @@
                 this.label.innerText = this.labelValue;
             }
             if("error" in jsonResponse){
-                showError(jsonResponse.error);
+                Specter.common.showError(jsonResponse.error);
             }
         }
 
@@ -229,14 +229,14 @@
                     }
                 );
                 if(response.status != 200){
-                    showError(await response.text());
+                    Specter.common.showError(await response.text());
                     return;
                 }
                 const jsonResponse = await response.json();
                 return jsonResponse.success;
             } catch(e) {
                 console.log("Caught error: ", e);
-                showError(e);
+                Specter.common.showError(e);
                 return false;
             }
         }

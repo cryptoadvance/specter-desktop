@@ -165,7 +165,7 @@
                     }
                 );
                 if(response.status != 200){
-                    showError(await response.text());
+                    Specter.common.showError(await response.text());
                     return;
                 }
                 const jsonResponse = await response.json();
@@ -182,10 +182,10 @@
                     showPageOverlay("override-data-folder-popup");
                     return;
                 }
-                showError(jsonResponse.error, 4000);
+                Specter.common.showError(jsonResponse.error, 4000);
             }  catch(e) {
-                showError(`{{ _("Failed to start Bitcoin Core...") }}`);
-                showError(e);
+                Specter.common.showError(`{{ _("Failed to start Bitcoin Core...") }}`);
+                Specter.common.showError(e);
             }
         }
     </script>

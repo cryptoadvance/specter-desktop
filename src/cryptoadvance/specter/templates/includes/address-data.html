@@ -96,7 +96,7 @@
                     }
                 );
                 if(response.status != 200){
-                    showError(await response.text());
+                    Specter.common.showError(await response.text());
                     return;
                 }
                 const jsonResponse = await response.json();
@@ -111,13 +111,13 @@
                     let address = jsonResponse.address;
                     let walletLink = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
 
-                    var formattedAmountAndUnit = formatBtcAmountAndUnit(this.amount);
+                    var formattedAmountAndUnit = Specter.format.btcAmountAndUnit(this.amount);
                     {% if specter.is_liquid %}
                         var labels = [];
                         for (var i in this.assets){
                             labels.push(this.assets[i].label);
                         } 
-                        formattedAmountAndUnit = formatLiquidAmountsAndUnits(this.amount, Object.keys(this.assets), labels);
+                        formattedAmountAndUnit = Specter.format.liquidAmountsAndUnits(this.amount, Object.keys(this.assets), labels);
                     {% endif %}
 
                     let addressInfoHTML = `

@@ -57,7 +57,7 @@
                     }
                 );
                 if(response.status != 200){
-                    showError(await response.text());
+                    Specter.common.showError(await response.text());
                     return null;
                 }
                 const jsonResponse = await response.json();
@@ -65,7 +65,7 @@
             } catch(e) {
                 this.note.innerText = '{{ _("Failed to load transaction details...") }}';
                 console.log("Caught error fetching decoded transaction: ", e);
-                showError(`{{ _("Failed to fetch data. Please refresh the page and retry.") }}`);
+                Specter.common.showError(`{{ _("Failed to fetch data. Please refresh the page and retry.") }}`);
             }
             return null;
         }
@@ -162,10 +162,10 @@
                             serviceIdAttr = `data-service-id="${spentOutput.service_id}"`;
                         }
 
-                        var amountAndUnit = formatBtcAmountAndUnit(spentOutput.value);
-                        var price = formatPrice(spentOutput.value, spentOutput.assetlabel);
+                        var amountAndUnit = Specter.format.btcAmountAndUnit(spentOutput.value);
+                        var price = Specter.format.price(spentOutput.value, spentOutput.assetlabel);
                         {% if specter.is_liquid %}
-                            amountAndUnit = formatLiquidAmountsAndUnits(spentOutput.value, spentOutput.asset, spentOutput.assetlabel);
+                            amountAndUnit = Specter.format.liquidAmountsAndUnits(spentOutput.value, spentOutput.asset, spentOutput.assetlabel);
                         {% endif %}
 
                         // assetlabel only exists for Liquid, for BTC it is just null                    
@@ -250,10 +250,10 @@
                         serviceIdAttr = `data-service-id="${rawtx.vout[i].service_id}"`;
                     }
 
-                    var amountAndUnit = formatBtcAmountAndUnit(rawtx.vout[i].value);
-                    var price = formatPrice(rawtx.vout[i].value, rawtx.vout[i].assetlabel); 
+                    var amountAndUnit = Specter.format.btcAmountAndUnit(rawtx.vout[i].value);
+                    var price = Specter.format.price(rawtx.vout[i].value, rawtx.vout[i].assetlabel); 
                     {% if specter.is_liquid %}
-                        amountAndUnit = formatLiquidAmountsAndUnits(rawtx.vout[i].value, rawtx.vout[i].asset, rawtx.vout[i].assetlabel)
+                        amountAndUnit = Specter.format.liquidAmountsAndUnits(rawtx.vout[i].value, rawtx.vout[i].asset, rawtx.vout[i].assetlabel)
                     {% endif %}
 
                     rawtxHTML += `
@@ -293,7 +293,7 @@
                     }
                 );
                 if(response.status != 200){
-                    showError(await response.text());
+                    Specter.common.showError(await response.text());
                     return false;
                 }
                 const jsonResponse = await response.json();
@@ -301,8 +301,8 @@
                     return jsonResponse.isMine;
                 }
             }  catch(e) {
-                showError(`{{ _("Failed to load address data...") }}`);
-                showError(e);
+                Specter.common.showError(`{{ _("Failed to load address data...") }}`);
+                Specter.common.showError(e);
             }
             return false;
         }

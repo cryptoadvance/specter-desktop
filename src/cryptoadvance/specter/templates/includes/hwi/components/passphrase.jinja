@@ -28,7 +28,7 @@
         el.appendChild(submit);
         showPageOverlay('hwi_passphrase');
         while(result == null){
-            await wait(100);
+            await Specter.common.wait(100);
             if(!overlayIsActive()){
                 console.log("cancelled");
                 return null;

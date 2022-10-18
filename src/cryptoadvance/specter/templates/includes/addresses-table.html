@@ -443,7 +443,7 @@
                     return;
                 }
                 if (response.status != 200) {
-                    showError(await response.text());
+                    Specter.common.showError(await response.text());
                     return;
                 }
                 const jsonResponse = await response.json();
@@ -515,10 +515,10 @@
                     }
                     return;
                 }
-                showError(`{{ _("Failed to fetch addresses list") }}`)
+                Specter.common.showError(`{{ _("Failed to fetch addresses list") }}`)
             } catch (e) {
                 console.log("Caught error: ", e);
-                showError(`{{ _("Failed to fetch addresses list") }}: ${e}`);
+                Specter.common.showError(`{{ _("Failed to fetch addresses list") }}: ${e}`);
             }
 
         }

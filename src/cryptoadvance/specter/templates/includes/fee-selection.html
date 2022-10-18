@@ -222,7 +222,7 @@
                     }
                 );
                 if(response.status != 200){
-                    showError(await response.text());
+                    Specter.common.showError(await response.text());
                     console.log("Error while fetching fees")
                     return {"result": {"fastestFee": 8, "halfHourFee": 8, "hourFee": 8, "minimumFee": 1}, "error_messages": ["Couldn't fetch fees from server. Replaced with assumptions"]};
                 }
@@ -231,7 +231,7 @@
                 this.initWithFees()
             } catch(e) {
                 console.log(e);
-                showError(`{{ _("Failed to fetch fees") }}: ${e}`);
+                Specter.common.showError(`{{ _("Failed to fetch fees") }}: ${e}`);
             }
         }
 

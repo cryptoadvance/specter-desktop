@@ -80,7 +80,7 @@
                     );
                     let result = await response.json();
                     if (result.error) {
-                        showError(`{{ _("Encountered an error:") }}` + result.error);
+                        Specter.common.showError(`{{ _("Encountered an error:") }}` + result.error);
                         document.getElementById('progress-details').classList.add('hidden');
                         hidePageOverlay('progress-details');
                         return;

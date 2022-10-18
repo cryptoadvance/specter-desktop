@@ -300,7 +300,7 @@
 						}
 					);
 					if(response.status != 200){
-						showError(await response.text());
+						Specter.common.showError(await response.text());
 						return;
 					}
 					const jsonResponse = await response.json();
@@ -308,10 +308,10 @@
 						location.reload();
 						return
 					};
-					showError(`{{ _("Failed to toggle sensitive info mode...") }}`)
+					Specter.common.showError(`{{ _("Failed to toggle sensitive info mode...") }}`)
 				} catch(e) {
 					console.log("Caught error: ", e);
-					showError(e);
+					Specter.common.showError(e);
 				}
 			}
 

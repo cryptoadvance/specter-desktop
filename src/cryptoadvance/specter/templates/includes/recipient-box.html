@@ -445,13 +445,13 @@
 
 				// convert to other unit
 				var convertedUnit = (this.unit == 'sat') ? 'BTC' : 'sat'; 
-				var convertedAmountAndUnit = formatBtcAmountAndUnitArray(amountBTC, convertedUnit);
+				var convertedAmountAndUnit = Specter.format.btcAmountAndUnitArray(amountBTC, convertedUnit);
 				if (isNaN(this.amount)){
 					convertedAmountAndUnit[0] = '-';
 				}
 				this.shadowRoot.getElementById('converted_unit_amount').innerHTML =  convertedAmountAndUnit[0];
 				this.shadowRoot.getElementById('converted_unit_label').innerHTML =  convertedAmountAndUnit[1];				
-				this.shadowRoot.getElementById('converted_unit_alt').innerHTML =  formatPrice(amountBTC); 
+				this.shadowRoot.getElementById('converted_unit_alt').innerHTML =  Specter.format.price(amountBTC); 
 			}else{
 				this.shadowRoot.getElementById('converted_unit_amount').innerHTML = '&nbsp;';
 				this.shadowRoot.getElementById('converted_unit_alt').innerHTML = '&nbsp;';
@@ -468,7 +468,7 @@
 			let url="{{ url_for('wallets_endpoint_api.is_address_mine', wallet_alias=wallet.alias, address='this_address') }}"
 			url = url.replace('this_address', address)			
 					
-			let is_address_mine = send_request(url, 'GET', "{{ csrf_token() }}");
+			let is_address_mine = Specter.common.send_request(url, 'GET', "{{ csrf_token() }}");
 			return is_address_mine;
 		}
 

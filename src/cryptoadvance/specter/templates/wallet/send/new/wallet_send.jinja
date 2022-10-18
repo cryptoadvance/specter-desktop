@@ -30,8 +30,8 @@
 				<span id="wallet-amount_available"></span>
 				<span id="wallet-amount_available-price"></span>
 				<script type="module">
-					document.getElementById("wallet-amount_available").innerHTML = formatBtcAmountAndUnit({{ wallet.amount_available }})
-					document.getElementById("wallet-amount_available-price").innerHTML = formatPrice('{{ wallet.amount_available }}')
+					document.getElementById("wallet-amount_available").innerHTML = Specter.format.btcAmountAndUnit({{ wallet.amount_available }})
+					document.getElementById("wallet-amount_available-price").innerHTML = Specter.format.price('{{ wallet.amount_available }}')
 				</script>
 				{% if specter.is_liquid and wallet.balance.get("assets", {}) %}
 				<span>
@@ -42,7 +42,7 @@
 							<span id="is_liquid-{{ asset }}" style="margin: 0 10px;"></span> 
 						</span>
 						<script type="module">
-							document.getElementById("is_liquid-{{ asset }}").innerHTML = formatLiquidAmountsAndUnits({{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) }}, '{{asset}}', '{{asset | assetlabel}}');   
+							document.getElementById("is_liquid-{{ asset }}").innerHTML = Specter.format.liquidAmountsAndUnits({{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) }}, '{{asset}}', '{{asset | assetlabel}}');   
 						</script>													
 					{% endfor %}
 				</span>
@@ -169,11 +169,11 @@
 		var assetBalances = {
 			"btc": {
 				"balance": {{ wallet.full_available_balance }},
-				"label": formatUnitLabel('BTC'),
+				"label": Specter.format.unitLabel('BTC'),
 			},
 			"sat": {
 				"balance": Math.round({{ wallet.full_available_balance*1e8 }}),
-				"label": formatUnitLabel('sat'),
+				"label": Specter.format.unitLabel('sat'),
 			},
 		{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
 			"{{asset}}": {
@@ -394,7 +394,7 @@
 		// Form validation
 		function validateAmount(unit, amount, recipientId, allowZero=false) {
 			if (isNaN(amount)) {
-				showError(`{{ _("Amount entered is invalid!") }}`, 5000);
+				Specter.common.showError(`{{ _("Amount entered is invalid!") }}`, 5000);
 				return false;
 			}
 			if (recipientId) {				
@@ -405,20 +405,20 @@
 				}
 			}
 			if (!amount && !allowZero) {
-				showError(`{{ _("Amount is zero.") }}`, 5000);
+				Specter.common.showError(`{{ _("Amount is zero.") }}`, 5000);
 				return false;
 			}
 			if (isAboveWalletBalance(unit, amount)) {
-				showError(`{{ _("You cannot send more than") }} ${assetBalances[unit].balance} ${assetBalances[unit].label}!`, 5000);
+				Specter.common.showError(`{{ _("You cannot send more than") }} ${assetBalances[unit].balance} ${assetBalances[unit].label}!`, 5000);
 				return false;
 			} 
 			// Directly checks coin selection in here
 			else if (coinselectionWebcomponent.shouldSelectMoreCoins(unit, amount)) {
-				showError(`{{ _("You need to select more coins!") }}`, 5000);
+				Specter.common.showError(`{{ _("You need to select more coins!") }}`, 5000);
 				return false;
 			} 
 			else if (isInvalidValue(unit, amount)) {
-				showError(`{{ _("Invalid amount! Wrong unit?") }}`, 5000);
+				Specter.common.showError(`{{ _("Invalid amount! Wrong unit?") }}`, 5000);
 				return false;
 			} 
 			else {
@@ -431,16 +431,16 @@
 			let reWhite = /\s/;
 			let address = document.getElementById(`recipient_${recipientId}`).address;
 			if (!address) {
-				showError(`{{ _("You provided no address.") }}`, 5000);
+				Specter.common.showError(`{{ _("You provided no address.") }}`, 5000);
 				return false
 			}
 			// Segwit addresses are always between 14 and 74 characters long.
 			else if (address.length < 14) {
-				showError(`{{ _("Please provide a valid address!") }}`, 5000);
+				Specter.common.showError(`{{ _("Please provide a valid address!") }}`, 5000);
 				return false
 			}
 			else if (reWhite.test(address)) {
-				showError(`{{ _("Looks like there are whitespaces in the address field.") }}`, 5000);
+				Specter.common.showError(`{{ _("Looks like there are whitespaces in the address field.") }}`, 5000);
 				return false
 			}
 			else {
@@ -452,11 +452,11 @@
 		function validFee() {
 			let feeRate = FeeSelectionComponent.selectedFee()
 			if (feeRate == '') {
-				showError(`{{ _("You didn't input a number for the fee or left it empty.") }}`, 5000)
+				Specter.common.showError(`{{ _("You didn't input a number for the fee or left it empty.") }}`, 5000)
 				return false	
 			}
 			else if (feeRate < MIN_FEE_RATE) {
-				showError(`{{ _("Your fee is too low. The minimum fee for ${NETWORK} is ${MIN_FEE_RATE} satoshi.") }}`, 5000)
+				Specter.common.showError(`{{ _("Your fee is too low. The minimum fee for ${NETWORK} is ${MIN_FEE_RATE} satoshi.") }}`, 5000)
 				return false	
 			}
 			else {
@@ -581,10 +581,10 @@
 				let url="{{ url_for('wallets_endpoint_api.estimate_fee', wallet_alias=wallet.alias) }}"
 				formData.append("estimate_fee", true)
 			
-				let result = await send_request(url, 'POST', "{{ csrf_token() }}", formData);
+				let result = await Specter.common.send_request(url, 'POST', "{{ csrf_token() }}", formData);
 				console.log(result);
 				if (result.success) {
-					document.getElementById('calculated_tx_fee').innerHTML = `: ${formatBtcAmountAndUnit(result.psbt.fee, 'sat')}${formatPrice(result.psbt.fee)}`; 
+					document.getElementById('calculated_tx_fee').innerHTML = `: ${Specter.format.btcAmountAndUnit(result.psbt.fee, 'sat')}${Specter.format.price(result.psbt.fee)}`; 
 					return parseInt(result.psbt.fee * 1e8);
 				} else {
 					document.getElementById('calculated_tx_fee').innerText = `: ${result.error}`;

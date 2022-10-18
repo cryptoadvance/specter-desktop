@@ -323,7 +323,7 @@
             }
             // this shouldn't happen actually
             if(devices.length == 0){
-                showError(`{{ _("No devices found :(") }}`);
+                Specter.common.showError(`{{ _("No devices found :(") }}`);
                 return;
             }
 
@@ -357,7 +357,7 @@
                     "{specter.chain}"
                 );
                 if(xpub == null){
-                    showError(`{{ _("Failed to retrive device data. Please try again.") }}`);
+                    Specter.common.showError(`{{ _("Failed to retrive device data. Please try again.") }}`);
                     return;
                 }
 
@@ -489,7 +489,7 @@
                         let str = `[${obj.xfp}/${path}]${obj.xpub}`;
                         addXpubs(str);
                     }else{
-                        showError(`{{ _("Unknown key format") }}`);
+                        Specter.common.showError(`{{ _("Unknown key format") }}`);
                     }
                 }else{
                     addXpubs(result);

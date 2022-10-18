@@ -1,5 +1,5 @@
 /** functions to include in a module to show errors **/
-function showError(msg){
+function Specter.common.showError(msg){
     let event = new CustomEvent('errormsg', { detail: { message: msg } });
     document.dispatchEvent(event);
 }

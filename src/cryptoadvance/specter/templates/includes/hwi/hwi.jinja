@@ -58,7 +58,7 @@
         if(error.message !== undefined){
             error = error.message;
         }
-        showError(error, 10000);
+        Specter.common.showError(error, 10000);
         if(overlayIsActive()){
             hidePageOverlay();
         }
@@ -113,7 +113,7 @@
                 result = result.filter(dev => dev.path == devicePath);
             }
             while(result.length == 0){
-                await wait(1000);
+                await Specter.common.wait(1000);
                 // check that we still need to do it
                 // just before the request
                 if(!overlayIsActive()){
@@ -166,7 +166,7 @@
     async function getXpubs(device, account=0, passphrase=""){
         // detect device
         showHWIProgress(`{{ _("Extracting public keys...") }}`, 
-            `{{ _("It may take a while.") }}<br><br>{{ _("Keep your") }} ${capitalize(device.type)} {{ _("connected") }}.`);
+            `{{ _("It may take a while.") }}<br><br>{{ _("Keep your") }} ${Specter.format.capitalize(device.type)} {{ _("connected") }}.`);
         let result = [];
         try {
             result = await hwi.getXpubs(device, account, passphrase);
@@ -186,7 +186,7 @@
     async function getXpub(device, derivation="", passphrase="", chain=""){
         // detect device
         showHWIProgress(`{{ _("Extracting public key...") }}<br><span style=\'font-size: 0.8em;\'>{{ _("Derivation") }}: ` + derivation + "</span>", 
-            `{{ _("It may take a while.") }}<br><br>{{ _("Keep your") }} ${capitalize(device.type)} {{ _("connected") }}.`);
+            `{{ _("It may take a while.") }}<br><br>{{ _("Keep your") }} ${Specter.format.capitalize(device.type)} {{ _("connected") }}.`);
         let result = [];
         try {
             result = await hwi.getXpub(device, derivation, passphrase, chain);
@@ -206,7 +206,7 @@
     async function getMasterBlindingKey(device, passphrase="", chain=""){
         // detect device
         showHWIProgress(`{{ _("Extracting master blinding key...") }}`, 
-            `{{ _("Please confirm action on your") }} ${capitalize(device.type)} {{ _("device") }}.`);
+            `{{ _("Please confirm action on your") }} ${Specter.format.capitalize(device.type)} {{ _("device") }}.`);
         let result = [];
         try {
             result = await hwi.getMasterBlindingKey(device, passphrase, chain);

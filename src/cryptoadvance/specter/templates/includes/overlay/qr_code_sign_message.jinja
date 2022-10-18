@@ -27,7 +27,7 @@
             document.getElementById('{{ device.alias }}_usb_sign_msg_btn').remove()
             document.getElementById('{{ device.alias }}_qr_sign_msg_btn').remove()
         } else {
-            showError(`{{ _("Scan failed, please try again...") }}`, 3000);
+            Specter.common.showError(`{{ _("Scan failed, please try again...") }}`, 3000);
         }
     });
 </script>

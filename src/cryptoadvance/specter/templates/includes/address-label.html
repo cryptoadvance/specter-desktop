@@ -177,7 +177,7 @@
                         this.label.innerText = this.address
                     }
                 } else {
-                    showError(`{{ _("Failed to update address label. Please refresh the page and try again.") }}`)
+                    Specter.common.showError(`{{ _("Failed to update address label. Please refresh the page and try again.") }}`)
                 }
             }
         
@@ -243,7 +243,7 @@
                     }
                 );
                 if(response.status != 200){
-                    showError(await response.text());
+                    Specter.common.showError(await response.text());
                     return;
                 }
                 const jsonResponse = await response.json();
@@ -253,10 +253,10 @@
                     }
                     return;
                 }
-                showError(`{{ _("Failed to fetch data. Please refresh the page and retry.") }}`);
+                Specter.common.showError(`{{ _("Failed to fetch data. Please refresh the page and retry.") }}`);
             } catch(e) {
                 console.log(`{{ _("Caught error fetching address label") }}: `, e);
-                showError(`{{ _("Failed to fetch data. Please refresh the page and retry.") }}`);
+                Specter.common.showError(`{{ _("Failed to fetch data. Please refresh the page and retry.") }}`);
             }
         }
 
@@ -275,14 +275,14 @@
                     }
                 );
                 if(response.status != 200){
-                    showError(await response.text());
+                    Specter.common.showError(await response.text());
                     return;
                 }
                 const jsonResponse = await response.json();
                 return jsonResponse.success;
             } catch(e) {
                 console.log("Caught error: ", e);
-                showError(e);
+                Specter.common.showError(e);
                 return false;
             }
         }

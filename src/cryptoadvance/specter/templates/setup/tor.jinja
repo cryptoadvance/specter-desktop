@@ -27,7 +27,7 @@
                     }
                 );
                 if(response.status != 200){
-                    showError(await response.text());
+                    Specter.common.showError(await response.text());
                     return;
                 }
                 const jsonResponse = await response.json();
@@ -39,10 +39,10 @@
                 } if (jsonResponse.error == "Tor is already installed") {
                     window.location.href = "{{ url_for(nextURL) }}";
                 }
-                showError(jsonResponse.error, 4000);
+                Specter.common.showError(jsonResponse.error, 4000);
             }  catch(e) {
-                showError(`{{ _("Failed to download Tor daemon...") }}`);
-                showError(e);
+                Specter.common.showError(`{{ _("Failed to download Tor daemon...") }}`);
+                Specter.common.showError(e);
             }
         }
     </script>

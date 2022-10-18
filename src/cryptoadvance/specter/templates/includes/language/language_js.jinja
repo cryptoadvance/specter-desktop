@@ -21,13 +21,13 @@ function changeLanguage(selectObj) {
         if (jsonResponse.success) {
             location.reload();
         } else {
-            showError(`{{ _("Failed to change language") }}`)
+            Specter.common.showError(`{{ _("Failed to change language") }}`)
         }
         return;
     })
     .catch(err => {
         console.log("Caught error: ", err);
-        showError(err);
+        Specter.common.showError(err);
     });
 
 }

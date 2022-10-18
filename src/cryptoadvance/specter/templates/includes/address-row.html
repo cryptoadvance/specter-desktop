@@ -117,7 +117,7 @@
                             }
                         );
                         if(response.status != 200){
-                            showError(await response.text());
+                            Specter.common.showError(await response.text());
                             return;
                         }
                         const jsonResponse = await response.json();
@@ -128,10 +128,10 @@
                             displayAddressOnDevice(this.addressData.address, descriptor, xpubs_descriptor);
                             return;
                         }
-                        showError(`{{ _("Failed to load address data to display...") }}`);
+                        Specter.common.showError(`{{ _("Failed to load address data to display...") }}`);
                     }  catch(e) {
-                        showError(`{{ _("Failed to load address data to display...") }}`);
-                        showError(e);
+                        Specter.common.showError(`{{ _("Failed to load address data to display...") }}`);
+                        Specter.common.showError(e);
                     }
                 }
             }
@@ -142,7 +142,7 @@
                 this.amountPrice.innerHTML = '';
                 this.amountPrice.classList.add('hidden');
             } else {
-                this.amountPrice.innerHTML = formatPrice(this.amount);
+                this.amountPrice.innerHTML = Specter.format.price(this.amount);
                 this.amountPrice.classList.remove('hidden');
             }            
 
@@ -152,9 +152,9 @@
                 for (var i in this.addressData.assets){
                     labels.push(this.addressData.assets[i].label);
                 }
-                this.amountText.innerHTML = formatLiquidAmountsAndUnits(this.amount, Object.keys(this.addressData.assets), labels);
+                this.amountText.innerHTML = Specter.format.liquidAmountsAndUnits(this.amount, Object.keys(this.addressData.assets), labels);
             {% else %}
-                this.amountText.innerHTML = formatBtcAmountAndUnit(this.amount, this.btcUnit);
+                this.amountText.innerHTML = Specter.format.btcAmountAndUnit(this.amount, this.btcUnit);
             {% endif %} 
 
             if (this.addressData.used > 0) {

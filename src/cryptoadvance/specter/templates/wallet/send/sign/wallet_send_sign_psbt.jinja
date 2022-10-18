@@ -79,12 +79,12 @@
 					{{ _("Sending") }} <b><span id="psbt-amount-{{i}}"></span><span id="psbt-price-{{i}}"></span></b>
 					{% if "asset" in psbt %}
 						<script type="module">
-							document.getElementById("psbt-amount-{{i}}").innerHTML =   formatLiquidAmountsAndUnits({{ psbt["amount"][i] }}, '{{psbt['asset'][i]}}', '{{psbt['asset'][i] | assetlabel}}');
+							document.getElementById("psbt-amount-{{i}}").innerHTML =   Specter.format.liquidAmountsAndUnits({{ psbt["amount"][i] }}, '{{psbt['asset'][i]}}', '{{psbt['asset'][i] | assetlabel}}');
 						</script>
 					{% else %}            
 						<script type="module">
-							document.getElementById("psbt-amount-{{i}}").innerHTML = formatBtcAmountAndUnit({{ psbt["amount"][i] }});
-							document.getElementById("psbt-price-{{i}}").innerHTML = formatPrice('{{ psbt["amount"][i] }}');
+							document.getElementById("psbt-amount-{{i}}").innerHTML = Specter.format.btcAmountAndUnit({{ psbt["amount"][i] }});
+							document.getElementById("psbt-price-{{i}}").innerHTML = Specter.format.price('{{ psbt["amount"][i] }}');
 						</script>
 					{% endif %}
 					{{ _("to") }}<b>
@@ -117,8 +117,8 @@
 					<span id="totalfee-amount"></span>
 					<span id="totalfee-price"></span>
 					<script type="module">
-						document.getElementById("totalfee-amount").innerHTML = formatBtcAmountAndUnit({{ psbt['fee'] }}, 'sat');
-						document.getElementById("totalfee-price").innerHTML = formatPrice('{{ psbt['fee'] }}');
+						document.getElementById("totalfee-amount").innerHTML = Specter.format.btcAmountAndUnit({{ psbt['fee'] }}, 'sat');
+						document.getElementById("totalfee-price").innerHTML = Specter.format.price('{{ psbt['fee'] }}');
 					</script>
 					<br>
 					<b>{{ _("Fee rate:") }}</b>
@@ -155,13 +155,13 @@
 						<span id="psbt-inputs-{{loop.index0}}-price"></span>
 						{% if specter.is_liquid %}
 							<script type="module">
-								document.getElementById("psbt-inputs-{{loop.index0}}-amount").innerHTML =  formatLiquidAmountsAndUnits({{ input.get('float_amount') }}, "{{input['asset']}}", "{{input['asset'] | assetlabel}}");
+								document.getElementById("psbt-inputs-{{loop.index0}}-amount").innerHTML =  Specter.format.liquidAmountsAndUnits({{ input.get('float_amount') }}, "{{input['asset']}}", "{{input['asset'] | assetlabel}}");
 								document.getElementById("psbt-inputs-{{loop.index0}}-price").innerHTML = '';
 							</script>							
 						{% else %}
 							<script type="module">
-								document.getElementById("psbt-inputs-{{loop.index0}}-amount").innerHTML = formatBtcAmountAndUnit({{ input.get('float_amount') }})
-								document.getElementById("psbt-inputs-{{loop.index0}}-price").innerHTML = formatPrice('{{ input.get('float_amount') }}');
+								document.getElementById("psbt-inputs-{{loop.index0}}-amount").innerHTML = Specter.format.btcAmountAndUnit({{ input.get('float_amount') }})
+								document.getElementById("psbt-inputs-{{loop.index0}}-price").innerHTML = Specter.format.price('{{ input.get('float_amount') }}');
 							</script>
 						{% endif %}
 					</p>
@@ -186,13 +186,13 @@
 						<span id="psbt-outputs-{{loop.index0}}-price"></span>
 						{% if specter.is_liquid %}
 							<script type="module">
-								document.getElementById("psbt-outputs-{{loop.index0}}-amount").innerHTML = formatLiquidAmountsAndUnits({{ output.get('float_amount') }}, "{{output['asset']}}", "{{output['asset'] | assetlabel}}") 
+								document.getElementById("psbt-outputs-{{loop.index0}}-amount").innerHTML = Specter.format.liquidAmountsAndUnits({{ output.get('float_amount') }}, "{{output['asset']}}", "{{output['asset'] | assetlabel}}") 
 								document.getElementById("psbt-outputs-{{loop.index0}}-price").innerHTML = '';
 							</script>							
 						{% else %}
 							<script type="module">
-								document.getElementById("psbt-outputs-{{loop.index0}}-amount").innerHTML = formatBtcAmountAndUnit({{ output['float_amount'] }});
-								document.getElementById("psbt-outputs-{{loop.index0}}-price").innerHTML = formatPrice('{{ output['float_amount'] }}');
+								document.getElementById("psbt-outputs-{{loop.index0}}-amount").innerHTML = Specter.format.btcAmountAndUnit({{ output['float_amount'] }});
+								document.getElementById("psbt-outputs-{{loop.index0}}-price").innerHTML = Specter.format.price('{{ output['float_amount'] }}');
 							</script>
 						{% endif %}
 					</p>
@@ -388,7 +388,7 @@
 					}
 				);
 				if(response.status != 200){
-					showError(await response.text());
+					Specter.common.showError(await response.text());
 					return;
 				}
 				const jsonResponse = await response.json();
@@ -432,7 +432,7 @@
 				}
 			} catch(e) {
 				console.log("Caught error: ", e);
-				showError(e);
+				Specter.common.showError(e);
 			}
 		}
 
@@ -459,10 +459,10 @@
 					hidePageOverlay();
 					window.location.replace("{{ url_for('wallets_endpoint.history', wallet_alias=wallet.alias) }}");
 				} else {
-					showError(`{{ _('Server failed to broadcast transactions!') }}\n` + jsonResponse.error);
+					Specter.common.showError(`{{ _('Server failed to broadcast transactions!') }}\n` + jsonResponse.error);
 				}
 			} catch(e) {
-				showError(`{{ _('Server failed to broadcast transactions!') }}\n` + e);
+				Specter.common.showError(`{{ _('Server failed to broadcast transactions!') }}\n` + e);
 			}
 		}
 
@@ -492,10 +492,10 @@
 					hidePageOverlay();
 					window.location.replace("{{ url_for('wallets_endpoint.history', wallet_alias=wallet.alias) }}");
 				} else {
-					showError(`{{ _('Server failed to broadcast transactions!') }}\n` + jsonResponse.error);
+					Specter.common.showError(`{{ _('Server failed to broadcast transactions!') }}\n` + jsonResponse.error);
 				}
 			} catch(e) {
-				showError(`{{ _('Server failed to broadcast transactions!') }}\n` + e);
+				Specter.common.showError(`{{ _('Server failed to broadcast transactions!') }}\n` + e);
 			}
 		}
 
