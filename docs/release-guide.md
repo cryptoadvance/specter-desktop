@@ -1,13 +1,12 @@
-### Creating release notes
+# Release Guide
+
+## Creating release notes
 #### Pre-requisites
 - You need the correct upstream master. You should see
 ```bash 
-upstream  git@github.com:cryptoadvance/specter-desktop.git
-```
-when you run
-```bash
-git remote -v
-```
+git remote -v | grep upstream                                                                  
+upstream        git@github.com:cryptoadvance/specter-desktop.git (fetch)
+upstream        git@github.com:cryptoadvance/specter-desktop.git (push)
 - You need a GitHub token:
 If you don't have one, get one here https://github.com/settings/tokens and make sure to tick the boxes for repo and workflow as below:
 
@@ -42,16 +41,16 @@ There are three stages:
 
 The first relevant stage is "releasing". Here, the Windows, Linux and pip release are created and uploaded to the Specter Desktop GitHub releases page. After this stage, the following artificats should be available:
 
-cryptoadvance.specter-1.13.1.tar.gz
-Specter-Setup-v1.13.1.exe
-specterd-v1.13.1-win64.zip
-specterd-v1.13.1-x86_64-linux-gnu.zip
-specter_desktop-v1.13.1-x86_64-linux-gnu.tar.gz
+- cryptoadvance.specter-1.13.1.tar.gz
+- Specter-Setup-v1.13.1.exe
+- specterd-v1.13.1-win64.zip
+- specterd-v1.13.1-x86_64-linux-gnu.zip
+- specter_desktop-v1.13.1-x86_64-linux-gnu.tar.gz
 
 The three jobs in more detail:
-release_binary_windows: is creating a binary for specterd and for Windows (Windows runner)
-release_electron_linux_windows: Creates a specterd for Linux, an AppImage for Linux and an executable for Windows (Linux runner).
-release_pip: Is releasing a pypi package on [pypi](https://pypi.org/project/cryptoadvance.specter/) and creates a tarball of the pip package for the GitHub release page (Linux runner). 
+- release_binary_windows: is creating a binary for specterd and for Windows (Windows runner)
+- release_electron_linux_windows: Creates a specterd for Linux, an AppImage for Linux and an executable for Windows (Linux runner).
+- release_pip: Is releasing a pypi package on [pypi](https://pypi.org/project/cryptoadvance.specter/) and creates a tarball of the pip package for the GitHub release page (Linux runner). 
 
 For details look at `.gitlab-ci.yml`
 
@@ -63,17 +62,17 @@ Ideally, directly after the tag is created, start with the MacOS release. This h
 
 This script also runs `github.py upload `, so two more binares and the hash and signature files are uploaded to GitHub:
 
-Specter-v1.13.1.dmg
-specterd-v1.13.1-osx.zip
-SHA256SUMS-macos
-SHA256SUMS-macos.asc
+- Specter-v1.13.1.dmg
+- specterd-v1.13.1-osx.zip
+- SHA256SUMS-macos
+- SHA256SUMS-macos.asc
 
 ### GitLab - post releasing
 Back to GitLab, the final stage is "post releasing". 
 
 In this stage, the invididual SHA256-hashes and signatures are combined into two final files:
-SHA256SUMS
-SHA256SUMS.asc
+- SHA256SUMS
+- SHA256SUMS.asc
 
 Everything, apart from the MacOS files, are pulled from the GitLab environment, the MacOS files from GitHub.
 Don't forget to delete the two MacOS files (`SHA256SUMS-macos` and `SHA256SUMS-macos.asc`) on the GitHub release page in the end.
@@ -107,8 +106,8 @@ Edit the release on GitHub and paste this md-file there.
 
 ### Website 
 The above script also produces html files for the website (in the same directory):
-`download-page_current.html`
-`download-page_releases.html`
+- `download-page_current.html`
+- `download-page_releases.html`
 
 Login into:
 https://specter.solutions/wp-login.php
