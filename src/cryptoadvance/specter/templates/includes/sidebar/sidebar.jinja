@@ -274,10 +274,10 @@
         let list = document.getElementById(type + '_list');
         if (list.style.display === 'none') {
             list.style.display = 'block';
-            titleButton.innerHTML = capitalize(display_text) + ' &nbsp; &#9660;';
+            titleButton.innerHTML = Specter.format.capitalize(display_text) + ' &nbsp; &#9660;';
         } else {
             list.style.display = 'none';
-            titleButton.innerHTML = capitalize(display_text) + ' &nbsp; &#9654;';
+            titleButton.innerHTML = Specter.format.capitalize(display_text) + ' &nbsp; &#9654;';
         }
     }
 

@@ -1,12 +1,28 @@
 import { capitalize, formatUnitLabel , formatLiquidUnitLabel, rstrip, formatLiquidAmountAndUnitArray,
 	formatLiquidAmountsAndUnitsArray, formatLiquidAmountsAndUnits,
-	formatBtcAmountAndUnitArray, formatBtcAmountAndUnit, formatBtcAmount, formatPrice } from './helper-modules/formatting.js'
+	formatBtcAmountAndUnitArray, formatBtcAmountAndUnit, formatBtcAmount, formatPrice } from './helper-modules/format.js'
 import { copyText, send_request, showError, showNotification, wait } from './helper-modules/common.js'
 import { toggleMobileNav } from './helper-modules/mobile.js'
 
 // The scope of functions inside a module is not global, putting them on the window object makes them accessible outside of the module. 
 // See: https://stackoverflow.com/questions/44590393/es6-modules-undefined-onclick-function-after-import
-window.capitalize = capitalize
+
+// A central JS Specter object which itself has different objects to attach JS functions as methods to
+// For example: 
+// The capitalize function from ./helper-modules/format.js would be accessed like so:
+// Specter.format.capitalize()
+window.Specter = {}
+function attachToSpecter(category, name, helperFunction) {
+  if (typeof(window.Specter) === 'undefined') {
+    window.Specter = {} 
+  }
+  Specter[`${category}`] = {}
+  // TODO: Do we have to test if that key already exists?
+  Specter[`${category}`][`${name}`] = helperFunction
+}
+attachToSpecter('format', 'capitalize', capitalize)
+
+// window.capitalize = capitalize
 window.formatUnitLabel = formatUnitLabel
 window.formatLiquidUnitLabel = formatLiquidUnitLabel
 window.rstrip = rstrip
