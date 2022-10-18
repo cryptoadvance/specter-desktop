@@ -1,4 +1,17 @@
-#!//bin/bash
+#!/bin/bash
+
+# Replacing MacOS utilities with GNU core utilities to make script more robust
+# See: https://apple.stackexchange.com/questions/69223/how-to-replace-mac-os-x-utilities-with-gnu-core-utilities
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    brew ls --versions coreutils > /dev/null; 
+    exitCode=$? 
+    if [[ $exitCode == 0 ]]; then
+      echo "Coreutils are installed via Homebrew, prepending PATH to use GNU core utilities over MacOS utilities."
+      export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+    else
+      echo "GNU core utilities not installed. Run brew install coreutils"
+    fi
+fi
 
 ask_yn() {
    while true; do
@@ -19,6 +32,11 @@ case $key in
     wait_on_master)
     command=wait_on_master
     shift
+    ;;
+    --help)
+    help
+    shift
+    exit 0
     ;;
     --release-notes)
     RELEASE_NOTES="yes"
@@ -48,10 +66,15 @@ case $key in
 esac
 done
 
+function help() {
+    # echo HERE_DOC
+    # ...
+    echo "not yet implemented"
+}
 
 function main() {
-
-    if ! [ "$(git remote -v | grep upstream | grep 'git@github.com:cryptoadvance/specter-desktop.git' | wc -l)" = "2" ]; then
+    # Sed is used as there can be whitespaces 
+    if ! [ "$(git remote -v | grep upstream | grep 'git@github.com:cryptoadvance/specter-desktop.git' |  wc -l | sed -e 's/\s*//')" = "2" ]; then
         echo "    --> You don't have the correct upstream-remote. You need this to release. Please do this:"
         echo "git remote add upstream git@github.com:cryptoadvance/specter-desktop.git "
         exit 2
@@ -61,26 +84,17 @@ function main() {
         echo "    --> You don't have a reasonable origin-remote. You need this to release (especially with --dev). Please add one!"
         exit 2
     fi
+    
+    current_branch=$(git rev-parse --abbrev-ref HEAD)
+    if [ "$current_branch" != "master" ]; then
+        echo "You're currently not on the master-branch, exiting"
+        exit 2
+    fi
 
     echo "    --> Fetching all tags ..."
     git fetch upstream --tags
-
-    current_branch=$(git rev-parse --abbrev-ref HEAD)
-
-    if [ "$current_branch" != "master" ]; then
-        echo "You're currently not on the master-branch, so we assume this will get a PR"
-        git fetch upstream master
-        PR_MODE=yes
-        if ! git diff master..${current_branch} --exit-code > /dev/null; then
-            echo "You current branch is also not similiar to master."
-            echo "should i merge master?"
-            if ! ask_yn ; then
-                echo "break"
-                exit 2
-            fi
-            git merge master
-        fi
-    fi
+    echo "    --> git pull upstream master"
+    git pull upstream master
 
     if [[ -z "$new_version" ]]; then
         echo "What should be the new version? Type in please (e.g. v0.9.3 ):"
@@ -103,10 +117,7 @@ function main() {
 
         latest_version=$(git tag -l "v*" | grep -v 'pre' | grep -v 'dev' | sort -V | tail -1)
 
-        echo "latest_version is $latest_version. "
-
         echo "    --> The latest version is $latest_version. "
-        echo "    --> We'll create the release-notes based on that."
         if ! ask_yn ; then
             echo "Ok, then you type in the latest_version:"
             read latest_version
@@ -122,34 +133,35 @@ function main() {
         echo "" >> docs/new_release_notes.md
         echo "## ${new_version} $(date +'%B %d, %Y')" >> docs/new_release_notes.md
         docker run registry.gitlab.com/cryptoadvance/specter-desktop/github-changelog:latest --github-token $GH_TOKEN --branch master cryptoadvance specter-desktop $latest_version | sort >> docs/new_release_notes.md
+        echo "" >> docs/new_release_notes.md
         
 
         cat docs/new_release_notes.md
         echo "--------------------------------------------------"
 
         cp docs/release-notes.md docs/release-notes.md.orig
-        sed -i '1,2d/' docs/release-notes.md.orig # Assuming the release-Notes start with # Release Notes\n
+        sed -i -e '1,2d' docs/release-notes.md.orig # Assuming the release-Notes start with # Release Notes\n
         cat docs/new_release_notes.md docs/release-notes.md.orig >  docs/release-notes.md
         rm docs/release-notes.md.orig docs/new_release_notes.md
 
         echo "Please check your new File and modify as you find approriate!"
         echo "We're waiting here ..."
-
-        echo "    --> Should we commit and push that (to origin) now? "
+        echo "    --> Should we create a PR-branch now? "
 
         if ! ask_yn ; then
             echo "break"
-            echo "Rolling back release_notes.md ..."
-            git checkout docs/release-notes.md
+            #git checkout docs/release-notes.md
             exit 2
         fi
 
+        echo "    --> Creating branch ${new_version}_release_notes "
+        git checkout -b ${new_version}_release_notes
         git add docs/release-notes.md
-        git commit -m "adding release_notes to $new_version"
-        git push origin
+        git commit -m "adding release_notes for $new_version"
+        git push --set-upstream origin ${new_version}_release_notes
 
         echo "Now go ahead and make your PR:"
-        echo "https://github.com/cryptoadvance/specter-desktop/compare"
+        echo "https://github.com/cryptoadvance/specter-desktop/pulls"
         exit 0
     fi
 
