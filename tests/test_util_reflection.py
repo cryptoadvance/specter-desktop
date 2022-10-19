@@ -2,6 +2,8 @@ import logging
 import pytest
 from pathlib import Path
 from typing import List
+from cryptoadvance.specter.device import Device
+from cryptoadvance.specter.devices.bitbox02 import BitBox02
 from cryptoadvance.specter.util.reflection import (
     get_class,
     get_subclasses_for_clazz,
@@ -59,6 +61,11 @@ def test_get_classlist_from_importlist(caplog):
     assert len(classlist) == 2  # Happy to remove that at some point
     assert SwanService in classlist
     assert BitcoinReserveService in classlist
+    classlist = get_classlist_of_type_clazz_from_modulelist(
+        Device, ["cryptoadvance.specter.devices.bitbox02"]
+    )
+    assert len(classlist) == 1
+    assert BitBox02 in classlist
 
 
 def test_get_subclasses_for_clazz_in_cwd(caplog):

@@ -6,9 +6,9 @@ from ..device import Device
 
 
 class Electrum(Device):
-    device_type = DeviceTypes.ELECTRUM
+    device_type = "electrum"
     name = "Electrum"
-    icon = "electrum_icon.svg"
+    icon = "img/devices/electrum_icon.svg"
     template = "device/new_device/new_device_keys_electrum.jinja"
 
     sd_card_support = True

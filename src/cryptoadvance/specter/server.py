@@ -194,7 +194,9 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
             from cryptoadvance.specter.server_endpoints import controller
             from cryptoadvance.specter.services import controller as serviceController
 
-            if app.config.get("TESTING") and len(app.view_functions) <= 50:
+            if app.config.get("TESTING"):
+                logger.info(f"We have {len(app.view_functions)} view Functions")
+            if app.config.get("TESTING") and len(app.view_functions) <= 51:
                 # Need to force a reload as otherwise the import is skipped
                 # in pytest, the app is created anew for each test
                 # But we shouldn't do that if not necessary as this would result in
