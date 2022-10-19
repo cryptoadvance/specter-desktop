@@ -10,7 +10,7 @@
         <h1>{{ _("Enable Swan Integration") }}</h1>
         <br/>
 
-        <div class="big_option" id="step_one" onclick="pollSuccess(); window.open('{{ flow_url }}', '_blank');">
+        <div class="big_option" id="step_one">
             <div class="big_option_text"> 
                 {{ _("Link your account") }}                    
             </div>
@@ -73,5 +73,12 @@
                     });
             }, 5000);
         }
+
+
+        document.getElementById("step_one").addEventListener("click", function() {
+                    pollSuccess(); 
+                    window.open('{{ flow_url }}', '_blank');
+                }) 
+        
     </script>
 {% endblock %}

@@ -82,7 +82,7 @@
 			{% if current_user.is_authenticated and not hwi_bridge %}
 				<div class="row" id="status-bar" style="{% if session['is_language_rtl'] %}border-radius: 0 0 15px 0; left{% else %}border-radius: 0 0 15px 15px; right{% endif %}: 2.4%; position: absolute; color: #ddd; background-color: #323e50;">
 					{% include "components/price_bar.jinja" %}
-					<a class="settings-bar-btn" onclick="toggleHideSensitiveInfo()" style="padding: 0px 12px; cursor: pointer;" title="{{ 'Hide sensitive info' if not specter.hide_sensitive_info else 'Show sensitive info' }}">
+					<a class="settings-bar-btn"  id="btn-toggleHideSensitiveInfo" style="padding: 0px 12px; cursor: pointer;" title="{{ 'Hide sensitive info' if not specter.hide_sensitive_info else 'Show sensitive info' }}">
 						<img src="{{ url_for('static', filename='img/hidden.svg' if specter.hide_sensitive_info else 'img/visible.svg') }}" style="width: 30px;" class="svg-white"/>
 					</a>
 					<a id="settings-bar-btn-settings" class="settings-bar-btn" href="{{ url_for('settings_endpoint.settings') }}" title="Settings" style="padding: 0px 7px;">
@@ -285,7 +285,7 @@
 
 	{% if not hwi_bridge %}
 		{# url routes are not defined in hwi_bridge mode. `url_for` will fail. #}
-		<script>
+		<script type="module">
 			async function toggleHideSensitiveInfo() {
 				showNotification(`{{ _("Revealing") if specter.hide_sensitive_info else _("Hiding") }} sensitive info...`, 0);
 				let url = `{{ url_for('auth_endpoint.toggle_hide_sensitive_info') }}`;
@@ -336,6 +336,10 @@
 					);
 				});
 			{% endif %}
+
+			document.getElementById("btn-toggleHideSensitiveInfo").addEventListener("click", function() {
+						toggleHideSensitiveInfo();
+					})
 		</script>
 	{% endif %}
 	{% block scripts %}
