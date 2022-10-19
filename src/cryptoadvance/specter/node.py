@@ -137,8 +137,8 @@ class Node:
         Checks if config have changed, compares with old rpc
         and returns new one if necessary
         """
-        if hasattr(self, "rpc"):
-            rpc = self.rpc
+        if hasattr(self, "_rpc"):
+            rpc = self._rpc
         else:
             rpc = None
         if self.autodetect:
@@ -494,9 +494,12 @@ class Node:
 
     @property
     def rpc(self):
-        if hasattr(self, "_rpc"):
-            return self._rpc
-        return None
+        """Returns None if rpc is broken"""
+        if not hasattr(self, "_rpc"):
+            self._rpc = self._get_rpc()
+        elif self._rpc is None:
+            self._rpc = self._get_rpc()
+        return self._rpc
 
     @property
     def node_type(self):
