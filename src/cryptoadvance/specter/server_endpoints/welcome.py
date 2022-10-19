@@ -54,7 +54,7 @@ def about():
             app.specter.reset_setup("torbrowser")
 
     return render_template(
-        "base.jinja",
+        "welcome/welcome.jinja",
         specter=app.specter,
         rand=rand,
         supported_languages=app.supported_languages,

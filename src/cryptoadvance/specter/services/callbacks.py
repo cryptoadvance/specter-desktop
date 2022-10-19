@@ -23,14 +23,6 @@ afterServiceManagerInit = "afterServiceManagerInit"
 """
 after_serverpy_init_app = "after_serverpy_init_app"
 
-"""
-    Extensions can contribute nodes initially if no nodes exist. They should return here simply
-    a dict which will get instantiated by and stored in the nodes-folder.
-    This has been introduced for the spectrum-extension.
-    This can probably also be used for all sorts of autoconfigurations.
-"""
-initial_node_contribution = "initial_node_contribution"
-
 """ Extensions which want to extend the settings dialog
     needs to return something like: return [{"title": "token", "endpoint":"settings_token"}]
     Check the extension-docs for a comprehensive example.
