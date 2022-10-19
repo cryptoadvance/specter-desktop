@@ -133,10 +133,9 @@ class Node:
         }
 
     def _get_rpc(self):
-        """
-        Checks if config have changed, compares with old rpc
-        and returns new one if necessary
-        """
+        """Checks if configurations have changed, compares with old rpc
+        and returns new one if necessary.
+        Aims to be exception safe, returns None if rpc is not working"""
         if hasattr(self, "_rpc"):
             rpc = self._rpc
         else:
