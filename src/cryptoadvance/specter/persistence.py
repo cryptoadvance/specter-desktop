@@ -38,9 +38,42 @@ class BusinessObject:
 
     @property
     def json(self):
+        """A property to easily transform your BO to a dict. Use it like:
+        mybo_json = super().json
+        return deep_update(
+            mybo_json,
+            {
+                "name": self.name,
+                "alias": self.alias,
+                [...]
+            },
+        )
+
+        """
         self_json = {}
         self_json["python_class"] = self.fqcn
         return self_json
+
+    @property
+    def is_core_object(self):
+        """Whether the class is defined in cryptoadvance.specter"""
+        return self.fqcn.startswith("cryptoadvance.specter.")
+
+    @property
+    def ext_id(self):
+        """returns the third part of yourorg.specterext.ext_id"""
+        if self.is_core_object:
+            return None
+        else:
+            return self.fqcn.split(".")[2]
+
+    @property
+    def blueprint(self):
+        """returns the blueprint of the extension (assuming there is only a default one)"""
+        if self.is_core_object:
+            return ""
+        else:
+            return f"{self.ext_id}_endpoints"
 
     @classmethod
     def from_json(cls, a_dict, *args, **kwargs):
