@@ -1,15 +1,15 @@
 from binascii import a2b_base64
 from typing import List
-from . import DeviceTypes
-from ..util.base43 import b43_encode
-from ..device import Device
+from cryptoadvance.specter.devices.device_types import DeviceTypes
+from cryptoadvance.specter.util.base43 import b43_encode
+from cryptoadvance.specter.device import Device
 
 
 class Electrum(Device):
     device_type = "electrum"
     name = "Electrum"
-    icon = "img/devices/electrum_icon.svg"
-    template = "device/new_device/new_device_keys_electrum.jinja"
+    icon = "electrum/img/devices/electrum_icon.svg"
+    template = "electrum/device/new_device_keys_electrum.jinja"
 
     sd_card_support = True
     qr_code_support = True

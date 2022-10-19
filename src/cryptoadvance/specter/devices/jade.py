@@ -8,7 +8,7 @@ from ..helpers import is_liquid
 class Jade(HWIDevice):
     device_type = DeviceTypes.JADE
     name = "Jade"
-    icon = "jade_icon.svg"
+    icon = "img/devices/jade_icon.svg"
 
     supports_hwi_toggle_passphrase = False
     supports_hwi_multisig_display_address = True

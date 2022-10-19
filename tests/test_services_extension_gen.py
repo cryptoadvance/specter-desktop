@@ -16,6 +16,7 @@ def test_ExtGen(caplog):
             "testorg",
             "testext",
             False,
+            False,
             "Some Author",
             "some@mail",
             # uncomment the below line to see a real generation
