@@ -1,4 +1,5 @@
 from pathlib import Path
+from cryptoadvance.specter.device import Device
 
 from cryptoadvance.specter.devices.specter import (
     Specter,
@@ -11,6 +12,18 @@ from cryptoadvance.specter.managers.wallet_manager import WalletManager
 from cryptoadvance.specter.wallet import Wallet
 from mock import MagicMock
 import logging
+
+from cryptoadvance.specterext.devhelp.devices.devhelpdevice import DevhelpDevice
+
+
+def test_device_blueprint():
+    device = Device("somename", "somealias", [], [], "muh", None)
+    assert device.blueprint() == "static"
+    assert Device.blueprint() == "static"
+    other_device = DevhelpDevice("somename", "somealias", [], [], "muh", None)
+    print(other_device.blueprint())
+    assert other_device.blueprint() == "devhelp_endpoint.static"
+    assert DevhelpDevice.blueprint() == "devhelp_endpoint.static"
 
 
 def test_get_wallet_qr_descriptor(

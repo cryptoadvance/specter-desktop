@@ -30,8 +30,8 @@
                     <p style="max-width: 300px; font-size: 1.1em;">
                         {{ _('You can find the master public key under "Wallet" and "Information":') }}
                     </p>
-                    <img src="{{ url_for('static', filename='img/electrum_manual/1.png')}}" alt=_("Select Wallet  -  Information") style="width: 250px; height: 300px">
-                    <img src="{{ url_for('static', filename='img/electrum_manual/2.png')}}" alt=_("Copy the master public key and derivation path") style="width: 385px; height: 300px"> 
+                    <img src="{{ url_for('electrum_endpoint.static', filename='electrum/img/electrum_manual/1.png')}}" alt=_("Select Wallet  -  Information") style="width: 250px; height: 300px">
+                    <img src="{{ url_for('electrum_endpoint.static', filename='electrum/img/electrum_manual/2.png')}}" alt=_("Copy the master public key and derivation path") style="width: 385px; height: 300px"> 
                 </div>
             </text-explainer>
             <button type="submit" class="btn centered" style="font-size: 14px; margin-top: 25px" name="action" onsubmit="showPacman()">{{ _("Continue") }}</button>   
