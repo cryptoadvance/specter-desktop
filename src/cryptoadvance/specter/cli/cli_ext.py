@@ -43,6 +43,9 @@ def ext():
     help="Whether the extension should be isolated on the client",
 )
 @click.option(
+    "--devicename", "devicename", default=None, help="Use a specific organsiation"
+)
+@click.option(
     "--tmpl-fs-source",
     "tmpl_fs_source",
     help="Use a Filesystem source for the templates e.g. ~/src/specterext-dummy",
@@ -52,7 +55,7 @@ def ext():
     default=False,
     help="Output content on stdout instead of creating files",
 )
-def gen(org, ext_id, isolated_client, tmpl_fs_source, dryrun):
+def gen(org, ext_id, isolated_client, devicename, tmpl_fs_source, dryrun):
     # fmt: off
     """Will generate a new extension in a more or less empty directory.
     \b
@@ -117,6 +120,22 @@ def gen(org, ext_id, isolated_client, tmpl_fs_source, dryrun):
             "Should the extension work in isolated client mode (y/n)?",
             type=bool,
         )
+    if devicename == None:
+        print(
+            """
+            Do you plan to implement a Device?
+        """
+        )
+        devicename = click.prompt(
+            "Type the Name in CamelCase or [enter] if you're not interested in a Device.",
+            type=str,
+            default="",
+        )
+    elif devicename == "none":
+        devicename = None
+    if devicename == "":
+        devicename = None
+
     result = run_shell(["git", "config", "--get", "user.name"])
     if result["code"] == 0:
         author = result["out"].decode("ascii").strip()
@@ -133,6 +152,7 @@ def gen(org, ext_id, isolated_client, tmpl_fs_source, dryrun):
         org,
         ext_id,
         isolated_client,
+        devicename,
         author,
         email,
         dry_run=dryrun,

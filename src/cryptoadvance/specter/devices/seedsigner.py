@@ -5,7 +5,7 @@ from ..device import Device
 class SeedSignerDevice(Device):
     device_type = DeviceTypes.SEEDSIGNER
     name = "SeedSigner"
-    icon = "seedsigner_icon.svg"
+    icon = "img/devices/seedsigner_icon.svg"
 
     sd_card_support = False
     qr_code_support = True

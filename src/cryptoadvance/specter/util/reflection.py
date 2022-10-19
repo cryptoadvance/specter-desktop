@@ -78,7 +78,7 @@ def get_classlist_of_type_clazz_from_modulelist(clazz, modulelist):
             module = import_module(fq_module_name)
         except ModuleNotFoundError as e:
             # ToDo: make it somehow clear where specific extensions are coming from: external or within same repo
-            logger.warn(
+            raise SpecterError(
                 f"""
                 Module {fq_module_name}  could not be found. This could have these reasons:
                 * You might have forgot to: 
@@ -87,18 +87,23 @@ def get_classlist_of_type_clazz_from_modulelist(clazz, modulelist):
                     If you checked out the specter-Sourcecode, you should start specter like this:
                     python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug"""
             )
-            continue
         logger.debug(f"Imported {fq_module_name}")
         for attribute_name in dir(module):
             attribute = getattr(module, attribute_name)
             if isclass(attribute):
                 if (
                     issubclass(attribute, clazz)
+                    # This works for 1 level inheritance within one module
                     and not attribute.__name__ == clazz.__name__
                 ):
-                    logger.debug(f"Adding {attribute} to {class_list}")
-                    class_list.append(attribute)
-                    logger.info(f"  Found class {attribute.__name__}")
+                    # Unfortunately the superclass gets imported if you inherit from it and counts as an attribute as well
+                    if str(attribute.__module__).startswith(fq_module_name):
+                        logger.debug(
+                            f" {attribute.__module__} <<<<-------------------------------------"
+                        )
+                        logger.debug(f"Adding {attribute} to {class_list}")
+                        class_list.append(attribute)
+                        logger.info(f"  Found class {attribute.__name__}")
     return class_list
 
 
