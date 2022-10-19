@@ -108,28 +108,8 @@ class AbstractNode(BusinessObject):
         )
 
     def node_info_template(self):
-        """This should return a rendered template or a template which can be rendered inside the sidebar.
-        Here are some infos for the trade-off decisions:
-        * the simplest thing is `return render_template("your_extension/templates/your_extension/...")`
-          but then you're coupling the class technically to flask and you might want to inject more stuff
-          then you're willing to hold on this instance
-        * You can simply return a template which will get subrendered as described here:
-          https://stackoverflow.com/questions/8862731/jinja-nested-rendering-on-variable-content
-          this would be implemented like, e.g.:
-            myfile_path = path.join(path.dirname(__file__), 'server_endpoints','templates','spectrum', 'components', 'bitcoin_core_info.jinja')
-            return open(myfile_path).read()
-        * Default implementation simply returns the info-object
-        """
-        # return render_template("spectrum/components/bitcoin_core_info.jinja")
-
-        myfile_path = path.join(
-            path.dirname(__file__),
-            "templates",
-            "node",
-            "components",
-            "bitcoin_core_info.jinja",
-        )
-        return open(myfile_path).read()
+        """This should return the path to a template as string"""
+        return "node/components/bitcoin_core_info.jinja"
 
 
 class Node(AbstractNode):
@@ -623,16 +603,6 @@ class Node(AbstractNode):
         self._rpc = value
 
     # UI specific stuff
-
-    def node_info_template(self):
-        myfile_path = path.join(
-            path.dirname(__file__),
-            "templates",
-            "node",
-            "components",
-            "bitcoin_core_info.jinja",
-        )
-        return open(myfile_path).read()
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} name={self.name} fullpath={self.fullpath}>"

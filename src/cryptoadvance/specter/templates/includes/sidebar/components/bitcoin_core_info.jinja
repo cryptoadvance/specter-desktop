@@ -1,3 +1,4 @@
 <div id="bitcoin_core_info" class="hidden" style="text-align: left; max-width: 500px;">
-    {{ specter.node.node_info_template() | subrender }}
+    {% include specter.node.node_info_template() %}
+    {#  {{ specter.node.node_info_template() | subrender }} #}
 </div>
