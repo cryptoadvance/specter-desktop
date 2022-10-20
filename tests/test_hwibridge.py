@@ -114,16 +114,15 @@ def test_calling_method_with_non_existing_parameters(client):
             "forwarded_request": True,
         },
     )
-    assert {  # TODO This is a temporary fix that should be handled in https://github.com/cryptoadvance/specter-desktop/pull/1693
-        "error": {
-            "code": -32000,
-            "message": "Internal error: HWIBridge.enumerate() got an unexpected keyword argument 'non_existing_parameter'.",
-        },
-        "id": 1,
-        "jsonrpc": "2.0",
-    } == json.loads(
-        req.data
+
+    resp = json.loads(req.data)
+    assert resp["error"]["code"] == -32000
+    assert resp["error"]["message"].startswith("Internal error:")
+    assert resp["error"]["message"].endswith(
+        "got an unexpected keyword argument 'non_existing_parameter'."
     )
+    assert resp["id"] == 1
+    assert resp["jsonrpc"] == "2.0"
 
 
 def test_call_not_connected_device(client):

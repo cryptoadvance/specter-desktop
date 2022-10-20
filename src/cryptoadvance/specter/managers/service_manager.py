@@ -10,7 +10,6 @@ from typing import Dict, List
 
 from cryptoadvance.specter.config import ProductionConfig
 from cryptoadvance.specter.device import Device
-from cryptoadvance.specter.managers.singleton import ConfigurableSingletonException
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.user import User
 from cryptoadvance.specter.util.reflection import get_template_static_folder
@@ -20,10 +19,6 @@ from flask.blueprints import Blueprint
 
 from ..services.service import Service
 from ..services import callbacks, ExtensionException
-from ..services.service_encrypted_storage import (
-    ServiceEncryptedStorageManager,
-    ServiceUnencryptedStorageManager,
-)
 from ..util.reflection import (
     _get_module_from_class,
     get_classlist_of_type_clazz_from_modulelist,
@@ -84,20 +79,6 @@ class ServiceManager:
                 logger.info(
                     f"Service {clazz.__name__} not activated due to devstatus ( {self.devstatus_threshold} > {clazz.devstatus} )"
                 )
-
-        # Configure and instantiate the one and only ServiceEncryptedStorageManager
-        try:
-            ServiceEncryptedStorageManager.configure_instance(
-                specter.data_folder, specter.user_manager
-            )
-        except ConfigurableSingletonException as e:
-            # Test suite triggers multiple calls; ignore for now.
-            pass
-
-        specter.service_unencrypted_storage_manager = ServiceUnencryptedStorageManager(
-            specter.user_manager, specter.data_folder
-        )
-
         logger.info("----> finished service processing")
         self.execute_ext_callbacks("afterServiceManagerInit")
 
@@ -328,9 +309,8 @@ class ServiceManager:
         This check works even if the user doesn't have their plaintext_user_secret
         available."""
         encrypted_data = (
-            ServiceEncryptedStorageManager.get_instance().get_raw_encrypted_data(user)
+            self.specter.service_encrypted_storage_manager.get_raw_encrypted_data(user)
         )
-        print(f"encrypted_data: {encrypted_data} for {user}")
         return encrypted_data != {}
 
     def set_active_services(self, service_names_active):
@@ -363,7 +343,7 @@ class ServiceManager:
         if self.user_has_encrypted_storage(user=user):
             # Encrypted Service data is now orphaned since there is no
             # password. So wipe it from the disk.
-            ServiceEncryptedStorageManager.get_instance().delete_all_service_data(user)
+            app.specter.service_encrypted_storage_manager.delete_all_service_data(user)
 
     @classmethod
     def get_service_x_dirs(cls, x):
