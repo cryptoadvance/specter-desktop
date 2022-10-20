@@ -34,13 +34,17 @@
     function formatBtcAmount(valueInBTC, unitLabel, convertToSat){
         var formattedUnitLabel = formatUnitLabel(unitLabel, convertToSat);
         var formattedValue = valueInBTC;
-        if (valueInBTC) {
-            value = parseFloat(valueInBTC.toFixed(8));
+        if (formattedValue) {
             // The second condition in the if clause if True if formattedUnitLabel is equal to any element of the array
             if (convertToSat && (["Lsat", "sat", "tLsat", "tsat"].indexOf(formattedUnitLabel) > -1)) {
-                formattedValue = parseInt(value * 1e8)
+                // if it is sat, then format at integer
+                formattedValue = parseInt(parseFloat(valueInBTC) * 1e8);
             }
-            formattedValue = `${numberWithCommas(value)}`;
+            else{
+                // else, then cut off at 8 digits
+                formattedValue = parseFloat(valueInBTC).toFixed(8);
+            }
+            formattedValue = `${numberWithCommas(formattedValue)}`;
         }
         else {
             formattedValue = '{{ _("Confidential") }}';
