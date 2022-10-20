@@ -34,6 +34,7 @@ class ExtGen:
         ext_org,
         ext_id,
         isolated_client,
+        devicename,
         author,
         email,
         dry_run=False,
@@ -44,6 +45,7 @@ class ExtGen:
         self.org = ext_org
         self.id = ext_id
         self.isolated_client = isolated_client
+        self.devicename = devicename
         self.author = author
         self.author_email = email
         self.version = "1.8.1"  # relevant if tmpl-sources specify a dependency (requirements.txt) #ToDo improve
@@ -69,8 +71,10 @@ class ExtGen:
             comment_end_string="#>",
         )
         self.jinja_env.filters["camelcase"] = snake_case2camelcase
+        self.jinja_env.filters["snakecase"] = camelcase2snake_case
         self.env = Environment(loader=loader, trim_blocks=True)
         self.env.filters["camelcase"] = snake_case2camelcase
+        self.env.filters["snakecase"] = camelcase2snake_case
         self.sd_env = Environment(
             loader=GithubUrlLoader(
                 base_url="https://raw.githubusercontent.com/cryptoadvance/specter-desktop/",
@@ -101,6 +105,9 @@ class ExtGen:
         self.render(f"{package_path}/__init__.py")
         self.render(f"{package_path}/__main__.py")
         self.render(f"{package_path}/templates/dummy/index.jinja")
+        if self.devicename:
+            self.render(f"{package_path}/devices/devicename.py")
+            self.create_binary_file(f"{package_path}/static/dummy/img/device_icon.svg")
         if not self.isolated_client:
             self.render(f"{package_path}/static/dummy/css/styles.css")
             self.create_binary_file(f"{package_path}/static/dummy/img/ghost.png")
@@ -159,10 +166,15 @@ class ExtGen:
         self.render("setup.cfg")
         self.render("MANIFEST.in")
 
-    def render(self, template, env=None, **kargv):
+    def render(self, template, env=None, filename=None, **kargv):
         # The template path is the same that we want to store on disk
         file_name = Path(
-            template.replace("dummyorg", self.org).replace("dummy", self.id)
+            template.replace("dummyorg", self.org)
+            .replace("dummy", self.id)
+            .replace(
+                "devicename",
+                camelcase2snake_case(self.devicename if self.devicename else ""),
+            )
         )
         if env == None:
             env = self.env_for_template(template)

@@ -8,7 +8,7 @@ from binascii import b2a_base64
 class Keystone(Cobo):
     device_type = DeviceTypes.KEYSTONE
     name = "Keystone"
-    icon = "keystone_icon.svg"
+    icon = "img/devices/keystone_icon.svg"
 
     def create_psbts(self, base64_psbt, wallet):
         psbts = super().create_psbts(base64_psbt, wallet)
