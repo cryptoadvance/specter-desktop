@@ -5,12 +5,15 @@ to be a real secret. There is no reasonable attack vector for this secret being 
 
 
 class BaseConfig:
+    # Unfortunately this setup is currently broken
+    # It worked for the original and now legacy api-dev.swanbitcoin.com
+    # But the new one doesn't have that configuration configured.
     SWAN_CLIENT_ID = "specter-dev"
     SWAN_CLIENT_SECRET = (
         "BcetcVcmueWf5P3UPJnHhCBMQ49p38fhzYwM7t3DJGzsXSjm89dDR5URE46SY69j"
     )
-    SWAN_API_URL = "https://dev-api.swanbitcoin.com"
-    SWAN_FRONTEND_URL = "https://dev-app.swanbitcoin.com/signup"
+    SWAN_API_URL = "https://api.dev.swanbitcoin.com/"
+    SWAN_FRONTEND_URL = "https://app.dev.swanbitcoin.com/signup"
 
     # There is a whitelist at the oauth2-infra of swan which is hopefully in sync with this list:
     SWAN_ALLOWED_SPECTER_HOSTNAMES = [
