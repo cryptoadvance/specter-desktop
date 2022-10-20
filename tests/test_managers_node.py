@@ -38,7 +38,7 @@ def test_NodeManager(
         )
         assert nm.nodes_names == ["Bitcoin Core", "bitcoin_regtest"]
         nm.switch_node("bitcoin_regtest")
-        assert nm.active_node.get_rpc().getblockchaininfo()["chain"] == "regtest"
+        assert nm.active_node.rpc.getblockchaininfo()["chain"] == "regtest"
         nm.add_external_node(
             "ELM",
             "elements_elreg",
@@ -53,9 +53,8 @@ def test_NodeManager(
         )
         assert nm.nodes_names == ["Bitcoin Core", "bitcoin_regtest", "elements_elreg"]
         nm.switch_node("elements_elreg")
-        assert nm.active_node.get_rpc().getblockchaininfo()["chain"] == "elreg"
+        assert nm.active_node.rpc.getblockchaininfo()["chain"] == "elreg"
         nm.delete_node(nm.nodes["Bitcoin Core"], MagicMock())
-        nm.get_by_alias
 
 
 """ For some reason this breaks other tests"""
@@ -94,9 +93,9 @@ def test_NodeManager_import(bitcoind_path):
         try:
             node.start()
             time.sleep(5)
-            # assert node.get_rpc().password == None
+            # assert node.rpc.password == None
             nm.switch_node("somename")
             time.sleep(5)
-            assert nm.active_node.get_rpc().getblockchaininfo()["chain"] == "main"
+            assert nm.active_node.rpc.getblockchaininfo()["chain"] == "main"
         finally:
             node.stop()

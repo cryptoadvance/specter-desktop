@@ -15,7 +15,7 @@ from ..helpers import add_dicts, alias, is_liquid, load_jsons
 from ..liquid.wallet import LWallet
 from ..persistence import delete_folder
 from ..rpc import RpcError, get_default_datadir
-from ..specter_error import SpecterError, handle_exception
+from ..specter_error import SpecterError, SpecterInternalException, handle_exception
 from ..util.flask import FlaskThread
 from ..wallet import (  # TODO: `purposes` unused here, but other files rely on this import
     Wallet,
@@ -69,7 +69,10 @@ class WalletManager:
         The _update internal method will resync the internal status with Bitcoin Core
         use_threading : for the _update method which is heavily communicating with Bitcoin Core
         """
-
+        if (chain is None and rpc is not None) or (chain is not None and rpc is None):
+            raise SpecterInternalException(
+                f"Chain ({chain}) and rpc ({rpc}) can only be changed with one another"
+            )
         if self.is_loading:
             return
         self.is_loading = True

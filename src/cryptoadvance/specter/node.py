@@ -11,7 +11,12 @@ from requests.exceptions import ConnectionError
 from .helpers import deep_update, is_liquid, is_testnet
 from .liquid.rpc import LiquidRPC
 from .persistence import BusinessObject, write_node
-from .rpc import BitcoinRPC, RpcError, autodetect_rpc_confs, get_default_datadir
+from .rpc import (
+    BitcoinRPC,
+    RpcError,
+    autodetect_rpc_confs,
+    get_default_datadir,
+)
 from .specter_error import BrokenCoreConnectionException
 
 logger = logging.getLogger(__name__)
@@ -90,8 +95,6 @@ class AbstractNode(BusinessObject):
 
     @property
     def is_running(self):
-
-        # Magic values are bad
         if self.network_info["version"] == 999999:
             logger.debug(f"Node is not running")
             return False
@@ -230,12 +233,11 @@ class Node(AbstractNode):
         )
 
     def _get_rpc(self):
-        """
-        Checks if config have changed, compares with old rpc
-        and returns new one if necessary
-        """
-        if hasattr(self, "rpc"):
-            rpc = self.rpc
+        """Checks if configurations have changed, compares with old rpc
+        and returns new one if necessary.
+        Aims to be exception safe, returns None if rpc is not working"""
+        if hasattr(self, "_rpc"):
+            rpc = self._rpc
         else:
             rpc = None
         if self.autodetect:
@@ -517,6 +519,14 @@ class Node(AbstractNode):
         return is_liquid(self.chain)
 
     @property
+    def is_running(self):
+        if self._network_info["version"] == 999999:
+            logger.debug(f"Node is not running")
+            return False
+        else:
+            return True
+
+    @property
     def is_configured(self):
         return self._is_configured
 
@@ -583,9 +593,12 @@ class Node(AbstractNode):
 
     @property
     def rpc(self):
-        if hasattr(self, "_rpc"):
-            return self._rpc
-        return None
+        """Returns None if rpc is broken"""
+        if not hasattr(self, "_rpc"):
+            self._rpc = self._get_rpc()
+        elif self._rpc is None:
+            self._rpc = self._get_rpc()
+        return self._rpc
 
     @property
     def node_type(self):
