@@ -54,20 +54,20 @@ class Service:
 
     @classmethod
     def set_current_user_service_data(cls, service_data: dict):
-        ServiceEncryptedStorageManager.get_instance().set_current_user_service_data(
+        app.specter.service_encrypted_storage_manager.set_current_user_service_data(
             service_id=cls.id, service_data=service_data
         )
 
     @classmethod
     def update_current_user_service_data(cls, service_data: dict):
-        ServiceEncryptedStorageManager.get_instance().update_current_user_service_data(
+        app.specter.service_encrypted_storage_manager.update_current_user_service_data(
             service_id=cls.id, service_data=service_data
         )
 
     @classmethod
     def get_current_user_service_data(cls) -> dict:
         return (
-            ServiceEncryptedStorageManager.get_instance().get_current_user_service_data(
+            app.specter.service_encrypted_storage_manager.get_current_user_service_data(
                 service_id=cls.id
             )
         )
@@ -191,4 +191,31 @@ class Service:
 
     @classmethod
     def on_user_login(cls):
+        pass
+
+    @classmethod
+    def inject_in_basejinja_head(cls):
+        """overwrite this method to inject a snippet of code in specter's base.jinja
+        the snippet will be placed at the end of the head-section
+        a typical implementation would be something like:
+        return render_template("myext/inject_in_basejinja_head.jinja")
+        """
+        pass
+
+    @classmethod
+    def inject_in_basejinja_body_top(cls):
+        """overwrite this method to inject a snippet of code in specter's base.jinja
+        the snippet will be placed at the top of the body-section
+        a typical implementation would be something like:
+        return render_template("myext/inject_in_basejinja_body_top.jinja")
+        """
+        pass
+
+    @classmethod
+    def inject_in_basejinja_body_bottom(cls):
+        """overwrite this method to inject a snippet of code in specter's base.jinja
+        the snippet will be placed at the top of the body-section
+        a typical implementation would be something like:
+        return render_template("myext/inject_in_basejinja_body_bottom.jinja")
+        """
         pass

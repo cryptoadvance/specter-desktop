@@ -36,11 +36,14 @@ def ext():
 
 @ext.command()
 @click.option("--org", "org", default=None, help="Use a specific organsiation")
-@click.option("--ext-id", "ext_id", default=None, help="Use a specific Extension ID")
+@click.option("--ext-id", "ext_id", default=None, help="Use a specific extension id")
 @click.option(
     "--isolated-client/--no-isolated-client",
     default=None,
     help="Whether the extension should be isolated on the client",
+)
+@click.option(
+    "--devicename", "devicename", default=None, help="Use a specific organsiation"
 )
 @click.option(
     "--tmpl-fs-source",
@@ -52,31 +55,31 @@ def ext():
     default=False,
     help="Output content on stdout instead of creating files",
 )
-def gen(org, ext_id, isolated_client, tmpl_fs_source, dryrun):
+def gen(org, ext_id, isolated_client, devicename, tmpl_fs_source, dryrun):
     # fmt: off
     """Will generate a new extension in a more or less empty directory.
     \b
     It'll ask you for the missing information if you don't pass the
     necessary details (see below).
 
-    After creation, you can get the extension to run like this in your Development Environment:
+    After creation, you can get the extension to run like this in your development environment:
 
     \b
         pip3 install -e .
         python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
-        # point your browser to http://localhost:25441
-        # "choose Services" --> YourService
+        # Point your browser to http://localhost:25441
+        # Click "Choose plugins" --> YourExtension
 
     If you want to package it, you can build it like this:
 
     \b
         python3 -m pip install --upgrade build
         python3 -m build
-        # install it like this:
-        pip3 install dist/{org}_{ext_id}-0.0.1-py3-none-any.whl
+        # Install it like this:
+        pip3 install dist/YourOrg_YourId-0.0.1-py3-none-any.whl
 
-    In order to use your extension in production, please refer to the Readme.md in the
-    https://github.com/cryptoadvance/{ext_mark}-dummy#how-to-get-this-to-production
+    If you want to bring your extension to production, please refer to the readme in the dummy-extension repo:
+    https://github.com/cryptoadvance/specterext-dummy#how-to-get-this-to-production
 
     To publish your package:
 
@@ -89,54 +92,67 @@ def gen(org, ext_id, isolated_client, tmpl_fs_source, dryrun):
     if ext_id == None:
         print(
             """
-            We need an ID and a prefix for your extension. It'll 
-            reflect in the package-layout. The id should be a 
-            short string.
-            The prefix is usually something like your github-username 
-            or github organisation-name. Both will be used to to 
-            create the directory structure 
-            ( like ./src/mycorpname/specterext/myextension )
-            and it will be used to prepare the files in order to 
-            publish this extension to pypi.
-
+            We need an id and a prefix for your extension.
+            The id should be a short string.
+            The prefix is usually your GitHub username 
+            or GitHub organisation name. 
+            Both will be used to to create a directory structure like this:
+            ./src/mycorpname/specterext/myextension
+            They will also be used when publishing this extension to pypi.
         """
         )
         ext_id = click.prompt(
-            "What should be the ID of your extension (lowercase only)", type=str
+            "Enter the id of your extension (lowercase only):", type=str
         )
     if org == None:
         org = click.prompt(
-            "what should be the prefix?",
+            "Enter the prefix:",
             type=str,
         )
     if isolated_client == None:
         print(
             """
-            Should the extension be working in isolated_client-mode?
-            In that case it's won't share the session-cookie with 
-            specter and the integration can only happen on server-side?
+            Isolated client mode means that the extensions won't share the session cookie with 
+            Specter Desktop and the integration only happens on the server side.
         """
         )
         isolated_client = click.prompt(
             "Should the extension work in isolated client mode (y/n)?",
             type=bool,
         )
+    if devicename == None:
+        print(
+            """
+            Do you plan to implement a Device?
+        """
+        )
+        devicename = click.prompt(
+            "Type the Name in CamelCase or [enter] if you're not interested in a Device.",
+            type=str,
+            default="",
+        )
+    elif devicename == "none":
+        devicename = None
+    if devicename == "":
+        devicename = None
+
     result = run_shell(["git", "config", "--get", "user.name"])
     if result["code"] == 0:
         author = result["out"].decode("ascii").strip()
     else:
-        author = click.prompt("Please type in your Name: ", type=str)
+        author = click.prompt("Please type in your name: ", type=str)
     result = run_shell(["git", "config", "--get", "user.email"])
     if result["code"] == 0:
         email = result["out"].decode("ascii").strip()
     else:
-        email = click.prompt("Please type in your E-Mail: ", type=str)
+        email = click.prompt("Please type in your email: ", type=str)
 
     extgen = ExtGen(
         ".",
         org,
         ext_id,
         isolated_client,
+        devicename,
         author,
         email,
         dry_run=dryrun,
@@ -150,13 +166,13 @@ def gen(org, ext_id, isolated_client, tmpl_fs_source, dryrun):
 
     print(
         f"""
-        Congratulations, you've created a new extension
+        Congratulations, you've created a new extension!
 
-        Here is how to get it tor run on your Development Environment:
+        Here is how to get it to run in your development environment:
             pip3 install -e .
             python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
-            # point your browser to http://localhost:25441
-            # "choose Services" --> {ext_id}
+            # Point your browser to http://localhost:25441
+            # Click "Choose plugins" --> {ext_id}
 
         If you want to package it, you can build it like this:
             python3 -m pip install --upgrade build
@@ -164,9 +180,8 @@ def gen(org, ext_id, isolated_client, tmpl_fs_source, dryrun):
             # install it like this:
             pip3 install dist/{org}_{ext_id}-0.0.1-py3-none-any.whl
 
-        In order to use your extension in production, please refer to 
-        the Readme.md in the dummy-extension-repo.
-        https://github.com/cryptoadvance/{ext_mark}-dummy#how-to-get-this-to-production
+        If you want to bring your extension to production, please refer to the readme in the dummy-extension repo:
+        https://github.com/cryptoadvance/specterext-dummy#how-to-get-this-to-production
     
         To publish your package
 

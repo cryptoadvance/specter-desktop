@@ -7,6 +7,9 @@ from mock import patch, Mock
 from tempfile import TemporaryDirectory
 from unittest.mock import MagicMock
 from unittest import TestCase
+from cryptoadvance.specter.services.service_encrypted_storage import (
+    ServiceUnencryptedStorage,
+)
 
 from cryptoadvance.specter.managers.user_manager import UserManager
 from cryptoadvance.specter.server import SpecterFlask
@@ -39,12 +42,17 @@ class FakeService(Service):
 #     assert "swan" in services
 
 
-def test_ServiceEncryptedStorage(empty_data_folder):
+@pytest.fixture
+def specter_mock():
     specter_mock = Mock()
     specter_mock.config = {"uid": ""}
     specter_mock.user_manager = Mock()
     specter_mock.user_manager.users = [""]
+    return specter_mock
 
+
+@pytest.fixture
+def user1(specter_mock):
     user1 = User.from_json(
         user_dict={
             "id": "user1",
@@ -56,6 +64,11 @@ def test_ServiceEncryptedStorage(empty_data_folder):
         },
         specter=specter_mock,
     )
+    return user1
+
+
+@pytest.fixture
+def user2(specter_mock):
     user2 = User.from_json(
         user_dict={
             "id": "user2",
@@ -67,6 +80,10 @@ def test_ServiceEncryptedStorage(empty_data_folder):
         },
         specter=specter_mock,
     )
+    return user2
+
+
+def test_ServiceEncryptedStorage(empty_data_folder, user1, user2):
     user1._generate_user_secret("muh")
 
     # Can set and get service storage fields
@@ -99,12 +116,9 @@ def test_access_encrypted_storage_after_login(app_no_node: SpecterFlask):
         config={},
     )
 
-    # The ServiceEncryptedStorageManager singleton creates a mess in the test suite. Have
-    # to override its (potentially) already-set values with references to this test's
-    # new instances and temp storage dir.
-    storage_manager = ServiceEncryptedStorageManager.get_instance()
-    storage_manager.data_folder = user_manager.data_folder
-    storage_manager.user_manager = user_manager
+    storage_manager = ServiceEncryptedStorageManager(
+        user_manager.data_folder, user_manager
+    )
     storage_manager.storage_by_user = {}
 
     # Need a simulated request context to enable `current_user` lookup
@@ -156,12 +170,9 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
         config={},
     )
 
-    # The ServiceEncryptedStorageManager singleton creates a mess in the test suite. Have
-    # to override its (potentially) already-set values with references to this test's
-    # new instances and temp storage dir.
-    storage_manager = ServiceEncryptedStorageManager.get_instance()
-    storage_manager.data_folder = user_manager.data_folder
-    storage_manager.user_manager = user_manager
+    storage_manager = ServiceEncryptedStorageManager(
+        user_manager.data_folder, user_manager
+    )
     storage_manager.storage_by_user = {}
 
     # Need a simulated request context to enable `current_user` lookup
@@ -202,6 +213,7 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
                 assert user_entry.get("encrypted_user_secret") is None
         assert found_bob
 
+        logout_user()
         # With no `user_secret` the decryption attempt must fail.
         with pytest.raises(ServiceEncryptedStorageError) as execinfo:
             storage_manager._get_current_user_service_storage()
@@ -216,3 +228,57 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
         with open(service_encrypted_storage_file, "r") as storage_json_file:
             data_on_disk = json.load(storage_json_file)
         assert data_on_disk == {}
+
+
+def test_ServiceUnEncryptedStorage(empty_data_folder, user1, user2):
+    user1._generate_user_secret("muh")
+
+    # Can set and get service storage fields
+    service_storage = ServiceUnencryptedStorage(
+        empty_data_folder, user1, disable_decrypt=True
+    )
+    service_storage.set_service_data("a_service_id", {"somekey": "green"})
+    assert service_storage.get_service_data("a_service_id") == {"somekey": "green"}
+    assert service_storage.get_service_data("another_service_id") == {}
+
+
+def test_both_Storages_in_parallel(empty_data_folder, user1, user2):
+    user1._generate_user_secret("muh")
+
+    # Can set and get service storage fields unecrypted
+    service_storage_unenc = ServiceUnencryptedStorage(
+        empty_data_folder, user1, disable_decrypt=True
+    )
+    service_storage_unenc.set_service_data("a_service_id", {"somekey": "green"})
+    assert service_storage_unenc.get_service_data("a_service_id") == {
+        "somekey": "green"
+    }
+    assert service_storage_unenc.get_service_data("another_service_id") == {}
+
+    # Can set and get service storage fields encrypted
+    service_storage_enc = ServiceEncryptedStorage(empty_data_folder, user1)
+    service_storage_enc.set_service_data("a_service_id", {"somekey": "red"})
+    assert service_storage_enc.get_service_data("a_service_id") == {"somekey": "red"}
+
+    # asserting again the unencrypted values
+    assert service_storage_unenc.get_service_data("a_service_id") == {
+        "somekey": "green"
+    }
+
+    # changing unencrypted
+    service_storage_unenc.set_service_data("a_service_id", {"somekey": "light_green"})
+
+    assert service_storage_unenc.get_service_data("a_service_id") == {
+        "somekey": "light_green"
+    }
+    assert service_storage_enc.get_service_data("a_service_id") == {"somekey": "red"}
+
+    # changing encrypted
+    service_storage_enc.set_service_data("a_service_id", {"somekey": "light_red"})
+
+    assert service_storage_unenc.get_service_data("a_service_id") == {
+        "somekey": "light_green"
+    }
+    assert service_storage_enc.get_service_data("a_service_id") == {
+        "somekey": "light_red"
+    }

@@ -1,0 +1,125 @@
+{% extends "devhelp/components/devhelp_tab.jinja" %}
+{% block title %}DevConsole{% endblock %}
+{% set tab = 'console' %}
+{% block content %}
+
+<div class="card" style="width:1000px">
+    <p>
+        
+    </p>
+    <form name="console" onSubmit="return handleIt()">
+
+        <div style="display: flex;">
+            <span>Python-expressions here:</span>
+            <tool-tip width="500px">
+                <h4 slot="title">How to use the Console</h4>
+                <span slot="paragraph">
+                    Try these things:
+                    <b>'help'</b> will give you a list of commands and objects available<br>
+                    Use a trailing '.' to get available methods and propeties, e.g. try: <b>'app.specter.'</b> <br>
+                    The command <b>'run'</b> can execute python scripts, e.g., run('myscript.py')
+                </span>
+            </tool-tip>
+        </div>
+        <input type="text" id="msgBody" name="msgBody" value="app.specter.">
+
+
+        <br><br>
+        <input name="Submit" class="btn" type="submit" value="Submit" />
+    </form>
+    you can also do that in any javascript.console with:
+    <pre>
+    await pythonCommand("app.specter") 
+    </pre>
+    Some usefull idioms:
+    <pre>
+    list(flask_login.current_user.wallet_manager.wallets)
+    </pre>
+
+    <p>
+        Output
+    </p>
+    <div id="start">
+
+    </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    var counter = 0
+    function handleIt() {
+        start = document.getElementById("start")
+        
+
+        var command = document.getElementById("msgBody").value;
+        console.log(msgBody)
+
+
+        a = pythonCommand(command).then((result) => {
+            var pre = document.createElement("pre");
+            pre.append(counter + " > " + command + "\n")
+            if (command.endsWith(".") && (! (typeof(result) == "string"))) {
+                start.insertBefore(pre,start.children[0])
+                
+                var varHider = document.createElement("input");
+                varHider.type = "button"
+                varHider.value="vars"
+                start.insertBefore(varHider,start.children[1])
+                var vars = document.createElement("pre");
+                vars.id = "var" + counter
+                varHider.onclick = function() {
+                    if (document.getElementById(vars.id ).style.display=='none') {
+                        document.getElementById(vars.id ).style.display='block'
+                    } else {
+                        document.getElementById(vars.id ).style.display='none'
+                    }
+                    
+                }
+                vars.style.display='none'
+                console.log(result.vars)
+                for (const key in result.vars) {
+                    vars.appendChild(document.createTextNode((`${key}: ${result.vars[key]}\n`)))
+                }
+                start.insertBefore(vars,start.children[2])
+
+                var dirHider = document.createElement("input");
+                dirHider.type = "button"
+                dirHider.value="dirs"
+                start.insertBefore(dirHider,start.children[3])
+                var dirs = document.createElement("pre");
+                dirs.id = "dirs" + counter
+                dirHider.onclick = function() {
+                    if (document.getElementById(dirs.id ).style.display=='none') {
+                        document.getElementById(dirs.id ).style.display='block'
+                    } else {
+                        document.getElementById(dirs.id ).style.display='none'
+                    }
+                    
+                }
+                dirs.style.display='none'
+                console.log(result.dirs)
+                result.dir.forEach((elem) => {
+                    dirs.appendChild(document.createTextNode((`${elem}\n`)))
+                });
+                start.insertBefore(dirs,start.children[4])
+
+
+            } else {
+                if (result == "") {
+                    result = "(empty string)"
+                }
+                pre.append("    " + result.toString() + "\n")
+                start.insertBefore(pre,start.children[0])
+            }
+
+        })
+        counter++
+        return false
+    }
+
+</script>
+{% endblock %}

@@ -114,14 +114,15 @@ def test_calling_method_with_non_existing_parameters(client):
             "forwarded_request": True,
         },
     )
-    assert {
-        "jsonrpc": "2.0",
-        "error": {
-            "code": -32000,
-            "message": "Internal error: enumerate() got an unexpected keyword argument 'non_existing_parameter'.",
-        },
-        "id": 1,
-    } == json.loads(req.data)
+
+    resp = json.loads(req.data)
+    assert resp["error"]["code"] == -32000
+    assert resp["error"]["message"].startswith("Internal error:")
+    assert resp["error"]["message"].endswith(
+        "got an unexpected keyword argument 'non_existing_parameter'."
+    )
+    assert resp["id"] == 1
+    assert resp["jsonrpc"] == "2.0"
 
 
 def test_call_not_connected_device(client):

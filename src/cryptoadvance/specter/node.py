@@ -14,6 +14,7 @@ from .rpc import (
     autodetect_rpc_confs,
     get_default_datadir,
 )
+from .specter_error import BrokenCoreConnectionException
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +75,10 @@ class Node:
         self.manager = manager
         self.proxy_url = manager.proxy_url
         self.only_tor = manager.only_tor
-        self.rpc = self.get_rpc()
+        try:
+            self.rpc = self._get_rpc()
+        except BrokenCoreConnectionException:
+            self.rpc = None
         self._asset_labels = None
         self.check_info()
 
@@ -128,26 +132,29 @@ class Node:
             "node_type": self.node_type,
         }
 
-    def get_rpc(self):
-        """
-        Checks if config have changed, compares with old rpc
-        and returns new one if necessary
-        """
-        if hasattr(self, "rpc"):
-            rpc = self.rpc
+    def _get_rpc(self):
+        """Checks if configurations have changed, compares with old rpc
+        and returns new one if necessary.
+        Aims to be exception safe, returns None if rpc is not working"""
+        if hasattr(self, "_rpc"):
+            rpc = self._rpc
         else:
             rpc = None
         if self.autodetect:
-            if self.port:
-                rpc_conf_arr = autodetect_rpc_confs(
-                    self.node_type,
-                    datadir=os.path.expanduser(self.datadir),
-                    port=self.port,
-                )
-            else:
-                rpc_conf_arr = autodetect_rpc_confs(
-                    self.node_type, datadir=os.path.expanduser(self.datadir)
-                )
+            try:
+                if self.port:
+                    # autodetect_rpc_confs is trying a RPC call
+                    rpc_conf_arr = autodetect_rpc_confs(
+                        self.node_type,
+                        datadir=os.path.expanduser(self.datadir),
+                        port=self.port,
+                    )
+                else:
+                    rpc_conf_arr = autodetect_rpc_confs(
+                        self.node_type, datadir=os.path.expanduser(self.datadir)
+                    )
+            except BrokenCoreConnectionException:
+                return None
             if len(rpc_conf_arr) > 0:
                 rpc = BitcoinRPC(
                     **rpc_conf_arr[0], proxy_url=self.proxy_url, only_tor=self.only_tor
@@ -171,7 +178,7 @@ class Node:
             )
 
         if rpc == None:
-            logger.error(f"connection results to None in get_rpc")
+            logger.error(f"RPC connection is None in get_rpc. Returning None ...")
             return None
         # check if it's liquid
         try:
@@ -184,8 +191,8 @@ class Node:
                 return rpc  # The user is failing to configure correctly
             logger.error(rpce)
             return None
-        except ConnectionError as e:
-            logger.error(f"{e} while get_rpc")
+        except BrokenCoreConnectionException as bcce:
+            logger.error(f"{bcce} while get_rpc")
             return None
         except Exception as e:
             logger.exception(e)
@@ -194,7 +201,7 @@ class Node:
             return rpc
         else:
             logger.debug(
-                f"connection {rpc} fails test_connection() returning None in get_rpc"
+                f"Connection {rpc} fails test_connection() in get_rpc. Returning None ..."
             )
             return None
 
@@ -239,10 +246,14 @@ class Node:
             self.protocol = protocol
             update_rpc = True
         if update_rpc:
-            self.rpc = self.get_rpc()
-            if self.rpc and self.rpc.test_connection():
-                logger.debug(f"persisting {self} in update_rpc")
-                write_node(self, self.fullpath)
+            try:
+                self.rpc = self._get_rpc()
+                if self.rpc and self.rpc.test_connection():
+                    logger.debug(f"persisting {self} in update_rpc")
+                    write_node(self, self.fullpath)
+            except BrokenCoreConnectionException:
+                self._mark_node_as_broken()
+                return False
         self.check_info()
         return False if not self.rpc else self.rpc.test_connection()
 
@@ -255,7 +266,6 @@ class Node:
 
     def check_info(self):
         self._is_configured = self.rpc is not None
-        self._is_running = False
         if self.rpc is not None and self.rpc.test_connection():
             try:
                 res = [
@@ -289,12 +299,8 @@ class Node:
                     self.utxorescanwallet = None
                 self._network_parameters = get_network(self.chain)
                 self._is_running = True
-            except Exception as e:
-                self._info = {"chain": None}
-                self._network_info = {"subversion": "", "version": 999999}
-                self._network_parameters = get_network("main")
-                logger.error(f"connection {self.rpc} could not suceed check_info")
-                logger.exception("Exception %s while check_info()" % e)
+            except BrokenCoreConnectionException:
+                self._mark_node_as_broken()
         else:
             if self.rpc is None:
                 logger.warning(f"connection of {self} is None in check_info")
@@ -315,24 +321,20 @@ class Node:
                     )
                 except Exception as e:
                     logger.exception(e)
-            self._info = {"chain": None}
-            self._network_info = {"subversion": "", "version": 999999}
-
-        if not self._is_running:
-            self._info["chain"] = None
+            self._mark_node_as_broken()
 
     def test_rpc(self):
         """tests the rpc-connection and returns a dict which helps
         to derive what might be wrong with the config
         ToDo: list an example here.
         """
-        rpc = self.get_rpc()
+        rpc = self._get_rpc()
         if rpc is None:
             return {
                 "out": "",
                 "err": _("Connection to node failed"),
                 "code": -1,
-                "tests": {},
+                "tests": {"connectable": False},
             }
         r = {}
         r["tests"] = {"connectable": False}
@@ -356,15 +358,14 @@ class Node:
                 r["err"] = "Wallets disabled"
 
             r["out"] = json.dumps(rpc.getblockchaininfo(), indent=4)
-        except ConnectionError as e:
-            logger.info("Caught an ConnectionError while test_rpc: %s", e)
-
+        except BrokenCoreConnectionException as bcce:
+            logger.info(f"Caught {bcce} while test_rpc")
             r["tests"]["connectable"] = False
             r["err"] = _("Failed to connect!")
             r["code"] = -1
         except RpcError as rpce:
             logger.info(
-                f"Caught an RpcError while test_rpc status_code: {rpce.status_code} error_code:{rpce.error_code}"
+                f"Caught an RpcError while test_rpc status_code: {rpce.status_code} error_code: {rpce.error_code}"
             )
             r["tests"]["connectable"] = True
             r["code"] = rpc.r.status_code
@@ -374,7 +375,7 @@ class Node:
             else:
                 r["err"] = str(rpce.status_code)
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "Caught an exception of type {} while test_rpc: {}".format(
                     type(e), str(e)
                 )
@@ -388,6 +389,16 @@ class Node:
                 r["code"] = -1
         return r
 
+    def _mark_node_as_broken(self):
+        self._info = {"chain": None}
+        self._network_info = {"subversion": "", "version": 999999}
+        self._network_parameters = get_network("main")
+        logger.debug(
+            f"Node is not running, no RPC connection, check_info didn't succeed, setting RPC attribute to None ..."
+        )
+        self._info["chain"] = None
+        self.rpc = None
+
     def abortrescanutxo(self):
         """use this to abort a rescan as it stores some state while rescanning"""
         self.rpc.scantxoutset("abort", [])
@@ -397,14 +408,23 @@ class Node:
         self.utxorescanwallet = None
 
     def check_blockheight(self):
-        return self.info["blocks"] != self.rpc.getblockcount()
+        if not self.rpc:
+            # if the rpc interface cannot be found, then specter should check the rpc interface.
+            # Checking the rpc interface with self.node.update_rpc() in specter.check() is done
+            # if we return True here
+            return True
+        return self.info.get("blocks") != self.rpc.getblockcount()
 
     def is_liquid(self):
         return is_liquid(self.chain)
 
     @property
     def is_running(self):
-        return self._is_running
+        if self._network_info["version"] == 999999:
+            logger.debug(f"Node is not running")
+            return False
+        else:
+            return True
 
     @property
     def is_configured(self):
@@ -473,10 +493,12 @@ class Node:
 
     @property
     def rpc(self):
+        """Returns None if rpc is broken"""
         if not hasattr(self, "_rpc"):
-            return None
-        else:
-            return self._rpc
+            self._rpc = self._get_rpc()
+        elif self._rpc is None:
+            self._rpc = self._get_rpc()
+        return self._rpc
 
     @property
     def node_type(self):

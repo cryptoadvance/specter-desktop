@@ -149,7 +149,7 @@
             align-items: center;
         }
         .selected-rows-action-box .btn {
-            width: 200px;
+            min-width: 170px;
             margin: 5px;
             height: 38px;
         }
@@ -265,6 +265,11 @@
             flex-direction: column;
             height: 100%;
         }
+        @media (max-width: 690px){
+            .selected-rows-action-box{
+                flex-direction: column;
+            }
+        }
     </style>
 
     <nav class="switcher row">
@@ -359,7 +364,7 @@
                     <th value="txid"     class="column-txid optional txid-header">TxID<div class="txid-arrow"></div></th>
                     <th value="label"    class="column-label optional label-header">{{ _("Label") }}<div class="label-arrow"></div></th>
                     <th value="amount"   class="column-amount amount-header">{{ _("Amount") }}<div class="amount-arrow"></div></th>
-                    <th value="time"     class="column-time time-header">{{ _("Time") }}<div class="time-arrow up-arrow"></div></th>
+                    <th value="time"     class="column-time time-header optional">{{ _("Time") }}<div class="time-arrow up-arrow"></div></th>
                     <th value="confirmations" class="column-confirmations confirmations-header">{{ _("Confirmations") }}<div class="confirmations-arrow"></div></th>
                     <th value="blockhash" class="column-blockhash optional hidden blockhash-header">
                         <div style="display: flex">
@@ -376,7 +381,7 @@
                     </th>
                 </tr>
             </thead>
-        <tr id="feedback-row" class="hidden nohover">
+        <tr id="feedback-row" class="hidden">
             <td id="feedback-row-content">
                 <div id="rescan-hint" class="hidden">
                     <p>{{_('Is this not a fresh wallet? Did you expect transactions here? Then click') }} &#128071; {{_('to find them') }}</p>
@@ -384,7 +389,7 @@
                 </div>
             </td>
         </tr>
-        <tr id="empty-row" class="hidden nohover">
+        <tr id="empty-row" class="hidden">
             <td id="empty-row-cell" colspan="9"></td>
         </tr>
         <tr class="summary-row hidden">
@@ -995,11 +1000,13 @@
                 if (this.pageCount == 0 || txlist.length == 0) {
                     this.tableHeader.classList.add('hidden');
                     this.feedbackRow.classList.add('feedback-row');
+                    this.feedbackRow.classList.remove('hidden');
                     this.rescanHint.classList.remove('hidden')
                     this.rescanHint.classList.add('rescan-hint')
                     this.pageCount = 1;
                 } else {
                     this.tableHeader.classList.remove('hidden');
+                    this.feedbackRow.classList.remove('feedback-row');
                     this.feedbackRow.classList.add('hidden');
                     this.rescanHint.classList.remove('rescan-hint')
                     this.rescanHint.classList.add('hidden');

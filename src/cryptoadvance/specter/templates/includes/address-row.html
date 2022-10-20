@@ -135,8 +135,10 @@
                     }
                 }
             }
-
-            if (!(this.assetsCount == 1 && Object.keys(this.addressData.assets)[0] == "{{ specter.default_asset }}") || !this.price || !this.symbol || this.hideSensitiveInfo) {
+            
+            const onlyLBTC = (this.assetsCount == 1 && Object.keys(this.addressData.assets)[0] == "{{ specter.default_asset }}");
+            const isLiquid = this.assetsCount > 0;
+            if ((isLiquid && !onlyLBTC) || !this.price || !this.symbol || this.hideSensitiveInfo) {
                 this.amountPrice.innerText = '';
                 this.amountPrice.classList.add('hidden');
             } else {

@@ -3,7 +3,7 @@
     {% include "includes/hwi/hwi.jinja" %}
     {% include "includes/qr-scanner.html" %}
     <form name="form" action="{{ url_for('devices_endpoint.device_blinding_key', device_alias=device.alias) }}" method="POST" style="width: 100%;" onsubmit="showPacman();">
-        <div style="width: auto; margin: 40px;" class="card center" >
+        <div class="card center auto-width">
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             <div>
                 <h1> {{ _("Get the master blinding key") }} </h1>
@@ -39,15 +39,8 @@
 {% block scripts %}
     <script type="text/javascript">
         document.getElementById('connect-hwi').addEventListener('click', async e => {
-            var devicesRadios = document.getElementsByName('devices');
-            let deviceType;
-            for (var i = 0, length = devicesRadios.length; i < length; i++) {
-                if (devicesRadios[i].checked) {
-                    deviceType = devicesRadios[i].value;
-                    break;
-                }
-            }
             // detect devices
+            let deviceType = `{{ device.device_type }}`;
             let devices = await enumerate(deviceType);
             if(devices == null){
                 return

@@ -15,11 +15,12 @@ from ..helpers import add_dicts, alias, is_liquid, load_jsons
 from ..liquid.wallet import LWallet
 from ..persistence import delete_folder
 from ..rpc import RpcError, get_default_datadir
-from ..specter_error import SpecterError, handle_exception
+from ..specter_error import SpecterError, SpecterInternalException, handle_exception
 from ..wallet import (  # TODO: `purposes` unused here, but other files rely on this import
     Wallet,
     purposes,
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +69,7 @@ class WalletManager:
         use_threading : for the _update method which is heavily communicating with Bitcoin Core
         """
         if (chain is None and rpc is not None) or (chain is not None and rpc is None):
-            raise Exception(
+            raise SpecterInternalException(
                 f"Chain ({chain}) and rpc ({rpc}) can only be changed with one another"
             )
         if self.is_loading:
@@ -88,7 +89,7 @@ class WalletManager:
         else:
             if rpc:
                 logger.error(
-                    f"Prevented Trying to update wallet_Manager with broken {rpc}"
+                    f"Prevented trying to update Wallet Manager with broken {rpc}"
                 )
         # wallets_update_list is something like:
         # {'Specter': {'name': 'Specter', 'alias': 'pacman', ... }, 'another_wallet': { ... } }
@@ -243,7 +244,10 @@ class WalletManager:
         for wallet_name in self.wallets:
             if self.wallets[wallet_name] and self.wallets[wallet_name].alias == alias:
                 return self.wallets[wallet_name]
-        raise SpecterError("Wallet %s does not exist!" % alias)
+        raise SpecterError(
+            "Wallet %s could not be loaded. Are you connected with Bitcoin Core?"
+            % alias
+        )
 
     @property
     def failed_load_wallets(self) -> list:

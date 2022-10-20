@@ -38,12 +38,18 @@
 				border-right: 0;
 				{% endif %}
 			}
+			.tr-hover:hover {
+				background: rgba(255,255,255,0.03);
+			}
 		</style>
 		<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
+		{% include "includes/helpers.jinja" %}
+		{% include "services/inject_in_basejinja_head.jinja" %}
 		{% block head %}
 		{% endblock %}
 	</head>
-	<body>
+	<body spellcheck="false">
+	{% include "services/inject_in_basejinja_body_top.jinja" %}
 	<div class="pageloader" id="pageloader"></div>
 	{% if specter.config.auth.method == "none" or current_user.is_authenticated %}
 		<!-- BC-UR2 QR code stuff -->
@@ -89,18 +95,18 @@
 			{% with messages = get_flashed_messages(with_categories=True) %}
 				{% if messages %}
 					{% for category, message in messages | unique %}
-						<message-box type="{{ category }}">{{ message }}</message-box>
+						<message-box type="{{ category }}">{{ message | safe }}</message-box>
 					{% endfor %}
 				{% endif %}
 			{% endwith %}
 			{% if error %}
-				<message-box type="error">{{ _("ERROR:") }} {{error}}</message-box>
+				<message-box type="error">{{ _("ERROR:") }} {{error | safe }}</message-box>
 			{% endif %}
 			</div>
 
 			{% block main %}
 				{% if error %}
-					<br><br>{{ _("Something went wrong:") }} (<br><br>{{error}}
+					<br><br>{{ _("Something went wrong:") }}<br><br>{{error}}
 				{% else %}
 					<br>
 					<div class="main-page-container">
@@ -137,10 +143,9 @@
 						<br><br>
 					{% else %}
 						<h2 style="font-size: 1.6em; line-height: .5em; margin-top: 1em;">{{ _('Getting Started') }}</h2><br>
-
 						<table style="width: 90%; margin: auto;">
 							<tbody>
-								<tr>
+								<tr class="tr-hover">
 									<td>
 										<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not specter.chain else '') + 'tick.svg') }}" width="30px">
 									</td>
@@ -201,7 +206,7 @@
 										{% endif %}
 									</td>
 								</tr>
-								<tr>
+								<tr class="tr-hover">
 									<td>
 										<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not (specter.device_manager.devices | length) else '') + 'tick.svg') }}" width="30px">
 									</td>
@@ -213,7 +218,7 @@
 									<td style="text-align: left;">
 									</td>
 								</tr>
-								<tr>
+								<tr class="tr-hover">
 									<td>
 										<img src="{{ url_for('static', filename='img/checkbox-' + ('un' if not (specter.wallet_manager.wallets | length) else '') + 'tick.svg') }}" width="30px">
 									</td>
@@ -226,7 +231,7 @@
 									</td>
 								</tr>
 								{% if specter.chain == 'main' %}
-								<tr>
+								<tr class="tr-hover">
 									<td>
 										<img src="{{ url_for('static', filename='img/ghost_3d.png')}}" width="30px">
 									</td>
@@ -329,5 +334,6 @@
 			{% include "includes/language/language_js.jinja" %}
 		</script>
 	{% endblock %}
+	{% include "services/inject_in_basejinja_body_bottom.jinja" %}
 	</body>
 </html>

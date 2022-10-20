@@ -19,7 +19,11 @@ from urllib3.exceptions import MaxRetryError, NewConnectionError
 
 from ..helpers import load_jsons
 from ..rpc import BitcoinRPC, RpcError
-from ..specter_error import ExtProcTimeoutException, SpecterError
+from ..specter_error import (
+    ExtProcTimeoutException,
+    SpecterError,
+    BrokenCoreConnectionException,
+)
 from ..util.shell import get_last_lines_from_file, which
 
 logger = logging.getLogger(__name__)
@@ -272,11 +276,19 @@ class NodeController:
     def check_node(rpcconn, raise_exception=False):
         """returns true if bitcoind is running on that address/port"""
         if raise_exception:
-            rpcconn.get_rpc()  # that call will also check the connection
-            return True
+            rpc = rpcconn.get_rpc()  # that call will also check the connection
+            if (
+                rpc
+            ):  # if-else is just in case, ideally, rpc should not be returned as None
+                return True
+            return False
         try:
-            rpcconn.get_rpc()  # that call will also check the connection
-            return True
+            rpc = rpcconn.get_rpc()  # that call will also check the connection
+            if (
+                rpc
+            ):  # if-else is just in case, ideally, rpc should not be returned as None
+                return True
+            return False
         except RpcError as e:
             # E.g. "Loading Index ..." #ToDo: check it here
             return False
@@ -288,10 +300,14 @@ class NodeController:
             return False
         except NewConnectionError as e:
             return False
+        except BrokenCoreConnectionException:
+            return False
         except Exception as e:
             # We should avoid this:
             # If you see it in the logs, catch that new exception above
-            logger.error("Unexpected Exception, THIS SHOULD NOT HAPPEN " + str(type(e)))
+            logger.exception(
+                "Unexpected Exception, THIS SHOULD NOT HAPPEN " + str(type(e))
+            )
             logger.debug(f"could not reach bitcoind - message returned: {e}")
             return False
 
@@ -560,8 +576,6 @@ def fetch_wallet_addresses_for_mining(node_impl, data_folder, exception=None):
     Parses all the wallet jsons in the folder (default ~/.specter/wallets/regtest) and returns an array with the addresses.
     Pass a wallet name via the exception argument so that this wallet's addresses are not included.
     """
-    print(f"{data_folder}/wallets")
-    print(os.listdir(f"{data_folder}"))
     addresses_all = []
     for folder in [
         folder for folder in os.listdir(data_folder) if folder.startswith("wallets")

@@ -8,15 +8,15 @@ from flask import (
     redirect,
     url_for,
     jsonify,
-    flash,
 )
 from flask_babel import lazy_gettext as _
 from flask_login import login_required, current_user
 from flask import current_app as app
 from ..rpc import get_default_datadir
 from ..node import Node
-from ..specter_error import ExtProcTimeoutException
+from ..specter_error import ExtProcTimeoutException, BrokenCoreConnectionException
 from ..util.shell import get_last_lines_from_file
+from ..server_endpoints import flash
 
 logger = logging.getLogger(__name__)
 
@@ -144,7 +144,6 @@ def node_settings(node_alias):
                 node.manager,
             )
             test = node.test_rpc()
-
             if "tests" in test:
                 # If any test has failed, we notify the user that the test has not passed
                 if not test["tests"] or False in list(test["tests"].values()):
@@ -197,7 +196,7 @@ def node_settings(node_alias):
                 protocol=protocol,
             )
             if not success:
-                flash(_("Failed connecting to the node"), "error")
+                flash(_("Saving failed: no connection to node"), "error")
             if app.specter.active_node_alias == node.alias:
                 app.specter.check()
 

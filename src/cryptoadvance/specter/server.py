@@ -102,6 +102,8 @@ def create_app(config=None):
     logger.info(f"SPECTER_DATA_FOLDER: {app.config['SPECTER_DATA_FOLDER']}")
     # Might be convenient to know later where it came from (see Service configuration)
     app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"] = config_name
+    if not app.config.get("ENABLE_WERZEUG_REQUEST_LOGGING"):
+        logging.getLogger("werkzeug").disabled = True
     app.wsgi_app = ProxyFix(
         app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1
     )
@@ -186,7 +188,9 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
             from cryptoadvance.specter.server_endpoints import controller
             from cryptoadvance.specter.services import controller as serviceController
 
-            if app.config.get("TESTING") and len(app.view_functions) <= 50:
+            if app.config.get("TESTING"):
+                logger.info(f"We have {len(app.view_functions)} view Functions")
+            if app.config.get("TESTING") and len(app.view_functions) <= 51:
                 # Need to force a reload as otherwise the import is skipped
                 # in pytest, the app is created anew for each test
                 # But we shouldn't do that if not necessary as this would result in

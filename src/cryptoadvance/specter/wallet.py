@@ -798,10 +798,7 @@ class Wallet:
         )
 
     def get_info(self):
-        try:
-            self.info = self.rpc.getwalletinfo()
-        except Exception as e:
-            raise SpecterError(e)
+        self.info = self.rpc.getwalletinfo()
         return self.info
 
     def check_utxo(self):

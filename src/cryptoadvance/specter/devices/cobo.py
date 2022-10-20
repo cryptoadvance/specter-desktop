@@ -13,7 +13,7 @@ from ..helpers import to_ascii20
 class Cobo(ColdCard):
     device_type = DeviceTypes.COBO
     name = "Cobo Vault"
-    icon = "cobo_icon.svg"
+    icon = "img/devices/cobo_icon.svg"
 
     hwi_support = False
     sd_card_support = True

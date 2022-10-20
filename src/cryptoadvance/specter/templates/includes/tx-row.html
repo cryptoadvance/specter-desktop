@@ -105,7 +105,7 @@
             <span class="amount"></span> 
             <span class="amount-price note hidden">()</span>
         </td>
-        <td id="column-time" class="time"></td>
+        <td id="column-time" class="time optional"></td>
         <td id="column-confirmations">
             <span class="confirmations"></span>
         </td>
@@ -342,7 +342,7 @@
             // Select tx option
             if (this.mode == 'utxo') {
                 this.selectTxImg.classList.remove('hidden');
-                this.selectTxImg.onclick = () => {
+                this.selectTxImg.onclick = (e) => {
                     this.selectTxImg.src = this.selectTxValue.value ? `{{ url_for('static', filename='img/checkbox-untick.svg') }}` : `{{ url_for('static', filename='img/checkbox-tick.svg') }}`;
                     this.selectTxValue.value = this.selectTxValue.value ? "" : "true";
                     let event = new CustomEvent('txRowSelected', { detail: {
@@ -353,6 +353,7 @@
                         locked: this.tx.locked,
                     } });
                     this.dispatchEvent(event);
+                    e.stopPropagation(); // this prevent the onclick of outer divs to be triggered
                 }
             } else {
                 this.selectTxImg.classList.add('hidden');
@@ -434,21 +435,20 @@
         }
 
         getCategoryImg(category, isConfirmed) {
-            if (!isConfirmed) {
-                return `{{ url_for('static', filename='img') }}/clock.svg`;
-            }
+            var clockString = isConfirmed ? '' : '-clock';
+
             switch (category) {
                 case "send":
-                    return `{{ url_for('static', filename='img') }}/send.svg`;
+                    return `{{ url_for('static', filename='img') }}/send${clockString}.svg`;
                 case "receive":
-                    return `{{ url_for('static', filename='img') }}/receive.svg`;
+                    return `{{ url_for('static', filename='img') }}/receive${clockString}.svg`;
                 case "immature":
                 case "generate":
                     return `{{ url_for('static', filename='img') }}/gear.svg`;
                 case "selftransfer":
-                    return `{{ url_for('static', filename='img') }}/transfer.svg`;
+                    return `{{ url_for('static', filename='img') }}/transfer${clockString}.svg`;
                 case "mixed":
-                    return `{{ url_for('static', filename='img') }}/mixed.svg`;
+                    return `{{ url_for('static', filename='img') }}/mixed${clockString}.svg`;
             }
         }
     }

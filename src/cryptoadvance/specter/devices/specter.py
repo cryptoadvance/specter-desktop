@@ -62,7 +62,7 @@ def fill_external_wallet_derivations(psbt, wallet):
 class Specter(SDCardDevice):
     device_type = DeviceTypes.SPECTERDIY
     name = "Specter-DIY"
-    icon = "specter_icon.svg"
+    icon = "img/devices/specter_icon.svg"
 
     exportable_to_wallet = True
     sd_card_support = True

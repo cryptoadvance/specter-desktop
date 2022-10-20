@@ -7,7 +7,7 @@
         {{ editable_title(wallet.name) }}
     {% endif %}
     {% from 'wallet/components/wallet_menu.jinja' import wallet_menu %}
-    {{ wallet_menu(tab, wallet_alias) }}
+    {{ wallet_menu(tab, wallet_alias, ext_wallettabs) }}
     <div id="tx-popup" class="hidden"></div>
     {% block content %}
     {% endblock %}

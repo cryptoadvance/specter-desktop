@@ -7,7 +7,7 @@ from flask_restful import Resource, abort
 
 from cryptoadvance.specter.api import api_rest
 from cryptoadvance.specter.api.security import require_admin
-from cryptoadvance.specter.api import auth
+from cryptoadvance.specter.api import auth, token_auth
 from cryptoadvance.specter.specter_error import SpecterError
 
 logger = logging.getLogger(__name__)
@@ -72,13 +72,19 @@ class BaseResource(Resource):
 class SecureResource(BaseResource):
     """A REST-resource which makes sure that the user is Authenticated"""
 
+    method_decorators = [error_handling, token_auth.login_required]
+
+
+class BasicAuthResource(BaseResource):
+    """A REST-resource which makes sure that the user is Authenticated"""
+
     method_decorators = [error_handling, auth.login_required]
 
 
 class AdminResource(BaseResource):
     """A REST-resource which makes sure that the user is an admin"""
 
-    method_decorators = [error_handling, require_admin, auth.login_required]
+    method_decorators = [error_handling, require_admin, token_auth.login_required]
 
 
 def rest_resource(resource_cls):
