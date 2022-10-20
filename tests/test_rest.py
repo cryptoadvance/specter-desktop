@@ -56,7 +56,7 @@ def test_rr_psbt_get(client, specter_regtest_configured, bitcoin_regtest, caplog
     headers = {
         "Authorization": "Bearer "
         + User.generate_jwt_token(
-            "someuser", "tokenid", "tokendescription", random.randrange(100, 200)
+            "admin", "tokenid", "tokendescription", random.randrange(100, 200)
         )
     }
     result = client.get(
