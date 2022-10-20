@@ -35,26 +35,28 @@ def setup_bitcoind_thread(specter=None, internal_bitcoind_version=""):
         bitcoin_binaries_folder = os.path.join(specter.data_folder, "bitcoin-binaries")
         logger.info(f"Unpacking binaries to {bitcoin_binaries_folder}")
         if BITCOIND_OS_SUFFIX[platform.system()].endswith("tar.gz"):
+            # see https://github.com/cryptoadvance/specter-desktop/pull/1927
+            # to understand the additional complexity here
             with tarfile.open(packed_name, "r:gz") as so:
+
                 def is_within_directory(directory, target):
-                    
+
                     abs_directory = os.path.abspath(directory)
                     abs_target = os.path.abspath(target)
-                
+
                     prefix = os.path.commonprefix([abs_directory, abs_target])
-                    
+
                     return prefix == abs_directory
-                
+
                 def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
-                
+
                     for member in tar.getmembers():
                         member_path = os.path.join(path, member.name)
                         if not is_within_directory(path, member_path):
                             raise Exception("Attempted Path Traversal in Tar File")
-                
-                    tar.extractall(path, members, numeric_owner=numeric_owner) 
-                    
-                
+
+                    tar.extractall(path, members, numeric_owner=numeric_owner)
+
                 safe_extract(so, specter.data_folder)
         else:
             with zipfile.ZipFile(packed_name, "r") as zip_ref:
