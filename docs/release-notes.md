@@ -1,5 +1,15 @@
 # Release Notes
 
+## v1.13.1 Oktober 17, 2022
+- Bugfix: Hover effect in balance display #1904 (Manolis Mandrapilias)
+- Bugfix: Remove black empty bar in tx-table after search #1912 (relativisticelectron)
+- Bugfix: upgrade hwi to 2.1.1 to fix #1840 #1909 (k9ert)
+- Chore: macos release-script fixes #1897 (Manolis Mandrapilias)
+- Chore: More precise grep in Cypress bash script #1911 (Manolis Mandrapilias)
+- Chore: Update icon used in Electron app #1903 (d11n)
+- Privacy: Disabeling spellcheck to avoid any leakage to 3rd party servers #1892 (relativisticelectron)
+- UIUX: Clearer unconfirmed transaction icons #1899 (relativisticelectron)
+
 ## v1.13.0 September 22, 2022
 - Feature: Improve Dev-Console #1850 (k9ert)
 - Feature: Menu extensions can extend menus #1648 (k9ert)
@@ -40,11 +50,11 @@
 - Docs: some doc fixes, refactorings and ext clarification #1789 (k9ert)
 - Docs: Supported Python versions #1847 (Willie Wheeler)
 
-## v1.10.5 Juli 21, 2022
+## v1.10.5 July 21, 2022
 - Bugfix: startup issues for MacOS App 1815 #1816 (relativisticelectron)
 - Feature: generate app_config.py in extgen #1801 (k9ert)
 
-## v1.10.4 Juli 19, 2022
+## v1.10.4 July 19, 2022
 - Bugfix: Better error-management for run the numbers #1790 (k9ert)
 - Bugfix: Consecutively uploading same file twice #1776 (relativisticelectron)
 - Bugfix: Fix the messed up translated html #1810 (relativisticelectron)
