@@ -15,7 +15,7 @@ def test_ServiceManager2(mock_specter, mock_flaskapp, caplog):
     # We have passed the TestConfig which is (hopefully) not existing in the Swan Extension
     # So the ServiceManager will move up the dependency tree of TestConfig until it finds
     # a Config and will copy the keys into the flask-config
-    assert mock_flaskapp.config["SWAN_API_URL"] == "https://dev-api.swanbitcoin.com"
+    assert mock_flaskapp.config["SWAN_API_URL"] == "https://api.dev.swanbitcoin.com"
     assert sm.services["bitcoinreserve"] != None
     assert sm.services["swan"] != None
 
