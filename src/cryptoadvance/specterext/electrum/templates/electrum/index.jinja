@@ -1,0 +1,17 @@
+{% extends "base.jinja" %}
+{% block title %}Index{% endblock %}
+{% block main %}
+
+    <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" width="100"/>  
+    <br><br>
+    <div class="tagline">Electrum Extension</div>
+    <br>
+    <div class="card">
+        <p>
+            There is not much to see here. The Electrum Extension should contain electrum specfic stuff.<br>
+            Currently, that's the electrum-device and the corresponding templates.<br>
+            Create an electrum device to use this extension. 
+        </p>
+    </div>
+{% endblock %}
+

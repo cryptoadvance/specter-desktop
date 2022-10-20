@@ -1000,11 +1000,13 @@
                 if (this.pageCount == 0 || txlist.length == 0) {
                     this.tableHeader.classList.add('hidden');
                     this.feedbackRow.classList.add('feedback-row');
+                    this.feedbackRow.classList.remove('hidden');
                     this.rescanHint.classList.remove('hidden')
                     this.rescanHint.classList.add('rescan-hint')
                     this.pageCount = 1;
                 } else {
                     this.tableHeader.classList.remove('hidden');
+                    this.feedbackRow.classList.remove('feedback-row');
                     this.feedbackRow.classList.add('hidden');
                     this.rescanHint.classList.remove('rescan-hint')
                     this.rescanHint.classList.add('hidden');

@@ -13,7 +13,15 @@ class SpecterError(Exception):
         # potentially, we could add own stuff now here:
 
 
-class ExtProcTimeoutException(Exception):
+class SpecterInternalException(Exception):
+    pass
+
+
+class BrokenCoreConnectionException(SpecterInternalException):
+    pass
+
+
+class ExtProcTimeoutException(SpecterInternalException):
     """A Exception which is thrown because an external process timed out
     use check_logfile to get some lines in loglines
     probably improvable for processes which don't have a logfile
