@@ -44,7 +44,7 @@ describe('Test sending transactions', () => {
         cy.get('.tx-data-info').contains('Value: 20 tBTC')
         cy.get('.tx-data-info').contains('Output #0')
         cy.get('.tx-data-info').contains('Burn address') 
-        cy.get('.tx-data-info').contains('Value: 19.9999989 tBTC') // Fees should always be the same
+        cy.get('.tx-data-info').find('.tx_info').eq(1).contains(/Value:\s19\.9999\d{4}\stBTC/) // Fees change apparently
         cy.get('#page_overlay_popup_cancel_button').click()
         // Change to sats and check amounts and units
         cy.get('[href="/settings/"]').click()
@@ -54,7 +54,7 @@ describe('Test sending transactions', () => {
         cy.get('#btn_transactions').click()
         cy.get('tbody.tx-tbody').find('tr').eq(0).find('#column-txid').find('.explorer-link').click()
         cy.get('.tx-data-info').contains('Value: 2,000,000,000 tsat')
-        cy.get('.tx-data-info').contains('Value: 1,999,999,890 tsat')
+        cy.get('.tx-data-info').contains(/Value:\s1,999,99\d,\d{3}\stsat/) // Fees change apparently
         cy.get('#page_overlay_popup_cancel_button').click()
         // Change back to btc
         cy.get('[href="/settings/"]').click()
