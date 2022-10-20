@@ -19,10 +19,6 @@ from flask.blueprints import Blueprint
 
 from ..services.service import Service
 from ..services import callbacks, ExtensionException
-from ..services.service_encrypted_storage import (
-    ServiceEncryptedStorageManager,
-    ServiceUnencryptedStorageManager,
-)
 from ..util.reflection import (
     _get_module_from_class,
     get_classlist_of_type_clazz_from_modulelist,
@@ -313,9 +309,8 @@ class ServiceManager:
         This check works even if the user doesn't have their plaintext_user_secret
         available."""
         encrypted_data = (
-            app.specter.service_encrypted_storage_manager.get_raw_encrypted_data(user)
+            self.specter.service_encrypted_storage_manager.get_raw_encrypted_data(user)
         )
-        print(f"encrypted_data: {encrypted_data} for {user}")
         return encrypted_data != {}
 
     def set_active_services(self, service_names_active):
