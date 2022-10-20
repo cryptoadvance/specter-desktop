@@ -105,7 +105,7 @@ describe('Test the actions in UTXO list', () => {
         cy.log("Check the labeling of the unsigned UTXO")
         cy.get('#btn_transactions').click()
         cy.wait(1000)
-        cy.get('tx-table').find('.utxo-view-btn').click()
+        cy.get('tx-table').find('.utxo-view-btn').click({ force: true })
         cy.get('tx-table').find('tx-row').eq(2).find('#column-category').should('contain', 'Unsigned')
         cy.get('tx-table').find('tx-row').eq(3).find('#column-category').should('contain', 'Unsigned')
         // Check that only the two checkboxes of the unsigned UTXO are visible
