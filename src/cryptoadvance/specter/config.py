@@ -70,6 +70,10 @@ class BaseConfig(object):
         "SPECTER_LOGFORMAT", "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
     )
 
+    # The Werkzeug Logs which are documenting each request are quite annoying with Cypress
+    # but by default, it's ok
+    ENABLE_WERZEUG_REQUEST_LOGGING = True
+
     # CERT and KEY is for running self-signed-ssl-certs. Check cli_server for details
     CERT = os.getenv("CERT", None)
     KEY = os.getenv("KEY", None)
@@ -175,6 +179,7 @@ class BaseConfig(object):
         "cryptoadvance.specterext.devhelp.service",
         "cryptoadvance.specterext.exfund.service",
         "cryptoadvance.specterext.faucet.service",
+        "cryptoadvance.specterext.electrum.service",
     ]
 
     # This is just a placeholder in order to be aware that you cannot set this
@@ -238,6 +243,9 @@ class CypressTestConfig(TestConfig):
         os.getenv("SPECTER_DATA_FOLDER", "~/.specter_cypress")
     )
     PORT = os.getenv("PORT", 25444)
+
+    # The Werkzeug Logs which are documenting each request are quite annoying with Cypress
+    ENABLE_WERZEUG_REQUEST_LOGGING = False
 
     # need to be static in order to (un-)tar bitcoind-dirs reliable
     DEFAULT_SPECTER_CONFIG = {"uid": "123456"}

@@ -2,14 +2,20 @@ import base64
 import json
 import logging
 from numbers import Number
-
+import jwt
 import pytest
+import datetime
+import random
+
+from flask import current_app as app
 from cryptoadvance.specter.managers.device_manager import DeviceManager
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
-
+from cryptoadvance.specter.user import User
 from fix_devices_and_wallets import create_hot_wallet_with_ID
+
+logger = logging.getLogger(__name__)
 
 
 def almost_equal(a: Number, b: Number, precision: float = 0.01) -> bool:
@@ -34,15 +40,12 @@ def test_rr_psbt_get(client, specter_regtest_configured, bitcoin_regtest, caplog
         "The server could not verify that you are authorized to access the URL requested."
     )
 
-    # Wrong password
-    headers = {
-        "Authorization": "Basic "
-        + base64.b64encode(bytes("admin" + ":" + "wrongPassword", "ascii")).decode(
-            "ascii"
-        )
-    }
+    # Wrong token
+    headers = {"Authorization": "Bearer " + "sometoken"}
     result = client.get(
-        "/api/v1alpha/wallets/simple/psbt", follow_redirects=True, headers=headers
+        "/api/v1alpha/wallets/a_simple_wallet/psbt",
+        follow_redirects=True,
+        headers=headers,
     )
     assert result.status_code == 401
     assert json.loads(result.data)["message"].startswith(
@@ -51,21 +54,27 @@ def test_rr_psbt_get(client, specter_regtest_configured, bitcoin_regtest, caplog
 
     # Admin but not authorized (admin is NOT allowed to read everything)
     headers = {
-        "Authorization": "Basic "
-        + base64.b64encode(bytes("admin" + ":" + "admin", "ascii")).decode("ascii")
+        "Authorization": "Bearer "
+        + User.generate_jwt_token(
+            "admin", "tokenid", "tokendescription", random.randrange(100, 200)
+        )
     }
     result = client.get(
-        "/api/v1alpha/wallets/simple/psbt", follow_redirects=True, headers=headers
+        "/api/v1alpha/wallets/a_simple_wallet/psbt",
+        follow_redirects=True,
+        headers=headers,
     )
     assert result.status_code == 403
-    print(result.data)
-    assert json.loads(result.data)["message"].startswith("Wallet simple does not exist")
+    assert (
+        json.loads(result.data)["message"]
+        == "The wallet does not belong to the user in the request."
+    )
 
     # Proper authorized (the wallet is owned by someuser)
     headers = {
-        "Authorization": "Basic "
-        + base64.b64encode(bytes("someuser" + ":" + "somepassword", "ascii")).decode(
-            "ascii"
+        "Authorization": "Bearer "
+        + User.generate_jwt_token(
+            "someuser", "tokenid", "tokendescription", random.randrange(100, 200)
         )
     }
     result = client.get(
@@ -84,9 +93,9 @@ def test_rr_psbt_post(specter_regtest_configured, bitcoin_regtest, client, caplo
     """ testing the registration """
 
     headers = {
-        "Authorization": "Basic "
-        + base64.b64encode(bytes("someuser" + ":" + "somepassword", "ascii")).decode(
-            "ascii"
+        "Authorization": "Bearer "
+        + User.generate_jwt_token(
+            "someuser", "tokenid", "tokendescription", random.randrange(100, 200)
         ),
         "Content-type": "application/json",
     }
@@ -154,8 +163,16 @@ def test_rr_psbt_post(specter_regtest_configured, bitcoin_regtest, client, caplo
 
 
 def create_a_simple_wallet(specter: Specter, bitcoin_regtest):
-    """ToDo: Could potentially do this with a a fixture but this is only relevant for this file only"""
-    someuser = specter.user_manager.get_user_by_username("someuser")
+    """ToDo: Could potentially do this with a fixture but this is only relevant for this file only"""
+    payload = jwt.decode(
+        User.generate_jwt_token(
+            "someuser", "tokenid", "tokendescription", random.randrange(100, 200)
+        ),
+        app.config["SECRET_KEY"],
+        algorithms=["HS256"],
+    )
+    username = payload["username"]
+    someuser = specter.user_manager.get_user_by_username(username)
     assert not someuser.wallet_manager.working_folder is None
     # Create a Wallet
     wallet_json = '{"label": "a_simple_wallet", "blockheight": 0, "descriptor": "wpkh([1ef4e492/84h/1h/0h]tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc/0/*)#xp8lv5nr", "devices": [{"type": "trezor", "label": "trezor"}]} '

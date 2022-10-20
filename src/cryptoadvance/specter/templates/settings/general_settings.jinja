@@ -4,7 +4,7 @@
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<h1 id="title" class="settings-title">Settings</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
-		{{ settings_menu('general', current_user) }}
+		{{ settings_menu('general', current_user, ext_settingstabs) }}
 		<div class="card" style="margin: 20px auto;">
 			<h1>{{ _("Language") }}</h1>
 			{% include "includes/language/language_select.jinja" %}<br/>
@@ -68,7 +68,7 @@
 				<input type="file" id="file" class="inputfile" webkitdirectory mozdirectory/>
 				<input type="hidden" id="restorewallets" name="restorewallets"/>
 				<input type="hidden" id="restoredevices" name="restoredevices"/>
-				<label for="file" class="btn" style="min-width: 500px; margin-top: 5px;">
+				<label for="file" class="btn" style="max-width: 500px; margin-top: 5px;">
 					{{ _("Choose backup folder (unzipped)") }}
 				</label>
 			</div>

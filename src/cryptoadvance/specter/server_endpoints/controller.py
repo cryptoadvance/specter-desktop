@@ -1,12 +1,21 @@
-from ..services.callbacks import flask_before_request
-import random, traceback
+import random
+import traceback
+import logging
+from pathlib import Path
 from time import time
+
+from flask import g, redirect, render_template, request, url_for
+from flask_babel import lazy_gettext as _
 from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import MethodNotAllowed, NotFound
-from flask import render_template, request, redirect, url_for, flash, g
-from flask_babel import lazy_gettext as _
-from ..specter_error import SpecterError, ExtProcTimeoutException
-from pathlib import Path
+
+from ..server_endpoints import flash
+from ..services.callbacks import flask_before_request
+from ..specter_error import (
+    ExtProcTimeoutException,
+    SpecterError,
+    BrokenCoreConnectionException,
+)
 
 env_path = Path(".") / ".flaskenv"
 from dotenv import load_dotenv
@@ -14,12 +23,17 @@ from dotenv import load_dotenv
 load_dotenv(env_path)
 
 from flask import current_app as app
+
 from .filters import filters_bp
 
 app.register_blueprint(filters_bp)
 
+# Services live in their own separate path
+from cryptoadvance.specter.services.controller import services_endpoint
+
+from ..rpc import RpcError
+
 # Setup specter endpoints
-from .welcome import welcome_endpoint
 from .auth import auth_endpoint
 from .devices import devices_endpoint
 from .nodes import nodes_endpoint
@@ -28,10 +42,7 @@ from .settings import settings_endpoint
 from .setup import setup_endpoint
 from .wallets import wallets_endpoint
 from .wallets_api import wallets_endpoint_api
-from ..rpc import RpcError
-
-# Services live in their own separate path
-from cryptoadvance.specter.services.controller import services_endpoint
+from .welcome import welcome_endpoint
 
 spc_prefix = app.config["SPECTER_URL_PREFIX"]
 app.register_blueprint(welcome_endpoint, url_prefix=f"{spc_prefix}/welcome")
@@ -46,6 +57,7 @@ app.register_blueprint(wallets_endpoint, url_prefix=f"{spc_prefix}/wallets")
 app.register_blueprint(wallets_endpoint_api, url_prefix=f"{spc_prefix}/wallets")
 
 rand = random.randint(0, 1e32)  # to force style refresh
+logger = logging.getLogger(__name__)
 
 ########## exception handlers ##############
 @app.errorhandler(RpcError)
@@ -91,14 +103,21 @@ def server_notFound_error(e):
 @app.errorhandler(Exception)
 def server_error(e):
     """Unspecific Exceptions get a 500 Error-Page"""
-    # if rpc is not available
-    if app.specter.rpc is None or not app.specter.rpc.test_connection():
-        # make sure specter knows that rpc is not there
-        app.specter.check()
     app.logger.error("Uncaught exception: %s" % e)
     trace = traceback.format_exc()
     app.logger.error(trace)
     return render_template("500.jinja", error=e, traceback=trace), 500
+
+
+@app.errorhandler(BrokenCoreConnectionException)
+def server_broken_core_connection(e):
+    logger.exception(e)
+    flash("You got disconnected from your node (no RPC connection)", "error")
+    try:
+        app.specter.check()
+        return redirect(url_for("welcome_endpoint.about"))
+    except Exception as e:
+        return server_error(e)
 
 
 @app.errorhandler(ExtProcTimeoutException)

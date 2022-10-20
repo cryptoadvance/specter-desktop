@@ -1,5 +1,36 @@
 # Release Notes
 
+## v1.13.1 October 17, 2022
+- Bugfix: Hover effect in balance display #1904 (Manolis Mandrapilias)
+- Bugfix: Remove black empty bar in tx-table after search #1912 (relativisticelectron)
+- Bugfix: upgrade hwi to 2.1.1 to fix #1840 #1909 (k9ert)
+- Chore: macos release-script fixes #1897 (Manolis Mandrapilias)
+- Chore: More precise grep in Cypress bash script #1911 (Manolis Mandrapilias)
+- Chore: Update icon used in Electron app #1903 (d11n)
+- Privacy: Disabeling spellcheck to avoid any leakage to 3rd party servers #1892 (relativisticelectron)
+- UIUX: Clearer unconfirmed transaction icons #1899 (relativisticelectron)
+
+## v1.13.0 September 22, 2022
+- Feature: Improve Dev-Console #1850 (k9ert)
+- Feature: Menu extensions can extend menus #1648 (k9ert)
+- UIUX: Adding "Open Bitcoin app" verbiage to Ledger Upload Keys page #1868 (wombat6)
+- UIUX: Better balance display #1841 (relativisticelectron)
+- UIUX: Do not hide elements by default #1854 (relativisticelectron)
+- UIUX: Individual HWI progess for Ledger devices #1864 (Manolis Mandrapilias)
+- Mobile: Better width settings #1828 (relativisticelectron)
+- Mobile: Optimisation of tx-table #1852 (Manolis Mandrapilias)
+- Bugfix: Add non-witness-utxos and xpubs when using hwi with ledger #1888 (Salvatore Ingala)
+- Bugfix: Escaped HTML in messages and errors #1890 (relativisticelectron)
+- Bugfix: HTML escaped on Cobo and Coldcard Upload Keys page #1871 (wombat6)
+- Bugfix: Missing values in tx details #1862 (relativisticelectron)
+- Bugfix: during loading: KeyError: 'blocks' #1859 (relativisticelectron)
+- Chore: Delete endpoint controller test #1872 (Manolis Mandrapilias)
+- Chore: Dynamic fee rate optimisations & Cypress tests #1878 (Manolis Mandrapilias)
+- Chore: Reworked extension list #1895 (k9ert)
+- Chore: Upgrade to python 3.10 #1688 (relativisticelectron)
+- Chore: Use Python 3.9 for black in pre-commit-config #1894 (Manolis Mandrapilias)
+- Chore: redirect flash call #1883 (k9ert)
+
 ## v1.12.0 August 26, 2022
 - Feature: add faucet and exfund extensions #1820 (Stepan Snigirev)
 - Feature: Dev tools - Adding full python access via javascript for developers #1842 (relativisticelectron)
@@ -19,11 +50,11 @@
 - Docs: some doc fixes, refactorings and ext clarification #1789 (k9ert)
 - Docs: Supported Python versions #1847 (Willie Wheeler)
 
-## v1.10.5 Juli 21, 2022
+## v1.10.5 July 21, 2022
 - Bugfix: startup issues for MacOS App 1815 #1816 (relativisticelectron)
 - Feature: generate app_config.py in extgen #1801 (k9ert)
 
-## v1.10.4 Juli 19, 2022
+## v1.10.4 July 19, 2022
 - Bugfix: Better error-management for run the numbers #1790 (k9ert)
 - Bugfix: Consecutively uploading same file twice #1776 (relativisticelectron)
 - Bugfix: Fix the messed up translated html #1810 (relativisticelectron)

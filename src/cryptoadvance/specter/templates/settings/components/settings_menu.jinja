@@ -5,12 +5,20 @@
     Parameters:
     - active_menuitem: Current active tab. Options: 'general', 'bitcoin_core', 'auth'.
     - current_user: The current user.
+    - ext_settingstabs: Dictionary gathered by execute_ext_callbacks() in the service manager. Looks like this:
+    	{'rubberduck': [{'title': 'Special rubberduck settings', 'endpoint': 'special_rubberduck_settings'}]}
  #}
-{% macro settings_menu(active_menuitem, current_user) -%}
+{% macro settings_menu(active_menuitem, current_user, ext_settingstabs={}) -%}
+
 	<nav class="row collapse-on-mobile">
 		{{ settings_menu_item('general', _('General'), active_menuitem, isLeft=true) }}
 		{{ settings_menu_item('auth', _('Authentication'), active_menuitem, isRight=false) }}
 		{{ settings_menu_item('hwi', _('USB Devices'), active_menuitem, isRight=(not current_user.is_admin)) }}
+		{% for ext_id, settingstabs in ext_settingstabs.items() %}
+			{% for settingstab in settingstabs %}
+				{{ settings_menu_item(settingstab["endpoint"], _(settingstab["title"]), active_menuitem, isRight=false, blueprint=ext_id+"_endpoint") }}
+			{% endfor %}
+		{% endfor %}
 		{% if current_user.is_admin %}
 			{{ settings_menu_item('tor', 'Tor', active_menuitem, isRight=true) }}
 		{% endif %}

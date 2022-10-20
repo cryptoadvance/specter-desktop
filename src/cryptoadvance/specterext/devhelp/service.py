@@ -21,6 +21,7 @@ class DevhelpService(Service):
     desc = "Wrenches at work."
     has_blueprint = True
     blueprint_module = "cryptoadvance.specterext.devhelp.controller"
+    devices = ["cryptoadvance.specterext.devhelp.devices.devhelpdevice"]
     devstatus = devstatus_alpha
     console = Console()
     console.updateNamespace(

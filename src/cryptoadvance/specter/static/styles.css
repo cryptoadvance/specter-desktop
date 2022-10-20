@@ -498,6 +498,10 @@ input:hover{
     border-radius: 4px;
     padding: 40px;
 }
+.auto-width{
+    width: auto;
+    margin: 40px;
+}
 .spacer{
     height: 50px;
     min-height: 50px;
@@ -598,7 +602,6 @@ textarea{
     cursor: pointer;
 }
 .card .note{
-    width: 100%;
     margin-bottom: 10px;
 }
 /*.btn.btn-inline{
@@ -749,10 +752,6 @@ th{
     text-align: left;
     font-weight: inherit;
     border-bottom: 3px solid var(--cmap-bg-lightest);
-}
-tbody tr:not(.nohover):hover{
-    background: rgba(255,255,255,0.03);
-    color: #fff;
 }
 .xpub{
     max-width: 300px;
@@ -1103,6 +1102,9 @@ This style is used for a div at the bottom in the <main> element to create a dis
   }
 }
 @media (max-width: 690px){
+    .main-page-container{
+        max-width: 90%;
+      }
     .table-holder{
         padding-left: 10px;
         padding-right: 10px;
@@ -1110,7 +1112,14 @@ This style is used for a div at the bottom in the <main> element to create a dis
     .card{
         border-width: 0px;
         width: auto;
+        padding: 10px;
     }
+    .auto-width{
+        margin: 0px;
+    }
+    .table-holder{
+        padding: 0 10px;
+    }    
     nav.row{
         padding-left: 0;
         padding-right: 0;
@@ -1313,4 +1322,32 @@ input:checked + .slider:before {
     cursor: default; 
     padding-left: 6px;
     padding-right: 6px;
+}
+
+/************** Styles for formatting btc amounts ********************************/
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.transparent-text {
+    opacity: 0;
+}
+.thousand-digits-in-btc-amount{
+    color: #919191;
+    padding-left: 2px;
+}
+.last-digits-in-btc-amount{
+    color: #797979;
+    padding-left: 2px;
+}
+.thousand-digits-in-sats-amount{
+    color: #919191;
+}
+.last-digits-in-sats-amount{
+    color: #797979;
 }
