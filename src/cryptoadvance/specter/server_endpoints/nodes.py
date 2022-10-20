@@ -34,7 +34,16 @@ nodes_endpoint = Blueprint("nodes_endpoint", __name__)
 def node_settings(node_alias):
     if node_alias:
         try:
-            node = app.specter.node_manager.get_by_alias(node_alias)
+            node: Node = app.specter.node_manager.get_by_alias(node_alias)
+            if not node.is_core_object:
+                return redirect(
+                    url_for(
+                        # This is a convention which should be documented
+                        # Maybe we should do that differently
+                        f"{node.blueprint}.node_settings",
+                        node_alias=node.alias,
+                    )
+                )
             if not node.external_node:
                 return redirect(
                     url_for(
@@ -42,7 +51,8 @@ def node_settings(node_alias):
                         node_alias=node.alias,
                     )
                 )
-        except:
+        except Exception as e:
+            logger.exception(e)
             return render_template(
                 "base.jinja", error=_("Node not found"), specter=app.specter, rand=rand
             )

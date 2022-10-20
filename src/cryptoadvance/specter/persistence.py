@@ -73,7 +73,7 @@ class BusinessObject:
         if self.is_core_object:
             return ""
         else:
-            return f"{self.ext_id}_endpoints"
+            return f"{self.ext_id}_endpoint"
 
     @classmethod
     def from_json(cls, a_dict, *args, **kwargs):
