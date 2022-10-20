@@ -91,8 +91,8 @@ class User(UserMixin):
         self.is_admin = is_admin
         self.uid = specter.config["uid"]
         self.specter = specter
-        self.wallet_manager = None
-        self.device_manager = None
+        self._wallet_manager = None
+        self._device_manager = None
         self.manager = None
         self._services = services
 
@@ -263,10 +263,22 @@ class User(UserMixin):
         self.check_device_manager()
         self.check_wallet_manager()
 
+    @property
+    def wallet_manager(self):
+        if self._wallet_manager is None:
+            self.check_wallet_manager()
+        return self._wallet_manager
+
+    @property
+    def device_manager(self):
+        if self._device_manager is None:
+            self.check_device_manager()
+        return self._device_manager
+
     def check_wallet_manager(self):
         """Updates wallet manager for this user"""
         # if chain, user or data folder changed
-        wallet_manager = self.wallet_manager
+        wallet_manager = self._wallet_manager
         wallets_rpcpath = "specter%s" % self.uid
         wallets_folder = os.path.join(
             self.specter.data_folder, f"wallets{self.folder_id}"
@@ -286,7 +298,7 @@ class User(UserMixin):
                 self.device_manager,
                 path=wallets_rpcpath,
             )
-            self.wallet_manager = wallet_manager
+            self._wallet_manager = wallet_manager
         else:
             wallet_manager.update(
                 wallets_folder, self.specter.rpc, chain=self.specter.chain
@@ -297,10 +309,10 @@ class User(UserMixin):
         devices_folder = os.path.join(
             self.specter.data_folder, f"devices{self.folder_id}"
         )
-        if self.device_manager is None:
-            self.device_manager = DeviceManager(devices_folder)
+        if self._device_manager is None:
+            self._device_manager = DeviceManager(devices_folder)
         else:
-            self.device_manager.update(data_folder=devices_folder)
+            self._device_manager.update(data_folder=devices_folder)
 
     # TODO: Refactor this into UserManager
     def save_info(self, delete=False):

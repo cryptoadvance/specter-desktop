@@ -15,6 +15,8 @@ from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from cryptoadvance.specter.user import User
 from fix_devices_and_wallets import create_hot_wallet_with_ID
 
+logger = logging.getLogger(__name__)
+
 
 def almost_equal(a: Number, b: Number, precision: float = 0.01) -> bool:
     """
@@ -41,7 +43,9 @@ def test_rr_psbt_get(client, specter_regtest_configured, bitcoin_regtest, caplog
     # Wrong token
     headers = {"Authorization": "Bearer " + "sometoken"}
     result = client.get(
-        "/api/v1alpha/wallets/simple/psbt", follow_redirects=True, headers=headers
+        "/api/v1alpha/wallets/a_simple_wallet/psbt",
+        follow_redirects=True,
+        headers=headers,
     )
     assert result.status_code == 401
     assert json.loads(result.data)["message"].startswith(
@@ -56,11 +60,15 @@ def test_rr_psbt_get(client, specter_regtest_configured, bitcoin_regtest, caplog
         )
     }
     result = client.get(
-        "/api/v1alpha/wallets/simple/psbt", follow_redirects=True, headers=headers
+        "/api/v1alpha/wallets/a_simple_wallet/psbt",
+        follow_redirects=True,
+        headers=headers,
     )
     assert result.status_code == 403
-    print(result.data)
-    assert json.loads(result.data)["message"].startswith("Wallet simple does not exist")
+    assert (
+        json.loads(result.data)["message"]
+        == "The wallet does not belong to the user in the request."
+    )
 
     # Proper authorized (the wallet is owned by someuser)
     headers = {
