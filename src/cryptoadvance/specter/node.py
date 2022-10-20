@@ -44,30 +44,39 @@ class AbstractNode(BusinessObject):
         * plus uptime
         * plus other stuff
         We only implement a bare minimum here. See the Node-Impl for more
-        """
-        res = [
-            r["result"]
-            for r in self.rpc.multi(
-                [
-                    ("getblockchaininfo", None),
-                    ("getnetworkinfo", None),
-                    ("getmempoolinfo", None),
-                    ("uptime", None),
-                    ("getblockhash", 0),
-                    ("scantxoutset", "status", []),
-                ]
-            )
-        ]
-        info = res[0]
-        info["mempool_info"] = res[2]
-        info["uptime"] = res[3]
 
-        return info
+        This method is exception-safe and returns an empty dict if the connection is broken
+        """
+        try:
+            res = [
+                r["result"]
+                for r in self.rpc.multi(
+                    [
+                        ("getblockchaininfo", None),
+                        ("getnetworkinfo", None),
+                        ("getmempoolinfo", None),
+                        ("uptime", None),
+                        ("getblockhash", 0),
+                        ("scantxoutset", "status", []),
+                    ]
+                )
+            ]
+            info = res[0]
+            info["mempool_info"] = res[2]
+            info["uptime"] = res[3]
+            return info
+        except BrokenCoreConnectionException:
+            return {}
 
     @property
     def network_info(self):
-        """https://developer.bitcoin.org/reference/rpc/getnetworkinfo.html"""
-        return self.rpc.getnetworkinfo()
+        """https://developer.bitcoin.org/reference/rpc/getnetworkinfo.html
+        returns an almost empty dict if Broken Connection
+        """
+        try:
+            return self.rpc.getnetworkinfo()
+        except BrokenCoreConnectionException:
+            return {"subversion": "", "version": 999999}
 
     @property
     def uptime(self):
@@ -81,11 +90,19 @@ class AbstractNode(BusinessObject):
         """current network name (main, test, regtest)
         might have more values in elements/liquid
         """
-        return self.info["chain"]
+        try:
+            return self.info.get("chain")
+        except BrokenCoreConnectionException:
+            # This is the most important part to signal that the node-connection is broken without throwin an Exception
+            return None
 
     @property
     def bitcoin_core_version_raw(self):
-        return self.rpc.getnetworkinfo()["version"]
+        try:
+            return self.rpc.getnetworkinfo()["version"]
+        except BrokenCoreConnectionException:
+            # This is the most important part to signal that the node-connection is broken without throwin an Exception
+            return 99999
 
     # ... and more derived properties which already calculate stuff based on those information
 

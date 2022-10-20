@@ -68,10 +68,6 @@ class WalletManager:
         The _update internal method will resync the internal status with Bitcoin Core
         use_threading : for the _update method which is heavily communicating with Bitcoin Core
         """
-        if (chain is None and rpc is not None) or (chain is not None and rpc is None):
-            raise SpecterInternalException(
-                f"Chain ({chain}) and rpc ({rpc}) can only be changed with one another"
-            )
         if self.is_loading:
             return
         self.is_loading = True
@@ -95,7 +91,8 @@ class WalletManager:
         # {'Specter': {'name': 'Specter', 'alias': 'pacman', ... }, 'another_wallet': { ... } }
         # It contains the same data as the JSON on disk
         wallets_update_list = {}
-        if self.working_folder is not None and self.rpc is not None:
+
+        if self.working_folder is not None:
             wallets_files = load_jsons(self.working_folder, key="name")
             for wallet in wallets_files:
                 wallet_name = wallets_files[wallet]["name"]
@@ -106,6 +103,11 @@ class WalletManager:
                 wallets_update_list[wallet_name]["keys_count"] = len(
                     wallets_files[wallet]["keys"]
                 )
+        if (
+            self.working_folder is not None
+            and self.rpc is not None
+            and self.chain is not None
+        ):
             if self.allow_threading and use_threading:
                 t = threading.Thread(
                     target=self._update,

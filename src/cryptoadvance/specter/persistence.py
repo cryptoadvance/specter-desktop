@@ -15,7 +15,7 @@ from flask import current_app as app
 
 from cryptoadvance.specter.util.reflection import get_class
 
-from .specter_error import SpecterError
+from .specter_error import SpecterError, SpecterInternalException
 from .services.callbacks import specter_persistence_callback
 from .util.shell import run_shell
 
@@ -78,7 +78,11 @@ class BusinessObject:
     @classmethod
     def from_json(cls, a_dict, *args, **kwargs):
         """Creates a BusinessObject of the right class"""
-        clazz = get_class(a_dict["python_class"])
+        try:
+            clazz = get_class(a_dict["python_class"])
+        except KeyError:
+            raise SpecterInternalException("dict does not have a python_class")
+
         return clazz.from_json(a_dict, *args, **kwargs)
 
 

@@ -5,7 +5,7 @@ import secrets
 import shutil
 
 from ..rpc import get_default_datadir, RPC_PORTS
-from ..specter_error import SpecterError
+from ..specter_error import SpecterError, SpecterInternalException
 from ..persistence import BusinessObject, write_node, delete_file
 from ..helpers import alias, calc_fullpath, load_jsons
 from ..node import Node
@@ -53,12 +53,19 @@ class NodeManager:
                 os.mkdir(data_folder)
         nodes_files = load_jsons(self.data_folder, key="name")
         for node_alias in nodes_files:
-            self.nodes[nodes_files[node_alias]["name"]] = BusinessObject.from_json(
-                nodes_files[node_alias],
-                self,
-                default_alias=node_alias,
-                default_fullpath=calc_fullpath(self.data_folder, node_alias),
-            )
+            try:
+                self.nodes[nodes_files[node_alias]["name"]] = BusinessObject.from_json(
+                    nodes_files[node_alias],
+                    self,
+                    default_alias=node_alias,
+                    default_fullpath=calc_fullpath(self.data_folder, node_alias),
+                )
+            except SpecterInternalException as sie:
+                assert str("dict does not have a python_class")
+                logger.error(
+                    f"Definition for node {node_alias} does not contain a python_class. Skipping !"
+                )
+
         if not self.nodes:
             if os.environ.get("ELM_RPC_USER"):
                 self.add_external_node(

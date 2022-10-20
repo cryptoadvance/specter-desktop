@@ -138,10 +138,6 @@ def test_WalletManager_2_nodes(
     wm.update(chain="regtest2", rpc=bitcoin_regtest2.get_rpc(), use_threading=True)
     assert wm.wallets_names == ["a_test_wallet"]
 
-    with pytest.raises(Exception, match="can only be changed with one another") as e:
-        wm.update(chain="regtest3")
-    with pytest.raises(Exception, match="can only be changed with one another") as e:
-        wm.update(rpc=bitcoin_regtest2.get_rpc())
     # assert False
 
 
