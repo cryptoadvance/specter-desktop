@@ -14,7 +14,11 @@ from flask_login import login_required, current_user
 from flask import current_app as app
 from ..rpc import get_default_datadir
 from ..node import Node
-from ..specter_error import ExtProcTimeoutException, BrokenCoreConnectionException
+from ..specter_error import (
+    ExtProcTimeoutException,
+    BrokenCoreConnectionException,
+    SpecterError,
+)
 from ..util.shell import get_last_lines_from_file
 from ..server_endpoints import flash
 
@@ -51,8 +55,8 @@ def node_settings(node_alias):
                         node_alias=node.alias,
                     )
                 )
-        except Exception as e:
-            logger.exception(e)
+        except SpecterError as se:
+            assert str(se).endswith("does not exist!")
             return render_template(
                 "base.jinja", error=_("Node not found"), specter=app.specter, rand=rand
             )
