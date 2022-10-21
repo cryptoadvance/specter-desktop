@@ -33,15 +33,16 @@ class DevhelpService(Service):
     # ServiceEncryptedStorage field names for Swan
     SPECTER_WALLET_ALIAS = "wallet"
 
-    def get_associated_wallet(self) -> Wallet:
+    @classmethod
+    def get_associated_wallet(cls) -> Wallet:
         """Get the Specter `Wallet` that is currently associated with this service"""
-        service_data = self.get_current_user_service_data()
-        if not service_data or self.SPECTER_WALLET_ALIAS not in service_data:
+        service_data = cls.get_current_user_service_data()
+        if not service_data or cls.SPECTER_WALLET_ALIAS not in service_data:
             # Service is not initialized; nothing to do
             return
         try:
             return app.specter.wallet_manager.get_by_alias(
-                service_data[self.SPECTER_WALLET_ALIAS]
+                service_data[cls.SPECTER_WALLET_ALIAS]
             )
         except SpecterError as e:
             logger.debug(e)
@@ -49,9 +50,11 @@ class DevhelpService(Service):
             # TODO: keep ignoring or remove the unknown wallet from service_data?
             return
 
-    def set_associated_wallet(self, wallet: Wallet):
+    @classmethod
+    def set_associated_wallet(cls, wallet: Wallet):
         """Set the Specter `Wallet` that is currently associated with Swan auto-withdrawals"""
-        self.update_current_user_service_data({self.SPECTER_WALLET_ALIAS: wallet.alias})
+        cls.update_current_user_service_data({cls.SPECTER_WALLET_ALIAS: wallet.alias})
 
-    def inject_in_basejinja_body_top(self):
+    @classmethod
+    def inject_in_basejinja_body_top(cls):
         return render_template("devhelp/html_inject_in_basejinja.jinja")

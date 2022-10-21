@@ -65,13 +65,10 @@ class ServiceManager:
                 logger.info(f"Loading Service {clazz.__name__} from {clazz.__module__}")
                 # First configure the service
                 self.configure_service_for_module(clazz)
-                # Now activate it / creates the only instance
+                # Now activate it
                 self._services[clazz.id] = clazz(
                     active=clazz.id in self.specter.config.get("services", []),
                     specter=self.specter,
-                    storage_manager=self.specter.service_encrypted_storage_manager
-                    if clazz.encrypt_data
-                    else self.specter.service_unencrypted_storage_manager,
                 )
                 self.specter.ext[clazz.id] = self._services[clazz.id]
                 # maybe register the blueprint
