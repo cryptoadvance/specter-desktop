@@ -9,7 +9,7 @@
     {{ _('Welcome to Specter Desktop') }} 
 </h1>
 {% if ('://localhost:' not in url_for('index', _external=True) and '://127.0.0.1:' not in url_for('index', _external=True)) and specter.hwi_bridge_url != "http://127.0.0.1:25441/hwi/api/" %}
-    {% include "welcome/components/specter_remote.jinja" %}
+    {% include welcome_vm.specter_remote_include %}
 {% endif %}
 <div style="display: flex; justify-content: center; align-items: center;">
     <div class="main-description-box">
@@ -19,10 +19,10 @@
     </div>
 </div>
 {% if not specter.chain %}
-    {% include "welcome/components/get_started.jinja" %}
+    {% include welcome_vm.get_started_include %}
 {% else %}
-    {% include "welcome/components/tick_checkboxes.jinja" %}
+    {% include welcome_vm.tick_checkboxes_include %}
 {% endif %}
-{% include "welcome/components/remaining_remarks.jinja" %}
+{% include welcome_vm.remaining_remarks_include %}
 </div>
 {% endblock %}

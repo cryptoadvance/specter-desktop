@@ -294,7 +294,7 @@ class ServiceManager:
                 return_values[ext.id] = ext.callback(callback_id, *args, **kwargs)
         # Filtering out all None return values
         return_values = {k: v for k, v in return_values.items() if v is not None}
-        logger.debug(f"return_values for callback {callback_id} {return_values}")
+        # logger.debug(f"return_values for callback {callback_id} {return_values}")
         return return_values
 
     @property

@@ -8,9 +8,11 @@ from flask import make_response, redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import login_required
 
-from ..helpers import notify_upgrade
-from ..managers.wallet_manager import purposes
-from ..server_endpoints import flash
+from ...helpers import notify_upgrade
+from ...managers.wallet_manager import purposes
+from ...server_endpoints import flash
+from .welcome_vm import WelcomeVm
+from ...services.callbacks import adjust_view_model
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +48,22 @@ def index():
 @login_required
 def about():
     notify_upgrade(app, flash)
+    # The execute_ext_callbacks method is not really prepared for the things we're doing here.
+    # that's why we need so many lines for just expressing:
+    # "Here is a ViewModel, adjust it if you want"
+    # We need to change that method to enable "middleware"
+    welcome_vm_dict = app.specter.service_manager.execute_ext_callbacks(
+        adjust_view_model, WelcomeVm()
+    )
+    if len(welcome_vm_dict.values()) > 1:
+        raise logger.error("Seems that we have more than one Welcome Extension")
+    if len(welcome_vm_dict.values()) == 1:
+        welcome_vm = list(welcome_vm_dict.values())[0]
+    else:
+        welcome_vm = WelcomeVm()
+    if welcome_vm.about_redirect != None:
+        return redirect(welcome_vm.about_redirect)
+
     if request.method == "POST":
         action = request.form["action"]
         if action == "cancelsetup":
@@ -56,6 +74,7 @@ def about():
     return render_template(
         "welcome/welcome.jinja",
         specter=app.specter,
+        welcome_vm=welcome_vm,
         rand=rand,
         supported_languages=app.supported_languages,
     )

@@ -35,6 +35,12 @@ add_settingstabs = "add_settingstabs"
 """
 add_wallettabs = "add_wallettabs"
 
+""" Endpoints might define their behaviour via a ViewModel. Those Models are passed here and
+    extensions can modify that behaviour via Modifying that model. Currently there is only:
+    cryptoadvance.specter.server_enpoints.welcome.welcome_vm.WelcomeVm
+"""
+adjust_view_model = "adjust_view_model"
+
 """
     This one is called, whenever a file is persisted. To call external scripts in another
     process, you better use the SPECTER_PERSISTENCE_CALLBACK Env Var or it's asynchronous cousin
