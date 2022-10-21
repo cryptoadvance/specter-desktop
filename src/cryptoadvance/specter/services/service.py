@@ -40,7 +40,7 @@ class Service:
     devstatus = devstatus_alpha
     encrypt_data = False
 
-    def __init__(self, active, specter):
+    def __init__(self, active, specter, storage_manager):
         if not hasattr(self, "id"):
             raise Exception(f"Service {self.__class__} needs ID")
         if not hasattr(self, "name"):
@@ -48,56 +48,46 @@ class Service:
         self.active = active
         self.specter = specter
 
-    @classmethod
-    def _storage_manager(cls):
-        return (
-            app.specter.service_encrypted_storage_manager
-            if cls.encrypt_data
-            else app.specter.service_unencrypted_storage_manager
-        )
+        # ensure that an encrypted storage manager is passed
+        if self.encrypt_data:
+            assert isinstance(storage_manager, ServiceEncryptedStorageManager)
+        self.storage_manager = storage_manager
 
     def callback(self, callback_id, *argv, **kwargv):
         if callback_id == callbacks.after_serverpy_init_app:
             if hasattr(self, "callback_after_serverpy_init_app"):
                 self.callback_after_serverpy_init_app(kwargv["scheduler"])
 
-    @classmethod
-    def set_current_user_service_data(cls, service_data: dict):
-        cls._storage_manager().set_current_user_service_data(
-            service_id=cls.id, service_data=service_data
+    def set_current_user_service_data(self, service_data: dict):
+        self.storage_manager.set_current_user_service_data(
+            service_id=self.id, service_data=service_data
         )
 
-    @classmethod
-    def update_current_user_service_data(cls, service_data: dict):
-        cls._storage_manager().update_current_user_service_data(
-            service_id=cls.id, service_data=service_data
+    def update_current_user_service_data(self, service_data: dict):
+        self._storage_manager().update_current_user_service_data(
+            service_id=self.id, service_data=service_data
         )
 
-    @classmethod
-    def get_current_user_service_data(cls) -> dict:
-        return cls._storage_manager().get_current_user_service_data(service_id=cls.id)
+    def get_current_user_service_data(self) -> dict:
+        return self._storage_manager().get_current_user_service_data(service_id=self.id)
 
-    @classmethod
-    def get_blueprint_name(cls):
-        return f"{cls.id}_endpoint"
+    def get_blueprint_name(self):
+        return f"{self.id}_endpoint"
 
-    @classmethod
     def default_address_label(cls):
         # Have to str() it; can't pass a LazyString to json serializer
-        return str(_("Reserved for {}").format(cls.name))
+        return str(_("Reserved for {}").format(self.name))
 
-    @classmethod
-    def reserve_address(cls, wallet: Wallet, address: str, label: str = None):
+    def reserve_address(self, wallet: Wallet, address: str, label: str = None):
         # Mark an Address in a persistent way as being reserved by a Service
         if not label:
-            label = cls.default_address_label()
+            label = self.default_address_label()
         wallet.associate_address_with_service(
-            address=address, service_id=cls.id, label=label
+            address=address, service_id=self.id, label=label
         )
 
-    @classmethod
     def reserve_addresses(
-        cls,
+        self,
         wallet: Wallet,
         label: str = None,
         num_addresses: int = 10,
@@ -116,14 +106,14 @@ class Service:
         # Track Service-related addresses in ServiceAnnotationsStorage
         if annotations:
             annotations_storage = ServiceAnnotationsStorage(
-                service_id=cls.id, wallet=wallet
+                service_id=self.id, wallet=wallet
             )
 
         # Start with the addresses that are already reserved but still unused
         addresses: List[str] = wallet.get_associated_addresses(
-            service_id=cls.id, unused_only=True
+            service_id=self.id, unused_only=True
         )
-        logger.debug(f"Already have {len(addresses)} addresses reserved for {cls.id}")
+        logger.debug(f"Already have {len(addresses)} addresses reserved for {self.id}")
 
         if len(addresses) < num_addresses:
             if addresses:
@@ -145,8 +135,8 @@ class Service:
                     continue
 
                 # Mark an Address in a persistent way as being reserved by a Service
-                cls.reserve_address(wallet=wallet, address=address)
-                logger.debug(f"Reserved {address} for {cls.id}")
+                self.reserve_address(wallet=wallet, address=address)
+                logger.debug(f"Reserved {address} for {self.id}")
 
                 addresses.append(address)
 
@@ -159,16 +149,15 @@ class Service:
 
         return addresses
 
-    @classmethod
-    def unreserve_addresses(cls, wallet: Wallet):
+    def unreserve_addresses(self, wallet: Wallet):
         """
         Clear out Services-related data from any unused Addresses, but leave already-used
         Addresses as-is.
         """
         annotations_storage = ServiceAnnotationsStorage(
-            service_id=cls.id, wallet=wallet
+            service_id=self.id, wallet=wallet
         )
-        addrs = wallet.get_associated_addresses(service_id=cls.id, unused_only=True)
+        addrs = wallet.get_associated_addresses(service_id=self.id, unused_only=True)
         for addr_obj in addrs:
             wallet.deassociate_address(addr_obj["address"])
             annotations_storage.remove_addr_annotations(
@@ -182,7 +171,6 @@ class Service:
     # def set_active(self, value):
     #     self.active = value
 
-    @classmethod
     def update(self):
         """
         Called by backend periodic process to keep Service in sync with any remote
@@ -194,11 +182,9 @@ class Service:
                                     Update hooks
     *********************************************************************** """
 
-    @classmethod
     def on_user_login(cls):
         pass
 
-    @classmethod
     def inject_in_basejinja_head(cls):
         """overwrite this method to inject a snippet of code in specter's base.jinja
         the snippet will be placed at the end of the head-section
@@ -207,7 +193,6 @@ class Service:
         """
         pass
 
-    @classmethod
     def inject_in_basejinja_body_top(cls):
         """overwrite this method to inject a snippet of code in specter's base.jinja
         the snippet will be placed at the top of the body-section
@@ -216,7 +201,6 @@ class Service:
         """
         pass
 
-    @classmethod
     def inject_in_basejinja_body_bottom(cls):
         """overwrite this method to inject a snippet of code in specter's base.jinja
         the snippet will be placed at the top of the body-section
