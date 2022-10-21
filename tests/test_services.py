@@ -171,6 +171,7 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
     )
 
     storage_manager = app_no_node.specter.service_encrypted_storage_manager
+    storage_manager.storage_by_user = {}
 
     # Need a simulated request context to enable `current_user` lookup
     with app_no_node.test_request_context():
