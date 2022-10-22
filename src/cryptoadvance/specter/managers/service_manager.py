@@ -17,16 +17,20 @@ from flask import current_app as app
 from flask import url_for
 from flask.blueprints import Blueprint
 
-from ...services.service import Service
-from ...services import callbacks, ExtensionException
-from ...util.reflection import (
+from ..services.service import Service
+from ..services import callbacks, ExtensionException
+from ..services.service_encrypted_storage import (
+    ServiceEncryptedStorageManager,
+    ServiceUnencryptedStorageManager,
+)
+from ..util.reflection import (
     _get_module_from_class,
     get_classlist_of_type_clazz_from_modulelist,
     get_package_dir_for_subclasses_of,
     get_subclasses_for_clazz,
     get_subclasses_for_clazz_in_cwd,
 )
-from ...util.reflection_fs import search_dirs_in_path
+from ..util.reflection_fs import search_dirs_in_path
 
 logger = logging.getLogger(__name__)
 
@@ -309,8 +313,9 @@ class ExtensionManager:
         This check works even if the user doesn't have their plaintext_user_secret
         available."""
         encrypted_data = (
-            self.specter.service_encrypted_storage_manager.get_raw_encrypted_data(user)
+            app.specter.service_encrypted_storage_manager.get_raw_encrypted_data(user)
         )
+        print(f"encrypted_data: {encrypted_data} for {user}")
         return encrypted_data != {}
 
     def set_active_services(self, service_names_active):

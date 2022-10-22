@@ -5,7 +5,7 @@ from pathlib import Path
 from cryptoadvance.specter.hwi_rpc import HWIBridge
 
 from cryptoadvance.specter.liquid.rpc import LiquidRPC
-from cryptoadvance.specter.managers.service_manager import ServiceManager
+from cryptoadvance.specter.managers.service_manager import ExtensionManager
 from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.services import callbacks
 from cryptoadvance.specter.util.reflection import get_template_static_folder
@@ -147,8 +147,8 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     # HWI
     specter.hwi = HWIBridge()
 
-    # ServiceManager will instantiate and register blueprints for extensions
-    specter.service_manager = ServiceManager(
+    # ExtensionManager will instantiate and register blueprints for extensions
+    specter.service_manager = ExtensionManager(
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )
 

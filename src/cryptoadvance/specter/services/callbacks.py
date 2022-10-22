@@ -1,7 +1,7 @@
 """ Here we have some constants getting an id for extension-points/callbacks. As camelcase
     is used, we don't use CAPITAL letters to not loose the meaning of the camelcase.
     
-    These constants are expected as parameter to the ServiceManager.callback function
+    These constants are expected as parameter to the ExtensionManager.callback function
     and it'll throw an exception if the constant does not exist.
 
     There are some weak naming conventions:
@@ -14,7 +14,7 @@
 """
     I don't know why we have this one. Doesn't seem to be used anywhere.    
 """
-afterServiceManagerInit = "afterServiceManagerInit"
+afterExtensionManagerInit = "afterExtensionManagerInit"
 
 """
     This one is called, after the init_app method has finished. The "run" method has not 
@@ -34,6 +34,12 @@ add_settingstabs = "add_settingstabs"
     Check the extension-docs for a comprehensive example.
 """
 add_wallettabs = "add_wallettabs"
+
+""" Endpoints might define their behaviour via a ViewModel. Those Models are passed here and
+    extensions can modify that behaviour via Modifying that model. Currently there is only:
+    cryptoadvance.specter.server_enpoints.welcome.welcome_vm.WelcomeVm
+"""
+adjust_view_model = "adjust_view_model"
 
 """
     This one is called, whenever a file is persisted. To call external scripts in another

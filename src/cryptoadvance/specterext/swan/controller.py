@@ -15,8 +15,8 @@ from flask.json import jsonify
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 
-from ...server_endpoints import flash
-from ..controller import user_secret_decrypted_required
+from cryptoadvance.specter.server_endpoints import flash
+from cryptoadvance.specter.services.controller import user_secret_decrypted_required
 from . import client as swan_client
 from .client import SwanApiException
 from .service import SwanService
