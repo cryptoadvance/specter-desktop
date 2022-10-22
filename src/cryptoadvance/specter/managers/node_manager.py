@@ -61,9 +61,13 @@ class NodeManager:
                     default_fullpath=calc_fullpath(self.data_folder, node_alias),
                 )
             except SpecterInternalException as sie:
-                assert str("dict does not have a python_class")
+                assert str(sie) == "dict does not have a python_class"
                 logger.error(
                     f"Definition for node {node_alias} does not contain a python_class. Skipping !"
+                )
+            except ModuleNotFoundError as mnfe:
+                logger.error(
+                    f"python_class for module could not be found: {mnfe}. Probably an extension is missing."
                 )
 
         if not self.nodes:
