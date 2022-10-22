@@ -38,7 +38,12 @@ from .managers.wallet_manager import WalletManager
 from .node import Node
 from .persistence import read_json_file, write_json_file, write_node
 from .process_controller.bitcoind_controller import BitcoindPlainController
-from .rpc import BitcoinRPC, RpcError, get_default_datadir
+from .rpc import (
+    BitcoinRPC,
+    RpcError,
+    get_default_datadir,
+)
+from .managers.service_manager import ExtensionManager
 from .services.service import devstatus_alpha, devstatus_beta, devstatus_prod
 from .services import callbacks
 from .specter_error import ExtProcTimeoutException, SpecterError

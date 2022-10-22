@@ -1,1 +1,1 @@
-from .service_manager import *
+from .service_manager import ExtensionManager

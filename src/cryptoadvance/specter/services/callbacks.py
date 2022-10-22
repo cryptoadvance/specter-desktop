@@ -1,7 +1,7 @@
 """ Here we have some constants getting an id for extension-points/callbacks. As camelcase
     is used, we don't use CAPITAL letters to not loose the meaning of the camelcase.
     
-    These constants are expected as parameter to the ServiceManager.callback function
+    These constants are expected as parameter to the ExtensionManager.callback function
     and it'll throw an exception if the constant does not exist.
 
     There are some weak naming conventions:
@@ -14,7 +14,7 @@
 """
     I don't know why we have this one. Doesn't seem to be used anywhere.    
 """
-afterServiceManagerInit = "afterServiceManagerInit"
+afterExtensionManagerInit = "afterExtensionManagerInit"
 
 """
     This one is called, after the init_app method has finished. The "run" method has not 
