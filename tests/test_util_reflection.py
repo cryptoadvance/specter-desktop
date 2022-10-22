@@ -15,11 +15,10 @@ from cryptoadvance.specter.util.reflection import (
 )
 from cryptoadvance.specter.util.specter_migrator import SpecterMigration
 from cryptoadvance.specter.util.migrations.migration_0000 import SpecterMigration_0000
-from cryptoadvance.specter.specter_error import SpecterInternalException
-from cryptoadvance.specter.managers.service_manager import Service
-from cryptoadvance.specter.services.swan.service import SwanService
-from cryptoadvance.specter.services.bitcoinreserve.service import BitcoinReserveService
-from cryptoadvance.specter.specter_error import SpecterInternalException
+from cryptoadvance.specter.services.service import Service
+from cryptoadvance.specterext.devhelp.service import DevhelpService
+from cryptoadvance.specterext.electrum.service import ElectrumService
+from cryptoadvance.specterext.swan.service import SwanService
 
 
 def test_get_module_from_class():
@@ -55,20 +54,18 @@ def test_get_package_dir_for_subclasses_of():
         "cryptoadvance/specter/util/migrations"
     )
     assert get_package_dir_for_subclasses_of(Service).endswith(
-        "cryptoadvance/specter/services"
+        "cryptoadvance/specterext"
     )
 
 
 def test_get_classlist_from_importlist(caplog):
     caplog.set_level(logging.DEBUG)
     modulelist = [
-        "cryptoadvance.specter.services.swan.service",
-        "cryptoadvance.specter.services.bitcoinreserve.service",
+        "cryptoadvance.specterext.swan.service",
     ]
     classlist = get_classlist_of_type_clazz_from_modulelist(Service, modulelist)
-    assert len(classlist) == 2  # Happy to remove that at some point
+    assert len(classlist) == 1  # Happy to remove that at some point
     assert SwanService in classlist
-    assert BitcoinReserveService in classlist
     classlist = get_classlist_of_type_clazz_from_modulelist(
         Device, ["cryptoadvance.specter.devices.bitbox02"]
     )
@@ -86,10 +83,11 @@ def test_get_subclasses_for_clazz_in_cwd(caplog):
 
 
 def test_get_subclasses_for_class(caplog):
-    caplog.set_level(logging.INFO)
+    caplog.set_level(logging.DEBUG)
     classlist = get_subclasses_for_clazz(SpecterMigration)
     assert SpecterMigration_0000 in classlist
     classlist = get_subclasses_for_clazz(Service)
-    assert len(classlist) == 2  # Happy to remove that at some point
+    assert len(classlist) == 3  # Happy to remove that at some point
     assert SwanService in classlist
-    assert BitcoinReserveService in classlist
+    assert ElectrumService in classlist
+    assert DevhelpService in classlist
