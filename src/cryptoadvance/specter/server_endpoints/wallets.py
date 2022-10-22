@@ -112,13 +112,15 @@ def failed_wallets():
 @login_required
 def new_wallet_type():
     err = None
-    if app.specter.chain is None:
-        err = _("Configure Bitcoin Core to create wallets")
-        return render_template("base.jinja", error=err, specter=app.specter, rand=rand)
+    if not app.specter.node.is_running:
+        flash(_("You need a node connection to create wallets."), "error")
+        return redirect(
+            url_for("nodes_endpoint.node_settings", node_alias=app.specter.node.alias)
+        )
     try:
         # Make sure wallet is enabled on Bitcoin Core
         app.specter.rpc.listwallets()
-    except Exception as e:
+    except RpcError as e:
         handle_exception(e)
         # Hmm, would be better to be more precise with this exception. Best assumption:
         err = _(

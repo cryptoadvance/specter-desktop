@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 class BitcoinCore(Device):
     device_type = DeviceTypes.BITCOINCORE
     name = "Bitcoin Core (hot wallet)"
-    icon = "bitcoincore_icon.svg"
+    icon = "img/devices/bitcoincore_icon.svg"
 
     hot_wallet = True
     taproot_support = True

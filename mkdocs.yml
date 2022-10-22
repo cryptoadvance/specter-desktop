@@ -27,7 +27,6 @@ nav:
       - build-instructions.md
       - 'Continuous Integration': continuous-integration.md
       - cypress-testing.md
-      - 'Extensions': extensions.md
       - 'Architectural Notes': architecture.md
       - 'Some Random Dev Thoughts': archblog.md
     - API:
@@ -38,6 +37,14 @@ nav:
       - api/ep_specter_fulltxlist.md
       - api/ep_wallets_psbt.md
       - api/ep_wallets_wallet.md
+    - Extension Development:
+      - extensions/intro.md
+      - extensions/frontend-aspects.md
+      - extensions/service-configuration.md
+      - extensions/data-storage.md
+      - extensions/callbacks.md
+      - extensions/devices.md
+    
 theme: 
   name: readthedocs
 markdown_extensions:

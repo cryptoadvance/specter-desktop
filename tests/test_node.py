@@ -45,7 +45,7 @@ def test_Node_btc(bitcoin_regtest):
             "external_node": True,  # 'fullpath': ''
         }
 
-        rpc = node.get_rpc()
+        rpc = node._get_rpc()
         assert rpc.getblockchaininfo()["chain"] == "regtest"
         node.rename("some_new_name")
         assert node.json["name"] == "some_new_name"
@@ -107,7 +107,7 @@ def test_Node_elm(elements_elreg):
             "external_node": True,  # 'fullpath': ''
         }
 
-        rpc = node.get_rpc()
+        rpc = node._get_rpc()
         assert rpc.getblockchaininfo()["chain"] == "elreg"
         node.rename("some_new_name")
         assert node.json["name"] == "some_new_name"

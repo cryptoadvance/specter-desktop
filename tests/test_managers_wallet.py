@@ -27,7 +27,6 @@ def test_WalletManager(
     devices_filled_data_folder,
     device_manager,
     bitcoin_regtest,
-    bitcoin_regtest2,
 ):
     wm = WalletManager(
         200100,
@@ -93,6 +92,7 @@ def test_WalletManager(
     wm.update()
 
 
+@pytest.mark.slow
 def test_WalletManager_2_nodes(
     docker,
     request,
