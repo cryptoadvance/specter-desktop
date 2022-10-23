@@ -9,8 +9,10 @@ class SeedSignerDevice(Device):
 
     sd_card_support = False
     qr_code_support = True
+    qr_code_support_verify = True
     qr_code_frame_rate = 2  # 500 ms per frame
     qr_code_animate = "on"
+    taproot_support = True
 
     def create_psbts(self, base64_psbt, wallet):
         # in QR codes keep only xpubs

@@ -92,7 +92,8 @@
 				<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">{{ _("Convert to hot wallet") }}</button>
 			{% endif %}
 		</form>
-		{% if device.hwi_support or device.device_type == "specter" %}
+
+		{% if device.hwi_support or device.device_type in ["specter", "seedsigner"] %}
 		<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">{{ _("Sign message") }}</button>
 		<div id="message-signing" class="hidden" style="text-align: left; max-width: 350px;">
 			{% if origin %}
@@ -107,7 +108,7 @@
 			{% if device.hwi_support %}
 				<button id="{{ device.alias }}_usb_sign_msg_btn" type="button" class="btn centered" onclick="signMessageOnDevice();">{{ _("Sign message via USB") }}</button>
 			{% endif %}
-			{% if device.device_type == "specter" %}
+			{% if device.device_type in ["specter", "seedsigner"] %}
 				{% include "includes/overlay/qr_code_sign_message.jinja" %}
             	<button id="{{ device.alias }}_qr_sign_msg_btn" class="btn centered" style="margin-top: 10px;">{{ _("Sign message via QR code") }}</button>
 			{% endif %}
@@ -204,7 +205,7 @@
 			} 
 
 			// Event listener for sign message via QR code-button 
-			{% if device.device_type == "specter" %}
+			{% if device.device_type in ["specter", "seedsigner"] %}
 			document.getElementById("{{ device.alias }}_qr_sign_msg_btn").addEventListener("click", e => {
                     e.preventDefault();
                     hidePageOverlay();
