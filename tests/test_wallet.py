@@ -1,50 +1,156 @@
+import pytest, logging
+
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.wallet import Wallet
+from cryptoadvance.specter.process_controller.bitcoind_controller import (
+    BitcoindPlainController,
+)
+from cryptoadvance.specter.specter_error import SpecterError
+
+logger = logging.getLogger(__name__)
 
 
-def test_check_utxo_and_amounts(
-    specter_regtest_configured: Specter, funded_hot_wallet_1: Wallet
+@pytest.mark.slow
+def test_createpsbt(
+    bitcoin_regtest: BitcoindPlainController,
+    funded_ghost_machine_wallet: Wallet,
+    funded_taproot_wallet: Wallet,
 ):
-    wl = funded_hot_wallet_1
+    wallet = funded_ghost_machine_wallet
+    wallet.address_index = 0
+    assert (
+        wallet.getnewaddress() == "bcrt1qgzmq6e3tn67kveryf2je6nd3nv4txef4sl8wre"
+    )  # Address #1
+    assert wallet.amount_total == 20
+    # Spending more coins than we have
+    random_address = "bcrt1q7mlxxdna2e2ufzgalgp5zhtnndl7qddlxjy5eg"  # Does not belong to the ghost machine wallet
+    with pytest.raises(
+        SpecterError,
+        match="Wallet ghost_machine does not have sufficient funds to make the transaction.",
+    ):
+        psbt = wallet.createpsbt(
+            [random_address],
+            [21],
+            True,
+            0,
+            1,
+        )
+    unspents = wallet.rpc.listunspent()
+    selected_coin = [{"txid": unspents[0]["txid"], "vout": unspents[0]["vout"]}]
+    # Spending it all
+    psbt = wallet.createpsbt(
+        [random_address],
+        [20],
+        True,
+        0,
+        1,
+        selected_coins=selected_coin,  # Selecting only one UTXO since input ordering seems to also be random in Core.
+    )
+    assert len(psbt["tx"]["vin"]) == 1
+    assert len(psbt["inputs"]) == 1
+
+    # Check the PSBT fields - inputs
+    # The first input seems to be last selected coin from selected_coins
+    assert (
+        psbt["inputs"][0]["bip32_derivs"][0]["pubkey"]
+        == "0330955ab511845fb48fc5739da551875ed54fa1f2fdd4cf77f3473ce2cffb4c75"
+    )
+    assert psbt["inputs"][0]["bip32_derivs"][0]["path"] == "m/84h/1h/0h/0/1"
+    assert psbt["inputs"][0]["bip32_derivs"][0]["master_fingerprint"] == "8c24a510"
+
+    # Check the PSBT fields - outputs
+    logger.info(f"the whole {psbt}")
+
+    logger.info(f"the outputs of the {psbt['outputs']}")
+    assert (
+        psbt["outputs"][0]["address"] == "bcrt1q7mlxxdna2e2ufzgalgp5zhtnndl7qddlxjy5eg"
+    )
+    assert psbt["outputs"][0]["change"] == False
+    # assert psbt["outputs"][0]["bip32_derivs"][0]["master_fingerprint"] == "1e9cf8a7"
+
+    # Check the fields of a PSBT created by a taproot wallet
+    # TODO: Could be moved to a dedicated test of taproot functionalites in the future
+    taproot_wallet = funded_taproot_wallet
+    assert taproot_wallet.is_taproot == True
+    address = taproot_wallet.getnewaddress()
+    # Taproot test addrs are bcrt1p
+    assert address.startswith("bcrt1p")
+    assert taproot_wallet.amount_total == 20
+    # Let's keep the random address so we a "mixed" set of outputs: segwit and taproot
+    psbt = taproot_wallet.createpsbt(
+        [random_address],
+        [3],
+        True,
+        0,
+        1,
+    )
+    logger.info(f"this is the taproot psbt: {psbt}")
+
+
+@pytest.mark.slow
+def test_check_utxo_and_amounts(funded_hot_wallet_1: Wallet):
+    wallet = funded_hot_wallet_1
     # Let's first prepare some locked txids
-    unspent_list_orig = wl.rpc.listunspent()  # to be able to ref in stable way
-    wl.check_utxo()
+    unspents = wallet.rpc.listunspent()  # to be able to ref in stable way
+    wallet.check_utxo()
     # 10 transactions + 2 unconfirmed
-    assert len(wl.full_utxo) == 12
+    assert len(wallet.full_utxo) == 12
     # none are locked
-    assert len([tx for tx in wl.full_utxo if tx["locked"]]) == 0
+    assert len([tx for tx in wallet.full_utxo if tx["locked"]]) == 0
     # Freeze 2 UTXO
     # ["txid:vout", "txid:vout"]
-    wl.toggle_freeze_utxo(
+    wallet.toggle_freeze_utxo(
         [
-            f"{unspent_list_orig[0]['txid']}:{unspent_list_orig[0]['vout']}",
-            f"{unspent_list_orig[1]['txid']}:{unspent_list_orig[1]['vout']}",
+            f"{unspents[0]['txid']}:{unspents[0]['vout']}",
+            f"{unspents[1]['txid']}:{unspents[1]['vout']}",
         ]
     )
     # still 12 utxo with 2 unconfirmed
-    wl.check_utxo()
-    assert len(wl.full_utxo) == 12
+    wallet.check_utxo()
+    assert len(wallet.full_utxo) == 12
     # 2 are locked
-    assert len([tx for tx in wl.full_utxo if tx["locked"]]) == 2
+    assert len([tx for tx in wallet.full_utxo if tx["locked"]]) == 2
 
     # Check total amount
-    assert wl.amount_total == 15
+    assert wallet.amount_total == 15
     # Check confirmed amount
-    assert wl.amount_confirmed == 10
+    assert wallet.amount_confirmed == 10
     # Check unconfirmed amount
-    assert wl.amount_unconfirmed == 5
+    assert wallet.amount_unconfirmed == 5
     # Check frozen amount
-    assert wl.amount_frozen == 2
+    assert wallet.amount_frozen == 2
     # Check available amount
-    assert wl.amount_available == 13  # total - frozen
+    assert wallet.amount_available == 13  # total - frozen
     # Check immature amount
-    address = wl.getnewaddress()
-    wl.rpc.generatetoaddress(1, address)
-    wl.update_balance()
+    address = wallet.getnewaddress()
+    wallet.rpc.generatetoaddress(1, address)
+    wallet.update_balance()
     assert (
-        round(wl.amount_immature, 1) == 50
-        or round(wl.amount_immature, 1) == 25
-        or round(wl.amount_immature, 1) == 12.5
-        or round(wl.amount_immature, 2) == 6.25
+        round(wallet.amount_immature, 1) == 50
+        or round(wallet.amount_immature, 1) == 25
+        or round(wallet.amount_immature, 1) == 12.5
+        or round(wallet.amount_immature, 2) == 6.25
     )
-    # amount_locked_unsigned is tested in test_wallet_createpsbt (in test_managers_wallet.py)
+    # Check locked unsigned amount (we need to create a PSBT for that)
+    selected_coins = [
+        {"txid": u["txid"], "vout": u["vout"]}
+        for u in [unspents[2], unspents[3], unspents[4]]
+    ]
+    selected_coins_amount_sum = (
+        unspents[2]["amount"] + unspents[3]["amount"] + unspents[4]["amount"]
+    )
+    assert (
+        selected_coins_amount_sum == 3
+    )  # Check funded_hot_wallet_1 in fix_devices_and_wallets.py for the amounts give to certain address ranges
+    random_address = "bcrt1q7mlxxdna2e2ufzgalgp5zhtnndl7qddlxjy5eg"
+    psbt = wallet.createpsbt(
+        [random_address],
+        [selected_coins_amount_sum],
+        True,
+        0,
+        1,
+        selected_coins=selected_coins,
+    )
+    assert wallet.amount_locked_unsigned == selected_coins_amount_sum
+    wallet.delete_pending_psbt(psbt["tx"]["txid"])
+    assert wallet.amount_locked_unsigned == 0

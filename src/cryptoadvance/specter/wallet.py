@@ -1642,8 +1642,9 @@ class Wallet:
         readonly=False,  # fee estimation
         rbf=True,
         rbf_edit_mode=False,
-    ):
+    ) -> dict:
         """
+        Returns psbt as dictionary.
         fee_rate: in sat/B or BTC/kB. If set to 0 Bitcoin Core sets feeRate automatically.
         """
         if fee_rate != 0 and fee_rate < self.MIN_FEE_RATE:
@@ -1753,7 +1754,6 @@ class Wallet:
                 self.network,
                 devices=list(zip(self.keys, self._devices)),
             )
-
         if not readonly:
             self.save_pending_psbt(psbt)
         return psbt.to_dict()
