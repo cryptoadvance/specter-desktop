@@ -355,7 +355,9 @@ class ServiceManager:
         # Encrypted Service data is now orphaned since there is no
         # password. So wipe it from the disk.
         self.specter.service_encrypted_storage_manager.delete_all_service_data(user)
-        logger.debug(f"Deleted encrypted services and user secret")
+        logger.debug(
+            f"Deleted encrypted services {services_with_encrypted_storage} and user secret"
+        )
 
     def delete_services_with_unencrypted_storage(self, user: User):
         services_with_unencrypted_storage = [
