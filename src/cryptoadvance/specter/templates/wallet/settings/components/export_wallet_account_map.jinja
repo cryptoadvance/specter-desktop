@@ -9,7 +9,7 @@
 <pre id="account_map" style="white-space: -moz-pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word; text-align: left;">
 {{ wallet.account_map }}
 </pre>
-    <button onclick="copyText(document.getElementById('account_map').innerText, 'Copied wallet data')" type="button" class="btn centered padded">Copy wallet data</button>
+    <button id="btn-copy-wallet-data" type="button" class="btn centered padded">Copy wallet data</button>
     <br />
     <hr />
     <h4>Create Electrum Wallet</h4>
@@ -17,17 +17,24 @@
     <a
 	id="electrum_export"
 	download="{{ wallet.alias | ascii20 }}_electrum.backup"
-	onclick="showNotification(`Import wallet file to your Electrum: File -> Open -> Choose... -> {{ wallet.alias | ascii20 }}_electrum.backup`, 0)"
 	class="btn centered padded">
 	    Download Electrum (Watch-Only) File
     </a>
 </div>
+
 <script>
-document.addEventListener("DOMContentLoaded", function(){
-    let accountMap = encodeURIComponent(`{{ wallet.account_map|tojson }}`)
-    document.getElementById('export_wallet_file').href = "data:text/json;charset=utf-8," + accountMap.substring(3, accountMap.length - 3);
-});
-document.addEventListener("DOMContentLoaded", function(){
-    document.getElementById('electrum_export').href = 'data:text/plain,' + encodeURIComponent('{{ wallet.get_electrum_file()|tojson }}');
-});
+    document.addEventListener("DOMContentLoaded", function(){
+        let accountMap = encodeURIComponent(`{{ wallet.account_map|tojson }}`)
+        document.getElementById('export_wallet_file').href = "data:text/json;charset=utf-8," + accountMap.substring(3, accountMap.length - 3);
+    });
+    document.addEventListener("DOMContentLoaded", function(){
+        document.getElementById('electrum_export').href = 'data:text/plain,' + encodeURIComponent('{{ wallet.get_electrum_file()|tojson }}');
+    });
+	document.getElementById("btn-copy-wallet-data").addEventListener("click", (event)=> {
+			copyText(document.getElementById('account_map').innerText, 'Copied wallet data');
+    });
+	document.getElementById("electrum_export").addEventListener("click", (event)=> {
+			showNotification(`Import wallet file to your Electrum: File -> Open -> Choose... -> {{ wallet.alias | ascii20 }}_electrum.backup`, 0);
+    });
+
 </script>
