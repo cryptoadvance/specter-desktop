@@ -245,13 +245,13 @@
 			</div>
 		</div>
 		<div id="paste_signed" class="output_option {% if psbt['raw'] %}hidden{% endif %}" style="margin-top:20px">
-			<button type="button" onclick="showPageOverlay('paste-tx-popup')" class="btn centered" id="pastetx">{{ _("Paste signed transaction") }}</a>
+			<button type="button" class="btn centered" id="pastetx">{{ _("Paste signed transaction") }}</a>
 		</div>
 		<div class="hidden" id="paste-tx-popup">
 			<h1>{{ _("Paste signed transaction") }}</h1>
 			<input type="text" id="paste-tx-text" placeholder="{{ _('Paste your transaction here') }}">
 			<br><br>
-			<button type="button" onclick="currentSigningDevice = '';combine(document.getElementById('paste-tx-text').value);hidePageOverlay();document.getElementById('paste-tx-text').value='';" class="btn centered">{{ _("Confirm") }}</button>
+			<button id="btn-paste-tx-popup-confirm" type="button" class="btn centered">{{ _("Confirm") }}</button>
 		</div>
 		
 		{% include 'includes/overlay/broadcast_tx.jinja' %}
@@ -274,7 +274,7 @@
 
 
 {% block scripts %}
-	<script>
+	<script type="module">
 		let currentSigningDevice = '';
 		let currentSigningDeviceAlias;
 		let psbt0 = "{{ psbt['base64'] }}";
@@ -512,5 +512,16 @@
 				{% endfor %}
 			});
 		{% endif %}
+
+
+		document.getElementById("btn-paste-tx-popup-confirm").addEventListener("click", (event)=> {
+			currentSigningDevice = '';
+			combine(document.getElementById('paste-tx-text').value);
+			hidePageOverlay();
+			document.getElementById('paste-tx-text').value='';
+		});  
+		document.getElementById("pastetx").addEventListener("click", (event)=> {
+			showPageOverlay('paste-tx-popup');
+		});  
 	</script>
 {% endblock %}
