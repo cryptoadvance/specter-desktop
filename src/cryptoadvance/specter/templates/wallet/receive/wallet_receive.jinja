@@ -99,33 +99,27 @@
 				{{ _("Import this wallet to a device by scanning its QR code or importing its data file.") }}
 			</div>
 
-			{% for device in wallet.devices %}
-				{% if device.exportable_to_wallet %}
-					{% if device.wallet_export_type == 'file' %}
-						<a 
-						download="{{ wallet.name | ascii20 }}.txt"
-						href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}"
-						{% if device.device_type == 'coldcard' %}
-							onclick="showNotification(`{{ _("Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD") }}`, 0)"
-						{% endif %}
-						class="btn centered padded">
-							{{ _("Save") }} {{ device.name }} {{ _("file") }}
-						</a>
-					{% elif device.wallet_export_type == 'qr' %}
-						<button onclick="hidePageOverlay();showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">{{ _("Show") }} {{ device.name }} {{ _("QR Code") }}</button>
-						<div id="{{ device.alias }}_export_qr_code" style="display: none;">
-							<h1>{{ _("Scan this with your") }} {{ device.name }} "{{ _("device") }} </h1>
-							<qr-code value="{{ device.export_wallet(wallet) }}" width="400" scalable></qr-code>
-							<br>
-							<button onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')" type="button" class="btn centered padded">{{ _("Back") }}</button>
-						</div>
-					{% endif %}
-				{% endif %}
+			{% include "wallet/components/wallet_export.jinja" %}
+			{% for device in wallet.devices if device.exportable_to_wallet %}
+				<!-- Add a back button that shows the previous overlay -->
+				<script type="module">
+					if (document.getElementById("{{ device.alias }}_export_qr_code")){
+						var element = document.createElement("button");
+						element.type = "button";
+						element.classList = "btn centered padded";
+						element.textContent = '{{ _("Back") }}';
+						element.addEventListener("click", (event)=> {
+							hidePageOverlay();
+							showPageOverlay('new_wallet_devices_popup');
+						});
+						document.getElementById("{{ device.alias }}_export_qr_code").appendChild(element);
+					}
+				</script>			
 			{% endfor %}
 			<br>
 		{% endif %}
 		<p style="max-width: 500px;">{{ _("You can always do this later from the wallet Settings tab.") }}</p>
-		<button type="button" class="btn centered padded" onclick="hidePageOverlay()">{{ _("Finish") }}</button>
+		<button id="btn-nw-wallet-popup-finish" type="button" class="btn centered padded">{{ _("Finish") }}</button>
 	</div>
 	<div class="hidden" id="new_wallet_popup">
 		<h1>{{ _("New wallet was created successfully!") }}</h1>
@@ -135,7 +129,7 @@
 		</button>
 		{% include 'wallet/components/wallet_pdf.jinja' %}
 		<br>
-		<span id="advanced_pdf_export_toggle" style="cursor: pointer;" onclick="togglePDFExportAdvanced()">{{ _("Advanced") }} &#9654;</span>
+		<span id="advanced_pdf_export_toggle" style="cursor: pointer;">{{ _("Advanced") }} &#9654;</span>
 		<br>
 		<br>
 		<div style="margin: 0 auto;" class="center hidden" id="advanced_pdf_export_container">
@@ -157,12 +151,12 @@
 		<p>
 		<p style="max-width: 500px;">{{ _("You can always download this file later from the wallet Settings tab.") }}</p>
 		{% if wallet.is_multisig and supports_export_to_device != [] %}
-			<button type="button" class="btn centered padded" onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')">{{ _("Continue") }}</button>
+			<button type="button" id="btn-new_wallet_devices_popup" class="btn centered padded">{{ _("Continue") }}</button>
 		{% else %}
-			<button type="button" class="btn centered padded" onclick="hidePageOverlay()" id="btn_continue">{{ _("Continue") }}</button>
+			<button type="button" class="btn centered padded" id="btn_continue">{{ _("Continue") }}</button>
 		{% endif %}
 	</div>
-	<script>
+	<script type="module">
 		function verifyQRCode(address, idx) {
 			document.getElementById('verify_address_qr_code_container').innerHTML = `<qr-code value="bitcoin:${address}?index=${idx}" width="256" scalable></qr-code>`;
 			showPageOverlay('verify_address_qr_code');
@@ -206,5 +200,23 @@
 				document.getElementById("address_qr").setAttribute("value", "bitcoin:{{ wallet.unconfidential_address }}");
 			}
 		}
+
+
+		document.getElementById("btn_continue").addEventListener("click", (event)=> {
+			hidePageOverlay();
+		});  
+		if (document.getElementById("btn-new_wallet_devices_popup")){
+			document.getElementById("btn-new_wallet_devices_popup").addEventListener("click", (event)=> {
+				hidePageOverlay();
+				showPageOverlay('new_wallet_devices_popup');
+			});  
+		}
+		document.getElementById("advanced_pdf_export_toggle").addEventListener("click", (event)=> {
+			togglePDFExportAdvanced();
+		});  
+		document.getElementById("btn-nw-wallet-popup-finish").addEventListener("click", (event)=> {
+			hidePageOverlay();
+		});  
+
 	</script>
 {% endblock %}
