@@ -10,7 +10,10 @@ from typing import Dict, List
 
 from cryptoadvance.specter.config import ProductionConfig
 from cryptoadvance.specter.device import Device
-from cryptoadvance.specter.specter_error import SpecterError, SpecterInternalException
+from cryptoadvance.specter.managers.service_manager.callback_executor import (
+    CallbackExecutor,
+)
+from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.user import User
 from cryptoadvance.specter.util.reflection import get_template_static_folder
 from flask import current_app as app
@@ -82,6 +85,7 @@ class ExtensionManager:
                     f"Service {clazz.__name__} not activated due to devstatus ( {self.devstatus_threshold} > {clazz.devstatus} )"
                 )
         logger.info("----> finished service processing")
+        self.callback_executor = CallbackExecutor(self.services)
         self.execute_ext_callbacks("afterExtensionManagerInit")
 
     @classmethod
@@ -278,33 +282,9 @@ class ExtensionManager:
         the callback_id needs to be passed and specify why the callback has been called.
         It needs to be one of the constants defined in cryptoadvance.specter.services.callbacks
         """
-        if callback_id not in dir(callbacks):
-            raise Exception(f"Non existing callback_id: {callback_id}")
-        # No debug statement here possible as this is called for every request and would flood the logs
-        # logger.debug(f"Executing callback {callback_id}")
-        return_values = {}
-        for ext in self.services.values():
-            if hasattr(ext, f"callback_{callback_id}"):
-                try:
-                    return_values[ext.id] = getattr(ext, f"callback_{callback_id}")(
-                        *args, **kwargs
-                    )
-                except Exception as e:
-                    # Development should catch all errors early!
-                    if app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"].endswith(
-                        "DevelopmentConfig"
-                    ):
-                        raise e
-                    logger.error(
-                        "Exception {e} while executing {callback_id} for extension {ext.id}"
-                    )
-                    logger.exception(e)
-            elif hasattr(ext, "callback"):
-                return_values[ext.id] = ext.callback(callback_id, *args, **kwargs)
-        # Filtering out all None return values
-        return_values = {k: v for k, v in return_values.items() if v is not None}
-        # logger.debug(f"return_values for callback {callback_id} {return_values}")
-        return return_values
+        return self.callback_executor.execute_ext_callbacks(
+            callback_id, *args, **kwargs
+        )
 
     @property
     def services(self) -> Dict[str, Service]:
