@@ -31,20 +31,16 @@ describe('Test sending transactions', () => {
         })
     })
 
-    // Skipped for now, will only work reliably once the the Cypress tests run without mining loop
+    // 
     it('Open up transaction details', () => {
         cy.selectWallet("Test Hot Wallet 1")
         cy.get('#btn_transactions').click()
-        // Click on the txid in the first row
-        cy.get('tbody.tx-tbody').find('tr').eq(0).find('#column-txid').find('.explorer-link').click()
-        cy.get('.tx-data-info').contains('Input #0')
-        cy.get('.tx-data-info').contains('Transaction id:')
-        cy.get('.tx-data-info').contains('Output index:') // Not sure whether it is always 1 - output ordering is random in Core ...
-        cy.get('.tx-data-info').contains('Address #0')
-        cy.get('.tx-data-info').find('.tx_info').eq(0).contains('Value: 20.00000000 tBTC')
-        cy.get('.tx-data-info').contains('Output #0')
-        cy.get('.tx-data-info').contains('Burn address')
-        cy.get('.tx-data-info').find('.tx_info').eq(1).contains(/Value:\s19\.9999\d{4}\stBTC/) // Fees change apparently
+        // Click on the txid of the (hopefully) only send tx
+        cy.get('tbody.tx-tbody').find('tr').find('.svg-send').parent().parent().parent().find('#column-txid').find('.explorer-link').click()
+        // Input
+        cy.get('.tx-data-info').contains('Value: 20.00000000 tBTC')
+        // Output
+        cy.get('.tx-data-info').contains(/Value:\s19\.9999\d{4}\stBTC/) // The amount from the raw tx has 7 decimals, fees change apparently
         cy.get('#page_overlay_popup_cancel_button').click()
         // Change to sats and check amounts and units
         cy.get('[href="/settings/"]').click()
@@ -52,8 +48,10 @@ describe('Test sending transactions', () => {
         cy.contains('Save').click()
         cy.selectWallet("Test Hot Wallet 1")
         cy.get('#btn_transactions').click()
-        cy.get('tbody.tx-tbody').find('tr').eq(0).find('#column-txid').find('.explorer-link').click()
+        cy.get('tbody.tx-tbody').find('tr').find('.svg-send').parent().parent().parent().find('#column-txid').find('.explorer-link').click()
+        // Input
         cy.get('.tx-data-info').contains('Value: 2,000,000,000 tsat')
+        // Output
         cy.get('.tx-data-info').contains(/Value:\s1,999,99\d,\d{3}\stsat/) // Fees change apparently
         cy.get('#page_overlay_popup_cancel_button').click()
         // Change back to btc

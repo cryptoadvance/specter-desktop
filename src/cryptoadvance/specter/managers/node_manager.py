@@ -53,7 +53,7 @@ class NodeManager:
         for node_alias in nodes_files:
             fullpath = os.path.join(self.data_folder, "%s.json" % node_alias)
             node_class = (
-                Node if nodes_files[node_alias]["external_node"] else InternalNode
+                Node if nodes_files[node_alias].get("external_node") else InternalNode
             )
             nodes[nodes_files[node_alias]["name"]] = node_class.from_json(
                 nodes_files[node_alias],

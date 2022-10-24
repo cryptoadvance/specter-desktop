@@ -10,7 +10,7 @@ from .bitcoin_core import BitcoinCore
 class ElementsCore(BitcoinCore):
     device_type = DeviceTypes.ELEMENTSCORE
     name = "Elements Core (hot wallet)"
-    icon = "elementscore_icon.svg"
+    icon = "img/devices/elementscore_icon.svg"
 
     hot_wallet = True
     bitcoin_core_support = False

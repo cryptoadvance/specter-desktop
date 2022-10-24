@@ -16,16 +16,15 @@
 
     #node-switch-icon {
         padding: 5px;
-        
         float: right;
         width: 30px;
         position: absolute;
         {% if session["is_language_rtl"] %}
         right: 210px;
         {% else %}
-        left: 210px;
+        left: 220px;
         {% endif %}
-        top: 5px;
+        top: -1px;
         border-radius: 10px;
     }
 
@@ -37,10 +36,30 @@
         0% { transform: rotate(0deg); }
         100% {  transform: rotate(359deg); }
     }
+
     .spinning {
         animation: spin 2s linear infinite;
     }
 
+    .no-connection {
+        cursor: pointer; 
+        margin: 0px 20px 5px;
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        padding: 10px 0;
+        border-left: 3px solid transparent;
+        text-decoration: none;
+        color: inherit;
+    }
+    .configure-click {
+        color: var(--default-color);
+        font-size: 0.9em; 
+        line-height: 1.5
+    }
+    .configure-click:hover {
+        color: white;
+    }
 </style>
 <div id="side-content">
     <nav class="side">
@@ -50,40 +69,43 @@
         {% if specter.network_info.version < 200000 %}
             <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/><br>{{ _("Bitcoin Core version is outdated.")}}<br>{{ _('Some features might not work...')}}<br>{{ _("(minimum required: v20.0.0).") }}</p>
         {% endif %}
-            <div 
-                id="active-node" onclick="showPageOverlay('bitcoin_core_info');document.getElementById('side-content').classList.remove('active');" 
-                class="item core" style="cursor: pointer;">
-
-            {% if specter.is_liquid %}
-                {% from "components/liquid_svg.jinja" import liquid_svg %}
-                {{ liquid_svg(specter.info.chain, 40) }}
-            {% else %}
-                {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-                {{ bitcoin_svg(specter.info.chain, 40) }}
-            {% endif %}
-            {% include "includes/sidebar/components/bitcoin_core_info.jinja" %}
-            <div>
-                <span style="max-width: 140px;">{{ specter.node.name }}</span>
-                <img id="node-switch-icon" src="{{ url_for('static', filename='img/flip-horizontal.svg')}}" class="svg-white" onclick="showNodeSelectPopup()"/>
-                <br>
-                <small>
-                    {% if specter.chain %}
-                        {% if specter.bitcoin_core_version != '' %}
-                            v{{ specter.bitcoin_core_version }}
+        {% if specter.node.is_running %}
+            <div id="active-node" onclick="showPageOverlay('bitcoin_core_info');document.getElementById('side-content').classList.remove('active');" class="item core" style="cursor: pointer;">
+                {% if specter.is_liquid %}
+                    {% from "components/liquid_svg.jinja" import liquid_svg %}
+                    {{ liquid_svg(specter.info.chain, 40) }}
+                {% else %}
+                    {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+                    {{ bitcoin_svg(specter.info.chain, 40) }}
+                {% endif %}
+                {% include "includes/sidebar/components/bitcoin_core_info.jinja" %}
+                <div>
+                    <span style="max-width: 140px;">{{ specter.node.name }}</span>
+                    <small>
+                        {% if specter.chain %}
+                            {% if specter.bitcoin_core_version != '' %}
+                                v{{ specter.bitcoin_core_version }}
+                            {% endif %}
+                            ({{specter.chain}}):
+                            {% if specter.info["blocks"] %}
+                                {{ specter.info.blocks }} blocks
+                            {% else %}
+                                {{ specter.info.chain }}
+                            {% endif %}
                         {% endif %}
-                        ({{specter.chain}}):
-                        {% if specter.info["blocks"] %}
-                            {{ specter.info.blocks }} blocks
-                        {% else %}
-                            {{ specter.info.chain }}
-                        {% endif %}
-                    {% else %}
-                        {{ _("Unavailable. Click to configure.") }}
-                    {% endif %}
-                </small>
+                    </small>
+                </div>
             </div>
-
-        </div>
+        {% else %}
+            <a id="no-node-connection" class="no-connection" href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) }}">
+               <div style="display: flex; gap: 5px">
+                    <span>{{ _("No node connection") }}</span>
+                    <img src="{{ url_for('static', filename='img/broken-connection.svg') }}" style="width: 15px;">
+                </div>
+                <div id="configure-click" class="configure-click">{{ _("Click to configure") }}</div>
+            </a>
+        {% endif%}
+        <img id="node-switch-icon" src="{{ url_for('static', filename='img/flip-horizontal.svg')}}" class="svg-white" onclick="showNodeSelectPopup()"/>
         {% if specter.info["utxorescan"] %}
         <div class="rescan_progress {{ specter.info.chain }}">
             <div id="utxo_rescan_progress" style='width: {{ specter.info["utxorescan"] }}%'></div>
