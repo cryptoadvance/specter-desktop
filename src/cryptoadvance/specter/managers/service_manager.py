@@ -377,7 +377,7 @@ class ServiceManager:
             for user in users:
                 if service.optionality == ServiceOptionality.mandatory or (
                     service.optionality == ServiceOptionality.opt_out
-                    and (user.services == [] or force_opt_out)
+                    and ((service.id not in user.services) or force_opt_out)
                 ):
                     user.add_service(service.id)
 

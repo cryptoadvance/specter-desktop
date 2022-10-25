@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class SpecterMigration_0002(SpecterMigration):
-    version = "v1.13.1"  # the version this migration has been rolled out
+    version = "v1.13.2"  # the version this migration has been rolled out
     # irrelevant though because we'll execute this script in any case
     # as we can't have yet a say on when specter has been started first
 
