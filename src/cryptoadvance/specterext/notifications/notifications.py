@@ -68,17 +68,22 @@ class Notification:
         self.icon = icon
         self.timeout = timeout  # [ms]
 
-        # set id (dependent on all other properties, so must eb set last)
+        self.verbose_debug = verbose_debug
+        # set id (dependent on (almost) all other properties, so must be set last)
         self.id = None
         self._set_id()
-        self.verbose_debug = verbose_debug
 
     def __str__(self):
-        return str(self.__dict__)
+        # .copy() is essential here, otherwise one actually deletes verbose_debug from the object
+        reduced_dict = self.__dict__.copy()
+        del reduced_dict["verbose_debug"]
+        return str(reduced_dict)
 
     def _set_id(self):
+        # .copy() is essential here, otherwise one actually deletes id, verbose_debug from the object
         reduced_dict = self.__dict__.copy()
         del reduced_dict["id"]
+        del reduced_dict["verbose_debug"]
         self.id = hashlib.sha256(str(reduced_dict).encode()).hexdigest()
 
     def set_shown(self, target_ui, date=None):
