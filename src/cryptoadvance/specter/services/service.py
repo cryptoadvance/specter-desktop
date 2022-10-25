@@ -38,6 +38,7 @@ class Service:
     # If the blueprint gets a "/ext" prefix (isolated_client = True), the login cookie won't work for all specter core functionality
     isolated_client = True
     devstatus = devstatus_alpha
+    encrypt_data = False
 
     def __init__(self, active, specter):
         if not hasattr(self, "id"):
@@ -47,6 +48,14 @@ class Service:
         self.active = active
         self.specter = specter
 
+    @classmethod
+    def _storage_manager(cls):
+        return (
+            app.specter.service_encrypted_storage_manager
+            if cls.encrypt_data
+            else app.specter.service_unencrypted_storage_manager
+        )
+
     def callback(self, callback_id, *argv, **kwargv):
         if callback_id == callbacks.after_serverpy_init_app:
             if hasattr(self, "callback_after_serverpy_init_app"):
@@ -54,23 +63,19 @@ class Service:
 
     @classmethod
     def set_current_user_service_data(cls, service_data: dict):
-        app.specter.service_encrypted_storage_manager.set_current_user_service_data(
+        cls._storage_manager().set_current_user_service_data(
             service_id=cls.id, service_data=service_data
         )
 
     @classmethod
     def update_current_user_service_data(cls, service_data: dict):
-        app.specter.service_encrypted_storage_manager.update_current_user_service_data(
+        cls._storage_manager().update_current_user_service_data(
             service_id=cls.id, service_data=service_data
         )
 
     @classmethod
     def get_current_user_service_data(cls) -> dict:
-        return (
-            app.specter.service_encrypted_storage_manager.get_current_user_service_data(
-                service_id=cls.id
-            )
-        )
+        return cls._storage_manager().get_current_user_service_data(service_id=cls.id)
 
     @classmethod
     def get_blueprint_name(cls):
