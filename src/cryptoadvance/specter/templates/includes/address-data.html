@@ -132,7 +132,7 @@
 
                     // Message signing feature restricted to singlesig wallets using a Specter DIY
                     {% set device = wallet.devices[0] %}
-                    {% if wallet.is_singlesig and device.hwi_support or wallet.is_singlesig and device.device_type == "specter" %}
+                    {% if wallet.is_singlesig and device.hwi_support or wallet.is_singlesig and device.supports_qr_message_signing %}
                     let redirectUrl = `{{ url_for('devices_endpoint.device', device_alias=device.alias, origin='wallet', address='ADDRESS', derivation_path='DERIVATION_PATH') }}`.replace('ADDRESS', address).replace('DERIVATION_PATH', derivation_path);
                     addressInfoHTML += `<tr><td>{{ _("Message signing") }}:</td><td>
                         <button type="button" id="msg-signing-btn" class="signing-btn" onclick="location.href='${redirectUrl}';">
