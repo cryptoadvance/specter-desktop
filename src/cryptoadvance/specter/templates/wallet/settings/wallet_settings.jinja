@@ -42,7 +42,7 @@
 			{% for device in wallet.devices %}
 				<a href="{{ url_for('devices_endpoint.device', device_alias=device.alias) }}" style="text-decoration: none;">
 					<div class="small-card radio">
-						<img src="{{ url_for('static', filename='img/devices/' ~ device.icon) }}" width="18px">
+						<img src="{{ url_for('static', filename=device.icon) }}" width="18px">
 						{{ device.name }}
 					</div>
 				</a>

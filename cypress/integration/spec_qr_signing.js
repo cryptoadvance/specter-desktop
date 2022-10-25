@@ -25,21 +25,14 @@ describe('Test QR code signing flow', () => {
         cy.get('#page_overlay_popup_cancel_button').click()
     })
 
-    it('QR code signing (currently) only available for DIYs', () => {
+    it('No QR message signing button for a Trezor', () => {
         // Changing the device type to simulate a different device
         cy.changeDeviceType("DIY ghost", "Trezor")
+        cy.reload()
         cy.contains("Sign message").click()
         // Only USB signing available for a Trezor device
-        cy.get('#diy_ghost_qr_sign_msg_btn').should('not.exist')
-        cy.get('#diy_ghost_usb_sign_msg_btn').should('exist')
-        cy.get('#page_overlay_popup_cancel_button').click()
-        cy.contains("Ghost wallet").click()
-        cy.get('main').contains('Addresses').click()
-        cy.contains('td', '#0').siblings().contains('bcrt').click()
-        cy.get('#msg-signing-btn').should('exist')
-        cy.get('#page_overlay_popup_cancel_button').click()
-        // Reload fixes issues with sometimes persisting overlays
-        cy.reload()
+        cy.contains('Sign message via USB').should('be.visible')
+        cy.contains('Sign message via QR code').should('not.exist')
         // Change device type back to DIY
         cy.changeDeviceType("DIY ghost", "specter")
     })

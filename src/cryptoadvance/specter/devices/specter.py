@@ -69,6 +69,7 @@ class Specter(SDCardDevice):
     qr_code_support = True
     qr_code_support_verify = True
     wallet_export_type = "qr"
+    supports_qr_message_signing = True
     supports_hwi_multisig_display_address = True
     liquid_support = True
     taproot_support = True
