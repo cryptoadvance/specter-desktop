@@ -34,6 +34,7 @@ class Notification:
         icon=None,
         timeout=None,
         date=None,
+        verbose_debug=False,
     ):
         self.title = str(title)
         self.user_id = user_id
@@ -70,6 +71,7 @@ class Notification:
         # set id (dependent on all other properties, so must eb set last)
         self.id = None
         self._set_id()
+        self.verbose_debug = verbose_debug
 
     def __str__(self):
         return str(self.__dict__)
@@ -81,11 +83,13 @@ class Notification:
 
     def set_shown(self, target_ui, date=None):
         self.last_shown_date[target_ui] = date if date else datetime.datetime.now()
-        logger.debug(f"set_notification_shown {self}")
+        if self.verbose_debug:
+            logger.debug(f"set_notification_shown {self}")
 
     def set_closed(self, target_ui):
         self.was_closed_in_target_uis.add(target_ui)
-        logger.debug(f"set_closed {self}")
+        if self.verbose_debug:
+            logger.debug(f"set_closed {self}")
 
     def substitute_special_target_uis(self, default_target_ui, all_target_uis):
         """

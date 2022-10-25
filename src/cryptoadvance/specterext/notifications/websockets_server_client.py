@@ -56,7 +56,7 @@ class WebsocketServer:
         └───────────────────────┘                           └───────────────────────┘
     """
 
-    def __init__(self, notification_manager):
+    def __init__(self, notification_manager, verbose_debug=False):
         logger.info(f"Create {self.__class__.__name__}")
 
         # a broadcaster has special rights, and can send potentially harmful messages to the websocket server,
@@ -67,6 +67,7 @@ class WebsocketServer:
         # Notification can be sent to all websocket connections that are associated to this user_tokens
         self.connections = list()
         self.notification_manager = notification_manager
+        self.verbose_debug = verbose_debug
 
     def __str__(self):
         return str(self.__dict__)
@@ -101,16 +102,15 @@ class WebsocketServer:
         ) in self.notification_manager.websocket_tokens.items():
             if known_token == user_token:
                 return known_username
-        logger.warning(f"No username could be found for user_token {user_token}")
         return None
 
     def set_as_broadcaster(self, user_token):
         new_entry = {"user_token": user_token}
-        logger.debug(f"set_as_broadcaster {new_entry}")
+        logger.debug(f"set_as_broadcaster {f'...{user_token[-5:]}'}")
         self.broadcaster_tokens.append(new_entry)
 
     def remove_broadcaster(self, user_token):
-        logger.debug(f"remove_broadcaster {user_token}")
+        logger.debug(f"remove_broadcaster ...{user_token[-5:]}")
         self.broadcaster_tokens = [
             d for d in self.broadcaster_tokens if d["user_token"] != user_token
         ]
@@ -140,14 +140,15 @@ class WebsocketServer:
             user = self.get_user_of_user_token(user_token)
             # If it is not a broadcaster AND the token is unknown, then reject connection
             if not user:
-                logger.warning(f"user_token {user_token} not found in users")
+                logger.warning(f"user_token ...{user_token[-5:]} not found in users")
                 return
             logger.info(
                 f"python-websocket-server --> javascript websocket-client  for flask user '{user}'  was first used and registered."
             )
 
         self.connections.append(d)
-        logger.debug(self.connection_report())
+        if self.verbose_debug:
+            logger.debug(self.connection_report())
 
     def _unregister(self, websocket):
         connection_dict = self._get_connection_dict_of_websocket(websocket)
@@ -172,7 +173,8 @@ class WebsocketServer:
         logger.debug(
             f"Unregistered {websocket} belonging to {username}, started at {connection_dict['opening_time']}"
         )
-        logger.debug(self.connection_report())
+        if self.verbose_debug:
+            logger.debug(self.connection_report())
 
     def connection_report(self):
         s = f"{len(self.connections)} open connections:\n"
@@ -267,16 +269,18 @@ class WebsocketServer:
         user = self.get_user_of_user_token(user_token)
 
         if user_token in self.get_broadcaster_tokens():
-            logger.debug(
-                f"message from user with broadcaster_token recieved. Sending to websockets"
-            )
+            if self.verbose_debug:
+                logger.debug(
+                    f"message from user with broadcaster_token recieved. Sending to websockets"
+                )
             self._send_to_websockets(message_dictionary, user_token)
         elif user:
-            logger.debug(f"message from user recieved. Creating Notification")
+            if self.verbose_debug:
+                logger.debug(f"message from user recieved. Creating Notification")
             self._create_notification(message_dictionary, user)
         else:
             logger.warning(
-                "user_token {user_token} is not valid. Please provide a user_token in the message"
+                f"user_token ...{user_token[-5:]} is not valid. Please provide a user_token in the message"
             )
 
     def _create_notification(self, message_dictionary, user):
@@ -304,9 +308,10 @@ class WebsocketServer:
         title = message_dictionary["title"]
         options = message_dictionary.get("options", {})
 
-        logger.debug(
-            f"_create_notification with title  {title}, user {user, type(user)} and options {options}"
-        )
+        if self.verbose_debug:
+            logger.debug(
+                f"_create_notification with title  {title}, user {user, type(user)} and options {options}"
+            )
 
         notification = self.notification_manager.create_and_show(
             title,
@@ -320,9 +325,10 @@ class WebsocketServer:
 
         def target():
             try:
-                logger.debug(
-                    f"_send_to_websockets  {websocket} message: {message_dictionary}"
-                )
+                if self.verbose_debug:
+                    logger.debug(
+                        f"_send_to_websockets  {websocket} message: {message_dictionary}"
+                    )
                 websocket.send(robust_json_dumps(message_dictionary))
             except simple_websocket.ConnectionClosed:
                 self._unregister(websocket)
@@ -366,11 +372,12 @@ class WebsocketClient:
         websockets_server.set_as_broadcaster(websockets_client.user_token)
     """
 
-    def __init__(self, host, port, path, ssl_cert, ssl_key):
+    def __init__(self, host, port, path, ssl_cert, ssl_key, verbose_debug=False):
         self.protocol = "wss" if ssl_cert and ssl_cert else "ws"
         self.url = f"{self.protocol}://{host}:{port}/{path}"
         self.user_token = secrets.token_urlsafe(128)
 
+        self.verbose_debug = verbose_debug
         self.ssl_context = None
         if ssl_cert and ssl_key:
             self.ssl_context = ssl._create_unverified_context(ssl.PROTOCOL_TLS_CLIENT)
@@ -382,7 +389,8 @@ class WebsocketClient:
 
     def send(self, message_dictionary):
         message_dictionary["user_token"] = self.user_token
-        logger.debug(f"{self.__class__.__name__} sending {message_dictionary}")
+        if self.verbose_debug:
+            logger.debug(f"{self.__class__.__name__} sending {message_dictionary}")
         self.websocket.send(robust_json_dumps(message_dictionary))
 
     def start_client_server_in_other_thread(self):

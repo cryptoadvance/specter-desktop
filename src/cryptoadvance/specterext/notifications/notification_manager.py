@@ -89,6 +89,7 @@ class NotificationManager:
         ui_notifications=None,
         enable_websockets=True,
         notifications_endpoint_url="svc/notifications",
+        verbose_debug=False,
     ):
         """
         Arguments:
@@ -101,6 +102,7 @@ class NotificationManager:
         self.ssl_cert, self.ssl_key = ssl_cert, ssl_key
         self._register_default_ui_notifications()
 
+        self.verbose_debug = verbose_debug
         self.websockets_server = None
         self.websockets_client = None
         if enable_websockets:
@@ -118,7 +120,9 @@ class NotificationManager:
 
             # setting this client as broadcaster, meaning it is allowed to send to all
             # connected websocket connections without restrictions
-            self.websockets_server.set_as_broadcaster(self.websockets_client.user_token)
+            self.websockets_server.set_as_broadcaster(
+                f"...{self.websockets_client.user_token[-5:]}"
+            )
             self.websockets_client.start()
 
     def get_websocket_token(self, user_id):
@@ -243,7 +247,8 @@ class NotificationManager:
             return
 
         del self.notifications[self.notifications.index(notification)]
-        logger.debug(f"Deleted {notification}")
+        if self.verbose_debug:
+            logger.debug(f"Deleted {notification}")
 
     def set_target_ui_availability(self, target_ui, user_id, is_available):
         "Sets ui_notification.is_available"
@@ -315,9 +320,11 @@ class NotificationManager:
                 " Keeping this transaction, such that it can be rebroadcastes later."
             )
             return False
-        logger.debug(
-            f"available_target_uis = {available_target_uis}, was_closed_in_target_uis = {notification.was_closed_in_target_uis}"
-        )
+
+        if self.verbose_debug:
+            logger.debug(
+                f"Notification {notification.id} of user {notification.user_id} was_closed_in_target_uis = {notification.was_closed_in_target_uis}"
+            )
         # it it was closed in all available_target_uis, then go ahead and delete the notification
         return not (available_target_uis - notification.was_closed_in_target_uis)
 
@@ -353,7 +360,8 @@ class NotificationManager:
         """
         if "internal_notification" not in internal_notification.target_uis:
             return internal_notification
-        logger.debug(f"_treat_internal_message {internal_notification}")
+        if self.verbose_debug:
+            logger.debug(f"_treat_internal_message {internal_notification}")
 
         referenced_notification = self.get_notification_by_id(
             internal_notification.data.get("id")
@@ -373,9 +381,10 @@ class NotificationManager:
         Creates a notification (which adds it to self.notifications) and also broadcasts it to ui_notifications.
         kwargs are the optional arguments of Notification
         """
-        logger.debug(
-            f"Starting to create notification with title, **kwargs   {title, kwargs}"
-        )
+        if self.verbose_debug:
+            logger.debug(
+                f"Starting to create notification with title, **kwargs   {title, kwargs}"
+            )
 
         notification = Notification(
             title,
@@ -391,7 +400,8 @@ class NotificationManager:
             return self._treat_internal_message(notification)
 
         self.notifications.append(notification)
-        logger.debug(f"Created notification {notification}")
+        if self.verbose_debug:
+            logger.debug(f"Created notification {notification}")
         return notification
 
     def show(self, notification):
@@ -406,7 +416,8 @@ class NotificationManager:
         ui_notifications_of_user = self._get_ui_notifications_of_user(
             notification.user_id
         )
-        logger.debug(f"ui_notifications_of_user {ui_notifications_of_user}")
+        if self.verbose_debug:
+            logger.debug(f"ui_notifications_of_user {ui_notifications_of_user}")
         broadcast_on_ui_notifications = [
             ui_notification
             for ui_notification in ui_notifications_of_user
@@ -414,15 +425,18 @@ class NotificationManager:
         ]
 
         for ui_notification in broadcast_on_ui_notifications:
-            logger.debug(f"show {notification} on {ui_notification}")
+            logger.debug(
+                f"Showing notification {notification.id} on {ui_notification.name}"
+            )
 
             notification_broadcasted = ui_notification.show(notification)
 
             # if not possible, then try show it with a ui_notifications that is NOT already in notification['target_uis']
             if not notification_broadcasted:
-                logger.debug(
-                    f"Trying with other ui_notifications to broadcast {notification}"
-                )
+                if self.verbose_debug:
+                    logger.debug(
+                        f"Trying with other ui_notifications to broadcast {notification}"
+                    )
                 # I have to restrict the ui_notifications that are used as a backup to callable_from_any_session_required
                 # because it it not possible to call a flash notification from another thread (that  failed doing a webapi notification)
                 for backup_ui_notification in self._get_ui_notifications_of_user(
@@ -432,9 +446,10 @@ class NotificationManager:
                     if backup_ui_notification in broadcast_on_ui_notifications:
                         continue
                     notification_broadcasted = backup_ui_notification.show(notification)
-                    logger.debug(
-                        f"Rebroadcasted on {backup_ui_notification.name} of {notification} "
-                    )
+                    if self.verbose_debug:
+                        logger.debug(
+                            f"Rebroadcasted on {backup_ui_notification.name} of {notification} "
+                        )
                     if notification_broadcasted:
                         break
         # for some ui_notifications, the last_shown_date and was_closed_in_target_uis is set immediately.

@@ -6,7 +6,6 @@
       "spec_configures_nodes.js",
       "spec_devices.js",
       "spec_ghost_machine.js",
-      "spec_specterext_notifications.js",
       "spec_fees.js",
       "spec_rescan.js",
       "spec_qr_signing.js",
@@ -16,7 +15,8 @@
       "spec_plugins.js",
       "spec_elm_single_segwit_wallet.js",
       "spec_elm_multi_segwit_wallet.js",
-      "spec_multiuser_sessions.js"
+      "spec_multiuser_sessions.js",
+      "spec_specterext_notifications.js"
     ],
     "baseUrl": "http://localhost:25444",
     "env": {
