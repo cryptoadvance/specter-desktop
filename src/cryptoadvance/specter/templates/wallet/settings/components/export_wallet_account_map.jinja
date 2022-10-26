@@ -21,7 +21,6 @@
 	    Download Electrum (Watch-Only) File
     </a>
 </div>
-
 <script>
     document.addEventListener("DOMContentLoaded", function(){
         let accountMap = encodeURIComponent(`{{ wallet.account_map|tojson }}`)
@@ -34,7 +33,7 @@
 			copyText(document.getElementById('account_map').innerText, 'Copied wallet data');
     });
 	document.getElementById("electrum_export").addEventListener("click", (event)=> {
-			showNotification(`Import wallet file to your Electrum: File -> Open -> Choose... -> {{ wallet.alias | ascii20 }}_electrum.backup`, 0);
+			Specter.common.showNotification(`Import wallet file to your Electrum: File -> Open -> Choose... -> {{ wallet.alias | ascii20 }}_electrum.backup`, 0);
     });
 
 </script>

@@ -170,7 +170,7 @@
                 }
                 const jsonResponse = await response.json();
                 if ("success" in jsonResponse) {
-                    showNotification(jsonResponse.success);
+                    Specter.common.showNotification(jsonResponse.success);
                     document.getElementById('setup-bitcoind-dir-button').classList.add('hidden');
                     startProgressCheck('bitcoind', "{{ url_for('setup_endpoint.end') }}");
                     return;

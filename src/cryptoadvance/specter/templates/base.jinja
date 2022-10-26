@@ -290,7 +290,7 @@
 		{# url routes are not defined in hwi_bridge mode. `url_for` will fail. #}
 		<script type="module">
 			async function toggleHideSensitiveInfo() {
-				showNotification(`{{ _("Revealing") if specter.hide_sensitive_info else _("Hiding") }} sensitive info...`, 0);
+				Specter.common.showNotification(`{{ _("Revealing") if specter.hide_sensitive_info else _("Hiding") }} sensitive info...`, 0);
 				let url = `{{ url_for('auth_endpoint.toggle_hide_sensitive_info') }}`;
 				var formData = new FormData();
 				formData.append('csrf_token', '{{ csrf_token() }}');

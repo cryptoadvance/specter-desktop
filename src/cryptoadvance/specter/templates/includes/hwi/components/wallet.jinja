@@ -90,9 +90,9 @@
             Specter.common.showError(`{{ _("Addresses did not match! Be careful! Please contact support and beware of using the displayed address!") }}`);
         } else {
             if (device.type == 'coldcard') {
-                showNotification(`{{ _("Address displayed successfully! Please check the device screen.") }}`, 7000);
+                Specter.common.showNotification(`{{ _("Address displayed successfully! Please check the device screen.") }}`, 7000);
             } else {
-                showNotification(`{{ _("Address was verified successfully!") }}`, 5000);
+                Specter.common.showNotification(`{{ _("Address was verified successfully!") }}`, 5000);
             }
         }
     }

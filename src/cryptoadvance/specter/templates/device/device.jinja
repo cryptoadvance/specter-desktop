@@ -231,7 +231,7 @@
 				signatureElement.innerText = signature;
 				document.getElementById('{{ device.alias }}_usb_sign_msg_btn').remove()
 				showPageOverlay('message-signing');
-				showNotification(`{{ _("Message was signed successfully!") }}`)
+				Specter.common.showNotification(`{{ _("Message was signed successfully!") }}`)
 			}
 			else if (signature === undefined) {
 				Specter.common.showError(`{{ _("No signature received from the device. Did you cancel the signing?") }}`, 3000)

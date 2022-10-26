@@ -200,9 +200,9 @@
     <script>
         async function togglePriceCheck(showPrice) {
             if (showPrice) {
-                showNotification(`{{ _("Turning on show price mode...") }}`, 0)
+                Specter.common.showNotification(`{{ _("Turning on show price mode...") }}`, 0)
             } else {
-                showNotification(`{{ _("Turning off show price mode...") }}`, 0)
+                Specter.common.showNotification(`{{ _("Turning off show price mode...") }}`, 0)
             }
             let url = `{{ url_for('price_endpoint.toggle') }}`;
             var formData = new FormData(document.getElementById('price-form'));
@@ -231,7 +231,7 @@
         }
 
         async function savePriceData(reload) {
-            showNotification(`{{ _("Updating price data...") }}`, 0)
+            Specter.common.showNotification(`{{ _("Updating price data...") }}`, 0)
             let url = `{{ url_for('price_endpoint.update') }}`;
             var formData = new FormData(document.getElementById('price-form'));
             try {

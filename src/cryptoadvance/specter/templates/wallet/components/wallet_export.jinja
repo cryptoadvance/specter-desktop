@@ -11,7 +11,7 @@
             <script type="module">
                 if (document.getElementById("{{ device.alias }}-export-wallet-file")){
                     document.getElementById("{{ device.alias }}-export-wallet-file").addEventListener("click", (event)=> {
-                        showNotification(`{{ _('Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD') }}`, 0);
+                        Specter.common.showNotification(`{{ _('Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD') }}`, 0);
                     });
                 }
             </script>						

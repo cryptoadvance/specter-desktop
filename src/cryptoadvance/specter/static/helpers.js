@@ -37,7 +37,6 @@ for (let functionName in mobileModule) {
 
 // TODOS!
 // window.copyText = copyText // TODO
-// window.showNotification = showNotification // TODO
 // window.toggleMobileNav = toggleMobileNav // TODO
 
 window.addEventListener('load', (event) => {

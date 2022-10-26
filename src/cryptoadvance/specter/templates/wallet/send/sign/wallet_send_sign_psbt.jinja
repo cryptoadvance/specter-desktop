@@ -437,7 +437,7 @@
 		}
 
 		async function broadcastLocal(tx) {
-			showNotification(`{{ _('Sending transaction...') }}`);
+			Specter.common.showNotification(`{{ _('Sending transaction...') }}`);
 			let url="{{ url_for('wallets_endpoint_api.broadcast', wallet_alias=wallet.alias) }}";
 
 			var formData = new FormData();
@@ -467,7 +467,7 @@
 		}
 
 		async function broadcastBlockExplorer(tx, explorer, useTor) {
-			showNotification(`{{ _('Sending transaction...') }}`, 0);
+			Specter.common.showNotification(`{{ _('Sending transaction...') }}`, 0);
 			let url = "{{ url_for('wallets_endpoint_api.broadcast_blockexplorer', wallet_alias=wallet.alias) }}";
 	
 

@@ -95,7 +95,7 @@
 	<script>
 		async function testHWIConnection() {
 			if (await enumerate()) {
-				showNotification(`{{ _("Device detected successfully! USB connections configured correctly!") }}`);
+				Specter.common.showNotification(`{{ _("Device detected successfully! USB connections configured correctly!") }}`);
 			} else {
 				Specter.common.showError(`{{ _("Failed to detect devices") }}`);
 			}

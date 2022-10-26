@@ -32,7 +32,7 @@
                 }
                 const jsonResponse = await response.json();
                 if ("success" in jsonResponse) {
-                    showNotification(jsonResponse.success);
+                    Specter.common.showNotification(jsonResponse.success);
                     document.getElementById('setup-tor-button').classList.add('hidden');
                     startProgressCheck('torbrowser', "{{ url_for(nextURL) }}");
                     return;
