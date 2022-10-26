@@ -287,9 +287,20 @@ class ServiceManager:
         return_values = {}
         for ext in self.services.values():
             if hasattr(ext, f"callback_{callback_id}"):
-                return_values[ext.id] = getattr(ext, f"callback_{callback_id}")(
-                    *args, **kwargs
-                )
+                try:
+                    return_values[ext.id] = getattr(ext, f"callback_{callback_id}")(
+                        *args, **kwargs
+                    )
+                except Exception as e:
+                    # Development should catch all errors early!
+                    if app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"].endswith(
+                        "DevelopmentConfig"
+                    ):
+                        raise e
+                    logger.error(
+                        "Exception {e} while executing {callback_id} for extension {ext.id}"
+                    )
+                    logger.exception(e)
             elif hasattr(ext, "callback"):
                 return_values[ext.id] = ext.callback(callback_id, *args, **kwargs)
         # Filtering out all None return values

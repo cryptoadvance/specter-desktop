@@ -198,6 +198,7 @@ class WalletImporter:
                 **kwargs,
             )
         except Exception as e:
+            logger.exception(e)
             raise SpecterError(f"Failed to create wallet: {e}")
         logger.info(f"Created Wallet {self.wallet}")
         self.wallet.keypoolrefill(0, self.wallet.IMPORT_KEYPOOL, change=False)
