@@ -4,6 +4,7 @@ import random
 from functools import wraps
 
 import requests
+from cryptoadvance.specter.server_endpoints.wallets.wallets_vm import WalletsOverviewVm
 from flask import Blueprint
 from flask import current_app as app
 from flask import jsonify, redirect, render_template, request, url_for
@@ -21,6 +22,7 @@ from ...specter_error import SpecterError, handle_exception
 from ...util.tx import convert_rawtransaction_to_psbt, is_hex
 from ...util.wallet_importer import WalletImporter
 from ...wallet import Wallet
+from ...services.callbacks import adjust_view_model
 
 logger = logging.getLogger(__name__)
 
@@ -68,15 +70,34 @@ def inject_common_stuff():
 @login_required
 def wallets_overview():
     app.specter.check_blockheight()
+    # The execute_ext_callbacks method is not really prepared for the things we're doing here.
+    # that's why we need so many lines for just expressing:
+    # "Here is a ViewModel, adjust it if you want"
+    # We need to change that method to enable "middleware"
+    wallets_overview_vm_dict = app.specter.service_manager.execute_ext_callbacks(
+        adjust_view_model, WalletsOverviewVm()
+    )
+    if len(wallets_overview_vm_dict.values()) > 1:
+        raise logger.error(
+            "Seems that we have more than one WalletsOverviewVm Extension"
+        )
+    if len(wallets_overview_vm_dict.values()) == 1:
+        wallets_overview_vm = list(wallets_overview_vm_dict.values())[0]
+    else:
+        wallets_overview_vm = WalletsOverviewVm()
+    if wallets_overview_vm.wallets_overview_redirect != None:
+        return redirect(wallets_overview_vm.wallets_overview_redirect)
+
     for wallet in list(app.specter.wallet_manager.wallets.values()):
         wallet.update_balance()
         wallet.check_utxo()
 
     return render_template(
-        "wallet/wallets_overview.jinja",
+        "wallet/overview/wallets_overview.jinja",
         specter=app.specter,
         rand=rand,
         services=app.specter.service_manager.services,
+        wallets_overview_vm=wallets_overview_vm,
     )
 
 
