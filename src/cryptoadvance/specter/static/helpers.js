@@ -9,7 +9,6 @@ import * as mobileModule from './helper-modules/mobile.js'
 // The capitalize function from ./helper-modules/format.js would be accessed like so:
 // Specter.format.capitalize()
 
-window.Specter = {}
 function attachToSpecter(name, helperFunction, category) {
   if (typeof(window.Specter) === 'undefined') {
     window.Specter = {} 
@@ -36,6 +35,7 @@ for (let functionName in mobileModule) {
 	attachToSpecter(functionName, mobileModule[functionName], 'mobile')	
 }
 
+// TODOS!
 // window.copyText = copyText // TODO
 // window.showNotification = showNotification // TODO
 // window.toggleMobileNav = toggleMobileNav // TODO

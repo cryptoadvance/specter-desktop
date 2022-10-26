@@ -43,16 +43,19 @@
 			}
 		</style>
 		<script>
-			/* setting global js variables for helpers.js */
-			const is_liquid = {% if specter.is_liquid %} true  {%else%}  false {%endif%};
-			const is_testnet = {% if specter.is_testnet %} true  {%else%}  false {%endif%};
-			const price_check_enabled = {% if specter.price_check %} true  {%else%}  false {%endif%};
-			const hide_sensitive_info_enabled = {% if specter.hide_sensitive_info %} true  {%else%}  false {%endif%};
-			const specter_unit = '{{ specter.unit }}';
-			const alt_rate = '{{ specter.alt_rate }}';
-			const alt_symbol = '{{ specter.alt_symbol }}';
+			// Setting global JS variables by attaching them to the Specter object
+			window.Specter = window.Specter || {} // Specter object should not exist yet since helpers.js is imported later	
+			Specter.unit = '{{ specter.unit }}'
+			Specter.isTestnet = {% if specter.is_testnet %} true {% else %} false {% endif %}
+			Specter.isLiquid = {% if specter.is_liquid %} true {% else %} false {% endif %}
+			Specter.priceCheck = {% if specter.price_check %} true {% else %} false {% endif %} 
+			Specter.hideSensitiveInfo = {% if specter.hide_sensitive_info %} true {% else %} false {% endif %}
+			Specter.altRate = '{{ specter.alt_rate }}'
+			Specter.altSymbol = '{{ specter.alt_symbol }}'
 		</script>
+
 		<script type="module" src="{{ url_for('static', filename='helpers.js') }}"></script>
+
 		{% include "services/inject_in_basejinja_head.jinja" %}
 		{% block head %}
 		{% endblock %}

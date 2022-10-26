@@ -160,15 +160,14 @@ function internalUnitLabelIsBTC(unit){
 
 // Formats the network independent units to network dependent units,
 // e.g.: btc -> tBTC,  sat --> tsat ,  btc --> tLBTC, sat --> tLsat 
-function unitLabel(targetUnit=specter_unit, enableHTML=true) { 
-	const convertToSat = targetUnit == 'sat';
-	
-	var newLabel = targetUnit;
+function unitLabel(enableHTML=true) { 
+	const convertToSat = Specter.unit == 'sat';
+	let newLabel
 	// standardize the incoming unit
-	if (['BTC', 'LBTC', 'TBTC', 'TLBTC'].includes(  newLabel.toUpperCase() )){
+	if (['BTC', 'LBTC', 'TBTC', 'TLBTC'].includes(Specter.unit.toUpperCase())){
 		newLabel = 'BTC';
 	}
-	if (['SAT', 'LSAT', 'TSAT', 'TLSAT'].includes(  newLabel.toUpperCase() )){
+	if (['SAT', 'LSAT', 'TSAT', 'TLSAT'].includes(Specter.unit.toUpperCase())){
 		newLabel = 'sat';
 	}
 
@@ -177,12 +176,12 @@ function unitLabel(targetUnit=specter_unit, enableHTML=true) {
 		newLabel = 'sat';
 	}
 
-	if (is_liquid){
+	if (Specter.isLiquid){
 		if (!newLabel.startsWith("t")){
 			newLabel = "L" + newLabel;
 		}
 	}
-	if (is_testnet){
+	if (Specter.isTestnet){
 		if (!newLabel.startsWith("t")){
 			newLabel = "t" + newLabel;
 		}
@@ -192,7 +191,7 @@ function unitLabel(targetUnit=specter_unit, enableHTML=true) {
 
 // Formats the network independent units to network dependent units,
 // e.g.: btc -> tBTC,  sat --> tsat ,  btc --> tLBTC, sat --> tLsat 
-function internalFormatLiquidUnitLabel(asset, assetLabel, targetUnit=specter_unit){ 
+function internalFormatLiquidUnitLabel(asset, assetLabel, targetUnit=Specter.unit){ 
 	let newLabel = assetLabel;
 	let enableHTML
 	// if the asset is BTC, then replace BTC with a nicely formatted (and converted Bitcoin unit), e.g. tLsat
@@ -210,8 +209,8 @@ function rstrip(text, pattern) {
 
 // Formats value and unit
 // e.g. ["0.22569496", "<asset-label data-asset="65846551" data-label="tLBTC"></asset-label>"]
-function liquidAmountAndUnitArray(value, asset, assetLabel, targetUnit=specter_unit, hideStripped=true){
-	if (hide_sensitive_info_enabled){
+function liquidAmountAndUnitArray(value, asset, assetLabel, targetUnit=Specter.unit, hideStripped=true){
+	if (Specter.hideSensitiveInfo){
 		return ["#########"];}
 	else{
 		if (value < 0 || value == null){
@@ -232,8 +231,8 @@ function liquidAmountAndUnitArray(value, asset, assetLabel, targetUnit=specter_u
 
 // Returns a formatted amount and unti.  It can handle multiple, or a single assets, assetLabels  as input
 // e.g. ["0.22569496", "<asset-label data-asset="65846551" data-label="tLBTC"></asset-label>"]
-function internalLiquidAmountsAndUnitsArray(value, assets, assetLabels, targetUnit=specter_unit, hideStripped=true){
-	if (hide_sensitive_info_enabled){
+function internalLiquidAmountsAndUnitsArray(value, assets, assetLabels, targetUnit=Specter.unit, hideStripped=true){
+	if (Specter.hideSensitiveInfo){
 		return ["#########"];}
 	else{
 		if (value < 0 || value == null){
@@ -259,15 +258,15 @@ function internalLiquidAmountsAndUnitsArray(value, assets, assetLabels, targetUn
 
 // Returns a formatted amount and unti.  It can handle multiple, or a single assets, assetLabels  as input
 // e.g. "0.22569496 <asset-label data-asset="65846551" data-label="tLBTC"></asset-label>"
-function liquidAmountsAndUnits(value, asset, assetLabel, targetUnit=specter_unit, hideStripped=true){
+function liquidAmountsAndUnits(value, asset, assetLabel, targetUnit=Specter.unit, hideStripped=true){
 	return internalLiquidAmountsAndUnitsArray(value, asset, assetLabel, targetUnit, hideStripped).join(' ');  
 }
 
 // Formats the valueInBTC (e.g. from a tx output) to an array
 // e.g. ["0.22569496", "tBTC"]
 // by default targetUnit will be set to BTC for liquid to prevent any conversion of valueInBTC
-function btcAmountAndUnitArray(valueInBTC, targetUnit=specter_unit, hideStripped=true){
-	if (hide_sensitive_info_enabled){
+function btcAmountAndUnitArray(valueInBTC, targetUnit=Specter.unit, hideStripped=true){
+	if (Specter.hideSensitiveInfo){
 		return ["#########"];}
 	else{
 		if (valueInBTC == null){
@@ -287,30 +286,30 @@ function btcAmountAndUnitArray(valueInBTC, targetUnit=specter_unit, hideStripped
 
 // Formats the valueInBTC (e.g. from a tx output) to an "formattedValue formattedUnitLabel"
 // e.g. "0.22569496 tBTC"
-function btcAmountAndUnit(valueInBTC, targetUnit=specter_unit, hideStripped=true){
+function btcAmountAndUnit(valueInBTC, targetUnit=Specter.unit, hideStripped=true){
 	return btcAmountAndUnitArray(valueInBTC, targetUnit, hideStripped).join(' ');  
 }
 
 // Formats the valueInBTC (e.g. from a tx output) to an "formattedValue"
 // e.g. "0.22569496"
-function btcAmount(valueInBTC, targetUnit=specter_unit, hideStripped=true){
+function btcAmount(valueInBTC, targetUnit=Specter.unit, hideStripped=true){
 	return btcAmountAndUnitArray(valueInBTC, targetUnit, hideStripped)[0];  
 }
 
 // Calculates and formats the price as a span class="note"
 function price(valueInBTC, 
 					unit='BTC', 
-					symbol=alt_symbol, 
-					price=alt_rate,
+					symbol=Specter.altSymbol, 
+					price=Specter.altRate,
 					wrapInSpan=true,
 					){        
-	if (!price_check_enabled){
+	if (!Specter.priceCheck){
 		return '';}
 	else {		
-		if (hide_sensitive_info_enabled){
+		if (Specter.hideSensitiveInfo){
 			return ["#########"];}
 		else{
-			if ((valueInBTC < 0 || valueInBTC == null) && is_liquid){
+			if ((valueInBTC < 0 || valueInBTC == null) && Specter.isLiquid){
 				return [""]}
 			if (valueInBTC == null){
 				return [""]};
