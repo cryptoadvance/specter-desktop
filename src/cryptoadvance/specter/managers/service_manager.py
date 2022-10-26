@@ -79,7 +79,7 @@ class ServiceManager:
                 logger.info(
                     f"Service {clazz.__name__} not activated due to devstatus ( {self.devstatus_threshold} > {clazz.devstatus} )"
                 )
-        logger.info("----> finished service processing")
+        logger.info("----> finished service loading")
         self.execute_ext_callbacks("afterServiceManagerInit")
 
     @classmethod

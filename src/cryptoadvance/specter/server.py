@@ -265,6 +265,7 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
 
     scheduler.init_app(app)
     scheduler.start()
+    logger.info("----> starting service callback_after_serverpy_init_app ")
     specter.service_manager.execute_ext_callbacks(
         after_serverpy_init_app, scheduler=scheduler
     )
