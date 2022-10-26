@@ -183,9 +183,7 @@ class WebsocketServer:
             simplified_dict["opening_time"] = connection_dict[
                 "opening_time"
             ].isoformat()
-            simplified_dict[
-                "user_token"
-            ] = f"{connection_dict['user_token'][:5]}...{connection_dict['user_token'][-5:]}"
+            simplified_dict["user_token"] = f"...{connection_dict['user_token'][-5:]}"
             simplified_dict["user"] = (
                 None
                 if connection_dict["user_token"] in self.get_broadcaster_tokens()

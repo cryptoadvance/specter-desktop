@@ -120,9 +120,7 @@ class NotificationManager:
 
             # setting this client as broadcaster, meaning it is allowed to send to all
             # connected websocket connections without restrictions
-            self.websockets_server.set_as_broadcaster(
-                f"...{self.websockets_client.user_token[-5:]}"
-            )
+            self.websockets_server.set_as_broadcaster(self.websockets_client.user_token)
             self.websockets_client.start()
 
     def get_websocket_token(self, user_id):
