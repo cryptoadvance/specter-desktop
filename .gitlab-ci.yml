@@ -81,7 +81,7 @@ check:
       - cypress/screenshots/**/*.png
     expire_in: 1 day
 
-.release_pip:
+release_pip:
   stage: releasing
   only: 
     - tags
@@ -115,7 +115,7 @@ check:
       - dist/*
     expire_in: 1 day
 
-.release_binary_windows:
+release_binary_windows:
   stage: releasing
   only: 
     - tags
@@ -152,7 +152,7 @@ check:
     paths:
       - ./pyinstaller/electron/node_modules
 
-.release_electron_linux_windows:
+release_electron_linux_windows:
   image: registry.gitlab.com/cryptoadvance/specter-desktop/electron-builder:latest
   stage: releasing
   only: 
@@ -227,7 +227,7 @@ release_signatures:
     - python3 -m utils.release-helper upload_shasums    # uploads SHA256SUMS to github
     - python3 -m utils.release-helper upload_shasumssig # uploads SHA256SUMS.asc to github
 
-.release_docker:
+release_docker:
   stage: post_releasing
   only: 
     - tags
