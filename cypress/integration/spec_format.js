@@ -21,13 +21,19 @@ describe('Tests of JS format functions', () => {
     })
 
     it('Check the global variables in the Specter window object', () => {
+        // Need to set the fiat symbol and the exchange rate, 
+        // This is saved and derived from the user config in Specter which we don't have (yet?) in the Cypress environment
+        cy.window().then((win) => {
+            win.Specter.altSymbol = "$"
+            win.Specter.altRate = "20000"
+        })
         cy.window().its('Specter.unit').should('equal', 'btc')
         cy.window().its('Specter.isTestnet').should('equal', true)
         cy.window().its('Specter.isLiquid').should('equal', false)
         cy.window().its('Specter.priceCheck').should('equal', false)
         cy.window().its('Specter.hideSensitiveInfo').should('equal', false)
-        cy.window().its('Specter.altRate').should('equal', "1")
-        cy.window().its('Specter.altSymbol').should('equal', "BTC")
+        cy.window().its('Specter.altRate').should('equal', "20000")
+        cy.window().its('Specter.altSymbol').should('equal', "$")
         // Alternative approach
         let targetUnit
         cy.window()
@@ -40,7 +46,7 @@ describe('Tests of JS format functions', () => {
     }) 
 
     it('Test unitLabel', () => {
-        // Not completely sure why just expect(window.Specter.format.unitLabel(false)).to.equal('tBTC') is not working
+        // Not completely sure why just expect(window.Specter.format.unitLabel(false)).to.equal('tBTC') is not working.
         // It probably has to do with this: https://docs.cypress.io/api/commands/window#Cypress-uses-2-different-windows
         cy.window()
             .then((win) => {
@@ -64,5 +70,34 @@ describe('Tests of JS format functions', () => {
             })
     })
 
+    it('Test btcAmountAndUnit', () => {
+        cy.window()
+            .then((win) => {
+                expect(win.Specter.format.btcAmountAndUnit(1.34000935)).to.equal('1.34<span class="thousand-digits-in-btc-amount">000</span><span class="last-digits-in-btc-amount">935</span> <nobr>tBTC</nobr>')
+                expect(win.Specter.format.btcAmountAndUnit(1.34000000)).to.equal('1.34<span class="thousand-digits-in-btc-amount"><span class="unselectable transparent-text hidden">0</span><span class="unselectable transparent-text hidden">0</span><span class="unselectable transparent-text hidden">0</span></span><span class="last-digits-in-btc-amount"><span class="unselectable transparent-text hidden">0</span><span class="unselectable transparent-text hidden">0</span><span class="unselectable transparent-text hidden">0</span></span> <nobr>tBTC</nobr>')
+            })
+    })
+
+    it('Test btcAmount', () => {
+        cy.window()
+            .then((win) => {
+                expect(win.Specter.format.btcAmount(1.34000935)).to.equal('1.34<span class="thousand-digits-in-btc-amount">000</span><span class="last-digits-in-btc-amount">935</span>')
+                expect(win.Specter.format.btcAmount(1.34000000)).to.equal('1.34<span class="thousand-digits-in-btc-amount"><span class="unselectable transparent-text hidden">0</span><span class="unselectable transparent-text hidden">0</span><span class="unselectable transparent-text hidden">0</span></span><span class="last-digits-in-btc-amount"><span class="unselectable transparent-text hidden">0</span><span class="unselectable transparent-text hidden">0</span><span class="unselectable transparent-text hidden">0</span></span>')
+            })
+    })
+
+    it('Test price', () => {
+        cy.window()
+            .then((win) => {
+                // No price check enabled yet
+                expect(win.Specter.format.price(5000)).to.equal('')
+                win.Specter.priceCheck = true
+                expect(win.Specter.format.price(5000, 'BTC', win.Specter.altSymbol, win.Specter.altRate, false)).to.equal('$100,000,000')
+                win.Specter.hideSensitiveInfo = true
+                expect(win.Specter.format.price(5000)).to.be.a('array') // Why is this ##### returned as an array?
+                win.Specter.hideSensitiveInfo = false
+                expect(win.Specter.format.price(1, 'BTC', "€", "100000", false)).to.equal('100,000€')
+            })
+    })
 
 })
