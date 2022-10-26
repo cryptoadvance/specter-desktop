@@ -279,8 +279,8 @@ tag_specterext_dummy_repo:
     ## Assuming you created the SSH_KNOWN_HOSTS variable, uncomment the
     ## following two lines.
     ##
-     - echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
-     - chmod 644 ~/.ssh/known_hosts
+    - echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
 
   script:
     - echo "Now tagging ... git@github.com:${CI_PROJECT_ROOT_NAMESPACE}/specterext-dummy.git"
