@@ -92,6 +92,7 @@ def test_WalletManager(
 
 
 @pytest.mark.slow
+@pytest.mark.bottleneck
 def test_WalletManager_2_nodes(
     docker,
     request,
