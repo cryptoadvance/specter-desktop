@@ -19,10 +19,6 @@ from flask.blueprints import Blueprint
 
 from ..services.service import Service
 from ..services import callbacks, ExtensionException
-from ..services.service_encrypted_storage import (
-    ServiceEncryptedStorageManager,
-    ServiceUnencryptedStorageManager,
-)
 from ..util.reflection import (
     _get_module_from_class,
     get_classlist_of_type_clazz_from_modulelist,
@@ -324,9 +320,8 @@ class ServiceManager:
         This check works even if the user doesn't have their plaintext_user_secret
         available."""
         encrypted_data = (
-            app.specter.service_encrypted_storage_manager.get_raw_encrypted_data(user)
+            self.specter.service_encrypted_storage_manager.get_raw_encrypted_data(user)
         )
-        print(f"encrypted_data: {encrypted_data} for {user}")
         return encrypted_data != {}
 
     def set_active_services(self, service_names_active):
@@ -344,22 +339,56 @@ class ServiceManager:
             raise ExtensionException(f"No such plugin: '{plugin_id}'")
         return self._services[plugin_id]
 
-    def remove_all_services_from_user(self, user: User):
-        """
-        Clears User.services and `user_secret`; wipes the User's
-        ServiceEncryptedStorage.
-        """
-        # Don't show any Services on the sidebar for the admin user
-        user.services.clear()
+    def delete_service_from_user(self, user: User, service_id: str, autosave=True):
+        "Removes the service for the user and deletes the stored data in the ServiceEncryptedStorage"
+        # remove the service from the sidebar
+        user.remove_service(service_id, autosave=autosave)
+        # delete the data if it was encrypted
+        if (
+            self.user_has_encrypted_storage(user=user)
+            and self.get_service(service_id).encrypt_data
+        ):
+            self.specter.service_encrypted_storage_manager.remove_service_data(
+                user, service_id, autosave=autosave
+            )
+        # here we do not need to delete the data if it was unencrypted
 
-        # Reset as if we never had any encrypted storage
-        user.delete_user_secret(autosave=False)
-        user.save_info()
+    def delete_services_with_encrypted_storage(self, user: User):
+        services_with_encrypted_storage = [
+            service_id
+            for service_id in self.services
+            if self.get_service(service_id).encrypt_data
+        ]
+        for service_id in services_with_encrypted_storage:
+            self.delete_service_from_user(user, service_id, autosave=True)
+
+        user.delete_user_secret(autosave=True)
+        # Encrypted Service data is now orphaned since there is no
+        # password. So wipe it from the disk.
+        self.specter.service_encrypted_storage_manager.delete_all_service_data(user)
+        logger.debug(
+            f"Deleted encrypted services {services_with_encrypted_storage} and user secret"
+        )
+
+    def delete_services_with_unencrypted_storage(self, user: User):
+        services_with_unencrypted_storage = [
+            service_id
+            for service_id in self.services
+            if not self.get_service(service_id).encrypt_data
+        ]
+        for service_id in services_with_unencrypted_storage:
+            self.delete_service_from_user(user, service_id, autosave=True)
 
         if self.user_has_encrypted_storage(user=user):
             # Encrypted Service data is now orphaned since there is no
             # password. So wipe it from the disk.
             app.specter.service_encrypted_storage_manager.delete_all_service_data(user)
+            logger.debug(f"Deleted encrypted services for user {user}")
+        else:
+            self.specter.service_unencrypted_storage_manager.delete_all_service_data(
+                user
+            )
+            logger.debug(f"Deleted unencrypted services for user {user}")
 
     @classmethod
     def get_service_x_dirs(cls, x):

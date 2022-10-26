@@ -7,6 +7,9 @@ from mock import patch, Mock
 from tempfile import TemporaryDirectory
 from unittest.mock import MagicMock
 from unittest import TestCase
+from cryptoadvance.specter.services.service_encrypted_storage import (
+    ServiceUnencryptedStorage,
+)
 
 from cryptoadvance.specter.managers.user_manager import UserManager
 from cryptoadvance.specter.server import SpecterFlask
@@ -20,11 +23,20 @@ from cryptoadvance.specter.managers.service_manager import ServiceManager
 from cryptoadvance.specter.user import User, hash_password
 
 
+class FakeServiceNoEncryption(Service):
+    # A dummy Service just used by the test suite
+    id = "test_service_no_encryption"
+    name = "Test Service no encryption"
+    has_blueprint = False
+    encrypt_data = False
+
+
 class FakeService(Service):
     # A dummy Service just used by the test suite
     id = "test_service"
     name = "Test Service"
     has_blueprint = False
+    encrypt_data = True
 
 
 # @patch("cryptoadvance.specter.services.service_manager.app")
@@ -39,12 +51,17 @@ class FakeService(Service):
 #     assert "swan" in services
 
 
-def test_ServiceEncryptedStorage(empty_data_folder):
+@pytest.fixture
+def specter_mock():
     specter_mock = Mock()
     specter_mock.config = {"uid": ""}
     specter_mock.user_manager = Mock()
     specter_mock.user_manager.users = [""]
+    return specter_mock
 
+
+@pytest.fixture
+def user1(specter_mock):
     user1 = User.from_json(
         user_dict={
             "id": "user1",
@@ -56,6 +73,11 @@ def test_ServiceEncryptedStorage(empty_data_folder):
         },
         specter=specter_mock,
     )
+    return user1
+
+
+@pytest.fixture
+def user2(specter_mock):
     user2 = User.from_json(
         user_dict={
             "id": "user2",
@@ -67,6 +89,10 @@ def test_ServiceEncryptedStorage(empty_data_folder):
         },
         specter=specter_mock,
     )
+    return user2
+
+
+def test_ServiceEncryptedStorage(empty_data_folder, user1, user2):
     user1._generate_user_secret("muh")
 
     # Can set and get service storage fields
@@ -141,7 +167,9 @@ def test_access_encrypted_storage_after_login(app_no_node: SpecterFlask):
         ) == {"somekey": "green"}
 
 
-def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_folder):
+def test_remove_encrypted_services_from_user(
+    app_no_node: SpecterFlask, empty_data_folder
+):
     """ServiceEncryptedStorage should be accessible (decryptable) after user login"""
     # Create test users; automatically generates their `user_secret` and kept decrypted
     # in memory.
@@ -153,9 +181,8 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
         config={},
     )
 
-    storage_manager = ServiceEncryptedStorageManager(
-        user_manager.data_folder, user_manager
-    )
+    storage_manager = app_no_node.specter.service_encrypted_storage_manager
+    service_manager = app_no_node.specter.service_manager
     storage_manager.storage_by_user = {}
 
     # Need a simulated request context to enable `current_user` lookup
@@ -182,8 +209,22 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
         # Can't test the actual values because they're encrypted, but the Service.id key is plaintext
         assert FakeService.id in data_on_disk
 
-        # Now remove all
-        app_no_node.specter.service_manager.remove_all_services_from_user(user)
+        # Remove all services that need encryption
+        # we add the fakeservice to the service_manager.services otherwise delete_services_with_encrypted_storage doesn't know it exists
+        # strictly speaking the important call is here user.delete_user_secret(autosave=True) which will execute regardless of adding fakeservice
+        fake_service = FakeService(True, app_no_node.specter)
+        service_manager.services[fake_service.id] = fake_service
+        assert fake_service.id in service_manager.services
+
+        # also add it to the user, and check later it was remove from the user
+        user.add_service(fake_service.id)
+        assert user.has_service(fake_service.id)
+
+        app_no_node.specter.service_manager.delete_services_with_encrypted_storage(user)
+        # the user should not have the fake_service activated any more
+        assert not user.has_service(fake_service.id)
+        # the service_manager on the other hand keeps all services, no matter what
+        assert service_manager.services[fake_service.id]
 
         # Verify data on disk; Bob's user should have his user_secret cleared.
         users_file = app_no_node.specter.user_manager.users_file
@@ -211,3 +252,120 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
         with open(service_encrypted_storage_file, "r") as storage_json_file:
             data_on_disk = json.load(storage_json_file)
         assert data_on_disk == {}
+
+
+def test_check_differences_between_encrypted_and_non_encrypted_services(
+    app_no_node: SpecterFlask, empty_data_folder
+):
+    """ServiceEncryptedStorage should be accessible (decryptable) after user login"""
+    # Create test users; automatically generates their `user_secret` and kept decrypted
+    # in memory.
+    user_manager: UserManager = app_no_node.specter.user_manager
+    user_manager.create_user(
+        user_id="bob",
+        username="bob",
+        plaintext_password="plain_pass_bob",
+        config={},
+    )
+
+    service_manager = app_no_node.specter.service_manager
+    user = user_manager.get_user("bob")
+
+    def setup_services():
+        # Remove all services that need encryption
+        # we add the fakeservice to the service_manager.services otherwise delete_services_with_encrypted_storage doesn't know it exists
+        # strictly speaking the important call is here user.delete_user_secret(autosave=True) which will execute regardless of adding fakeservice
+        fake_service = FakeService(True, app_no_node.specter)
+        fake_service_no_encryption = FakeServiceNoEncryption(True, app_no_node.specter)
+        service_manager.services[fake_service.id] = fake_service
+        service_manager.services[
+            fake_service_no_encryption.id
+        ] = fake_service_no_encryption
+        assert fake_service.id in service_manager.services
+        assert fake_service_no_encryption.id in service_manager.services
+
+        # also add it to the user, and check later it was remove from the user
+        user.add_service(fake_service.id)
+        user.add_service(fake_service_no_encryption.id)
+        assert user.has_service(fake_service.id)
+        assert user.has_service(fake_service_no_encryption.id)
+
+        return fake_service, fake_service_no_encryption
+
+    fake_service, fake_service_no_encryption = setup_services()
+    # delete the encrypted ones
+    app_no_node.specter.service_manager.delete_services_with_encrypted_storage(user)
+    assert not user.has_service(fake_service.id)
+    assert user.has_service(fake_service_no_encryption.id)
+    # delete the unencrypted ones
+    app_no_node.specter.service_manager.delete_services_with_unencrypted_storage(user)
+    assert not user.has_service(fake_service_no_encryption.id)
+
+    # now setup again and check a different order of execution
+    fake_service, fake_service_no_encryption = setup_services()
+    # delete the unencrypted ones
+    app_no_node.specter.service_manager.delete_services_with_unencrypted_storage(user)
+    assert not user.has_service(fake_service_no_encryption.id)
+    assert user.has_service(fake_service.id)
+    # delete the encrypted ones
+    app_no_node.specter.service_manager.delete_services_with_encrypted_storage(user)
+    # the user should not have the fake_service activated any more
+    assert not user.has_service(fake_service.id)
+
+    # the service_manager on the other hand keeps all services, no matter what
+    assert service_manager.services[fake_service.id]
+    assert service_manager.services[fake_service_no_encryption.id]
+
+
+def test_ServiceUnEncryptedStorage(empty_data_folder, user1, user2):
+    user1._generate_user_secret("muh")
+
+    # Can set and get service storage fields
+    service_storage = ServiceUnencryptedStorage(
+        empty_data_folder, user1, disable_decrypt=True
+    )
+    service_storage.set_service_data("a_service_id", {"somekey": "green"})
+    assert service_storage.get_service_data("a_service_id") == {"somekey": "green"}
+    assert service_storage.get_service_data("another_service_id") == {}
+
+
+def test_both_Storages_in_parallel(empty_data_folder, user1, user2):
+    user1._generate_user_secret("muh")
+
+    # Can set and get service storage fields unecrypted
+    service_storage_unenc = ServiceUnencryptedStorage(
+        empty_data_folder, user1, disable_decrypt=True
+    )
+    service_storage_unenc.set_service_data("a_service_id", {"somekey": "green"})
+    assert service_storage_unenc.get_service_data("a_service_id") == {
+        "somekey": "green"
+    }
+    assert service_storage_unenc.get_service_data("another_service_id") == {}
+
+    # Can set and get service storage fields encrypted
+    service_storage_enc = ServiceEncryptedStorage(empty_data_folder, user1)
+    service_storage_enc.set_service_data("a_service_id", {"somekey": "red"})
+    assert service_storage_enc.get_service_data("a_service_id") == {"somekey": "red"}
+
+    # asserting again the unencrypted values
+    assert service_storage_unenc.get_service_data("a_service_id") == {
+        "somekey": "green"
+    }
+
+    # changing unencrypted
+    service_storage_unenc.set_service_data("a_service_id", {"somekey": "light_green"})
+
+    assert service_storage_unenc.get_service_data("a_service_id") == {
+        "somekey": "light_green"
+    }
+    assert service_storage_enc.get_service_data("a_service_id") == {"somekey": "red"}
+
+    # changing encrypted
+    service_storage_enc.set_service_data("a_service_id", {"somekey": "light_red"})
+
+    assert service_storage_unenc.get_service_data("a_service_id") == {
+        "somekey": "light_green"
+    }
+    assert service_storage_enc.get_service_data("a_service_id") == {
+        "somekey": "light_red"
+    }

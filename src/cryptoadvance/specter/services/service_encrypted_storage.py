@@ -98,6 +98,16 @@ class ServiceEncryptedStorage(GenericDataManager):
             service_data = {}
         return service_data
 
+    def remove_service_data(self, service_id: str, autosave: bool = True):
+        # Add or update fields; does not remove existing fields
+        if service_id not in self.data:
+            logger.warning(f"service_id {service_id} does not exist in self.data")
+            return
+
+        del self.data[service_id]
+        if autosave:
+            self._save()
+
 
 class ServiceUnencryptedStorage(ServiceEncryptedStorage):
     """In order to use ServiceEncryptedStorage but unencrypted, we derive from that class
@@ -110,7 +120,7 @@ class ServiceUnencryptedStorage(ServiceEncryptedStorage):
                 "ServiceUnencryptedStorage needs to be initialized with disable_decrypt = True"
             )
         if disable_decrypt:
-            super().__init__(data_folder, encryption_key=None, disable_decrypt=True)
+            super().__init__(data_folder, user, disable_decrypt=True)
 
     @property
     def data_file(self):
@@ -177,6 +187,17 @@ class ServiceEncryptedStorageManager:
         )
         encrypted_storage.data = {}
         encrypted_storage._save()
+
+    def remove_service_data(self, user: User, service_id: str, autosave: bool = True):
+        if user.id in self.storage_by_user:
+            self.storage_by_user[user].remove_service_data(
+                service_id, autosave=autosave
+            )
+            logger.debug(f"Removed dervice_data from user {user.id}")
+        else:
+            logger.debug(
+                f"Could not remove dervice_data from user {user.id}, because {user.id} was not found in storage_by_user"
+            )
 
 
 class ServiceUnencryptedStorageManager(ServiceEncryptedStorageManager):

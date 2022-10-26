@@ -570,12 +570,11 @@ def auth():
                     users = None
                     app.config["LOGIN_DISABLED"] = True
 
-                    # Cannot support Services if there's no password (admin was already
-                    # warned about this in the UI). Remove User.services, clear the
-                    # `user_secret`, and wipe the ServiceEncryptedStorage.
-                    app.specter.service_manager.remove_all_services_from_user(
-                        current_user
-                    )
+                    # if there is no password, we have to delete the previously encrypted data from services
+                    for user in app.specter.user_manager.users:
+                        app.specter.service_manager.delete_services_with_encrypted_storage(
+                            user
+                        )
 
             # Redirect if a URL was given via the next variable
             if request.form.get("next") and request.form.get("next") != "":
