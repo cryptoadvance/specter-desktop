@@ -10,17 +10,17 @@ from flask import jsonify, redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import login_required
 
-from ..commands.psbt_creator import PsbtCreator
-from ..helpers import bcur2base64, get_devices_with_keys_by_type, get_txid
-from ..key import Key
-from ..managers.wallet_manager import purposes
-from ..persistence import delete_file
-from ..server_endpoints import flash
-from ..services import callbacks
-from ..specter_error import SpecterError, handle_exception
-from ..util.tx import convert_rawtransaction_to_psbt, is_hex
-from ..util.wallet_importer import WalletImporter
-from ..wallet import Wallet
+from ...commands.psbt_creator import PsbtCreator
+from ...helpers import bcur2base64, get_devices_with_keys_by_type, get_txid
+from ...key import Key
+from ...managers.wallet_manager import purposes
+from ...persistence import delete_file
+from ...server_endpoints import flash
+from ...services import callbacks
+from ...specter_error import SpecterError, handle_exception
+from ...util.tx import convert_rawtransaction_to_psbt, is_hex
+from ...util.wallet_importer import WalletImporter
+from ...wallet import Wallet
 
 logger = logging.getLogger(__name__)
 
