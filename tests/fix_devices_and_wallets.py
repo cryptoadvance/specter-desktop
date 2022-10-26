@@ -51,10 +51,20 @@ def hot_wallet_device_2(specter_regtest_configured):
     return create_hot_wallet_device(specter_regtest_configured)
 
 
-def create_hot_wallet_with_ID(
-    specter_regtest_configured: Specter, hot_wallet_device_1, wallet_id
+@pytest.fixture
+def hot_ghost_machine_device(
+    specter_regtest_configured: Specter, mnemonic_ghost_machine: str
+) -> Device:
+    return create_hot_wallet_device(
+        specter_regtest_configured,
+        name="Ghost machine device",
+        mnemonic=mnemonic_ghost_machine,
+    )
+
+
+def create_hot_segwit_wallet(
+    specter_regtest_configured: Specter, device: Device, wallet_id
 ) -> Wallet:
-    device = hot_wallet_device_1
     wallet_manager = specter_regtest_configured.wallet_manager
     assert device.taproot_available(specter_regtest_configured.rpc)
 
@@ -64,9 +74,19 @@ def create_hot_wallet_with_ID(
     return source_wallet
 
 
+def create_hot_taproot_wallet(
+    specter_regtest_configured: Specter, device: Device, wallet_id
+) -> Wallet:
+    wallet_manager = specter_regtest_configured.wallet_manager
+    assert device.taproot_available(specter_regtest_configured.rpc)
+    keys = [key for key in device.keys if key.key_type == "tr"]
+    source_wallet = wallet_manager.create_wallet(wallet_id, 1, "tr", keys, [device])
+    return source_wallet
+
+
 @pytest.fixture
 def unfunded_hot_wallet_1(specter_regtest_configured, hot_wallet_device_1) -> Wallet:
-    return create_hot_wallet_with_ID(
+    return create_hot_segwit_wallet(
         specter_regtest_configured,
         hot_wallet_device_1,
         f"a_hotwallet_{random.randint(0, 999999)}",
@@ -74,11 +94,33 @@ def unfunded_hot_wallet_1(specter_regtest_configured, hot_wallet_device_1) -> Wa
 
 
 @pytest.fixture
-def unfunded_hot_wallet_2(specter_regtest_configured, hot_wallet_device_1) -> Wallet:
-    return create_hot_wallet_with_ID(
+def unfunded_hot_wallet_2(specter_regtest_configured, hot_wallet_device_2) -> Wallet:
+    return create_hot_segwit_wallet(
         specter_regtest_configured,
         hot_wallet_device_1,
         f"a_hotwallet_{random.randint(0, 999999)}",
+    )
+
+
+@pytest.fixture
+def unfunded_ghost_machine_wallet(
+    specter_regtest_configured: Specter, hot_ghost_machine_device: Device
+) -> Wallet:
+    return create_hot_segwit_wallet(
+        specter_regtest_configured,
+        hot_ghost_machine_device,
+        f"ghost_machine",
+    )
+
+
+@pytest.fixture
+def unfunded_taproot_wallet(
+    specter_regtest_configured: Specter, hot_ghost_machine_device: Device
+) -> Wallet:
+    return create_hot_taproot_wallet(
+        specter_regtest_configured,
+        hot_ghost_machine_device,
+        f"taproot",
     )
 
 
@@ -116,3 +158,25 @@ def funded_hot_wallet_2(
     funded_hot_wallet_2 = unfunded_hot_wallet_2
     bitcoin_regtest.testcoin_faucet(funded_hot_wallet_2.getnewaddress())
     return funded_hot_wallet_2
+
+
+@pytest.fixture
+def funded_ghost_machine_wallet(
+    bitcoin_regtest: NodeController, unfunded_ghost_machine_wallet: Wallet
+) -> Wallet:
+    funded_ghost_machine_wallet = unfunded_ghost_machine_wallet
+    bitcoin_regtest.testcoin_faucet(
+        funded_ghost_machine_wallet.getnewaddress()
+    )  # default value are 20 BTC
+    return funded_ghost_machine_wallet
+
+
+@pytest.fixture
+def funded_taproot_wallet(
+    bitcoin_regtest: NodeController, unfunded_taproot_wallet: Wallet
+) -> Wallet:
+    funded_taproot_wallet = unfunded_taproot_wallet
+    bitcoin_regtest.testcoin_faucet(
+        funded_taproot_wallet.getnewaddress()
+    )  # default value are 20 BTC
+    return funded_taproot_wallet

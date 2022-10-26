@@ -13,7 +13,6 @@ from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from cryptoadvance.specter.user import User
-from fix_devices_and_wallets import create_hot_wallet_with_ID
 
 logger = logging.getLogger(__name__)
 
