@@ -307,12 +307,12 @@ function price(valueInBTC,
 		return '';}
 	else {		
 		if (Specter.hideSensitiveInfo){
-			return ["#########"];}
+			return "#########";}
 		else{
 			if ((valueInBTC < 0 || valueInBTC == null) && Specter.isLiquid){
-				return [""]}
+				return ""}
 			if (valueInBTC == null){
-				return [""]};
+				return ""};
 
 			var formattedPrice = "";
 			if (valueInBTC) {
