@@ -92,6 +92,7 @@ def test_WalletManager(
 
 
 @pytest.mark.slow
+@pytest.mark.bottleneck
 def test_WalletManager_2_nodes(
     docker,
     request,
@@ -137,93 +138,6 @@ def test_WalletManager_2_nodes(
     # Should also use with threading
     wm.update(chain="regtest2", rpc=bitcoin_regtest2.get_rpc(), use_threading=True)
     assert wm.wallets_names == ["a_test_wallet"]
-
-    # assert False
-
-
-@pytest.mark.slow
-def test_wallet_createpsbt(
-    docker, request, devices_filled_data_folder, device_manager, bitcoin_regtest
-):
-    wm = WalletManager(
-        200100,
-        devices_filled_data_folder,
-        bitcoin_regtest.get_rpc(),
-        "regtest",
-        device_manager,
-        allow_threading=False,
-    )
-    # A wallet-creation needs a device
-    device = device_manager.get_by_alias("specter")
-    key = Key.from_json(
-        {
-            "derivation": "m/48h/1h/0h/2h",
-            "original": "Vpub5n9kKePTPPGtw3RddeJWJe29epEyBBcoHbbPi5HhpoG2kTVsSCUzsad33RJUt3LktEUUPPofcZczuudnwR7ZgkAkT6N2K2Z7wdyjYrVAkXM",
-            "fingerprint": "08686ac6",
-            "type": "wsh",
-            "xpub": "tpubDFHpKypXq4kwUrqLotPs6fCic5bFqTRGMBaTi9s5YwwGymE8FLGwB2kDXALxqvNwFxB1dLWYBmmeFVjmUSdt2AsaQuPmkyPLBKRZW8BGCiL",
-        }
-    )
-    wallet = wm.create_wallet("a_second_test_wallet", 1, "wpkh", [key], [device])
-    # Let's fund the wallet
-    address = wallet.getnewaddress()
-    assert address == "bcrt1qtnrv2jpygx2ef3zqfjhqplnycxak2m6ljnhq6z"
-    bitcoin_regtest.testcoin_faucet(address, amount=5)
-    address = wallet.getnewaddress()
-    bitcoin_regtest.testcoin_faucet(address, amount=10)
-    address = wallet.getnewaddress()
-    bitcoin_regtest.testcoin_faucet(address, amount=15)
-    # update the wallet data
-    wallet.update_balance()
-    assert wallet.amount_total == 30
-    unspents = wallet.rpc.listunspent(0)
-    # Let's take 3 UTXO:
-    selected_coins = [
-        {"txid": u["txid"], "vout": u["vout"]}
-        for u in [unspents[0], unspents[1], unspents[2]]
-    ]
-    selected_coins_amount_sum = (
-        unspents[0]["amount"] + unspents[1]["amount"] + unspents[2]["amount"]
-    )
-    number_of_coins_to_spend = (
-        selected_coins_amount_sum - 0.1
-    )  # Let's spend almost all of them
-    random_address = "bcrt1qwxhn49vkppudjcgrd4mylxczgjtuwayg5ckp5s"
-    psbt = wallet.createpsbt(
-        [random_address],
-        [number_of_coins_to_spend],
-        True,
-        0,
-        10,
-        selected_coins=selected_coins,
-    )
-    assert len(psbt["tx"]["vin"]) == 3
-    psbt_txs = [tx["txid"] for tx in psbt["tx"]["vin"]]
-    for coin in selected_coins:
-        assert coin["txid"] in psbt_txs
-
-    # Now let's spend more coins than we have selected. This should result in an exception:
-    try:
-        psbt = wallet.createpsbt(
-            [random_address],
-            [number_of_coins_to_spend + 1],
-            True,
-            0,
-            10,
-            selected_coins=selected_coins,
-        )
-        assert False, "should throw an exception!"
-    except SpecterError as e:
-        pass
-
-    assert wallet.amount_locked_unsigned == selected_coins_amount_sum
-    assert len(wallet.rpc.listlockunspent()) == 3
-    assert wallet.amount_available == wallet.amount_total - selected_coins_amount_sum
-
-    wallet.delete_pending_psbt(psbt["tx"]["txid"])
-    assert wallet.amount_locked_unsigned == 0
-    assert len(wallet.rpc.listlockunspent()) == 0
-    assert wallet.amount_total == wallet.amount_available
 
 
 def test_WalletManager_check_duplicate_keys(empty_data_folder):
@@ -775,47 +689,3 @@ def test_multisig_wallet_backup_and_restore(
 
     # We restored the wallet's utxos
     assert wallet.amount_total == 3.3
-
-
-@pytest.mark.slow
-def test_taproot_wallet(bitcoin_regtest, caplog, specter_regtest_configured):
-    """
-    Taproot m/86h/ derivation path xpubs should be able to create wallets and
-    receive funds
-    """
-    caplog.set_level(logging.INFO)
-
-    device_manager = specter_regtest_configured.device_manager
-    wallet_manager = specter_regtest_configured.wallet_manager
-
-    taproot_device = device_manager.add_device(
-        name="hot_key", device_type=DeviceTypes.BITCOINCORE, keys=[]
-    )
-    taproot_device.setup_device(file_password=None, wallet_manager=wallet_manager)
-    taproot_device.add_hot_wallet_keys(
-        mnemonic=generate_mnemonic(strength=128),
-        passphrase="",
-        paths=["m/86h/1h/0h"],  # Taproot for testnet/regtest
-        file_password=None,
-        wallet_manager=wallet_manager,
-        testnet=True,
-        keys_range=[0, 1000],
-        keys_purposes=[],
-    )
-
-    taproot_wallet = wallet_manager.create_wallet(
-        name="my_taproot_test_wallet",
-        sigs_required=1,
-        key_type=taproot_device.keys[0].key_type,
-        keys=[taproot_device.keys[0]],
-        devices=[taproot_device],
-    )
-
-    # Fund the wallet
-    address = taproot_wallet.getnewaddress()
-    bitcoin_regtest.testcoin_faucet(address, amount=2.2)
-    taproot_wallet.update_balance()
-    assert taproot_wallet.amount_total == 2.2
-
-    # Taproot test addrs are bcrt1p vs native segwit bcrt1q
-    assert address.startswith("bcrt1p")
