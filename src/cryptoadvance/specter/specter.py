@@ -70,7 +70,10 @@ class Specter:
         checker_threads=True,
         initialize=True,
     ):
-        """Very basic Initialisation of the Specter Object. Make sure to call specter.initialize() shortly after"""
+        """Very basic Initialisation of the Specter Object. Will, by default call specter.initialize() shortly after
+        This might be unwanted (e.g. in server.py) in order to apply specter.service_manager so that all the
+        managers can make callbacks in the initialize method.
+        """
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)
         data_folder = os.path.abspath(data_folder)

@@ -4,7 +4,6 @@ import random
 from functools import wraps
 
 import requests
-from cryptoadvance.specter.server_endpoints.wallets.wallets_vm import WalletsOverviewVm
 from flask import Blueprint
 from flask import current_app as app
 from flask import jsonify, redirect, render_template, request, url_for
@@ -18,11 +17,12 @@ from ...managers.wallet_manager import purposes
 from ...persistence import delete_file
 from ...server_endpoints import flash
 from ...services import callbacks
+from ...services.callbacks import adjust_view_model
 from ...specter_error import SpecterError, handle_exception
 from ...util.tx import convert_rawtransaction_to_psbt, is_hex
 from ...util.wallet_importer import WalletImporter
 from ...wallet import Wallet
-from ...services.callbacks import adjust_view_model
+from .wallets_vm import WalletsOverviewVm
 
 logger = logging.getLogger(__name__)
 

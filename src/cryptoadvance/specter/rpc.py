@@ -158,23 +158,6 @@ def _detect_rpc_confs_via_env(prefix):
     return rpc_arr
 
 
-def _detect_rpc_confs_via_extensions():
-    """currently faked, needs a callback"""
-    rpc_arr = []
-    return rpc_arr
-    rpc_arr.append(
-        {
-            "user": "",
-            "password": "",
-            "host": "localhost",
-            "port": "25441",
-            "path": "/svc/spectrum/core_api/",
-            "protocol": "http",
-        }
-    )
-    return rpc_arr
-
-
 def autodetect_rpc_confs(
     node_type,
     datadir=get_default_datadir(),
@@ -193,7 +176,6 @@ def autodetect_rpc_confs(
     conf_arr = []
     conf_arr.extend(_detect_rpc_confs_via_env(node_type))
     conf_arr.extend(_detect_rpc_confs_via_datadir(datadir=datadir))
-    conf_arr.extend(_detect_rpc_confs_via_extensions())
     available_conf_arr = []
     if len(conf_arr) > 0:
         for conf in conf_arr:
@@ -217,7 +199,7 @@ def autodetect_rpc_confs(
                 # have to make a list of acceptable exception unfortunately
                 # please enlarge if you find new ones
     else:
-        logger.info(f"NO candidates for BTC-connection!!!!!!!!!!!!!!!")
+        logger.info(f"No candidates for BTC-connection autodetection found")
     return available_conf_arr
 
 

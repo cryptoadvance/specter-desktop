@@ -55,14 +55,14 @@ class BusinessObject:
         return self_json
 
     @property
-    def is_core_object(self):
+    def is_specter_core_object(self):
         """Whether the class is defined in cryptoadvance.specter"""
         return self.fqcn.startswith("cryptoadvance.specter.")
 
     @property
     def ext_id(self):
         """returns the third part of yourorg.specterext.ext_id"""
-        if self.is_core_object:
+        if self.is_specter_core_object:
             return None
         else:
             return self.fqcn.split(".")[2]
@@ -70,19 +70,20 @@ class BusinessObject:
     @property
     def blueprint(self):
         """returns the blueprint of the extension (assuming there is only a default one)"""
-        if self.is_core_object:
+        if self.is_specter_core_object:
             return ""
         else:
             return f"{self.ext_id}_endpoint"
 
     @classmethod
     def from_json(cls, a_dict, *args, **kwargs):
-        """Creates a BusinessObject of the right class"""
+        """Creates a BusinessObject of the right class
+        Might throw a SpecterInternalException
+        """
         try:
             clazz = get_class(a_dict["python_class"])
         except KeyError:
             raise SpecterInternalException("dict does not have a python_class")
-
         return clazz.from_json(a_dict, *args, **kwargs)
 
 

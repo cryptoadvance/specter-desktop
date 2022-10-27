@@ -66,7 +66,7 @@ You might have an extension which wants to inject e.g. JavaScript code into each
 
 For this to work, the extension needs to be activated for the user, though.
 
-### Extending dialogs
+## Extending dialogs
 You can extend the settings dialog or the wallet-dialog with your own templates. To do that, create a callback method in your service like:
 
 ```python
@@ -146,3 +146,26 @@ A reasonable `mywalletdetails.jinja` would look like this:
 
 ![](./images/extensions/add_wallettabs.png)
 
+## Extending certain pages or complete Endpoints
+
+For some endpoints, there is the possibility to extend/change parts of a page or the complete page. This works by declaring the `callback_adjust_view_model` method in your extension and modify the ViewModel which got passed into the callback. As there is only one callback for all types of ViewModels, you will need to check for the type that you're expecting and only adjust this type. Here is an example:
+
+```python
+from cryptoadvance.specter.server_endpoints.welcome.welcome_vm import WelcomeVm
+
+class ExtensionidService(Service):
+    [...}
+    def callback_adjust_view_model(self, view_model: WelcomeVm):
+        if type(view_model) == WelcomeVm:
+            # potentially, we could make a redirect here:
+            # view_model.about_redirect=url_for("spectrum_endpoint.some_enpoint_here")
+            # but we do it small here and only replace a specific component:
+            view_model.get_started_include = "spectrum/welcome/components/get_started.jinja"
+        return view_model
+```
+
+In this example, a certain part of the page gets replaced. As you can read in the comments, you could also trigger a complete redirect to a different endpoint.
+
+Currently, only two `ViewModels` are existing. Check them out for what they are capable of. Don't hesitate to create a ticket if you'd like to modify something where no ViewModel yet exists:
+- cryptoadvance.specter.server_endpoints.welcome.welcome_vm
+- cryptoadvance.specter.server_endpoints.wallets.wallets_vm

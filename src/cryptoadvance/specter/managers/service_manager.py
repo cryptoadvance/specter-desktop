@@ -379,16 +379,8 @@ class ServiceManager:
         for service_id in services_with_unencrypted_storage:
             self.delete_service_from_user(user, service_id, autosave=True)
 
-        if self.user_has_encrypted_storage(user=user):
-            # Encrypted Service data is now orphaned since there is no
-            # password. So wipe it from the disk.
-            app.specter.service_encrypted_storage_manager.delete_all_service_data(user)
-            logger.debug(f"Deleted encrypted services for user {user}")
-        else:
-            self.specter.service_unencrypted_storage_manager.delete_all_service_data(
-                user
-            )
-            logger.debug(f"Deleted unencrypted services for user {user}")
+        self.specter.service_unencrypted_storage_manager.delete_all_service_data(user)
+        logger.debug(f"Deleted unencrypted services")
 
     @classmethod
     def get_service_x_dirs(cls, x):

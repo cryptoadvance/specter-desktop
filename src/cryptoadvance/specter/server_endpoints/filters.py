@@ -20,8 +20,12 @@ def ascii20(context, name):
 @pass_context
 @filters_bp.app_template_filter("subrender")
 def subrender_filter(context, value):
-    """based on the idea here:
+    """This can render a variable as it would be template-text like:
+    {{ "Hello, {{name}}"|subrender }}
+    based on the idea here:
     https://stackoverflow.com/questions/8862731/jinja-nested-rendering-on-variable-content
+    Currently not used but tried it out for Node_sessings_rendering and kept in here
+    for extensions to maybe use later.
     """
     _template = context.eval_ctx.environment.from_string(value)
     result = _template.render(**context)

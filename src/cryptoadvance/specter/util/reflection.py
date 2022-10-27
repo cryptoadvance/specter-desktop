@@ -8,7 +8,7 @@ from pkgutil import iter_modules
 import sys
 from typing import List
 from .common import camelcase2snake_case
-from ..specter_error import SpecterError
+from ..specter_error import SpecterError, SpecterInternalException
 from .shell import grep
 
 from .reflection_fs import detect_extension_style_in_cwd, search_dirs_in_path
@@ -30,9 +30,9 @@ def get_class(fqcn: str):
     try:
         my_class = getattr(module, class_name)
     except AttributeError:
-        raise AttributeError(
+        raise SpecterInternalException(
             f"module {module_name} has no class {class_name}"
-        )  # a tiny bit more specific, maybe not even worth it
+        )
     return my_class
 
 

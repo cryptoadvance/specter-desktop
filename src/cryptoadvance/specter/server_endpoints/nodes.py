@@ -39,7 +39,7 @@ def node_settings(node_alias):
     if node_alias:
         try:
             node: Node = app.specter.node_manager.get_by_alias(node_alias)
-            if not node.is_core_object:
+            if not node.is_specter_core_object:
                 return redirect(
                     url_for(
                         # This is a convention which should be documented
