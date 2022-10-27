@@ -31,13 +31,22 @@ class SpecterMigration_0002(SpecterMigration):
         return """Node-class migration:
             We introduced the Spectrum Node on an extension. With that, we made the choice of 
             the Node to be instantiated much more flexible. The node.json get a member called
-            node_class which is the fully qualified package name of the class the NodeManager
+            python_class which is the fully qualified package name of the class the NodeManager
             should instantiate.
             This migrates all the node.json files to the new format.
             Effectively it will:
             * Iterate over all nodes in ~/.specter/nodes/*.json
-            * load each node.json and adds the correct node_class 
+            * load each node.json and adds the correct python_class 
             * stores it again
+            In order to reverse this migration, you do need to reverese the addition of the 
+            python_class like this:
+            
+            cd ~/.specter/nodes
+            for file in `ls *.json`; do jq 'del(.python_class)' $file | sponge $file ; done
+            cd ..
+            jq 'del(.migration_executions[] | select(.migration_id == 2))' migration_data.json | sponge migrat
+ion_data.json
+
         """
 
     def execute(self):

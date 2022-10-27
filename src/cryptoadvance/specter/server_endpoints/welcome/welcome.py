@@ -11,8 +11,9 @@ from flask_login import login_required
 from ...helpers import notify_upgrade
 from ...managers.wallet_manager import purposes
 from ...server_endpoints import flash
-from .welcome_vm import WelcomeVm
 from ...services.callbacks import adjust_view_model
+from ...specter_error import SpecterError
+from .welcome_vm import WelcomeVm
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +57,7 @@ def about():
         adjust_view_model, WelcomeVm()
     )
     if len(welcome_vm_dict.values()) > 1:
-        raise logger.error("Seems that we have more than one Welcome Extension")
+        raise SpecterError("Seems that we have more than one Welcome Extension")
     if len(welcome_vm_dict.values()) == 1:
         welcome_vm = list(welcome_vm_dict.values())[0]
     else:
