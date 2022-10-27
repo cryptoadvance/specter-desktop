@@ -6,7 +6,7 @@ import shutil
 
 from ..rpc import get_default_datadir, RPC_PORTS
 from ..specter_error import SpecterError, SpecterInternalException
-from ..persistence import BusinessObject, write_node, delete_file
+from ..persistence import PersistentObject, write_node, delete_file
 from ..helpers import alias, calc_fullpath, load_jsons
 from ..node import Node
 from ..internal_node import InternalNode
@@ -54,7 +54,9 @@ class NodeManager:
         nodes_files = load_jsons(self.data_folder, key="name")
         for node_alias in nodes_files:
             try:
-                self.nodes[nodes_files[node_alias]["name"]] = BusinessObject.from_json(
+                self.nodes[
+                    nodes_files[node_alias]["name"]
+                ] = PersistentObject.from_json(
                     nodes_files[node_alias],
                     self,
                     default_alias=node_alias,

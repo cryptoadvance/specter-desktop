@@ -25,7 +25,7 @@ fslock = threading.Lock()
 pclock = threading.Lock()
 
 
-class BusinessObject:
+class PersistentObject:
     """An object which contains reasonable infrastructure to get un-/persisted (in json)
     As such, other than the name implies, it doesn't contain any business specific attributes
     Its usage is not (yet?!) supported in this persistence module but let's see
@@ -77,7 +77,7 @@ class BusinessObject:
 
     @classmethod
     def from_json(cls, a_dict, *args, **kwargs):
-        """Creates a BusinessObject of the right class
+        """Creates a PersistentObject of the right class
         Might throw a SpecterInternalException
         """
         try:

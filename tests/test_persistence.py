@@ -4,7 +4,7 @@ from cryptoadvance.specter.persistence import (
     write_devices,
     write_device,
     write_wallet,
-    BusinessObject,
+    PersistentObject,
 )
 from cryptoadvance.specter.key import Key
 import json
@@ -74,8 +74,8 @@ def test_write_device(app, a_key, a_tpub_only_key):
     os.remove("/tmp/delete_me_test_file.json")
 
 
-def test_BusinessObject():
-    some_node = BusinessObject.from_json(
+def test_PersistentObject():
+    some_node = PersistentObject.from_json(
         {"python_class": "cryptoadvance.specter.node.Node"}, MagicMock()
     )
     assert some_node.__class__.__name__ == "Node"

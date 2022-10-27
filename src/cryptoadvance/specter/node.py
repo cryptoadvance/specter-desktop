@@ -10,7 +10,7 @@ from requests.exceptions import ConnectionError
 
 from .helpers import deep_update, is_liquid, is_testnet
 from .liquid.rpc import LiquidRPC
-from .persistence import BusinessObject, write_node
+from .persistence import PersistentObject, write_node
 from .rpc import (
     BitcoinRPC,
     RpcError,
@@ -22,7 +22,7 @@ from .specter_error import BrokenCoreConnectionException
 logger = logging.getLogger(__name__)
 
 
-class AbstractNode(BusinessObject):
+class AbstractNode(PersistentObject):
     """This is a Node-class worth deriving from. It tries to define as many attributes as possible which are needed but probably in a very
     inefficient way, e.g. without any caching. Feel free to improve that in subclasses and you might get inspired by existing sublasses
     """
