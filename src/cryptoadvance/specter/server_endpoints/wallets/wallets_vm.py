@@ -12,5 +12,5 @@ class WalletsOverviewVm:
 
     wallets_overview_redirect: str = None
     header_and_summary_include: str = "wallet/overview/header_and_summary.jinja"
-    balance_overview: str = "wallet/overview/balance_overview.jinja"
-    tx_table: str = "wallet/overview/tx_table.jinja"
+    balance_overview_include: str = "wallet/overview/balance_overview.jinja"
+    tx_table_include: str = "wallet/overview/tx_table.jinja"

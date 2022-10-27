@@ -132,7 +132,9 @@ def calc_fullpath(data_folder, name):
 
 
 def deep_update(d, u):
-    """updates the dict d with the dict u"""
+    """updates the dict d with the dict u
+    in short: second argument wins
+    """
     for k, v in six.iteritems(u):
         dv = d.get(k, {})
         if not isinstance(dv, collections.abc.Mapping):

@@ -106,6 +106,7 @@ class NodeManager:
             if node.alias == self.DEFAULT_ALIAS:
                 return
         # Make sure we always have a default node
+        # (needed for the rpc-as-pin-authentication, created and used for raspiblitz)
         self.add_external_node(
             node_type="BTC",
             name="Bitcoin Core",
