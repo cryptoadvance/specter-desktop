@@ -37,11 +37,16 @@ def test_get_class():
     assert type(get_class("cryptoadvance.specter.device.Device")) == type(Device)
     assert get_class("cryptoadvance.specter.node.Node").__name__ == "Node"
 
-    # it doesn't make sense to raise SpecterErrors as the error-messages can't
-    # be meaningful to the user
-    with pytest.raises(SpecterInternalException):
+    # It doesn't make sense to raise SpecterErrors as the error messages aren't meaningful to the user
+    with pytest.raises(
+        SpecterInternalException,
+        match="Could not find cryptoadvance.specter.node.notExisting",
+    ):
         get_class("cryptoadvance.specter.node.notExisting")
-    with pytest.raises(SpecterInternalException):
+    with pytest.raises(
+        SpecterInternalException,
+        match="Could not find cryptoadvance.notExisting.notExisting",
+    ):
         get_class("cryptoadvance.notExisting.notExisting")
 
 

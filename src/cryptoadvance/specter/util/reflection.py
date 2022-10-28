@@ -29,7 +29,7 @@ def get_class(fqcn: str):
         module = import_module(module_name)
         my_class = getattr(module, class_name)
     except (AttributeError, ModuleNotFoundError) as e:
-        raise SpecterInternalException(f"Could not find  {fqcn}: {e}")
+        raise SpecterInternalException(f"Could not find {fqcn}: {e}")
     return my_class
 
 
