@@ -44,8 +44,7 @@ class SpecterMigration_0002(SpecterMigration):
             cd ~/.specter/nodes
             for file in `ls *.json`; do jq 'del(.python_class)' $file | sponge $file ; done
             cd ..
-            jq 'del(.migration_executions[] | select(.migration_id == 2))' migration_data.json | sponge migrat
-ion_data.json
+            jq 'del(.migration_executions[] | select(.migration_id == 2))' migration_data.json | sponge migration_data.json
 
         """
 
@@ -61,14 +60,17 @@ ion_data.json
 
             fullpath = os.path.join(self.data_folder, "%s.json" % node_alias)
             if nodes_files[node_alias].get("external_node"):
-                nodes_files[node_alias][
-                    "python_class"
-                ] = "cryptoadvance.specter.internal_node.InternalNode"
-            else:
+                logger.info(f"Migrating node {node_alias} to Node class.")
                 nodes_files[node_alias][
                     "python_class"
                 ] = "cryptoadvance.specter.node.Node"
+            else:
+                logger.info(f"Migrating node {node_alias} to InternalNode class.")
+                nodes_files[node_alias][
+                    "python_class"
+                ] = "cryptoadvance.specter.internal_node.InternalNode"
             if nodes_files[node_alias].get("external_node"):
+                logger.info(f"Deleting external_node key of {node_alias} in node.json")
                 del nodes_files[node_alias]["external_node"]
 
             write_json_file(
@@ -79,7 +81,7 @@ ion_data.json
 
         # {
         #     "name": "Specter Bitcoin",
-        #     "node_class": "cryptoadvance.specter.node.Node",
+        #     "python_class": "cryptoadvance.specter.node.Node",
         #     "alias": "specter_bitcoin",
         #     "autodetect": false,
         #     "datadir": "/home/someuser/.specter/nodes/specter_bitcoin/.bitcoin-main",
