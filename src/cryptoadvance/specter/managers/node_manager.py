@@ -62,8 +62,8 @@ class NodeManager:
                     default_alias=node_alias,
                     default_fullpath=calc_fullpath(self.data_folder, node_alias),
                 )
-            except (ModuleNotFoundError, SpecterInternalException, AttributeError) as e:
-                logger.error(f"Skipping node {node_alias} as we have: {e}  !")
+            except SpecterInternalException as e:
+                logger.error(f"Skipping node {node_alias} due to {e}")
 
         if not self.nodes:
             if os.environ.get("ELM_RPC_USER"):
