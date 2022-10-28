@@ -15,6 +15,7 @@ from cryptoadvance.specter.util.reflection import (
 )
 from cryptoadvance.specter.util.specter_migrator import SpecterMigration
 from cryptoadvance.specter.util.migrations.migration_0000 import SpecterMigration_0000
+from cryptoadvance.specter.specter_error import SpecterInternalException
 from cryptoadvance.specter.managers.service_manager import Service
 from cryptoadvance.specter.services.swan.service import SwanService
 from cryptoadvance.specter.services.bitcoinreserve.service import BitcoinReserveService
@@ -32,11 +33,14 @@ def test_get_module_from_class():
 
 
 def test_get_class():
+    assert type(get_class("cryptoadvance.specter.device.Device")) == type(Device)
     assert get_class("cryptoadvance.specter.node.Node").__name__ == "Node"
 
-    # it doesn't make sense to raise SpecterErrors as the error-messages can't
-    # be meaningful to the user
-    with pytest.raises(AttributeError):
+    # It doesn't make sense to raise SpecterErrors, error messages can't be meaningful to the user here
+    with pytest.raises(
+        SpecterInternalException,
+        match="Module cryptoadvance.specter.node has no class notExisting",
+    ):
         get_class("cryptoadvance.specter.node.notExisting")
     with pytest.raises(ModuleNotFoundError):
         get_class("cryptoadvance.notExisting.notExisting")

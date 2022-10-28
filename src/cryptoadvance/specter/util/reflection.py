@@ -21,7 +21,7 @@ def _get_module_from_class(clazz):
 
 
 def get_class(fqcn: str):
-    """returns a class by a fully qualified class name like e.g. cryptoadvance.specter.node.Node"""
+    """Returns a class by a fully qualified class name like e.g. cryptoadvance.specter.node.Node"""
     module_name = ".".join(fqcn.split(".")[:-1])
 
     class_name = fqcn.split(".")[-1]
@@ -31,7 +31,7 @@ def get_class(fqcn: str):
         my_class = getattr(module, class_name)
     except AttributeError:
         raise SpecterInternalException(
-            f"module {module_name} has no class {class_name}"
+            f"Module {module_name} has no class {class_name}"
         )
     return my_class
 
