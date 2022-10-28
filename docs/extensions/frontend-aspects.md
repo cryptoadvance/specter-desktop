@@ -41,7 +41,7 @@ In your controller, the endpoint needs to be specified like this:
 ui = RubberduckService.blueprints["ui"]
 ```
 
-## Templates and Static Resources
+## Templates and static resources
 
 The minimal url routes for `Service` selection and management. As usualy in Flask, `templates` and `static` resources are in their respective subfolders. Please note that there is an additional directory with the id of the extension which looks redundant at first. This is due to the way blueprints are loading templates and ensures that there are no naming collisions. Maybe at a later stage, this can be used to let plugins override other plugin's templates.
 
@@ -67,7 +67,7 @@ You might have an extension which wants to inject e.g. JavaScript code into each
 For this to work, the extension needs to be activated for the user, though.
 
 ## Extending dialogs
-You can extend the settings dialog or the wallet-dialog with your own templates. To do that, create a callback method in your service like:
+You can extend the settings dialog or the wallet dialog with your own templates. To do that, create a callback method in your service like:
 
 ```python
 from cryptoadvance.specter.services import callbacks
@@ -120,7 +120,7 @@ The `some_settingspage.jinja` should probably look exactly like all the other se
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<h1 id="title" class="settings-title">Settings</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
-		{{ settings_menu('myext_something', current_user, setting_exts) }}
+		{{ settings_menu('myext_something', current_user, ext_settingstabs) }}
 		<div class="card" style="margin: 20px auto;">
 			<h1>{{ _("Something something") }} </h1>
 		</div>
@@ -146,7 +146,7 @@ A reasonable `mywalletdetails.jinja` would look like this:
 
 ![](./images/extensions/add_wallettabs.png)
 
-## Extending certain pages or complete Endpoints
+## Extending certain pages or complete endpoints
 
 For some endpoints, there is the possibility to extend/change parts of a page or the complete page. This works by declaring the `callback_adjust_view_model` method in your extension and modify the ViewModel which got passed into the callback. As there is only one callback for all types of ViewModels, you will need to check for the type that you're expecting and only adjust this type. Here is an example:
 
@@ -166,6 +166,6 @@ class ExtensionidService(Service):
 
 In this example, a certain part of the page gets replaced. As you can read in the comments, you could also trigger a complete redirect to a different endpoint.
 
-Currently, only two `ViewModels` are existing. Check them out for what they are capable of. Don't hesitate to create a ticket if you'd like to modify something where no ViewModel yet exists:
+Currently, only two `ViewModels` are existing. Check them out. Don't hesitate to create an issue if you'd like to modify something where no ViewModel exists yet:
 - cryptoadvance.specter.server_endpoints.welcome.welcome_vm
 - cryptoadvance.specter.server_endpoints.wallets.wallets_vm
