@@ -211,8 +211,8 @@ def node_settings(node_alias):
             )
             if not success:
                 flash(_("Saving failed: no connection to node"), "error")
-            if app.specter.active_node_alias == node.alias:
-                app.specter.check()
+            if success:
+                return redirect(url_for("welcome_endpoint.index"))
 
     return render_template(
         "node/node_settings.jinja",
