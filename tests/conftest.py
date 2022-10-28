@@ -218,7 +218,9 @@ def elements_elreg(request):
 @pytest.fixture
 def empty_data_folder():
     # Make sure that this folder never ever gets a reasonable non-testing use-case
-    with tempfile.TemporaryDirectory(prefix="specter_home_tmp_") as data_folder:
+    with tempfile.TemporaryDirectory(
+        prefix="specter_home_tmp_", ignore_cleanup_errors=True
+    ) as data_folder:
         yield data_folder
 
 

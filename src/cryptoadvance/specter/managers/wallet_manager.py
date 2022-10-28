@@ -119,7 +119,7 @@ class WalletManager:
                 self._update(wallets_update_list)
         else:
             self.is_loading = False
-            logger.warn(
+            logger.warning(
                 "Specter seems to be disconnected from Bitcoin Core. Skipping wallets update."
             )
 
