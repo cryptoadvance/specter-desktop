@@ -25,6 +25,7 @@ class InternalNode(Node):
     BROKEN = "Broken"
     DOWN = "Down"
     RUNNING = "Running"
+    external_node = False
 
     def __init__(
         self,

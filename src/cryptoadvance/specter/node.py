@@ -141,6 +141,8 @@ class Node(AbstractNode):
     One or many Nodes are managed via the NodeManager
     """
 
+    external_node = True
+
     def __init__(
         self,
         name,
