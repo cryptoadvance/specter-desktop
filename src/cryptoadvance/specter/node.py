@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class AbstractNode(PersistentObject):
-    """This is a Node-class worth deriving from. It tries to define as many attributes as possible which are needed but probably in a very
+    """This is a Node class worth deriving from. It tries to define as many attributes as possible which are needed but probably in a very
     inefficient way, e.g. without any caching. Feel free to improve that in subclasses and you might get inspired by existing sublasses
     """
 
@@ -38,7 +38,7 @@ class AbstractNode(PersistentObject):
     # So first, here are the one which return directly the content of one of those calls as dict:
     @property
     def info(self):
-        """Should be somehow a combination of various info-calls from core. Could have:
+        """Should be a combination of various info calls from Bitcoin Core. Could have:
         * all the info from https://developer.bitcoin.org/reference/rpc/getblockchaininfo.html
         * plus 'mempool_info' from https://developer.bitcoin.org/reference/rpc/getmempoolinfo.html
         * plus uptime
