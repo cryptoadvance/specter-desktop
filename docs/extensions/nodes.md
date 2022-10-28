@@ -1,8 +1,8 @@
 # Adding Nodes or NodeTypes
 
-The whole programming-model is based on the Bitcoin-Core API. So we need Bitcoin Core Nodes or Elements Nodes or at least something which behaves like that. So for the Spektrum Integration, we made Extending the Node possible. This is a short description og how that has been done and which extension-points might be helpfull here.
+The whole programming-model is based on the Bitcoin-Core API. So we need Bitcoin Core nodes or elements nodes or at least something which behaves like that. So for the Spectrum Integration, we made extending the node possible. This is a short description of how that has been done and which extensionpoints might be helpfull here.
 
-So To Create your own Node, Derive from `AbstractNode`., you have to specify the modules containing subclasses of `Device` in `service.py`:
+So to create your own Node, derive from `AbstractNode`:
 
 ```
 from cryptoadvance.specter.node import AbstractNode
@@ -17,7 +17,7 @@ class MyNode(AbstractNode):
       return "spectrum/components/spectrum_info.jinja"
 ```
 
-It will need it's own `fromJson` method. Overwrite the `node_info_template` method to specify your own template. In order to smuggle your node into existence, you could potentially use the `callback_after_serverpy_init_app` callback. Have a look how the spectrum-extension did it [here](https://github.com/cryptoadvance/spectrum/pull/9/files#diff-82be7977bfa33bdbb0a448c7a03b43de90c4749565bef6737d6d516956ff0823R51-R62).
+That class will need its own `fromJson` method. Overwrite the `node_info_template` method to specify your own template for the info-page which comes up if you click on a fully configured and functional node in the upper left corner. In order to smuggle your node into existence, you could potentially use the `callback_after_serverpy_init_app` callback. Have a look how the spectrum-extension did it [here](https://github.com/cryptoadvance/spectrum/pull/9/files#diff-82be7977bfa33bdbb0a448c7a03b43de90c4749565bef6737d6d516956ff0823R51-R62). Alternatively, you could create your own frontend in your controller and maybe additionally adjust the `WelcomeVm` model class as described in the frontend section.
 
 If the `node_settings` are clicked for that Node, we also expect that you have a `node_settings` endpoint in your controller. Otherwise there will be errors. Something like:
 
