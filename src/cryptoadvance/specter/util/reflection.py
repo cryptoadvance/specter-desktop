@@ -8,7 +8,7 @@ from pkgutil import iter_modules
 import sys
 from typing import List
 from .common import camelcase2snake_case
-from ..specter_error import SpecterError
+from ..specter_error import SpecterError, SpecterInternalException
 from .shell import grep
 
 from .reflection_fs import detect_extension_style_in_cwd, search_dirs_in_path
@@ -18,6 +18,19 @@ logger = logging.getLogger(__name__)
 
 def _get_module_from_class(clazz):
     return import_module(clazz.__module__)
+
+
+def get_class(fqcn: str):
+    """Returns a class by a fully qualified class name like e.g. cryptoadvance.specter.node.Node"""
+    module_name = ".".join(fqcn.split(".")[:-1])
+
+    class_name = fqcn.split(".")[-1]
+    try:
+        module = import_module(module_name)
+        my_class = getattr(module, class_name)
+    except (AttributeError, ModuleNotFoundError) as e:
+        raise SpecterInternalException(f"Could not find {fqcn}: {e}")
+    return my_class
 
 
 def get_template_static_folder(foldername):
@@ -98,9 +111,6 @@ def get_classlist_of_type_clazz_from_modulelist(clazz, modulelist):
                 ):
                     # Unfortunately the superclass gets imported if you inherit from it and counts as an attribute as well
                     if str(attribute.__module__).startswith(fq_module_name):
-                        logger.debug(
-                            f" {attribute.__module__} <<<<-------------------------------------"
-                        )
                         logger.debug(f"Adding {attribute} to {class_list}")
                         class_list.append(attribute)
                         logger.info(f"  Found class {attribute.__name__}")

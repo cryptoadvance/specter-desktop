@@ -3,6 +3,7 @@ import pytest
 import tempfile
 
 from cryptoadvance.specter.node import Node
+from cryptoadvance.specter.managers.node_manager import NodeManager
 from cryptoadvance.specter.helpers import is_liquid
 from mock import MagicMock, call, patch
 
@@ -19,7 +20,7 @@ def test_Node_btc(bitcoin_regtest):
                 "host": bitcoin_regtest.rpcconn.ipaddress,
                 "protocol": "http",
             },
-            manager=MagicMock(),
+            manager=NodeManager(data_folder=data_folder),
             default_fullpath=os.path.join(data_folder, "a_testfile.json"),
         )
         result = node.test_rpc()
@@ -33,6 +34,7 @@ def test_Node_btc(bitcoin_regtest):
         del node_json["fullpath"]  # This is very different because of the tempfile
         assert node_json == {
             "name": "",
+            "python_class": "cryptoadvance.specter.node.Node",
             "alias": "",
             "autodetect": False,
             "datadir": "",
@@ -42,7 +44,6 @@ def test_Node_btc(bitcoin_regtest):
             "host": "localhost",
             "protocol": "http",
             "node_type": "BTC",
-            "external_node": True,  # 'fullpath': ''
         }
 
         rpc = node._get_rpc()
@@ -95,6 +96,7 @@ def test_Node_elm(elements_elreg):
         print(f"node.json = {node.json}")
         assert node_json == {
             "name": "",
+            "python_class": "cryptoadvance.specter.node.Node",
             "alias": "",
             "autodetect": False,
             "datadir": "",
@@ -104,7 +106,6 @@ def test_Node_elm(elements_elreg):
             "host": "localhost",
             "protocol": "http",
             "node_type": "BTC",
-            "external_node": True,  # 'fullpath': ''
         }
 
         rpc = node._get_rpc()

@@ -1,0 +1,26 @@
+{% extends "base.jinja" %}
+{% block main %}
+    <style>
+        .arrow {
+            text-decoration: none;
+            display: inline-block;
+            margin: 0px 16px 16px;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 1.5em;
+        }
+
+        .disabled {
+            visibility: hidden;
+        }
+    </style>
+    {% include "includes/services-data.html" %}
+    {% include "includes/address-label.html" %}
+
+    {% include wallets_overview_vm.header_and_summary_include %}
+
+    {% include wallets_overview_vm.balance_overview_include %}
+
+    {% include wallets_overview_vm.tx_table_include %}
+
+{% endblock %}
