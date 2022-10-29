@@ -3,6 +3,7 @@ import pytest
 import tempfile
 
 from cryptoadvance.specter.node import Node
+from cryptoadvance.specter.managers.node_manager import NodeManager
 from cryptoadvance.specter.helpers import is_liquid
 from mock import MagicMock, call, patch
 
@@ -19,7 +20,7 @@ def test_Node_btc(bitcoin_regtest):
                 "host": bitcoin_regtest.rpcconn.ipaddress,
                 "protocol": "http",
             },
-            manager=MagicMock(),
+            manager=NodeManager(data_folder=data_folder),
             default_fullpath=os.path.join(data_folder, "a_testfile.json"),
         )
         result = node.test_rpc()
