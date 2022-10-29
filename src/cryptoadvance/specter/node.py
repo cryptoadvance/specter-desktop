@@ -154,7 +154,6 @@ class Node(AbstractNode):
         port,
         host,
         protocol,
-        external_node,
         fullpath,
         node_type,
         manager,
@@ -170,7 +169,6 @@ class Node(AbstractNode):
         :param port: usually something like 8332 for mainnet, 18332 for testnet, 18443 for Regtest, 38332 for signet
         :param host: domainname or ip-address. Don't add the protocol here
         :param protocol: Usually https or http
-        :param external_node: should be True for Node and False for InternalNode
         :param fullpath: it's assumed that you want to store it on disk AND decide about the fullpath upfront
         :param node_type: either "ELM" or "BTC", will impact autodetection (datadir and Env-vars)
         :param manager: A NodeManager instance which will get notified if the Node's name changes, the proxy_url will get copied from the manager as well
@@ -184,7 +182,6 @@ class Node(AbstractNode):
         self.port = port
         self.host = host
         self.protocol = protocol
-        self.external_node = external_node
         self.fullpath = fullpath
         self._node_type = node_type
         self.manager = manager
@@ -210,7 +207,6 @@ class Node(AbstractNode):
         port = node_dict.get("port", None)
         host = node_dict.get("host", "localhost")
         protocol = node_dict.get("protocol", "http")
-        external_node = node_dict.get("external_node", True)
         fullpath = node_dict.get("fullpath", default_fullpath)
 
         return cls(
@@ -223,7 +219,6 @@ class Node(AbstractNode):
             port,
             host,
             protocol,
-            external_node,
             fullpath,
             node_type,
             manager,
@@ -245,7 +240,6 @@ class Node(AbstractNode):
                 "port": self.port,
                 "host": self.host,
                 "protocol": self.protocol,
-                "external_node": self.external_node,
                 "fullpath": self.fullpath,
                 "node_type": self.node_type,
             },

@@ -128,8 +128,10 @@ def test_SpecterMigrator(empty_data_folder, caplog):
         mm.execute_migrations(mylist)
         assert len(mm.mig.migration_executions) == 2
         assert "Setting execution log status of 1 to completed" in caplog.text
+        assert "Setting execution log status of 2 to completed" in caplog.text
 
         assert mm.mig.migration_executions[0]["migration_id"] == 1
+        print("Content of nodes/specter_bitcoin/.bitcoin-main")
         print(
             os.listdir(
                 os.path.join(
@@ -149,6 +151,8 @@ def test_SpecterMigrator(empty_data_folder, caplog):
                 "chainstate",
             )
         )
+        print("Content of nodes")
+        print(os.listdir(os.path.join(empty_data_folder, "nodes")))
         specter_bitcoin_json = os.path.join(
             empty_data_folder, "nodes", "specter_bitcoin.json"
         )
@@ -163,5 +167,4 @@ def test_SpecterMigrator(empty_data_folder, caplog):
         assert config["password"]
         assert config["port"] == 8332
         assert config["host"] == "localhost"
-        assert config["external_node"] == False
         # yeah, some more but should be ok

@@ -34,7 +34,6 @@ def test_NodeManager(
             bitcoin_regtest.rpcconn.rpcport,
             bitcoin_regtest.rpcconn._ipaddress,
             "http",
-            external_node=True,
         )
         assert nm.nodes_names == ["Bitcoin Core", "bitcoin_regtest"]
         nm.switch_node("bitcoin_regtest")
@@ -49,7 +48,6 @@ def test_NodeManager(
             elements_elreg.rpcconn.rpcport,
             elements_elreg.rpcconn._ipaddress,
             "http",
-            external_node=True,
         )
         assert nm.nodes_names == ["Bitcoin Core", "bitcoin_regtest", "elements_elreg"]
         nm.switch_node("elements_elreg")

@@ -44,7 +44,6 @@ def test_Node_btc(bitcoin_regtest):
             "host": "localhost",
             "protocol": "http",
             "node_type": "BTC",
-            "external_node": True,  # 'fullpath': ''
         }
 
         rpc = node._get_rpc()
@@ -107,7 +106,6 @@ def test_Node_elm(elements_elreg):
             "host": "localhost",
             "protocol": "http",
             "node_type": "BTC",
-            "external_node": True,  # 'fullpath': ''
         }
 
         rpc = node._get_rpc()

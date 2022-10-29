@@ -54,7 +54,6 @@ class InternalNode(Node):
             port,
             host,
             protocol,
-            False,
             fullpath,
             "BTC",
             manager,
@@ -93,7 +92,6 @@ class InternalNode(Node):
         port = node_dict.get("port", None)
         host = node_dict.get("host", "localhost")
         protocol = node_dict.get("protocol", "http")
-        external_node = node_dict.get("external_node", True)
         fullpath = node_dict.get("fullpath", default_fullpath)
         bitcoind_path = node_dict.get("bitcoind_path", "")
         bitcoind_network = node_dict.get("bitcoind_network", "main")

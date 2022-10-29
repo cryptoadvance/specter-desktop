@@ -71,7 +71,6 @@ def node_settings(node_alias):
                 "port": 8332,
                 "host": "localhost",
                 "protocol": "http",
-                "external_node": True,
             },
             app.specter.node_manager,
         )
@@ -152,7 +151,6 @@ def node_settings(node_alias):
                 port,
                 host,
                 protocol,
-                node.external_node,
                 node.fullpath,
                 "BTC",
                 node.manager,
@@ -193,7 +191,6 @@ def node_settings(node_alias):
                     port,
                     host,
                     protocol,
-                    node.external_node,
                 )
                 app.specter.update_active_node(node.alias)
                 return redirect(

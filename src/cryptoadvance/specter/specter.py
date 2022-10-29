@@ -221,7 +221,7 @@ class Specter:
                 u.check()
 
     @property
-    def node(self):
+    def node(self) -> Node:
         try:
             return self.node_manager.active_node
         except SpecterError as e:
@@ -767,7 +767,6 @@ class Specter:
                 old_rpc.get("port", None),
                 old_rpc.get("host", "localhost"),
                 old_rpc.get("protocol", "http"),
-                True,
                 os.path.join(os.path.join(self.data_folder, "nodes"), "default.json"),
                 "BTC",
                 self,

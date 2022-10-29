@@ -77,7 +77,6 @@ class NodeManager:
                     port=7041,
                     host="localhost",
                     protocol="http",
-                    external_node=True,
                     default_alias=self.DEFAULT_ALIAS,
                 )
             logger.info("Creating initial node-configuration")
@@ -91,7 +90,6 @@ class NodeManager:
                 port=8332,
                 host="localhost",
                 protocol="http",
-                external_node=True,
                 default_alias=self.DEFAULT_ALIAS,
             )
 
@@ -112,7 +110,6 @@ class NodeManager:
             port=8332,
             host="localhost",
             protocol="http",
-            external_node=True,
             default_alias=self.DEFAULT_ALIAS,
         )
 
@@ -166,7 +163,6 @@ class NodeManager:
         port,
         host,
         protocol,
-        external_node,
         default_alias=None,
     ):
         """Adding a node. Params:
@@ -195,7 +191,6 @@ class NodeManager:
             port,
             host,
             protocol,
-            external_node,
             fullpath,
             node_type,
             self,
