@@ -381,7 +381,6 @@ class Node(AbstractNode):
         self.name = new_name
         logger.info(f"persisting {self} in rename")
         write_node(self, self.fullpath)
-        self.manager.update()
 
     def check_info(self):
         self._is_configured = self.rpc is not None
