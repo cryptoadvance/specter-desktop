@@ -57,10 +57,13 @@ def test_ServiceManager_get_service_x_dirs(caplog):
         os.chdir("../")
 
 
-def test_ServiceManager_get_service_packages():
+def test_ServiceManager_get_service_packages(caplog):
+    caplog.set_level(logging.DEBUG)
     packages = ServiceManager.get_service_packages()
     assert "cryptoadvance.specter.services.swan.service" in packages
     assert "cryptoadvance.specter.services.bitcoinreserve.service" in packages
+    assert "cryptoadvance.specterext.electrum.service" in packages
+    assert "cryptoadvance.specterext.electrum.devices.electrum" in packages
 
 
 @pytest.fixture
