@@ -619,6 +619,15 @@ class Node(AbstractNode):
             return self._node_type
         return "BTC"
 
+    @property
+    def datadir(self):
+        """Returns the default data directory depending on the type of blockchain (Bitcoin or Elements) and the OS or raises an Error.
+        Relevant for deleting the wallet on the Bitcoin Core or Elements side."""
+        datadir = get_default_datadir(self.node_type)
+        if datadir != None:
+            return datadir
+        raise SpecterError(f"Could not establish data directory for {self.node}.")
+
     @rpc.setter
     def rpc(self, value):
         if hasattr(self, "_rpc") and self._rpc != value:

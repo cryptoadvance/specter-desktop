@@ -348,19 +348,24 @@ class WalletManager:
         else:
             raise ("Failed to create new wallet")
 
-    def delete_wallet(
-        self, wallet, bitcoin_datadir=get_default_datadir(), chain="main"
-    ):
+    def delete_wallet(self, wallet, datadir, chain="main"):
         logger.info("Deleting {}".format(wallet.alias))
         wallet_rpc_path = os.path.join(self.rpc_path, wallet.alias)
         self.rpc.unloadwallet(wallet_rpc_path)
         # Try deleting wallet folder
-        if bitcoin_datadir:
+        logger.debug(
+            f"This is the datadir when deleting wallet in wallet_manager: {datadir}"
+        )
+        logger.debug(
+            f"This is the wallet rpc path when deleting wallet in wallet_manager: {wallet_rpc_path}"
+        )
+
+        if datadir:
             if chain != "main":
-                bitcoin_datadir = os.path.join(bitcoin_datadir, chain)
+                datadir = os.path.join(datadir, chain)
             candidates = [
-                os.path.join(bitcoin_datadir, wallet_rpc_path),
-                os.path.join(bitcoin_datadir, "wallets", wallet_rpc_path),
+                os.path.join(datadir, wallet_rpc_path),
+                os.path.join(datadir, "wallets", wallet_rpc_path),
             ]
             for path in candidates:
                 shutil.rmtree(path, ignore_errors=True)
