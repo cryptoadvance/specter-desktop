@@ -45,5 +45,9 @@ echo "    --> now running mkdocs $1 $2"
 
 mkdocs $1 $2
 
+# As netlify expects the site-dir in its basedir (./utils, see above) we need 
+# to mv it
+mv site ./utils/site
+
 # Potentially, we could rollback here the changes but that would be anoying if you want 
 # to edit files.
