@@ -1,0 +1,20 @@
+<p style="position: relative; z-index: 1; line-height: 24px; font-size: 1.1em">&#128064;{{ _(' Have a look at our ')}}<a href="https://specter-desktop-docs.netlify.app/" target="_blank" style="color: #fff; font-weight: bolder;">{{ _('documentation')}}</a>{{ _(' and the ')}}<a href="https://specter-desktop-docs.netlify.app/faq/" target="_blank" style="color: #fff; font-weight: bolder;">{{ _('FAQ')}}</a></p><br>
+<span style="position: relative; z-index: 1;">&#128583;{{ _(" Still having issues?") }}</span><br>
+<div style="display: flex; justify-content: center;">
+    <div style="max-width: 80%;">
+        <p style="position: relative; z-index: 1;">{{ _('Feel free to ')}}<a href="https://github.com/cryptoadvance/specter-desktop/issues/new" target="_blank" style="color: #fff;">{{ _('open an issue on GitHub')}}</a>{{ _(' or ask in the ')}}<a href="https://t.me/spectersupport" target="_blank" style="color: #fff;">{{ _('Specter Community telegram chat')}}</a></p>
+    </div>
+</div>
+<br>
+<a href="https://github.com/cryptoadvance/specter-desktop#help-wanted-do-you-like-specter" target="_blank" style="position: relative; z-index: 1; color: #fff; display: inline-block;"><h2 id="help-wanted-text" style="display: inline-block;">{{ _('Help wanted: Do you like Specter?') }}</h2><img src="{{ url_for('static', filename='img/love.png') }}" width="20px" style="vertical-align: sub; margin-left: 10px;"/></a>
+<div class="footer">
+    <span style="position: relative; z-index: 1;">{{ _("Supported and maintained by") }}:</span><br>
+    <a href="https://specter.solutions/" target="_blank" style="color: #fff; position: relative; z-index: 1;">
+        Specter.Solutions
+    </a>
+    <div class="row">
+        <a href="https://github.com/cryptoadvance/" target="_blank"><img src="{{ url_for('static', filename='img/github.svg') }}" style="width: 30px; margin: 10px; position: relative; z-index: 1;"></a>
+        <a href="https://twitter.com/specterwallet/" target="_blank"><img src="{{ url_for('static', filename='img/twitter.svg') }}" style="width: 30px; margin: 10px; position: relative; z-index: 1;"></a>
+    </div>
+    <span style="font-size: 0.8em;">uid: {{ specter.config_manager.data["uid"] }}</span>
+</div>

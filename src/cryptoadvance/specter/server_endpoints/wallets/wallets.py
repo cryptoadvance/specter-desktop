@@ -10,17 +10,19 @@ from flask import jsonify, redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import login_required
 
-from ..commands.psbt_creator import PsbtCreator
-from ..helpers import bcur2base64, get_devices_with_keys_by_type, get_txid
-from ..key import Key
-from ..managers.wallet_manager import purposes
-from ..persistence import delete_file
-from ..server_endpoints import flash
-from ..services import callbacks
-from ..specter_error import SpecterError, handle_exception
-from ..util.tx import convert_rawtransaction_to_psbt, is_hex
-from ..util.wallet_importer import WalletImporter
-from ..wallet import Wallet
+from ...commands.psbt_creator import PsbtCreator
+from ...helpers import bcur2base64, get_devices_with_keys_by_type, get_txid
+from ...key import Key
+from ...managers.wallet_manager import purposes
+from ...persistence import delete_file
+from ...server_endpoints import flash
+from ...services import callbacks
+from ...services.callbacks import adjust_view_model
+from ...specter_error import SpecterError, handle_exception
+from ...util.tx import convert_rawtransaction_to_psbt, is_hex
+from ...util.wallet_importer import WalletImporter
+from ...wallet import Wallet
+from .wallets_vm import WalletsOverviewVm
 
 logger = logging.getLogger(__name__)
 
@@ -68,15 +70,34 @@ def inject_common_stuff():
 @login_required
 def wallets_overview():
     app.specter.check_blockheight()
+    # The execute_ext_callbacks method is not really prepared for the things we're doing here.
+    # that's why we need so many lines for just expressing:
+    # "Here is a ViewModel, adjust it if you want"
+    # We need to change that method to enable "middleware"
+    wallets_overview_vm_dict = app.specter.service_manager.execute_ext_callbacks(
+        adjust_view_model, WalletsOverviewVm()
+    )
+    if len(wallets_overview_vm_dict.values()) > 1:
+        raise logger.error(
+            "Seems that we have more than one WalletsOverviewVm Extension"
+        )
+    if len(wallets_overview_vm_dict.values()) == 1:
+        wallets_overview_vm = list(wallets_overview_vm_dict.values())[0]
+    else:
+        wallets_overview_vm = WalletsOverviewVm()
+    if wallets_overview_vm.wallets_overview_redirect != None:
+        return redirect(wallets_overview_vm.wallets_overview_redirect)
+
     for wallet in list(app.specter.wallet_manager.wallets.values()):
         wallet.update_balance()
         wallet.check_utxo()
 
     return render_template(
-        "wallet/wallets_overview.jinja",
+        "wallet/overview/wallets_overview.jinja",
         specter=app.specter,
         rand=rand,
         services=app.specter.service_manager.services,
+        wallets_overview_vm=wallets_overview_vm,
     )
 
 

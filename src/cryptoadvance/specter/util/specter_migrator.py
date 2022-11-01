@@ -248,9 +248,13 @@ class MigDataManager(GenericDataManager):
         self._save()
 
     def _find_exec_log(self, id):
+        """returns the latest migration_execution with that id"""
+        latest_migration = None
         for migration in self.migration_executions:
             if migration.get("migration_id") == id:
-                return migration
+                latest_migration = migration
+        if latest_migration != None:
+            return latest_migration
         raise SpecterError(f"Can't find migration_execution with id {id}")
 
     @property
@@ -261,6 +265,7 @@ class MigDataManager(GenericDataManager):
         executed_list = [
             migration_execution.get("migration_id")
             for migration_execution in self.migration_executions
+            if migration_execution.get("status") == "completed"
         ]
         logger.debug(f"Executed migration_classes ids: {executed_list}")
         return migration_id in executed_list

@@ -47,6 +47,10 @@ class Service:
             raise Exception(f"Service {self.__class__} needs name")
         self.active = active
         self.specter = specter
+        self.data_folder = os.path.join(self.specter.data_folder, "extensions", self.id)
+        if not os.path.exists(self.data_folder):
+            logger.info(f"Creating extension data_folder {self.data_folder} ")
+            os.makedirs(self.data_folder)
 
     @classmethod
     def _storage_manager(cls):

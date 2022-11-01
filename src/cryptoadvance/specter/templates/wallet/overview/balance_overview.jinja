@@ -1,0 +1,17 @@
+{% from 'wallet/history/components/total_wallet_balances.jinja' import total_wallet_balances %}
+{% set amount_total = specter.wallet_manager.wallets.values() | sum(attribute='amount_total') %}
+{% set amount_confirmed = specter.wallet_manager.wallets.values() | sum(attribute='amount_confirmed') %}
+{% set amount_unconfirmed = specter.wallet_manager.wallets.values() | sum(attribute='amount_unconfirmed') %}
+{% set amount_immature = specter.wallet_manager.wallets.values() | sum(attribute='amount_immature') %}
+{% set balance = specter.wallet_manager.joined_balance() %}
+{% set rescan_progress = specter.wallet_manager.wallets.values() | average_of_attribute(attribute='rescan_progress')   %}
+{{ total_wallet_balances(
+    _("Combined Wallet Balances"),
+    amount_total, 
+    amount_confirmed,
+    amount_unconfirmed, 
+    amount_immature, 
+    balance, 
+    rescan_progress, 
+    "", 
+    specter) }}
