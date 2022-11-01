@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# netlify is configured to use the utils-directory as base directory
+# This prevents that it's using the requirements-txt and a lot of issues
+# So in order to make the script work the exact same in both cases,
+# we first change the directory one up, no matter from where this script
+# has been executed from.
+cd "$( dirname "${BASH_SOURCE[0]}" )/.."
 
 echo "    --> Starting mkdocs-wrapper.sh"
 
