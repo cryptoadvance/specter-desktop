@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List
 from cryptoadvance.specter.device import Device
 from cryptoadvance.specter.devices.bitbox02 import BitBox02
+from cryptoadvance.specter.specter_error import SpecterInternalException
 from cryptoadvance.specter.util.reflection import (
     get_class,
     get_subclasses_for_clazz,
