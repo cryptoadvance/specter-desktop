@@ -1,4 +1,5 @@
 import json
+import logging
 import pytest
 
 from flask_login import current_user
@@ -369,3 +370,45 @@ def test_both_Storages_in_parallel(empty_data_folder, user1, user2):
     assert service_storage_enc.get_service_data("a_service_id") == {
         "somekey": "light_red"
     }
+
+
+class TestService(Service):
+    id = "mytestservice"
+
+    @classmethod
+    def default_address_label(cls):
+        # A non i18n version of this method
+        # return str(_("Reserved for {}").format(cls.name))
+        return str("Reserved for {}").format(cls.name)
+
+
+def test_Service_reserve_address(empty_data_folder, caplog):
+    wallet_mock = MagicMock()
+
+    TestService.reserve_address(wallet_mock, "a", "someLabel")
+    assert wallet_mock.associate_address_with_service.assert_called_once
+
+
+def test_Service_reserve_addresses(empty_data_folder, caplog):
+    caplog.set_level(logging.DEBUG)
+    specter_mock = MagicMock()
+    specter_mock.data_folder = empty_data_folder
+    s = TestService(True, specter_mock)
+
+    wallet_mock = MagicMock()
+    # We assume that we haven't yet reserved any addresses:
+    wallet_mock.get_associated_addresses.return_value = []
+    # We assume that those are the unused addresses returned by the wallet
+    wallet_mock.get_address.side_effect = ["a", "b", "c", "d", "e", "f"]
+    # We assume that the next unused address is #5
+    wallet_mock.address_index = 5
+
+    addr_obj_mock = MagicMock()
+    addr_obj_mock.used = False
+    addr_obj_mock.is_reserved = False
+
+    wallet_mock.get_address_obj.return_value = addr_obj_mock
+
+    addresses = s.reserve_addresses(wallet_mock, "someLabel", 2, False)
+    print(addresses)
+    assert addresses == ["a", "b"]
