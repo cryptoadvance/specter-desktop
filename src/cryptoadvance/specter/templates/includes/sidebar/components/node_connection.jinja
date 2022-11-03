@@ -1,0 +1,37 @@
+{% if specter.node.is_running %}
+    <div id="active-node" onclick="showPageOverlay('bitcoin_core_info');document.getElementById('side-content').classList.remove('active');" class="item core" style="cursor: pointer;">
+        
+        {% if specter.is_liquid %}
+        {% from "components/liquid_svg.jinja" import liquid_svg %}
+        {{ liquid_svg(specter.info.chain, 40) }}
+        {% else %}
+        {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+        {{ bitcoin_svg(specter.info.chain, 40) }}
+        {% endif %}
+        {% include "includes/sidebar/components/bitcoin_core_info.jinja" %}
+        <div>
+            <span style="max-width: 140px;">{{ specter.node.name }}</span>
+            <small>
+                {% if specter.chain %}
+                    {% if specter.bitcoin_core_version != '' %}
+                        v{{ specter.bitcoin_core_version }}
+                    {% endif %}
+                    ({{specter.chain}}):
+                    {% if specter.info["blocks"] %}
+                        {{ specter.info.blocks }} blocks
+                    {% else %}
+                        {{ specter.info.chain }}
+                    {% endif %}
+                {% endif %}
+            </small>
+        </div>
+    </div>
+{% else %}
+    <a id="no-node-connection" class="no-connection" href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) }}">
+        <div style="display: flex; gap: 5px">
+            <span>{{ _("No node connection") }}</span>
+            <img src="{{ url_for('static', filename='img/broken-connection.svg') }}" style="width: 15px;">
+        </div>
+        <div id="configure-click" class="configure-click">{{ _("Click to configure") }}</div>
+    </a>
+{% endif%}
