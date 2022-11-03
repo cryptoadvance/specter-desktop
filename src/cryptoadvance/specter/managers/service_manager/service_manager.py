@@ -17,16 +17,16 @@ from flask import current_app as app
 from flask import url_for
 from flask.blueprints import Blueprint
 
-from ..services.service import Service
-from ..services import callbacks, ExtensionException
-from ..util.reflection import (
+from ...services.service import Service
+from ...services import callbacks, ExtensionException
+from ...util.reflection import (
     _get_module_from_class,
     get_classlist_of_type_clazz_from_modulelist,
     get_package_dir_for_subclasses_of,
     get_subclasses_for_clazz,
     get_subclasses_for_clazz_in_cwd,
 )
-from ..util.reflection_fs import search_dirs_in_path
+from ...util.reflection_fs import search_dirs_in_path
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class ServiceManager:
         logger.info("----> starting service discovery Static")
         # How do we discover services? Two configs are relevant:
         # * SERVICES_LOAD_FROM_CWD (boolean, CWD is current working directory)
-        # * EXTENSION_LIST (array of Fully Qualified module strings like ["cryptoadvance.specter.services.swan.service"])
+        # * EXTENSION_LIST (array of Fully Qualified module strings like ["cryptoadvance.specterext.swan.service"])
         # Ensuring security (especially for the CWD) is NOT done here but
         # in the corresponding (Production)Config
         logger.debug(f"EXTENSION_LIST = {app.config.get('EXTENSION_LIST')}")
@@ -79,7 +79,7 @@ class ServiceManager:
                 logger.info(
                     f"Service {clazz.__name__} not activated due to devstatus ( {self.devstatus_threshold} > {clazz.devstatus} )"
                 )
-        logger.info("----> finished service processing")
+        logger.info("----> finished service loading")
         self.execute_ext_callbacks("afterServiceManagerInit")
 
     @classmethod
@@ -283,9 +283,20 @@ class ServiceManager:
         return_values = {}
         for ext in self.services.values():
             if hasattr(ext, f"callback_{callback_id}"):
-                return_values[ext.id] = getattr(ext, f"callback_{callback_id}")(
-                    *args, **kwargs
-                )
+                try:
+                    return_values[ext.id] = getattr(ext, f"callback_{callback_id}")(
+                        *args, **kwargs
+                    )
+                except Exception as e:
+                    # Development should catch all errors early!
+                    if app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"].endswith(
+                        "DevelopmentConfig"
+                    ):
+                        raise e
+                    logger.error(
+                        "Exception {e} while executing {callback_id} for extension {ext.id}"
+                    )
+                    logger.exception(e)
             elif hasattr(ext, "callback"):
                 return_values[ext.id] = ext.callback(callback_id, *args, **kwargs)
         # Filtering out all None return values

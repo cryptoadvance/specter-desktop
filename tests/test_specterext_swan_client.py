@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 import mock
 from mock import Mock, patch
-from cryptoadvance.specter.services.swan.client import SwanApiException, SwanClient
+from cryptoadvance.specterext.swan.client import SwanApiException, SwanClient
 
 
 def construct_access_token_fake_response():
@@ -82,7 +82,7 @@ def test_SwanClient(app):
 @patch("requests.delete")
 @patch("requests.request")
 @patch("requests.patch")
-@patch("cryptoadvance.specter.services.swan.client._")
+@patch("cryptoadvance.specterext.swan.client._")
 def test_SwanClient_update_autowithdrawal_addresses(
     mock_babel: MagicMock,
     mock_req_post: MagicMock,

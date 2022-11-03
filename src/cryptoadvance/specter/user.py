@@ -267,12 +267,14 @@ class User(UserMixin):
     def wallet_manager(self):
         if self._wallet_manager is None:
             self.check_wallet_manager()
+        assert self._wallet_manager is not None
         return self._wallet_manager
 
     @property
     def device_manager(self):
         if self._device_manager is None:
             self.check_device_manager()
+        assert self._device_manager is not None
         return self._device_manager
 
     def check_wallet_manager(self):
