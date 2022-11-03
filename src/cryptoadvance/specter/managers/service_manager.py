@@ -429,7 +429,7 @@ class ServiceManager:
 
     @classmethod
     def get_service_packages(cls):
-        """returns a list of strings containing the service-classes (+ controller/config-classes)
+        """returns a list of strings containing the service-classes (+ controller +config-classes +devices)
         This is used for hiddenimports in pyinstaller
         """
         arr = get_subclasses_for_clazz(Service)

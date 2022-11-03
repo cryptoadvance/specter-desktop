@@ -4,7 +4,6 @@ import psutil
 from pathlib import Path
 
 
-from .helpers import is_testnet
 from .specter_error import SpecterError, ExtProcTimeoutException
 from .rpc import (
     get_default_datadir,
