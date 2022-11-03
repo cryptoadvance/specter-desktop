@@ -62,6 +62,9 @@ def get_package_dir_for_subclasses_of(clazz):
             ).resolve()
         )
     elif clazz.__name__ == "Service":
+        # here, we'd like to know the Path of the namespace module cryptoadvance.specterext
+        # but that fails because you cannot import namespace-modules.
+        # So we take a module that we know exists and take its parent.
         return str(
             Path(
                 import_module("cryptoadvance.specterext.devhelp").__file__

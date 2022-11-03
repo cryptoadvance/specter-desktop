@@ -411,4 +411,7 @@ def test_Service_reserve_addresses(empty_data_folder, caplog):
 
     addresses = s.reserve_addresses(wallet_mock, "someLabel", 2, False)
     print(addresses)
+    # address_index stays the same. the get_address logic is
+    # taking care that no reserved addresses are handed out.
+    assert wallet_mock.address_index == 5
     assert addresses == ["a", "b"]
