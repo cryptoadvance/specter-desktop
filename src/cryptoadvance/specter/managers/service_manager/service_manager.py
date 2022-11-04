@@ -335,9 +335,17 @@ class ServiceManager:
 
     def get_service(self, plugin_id: str) -> Service:
         """get an extension-instance by ID. Raises an ExtensionException if it doesn't find it."""
-        if plugin_id not in self._services:
+        if not self.is_extension_loaded(plugin_id):
             raise ExtensionException(f"No such plugin: '{plugin_id}'")
         return self._services[plugin_id]
+
+    def is_extension_loaded(self, ext_id) -> bool:
+        """returns True or False depending on whether the Extension is loaded. This is not User-specific.
+        To check user-specific Extensions: app.specter.user_manager.get_user().services
+        """
+        if ext_id not in self._services:
+            return False
+        return True
 
     def delete_service_from_user(self, user: User, service_id: str, autosave=True):
         "Removes the service for the user and deletes the stored data in the ServiceEncryptedStorage"

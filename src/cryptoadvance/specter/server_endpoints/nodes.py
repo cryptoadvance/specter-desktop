@@ -40,6 +40,8 @@ def node_settings(node_alias):
         try:
             node: Node = app.specter.node_manager.get_by_alias(node_alias)
             if not node.is_specter_core_object:
+                # provoke an ExtensionException if extension does not exist
+                app.specter.service_manager.get_service(node.ext_id)
                 return redirect(
                     url_for(
                         # This is a convention which should be documented

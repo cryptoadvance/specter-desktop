@@ -7,6 +7,8 @@ from flask import jsonify, redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required, logout_user
 
+from cryptoadvance.specter.specter_error import SpecterError, handle_exception
+
 from ..helpers import alias
 from ..server_endpoints import flash
 from ..services import ExtensionException
@@ -201,7 +203,6 @@ def toggle_hide_sensitive_info():
 ################### Util ######################
 def redirect_login(request):
     flash(_("Logged in successfully."), "info")
-
     # If the user is auto-logged out, hide_sensitive_info will be set. If they're
     #   explicitly logging in now, clear the setting and reveal user's info.
     if app.specter.hide_sensitive_info:
@@ -213,15 +214,19 @@ def redirect_login(request):
         response = redirect(url_for("index"))
 
     for service_id in app.specter.user_manager.get_user().services:
-        try:
+        if app.specter.service_manager.is_extension_loaded(service_id):
             service_cls = app.specter.service_manager.get_service(service_id)
             service_cls.on_user_login()
-        except ExtensionException as ee:
-            if not str(ee).startswith("No such plugin"):
-                raise ee
-        except Exception as e:
-            app.logger.exception(e)
-
+        else:
+            app.logger.error(
+                f"User {app.specter.user_manager.get_user()} has unknow extension {service_id}"
+            )
+            flash(
+                _("You're using the unknown extension ")
+                + service_id
+                + _(". Functionality might be missing."),
+                "error",
+            )
     return response
 
 

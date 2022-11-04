@@ -1,5 +1,5 @@
-from ..specter_error import SpecterError
+from ..specter_error import SpecterInternalException
 
 
-class ExtensionException(SpecterError):
+class ExtensionException(SpecterInternalException):
     pass
