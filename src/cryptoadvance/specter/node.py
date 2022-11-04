@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from os import path
+import shutil
 
 from embit.liquid.networks import get_network
 from flask import render_template
@@ -530,6 +531,40 @@ class Node(AbstractNode):
     def is_liquid(self):
         return is_liquid(self.chain)
 
+    def delete_wallet_file(self, wallet) -> bool:
+        """Deleting the wallet file located on the node. This only works if the node is on the same machine as Specter.
+        Returns True if the wallet file could be deleted, otherwise returns False."""
+        wallet_rpc_path = os.path.join(
+            wallet.rpc_folder, wallet.alias
+        )  # e.g. specter/jade_wallet
+        logger.debug(f"The wallet_rpc_path is: {wallet_rpc_path}")
+        self.rpc.unloadwallet(wallet_rpc_path)
+        datadir = ""
+        if self.datadir == "":
+            # In case someone did not toggle the auto-detect but still used the default location.
+            # When you set up a new node and deactivate the auto-detect, the datadir is set to an empty string.
+            logger.debug(
+                f"The node datadir before get_default_datadir is: {self.datadir}"
+            )
+            datadir = get_default_datadir(self.node_type)
+            logger.debug(f"The node datadir after get_default_datadir is: {datadir}")
+        else:
+            datadir = self.datadir
+        wallet_file_removed = False
+        path = ""
+        if self.chain != "main":
+            path = os.path.join(datadir, f"{self.chain}/wallets", wallet_rpc_path)
+        else:
+            path = os.path.join(datadir, wallet_rpc_path)
+        try:
+            shutil.rmtree(path, ignore_errors=False)
+            logger.debug(f"Removing wallet file at: {path}")
+            wallet_file_removed = True
+        except FileNotFoundError:
+            logger.debug(f"Could not find any wallet file at: {path}")
+            pass
+        return wallet_file_removed
+
     @property
     def is_running(self):
         if self._network_info["version"] == 999999:
@@ -620,13 +655,8 @@ class Node(AbstractNode):
         return "BTC"
 
     @property
-    def datadir(self):
-        """Returns the default data directory depending on the type of blockchain (Bitcoin or Elements) and the OS or raises an Error.
-        Relevant for deleting the wallet on the Bitcoin Core or Elements side."""
-        datadir = get_default_datadir(self.node_type)
-        if datadir != None:
-            return datadir
-        raise SpecterError(f"Could not establish data directory for {self.node}.")
+    def default_datadir(self):
+        return get_default_datadir(self.node_type)
 
     @rpc.setter
     def rpc(self, value):

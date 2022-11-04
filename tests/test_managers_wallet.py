@@ -18,6 +18,8 @@ from cryptoadvance.specter.util.descriptor import AddChecksum, Descriptor
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from conftest import instantiate_bitcoind_controller
 
+logger = logging.getLogger(__name__)
+
 
 @pytest.mark.slow
 def test_WalletManager(
@@ -26,6 +28,8 @@ def test_WalletManager(
     devices_filled_data_folder,
     device_manager,
     bitcoin_regtest,
+    node,
+    node_with_empty_datadir,
 ):
     wm = WalletManager(
         200100,
@@ -35,6 +39,7 @@ def test_WalletManager(
         device_manager,
         allow_threading=False,
     )
+    assert wm.rpc_path == "specter"
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("trezor")
     assert device != None
@@ -84,11 +89,20 @@ def test_WalletManager(
     # it will delete the json and attempt to remove it from Bitcoin Core
     wallet_fullpath = multisig_wallet.fullpath
     assert os.path.exists(wallet_fullpath)
-    wm.delete_wallet(multisig_wallet)
-    assert not os.path.exists(wallet_fullpath)
+    # Should also remove the wallet file on the node
+    assert wm.delete_wallet(multisig_wallet, node) == (True, True)
+    logger.info(f"This is bitcoin_regtest datadir: {bitcoin_regtest.datadir}")
     assert len(wm.wallets) == 1
-
-    wm.update()
+    assert not os.path.exists(wallet_fullpath)
+    # Should not remove the wallet file on the node
+    assert node_with_empty_datadir.datadir == ""
+    assert wm.delete_wallet(wallet, node_with_empty_datadir) == (True, False)
+    assert len(wm.wallets) == 0
+    # Wallet was already deleted, this should raise a SpecterError
+    with pytest.raises(
+        SpecterError, match="The wallet a_test_wallet has already been deleted."
+    ):
+        assert wm.delete_wallet(wallet)
 
 
 @pytest.mark.slow
@@ -359,7 +373,7 @@ def test_wallet_change_addresses(
     # See: https://github.com/bitcoin/bitcoin/issues/14654
 
 
-def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured):
+def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured, node):
     """
     Single-sig wallets should be able to be backed up and re-imported with or without
     the "devices" attr in the json backup.
@@ -394,7 +408,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
     assert "devices" in wallet_backup
 
     # Clear everything out as if we've never seen this wallet or device before
-    wallet_manager.delete_wallet(wallet)
+    wallet_manager.delete_wallet(wallet, node)
     device_manager.remove_device(device, wallet_manager=wallet_manager)
     assert wallet.name not in wallet_manager.wallets_names
     assert device.name not in device_manager.devices_names
@@ -451,7 +465,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
     del wallet_backup["devices"]
 
     # Clear everything out as if we've never seen this wallet or device before
-    wallet_manager.delete_wallet(wallet)
+    wallet_manager.delete_wallet(wallet, node)
     device_manager.remove_device(device, wallet_manager=wallet_manager)
     assert wallet.name not in wallet_manager.wallets_names
     assert device.name not in device_manager.devices_names
@@ -505,7 +519,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
 
 
 def test_multisig_wallet_backup_and_restore(
-    bitcoin_regtest, caplog, specter_regtest_configured
+    bitcoin_regtest, caplog, specter_regtest_configured, node
 ):
     """
     Multisig wallets should be able to be backed up and re-imported
@@ -574,7 +588,7 @@ def test_multisig_wallet_backup_and_restore(
     assert "devices" in wallet_backup
 
     # Clear everything out as if we've never seen this wallet or device before
-    wallet_manager.delete_wallet(wallet)
+    wallet_manager.delete_wallet(wallet, node)
     device_manager.remove_device(device, wallet_manager=wallet_manager)
     assert wallet.name not in wallet_manager.wallets_names
     assert device.name not in device_manager.devices_names
@@ -634,7 +648,7 @@ def test_multisig_wallet_backup_and_restore(
     del wallet_backup["devices"]
 
     # Clear everything out as if we've never seen this wallet or device before
-    wallet_manager.delete_wallet(wallet)
+    wallet_manager.delete_wallet(wallet, node)
     for device_names in device_manager.devices:
         device = device_manager.devices[device_names]
         device_manager.remove_device(device, wallet_manager=wallet_manager)

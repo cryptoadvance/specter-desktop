@@ -1,14 +1,12 @@
 import logging
 import os
 import pathlib
-import shutil
 import threading
 import traceback
 from typing import Dict
 
 from flask_babel import lazy_gettext as _
 from cryptoadvance.specter.rpc import BitcoinRPC
-
 from cryptoadvance.specter.key import Key
 
 from ..helpers import add_dicts, alias, is_liquid, load_jsons
@@ -348,32 +346,31 @@ class WalletManager:
         else:
             raise ("Failed to create new wallet")
 
-    def delete_wallet(self, wallet, datadir, chain="main"):
-        logger.info("Deleting {}".format(wallet.alias))
-        wallet_rpc_path = os.path.join(self.rpc_path, wallet.alias)
-        self.rpc.unloadwallet(wallet_rpc_path)
-        # Try deleting wallet folder
-        logger.debug(
-            f"This is the datadir when deleting wallet in wallet_manager: {datadir}"
-        )
-        logger.debug(
-            f"This is the wallet rpc path when deleting wallet in wallet_manager: {wallet_rpc_path}"
-        )
+    def delete_wallet(self, wallet, node=None) -> tuple:
+        """Returns a tuple with two Booleans, indicating whether the wallet was deleted on the Specter side and/or on the node side."""
+        logger.info(f"Deleting {wallet.alias}")
+        specter_wallet_deleted = False
+        node_wallet_file_deleted = False
+        # Delete the wallet.json and backups
+        try:
+            wallet.delete_files()
+            # Remove the wallet instance
+            del self.wallets[wallet.name]
+            self.update()
+            specter_wallet_deleted = True
+        except KeyError:
+            raise SpecterError(f"The wallet {wallet.name} has already been deleted.")
+        except SpecterInternalException as sie:
+            logger.exception(
+                f"Could not delete the wallet {wallet.name} in Specter due to {sie}"
+            )
 
-        if datadir:
-            if chain != "main":
-                datadir = os.path.join(datadir, chain)
-            candidates = [
-                os.path.join(datadir, wallet_rpc_path),
-                os.path.join(datadir, "wallets", wallet_rpc_path),
-            ]
-            for path in candidates:
-                shutil.rmtree(path, ignore_errors=True)
-
-        # Delete files
-        wallet.delete_files()
-        del self.wallets[wallet.name]
-        self.update()
+        # Delete the wallet file on the node if possible
+        if node:
+            if node.delete_wallet_file(wallet):
+                node_wallet_file_deleted = True
+        deleted = (specter_wallet_deleted, node_wallet_file_deleted)
+        return deleted
 
     def rename_wallet(self, wallet, name):
         logger.info("Renaming {}".format(wallet.alias))
@@ -474,7 +471,7 @@ class WalletManager:
         """Deletes all the wallets"""
         for w in list(self.wallets.keys()):
             wallet = self.wallets[w]
-            self.delete_wallet(wallet, specter.bitcoin_datadir, specter.chain)
+            self.delete_wallet(wallet)
         delete_folder(self.data_folder)
 
     @classmethod

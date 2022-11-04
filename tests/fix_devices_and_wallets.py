@@ -4,6 +4,7 @@ import time
 
 from cryptoadvance.specter.util.mnemonic import generate_mnemonic
 from cryptoadvance.specter.process_controller.node_controller import NodeController
+from cryptoadvance.specter.managers.wallet_manager import WalletManager
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.wallet import Wallet, Device
 
@@ -180,3 +181,20 @@ def funded_taproot_wallet(
         funded_taproot_wallet.getnewaddress()
     )  # default value are 20 BTC
     return funded_taproot_wallet
+
+
+@pytest.fixture
+def wallet(devices_filled_data_folder, device_manager, node):
+    """An ordinary wallet without private keys"""
+    wm = WalletManager(
+        200100,
+        devices_filled_data_folder,
+        node._get_rpc(),
+        "regtest",
+        device_manager,
+        allow_threading=False,
+    )
+    device = device_manager.get_by_alias("trezor")
+    wm.create_wallet("test_wallet", 1, "wpkh", [device.keys[5]], [device])
+    wallet = wm.wallets["test_wallet"]
+    return wallet
