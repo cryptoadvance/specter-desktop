@@ -16,6 +16,7 @@ from ..liquid.wallet import LWallet
 from ..persistence import delete_folder
 from ..rpc import RpcError, get_default_datadir
 from ..specter_error import SpecterError, SpecterInternalException, handle_exception
+from ..util.flask import FlaskThread
 from ..wallet import (  # TODO: `purposes` unused here, but other files rely on this import
     Wallet,
     purposes,
@@ -109,7 +110,7 @@ class WalletManager:
             and self.chain is not None
         ):
             if self.allow_threading and use_threading:
-                t = threading.Thread(
+                t = FlaskThread(
                     target=self._update,
                     args=(wallets_update_list,),
                 )
@@ -352,8 +353,11 @@ class WalletManager:
         self, wallet, bitcoin_datadir=get_default_datadir(), chain="main"
     ):
         logger.info("Deleting {}".format(wallet.alias))
-        wallet_rpc_path = os.path.join(self.rpc_path, wallet.alias)
-        self.rpc.unloadwallet(wallet_rpc_path)
+        try:
+            wallet_rpc_path = os.path.join(self.rpc_path, wallet.alias)
+            self.rpc.unloadwallet(wallet_rpc_path)
+        except Exception as e:
+            handle_exception(e)
         # Try deleting wallet folder
         if bitcoin_datadir:
             if chain != "main":
