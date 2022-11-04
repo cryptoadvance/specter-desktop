@@ -17,16 +17,16 @@ from flask import current_app as app
 from flask import url_for
 from flask.blueprints import Blueprint
 
-from ..services.service import Service
-from ..services import callbacks, ExtensionException
-from ..util.reflection import (
+from ...services.service import Service
+from ...services import callbacks, ExtensionException
+from ...util.reflection import (
     _get_module_from_class,
     get_classlist_of_type_clazz_from_modulelist,
     get_package_dir_for_subclasses_of,
     get_subclasses_for_clazz,
     get_subclasses_for_clazz_in_cwd,
 )
-from ..util.reflection_fs import search_dirs_in_path
+from ...util.reflection_fs import search_dirs_in_path
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class ServiceManager:
         logger.info("----> starting service discovery Static")
         # How do we discover services? Two configs are relevant:
         # * SERVICES_LOAD_FROM_CWD (boolean, CWD is current working directory)
-        # * EXTENSION_LIST (array of Fully Qualified module strings like ["cryptoadvance.specter.services.swan.service"])
+        # * EXTENSION_LIST (array of Fully Qualified module strings like ["cryptoadvance.specterext.swan.service"])
         # Ensuring security (especially for the CWD) is NOT done here but
         # in the corresponding (Production)Config
         logger.debug(f"EXTENSION_LIST = {app.config.get('EXTENSION_LIST')}")
