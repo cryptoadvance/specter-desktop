@@ -6,12 +6,12 @@ import pytz
 from flask import current_app as app, request
 from flask_babel import lazy_gettext as _
 from typing import List
-from cryptoadvance.specter.services.swan.client import SwanClient
+from cryptoadvance.specterext.swan.client import SwanClient
 from cryptoadvance.specter.specter_error import SpecterError
 
 from cryptoadvance.specter.user import User
 
-from ..service import Service, devstatus_prod
+from cryptoadvance.specter.services.service import Service, devstatus_prod
 from cryptoadvance.specter.addresslist import Address
 from cryptoadvance.specter.wallet import Wallet
 from urllib.parse import urlparse
@@ -26,6 +26,7 @@ class SwanService(Service):
     logo = "swan/img/swan_logo.svg"
     desc = "Auto-withdraw to your Specter wallet"
     has_blueprint = True
+    blueprint_module = "cryptoadvance.specterext.swan.controller"
     isolated_client = False
     devstatus = devstatus_prod
     encrypt_data = True
