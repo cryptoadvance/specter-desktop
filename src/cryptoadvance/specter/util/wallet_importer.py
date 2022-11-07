@@ -87,7 +87,7 @@ class WalletImporter:
         for key in self.keys:
             if key.is_testnet != node.is_testnet:
                 raise SpecterError(
-                    f"The key {key} does gave the chain {key.metadata['chain'] } but your node is {node.chain}!"
+                    f"The key {key} belongs to the chain {key.metadata['chain'] } but your node is on the chain {node.chain}!"
                 )
 
     def check_descriptor(self):
