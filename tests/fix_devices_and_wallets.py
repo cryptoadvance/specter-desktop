@@ -192,7 +192,6 @@ def wallet(devices_filled_data_folder, device_manager, node):
         node._get_rpc(),
         "regtest",
         device_manager,
-        allow_threading=False,
     )
     device = device_manager.get_by_alias("trezor")
     wm.create_wallet("test_wallet", 1, "wpkh", [device.keys[5]], [device])

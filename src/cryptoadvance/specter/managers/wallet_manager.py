@@ -36,7 +36,7 @@ class WalletManager:
         chain,
         device_manager,
         path="specter",
-        allow_threading=True,
+        allow_threading_for_testing=False,
     ):
         self.data_folder = data_folder
         self.chain = chain
@@ -51,7 +51,7 @@ class WalletManager:
         self.wallets = {}
         # A way to communicate failed wallets to the outside
         self.bitcoin_core_version_raw = bitcoin_core_version_raw
-        self.allow_threading = allow_threading and (not "pytest" in sys.modules)
+        self.allow_threading_for_testing = allow_threading_for_testing
         # define different wallet classes for liquid and bitcoin
         self.WalletClass = LWallet if is_liquid(chain) else Wallet
         self.update(data_folder, rpc, chain)
@@ -107,15 +107,29 @@ class WalletManager:
             and self.rpc is not None
             and self.chain is not None
         ):
-            if self.allow_threading and use_threading:
-                t = threading.Thread(
-                    target=self._update,
-                    args=(wallets_update_list,),
-                )
-
-                t.start()
+            if "pytest" in sys.modules:
+                if self.allow_threading_for_testing:
+                    logger.info("Using threads in updating the wallet manager.")
+                    t = threading.Thread(
+                        target=self._update,
+                        args=(wallets_update_list,),
+                    )
+                    t.start()
+                else:
+                    logger.info("Not using threads in updating the wallet manager.")
+                    self._update(wallets_update_list)
             else:
-                self._update(wallets_update_list)
+                if use_threading:
+                    logger.info("Using threads in updating the wallet manager.")
+                    t = threading.Thread(
+                        target=self._update,
+                        args=(wallets_update_list,),
+                    )
+
+                    t.start()
+                else:
+                    logger.info("Not using threads in updating the wallet manager.")
+                    self._update(wallets_update_list)
         else:
             self.is_loading = False
             logger.warning(
@@ -133,7 +147,7 @@ class WalletManager:
         * and, on the Specter side, the wallet objects of those unloaded wallets are reinitialised
         """
         logger.info(
-            f"Started Updating Wallets with {len(wallets_update_list.values())} wallets"
+            f"Started updating wallets with {len(wallets_update_list.values())} wallets"
         )
         # list of wallets in the dict
         existing_names = list(self.wallets.keys())
@@ -146,7 +160,7 @@ class WalletManager:
 
                     wallet_alias = wallets_update_list[wallet]["alias"]
                     wallet_name = wallets_update_list[wallet]["name"]
-                    logger.info(f"  Updating wallet {wallet_name}")
+                    logger.info(f"Updating wallet {wallet_name}")
                     # wallet from json not yet loaded in Bitcoin Core?!
                     if os.path.join(self.rpc_path, wallet_alias) not in loaded_wallets:
                         try:

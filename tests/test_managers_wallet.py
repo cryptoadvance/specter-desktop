@@ -37,7 +37,6 @@ def test_WalletManager(
         bitcoin_regtest.get_rpc(),
         "regtest",
         device_manager,
-        allow_threading=False,
     )
     assert wm.rpc_path == "specter"
     # A wallet-creation needs a device
@@ -123,35 +122,34 @@ def test_WalletManager_2_nodes(
         bitcoin_regtest.get_rpc(),
         "regtest",
         device_manager,
-        allow_threading=True,
+        allow_threading_for_testing=True,
     )
-    # A wallet-creation needs a device
+    # Wallet creation needs a device
     device = device_manager.get_by_alias("trezor")
     assert device != None
-    # Lets's create a wallet with the WalletManager
-    wm.create_wallet("a_test_wallet", 1, "wpkh", [device.keys[5]], [device])
-    assert wm.wallets_names == ["a_test_wallet"]
-
-    # A WalletManager implicitely uses the chain as a kind of index
-    wm.update(chain="regtest2", rpc=bitcoin_regtest2.get_rpc(), use_threading=False)
-    assert wm.wallets_names == []
-    wm.create_wallet("a_regtest2_test_wallet", 1, "wpkh", [device.keys[5]], [device])
-    assert wm.wallets_names == ["a_regtest2_test_wallet"]
-    wm.create_wallet(
-        "a_second_regtest2_test_wallet", 1, "wpkh", [device.keys[5]], [device]
+    first_wallet = wm.create_wallet(
+        "a_test_wallet", 1, "wpkh", [device.keys[5]], [device]
     )
-    assert wm.wallets_names == [
-        "a_regtest2_test_wallet",
-        "a_second_regtest2_test_wallet",
-    ]
-
-    # you can switch bettween chains witht he update-method
-    wm.update(chain="regtest", rpc=bitcoin_regtest.get_rpc())
     assert wm.wallets_names == ["a_test_wallet"]
-
-    # Should also use with threading
-    wm.update(chain="regtest2", rpc=bitcoin_regtest2.get_rpc(), use_threading=True)
-    assert wm.wallets_names == ["a_test_wallet"]
+    assert wm.chain == "regtest"
+    assert wm.working_folder.endswith("regtest")
+    assert wm.rpc.port == 18543
+    # Change the rpc - this only works with a different chain!
+    wm.update(rpc=bitcoin_regtest2.get_rpc(), chain="regtest2")
+    # A WalletManager uses the chain as an index
+    assert list(wm.rpcs.keys()) == [
+        "regtest",
+        "regtest2",
+    ]  # wm.rpcs looks like this: {'regtest': <BitcoinRpc http://localhost:18543>, 'regtest2': <BitcoinRpc http://localhost:18544>}
+    assert wm.rpc.port == 18544
+    assert wm.wallets_names == []
+    assert wm.chain == "regtest2"
+    assert wm.working_folder.endswith("regtest2")
+    second_wallet = wm.create_wallet(
+        "a_regtest2_test_wallet", 1, "wpkh", [device.keys[5]], [device]
+    )
+    # Note: "regtest2" is recognised by the get_network() from embit as Liquid, that is why there is an error in the logs saying the Bitcoin address is not valid since a Liquid address is derived.
+    assert wm.wallets_names == ["a_regtest2_test_wallet"]
 
 
 def test_WalletManager_check_duplicate_keys(empty_data_folder):
@@ -161,7 +159,6 @@ def test_WalletManager_check_duplicate_keys(empty_data_folder):
         MagicMock(),  # needs rpc
         "regtest",
         None,
-        allow_threading=False,
     )
     key1 = Key(
         "[f3e6eaff/84h/0h/0h]xpub6C5cCQfycZrPJnNg6cDdUU5efJrab8thRQDBxSSB4gP2J3xGdWu8cqiLvPZkejtuaY9LursCn6Es9PqHgLhBktW8217BomGDVBAJjUms8iG",
@@ -229,7 +226,6 @@ def test_wallet_sortedmulti(
         bitcoin_regtest.get_rpc(),
         "regtest",
         device_manager,
-        allow_threading=False,
     )
     device = device_manager.get_by_alias("trezor")
     second_device = device_manager.get_by_alias("specter")
@@ -284,7 +280,6 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
         bitcoin_regtest.get_rpc(),
         "regtest",
         device_manager,
-        allow_threading=False,
     )
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("specter")
@@ -344,7 +339,6 @@ def test_wallet_change_addresses(
         bitcoin_regtest.get_rpc(),
         "regtest",
         device_manager,
-        allow_threading=False,
     )
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("specter")
