@@ -81,7 +81,7 @@ class WalletImporter:
         for key, label in self.unknown_cosigners:
             if key.is_testnet != node.is_testnet:
                 raise SpecterError(
-                    f"The device {label} does have the chain {key.metadata['chain'] } but your node differs: {node.chain}!"
+                    f"The device {label} has at least one key for the chain {key.metadata['chain'] } whereas your node is on the chain: {node.chain}!"
                 )
         key: Key
         for key in self.keys:
