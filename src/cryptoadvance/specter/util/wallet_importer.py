@@ -76,7 +76,7 @@ class WalletImporter:
             logger.debug(key_chain_list)
             if node.is_testnet not in key_chain_list:
                 raise SpecterError(
-                    f"The device {cosigner} does not have a key with the chain {node.chain}!"
+                    f"The device {cosigner} does not have any key for the chain {node.chain}!"
                 )
         for key, label in self.unknown_cosigners:
             if key.is_testnet != node.is_testnet:
