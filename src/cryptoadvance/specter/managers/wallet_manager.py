@@ -50,7 +50,7 @@ class WalletManager:
         self.wallets = {}
         # A way to communicate failed wallets to the outside
         self.bitcoin_core_version_raw = bitcoin_core_version_raw
-        self.allow_threading = allow_threading
+        self.allow_threading = allow_threading and (not "pytest" in sys.modules)
         # define different wallet classes for liquid and bitcoin
         self.WalletClass = LWallet if is_liquid(chain) else Wallet
         self.update(data_folder, rpc, chain)
