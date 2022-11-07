@@ -237,3 +237,54 @@ release_docker:
     - echo "Triggering Docker Release"
   script:
     - ./utils/trigger_docker_build.sh
+
+# Tagging the current master-branch of https://github.com/cryptoadvance/specterext-dummy
+# with the same CI_COMMIT_TAG
+tag_specterext_dummy_repo:
+  stage: post_releasing
+  only:
+    - tags
+  before_script:
+    ## Install ssh-agent if not already installed, it is required by Docker.
+    ## (change apt-get to yum if you use an RPM-based image)
+    ##
+    - 'which ssh-agent || ( apk update && apk add --no-cache bash git openssh )'
+    - docker info
+    
+    ##
+    ## Run ssh-agent (inside the build environment)
+    ##
+    - eval $(ssh-agent -s)
+
+    ##
+    ## Add the SSH key stored in SSH_PRIVATE_KEY variable to the agent store
+    ## We're using tr to fix line endings which makes ed25519 keys work
+    ## without extra base64 encoding.
+    ## https://gitlab.com/gitlab-examples/ssh-private-key/issues/1#note_48526556
+    ##
+    - echo "$SSH_SPECTEREXT_DEPLOY_KEY" | tr -d '\r' | ssh-add - > /dev/null
+
+    ##
+    ## Create the SSH directory and give it the right permissions
+    ##
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+
+    ##
+    ## Optionally, if you will be using any Git commands, set the user name and
+    ## and email.
+    ##
+    - git config --global user.email "specter@secretvalues"
+    - git config --global user.name "specter"
+    
+    ##
+    ## Assuming you created the SSH_KNOWN_HOSTS variable, uncomment the
+    ## following two lines.
+    ##
+    - echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+
+  script:
+    - echo "Now tagging ... git@github.com:${CI_PROJECT_ROOT_NAMESPACE}/specterext-dummy.git"
+    - ./utils/tag_specterext_dummy.sh
+
