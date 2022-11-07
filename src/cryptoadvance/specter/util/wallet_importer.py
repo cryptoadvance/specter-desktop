@@ -8,6 +8,8 @@ from embit.descriptor.arguments import AllowedDerivation
 from embit.liquid.descriptor import LDescriptor
 from flask_babel import lazy_gettext as _
 
+from cryptoadvance.specter.device import Device
+
 from ..key import Key
 from ..managers.wallet_manager import WalletManager
 from ..server_endpoints import flash
@@ -58,7 +60,35 @@ class WalletImporter:
             self.unknown_cosigners,
             self.unknown_cosigners_types,
         ) = self.parse_signers(device_manager.devices, self.cosigners_types)
+        try:
+            self.check_chain(specter.node)
+        except Exception as e:
+            logger.exception(e)
+            raise SpecterError(f"Invalid chain: {e}")
         self.wallet_type = "multisig" if self.descriptor.is_basic_multisig else "simple"
+
+    def check_chain(self, node):
+
+        cosigner: Device
+        for cosigner in self.cosigners:
+
+            key_chain_list = [key.is_testnet for key in cosigner.keys]
+            logger.debug(key_chain_list)
+            if node.is_testnet not in key_chain_list:
+                raise SpecterError(
+                    f"The device {cosigner} does not have any key for the chain {node.chain}!"
+                )
+        for key, label in self.unknown_cosigners:
+            if key.is_testnet != node.is_testnet:
+                raise SpecterError(
+                    f"The device {label} has at least one key for the chain {key.metadata['chain'] } whereas your node is on the chain: {node.chain}!"
+                )
+        key: Key
+        for key in self.keys:
+            if key.is_testnet != node.is_testnet:
+                raise SpecterError(
+                    f"The key {key} belongs to the chain {key.metadata['chain'] } but your node is on the chain {node.chain}!"
+                )
 
     def check_descriptor(self):
         # Sparrow fix: if all keys have None as allowed derivation - set allowed derivation to [0, None]
@@ -86,6 +116,15 @@ class WalletImporter:
                 )
 
     def parse_signers(self, devices, cosigners_types):
+        """returns:
+            * keys:
+                * keys which are already existing in the device_manager
+                * keys:[<cryptoadvance.specter.key.Key object at 0x7fda8451e0e0>]
+            # cosigners:
+                * [<cryptoadvance.specter.devices.generic.GenericDevice object at 0x7fda8451fcd0>]
+        # unknown_cosigners:[(<cryptoadvance.specter.key.Key object at 0x7fda8451e830>, 'Signer - K'), (<cryptoadvance.specter.key.Key object at 0x7fda94235570>, 'Signer - Tired no WP')]
+
+        """
         keys = []
         cosigners = []
         unknown_cosigners = []
@@ -119,7 +158,11 @@ class WalletImporter:
                     unknown_cosigners_types.append("other")
                 else:
                     unknown_cosigners_types.append(cosigners_types[i]["type"])
-
+        logger.debug("parse_signers returning:")
+        logger.debug(f"keys:{keys}")
+        logger.debug(f"cosigners:{cosigners}")
+        logger.debug(f"unknown_cosigners:{unknown_cosigners}")
+        logger.debug(f"unknown_cosigners_types:{unknown_cosigners_types}")
         return (keys, cosigners, unknown_cosigners, unknown_cosigners_types)
 
     def create_nonexisting_signers(self, device_manager, request_form):
