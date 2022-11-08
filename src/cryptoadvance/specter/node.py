@@ -112,6 +112,10 @@ class AbstractNode(PersistentObject):
         return get_network(self.chain)
 
     @property
+    def is_testnet(self):
+        return is_testnet(self.chain)
+
+    @property
     def is_running(self):
         if self.network_info["version"] == 999999:
             logger.debug(f"Node is not running")
@@ -611,10 +615,6 @@ class Node(AbstractNode):
     @property
     def chain(self):
         return self.info["chain"]
-
-    @property
-    def is_testnet(self):
-        return is_testnet(self.chain)
 
     @property
     def asset_labels(self):

@@ -157,6 +157,8 @@ release_electron_linux_windows:
   stage: releasing
   only: 
     - tags
+  dependencies:
+    - release_binary_windows
   before_script:
     - python3 -V  # Print out python version for debugging
     - apt update
