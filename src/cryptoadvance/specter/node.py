@@ -534,11 +534,6 @@ class Node(AbstractNode):
     def delete_wallet_file(self, wallet) -> bool:
         """Deleting the wallet file located on the node. This only works if the node is on the same machine as Specter.
         Returns True if the wallet file could be deleted, otherwise returns False."""
-        wallet_rpc_path = os.path.join(
-            wallet.rpc_folder, wallet.alias
-        )  # e.g. specter/jade_wallet
-        logger.debug(f"The wallet_rpc_path is: {wallet_rpc_path}")
-        self.rpc.unloadwallet(wallet_rpc_path)
         datadir = ""
         if self.datadir == "":
             # In case someone did not toggle the auto-detect but still used the default location.
@@ -552,6 +547,7 @@ class Node(AbstractNode):
             datadir = self.datadir
         wallet_file_removed = False
         path = ""
+        wallet_rpc_path = os.path.join(wallet.manager.rpc_path, wallet.alias)
         if self.chain != "main":
             path = os.path.join(datadir, f"{self.chain}/wallets", wallet_rpc_path)
         else:
@@ -562,7 +558,6 @@ class Node(AbstractNode):
             wallet_file_removed = True
         except FileNotFoundError:
             logger.debug(f"Could not find any wallet file at: {path}")
-            pass
         return wallet_file_removed
 
     @property

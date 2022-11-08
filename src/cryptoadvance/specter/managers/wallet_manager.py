@@ -366,24 +366,36 @@ class WalletManager:
         logger.info(f"Deleting {wallet.alias}")
         specter_wallet_deleted = False
         node_wallet_file_deleted = False
-        # Delete the wallet.json and backups
+        # Make first sure that we can unload the wallet in Bitcoin Core
         try:
-            wallet.delete_files()
-            # Remove the wallet instance
-            del self.wallets[wallet.name]
-            self.update()
-            specter_wallet_deleted = True
-        except KeyError:
-            raise SpecterError(f"The wallet {wallet.name} has already been deleted.")
-        except SpecterInternalException as sie:
-            logger.exception(
-                f"Could not delete the wallet {wallet.name} in Specter due to {sie}"
+            wallet_rpc_path = os.path.join(
+                self.rpc_path, wallet.alias
+            )  # e.g. specter/jade_wallet
+            logger.debug(f"The wallet_rpc_path is: {wallet_rpc_path}")
+            self.rpc.unloadwallet(wallet_rpc_path)
+            # Delete the wallet.json and backups
+            try:
+                wallet.delete_files()
+                # Remove the wallet instance
+                del self.wallets[wallet.name]
+                self.update()
+                specter_wallet_deleted = True
+            except KeyError:
+                raise SpecterError(
+                    f"The wallet {wallet.name} has already been deleted."
+                )
+            except SpecterInternalException as sie:
+                logger.exception(
+                    f"Could not delete the wallet {wallet.name} in Specter due to {sie}"
+                )
+            # Also delete the wallet file on the node if possible
+            if node:
+                if node.delete_wallet_file(wallet):
+                    node_wallet_file_deleted = True
+        except RpcError:
+            raise SpecterError(
+                "Unable to unload the wallet on the node. Aborting the deletion of the wallet ..."
             )
-
-        # Delete the wallet file on the node if possible
-        if node:
-            if node.delete_wallet_file(wallet):
-                node_wallet_file_deleted = True
         deleted = (specter_wallet_deleted, node_wallet_file_deleted)
         return deleted
 

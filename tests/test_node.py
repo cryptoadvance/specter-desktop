@@ -71,10 +71,6 @@ def test_Node_btc(bitcoin_regtest, wallet):
         node.delete_wallet_file(wallet) == False
         # Update the datadir to the correct one
         node.update_rpc(datadir=bitcoin_regtest.datadir)
-        wallet_rpc_path = os.path.join(wallet.rpc_folder, wallet.alias)
-        node.rpc.loadwallet(
-            wallet_rpc_path
-        )  # We need to reload the wallet since delete_wallet_file() is unloading it
         node.delete_wallet_file(wallet) == True
 
 

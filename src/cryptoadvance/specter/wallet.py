@@ -1563,10 +1563,6 @@ class Wallet:
         return self.getlabel(address)
 
     @property
-    def rpc_folder(self):
-        return self.manager.rpc_path
-
-    @property
     def amount_confirmed(self):
         """Confirmed outputs (and outputs created by the wallet for Bitcoin Core Hot Wallets)"""
         return round(self.balance["trusted"], 8)

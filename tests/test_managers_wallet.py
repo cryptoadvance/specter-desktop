@@ -84,20 +84,31 @@ def test_WalletManager(
     assert multisig_wallet.name == "new_name_test_wallet"
     assert wm.wallets_names == ["a_test_wallet", "new_name_test_wallet"]
 
-    # you can also delete a wallet by passing it to the wallet manager's `delete_wallet` method
-    # it will delete the json and attempt to remove it from Bitcoin Core
+    # You can also delete a wallet by passing it to the wallet manager's `delete_wallet` method
+    # It will delete the json and attempt to remove it from Bitcoin Core
     wallet_fullpath = multisig_wallet.fullpath
     assert os.path.exists(wallet_fullpath)
-    # Should also remove the wallet file on the node
+    # This deletion should also remove the wallet file on the node
     assert wm.delete_wallet(multisig_wallet, node) == (True, True)
-    logger.info(f"This is bitcoin_regtest datadir: {bitcoin_regtest.datadir}")
     assert len(wm.wallets) == 1
     assert not os.path.exists(wallet_fullpath)
-    # Should not remove the wallet file on the node
+    # Let's artificially unload the wallet in Core before trying to delete it via the Wallet Manager, should raise a SpecterError
+    wallet_rpc_path = os.path.join(wm.rpc_path, wallet.alias)
+    wm.rpc.unloadwallet(wallet_rpc_path)
+    with pytest.raises(
+        SpecterError,
+        match="Unable to unload the wallet on the node. Aborting the deletion of the wallet ...",
+    ):
+        wm.delete_wallet(wallet, node)
+    # Check that the wallet wasn't deleted in Specter because of the RpcError
+    assert wm.wallets_names == ["a_test_wallet"]
+    # The following deletion should not remove the wallet file on the node
     assert node_with_empty_datadir.datadir == ""
+    wm.rpc.loadwallet(wallet_rpc_path)  # we need to load the wallet again
     assert wm.delete_wallet(wallet, node_with_empty_datadir) == (True, False)
     assert len(wm.wallets) == 0
-    # Wallet was already deleted, this should raise a SpecterError
+    # The wallet in Specter was already deleted, so trying to delete it again should raise a SpecterError
+    wm.rpc.loadwallet(wallet_rpc_path)  # we need to load the wallet again
     with pytest.raises(
         SpecterError, match="The wallet a_test_wallet has already been deleted."
     ):
