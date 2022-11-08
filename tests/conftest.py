@@ -516,6 +516,60 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder, node
         "auth": {
             "method": "rpcpasswordaspin",
         },
+        "testing": {
+            "allow_threading_for_testing": False,
+        },
+    }
+    specter = Specter(data_folder=devices_filled_data_folder, config=config)
+    assert specter.chain == "regtest"
+    # Create a User
+    someuser = specter.user_manager.add_user(
+        User.from_json(
+            user_dict={
+                "id": "someuser",
+                "username": "someuser",
+                "password": hash_password("somepassword"),
+                "config": {},
+                "is_admin": False,
+                "services": None,
+            },
+            specter=specter,
+        )
+    )
+    specter.user_manager.save()
+    specter.check()
+
+    assert not specter.wallet_manager.working_folder is None
+    try:
+        yield specter
+    finally:
+        # Deleting all Wallets (this will also purge them on core)
+        for user in specter.user_manager.users:
+            for wallet in list(user.wallet_manager.wallets.values()):
+                user.wallet_manager.delete_wallet(wallet, node)
+
+
+@pytest.fixture
+def specter_regtest_configured_with_threading(
+    bitcoin_regtest, devices_filled_data_folder, node
+):
+    assert bitcoin_regtest.get_rpc().test_connection()
+    config = {
+        "rpc": {
+            "autodetect": False,
+            "datadir": bitcoin_regtest.datadir,
+            "user": bitcoin_regtest.rpcconn.rpcuser,
+            "password": bitcoin_regtest.rpcconn.rpcpassword,
+            "port": bitcoin_regtest.rpcconn.rpcport,
+            "host": bitcoin_regtest.rpcconn.ipaddress,
+            "protocol": "http",
+        },
+        "auth": {
+            "method": "rpcpasswordaspin",
+        },
+        "testing": {
+            "allow_threading_for_testing": True,
+        },
     }
     specter = Specter(data_folder=devices_filled_data_folder, config=config)
     assert specter.chain == "regtest"

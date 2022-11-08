@@ -117,6 +117,7 @@ def test_WalletManager(
 
 @pytest.mark.slow
 @pytest.mark.bottleneck
+@pytest.mark.threading
 def test_WalletManager_2_nodes(
     docker,
     request,
@@ -708,3 +709,19 @@ def test_multisig_wallet_backup_and_restore(
 
     # We restored the wallet's utxos
     assert wallet.amount_total == 3.3
+
+
+def test_threading(specter_regtest_configured_with_threading):
+    assert (
+        specter_regtest_configured_with_threading.config["testing"][
+            "allow_threading_for_testing"
+        ]
+        == True
+    )
+    device = specter_regtest_configured_with_threading.device_manager.get_by_alias(
+        "trezor"
+    )
+    wm = specter_regtest_configured_with_threading.wallet_manager
+    wallet = wm.create_wallet("test_wallet", 1, "wpkh", [device.keys[5]], [device])
+    assert wm.wallets_names == ["test_wallet"]
+    assert wm.data_folder.endswith("wallets")
