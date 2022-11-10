@@ -37,11 +37,10 @@ def test_createpsbt(
         )
     unspents = wallet.rpc.listunspent()
     selected_coin = [{"txid": unspents[0]["txid"], "vout": unspents[0]["vout"]}]
-    # Spending it all
     psbt = wallet.createpsbt(
         [random_address],
-        [20],
-        True,
+        [19],
+        False,  # Important because otherwise there is no change output!
         0,
         1,
         selected_coins=selected_coin,  # Selecting only one UTXO since input ordering seems to also be random in Core.
@@ -49,8 +48,7 @@ def test_createpsbt(
     assert len(psbt["tx"]["vin"]) == 1
     assert len(psbt["inputs"]) == 1
 
-    # Check the PSBT fields - inputs
-    # The first input seems to be last selected coin from selected_coins
+    # Input fields
     assert (
         psbt["inputs"][0]["bip32_derivs"][0]["pubkey"]
         == "0330955ab511845fb48fc5739da551875ed54fa1f2fdd4cf77f3473ce2cffb4c75"
@@ -58,33 +56,59 @@ def test_createpsbt(
     assert psbt["inputs"][0]["bip32_derivs"][0]["path"] == "m/84h/1h/0h/0/1"
     assert psbt["inputs"][0]["bip32_derivs"][0]["master_fingerprint"] == "8c24a510"
 
-    # Check the PSBT fields - outputs
-    logger.info(f"the whole {psbt}")
+    # Output fields
+    for output in psbt["outputs"]:  # The ordering of the outputs is random
+        if output["change"] == False:
+            assert output["address"] == "bcrt1q7mlxxdna2e2ufzgalgp5zhtnndl7qddlxjy5eg"
+        else:
+            assert output["is_mine"] == True
+            assert (
+                output["bip32_derivs"][0]["pubkey"]
+                == "02251fe2ee4bc43729b0903ffadbcf846d9e6acbb3aa593b09d60085645cbe3653"
+            )
+            assert output["bip32_derivs"][0]["path"] == "m/84h/1h/0h/1/0"
 
-    logger.info(f"the outputs of the {psbt['outputs']}")
-    assert (
-        psbt["outputs"][0]["address"] == "bcrt1q7mlxxdna2e2ufzgalgp5zhtnndl7qddlxjy5eg"
-    )
-    assert psbt["outputs"][0]["change"] == False
-    # assert psbt["outputs"][0]["bip32_derivs"][0]["master_fingerprint"] == "1e9cf8a7"
-
-    # Check the fields of a PSBT created by a taproot wallet
-    # TODO: Could be moved to a dedicated test of taproot functionalites in the future
+    # Taproot fields (could be moved to a dedicated test of taproot functionalites in the future)
     taproot_wallet = funded_taproot_wallet
     assert taproot_wallet.is_taproot == True
     address = taproot_wallet.getnewaddress()
-    # Taproot test addrs are bcrt1p
     assert address.startswith("bcrt1p")
     assert taproot_wallet.amount_total == 20
-    # Let's keep the random address so we a "mixed" set of outputs: segwit and taproot
+    # Let's keep the random address so we have a "mixed" set of outputs: segwit and taproot
     psbt = taproot_wallet.createpsbt(
         [random_address],
         [3],
-        True,
+        False,
         0,
         1,
     )
-    logger.info(f"this is the taproot psbt: {psbt}")
+    # Input fields
+    assert psbt["inputs"][0]["taproot_bip32_derivs"][0]["path"] == "m/86h/1h/0h/0/1"
+    assert (
+        psbt["inputs"][0]["taproot_bip32_derivs"][0]["master_fingerprint"] == "8c24a510"
+    )
+    assert psbt["inputs"][0]["taproot_bip32_derivs"][0]["leaf_hashes"] == []
+    complete_pubkey = (
+        "0274fea50d7f2a69489c2d2a146e317e02f47ad032e81b35fe6059e066670a100e"
+    )
+    assert (
+        psbt["inputs"][0]["taproot_bip32_derivs"][0]["pubkey"] == complete_pubkey[2:]
+    )  # The pubkey is "xonly", for details: https://embit.rocks/#/api/ec/public_key?id=xonly
+    # Output fields
+    for output in psbt["outputs"]:
+        if output["change"] == False:
+            assert output["address"] == "bcrt1q7mlxxdna2e2ufzgalgp5zhtnndl7qddlxjy5eg"
+        else:
+            assert output["taproot_bip32_derivs"][0]["path"] == "m/86h/1h/0h/1/0"
+            assert (
+                output["taproot_bip32_derivs"][0]["pubkey"]
+                == "85b747f5ffc1a1ff951790771c86b24725e283afb2d7e5b8392858bc04f5d05c"
+            )
+            assert (
+                output["taproot_bip32_derivs"][0]["pubkey"]
+                == output["taproot_internal_key"]
+            )
+            assert output["taproot_bip32_derivs"][0]["leaf_hashes"] == []
 
 
 @pytest.mark.slow
