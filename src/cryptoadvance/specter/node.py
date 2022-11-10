@@ -1,13 +1,16 @@
 import json
 import logging
 import os
+from os import path
 
 from embit.liquid.networks import get_network
+from flask import render_template
 from flask_babel import lazy_gettext as _
 from requests.exceptions import ConnectionError
-from .helpers import is_testnet, is_liquid
+
+from .helpers import deep_update, is_liquid, is_testnet
 from .liquid.rpc import LiquidRPC
-from .persistence import write_node
+from .persistence import PersistentObject, write_node
 from .rpc import (
     BitcoinRPC,
     RpcError,
@@ -19,7 +22,121 @@ from .specter_error import BrokenCoreConnectionException
 logger = logging.getLogger(__name__)
 
 
-class Node:
+class AbstractNode(PersistentObject):
+    """This is a Node class worth deriving from. It tries to define as many attributes as possible which are needed but probably in a very
+    inefficient way, e.g. without any caching. Feel free to improve that in subclasses and you might get inspired by existing sublasses
+    """
+
+    # Many properties are convenience properties of informations, you get from the various info-rpc-callse, namely:
+    # * getblockchaininfo
+    # * getnetworkinfo
+    # * getmempoolinfo
+    # * uptime
+    # * getblockhash
+    # * scantxoutset
+
+    # So first, here are the one which return directly the content of one of those calls as dict:
+    @property
+    def info(self):
+        """Should be a combination of various info calls from Bitcoin Core. Could have:
+        * all the info from https://developer.bitcoin.org/reference/rpc/getblockchaininfo.html
+        * plus 'mempool_info' from https://developer.bitcoin.org/reference/rpc/getmempoolinfo.html
+        * plus uptime
+        * plus other stuff
+        We only implement a bare minimum here. See the Node-Impl for more
+
+        This method is exception-safe and returns an empty dict if the connection is broken
+        """
+        try:
+            res = [
+                r["result"]
+                for r in self.rpc.multi(
+                    [
+                        ("getblockchaininfo", None),
+                        ("getnetworkinfo", None),
+                        ("getmempoolinfo", None),
+                        ("uptime", None),
+                        ("getblockhash", 0),
+                        ("scantxoutset", "status", []),
+                    ]
+                )
+            ]
+            info = res[0]
+            info["mempool_info"] = res[2]
+            info["uptime"] = res[3]
+            return info
+        except BrokenCoreConnectionException:
+            return {}
+
+    @property
+    def network_info(self):
+        """https://developer.bitcoin.org/reference/rpc/getnetworkinfo.html
+        returns an almost empty dict if Broken Connection
+        """
+        try:
+            return self.rpc.getnetworkinfo()
+        except BrokenCoreConnectionException:
+            return {"subversion": "", "version": 999999}
+
+    @property
+    def uptime(self):
+        """https://developer.bitcoin.org/reference/rpc/uptime.html"""
+        return self.rpc.uptime()
+
+    # Now some even more convenient properties which provide often used handpicked information from those dicts
+
+    @property
+    def chain(self):
+        """current network name (main, test, regtest)
+        might have more values in elements/liquid
+        """
+        try:
+            return self.info.get("chain")
+        except BrokenCoreConnectionException:
+            # This is the most important part to signal that the node-connection is broken without throwin an Exception
+            return None
+
+    @property
+    def bitcoin_core_version_raw(self):
+        try:
+            return self.rpc.getnetworkinfo()["version"]
+        except BrokenCoreConnectionException:
+            # This is the most important part to signal that the node-connection is broken without throwin an Exception
+            return 99999
+
+    # ... and more derived properties which already calculate stuff based on those information
+
+    @property
+    def network_parameters(self):
+        return get_network(self.chain)
+
+    @property
+    def is_testnet(self):
+        return is_testnet(self.chain)
+
+    @property
+    def is_running(self):
+        if self.network_info["version"] == 999999:
+            logger.debug(f"Node is not running")
+            return False
+        else:
+            return True
+
+    def check_blockheight(self):
+        """check_blockheight is a method which is probably deprecated.
+        It should return True if there are new blocks available since check_info has been called
+        (which updates the cached _info[] dict)
+        """
+        raise NotImplemented(
+            "A Node Implementation need to implement the check_blockheight method"
+        )
+
+    def node_info_template(self):
+        """This should return the path to a template as string"""
+        return "node/components/bitcoin_core_info.jinja"
+
+
+class Node(AbstractNode):
     """A Node represents the connection to a Bitcoin and/or Liquid (Full-) node.
     It can be created via Constructor or from_json, and mainly it can give you A
     RPC-object to use the API.
@@ -27,6 +144,8 @@ class Node:
     persist healthy connections.
     One or many Nodes are managed via the NodeManager
     """
+
+    external_node = True
 
     def __init__(
         self,
@@ -39,7 +158,6 @@ class Node:
         port,
         host,
         protocol,
-        external_node,
         fullpath,
         node_type,
         manager,
@@ -55,7 +173,6 @@ class Node:
         :param port: usually something like 8332 for mainnet, 18332 for testnet, 18443 for Regtest, 38332 for signet
         :param host: domainname or ip-address. Don't add the protocol here
         :param protocol: Usually https or http
-        :param external_node: should be True for Node and False for InternalNode
         :param fullpath: it's assumed that you want to store it on disk AND decide about the fullpath upfront
         :param node_type: either "ELM" or "BTC", will impact autodetection (datadir and Env-vars)
         :param manager: A NodeManager instance which will get notified if the Node's name changes, the proxy_url will get copied from the manager as well
@@ -69,7 +186,6 @@ class Node:
         self.port = port
         self.host = host
         self.protocol = protocol
-        self.external_node = external_node
         self.fullpath = fullpath
         self._node_type = node_type
         self.manager = manager
@@ -95,7 +211,6 @@ class Node:
         port = node_dict.get("port", None)
         host = node_dict.get("host", "localhost")
         protocol = node_dict.get("protocol", "http")
-        external_node = node_dict.get("external_node", True)
         fullpath = node_dict.get("fullpath", default_fullpath)
 
         return cls(
@@ -108,7 +223,6 @@ class Node:
             port,
             host,
             protocol,
-            external_node,
             fullpath,
             node_type,
             manager,
@@ -117,20 +231,23 @@ class Node:
     @property
     def json(self):
         """Get a json-representation of this Node"""
-        return {
-            "name": self.name,
-            "alias": self.alias,
-            "autodetect": self.autodetect,
-            "datadir": self.datadir,
-            "user": self.user,
-            "password": self.password,
-            "port": self.port,
-            "host": self.host,
-            "protocol": self.protocol,
-            "external_node": self.external_node,
-            "fullpath": self.fullpath,
-            "node_type": self.node_type,
-        }
+        node_json = super().json
+        return deep_update(
+            node_json,
+            {
+                "name": self.name,
+                "alias": self.alias,
+                "autodetect": self.autodetect,
+                "datadir": self.datadir,
+                "user": self.user,
+                "password": self.password,
+                "port": self.port,
+                "host": self.host,
+                "protocol": self.protocol,
+                "fullpath": self.fullpath,
+                "node_type": self.node_type,
+            },
+        )
 
     def _get_rpc(self):
         """Checks if configurations have changed, compares with old rpc
@@ -192,7 +309,7 @@ class Node:
             logger.error(rpce)
             return None
         except BrokenCoreConnectionException as bcce:
-            logger.error(f"{bcce} while get_rpc")
+            logger.error(f"{bcce} while get_rpc for {rpc}")
             return None
         except Exception as e:
             logger.exception(e)
@@ -262,7 +379,6 @@ class Node:
         self.name = new_name
         logger.info(f"persisting {self} in rename")
         write_node(self, self.fullpath)
-        self.manager.update()
 
     def check_info(self):
         self._is_configured = self.rpc is not None
@@ -471,10 +587,6 @@ class Node:
         return self.info["chain"]
 
     @property
-    def is_testnet(self):
-        return is_testnet(self.chain)
-
-    @property
     def asset_labels(self):
         if not self.is_liquid:
             return {}
@@ -514,6 +626,8 @@ class Node:
         if hasattr(self, "_rpc") and value == None:
             logger.debug(f"Updating {self}.rpc {self._rpc} with None (setter)")
         self._rpc = value
+
+    # UI specific stuff
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} name={self.name} fullpath={self.fullpath}>"

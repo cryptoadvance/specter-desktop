@@ -1,0 +1,2 @@
+<a href="{{url_for('setup_endpoint.' + specter.setup_status.stage)}}" class="btn action centered" style="max-width: 200px;">{% if specter.setup_status.stage == "start" %}{{ _('Get started!') }}{% else %}{{ _('Continue setup') }}{% endif %}</a>
+<br><br>

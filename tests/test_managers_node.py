@@ -3,6 +3,7 @@ import tempfile
 import time
 import tarfile
 import os
+from unittest.mock import MagicMock
 
 import pytest
 from cryptoadvance.specter.managers.node_manager import NodeManager
@@ -18,10 +19,12 @@ from cryptoadvance.specter.process_controller.elementsd_controller import (
 def test_NodeManager(
     bitcoin_regtest: BitcoindPlainController, elements_elreg: ElementsPlainController
 ):
-    with tempfile.TemporaryDirectory("_some_datafolder_tmp") as data_folder:
+    with tempfile.TemporaryDirectory(
+        prefix="pytest_NodeManager_datafolder"
+    ) as data_folder:
         print(f"data_folder={data_folder}")
         nm = NodeManager(data_folder=data_folder)
-        nm.add_node(
+        nm.add_external_node(
             "BTC",
             "bitcoin_regtest",
             False,
@@ -31,12 +34,11 @@ def test_NodeManager(
             bitcoin_regtest.rpcconn.rpcport,
             bitcoin_regtest.rpcconn._ipaddress,
             "http",
-            external_node=True,
         )
         assert nm.nodes_names == ["Bitcoin Core", "bitcoin_regtest"]
         nm.switch_node("bitcoin_regtest")
         assert nm.active_node.rpc.getblockchaininfo()["chain"] == "regtest"
-        nm.add_node(
+        nm.add_external_node(
             "ELM",
             "elements_elreg",
             False,
@@ -46,12 +48,11 @@ def test_NodeManager(
             elements_elreg.rpcconn.rpcport,
             elements_elreg.rpcconn._ipaddress,
             "http",
-            external_node=True,
         )
         assert nm.nodes_names == ["Bitcoin Core", "bitcoin_regtest", "elements_elreg"]
         nm.switch_node("elements_elreg")
         assert nm.active_node.rpc.getblockchaininfo()["chain"] == "elreg"
-        time.sleep(20)
+        nm.delete_node(nm.nodes["Bitcoin Core"], MagicMock())
 
 
 """ For some reason this breaks other tests"""

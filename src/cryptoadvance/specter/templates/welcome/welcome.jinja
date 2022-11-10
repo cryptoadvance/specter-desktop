@@ -1,0 +1,28 @@
+{% extends "base.jinja" %}
+{% block main %}
+<br>
+<div class="main-page-container">
+<div style="max-width: 15em; text-align: center; margin-bottom: 2em; margin-top: .7em; margin-left: auto; margin-right: auto;">
+    {% include "includes/language/language_select.jinja" %}
+</div>
+<h1 style="font-size: 1.8em; line-height: 1em;">
+    {{ _('Welcome to Specter Desktop') }} 
+</h1>
+{% if ('://localhost:' not in url_for('index', _external=True) and '://127.0.0.1:' not in url_for('index', _external=True)) and specter.hwi_bridge_url != "http://127.0.0.1:25441/hwi/api/" %}
+    {% include welcome_vm.specter_remote_include %}
+{% endif %}
+<div style="display: flex; justify-content: center; align-items: center;">
+    <div class="main-description-box">
+        <p style="font-size: 1.1em; margin: 1em auto 1em auto; text-align: left;">{{ _("Specter Desktop is a convenient wallet interface to better use your Bitcoin Core node. It’s good for singlesig wallets, but comes with a special focus on multisignature setups for different hardware wallets and air-gapped signing devices.") }} <br><br>
+        &#128217; Learn <a style="color: #fff" href="https://specter-desktop-docs.netlify.app/multisig-guide/" target="_blank">{{ _("here") }}</a> more about multisig.
+        </p>
+    </div>
+</div>
+{% if not specter.chain %}
+    {% include welcome_vm.get_started_include %}
+{% else %}
+    {% include welcome_vm.tick_checkboxes_include %}
+{% endif %}
+{% include welcome_vm.remaining_remarks_include %}
+</div>
+{% endblock %}

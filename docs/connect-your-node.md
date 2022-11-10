@@ -10,6 +10,8 @@ If you want to use Specter with a node on your Windows machine: Ministry of Node
 The installation on the Raspiblitz is quite simple as there is an installation option in the ssh-menu. 
 There is also a walk-through on [how to connect the Specter Desktop App with the RaspiBlitz](https://d11n.net/connect-specter-desktor-with-raspiblitz.html).
 
+Jameson Lopp has created a [tool](https://jlopp.github.io/bitcoin-core-config-generator/) to assist with bitcoin.conf creation for Linux/Windows/MacOS. It also explains some of the configuration options in detail.
+
 ## General thoughts
 But let's approach the connection issue more generically. We assume here, that you want to setup everything in your local network. Every computer needs an IP address in your network. So either, Bitcoin Core is running on the same computer as Specter or on two different ones. But both should have private IP addresses - e.g. (most popular) 192.198.X.Y.
 For this setup, you don't need to modify your router. Also your Bitcoin Core node doesn't need to be exposed to the internet.

@@ -92,6 +92,7 @@ def test_WalletManager(
 
 
 @pytest.mark.slow
+@pytest.mark.bottleneck
 def test_WalletManager_2_nodes(
     docker,
     request,
@@ -137,11 +138,6 @@ def test_WalletManager_2_nodes(
     # Should also use with threading
     wm.update(chain="regtest2", rpc=bitcoin_regtest2.get_rpc(), use_threading=True)
     assert wm.wallets_names == ["a_test_wallet"]
-
-    with pytest.raises(Exception, match="can only be changed with one another") as e:
-        wm.update(chain="regtest3")
-    with pytest.raises(Exception, match="can only be changed with one another") as e:
-        wm.update(rpc=bitcoin_regtest2.get_rpc())
 
 
 def test_WalletManager_check_duplicate_keys(empty_data_folder):

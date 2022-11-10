@@ -1,4 +1,5 @@
 import json
+import logging
 import pytest
 
 from flask_login import current_user
@@ -23,11 +24,20 @@ from cryptoadvance.specter.managers.service_manager import ServiceManager
 from cryptoadvance.specter.user import User, hash_password
 
 
+class FakeServiceNoEncryption(Service):
+    # A dummy Service just used by the test suite
+    id = "test_service_no_encryption"
+    name = "Test Service no encryption"
+    has_blueprint = False
+    encrypt_data = False
+
+
 class FakeService(Service):
     # A dummy Service just used by the test suite
     id = "test_service"
     name = "Test Service"
     has_blueprint = False
+    encrypt_data = True
 
 
 # @patch("cryptoadvance.specter.services.service_manager.app")
@@ -158,7 +168,9 @@ def test_access_encrypted_storage_after_login(app_no_node: SpecterFlask):
         ) == {"somekey": "green"}
 
 
-def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_folder):
+def test_remove_encrypted_services_from_user(
+    app_no_node: SpecterFlask, empty_data_folder
+):
     """ServiceEncryptedStorage should be accessible (decryptable) after user login"""
     # Create test users; automatically generates their `user_secret` and kept decrypted
     # in memory.
@@ -170,9 +182,8 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
         config={},
     )
 
-    storage_manager = ServiceEncryptedStorageManager(
-        user_manager.data_folder, user_manager
-    )
+    storage_manager = app_no_node.specter.service_encrypted_storage_manager
+    service_manager = app_no_node.specter.service_manager
     storage_manager.storage_by_user = {}
 
     # Need a simulated request context to enable `current_user` lookup
@@ -199,8 +210,22 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
         # Can't test the actual values because they're encrypted, but the Service.id key is plaintext
         assert FakeService.id in data_on_disk
 
-        # Now remove all
-        app_no_node.specter.service_manager.remove_all_services_from_user(user)
+        # Remove all services that need encryption
+        # we add the fakeservice to the service_manager.services otherwise delete_services_with_encrypted_storage doesn't know it exists
+        # strictly speaking the important call is here user.delete_user_secret(autosave=True) which will execute regardless of adding fakeservice
+        fake_service = FakeService(True, app_no_node.specter)
+        service_manager.services[fake_service.id] = fake_service
+        assert fake_service.id in service_manager.services
+
+        # also add it to the user, and check later it was remove from the user
+        user.add_service(fake_service.id)
+        assert user.has_service(fake_service.id)
+
+        app_no_node.specter.service_manager.delete_services_with_encrypted_storage(user)
+        # the user should not have the fake_service activated any more
+        assert not user.has_service(fake_service.id)
+        # the service_manager on the other hand keeps all services, no matter what
+        assert service_manager.services[fake_service.id]
 
         # Verify data on disk; Bob's user should have his user_secret cleared.
         users_file = app_no_node.specter.user_manager.users_file
@@ -228,6 +253,69 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
         with open(service_encrypted_storage_file, "r") as storage_json_file:
             data_on_disk = json.load(storage_json_file)
         assert data_on_disk == {}
+
+
+def test_check_differences_between_encrypted_and_non_encrypted_services(
+    app_no_node: SpecterFlask, empty_data_folder
+):
+    """ServiceEncryptedStorage should be accessible (decryptable) after user login"""
+    # Create test users; automatically generates their `user_secret` and kept decrypted
+    # in memory.
+    user_manager: UserManager = app_no_node.specter.user_manager
+    user_manager.create_user(
+        user_id="bob",
+        username="bob",
+        plaintext_password="plain_pass_bob",
+        config={},
+    )
+
+    service_manager = app_no_node.specter.service_manager
+    user = user_manager.get_user("bob")
+
+    def setup_services():
+        # Remove all services that need encryption
+        # we add the fakeservice to the service_manager.services otherwise delete_services_with_encrypted_storage doesn't know it exists
+        # strictly speaking the important call is here user.delete_user_secret(autosave=True) which will execute regardless of adding fakeservice
+        fake_service = FakeService(True, app_no_node.specter)
+        fake_service_no_encryption = FakeServiceNoEncryption(True, app_no_node.specter)
+        service_manager.services[fake_service.id] = fake_service
+        service_manager.services[
+            fake_service_no_encryption.id
+        ] = fake_service_no_encryption
+        assert fake_service.id in service_manager.services
+        assert fake_service_no_encryption.id in service_manager.services
+
+        # also add it to the user, and check later it was remove from the user
+        user.add_service(fake_service.id)
+        user.add_service(fake_service_no_encryption.id)
+        assert user.has_service(fake_service.id)
+        assert user.has_service(fake_service_no_encryption.id)
+
+        return fake_service, fake_service_no_encryption
+
+    fake_service, fake_service_no_encryption = setup_services()
+    # delete the encrypted ones
+    app_no_node.specter.service_manager.delete_services_with_encrypted_storage(user)
+    assert not user.has_service(fake_service.id)
+    assert user.has_service(fake_service_no_encryption.id)
+    # delete the unencrypted ones
+    app_no_node.specter.service_manager.delete_services_with_unencrypted_storage(user)
+    assert not user.has_service(fake_service_no_encryption.id)
+
+    # now setup again and check a different order of execution
+    fake_service, fake_service_no_encryption = setup_services()
+    # delete the unencrypted ones
+    app_no_node.specter.service_manager.delete_services_with_unencrypted_storage(user)
+    assert not user.has_service(fake_service_no_encryption.id)
+    assert user.has_service(fake_service.id)
+    # delete the encrypted ones
+    app_no_node.specter.service_manager.delete_services_with_encrypted_storage(user)
+    # the user should not have the fake_service activated any more
+    assert not user.has_service(fake_service.id)
+
+    # the service_manager on the other hand keeps all services, no matter what
+    assert service_manager.services[fake_service.id]
+    assert service_manager.services[fake_service_no_encryption.id]
 
 
 def test_ServiceUnEncryptedStorage(empty_data_folder, user1, user2):
@@ -282,3 +370,48 @@ def test_both_Storages_in_parallel(empty_data_folder, user1, user2):
     assert service_storage_enc.get_service_data("a_service_id") == {
         "somekey": "light_red"
     }
+
+
+class TestService(Service):
+    id = "mytestservice"
+
+    @classmethod
+    def default_address_label(cls):
+        # A non i18n version of this method
+        # return str(_("Reserved for {}").format(cls.name))
+        return str("Reserved for {}").format(cls.name)
+
+
+def test_Service_reserve_address(empty_data_folder, caplog):
+    wallet_mock = MagicMock()
+
+    TestService.reserve_address(wallet_mock, "a", "someLabel")
+    assert wallet_mock.associate_address_with_service.assert_called_once
+
+
+def test_Service_reserve_addresses(empty_data_folder, caplog):
+    caplog.set_level(logging.DEBUG)
+    specter_mock = MagicMock()
+    specter_mock.data_folder = empty_data_folder
+    s = TestService(True, specter_mock)
+
+    wallet_mock = MagicMock()
+    # We assume that we haven't yet reserved any addresses:
+    wallet_mock.get_associated_addresses.return_value = []
+    # We assume that those are the unused addresses returned by the wallet
+    wallet_mock.get_address.side_effect = ["a", "b", "c", "d", "e", "f"]
+    # We assume that the next unused address is #5
+    wallet_mock.address_index = 5
+
+    addr_obj_mock = MagicMock()
+    addr_obj_mock.used = False
+    addr_obj_mock.is_reserved = False
+
+    wallet_mock.get_address_obj.return_value = addr_obj_mock
+
+    addresses = s.reserve_addresses(wallet_mock, "someLabel", 2, False)
+    print(addresses)
+    # address_index stays the same. the get_address logic is
+    # taking care that no reserved addresses are handed out.
+    assert wallet_mock.address_index == 5
+    assert addresses == ["a", "b"]
