@@ -22,7 +22,7 @@ from cryptoadvance.specter.process_controller.elementsd_controller import (
 )
 from cryptoadvance.specter.server import SpecterFlask, create_app, init_app
 from cryptoadvance.specter.specter import Specter
-from cryptoadvance.specter.specter_error import SpecterError
+from cryptoadvance.specter.specter_error import BrokenCoreConnectionException, SpecterError, handle_exception
 from cryptoadvance.specter.user import User, hash_password
 from cryptoadvance.specter.util.common import str2bool
 from cryptoadvance.specter.util.shell import which
@@ -31,6 +31,7 @@ from cryptoadvance.specter.util.wallet_importer import WalletImporter
 logger = logging.getLogger(__name__)
 
 pytest_plugins = [
+    "conftest_visibilty",
     "fix_ghost_machine",
     "fix_keys_and_seeds",
     "fix_devices_and_wallets",
@@ -543,6 +544,11 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder, node
     try:
         yield specter
     finally:
+        # End all threads
+        specter.checker.stop()
+        specter.checker.thread.join()
+        specter.version.stop()
+        specter.version.thread.join()
         # Deleting all Wallets (this will also purge them on core)
         for user in specter.user_manager.users:
             for wallet in list(user.wallet_manager.wallets.values()):
@@ -594,7 +600,13 @@ def specter_regtest_configured_with_threading(
     try:
         yield specter
     finally:
+        # End all threads
+        specter.checker.stop()
+        specter.checker.thread.join()
+        specter.version.stop()
+        specter.version.thread.join()
         # Deleting all Wallets (this will also purge them on core)
+        specter.wallet_manager.thread.join()
         for user in specter.user_manager.users:
             for wallet in list(user.wallet_manager.wallets.values()):
                 user.wallet_manager.delete_wallet(wallet, node)
