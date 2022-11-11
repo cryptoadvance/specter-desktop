@@ -1720,7 +1720,7 @@ class Wallet:
 
         # Always explicitly fill psbt with any missing fields
         # TODO: Re-evaluate if this is necessary if user is running Bitcoin Core w/BIP-371 support
-        b64psbt = self.fill_psbt(r["psbt"], taproot_derivations=True)
+        b64psbt = self.fill_psbt(r["psbt"])
 
         psbt = self.PSBTCls(
             b64psbt,
@@ -1746,7 +1746,7 @@ class Wallet:
 
             # Always explicitly fill psbt with any missing fields
             # TODO: Re-evaluate if this is necessary if user is running Bitcoin Core w/BIP-371 support
-            b64psbt = self.fill_psbt(r["psbt"], taproot_derivations=True)
+            b64psbt = self.fill_psbt(r["psbt"])
 
             psbt = self.PSBTCls(
                 b64psbt,
@@ -1872,13 +1872,12 @@ class Wallet:
         b64psbt,
         non_witness: bool = True,
         xpubs: bool = True,
-        taproot_derivations: bool = True,
     ):
         psbt = self.PSBTCls.from_string(b64psbt)
 
         # Core doesn't fill derivations yet, so we do it ourselves
         # Provide the BIP-371 `PSBT_IN_TAP_BIP32_DERIVATION` 0x16 field
-        if taproot_derivations and self.is_taproot:
+        if self.is_taproot:
             net = self.network
             for sc in psbt.inputs + psbt.outputs:
                 if sc.taproot_internal_key is not None:
