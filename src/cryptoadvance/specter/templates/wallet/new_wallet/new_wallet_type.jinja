@@ -27,7 +27,7 @@
 		</a>
 	</nav>
 	<div class="row">
-		<button onclick="showPageOverlay('account_map_import')" type="button" class="btn centered padded">
+		<button id="btn-account_map_import" type="button" class="btn centered padded">
 		{{ _("Import from wallet software") }}
 			<tool-tip width="200px">
 	        	<span slot="paragraph">
@@ -49,4 +49,10 @@
 	</span>
 	<br>
 
+
+	<script type="module">
+		document.getElementById("btn-account_map_import").addEventListener("click", (event)=> {
+					showPageOverlay('account_map_import')
+				});  	
+	</script>	 	
 {% endblock %}

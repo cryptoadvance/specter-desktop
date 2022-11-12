@@ -37,13 +37,26 @@
 			<address-label data-address="{{ wallet.address }}" data-label="{{ wallet.getlabel(wallet.address) }}" data-wallet="{{ wallet_alias }}" date-size="title"></address-label>
 		</form>
 		{% if specter.is_liquid  and wallet.address != wallet.unconfidential_address %}
-		<nav class="row">
-			<button type="button" id="confidential_btn" class="btn radio left checked" onclick="toggle_confidential(true)"> {{ _("Confidential") }} </button>
-			<button type="button" id="unconfidential_btn" class="btn radio right" onclick="toggle_confidential(false)"> {{ _("Unconfidential") }} </button>
-		</nav>
+			<nav class="row">
+				<button type="button" id="confidential_btn" class="btn radio left checked"> {{ _("Confidential") }} </button>
+				<button type="button" id="unconfidential_btn" class="btn radio right"> {{ _("Unconfidential") }} </button>
+			</nav>
+			<script type="module">
+				document.getElementById("confidential_btn").addEventListener("click", (event)=> {
+							toggle_confidential(true)
+						});  	
+				document.getElementById("unconfidential_btn").addEventListener("click", (event)=> {
+							toggle_confidential(false)
+						});  	
+			</script>	 			
 		{% endif %}
 		<div class="warning" style="font-weight: lighter; background: #0003; color: #ddd; display: inline-block; margin:5% auto 5%; border: 1px solid #777; padding: 20px; max-width: 100%;">
-			<p title="Click to copy" id="address" class="padded" style="word-break: break-all;" onclick="copyText(this.textContent, '{{ _("Copied Address:") }} ' + this.textContent);">{{ wallet.address }}</p>
+			<p title="Click to copy" id="address" class="padded" style="word-break: break-all;">{{ wallet.address }}</p>
+			<script type="module">
+				document.getElementById("address").addEventListener("click", (event)=> {
+							copyText(this.textContent, '{{ _("Copied Address:") }} ' + this.textContent);
+						});  	
+			</script>	 				
 			{{ _("(click to copy)") }}
 			<br><br>
 			<qr-code id="address_qr" style="margin: auto;" value="{{'bitcoin:' + wallet.address }}" width="256"></qr-code><br>
@@ -64,7 +77,12 @@
 							{{ _("Specter can verify this address if you scan it.")}}<br>{{ _("It has an address index included in the QR code.") }}
 					</p><br>
 				</div>
-				<button onclick="verifyQRCode('{{ wallet.address }}', '{{ wallet.address_index | string }}')" type="button" class="btn centered padded">{{ _("Verify address via QR code") }}</button>
+				<button id="btn-verifyQRCode-{{ wallet.address }}" type="button" class="btn centered padded">{{ _("Verify address via QR code") }}</button>
+				<script type="module">
+					document.getElementById("btn-verifyQRCode-{{ wallet.address }}").addEventListener("click", (event)=> {
+								verifyQRCode('{{ wallet.address }}', '{{ wallet.address_index | string }}')
+							});  	
+				</script>	 					
 			{% endif %}
 			{% set supports_hwi = [] %}
 			{% set supports_hwi_multisig_display_address = [] %}
@@ -78,7 +96,12 @@
 				{% set address = wallet.address %}
 				{% set descriptor = wallet.get_descriptor(address=address, keep_xpubs=False, to_string=True, with_checksum=True) %}
 				{% set xpubs_descriptor = wallet.get_descriptor(address=address, keep_xpubs=True, to_string=True, with_checksum=True) %}
-				<button type="button" onclick='displayAddressOnDevice(`{{ address }}`, `{{ descriptor }}`, `{{ xpubs_descriptor }}`)' class="btn centered optional">{{ _("Display address on device") }}</button><br>
+				<button type="button" id="btn-displayAddressOnDevice-{{ address }}"  class="btn centered optional">{{ _("Display address on device") }}</button><br>
+				<script type="module">
+					document.getElementById("btn-displayAddressOnDevice-{{ address }}").addEventListener("click", (event)=> {
+								displayAddressOnDevice(`{{ address }}`, `{{ descriptor }}`, `{{ xpubs_descriptor }}`)
+							});  	
+				</script>	 					
 				{% if wallet.is_multisig %}
 					<p class="note center optional">{{ _("Multsig address on device display is only available for BitBox02, ColdCard, KeepKey, Specter, and Trezor devices.") }}</p>
 				{% endif %}
@@ -156,6 +179,8 @@
 			<button type="button" class="btn centered padded" id="btn_continue">{{ _("Continue") }}</button>
 		{% endif %}
 	</div>
+
+
 	<script type="module">
 		function verifyQRCode(address, idx) {
 			document.getElementById('verify_address_qr_code_container').innerHTML = `<qr-code value="bitcoin:${address}?index=${idx}" width="256" scalable></qr-code>`;

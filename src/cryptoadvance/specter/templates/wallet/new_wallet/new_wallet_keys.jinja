@@ -11,19 +11,19 @@
 		{% set enable_taproot = (wallet_type == 'simple' and specter.taproot_support and cosigners[0].taproot_support) %}
 		<nav class="row">
 			<label>
-				<input type="radio" name="type" value="{{'sh-wsh' if wallet_type == 'multisig' else 'sh-wpkh'}}"
-				class="hidden" onchange="updateType(this.value);">
+				<input id="radio-wallet-type-0" type="radio" name="type" value="{{'sh-wsh' if wallet_type == 'multisig' else 'sh-wpkh'}}"
+				class="hidden">
 				<div class="btn radio left" id="type_nested_segwit_btn">{{ _("Nested Segwit") }}</div>
 			</label>
 			<label>
-				<input type="radio" name="type" value="{{'wsh' if wallet_type == 'multisig' else 'wpkh'}}" checked 
-				class="hidden type_nested_segwit" onchange="updateType(this.value);">
+				<input id="radio-wallet-type-1 " type="radio" name="type" value="{{'wsh' if wallet_type == 'multisig' else 'wpkh'}}" checked 
+				class="hidden type_nested_segwit">
 				<div class="btn radio {% if not enable_taproot %} right {% endif %}" id="type_native_segwit_btn">{{ _("Segwit") }}</div>
 			</label>
 			{% if enable_taproot %}
 			<label>
-				<input type="radio" name="type" value="tr"
-				class="hidden" onchange="updateType(this.value);">
+				<input id="radio-wallet-type-2" type="radio" name="type" value="tr"
+				class="hidden">
 				<div class="btn radio right" id="type_taproot_btn">{{ _("Taproot") }}</div>
 			</label>
 			{% endif %}
@@ -46,7 +46,7 @@
 		{% endif %}
 		<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 500px; margin: auto;">
 			<div style="display: flex; gap: 3px; margin-top: 10px;">
-				<input form="keysform" type="checkbox" name="rescanblockchain" id="rescan" class="inline" onchange="toggleScanOptions(this)">
+				<input form="keysform" type="checkbox" name="rescanblockchain" id="rescan" class="inline">
 				<label for="rescan">{{ _("Scan for existing funds?") }}</label>
 				<tool-tip width="200px">
             		<span slot="paragraph">
@@ -58,8 +58,8 @@
 				<br>
 				<div style="display: flex; justify-content: center">
 					{{ _("Rescan type:") }} 
-					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="full_rescan_option" value="full" onclick="toggleFullRescanOption(this)" checked>{{ _("Full rescan") }}</label>
-					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px" name="full_rescan_option" value="utxo" onclick="toggleFullRescanOption(this);">{{ _("UTXO only") }}</label>
+					<label><input id="input-full_rescan_option-full" type="radio" class="inline" style="margin: 0 10px 0 20px;" name="full_rescan_option" value="full"  checked>{{ _("Full rescan") }}</label>
+					<label><input id="input-full_rescan_option-utxo" type="radio" class="inline" style="margin: 0 10px 0 20px" name="full_rescan_option" value="utxo">{{ _("UTXO only") }}</label>
 					<tool-tip width="200px">
             			<span slot="paragraph">
 							{{ _("Full rescan is a slow process which searches for and imports the full wallet transaction history and balance.") }}<br>
@@ -170,7 +170,7 @@
 	<div class="spacer"></div>
 {% endblock %}
 {% block scripts %}
-	<script>
+	<script type="module">
 		function updateType(val){
 			let keys = document.getElementsByClassName('device-key');
 			let allDevices = [];
@@ -237,5 +237,29 @@
 				}
 			});
 		}
+
+
+
+		document.getElementById("input-full_rescan_option-full").addEventListener("click", (event)=> {
+					toggleFullRescanOption(event.target)
+				});  	
+		document.getElementById("input-full_rescan_option-utxo").addEventListener("click", (event)=> {
+					toggleFullRescanOption(event.target)
+				});  	
+		document.getElementById("radio-wallet-type-0").addEventListener("change", (event)=> {
+					updateType(event.target.value);
+				});  	
+		document.getElementById("radio-wallet-type-1").addEventListener("change", (event)=> {
+					updateType(event.target.value);
+				});  	
+		if (document.getElementById("radio-wallet-type-2")){
+			document.getElementById("radio-wallet-type-2").addEventListener("change", (event)=> {
+					updateType(event.target.value);
+				});  	}
+ 
+		document.getElementById("rescan").addEventListener("change", (event)=> {
+					toggleScanOptions(event.target)
+				});  	
+
 	</script>
 {% endblock%}
