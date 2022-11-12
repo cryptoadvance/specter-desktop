@@ -7,7 +7,7 @@
     <p>
         
     </p>
-    <form name="console" onSubmit="return handleIt()">
+    <form name="console" id="devhelp_tab-console" >
 
         <div style="display: flex;">
             <span>Python-expressions here:</span>
@@ -49,7 +49,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script type="text/javascript">
+<script type="module">
     var counter = 0
     function handleIt() {
         start = document.getElementById("start")
@@ -121,5 +121,9 @@
         return false
     }
 
+
+    document.getElementById("devhelp_tab-console").addEventListener("submit", (event)=> {
+                return handleIt();
+            });  	 
 </script>
 {% endblock %}
