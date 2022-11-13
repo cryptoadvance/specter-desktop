@@ -124,8 +124,13 @@
                         <th>Liquid Assets:</th>
                         <th colspan="2">
                             {% include 'includes/overlay/liquid_assets_registry.html' %}
-                            <button type="button" class="btn" onclick="showPageOverlay('liquid-assets-registry')">{{ _("Show assets list") }}</button>
+                            <button id="btn-liquid-assets-registry" type="button" class="btn">{{ _("Show assets list") }}</button>
                         </th>
+                        <script type="module">
+                            document.getElementById("btn-liquid-assets-registry").addEventListener("click", (event)=> {
+                                        showPageOverlay('liquid-assets-registry')
+                                    });  	
+                        </script>	 	                        
                     </tr>                             
                         {% for asset in balance.get("assets",{}).keys() | sort %}
                             <th></th>

@@ -6,7 +6,7 @@
     <p class="hidden warning" id="helper-text">{{ _("If you have an existing Bitcoin Core node you would like to use, either running locally on this computer or somewhere else, like on Umbrel, myNode, or RaspiBlitz, you can just connect and use it.") }}<br><br>
     {{ _("Don't have a node? Specter can help you setup a new one! This guide will help you get it up and running!") }}</p>
     <div class="row center">
-        <p class="explorer-link" id="helper" onclick="toggleHelper()">{{ _("Unsure? Click here for more info!") }}</p>
+        <p class="explorer-link" id="helper">{{ _("Unsure? Click here for more info!") }}</p>
         <a class="explorer-link hidden" id="support" href="https://t.me/spectersupport" target="_blank">{{ _("Still need help?") }}</a>
     </div>
     <br><br>
@@ -14,4 +14,11 @@
         <a href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) if not specter.node.rpc and specter.node.external_node else url_for('nodes_endpoint.node_settings') }}"  class="btn wizard-btn">{{ _("Connect existing node") }}</a>
         <a href="{{ url_for('setup_endpoint.bitcoind' if not bitcoind_installed else 'setup_endpoint.bitcoind_datadir') }}" class="btn wizard-btn action" id="setup-node-btn">{{ _("Setup a new node") }}</a>
     </div>
+
+
+	<script type="module">
+		document.getElementById("helper").addEventListener("click", (event)=> {
+					toggleHelper()
+				});  	
+	</script>	 	    
 {% endblock %}

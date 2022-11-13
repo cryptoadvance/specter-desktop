@@ -4,12 +4,12 @@
     <h1><img src="{{ url_for('static', filename='img/icon.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" style="width: 60px;" class="svg-white"/>&nbsp;{{ bitcoin_svg('main', 60) }}<br>
     <br>{{ _("Setup Bitcoin Core") }}</h1><br>
     <div class="row">
-        <button type="button" class="btn wizard-btn action" id="setup-bitcoind-button" onclick="setupBitcoind()">{{ _("Start the Setup!") }}</button>
-    </div>
+        <button type="button" class="btn wizard-btn action" id="setup-bitcoind-button">{{ _("Start the Setup!") }}</button>
+    </div>    
 {% endblock %}
 
 {% block setup_scripts %}
-    <script>
+    <script type="module">
         async function setupBitcoind(override=false) {
             let url = "{{ url_for('setup_endpoint.setup_bitcoind') }}";
             var formData = new FormData();
@@ -41,5 +41,10 @@
                 Specter.common.showError(e);
             }
         }
+
+
+		document.getElementById("setup-bitcoind-button").addEventListener("click", (event)=> {
+					setupBitcoind()
+				});  	        
     </script>
 {% endblock %}

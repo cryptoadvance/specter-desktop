@@ -8,10 +8,10 @@
 {% macro editable_label(label, elementId) -%}
     <input type="text" class="label" autocomplete="off" spellcheck="false" id="{{'label' ~ elementId }}" name="label" value="{{ label }}" style="border: none; font-size: 1.5em;" disabled />
     <button type="submit" class="btn update hidden" id="{{ 'save' ~ elementId }}" name="action" value="updatelabel">{{ _("Update") }}</button>
-    <button type="button" class="btn cancel hidden" id="{{ 'cancel' ~ elementId }}" onclick="toggleEdit('{{ elementId }}', '{{ label }}')">{{ _("Cancel") }}</button>
-    <button type="button" class="btn edit" id="{{ 'edit' ~ elementId }}" onclick="toggleEdit('{{ elementId }}', '{{ label }}')">{{ _("Edit Label") }}</button>
+    <button type="button" class="btn cancel hidden" id="{{ 'cancel' ~ elementId }}">{{ _("Cancel") }}</button>
+    <button type="button" class="btn edit" id="{{ 'edit' ~ elementId }}">{{ _("Edit Label") }}</button>
 
-    <script>
+    <script type="module">
         function toggleEdit(id, originalLabel) {
             var label = document.getElementById("label" + id);
             var edit = document.getElementById("edit" + id);
@@ -37,5 +37,14 @@
                 save.style.display = 'block';
             }
         }
+
+		document.getElementById("{{ 'cancel' ~ elementId }}").addEventListener("click", (event)=> {
+					toggleEdit('{{ elementId }}', '{{ label }}')
+				});  	        
+
+		document.getElementById("{{ 'edit' ~ elementId }}").addEventListener("click", (event)=> {
+					toggleEdit('{{ elementId }}', '{{ label }}')
+				});  	        
+
     </script>
 {%- endmacro %}

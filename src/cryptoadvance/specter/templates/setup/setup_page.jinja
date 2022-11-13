@@ -22,9 +22,10 @@
     <div class="row">
         <form method="POST" action="{{ url_for('welcome_endpoint.about') }}">
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button type="submit" name="action" value="cancelsetup" class="btn hidden danger" id="reset-setup-process" style="max-height: 36px;" onclick="">{{ _("Cancel process") }}</button>
+            <button type="submit" name="action" value="cancelsetup" class="btn hidden danger" id="reset-setup-process" style="max-height: 36px;">{{ _("Cancel process") }}</button>
         </form>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button type="button" class="btn hidden action" id="show-progress-details" style="max-height: 36px;" onclick="showPageOverlay('progress-details');">{{ _("View Progress") }}</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <button type="button" class="btn hidden action" id="show-progress-details" style="max-height: 36px;">{{ _("View Progress") }}</button>
     </div>
     <h1 id="progress-details" class="hidden" style="margin: auto;"></h1>
     
@@ -32,7 +33,7 @@
 
 
 {% block scripts %}
-    <script>
+    <script type="module">
         let currentStep = parseInt('{{step}}');
         let torSetup = false;
 
@@ -108,6 +109,11 @@
             
             setTimeout(fetchProgress, 1000);
         }
+
+		document.getElementById("show-progress-details").addEventListener("click", (event)=> {
+					showPageOverlay('progress-details');
+				});  	 
+        
     </script>
     {% block setup_scripts %}
     {% endblock %}

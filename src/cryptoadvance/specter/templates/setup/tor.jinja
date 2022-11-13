@@ -8,12 +8,12 @@
         {% if nextURL == 'setup_endpoint.node_type'%}
             <a href="{{ url_for('setup_endpoint.node_type') }}" class="btn wizard-btn">{{ _("Skip") }}</a>
         {% endif %}
-        <button type="button" class="btn wizard-btn action" id="setup-tor-button" onclick="setupTorDaemon()">{{ _("Setup Tor") }}</button>
+        <button type="button" class="btn wizard-btn action" id="setup-tor-button">{{ _("Setup Tor") }}</button>
     </div>
 {% endblock %}
 
 {% block setup_scripts %}
-    <script>
+    <script type="module">
         async function setupTorDaemon() {
             let url = "{{ url_for('setup_endpoint.setup_tor') }}";
             var formData = new FormData();
@@ -45,5 +45,9 @@
                 Specter.common.showError(e);
             }
         }
+
+		document.getElementById("setup-tor-button").addEventListener("click", (event)=> {
+					setupTorDaemon()
+				});  	        
     </script>
 {% endblock %}

@@ -10,6 +10,11 @@
     {% if explorer %}
         <a target="_blank" class="explorer-link" href="{{ explorer }}{{ type }}/{{ value }}">{{ text }}</a>
     {% else %}
-        <span class="explorer-link" onclick="copyText('{{ value }}', 'Copied {{ type }}: {{ value }}')">{{ text }}</span>
+        <span class="explorer-link" id="explorer_link-{{ explorer }}{{ type }}/{{ value }}">{{ text }}</span>
+        <script type="module">
+            document.getElementById("explorer_link-{{ explorer }}{{ type }}/{{ value }}").addEventListener("click", (event)=> {
+                        copyText('{{ value }}', 'Copied {{ type }}: {{ value }}')
+                    });  	
+        </script>	 	        
     {% endif %}
 {%- endmacro %}
