@@ -6,6 +6,7 @@ import platform
 import random
 import secrets
 import signal
+import sys
 import threading
 import time
 import traceback
@@ -149,7 +150,8 @@ class Specter:
         except Exception as e:
             logger.error(e)
 
-        self.update_tor_controller()
+        if "pytest" not in sys.modules:
+            self.update_tor_controller() 
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
         if self._checker_threads:
             self.checker.start()
@@ -180,6 +182,8 @@ class Specter:
         if self._tor_daemon:
             logger.info("Specter exit cleanup: Stopping Tor daemon")
             self._tor_daemon.stop_tor_daemon()
+            self.checker.stop()
+            self.price_checker.stop()
 
         for node in self.node_manager.nodes.values():
             if not node.external_node:
@@ -778,6 +782,10 @@ class Specter:
             )
             del self.config["rpc"]
         self._save()
+
+    def __del__(self):
+        logger.info("stopping Checker")
+        self.checker.stop()
 
 
 class SpecterConfiguration:

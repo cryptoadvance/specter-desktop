@@ -110,23 +110,23 @@ class WalletManager:
             if "pytest" in sys.modules:
                 if self.allow_threading_for_testing:
                     logger.info("Using threads in updating the wallet manager.")
-                    t = threading.Thread(
+                    self.thread = threading.Thread(
                         target=self._update,
                         args=(wallets_update_list,),
                     )
-                    t.start()
+                    self.thread.start()
                 else:
                     logger.info("Not using threads in updating the wallet manager.")
                     self._update(wallets_update_list)
             else:
                 if use_threading:
                     logger.info("Using threads in updating the wallet manager.")
-                    t = threading.Thread(
+                    self.thread = threading.Thread(
                         target=self._update,
                         args=(wallets_update_list,),
                     )
 
-                    t.start()
+                    self.thread.start()
                 else:
                     logger.info("Not using threads in updating the wallet manager.")
                     self._update(wallets_update_list)

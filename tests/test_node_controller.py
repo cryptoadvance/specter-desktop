@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.mark.slow
+#@pytest.mark.skip
 def test_node_running_bitcoin(caplog, request):
     # TODO: Refactor this to use conftest.instantiate_bitcoind_controller
     # to reduce redundant code?
@@ -61,7 +62,7 @@ def test_fetch_wallet_addresses_for_mining(caplog, wallets_filled_data_folder):
 
 
 @pytest.mark.slow
-def test_node_running_elements(caplog, docker, request):
+def test_node_running_elements(caplog, request):
     # TODO: Refactor this to use conftest.instantiate_bitcoind_controller
     # to reduce redundant code?
     caplog.set_level(logging.INFO)

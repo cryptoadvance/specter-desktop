@@ -1,6 +1,7 @@
 import logging
 from .util.shell import get_last_lines_from_file
 from flask import current_app as app
+from flask import has_app_context
 
 logger = logging.getLogger(__name__)
 
@@ -48,8 +49,9 @@ class ExtProcTimeoutException(SpecterInternalException):
 
 def handle_exception(exception, user=None):
     """prints the exception and most important the stacktrace"""
-    if app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"].endswith("DevelopmentConfig"):
-        raise exception
+    if has_app_context():
+        if app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"].endswith("DevelopmentConfig"):
+            raise exception
     logger.error("Unexpected error:")
     logger.error(
         "----START-TRACEBACK-----------------------------------------------------------------"

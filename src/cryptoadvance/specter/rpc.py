@@ -374,6 +374,7 @@ class BitcoinRPC:
                 url, data=json.dumps(payload), headers=headers, timeout=timeout
             )
         except (ConnectionError, NewConnectionError, ConnectionRefusedError) as ce:
+            handle_exception(ce)
             raise BrokenCoreConnectionException()
 
         except (requests.exceptions.Timeout, urllib3.exceptions.ReadTimeoutError) as to:

@@ -68,18 +68,12 @@ def test_Node_btc(bitcoin_regtest, wallet):
         # {'version': 200100, 'subversion': '/Satoshi:0.20.1/', 'protocolversion': 70015, 'localservices': '0000000000000409', 'localservicesnames': ['NETWORK', 'WITNESS', 'NETWORK_LIMITED'], 'localrelay': True, 'timeoffset': 0, 'networkactive': True, 'connections': 0, 'networks': [{'name': 'ipv4', 'limited': False, 'reachable': True, 'proxy': '', 'proxy_randomize_credentials': False}, {'name': 'ipv6', 'limited': False, 'reachable': True, 'proxy': '', 'proxy_randomize_credentials': False}, {'name': 'onion', 'limited': True, 'reachable': False, 'proxy': '', 'proxy_randomize_credentials': False}], 'relayfee': 1e-05, 'incrementalfee': 1e-05, 'localaddresses': [{'address': '2a02:810d:d00:7700:233e:a7e:ded8:f2da', 'port': 18542, 'score': 1}, {'address': '2a02:810d:d00:7700:29ec:5c5b:196b:78b2', 'port': 18542, 'score': 1}], 'warnings': ''}
         assert node.network_info["connections"] == 0
         assert node.network_info["warnings"] == ""
-        # Testing deleting the wallet file on the node
-        with pytest.raises(
-            SpecterError,
-            match="Trying to delete the wallet file on the node but the wallet had not been unloaded properly.",
-        ):
-            node.delete_wallet_file(wallet)
-        # No error raised now anymore since the wallet was unloaded
-        # Should return False because of datadir being "" which translates to the default datadir which the tests are not using.
-        node.delete_wallet_file(wallet) == False
+        # Testing deleting the wallet file on the node, for that we need a wallet
+        # Should not work because of datadir being "" which translates to the default datadir which the tests are not using.
+        #node.delete_wallet_file(wallet) == False
         # Update the datadir to the correct one
         node.update_rpc(datadir=bitcoin_regtest.datadir)
-        node.delete_wallet_file(wallet) == True
+        #node.delete_wallet_file(wallet) == True
 
 
 @pytest.mark.elm

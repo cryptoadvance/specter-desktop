@@ -57,7 +57,9 @@ class VersionChecker:
             logger.info(
                 f"version checked, install_type {self.installation_type} curr: {self.current} latest: {self.latest} ==> upgrade: {self.upgrade}"
             )
-            time.sleep(dt)
+            for i in range(0,dt):
+                if self.running:
+                    time.sleep(1)
 
     def _get_current_version(self):
         current = "unknown"

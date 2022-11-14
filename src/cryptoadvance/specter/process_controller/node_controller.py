@@ -433,12 +433,15 @@ class NodePlainController(NodeController):
         logger.debug("About to execute: {}".format(node_cmd))
         # exec will prevent creating a child-process and will make node_proc.terminate() work as expected
         self.node_proc = subprocess.Popen(
-            ("exec " if platform.system() != "Windows" else "") + node_cmd,
+            ("exec " if platform.system() != "Windows" else "") + node_cmd, 
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             shell=True,
         )
-        time.sleep(0.2)  # sleep 200ms (catch stdout of stupid errors)
+        time.sleep(0.8)  # sleep 200ms (catch stdout of stupid errors)
         if not self.node_proc.poll() is None:
             # Might itself raise a SpecterError:
+            raise SpecterError(self.node_proc.stderr.read().decode())
+
             debug_logs = self.get_debug_log()
             raise SpecterError(f"Could not start node due to:" + debug_logs)
         logger.debug(
@@ -485,6 +488,7 @@ class NodePlainController(NodeController):
         """
         returnvalue = True  # assume only the best
         if not hasattr(self, "datadir"):
+            raise Exception("Geht ja gar nicht!")
             self.datadir = None
 
         if cleanup_hard == None:
@@ -495,7 +499,7 @@ class NodePlainController(NodeController):
                 logger.info(f"Removing node datadir: {datadir}")
                 if datadir is None:
                     datadir = self.datadir
-                shutil.rmtree(datadir, ignore_errors=True)
+                shutil.rmtree(datadir, ignore_errors=False)
             returnvalue = False
         timeout = 50  # in secs
         logger.info(
@@ -507,7 +511,7 @@ class NodePlainController(NodeController):
                 logger.info(
                     f"Killed {self.node_impl}d with pid {self.node_proc.pid}, Removing {self.datadir}"
                 )
-                shutil.rmtree(self.datadir, ignore_errors=True)
+                shutil.rmtree(self.datadir, ignore_errors=False)
             except Exception as e:
                 logger.error(e)
                 returnvalue = False

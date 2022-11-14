@@ -29,6 +29,7 @@ def almost_equal(a: Number, b: Number, precision: float = 0.01) -> bool:
 
 
 def test_rr_psbt_get(client, specter_regtest_configured, bitcoin_regtest, caplog):
+    assert specter_regtest_configured.node.rpc.test_connection()
     create_a_simple_wallet(specter_regtest_configured, bitcoin_regtest)
     assert (
         specter_regtest_configured.config["testing"]["allow_threading_for_testing"]
@@ -91,6 +92,7 @@ def test_rr_psbt_get(client, specter_regtest_configured, bitcoin_regtest, caplog
 
 
 def test_rr_psbt_post(specter_regtest_configured, bitcoin_regtest, client, caplog):
+    assert specter_regtest_configured.node.rpc.test_connection()
     create_a_simple_wallet(specter_regtest_configured, bitcoin_regtest)
     caplog.set_level(logging.DEBUG)
     """ testing the registration """
