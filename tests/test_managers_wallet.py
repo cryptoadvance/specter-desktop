@@ -18,6 +18,8 @@ from cryptoadvance.specter.util.descriptor import AddChecksum, Descriptor
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from conftest import instantiate_bitcoind_controller
 
+logger = logging.getLogger(__name__)
+
 
 @pytest.mark.slow
 def test_WalletManager(
@@ -26,6 +28,8 @@ def test_WalletManager(
     devices_filled_data_folder,
     device_manager,
     bitcoin_regtest,
+    node,
+    node_with_empty_datadir,
 ):
     wm = WalletManager(
         200100,
@@ -33,8 +37,8 @@ def test_WalletManager(
         bitcoin_regtest.get_rpc(),
         "regtest",
         device_manager,
-        allow_threading=False,
     )
+    assert wm.rpc_path == "specter"
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("trezor")
     assert device != None
@@ -80,19 +84,40 @@ def test_WalletManager(
     assert multisig_wallet.name == "new_name_test_wallet"
     assert wm.wallets_names == ["a_test_wallet", "new_name_test_wallet"]
 
-    # you can also delete a wallet by passing it to the wallet manager's `delete_wallet` method
-    # it will delete the json and attempt to remove it from Bitcoin Core
+    # You can also delete a wallet by passing it to the wallet manager's `delete_wallet` method
+    # It will delete the json and attempt to remove it from Bitcoin Core
     wallet_fullpath = multisig_wallet.fullpath
     assert os.path.exists(wallet_fullpath)
-    wm.delete_wallet(multisig_wallet)
-    assert not os.path.exists(wallet_fullpath)
+    # This deletion should also remove the wallet file on the node
+    assert wm.delete_wallet(multisig_wallet, node) == (True, True)
     assert len(wm.wallets) == 1
-
-    wm.update()
+    assert not os.path.exists(wallet_fullpath)
+    # Let's artificially unload the wallet in Core before trying to delete it via the Wallet Manager, should raise a SpecterError
+    wallet_rpc_path = os.path.join(wm.rpc_path, wallet.alias)
+    wm.rpc.unloadwallet(wallet_rpc_path)
+    with pytest.raises(
+        SpecterError,
+        match="Unable to unload the wallet on the node. Aborting the deletion of the wallet ...",
+    ):
+        wm.delete_wallet(wallet, node)
+    # Check that the wallet wasn't deleted in Specter because of the RpcError
+    assert wm.wallets_names == ["a_test_wallet"]
+    # The following deletion should not remove the wallet file on the node
+    assert node_with_empty_datadir.datadir == ""
+    wm.rpc.loadwallet(wallet_rpc_path)  # we need to load the wallet again
+    assert wm.delete_wallet(wallet, node_with_empty_datadir) == (True, False)
+    assert len(wm.wallets) == 0
+    # The wallet in Specter was already deleted, so trying to delete it again should raise a SpecterError
+    wm.rpc.loadwallet(wallet_rpc_path)  # we need to load the wallet again
+    with pytest.raises(
+        SpecterError, match="The wallet a_test_wallet has already been deleted."
+    ):
+        assert wm.delete_wallet(wallet)
 
 
 @pytest.mark.slow
 @pytest.mark.bottleneck
+@pytest.mark.threading
 def test_WalletManager_2_nodes(
     docker,
     request,
@@ -109,35 +134,34 @@ def test_WalletManager_2_nodes(
         bitcoin_regtest.get_rpc(),
         "regtest",
         device_manager,
-        allow_threading=True,
+        allow_threading_for_testing=True,
     )
-    # A wallet-creation needs a device
+    # Wallet creation needs a device
     device = device_manager.get_by_alias("trezor")
     assert device != None
-    # Lets's create a wallet with the WalletManager
-    wm.create_wallet("a_test_wallet", 1, "wpkh", [device.keys[5]], [device])
-    assert wm.wallets_names == ["a_test_wallet"]
-
-    # A WalletManager implicitely uses the chain as a kind of index
-    wm.update(chain="regtest2", rpc=bitcoin_regtest2.get_rpc(), use_threading=False)
-    assert wm.wallets_names == []
-    wm.create_wallet("a_regtest2_test_wallet", 1, "wpkh", [device.keys[5]], [device])
-    assert wm.wallets_names == ["a_regtest2_test_wallet"]
-    wm.create_wallet(
-        "a_second_regtest2_test_wallet", 1, "wpkh", [device.keys[5]], [device]
+    first_wallet = wm.create_wallet(
+        "a_test_wallet", 1, "wpkh", [device.keys[5]], [device]
     )
-    assert wm.wallets_names == [
-        "a_regtest2_test_wallet",
-        "a_second_regtest2_test_wallet",
-    ]
-
-    # you can switch bettween chains witht he update-method
-    wm.update(chain="regtest", rpc=bitcoin_regtest.get_rpc())
     assert wm.wallets_names == ["a_test_wallet"]
-
-    # Should also use with threading
-    wm.update(chain="regtest2", rpc=bitcoin_regtest2.get_rpc(), use_threading=True)
-    assert wm.wallets_names == ["a_test_wallet"]
+    assert wm.chain == "regtest"
+    assert wm.working_folder.endswith("regtest")
+    assert wm.rpc.port == 18543
+    # Change the rpc - this only works with a different chain!
+    wm.update(rpc=bitcoin_regtest2.get_rpc(), chain="regtest2")
+    # A WalletManager uses the chain as an index
+    assert list(wm.rpcs.keys()) == [
+        "regtest",
+        "regtest2",
+    ]  # wm.rpcs looks like this: {'regtest': <BitcoinRpc http://localhost:18543>, 'regtest2': <BitcoinRpc http://localhost:18544>}
+    assert wm.rpc.port == 18544
+    assert wm.wallets_names == []
+    assert wm.chain == "regtest2"
+    assert wm.working_folder.endswith("regtest2")
+    second_wallet = wm.create_wallet(
+        "a_regtest2_test_wallet", 1, "wpkh", [device.keys[5]], [device]
+    )
+    # Note: "regtest2" is recognised by the get_network() from embit as Liquid, that is why there is an error in the logs saying the Bitcoin address is not valid since a Liquid address is derived.
+    assert wm.wallets_names == ["a_regtest2_test_wallet"]
 
 
 def test_WalletManager_check_duplicate_keys(empty_data_folder):
@@ -147,7 +171,6 @@ def test_WalletManager_check_duplicate_keys(empty_data_folder):
         MagicMock(),  # needs rpc
         "regtest",
         None,
-        allow_threading=False,
     )
     key1 = Key(
         "[f3e6eaff/84h/0h/0h]xpub6C5cCQfycZrPJnNg6cDdUU5efJrab8thRQDBxSSB4gP2J3xGdWu8cqiLvPZkejtuaY9LursCn6Es9PqHgLhBktW8217BomGDVBAJjUms8iG",
@@ -215,7 +238,6 @@ def test_wallet_sortedmulti(
         bitcoin_regtest.get_rpc(),
         "regtest",
         device_manager,
-        allow_threading=False,
     )
     device = device_manager.get_by_alias("trezor")
     second_device = device_manager.get_by_alias("specter")
@@ -270,7 +292,6 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
         bitcoin_regtest.get_rpc(),
         "regtest",
         device_manager,
-        allow_threading=False,
     )
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("specter")
@@ -330,7 +351,6 @@ def test_wallet_change_addresses(
         bitcoin_regtest.get_rpc(),
         "regtest",
         device_manager,
-        allow_threading=False,
     )
     # A wallet-creation needs a device
     device = device_manager.get_by_alias("specter")
@@ -359,7 +379,7 @@ def test_wallet_change_addresses(
     # See: https://github.com/bitcoin/bitcoin/issues/14654
 
 
-def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured):
+def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured, node):
     """
     Single-sig wallets should be able to be backed up and re-imported with or without
     the "devices" attr in the json backup.
@@ -394,7 +414,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
     assert "devices" in wallet_backup
 
     # Clear everything out as if we've never seen this wallet or device before
-    wallet_manager.delete_wallet(wallet)
+    wallet_manager.delete_wallet(wallet, node)
     device_manager.remove_device(device, wallet_manager=wallet_manager)
     assert wallet.name not in wallet_manager.wallets_names
     assert device.name not in device_manager.devices_names
@@ -451,7 +471,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
     del wallet_backup["devices"]
 
     # Clear everything out as if we've never seen this wallet or device before
-    wallet_manager.delete_wallet(wallet)
+    wallet_manager.delete_wallet(wallet, node)
     device_manager.remove_device(device, wallet_manager=wallet_manager)
     assert wallet.name not in wallet_manager.wallets_names
     assert device.name not in device_manager.devices_names
@@ -505,7 +525,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured)
 
 
 def test_multisig_wallet_backup_and_restore(
-    bitcoin_regtest, caplog, specter_regtest_configured
+    bitcoin_regtest, caplog, specter_regtest_configured, node
 ):
     """
     Multisig wallets should be able to be backed up and re-imported
@@ -574,7 +594,7 @@ def test_multisig_wallet_backup_and_restore(
     assert "devices" in wallet_backup
 
     # Clear everything out as if we've never seen this wallet or device before
-    wallet_manager.delete_wallet(wallet)
+    wallet_manager.delete_wallet(wallet, node)
     device_manager.remove_device(device, wallet_manager=wallet_manager)
     assert wallet.name not in wallet_manager.wallets_names
     assert device.name not in device_manager.devices_names
@@ -634,7 +654,7 @@ def test_multisig_wallet_backup_and_restore(
     del wallet_backup["devices"]
 
     # Clear everything out as if we've never seen this wallet or device before
-    wallet_manager.delete_wallet(wallet)
+    wallet_manager.delete_wallet(wallet, node)
     for device_names in device_manager.devices:
         device = device_manager.devices[device_names]
         device_manager.remove_device(device, wallet_manager=wallet_manager)
@@ -689,3 +709,19 @@ def test_multisig_wallet_backup_and_restore(
 
     # We restored the wallet's utxos
     assert wallet.amount_total == 3.3
+
+
+def test_threading(specter_regtest_configured_with_threading):
+    assert (
+        specter_regtest_configured_with_threading.config["testing"][
+            "allow_threading_for_testing"
+        ]
+        == True
+    )
+    device = specter_regtest_configured_with_threading.device_manager.get_by_alias(
+        "trezor"
+    )
+    wm = specter_regtest_configured_with_threading.wallet_manager
+    wallet = wm.create_wallet("test_wallet", 1, "wpkh", [device.keys[5]], [device])
+    assert wm.wallets_names == ["test_wallet"]
+    assert wm.data_folder.endswith("wallets")

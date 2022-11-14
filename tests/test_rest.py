@@ -30,6 +30,10 @@ def almost_equal(a: Number, b: Number, precision: float = 0.01) -> bool:
 
 def test_rr_psbt_get(client, specter_regtest_configured, bitcoin_regtest, caplog):
     create_a_simple_wallet(specter_regtest_configured, bitcoin_regtest)
+    assert (
+        specter_regtest_configured.config["testing"]["allow_threading_for_testing"]
+        == False
+    )  # Tests fail with threading
     caplog.set_level(logging.DEBUG)
     """ testing the registration """
     # Unauthorized
@@ -172,18 +176,17 @@ def create_a_simple_wallet(specter: Specter, bitcoin_regtest):
     )
     username = payload["username"]
     someuser = specter.user_manager.get_user_by_username(username)
-    assert not someuser.wallet_manager.working_folder is None
+    wm = someuser.wallet_manager
+    assert not wm.working_folder is None
     # Create a Wallet
     wallet_json = '{"label": "a_simple_wallet", "blockheight": 0, "descriptor": "wpkh([1ef4e492/84h/1h/0h]tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc/0/*)#xp8lv5nr", "devices": [{"type": "trezor", "label": "trezor"}]} '
-    wallet_importer = WalletImporter(
-        wallet_json, specter, device_manager=someuser.device_manager
-    )
+    dm = someuser.device_manager
+    wallet_importer = WalletImporter(wallet_json, specter, device_manager=dm)
     wallet_importer.create_nonexisting_signers(
-        someuser.device_manager,
+        dm,
         {"unknown_cosigner_0_name": "trezor", "unknown_cosigner_0_type": "trezor"},
     )
-    dm: DeviceManager = someuser.device_manager
-    wallet = wallet_importer.create_wallet(someuser.wallet_manager)
+    wallet = wallet_importer.create_wallet(wm)
     try:
         # fund it with some coins
         bitcoin_regtest.testcoin_faucet(address=wallet.getnewaddress())

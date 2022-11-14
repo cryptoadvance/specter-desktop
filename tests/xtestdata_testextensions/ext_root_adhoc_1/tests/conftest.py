@@ -511,9 +511,7 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
         # Deleting all Wallets (this will also purge them on core)
         for user in specter.user_manager.users:
             for wallet in list(user.wallet_manager.wallets.values()):
-                user.wallet_manager.delete_wallet(
-                    wallet, bitcoin_datadir=bitcoin_regtest.datadir, chain="regtest"
-                )
+                user.wallet_manager.delete_wallet(wallet)
 
 
 @pytest.fixture

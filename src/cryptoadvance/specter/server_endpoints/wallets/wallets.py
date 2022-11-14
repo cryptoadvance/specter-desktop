@@ -850,11 +850,28 @@ def settings(wallet_alias):
             )
             wallet.getdata()
         elif action == "deletewallet":
-            app.specter.wallet_manager.delete_wallet(
-                wallet, app.specter.bitcoin_datadir, app.specter.chain
-            )
-            response = redirect(url_for("index"))
-            return response
+            deleted = app.specter.wallet_manager.delete_wallet(wallet, app.specter.node)
+            # deleted is a tuple: (specter_wallet_deleted, core_wallet_file_deleted)
+            if deleted == (True, True):
+                flash(
+                    _("Wallet in Specter and wallet file on node deleted successfully.")
+                )
+            elif deleted == (True, False):
+                flash(
+                    _(
+                        "Wallet in Specter deleted successfully but wallet file on node could not be removed automatically."
+                    )
+                )
+            elif deleted == (False, True):
+                flash(
+                    _(
+                        "Deletion of wallet in Specter failed, but wallet on node was removed."
+                    ),
+                    "error",
+                )
+            else:
+                flash(_("Deletion of wallet failed."), "error")
+            return redirect(url_for("index"))
         elif action == "rename":
             wallet_name = request.form["newtitle"]
             if not wallet_name:
