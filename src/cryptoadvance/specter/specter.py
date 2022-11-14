@@ -25,7 +25,7 @@ from cryptoadvance.specter.services.service_encrypted_storage import (
     ServiceUnencryptedStorageManager,
 )
 
-from .helpers import clean_psbt, deep_update, is_liquid, is_testnet, get_asset_label
+from .helpers import clean_psbt, deep_update, is_liquid, get_asset_label
 from .internal_node import InternalNode
 from .liquid.rpc import LiquidRPC
 from .managers.config_manager import ConfigManager

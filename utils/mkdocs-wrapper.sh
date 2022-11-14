@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# netlify is configured to use the utils-directory as base directory
+# This prevents that it's using the requirements-txt and a lot of issues
+# So in order to make the script work the exact same in both cases,
+# we first change the directory one up, no matter from where this script
+# has been executed from.
+cd "$( dirname "${BASH_SOURCE[0]}" )/.."
 
 echo "    --> Starting mkdocs-wrapper.sh"
 
@@ -38,6 +44,10 @@ fi
 echo "    --> now running mkdocs $1 $2"
 
 mkdocs $1 $2
+
+# As netlify expects the site-dir in its basedir (./utils, see above) we need 
+# to mv it
+mv site ./utils/site
 
 # Potentially, we could rollback here the changes but that would be anoying if you want 
 # to edit files.

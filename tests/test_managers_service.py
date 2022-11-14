@@ -16,7 +16,6 @@ def test_ServiceManager2(mock_specter, mock_flaskapp, caplog):
     # So the ServiceManager will move up the dependency tree of TestConfig until it finds
     # a Config and will copy the keys into the flask-config
     assert mock_flaskapp.config["SWAN_API_URL"] == "https://api.dev.swanbitcoin.com"
-    assert sm.services["bitcoinreserve"] != None
     assert sm.services["swan"] != None
 
     sm.execute_ext_callbacks(after_serverpy_init_app, scheduler=None)
@@ -57,10 +56,12 @@ def test_ServiceManager_get_service_x_dirs(caplog):
         os.chdir("../")
 
 
-def test_ServiceManager_get_service_packages():
+def test_ServiceManager_get_service_packages(caplog):
+    caplog.set_level(logging.DEBUG)
     packages = ServiceManager.get_service_packages()
-    assert "cryptoadvance.specter.services.swan.service" in packages
-    assert "cryptoadvance.specter.services.bitcoinreserve.service" in packages
+    assert "cryptoadvance.specterext.swan.service" in packages
+    assert "cryptoadvance.specterext.electrum.service" in packages
+    assert "cryptoadvance.specterext.electrum.devices.electrum" in packages
 
 
 @pytest.fixture
@@ -75,8 +76,7 @@ def mock_flaskapp(mock_specter):
 
     flaskapp_mock = Flask(__name__)
     flaskapp_mock.config["EXTENSION_LIST"] = [
-        "cryptoadvance.specter.services.swan.service",
-        "cryptoadvance.specter.services.bitcoinreserve.service",
+        "cryptoadvance.specterext.swan.service",
     ]
     flaskapp_mock.config["ISOLATED_CLIENT_EXT_URL_PREFIX"] = "/spc/ext"
     flaskapp_mock.config["EXT_URL_PREFIX"] = "/ext"

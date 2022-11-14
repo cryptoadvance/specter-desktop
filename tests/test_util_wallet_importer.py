@@ -1,36 +1,89 @@
+import json
 import logging
 import pytest
 import time
 
 from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.managers.device_manager import DeviceManager
+from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.user import User
 from cryptoadvance.specter.util.descriptor import Descriptor
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from mock import MagicMock, call, patch
+
+# coldcard, trezor import
+wallet_coldcardtrezor_json = """
+    {"label": "MyTestMultisig", 
+        "blockheight": 0, 
+        "descriptor": 
+        "wsh(sortedmulti(1,[fb7c1f11/48h/1h/0h/2h]tpubDExnGppazLhZPNadP8Q5Vgee2QcvbyAf9GvGaEY7ALVJREaG2vdTqv1MHRoDtPaYP3y1DGVx7wrKKhsLhs26GY263uE6Wi3qNbi71AHZ6p7/0/*,[1ef4e492/48h/1h/0h/2h]tpubDFiVCZzdarbyk8kE65tjRhHCambEo8iTx4xkXL8b33BKZj66HWsDnUb3rg4GZz6Mwm6vTNyzRCjYtiScCQJ77ENedb2deDDtcoNQXiUouJQ/0/*))#s0jemlck", 
+        "devices": 
+        [
+            {"type": "coldcard", 
+                "label": "MyColdcard"}, 
+            {"type": "trezor", 
+                "label": "MyTestTrezor"}
+        ]
+    } 
+"""
+
+wallet_ledger_json = """
+        {
+        "address": "bcrt1q66f7yuxegnzpv9jv5pp6pqfy7smq4ydq643d4e",
+        "address_index": 7,
+        "address_type": "bech32",
+        "alias": "myledger_2",
+        "blockheight": 8244,
+        "change_address": "bcrt1qk087hncum850z0ghpss2lm49kcfu6lppngdeem",
+        "change_descriptor": "wpkh([309c1ac3/84h/1h/0h]tpubDCRGLu8Kjg9dKLUqrVCBZA9TSUkga56X3mnfqWqSVWrooavQdCdYzUdY7peGk7KW7H6gmdJobm5rXr1NQmoGhuPf4aqD3GhgtggYdwMwRom/1/*)#qqulrlpr",
+        "change_index": 0,
+        "change_keypool": 300,
+        "description": "Single (Segwit)",
+        "devices": [
+            "myledger"
+        ],
+        "keypool": 300,
+        "keys": [
+            {
+            "derivation": "m/84h/1h/0h",
+            "fingerprint": "309c1ac3",
+            "original": "vpub5YP7DKxoj37DLwukjadqw4d5mRN8hScTfv9vvAzXPbM9x6dF3fTLbueRqNeKDo4RW6LAf6bp9LYi56HdaX81DzaAGJh4BvQUmGxr6peWDsP",
+            "purpose": "#0 Single Sig (Segwit)",
+            "type": "wpkh",
+            "xpub": "tpubDCRGLu8Kjg9dKLUqrVCBZA9TSUkga56X3mnfqWqSVWrooavQdCdYzUdY7peGk7KW7H6gmdJobm5rXr1NQmoGhuPf4aqD3GhgtggYdwMwRom"
+            }
+        ],
+        "labels": {},
+        "name": "MyLedger",
+        "recv_descriptor": "wpkh([309c1ac3/84h/1h/0h]tpubDCRGLu8Kjg9dKLUqrVCBZA9TSUkga56X3mnfqWqSVWrooavQdCdYzUdY7peGk7KW7H6gmdJobm5rXr1NQmoGhuPf4aqD3GhgtggYdwMwRom/0/*)#35e7723m",
+        "sigs_required": 1
+        } 
+    """
+
+
+def test_WalletImporter_parse_wallet_data_import():
+    (
+        wallet_name,
+        recv_descriptor,
+        cosigners_types,
+    ) = WalletImporter.parse_wallet_data_import(json.loads(wallet_coldcardtrezor_json))
+    assert wallet_name == "MyTestMultisig"
+    assert recv_descriptor.startswith("wsh(sortedmulti(1,[fb7c1")
+    assert cosigners_types[0]["type"] == "coldcard"
+    assert cosigners_types[0]["label"] == "MyColdcard"
+    assert cosigners_types[1]["type"] == "trezor"
+    assert cosigners_types[1]["label"] == "MyTestTrezor"
 
 
 @patch("cryptoadvance.specter.util.wallet_importer.flash", print)
 @patch("cryptoadvance.specter.util.wallet_importer._", lambda x: x)
 def test_WalletImporter_unit():
     specter_mock = MagicMock()
-    specter_mock.chain = "regtest"
+    specter_mock.node.chain = "regtest"
+    specter_mock.node.is_testnet = True
 
     # coldcard, trezor import
-    wallet_json = """
-        {"label": "MyTestMultisig", 
-         "blockheight": 0, 
-         "descriptor": 
-         "wsh(sortedmulti(1,[fb7c1f11/48h/1h/0h/2h]tpubDExnGppazLhZPNadP8Q5Vgee2QcvbyAf9GvGaEY7ALVJREaG2vdTqv1MHRoDtPaYP3y1DGVx7wrKKhsLhs26GY263uE6Wi3qNbi71AHZ6p7/0/*,[1ef4e492/48h/1h/0h/2h]tpubDFiVCZzdarbyk8kE65tjRhHCambEo8iTx4xkXL8b33BKZj66HWsDnUb3rg4GZz6Mwm6vTNyzRCjYtiScCQJ77ENedb2deDDtcoNQXiUouJQ/0/*))#s0jemlck", 
-         "devices": 
-            [
-                {"type": "coldcard", 
-                 "label": "MyColdcard"}, 
-                {"type": "trezor", 
-                 "label": "MyTestTrezor"}
-            ]
-        } 
-    """
+    wallet_json = wallet_coldcardtrezor_json
 
     wallet_importer = WalletImporter(wallet_json, specter_mock)
     assert wallet_importer.wallet_name == "MyTestMultisig"
@@ -134,6 +187,18 @@ def test_WalletImporter_unit():
         str(multisig_importer.descriptor)
         == "wsh(sortedmulti(1,[9f09087f/1h]Vpub5gHreumWwHVxJbLG3Tp1sULdRVgUZBzFrhg9EuyJUropjEPXoVJe6u4r7y2EpwyVXHgehJ2PNn2R3kDxXLBGNnKmbicdibuoGmNjhCfyEZF/0/*,[1f0a071c/1h]Vpub5fMHpbAWPpGcqsaM9JjRYKRJ6n1CqSL4UVFgTL4EwiZMMdtTZDm9yDp87ko2WA1N9dWLuM48H9oiPDE4nGPfpxFNe7ZkcSqc2L2ncuEXu4Z/0/*))"
     )
+
+
+@patch("cryptoadvance.specter.util.wallet_importer.flash", print)
+@patch("cryptoadvance.specter.util.wallet_importer._", lambda x: x)
+def test_WalletImporter_unit_fail(caplog):
+    caplog.set_level(logging.DEBUG)
+    specter_mock = MagicMock()
+    specter_mock.node.chain = "main"
+
+    wallet_json = wallet_ledger_json
+    with pytest.raises(SpecterError):
+        wallet_importer = WalletImporter(wallet_json, specter_mock)
 
 
 @pytest.mark.slow

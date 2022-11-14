@@ -17,16 +17,16 @@ from flask import current_app as app
 from flask import url_for
 from flask.blueprints import Blueprint
 
-from ..services.service import Service
-from ..services import callbacks, ExtensionException
-from ..util.reflection import (
+from ...services.service import Service
+from ...services import callbacks, ExtensionException
+from ...util.reflection import (
     _get_module_from_class,
     get_classlist_of_type_clazz_from_modulelist,
     get_package_dir_for_subclasses_of,
     get_subclasses_for_clazz,
     get_subclasses_for_clazz_in_cwd,
 )
-from ..util.reflection_fs import search_dirs_in_path
+from ...util.reflection_fs import search_dirs_in_path
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class ServiceManager:
         logger.info("----> starting service discovery Static")
         # How do we discover services? Two configs are relevant:
         # * SERVICES_LOAD_FROM_CWD (boolean, CWD is current working directory)
-        # * EXTENSION_LIST (array of Fully Qualified module strings like ["cryptoadvance.specter.services.swan.service"])
+        # * EXTENSION_LIST (array of Fully Qualified module strings like ["cryptoadvance.specterext.swan.service"])
         # Ensuring security (especially for the CWD) is NOT done here but
         # in the corresponding (Production)Config
         logger.debug(f"EXTENSION_LIST = {app.config.get('EXTENSION_LIST')}")
@@ -429,16 +429,37 @@ class ServiceManager:
 
     @classmethod
     def get_service_packages(cls):
-        """returns a list of strings containing the service-classes (+ controller/config-classes)
+        """returns a list of strings containing the service-classes (+ controller +config-classes +devices)
         This is used for hiddenimports in pyinstaller
         """
         arr = get_subclasses_for_clazz(Service)
+        logger.info(f"initial arr: {arr}")
         arr.extend(
             get_classlist_of_type_clazz_from_modulelist(
                 Service, ProductionConfig.EXTENSION_LIST
             )
         )
+        logger.info(f"After extending: {arr}")
+        # Before we transform the arr into an array of strings, we iterate through all services to discover
+        # the devices which might be specified in there
+        devices_arr = []
+        for clazz in arr:
+            if hasattr(clazz, "devices"):
+                logger.debug("class {clazz} has devices: {clazz.devices}")
+                for device in clazz.devices:
+                    try:
+                        import_module(device)
+                        devices_arr.append(device)
+                    except ModuleNotFoundError as e:
+                        pass
+
+        # Transform into array of strings
         arr = [clazz.__module__ for clazz in arr]
+
+        # Add the devices
+        arr.extend(devices_arr)
+        logger.debug(f"After transforming + devices: {arr}")
+
         # Controller-Packagages from the services are not imported via the service but via the baseclass
         # Therefore hiddenimport don't find them. We have to do it here.
         cont_arr = [

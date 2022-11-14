@@ -10,7 +10,9 @@ import traceback
 
 import pytest
 from cryptoadvance.specter.config import TestConfig
+from cryptoadvance.specter.node import Node
 from cryptoadvance.specter.managers.device_manager import DeviceManager
+from cryptoadvance.specter.managers.node_manager import NodeManager
 from cryptoadvance.specter.managers.user_manager import UserManager
 from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
@@ -20,7 +22,11 @@ from cryptoadvance.specter.process_controller.elementsd_controller import (
 )
 from cryptoadvance.specter.server import SpecterFlask, create_app, init_app
 from cryptoadvance.specter.specter import Specter
-from cryptoadvance.specter.specter_error import SpecterError
+from cryptoadvance.specter.specter_error import (
+    BrokenCoreConnectionException,
+    SpecterError,
+    handle_exception,
+)
 from cryptoadvance.specter.user import User, hash_password
 from cryptoadvance.specter.util.common import str2bool
 from cryptoadvance.specter.util.shell import which
@@ -29,6 +35,7 @@ from cryptoadvance.specter.util.wallet_importer import WalletImporter
 logger = logging.getLogger(__name__)
 
 pytest_plugins = [
+    # "conftest_visibility",
     "fix_ghost_machine",
     "fix_keys_and_seeds",
     "fix_devices_and_wallets",
@@ -186,6 +193,7 @@ def bitcoin_regtest(docker, request):
     try:
         assert bitcoind_regtest.get_rpc().test_connection()
         assert not bitcoind_regtest.datadir is None
+        assert bitcoind_regtest.datadir is not ""
         yield bitcoind_regtest
     finally:
         bitcoind_regtest.stop_bitcoind()
@@ -205,6 +213,48 @@ def bitcoin_regtest2(docker, request):
         bitcoind_regtest.stop_bitcoind()
 
 
+@pytest.fixture
+def node(empty_data_folder, bitcoin_regtest):
+    nodes_folder = empty_data_folder + "/nodes"
+    if not os.path.isdir(nodes_folder):
+        os.makedirs(nodes_folder)
+    node = Node.from_json(
+        {
+            "autodetect": False,
+            "datadir": bitcoin_regtest.datadir,
+            "user": bitcoin_regtest.rpcconn.rpcuser,
+            "password": bitcoin_regtest.rpcconn.rpcpassword,
+            "port": bitcoin_regtest.rpcconn.rpcport,
+            "host": bitcoin_regtest.rpcconn.ipaddress,
+            "protocol": "http",
+        },
+        manager=NodeManager(data_folder=nodes_folder),
+        default_fullpath=os.path.join(nodes_folder, "standard_node.json"),
+    )
+    return node
+
+
+@pytest.fixture
+def node_with_empty_datadir(empty_data_folder, bitcoin_regtest):
+    nodes_folder = empty_data_folder + "/nodes"
+    if not os.path.isdir(nodes_folder):
+        os.makedirs(nodes_folder)
+    node = Node.from_json(
+        {
+            "autodetect": False,
+            "datadir": "",
+            "user": bitcoin_regtest.rpcconn.rpcuser,
+            "password": bitcoin_regtest.rpcconn.rpcpassword,
+            "port": bitcoin_regtest.rpcconn.rpcport,
+            "host": bitcoin_regtest.rpcconn.ipaddress,
+            "protocol": "http",
+        },
+        manager=NodeManager(data_folder=nodes_folder),
+        default_fullpath=os.path.join(nodes_folder, "node_with_empty_datadir.json"),
+    )
+    return node
+
+
 @pytest.fixture(scope="session")
 def elements_elreg(request):
     elements_elreg = instantiate_elementsd_controller(request, extra_args=None)
@@ -218,9 +268,7 @@ def elements_elreg(request):
 @pytest.fixture
 def empty_data_folder():
     # Make sure that this folder never ever gets a reasonable non-testing use-case
-    with tempfile.TemporaryDirectory(
-        prefix="specter_home_tmp_", ignore_cleanup_errors=True
-    ) as data_folder:
+    with tempfile.TemporaryDirectory(prefix="specter_home_tmp_") as data_folder:
         yield data_folder
 
 
@@ -458,12 +506,12 @@ def device_manager(devices_filled_data_folder):
 
 
 @pytest.fixture
-def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
+def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder, node):
     assert bitcoin_regtest.get_rpc().test_connection()
     config = {
         "rpc": {
             "autodetect": False,
-            "datadir": "",
+            "datadir": bitcoin_regtest.datadir,
             "user": bitcoin_regtest.rpcconn.rpcuser,
             "password": bitcoin_regtest.rpcconn.rpcpassword,
             "port": bitcoin_regtest.rpcconn.rpcport,
@@ -472,6 +520,61 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
         },
         "auth": {
             "method": "rpcpasswordaspin",
+        },
+        "testing": {
+            "allow_threading_for_testing": False,
+        },
+    }
+    specter = Specter(data_folder=devices_filled_data_folder, config=config)
+    assert specter.chain == "regtest"
+    # Create a User
+    someuser = specter.user_manager.add_user(
+        User.from_json(
+            user_dict={
+                "id": "someuser",
+                "username": "someuser",
+                "password": hash_password("somepassword"),
+                "config": {},
+                "is_admin": False,
+                "services": None,
+            },
+            specter=specter,
+        )
+    )
+    specter.user_manager.save()
+    specter.check()
+
+    assert not specter.wallet_manager.working_folder is None
+    try:
+        yield specter
+    finally:
+        # End all threads
+        # Deleting all Wallets (this will also purge them on core)
+        for user in specter.user_manager.users:
+            for wallet in list(user.wallet_manager.wallets.values()):
+                user.wallet_manager.delete_wallet(wallet, node)
+
+
+@pytest.fixture
+def specter_regtest_configured_with_threading(
+    bitcoin_regtest, devices_filled_data_folder, node
+):
+    assert bitcoin_regtest.get_rpc().test_connection()
+    config = {
+        "rpc": {
+            "autodetect": False,
+            "datadir": bitcoin_regtest.datadir,
+            "user": bitcoin_regtest.rpcconn.rpcuser,
+            "password": bitcoin_regtest.rpcconn.rpcpassword,
+            "port": bitcoin_regtest.rpcconn.rpcport,
+            "host": bitcoin_regtest.rpcconn.ipaddress,
+            "protocol": "http",
+        },
+        "auth": {
+            "method": "rpcpasswordaspin",
+        },
+        "testing": {
+            "allow_threading_for_testing": True,
         },
     }
     specter = Specter(data_folder=devices_filled_data_folder, config=config)
@@ -500,9 +603,7 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
         # Deleting all Wallets (this will also purge them on core)
         for user in specter.user_manager.users:
             for wallet in list(user.wallet_manager.wallets.values()):
-                user.wallet_manager.delete_wallet(
-                    wallet, bitcoin_datadir=bitcoin_regtest.datadir, chain="regtest"
-                )
+                user.wallet_manager.delete_wallet(wallet, node)
 
 
 def specter_app_with_config(config={}, specter=None):
