@@ -18,7 +18,7 @@ from .rpc import (
     autodetect_rpc_confs,
     get_default_datadir,
 )
-from .specter_error import BrokenCoreConnectionException
+from .specter_error import SpecterError, BrokenCoreConnectionException
 
 logger = logging.getLogger(__name__)
 
@@ -551,7 +551,16 @@ class Node(AbstractNode):
             datadir = self.datadir
         wallet_file_removed = False
         path = ""
+        # Check whether wallet was really unloaded
         wallet_rpc_path = os.path.join(wallet.manager.rpc_path, wallet.alias)
+        # If we can unload the wallet via RPC it had not been unloaded properly before by the wallet manager
+        try:
+            self.rpc.unloadwallet(wallet_rpc_path)
+            raise SpecterError(
+                "Trying to delete the wallet file on the node but the wallet had not been unloaded properly."
+            )
+        except RpcError:
+            pass
         if self.chain != "main":
             path = os.path.join(datadir, f"{self.chain}/wallets", wallet_rpc_path)
         else:
