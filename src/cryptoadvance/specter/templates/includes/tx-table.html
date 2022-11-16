@@ -586,6 +586,8 @@
             }
 
             // Setup sorting functionality for each column of the table header
+            // TODO: Fix sorting issues to enable sorting for all columns
+            /*
             let sortHeaders = [
                 this.categoryHeader,
                 this.txidHeader,
@@ -594,6 +596,10 @@
                 this.timeHeader,
                 this.confirmationsHeader
             ];
+            */
+
+            // Temporarily disable arrows implying sorting functionality while broken
+            let sortHeaders = [];
 
             for (let header of sortHeaders) {
                 header.onclick = () => {
