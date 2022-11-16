@@ -29,7 +29,9 @@ class NodeManager:
         internal_bitcoind_version="",
         data_folder="",
     ):
-        self.nodes = {}
+        self.nodes = (
+            {}
+        )  # Sth. like: {'nigiri_regtest': <Node name=Nigiri regtest fullpath=...>, 'default': <Node name=Bitcoin Core fullpath=...>}
         self.data_folder = data_folder
         self._active_node = active_node
         self.proxy_url = proxy_url
@@ -51,15 +53,13 @@ class NodeManager:
             # creating folders if they don't exist
             if not os.path.isdir(data_folder):
                 os.mkdir(data_folder)
-        nodes_files = load_jsons(self.data_folder, key="name")
+        nodes_files = load_jsons(self.data_folder, key="alias")
         for node_alias in nodes_files:
             try:
-                self.nodes[
-                    nodes_files[node_alias]["name"]
-                ] = PersistentObject.from_json(
+                self.nodes[node_alias] = PersistentObject.from_json(
                     nodes_files[node_alias],
                     self,
-                    default_alias=node_alias,
+                    default_alias=nodes_files[node_alias]["alias"],
                     default_fullpath=calc_fullpath(self.data_folder, node_alias),
                 )
             except SpecterInternalException as e:
@@ -67,6 +67,9 @@ class NodeManager:
 
         if not self.nodes:
             if os.environ.get("ELM_RPC_USER"):
+                logger.debug(
+                    "Creating an external Elements node with the initial configuration."
+                )
                 self.add_external_node(
                     node_type="ELM",
                     name="Blockstream Liquid",
@@ -79,7 +82,9 @@ class NodeManager:
                     protocol="http",
                     default_alias=self.DEFAULT_ALIAS,
                 )
-            logger.info("Creating initial node-configuration")
+            logger.debug(
+                "Creating an external BTC node with the initial configuration."
+            )
             self.add_external_node(
                 node_type="BTC",
                 name="Bitcoin Core",
@@ -93,46 +98,56 @@ class NodeManager:
                 default_alias=self.DEFAULT_ALIAS,
             )
 
-        # Just to be sure here ....
+        # Make sure we always have the default node
+        # (needed for the rpc-as-pin-authentication used on Raspiblitz)
         has_default_node = False
-        for name, node in self.nodes.items():
+        for node in self.nodes.values():
             if node.alias == self.DEFAULT_ALIAS:
-                return
-        # Make sure we always have a default node
-        # (needed for the rpc-as-pin-authentication, created and used for raspiblitz)
-        self.add_external_node(
-            node_type="BTC",
-            name="Bitcoin Core",
-            autodetect=True,
-            datadir=get_default_datadir(),
-            user="",
-            password="",
-            port=8332,
-            host="localhost",
-            protocol="http",
-            default_alias=self.DEFAULT_ALIAS,
-        )
+                has_default_node = True
+        # Recreate the default node if it doesn't exist anymore
+        if not has_default_node:
+            logger.debug("Recreating the default node.")
+            self.add_external_node(
+                node_type="BTC",
+                name="Bitcoin Core",
+                autodetect=True,
+                datadir=get_default_datadir(),
+                user="",
+                password="",
+                port=8332,
+                host="localhost",
+                protocol="http",
+                default_alias=self.DEFAULT_ALIAS,
+            )
 
     @property
-    def active_node(self):
+    def active_node(self) -> Node:
         return self.get_by_alias(self._active_node)
 
     @property
-    def nodes_names(self):
-        return sorted(self.nodes.keys())
+    def nodes_names(self) -> list:
+        """Returns a list of the names (not the aliases) of the nodes"""
+        return [node.name for node in self.nodes.values()]
 
-    def switch_node(self, node_alias):
-        # this will throw an error if the node doesn't exist
+    def switch_node(self, node_alias: str):
+        # This will throw an error if the node doesn't exist
+        logger.debug(f"Switching from {self._active_node} to {node_alias}.")
         self._active_node = self.get_by_alias(node_alias).alias
 
-    def default_node(self):
+    def default_node(self) -> Node:
         return self.get_by_alias(self.DEFAULT_ALIAS)
 
-    def get_by_alias(self, alias):
-        for node_name in self.nodes:
-            if self.nodes[node_name] and self.nodes[node_name].alias == alias:
-                return self.nodes[node_name]
-        raise SpecterError("Node %s does not exist!" % alias)
+    def get_by_alias(self, alias: str) -> Node:
+        for node in self.nodes.values():
+            if node.alias == alias:
+                return node
+        raise SpecterError("Node alias %s does not exist!" % alias)
+
+    def get_by_name(self, name: str) -> Node:
+        for node in self.nodes.values():
+            if node.name == name:
+                return node
+        raise SpecterError("Node name %s does not exist!" % name)
 
     def update_bitcoind_version(self, specter, version):
         stopped_nodes = []
@@ -168,7 +183,7 @@ class NodeManager:
         """Adding a node. Params:
         :param node_type: only valid for autodetect. Either BTC or ELM
         This should only be used for an external node. Use add_internal_node for internal node
-        and if you have defined your own node-type, use save_node directly. to save the node (and create it yourself)
+        and if you have defined your own node type, use save_node directly to save the node (and create it yourself)
         """
         if not default_alias:
             node_alias = alias(name)
@@ -195,20 +210,19 @@ class NodeManager:
             node_type,
             self,
         )
-        logger.info(f"persisting {node} in add_external_node")
-        self.nodes[name] = node
-        return self.save_node(node)
+        logger.debug(f"Persisting {node_alias} from an add_external_node call.")
+        self.nodes[node_alias] = node
+        self.save_node(node)
+        return node
 
     def save_node(self, node):
         fullpath = (
             node.fullpath
             if hasattr(node, "fullpath")
-            else calc_fullpath(self.data_folder, node.name)
+            else calc_fullpath(self.data_folder, node.alias)
         )
         write_node(node, fullpath)
-
         logger.info("Added new node {}".format(node.alias))
-        return node
 
     def add_internal_node(
         self,
@@ -251,15 +265,22 @@ class NodeManager:
             network,
             self.internal_bitcoind_version,
         )
-        self.nodes[name] = node
+        self.nodes[node_alias] = node
         return self.save_node(node)
 
     def delete_node(self, node, specter):
         logger.info("Deleting {}".format(node.alias))
-        # Delete files
-        delete_file(node.fullpath)
-        delete_file(node.fullpath + ".bkp")
-        if self._active_node == node.alias:
-            specter.update_active_node(next(iter(self.nodes.values())).alias)
-        del self.nodes[node.name]
-        logger.info("Node {} was deleted successfully".format(node.alias))
+        try:
+            # Delete from wallet manager
+            del self.nodes[node.alias]
+            # Delete files
+            delete_file(node.fullpath)
+            delete_file(node.fullpath + ".bkp")
+            # Update the active node
+            if self._active_node == node.alias:
+                specter.update_active_node(
+                    next(iter(self.nodes.values())).alias
+                )  # This switches to the first node in the node list, which is usually the default node
+            logger.info("Node {} was deleted successfully".format(node.alias))
+        except KeyError:
+            raise SpecterError(f"{node.name} not found, node could not be deleted.")
