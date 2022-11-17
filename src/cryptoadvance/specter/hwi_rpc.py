@@ -83,7 +83,7 @@ class HWIBridge(JSONRPC):
         self.enumerate()
 
     @locked(hwilock)
-    def enumerate(self, passphrase="", chain=""):
+    def enumerate(self, passphrase=None):
         """
         Returns a list of all connected devices (dicts).
         Standard HWI enumerate() command + Specter.
@@ -93,12 +93,8 @@ class HWIBridge(JSONRPC):
         for devcls in hwi_classes:
             try:
                 # calling device-specific enumerate
-                if passphrase:
-                    devs = devcls.enumerate(passphrase)
-                # not sure if it will handle passphrase correctly
-                # so remove it if None
-                else:
-                    devs = devcls.enumerate()
+                logger.debug(f"The passphrase is: {passphrase}")
+                devs = devcls.enumerate(passphrase)
                 # extracting fingerprint info
                 for dev in devs:
                     # we can't get fingerprint if device is locked
