@@ -40,6 +40,9 @@
             border: 1px solid var(--main-color);
             background: var(--cmap-border);
         }
+        tr {
+            vertical-align: center;
+        }
     </style>
     <div class="address-data">
         <h1>{{ _("Address details") }}</h1><br>
@@ -113,7 +116,7 @@
                         <table class="address-data-table">
                         <tbody>
                         <tr><td>{{ _("Address") }}:</td><td style="word-break: break-all;"><explorer-link data-type="address" data-value="${address}"></explorer-link></td></tr>
-                        <tr><td>{{ _("Label") }}:</td><td><address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}" data-label="${this.label}" data-service-id="${this.serviceId}"></address-label><br></td></tr>
+                        <tr><td>{{ _("Label") }}:</td><td><address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}" data-label="${this.label}" data-service-id="${this.serviceId}"></address-label></td></tr>
                         <tr><td>{{ _("From wallet") }}:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
                         <tr><td>{{ _("Address index") }}:</td><td>${addressIndex}</td></tr>
                         <tr><td>{{ _("Is change address") }}:</td><td>${isChange ? '{{ _("Yes") }}' : '{{ _("No") }}'}</td></tr>
