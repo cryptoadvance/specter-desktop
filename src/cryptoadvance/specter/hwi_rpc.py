@@ -83,7 +83,7 @@ class HWIBridge(JSONRPC):
         self.enumerate()
 
     @locked(hwilock)
-    def enumerate(self, passphrase=None):
+    def enumerate(self, passphrase=""):
         """
         Returns a list of all connected devices (dicts).
         Standard HWI enumerate() command + Specter.
