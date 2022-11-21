@@ -61,7 +61,9 @@ class SpecterMigration_0002(SpecterMigration):
         nodes = {}
         logger.info(f"Loading all json-files from {node_folder}")
         nodes_files = load_jsons(node_folder, key="alias")
-        logger.info(f"iterating these nodes: {[node_alias for node_alias in nodes_files ]}")
+        logger.info(
+            f"iterating these nodes: {[node_alias for node_alias in nodes_files ]}"
+        )
         for node_alias in nodes_files:
 
             fullpath = os.path.join(self.data_folder, "%s.json" % node_alias)
