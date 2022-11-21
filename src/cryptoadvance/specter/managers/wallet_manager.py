@@ -15,6 +15,7 @@ from ..liquid.wallet import LWallet
 from ..persistence import delete_folder
 from ..rpc import RpcError, get_default_datadir
 from ..specter_error import SpecterError, SpecterInternalException, handle_exception
+from ..util.flask import FlaskThread
 from ..wallet import (  # TODO: `purposes` unused here, but other files rely on this import
     Wallet,
     purposes,
