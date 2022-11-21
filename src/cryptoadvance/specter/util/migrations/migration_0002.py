@@ -42,6 +42,9 @@ class SpecterMigration_0002(SpecterMigration):
             python_class like this:
             
             cd ~/.specter/nodes
+            # adding the external_node key again:
+            for file in `ls *.json`; do jq '. | select(.python_class=="cryptoadvance.specter.internal_node.InternalNode") + {"external_node":false} , . | select(.python_class=="cryptoadvance.specter.node.Node") + {"external_node":true}'  $file | sponge $file ; done
+            # remove python_class key
             for file in `ls *.json`; do jq 'del(.python_class)' $file | sponge $file ; done
             cd ..
             jq 'del(.migration_executions[] | select(.migration_id == 2))' migration_data.json | sponge migration_data.json
