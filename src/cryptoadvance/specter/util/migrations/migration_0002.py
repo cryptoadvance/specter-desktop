@@ -41,6 +41,7 @@ class SpecterMigration_0002(SpecterMigration):
             In order to reverse this migration, you do need to reverese the addition of the 
             python_class like this:
             
+            sudo apt-get install moreutils jq
             cd ~/.specter/nodes
             # adding the external_node key again:
             for file in `ls *.json`; do jq '. | select(.python_class=="cryptoadvance.specter.internal_node.InternalNode") + {"external_node":false} , . | select(.python_class=="cryptoadvance.specter.node.Node") + {"external_node":true}'  $file | sponge $file ; done
@@ -58,7 +59,9 @@ class SpecterMigration_0002(SpecterMigration):
             return
 
         nodes = {}
-        nodes_files = load_jsons(node_folder, key="name")
+        logger.info(f"Loading all json-files from {node_folder}")
+        nodes_files = load_jsons(node_folder, key="alias")
+        logger.info(f"iterating these nodes: {[node_alias for node_alias in nodes_files ]}")
         for node_alias in nodes_files:
 
             fullpath = os.path.join(self.data_folder, "%s.json" % node_alias)
