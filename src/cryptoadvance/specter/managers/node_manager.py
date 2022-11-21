@@ -265,7 +265,7 @@ class NodeManager:
             self.internal_bitcoind_version,
         )
         self.nodes[node_alias] = node
-        return self.save_node(node)
+        return node
 
     def delete_node(self, node, specter):
         logger.info("Deleting {}".format(node.alias))
