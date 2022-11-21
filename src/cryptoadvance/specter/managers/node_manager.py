@@ -29,9 +29,8 @@ class NodeManager:
         internal_bitcoind_version="",
         data_folder="",
     ):
-        self.nodes = (
-            {}
-        )  # Sth. like: {'nigiri_regtest': <Node name=Nigiri regtest fullpath=...>, 'default': <Node name=Bitcoin Core fullpath=...>}
+        self.nodes = {}
+        # Dict is sth. like: {'nigiri_regtest': <Node name=Nigiri regtest fullpath=...>, 'default': <Node name=Bitcoin Core fullpath=...>}
         self.data_folder = data_folder
         self._active_node = active_node
         self.proxy_url = proxy_url
