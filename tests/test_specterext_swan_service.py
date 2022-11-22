@@ -1,5 +1,6 @@
 from mock import patch
 from cryptoadvance.specterext.swan.service import SwanService
+import json
 
 
 class SwanServiceNoEncryption(SwanService):
@@ -67,4 +68,41 @@ def test_reserve_addresses(mocked_update_autowithdrawal_addresses, app_no_node, 
         assert storage_manager.get_current_user_service_data("reckless_swan") == {
             "swan_wallet_id": "new_id",
             "wallet": "test_wallet",
+        }
+
+
+class SwanServiceWithMockedMethods(SwanService):
+    id = "mocked_swan"
+    encrypt_data = False
+    # Basically patching the reserve_addresses function like this, to avoid making the SwanService to a complete mock
+    @classmethod
+    def reserve_addresses(cls, wallet, label: str = None, num_addresses: int = 10):
+        pass
+
+
+@patch("cryptoadvance.specterext.swan.client.SwanClient.set_autowithdrawal")
+def test_set_autowithdrawal_settings(mocked_set_autowithdrawal, app_no_node, wallet):
+    autowithdrawal_api_response = """
+            {
+                "entity": "automaticWithdrawal",
+                "item": {
+                    "id": "some_important_withdrawal_id",
+                    "minBtcThreshold": "0.05",
+                    "isActive": false,
+                    "isCanceled": false,
+                    "createdAt": "2022-01-07T02:14:56.070Z",
+                    "walletId": "******************",
+                    "walletAddressId": null
+                }
+            }
+        """
+    mocked_set_autowithdrawal.return_value = json.loads(autowithdrawal_api_response)
+    specter = app_no_node.specter
+    storage_manager = specter.service_unencrypted_storage_manager
+    swan = SwanServiceWithMockedMethods(True, specter)
+    with app_no_node.test_request_context():
+        swan.set_autowithdrawal_settings(wallet, 0.05)
+        assert storage_manager.get_current_user_service_data("mocked_swan") == {
+            "autowithdrawal_id": "some_important_withdrawal_id",
+            "withdrawal_threshold": 0.05,
         }
