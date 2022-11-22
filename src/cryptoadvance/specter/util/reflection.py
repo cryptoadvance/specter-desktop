@@ -175,7 +175,7 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
         # skip known redherrings
         if module_name in ["callbacks"]:
             continue
-        logger.debug(
+        logger.info(
             f"Iterating on importer={importer} , module_name={module_name} is_pkg={is_pkg}"
         )
         if clazz.__name__ == "Service":
