@@ -41,7 +41,7 @@ def test_reserve_addresses(mocked_update_autowithdrawal_addresses, app_no_node, 
         # Check that the reserve_addresses was successful, we should have a swan_wallet_id now and the name of the associated (Specter) wallet
         assert storage_manager.get_current_user_service_data("reckless_swan") == {
             "swan_wallet_id": "some_id",
-            "wallet": "test_wallet",
+            "wallet": wallet.alias,
         }
         mocked_update_autowithdrawal_addresses.return_value = "new_id"
         # We are getting a new id since we request to reserve more addresses as we've already reserved
@@ -58,7 +58,7 @@ def test_reserve_addresses(mocked_update_autowithdrawal_addresses, app_no_node, 
         )
         assert storage_manager.get_current_user_service_data("reckless_swan") == {
             "swan_wallet_id": "new_id",
-            "wallet": "test_wallet",
+            "wallet": wallet.alias,
         }
         mocked_update_autowithdrawal_addresses.return_value = "another_new_id"
         # We are not getting a new id since we've already reserved 7 addresses
@@ -67,7 +67,7 @@ def test_reserve_addresses(mocked_update_autowithdrawal_addresses, app_no_node, 
         assert len(mocked_update_autowithdrawal_addresses.mock_calls) == 2
         assert storage_manager.get_current_user_service_data("reckless_swan") == {
             "swan_wallet_id": "new_id",
-            "wallet": "test_wallet",
+            "wallet": wallet.alias,
         }
 
 

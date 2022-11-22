@@ -35,7 +35,7 @@ from cryptoadvance.specter.util.wallet_importer import WalletImporter
 logger = logging.getLogger(__name__)
 
 pytest_plugins = [
-    # "conftest_visibility",
+    "conftest_visibility",
     "fix_ghost_machine",
     "fix_keys_and_seeds",
     "fix_devices_and_wallets",
@@ -269,7 +269,7 @@ def elements_elreg(request):
 def empty_data_folder():
     # Make sure that this folder never ever gets a reasonable non-testing use-case
     with tempfile.TemporaryDirectory(
-        prefix="specter_home_tmp_", ignore_cleanup_errors=True
+        prefix="specter_home_tmp_", ignore_cleanup_errors=False
     ) as data_folder:
         yield data_folder
 
