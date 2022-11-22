@@ -102,6 +102,9 @@ def settings():
         wallets=wallets,
         cookies=request.cookies,
         num_reserved_addrs=SwanService.MIN_PENDING_AUTOWITHDRAWAL_ADDRS,
+        autowithdrawal_threshold=SwanService.get_current_user_service_data().get(
+            SwanService.AUTOWITHDRAWAL_THRESHOLD
+        ),
     )
 
 
