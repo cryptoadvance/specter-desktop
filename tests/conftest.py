@@ -35,7 +35,7 @@ from cryptoadvance.specter.util.wallet_importer import WalletImporter
 logger = logging.getLogger(__name__)
 
 pytest_plugins = [
-    # "conftest_visibility",
+    "conftest_visibility",
     "fix_ghost_machine",
     "fix_keys_and_seeds",
     "fix_devices_and_wallets",
@@ -268,13 +268,17 @@ def elements_elreg(request):
 @pytest.fixture
 def empty_data_folder():
     # Make sure that this folder never ever gets a reasonable non-testing use-case
-    with tempfile.TemporaryDirectory(prefix="specter_home_tmp_") as data_folder:
+    with tempfile.TemporaryDirectory(
+        prefix="specter_home_tmp_", ignore_cleanup_errors=False
+    ) as data_folder:
         yield data_folder
 
 
 @pytest.fixture
 def devices_filled_data_folder(empty_data_folder):
-    os.makedirs(empty_data_folder + "/devices")
+    devices_folder = empty_data_folder + "/devices"
+    if not os.path.isdir(devices_folder):
+        os.makedirs(devices_folder)
     with open(empty_data_folder + "/devices/trezor.json", "w") as text_file:
         text_file.write(
             """

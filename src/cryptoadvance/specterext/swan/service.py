@@ -111,7 +111,7 @@ class SwanService(Service):
     @classmethod
     def reserve_addresses(
         cls, wallet: Wallet, label: str = None, num_addresses: int = 10
-    ) -> List[str]:
+    ):
         """
         * Reserves addresses for Swan auto-withdrawals
         * Sets the associated Specter `Wallet` that will receive auto-withdrawals
@@ -123,8 +123,13 @@ class SwanService(Service):
         from . import client as swan_client
 
         # Update Addresses as reserved (aka "associated") with Swan in our Wallet
+        # addresses is list of address strings, like so: ["bcrt1qxak08ykhf7r4js9yncysy5p05xp0fwxhamewc8", ... , "bcrt1qpys58dndrn9sxnk0z7ngm6wsxskpvs9jsjq7q6"]
+        # or it is an empty list if we are requesting to reserve less addresses as we already have
         addresses = super().reserve_addresses(
             wallet=wallet, label=label, num_addresses=num_addresses
+        )
+        logger.debug(
+            f"The addresses that go in as arguments to update_autowithdrawal_addresses: {addresses}"
         )
 
         # Clear out any prior unused reserved addresses if this is a different Wallet
@@ -136,17 +141,19 @@ class SwanService(Service):
         cls.set_associated_wallet(wallet)
 
         # Send the new list to Swan (DELETES any unused ones; creates a new SWAN_WALLET_ID if needed)
-        swan_wallet_id = cls.client().update_autowithdrawal_addresses(
-            cls.get_current_user_service_data().get(cls.SWAN_WALLET_ID),
-            specter_wallet_name=wallet.name,
-            specter_wallet_alias=wallet.alias,
-            addresses=addresses,
-        )
-        logger.debug(f"Updating the Swan wallet id to {swan_wallet_id}")
-        if swan_wallet_id:
-            cls.update_current_user_service_data({cls.SWAN_WALLET_ID: swan_wallet_id})
-
-        return addresses
+        # Only do this if we are requesting to reserve less addresses as we already have
+        if addresses != []:
+            swan_wallet_id = cls.client().update_autowithdrawal_addresses(
+                cls.get_current_user_service_data().get(cls.SWAN_WALLET_ID),
+                specter_wallet_name=wallet.name,
+                specter_wallet_alias=wallet.alias,
+                addresses=addresses,
+            )
+            logger.debug(f"Updating the Swan wallet id to {swan_wallet_id}")
+            if swan_wallet_id:
+                cls.update_current_user_service_data(
+                    {cls.SWAN_WALLET_ID: swan_wallet_id}
+                )
 
     @classmethod
     def set_autowithdrawal_settings(cls, wallet: Wallet, btc_threshold: str):
