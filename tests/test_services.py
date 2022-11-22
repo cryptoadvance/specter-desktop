@@ -442,7 +442,6 @@ def test_reserve_addresses_with_an_actual_wallet(wallet):
         "bcrt1qpys58dndrn9sxnk0z7ngm6wsxskpvs9jsjq7q6",
     ]
     address_obj_list = wallet.get_associated_addresses("test_service")
-    # assert len(address_obj_list) == 4
     # Reserving 3 addresses results in an empty list since we already have 3 unused addresses (the first one was used) reserved
     addresses = test_service.reserve_addresses(wallet, "satoshi_dice", 3)
     assert addresses == []

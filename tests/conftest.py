@@ -274,7 +274,9 @@ def empty_data_folder():
 
 @pytest.fixture
 def devices_filled_data_folder(empty_data_folder):
-    os.makedirs(empty_data_folder + "/devices")
+    devices_folder = empty_data_folder + "/devices"
+    if not os.path.isdir(devices_folder):
+        os.makedirs(devices_folder)
     with open(empty_data_folder + "/devices/trezor.json", "w") as text_file:
         text_file.write(
             """

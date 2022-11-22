@@ -111,7 +111,7 @@ class SwanService(Service):
     @classmethod
     def reserve_addresses(
         cls, wallet: Wallet, label: str = None, num_addresses: int = 10
-    ) -> List[str]:
+    ):
         """
         * Reserves addresses for Swan auto-withdrawals
         * Sets the associated Specter `Wallet` that will receive auto-withdrawals
