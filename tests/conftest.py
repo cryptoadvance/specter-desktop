@@ -218,18 +218,39 @@ def node(empty_data_folder, bitcoin_regtest):
     nodes_folder = empty_data_folder + "/nodes"
     if not os.path.isdir(nodes_folder):
         os.makedirs(nodes_folder)
-    node = Node.from_json(
-        {
-            "autodetect": False,
-            "datadir": bitcoin_regtest.datadir,
-            "user": bitcoin_regtest.rpcconn.rpcuser,
-            "password": bitcoin_regtest.rpcconn.rpcpassword,
-            "port": bitcoin_regtest.rpcconn.rpcport,
-            "host": bitcoin_regtest.rpcconn.ipaddress,
-            "protocol": "http",
-        },
-        manager=NodeManager(data_folder=nodes_folder),
-        default_fullpath=os.path.join(nodes_folder, "standard_node.json"),
+    nm = NodeManager(data_folder=nodes_folder)
+    node = nm.add_external_node(
+        "BTC",
+        "Standard node",
+        False,
+        bitcoin_regtest.datadir,
+        bitcoin_regtest.rpcconn.rpcuser,
+        bitcoin_regtest.rpcconn.rpcpassword,
+        bitcoin_regtest.rpcconn.rpcport,
+        bitcoin_regtest.rpcconn._ipaddress,
+        "http",
+        "standard_node",
+    )
+    return node
+
+
+@pytest.fixture
+def node_with_different_port(empty_data_folder, bitcoin_regtest):
+    nodes_folder = empty_data_folder + "/nodes"
+    if not os.path.isdir(nodes_folder):
+        os.makedirs(nodes_folder)
+    nm = NodeManager(data_folder=nodes_folder)
+    node = nm.add_external_node(
+        "BTC",
+        "Node with a different port",
+        False,
+        "",
+        bitcoin_regtest.rpcconn.rpcuser,
+        bitcoin_regtest.rpcconn.rpcpassword,
+        18333,
+        bitcoin_regtest.rpcconn._ipaddress,
+        "http",
+        "satoshis_node",
     )
     return node
 
