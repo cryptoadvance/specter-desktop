@@ -1,6 +1,7 @@
 import logging
 import sys
 import pytest
+from pathlib import PosixPath, Path
 import os
 from unittest.mock import MagicMock
 from flask import Flask
@@ -36,22 +37,19 @@ def test_ServiceManager_get_service_x_dirs(caplog):
         )
         # however, in the real build, you get something like:
         # ../.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/swan/templates
-        assert f"{expected_folder}/cryptoadvance/specter/services/swan/templates" in [
+        assert f"{expected_folder}/cryptoadvance/specterext/swan/templates" in [
             str(dir) for dir in dirs
         ]
         for path in dirs:
             assert str(path).endswith("templates")
 
         dirs = ServiceManager.get_service_x_dirs("static")
-        assert f"{expected_folder}/cryptoadvance/specter/services/swan/static" in [
+        assert f"{expected_folder}/cryptoadvance/specterext/swan/static" in [
             str(dir) for dir in dirs
         ]
-        assert (
-            f"{expected_folder}/cryptoadvance/specter/services/bitcoinreserve/static"
-            in [str(dir) for dir in dirs]
-        )
         print(dirs)
-        assert len(dirs) >= 2
+        assert len(dirs) >= 2000
+        assert False
     finally:
         os.chdir("../")
 
@@ -62,6 +60,16 @@ def test_ServiceManager_get_service_packages(caplog):
     assert "cryptoadvance.specterext.swan.service" in packages
     assert "cryptoadvance.specterext.electrum.service" in packages
     assert "cryptoadvance.specterext.electrum.devices.electrum" in packages
+
+def test_ServiceManager_make_path_relative(caplog):
+    caplog.set_level(logging.DEBUG)
+    arr = [ 
+        Path("/home/kim/src/specter-desktop/.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/swan/templates"),
+        Path("wurstbrot/something/.env/site-packages/the_rest")
+    ]
+    arr = [ ServiceManager._make_path_relative(path) for path in arr ]
+    assert arr[0] == PosixPath("site-packages/cryptoadvance/specter/services/swan/templates")
+    assert arr[1] == PosixPath("site-packages/the_rest")
 
 
 @pytest.fixture
