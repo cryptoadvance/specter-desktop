@@ -5,7 +5,8 @@
         }
 
         .service-icon {
-            margin-top: -5px;
+            margin-left: 2px;
+            margin-right: 2px;
             height: 24px;
             vertical-align: middle;
         }
@@ -192,11 +193,13 @@
             });
 
             this.edit.addEventListener("keydown", (e) => {
-                // Remove default action of new line on return press
+                // Escape = cancel
                 if (e.keyCode == 27) {
                     e.preventDefault();
                     this.cancel.click();
                 }
+                // Return = update
+                // Removes default action of new line on return press
                 if (e.keyCode == 13) {
                     e.preventDefault();
                     this.update.click();
