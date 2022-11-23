@@ -22,6 +22,7 @@
             margin-left: 2px;
             white-space: nowrap;
             overflow: visible;
+            caret-color: orange;
         }
 
         .edit {
@@ -207,23 +208,18 @@
             });
 
             this.edit.onclick = () => {
-                this.label.setAttributeNode(
-                    document.createAttribute("contenteditable")
-                );
-
+                this.isEditing = true;
+                this.label.setAttribute("contenteditable", "true");
+                let selection = window.getSelection();
+                selection.selectAllChildren(this.label);
+                this.label.blur(); // This blur is needed on Firefox to display the caret - for whatever reasons ...
+                this.label.focus();
                 if (this.isTitle) {
                     this.label.style["font-size"] = "1.1em";
                 }
-
                 this.labelValue = this.label.innerText; //store the value of the element
-
-                this.label.innerText = "";
-                this.label.focus();
-
                 this.cancel.classList.remove("hidden");
                 this.update.classList.remove("hidden");
-
-                this.isEditing = true;
             };
 
             this.cancel.onclick = () => {
@@ -249,7 +245,7 @@
                         );
                     }
                 } else {
-                    this.edit.click();
+                    this.closeEditMode();
                 }
             };
 
