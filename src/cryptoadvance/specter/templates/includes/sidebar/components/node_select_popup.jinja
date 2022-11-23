@@ -25,7 +25,7 @@
 <div id="node_select_popup" class="hidden" style="text-align: left;">
     <h1>{{ _("Node configuration") }}</h1>
     {% for node_name in specter.node_manager.nodes_names %}
-        {% set node = specter.node_manager.nodes[node_name] %}
+        {% set node = specter.node_manager.get_by_name(node_name) %}
         <form action="{{url_for('nodes_endpoint.switch_node')}}" id="{{node.alias}}-select-node-form" method="POST">
 		    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		    <input type="hidden" name="node_alias" value="{{ node.alias }}"/>
