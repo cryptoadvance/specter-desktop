@@ -123,10 +123,10 @@ def test_SpecterMigrator(empty_data_folder, caplog):
         mylist = mm.plan_migration()
 
         # This assertion will break every time you create a new migration-script
-        assert len(mylist) == 2
+        assert len(mylist) == 3
 
         mm.execute_migrations(mylist)
-        assert len(mm.mig.migration_executions) == 2
+        assert len(mm.mig.migration_executions) == 3
         assert "Setting execution log status of 1 to completed" in caplog.text
         assert "Setting execution log status of 2 to completed" in caplog.text
 
