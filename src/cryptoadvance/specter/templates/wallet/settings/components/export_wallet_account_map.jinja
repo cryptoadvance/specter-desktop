@@ -30,7 +30,7 @@
         document.getElementById('electrum_export').href = 'data:text/plain,' + encodeURIComponent('{{ wallet.get_electrum_file()|tojson }}');
     });
 	Specter.common.attachEventListener("btn-copy-wallet-data", "click", (event)=> {
-			copyText(document.getElementById('account_map').innerText, 'Copied wallet data');
+			Specter.common.copyText(document.getElementById('account_map').innerText, 'Copied wallet data');
     });
 	Specter.common.attachEventListener("electrum_export", "click", (event)=> {
 			Specter.common.showNotification(`Import wallet file to your Electrum: File -> Open -> Choose... -> {{ wallet.alias | ascii20 }}_electrum.backup`, 0);

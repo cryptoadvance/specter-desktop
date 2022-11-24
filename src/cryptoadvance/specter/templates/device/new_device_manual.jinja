@@ -77,7 +77,7 @@
 					<p class="center" style="max-width: 500px; margin: 5px auto;">{{ _("You can set which account number you wish to import.")}}<br>{{ _("Account derivation uses the number choosen here to derive an xpub as specified in") }} <a style="color: #fff" href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#account" target="_blank">BIP44</a>.</p>
 					Account # <input type="number" step="1" min="0" value="0" id="usb_account_number" style="max-width: 100px; min-width: 100px;"><br><br>
 					<p class="note center">{{ _("This is an advanced feature.")}}<br>{{ _("If you're not familiar with account derivations please leave this as 0.") }}</p><br>
-					<button id="btn-hidePageOverlay" class="btn centered" type="button">{{ _("Close") }}</button>
+					<button id="btn-Specter.overlay.hidePageOverlay" class="btn centered" type="button">{{ _("Close") }}</button>
 				</div>
 				<div class="note">
 					{{ _("Examples") }}:<br>
@@ -211,7 +211,7 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 		} else {
 			type_reminder.style.display = 'none';
 			if(deviceType.value == 'bitcoincore'){
-				showPacman();
+				Specter.overlay.showPacman();
 			}
 			return true;
 		}
@@ -437,8 +437,8 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 	Specter.common.attachEventListener("p-usb_import_account_number", "click", (event)=> {
 				showPageOverlay('usb_import_account_number')
 			});  	
-	Specter.common.attachEventListener("btn-hidePageOverlay", "click", (event)=> {
-				hidePageOverlay()
+	Specter.common.attachEventListener("btn-Specter.overlay.hidePageOverlay", "click", (event)=> {
+				Specter.overlay.hidePageOverlay()
 			});  	
 	Specter.common.attachEventListener("generate_mnemonic_btn", "click", (event)=> {
 				setMnemonicView('generate')
@@ -450,7 +450,7 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 					{% if not device %}return checkType();{% endif %}
 				});  	
 	Specter.common.attachEventListener("btn-newcolddevice", "submit", (event)=> {
-					showPacman()
+					Specter.overlay.showPacman()
 				});  	
 
 </script>

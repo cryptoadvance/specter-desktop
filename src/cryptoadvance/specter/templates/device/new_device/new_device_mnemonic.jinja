@@ -212,7 +212,7 @@
 
 		Specter.common.attachEventListener("form", "submit", (event)=> {
             if (checkAdvancedValidState()) { 
-                showPacman();
+                Specter.overlay.showPacman();
             } else { 
                 event.preventDefault(); 
             }

@@ -26,15 +26,15 @@
             inp.value = "";
         })
         el.appendChild(submit);
-        showPageOverlay('hwi_passphrase');
+        Specter.overlay.showPageOverlay('hwi_passphrase');
         while(result == null){
             await Specter.common.wait(100);
-            if(!overlayIsActive()){
+            if(!Specter.overlay.overlayIsActive()){
                 console.log("cancelled");
                 return null;
             }
         }
-        hidePageOverlay();
+        Specter.overlay.hidePageOverlay();
         return result;
     }
 </script>

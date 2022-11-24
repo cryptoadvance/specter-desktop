@@ -46,7 +46,7 @@
             handleHWIError(error);
             return;
         }
-        hidePageOverlay();
+        Specter.overlay.hidePageOverlay();
         await combine(signedTx);
         console.log(signedTx);
         console.log(device);
@@ -73,7 +73,7 @@
         }
         console.log(device);
         document.getElementById('expected_address').innerText = address;
-        showPageOverlay('hwi_display_address');        
+        Specter.overlay.showPageOverlay('hwi_display_address');        
         let result = null;
         try {
             result = await hwi.displayAddress(device, descriptor, xpubs_descriptor);
@@ -82,7 +82,7 @@
             return null;
         }
         console.log(result);
-        hidePageOverlay();
+        Specter.overlay.hidePageOverlay();
         if (address != result &&
             (("{{ specter.chain }}" != "regtest" || !result.startsWith("tb")) ||
             address.slice(0, -6) != "bcrt" + result.slice(2, -6))

@@ -17,13 +17,13 @@
     document.getElementById("{{ device.alias }}_qr_scan_btn").addEventListener("scan", e =>{
         let result = e.detail.result;
         if (result) {
-            hidePageOverlay();
+            Specter.overlay.hidePageOverlay();
             document.getElementById('signature-label').style.display = 'block';
             let signatureElement = document.getElementById('signature')
             signatureElement.classList.remove("hidden")
             signatureElement.classList.add("signature")
             signatureElement.innerText = result;
-            showPageOverlay('message-signing');
+            Specter.overlay.showPageOverlay('message-signing');
             document.getElementById('{{ device.alias }}_usb_sign_msg_btn').remove()
             document.getElementById('{{ device.alias }}_qr_sign_msg_btn').remove()
         } else {

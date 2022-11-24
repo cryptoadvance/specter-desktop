@@ -23,7 +23,7 @@
                 result = urpsbt.getPSBT().toString("base64");
             }
             if(result){
-                hidePageOverlay();
+                Specter.overlay.hidePageOverlay();
                 combine(result);
             } else {
                 Specter.common.showError(`{{ _("Scan failed, please try again...") }}`, 3000);

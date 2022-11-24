@@ -67,7 +67,7 @@
 
 <script type="module">
     function showNodeSelectPopup() {
-        hidePageOverlay();
+        Specter.overlay.hidePageOverlay();
         if (!e) var e = window.event;
         e.cancelBubble = true;
         if (e.stopPropagation) { 
@@ -76,7 +76,7 @@
         document.getElementById('page_overlay_popup').style.padding = '1.5em 0';
         document.getElementById('page_overlay_popup_cancel_button').classList.add('hidden');
         document.getElementById('side-content').classList.remove('active');
-        showPageOverlay('node_select_popup');
+        Specter.overlay.showPageOverlay('node_select_popup');
     }
 
     function onCancelOverlay() {

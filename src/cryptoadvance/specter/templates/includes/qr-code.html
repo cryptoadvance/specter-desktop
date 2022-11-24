@@ -244,7 +244,7 @@ class QRCodeElement extends HTMLElement {
     this.copybtn.addEventListener('click', e=>{
       e.cancelBubble = true;
       var value = this.getAttribute('value');
-      copyText(value, "QR code content is copied!");
+      Specter.common.copyText(value, "QR code content is copied!");
     });
     this.sizeDiv.addEventListener('click', e=>{
       e.cancelBubble = true;

@@ -1,6 +1,7 @@
 import * as formatModule from './helper-modules/format.js'
 import * as commonModule from './helper-modules/common.js'
 import * as mobileModule from './helper-modules/mobile.js'
+import * as overlayModule from './helper-modules/overlay.js'
 
 // The scope of functions inside a module is not global, putting them on the window object makes them accessible outside of the module. 
 // See: https://stackoverflow.com/questions/44590393/es6-modules-undefined-onclick-function-after-import
@@ -33,6 +34,11 @@ for (let functionName in commonModule) {
 // Adding mobile functions to Specter.mobile
 for (let functionName in mobileModule) {
 	attachToSpecter(functionName, mobileModule[functionName], 'mobile')	
+}
+
+// Adding overlay functions to Specter.mobile
+for (let functionName in overlayModule) {
+	attachToSpecter(functionName, overlayModule[functionName], 'overlay')	
 }
 
 // TODOS!

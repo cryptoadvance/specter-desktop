@@ -284,12 +284,12 @@
 		var copyrawPSBTbtn = document.getElementById("copy-raw-psbt-btn");
 		copyrawPSBTbtn.addEventListener("click", function() {
 			var raw_psbt = document.getElementById("raw-psbt");
-			copyText(raw_psbt.value, "Copied PSBT")
+			Specter.common.copyText(raw_psbt.value, "Copied PSBT")
 		});
 		Specter.common.attachEventListener("show-qr-psbt-btn", "click", 
 			(e)=>{
                 e.preventDefault();
-                showPageOverlay('raw-psbt-qr-container');
+                Specter.overlay.showPageOverlay('raw-psbt-qr-container');
 		});
 		document.addEventListener("DOMContentLoaded", function(){
 			var sendTxBtn = document.getElementById("send_tx_btn");
@@ -352,13 +352,13 @@
 
 			Specter.common.attachEventListener("save_psbt_btn", "click", async function(e) {
 				e.preventDefault();
-				hidePageOverlay();
+				Specter.overlay.hidePageOverlay();
 				window.location.replace("{{ url_for('wallets_endpoint.send_pending',wallet_alias=wallet_alias) }}");
 			});
 
 			Specter.common.attachEventListener("copy_final_tx_btn", "click", async function(e) {
 				e.preventDefault();
-				copyText(raw, 'Copied transaction')
+				Specter.common.copyText(raw, 'Copied transaction')
 			});
 		});
 		if (!"{{ psbt['raw'] }}") {
@@ -456,7 +456,7 @@
 				const jsonResponse = await response.json();
 
 				if (jsonResponse.success) {
-					hidePageOverlay();
+					Specter.overlay.hidePageOverlay();
 					window.location.replace("{{ url_for('wallets_endpoint.history', wallet_alias=wallet.alias) }}");
 				} else {
 					Specter.common.showError(`{{ _('Server failed to broadcast transactions!') }}\n` + jsonResponse.error);
@@ -489,7 +489,7 @@
 				const jsonResponse = await response.json();
 
 				if (jsonResponse.success) {
-					hidePageOverlay();
+					Specter.overlay.hidePageOverlay();
 					window.location.replace("{{ url_for('wallets_endpoint.history', wallet_alias=wallet.alias) }}");
 				} else {
 					Specter.common.showError(`{{ _('Server failed to broadcast transactions!') }}\n` + jsonResponse.error);
@@ -517,7 +517,7 @@
 		Specter.common.attachEventListener("btn-paste-tx-popup-confirm", "click", (event)=> {
 			currentSigningDevice = '';
 			combine(document.getElementById('paste-tx-text').value);
-			hidePageOverlay();
+			Specter.overlay.hidePageOverlay();
 			document.getElementById('paste-tx-text').value='';
 		});  
 		Specter.common.attachEventListener("pastetx", "click", (event)=> {

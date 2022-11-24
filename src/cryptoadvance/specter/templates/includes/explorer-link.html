@@ -34,7 +34,7 @@
                 this.explorerLink.href = `${ this.explorer }${ this.type }/${ this.value }`
             } else {
                 this.explorerLink.addEventListener('click', () => {
-                    copyText(this.value, `Copied ${ this.type }: ${ this.value }`);
+                    Specter.common.copyText(this.value, `Copied ${ this.type }: ${ this.value }`);
                 });
             }
             this.explorerLink.innerText = this.value;

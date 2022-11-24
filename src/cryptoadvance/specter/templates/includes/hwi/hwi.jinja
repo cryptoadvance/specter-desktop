@@ -49,7 +49,7 @@
     function showHWIProgress(title=`{{ _("Processing...") }}`, text=`{{ _("Keep your wallet connected.") }}`){
         document.getElementById('hwi_progress_title').innerHTML = title;
         document.getElementById('hwi_progress_text').innerHTML = text;
-        showPageOverlay('hwi_progress');
+        Specter.overlay.showPageOverlay('hwi_progress');
     }
 
     function handleHWIError(error){
@@ -58,20 +58,20 @@
             error = error.message;
         }
         Specter.common.showError(error, 10000);
-        if(overlayIsActive()){
-            hidePageOverlay();
+        if(Specter.overlay.overlayIsActive()){
+            Specter.overlay.hidePageOverlay();
         }
     }
 
     var coldcardUsb = 0;
     function coldCardNotice(){
         coldcardUsb = 1;
-        cancelOverlay();
+        Specter.overlay.cancelOverlay();
     }
 
     function goToCoinkite(){
         parent.open("https://blog.coinkite.com/address-explorer/");
-        cancelOverlay();
+        Specter.overlay.cancelOverlay();
     }
 
     async function enumerate(deviceTypes=null, devicePath=null, passphrase=''){
@@ -115,7 +115,7 @@
                 await Specter.common.wait(1000);
                 // check that we still need to do it
                 // just before the request
-                if(!overlayIsActive()){
+                if(!Specter.overlay.overlayIsActive()){
                     // showNotification("HWI is ready again", 10000);
                     return null;
                 }
@@ -151,13 +151,13 @@
         }
         console.log(result);
         document.getElementById('bitbox02-pairing-code').innerHTML = "";
-        if(!overlayIsActive() && devicePath == null){
+        if(!Specter.overlay.overlayIsActive() && devicePath == null){
             // showNotification("HWI is ready again", 10000);
             // no need to proceed at all
             return null;
         }
         if (devicePath == null){
-            hidePageOverlay();
+            Specter.overlay.hidePageOverlay();
         }
         return result;
     }
@@ -173,12 +173,12 @@
             handleHWIError(error);
             return null;
         }
-        if(!overlayIsActive()){
+        if(!Specter.overlay.overlayIsActive()){
             // showNotification("HWI is ready again", 3000);
             // no need to proceed at all
             return null;
         }
-        hidePageOverlay();
+        Specter.overlay.hidePageOverlay();
         return result;
     }
 
@@ -193,12 +193,12 @@
             handleHWIError(error);
             return null;
         }
-        if(!overlayIsActive()){
+        if(!Specter.overlay.overlayIsActive()){
             // showNotification("HWI is ready again", 3000);
             // no need to proceed at all
             return null;
         }
-        hidePageOverlay();
+        Specter.overlay.hidePageOverlay();
         return result;
     }
 
@@ -213,12 +213,12 @@
             handleHWIError(error);
             return null;
         }
-        if(!overlayIsActive()){
+        if(!Specter.overlay.overlayIsActive()){
             // showNotification("HWI is ready again", 3000);
             // no need to proceed at all
             return null;
         }
-        hidePageOverlay();
+        Specter.overlay.hidePageOverlay();
         return result;
     }
 

@@ -54,7 +54,7 @@
 			<p title="Click to copy" id="address" class="padded" style="word-break: break-all;">{{ wallet.address }}</p>
 			<script type="module">
 				Specter.common.attachEventListener("address", "click", (event)=> {
-							copyText(this.textContent, '{{ _("Copied Address:") }} ' + this.textContent);
+							Specter.common.copyText(event.target.textContent, '{{ _("Copied Address:") }} ' + event.target.textContent);
 						});  	
 			</script>	 				
 			{{ _("(click to copy)") }}
@@ -132,7 +132,7 @@
 						element.classList = "btn centered padded";
 						element.textContent = '{{ _("Back") }}';
 						element.addEventListener("click", (event)=> {
-							hidePageOverlay();
+							Specter.overlay.hidePageOverlay();
 							showPageOverlay('new_wallet_devices_popup');
 						});
 						document.getElementById("{{ device.alias }}_export_qr_code").appendChild(element);
@@ -228,17 +228,17 @@
 
 
 		Specter.common.attachEventListener("btn_continue", "click", (event)=> {
-			hidePageOverlay();
+			Specter.overlay.hidePageOverlay();
 		});  
 		Specter.common.attachEventListener("btn-new_wallet_devices_popup", "click", (event)=> {
-			hidePageOverlay();
+			Specter.overlay.hidePageOverlay();
 			showPageOverlay('new_wallet_devices_popup');
 		});  
 		Specter.common.attachEventListener("advanced_pdf_export_toggle", "click", (event)=> {
 			togglePDFExportAdvanced();
 		});  
 		Specter.common.attachEventListener("btn-nw-wallet-popup-finish", "click", (event)=> {
-			hidePageOverlay();
+			Specter.overlay.hidePageOverlay();
 		});  
 		Specter.common.attachEventListener("use_slip_132_pdf", "change", (event)=> {
 			toggleKeyDisplay();

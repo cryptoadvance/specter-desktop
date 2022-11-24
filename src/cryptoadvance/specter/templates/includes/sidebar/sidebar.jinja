@@ -341,10 +341,10 @@
                 showNodeSelectPopup();
             }); 
     Specter.common.attachEventListener("btn-failed_wallets_popup", "click", (event)=> {
-                showPageOverlay('failed_wallets_popup');
+                Specter.overlay.showPageOverlay('failed_wallets_popup');
             }); 
     Specter.common.attachEventListener("active-node", "click", (event)=> {
-                showPageOverlay('bitcoin_core_info');
+                Specter.overlay.showPageOverlay('bitcoin_core_info');
                 document.getElementById('side-content').classList.remove('active');
             }); 
 

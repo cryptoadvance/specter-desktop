@@ -104,11 +104,11 @@
 				});  	
 		Specter.common.attachEventListener("btn-add-blinding-key", "click", (event)=> {
 					addBlindingKey(document.getElementById('paste-mbk-text').value);
-                    hidePageOverlay();
+                    Specter.overlay.hidePageOverlay();
                     document.getElementById('paste-mbk-text').value='';
 				});  	
 		Specter.common.attachEventListener("form-device_blinding_key", "submit", (event)=> {
-					showPacman();
+					Specter.overlay.showPacman();
 				});  	
 
     </script>

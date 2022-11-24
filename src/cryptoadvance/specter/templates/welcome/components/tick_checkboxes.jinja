@@ -26,19 +26,19 @@
                         </div>
                         <script type="module">
                             Specter.common.attachEventListener("btn-connect-node-help-popup", "click", (event)=> {
-                                        showPageOverlay('connect-node-help-popup');
+                                        Specter.overlay.showPageOverlay('connect-node-help-popup');
                                     });  	
                             Specter.common.attachEventListener("btn-no-node-help-popup", "click", (event)=> {
-                                        hidePageOverlay();
-                                        showPageOverlay('no-node-help-popup');
+                                        Specter.overlay.hidePageOverlay();
+                                        Specter.overlay.showPageOverlay('no-node-help-popup');
                                     });  	
                             Specter.common.attachEventListener("btn-local-node-help-popup", "click", (event)=> {
-                                        hidePageOverlay();
-                                        showPageOverlay('local-node-help-popup');
+                                        Specter.overlay.hidePageOverlay();
+                                        Specter.overlay.showPageOverlay('local-node-help-popup');
                                     });  	
                             Specter.common.attachEventListener("btn-remote-node-help-popup", "click", (event)=> {
-                                        hidePageOverlay();
-                                        showPageOverlay('remote-node-help-popup');
+                                        Specter.overlay.hidePageOverlay();
+                                        Specter.overlay.showPageOverlay('remote-node-help-popup');
                                     });  	
                         </script>	 	                        
                         <div id="no-node-help-popup" class="hidden">

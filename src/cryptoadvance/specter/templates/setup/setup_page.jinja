@@ -83,7 +83,7 @@
                     if (result.error) {
                         Specter.common.showError(`{{ _("Encountered an error:") }}` + result.error);
                         document.getElementById('progress-details').classList.add('hidden');
-                        hidePageOverlay('progress-details');
+                        Specter.overlay.hidePageOverlay('progress-details');
                         return;
                     }
                     let stage = result.stage;
@@ -104,7 +104,7 @@
             document.getElementById('progress-details').classList.remove('hidden');
             document.getElementById('show-progress-details').classList.remove('hidden');
             document.getElementById('reset-setup-process').classList.remove('hidden');
-            showPageOverlay('progress-details');
+            Specter.overlay.showPageOverlay('progress-details');
             document.getElementById('progress-details').innerHTML = `{{ _("Starting up...") }}`;
             
             setTimeout(fetchProgress, 1000);

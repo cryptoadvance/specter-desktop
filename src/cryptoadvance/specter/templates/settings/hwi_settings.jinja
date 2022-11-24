@@ -119,7 +119,7 @@
 					testHWIConnection();
 				});  		
 		Specter.common.attachEventListener("span-copy-specter-url", "click", (event)=> {
-					copyText('{{ url_for('index', _external=True) }}', '{{ _("Copied Specter URL") }}');
+					Specter.common.copyText('{{ url_for('index', _external=True) }}', '{{ _("Copied Specter URL") }}');
 				});  		
 		Specter.common.attachEventListener("input-hwibridge-local", "change", (event)=> {
 					switchHWIBridgeConfView(event.target.value);

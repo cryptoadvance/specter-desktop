@@ -217,7 +217,7 @@
                 this.explorerLink.onclick = () => {return true;}
             } else {
                 this.explorerLink.onclick = () => {
-                    copyText(this.address, `{{ _("Copied address") }}: ${ this.address }`);
+                    Specter.common.copyText(this.address, `{{ _("Copied address") }}: ${ this.address }`);
                 }
             }
         }

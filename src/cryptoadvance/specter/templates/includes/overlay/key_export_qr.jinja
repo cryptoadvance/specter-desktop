@@ -80,7 +80,7 @@
     }
 
     Specter.common.attachEventListener("key_text", "click", (event)=> {
-                copyText(this.innerText, '{{ _("Copied full key") }}');
+                Specter.common.copyText(this.innerText, '{{ _("Copied full key") }}');
             });  	
     Specter.common.attachEventListener("show_der_path", "change", (event)=> {
                 toggleKeyDisplay()

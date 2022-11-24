@@ -13,7 +13,7 @@
         <span class="explorer-link" id="explorer_link-{{ explorer }}{{ type }}/{{ value }}">{{ text }}</span>
         <script type="module">
             document.getElementById("explorer_link-{{ explorer }}{{ type }}/{{ value }}").addEventListener("click", (event)=> {
-                        copyText('{{ value }}', 'Copied {{ type }}: {{ value }}')
+                        Specter.common.copyText('{{ value }}', 'Copied {{ type }}: {{ value }}')
                     });  	
         </script>	 	        
     {% endif %}

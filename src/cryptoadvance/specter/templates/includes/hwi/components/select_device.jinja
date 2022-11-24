@@ -33,15 +33,15 @@
             });
             el.appendChild(btn);
         });
-        showPageOverlay("hwi_selector");
+        Specter.overlay.showPageOverlay("hwi_selector");
         while(selectedDevice == null){
             await Specter.common.wait(100);
-            if(!overlayIsActive()){
+            if(!Specter.overlay.overlayIsActive()){
                 console.log("cancelled");
                 return null;
             }
         }
-        hidePageOverlay();
+        Specter.overlay.hidePageOverlay();
 
         try{
             passphrase = await unlockDevice(selectedDevice, passphrase);
@@ -56,7 +56,7 @@
         if (rescanDevices.length == 1) {
             selectedDevice = rescanDevices[0]
         }
-        hidePageOverlay();
+        Specter.overlay.hidePageOverlay();
         console.log(passphrase);
         // maybe we get password here
         if(passphrase != null){
@@ -107,12 +107,12 @@
             handleHWIError(error);
             return null;
         }
-        if(!overlayIsActive()){
+        if(!Specter.overlay.overlayIsActive()){
             // showNotification("HWI is ready again", 10000);
             // no need to proceed at all
             return null;
         }
-        hidePageOverlay();
+        Specter.overlay.hidePageOverlay();
         if (device.type == "keepkey") {
             result = await enterPin(device, false);
             if(result == null){
@@ -148,7 +148,7 @@
             handleHWIError(error);
             return;
         }
-        hidePageOverlay();
+        Specter.overlay.hidePageOverlay();
         return signature;
     }
 </script>

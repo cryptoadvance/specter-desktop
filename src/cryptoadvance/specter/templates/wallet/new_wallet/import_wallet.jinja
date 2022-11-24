@@ -57,7 +57,7 @@
 
 	<script type="module">
 		Specter.common.attachEventListener(("btn-done-unknown_cosigner_{{ loop.index0 }}_details", "click", (event)=> {
-					hidePageOverlay()
+					Specter.overlay.hidePageOverlay()
 				});  	
 		Specter.common.attachEventListener(("input-unknown_cosigner_{{ loop.index0 }}_details", "click", (event)=> {
 					document.getElementById('unknown_cosigner_{{ loop.index0 }}_name').innerText = event.target.value;

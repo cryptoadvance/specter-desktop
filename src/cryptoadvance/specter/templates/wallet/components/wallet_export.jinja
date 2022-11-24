@@ -23,8 +23,8 @@
         <script type="module">
             if (document.getElementById("{{ device.alias }}-export-wallet-qr")){
                 document.getElementById("{{ device.alias }}-export-wallet-qr").addEventListener("click", (event)=> {
-                    hidePageOverlay();
-                    showPageOverlay('{{ device.alias }}_export_qr_code');
+                    Specter.overlay.hidePageOverlay();
+                    Specter.overlay.showPageOverlay('{{ device.alias }}_export_qr_code');
                 });
             }
         </script>												

@@ -185,11 +185,11 @@
                     `;
                     this.info.innerHTML = addressInfoHTML;
                     this.info.querySelector("#btn-displayAddressOnDevice").addEventListener("click", (event)=> {
-                        hidePageOverlay();
+                        Specter.overlay.hidePageOverlay();
                         displayAddressOnDevice("${address}", "${descriptor}", "${xpubs_descriptor}");
                     });  	
                     this.info.querySelector("#code-descriptor").addEventListener("click", (event)=> {
-                        copyText(unescape("${escape(descriptor)}"), "{{ _('Copied address descriptor') }}");
+                        Specter.common.copyText(unescape("${escape(descriptor)}"), "{{ _('Copied address descriptor') }}");
                     });  	
                     this.note.innerText = "";
 
@@ -197,13 +197,13 @@
                         if (e.target.checked) {
                             this.info.querySelector(".descriptor").innerHTML = `<code class="explorer-link">${descriptor}</code>`;
                             this.info.querySelector(".descriptor").querySelector('.explorer-link').addEventListener("click", (event)=> {
-                                copyText(unescape(`${escape(descriptor)}`), "{{ _('Copied address descriptor') }}");
+                                Specter.common.copyText(unescape(`${escape(descriptor)}`), "{{ _('Copied address descriptor') }}");
                             }); 
 
                         } else {
                             this.info.querySelector(".descriptor").innerHTML = `<code class="explorer-link">${xpubs_descriptor}</code>`;
                             this.info.querySelector(".descriptor").querySelector('.explorer-link').addEventListener("click", (event)=> {
-                                copyText(unescape(`${escape(xpubs_descriptor)}`), "{{ _('Copied address descriptor') }}");
+                                Specter.common.copyText(unescape(`${escape(xpubs_descriptor)}`), "{{ _('Copied address descriptor') }}");
                             }); 
                         }                         	
                     }

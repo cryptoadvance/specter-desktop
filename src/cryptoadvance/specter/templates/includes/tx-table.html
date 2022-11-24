@@ -1264,9 +1264,9 @@
             data-txid="${txid}"
             data-tx-wallet="${wallet}">
             </tx-data>`;
-            showPageOverlay('tx-popup');
+            Specter.overlay.showPageOverlay('tx-popup');
         } else {
-            copyText(txid, `{{ _("Copied transaction") }}: ${ txid }`);
+            Specter.common.copyText(txid, `{{ _("Copied transaction") }}: ${ txid }`);
         }
     }
 

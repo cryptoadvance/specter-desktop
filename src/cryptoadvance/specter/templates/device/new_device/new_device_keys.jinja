@@ -578,11 +578,11 @@
 				});  	
 		Specter.common.attachEventListener("btn-paste-xpub-popup", "click", (event)=> {
 					addXpubs(document.getElementById('paste-xpub-text').value);
-                    hidePageOverlay();
+                    Specter.overlay.hidePageOverlay();
                     document.getElementById('paste-xpub-text').value='';
 				});  	
 		Specter.common.attachEventListener("form", "submit", (event)=> {
-					showPacman();
+					Specter.overlay.showPacman();
 				});  	
     </script>
 {% endblock %}

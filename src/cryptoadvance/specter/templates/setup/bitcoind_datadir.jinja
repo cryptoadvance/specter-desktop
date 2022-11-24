@@ -179,7 +179,7 @@
                     if (advancedSettings.classList.contains("hidden")) {
                         toggleAdvanced();
                     }
-                    showPageOverlay("override-data-folder-popup");
+                    Specter.overlay.showPageOverlay("override-data-folder-popup");
                     return;
                 }
                 Specter.common.showError(jsonResponse.error, 4000);
@@ -191,11 +191,11 @@
 
 
 		Specter.common.attachEventListener("btn-setupBitcoindDirectory-override-existing", "click", (event)=> {
-					hidePageOverlay();
+					Specter.overlay.hidePageOverlay();
                     setupBitcoindDirectory(true)
 				});  	      
 		Specter.common.attachEventListener("btn-edit-path", "click", (event)=> {
-					hidePageOverlay()
+					Specter.overlay.hidePageOverlay()
 				});  	        
 		Specter.common.attachEventListener("setup-bitcoind-dir-button", "click", (event)=> {
 					setupBitcoindDirectory()

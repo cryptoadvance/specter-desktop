@@ -547,9 +547,9 @@
                 data-label="${addressData.label}"
                 data-address-wallet="${wallet}"
             />`;
-            showPageOverlay('address-popup');
+            Specter.overlay.showPageOverlay('address-popup');
         } else {
-            copyText(address, `{{ _("Copied address") }}: ${ address }`);
+            Specter.common.copyText(address, `{{ _("Copied address") }}: ${ address }`);
         }
     }
     customElements.define('addresses-table', AddressTableElement);

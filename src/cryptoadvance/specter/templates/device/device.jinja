@@ -86,7 +86,7 @@
 								toggleKeyDisplay();
 							});  	
 						document.getElementById("copy-key-{{loop.index0}}").addEventListener("click", (event)=> {
-								copyText('{{ key }}', 'Copied key: {{ key }}');
+								Specter.common.copyText('{{ key }}', 'Copied key: {{ key }}');
 							});  	
 					</script>	 							
 				{% endfor %}
@@ -218,9 +218,9 @@
 			{% if device.supports_qr_message_signing %}
 			document.getElementById("{{ device.alias }}_qr_sign_msg_btn").addEventListener("click", e => {
                     e.preventDefault();
-                    hidePageOverlay();
+                    Specter.overlay.hidePageOverlay();
                     // This makes qr_code_sign_message.jinja visible
-                    showPageOverlay('{{ device.alias }}_sign_msg_qr');
+                    Specter.overlay.showPageOverlay('{{ device.alias }}_sign_msg_qr');
                     // This set the qr-code web component in qr_code_sign_message.jinja
                     QRcodeSetter();
                 });
@@ -228,7 +228,7 @@
 		});
 
 		async function signMessageOnDevice() {
-			hidePageOverlay();
+			Specter.overlay.hidePageOverlay();
 			let signature = await signMessage(
 				'{{ device.device_type }}',
 				document.getElementById('message').value,
@@ -264,7 +264,7 @@
 					showPageOverlay('message-signing')
 				});  	
 		Specter.common.attachEventListener("signature", "click", (event)=> {
-					copyText(this.innerText, '{{ _("Copied message signature") }}')
+					Specter.common.copyText(this.innerText, '{{ _("Copied message signature") }}')
 				});  	
 		document.getElementById("{{ device.alias }}_usb_sign_msg_btn").addEventListener("click", (event)=> {
 					signMessageOnDevice();

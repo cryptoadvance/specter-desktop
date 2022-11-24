@@ -20,7 +20,7 @@
             <script>
                 document.getElementById("{{ device.alias }}_hwi_sign_btn").addEventListener("click", e => {
                     e.preventDefault();
-                    hidePageOverlay();
+                    Specter.overlay.hidePageOverlay();
                     let fingerprint = null;
                     {% for wallet_key in wallet.keys %}
                         {% for device_key in device.keys %}
@@ -42,8 +42,8 @@
             <script>
                 document.getElementById("{{ device.alias }}_file_sign_btn").addEventListener("click", e => {
                     e.preventDefault();
-                    hidePageOverlay();
-                    showPageOverlay('{{ device.alias }}_sign_tx_file');
+                    Specter.overlay.hidePageOverlay();
+                    Specter.overlay.showPageOverlay('{{ device.alias }}_sign_tx_file');
                 });
             </script>
         {% endif %}
@@ -55,8 +55,8 @@
             <script>
                 document.getElementById("{{ device.alias }}_qr_sign_btn").addEventListener("click", e => {
                     e.preventDefault();
-                    hidePageOverlay();
-                    showPageOverlay('{{ device.alias }}_sign_tx_qr');
+                    Specter.overlay.hidePageOverlay();
+                    Specter.overlay.showPageOverlay('{{ device.alias }}_sign_tx_qr');
                 });
             </script>
         {% endif %}
@@ -73,8 +73,8 @@
             <script>
                 document.getElementById("{{ device.alias }}_hot_sign_btn").addEventListener("click", async function(e) {
                     e.preventDefault();
-                    hidePageOverlay();
-                    showPageOverlay('{{ device.alias }}_hot_enter_passphrase')
+                    Specter.overlay.hidePageOverlay();
+                    Specter.overlay.showPageOverlay('{{ device.alias }}_hot_enter_passphrase')
                 });
             </script>
             <div id="{{ device.alias }}_hot_enter_passphrase" class="hidden">

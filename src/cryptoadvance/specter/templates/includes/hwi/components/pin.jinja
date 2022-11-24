@@ -21,12 +21,12 @@
                 return null;
             }
             console.log(result);
-            if(!overlayIsActive()){
+            if(!Specter.overlay.overlayIsActive()){
                 // showNotification("HWI is ready again", 10000);
                 // no need to proceed at all
                 return null;
             }
-            hidePageOverlay();
+            Specter.overlay.hidePageOverlay();
         }
 
         let el = document.getElementById("hwi_pin_container");
@@ -71,15 +71,15 @@
             }
         });
         // detect device
-        showPageOverlay("hwi_pin");
+        Specter.overlay.showPageOverlay("hwi_pin");
         while(!pinReady){
             await Specter.common.wait(100);
-            if(!overlayIsActive()){
+            if(!Specter.overlay.overlayIsActive()){
                 console.log("cancelled");
                 return null;
             }
         }
-        hidePageOverlay();
+        Specter.overlay.hidePageOverlay();
         // now we have PIN - send it
         showHWIProgress(`{{ _("Processing...") }}`, `{{ _("Keep your") }} ${Specter.format.capitalize(device.type)} {{ _("connected") }}.`);
         result = null;
@@ -90,12 +90,12 @@
             return null;
         }
         console.log(result);
-        if(!overlayIsActive()){
+        if(!Specter.overlay.overlayIsActive()){
             // showNotification("HWI is ready again", 10000);
             // no need to proceed at all
             return null;
         }
-        hidePageOverlay();
+        Specter.overlay.hidePageOverlay();
         return result;
     }
 </script>
