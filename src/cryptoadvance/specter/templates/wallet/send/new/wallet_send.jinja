@@ -618,22 +618,22 @@
 		document.getElementById('add-recipient').addEventListener("click", (event)=> {
 			addRecipient('', '', 'btc', '');
 		})
-		document.getElementById("amount_unit_text-sat").addEventListener("change", (event)=> {			
+		Specter.common.attachEventListener("amount_unit_text-sat", "change", (event)=> {			
 			toggleTextUnit(event.target);
 		})
-		document.getElementById("amount_unit_text-btc").addEventListener("change", (event)=> {
+		Specter.common.attachEventListener("amount_unit_text-btc", "change", (event)=> {
 			toggleTextUnit(event.target);
 		})
-		document.getElementById("recipients-txt").addEventListener("blur", (event)=> {
+		Specter.common.attachEventListener("recipients-txt", "blur", (event)=> {
 			validateForm();
 		})
-		document.getElementById("input-ui_option-ui").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("input-ui_option-ui", "click", (event)=> {
 			toggleSendUIType(event.target);
 		})
-		document.getElementById("input-ui_option-text").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("input-ui_option-text", "click", (event)=> {
 			toggleSendUIType(event.target);
 		})
-		document.getElementById("calculated_tx_fee_label").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("calculated_tx_fee_label", "click", (event)=> {
 			calculateEstimatedFee();
 		})
 	</script>

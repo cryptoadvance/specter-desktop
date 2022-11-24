@@ -79,10 +79,10 @@
         }
     }
 
-    document.getElementById("key_text").addEventListener("click", (event)=> {
+    Specter.common.attachEventListener("key_text", "click", (event)=> {
                 copyText(this.innerText, '{{ _("Copied full key") }}');
             });  	
-    document.getElementById("show_der_path").addEventListener("change", (event)=> {
+    Specter.common.attachEventListener("show_der_path", "change", (event)=> {
                 toggleKeyDisplay()
             });  	
     document.getElementById("use_slip_132").addEventListener("change", (event)=> {

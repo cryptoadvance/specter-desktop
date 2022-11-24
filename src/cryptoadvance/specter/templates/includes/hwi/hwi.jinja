@@ -227,10 +227,10 @@
 
     }
 
-    document.getElementById("btn-coldcard-notice").addEventListener("click", (event)=> {
+    Specter.common.attachEventListener("btn-coldcard-notice", "click", (event)=> {
                 coldCardNotice();
             });  	
-    document.getElementById("btn-go-to-coinkite").addEventListener("click", (event)=> {
+    Specter.common.attachEventListener("btn-go-to-coinkite", "click", (event)=> {
                 goToCoinkite();
             });  	
 

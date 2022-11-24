@@ -190,26 +190,26 @@
         }
 
 
-		document.getElementById("btn-setupBitcoindDirectory-override-existing").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("btn-setupBitcoindDirectory-override-existing", "click", (event)=> {
 					hidePageOverlay();
                     setupBitcoindDirectory(true)
 				});  	      
-		document.getElementById("btn-edit-path").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("btn-edit-path", "click", (event)=> {
 					hidePageOverlay()
 				});  	        
-		document.getElementById("setup-bitcoind-dir-button").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("setup-bitcoind-dir-button", "click", (event)=> {
 					setupBitcoindDirectory()
 				});  	        
-		document.getElementById("select-network-btn").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("select-network-btn", "click", (event)=> {
 					showPageOverlay('switch-network-popup')
 				});  	        
-		document.getElementById("toggle_advanced").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("toggle_advanced", "click", (event)=> {
 					toggleAdvanced()
 				});  	        
-		document.getElementById("helper").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("helper", "click", (event)=> {
 					toggleHelper()
 				});  	        
-		document.getElementById("quicksync").addEventListener("change", (event)=> {
+		Specter.common.attachEventListener("quicksync", "change", (event)=> {
 					toggleNodeTypeSelect()
 				});  	        
     </script>

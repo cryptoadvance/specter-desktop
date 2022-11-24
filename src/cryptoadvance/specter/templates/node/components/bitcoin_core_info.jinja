@@ -74,7 +74,7 @@
             }
         }
 
-        document.getElementById("btn-fetchTotalSupply").addEventListener("click", (event)=> {
+        Specter.common.attachEventListener("btn-fetchTotalSupply", "click", (event)=> {
 					fetchTotalSupply();
 				});  
 

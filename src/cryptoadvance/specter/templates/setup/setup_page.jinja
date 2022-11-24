@@ -110,7 +110,7 @@
             setTimeout(fetchProgress, 1000);
         }
 
-		document.getElementById("show-progress-details").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("show-progress-details", "click", (event)=> {
 					showPageOverlay('progress-details');
 				});  	 
         

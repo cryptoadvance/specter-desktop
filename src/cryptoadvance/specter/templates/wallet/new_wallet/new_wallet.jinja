@@ -65,10 +65,10 @@
 		return true;
 	}
 
-	document.getElementById("new-wallet-form").addEventListener("submit", (event)=> {
+	Specter.common.attachEventListener("new-wallet-form", "submit", (event)=> {
 				return isValidForm()
 			});  	
-	document.getElementById("input-checkbox-is-multisig").addEventListener("change", (event)=> {
+	Specter.common.attachEventListener("input-checkbox-is-multisig", "change", (event)=> {
 				document.getElementById('submit-device').click()
 			});  	
 

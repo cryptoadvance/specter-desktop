@@ -324,28 +324,28 @@
 
 
 
-		document.getElementById("price-bar-btn").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("price-bar-btn", "click", (event)=> {
 					showPageOverlay('price-popup');
 				});  	        
-		document.getElementById("manual_price_btn").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("manual_price_btn", "click", (event)=> {
 					setPriceView('manual')
 				});  	        
-		document.getElementById("automatic_price_btn").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("automatic_price_btn", "click", (event)=> {
 					setPriceView('automatic')
 				});  	        
-		document.getElementById("price_provider_currency").addEventListener("change", (event)=> {
+		Specter.common.attachEventListener("price_provider_currency", "change", (event)=> {
 					filterProviderOptions()
 				});  	        
-		document.getElementById("price_provider").addEventListener("change", (event)=> {
+		Specter.common.attachEventListener("price_provider", "change", (event)=> {
 					providerChanged()
 				});  	        
-		document.getElementById("btn-save-price-data").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("btn-save-price-data", "click", (event)=> {
 					savePriceData(true)
 				});  	        
-		document.getElementById("btn-disable-show-price").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("btn-disable-show-price", "click", (event)=> {
 					togglePriceCheck(false)
 				});  	        
-		document.getElementById("btn-enable-show-price").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("btn-enable-show-price", "click", (event)=> {
 					togglePriceCheck(true)
 				});  	        
     </script>

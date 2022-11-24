@@ -61,4 +61,12 @@ async function wait(ms){
 	});
 }
 
-export { copyText, send_request, showError, showNotification, wait }
+
+function attachEventListener(id, type, f){
+	const element = document.getElementById(id);
+	if (element){
+		element.addEventListener(type, f);  	
+	}	
+}
+
+export { copyText, send_request, showError, showNotification, wait, attachEventListener }

@@ -75,7 +75,7 @@
         }
 
 
-        document.getElementById("step_one").addEventListener("click", function() {
+        Specter.common.attachEventListener("step_one", "click", function() {
                     pollSuccess(); 
                     window.open('{{ flow_url }}', '_blank');
                 }) 

@@ -127,7 +127,7 @@
                             <button id="btn-liquid-assets-registry" type="button" class="btn">{{ _("Show assets list") }}</button>
                         </th>
                         <script type="module">
-                            document.getElementById("btn-liquid-assets-registry").addEventListener("click", (event)=> {
+                            Specter.common.attachEventListener("btn-liquid-assets-registry", "click", (event)=> {
                                         showPageOverlay('liquid-assets-registry')
                                     });  	
                         </script>	 	                        

@@ -42,10 +42,10 @@
 				<button type="button" id="unconfidential_btn" class="btn radio right"> {{ _("Unconfidential") }} </button>
 			</nav>
 			<script type="module">
-				document.getElementById("confidential_btn").addEventListener("click", (event)=> {
+				Specter.common.attachEventListener("confidential_btn", "click", (event)=> {
 							toggle_confidential(true)
 						});  	
-				document.getElementById("unconfidential_btn").addEventListener("click", (event)=> {
+				Specter.common.attachEventListener("unconfidential_btn", "click", (event)=> {
 							toggle_confidential(false)
 						});  	
 			</script>	 			
@@ -53,7 +53,7 @@
 		<div class="warning" style="font-weight: lighter; background: #0003; color: #ddd; display: inline-block; margin:5% auto 5%; border: 1px solid #777; padding: 20px; max-width: 100%;">
 			<p title="Click to copy" id="address" class="padded" style="word-break: break-all;">{{ wallet.address }}</p>
 			<script type="module">
-				document.getElementById("address").addEventListener("click", (event)=> {
+				Specter.common.attachEventListener("address", "click", (event)=> {
 							copyText(this.textContent, '{{ _("Copied Address:") }} ' + this.textContent);
 						});  	
 			</script>	 				
@@ -227,22 +227,20 @@
 		}
 
 
-		document.getElementById("btn_continue").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("btn_continue", "click", (event)=> {
 			hidePageOverlay();
 		});  
-		if (document.getElementById("btn-new_wallet_devices_popup")){
-			document.getElementById("btn-new_wallet_devices_popup").addEventListener("click", (event)=> {
-				hidePageOverlay();
-				showPageOverlay('new_wallet_devices_popup');
-			});  
-		}
-		document.getElementById("advanced_pdf_export_toggle").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("btn-new_wallet_devices_popup", "click", (event)=> {
+			hidePageOverlay();
+			showPageOverlay('new_wallet_devices_popup');
+		});  
+		Specter.common.attachEventListener("advanced_pdf_export_toggle", "click", (event)=> {
 			togglePDFExportAdvanced();
 		});  
-		document.getElementById("btn-nw-wallet-popup-finish").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("btn-nw-wallet-popup-finish", "click", (event)=> {
 			hidePageOverlay();
 		});  
-		document.getElementById("use_slip_132_pdf").addEventListener("change", (event)=> {
+		Specter.common.attachEventListener("use_slip_132_pdf", "change", (event)=> {
 			toggleKeyDisplay();
 		});  
 	</script>

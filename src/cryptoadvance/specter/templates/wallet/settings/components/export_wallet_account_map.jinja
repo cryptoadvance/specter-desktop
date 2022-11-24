@@ -29,10 +29,10 @@
     document.addEventListener("DOMContentLoaded", function(){
         document.getElementById('electrum_export').href = 'data:text/plain,' + encodeURIComponent('{{ wallet.get_electrum_file()|tojson }}');
     });
-	document.getElementById("btn-copy-wallet-data").addEventListener("click", (event)=> {
+	Specter.common.attachEventListener("btn-copy-wallet-data", "click", (event)=> {
 			copyText(document.getElementById('account_map').innerText, 'Copied wallet data');
     });
-	document.getElementById("electrum_export").addEventListener("click", (event)=> {
+	Specter.common.attachEventListener("electrum_export", "click", (event)=> {
 			Specter.common.showNotification(`Import wallet file to your Electrum: File -> Open -> Choose... -> {{ wallet.alias | ascii20 }}_electrum.backup`, 0);
     });
 

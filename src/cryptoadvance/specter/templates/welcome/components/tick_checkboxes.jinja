@@ -25,18 +25,18 @@
                             </div>
                         </div>
                         <script type="module">
-                            document.getElementById("btn-connect-node-help-popup").addEventListener("click", (event)=> {
+                            Specter.common.attachEventListener("btn-connect-node-help-popup", "click", (event)=> {
                                         showPageOverlay('connect-node-help-popup');
                                     });  	
-                            document.getElementById("btn-no-node-help-popup").addEventListener("click", (event)=> {
+                            Specter.common.attachEventListener("btn-no-node-help-popup", "click", (event)=> {
                                         hidePageOverlay();
                                         showPageOverlay('no-node-help-popup');
                                     });  	
-                            document.getElementById("btn-local-node-help-popup").addEventListener("click", (event)=> {
+                            Specter.common.attachEventListener("btn-local-node-help-popup", "click", (event)=> {
                                         hidePageOverlay();
                                         showPageOverlay('local-node-help-popup');
                                     });  	
-                            document.getElementById("btn-remote-node-help-popup").addEventListener("click", (event)=> {
+                            Specter.common.attachEventListener("btn-remote-node-help-popup", "click", (event)=> {
                                         hidePageOverlay();
                                         showPageOverlay('remote-node-help-popup');
                                     });  	

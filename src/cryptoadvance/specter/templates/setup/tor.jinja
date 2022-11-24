@@ -46,7 +46,7 @@
             }
         }
 
-		document.getElementById("setup-tor-button").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("setup-tor-button", "click", (event)=> {
 					setupTorDaemon()
 				});  	        
     </script>

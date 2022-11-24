@@ -183,7 +183,7 @@
 				});
 			{% endif %}
 
-			document.getElementById("btn-toggleHideSensitiveInfo").addEventListener("click", function() {
+			Specter.common.attachEventListener("btn-toggleHideSensitiveInfo", "click", function() {
 						toggleHideSensitiveInfo();
 					})
 		</script>

@@ -75,7 +75,7 @@
             }
         });
 
-        document.getElementById("page_overlay").addEventListener("click", function(e) {
+        Specter.common.attachEventListener("page_overlay", "click", function(e) {
             // Ignore clicks on children
             if(e.target !== e.currentTarget) return;
             cancelOverlay();
@@ -89,7 +89,7 @@
 
 
 
-    document.getElementById("page_overlay_popup_cancel_button").addEventListener("click", (event)=> {
+    Specter.common.attachEventListener("page_overlay_popup_cancel_button", "click", (event)=> {
         cancelOverlay();
 				});  
 </script>

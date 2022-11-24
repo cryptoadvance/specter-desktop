@@ -570,18 +570,18 @@
         }
 
 
-		document.getElementById("edit-xpubs-table-btn").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("edit-xpubs-table-btn", "click", (event)=> {
 					editXpubsTable(event.target)
 				});  	
-		document.getElementById("xpub-paste").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("xpub-paste", "click", (event)=> {
 					showPageOverlay('paste-xpub-popup')
 				});  	
-		document.getElementById("btn-paste-xpub-popup").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("btn-paste-xpub-popup", "click", (event)=> {
 					addXpubs(document.getElementById('paste-xpub-text').value);
                     hidePageOverlay();
                     document.getElementById('paste-xpub-text').value='';
 				});  	
-		document.getElementById("form").addEventListener("submit", (event)=> {
+		Specter.common.attachEventListener("form", "submit", (event)=> {
 					showPacman();
 				});  	
     </script>

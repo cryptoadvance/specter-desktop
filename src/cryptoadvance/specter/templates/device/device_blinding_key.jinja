@@ -99,15 +99,15 @@
 
 
 
-		document.getElementById("mbk-paste").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("mbk-paste", "click", (event)=> {
 					showPageOverlay('paste-mbk-popup');
 				});  	
-		document.getElementById("btn-add-blinding-key").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("btn-add-blinding-key", "click", (event)=> {
 					addBlindingKey(document.getElementById('paste-mbk-text').value);
                     hidePageOverlay();
                     document.getElementById('paste-mbk-text').value='';
 				});  	
-		document.getElementById("form-device_blinding_key").addEventListener("submit", (event)=> {
+		Specter.common.attachEventListener("form-device_blinding_key", "submit", (event)=> {
 					showPacman();
 				});  	
 

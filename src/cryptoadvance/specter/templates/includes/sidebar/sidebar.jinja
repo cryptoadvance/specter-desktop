@@ -337,20 +337,16 @@
     });
 
 
-    document.getElementById("node-switch-icon").addEventListener("click", (event)=> {
+    Specter.common.attachEventListener("node-switch-icon", "click", (event)=> {
                 showNodeSelectPopup();
             }); 
-    if (document.getElementById("btn-failed_wallets_popup")){
-        document.getElementById("btn-failed_wallets_popup").addEventListener("click", (event)=> {
-                    showPageOverlay('failed_wallets_popup');
-                }); 
-    }
-    if (document.getElementById("active-node")){
-        document.getElementById("active-node").addEventListener("click", (event)=> {
-                    showPageOverlay('bitcoin_core_info');
-                    document.getElementById('side-content').classList.remove('active');
-                }); 
-    }
+    Specter.common.attachEventListener("btn-failed_wallets_popup", "click", (event)=> {
+                showPageOverlay('failed_wallets_popup');
+            }); 
+    Specter.common.attachEventListener("active-node", "click", (event)=> {
+                showPageOverlay('bitcoin_core_info');
+                document.getElementById('side-content').classList.remove('active');
+            }); 
 
 
 </script>

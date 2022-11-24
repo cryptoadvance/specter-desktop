@@ -7,7 +7,7 @@
 	{% endfor %}
 </select>
 <script type="module">
-	document.getElementById("select-language_code").addEventListener("change", (event)=> {
+	Specter.common.attachEventListener("select-language_code", "change", (event)=> {
 				changeLanguage(event.target)
 			});  	
 </script>

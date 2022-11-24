@@ -210,23 +210,23 @@
         }
 
 
-		document.getElementById("form").addEventListener("submit", (event)=> {
+		Specter.common.attachEventListener("form", "submit", (event)=> {
             if (checkAdvancedValidState()) { 
                 showPacman();
             } else { 
                 event.preventDefault(); 
             }
         });  	        
-		document.getElementById("generate_mnemonic_btn").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("generate_mnemonic_btn", "click", (event)=> {
             setMnemonicView('generate');
         });  	        
-		document.getElementById("import_mnemonic_btn").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("import_mnemonic_btn", "click", (event)=> {
             setMnemonicView('import');
         });  	        
-		document.getElementById("btn-generate_mnemonic").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("btn-generate_mnemonic", "click", (event)=> {
             generateMnemonic();
         });  	        
-		document.getElementById("toggle-advanced").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("toggle-advanced", "click", (event)=> {
             toggleAdvanced();
         });  	        
 

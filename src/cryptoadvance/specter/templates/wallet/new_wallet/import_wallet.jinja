@@ -56,19 +56,16 @@
 	</form>
 
 	<script type="module">
-		document.getElementById("btn-done-unknown_cosigner_{{ loop.index0 }}_details").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener(("btn-done-unknown_cosigner_{{ loop.index0 }}_details", "click", (event)=> {
 					hidePageOverlay()
 				});  	
-		document.getElementById("input-unknown_cosigner_{{ loop.index0 }}_details").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener(("input-unknown_cosigner_{{ loop.index0 }}_details", "click", (event)=> {
 					document.getElementById('unknown_cosigner_{{ loop.index0 }}_name').innerText = event.target.value;
 					document.getElementById('unknown_cosigner_{{ loop.index0 }}_name_input').value = event.target.value;
 				});  	
-
-		if (document.getElementById("div-showPageOverlay-unknown_cosigner_{{ loop.index0 }}_details")){
-			document.getElementById("div-showPageOverlay-unknown_cosigner_{{ loop.index0 }}_details").addEventListener("click", (event)=> {
-					showPageOverlay('unknown_cosigner_{{ loop.index0 }}_details')
-				});  	
-		}
+		Specter.common.attachEventListener(("div-showPageOverlay-unknown_cosigner_{{ loop.index0 }}_details", "click", (event)=> {
+				showPageOverlay('unknown_cosigner_{{ loop.index0 }}_details')
+			});  	
   
 
 	</script>	 		

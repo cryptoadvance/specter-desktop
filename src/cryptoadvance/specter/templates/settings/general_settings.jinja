@@ -229,28 +229,28 @@
 
 	{% include "includes/language/language_js.jinja" %}
 
-	document.getElementById("span-merkle-info-details").addEventListener("click", (event)=> {
+	Specter.common.attachEventListener("span-merkle-info-details", "click", (event)=> {
 				toggleHidden('merkle-info-details');
 			});  	
-	document.getElementById("autohide_sensitive_info_timeout").addEventListener("change", (event)=> {
+	Specter.common.attachEventListener("autohide_sensitive_info_timeout", "change", (event)=> {
 				updateAutoHideSensitiveInfoTimeout();
 			});  	
-	document.getElementById("autologout_timeout").addEventListener("change", (event)=> {
+	Specter.common.attachEventListener("autologout_timeout", "change", (event)=> {
 				updateAutoLogoutTimeout();
 			});  	
-	document.getElementById("input-fee_estimator-mempool").addEventListener("click", (event)=> {
+	Specter.common.attachEventListener("input-fee_estimator-mempool", "click", (event)=> {
 				updateFeeEstimator();
 			});  	
-	document.getElementById("input-fee_estimator-bitcoin_core").addEventListener("click", (event)=> {
+	Specter.common.attachEventListener("input-fee_estimator-bitcoin_core", "click", (event)=> {
 				updateFeeEstimator();
 			});  	
-	document.getElementById("fee_estimator_custom_option").addEventListener("click", (event)=> {
+	Specter.common.attachEventListener("fee_estimator_custom_option", "click", (event)=> {
 				updateFeeEstimator();
 			});  	
-	document.getElementById("btn-load-specter-backup").addEventListener("submit", (event)=> {
+	Specter.common.attachEventListener("btn-load-specter-backup", "submit", (event)=> {
 				showPacman()
-			});  	
-	document.getElementById("form-general-settings").addEventListener("submit", (event)=> {
+			});  		
+	Specter.common.attachEventListener("form-general-settings", "submit", (event)=> {
 				showPacman()
 			});  	
 	</script>

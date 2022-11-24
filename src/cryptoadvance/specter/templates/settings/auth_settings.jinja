@@ -123,7 +123,7 @@
             }
 		}
 
-		document.getElementById("select-method-authentication").addEventListener("change", (event)=> {
+		Specter.common.attachEventListener("select-method-authentication", "change", (event)=> {
 					toggleUsernamePassword(event.target)
 				});  	
 

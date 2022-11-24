@@ -431,36 +431,25 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 		});
 	}
 
-	if (document.getElementById("btn-toggle-device-passphrase")){
-		document.getElementById("btn-toggle-device-passphrase").addEventListener("click", (event)=> {
-					togglePassphrase(document.getElementById('device_type').value)
-				});  	
-	}
-	if (document.getElementById("p-usb_import_account_number")){
-		document.getElementById("p-usb_import_account_number").addEventListener("click", (event)=> {
-					showPageOverlay('usb_import_account_number')
-				});  	
-	}
-	if (document.getElementById("btn-hidePageOverlay")){
-		document.getElementById("btn-hidePageOverlay").addEventListener("click", (event)=> {
-					hidePageOverlay()
-				});  	
-	}
-	if (document.getElementById("generate_mnemonic_btn")){
-		document.getElementById("generate_mnemonic_btn").addEventListener("click", (event)=> {
-					setMnemonicView('generate')
-				});  	
-	}
-	if (document.getElementById("import_mnemonic_btn")){
-		document.getElementById("import_mnemonic_btn").addEventListener("click", (event)=> {
-					setMnemonicView('import')
-				});  	
-	}
-
-	document.getElementById("form-add-manual-device").addEventListener("submit", (event)=> {
+	Specter.common.attachEventListener("btn-toggle-device-passphrase", "click", (event)=> {
+				togglePassphrase(document.getElementById('device_type').value)
+			});  	
+	Specter.common.attachEventListener("p-usb_import_account_number", "click", (event)=> {
+				showPageOverlay('usb_import_account_number')
+			});  	
+	Specter.common.attachEventListener("btn-hidePageOverlay", "click", (event)=> {
+				hidePageOverlay()
+			});  	
+	Specter.common.attachEventListener("generate_mnemonic_btn", "click", (event)=> {
+				setMnemonicView('generate')
+			});  	
+	Specter.common.attachEventListener("import_mnemonic_btn", "click", (event)=> {
+				setMnemonicView('import')
+			});  	
+	Specter.common.attachEventListener("form-add-manual-device", "submit", (event)=> {
 					{% if not device %}return checkType();{% endif %}
 				});  	
-	document.getElementById("btn-newcolddevice").addEventListener("submit", (event)=> {
+	Specter.common.attachEventListener("btn-newcolddevice", "submit", (event)=> {
 					showPacman()
 				});  	
 

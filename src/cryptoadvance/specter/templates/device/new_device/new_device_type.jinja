@@ -55,7 +55,7 @@
         }
 
 
-		document.getElementById("device-type-searchbar").addEventListener("input", (event)=> {
+		Specter.common.attachEventListener("device-type-searchbar", "input", (event)=> {
 					filterDeviceTypes(event.target.value)
 				});  		
 

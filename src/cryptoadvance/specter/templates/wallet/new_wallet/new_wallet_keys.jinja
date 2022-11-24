@@ -240,27 +240,26 @@
 
 
 
-		document.getElementById("input-full_rescan_option-full").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("input-full_rescan_option-full", "click", (event)=> {
 					toggleFullRescanOption(event.target)
 				});  	
-		document.getElementById("input-full_rescan_option-utxo").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("input-full_rescan_option-utxo", "click", (event)=> {
 					toggleFullRescanOption(event.target)
 				});  	
-		document.getElementById("radio-wallet-type-0").addEventListener("change", (event)=> {
+		Specter.common.attachEventListener("radio-wallet-type-0", "change", (event)=> {
 					updateType(event.target.value);
 				});  	
-		document.getElementById("radio-wallet-type-1").addEventListener("change", (event)=> {
+		Specter.common.attachEventListener("radio-wallet-type-1", "change", (event)=> {
 					updateType(event.target.value);
 				});  	
-		if (document.getElementById("radio-wallet-type-2")){
-			document.getElementById("radio-wallet-type-2").addEventListener("change", (event)=> {
-					updateType(event.target.value);
-				});  	}
+		Specter.common.attachEventListener("radio-wallet-type-2", "change", (event)=> {
+				updateType(event.target.value);
+			});  	
  
-		document.getElementById("rescan").addEventListener("change", (event)=> {
+		Specter.common.attachEventListener("rescan", "change", (event)=> {
 					toggleScanOptions(event.target)
 				});  	
-		document.getElementById("keysform").addEventListener("submit", (event)=> {
+		Specter.common.attachEventListener("keysform", "submit", (event)=> {
 					showPacman()
 				});  	
 	</script>

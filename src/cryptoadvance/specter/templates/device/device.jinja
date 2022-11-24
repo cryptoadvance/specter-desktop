@@ -80,18 +80,14 @@
 						</td>
 					</tr>
 					<script type="module">
-						if (document.getElementById("td-export-qr-{{loop.index0}}")){
-							document.getElementById("td-export-qr-{{loop.index0}}").addEventListener("click", (event)=> {
-									showPageOverlay('key_export_qr');
-									document.getElementById('key_selected').value = '{{loop.index0}}';
-									toggleKeyDisplay();
-								});  	
-						}
-						if (document.getElementById("copy-key-{{loop.index0}}")){
-							document.getElementById("copy-key-{{loop.index0}}").addEventListener("click", (event)=> {
-									copyText('{{ key }}', 'Copied key: {{ key }}');
-								});  	
-						}
+						document.getElementById("td-export-qr-{{loop.index0}}").addEventListener("click", (event)=> {
+								showPageOverlay('key_export_qr');
+								document.getElementById('key_selected').value = '{{loop.index0}}';
+								toggleKeyDisplay();
+							});  	
+						document.getElementById("copy-key-{{loop.index0}}").addEventListener("click", (event)=> {
+								copyText('{{ key }}', 'Copied key: {{ key }}');
+							});  	
 					</script>	 							
 				{% endfor %}
 			</tbody>
@@ -264,26 +260,18 @@
 			document.getElementById('msg-qr-code').setAttribute("value", fullStringToEncode)
 		}
 
-		if (document.getElementById("btn-sign-message")){
-			document.getElementById("btn-sign-message").addEventListener("click", (event)=> {
-						showPageOverlay('message-signing')
-					});  	
-		}
-		if (document.getElementById("signature")){
-			document.getElementById("signature").addEventListener("click", (event)=> {
-						copyText(this.innerText, '{{ _("Copied message signature") }}')
-					});  	
-		}
-		if (document.getElementById("{{ device.alias }}_usb_sign_msg_btn")){
-			document.getElementById("{{ device.alias }}_usb_sign_msg_btn").addEventListener("click", (event)=> {
-						signMessageOnDevice();
-					});  	
-		}
-		if (document.getElementById("btn-toggle-device-passphrase")){
-			document.getElementById("btn-toggle-device-passphrase").addEventListener("click", (event)=> {
-						togglePassphrase('{{ device.device_type }}')
-					});  	
-		}
+		Specter.common.attachEventListener("btn-sign-message", "click", (event)=> {
+					showPageOverlay('message-signing')
+				});  	
+		Specter.common.attachEventListener("signature", "click", (event)=> {
+					copyText(this.innerText, '{{ _("Copied message signature") }}')
+				});  	
+		document.getElementById("{{ device.alias }}_usb_sign_msg_btn").addEventListener("click", (event)=> {
+					signMessageOnDevice();
+				});  	
+		Specter.common.attachEventListener("btn-toggle-device-passphrase", "click", (event)=> {
+					togglePassphrase('{{ device.device_type }}')
+				});  	
 
 	</script>
 {% endblock %}

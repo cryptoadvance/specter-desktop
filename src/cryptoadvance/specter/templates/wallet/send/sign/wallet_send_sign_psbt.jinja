@@ -286,7 +286,7 @@
 			var raw_psbt = document.getElementById("raw-psbt");
 			copyText(raw_psbt.value, "Copied PSBT")
 		});
-		document.getElementById("show-qr-psbt-btn").addEventListener("click", 
+		Specter.common.attachEventListener("show-qr-psbt-btn", "click", 
 			(e)=>{
                 e.preventDefault();
                 showPageOverlay('raw-psbt-qr-container');
@@ -297,7 +297,7 @@
 				showPageOverlay("tx_broadcast");
 			});
 
-			document.getElementById("broadcast_block_explorer_btn").addEventListener("click", async function(e) {
+			Specter.common.attachEventListener("broadcast_block_explorer_btn", "click", async function(e) {
 				e.preventDefault();
 				document.getElementById("broadcast_local_btn").classList.add("hidden");
 				document.getElementById("broadcast_block_explorer_btn").classList.add("hidden");
@@ -310,7 +310,7 @@
 				document.getElementById("broadcast_options_btn").classList.remove("hidden");
 			});
 
-			document.getElementById("broadcast_options_btn").addEventListener("click", async function(e) {
+			Specter.common.attachEventListener("broadcast_options_btn", "click", async function(e) {
 				e.preventDefault();
 				document.getElementById("broadcast_local_btn").classList.remove("hidden");
 				document.getElementById("broadcast_block_explorer_btn").classList.remove("hidden");
@@ -323,40 +323,40 @@
 				document.getElementById("broadcast_options_btn").classList.add("hidden");
 			});
 
-			document.getElementById("broadcast_local_btn").addEventListener("click", async function(e) {
+			Specter.common.attachEventListener("broadcast_local_btn", "click", async function(e) {
 				e.preventDefault();
 				broadcastLocal(raw);
 			});
 
 			if ("{{ specter.chain }}" != "regtest") {
-				document.getElementById("broadcast_blockstream_btn").addEventListener("click", async function(e) {
+				Specter.common.attachEventListener("broadcast_blockstream_btn", "click", async function(e) {
 					e.preventDefault();
 					broadcastBlockExplorer(raw, 'blockstream', false);
 				});
 
-				document.getElementById("broadcast_mempool_btn").addEventListener("click", async function(e) {
+				Specter.common.attachEventListener("broadcast_mempool_btn", "click", async function(e) {
 					e.preventDefault();
 					broadcastBlockExplorer(raw, 'mempool', false);
 				});
 				
-				document.getElementById("broadcast_blockstream_tor_btn").addEventListener("click", async function(e) {
+				Specter.common.attachEventListener("broadcast_blockstream_tor_btn", "click", async function(e) {
 					e.preventDefault();
 					broadcastBlockExplorer(raw, 'blockstream', true);
 				});
 				
-				document.getElementById("broadcast_mempool_tor_btn").addEventListener("click", async function(e) {
+				Specter.common.attachEventListener("broadcast_mempool_tor_btn", "click", async function(e) {
 					e.preventDefault();
 					broadcastBlockExplorer(raw, 'mempool', true);
 				});
 			}
 
-			document.getElementById("save_psbt_btn").addEventListener("click", async function(e) {
+			Specter.common.attachEventListener("save_psbt_btn", "click", async function(e) {
 				e.preventDefault();
 				hidePageOverlay();
 				window.location.replace("{{ url_for('wallets_endpoint.send_pending',wallet_alias=wallet_alias) }}");
 			});
 
-			document.getElementById("copy_final_tx_btn").addEventListener("click", async function(e) {
+			Specter.common.attachEventListener("copy_final_tx_btn", "click", async function(e) {
 				e.preventDefault();
 				copyText(raw, 'Copied transaction')
 			});
@@ -514,13 +514,13 @@
 		{% endif %}
 
 
-		document.getElementById("btn-paste-tx-popup-confirm").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("btn-paste-tx-popup-confirm", "click", (event)=> {
 			currentSigningDevice = '';
 			combine(document.getElementById('paste-tx-text').value);
 			hidePageOverlay();
 			document.getElementById('paste-tx-text').value='';
 		});  
-		document.getElementById("pastetx").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("pastetx", "click", (event)=> {
 			showPageOverlay('paste-tx-popup');
 		});  
 	</script>

@@ -189,23 +189,19 @@
 				toggletor_type('{{ tor_type }}');
 			});
 
-			document.getElementById("tor_type_builtin").addEventListener("change", (event)=> {
+			Specter.common.attachEventListener("tor_type_builtin", "change", (event)=> {
 					toggletor_type('builtin');
 				});  
-			document.getElementById("tor_type_custom").addEventListener("change", (event)=> {
+			Specter.common.attachEventListener("tor_type_custom", "change", (event)=> {
 					toggletor_type('custom');
 				});  
-			if (document.getElementById("hidden_service")){
-				document.getElementById("hidden_service").addEventListener("change", (event)=> {
-						checkAuthEabled();
-					});  
-			}
-			if (document.getElementById("span-copy-explorer-link")){
-				document.getElementById("span-copy-explorer-link").addEventListener("click", (event)=> {
-						copyText('http:/\/{{ tor_service_id }}.onion', '{{ _("Copied Tor hidden service address:") }} {{ tor_service_id }}.onion');
-					});  
-			}
-			document.getElementById("form-tor-settings").addEventListener("submit", (event)=> {
+			Specter.common.attachEventListener("hidden_service", "change", (event)=> {
+					checkAuthEabled();
+				});  
+			Specter.common.attachEventListener("span-copy-explorer-link", "click", (event)=> {
+					copyText('http:/\/{{ tor_service_id }}.onion', '{{ _("Copied Tor hidden service address:") }} {{ tor_service_id }}.onion');
+				});  
+			Specter.common.attachEventListener("form-tor-settings", "submit", (event)=> {
 					showPacman()
 				});  
 		</script>

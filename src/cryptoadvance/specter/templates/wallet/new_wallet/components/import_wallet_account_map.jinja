@@ -33,7 +33,7 @@
             document.getElementById("txt").value = result;
             
         });
-        document.getElementById("scanme").addEventListener("click", function(){
+        Specter.common.attachEventListener("scanme", "click", function(){
             try{
                 scanner.start();
                 document.getElementById("popup").style.display = 'flex';
@@ -41,7 +41,7 @@
                 Specter.common.showError(`{{ _("Can't start the QR scanner!") }}\n\n` + e);
             }
         });
-        document.getElementById("popup").addEventListener("click", function(){
+        Specter.common.attachEventListener("popup", "click", function(){
             document.getElementById("popup").style.display = 'none';
             scanner.stop();
         });

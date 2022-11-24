@@ -430,25 +430,25 @@
 	    {% endif %}
 
 
-		document.getElementById("advanced_pdf_export_toggle").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("advanced_pdf_export_toggle", "click", (event)=> {
 			togglePDFExportAdvanced();
 		});
-		document.getElementById("btn-account_map_export").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("btn-account_map_export", "click", (event)=> {
 			showPageOverlay('account_map_export');
 		});
-		document.getElementById("toggle_keys_list").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("toggle_keys_list", "click", (event)=> {
 			toggleKeysList();
 		});
-		document.getElementById("toggle-mobile-nav").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("toggle-mobile-nav", "click", (event)=> {
 			toggleMobileNav(this, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`);
 		});
-		document.getElementById("advanced_settings_tab_btn").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("advanced_settings_tab_btn", "click", (event)=> {
 			setSettingsView('advanced');
 		});
-		document.getElementById("export_settings_tab_btn").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("export_settings_tab_btn", "click", (event)=> {
 			setSettingsView('export');
 		}); 
-		document.getElementById("info_settings_tab_btn").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("info_settings_tab_btn", "click", (event)=> {
 			setSettingsView('info');
 		});  
 		document.getElementById("use_slip_132_pdf").addEventListener("change", (event)=> {
