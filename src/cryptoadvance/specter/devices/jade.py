@@ -10,6 +10,9 @@ class Jade(HWIDevice):
     name = "Jade"
     icon = "img/devices/jade_icon.svg"
 
+    qr_code_support = True
+    supported_qr_code_format = "crypto-psbt"
+    sd_card_support = False
     supports_hwi_toggle_passphrase = False
     supports_hwi_multisig_display_address = True
     liquid_support = True
@@ -31,3 +34,10 @@ class Jade(HWIDevice):
         if wallet_type == "multisig" and is_liquid(network):
             return "Jade does not support multisig wallets on Liquid."
         return super().no_key_found_reason(wallet_type, network)
+
+    # For signing PSBTs via QR code on the Jade
+    def create_psbts(self, base64_psbt, wallet):
+        psbts = super().create_psbts(base64_psbt, wallet)
+        qr_psbt = wallet.fill_psbt(base64_psbt, non_witness=False, xpubs=False)
+        psbts["qrcode"] = f"{self.supported_qr_code_format}:{qr_psbt}"
+        return psbts

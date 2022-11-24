@@ -159,7 +159,7 @@ class Device:
                     return True
         elif wallet_type == "simple":
             for key_type in self.key_types(network):
-                if key_type in ["", "sh-wpkh", "wpkh"]:
+                if key_type in ["", "sh-wpkh", "wpkh", "tr"]:
                     return True
         return "" in self.key_types(network)
 

@@ -59,6 +59,12 @@ def cli():
     help="Start the hwi-bridge to use your HWWs with a remote specter.",
 )
 @click.option(
+    "--devstatus-threshold",
+    type=click.Choice(["alpha", "beta", "prod"], case_sensitive=False),
+    default=None,
+    help="Decide which maturity your extensions need to have in order to load them.",
+)
+@click.option(
     "--specter-data-folder",
     default=None,
     help="Use a custom specter data-folder. By default it is ~/.specter.",
@@ -78,6 +84,7 @@ def server(
     filelog,
     tor,
     hwibridge,
+    devstatus_threshold,
     specter_data_folder,
     config,
 ):
@@ -103,6 +110,10 @@ def server(
 
     if port:
         app.config["PORT"] = int(port)
+
+    # devstatus_threshold
+    if devstatus_threshold is not None:
+        app.config["SERVICES_DEVSTATUS_THRESHOLD"] = devstatus_threshold
 
     # certificates
     if cert:

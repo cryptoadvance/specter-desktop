@@ -161,7 +161,7 @@ def setup_bitcoind_datadir():
     network = request.form.get("network", "main")
     node_name = "Specter Bitcoin" if network == "main" else f"Specter {network.title()}"
     i = 1
-    while node_name in app.specter.node_manager.nodes:
+    while node_name in app.specter.node_manager.nodes_names:
         i += 1
         node_name = (
             f"Specter Bitcoin {i}"

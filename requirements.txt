@@ -145,8 +145,8 @@ ecdsa==0.18.0 \
     # via
     #   bitbox02
     #   hwi
-embit==0.5.0 \
-    --hash=sha256:5644ae6ed07bb71bf7fb15daf7f5af73d889180e623f5ff1f35a20ad01f0405e
+embit==0.6.1 \
+    --hash=sha256:16a84c6668dc9ffc907594457a46f7142cee379646bc009a5a9b77b0d2cb4e12
     # via -r requirements.in
 flask==2.1.1 \
     --hash=sha256:8a4cf32d904cf5621db9f0c9fbcd7efabf3003f22a04e4d0ce790c7137ec5264 \
@@ -499,9 +499,9 @@ wtforms==3.0.1 \
     --hash=sha256:6b351bbb12dd58af57ffef05bc78425d08d1914e0fd68ee14143b7ade023c5bc \
     --hash=sha256:837f2f0e0ca79481b92884962b914eba4e72b7a2daaf1f939c890ed0124b834b
     # via flask-wtf
-zipp==3.9.0 \
-    --hash=sha256:3a7af91c3db40ec72dd9d154ae18e008c69efe8ca88dde4f9a731bb82fe2f9eb \
-    --hash=sha256:972cfa31bc2fedd3fa838a51e9bc7e64b7fb725a8c00e7431554311f180e9980
+zipp==3.10.0 \
+    --hash=sha256:4fcb6f278987a6605757302a6e40e896257570d11c51628968ccb2a47e80c6c1 \
+    --hash=sha256:7a7262fd930bd3e36c50b9a64897aec3fafff3dfdeec9623ae22b40e93f99bb8
     # via importlib-metadata
 
 # WARNING: The following packages were not pinned, but pip requires them to be

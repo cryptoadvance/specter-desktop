@@ -44,6 +44,7 @@ nav:
       - extensions/data-storage.md
       - extensions/callbacks.md
       - extensions/devices.md
+      - extensions/nodes.md
     
 theme: 
   name: readthedocs

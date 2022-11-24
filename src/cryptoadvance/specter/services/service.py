@@ -55,6 +55,10 @@ class Service:
             raise Exception(f"Service {self.__class__} needs name")
         self.active = active
         self.specter = specter
+        self.data_folder = os.path.join(self.specter.data_folder, "extensions", self.id)
+        if not os.path.exists(self.data_folder):
+            logger.info(f"Creating extension data_folder {self.data_folder} ")
+            os.makedirs(self.data_folder)
 
     @classmethod
     def _storage_manager(cls):
@@ -133,6 +137,7 @@ class Service:
         )
         logger.debug(f"Already have {len(addresses)} addresses reserved for {cls.id}")
 
+        # More addresses ought to be reserved as there are reserved addresses
         if len(addresses) < num_addresses:
             if addresses:
                 # Continuing reserving from where we left off
@@ -153,7 +158,7 @@ class Service:
                     continue
 
                 # Mark an Address in a persistent way as being reserved by a Service
-                cls.reserve_address(wallet=wallet, address=address)
+                cls.reserve_address(wallet=wallet, address=address, label=label)
                 logger.debug(f"Reserved {address} for {cls.id}")
 
                 addresses.append(address)
@@ -162,9 +167,18 @@ class Service:
                     annotations_storage.set_addr_annotations(
                         addr=address, annotations=annotations, autosave=False
                     )
+        # There are enough addresses already reserved
+        else:
+            logger.debug(
+                f"Returning an empty list from reserve_addresses() since there are enough addresses already reserved."
+            )
+            return []
+
         if annotations:
             annotations_storage.save()
-
+        logger.debug(
+            f"Returning this list of addresses {addresses} from reserve_addresses()."
+        )
         return addresses
 
     @classmethod
