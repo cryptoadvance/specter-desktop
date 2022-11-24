@@ -153,18 +153,3 @@ def test_SpecterMigrator(empty_data_folder, caplog):
         )
         print("Content of nodes")
         print(os.listdir(os.path.join(empty_data_folder, "nodes")))
-        specter_bitcoin_json = os.path.join(
-            empty_data_folder, "nodes", "specter_bitcoin.json"
-        )
-        assert os.path.isfile(specter_bitcoin_json)
-        with open(specter_bitcoin_json) as jsonfile:
-            config = json.loads(jsonfile.read())
-        assert config["name"] == "specter_bitcoin"
-        assert config["alias"] == "specter_bitcoin"
-        assert config["autodetect"] == False
-        assert config["datadir"].endswith("nodes/specter_bitcoin/.bitcoin-main")
-        assert config["user"] == "bitcoin"
-        assert config["password"]
-        assert config["port"] == 8332
-        assert config["host"] == "localhost"
-        # yeah, some more but should be ok
