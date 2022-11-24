@@ -173,9 +173,8 @@ class BaseConfig(object):
 
     # List of extensions (services) to potentially load
     EXTENSION_LIST = [
-        "cryptoadvance.specter.services.swan.service",
+        "cryptoadvance.specterext.swan.service",
         "cryptoadvance.specterext.liquidissuer.service",
-        "cryptoadvance.specter.services.bitcoinreserve.service",
         "cryptoadvance.specterext.devhelp.service",
         "cryptoadvance.specterext.exfund.service",
         "cryptoadvance.specterext.faucet.service",

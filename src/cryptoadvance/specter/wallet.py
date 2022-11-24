@@ -628,7 +628,8 @@ class Wallet:
         self.check_addresses()
 
     def check_unused(self):
-        """Check current receive address is unused and get new if needed"""
+        """Check current receive address is unused and get new if needed
+        Used means: the given address having a non-zero amount received in transactions with zero confirmations."""
         addr = self.address
         try:
             while self.rpc.getreceivedbyaddress(addr, 0) != 0:
@@ -1642,8 +1643,9 @@ class Wallet:
         readonly=False,  # fee estimation
         rbf=True,
         rbf_edit_mode=False,
-    ):
+    ) -> dict:
         """
+        Returns psbt as dictionary.
         fee_rate: in sat/B or BTC/kB. If set to 0 Bitcoin Core sets feeRate automatically.
         """
         if fee_rate != 0 and fee_rate < self.MIN_FEE_RATE:
@@ -1717,7 +1719,10 @@ class Wallet:
             True,  # bip32-der
         )
 
-        b64psbt = r["psbt"]
+        # Always explicitly fill psbt with any missing fields
+        # TODO: Re-evaluate if this is necessary if user is running Bitcoin Core w/BIP-371 support
+        b64psbt = self.fill_psbt(r["psbt"])
+
         psbt = self.PSBTCls(
             b64psbt,
             self.descriptor,
@@ -1740,14 +1745,16 @@ class Wallet:
                 True,  # bip32-der
             )
 
-            b64psbt = r["psbt"]
+            # Always explicitly fill psbt with any missing fields
+            # TODO: Re-evaluate if this is necessary if user is running Bitcoin Core w/BIP-371 support
+            b64psbt = self.fill_psbt(r["psbt"])
+
             psbt = self.PSBTCls(
                 b64psbt,
                 self.descriptor,
                 self.network,
                 devices=list(zip(self.keys, self._devices)),
             )
-
         if not readonly:
             self.save_pending_psbt(psbt)
         return psbt.to_dict()
@@ -1866,15 +1873,17 @@ class Wallet:
         b64psbt,
         non_witness: bool = True,
         xpubs: bool = True,
-        taproot_derivations: bool = False,
     ):
         psbt = self.PSBTCls.from_string(b64psbt)
 
         # Core doesn't fill derivations yet, so we do it ourselves
-        if taproot_derivations and self.is_taproot:
-
+        # Provide the BIP-371 `PSBT_IN_TAP_BIP32_DERIVATION` 0x16 field
+        if self.is_taproot:
             net = self.network
             for sc in psbt.inputs + psbt.outputs:
+                if sc.taproot_internal_key is not None:
+                    # psbt already has Taproot fields for this `InputScope`/`OutputScope`
+                    continue
                 addr = sc.script_pubkey.address(net)
                 info = self._addresses.get(addr)
                 if info and not info.is_external:
@@ -1882,9 +1891,18 @@ class Wallet:
                         info.index, branch_index=int(info.change)
                     )
                     for k in d.keys:
-                        sc.bip32_derivations[PublicKey.parse(k.sec())] = DerivationPath(
+                        # TODO: support keysigns from within the taptree (note: embit
+                        # must be updated first).
+                        leaf_hashes = []
+                        derivation = DerivationPath(
                             k.origin.fingerprint, k.origin.derivation
                         )
+                        pub = PublicKey.from_xonly(k.xonly())
+                        sc.taproot_bip32_derivations[pub] = (
+                            leaf_hashes,
+                            derivation,
+                        )
+                        sc.taproot_internal_key = pub
 
         if non_witness:
             for inp in psbt.inputs:

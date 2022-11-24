@@ -8,7 +8,7 @@ from pkgutil import iter_modules
 import sys
 from typing import List
 from .common import camelcase2snake_case
-from ..specter_error import SpecterError
+from ..specter_error import SpecterError, SpecterInternalException
 from .shell import grep
 
 from .reflection_fs import detect_extension_style_in_cwd, search_dirs_in_path
@@ -18,6 +18,19 @@ logger = logging.getLogger(__name__)
 
 def _get_module_from_class(clazz):
     return import_module(clazz.__module__)
+
+
+def get_class(fqcn: str):
+    """Returns a class by a fully qualified class name like e.g. cryptoadvance.specter.node.Node"""
+    module_name = ".".join(fqcn.split(".")[:-1])
+
+    class_name = fqcn.split(".")[-1]
+    try:
+        module = import_module(module_name)
+        my_class = getattr(module, class_name)
+    except (AttributeError, ModuleNotFoundError) as e:
+        raise SpecterInternalException(f"Could not find {fqcn}: {e}")
+    return my_class
 
 
 def get_template_static_folder(foldername):
@@ -49,10 +62,13 @@ def get_package_dir_for_subclasses_of(clazz):
             ).resolve()
         )
     elif clazz.__name__ == "Service":
+        # here, we'd like to know the Path of the namespace module cryptoadvance.specterext
+        # but that fails because you cannot import namespace-modules.
+        # So we take a module that we know exists and take its parent.
         return str(
             Path(
-                import_module("cryptoadvance.specter.services").__file__
-            ).parent.resolve()
+                import_module("cryptoadvance.specterext.devhelp").__file__
+            ).parent.parent.resolve()
         )
     # This is mainly for testing purposes for now
     elif clazz.__name__ == "Device":
@@ -98,9 +114,6 @@ def get_classlist_of_type_clazz_from_modulelist(clazz, modulelist):
                 ):
                     # Unfortunately the superclass gets imported if you inherit from it and counts as an attribute as well
                     if str(attribute.__module__).startswith(fq_module_name):
-                        logger.debug(
-                            f" {attribute.__module__} <<<<-------------------------------------"
-                        )
                         logger.debug(f"Adding {attribute} to {class_list}")
                         class_list.append(attribute)
                         logger.info(f"  Found class {attribute.__name__}")
@@ -166,53 +179,44 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
             f"Iterating on importer={importer} , module_name={module_name} is_pkg={is_pkg}"
         )
         if clazz.__name__ == "Service":
+            # Ignore the stuff lying around in cryptoadvance/specter/services
+            if importer.path.endswith(
+                os.path.sep.join(["cryptoadvance", "specter", "services"])
+            ):
+                continue
             try:
-
-                module = import_module(
-                    f"cryptoadvance.specter.services.{module_name}.service"
-                )
-                logger.debug(
-                    f"  Imported cryptoadvance.specter.services.{module_name}.service"
-                )
-            except ModuleNotFoundError:
-                # Ignore the stuff lying around in cryptoadvance/specter/services
-                if importer.path.endswith(
-                    os.path.sep.join(["cryptoadvance", "specter", "services"])
-                ):
-                    continue
+                module = import_module(f"{module_name}.service")
+                logger.debug(f"  Imported {module_name}.service")
+            except ModuleNotFoundError as e:
                 try:
-                    module = import_module(f"{module_name}.service")
-                    logger.debug(f"  Imported {module_name}.service")
+                    # Another style is orgname.specterext.extensionid, for that we have to guess the orgname:
+                    orgname = str(importer).split(os.path.sep)[-2]
+                    logger.debug(f"guessing orgname: {orgname}")
+                    module = import_module(
+                        f"{orgname}.specterext.{module_name}.service"
+                    )
+                    logger.debug(
+                        f"  Imported {orgname}.specterext.{module_name}.service"
+                    )
                 except ModuleNotFoundError as e:
-                    try:
-                        # Another style is orgname.specterext.extensionid, for that we have to guess the orgname:
-                        orgname = str(importer).split(os.path.sep)[-2]
-                        logger.debug(f"guessing orgname: {orgname}")
-                        module = import_module(
-                            f"{orgname}.specterext.{module_name}.service"
-                        )
-                        logger.debug(
-                            f"  Imported {orgname}.specterext.{module_name}.service"
-                        )
-                    except ModuleNotFoundError as e:
-                        if module_name in str(e.name) or orgname in str(e.name):
-                            raise Exception(
-                                f"""
-                        While iterating over {importer} for module {module_name}, 
-                        a Service implementation could not be found in this places:
-                        * cryptoadvance.specter.services.{module_name}.service
-                        * {module_name}.service
-                        * {orgname}.specterext.{module_name}.service
-                        Maybe you did forget to do this:
-                        $ pip3 install -e .
+                    if module_name in str(e.name) or orgname in str(e.name):
+                        raise Exception(
+                            f"""
+                    While iterating over {importer} for module {module_name}, 
+                    a Service implementation could not be found in this places:
+                    * cryptoadvance.specter.services.{module_name}.service
+                    * {module_name}.service
+                    * {orgname}.specterext.{module_name}.service
+                    Maybe you did forget to do this:
+                    $ pip3 install -e .
 
-                        OR The Module has been found, but had issues finding Modules itself
+                    OR The Module has been found, but had issues finding Modules itself
 
-                        {e}
-                        """
-                            )
-                        else:
-                            raise e
+                    {e}
+                    """
+                        )
+                    else:
+                        raise e
         elif clazz.__name__ == "SpecterMigration":
             module = import_module(
                 f"cryptoadvance.specter.util.migrations.{module_name}"

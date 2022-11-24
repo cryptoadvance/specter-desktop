@@ -14,7 +14,11 @@ from flask_login import login_required, current_user
 from flask import current_app as app
 from ..rpc import get_default_datadir
 from ..node import Node
-from ..specter_error import ExtProcTimeoutException, BrokenCoreConnectionException
+from ..specter_error import (
+    ExtProcTimeoutException,
+    BrokenCoreConnectionException,
+    SpecterError,
+)
 from ..util.shell import get_last_lines_from_file
 from ..server_endpoints import flash
 
@@ -34,7 +38,16 @@ nodes_endpoint = Blueprint("nodes_endpoint", __name__)
 def node_settings(node_alias):
     if node_alias:
         try:
-            node = app.specter.node_manager.get_by_alias(node_alias)
+            node: Node = app.specter.node_manager.get_by_alias(node_alias)
+            if not node.is_specter_core_object:
+                return redirect(
+                    url_for(
+                        # This is a convention which should be documented
+                        # Maybe we should do that differently
+                        f"{node.blueprint}.node_settings",
+                        node_alias=node.alias,
+                    )
+                )
             if not node.external_node:
                 return redirect(
                     url_for(
@@ -42,7 +55,8 @@ def node_settings(node_alias):
                         node_alias=node.alias,
                     )
                 )
-        except:
+        except SpecterError as se:
+            assert str(se).endswith("does not exist!")
             return render_template(
                 "base.jinja", error=_("Node not found"), specter=app.specter, rand=rand
             )
@@ -57,7 +71,6 @@ def node_settings(node_alias):
                 "port": 8332,
                 "host": "localhost",
                 "protocol": "http",
-                "external_node": True,
             },
             app.specter.node_manager,
         )
@@ -138,7 +151,6 @@ def node_settings(node_alias):
                 port,
                 host,
                 protocol,
-                node.external_node,
                 node.fullpath,
                 "BTC",
                 node.manager,
@@ -154,7 +166,7 @@ def node_settings(node_alias):
                 flash(_("Test failed: {}").format(test["err"]), "error")
         elif action == "save":
             if not node_alias:
-                if node.name in app.specter.node_manager.nodes:
+                if node.name in app.specter.node_manager.nodes_names:
                     flash(
                         _(
                             "Node with this name already exists, please choose a different name."
@@ -169,7 +181,7 @@ def node_settings(node_alias):
                         specter=app.specter,
                         rand=rand,
                     )
-                node = app.specter.node_manager.add_node(
+                node = app.specter.node_manager.add_external_node(
                     "BTC",
                     node.name,
                     autodetect,
@@ -179,7 +191,6 @@ def node_settings(node_alias):
                     port,
                     host,
                     protocol,
-                    node.external_node,
                 )
                 app.specter.update_active_node(node.alias)
                 return redirect(
@@ -197,8 +208,8 @@ def node_settings(node_alias):
             )
             if not success:
                 flash(_("Saving failed: no connection to node"), "error")
-            if app.specter.active_node_alias == node.alias:
-                app.specter.check()
+            if success:
+                return redirect(url_for("welcome_endpoint.index"))
 
     return render_template(
         "node/node_settings.jinja",
@@ -260,7 +271,7 @@ def internal_node_settings(node_alias):
                 node.rename(node_name)
         elif action == "forget":
             if not node_alias:
-                flash(_("Failed to deleted node. Node isn't saved"), "error")
+                flash(_("Failed to delete node. Node isn't saved"), "error")
             elif len(app.specter.node_manager.nodes) > 1:
                 node.stop()
                 app.specter.node_manager.delete_node(node, app.specter)

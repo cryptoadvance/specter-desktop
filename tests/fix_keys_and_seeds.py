@@ -7,13 +7,10 @@ from embit.bip39 import mnemonic_to_seed
 from embit.bip32 import HDKey, NETWORKS
 from embit import script
 
-mnemonic_ghost_machine = (
-    "ghost ghost ghost ghost ghost ghost ghost ghost ghost ghost ghost machine"
-)
 
-mnemonic_zoo_when = (
-    "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo when"
-)
+@pytest.fixture
+def mnemonic_ghost_machine():
+    return 11 * "ghost " + "machine"
 
 
 @pytest.fixture
@@ -21,14 +18,13 @@ def mnemonic_keen_join():
     return 11 * "keen " + "join"
 
 
-# hold hold hold hold hold hold hold hold hold hold hold accident
-# This is a formal creation of all major bitcoin artifacts from the
-# hold accident mnemonic
-
-
 @pytest.fixture
 def mnemonic_hold_accident():
     return 11 * "hold " + "accident"
+
+
+# The following is a formal creation of all major bitcoin artifacts from the
+# hold accident mnemonic
 
 
 @pytest.fixture

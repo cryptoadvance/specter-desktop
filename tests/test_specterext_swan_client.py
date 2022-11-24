@@ -6,7 +6,13 @@ from unittest.mock import MagicMock
 import pytest
 import mock
 from mock import Mock, patch
-from cryptoadvance.specter.services.swan.client import SwanApiException, SwanClient
+from cryptoadvance.specterext.swan.client import (
+    SwanApiException,
+    SwanApiRefreshTokenException,
+    SwanClient,
+)
+
+logger = logging.getLogger(__name__)
 
 
 def construct_access_token_fake_response():
@@ -79,10 +85,32 @@ def test_SwanClient(app):
             )
 
 
+def test_still_valid_access_token(app):
+    sc = SwanClient(
+        "a_hostname", "forever_valid_access_token", 5000000000, "a_refresh_token"
+    )
+    with app.app_context():
+        fake_response = construct_access_token_fake_response()
+        with mock.patch("requests.post", return_value=fake_response):
+            assert sc.is_access_token_valid() == True
+            assert sc._get_access_token() != "muuuhTheAccessToken"
+            assert sc._get_access_token() == "forever_valid_access_token"
+
+
+def test_expired_access_token():
+    sc = SwanClient("umbrel", "aging_access_token", 1000, "")
+    assert sc.is_access_token_valid() == False
+    with pytest.raises(
+        SwanApiRefreshTokenException,
+        match="access_token is expired but we don't have a refresh_token",
+    ):
+        sc._get_access_token()
+
+
 @patch("requests.delete")
 @patch("requests.request")
 @patch("requests.patch")
-@patch("cryptoadvance.specter.services.swan.client._")
+@patch("cryptoadvance.specterext.swan.client._")
 def test_SwanClient_update_autowithdrawal_addresses(
     mock_babel: MagicMock,
     mock_req_post: MagicMock,
@@ -107,34 +135,11 @@ def test_SwanClient_update_autowithdrawal_addresses(
     sc = SwanClient("a_hostname", "a_access_token", curr_timstamp, "a_refresh_token")
 
     with app.app_context():
-        # Issues with Babel with this test
         address_list = [
-            {
-                "address": "bcrt1q4zcc0yppghquz9tzsd9k34m8rpmvav953hx3mk",
-                "index": 12,
-                "change": False,
-                "label": "Reserved for Swan",
-                "used": None,
-                "service_id": "swan",
-            },
-            {
-                "address": "bcrt1q2lmvfypnqcr7w9vcrlem7vdn7w65ac90x2ef6x",
-                "index": 14,
-                "change": False,
-                "label": "Reserved for Swan",
-                "used": None,
-                "service_id": "swan",
-            },
-            {
-                "address": "bcrt1quazsqywlme8ps70vq7xckflztghypp0r4ck9yw",
-                "index": 16,
-                "change": False,
-                "label": "Reserved for Swan",
-                "used": None,
-                "service_id": "swan",
-            },
+            "bcrt1q4zcc0yppghquz9tzsd9k34m8rpmvav953hx3mk",
+            "bcrt1q2lmvfypnqcr7w9vcrlem7vdn7w65ac90x2ef6x",
+            "bcrt1quazsqywlme8ps70vq7xckflztghypp0r4ck9yw",
         ]
-
         assert (
             sc.update_autowithdrawal_addresses(
                 "someWalletId", "walletName", "walletAlias", address_list
@@ -142,9 +147,16 @@ def test_SwanClient_update_autowithdrawal_addresses(
             == "someOtherWalletId"
         )
 
+        # Check that the addresse send to the Swan API are in the correct format
         patch_call: Call = mock_req_request.call_args_list[1]
         json_payload = patch_call.kwargs["json"]
+        # "btcAddresses" should look like this:
+        """ {'btcAddresses': [{'address': 'bcrt1q4zcc0yppghquz9tzsd9k34m8rpmvav953hx3mk'}, 
+        {'address': 'bcrt1q2lmvfypnqcr7w9vcrlem7vdn7w65ac90x2ef6x'}, 
+        {'address': 'bcrt1quazsqywlme8ps70vq7xckflztghypp0r4ck9yw'}] """
+        assert isinstance(json_payload["btcAddresses"], list)
         for address in json_payload["btcAddresses"]:
+            assert isinstance(address, dict)
             assert isinstance(
                 address["address"], str
-            ), "Swan is expecting an alomost flat list of addresses"
+            ), "Swan is expecting an almost flat list of addresses"

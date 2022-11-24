@@ -121,8 +121,20 @@ def alias(name):
     return "".join(x for x in name if x.isalnum() or x == "_").lower()
 
 
+def fullpath(data_folder, name):
+    """Quick way to get a fullpath which usually"""
+    return os.path.join(data_folder, f"{alias(name)}.json")
+
+
+def calc_fullpath(data_folder, name):
+    """Get a fullpath for a Businessobject with a name quickly"""
+    return os.path.join(data_folder, f"{alias(name)}.json")
+
+
 def deep_update(d, u):
-    """updates the dict d with the dict u"""
+    """updates the dict d with the dict u
+    in short: second argument wins
+    """
     for k, v in six.iteritems(u):
         dv = d.get(k, {})
         if not isinstance(dv, collections.abc.Mapping):
@@ -151,6 +163,9 @@ def load_jsons(folder, key=None):
                 d["alias"] = fname[:-5]
                 dd[d[key]] = d
         except Exception as e:
+            logger.error(
+                f"Exception while loading json file {os.path.join(folder, fname)}"
+            )
             logger.exception(e)
     return dd
 

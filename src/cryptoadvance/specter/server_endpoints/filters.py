@@ -3,6 +3,7 @@ from flask import current_app as app
 from flask import Blueprint
 from jinja2 import pass_context
 from ..helpers import to_ascii20
+from markupsafe import Markup
 
 filters_bp = Blueprint("filters", __name__)
 
@@ -13,6 +14,23 @@ filters_bp = Blueprint("filters", __name__)
 @filters_bp.app_template_filter("ascii20")
 def ascii20(context, name):
     return to_ascii20(name)
+
+
+@pass_context
+@filters_bp.app_template_filter("subrender")
+def subrender_filter(context, value):
+    """This can render a variable as it would be template-text like:
+    {{ "Hello, {{name}}"|subrender }}
+    based on the idea here:
+    https://stackoverflow.com/questions/8862731/jinja-nested-rendering-on-variable-content
+    Currently not used but tried it out for Node_sessings_rendering and kept in here
+    for extensions to maybe use later.
+    """
+    _template = context.eval_ctx.environment.from_string(value)
+    result = _template.render(**context)
+    if context.eval_ctx.autoescape:
+        result = Markup(result)
+    return result
 
 
 @pass_context

@@ -63,7 +63,7 @@
 </style>
 <div id="side-content">
     <nav class="side">
-        {% if specter.info["initialblockdownload"] %}
+        {% if specter.info.get("initialblockdownload") %}
             <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>{{ _("Bitcoin Core is still syncing...")}}<br>{{ _('(data might be outdated)')}}</p>
         {% endif %}
         {% if specter.network_info.version < 200000 %}

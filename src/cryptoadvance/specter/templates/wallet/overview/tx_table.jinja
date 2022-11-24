@@ -1,0 +1,18 @@
+<div class="table-holder">
+    {% include "includes/tx-row.html" %}
+    {% include "includes/tx-data.html" %}
+    {% include "includes/explorer-link.html" %}
+    {% include "includes/tx-table.html" %}
+    <tx-table
+        {% if specter.price_check and (specter.alt_rate and specter.alt_symbol) %}
+            price="{{ specter.alt_rate }}"
+            symbol="{{ specter.alt_symbol }}"
+        {% endif %}
+        btc-unit="{{ specter.unit }}"
+        hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
+        type="txlist"
+        scrollbar-default="on"
+        table-border-radius="0px">
+    </tx-table>
+</div>
+<div id="tx-popup" class="hidden"></div>

@@ -160,6 +160,18 @@ class SpecterScope(AbstractTxContext):
                 }
                 for pub, der in self.scope.bip32_derivations.items()
             ]
+        if self.scope.taproot_bip32_derivations:
+            obj["taproot_bip32_derivs"] = [
+                {
+                    "pubkey": pub.xonly().hex(),
+                    "master_fingerprint": der.fingerprint.hex(),
+                    "path": bip32.path_to_str(der.derivation),
+                    "leaf_hashes": [leaf.hex() for leaf in leafs],
+                }
+                for pub, (leafs, der) in self.scope.taproot_bip32_derivations.items()
+            ]
+        if self.scope.taproot_internal_key:
+            obj["taproot_internal_key"] = self.scope.taproot_internal_key.xonly().hex()
         return obj
 
 

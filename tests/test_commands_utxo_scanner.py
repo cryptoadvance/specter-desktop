@@ -6,7 +6,7 @@ import requests
 from cryptoadvance.specter.commands.utxo_scanner import UtxoScanner
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.wallet import Wallet
-from fix_devices_and_wallets import create_hot_wallet_device, create_hot_wallet_with_ID
+from fix_devices_and_wallets import create_hot_wallet_device, create_hot_segwit_wallet
 
 
 @pytest.mark.skip()
@@ -25,7 +25,7 @@ def test_rescan_utxo(specter_testnet_configured: Specter, caplog):
         11 * "hold " + "accident",
     )
     assert hot_device
-    wallet: Wallet = create_hot_wallet_with_ID(
+    wallet: Wallet = create_hot_segwit_wallet(
         specter_testnet_configured, hot_device, "hold_accident"
     )
 

@@ -3,9 +3,11 @@ import tempfile
 import time
 import tarfile
 import os
+from unittest.mock import MagicMock
 
 import pytest
 from cryptoadvance.specter.managers.node_manager import NodeManager
+from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
 )
@@ -14,14 +16,70 @@ from cryptoadvance.specter.process_controller.elementsd_controller import (
 )
 
 
+def test_node_manager_basics(
+    empty_data_folder, node, node_with_different_port, specter_regtest_configured
+):
+    nodes_folder = empty_data_folder + "/nodes"
+    nm = specter_regtest_configured.node_manager
+    # # Load from disk to get the other two nodes
+    assert sorted(list(nm.nodes.keys())) == [
+        "default",
+        "satoshis_node",
+        "standard_node",
+    ]
+    assert nm.nodes_names == [
+        "Standard node",
+        "Node with a different port",
+        "Bitcoin Core",
+    ]
+    nm.load_from_disk(nodes_folder)
+    assert nm.nodes_names == [
+        "Standard node",
+        "Node with a different port",
+        "Bitcoin Core",
+    ]
+    # Checking some standard methods and properties
+    assert nm.get_by_alias("satoshis_node") == nm.get_by_name(
+        "Node with a different port"
+    )
+    default_node = nm.get_by_alias("default")
+    satoshis_node = nm.get_by_alias("satoshis_node")
+    assert nm.default_node() == default_node
+    assert nm.active_node == default_node
+    assert specter_regtest_configured.config["active_node_alias"] == "default"
+    # Switching the node via the node manager does not change the active_node_alias in the config, only specter.update_active_node() does
+    nm.switch_node("satoshis_node")
+    assert nm.active_node == satoshis_node
+    assert specter_regtest_configured.config["active_node_alias"] == "default"
+    specter_regtest_configured.update_active_node("satoshis_node")
+    assert specter_regtest_configured.config["active_node_alias"] == "satoshis_node"
+    assert nm.active_node == satoshis_node
+    # Deleting a node
+    nm.delete_node(satoshis_node, specter_regtest_configured)
+    assert nm.nodes_names == ["Standard node", "Bitcoin Core"]
+    # Check that with the deletion of the active node the switch to the next node work, the first node in the list, here the Standard node, is switched to
+    assert specter_regtest_configured.config["active_node_alias"] == "standard_node"
+    assert nm._active_node == "standard_node"
+    # Check the error handling
+    with pytest.raises(
+        SpecterError,
+        match="Node with a different port not found, node could not be deleted.",
+    ):
+        nm.delete_node(satoshis_node, specter_regtest_configured)
+    with pytest.raises(SpecterError, match="Node alias satoshis_node does not exist!"):
+        nm.switch_node("satoshis_node")
+
+
 @pytest.mark.elm
-def test_NodeManager(
+def test_switch_nodes_across_chains(
     bitcoin_regtest: BitcoindPlainController, elements_elreg: ElementsPlainController
 ):
-    with tempfile.TemporaryDirectory("_some_datafolder_tmp") as data_folder:
+    with tempfile.TemporaryDirectory(
+        prefix="pytest_NodeManager_datafolder"
+    ) as data_folder:
         print(f"data_folder={data_folder}")
         nm = NodeManager(data_folder=data_folder)
-        nm.add_node(
+        nm.add_external_node(
             "BTC",
             "bitcoin_regtest",
             False,
@@ -31,12 +89,12 @@ def test_NodeManager(
             bitcoin_regtest.rpcconn.rpcport,
             bitcoin_regtest.rpcconn._ipaddress,
             "http",
-            external_node=True,
+            "bitcoin_regtest_alias",
         )
         assert nm.nodes_names == ["Bitcoin Core", "bitcoin_regtest"]
-        nm.switch_node("bitcoin_regtest")
+        nm.switch_node("bitcoin_regtest_alias")
         assert nm.active_node.rpc.getblockchaininfo()["chain"] == "regtest"
-        nm.add_node(
+        nm.add_external_node(
             "ELM",
             "elements_elreg",
             False,
@@ -46,53 +104,7 @@ def test_NodeManager(
             elements_elreg.rpcconn.rpcport,
             elements_elreg.rpcconn._ipaddress,
             "http",
-            external_node=True,
         )
         assert nm.nodes_names == ["Bitcoin Core", "bitcoin_regtest", "elements_elreg"]
         nm.switch_node("elements_elreg")
         assert nm.active_node.rpc.getblockchaininfo()["chain"] == "elreg"
-        time.sleep(20)
-
-
-""" For some reason this breaks other tests"""
-
-
-@pytest.mark.skip()
-def test_NodeManager_import(bitcoind_path):
-    with tempfile.TemporaryDirectory("_some_datafolder_tmp") as data_folder:
-        print(f"data_folder={data_folder}")
-        nm = NodeManager(data_folder=data_folder, bitcoind_path=bitcoind_path)
-        print(os.getcwd())
-        # This .bitcoin folder doesn't have a config-file
-        btc_tar = tarfile.open(
-            "./tests/helpers_testdata/bitcoin_minimum_mainnet_datadir.tgz", "r:gz"
-        )
-        btc_tar.extractall(os.path.join(data_folder, "somename", ".bitcoin-main"))
-        #         # ... so let's create one
-        #         with open(
-        #             os.path.join(data_folder,"somename",".bitcoin-main","bitcoin.conf"),
-        #             "w+",
-        #         ) as file:
-        #             file.write('''
-        # rpcauth=bitcoin:044931c1d498b7c27080d8b981331a65$6ee7929513401c39ca1f7e376e55553c52dcb36a14e8410ac5f514fbf18bedbb
-        # server=1
-        # listen=1
-        # proxy=127.0.0.1:9050
-        # bind=127.0.0.1
-        # torcontrol=127.0.0.1:9051
-        # torpassword=gVzREfuHso6U2OfRRvqT3w
-        # fallbackfee=0.0002
-        # prune=1000
-        #             '''
-        #             )
-
-        node = nm.add_internal_node("somename", port=8339)
-        try:
-            node.start()
-            time.sleep(5)
-            # assert node.rpc.password == None
-            nm.switch_node("somename")
-            time.sleep(5)
-            assert nm.active_node.rpc.getblockchaininfo()["chain"] == "main"
-        finally:
-            node.stop()

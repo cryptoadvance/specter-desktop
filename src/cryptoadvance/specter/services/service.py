@@ -38,6 +38,7 @@ class Service:
     # If the blueprint gets a "/ext" prefix (isolated_client = True), the login cookie won't work for all specter core functionality
     isolated_client = True
     devstatus = devstatus_alpha
+    encrypt_data = False
 
     def __init__(self, active, specter):
         if not hasattr(self, "id"):
@@ -46,6 +47,18 @@ class Service:
             raise Exception(f"Service {self.__class__} needs name")
         self.active = active
         self.specter = specter
+        self.data_folder = os.path.join(self.specter.data_folder, "extensions", self.id)
+        if not os.path.exists(self.data_folder):
+            logger.info(f"Creating extension data_folder {self.data_folder} ")
+            os.makedirs(self.data_folder)
+
+    @classmethod
+    def _storage_manager(cls):
+        return (
+            app.specter.service_encrypted_storage_manager
+            if cls.encrypt_data
+            else app.specter.service_unencrypted_storage_manager
+        )
 
     def callback(self, callback_id, *argv, **kwargv):
         if callback_id == callbacks.after_serverpy_init_app:
@@ -54,23 +67,19 @@ class Service:
 
     @classmethod
     def set_current_user_service_data(cls, service_data: dict):
-        app.specter.service_encrypted_storage_manager.set_current_user_service_data(
+        cls._storage_manager().set_current_user_service_data(
             service_id=cls.id, service_data=service_data
         )
 
     @classmethod
     def update_current_user_service_data(cls, service_data: dict):
-        app.specter.service_encrypted_storage_manager.update_current_user_service_data(
+        cls._storage_manager().update_current_user_service_data(
             service_id=cls.id, service_data=service_data
         )
 
     @classmethod
     def get_current_user_service_data(cls) -> dict:
-        return (
-            app.specter.service_encrypted_storage_manager.get_current_user_service_data(
-                service_id=cls.id
-            )
-        )
+        return cls._storage_manager().get_current_user_service_data(service_id=cls.id)
 
     @classmethod
     def get_blueprint_name(cls):
@@ -120,6 +129,7 @@ class Service:
         )
         logger.debug(f"Already have {len(addresses)} addresses reserved for {cls.id}")
 
+        # More addresses ought to be reserved as there are reserved addresses
         if len(addresses) < num_addresses:
             if addresses:
                 # Continuing reserving from where we left off
@@ -140,7 +150,7 @@ class Service:
                     continue
 
                 # Mark an Address in a persistent way as being reserved by a Service
-                cls.reserve_address(wallet=wallet, address=address)
+                cls.reserve_address(wallet=wallet, address=address, label=label)
                 logger.debug(f"Reserved {address} for {cls.id}")
 
                 addresses.append(address)
@@ -149,9 +159,18 @@ class Service:
                     annotations_storage.set_addr_annotations(
                         addr=address, annotations=annotations, autosave=False
                     )
+        # There are enough addresses already reserved
+        else:
+            logger.debug(
+                f"Returning an empty list from reserve_addresses() since there are enough addresses already reserved."
+            )
+            return []
+
         if annotations:
             annotations_storage.save()
-
+        logger.debug(
+            f"Returning this list of addresses {addresses} from reserve_addresses()."
+        )
         return addresses
 
     @classmethod

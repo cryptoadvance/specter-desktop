@@ -17,16 +17,16 @@ from flask import current_app as app
 from flask import url_for
 from flask.blueprints import Blueprint
 
-from ..services.service import Service
-from ..services import callbacks, ExtensionException
-from ..util.reflection import (
+from ...services.service import Service
+from ...services import callbacks, ExtensionException
+from ...util.reflection import (
     _get_module_from_class,
     get_classlist_of_type_clazz_from_modulelist,
     get_package_dir_for_subclasses_of,
     get_subclasses_for_clazz,
     get_subclasses_for_clazz_in_cwd,
 )
-from ..util.reflection_fs import search_dirs_in_path
+from ...util.reflection_fs import search_dirs_in_path
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class ServiceManager:
         logger.info("----> starting service discovery Static")
         # How do we discover services? Two configs are relevant:
         # * SERVICES_LOAD_FROM_CWD (boolean, CWD is current working directory)
-        # * EXTENSION_LIST (array of Fully Qualified module strings like ["cryptoadvance.specter.services.swan.service"])
+        # * EXTENSION_LIST (array of Fully Qualified module strings like ["cryptoadvance.specterext.swan.service"])
         # Ensuring security (especially for the CWD) is NOT done here but
         # in the corresponding (Production)Config
         logger.debug(f"EXTENSION_LIST = {app.config.get('EXTENSION_LIST')}")
@@ -79,7 +79,7 @@ class ServiceManager:
                 logger.info(
                     f"Service {clazz.__name__} not activated due to devstatus ( {self.devstatus_threshold} > {clazz.devstatus} )"
                 )
-        logger.info("----> finished service processing")
+        logger.info("----> finished service loading")
         self.execute_ext_callbacks("afterServiceManagerInit")
 
     @classmethod
@@ -283,9 +283,20 @@ class ServiceManager:
         return_values = {}
         for ext in self.services.values():
             if hasattr(ext, f"callback_{callback_id}"):
-                return_values[ext.id] = getattr(ext, f"callback_{callback_id}")(
-                    *args, **kwargs
-                )
+                try:
+                    return_values[ext.id] = getattr(ext, f"callback_{callback_id}")(
+                        *args, **kwargs
+                    )
+                except Exception as e:
+                    # Development should catch all errors early!
+                    if app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"].endswith(
+                        "DevelopmentConfig"
+                    ):
+                        raise e
+                    logger.error(
+                        "Exception {e} while executing {callback_id} for extension {ext.id}"
+                    )
+                    logger.exception(e)
             elif hasattr(ext, "callback"):
                 return_values[ext.id] = ext.callback(callback_id, *args, **kwargs)
         # Filtering out all None return values
@@ -328,22 +339,48 @@ class ServiceManager:
             raise ExtensionException(f"No such plugin: '{plugin_id}'")
         return self._services[plugin_id]
 
-    def remove_all_services_from_user(self, user: User):
-        """
-        Clears User.services and `user_secret`; wipes the User's
-        ServiceEncryptedStorage.
-        """
-        # Don't show any Services on the sidebar for the admin user
-        user.services.clear()
+    def delete_service_from_user(self, user: User, service_id: str, autosave=True):
+        "Removes the service for the user and deletes the stored data in the ServiceEncryptedStorage"
+        # remove the service from the sidebar
+        user.remove_service(service_id, autosave=autosave)
+        # delete the data if it was encrypted
+        if (
+            self.user_has_encrypted_storage(user=user)
+            and self.get_service(service_id).encrypt_data
+        ):
+            self.specter.service_encrypted_storage_manager.remove_service_data(
+                user, service_id, autosave=autosave
+            )
+        # here we do not need to delete the data if it was unencrypted
 
-        # Reset as if we never had any encrypted storage
-        user.delete_user_secret(autosave=False)
-        user.save_info()
+    def delete_services_with_encrypted_storage(self, user: User):
+        services_with_encrypted_storage = [
+            service_id
+            for service_id in self.services
+            if self.get_service(service_id).encrypt_data
+        ]
+        for service_id in services_with_encrypted_storage:
+            self.delete_service_from_user(user, service_id, autosave=True)
 
-        if self.user_has_encrypted_storage(user=user):
-            # Encrypted Service data is now orphaned since there is no
-            # password. So wipe it from the disk.
-            app.specter.service_encrypted_storage_manager.delete_all_service_data(user)
+        user.delete_user_secret(autosave=True)
+        # Encrypted Service data is now orphaned since there is no
+        # password. So wipe it from the disk.
+        self.specter.service_encrypted_storage_manager.delete_all_service_data(user)
+        logger.debug(
+            f"Deleted encrypted services {services_with_encrypted_storage} and user secret"
+        )
+
+    def delete_services_with_unencrypted_storage(self, user: User):
+        services_with_unencrypted_storage = [
+            service_id
+            for service_id in self.services
+            if not self.get_service(service_id).encrypt_data
+        ]
+        for service_id in services_with_unencrypted_storage:
+            self.delete_service_from_user(user, service_id, autosave=True)
+
+        self.specter.service_unencrypted_storage_manager.delete_all_service_data(user)
+        logger.debug(f"Deleted unencrypted services")
 
     @classmethod
     def get_service_x_dirs(cls, x):
@@ -392,16 +429,37 @@ class ServiceManager:
 
     @classmethod
     def get_service_packages(cls):
-        """returns a list of strings containing the service-classes (+ controller/config-classes)
+        """returns a list of strings containing the service-classes (+ controller +config-classes +devices)
         This is used for hiddenimports in pyinstaller
         """
         arr = get_subclasses_for_clazz(Service)
+        logger.info(f"initial arr: {arr}")
         arr.extend(
             get_classlist_of_type_clazz_from_modulelist(
                 Service, ProductionConfig.EXTENSION_LIST
             )
         )
+        logger.info(f"After extending: {arr}")
+        # Before we transform the arr into an array of strings, we iterate through all services to discover
+        # the devices which might be specified in there
+        devices_arr = []
+        for clazz in arr:
+            if hasattr(clazz, "devices"):
+                logger.debug("class {clazz} has devices: {clazz.devices}")
+                for device in clazz.devices:
+                    try:
+                        import_module(device)
+                        devices_arr.append(device)
+                    except ModuleNotFoundError as e:
+                        pass
+
+        # Transform into array of strings
         arr = [clazz.__module__ for clazz in arr]
+
+        # Add the devices
+        arr.extend(devices_arr)
+        logger.debug(f"After transforming + devices: {arr}")
+
         # Controller-Packagages from the services are not imported via the service but via the baseclass
         # Therefore hiddenimport don't find them. We have to do it here.
         cont_arr = [
