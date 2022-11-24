@@ -434,7 +434,7 @@
 			togglePDFExportAdvanced();
 		});
 		Specter.common.attachEventListener("btn-account_map_export", "click", (event)=> {
-			showPageOverlay('account_map_export');
+			Specter.overlay.showPageOverlay('account_map_export');
 		});
 		Specter.common.attachEventListener("toggle_keys_list", "click", (event)=> {
 			toggleKeysList();

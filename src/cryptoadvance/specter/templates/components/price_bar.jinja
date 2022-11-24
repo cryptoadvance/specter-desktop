@@ -325,7 +325,7 @@
 
 
 		Specter.common.attachEventListener("price-bar-btn", "click", (event)=> {
-					showPageOverlay('price-popup');
+					Specter.overlay.showPageOverlay('price-popup');
 				});  	        
 		Specter.common.attachEventListener("manual_price_btn", "click", (event)=> {
 					setPriceView('manual')

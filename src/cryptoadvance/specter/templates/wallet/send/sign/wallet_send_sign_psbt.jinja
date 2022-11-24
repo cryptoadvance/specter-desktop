@@ -294,7 +294,7 @@
 		document.addEventListener("DOMContentLoaded", function(){
 			var sendTxBtn = document.getElementById("send_tx_btn");
 			sendTxBtn.addEventListener("click", function() {
-				showPageOverlay("tx_broadcast");
+				Specter.overlay.showPageOverlay("tx_broadcast");
 			});
 
 			Specter.common.attachEventListener("broadcast_block_explorer_btn", "click", async function(e) {
@@ -428,7 +428,7 @@
 					document.getElementById("signing_container").style.display = 'none';
 					document.getElementById("paste_signed").style.display = 'none';
 					document.getElementById("ready_container").style.display = 'block';
-					showPageOverlay("tx_broadcast");
+					Specter.overlay.showPageOverlay("tx_broadcast");
 				}
 			} catch(e) {
 				console.log("Caught error: ", e);
@@ -507,7 +507,7 @@
 						e.preventDefault();
 						currentSigningDevice = "{{ device.name }}";
 						currentSigningDeviceAlias = "{{ device.alias }}";
-						showPageOverlay('{{ device.alias }}_sign_tx_method');
+						Specter.overlay.showPageOverlay('{{ device.alias }}_sign_tx_method');
 					});
 				{% endfor %}
 			});
@@ -521,7 +521,7 @@
 			document.getElementById('paste-tx-text').value='';
 		});  
 		Specter.common.attachEventListener("pastetx", "click", (event)=> {
-			showPageOverlay('paste-tx-popup');
+			Specter.overlay.showPageOverlay('paste-tx-popup');
 		});  
 	</script>
 {% endblock %}

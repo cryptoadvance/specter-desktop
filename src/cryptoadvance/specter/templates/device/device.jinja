@@ -81,7 +81,7 @@
 					</tr>
 					<script type="module">
 						Specter.common.attachEventListener("td-export-qr-{{loop.index0}}", "click", (event)=> {
-								showPageOverlay('key_export_qr');
+								Specter.overlay.showPageOverlay('key_export_qr');
 								document.getElementById('key_selected').value = '{{loop.index0}}';
 								toggleKeyDisplay();
 							});  	
@@ -201,7 +201,7 @@
 
 			var isNewDevice = location.search.split('newdevice=')[1]
 			if (isNewDevice) {
-				showPageOverlay('new_device_popup');
+				Specter.overlay.showPageOverlay('new_device_popup');
 			}
 
 			// Prefill address and derivation path when coming from an individual address
@@ -211,7 +211,7 @@
 			if (origin == "wallet") {
 				document.getElementById('signing-address').value = address
 				document.getElementById('messageDerivationPath').value = derivation_path
-				showPageOverlay('message-signing')
+				Specter.overlay.showPageOverlay('message-signing')
 			} 
 
 			// Event listener for sign message via QR code-button 
@@ -241,7 +241,7 @@
 				signatureElement.classList.add("signature")
 				signatureElement.innerText = signature;
 				document.getElementById('{{ device.alias }}_usb_sign_msg_btn').remove()
-				showPageOverlay('message-signing');
+				Specter.overlay.showPageOverlay('message-signing');
 				Specter.common.showNotification(`{{ _("Message was signed successfully!") }}`)
 			}
 			else if (signature === undefined) {
@@ -261,7 +261,7 @@
 		}
 
 		Specter.common.attachEventListener("btn-sign-message", "click", (event)=> {
-					showPageOverlay('message-signing')
+					Specter.overlay.showPageOverlay('message-signing')
 				});  	
 		Specter.common.attachEventListener("signature", "click", (event)=> {
 					Specter.common.copyText(this.innerText, '{{ _("Copied message signature") }}')

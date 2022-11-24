@@ -133,7 +133,7 @@
 						element.textContent = '{{ _("Back") }}';
 						element.addEventListener("click", (event)=> {
 							Specter.overlay.hidePageOverlay();
-							showPageOverlay('new_wallet_devices_popup');
+							Specter.overlay.showPageOverlay('new_wallet_devices_popup');
 						});
 						document.getElementById("{{ device.alias }}_export_qr_code").appendChild(element);
 					}
@@ -184,7 +184,7 @@
 	<script type="module">
 		function verifyQRCode(address, idx) {
 			document.getElementById('verify_address_qr_code_container').innerHTML = `<qr-code value="bitcoin:${address}?index=${idx}" width="256" scalable></qr-code>`;
-			showPageOverlay('verify_address_qr_code');
+			Specter.overlay.showPageOverlay('verify_address_qr_code');
 		}
 		function toggleKeyDisplay() {
 			let slip132Checkbox = document.getElementById('use_slip_132_pdf');
@@ -208,7 +208,7 @@
 
 		var isNewWallet = location.search.split('newwallet=')[1]
 		if (isNewWallet) {
-			showPageOverlay('new_wallet_popup');
+			Specter.overlay.showPageOverlay('new_wallet_popup');
 		}
 
 		// liquid-related thing: toggles between confidential and unconfidential addresses
@@ -232,7 +232,7 @@
 		});  
 		Specter.common.attachEventListener("btn-new_wallet_devices_popup", "click", (event)=> {
 			Specter.overlay.hidePageOverlay();
-			showPageOverlay('new_wallet_devices_popup');
+			Specter.overlay.showPageOverlay('new_wallet_devices_popup');
 		});  
 		Specter.common.attachEventListener("advanced_pdf_export_toggle", "click", (event)=> {
 			togglePDFExportAdvanced();

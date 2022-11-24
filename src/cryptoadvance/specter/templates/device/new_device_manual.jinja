@@ -435,7 +435,7 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 				togglePassphrase(document.getElementById('device_type').value)
 			});  	
 	Specter.common.attachEventListener("p-usb_import_account_number", "click", (event)=> {
-				showPageOverlay('usb_import_account_number')
+				Specter.overlay.showPageOverlay('usb_import_account_number')
 			});  	
 	Specter.common.attachEventListener("btn-Specter.overlay.hidePageOverlay", "click", (event)=> {
 				Specter.overlay.hidePageOverlay()

@@ -100,7 +100,7 @@
 
 
 		Specter.common.attachEventListener("mbk-paste", "click", (event)=> {
-					showPageOverlay('paste-mbk-popup');
+					Specter.overlay.showPageOverlay('paste-mbk-popup');
 				});  	
 		Specter.common.attachEventListener("btn-add-blinding-key", "click", (event)=> {
 					addBlindingKey(document.getElementById('paste-mbk-text').value);

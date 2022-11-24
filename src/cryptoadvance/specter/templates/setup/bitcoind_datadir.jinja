@@ -201,7 +201,7 @@
 					setupBitcoindDirectory()
 				});  	        
 		Specter.common.attachEventListener("select-network-btn", "click", (event)=> {
-					showPageOverlay('switch-network-popup')
+					Specter.overlay.showPageOverlay('switch-network-popup')
 				});  	        
 		Specter.common.attachEventListener("toggle_advanced", "click", (event)=> {
 					toggleAdvanced()
