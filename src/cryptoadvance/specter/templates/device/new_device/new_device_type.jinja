@@ -4,7 +4,7 @@
     <div id="device_setup_wizard" class="card center auto-width" style="min-width: 90%;">
         <div id="device-type-container">
             <h1 style="font-size: 1.8em;">{{ _("Select Your Device Type") }}</h1>
-            <input id="device-type-searchbar" type="text" placeholder='{{ _("Filter devices...") }}' style="width: 60%; font-size: 1.4em; padding: 10px;" oninput="filterDeviceTypes(this.value)">
+            <input id="device-type-searchbar" type="text" placeholder='{{ _("Filter devices...") }}' style="width: 60%; font-size: 1.4em; padding: 10px;">
             <div id="devices_list" class="row overflow">
                 {% for cls in specter.device_manager.supported_devices_for_chain(specter) %}
                     {% if not cls.hot_wallet or specter.rpc %}                     
@@ -23,7 +23,7 @@
 {% endblock %}
 
 {% block scripts %}
-    <script>
+    <script type="module">
         function filterDeviceTypes(text) {
             let devicesLabels = []
             {% for cls in specter.device_manager.supported_devices_for_chain(specter) %}
@@ -53,5 +53,11 @@
                 }
             }
         }
+
+
+		document.getElementById("device-type-searchbar").addEventListener("input", (event)=> {
+					filterDeviceTypes(event.target.value)
+				});  		
+
     </script>
 {% endblock %}

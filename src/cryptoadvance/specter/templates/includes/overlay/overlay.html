@@ -2,7 +2,7 @@
     <div class="page_overlay_popup" id="page_overlay_popup">
         <div id="page_overlay_popup_content"></div>
         <div class="page_overlay_popup_cancel">
-            <a href="#" id="page_overlay_popup_cancel_button" class="item medium" onclick="cancelOverlay()">{{ _("cancel") }}</a>
+            <a href="#" id="page_overlay_popup_cancel_button" class="item medium">{{ _("cancel") }}</a>
         </div>
         <br/>
         <div class="clear-both"></div>
@@ -14,7 +14,7 @@
     <div>{{ _("Loading... It may take a while...") }}</div>
 </div>
 
-<script>
+<script type="module">
     function showPacman(){
         document.getElementById('pacman').style.display='flex';
     }
@@ -85,4 +85,11 @@
     function cancelOverlay() {
         hidePageOverlay();
     }
+
+
+
+
+    document.getElementById("page_overlay_popup_cancel_button").addEventListener("click", (event)=> {
+        cancelOverlay();
+				});  
 </script>

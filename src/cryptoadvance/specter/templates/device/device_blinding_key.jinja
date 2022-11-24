@@ -2,7 +2,7 @@
 {% block main %}
     {% include "includes/hwi/hwi.jinja" %}
     {% include "includes/qr-scanner.html" %}
-    <form name="form" action="{{ url_for('devices_endpoint.device_blinding_key', device_alias=device.alias) }}" method="POST" style="width: 100%;" onsubmit="showPacman();">
+    <form id="form-device_blinding_key" name="form" action="{{ url_for('devices_endpoint.device_blinding_key', device_alias=device.alias) }}" method="POST" style="width: 100%;">
         <div class="card center auto-width">
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             <div>
@@ -20,7 +20,7 @@
                             {{ _("Scan QR code") }}
                         </a>
                     </qr-scanner>
-                    <button {% if device.device_type not in ['electrum', 'other'] %}class="hidden"{% endif %} type="button" onclick="showPageOverlay('paste-mbk-popup')" class="btn centered" id="mbk-paste" style="max-width: 250px; width: 250px; margin: 20px auto;">
+                    <button {% if device.device_type not in ['electrum', 'other'] %}class="hidden"{% endif %} type="button" class="btn centered" id="mbk-paste" style="max-width: 250px; width: 250px; margin: 20px auto;">
                         <img src="{{ url_for('static', filename='img/copy.svg') }}" style="width: 22px; margin: 0px;" class="svg-white">
                         {{ _("Paste blinding key") }}
                     </button>
@@ -28,7 +28,7 @@
                         <h1>{{ _("Paste blinding key") }}</h1>
                         <input type="text" id="paste-mbk-text" placeholder="Paste your master blinding key here">
                         <br><br>
-                        <button type="button" onclick="addBlindingKey(document.getElementById('paste-mbk-text').value);hidePageOverlay();document.getElementById('paste-mbk-text').value='';" class="btn centered">{{ _("Add blinding key") }}</button>
+                        <button id="btn-add-blinding-key" type="button" class="btn centered">{{ _("Add blinding key") }}</button>
                     </div>
                 </div>
             </div>
@@ -37,7 +37,7 @@
 {% endblock %}
 
 {% block scripts %}
-    <script type="text/javascript">
+    <script type="module">
         document.getElementById('connect-hwi').addEventListener('click', async e => {
             // detect devices
             let deviceType = `{{ device.device_type }}`;
@@ -76,9 +76,8 @@
             document.getElementById('blinding_key').value = masterBlindingKey;
             document.form.submit();
         });
-    </script>
+        
 
-    <script type="text/javascript">
         let scanner = document.getElementById('key-scan');
         if(scanner != null) {
             scanner.addEventListener('scan', e=>{
@@ -97,5 +96,20 @@
             document.getElementById('blinding_key').value = masterBlindingKey;
             document.form.submit();
         }
+
+
+
+		document.getElementById("mbk-paste").addEventListener("click", (event)=> {
+					showPageOverlay('paste-mbk-popup');
+				});  	
+		document.getElementById("btn-add-blinding-key").addEventListener("click", (event)=> {
+					addBlindingKey(document.getElementById('paste-mbk-text').value);
+                    hidePageOverlay();
+                    document.getElementById('paste-mbk-text').value='';
+				});  	
+		document.getElementById("form-device_blinding_key").addEventListener("submit", (event)=> {
+					showPacman();
+				});  	
+
     </script>
 {% endblock %}

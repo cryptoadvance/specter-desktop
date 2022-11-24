@@ -27,14 +27,14 @@
 <div class="flex-column hidden" id="coldcard_warning">
     <p> {{ _("Do you really want to use your Coldcard over USB (no airgap)?") }} </p>
     <div class="flex-center">
-        <button onclick="coldCardNotice()" class="btn flex-center"> {{ _("Yes, I am living on the edge!") }} </button>
+        <button id="btn-coldcard-notice" class="btn flex-center"> {{ _("Yes, I am living on the edge!") }} </button>
     </div> <br>
     <div class="flex-center">
-        <button onclick = "goToCoinkite()" class="btn flex-center"> {{ _("No, I'll use the address explorer on the Coldcard. Get me to the coinkite site for more info.") }} </button>
+        <button id="btn-go-to-coinkite" class="btn flex-center"> {{ _("No, I'll use the address explorer on the Coldcard. Get me to the coinkite site for more info.") }} </button>
     </div>
 </div>
 
-<script type="text/javascript">
+<script type="module">
     let hwiURL = '/hwi/api/';
     if (
         '{{ specter.hwi_bridge_url }}'.startsWith('http://localhost') ||
@@ -43,9 +43,8 @@
         hwiURL = '{{ specter.hwi_bridge_url }}';
     }
     var hwi = new HWIBridge(hwiURL, '{{ specter.chain }}');
-</script>
 
-<script type="text/javascript">
+
 
     function showHWIProgress(title=`{{ _("Processing...") }}`, text=`{{ _("Keep your wallet connected.") }}`){
         document.getElementById('hwi_progress_title').innerHTML = title;
@@ -227,4 +226,12 @@
     function onCancelOverlay(){
 
     }
+
+    document.getElementById("btn-coldcard-notice").addEventListener("click", (event)=> {
+                coldCardNotice();
+            });  	
+    document.getElementById("btn-go-to-coinkite").addEventListener("click", (event)=> {
+                goToCoinkite();
+            });  	
+
 </script>

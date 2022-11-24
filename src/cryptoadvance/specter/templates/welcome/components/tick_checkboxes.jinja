@@ -12,15 +12,35 @@
                 </td>
                 <td style="text-align: left;">
                     {% if not specter.chain %}
-                        <button type="button" class="btn" onclick="showPageOverlay('connect-node-help-popup')">Need help?</button>
+                        <button type="button" class="btn" id="btn-connect-node-help-popup">Need help?</button>
                         <div id="connect-node-help-popup" class="hidden">
                             <h1>{{ _("Connecting Specter to your Bitcoin Core node") }}</h1>
                             <div class="overflow">
-                                <button style="padding: 10px; width: 80%; font-size: 1.2em; margin: 20px auto;" type="button" class="btn" onclick="hidePageOverlay();showPageOverlay('no-node-help-popup')">{{ _("I don't have a Bitcoin Core node yet.") }}</button>
-                                <button style="padding: 10px; width: 80%; font-size: 1.2em; margin: 20px auto;" type="button" class="btn" onclick="hidePageOverlay();showPageOverlay('local-node-help-popup')">{{ _("I have Bitcoin Core on this computer.") }}</button>
-                                <button style="padding: 10px; width: 80%; font-size: 1.2em; margin: 20px auto;" type="button" class="btn" onclick="hidePageOverlay();showPageOverlay('remote-node-help-popup')">{{ _("I have a remote Bitcoin Core node.") }}</button>
+                                <button style="padding: 10px; width: 80%; font-size: 1.2em; margin: 20px auto;" type="button" class="btn" 
+                                id="btn-no-node-help-popup">{{ _("I don't have a Bitcoin Core node yet.") }}</button>
+                                <button style="padding: 10px; width: 80%; font-size: 1.2em; margin: 20px auto;" type="button" class="btn" 
+                                id="btn-local-node-help-popup">{{ _("I have Bitcoin Core on this computer.") }}</button>
+                                <button style="padding: 10px; width: 80%; font-size: 1.2em; margin: 20px auto;" type="button" class="btn" 
+                                id="btn-remote-node-help-popup">{{ _("I have a remote Bitcoin Core node.") }}</button>
                             </div>
                         </div>
+                        <script type="module">
+                            document.getElementById("btn-connect-node-help-popup").addEventListener("click", (event)=> {
+                                        showPageOverlay('connect-node-help-popup');
+                                    });  	
+                            document.getElementById("btn-no-node-help-popup").addEventListener("click", (event)=> {
+                                        hidePageOverlay();
+                                        showPageOverlay('no-node-help-popup');
+                                    });  	
+                            document.getElementById("btn-local-node-help-popup").addEventListener("click", (event)=> {
+                                        hidePageOverlay();
+                                        showPageOverlay('local-node-help-popup');
+                                    });  	
+                            document.getElementById("btn-remote-node-help-popup").addEventListener("click", (event)=> {
+                                        hidePageOverlay();
+                                        showPageOverlay('remote-node-help-popup');
+                                    });  	
+                        </script>	 	                        
                         <div id="no-node-help-popup" class="hidden">
                             <h1>{{ _("Installing and Setting Up Bitcoin Core") }}</h1>
                             {{ _("Check out these video tutorials on downloading and setting up Bitcoin Core with Specter Desktop") }}:<br><br>

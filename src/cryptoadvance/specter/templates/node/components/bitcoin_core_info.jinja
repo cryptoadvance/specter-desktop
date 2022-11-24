@@ -26,7 +26,7 @@
 
     <p id="total_supply" style="line-height: 2.5;"></p>
     <div class="row">
-        <button type="button" onclick="fetchTotalSupply()" class="btn centered">
+        <button id="btn-fetchTotalSupply" type="button" class="btn centered">
             {{ _("Run the numbers!") }}
             <tool-tip width="200px">
                 <h4 slot="title">{{ _("Calculate the total Bitcoin supply") }}</h4>
@@ -37,7 +37,8 @@
             </tool-tip>
         </button>
     </div><br>
-    <script>
+
+    <script type="module">
         let totalUserBalance = parseFloat(parseFloat("{{ specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') }}").toFixed(8));
         async function fetchTotalSupply() {
             document.getElementById('total_supply').innerHTML = `{{ _("Running the numbers... (this might take a few minutes)") }}`;
@@ -72,6 +73,11 @@
                 return { success: false, error: e };
             }
         }
+
+        document.getElementById("btn-fetchTotalSupply").addEventListener("click", (event)=> {
+					fetchTotalSupply();
+				});  
+
     </script>
     {% if current_user.is_admin %}
         <div class="row">

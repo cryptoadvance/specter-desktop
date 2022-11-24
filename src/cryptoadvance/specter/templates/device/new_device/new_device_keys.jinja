@@ -35,7 +35,7 @@
             visibility: hidden;
         }
     </style>
-    <form id="form" action="{{ url_for('devices_endpoint.new_device_keys', device_type=device_class.device_type) }}" method="POST" style="width: 100%;" onsubmit="showPacman();">
+    <form id="form" action="{{ url_for('devices_endpoint.new_device_keys', device_type=device_class.device_type) }}" method="POST" style="width: 100%;">
         <div class="card center auto-width">
             {% if existing_device %}
                 <input type="hidden" name="existing_device" value="{{ existing_device.alias }}">
@@ -106,7 +106,7 @@
                     <table>
                         <thead>
                         <tr>
-                            <th></th><th>{{ _("Purpose") }}</th><th>{{ _("Derivation") }}</th><th>XPUB</th><th><button type="button" class="btn" style="width: 60px;" id="edit-xpubs-table-btn" onclick="editXpubsTable(this)">{{ _("Edit") }}</button></th>
+                            <th></th><th>{{ _("Purpose") }}</th><th>{{ _("Derivation") }}</th><th>XPUB</th><th><button type="button" class="btn" style="width: 60px;" id="edit-xpubs-table-btn">{{ _("Edit") }}</button></th>
                         </tr>
                         </thead>
                         <tbody id="xpubs_table">
@@ -133,7 +133,7 @@
                             {{ _("Scan QR code") }}
                         </a>
                     </qr-scanner>
-                    <button {% if device_class.device_type not in ['electrum', 'other'] %}class="hidden"{% endif %} type="button" onclick="showPageOverlay('paste-xpub-popup')" class="btn centered" id="xpub-paste" style="max-width: 250px; width: 250px; margin: 10px;">
+                    <button {% if device_class.device_type not in ['electrum', 'other'] %}class="hidden"{% endif %} type="button" class="btn centered" id="xpub-paste" style="max-width: 250px; width: 250px; margin: 10px;">
                         <img src="{{ url_for('static', filename='img/copy.svg') }}" style="width: 22px; margin: 0px;" class="svg-white">
                         {{ _("Paste xpub") }}
                     </button>
@@ -141,7 +141,7 @@
                         <h1>{{ _("Paste xpub") }}</h1>
                         <input type="text" id="paste-xpub-text" placeholder="Paste your xpub here">
                         <br><br>
-                        <button type="button" onclick="addXpubs(document.getElementById('paste-xpub-text').value);hidePageOverlay();document.getElementById('paste-xpub-text').value='';" class="btn centered">{{ _("Add xpub") }}</button>
+                        <button id="btn-paste-xpub-popup" type="button" class="btn centered">{{ _("Add xpub") }}</button>
                     </div>
                 </div>
             </div>
@@ -152,7 +152,7 @@
 {% endblock %}
 
 {% block scripts %}
-    <script>
+    <script type="module">
         let xpubsTableRows = 0;
 
         function addXpub(purpose, derivation, xpub='-') {
@@ -179,11 +179,14 @@
                 <input id="xpubs-table-row-${xpubsTableRows}-derivation-hidden" name="xpubs-table-row-${xpubsTableRows}-derivation-hidden" type="hidden" value="${derivation}">
                 <td id="xpubs-table-row-${xpubsTableRows}-xpub" class="xpub scroll" style="overflow: auto;">${xpub}</td>
                 <input id="xpubs-table-row-${xpubsTableRows}-xpub-hidden" name="xpubs-table-row-${xpubsTableRows}-xpub-hidden" type="hidden" value="${xpub}">
-                <td><button type="button" class="btn xpubs_edit" style="width: 60px;" onclick="document.getElementById('xpubs-table-row-${xpubsTableRows}').remove()">Remove</button></td>
+                <td><button id="btn-xpubs-table-row-${xpubsTableRows}-remove" type="button" class="btn xpubs_edit" style="width: 60px;">Remove</button></td>
             `
             let xpubRow = document.createElement('tr');
             xpubRow.id = `xpubs-table-row-${xpubsTableRows}`;
 			xpubRow.innerHTML = xpubRowHTML;
+            xpubRow.querySelector(`#btn-xpubs-table-row-${xpubsTableRows}-remove`).addEventListener("click", (event)=> {
+					document.getElementById(`xpubs-table-row-${xpubsTableRows}`).remove()
+				});  	
             xpubsTable.insertBefore(xpubRow, xpubsTable.children[xpubsTable.children.length - 3]);
         }
 
@@ -218,13 +221,17 @@
                 <td></td>
                 <td></td>
                 <td><input id="account_number_xpubs" value="0" min="0" type="number" step="1" style="width: 150px;" placeholder="{{ _("Account #") }}"></td>
-                <td><button type="button" class="btn" style="width: 150px;" onclick="addAccountXpubs()">{{ _("Add account") }}</button></td>
+                <td><button id="btn-add-account_xpubs" type="button" class="btn" style="width: 150px;">{{ _("Add account") }}</button></td>
                 <td></td>
             `
             let xpubAddAccountRow = document.createElement('tr');
             xpubAddAccountRow.id = `edit_add_account`;
             xpubAddAccountRow.style.display = 'none';
 			xpubAddAccountRow.innerHTML = xpubAddAccountRowHTML;
+            xpubAddAccountRow.querySelector("#btn-add-account_xpubs").addEventListener("click", (event)=> {
+					addAccountXpubs();
+				});  	
+
             xpubsTable.appendChild(xpubAddAccountRow);
 
             let xpubAddCustomRowHTML =  `
@@ -232,25 +239,34 @@
                 <td><input id="new_xpub_purpose" type="text" placeholder="{{ _("XPUB purpose") }}"></td>
                 <td><input id="new_xpub_derivation" type="text" placeholder="m/..."></td>
                 <td></td>
-                <td><button type="button" class="btn" style="width: 60px;" onclick="addCustomDerivation()">{{ _("Add") }}</button></td>
+                <td><button id="btn-add-custom-derivation" type="button" class="btn" style="width: 60px;">{{ _("Add") }}</button></td>
             `
             let xpubAddCustomRow = document.createElement('tr');
             xpubAddCustomRow.id = `edit_custom_der`;
             xpubAddCustomRow.style.display = 'none';
 			xpubAddCustomRow.innerHTML = xpubAddCustomRowHTML;
+            xpubAddCustomRow.querySelector("#btn-add-custom-derivation").addEventListener("click", (event)=> {
+					addCustomDerivation();
+				});  	            
             xpubsTable.appendChild(xpubAddCustomRow);
 
             let xpubAddRowHTML = `
                 <td></td>
                 <td></td>
-                <td><button type="button" class="btn" style="width: 150px;" onclick="document.getElementById('edit_add_account').style.display='table-row';">{{ _("Add account") }}</button></td>
-                <td><button type="button" class="btn" style="width: 150px;" onclick="document.getElementById('edit_custom_der').style.display='table-row';">{{ _("Add custom derivation") }}</button></td>
+                <td><button id="btn-add-account" type="button" class="btn" style="width: 150px;">{{ _("Add account") }}</button></td>
+                <td><button id="btn-add-custom-derivation-path" type="button" class="btn" style="width: 150px;">{{ _("Add custom derivation") }}</button></td>
                 <td></td>
             `
             let xpubAddRow = document.createElement('tr');
             xpubAddRow.id = `edit_select_add_method`;
             xpubAddRow.classList.add(`xpubs_edit`);
 			xpubAddRow.innerHTML = xpubAddRowHTML;
+            xpubAddRow.querySelector("#btn-add-account").addEventListener("click", (event)=> {
+					document.getElementById('edit_add_account').style.display='table-row';
+				});              
+            xpubAddRow.querySelector("#btn-add-custom-derivation-path").addEventListener("click", (event)=> {
+					document.getElementById('edit_custom_der').style.display='table-row';
+				});              
             xpubsTable.appendChild(xpubAddRow);
             if (device && device != 'electrum') {
                 addAccountXpubs();
@@ -311,9 +327,7 @@
                 el.style.visibility = visibility;
             }
         }
-    </script>
-
-    <script type="text/javascript">
+        
         document.getElementById('connect-hwi').addEventListener('click', async e => {
             // detect devices
             let deviceType = `{{ device_class.device_type }}`;
@@ -364,9 +378,7 @@
                 addXpub('Custom', document.getElementById(xpubRow.id + '-derivation').innerHTML, xpub)
             }
         });
-    </script>
-
-    <script type="text/javascript">
+        
         document.addEventListener("DOMContentLoaded", function(){
             var el = document.getElementById("file");
 
@@ -408,9 +420,7 @@
                 });
             }
         });
-    </script>
-
-    <script type="text/javascript">
+        
         let scanner = document.getElementById('xpub-scan');
         if(scanner != null) {
             scanner.addEventListener('scan', async (e) => {
@@ -558,5 +568,21 @@
             }
             return data;
         }
+
+
+		document.getElementById("edit-xpubs-table-btn").addEventListener("click", (event)=> {
+					editXpubsTable(event.target)
+				});  	
+		document.getElementById("xpub-paste").addEventListener("click", (event)=> {
+					showPageOverlay('paste-xpub-popup')
+				});  	
+		document.getElementById("btn-paste-xpub-popup").addEventListener("click", (event)=> {
+					addXpubs(document.getElementById('paste-xpub-text').value);
+                    hidePageOverlay();
+                    document.getElementById('paste-xpub-text').value='';
+				});  	
+		document.getElementById("form").addEventListener("submit", (event)=> {
+					showPacman();
+				});  	
     </script>
 {% endblock %}

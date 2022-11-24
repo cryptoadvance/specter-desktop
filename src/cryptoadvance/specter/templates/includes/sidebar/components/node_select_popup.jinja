@@ -30,7 +30,7 @@
 		    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		    <input type="hidden" name="node_alias" value="{{ node.alias }}"/>
             <div class="item core node-list-item {% if node.alias == specter.node.alias %}active{% endif %}" style="cursor: pointer;"
-            onclick="document.getElementById('{{node.alias}}-select-node-form').submit();">
+            id="div-{{node.alias}}-list-item">
                 {% if node.is_liquid %}
                     {% from "components/liquid_svg.jinja" import liquid_svg %}
                     {{ liquid_svg(node.chain, 40) }}
@@ -54,12 +54,18 @@
                 </a>
             </div>
         </form>
+        <script type="module">
+            document.getElementById("div-{{node.alias}}-list-item").addEventListener("click", (event)=> {
+                        document.getElementById('{{node.alias}}-select-node-form').submit();
+                    });    
+        </script>
+       
     {% endfor %}
     <br>
     {{ sidebar_btn(url_for('setup_endpoint.node_type'), 'Connect a new node', 'btn_new_node') }}
 </div>
 
-<script type="text/javascript">
+<script type="module">
     function showNodeSelectPopup() {
         hidePageOverlay();
         if (!e) var e = window.event;
@@ -78,4 +84,6 @@
         document.getElementById('page_overlay_popup_cancel_button').classList.remove('hidden');
 
     }
+
+
 </script>

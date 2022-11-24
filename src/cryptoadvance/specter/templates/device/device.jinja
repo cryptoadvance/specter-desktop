@@ -60,7 +60,7 @@
 						{% if specter.hide_sensitive_info %}
 							<td></td>
 						{% else %}
-							<td width="15" onclick="showPageOverlay('key_export_qr');document.getElementById('key_selected').value='{{loop.index0}}';toggleKeyDisplay();" title="{{ _('Show key QR code') }}" style="cursor: pointer;">
+							<td id="td-export-qr-{{loop.index0}}" width="15" title="{{ _('Show key QR code') }}" style="cursor: pointer;">
 								<img style="margin-top: 5px; width: 40px;" src="{{ url_for('static', filename='img/qr-code.svg') }}" class="svg-white"/>
 							</td>
 						{% endif %}
@@ -68,7 +68,7 @@
 							{% if specter.hide_sensitive_info %}
 								<span class="explorer-link">##################################################</span>
 							{% else %}
-								<span class="explorer-link" onclick="copyText('{{ key }}', 'Copied key: {{ key }}')">{{ key }}</span>
+								<span id="copy-key-{{loop.index0}}" class="explorer-link">{{ key }}</span>
 							{% endif %}
 						</td>
 						<td width="80px" class="optional">
@@ -79,6 +79,20 @@
 							</form>
 						</td>
 					</tr>
+					<script type="module">
+						if (document.getElementById("td-export-qr-{{loop.index0}}")){
+							document.getElementById("td-export-qr-{{loop.index0}}").addEventListener("click", (event)=> {
+									showPageOverlay('key_export_qr');
+									document.getElementById('key_selected').value = '{{loop.index0}}';
+									toggleKeyDisplay();
+								});  	
+						}
+						if (document.getElementById("copy-key-{{loop.index0}}")){
+							document.getElementById("copy-key-{{loop.index0}}").addEventListener("click", (event)=> {
+									copyText('{{ key }}', 'Copied key: {{ key }}');
+								});  	
+						}
+					</script>	 							
 				{% endfor %}
 			</tbody>
 		</table>
@@ -94,7 +108,7 @@
 		</form>
 
 		{% if device.hwi_support or device.supports_qr_message_signing %}
-		<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">{{ _("Sign message") }}</button>
+		<button id="btn-sign-message" type="button" class="btn centered">{{ _("Sign message") }}</button>
 		<div id="message-signing" class="hidden" style="text-align: left; max-width: 350px;">
 			{% if origin %}
 				{{ _("Address") }}:<input type="text" id="signing-address" type="text" value="" placeholder="bc1q ..."><br><br>
@@ -103,10 +117,10 @@
 			{{ _("Message") }}:<br>
 			<textarea id="message" placeholder="Enter the message you would like to sign" style="font-size: 0.95em; margin-bottom: 15px;"></textarea>
 			<span id="signature-label" class="hidden">{{ _("Message signature") }}:</span>
-			<p id="signature" title='{{ _("Copy signature") }}' class="hidden" onclick="copyText(this.innerText, '{{ _("Copied message signature") }}')">
+			<p id="signature" title='{{ _("Copy signature") }}' class="hidden">
 			</p>
 			{% if device.hwi_support %}
-				<button id="{{ device.alias }}_usb_sign_msg_btn" type="button" class="btn centered" onclick="signMessageOnDevice();">{{ _("Sign message via USB") }}</button>
+				<button id="{{ device.alias }}_usb_sign_msg_btn" type="button" class="btn centered">{{ _("Sign message via USB") }}</button>
 			{% endif %}
 			{% if device.supports_qr_message_signing %}
 				{% include "includes/overlay/qr_code_sign_message.jinja" %}
@@ -119,7 +133,7 @@
 			<a class="btn centered" href="{{ url_for('devices_endpoint.device_blinding_key', device_alias=device.alias) }}">{{ _("Update master blinding key") }}</a>
 		{% endif %}
 		{% if device.supports_hwi_toggle_passphrase %}
-			<button type="button" class="btn centered" onclick="togglePassphrase('{{ device.device_type }}')">{{ _("Toggle device passphrase") }}</button>
+			<button id="btn-toggle-device-passphrase" type="button" class="btn centered">{{ _("Toggle device passphrase") }}</button>
 			<br>
 		{% endif %}
 		<form action="./" method="POST">
@@ -174,7 +188,7 @@
 {% endblock %}
 
 {% block scripts %}
-	<script>
+	<script type="module">
 		document.addEventListener("DOMContentLoaded", function() {
 			var deviceType = document.getElementById("device_type");
 			if (deviceType != null) {
@@ -249,5 +263,27 @@
 			fullStringToEncode = `signmessage ${derivationPath} ascii:${messageText}`
 			document.getElementById('msg-qr-code').setAttribute("value", fullStringToEncode)
 		}
+
+		if (document.getElementById("btn-sign-message")){
+			document.getElementById("btn-sign-message").addEventListener("click", (event)=> {
+						showPageOverlay('message-signing')
+					});  	
+		}
+		if (document.getElementById("signature")){
+			document.getElementById("signature").addEventListener("click", (event)=> {
+						copyText(this.innerText, '{{ _("Copied message signature") }}')
+					});  	
+		}
+		if (document.getElementById("{{ device.alias }}_usb_sign_msg_btn")){
+			document.getElementById("{{ device.alias }}_usb_sign_msg_btn").addEventListener("click", (event)=> {
+						signMessageOnDevice();
+					});  	
+		}
+		if (document.getElementById("btn-toggle-device-passphrase")){
+			document.getElementById("btn-toggle-device-passphrase").addEventListener("click", (event)=> {
+						togglePassphrase('{{ device.device_type }}')
+					});  	
+		}
+
 	</script>
 {% endblock %}

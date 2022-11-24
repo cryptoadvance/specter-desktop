@@ -158,7 +158,7 @@
 		<div style="margin: 0 auto;" class="center hidden" id="advanced_pdf_export_container">
 			<label style="font-size: 1em;"">{{ _("Use SLIP-132:") }}&nbsp;</label>
 			<label class="switch">
-				<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()">
+				<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;">
 				<span class="slider"></span>
 			</label><br><br>
 		</div>
@@ -242,6 +242,8 @@
 		document.getElementById("btn-nw-wallet-popup-finish").addEventListener("click", (event)=> {
 			hidePageOverlay();
 		});  
-
+		document.getElementById("use_slip_132_pdf").addEventListener("change", (event)=> {
+			toggleKeyDisplay();
+		});  
 	</script>
 {% endblock %}

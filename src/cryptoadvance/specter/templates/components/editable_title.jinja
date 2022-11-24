@@ -9,13 +9,13 @@
         <input type="text" autocomplete="off" spellcheck="false" id="newtitle" name="newtitle" value="{{ title }}" style="font-size: 1.5em; text-align: center; display: none;" />
         <div class="row center">
             <button type="submit" class="btn update" id="save" name="action" value="rename" style="display: none; width: 49.2%; margin: 3px;">{{ _("Update") }}</button>
-            <button type="button" class="btn cancel" id="cancel" onclick="toggleEdit()" style="display: none; width: 49.2%; margin: 3px;">{{ _("Cancel") }}</button>
-            <button type="button" class="btn edit" id="edit" onclick="toggleEdit()">{{ _("Edit Name") }}</button>
+            <button id="btn-cancel-edit-title" type="button" class="btn cancel" id="cancel" style="display: none; width: 49.2%; margin: 3px;">{{ _("Cancel") }}</button>
+            <button id="btn-edit-edit-title" type="button" class="btn edit" id="edit">{{ _("Edit Name") }}</button>
         </div>
         <br>
     </form>
 
-    <script>
+    <script type="module">
 	    function toggleEdit() {
             var title = document.getElementById("title");
             var newtitle = document.getElementById("newtitle");
@@ -39,5 +39,13 @@
                 title.style.display = 'none';
             }
         }
+
+		document.getElementById("btn-cancel-edit-title").addEventListener("click", (event)=> {
+					toggleEdit();
+				});  	        
+		document.getElementById("btn-edit-edit-title").addEventListener("click", (event)=> {
+					toggleEdit();
+				});  	        
+
     </script>
 {%- endmacro %}

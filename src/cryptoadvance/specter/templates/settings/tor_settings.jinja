@@ -30,7 +30,7 @@
             flex-grow: 1; 
         }
 	</style>
-	<form action="?" method="POST" onsubmit="showPacman()">
+	<form id="form-tor-settings" action="?" method="POST">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<h1 id="title" class="settings-title">Settings</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
@@ -61,7 +61,7 @@
 				<a style="display: inline; float: right; width: 110px; margin-top: 10px; margin-right: 10px;" href="{{ url_for('setup_endpoint.tor_from_settings' ) }}" class="btn centered action" id="setup-tor-button">{{ _("Set up") }}</a>
 			{% endif %}
 			<div class="row">
-				<input id="tor_type_builtin" type="radio" name="tor_type" value="builtin" style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="toggletor_type('builtin')" {% if tor_type == 'builtin' %} checked {% endif %}/>
+				<input id="tor_type_builtin" type="radio" name="tor_type" value="builtin" style="width: 20px; min-width: 20px; margin-top: 20px;" {% if tor_type == 'builtin' %} checked {% endif %}/>
 				<h2 style="text-align: left; margin-left: 10px; font-size: 1.1em;">Built in</h2>
 			</div>
 			<p class="note" style="text-align: left; margin-left: 38px;margin-top: -5px;">{{ _("Quick and automatic setup.") }}</p>
@@ -69,7 +69,7 @@
 		<br>
 		<label id="custom-tor-label" for="tor_type_custom" class="card radio-btn no-bottom-border-radius" style="padding: 20px 10px 5px; display: block; margin: auto;">
 			<div class="row">
-				<input id="tor_type_custom" type="radio" name="tor_type" value="custom" style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="toggletor_type('custom')" {% if tor_type == 'custom' %} checked {% endif %}/>
+				<input id="tor_type_custom" type="radio" name="tor_type" value="custom" style="width: 20px; min-width: 20px; margin-top: 20px;"  {% if tor_type == 'custom' %} checked {% endif %}/>
 				<h2 style="text-align: left; margin-left: 10px; font-size: 1.1em;">{{ _("Custom") }}</h2>
 			</div>
 			<p class="note" style="text-align: left; margin-left: 38px;margin-top: -5px;">{{ _("Use your own Tor configuration.") }}</p>
@@ -106,7 +106,7 @@
 						</tool-tip>
 					</div>
 					<label class="switch" style="margin-left: 5px;">
-						<input type="checkbox" id="hidden_service" name="hidden_service" onchange="checkAuthEabled()"{% if tor_service_id %}checked{% endif %}>
+						<input type="checkbox" id="hidden_service" name="hidden_service" {% if tor_service_id %}checked{% endif %}>
 						<span class="slider"></span>
 					</label>
 				</div>
@@ -117,7 +117,7 @@
 				{% if tor_service_id %}
 				<p><b>
 					{{ _("Specter hidden service is running at:") }}
-					<span title="Copy Tor address" style="word-break: break-word;" class="explorer-link" onclick="copyText('http:/\/{{ tor_service_id }}.onion', '{{ _("Copied Tor hidden service address:") }} {{ tor_service_id }}.onion')">
+					<span id="span-copy-explorer-link" title="Copy Tor address" style="word-break: break-word;" class="explorer-link"  >
 					{{ tor_service_id }}.onion
 					</span>
 				</b></p>
@@ -149,7 +149,7 @@
 			<button type="submit" class="btn" name="action" value="save" style="width: 100%;">{{ _("Save changes") }}</button>
 			<br><br>
 		</div>
-		<script type="text/javascript">
+		<script type="module">
 			function toggletor_type(tor_type) {
 				let customTorLabel = document.getElementById('custom-tor-label');
 				let customTorDetails = document.getElementById('custom-tor-details');
@@ -188,6 +188,26 @@
 			document.addEventListener("DOMContentLoaded", function(){
 				toggletor_type('{{ tor_type }}');
 			});
+
+			document.getElementById("tor_type_builtin").addEventListener("change", (event)=> {
+					toggletor_type('builtin');
+				});  
+			document.getElementById("tor_type_custom").addEventListener("change", (event)=> {
+					toggletor_type('custom');
+				});  
+			if (document.getElementById("hidden_service")){
+				document.getElementById("hidden_service").addEventListener("change", (event)=> {
+						checkAuthEabled();
+					});  
+			}
+			if (document.getElementById("span-copy-explorer-link")){
+				document.getElementById("span-copy-explorer-link").addEventListener("click", (event)=> {
+						copyText('http:/\/{{ tor_service_id }}.onion', '{{ _("Copied Tor hidden service address:") }} {{ tor_service_id }}.onion');
+					});  
+			}
+			document.getElementById("form-tor-settings").addEventListener("submit", (event)=> {
+					showPacman()
+				});  
 		</script>
 	</form>
 {% endblock %}

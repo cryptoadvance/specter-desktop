@@ -6,7 +6,7 @@
     <div class="flex-center">
         <p id="quicksync-option" {% if network != 'main' %}class="hidden"{% endif %}>{{ _("QuickSync?") }}&nbsp;&nbsp;
         <label class="switch" id="quicksync-switch">
-            <input type="checkbox" name="quicksync" id="quicksync" onchange="toggleNodeTypeSelect()" checked>
+            <input type="checkbox" name="quicksync" id="quicksync" checked>
             <span class="slider"></span>
         </label>&nbsp;&nbsp;
         </p>
@@ -209,6 +209,8 @@
 		document.getElementById("helper").addEventListener("click", (event)=> {
 					toggleHelper()
 				});  	        
-
+		document.getElementById("quicksync").addEventListener("change", (event)=> {
+					toggleNodeTypeSelect()
+				});  	        
     </script>
 {% endblock %}

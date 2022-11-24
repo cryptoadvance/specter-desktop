@@ -34,8 +34,12 @@
                     <img src="{{ url_for('electrum_endpoint.static', filename='electrum/img/electrum_manual/2.png')}}" alt=_("Copy the master public key and derivation path") style="width: 385px; height: 300px"> 
                 </div>
             </text-explainer>
-            <button type="submit" class="btn centered" style="font-size: 14px; margin-top: 25px" name="action" onsubmit="showPacman()">{{ _("Continue") }}</button>   
+            <button  id="btn-submit-electrum" type="submit" class="btn centered" style="font-size: 14px; margin-top: 25px" name="action">{{ _("Continue") }}</button>   
             </div>     
         </form>
-    
+	<script type="module">
+		document.getElementById("btn-submit-electrum").addEventListener("submit", (event)=> {
+					showPacman()
+				});  	
+	</script>	 	    
 {% endblock %}

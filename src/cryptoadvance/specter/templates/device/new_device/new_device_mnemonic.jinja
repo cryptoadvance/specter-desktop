@@ -32,7 +32,7 @@
             visibility: hidden;
         }
     </style>
-    <form id="form" action="{{ url_for('devices_endpoint.new_device_mnemonic', device_type=device_type) }}" method="POST" style="width: 100%;" onsubmit="if (checkAdvancedValidState()) { showPacman(); } else { event.preventDefault(); }">
+    <form id="form" action="{{ url_for('devices_endpoint.new_device_mnemonic', device_type=device_type) }}" method="POST" style="width: 100%;">
         <div class="card center auto-width">
             <h1 style="font-size: 2em;">{{ _("Add") }} {% if existing_device %}{{ _("Keys") }}{% else %}{{ _("Device") }}{% endif %}</h1><br>
             {% if existing_device %}
@@ -52,8 +52,8 @@
                     {% set wordslist = mnemonic.split(' ') %}
                     {% if not existing_device %}
                     <nav class="row">
-                        <button type="button" id="generate_mnemonic_btn" class="btn radio left checked" onclick="setMnemonicView('generate')"> {{ _("Generate") }} </button>
-                        <button type="button" id="import_mnemonic_btn" class="btn radio right" onclick="setMnemonicView('import')"> {{ _("Import") }} </button>
+                        <button type="button" id="generate_mnemonic_btn" class="btn radio left checked"> {{ _("Generate") }} </button>
+                        <button type="button" id="import_mnemonic_btn" class="btn radio right"> {{ _("Import") }} </button>
                     </nav>
                     {% endif %}
                     <input id="mnemonic_value" type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
@@ -66,7 +66,7 @@
                                     <option value="256">24 words</option>
                                 </select>
                             </fieldset>
-                            <button type="button" class="btn" style="max-width: 200px; margin-top: 9px;" onclick="generateMnemonic()">{{ _("Generate New Mnemonic") }}</button>
+                            <button id="btn-generate_mnemonic" type="button" class="btn" style="max-width: 200px; margin-top: 9px;">{{ _("Generate New Mnemonic") }}</button>
                         </div>
                         <br>
                         <table id="mnemonic_table">
@@ -82,7 +82,7 @@
                     </div>
                 </div>
 				<br>
-                <span id="toggle-advanced" style="cursor: pointer;" onclick="toggleAdvanced()">{{ _("Advanced") }} &#9654;</span>
+                <span id="toggle-advanced" style="cursor: pointer;">{{ _("Advanced") }} &#9654;</span>
 				<br>
 				<br>
                 <div id="advanced-settings" class="hidden" style="width: 400px; margin: auto;">
@@ -106,7 +106,7 @@
 {% endblock %}
 
 {% block scripts %}
-    <script>
+    <script type="module">
         let hiddenAdvancedConfirmed = false;
         document.addEventListener("DOMContentLoaded", function(){
             {% if existing_device %}
@@ -208,5 +208,27 @@
                 advancedButton.innerHTML = `{{ _("Advanced") }} &#9660;`;
             }
         }
+
+
+		document.getElementById("form").addEventListener("submit", (event)=> {
+            if (checkAdvancedValidState()) { 
+                showPacman();
+            } else { 
+                event.preventDefault(); 
+            }
+        });  	        
+		document.getElementById("generate_mnemonic_btn").addEventListener("click", (event)=> {
+            setMnemonicView('generate');
+        });  	        
+		document.getElementById("import_mnemonic_btn").addEventListener("click", (event)=> {
+            setMnemonicView('import');
+        });  	        
+		document.getElementById("btn-generate_mnemonic").addEventListener("click", (event)=> {
+            generateMnemonic();
+        });  	        
+		document.getElementById("toggle-advanced").addEventListener("click", (event)=> {
+            toggleAdvanced();
+        });  	        
+
     </script>
 {% endblock %}

@@ -16,7 +16,7 @@
 	<br>
 	<label class="card radio-btn" style="padding: 20px 10px 5px;">
 		<div class="row">
-			<input type="radio" name="hwibridge" value="local" style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="switchHWIBridgeConfView(this.value)" {% if specter.hwi_bridge_url == '/hwi/api/'%} checked {% endif %}/>
+			<input id="input-hwibridge-local" type="radio" name="hwibridge" value="local" style="width: 20px; min-width: 20px; margin-top: 20px;"  {% if specter.hwi_bridge_url == '/hwi/api/'%} checked {% endif %}/>
 			<h2 style="text-align: left; margin-left: 10px;">{{ _("Local USB connection") }}</h2>
 		</div>
 		<p class="note" style="text-align: left; margin-left: 38px;margin-top: 0px;">{{ _("Select this if Specter is installed on this computer") }}</p>
@@ -24,7 +24,7 @@
 	<br>
 	<label class="card radio-btn" style="padding: 20px 10px 5px;">
 		<div class="row">
-			<input type="radio" name="hwibridge" value="remote" style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="switchHWIBridgeConfView(this.value)" {% if specter.hwi_bridge_url == 'http://127.0.0.1:25441/hwi/api/' %} checked {% endif %}/>
+			<input id="input-hwibridge-remote" type="radio" name="hwibridge" value="remote" style="width: 20px; min-width: 20px; margin-top: 20px;"   {% if specter.hwi_bridge_url == 'http://127.0.0.1:25441/hwi/api/' %} checked {% endif %}/>
 			<h2 style="text-align: left; margin-left: 10px;">{{ _("Remote Specter USB connection") }}</h2>
 		</div>
 		<p class="note" style="text-align: left; margin-left: 38px;margin-top: 0px;">{{ _("Select this if Specter is installed on a different machine") }}</p>
@@ -32,12 +32,12 @@
 	<br>
 	<label class="card radio-btn" style="padding: 20px 10px 5px;">
 		<div class="row">
-			<input type="radio" id="custom_hwibridge" name="hwibridge" value="custom" style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="switchHWIBridgeConfView(this.value)" {% if specter.hwi_bridge_url != 'http://127.0.0.1:25441/hwi/api/' and specter.hwi_bridge_url != '/hwi/api/' %} checked {% endif %}/>
+			<input id="input-hwibridge-custom_hwibridge" type="radio" id="custom_hwibridge" name="hwibridge" value="custom" style="width: 20px; min-width: 20px; margin-top: 20px;"  {% if specter.hwi_bridge_url != 'http://127.0.0.1:25441/hwi/api/' and specter.hwi_bridge_url != '/hwi/api/' %} checked {% endif %}/>
 			<h2 style="text-align: left; margin-left: 10px;">Custom URL</h2>
 		</div>
 		<p class="note" style="text-align: left; margin-left: 38px;margin-top: 0px;">{{ _("Select this if you would like to configure manually (experts only)") }}</p>
 		<div style="margin: 20px;">
-			<input type="text" id="custom_url" value="{{ specter.hwi_bridge_url }}" oninput="if(document.getElementById('custom_hwibridge').checked){document.getElementById('hwi_bridge_url').value=this.value}" />
+			<input type="text" id="custom_url" value="{{ specter.hwi_bridge_url }}"/>
 		</div>
 	</label>
 	<style>
@@ -86,13 +86,14 @@
 	<p style="text-align: left; max-width: 580px; margin-left:10px; margin-right:10px;">{{ _("You might also need to allow Specter to communicate with the device bridge.") }}<br></p>
 	<ol style="text-align: left; max-width: 580px;line-height:2; margin-left:10px; margin-right:10px;">
 		<li>{{ _("Access the device bridge settings.") }} <a href='{{specter.hwi_bridge_url.replace("/hwi/api", "/hwi/settings")}}' target="_blank" style="color: #fff;">Click here</a>.</li>
-		<li>{{ _("Add the domain") }} {{ url_for('index', _external=True) }} <span style="text-decoration: underline; cursor: pointer;" onclick="copyText('{{ url_for('index', _external=True) }}', '{{ _("Copied Specter URL") }}')">({{ _("copy") }}</span> {{ _("to the whitelist there.") }}<br>{{ _("Save the changes and close the window.") }}</li>
-		<li>{{ _("Connect your hardware wallet to your computer and test if Specter manage to reach it") }}<br><button class="btn" type="button" style="display: inline; width: 140px; margin-top:5px;" onclick="testHWIConnection()">{{ _("Test connection") }}</button></li>
+		<li>{{ _("Add the domain") }} {{ url_for('index', _external=True) }} <span id="span-copy-specter-url" style="text-decoration: underline; cursor: pointer;">({{ _("copy") }}</span> {{ _("to the whitelist there.") }}<br>{{ _("Save the changes and close the window.") }}</li>
+		<li>{{ _("Connect your hardware wallet to your computer and test if Specter manage to reach it") }}<br>
+		<button id="btn-test-hwi-connection" class="btn" type="button" style="display: inline; width: 140px; margin-top:5px;">{{ _("Test connection") }}</button></li>
 	</ol>
 
 	<div style="height: 100%"></div>
 	<br>
-	<script>
+	<script type="module">
 		async function testHWIConnection() {
 			if (await enumerate()) {
 				Specter.common.showNotification(`{{ _("Device detected successfully! USB connections configured correctly!") }}`);
@@ -112,5 +113,28 @@
 				bridgeUrl.value = '/hwi/api';
 			}
 		}
+
+
+		document.getElementById("btn-test-hwi-connection").addEventListener("click", (event)=> {
+					testHWIConnection();
+				});  		
+		document.getElementById("span-copy-specter-url").addEventListener("click", (event)=> {
+					copyText('{{ url_for('index', _external=True) }}', '{{ _("Copied Specter URL") }}');
+				});  		
+		document.getElementById("input-hwibridge-local").addEventListener("change", (event)=> {
+					switchHWIBridgeConfView(event.target.value);
+				});  		 
+		document.getElementById("input-hwibridge-remote").addEventListener("change", (event)=> {
+					switchHWIBridgeConfView(event.target.value)
+				});  		 
+		document.getElementById("input-hwibridge-custom_hwibridge").addEventListener("change", (event)=> {
+					switchHWIBridgeConfView(event.target.value)
+				});  		 
+		document.getElementById("custom_url").addEventListener("input", (event)=> {
+					if(document.getElementById('custom_hwibridge').checked){
+						document.getElementById('hwi_bridge_url').value = event.target.value
+					}
+				});  		 
+
 	</script>
 {% endblock %}

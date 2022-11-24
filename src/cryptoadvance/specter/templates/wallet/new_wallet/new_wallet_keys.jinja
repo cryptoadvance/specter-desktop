@@ -1,6 +1,6 @@
 {% extends "base.jinja" %}
 {% block main %}
-	<form id="keysform" action="./" method="POST" onsubmit="showPacman()" class="table-holder">
+	<form id="keysform" action="./" method="POST" class="table-holder">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<h1>{{ _("Name your Wallet") }}</h1>
 		<div class="center">
@@ -260,6 +260,8 @@
 		document.getElementById("rescan").addEventListener("change", (event)=> {
 					toggleScanOptions(event.target)
 				});  	
-
+		document.getElementById("keysform").addEventListener("submit", (event)=> {
+					showPacman()
+				});  	
 	</script>
 {% endblock%}

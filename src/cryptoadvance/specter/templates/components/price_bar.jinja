@@ -33,7 +33,7 @@
         }
     }
 </style>
-<a id="price-bar-btn" title="Bitcoin price" type="button" style="cursor: pointer; background: #4a90e2; color: #fff; padding: 0px 20px;" class="settings-bar-btn left-toolbar" onclick="showPageOverlay('price-popup')">
+<a id="price-bar-btn" title="Bitcoin price" type="button" style="cursor: pointer; background: #4a90e2; color: #fff; padding: 0px 20px;" class="settings-bar-btn left-toolbar">
     {% if specter.price_check %}
         <div title="Price settings">
             <span id="price-bar-label"></span>
@@ -53,8 +53,8 @@
         <div class="card">
             <p>{{ _("Please set custom rate or choose between the automated price provider options.") }}</p>
             <nav class="row">
-                <button type="button" id="manual_price_btn" class="btn radio left checked" onclick="setPriceView('manual')">{{ _("Manual") }}</button>
-                <button type="button" id="automatic_price_btn" class="btn radio right" onclick="setPriceView('automatic')">{{ _("Automatic") }}</button>
+                <button type="button" id="manual_price_btn" class="btn radio left checked">{{ _("Manual") }}</button>
+                <button type="button" id="automatic_price_btn" class="btn radio right">{{ _("Automatic") }}</button>
             </nav>
             <br>
             <div id="manual_price">
@@ -75,7 +75,7 @@
                             </td>
                             <td style="padding-bottom: 0px; border: none; text-align: left;">
                                 <fieldset style="border:none; display: inline; width: 100%;"> 
-                                    <select name="price_provider_currency" id="price_provider_currency" onchange="filterProviderOptions()">
+                                    <select name="price_provider_currency" id="price_provider_currency">
                                         <optgroup label="Fiat currencies" id="fiat_currency">
                                             <option value="usd" selected>$ (USD)</option>
                                             <option value="eur" {% if specter.price_provider and specter.price_provider.endswith('eur') %}selected{% endif %}>€ (EUR)</option>
@@ -108,7 +108,7 @@
                             </td>
                             <td style="padding-top: 10px; padding-bottom: 0px; border: none; text-align: left;">
                                 <fieldset style="border:none; display: inline; width: 100%;"> 
-                                    <select name="price_provider" id="price_provider" onchange="providerChanged()">
+                                    <select name="price_provider" id="price_provider">
                                         <option data-currency-type="usd" value="bitstamp_usd" {% if specter.price_provider == 'bitstamp' %}selected{% endif %}>Bitstamp USD</option>
                                         <option data-currency-type="usd" value="coindesk_usd" {% if specter.price_provider == 'coindesk' %}selected{% endif %}>Coindesk USD</option>
                                         <option data-currency-type="usd" value="spotbit_coinbase" {% if specter.price_provider == 'spotbit_coinbase' %}selected{% endif %}>Spotbit Coinbase (Tor) USD</option>
@@ -187,17 +187,17 @@
             </div>
             <br>
             <input type="hidden" id="price_type" name="price_type" value="{{ 'automatic' if specter.price_provider else 'manual' }}">
-            <button type="button" class="btn" onclick="savePriceData(true)" style="margin: auto;">{{ _("Save") }}</button>
+            <button id="btn-save-price-data" type="button" class="btn" style="margin: auto;">{{ _("Save") }}</button>
         </div>
         <br><br>
-        <button type="button" class="btn" onclick="togglePriceCheck(false)" style="margin: auto;" >{{ _("Disable showing price") }}</button>
+        <button id="btn-disable-show-price" type="button" class="btn" style="margin: auto;" >{{ _("Disable showing price") }}</button>
     {% else %}
         <p>{{ _("You can enable showing price feature to see the price")}}<br>{{ _('information of your Bitcoin amounts across Specter.')}}</p>
         <br>
-        <button type="button" class="btn" style="margin: auto;" onclick="togglePriceCheck(true)">{{ _("Enable showing price") }}</button>
+        <button id="btn-enable-show-price" type="button" class="btn" style="margin: auto;">{{ _("Enable showing price") }}</button>
     {% endif %}
     </form>
-    <script>
+    <script type="module">
         async function togglePriceCheck(showPrice) {
             if (showPrice) {
                 Specter.common.showNotification(`{{ _("Turning on show price mode...") }}`, 0)
@@ -321,5 +321,32 @@
                 providerChanged()
             {% endif %}
         });
+
+
+
+		document.getElementById("price-bar-btn").addEventListener("click", (event)=> {
+					showPageOverlay('price-popup');
+				});  	        
+		document.getElementById("manual_price_btn").addEventListener("click", (event)=> {
+					setPriceView('manual')
+				});  	        
+		document.getElementById("automatic_price_btn").addEventListener("click", (event)=> {
+					setPriceView('automatic')
+				});  	        
+		document.getElementById("price_provider_currency").addEventListener("change", (event)=> {
+					filterProviderOptions()
+				});  	        
+		document.getElementById("price_provider").addEventListener("change", (event)=> {
+					providerChanged()
+				});  	        
+		document.getElementById("btn-save-price-data").addEventListener("click", (event)=> {
+					savePriceData(true)
+				});  	        
+		document.getElementById("btn-disable-show-price").addEventListener("click", (event)=> {
+					togglePriceCheck(false)
+				});  	        
+		document.getElementById("btn-enable-show-price").addEventListener("click", (event)=> {
+					togglePriceCheck(true)
+				});  	        
     </script>
 </div>

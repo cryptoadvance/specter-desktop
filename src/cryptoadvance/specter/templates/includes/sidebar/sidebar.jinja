@@ -70,7 +70,7 @@
             <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/><br>{{ _("Bitcoin Core version is outdated.")}}<br>{{ _('Some features might not work...')}}<br>{{ _("(minimum required: v20.0.0).") }}</p>
         {% endif %}
         {% if specter.node.is_running %}
-            <div id="active-node" onclick="showPageOverlay('bitcoin_core_info');document.getElementById('side-content').classList.remove('active');" class="item core" style="cursor: pointer;">
+            <div id="active-node" class="item core" style="cursor: pointer;">
                 {% if specter.is_liquid %}
                     {% from "components/liquid_svg.jinja" import liquid_svg %}
                     {{ liquid_svg(specter.info.chain, 40) }}
@@ -105,7 +105,7 @@
                 <div id="configure-click" class="configure-click">{{ _("Click to configure") }}</div>
             </a>
         {% endif%}
-        <img id="node-switch-icon" src="{{ url_for('static', filename='img/flip-horizontal.svg')}}" class="svg-white" onclick="showNodeSelectPopup()"/>
+        <img id="node-switch-icon" src="{{ url_for('static', filename='img/flip-horizontal.svg')}}" class="svg-white" />
         {% if specter.info["utxorescan"] %}
         <div class="rescan_progress {{ specter.info.chain }}">
             <div id="utxo_rescan_progress" style='width: {{ specter.info["utxorescan"] }}%'></div>
@@ -193,7 +193,7 @@
                         <p class="warning center">
                             <img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/><br>{{ _("Failed to load some wallets") }}<br>
                             <button class="btn" name="action" value="retry_loading_wallets" style="margin: auto;">{{ _("Retry loading wallets") }}</button>
-                            <button type="button" class="btn" onclick="showPageOverlay('failed_wallets_popup')" style="margin: auto; margin-top: 5px;">{{ _("Show Details") }}</button>
+                            <button id="btn-failed_wallets_popup" type="button" class="btn" style="margin: auto; margin-top: 5px;">{{ _("Show Details") }}</button>
                         </p>
                     </form>
                     <div class="hidden" id="failed_wallets_popup">
@@ -255,7 +255,7 @@
         </div>
     </nav>
 </div>
-<script>
+<script type="module">
 
     async function updateWalletsLoadingData() {
         try {
@@ -335,4 +335,22 @@
             updateWalletsLoadingData();
         {% endif %}
     });
+
+
+    document.getElementById("node-switch-icon").addEventListener("click", (event)=> {
+                showNodeSelectPopup();
+            }); 
+    if (document.getElementById("btn-failed_wallets_popup")){
+        document.getElementById("btn-failed_wallets_popup").addEventListener("click", (event)=> {
+                    showPageOverlay('failed_wallets_popup');
+                }); 
+    }
+    if (document.getElementById("active-node")){
+        document.getElementById("active-node").addEventListener("click", (event)=> {
+                    showPageOverlay('bitcoin_core_info');
+                    document.getElementById('side-content').classList.remove('active');
+                }); 
+    }
+
+
 </script>

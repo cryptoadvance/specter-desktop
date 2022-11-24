@@ -161,7 +161,7 @@
                     if (this.isVerifyHwi) { 
                         addressInfoHTML += `
                         <br>
-                        <button type="button" onclick='hidePageOverlay();displayAddressOnDevice("${address}", "${descriptor}", "${xpubs_descriptor}")' class="btn" style="min-width:200px; max-width:300px; margin: auto;">{{ _("Verify address on device") }}</button>`;
+                        <button id="btn-displayAddressOnDevice" type="button" class="btn" style="min-width:200px; max-width:300px; margin: auto;">{{ _("Verify address on device") }}</button>`;
                     }
 
                     if (this.isVerifyQR) { 
@@ -181,17 +181,31 @@
                             <span class="slider"></span>
                         </label><br><br>
                     </div>
-                    <pre class="descriptor"><code class="explorer-link" onclick='copyText(unescape("${escape(descriptor)}"), "{{ _("Copied address descriptor") }}")'>${descriptor}</code></pre>
+                    <pre class="descriptor"><code id="code-descriptor" class="explorer-link">${descriptor}</code></pre>
                     `;
                     this.info.innerHTML = addressInfoHTML;
+                    this.info.querySelector("#btn-displayAddressOnDevice").addEventListener("click", (event)=> {
+                        hidePageOverlay();
+                        displayAddressOnDevice("${address}", "${descriptor}", "${xpubs_descriptor}");
+                    });  	
+                    this.info.querySelector("#code-descriptor").addEventListener("click", (event)=> {
+                        copyText(unescape("${escape(descriptor)}"), "{{ _('Copied address descriptor') }}");
+                    });  	
                     this.note.innerText = "";
 
                     this.info.querySelector('.descriptor-switch').onchange = (e) => {
                         if (e.target.checked) {
-                            this.info.querySelector(".descriptor").innerHTML = `<code class="explorer-link" onclick='copyText(unescape("${escape(descriptor)}"), "{{ _("Copied address descriptor") }}")'>${descriptor}</code>`;
+                            this.info.querySelector(".descriptor").innerHTML = `<code class="explorer-link">${descriptor}</code>`;
+                            this.info.querySelector(".descriptor").querySelector('.explorer-link').addEventListener("click", (event)=> {
+                                copyText(unescape(`${escape(descriptor)}`), "{{ _('Copied address descriptor') }}");
+                            }); 
+
                         } else {
-                            this.info.querySelector(".descriptor").innerHTML = `<code class="explorer-link" onclick='copyText(unescape("${escape(xpubs_descriptor)}"), "{{ _("Copied address descriptor") }}")'>${xpubs_descriptor}</code>`;
-                        }
+                            this.info.querySelector(".descriptor").innerHTML = `<code class="explorer-link">${xpubs_descriptor}</code>`;
+                            this.info.querySelector(".descriptor").querySelector('.explorer-link').addEventListener("click", (event)=> {
+                                copyText(unescape(`${escape(xpubs_descriptor)}`), "{{ _('Copied address descriptor') }}");
+                            }); 
+                        }                         	
                     }
 
                     return;

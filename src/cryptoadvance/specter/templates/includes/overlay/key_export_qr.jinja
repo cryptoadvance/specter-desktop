@@ -14,7 +14,7 @@
         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
         <div>
             <span id='key_qr_code'></span>
-            <br><pre id="key_text" class='key center' onclick="copyText(this.innerText, '{{ _("Copied full key") }}')">{{ key }}</pre>
+            <br><pre id="key_text" class='key center'>{{ key }}</pre>
         </div>
         <br>
         <table style="text-align: left; width: 70%; margin: auto; border: none;">
@@ -24,7 +24,7 @@
             </td>
             <td style="border: none;">
                 <label class="switch">
-                    <input type="checkbox" id="show_der_path" onchange="toggleKeyDisplay()">
+                    <input type="checkbox" id="show_der_path">
                     <span class="slider"></span>
                 </label>
             </td>
@@ -35,7 +35,7 @@
             </td>
             <td style="border: none;">
                 <label class="switch">
-                    <input type="checkbox" id="use_slip_132" onchange="toggleKeyDisplay()">
+                    <input type="checkbox" id="use_slip_132">
                     <span class="slider"></span>
                 </label>
             </td>
@@ -43,7 +43,7 @@
         </table>
     </form>
 </div>
-<script>
+<script type="module">
     let keys = [];
     {% for key in device.keys %}
         keys.push({
@@ -78,4 +78,15 @@
             }
         }
     }
+
+    document.getElementById("key_text").addEventListener("click", (event)=> {
+                copyText(this.innerText, '{{ _("Copied full key") }}');
+            });  	
+    document.getElementById("show_der_path").addEventListener("change", (event)=> {
+                toggleKeyDisplay()
+            });  	
+    document.getElementById("use_slip_132").addEventListener("change", (event)=> {
+                toggleKeyDisplay()
+            });  	
+                    
 </script>

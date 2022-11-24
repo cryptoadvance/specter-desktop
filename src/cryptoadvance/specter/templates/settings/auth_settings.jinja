@@ -19,7 +19,7 @@
 		<div class="card" style="margin: 20px auto;">
 			{% if method == "none" or current_user.is_admin %}
 				{{ _("Authentication") }}:<br>
-				<select name="method" onchange="toggleUsernamePassword(this)">
+				<select id="select-method-authentication" name="method">
 					<option value="none" {% if method=="none" %} selected="selected"{% endif %}>{{ _("None") }}</option>
 					<option value="passwordonly" {% if method=="passwordonly" %} selected="selected"{% endif %}>{{ _("Password Protection") }}</option>
 					<option value="usernamepassword" {% if method=="usernamepassword" %} selected="selected"{% endif %}>{{ _("Multiple Users") }}</option>
@@ -79,7 +79,7 @@
 {% endblock %}
 
 {% block scripts %}
-	<script>
+	<script type="module">
 		function toggleUsernamePassword(select) {
 			{% if current_user.is_admin %}
 				var ratelimitDiv = document.getElementById("ratelimit");
@@ -122,5 +122,10 @@
                 specterPasswordOnly.value = '';
             }
 		}
+
+		document.getElementById("select-method-authentication").addEventListener("change", (event)=> {
+					toggleUsernamePassword(event.target)
+				});  	
+
 	</script>
 {% endblock %}

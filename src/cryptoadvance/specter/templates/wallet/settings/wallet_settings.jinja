@@ -53,7 +53,7 @@
 		<div id="keys_list" class="center auto-width" style="display: none;">
 			<label style="font-size: 1.3em;">{{ _("Use SLIP-132:") }}&nbsp;</label>
 			<label class="switch">
-				<input type="checkbox" id="use_slip_132" onchange="toggleKeyDisplay()">
+				<input type="checkbox" id="use_slip_132">
 				<span class="slider"></span>
 			</label><br>
 			<p class="note" style="margin-top: 5px; max-width: 90%;">{{ _("SLIP-132 extended public keys (xpubs) are a different format for xpubs which usually starts with zpub or ypub.") }}</p>
@@ -138,7 +138,7 @@
 				<div class="row center">
 					<label style="font-size: 1em;">{{ _("Use SLIP-132 for xpubs in PDF:") }}&nbsp;</label>
 					<label class="switch">
-						<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()">
+						<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;">
 						<span class="slider"></span>
 					</label>
 				</div>
@@ -286,7 +286,7 @@
 							{{ _('"They" will know what transactions you are interested in.') }}
 						</span>
 					</div>
-					<script type="text/javascript">
+					<script type="module">
 						let utxocheckbox = document.getElementById("use_explorer");
 						utxocheckbox.addEventListener('change', e=>{
 							let el = document.getElementById("utxo-explorer")
@@ -313,7 +313,7 @@
 {% endblock %}
 
 {% block scripts %} 
-	<script type="text/javascript">
+	<script type="module">
 		
 		let uploader = document.getElementById('label-uploader');
 		uploader.addEventListener('upload', e => {
@@ -450,6 +450,12 @@
 		}); 
 		document.getElementById("info_settings_tab_btn").addEventListener("click", (event)=> {
 			setSettingsView('info');
+		});  
+		document.getElementById("use_slip_132_pdf").addEventListener("change", (event)=> {
+			toggleKeyDisplay()
+		});  
+		document.getElementById("use_slip_132").addEventListener("change", (event)=> {
+			toggleKeyDisplay()
 		});  
 	</script>
 
