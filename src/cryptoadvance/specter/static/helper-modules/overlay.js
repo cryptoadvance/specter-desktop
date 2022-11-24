@@ -69,4 +69,26 @@ function cancelOverlay() {
 }
 
 
-export { showPacman, showPageOverlay, hidePageOverlay, overlayIsActive, cancelOverlay }
+
+function showNodeSelectPopup() {
+	Specter.overlay.hidePageOverlay();
+	if (!e) var e = window.event;
+	e.cancelBubble = true;
+	if (e.stopPropagation) { 
+		e.stopPropagation(); 
+	}
+	document.getElementById('page_overlay_popup').style.padding = '1.5em 0';
+	document.getElementById('page_overlay_popup_cancel_button').classList.add('hidden');
+	document.getElementById('side-content').classList.remove('active');
+	Specter.overlay.showPageOverlay('node_select_popup');
+}
+
+function onCancelOverlay() {
+	document.getElementById('page_overlay_popup').style.padding = '1.5em';
+	document.getElementById('page_overlay_popup_cancel_button').classList.remove('hidden');
+
+}
+
+
+
+export { showPacman, showPageOverlay, hidePageOverlay, overlayIsActive, cancelOverlay , showNodeSelectPopup}
