@@ -752,9 +752,6 @@ th{
 .xpub{
     max-width: 300px;
 }
-.tx{
-    max-width: 200px;
-}
 
 /* Scroll functionality along x axis
    (mainly used for xpub keys)
