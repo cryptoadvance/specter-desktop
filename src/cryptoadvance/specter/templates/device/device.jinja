@@ -253,11 +253,11 @@
 		}
 
 		function QRcodeSetter() {
-			let messageText = document.getElementById('message').value
-			let derivationPath = document.getElementById('messageDerivationPath').value
+			let messageText = document.getElementById('message').value;
+			let derivationPath = document.getElementById('messageDerivationPath').value;
 			// This QR code only works for the DIY
-			fullStringToEncode = `signmessage ${derivationPath} ascii:${messageText}`
-			document.getElementById('msg-qr-code').setAttribute("value", fullStringToEncode)
+			const fullStringToEncode = `signmessage ${derivationPath} ascii:${messageText}`;
+			document.getElementById('msg-qr-code').setAttribute("value", fullStringToEncode);
 		}
 
 		Specter.common.attachEventListener("btn-sign-message", "click", (event)=> {
