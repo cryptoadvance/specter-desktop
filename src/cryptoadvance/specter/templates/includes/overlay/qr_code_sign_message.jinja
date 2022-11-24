@@ -14,7 +14,7 @@
     </qr-scanner>
 
 <script type="module">
-    document.getElementById("{{ device.alias }}_qr_scan_btn").addEventListener("scan", e =>{
+    Specter.common.attachEventListener("{{ device.alias }}_qr_scan_btn", "scan", e =>{
         let result = e.detail.result;
         if (result) {
             Specter.overlay.hidePageOverlay();

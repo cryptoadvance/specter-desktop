@@ -27,7 +27,7 @@
 		</a>
 	</nav>
 	<script type="module">
-		document.getElementById("a-settings_menu-{{ active_menuitem }}").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("a-settings_menu-{{ active_menuitem }}", "click", (event)=> {
 					toggleMobileNav(this, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`)
 				});  	
 	</script>	 		

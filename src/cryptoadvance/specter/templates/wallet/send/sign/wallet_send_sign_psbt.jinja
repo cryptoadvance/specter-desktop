@@ -503,7 +503,7 @@
 		{% if 'raw' not in psbt %}
 			document.addEventListener("DOMContentLoaded", function() {
 				{% for device in wallet.devices %}
-					document.getElementById("{{ device.alias }}_tx_sign_btn").addEventListener("click", (e) => {
+					Specter.common.attachEventListener("{{ device.alias }}_tx_sign_btn", "click", (e) => {
 						e.preventDefault();
 						currentSigningDevice = "{{ device.name }}";
 						currentSigningDeviceAlias = "{{ device.alias }}";

@@ -605,17 +605,17 @@
 				addRecipient("", "", "btc", "");
 			{% endif %}
 				adjustForLiquid()
-				document.getElementById('toggle_advanced').addEventListener('click', (event) => {
+				Specter.common.attachEventListener('toggle_advanced', 'click', (event) => {
 					toggleAdvanced();
 				});
 			// Hide the remove button if the page is loaded with only once recipient 
 			setVisibilityRemoveRecipientButton();
 		});
 
-		document.getElementById('create_psbt_btn').addEventListener("click", (event)=> {
+		Specter.common.attachEventListener('create_psbt_btn', "click", (event)=> {
 			validateForm(true);
 		})
-		document.getElementById('add-recipient').addEventListener("click", (event)=> {
+		Specter.common.attachEventListener('add-recipient', "click", (event)=> {
 			addRecipient('', '', 'btc', '');
 		})
 		Specter.common.attachEventListener("amount_unit_text-sat", "change", (event)=> {			

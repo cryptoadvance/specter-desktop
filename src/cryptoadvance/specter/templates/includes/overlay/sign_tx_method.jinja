@@ -17,8 +17,8 @@
             <button id="{{ device.alias }}_hwi_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
                 <img src="{{ url_for('static', filename='img/usb.svg') }}" style="width: 26px; margin-right: 2px;" class="svg-white">{{ _("Sign via USB (HWI)") }}
             </button>
-            <script>
-                document.getElementById("{{ device.alias }}_hwi_sign_btn").addEventListener("click", e => {
+            <script type="module">
+                Specter.common.attachEventListener("{{ device.alias }}_hwi_sign_btn", "click", e => {
                     e.preventDefault();
                     Specter.overlay.hidePageOverlay();
                     let fingerprint = null;
@@ -39,8 +39,8 @@
             <button id="{{ device.alias }}_file_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
                 <img src="{{ url_for('static', filename='img/sd-card.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Sign with SD Card file") }}
             </button>
-            <script>
-                document.getElementById("{{ device.alias }}_file_sign_btn").addEventListener("click", e => {
+            <script type="module">
+                Specter.common.attachEventListener("{{ device.alias }}_file_sign_btn", "click", e => {
                     e.preventDefault();
                     Specter.overlay.hidePageOverlay();
                     Specter.overlay.showPageOverlay('{{ device.alias }}_sign_tx_file');
@@ -52,8 +52,8 @@
             <button id="{{ device.alias }}_qr_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
                 <img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Sign with QR codes") }}
             </button>
-            <script>
-                document.getElementById("{{ device.alias }}_qr_sign_btn").addEventListener("click", e => {
+            <script type="module">
+                Specter.common.attachEventListener("{{ device.alias }}_qr_sign_btn", "click", e => {
                     e.preventDefault();
                     Specter.overlay.hidePageOverlay();
                     Specter.overlay.showPageOverlay('{{ device.alias }}_sign_tx_qr');
@@ -70,8 +70,8 @@
                     {{ liquid_svg(chain, 16) }} {{ _("Sign with Elements Core") }}
                 {% endif %}
             </button>
-            <script>
-                document.getElementById("{{ device.alias }}_hot_sign_btn").addEventListener("click", async function(e) {
+            <script type="module">
+                Specter.common.attachEventListener("{{ device.alias }}_hot_sign_btn", "click", async function(e) {
                     e.preventDefault();
                     Specter.overlay.hidePageOverlay();
                     Specter.overlay.showPageOverlay('{{ device.alias }}_hot_enter_passphrase')

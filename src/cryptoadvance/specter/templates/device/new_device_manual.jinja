@@ -255,7 +255,7 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 		if(strength!=null){
 			strength.value = '{{ strength }}';
 		}
-		document.getElementById('toggle_advanced').addEventListener('click', (event) => {
+		Specter.common.attachEventListener('toggle_advanced', 'click', (event) => {
 			toggleAdvanced();
 		});
 		if ('{{ device and device.hot_wallet }}' == 'True') {
@@ -268,7 +268,7 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 {% if not device or not device.hot_wallet %}
 	{% include "device/components/add_keys.js" %}
 
-	document.getElementById('askhwi').addEventListener('click', async e=>{
+	Specter.common.attachEventListener('askhwi', 'click', async e=>{
 		// Ensure that device type was selected
 		if (!checkType()) {
 			return

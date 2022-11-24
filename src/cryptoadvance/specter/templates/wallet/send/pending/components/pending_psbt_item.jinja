@@ -59,8 +59,8 @@
     </tr>
 
 	<script type="module">
-		document.getElementById('btn-delete-pending_psbt-{{ pending_psbt["tx"]["txid"] }}-amount').addEventListener("click", (event)=> {
-					document.getElementById('form-delete-pending_psbt-{{ pending_psbt["tx"]["txid"] }}-amount').action = './?pending=True';
+		Specter.common.attachEventListener('btn-delete-pending_psbt-{{ pending_psbt["tx"]["txid"] }}-amount', "click", (event)=> {
+					document.getElementById('form-delete-pending_psbt-{{ pending_psbt[, "txid"] }}-amount').action = './?pending=True';
 				});  	
 	</script>	    
-{%- endmacro %}
+{%- endmacro %}, 

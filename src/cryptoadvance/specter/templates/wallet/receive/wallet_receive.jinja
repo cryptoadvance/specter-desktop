@@ -79,7 +79,7 @@
 				</div>
 				<button id="btn-verifyQRCode-{{ wallet.address }}" type="button" class="btn centered padded">{{ _("Verify address via QR code") }}</button>
 				<script type="module">
-					document.getElementById("btn-verifyQRCode-{{ wallet.address }}").addEventListener("click", (event)=> {
+					Specter.common.attachEventListener("btn-verifyQRCode-{{ wallet.address }}", "click", (event)=> {
 								verifyQRCode('{{ wallet.address }}', '{{ wallet.address_index | string }}')
 							});  	
 				</script>	 					
@@ -98,7 +98,7 @@
 				{% set xpubs_descriptor = wallet.get_descriptor(address=address, keep_xpubs=True, to_string=True, with_checksum=True) %}
 				<button type="button" id="btn-displayAddressOnDevice-{{ address }}"  class="btn centered optional">{{ _("Display address on device") }}</button><br>
 				<script type="module">
-					document.getElementById("btn-displayAddressOnDevice-{{ address }}").addEventListener("click", (event)=> {
+					Specter.common.attachEventListener("btn-displayAddressOnDevice-{{ address }}", "click", (event)=> {
 								displayAddressOnDevice(`{{ address }}`, `{{ descriptor }}`, `{{ xpubs_descriptor }}`)
 							});  	
 				</script>	 					

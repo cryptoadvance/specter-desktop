@@ -80,12 +80,12 @@
 						</td>
 					</tr>
 					<script type="module">
-						document.getElementById("td-export-qr-{{loop.index0}}").addEventListener("click", (event)=> {
+						Specter.common.attachEventListener("td-export-qr-{{loop.index0}}", "click", (event)=> {
 								showPageOverlay('key_export_qr');
 								document.getElementById('key_selected').value = '{{loop.index0}}';
 								toggleKeyDisplay();
 							});  	
-						document.getElementById("copy-key-{{loop.index0}}").addEventListener("click", (event)=> {
+						Specter.common.attachEventListener("copy-key-{{loop.index0}}", "click", (event)=> {
 								Specter.common.copyText('{{ key }}', 'Copied key: {{ key }}');
 							});  	
 					</script>	 							
@@ -216,7 +216,7 @@
 
 			// Event listener for sign message via QR code-button 
 			{% if device.supports_qr_message_signing %}
-			document.getElementById("{{ device.alias }}_qr_sign_msg_btn").addEventListener("click", e => {
+			Specter.common.attachEventListener("{{ device.alias }}_qr_sign_msg_btn", "click", e => {
                     e.preventDefault();
                     Specter.overlay.hidePageOverlay();
                     // This makes qr_code_sign_message.jinja visible
@@ -266,7 +266,7 @@
 		Specter.common.attachEventListener("signature", "click", (event)=> {
 					Specter.common.copyText(this.innerText, '{{ _("Copied message signature") }}')
 				});  	
-		document.getElementById("{{ device.alias }}_usb_sign_msg_btn").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("{{ device.alias }}_usb_sign_msg_btn", "click", (event)=> {
 					signMessageOnDevice();
 				});  	
 		Specter.common.attachEventListener("btn-toggle-device-passphrase", "click", (event)=> {

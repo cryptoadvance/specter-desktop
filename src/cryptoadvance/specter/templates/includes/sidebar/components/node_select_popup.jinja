@@ -55,7 +55,7 @@
             </div>
         </form>
         <script type="module">
-            document.getElementById("div-{{node.alias}}-list-item").addEventListener("click", (event)=> {
+            Specter.common.attachEventListener("div-{{node.alias}}-list-item", "click", (event)=> {
                         document.getElementById('{{node.alias}}-select-node-form').submit();
                     });    
         </script>

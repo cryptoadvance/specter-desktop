@@ -38,11 +38,11 @@
             }
         }
 
-		document.getElementById("{{ 'cancel' ~ elementId }}").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("{{ 'cancel' ~ elementId }}", "click", (event)=> {
 					toggleEdit('{{ elementId }}', '{{ label }}')
 				});  	        
 
-		document.getElementById("{{ 'edit' ~ elementId }}").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("{{ 'edit' ~ elementId }}", "click", (event)=> {
 					toggleEdit('{{ elementId }}', '{{ label }}')
 				});  	        
 

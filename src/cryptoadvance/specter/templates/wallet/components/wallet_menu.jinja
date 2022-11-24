@@ -29,7 +29,7 @@
 	</nav>
 
 	<script type="module">
-		document.getElementById("wallet_menu-{{ active_menuitem }}").addEventListener("click", (event)=> {
+		Specter.common.attachEventListener("wallet_menu-{{ active_menuitem }}", "click", (event)=> {
 					toggleMobileNav(this, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`)
 				});  	
 	</script>	 	

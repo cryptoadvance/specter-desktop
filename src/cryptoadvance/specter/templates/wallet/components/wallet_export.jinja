@@ -9,7 +9,7 @@
         </a>
         {% if device.device_type == 'coldcard' %}
             <script type="module">
-                document.getElementById("{{ device.alias }}-export-wallet-file").addEventListener("click", (event)=> {
+                Specter.common.attachEventListener("{{ device.alias }}-export-wallet-file", "click", (event)=> {
                     Specter.common.showNotification(`{{ _('Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD') }}`, 0);
                 });
             </script>						
@@ -21,12 +21,10 @@
         type="button" class="btn centered padded">Show {{ device.name }} QR Code
         </button>
         <script type="module">
-            if (document.getElementById("{{ device.alias }}-export-wallet-qr")){
-                document.getElementById("{{ device.alias }}-export-wallet-qr").addEventListener("click", (event)=> {
-                    Specter.overlay.hidePageOverlay();
-                    Specter.overlay.showPageOverlay('{{ device.alias }}_export_qr_code');
-                });
-            }
+            Specter.common.attachEventListener("{{ device.alias }}-export-wallet-qr", "click", (event)=> {
+                Specter.overlay.hidePageOverlay();
+                Specter.overlay.showPageOverlay('{{ device.alias }}_export_qr_code');
+            });
         </script>												
         <div id="{{ device.alias }}_export_qr_code" style="display: none;">
             <h1>{{ _("Scan this with your") }} {{ device.name }} {{ _("device") }} </h1>

@@ -38,7 +38,7 @@
 
 {% block scripts %}
     <script type="module">
-        document.getElementById('connect-hwi').addEventListener('click', async e => {
+        Specter.common.attachEventListener('connect-hwi', 'click', async e => {
             // detect devices
             let deviceType = `{{ device.device_type }}`;
             let devices = await enumerate(deviceType);

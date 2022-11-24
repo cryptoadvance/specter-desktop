@@ -5,7 +5,7 @@
     <label for="{{ device.alias }}_signing_file" class="btn centered" style="margin: 15px auto;">{{ _("Load signed transaction from file") }}</label>
 </div>
 
-<script>
+<script type="module">
     var el = document.getElementById("{{ device.alias }}_signing_file");
 
     el.addEventListener("change", (e) => {

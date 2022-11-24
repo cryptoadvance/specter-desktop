@@ -21,7 +21,7 @@
 	    Download Electrum (Watch-Only) File
     </a>
 </div>
-<script>
+<script type="module">
     document.addEventListener("DOMContentLoaded", function(){
         let accountMap = encodeURIComponent(`{{ wallet.account_map|tojson }}`)
         document.getElementById('export_wallet_file').href = "data:text/json;charset=utf-8," + accountMap.substring(3, accountMap.length - 3);

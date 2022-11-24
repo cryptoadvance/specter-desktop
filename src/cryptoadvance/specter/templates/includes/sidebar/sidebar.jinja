@@ -110,7 +110,7 @@
         <div class="rescan_progress {{ specter.info.chain }}">
             <div id="utxo_rescan_progress" style='width: {{ specter.info["utxorescan"] }}%'></div>
         </div>
-        <script>
+        <script type="module">
             let utxoRescanProgress = '{{ specter.info["utxorescan"] }}';
             let utxoRescanActive = true;
             async function fetchUTXORescanProgress() {
@@ -211,7 +211,7 @@
                                     <button class="btn" name="action" value="delete_failed_wallet">{{ _("Delete wallet") }}</button>
                                 </form>
                             </div>
-                            <script>
+                            <script type="module">
                                 document.addEventListener("DOMContentLoaded", function(){
                                     document.getElementById('download_failed_wallet_{{wallet.alias}}').href = 'data:text/json,' + encodeURIComponent(`{{ wallet|tojson }}`);
                                 });
@@ -307,7 +307,7 @@
         if ('{{ specter.device_manager.devices_names | length }}' == '0') {
             document.getElementById('toggle_devices_list').innerHTML = `{{ _("Devices") }}`;
         } else {
-            document.getElementById('toggle_devices_list').addEventListener('click', (event) => {
+            Specter.common.attachEventListener('toggle_devices_list', 'click', (event) => {
                 toggleList('devices', '{{ _("Devices") }}');
             });
         }
@@ -319,7 +319,7 @@
         if ('{{ specter.wallet_manager.wallets_names | length }}' == '0') {
             document.getElementById('toggle_wallets_list').innerHTML = `{{ _("Wallets") }}`;
         } else {
-            document.getElementById('toggle_wallets_list').addEventListener('click', (event) => {
+            Specter.common.attachEventListener('toggle_wallets_list', 'click', (event) => {
                 toggleList('wallets', '{{ _("Wallets") }}');
             });
         }
@@ -327,7 +327,7 @@
         if ('{{ specter.service_manager.service_names | length }}' == '0') {
             document.getElementById('toggle_services_list').innerHTML = 'Plugins';
         } else {
-            document.getElementById('toggle_services_list').addEventListener('click', (event) => {
+            Specter.common.attachEventListener('toggle_services_list', 'click', (event) => {
                 toggleList('services');
             });
         }

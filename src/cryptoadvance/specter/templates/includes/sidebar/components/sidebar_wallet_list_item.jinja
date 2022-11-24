@@ -31,7 +31,7 @@
         <div class="rescan_progress {{ chain }}">
             <div id="{{ wallet.alias }}_rescan_progress" style="width: {{ wallet.rescan_progress * 100 }}%"></div>
         </div>
-        <script>
+        <script type="module">
             (function(){
                 let walletRescanProgress = '{{ wallet.rescan_progress * 100 }}';
                 let walletRescanActive = true;
