@@ -59,7 +59,7 @@ class Checker:
                 )
         except Exception as e:
             if self.error_counter < 5:
-                logger.error(e)
+                logger.exception(e)
                 self.error_counter = self.error_counter + 1
             if self.error_counter == 4:
                 logger.error("The above Error-Message is now suppressed!")
