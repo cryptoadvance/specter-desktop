@@ -361,7 +361,7 @@
 
 			let othersAmount = 0;
 			for(let j in recipients) {		
-				other_recipient = recipients[j]		;
+				var other_recipient = recipients[j]		;
 				if (other_recipient.recipientId != recipientId) {
 					let unit = other_recipient.unit;
 					let amount = other_recipient.amount;
