@@ -200,7 +200,7 @@
 			FeeSelectionComponent.deactivateRbf()
 			FeeSelectionComponent.deactivateSubtract() // Subtract from is still set to true for send max under the hood
 			// Remove some line breaks
-			advancedSettingsDiv = document.getElementById("advanced_settings")
+			var advancedSettingsDiv = document.getElementById("advanced_settings")
 			lineBreaks = Array.from(advancedSettingsDiv.querySelectorAll('br'))
 			lineBreaks.pop() // We still need the last line break
 			for (var br of lineBreaks) {
