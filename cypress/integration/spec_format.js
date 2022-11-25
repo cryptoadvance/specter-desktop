@@ -94,7 +94,7 @@ describe('Tests of JS format functions', () => {
                 win.Specter.priceCheck = true
                 expect(win.Specter.format.price(5000, 'BTC', win.Specter.altSymbol, win.Specter.altRate, false)).to.equal('$100,000,000')
                 win.Specter.hideSensitiveInfo = true
-                expect(win.Specter.format.price(5000)).to.be.a('array') // Why is this ##### returned as an array?
+                expect(win.Specter.format.price(5000)).to.be.equal('#########') // Why is this ##### returned as an array?
                 win.Specter.hideSensitiveInfo = false
                 expect(win.Specter.format.price(1, 'BTC', "€", "100000", false)).to.equal('100,000€')
             })
