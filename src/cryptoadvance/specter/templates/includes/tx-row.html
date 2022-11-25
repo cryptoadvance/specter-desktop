@@ -193,7 +193,7 @@
             this.txid.innerHTML = this.hideSensitiveInfo ? '############################################' : this.tx.txid.slice(0,11) + '&hellip;';
             if (!this.hideSensitiveInfo) {
                 this.txid.onclick = () => {
-                    showTxData(
+                    this.showTxData(
                         this.btcUnit,
                         this.price,
                         this.symbol,
@@ -205,7 +205,7 @@
 
             if (window.innerWidth < 690) {
                 this.el.onclick = () => {
-                    showTxData(
+                    this.showTxData(
                         this.btcUnit,
                         this.price,
                         this.symbol,
@@ -427,6 +427,33 @@
                     return `{{ url_for('static', filename='img') }}/mixed${clockString}.svg`;
             }
         }
+
+
+        /**
+        * Shows a <tx-data> element popup for specified txid.
+        * @param btcUnit - Bitcoin unit to display amounts with. Either "btc" or "sat"
+        * @param price - BTC price for price calculations
+        * @param symbol - Currency symbol for price calculations
+        * @param txid - ID of the transaction to show.
+        * @param wallet - The wallet alias of the wallet the transaction is associated with.
+        */
+        showTxData(btcUnit, price, symbol, txid, wallet) {
+            if (wallet) {
+                let txDataPopup = document.getElementById('tx-popup');
+                txDataPopup.innerHTML = `
+                <tx-data
+                data-btc-unit="${btcUnit ? btcUnit : 'btc'}"
+                data-price="${price ? price : 0}"
+                data-symbol="${symbol ? symbol : ''}"
+                data-txid="${txid}"
+                data-tx-wallet="${wallet}">
+                </tx-data>`;
+                Specter.overlay.showPageOverlay('tx-popup');
+            } else {
+                Specter.common.copyText(txid, `{{ _("Copied transaction") }}: ${ txid }`);
+            }
+        }
+
     }
     customElements.define('tx-row', TxRowElement);
 </script>
