@@ -1,11 +1,8 @@
 import logging
-import os
-import shutil
 
 from cryptoadvance.specter.specter_error import SpecterError
 from ...config import BaseConfig
 from ..specter_migrator import SpecterMigration
-from ...helpers import load_jsons
 from ...managers.service_manager import ServiceManager
 from ...specter import Specter
 
@@ -28,8 +25,7 @@ class SpecterMigration_0003(SpecterMigration):
 
     def execute(self):
         specter = Specter(data_folder=self.data_folder)
-        specter.service_manager.add_required_services_to_users(
-            specter.user_manager.users, force_opt_out=True
-        )
+        for user in specter.user_manager.users:
+            user.add_service("notifications")
+
         specter.user_manager.save()
-        specter.cleanup_on_exit()
