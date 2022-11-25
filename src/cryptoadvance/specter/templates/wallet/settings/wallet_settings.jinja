@@ -440,7 +440,7 @@
 			toggleKeysList();
 		});
 		Specter.common.attachEventListener("toggle-mobile-nav", "click", (event)=> {
-			toggleMobileNav(this, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`);
+			Specter.mobile.toggleMobileNav(document.getElementById("toggle-mobile-nav"), `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`);
 		});
 		Specter.common.attachEventListener("advanced_settings_tab_btn", "click", (event)=> {
 			setSettingsView('advanced');

@@ -19,7 +19,7 @@
 
 	<script type="module">
 		Specter.common.attachEventListener("send_nav-{{ active_menuitem }}", "click", (event)=> {
-					toggleMobileNav(event.target, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`)
+					Specter.mobile.toggleMobileNav(document.getElementById("send_nav-{{ active_menuitem }}"), `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`)
 				});  	
 	</script>	 	
 {%- endmacro %}
