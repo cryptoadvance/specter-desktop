@@ -241,23 +241,23 @@
 
 
 		Specter.common.attachEventListener("input-full_rescan_option-full", "click", (event)=> {
-					toggleFullRescanOption(event.target)
+					toggleFullRescanOption(event.currentTarget)
 				});  	
 		Specter.common.attachEventListener("input-full_rescan_option-utxo", "click", (event)=> {
-					toggleFullRescanOption(event.target)
+					toggleFullRescanOption(event.currentTarget)
 				});  	
 		Specter.common.attachEventListener("radio-wallet-type-0", "change", (event)=> {
-					updateType(event.target.value);
+					updateType(event.currentTarget.value);
 				});  	
 		Specter.common.attachEventListener("radio-wallet-type-1", "change", (event)=> {
-					updateType(event.target.value);
+					updateType(event.currentTarget.value);
 				});  	
 		Specter.common.attachEventListener("radio-wallet-type-2", "change", (event)=> {
-				updateType(event.target.value);
+				updateType(event.currentTarget.value);
 			});  	
  
 		Specter.common.attachEventListener("rescan", "change", (event)=> {
-					toggleScanOptions(event.target)
+					toggleScanOptions(event.currentTarget)
 				});  	
 		Specter.common.attachEventListener("keysform", "submit", (event)=> {
 					Specter.overlay.showPacman()

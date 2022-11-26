@@ -60,8 +60,8 @@
 					Specter.overlay.hidePageOverlay()
 				});  	
 		Specter.common.attachEventListener(("input-unknown_cosigner_{{ loop.index0 }}_details", "click", (event)=> {
-					document.getElementById('unknown_cosigner_{{ loop.index0 }}_name').innerText = event.target.value;
-					document.getElementById('unknown_cosigner_{{ loop.index0 }}_name_input').value = event.target.value;
+					document.getElementById('unknown_cosigner_{{ loop.index0 }}_name').innerText = event.currentTarget.value;
+					document.getElementById('unknown_cosigner_{{ loop.index0 }}_name_input').value = event.currentTarget.value;
 				});  	
 		Specter.common.attachEventListener(("div-showPageOverlay-unknown_cosigner_{{ loop.index0 }}_details", "click", (event)=> {
 				Specter.overlay.showPageOverlay('unknown_cosigner_{{ loop.index0 }}_details')

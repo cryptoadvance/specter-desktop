@@ -54,7 +54,7 @@
 			<p title="Click to copy" id="address" class="padded" style="word-break: break-all;">{{ wallet.address }}</p>
 			<script type="module">
 				Specter.common.attachEventListener("address", "click", (event)=> {
-							Specter.common.copyText(event.target.textContent, '{{ _("Copied Address:") }} ' + event.target.textContent);
+							Specter.common.copyText(event.currentTarget.textContent, '{{ _("Copied Address:") }} ' + event.currentTarget.textContent);
 						});  	
 			</script>	 				
 			{{ _("(click to copy)") }}

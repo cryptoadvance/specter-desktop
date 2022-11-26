@@ -571,7 +571,7 @@
 
 
 		Specter.common.attachEventListener("edit-xpubs-table-btn", "click", (event)=> {
-					editXpubsTable(event.target)
+					editXpubsTable(event.currentTarget)
 				});  	
 		Specter.common.attachEventListener("xpub-paste", "click", (event)=> {
 					Specter.overlay.showPageOverlay('paste-xpub-popup')

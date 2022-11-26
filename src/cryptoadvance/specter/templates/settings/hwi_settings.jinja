@@ -122,17 +122,17 @@
 					Specter.common.copyText('{{ url_for('index', _external=True) }}', '{{ _("Copied Specter URL") }}');
 				});  		
 		Specter.common.attachEventListener("input-hwibridge-local", "change", (event)=> {
-					switchHWIBridgeConfView(event.target.value);
+					switchHWIBridgeConfView(event.currentTarget.value);
 				});  		 
 		Specter.common.attachEventListener("input-hwibridge-remote", "change", (event)=> {
-					switchHWIBridgeConfView(event.target.value)
+					switchHWIBridgeConfView(event.currentTarget.value)
 				});  		 
 		Specter.common.attachEventListener("input-hwibridge-custom_hwibridge", "change", (event)=> {
-					switchHWIBridgeConfView(event.target.value)
+					switchHWIBridgeConfView(event.currentTarget.value)
 				});  		 
 		Specter.common.attachEventListener("custom_url", "input", (event)=> {
 					if(document.getElementById('custom_hwibridge').checked){
-						document.getElementById('hwi_bridge_url').value = event.target.value
+						document.getElementById('hwi_bridge_url').value = event.currentTarget.value
 					}
 				});  		 
 

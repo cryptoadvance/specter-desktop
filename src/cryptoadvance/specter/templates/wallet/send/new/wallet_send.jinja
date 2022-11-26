@@ -619,19 +619,19 @@
 			addRecipient('', '', 'btc', '');
 		})
 		Specter.common.attachEventListener("amount_unit_text-sat", "change", (event)=> {			
-			toggleTextUnit(event.target);
+			toggleTextUnit(event.currentTarget);
 		})
 		Specter.common.attachEventListener("amount_unit_text-btc", "change", (event)=> {
-			toggleTextUnit(event.target);
+			toggleTextUnit(event.currentTarget);
 		})
 		Specter.common.attachEventListener("recipients-txt", "blur", (event)=> {
 			validateForm();
 		})
 		Specter.common.attachEventListener("input-ui_option-ui", "click", (event)=> {
-			toggleSendUIType(event.target);
+			toggleSendUIType(event.currentTarget);
 		})
 		Specter.common.attachEventListener("input-ui_option-text", "click", (event)=> {
-			toggleSendUIType(event.target);
+			toggleSendUIType(event.currentTarget);
 		})
 		Specter.common.attachEventListener("calculated_tx_fee_label", "click", (event)=> {
 			calculateEstimatedFee();
