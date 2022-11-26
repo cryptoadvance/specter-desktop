@@ -148,6 +148,12 @@ class NodeManager:
                 return node
         raise SpecterError("Node name %s does not exist!" % name)
 
+    def get_name_from_alias(self, alias: str) -> str:
+        for node in self.nodes.values():
+            if node.alias == alias:
+                return node.name
+        raise SpecterError("Node alias %s does not exist!" % alias)
+
     def update_bitcoind_version(self, specter, version):
         stopped_nodes = []
         for node in (node for node in self.nodes.values() if not node.external_node):
