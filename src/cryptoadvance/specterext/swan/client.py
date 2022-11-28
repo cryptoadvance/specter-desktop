@@ -238,17 +238,13 @@ class SwanClient:
         specter_wallet_name: str,
         specter_wallet_alias: str,
         addresses: List[str],
-    ) -> dict:
+    ) -> str:
         """
         * If SWAN_WALLET_ID is known, any existing unused addresses are cleared.
         * If there is no known SWAN_WALLET_ID, we `POST` to create an initial Swan wallet and store the resulting SWAN_WALLET_ID.
         * Sends the list of new addresses for SWAN_WALLET_ID.
+        * Returns the swan wallet id if the response provides it or raises an SwanApiException.
         """
-
-        # normalize the strucure compatible with what swan will accept:
-        # like: [{"address": "bcrt1q8k8a73crvjs06jhdj7xee8mace3mhlxj4pdvna"}, {"address": "bcrt ...
-        addresses = [address["address"] for address in addresses]
-
         if swan_wallet_id:
             # We already have a Swan walletId. DELETE the existing unused addresses...
             self.delete_autowithdrawal_addresses(swan_wallet_id)
@@ -261,6 +257,7 @@ class SwanClient:
             endpoint = "/apps/v20210824/wallets"
             method = "POST"
 
+        # For the required structure of the paylod see: https://developers.swanbitcoin.com/api/create-a-new-wallet
         resp = self.authenticated_request(
             endpoint=endpoint,
             method=method,

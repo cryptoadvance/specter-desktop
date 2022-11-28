@@ -299,6 +299,9 @@ class User(UserMixin):
                 self.specter.chain,
                 self.device_manager,
                 path=wallets_rpcpath,
+                allow_threading_for_testing=self.specter.config["testing"][
+                    "allow_threading_for_testing"
+                ],
             )
             self._wallet_manager = wallet_manager
         else:

@@ -1,7 +1,7 @@
 import logging
 import os
+import sys
 import pathlib
-import shutil
 import sys
 import threading
 import traceback
@@ -10,7 +10,6 @@ from typing import Dict
 from flask_babel import lazy_gettext as _
 from flask import copy_current_request_context
 from cryptoadvance.specter.rpc import BitcoinRPC
-
 from cryptoadvance.specter.key import Key
 
 from ..helpers import add_dicts, alias, is_liquid, load_jsons
@@ -40,7 +39,7 @@ class WalletManager:
         chain,
         device_manager,
         path="specter",
-        allow_threading=True,
+        allow_threading_for_testing=False,
     ):
         self.data_folder = data_folder
         self.chain = chain
@@ -55,7 +54,7 @@ class WalletManager:
         self.wallets = {}
         # A way to communicate failed wallets to the outside
         self.bitcoin_core_version_raw = bitcoin_core_version_raw
-        self.allow_threading = allow_threading and (not "pytest" in sys.modules)
+        self.allow_threading_for_testing = allow_threading_for_testing
         # define different wallet classes for liquid and bitcoin
         self.WalletClass = LWallet if is_liquid(chain) else Wallet
         self.update(data_folder, rpc, chain)
@@ -118,27 +117,29 @@ class WalletManager:
             and self.rpc is not None
             and self.chain is not None
         ):
-            if self.allow_threading and use_threading:
-
-                @copy_current_request_context
-                def internal_update(wallets_update_list: Dict):
-                    """this function is a proxy-function to copy the current_request_context before the
-                    self._update method will continue the heavy lifting
-                    """
-                    try:
-                        self.wallet_manager._update(wallets_update_list)
-                    except Exception as e:
-                        logger.exception(e)
-                        self.is_loading = False
-
-                t = FlaskThread(
-                    target=internal_update,
-                    args=(wallets_update_list,),
-                )
-
-                t.start()
+            if "pytest" in sys.modules:
+                if self.allow_threading_for_testing:
+                    logger.info("Using threads in updating the wallet manager.")
+                    t = threading.Thread(
+                        target=self._update,
+                        args=(wallets_update_list,),
+                    )
+                    t.start()
+                else:
+                    logger.info("Not using threads in updating the wallet manager.")
+                    self._update(wallets_update_list)
             else:
-                self._update(wallets_update_list)
+                if use_threading:
+                    logger.info("Using threads in updating the wallet manager.")
+                    t = threading.Thread(
+                        target=self._update,
+                        args=(wallets_update_list,),
+                    )
+
+                    t.start()
+                else:
+                    logger.info("Not using threads in updating the wallet manager.")
+                    self._update(wallets_update_list)
         else:
             self.is_loading = False
             logger.warning(
@@ -156,7 +157,7 @@ class WalletManager:
         * and, on the Specter side, the wallet objects of those unloaded wallets are reinitialised
         """
         logger.info(
-            f"Started Updating Wallets with {len(wallets_update_list.values())} wallets"
+            f"Started updating wallets with {len(wallets_update_list.values())} wallets"
         )
         # list of wallets in the dict
         existing_names = list(self.wallets.keys())
@@ -169,7 +170,7 @@ class WalletManager:
 
                     wallet_alias = wallets_update_list[wallet]["alias"]
                     wallet_name = wallets_update_list[wallet]["name"]
-                    logger.info(f"  Updating wallet {wallet_name}")
+                    logger.info(f"Updating wallet {wallet_name}")
                     # wallet from json not yet loaded in Bitcoin Core?!
                     if os.path.join(self.rpc_path, wallet_alias) not in loaded_wallets:
                         try:
@@ -370,30 +371,43 @@ class WalletManager:
         else:
             raise ("Failed to create new wallet")
 
-    def delete_wallet(
-        self, wallet, bitcoin_datadir=get_default_datadir(), chain="main"
-    ):
-        logger.info("Deleting {}".format(wallet.alias))
+    def delete_wallet(self, wallet, node=None) -> tuple:
+        """Returns a tuple with two Booleans, indicating whether the wallet was deleted on the Specter side and/or on the node side."""
+        logger.info(f"Deleting {wallet.alias}")
+        specter_wallet_deleted = False
+        node_wallet_file_deleted = False
+        # Make first sure that we can unload the wallet in Bitcoin Core
         try:
-            wallet_rpc_path = os.path.join(self.rpc_path, wallet.alias)
+            wallet_rpc_path = os.path.join(
+                self.rpc_path, wallet.alias
+            )  # e.g. specter/jade_wallet
+            logger.debug(f"The wallet_rpc_path is: {wallet_rpc_path}")
             self.rpc.unloadwallet(wallet_rpc_path)
-        except Exception as e:
-            handle_exception(e)
-        # Try deleting wallet folder
-        if bitcoin_datadir:
-            if chain != "main":
-                bitcoin_datadir = os.path.join(bitcoin_datadir, chain)
-            candidates = [
-                os.path.join(bitcoin_datadir, wallet_rpc_path),
-                os.path.join(bitcoin_datadir, "wallets", wallet_rpc_path),
-            ]
-            for path in candidates:
-                shutil.rmtree(path, ignore_errors=True)
-
-        # Delete files
-        wallet.delete_files()
-        del self.wallets[wallet.name]
-        self.update()
+            # Delete the wallet.json and backups
+            try:
+                wallet.delete_files()
+                # Remove the wallet instance
+                del self.wallets[wallet.name]
+                self.update()
+                specter_wallet_deleted = True
+            except KeyError:
+                raise SpecterError(
+                    f"The wallet {wallet.name} has already been deleted."
+                )
+            except SpecterInternalException as sie:
+                logger.exception(
+                    f"Could not delete the wallet {wallet.name} in Specter due to {sie}"
+                )
+            # Also delete the wallet file on the node if possible
+            if node:
+                if node.delete_wallet_file(wallet):
+                    node_wallet_file_deleted = True
+        except RpcError:
+            raise SpecterError(
+                "Unable to unload the wallet on the node. Aborting the deletion of the wallet ..."
+            )
+        deleted = (specter_wallet_deleted, node_wallet_file_deleted)
+        return deleted
 
     def rename_wallet(self, wallet, name):
         logger.info("Renaming {}".format(wallet.alias))
@@ -494,7 +508,7 @@ class WalletManager:
         """Deletes all the wallets"""
         for w in list(self.wallets.keys()):
             wallet = self.wallets[w]
-            self.delete_wallet(wallet, specter.bitcoin_datadir, specter.chain)
+            self.delete_wallet(wallet)
         delete_folder(self.data_folder)
 
     @classmethod
