@@ -28,6 +28,7 @@ def should_intercept(call):
     return not (
         isinstance(call.excinfo.value, RpcError)
         or isinstance(call.excinfo.value, SpecterError)
+        or isinstance(call.excinfo.value, AssertionError)
     )
 
 
