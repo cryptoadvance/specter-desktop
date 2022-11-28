@@ -1,5 +1,6 @@
 * {
     box-sizing: border-box;
+    font-family: "Social";
 }
 
 html,
@@ -27,8 +28,6 @@ body {
     padding: 0;
     background: var(--cmap-bg);
     color: #fff;
-    line-height: 1.5;
-    font-family: "Source Sans Pro", sans-serif;
     font-weight: lighter;
     display: flex;
     width: 100%;
