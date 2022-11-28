@@ -1,5 +1,5 @@
 import logging
-import threading
+from .flask import FlaskThread
 import time
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ class Checker:
         if not self.running:
             self.running = True
             self.error_counter = 0
-            self.thread = threading.Thread(target=self.loop)
+            self.thread = FlaskThread(target=self.loop)
             self.thread.daemon = True
             self.thread.start()
         logger.info(f"Checker {self.desc} started with period {self.period}")

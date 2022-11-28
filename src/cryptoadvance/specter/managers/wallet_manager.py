@@ -2,8 +2,6 @@ import logging
 import os
 import sys
 import pathlib
-import threading
-import traceback
 from typing import Dict
 
 from flask_babel import lazy_gettext as _
@@ -111,7 +109,7 @@ class WalletManager:
             if "pytest" in sys.modules:
                 if self.allow_threading_for_testing:
                     logger.info("Using threads in updating the wallet manager.")
-                    t = threading.Thread(
+                    t = FlaskThread(
                         target=self._update,
                         args=(wallets_update_list,),
                     )
@@ -122,7 +120,7 @@ class WalletManager:
             else:
                 if use_threading:
                     logger.info("Using threads in updating the wallet manager.")
-                    t = threading.Thread(
+                    t = FlaskThread(
                         target=self._update,
                         args=(wallets_update_list,),
                     )
