@@ -1,0 +1,7 @@
+{% if specter.node.is_liquid %}
+{% from "components/liquid_svg.jinja" import liquid_svg %}
+{{ liquid_svg(specter.node.chain, 40) }}
+{% else %}
+{% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+{{ bitcoin_svg(specter.node.chain, 40) }}
+{% endif %}
