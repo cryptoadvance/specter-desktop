@@ -190,7 +190,7 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
             except ModuleNotFoundError as e:
                 try:
                     # Another style is orgname.specterext.extensionid, for that we have to guess the orgname:
-                    orgname = str(importer).split(os.path.sep)[-2]
+                    orgname = importer.path.split(os.path.sep)[-2]
                     logger.info(f"guessing orgname: {orgname}")
                     module = import_module(
                         f"{orgname}.specterext.{module_name}.service"
