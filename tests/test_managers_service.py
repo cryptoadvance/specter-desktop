@@ -61,14 +61,19 @@ def test_ServiceManager_get_service_packages(caplog):
     assert "cryptoadvance.specterext.electrum.service" in packages
     assert "cryptoadvance.specterext.electrum.devices.electrum" in packages
 
+
 def test_ServiceManager_make_path_relative(caplog):
     caplog.set_level(logging.DEBUG)
-    arr = [ 
-        Path("/home/kim/src/specter-desktop/.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/swan/templates"),
-        Path("wurstbrot/something/.env/site-packages/the_rest")
+    arr = [
+        Path(
+            "/home/kim/src/specter-desktop/.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/swan/templates"
+        ),
+        Path("wurstbrot/something/.env/site-packages/the_rest"),
     ]
-    arr = [ ServiceManager._make_path_relative(path) for path in arr ]
-    assert arr[0] == PosixPath("site-packages/cryptoadvance/specter/services/swan/templates")
+    arr = [ServiceManager._make_path_relative(path) for path in arr]
+    assert arr[0] == PosixPath(
+        "site-packages/cryptoadvance/specter/services/swan/templates"
+    )
     assert arr[1] == PosixPath("site-packages/the_rest")
 
 

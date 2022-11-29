@@ -502,10 +502,10 @@ class ServiceManager:
 
     @classmethod
     def _make_path_relative(cls, path: Path) -> Path:
-        ''' make out of something like '# /home/kim/src/specter-desktop/.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/swan/templates
-            somethink like:                                                                                   cryptoadvance/specter/services/swan/templates
-            The first part might be completely random. The marker is something like .*env
-        '''
+        """make out of something like '# /home/kim/src/specter-desktop/.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/swan/templates
+        somethink like:                                                                                   cryptoadvance/specter/services/swan/templates
+        The first part might be completely random. The marker is something like .*env
+        """
         index = 0
         sep_index = 0
         for part in path.parts:
@@ -513,6 +513,8 @@ class ServiceManager:
                 sep_index = index
             index += 1
         if sep_index == 0:
-            raise SpecterInternalException(f"Path {path} does not contain an environment directory!")
+            raise SpecterInternalException(
+                f"Path {path} does not contain an environment directory!"
+            )
 
         return Path(*path.parts[sep_index:index])
