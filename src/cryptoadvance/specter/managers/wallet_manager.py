@@ -2,9 +2,11 @@ import logging
 import os
 import sys
 import pathlib
-from typing import Dict
+import sys
 
+from typing import Dict
 from flask_babel import lazy_gettext as _
+from flask import copy_current_request_context
 from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.key import Key
 
@@ -66,7 +68,9 @@ class WalletManager:
         The _update internal method will resync the internal status with Bitcoin Core
         use_threading : for the _update method which is heavily communicating with Bitcoin Core
         """
+        logger.debug("starting update of wallet_manager")
         if self.is_loading:
+            logger.debug("update in progress, aborting!")
             return
         self.is_loading = True
         if chain is not None:
@@ -92,6 +96,7 @@ class WalletManager:
 
         if self.working_folder is not None:
             wallets_files = load_jsons(self.working_folder, key="name")
+            logger.info(f"Iterating over {len(wallets_files.values())} wallet files")
             for wallet in wallets_files:
                 wallet_name = wallets_files[wallet]["name"]
                 wallets_update_list[wallet_name] = wallets_files[wallet]
@@ -101,6 +106,10 @@ class WalletManager:
                 wallets_update_list[wallet_name]["keys_count"] = len(
                     wallets_files[wallet]["keys"]
                 )
+        else:
+            logger.info(
+                f"Skipping further update because self.working_folder is {self.working_folder} (and data_folder = {self.data_folder})"
+            )
         if (
             self.working_folder is not None
             and self.rpc is not None
