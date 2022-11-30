@@ -372,7 +372,7 @@ def test_both_Storages_in_parallel(empty_data_folder, user1, user2):
     }
 
 
-class TestService(Service):
+class MyTestService(Service):
     id = "test_service"
 
     @classmethod
@@ -385,7 +385,7 @@ class TestService(Service):
 def test_Service_reserve_address(empty_data_folder, caplog):
     wallet_mock = MagicMock()
 
-    TestService.reserve_address(wallet_mock, "a", "someLabel")
+    MyTestService.reserve_address(wallet_mock, "a", "someLabel")
     assert wallet_mock.associate_address_with_service.assert_called_once
 
 
@@ -393,7 +393,7 @@ def test_reserve_addresses_with_mocks(empty_data_folder, caplog):
     caplog.set_level(logging.DEBUG)
     specter_mock = MagicMock()
     specter_mock.data_folder = empty_data_folder
-    s = TestService(True, specter_mock)
+    s = MyTestService(True, specter_mock)
 
     wallet_mock = MagicMock()
     # We assume that we haven't yet reserved any addresses:
@@ -419,7 +419,7 @@ def test_reserve_addresses_with_mocks(empty_data_folder, caplog):
 
 def test_reserve_addresses_with_an_actual_wallet(wallet):
     specter_mock = MagicMock()
-    test_service = TestService(True, specter_mock)
+    test_service = MyTestService(True, specter_mock)
     # Reserve first address
     test_service.reserve_address(
         wallet, "bcrt1qcatuhg0gll3h7py4cmn53rjjn9xlsqfwj3zcej", "reserved_for_john_nash"
