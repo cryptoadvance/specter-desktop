@@ -83,7 +83,9 @@ def test_abandon_purged_tx(
                 "method": "rpcpasswordaspin",
             },
         }
-        specter = Specter(data_folder=devices_filled_data_folder, config=config)
+        specter = Specter(
+            data_folder=devices_filled_data_folder, config=config, checker_threads=False
+        )
         specter.check()
 
         assert specter.info["mempool_info"]["maxmempool"] == 5 * 1000 * 1000  # 5MB

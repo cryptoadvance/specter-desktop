@@ -26,7 +26,9 @@ def specter_testnet_configured(bitcoin_regtest, devices_filled_data_folder):
             "method": "rpcpasswordaspin",
         },
     }
-    specter = Specter(data_folder=devices_filled_data_folder, config=config)
+    specter = Specter(
+        data_folder=devices_filled_data_folder, config=config, checker_threads=False
+    )
     specter.check()
     assert specter.chain == "test"
 

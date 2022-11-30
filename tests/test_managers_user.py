@@ -8,7 +8,7 @@ def test_create_user(empty_data_folder):
     Should add a new User to the `users` list, generate a user_secret, and write
     the new User to json storage.
     """
-    specter = Specter(data_folder=empty_data_folder)
+    specter = Specter(data_folder=empty_data_folder, checker_threads=False)
     user_manager = UserManager(specter=specter)
 
     password = "somepassword"
