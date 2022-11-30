@@ -194,6 +194,7 @@ def wallet(devices_filled_data_folder, device_manager, node):
         device_manager,
     )
     device = device_manager.get_by_alias("trezor")
-    wm.create_wallet("test_wallet", 1, "wpkh", [device.keys[5]], [device])
-    wallet = wm.wallets["test_wallet"]
+    wallet_name = f"test_wallet_{random.randint(0, 999999)}"
+    wm.create_wallet(wallet_name, 1, "wpkh", [device.keys[5]], [device])
+    wallet = wm.wallets[wallet_name]
     return wallet

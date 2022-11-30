@@ -133,8 +133,19 @@ class AbstractNode(PersistentObject):
         )
 
     def node_info_template(self):
-        """This should return the path to a template as string"""
+        """This should return the path to a Info template as string"""
         return "node/components/bitcoin_core_info.jinja"
+
+    def node_logo_template(self):
+        """This should return the path to a Logo template as string
+        The template should contain the logo independent from the
+        status of the node. It's used in the node-selector
+        """
+        return "includes/sidebar/components/node_logo.jinja"
+
+    def node_connection_template(self):
+        """This should return the path to a connection template as string"""
+        return "includes/sidebar/components/node_connection.jinja"
 
 
 class Node(AbstractNode):
