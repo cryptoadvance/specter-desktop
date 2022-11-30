@@ -633,10 +633,6 @@ class Node(AbstractNode):
             return False
 
     @property
-    def chain(self):
-        return self.info["chain"]
-
-    @property
     def asset_labels(self):
         if not self.is_liquid:
             return {}
