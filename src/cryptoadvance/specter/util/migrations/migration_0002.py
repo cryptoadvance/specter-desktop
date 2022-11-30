@@ -30,7 +30,7 @@ class SpecterMigration_0002(SpecterMigration):
     def description(self) -> str:
         return """Node-class migration:
             We introduced the Spectrum Node on an extension. With that, we made the choice of 
-            the Node to be instantiated much more flexible. The node.json get a member called
+            the Node to be instantiated much more flexible. The node.json gets an attribute called
             python_class which is the fully qualified package name of the class the NodeManager
             should instantiate.
             This migrates all the node.json files to the new format.
@@ -38,19 +38,23 @@ class SpecterMigration_0002(SpecterMigration):
             * Iterate over all nodes in ~/.specter/nodes/*.json
             * load each node.json and adds the correct python_class 
             * stores it again
-            In order to reverse this migration, you do need to reverese the addition of the 
+            In order to reverse this migration, you do need to reverse the addition of the 
             python_class like this:
             
             sudo apt-get install moreutils jq
             cd ~/.specter/nodes
-            # adding the external_node key again:
-            for file in `ls *.json`; do jq '. | select(.python_class=="cryptoadvance.specter.internal_node.InternalNode") + {"external_node":false} , . | select(.python_class=="cryptoadvance.specter.node.Node") + {"external_node":true}'  $file | sponge $file ; done
             # remove python_class key
             for file in `ls *.json`; do jq 'del(.python_class)' $file | sponge $file ; done
             cd ..
             jq 'del(.migration_executions[] | select(.migration_id == 2))' migration_data.json | sponge migration_data.json
 
         """
+        # In an early iteration of the migration, the key "external_node" has been deleted as well.
+        # However, this breaks backwards compatibility. So in order to keep that (for some time),
+        # we don't delete that key (see below)
+        # If we do at some point in time (and we should), this rollback procedure might be helpful:
+        # adding the external_node key again:
+        # for file in `ls *.json`; do jq '. | select(.python_class=="cryptoadvance.specter.internal_node.InternalNode") + {"external_node":false} , . | select(.python_class=="cryptoadvance.specter.node.Node") + {"external_node":true}'  $file | sponge $file ; done
 
     def execute(self):
         node_folder = os.path.join(self.data_folder, "nodes")
@@ -77,9 +81,11 @@ class SpecterMigration_0002(SpecterMigration):
                 nodes_files[node_alias][
                     "python_class"
                 ] = "cryptoadvance.specter.internal_node.InternalNode"
-            if nodes_files[node_alias].get("external_node"):
-                logger.info(f"Deleting external_node key of {node_alias} in node.json")
-                del nodes_files[node_alias]["external_node"]
+            # As described above, the "external_node" attribute is not deleted for backwards compatibility
+            # This code might come in handy, for a future migration which is doing that.
+            # if nodes_files[node_alias].get("external_node"):
+            #    logger.info(f"Deleting external_node key of {node_alias} in node.json")
+            #    del nodes_files[node_alias]["external_node"]
 
             write_json_file(
                 nodes_files[node_alias], nodes_files[node_alias]["fullpath"]

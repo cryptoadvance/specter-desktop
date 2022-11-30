@@ -128,6 +128,10 @@ class NodeManager:
         """Returns a list of the names (not the aliases) of the nodes"""
         return [node.name for node in self.nodes.values()]
 
+    def nodes_by_chain(self, chain: str) -> list:
+        """Returns a list of nodes for a given blockchain"""
+        return [node for node in self.nodes.values() if node.chain == chain]
+
     def switch_node(self, node_alias: str):
         # This will throw an error if the node doesn't exist
         logger.debug(f"Switching from {self._active_node} to {node_alias}.")

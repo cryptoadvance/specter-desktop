@@ -5,6 +5,7 @@
 
 """
 
+import os
 import pytest
 import traceback
 import threading
@@ -37,20 +38,22 @@ def pytest_exception_interact(node, call, report):
     """Making more clever investigations in case of Exceptions"""
     if should_intercept(call):
         print()
-        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+        print("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
         print(
             f"intercepting: {call.excinfo.value.__class__.__name__} while {report.when}"
         )
         print_exception(node, call, report)
         print_threaddump(node, call, report)
         print_debug_logs(node, call, report)
-        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+        print_directory_content(node, call, report)
+        print("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
+
     yield
 
 
 def print_exception(node, call, report):
     """prints a stacktrace of the intercepted Exception"""
-    print("XXXXXXXXXXXXXXXXXX_EXCEPTION_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+    print(f"XXXXXXXXXXXXXXXXXX_EXCEPTION_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
     traceback.print_exception(call.excinfo.value)
     print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 
@@ -67,7 +70,6 @@ def print_threaddump(node, call, report):
 
 def print_debug_logs(node, call, report):
     """prints the debug-logs of all the Regtest instances"""
-    print(node)
     if isinstance(call.excinfo.value, BrokenCoreConnectionException):
         print("XXXXXXXXXXXXXXXXXX_DEBUG.LOG_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
         regtests = []
@@ -81,4 +83,15 @@ def print_debug_logs(node, call, report):
                 f"{regtest} in DATADIR {regtest.datadir} on PORT {regtest.rpcconn.rpcport}"
             )
             print(regtest.get_debug_log())
+        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+
+
+def print_directory_content(node, call, report):
+    if str(call.excinfo.value).startswith(
+        "[Errno 39]"
+    ):  # [Errno 39] Directory not empty: '/tmp/specter_home_tmp_vzn6u1rv'
+        folder = str(call.excinfo.value).split(":")[1][2:-1]
+        print("XXXXXXXXX_DIR_CONTENT_OF_{folder}_XXXXXXXXXXXXXXXXXXXXXXXXXXX")
+        for file in os.listdir(folder):
+            print(file)
         print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
