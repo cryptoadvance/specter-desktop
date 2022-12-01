@@ -8,9 +8,10 @@ from ..rpc import get_default_datadir, RPC_PORTS
 from ..specter_error import SpecterError, SpecterInternalException
 from ..persistence import PersistentObject, write_node, delete_file
 from ..helpers import alias, calc_fullpath, load_jsons
-from ..node import Node
+from ..node import BrokenNode, Node
 from ..internal_node import InternalNode
 from ..services import callbacks
+from ..managers.service_manager import ServiceManager
 from ..util.bitcoind_setup_tasks import setup_bitcoind_thread
 
 logger = logging.getLogger(__name__)
@@ -28,6 +29,7 @@ class NodeManager:
         bitcoind_path="",
         internal_bitcoind_version="",
         data_folder="",
+        service_manager=None,
     ):
         self.nodes = {}
         # Dict is sth. like: {'nigiri_regtest': <Node name=Nigiri regtest fullpath=...>, 'default': <Node name=Bitcoin Core fullpath=...>}
@@ -37,6 +39,7 @@ class NodeManager:
         self.only_tor = only_tor
         self.bitcoind_path = bitcoind_path
         self.internal_bitcoind_version = internal_bitcoind_version
+        self.service_manager: ServiceManager = service_manager
         self.load_from_disk(data_folder)
         internal_nodes = [
             node for node in self.nodes.values() if not node.external_node
@@ -55,12 +58,33 @@ class NodeManager:
         nodes_files = load_jsons(self.data_folder, key="alias")
         for node_alias in nodes_files:
             try:
-                self.nodes[node_alias] = PersistentObject.from_json(
+                valid_node = True
+                node = PersistentObject.from_json(
                     nodes_files[node_alias],
                     self,
                     default_alias=nodes_files[node_alias]["alias"],
                     default_fullpath=calc_fullpath(self.data_folder, node_alias),
                 )
+                print("---------------------------------------")
+                print(node.__class__.__module__.split("."))
+                if (
+                    node.__class__.__module__.split(".")[1] == "specterext"
+                ):  # e.g. cryptoadvance.specterext.spectrum
+                    if self.service_manager:
+                        if not self.service_manager.is_class_from_loaded_extension(
+                            node.__class__
+                        ):
+                            logger.warning(
+                                f"Cannot Load {node} due to corresponding plugin not loaded"
+                            )
+                            continue
+                    else:
+                        logger.warning(
+                            f"Cannot validate Node {node} to be a valid node, skipping"
+                        )
+                        continue
+                self.nodes[node_alias] = node
+                logger.info(f"Loaded Node {self.nodes[node_alias]}")
             except SpecterInternalException as e:
                 logger.error(f"Skipping node {node_alias} due to {e}")
 

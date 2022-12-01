@@ -315,6 +315,17 @@ class ServiceManager:
         )
         return [self._services[s] for s in service_names]
 
+    def is_class_from_loaded_extension(self, claz):
+        """Returns Ture if that class is from a module which belongs to an extension
+        which is loaded, False otherwise
+        """
+        print("")
+        ext_module = ".".join(claz.__module__.split(".")[0:3])
+        for ext in self.services_sorted:
+            if ext.__class__.__module__.startswith(ext_module):
+                return True
+        return False
+
     def user_has_encrypted_storage(self, user: User) -> bool:
         """Looks for any data for any service in the User's ServiceEncryptedStorage.
         This check works even if the user doesn't have their plaintext_user_secret

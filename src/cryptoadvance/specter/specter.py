@@ -120,6 +120,9 @@ class Specter:
             bitcoind_path=self.bitcoind_path,
             internal_bitcoind_version=self._internal_bitcoind_version,
             data_folder=os.path.join(self.data_folder, "nodes"),
+            service_manager=self.service_manager
+            if hasattr(self, "service_manager")
+            else None,
         )
         try:
             logger.debug(
@@ -128,7 +131,7 @@ class Specter:
         except SpecterError as e:
             if str(e).endswith("does not exist!"):
                 logger.warning(
-                    f"Node {self.node_manager.active_node} doesn't exist. Switching over to node {self.node_manager.DEFAULT_ALIAS}."
+                    f"Current Node doesn't exist. Switching over to node {self.node_manager.DEFAULT_ALIAS}."
                 )
                 self.update_active_node(self.node_manager.DEFAULT_ALIAS)
             else:
