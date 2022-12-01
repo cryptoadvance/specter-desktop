@@ -739,7 +739,6 @@ table{
 }
 td, th{
     padding: 20px 10px;
-    border-bottom: 1px solid var(--cmap-bg-lightest);
 }
 tr, thead{
     background: var(--cmap-bg-lighter);
