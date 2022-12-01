@@ -8,7 +8,7 @@ from ..rpc import get_default_datadir, RPC_PORTS
 from ..specter_error import SpecterError, SpecterInternalException
 from ..persistence import PersistentObject, write_node, delete_file
 from ..helpers import alias, calc_fullpath, load_jsons
-from ..node import BrokenNode, Node
+from ..node import Node
 from ..internal_node import InternalNode
 from ..services import callbacks
 from ..managers.service_manager import ServiceManager
