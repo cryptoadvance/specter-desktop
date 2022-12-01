@@ -82,18 +82,18 @@
                 value="{{ csrf_token() }}"
             />
             <img class="service-icon" />
-            <span class="label" autocomplete="off" spellcheck="false">
+            <span class="label" autocomplete="off" spellcheck="false" title="Edit label">
                 {{ _("Fetching address label...") }}
             </span>
         </button>
-        <button type="button" class="btn update hidden">
+        <button type="button" class="btn update hidden" title="Update">
             <img
                 src="{{ url_for('static', filename='img/check_thick.svg') }}"
                 style="width: 18px"
                 class="svg-white"
             />
         </button>
-        <button type="button" class="btn cancel hidden">
+        <button type="button" class="btn cancel hidden" title="Cancel">
             <img
                 src="{{ url_for('static', filename='img/cross_thick.svg') }}"
                 style="width: 18px"
@@ -142,7 +142,6 @@
             this.wallet = this.getAttribute("data-wallet");
             this.labelValue = this.getAttribute("data-label");
             this.serviceId = this.getAttribute("data-service-id");
-            this.label.title = this.address;
             this.isEditing = false;
 
             if (typeof services !== "undefined" && this.serviceId in services) {
