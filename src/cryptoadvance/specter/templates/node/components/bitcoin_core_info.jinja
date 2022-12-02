@@ -1,0 +1,84 @@
+<h1>{{ _("Bitcoin Core Node Info") }}:</h1>
+{% if specter.chain %}
+    {% if specter.info['pruned'] %}
+        <p class="warning"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>{{ _("You are using a pruned node.")}}<br>{{ _("Pruned nodes may not be able to scan for old balances when importing an existing wallet.")}}<br>{{ _("It is recommended to use Specter with an unpruned node.") }}</p>
+        <br>
+    {% elif not specter.info['blockfilterindex'] %}
+        <p class="warning"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>{{ _("Your node does not have ")}}<code>blockfilterindex</code>{{ _(" enabled.")}}<br>{{ _("Setting ")}}<code>blockfilterindex=1</code>{{ _(" in your ")}}<code>bitcoin.conf</code>{{ _(" file is recommended as it takes just a few GB of storage")}}<br>{{ _("and helps to speed-up blockchain rescanning.") }}</p>
+        <br>
+    {% endif %}
+    <table>
+        <tr> <td style="text-align: left;">{{ _("Network") }}:</td> <td style="text-align: right;" id="node-info-specter-chain">{{specter.chain}}</td> </tr>
+        <tr> <td style="text-align: left; width: 35%;">{{ _("Bitcoin Core Version") }}:</td> <td style="text-align: right;">v{{specter.bitcoin_core_version}} <span class="note">({{specter.network_info['version']}})</span></td> </tr>
+        <tr> <td style="text-align: left;">{{ _("Connections count") }}:</td> <td style="text-align: right;">{{specter.network_info['connections']}}</td> </tr>
+        <tr> <td style="text-align: left;">{{ _("Difficulty") }}:</td> <td style="text-align: right;">{{specter.info.get('difficulty', 0) | int}}</td> </tr>
+        <tr> <td style="text-align: left;">{{ _("Size on disk") }}:</td> <td style="text-align: right;">{{specter.info['size_on_disk']|bytessize }}</td> </tr>
+        <tr> <td style="text-align: left;">{{ _("Blocks count") }}:</td> <td style="text-align: right;">{{specter.info['blocks']}}</td> </tr>
+        <tr> <td style="text-align: left;">{{ _("Last block hash") }}:</td> <td style="text-align: right"><code style="word-break: break-word;">{{specter.info['bestblockhash']}}</code></td> </tr>
+        <tr> <td style="text-align: left;">{{ _("Mempool Size") }}:</td> <td style="text-align: right;">{{specter.info['mempool_info'].size}} transactions</td> </tr>
+        <tr> <td style="text-align: left;">{{ _("Node uptime") }}:</td> <td style="text-align: right;">~ {{(specter.info['uptime'] / 60 // 60) | int }} {{ _("Hours") }}</td> </tr>
+        {% if specter.info['pruned'] %}
+            <tr> <td style="text-align: left;">{{ _("Automatic pruning") }}:</td> <td style="text-align: right;">{{specter.info['automatic_pruning']}}</td> </tr>
+            <tr> <td style="text-align: left;">{{ _("Prune height") }}:</td> <td style="text-align: right;">{{specter.info['pruneheight']}}</td> </tr>
+            <tr> <td style="text-align: left;">{{ _("Prune target size") }}:</td> <td style="text-align: right;">{{specter.info['prune_target_size']}}</td> </tr>
+        {% endif %}
+    </table>
+
+    <p id="total_supply" style="line-height: 2.5;"></p>
+    <div class="row">
+        <button type="button" onclick="fetchTotalSupply()" class="btn centered">
+            {{ _("Run the numbers!") }}
+            <tool-tip width="200px">
+                <h4 slot="title">{{ _("Calculate the total Bitcoin supply") }}</h4>
+                <span slot="paragraph">
+                    {{ _("This will run Bitcoin Core's") }} <code>gettxoutsetinfo</code> {{_("command which will calculate the total amount of Bitcoin's UTXO set.") }}<br>
+                    {{ _("This might take a few minutes...") }}
+                </span>
+            </tool-tip>
+        </button>
+    </div><br>
+    <script>
+        let totalUserBalance = parseFloat(parseFloat("{{ specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') }}").toFixed(8));
+        async function fetchTotalSupply() {
+            document.getElementById('total_supply').innerHTML = `{{ _("Running the numbers... (this might take a few minutes)") }}`;
+            try {
+                const response = await fetch(
+                    "{{ url_for('wallets_endpoint_api.txout_set_info') }}",
+                    {
+                        method: 'GET'
+                    }
+                ).catch((err) => {
+                    showError(err)
+                    return
+                });
+                let result = await response.json();
+                console.log(result)
+                if (result.error) {
+                    showError(result.error)
+                    return
+                }
+                if (totalUserBalance==0) {
+                    document.getElementById('total_supply').innerHTML = `Your wallet holds 0 BTC and so, you're effectively a precoiner! Get off zero! `
+                    return
+                }
+                let userBalanceFromTotal = parseFloat((100 / (result.total_amount / totalUserBalance)).toFixed(8));
+                document.getElementById('total_supply').innerHTML = `{{ _("Bitcoin Total Supply") }}: ${result.total_amount} BTC<br>` +
+                `<span class="note" style="margin: 7px auto;">{{ _("Your wallets hold") }} ` +
+                    `${totalUserBalance} BTC (~${userBalanceFromTotal.toFixed(8)}% ` +
+                `{{ _("from the total supply") }}</span>`
+            } catch(e) {
+                console.log('Caught error:', e);
+                showError(e)
+                return { success: false, error: e };
+            }
+        }
+    </script>
+    {% if current_user.is_admin %}
+        <div class="row">
+            <a id="active-node-settings-btn" class="btn centered" href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) }}">
+                <img src="{{ url_for('static', filename='img/gear.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
+                {{ _("Configure Bitcoin Core RPC Connection") }}
+            </a>
+        </div>
+    {% endif %}
+{% endif %}

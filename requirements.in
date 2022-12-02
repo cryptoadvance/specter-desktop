@@ -15,7 +15,7 @@ requests==2.26.0
 pysocks==1.7.1
 six==1.16.0
 stem==1.8.0
-embit==0.5.0
+embit==0.6.1
 psutil==5.9.0
 pyopenssl==20.0.1
 flask_wtf==0.15.1
@@ -33,3 +33,4 @@ pytimeparse==1.1.8
 cryptoadvance-liquidissuer==0.2.4
 specterext-exfund==0.1.7
 specterext-faucet==0.1.2
+cryptoadvance.spectrum==0.2.0

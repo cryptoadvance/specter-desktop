@@ -1,11 +1,16 @@
 import logging
 import sys
 import pytest
+from pathlib import PosixPath, Path
 import os
 from unittest.mock import MagicMock
 from flask import Flask
 from cryptoadvance.specter.managers.service_manager import ExtensionManager
 from cryptoadvance.specter.services.callbacks import after_serverpy_init_app
+
+from cryptoadvance.specterext.swan.service import SwanService
+from cryptoadvance.specterext.swan.service import SwanClient
+from cryptoadvance.specterext.devhelp.service import DevhelpService
 
 
 def test_ExtensionManager2(mock_specter, mock_flaskapp, caplog):
@@ -19,6 +24,15 @@ def test_ExtensionManager2(mock_specter, mock_flaskapp, caplog):
     assert sm.services["swan"] != None
 
     sm.execute_ext_callbacks(after_serverpy_init_app, scheduler=None)
+
+
+def test_is_class_from_loaded_extension(mock_specter, mock_flaskapp):
+    with mock_flaskapp.app_context():
+        sm = ServiceManager(mock_specter, "alpha")
+        assert type(sm.services_sorted[0]) == SwanService
+        assert sm.is_class_from_loaded_extension(SwanClient)
+        assert sm.is_class_from_loaded_extension(SwanService)
+        assert not sm.is_class_from_loaded_extension(DevhelpService)
 
 
 @pytest.mark.skip(reason="The .buildenv directoy does not exist on the CI-Infra")
@@ -36,25 +50,46 @@ def test_ExtensionManager_get_service_x_dirs(caplog):
         )
         # however, in the real build, you get something like:
         # ../.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/swan/templates
-        assert f"{expected_folder}/cryptoadvance/specter/services/swan/templates" in [
+        assert f"{expected_folder}/cryptoadvance/specterext/swan/templates" in [
             str(dir) for dir in dirs
         ]
         for path in dirs:
             assert str(path).endswith("templates")
 
-        dirs = ExtensionManager.get_service_x_dirs("static")
-        assert f"{expected_folder}/cryptoadvance/specter/services/swan/static" in [
+        dirs = ServiceManager.get_service_x_dirs("static")
+        assert f"{expected_folder}/cryptoadvance/specterext/swan/static" in [
             str(dir) for dir in dirs
         ]
         print(dirs)
-        assert len(dirs) >= 2
+        assert len(dirs) >= 2000
+        assert False
     finally:
         os.chdir("../")
 
 
-def test_ExtensionManager_get_service_packages():
-    packages = ExtensionManager.get_service_packages()
+def test_ServiceManager_get_service_packages(caplog):
+    caplog.set_level(logging.DEBUG)
+    packages = ServiceManager.get_service_packages()
+    assert "cryptoadvance.specterext.electrum.service" in packages
+    assert "cryptoadvance.specterext.electrum.devices.electrum" in packages
     assert "cryptoadvance.specterext.swan.service" in packages
+    assert "cryptoadvance.specterext.electrum.service" in packages
+    assert "cryptoadvance.specterext.electrum.devices.electrum" in packages
+
+
+def test_ServiceManager_make_path_relative(caplog):
+    caplog.set_level(logging.DEBUG)
+    arr = [
+        Path(
+            "/home/kim/src/specter-desktop/.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/swan/templates"
+        ),
+        Path("wurstbrot/something/.env/site-packages/the_rest"),
+    ]
+    arr = [ServiceManager._make_path_relative(path) for path in arr]
+    assert arr[0] == PosixPath(
+        "site-packages/cryptoadvance/specter/services/swan/templates"
+    )
+    assert arr[1] == PosixPath("site-packages/the_rest")
 
 
 @pytest.fixture

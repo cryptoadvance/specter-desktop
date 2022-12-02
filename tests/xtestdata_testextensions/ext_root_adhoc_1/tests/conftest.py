@@ -455,7 +455,9 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
             "method": "rpcpasswordaspin",
         },
     }
-    specter = Specter(data_folder=devices_filled_data_folder, config=config)
+    specter = Specter(
+        data_folder=devices_filled_data_folder, config=config, checker_threads=False
+    )
     assert specter.chain == "regtest"
     # Create a User
     someuser = specter.user_manager.add_user(
@@ -511,9 +513,7 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
         # Deleting all Wallets (this will also purge them on core)
         for user in specter.user_manager.users:
             for wallet in list(user.wallet_manager.wallets.values()):
-                user.wallet_manager.delete_wallet(
-                    wallet, bitcoin_datadir=bitcoin_regtest.datadir, chain="regtest"
-                )
+                user.wallet_manager.delete_wallet(wallet)
 
 
 @pytest.fixture
@@ -531,7 +531,7 @@ def app(specter_regtest_configured) -> SpecterFlask:
 
 @pytest.fixture
 def app_no_node(empty_data_folder) -> SpecterFlask:
-    specter = Specter(data_folder=empty_data_folder)
+    specter = Specter(data_folder=empty_data_folder, checker_threads=False)
     app = create_app(config="cryptoadvance.specter.config.TestConfig")
     app.app_context().push()
     app.config["TESTING"] = True

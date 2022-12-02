@@ -10,7 +10,7 @@ from cryptoadvance.specter.user import *
 
 
 def test_token_endpoints(client, empty_data_folder, caplog):
-    specter = Specter(data_folder=empty_data_folder)
+    specter = Specter(data_folder=empty_data_folder, checker_threads=False)
     user = User.from_json(
         user_dict={
             "id": "someuser",

@@ -21,7 +21,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.wrappers import Response
 
 from .hwi_server import hwi_server
-from .services.callbacks import after_serverpy_init_app
+from .services.callbacks import after_serverpy_init_app, specter_added_to_flask_app
 from .specter import Specter
 from .util.specter_migrator import SpecterMigrator
 
@@ -142,15 +142,21 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
             data_folder=app.config["SPECTER_DATA_FOLDER"],
             config=app.config["DEFAULT_SPECTER_CONFIG"],
             internal_bitcoind_version=app.config["INTERNAL_BITCOIND_VERSION"],
+            initialize=False,
         )
+
+    # ServiceManager will instantiate and register blueprints for extensions
+    # It's an attribute to the specter but specter is not aware of it.
+    # However some managers are aware of it and so we need to split
+    # instantiation from initializing and in between attach the service_manager
+    specter.service_manager = ServiceManager(
+        specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
+    )
+
+    specter.initialize()
 
     # HWI
     specter.hwi = HWIBridge()
-
-    # ExtensionManager will instantiate and register blueprints for extensions
-    specter.service_manager = ExtensionManager(
-        specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
-    )
 
     login_manager = LoginManager()
     login_manager.session_protection = app.config.get("SESSION_PROTECTION", "strong")
@@ -174,6 +180,9 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     app.login = login
     # Attach specter instance so child views (e.g. hwi) can access it
     app.specter = specter
+    # Executing callback specter_added_to_flask_app
+    app.logger.info("Executing callback specter_added_to_flask_app ...")
+    specter.service_manager.execute_ext_callbacks(specter_added_to_flask_app)
     if specter.config["auth"].get("method") == "none":
         app.logger.info("Login disabled")
         app.config["LOGIN_DISABLED"] = True
@@ -259,6 +268,7 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
 
     scheduler.init_app(app)
     scheduler.start()
+    logger.info("----> starting service callback_after_serverpy_init_app ")
     specter.service_manager.execute_ext_callbacks(
         after_serverpy_init_app, scheduler=scheduler
     )

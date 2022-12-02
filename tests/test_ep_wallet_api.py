@@ -23,8 +23,8 @@ def test_fees(caplog, client):
     logout(client)
 
 
-@patch("cryptoadvance.specter.server_endpoints.wallets_api.get_price_at")
-@patch("cryptoadvance.specter.server_endpoints.wallets_api._")
+@patch("cryptoadvance.specter.server_endpoints.wallets.wallets_api.get_price_at")
+@patch("cryptoadvance.specter.server_endpoints.wallets.wallets_api._")
 def test_txlist_to_csv(
     mock_babel: MagicMock,
     mock_get_price_at: MagicMock,
@@ -43,7 +43,9 @@ def test_txlist_to_csv(
     assert mock_get_price_at() == (1000000, "$")
 
     with app.test_request_context():
-        from cryptoadvance.specter.server_endpoints.wallets_api import txlist_to_csv
+        from cryptoadvance.specter.server_endpoints.wallets.wallets_api import (
+            txlist_to_csv,
+        )
 
         curr_date = datetime.now()
         for i, tx in enumerate(
@@ -88,8 +90,8 @@ def test_txlist_to_csv(
     # assert False
 
 
-@patch("cryptoadvance.specter.server_endpoints.wallets_api.get_price_at")
-@patch("cryptoadvance.specter.server_endpoints.wallets_api._")
+@patch("cryptoadvance.specter.server_endpoints.wallets.wallets_api.get_price_at")
+@patch("cryptoadvance.specter.server_endpoints.wallets.wallets_api._")
 def test_addresses_list_to_csv(
     mock_babel: MagicMock,
     mock_get_price_at: MagicMock,
@@ -109,7 +111,7 @@ def test_addresses_list_to_csv(
     assert mock_get_price_at() == (1000000, "$")
 
     with app.test_request_context():
-        from cryptoadvance.specter.server_endpoints.wallets_api import (
+        from cryptoadvance.specter.server_endpoints.wallets.wallets_api import (
             addresses_list_to_csv,
         )
 

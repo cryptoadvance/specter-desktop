@@ -1,9 +1,12 @@
 import logging
+import pytest
 from pathlib import Path
 from typing import List
 from cryptoadvance.specter.device import Device
 from cryptoadvance.specter.devices.bitbox02 import BitBox02
+from cryptoadvance.specter.specter_error import SpecterInternalException
 from cryptoadvance.specter.util.reflection import (
+    get_class,
     get_subclasses_for_clazz,
     get_subclasses_for_clazz_in_cwd,
     get_classlist_of_type_clazz_from_modulelist,
@@ -28,6 +31,23 @@ def test_get_module_from_class():
         _get_module_from_class(Service).__name__
         == "cryptoadvance.specter.services.service"
     )
+
+
+def test_get_class():
+    assert type(get_class("cryptoadvance.specter.device.Device")) == type(Device)
+    assert get_class("cryptoadvance.specter.node.Node").__name__ == "Node"
+
+    # It doesn't make sense to raise SpecterErrors as the error messages aren't meaningful to the user
+    with pytest.raises(
+        SpecterInternalException,
+        match="Could not find cryptoadvance.specter.node.notExisting",
+    ):
+        get_class("cryptoadvance.specter.node.notExisting")
+    with pytest.raises(
+        SpecterInternalException,
+        match="Could not find cryptoadvance.notExisting.notExisting",
+    ):
+        get_class("cryptoadvance.notExisting.notExisting")
 
 
 def test_get_package_dir_for_subclasses_of():

@@ -348,10 +348,8 @@ function startSpecterd(specterdPath) {
     if (specterdArgs == null) {
       specterdArgs = []
     }
-    let specterdExtraArgs = appSettings.specterdCLIArgs.split('--')
-    specterdExtraArgs = specterdExtraArgs.filter(Boolean)
-    specterdExtraArgs.forEach((arg, index) => specterdExtraArgs[index] = '--' + arg.trim())
-    
+    let specterdExtraArgs = appSettings.specterdCLIArgs.split(' ')
+    specterdExtraArgs.forEach((arg, index) => specterdExtraArgs[index] = arg.trim())
     specterdArgs = specterdArgs.concat(specterdExtraArgs)
   }
 

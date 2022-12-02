@@ -24,6 +24,7 @@ class Device:
     # - "on": animate psbt by default
     # - "off": don't animate psbt even if it is huge
     qr_code_animate = "auto"
+    supports_qr_message_signing = False
     hwi_support = False
     supports_hwi_toggle_passphrase = False
     supports_hwi_multisig_display_address = False
@@ -158,7 +159,7 @@ class Device:
                     return True
         elif wallet_type == "simple":
             for key_type in self.key_types(network):
-                if key_type in ["", "sh-wpkh", "wpkh"]:
+                if key_type in ["", "sh-wpkh", "wpkh", "tr"]:
                     return True
         return "" in self.key_types(network)
 

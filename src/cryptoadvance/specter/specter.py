@@ -25,7 +25,7 @@ from cryptoadvance.specter.services.service_encrypted_storage import (
     ServiceUnencryptedStorageManager,
 )
 
-from .helpers import clean_psbt, deep_update, is_liquid, is_testnet, get_asset_label
+from .helpers import clean_psbt, deep_update, is_liquid, get_asset_label
 from .internal_node import InternalNode
 from .liquid.rpc import LiquidRPC
 from .managers.config_manager import ConfigManager
@@ -70,7 +70,10 @@ class Specter:
         checker_threads=True,
         initialize=True,
     ):
-        """Very basic Initialisation of the Specter Object. Make sure to call specter.initialize() shortly after"""
+        """Very basic Initialisation of the Specter Object. Will, by default call specter.initialize() shortly after
+        This might be unwanted (e.g. in server.py) in order to apply specter.service_manager so that all the
+        managers can make callbacks in the initialize method.
+        """
         if data_folder.startswith("~"):
             data_folder = os.path.expanduser(data_folder)
         data_folder = os.path.abspath(data_folder)
@@ -107,7 +110,9 @@ class Specter:
         # Migrating from Specter 1.3.1 and lower (prior to the node manager)
         self.migrate_old_node_format()
 
-        logger.info("Instantiate NodeManager")
+        logger.info(
+            f"Instantiate NodeManager with node alias: {self.active_node_alias}."
+        )
         self.node_manager = NodeManager(
             proxy_url=self.proxy_url,
             only_tor=self.only_tor,
@@ -115,7 +120,22 @@ class Specter:
             bitcoind_path=self.bitcoind_path,
             internal_bitcoind_version=self._internal_bitcoind_version,
             data_folder=os.path.join(self.data_folder, "nodes"),
+            service_manager=self.service_manager
+            if hasattr(self, "service_manager")
+            else None,
         )
+        try:
+            logger.debug(
+                f"This is the active node in the node manager: {self.node_manager.active_node}"
+            )
+        except SpecterError as e:
+            if str(e).endswith("does not exist!"):
+                logger.warning(
+                    f"Current Node doesn't exist. Switching over to node {self.node_manager.DEFAULT_ALIAS}."
+                )
+                self.update_active_node(self.node_manager.DEFAULT_ALIAS)
+            else:
+                raise e
 
         self.torbrowser_path = os.path.join(
             self.data_folder, f"tor-binaries/tor{get_tor_daemon_suffix()}"
@@ -218,7 +238,7 @@ class Specter:
                 u.check()
 
     @property
-    def node(self):
+    def node(self) -> Node:
         try:
             return self.node_manager.active_node
         except SpecterError as e:
@@ -296,8 +316,10 @@ class Specter:
     # mark
     def update_active_node(self, node_alias):
         """update the current active node to use"""
+        self.node_manager.switch_node(
+            node_alias
+        )  # If the node alias doesn't exist, this throws an exception preventing incorrectly updating the config.
         self.config_manager.update_active_node(node_alias)
-        self.node_manager.switch_node(node_alias)
         self.check()
 
     def update_setup_status(self, software_name, stage):
@@ -764,7 +786,6 @@ class Specter:
                 old_rpc.get("port", None),
                 old_rpc.get("host", "localhost"),
                 old_rpc.get("protocol", "http"),
-                True,
                 os.path.join(os.path.join(self.data_folder, "nodes"), "default.json"),
                 "BTC",
                 self,

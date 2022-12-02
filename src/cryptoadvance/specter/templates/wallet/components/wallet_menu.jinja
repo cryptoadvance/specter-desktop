@@ -14,6 +14,9 @@
 		{{ wallet_menu_item('addresses', _('Addresses'), wallet_alias, active_menuitem) }}
 		{{ wallet_menu_item('receive', _('Receive'), wallet_alias, active_menuitem, id='btn_receive') }}
 		{{ wallet_menu_item('send', _('Send'), wallet_alias, active_menuitem, id='btn_send') }}
+		{% if not ext_wallettabs %}
+			{% set ext_wallettabs = {} %}
+		{% endif %}
 		{% for ext_id, wallettabs in ext_wallettabs.items() %}
 			{% for wallettab in wallettabs %}
 				{{ wallet_menu_item(wallettab["endpoint"], _(wallettab["title"]), wallet_alias, active_menuitem, isRight=false, blueprint=ext_id+"_endpoint") }}

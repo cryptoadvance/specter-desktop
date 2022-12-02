@@ -150,6 +150,9 @@ Set up the dependencies:
 pip3 install -r test_requirements.txt
 pip3 install -e .
 ```
+  
+You need a virtual environment based on Python 3.10 for the tests to run successfully, otherwise you get this error:
+`TypeError: __init__() got an unexpected keyword argument 'ignore_cleanup_errors'`
 
 If you have a local bitcoind already installed:
 ```

@@ -8,7 +8,7 @@ from pkgutil import iter_modules
 import sys
 from typing import List
 from .common import camelcase2snake_case
-from ..specter_error import SpecterError
+from ..specter_error import SpecterError, SpecterInternalException
 from .shell import grep
 
 from .reflection_fs import detect_extension_style_in_cwd, search_dirs_in_path
@@ -18,6 +18,19 @@ logger = logging.getLogger(__name__)
 
 def _get_module_from_class(clazz):
     return import_module(clazz.__module__)
+
+
+def get_class(fqcn: str):
+    """Returns a class by a fully qualified class name like e.g. cryptoadvance.specter.node.Node"""
+    module_name = ".".join(fqcn.split(".")[:-1])
+
+    class_name = fqcn.split(".")[-1]
+    try:
+        module = import_module(module_name)
+        my_class = getattr(module, class_name)
+    except (AttributeError, ModuleNotFoundError) as e:
+        raise SpecterInternalException(f"Could not find {fqcn}: {e}")
+    return my_class
 
 
 def get_template_static_folder(foldername):
@@ -49,6 +62,9 @@ def get_package_dir_for_subclasses_of(clazz):
             ).resolve()
         )
     elif clazz.__name__ == "Service":
+        # here, we'd like to know the Path of the namespace module cryptoadvance.specterext
+        # but that fails because you cannot import namespace-modules.
+        # So we take a module that we know exists and take its parent.
         return str(
             Path(
                 import_module("cryptoadvance.specterext.devhelp").__file__
@@ -98,9 +114,6 @@ def get_classlist_of_type_clazz_from_modulelist(clazz, modulelist):
                 ):
                     # Unfortunately the superclass gets imported if you inherit from it and counts as an attribute as well
                     if str(attribute.__module__).startswith(fq_module_name):
-                        logger.debug(
-                            f" {attribute.__module__} <<<<-------------------------------------"
-                        )
                         logger.debug(f"Adding {attribute} to {class_list}")
                         class_list.append(attribute)
                         logger.info(f"  Found class {attribute.__name__}")
@@ -162,7 +175,7 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
         # skip known redherrings
         if module_name in ["callbacks"]:
             continue
-        logger.debug(
+        logger.info(
             f"Iterating on importer={importer} , module_name={module_name} is_pkg={is_pkg}"
         )
         if clazz.__name__ == "Service":
@@ -173,16 +186,16 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
                 continue
             try:
                 module = import_module(f"{module_name}.service")
-                logger.debug(f"  Imported {module_name}.service")
+                logger.info(f"  Imported {module_name}.service")
             except ModuleNotFoundError as e:
                 try:
                     # Another style is orgname.specterext.extensionid, for that we have to guess the orgname:
-                    orgname = str(importer).split(os.path.sep)[-2]
-                    logger.debug(f"guessing orgname: {orgname}")
+                    orgname = importer.path.split(os.path.sep)[-2]
+                    logger.info(f"guessing orgname: {orgname}")
                     module = import_module(
                         f"{orgname}.specterext.{module_name}.service"
                     )
-                    logger.debug(
+                    logger.info(
                         f"  Imported {orgname}.specterext.{module_name}.service"
                     )
                 except ModuleNotFoundError as e:

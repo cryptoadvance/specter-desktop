@@ -10,10 +10,7 @@ from typing import Dict, List
 
 from cryptoadvance.specter.config import ProductionConfig
 from cryptoadvance.specter.device import Device
-from cryptoadvance.specter.managers.service_manager.callback_executor import (
-    CallbackExecutor,
-)
-from cryptoadvance.specter.specter_error import SpecterError
+from cryptoadvance.specter.specter_error import SpecterError, SpecterInternalException
 from cryptoadvance.specter.user import User
 from cryptoadvance.specter.util.reflection import get_template_static_folder
 from flask import current_app as app
@@ -83,7 +80,6 @@ class ExtensionManager:
                     f"Service {clazz.__name__} not activated due to devstatus ( {self.devstatus_threshold} > {clazz.devstatus} )"
                 )
         logger.info("----> finished service processing")
-        self.callback_executor = CallbackExecutor(self.services)
         self.execute_ext_callbacks("afterExtensionManagerInit")
 
     @classmethod
@@ -280,9 +276,33 @@ class ExtensionManager:
         the callback_id needs to be passed and specify why the callback has been called.
         It needs to be one of the constants defined in cryptoadvance.specter.services.callbacks
         """
-        return self.callback_executor.execute_ext_callbacks(
-            callback_id, *args, **kwargs
-        )
+        if callback_id not in dir(callbacks):
+            raise Exception(f"Non existing callback_id: {callback_id}")
+        # No debug statement here possible as this is called for every request and would flood the logs
+        # logger.debug(f"Executing callback {callback_id}")
+        return_values = {}
+        for ext in self.services.values():
+            if hasattr(ext, f"callback_{callback_id}"):
+                try:
+                    return_values[ext.id] = getattr(ext, f"callback_{callback_id}")(
+                        *args, **kwargs
+                    )
+                except Exception as e:
+                    # Development should catch all errors early!
+                    if app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"].endswith(
+                        "DevelopmentConfig"
+                    ):
+                        raise e
+                    logger.error(
+                        "Exception {e} while executing {callback_id} for extension {ext.id}"
+                    )
+                    logger.exception(e)
+            elif hasattr(ext, "callback"):
+                return_values[ext.id] = ext.callback(callback_id, *args, **kwargs)
+        # Filtering out all None return values
+        return_values = {k: v for k, v in return_values.items() if v is not None}
+        # logger.debug(f"return_values for callback {callback_id} {return_values}")
+        return return_values
 
     @property
     def services(self) -> Dict[str, Service]:
@@ -294,6 +314,17 @@ class ExtensionManager:
             self._services, key=lambda s: self._services[s].sort_priority
         )
         return [self._services[s] for s in service_names]
+
+    def is_class_from_loaded_extension(self, claz):
+        """Returns Ture if that class is from a module which belongs to an extension
+        which is loaded, False otherwise
+        """
+        print("")
+        ext_module = ".".join(claz.__module__.split(".")[0:3])
+        for ext in self.services_sorted:
+            if ext.__class__.__module__.startswith(ext_module):
+                return True
+        return False
 
     def user_has_encrypted_storage(self, user: User) -> bool:
         """Looks for any data for any service in the User's ServiceEncryptedStorage.
@@ -319,22 +350,48 @@ class ExtensionManager:
             raise ExtensionException(f"No such plugin: '{plugin_id}'")
         return self._services[plugin_id]
 
-    def remove_all_services_from_user(self, user: User):
-        """
-        Clears User.services and `user_secret`; wipes the User's
-        ServiceEncryptedStorage.
-        """
-        # Don't show any Services on the sidebar for the admin user
-        user.services.clear()
+    def delete_service_from_user(self, user: User, service_id: str, autosave=True):
+        "Removes the service for the user and deletes the stored data in the ServiceEncryptedStorage"
+        # remove the service from the sidebar
+        user.remove_service(service_id, autosave=autosave)
+        # delete the data if it was encrypted
+        if (
+            self.user_has_encrypted_storage(user=user)
+            and self.get_service(service_id).encrypt_data
+        ):
+            self.specter.service_encrypted_storage_manager.remove_service_data(
+                user, service_id, autosave=autosave
+            )
+        # here we do not need to delete the data if it was unencrypted
 
-        # Reset as if we never had any encrypted storage
-        user.delete_user_secret(autosave=False)
-        user.save_info()
+    def delete_services_with_encrypted_storage(self, user: User):
+        services_with_encrypted_storage = [
+            service_id
+            for service_id in self.services
+            if self.get_service(service_id).encrypt_data
+        ]
+        for service_id in services_with_encrypted_storage:
+            self.delete_service_from_user(user, service_id, autosave=True)
 
-        if self.user_has_encrypted_storage(user=user):
-            # Encrypted Service data is now orphaned since there is no
-            # password. So wipe it from the disk.
-            app.specter.service_encrypted_storage_manager.delete_all_service_data(user)
+        user.delete_user_secret(autosave=True)
+        # Encrypted Service data is now orphaned since there is no
+        # password. So wipe it from the disk.
+        self.specter.service_encrypted_storage_manager.delete_all_service_data(user)
+        logger.debug(
+            f"Deleted encrypted services {services_with_encrypted_storage} and user secret"
+        )
+
+    def delete_services_with_unencrypted_storage(self, user: User):
+        services_with_unencrypted_storage = [
+            service_id
+            for service_id in self.services
+            if not self.get_service(service_id).encrypt_data
+        ]
+        for service_id in services_with_unencrypted_storage:
+            self.delete_service_from_user(user, service_id, autosave=True)
+
+        self.specter.service_unencrypted_storage_manager.delete_all_service_data(user)
+        logger.debug(f"Deleted unencrypted services")
 
     @classmethod
     def get_service_x_dirs(cls, x):
@@ -352,12 +409,20 @@ class ExtensionManager:
             logger.debug(element)
         # /home/kim/src/specter-desktop/.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/swan/templates
 
+        # filter only directories
         arr = [path for path in arr if path.is_dir()]
         # Those pathes are absolute. Let's make them relative:
-        arr = [Path(*path.parts[-6:]) for path in arr]
+        arr = [cls._make_path_relative(path) for path in arr]
 
         virtuelenv_path = os.path.relpath(os.environ["VIRTUAL_ENV"], ".")
 
+        # result:
+        # site-package/cryptoadvance/specterext/devhelp/templates
+        logger.info(f"After making the pathes relative, example: {arr[0]}")
+
+        virtuelenv_path = os.path.relpath(os.environ["VIRTUAL_ENV"], ".")
+
+        logger.info(f"virtuelenv_path: {virtuelenv_path}")
         if os.name == "nt":
             virtualenv_search_path = Path(virtuelenv_path, "Lib")
         else:
@@ -374,24 +439,48 @@ class ExtensionManager:
         src_org_specterext_exts = search_dirs_in_path(
             virtualenv_search_path, return_without_extid=False
         )
+        logger.info(f"src_org_specterext_exts[0]: {src_org_specterext_exts[0]}")
+
         src_org_specterext_exts = [Path(path, x) for path in src_org_specterext_exts]
 
         arr.extend(src_org_specterext_exts)
 
+        logger.debug(f"Returning example: {arr[0]}")
         return arr
 
     @classmethod
     def get_service_packages(cls):
-        """returns a list of strings containing the service-classes (+ controller/config-classes)
+        """returns a list of strings containing the service-classes (+ controller +config-classes +devices)
         This is used for hiddenimports in pyinstaller
         """
         arr = get_subclasses_for_clazz(Service)
+        logger.info(f"initial arr: {arr}")
         arr.extend(
             get_classlist_of_type_clazz_from_modulelist(
                 Service, ProductionConfig.EXTENSION_LIST
             )
         )
+        logger.info(f"After extending: {arr}")
+        # Before we transform the arr into an array of strings, we iterate through all services to discover
+        # the devices which might be specified in there
+        devices_arr = []
+        for clazz in arr:
+            if hasattr(clazz, "devices"):
+                logger.debug("class {clazz} has devices: {clazz.devices}")
+                for device in clazz.devices:
+                    try:
+                        import_module(device)
+                        devices_arr.append(device)
+                    except ModuleNotFoundError as e:
+                        pass
+
+        # Transform into array of strings
         arr = [clazz.__module__ for clazz in arr]
+
+        # Add the devices
+        arr.extend(devices_arr)
+        logger.debug(f"After transforming + devices: {arr}")
+
         # Controller-Packagages from the services are not imported via the service but via the baseclass
         # Therefore hiddenimport don't find them. We have to do it here.
         cont_arr = [
@@ -421,3 +510,22 @@ class ExtensionManager:
             except ModuleNotFoundError as e:
                 pass
         return arr
+
+    @classmethod
+    def _make_path_relative(cls, path: Path) -> Path:
+        """make out of something like '# /home/kim/src/specter-desktop/.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/swan/templates
+        somethink like:                                                                                   cryptoadvance/specter/services/swan/templates
+        The first part might be completely random. The marker is something like .*env
+        """
+        index = 0
+        sep_index = 0
+        for part in path.parts:
+            if part.endswith("site-packages"):
+                sep_index = index
+            index += 1
+        if sep_index == 0:
+            raise SpecterInternalException(
+                f"Path {path} does not contain an environment directory!"
+            )
+
+        return Path(*path.parts[sep_index:index])
