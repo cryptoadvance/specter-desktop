@@ -147,6 +147,16 @@ class AbstractNode(PersistentObject):
         """This should return the path to a connection template as string"""
         return "includes/sidebar/components/node_connection.jinja"
 
+    def delete_wallet_file(self, wallet) -> bool:
+        """Deleting the wallet file located on the node. This only works if the node is on the same machine as Specter.
+        Returns True if the wallet file could be deleted, otherwise returns False.
+
+        In the case of an Abtract Node, we consider that method as an edge-case anyway and we just return True here.
+        There could be said a lot more about leaky abstractions and all sorts of other things which could
+        work as an excuse to be sloppy here.
+        """
+        return True
+
 
 class Node(AbstractNode):
     """A Node represents the connection to a Bitcoin and/or Liquid (Full-) node.
