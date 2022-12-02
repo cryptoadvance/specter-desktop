@@ -52,3 +52,8 @@ specter_persistence_callback = "specter_persistence_callback"
     Will get called before every request via the Flask's @app.before_request
 """
 flask_before_request = "flask_before_request"
+
+""" 
+    Will get called right after having access to app.specter
+"""
+specter_added_to_flask_app = "specter_added_to_flask_app"

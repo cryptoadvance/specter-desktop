@@ -19,7 +19,7 @@ def test_generate_user_secret_on_decrypt_user_secret(empty_data_folder):
     Should generate a user_secret if one does not yet exist when decrypt_user_secret
     is called (happens during the login flow).
     """
-    specter = Specter(data_folder=empty_data_folder)
+    specter = Specter(data_folder=empty_data_folder, checker_threads=False)
 
     password = "somepassword"
     user = User.from_json(
@@ -50,7 +50,7 @@ def test_generate_user_secret_on_set_password(empty_data_folder):
     Should generate a user_secret if one does not yet exist when the User's password
     is changed via set_password.
     """
-    specter = Specter(data_folder=empty_data_folder)
+    specter = Specter(data_folder=empty_data_folder, checker_threads=False)
 
     password = "somepassword"
     user = User.from_json(
@@ -85,7 +85,7 @@ def test_reencrypt_user_secret_on_set_password(empty_data_folder):
     """
     Should re-encrypt the user_secret when the user changes their password.
     """
-    specter = Specter(data_folder=empty_data_folder)
+    specter = Specter(data_folder=empty_data_folder, checker_threads=False)
 
     password = "somepassword"
     user = User.from_json(
@@ -122,7 +122,7 @@ def test_reencrypt_user_secret_on_iterations_increase(empty_data_folder):
     """
     Should re-encrypt the user_secret when the User.encryption_iterations is increased
     """
-    specter = Specter(data_folder=empty_data_folder)
+    specter = Specter(data_folder=empty_data_folder, checker_threads=False)
 
     password = "somepassword"
     user = User.from_json(
