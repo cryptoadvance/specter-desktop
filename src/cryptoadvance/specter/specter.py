@@ -120,10 +120,23 @@ class Specter:
             bitcoind_path=self.bitcoind_path,
             internal_bitcoind_version=self._internal_bitcoind_version,
             data_folder=os.path.join(self.data_folder, "nodes"),
+            service_manager=self.service_manager
+            if hasattr(self, "service_manager")
+            else None,
         )
-        logger.debug(
-            f"This is the active node in the node manager: {self.node_manager.active_node}"
-        )
+        try:
+            logger.debug(
+                f"This is the active node in the node manager: {self.node_manager.active_node}"
+            )
+        except SpecterError as e:
+            if str(e).endswith("does not exist!"):
+                logger.warning(
+                    f"Current Node doesn't exist. Switching over to node {self.node_manager.DEFAULT_ALIAS}."
+                )
+                self.update_active_node(self.node_manager.DEFAULT_ALIAS)
+            else:
+                raise e
+
         self.torbrowser_path = os.path.join(
             self.data_folder, f"tor-binaries/tor{get_tor_daemon_suffix()}"
         )
