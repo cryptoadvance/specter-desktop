@@ -145,11 +145,11 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
             initialize=False,
         )
 
-    # ServiceManager will instantiate and register blueprints for extensions
+    # ExtensionManager will instantiate and register blueprints for extensions
     # It's an attribute to the specter but specter is not aware of it.
     # However some managers are aware of it and so we need to split
     # instantiation from initializing and in between attach the service_manager
-    specter.service_manager = ServiceManager(
+    specter.service_manager = ExtensionManager(
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )
 

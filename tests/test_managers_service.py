@@ -28,7 +28,7 @@ def test_ExtensionManager2(mock_specter, mock_flaskapp, caplog):
 
 def test_is_class_from_loaded_extension(mock_specter, mock_flaskapp):
     with mock_flaskapp.app_context():
-        sm = ServiceManager(mock_specter, "alpha")
+        sm = ExtensionManager(mock_specter, "alpha")
         assert type(sm.services_sorted[0]) == SwanService
         assert sm.is_class_from_loaded_extension(SwanClient)
         assert sm.is_class_from_loaded_extension(SwanService)
@@ -56,7 +56,7 @@ def test_ExtensionManager_get_service_x_dirs(caplog):
         for path in dirs:
             assert str(path).endswith("templates")
 
-        dirs = ServiceManager.get_service_x_dirs("static")
+        dirs = ExtensionManager.get_service_x_dirs("static")
         assert f"{expected_folder}/cryptoadvance/specterext/swan/static" in [
             str(dir) for dir in dirs
         ]
@@ -67,9 +67,9 @@ def test_ExtensionManager_get_service_x_dirs(caplog):
         os.chdir("../")
 
 
-def test_ServiceManager_get_service_packages(caplog):
+def test_ExtensionManager_get_service_packages(caplog):
     caplog.set_level(logging.DEBUG)
-    packages = ServiceManager.get_service_packages()
+    packages = ExtensionManager.get_service_packages()
     assert "cryptoadvance.specterext.electrum.service" in packages
     assert "cryptoadvance.specterext.electrum.devices.electrum" in packages
     assert "cryptoadvance.specterext.swan.service" in packages
@@ -77,7 +77,7 @@ def test_ServiceManager_get_service_packages(caplog):
     assert "cryptoadvance.specterext.electrum.devices.electrum" in packages
 
 
-def test_ServiceManager_make_path_relative(caplog):
+def test_ExtensionManager_make_path_relative(caplog):
     caplog.set_level(logging.DEBUG)
     arr = [
         Path(
@@ -85,7 +85,7 @@ def test_ServiceManager_make_path_relative(caplog):
         ),
         Path("wurstbrot/something/.env/site-packages/the_rest"),
     ]
-    arr = [ServiceManager._make_path_relative(path) for path in arr]
+    arr = [ExtensionManager._make_path_relative(path) for path in arr]
     assert arr[0] == PosixPath(
         "site-packages/cryptoadvance/specter/services/swan/templates"
     )
