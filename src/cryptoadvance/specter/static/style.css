@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  font-family: "Social";
+  font-style: normal;
+  font-variant: normal;
+  text-transform: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer base {
+  h1 {
+    @apply text-4xl font-medium mb-2;
+  }
+
+  h2 {
+    @apply text-2xl font-medium mb-2;
+  }
+
+  p {
+    @apply text-lg my-1 max-w-prose text-dark-100;
+  }
+
+  p a {
+    @apply text-accent hover:opacity-80;
+  }
+
+  img {
+    @apply w-10 h-10;
+  }
+
+  table {
+    @apply bg-dark-800 min-w-full;
+  }
+
+  tbody {
+
+  }
+
+  tr {
+    @apply border-b border-dark-700;
+  }
+
+  tbody tr {
+    @apply last:border-b-0;
+  }
+
+  td, th {
+    @apply px-2 py-3 first:pl-4 last:pr-4 text-left break-all;
+  }
+
+  th {
+    @apply text-dark-200 font-normal break-keep;
+  }
+
+  input {
+    @apply bg-dark-800 border-2 border-dark-700 rounded-lg py-1 px-2 outline-none h-10;
+  }
+
+  select {
+    @apply bg-dark-800 border-2 border-dark-700 rounded-lg py-1 px-2 outline-none;
+  }
+
+  .selection {
+		@apply aspect-square rounded-lg bg-dark-800 border-dark-700 border-2 flex flex-col justify-between pb-1 items-center hover:bg-dark-700;
+  }
+
+  .selection p {
+    @apply text-white text-base text-center;
+  }
+
+  .selection img {
+    @apply h-[40%] w-[40%] mb-4;
+  }
+
+  .selection-button {
+    @apply rounded-lg w-full h-10 bg-dark-800 border-2 border-dark-700 text-center block text-lg py-1 hover:bg-dark-700;
+  }
+  
+}
+
+@layer components {
+  select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+    background-repeat: no-repeat;
+    background-position: top 3px right 5px;
+  }
+}

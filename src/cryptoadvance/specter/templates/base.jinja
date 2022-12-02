@@ -1,183 +1,172 @@
 <!DOCTYPE html>
-<html>
+<html class="bg-dark-900">
 	<head>
-		<link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='img/icon.png') }}"/>
 		<title>{{ _("Specter Desktop") }}</title>
+
+		<link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='img/icon.png') }}"/>
+
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta name="format-detection" content="telephone=no">
+
 		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='typography.css') }}?{{rand}}">
-		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}?{{rand}}">
-		<style>
-			img[src="{{ url_for('static', filename='img/devices/elementscore_icon.svg') }}"] {
-				transform: scale(2.2);
-			}
-			{% if session["is_language_rtl"] %}
-			* {
-				direction: rtl;
-			}
-			{% endif %}
-			.btn.radio.left {
-				{% if session["is_language_rtl"] %}
-				border-radius: 0 10px 10px 0;
-				{% else %}
-				border-radius: 10px 0 0 10px;
-				{% endif %}
-			}
-			.btn.radio.right {
-				{% if session["is_language_rtl"] %}
-				border-radius: 10px 0 0 10px;
-				{% else %}
-				border-radius: 0 10px 10px 0;
-				{% endif %}
-			}
-			nav.side > a.item.active, nav.side > div > a.item.active{
-				{% if session["language_code"] in config['RTL_LANGUAGES'] %}
-				border-right: 3px solid #4A90E2;
-				border-left: 0;
-				{% else %}
-				border-left: 3px solid #4A90E2;
-				border-right: 0;
-				{% endif %}
-			}
-			.tr-hover:hover {
-				background: rgba(255,255,255,0.03);
-			}
-		</style>
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}?{{rand}}">
+
+		<script>document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1"></' + 'script>')</script>
 		<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
+
 		{% include "includes/helpers.jinja" %}
 		{% include "services/inject_in_basejinja_head.jinja" %}
-		{% block head %}
-		{% endblock %}
+
+		{% block head %}{% endblock %}
 	</head>
+
 	<body spellcheck="false">
-	{% include "services/inject_in_basejinja_body_top.jinja" %}
-	<div class="pageloader" id="pageloader"></div>
-	{% if specter.config.auth.method == "none" or current_user.is_authenticated %}
-		<!-- BC-UR2 QR code stuff -->
-		<script type="text/javascript" src="{{ url_for('static', filename='bcur/buffer.min.js') }}"></script>
-		<script type="text/javascript" src="{{ url_for('static', filename='bcur/urlib.min.js') }}"></script>
-		<script type="text/javascript" src="{{ url_for('static', filename='bcur/base58.min.js') }}"></script>
-		{% if not hwi_bridge %}
-			{# url routes are not defined in hwi_bridge mode. Includes with `url_for` will fail. #}
-			{% include "includes/overlay/overlay.html" %}
-			{% include "includes/qr-code.html" %}
-			{% include "includes/asset-label.html" %}
+		{% include "services/inject_in_basejinja_body_top.jinja" %}
+
+		<div class="pageloader" id="pageloader"></div>
+
+		{% if specter.config.auth.method == "none" or current_user.is_authenticated %}
+			<script type="text/javascript" src="{{ url_for('static', filename='bcur/buffer.min.js') }}"></script>
+			<script type="text/javascript" src="{{ url_for('static', filename='bcur/urlib.min.js') }}"></script>
+			<script type="text/javascript" src="{{ url_for('static', filename='bcur/base58.min.js') }}"></script>
+			{% if not hwi_bridge %}
+				{# url routes are not defined in hwi_bridge mode. Includes with `url_for` will fail. #}
+				{% include "includes/overlay/overlay.html" %}
+				{% include "includes/qr-code.html" %}
+				{% include "includes/asset-label.html" %}
+			{% endif %}
 		{% endif %}
-	{% endif %}
-	{% include "includes/message-box.html" %}
-	{% include "includes/tool-tip.html" %}
-	<div class="row holder">
-		{% block sidebar %}
-			{% include "includes/sidebar/sidebar.jinja" %}
-		{% endblock %}
-		<main><div><br><br></div>
-			{% if current_user.is_authenticated and not hwi_bridge %}
-				<div class="row" id="status-bar" style="{% if session['is_language_rtl'] %}border-radius: 0 0 15px 0; left{% else %}border-radius: 0 0 15px 15px; right{% endif %}: 2.4%; position: absolute; color: #ddd; background-color: #323e50;">
-					{% include "components/price_bar.jinja" %}
-					<a class="settings-bar-btn" onclick="toggleHideSensitiveInfo()" style="padding: 0px 12px; cursor: pointer;" title="{{ 'Hide sensitive info' if not specter.hide_sensitive_info else 'Show sensitive info' }}">
-						<img src="{{ url_for('static', filename='img/hidden.svg' if specter.hide_sensitive_info else 'img/visible.svg') }}" style="width: 30px;" class="svg-white"/>
-					</a>
-					<a class="settings-bar-btn" href="{{ url_for('settings_endpoint.settings') }}" title="Settings" style="padding: 0px 7px;">
-						<img src="{{ url_for('static', filename='img/gear.svg') }}" style="width: 44px;" class="svg-white"/>
-					</a>
-					<a class="settings-bar-btn" href="{{ url_for('welcome_endpoint.about') }}" title="About and help">
-						<img src="{{ url_for('static', filename='img/ghost_3d.png') }}" style="width: 22px;"/>
-					</a>
-					{% if specter.config.auth.method != "none" %}
-						<a class="settings-bar-btn" href="{{ url_for('auth_endpoint.logout') }}"  style="padding: 0px 7px;"  title="Logout">
-							<img src="{{ url_for('static', filename='img/exit.svg') }}" style="width: 36px;" class="svg-white"/>
-						</a>
+
+		{% include "includes/message-box.html" %}
+
+		{% include "includes/tool-tip.html" %}
+
+		<div class="flex w-screen h-screen bg-dark-900">
+			<div>
+				{% block sidebar %}
+					{% include "includes/sidebar/sidebar.jinja" %}
+				{% endblock %}
+			</div>
+			<div class="flex flex-col grow">
+
+				<!-- Status Bar -->
+				{% if current_user.is_authenticated and not hwi_bridge %}
+					<div class="flex row p-3 bg-dark-900 border-b border-dark-700 h-16 min-h-[64px] justify-between items-center" id="status-bar" data-style="{% if session['is_language_rtl'] %}border-radius: 0 0 15px 0; left{% else %}border-radius: 0 0 15px 15px; right{% endif %}: 2.4%; position: absolute; color: #ddd; background-color: #323e50;">
+						<div class="h-full w-32 my-2 rounded-lg">
+
+						</div>
+						<div class="flex row pr-1 space-x-3 items-center justify-end">
+
+							<!-- Bitcoin Price -->
+							{% include "components/price_bar.jinja" %}
+
+							<a class="settings-bar-btn" onclick="toggleHideSensitiveInfo()" data-style="padding: 0px 12px; cursor: pointer;" title="{{ 'Hide sensitive info' if not specter.hide_sensitive_info else 'Show sensitive info' }}">
+								<img class="w-8 h-8" src="{{ url_for('static', filename='img/hidden.svg' if specter.hide_sensitive_info else 'img/visible.svg') }}" data-style="width: 30px;" class="svg-white"/>
+							</a>
+
+							{% if specter.config.auth.method != "none" %}
+								<a class="settings-bar-btn" href="{{ url_for('auth_endpoint.logout') }}"  data-style="padding: 0px 7px;"  title="Logout">
+									<img class="w-8 h-8" src="{{ url_for('static', filename='img/exit.svg') }}" data-style="width: 36px;" class="svg-white"/>
+								</a>
+							{% endif %}
+
+						</div>
+					</div>
+
+					<!-- <img id="menubtn" src="{{ url_for('static', filename='img/menu.svg') }}" class="svg-white" data-style="width: 40px;"/> -->
+				{% endif %}
+
+				<!-- Message System -->
+				<div id="messages" class="absolute bottom-0 right-0">
+					{% with messages = get_flashed_messages(with_categories=True) %}
+						{% if messages %}
+							{% for category, message in messages | unique %}
+								<message-box type="{{ category }}">{{ message | safe }}</message-box>
+							{% endfor %}
+						{% endif %}
+					{% endwith %}
+					{% if error %}
+						<message-box type="error">{{ _("ERROR:") }} {{error | safe }}</message-box>
 					{% endif %}
 				</div>
-			<img id="menubtn" src="{{ url_for('static', filename='img/menu.svg') }}" class="svg-white" style="width: 40px;"/>
-			{% endif %}
 
-			<div id="messages">
-			{% with messages = get_flashed_messages(with_categories=True) %}
-				{% if messages %}
-					{% for category, message in messages | unique %}
-						<message-box type="{{ category }}">{{ message | safe }}</message-box>
-					{% endfor %}
-				{% endif %}
-			{% endwith %}
-			{% if error %}
-				<message-box type="error">{{ _("ERROR:") }} {{error | safe }}</message-box>
-			{% endif %}
+				<!-- Main Content -->
+				<main class="overflow-scroll w-full px-[calc((100%-700px)/2)] bg-dark-900 flex flex-col grow py-20 text-white">
+					{% block main %}
+						{% if error %}
+							<br><br>{{ _("Something went wrong:") }}<br><br>{{error}}
+						{% else %}
+							<div class="main-page-container">
+								<br><br>{{ _("Here should be some content but unfortunately, none here!") }}<br><br>
+							</div>
+						{% endif %}
+					{% endblock %}
+
+					<div id="mobile-distance-element-bottom" class="mobile-distance-element-bottom"></div>	
+				</main>
 			</div>
+		</div>
 
-			{% block main %}
-				{% if error %}
-					<br><br>{{ _("Something went wrong:") }}<br><br>{{error}}
-				{% else %}
-					<div class="main-page-container">
-					<br><br>{{ _("Here should be some content but unfortunately, none here!") }}<br><br>
-					</div>
-				{% endif %}
-			{% endblock %}
-	    <div id="mobile-distance-element-bottom" class="mobile-distance-element-bottom"></div>	
-		</main>
-	</div>
-
-	{% if not hwi_bridge %}
-		{# url routes are not defined in hwi_bridge mode. `url_for` will fail. #}
-		<script>
-			async function toggleHideSensitiveInfo() {
-				showNotification(`{{ _("Revealing") if specter.hide_sensitive_info else _("Hiding") }} sensitive info...`, 0);
-				let url = `{{ url_for('auth_endpoint.toggle_hide_sensitive_info') }}`;
-				var formData = new FormData();
-				formData.append('csrf_token', '{{ csrf_token() }}');
-				try {
-					const response = await fetch(
-						url,
-						{
-							method: 'POST',
-							body: formData
+		{% if not hwi_bridge %}
+			{# url routes are not defined in hwi_bridge mode. `url_for` will fail. #}
+			<script>
+				async function toggleHideSensitiveInfo() {
+					showNotification(`{{ _("Revealing") if specter.hide_sensitive_info else _("Hiding") }} sensitive info...`, 0);
+					let url = `{{ url_for('auth_endpoint.toggle_hide_sensitive_info') }}`;
+					var formData = new FormData();
+					formData.append('csrf_token', '{{ csrf_token() }}');
+					try {
+						const response = await fetch(
+							url,
+							{
+								method: 'POST',
+								body: formData
+							}
+						);
+						if(response.status != 200){
+							showError(await response.text());
+							return;
 						}
-					);
-					if(response.status != 200){
-						showError(await response.text());
-						return;
+						const jsonResponse = await response.json();
+						if (jsonResponse.success) {
+							location.reload();
+							return
+						};
+						showError(`{{ _("Failed to toggle sensitive info mode...") }}`)
+					} catch(e) {
+						console.log("Caught error: ", e);
+						showError(e);
 					}
-					const jsonResponse = await response.json();
-					if (jsonResponse.success) {
-						location.reload();
-						return
-					};
-					showError(`{{ _("Failed to toggle sensitive info mode...") }}`)
-				} catch(e) {
-					console.log("Caught error: ", e);
-					showError(e);
 				}
-			}
 
-			{% if current_user.is_authenticated and not specter.hide_sensitive_info and specter.autohide_sensitive_info_timeout %}
-				document.addEventListener("DOMContentLoaded", function(){
-					var privacyTimeout = setTimeout(function(){
-							// Automatically trigger the privacy toggle
-							toggleHideSensitiveInfo();
-						},
-						{{ specter.autohide_sensitive_info_timeout }} * 60 * 1000
-					);
-				});
-			{% endif %}
+				{% if current_user.is_authenticated and not specter.hide_sensitive_info and specter.autohide_sensitive_info_timeout %}
+					document.addEventListener("DOMContentLoaded", function(){
+						var privacyTimeout = setTimeout(function(){
+								// Automatically trigger the privacy toggle
+								toggleHideSensitiveInfo();
+							},
+							{{ specter.autohide_sensitive_info_timeout }} * 60 * 1000
+						);
+					});
+				{% endif %}
 
-			{% if current_user.is_authenticated and specter.config.auth.method != "none" and specter.autologout_timeout %}
-				document.addEventListener("DOMContentLoaded", function(){
-					var logoutTimeout = setTimeout(function(){
-							// Automatically log out the user
-							location.href="{{ url_for('auth_endpoint.logout') }}?timeout=1";
-						},
-						{{ specter.autologout_timeout }} * 60 * 60 * 1000
-					);
-				});
-			{% endif %}
-		</script>
-	{% endif %}
-	{% block scripts %}
-		<script>
-			{% include "includes/language/language_js.jinja" %}
-		</script>
-	{% endblock %}
-	{% include "services/inject_in_basejinja_body_bottom.jinja" %}
+				{% if current_user.is_authenticated and specter.config.auth.method != "none" and specter.autologout_timeout %}
+					document.addEventListener("DOMContentLoaded", function(){
+						var logoutTimeout = setTimeout(function(){
+								// Automatically log out the user
+								location.href="{{ url_for('auth_endpoint.logout') }}?timeout=1";
+							},
+							{{ specter.autologout_timeout }} * 60 * 60 * 1000
+						);
+					});
+				{% endif %}
+			</script>
+		{% endif %}
+		{% block scripts %}
+			<script>
+				{% include "includes/language/language_js.jinja" %}
+			</script>
+		{% endblock %}
+		{% include "services/inject_in_basejinja_body_bottom.jinja" %}
 	</body>
 </html>

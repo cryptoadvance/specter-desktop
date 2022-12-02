@@ -8,14 +8,18 @@
     "test": "tests"
   },
   "dependencies": {
+    "gulp-livereload": "^4.0.2",
     "rimraf": "^3.0.2",
     "wait-on": "^5.3.0"
   },
   "devDependencies": {
     "cypress": "^9.7.0",
-    "cypress-wait-until": "^1.7.1"
+    "cypress-wait-until": "^1.7.1",
+    "gulp": "^4.0.2"
   },
   "scripts": {
+    "dev": "gulp",
+    "tailwind": "npx tailwindcss -i ./src/cryptoadvance/specter/static/style.css -o ./src/cryptoadvance/specter/static/output.css --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
