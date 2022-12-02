@@ -151,11 +151,11 @@ class AbstractNode(PersistentObject):
         """Deleting the wallet file located on the node. This only works if the node is on the same machine as Specter.
         Returns True if the wallet file could be deleted, otherwise returns False.
 
-        In the case of an Abtract Node, we consider that method as an edge-case anyway and we just return True here.
-        There could be said a lot more about leaky abstractions and all sorts of other things which could
-        work as an excuse to be sloppy here.
+        In the case of an Abtract Node, we consider that method as an edge-case anyway and we just return False here.
+        That is the normal usage if you don't have access to the internals of your Bitcoin Core.
+        Overwrite as necessary.
         """
-        return True
+        return False
 
 
 class Node(AbstractNode):
