@@ -31,13 +31,7 @@
 		    <input type="hidden" name="node_alias" value="{{ node.alias }}"/>
             <div class="item core node-list-item {% if node.alias == specter.node.alias %}active{% endif %}" style="cursor: pointer;"
             onclick="document.getElementById('{{node.alias}}-select-node-form').submit();">
-                {% if node.is_liquid %}
-                    {% from "components/liquid_svg.jinja" import liquid_svg %}
-                    {{ liquid_svg(node.chain, 40) }}
-                {% else %}
-                    {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-                    {{ bitcoin_svg(node.chain, 40) }}
-                {% endif %}
+                {% include node.node_logo_template() %}
                 <div style="width: 100%;">
                     {{ node.name }}
                     <br>
