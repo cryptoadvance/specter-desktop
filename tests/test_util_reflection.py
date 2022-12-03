@@ -88,7 +88,7 @@ def test_get_subclasses_for_class(caplog):
     classlist = get_subclasses_for_clazz(SpecterMigration)
     assert SpecterMigration_0000 in classlist
     classlist = get_subclasses_for_clazz(Service)
-    assert len(classlist) == 7  # Happy to remove that at some point
+    assert len(classlist) == 4  # Happy to remove that at some point
     assert SwanService in classlist
     assert ElectrumService in classlist
     assert DevhelpService in classlist
