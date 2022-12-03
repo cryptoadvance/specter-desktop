@@ -15,8 +15,7 @@
       "spec_plugins.js",
       "spec_elm_single_segwit_wallet.js",
       "spec_elm_multi_segwit_wallet.js",
-      "spec_multiuser_sessions.js",
-      "spec_specterext_notifications.js"
+      "spec_multiuser_sessions.js"
     ],
     "baseUrl": "http://localhost:25444",
     "env": {
