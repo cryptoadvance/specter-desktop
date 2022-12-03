@@ -4,8 +4,10 @@
 pip3 install virtualenv
 virtualenv --python=python3 .env
 source .env/bin/activate
+# removing modules related to cryptoadvance is faster than doing rm -rf .env
+pip3 freeze | grep cryptoadvance | xargs pip uninstall -y
+pip3 freeze | grep specterext | xargs pip uninstall -y
 pip3 install -r requirements.txt --require-hashes
-pip3 install -e .
 python3 setup.py install # also compiles the babel translation-files
 
 
