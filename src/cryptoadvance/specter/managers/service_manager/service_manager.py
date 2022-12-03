@@ -10,7 +10,7 @@ from typing import Dict, List
 
 from cryptoadvance.specter.config import ProductionConfig
 from cryptoadvance.specter.device import Device
-from cryptoadvance.specter.specter_error import SpecterError
+from cryptoadvance.specter.specter_error import SpecterError, SpecterInternalException
 from cryptoadvance.specter.user import User
 from cryptoadvance.specter.util.reflection import get_template_static_folder
 from flask import current_app as app
@@ -315,6 +315,17 @@ class ServiceManager:
         )
         return [self._services[s] for s in service_names]
 
+    def is_class_from_loaded_extension(self, claz):
+        """Returns Ture if that class is from a module which belongs to an extension
+        which is loaded, False otherwise
+        """
+        print("")
+        ext_module = ".".join(claz.__module__.split(".")[0:3])
+        for ext in self.services_sorted:
+            if ext.__class__.__module__.startswith(ext_module):
+                return True
+        return False
+
     def user_has_encrypted_storage(self, user: User) -> bool:
         """Looks for any data for any service in the User's ServiceEncryptedStorage.
         This check works even if the user doesn't have their plaintext_user_secret
@@ -403,17 +414,24 @@ class ServiceManager:
             Path(Path(_get_module_from_class(clazz).__file__).parent, x)
             for clazz in get_subclasses_for_clazz(Service)
         ]
-        logger.debug(f"Initial arr:")
+        logger.info(f"Initial arr:")
         for element in arr:
-            logger.debug(element)
+            logger.info(element)
         # /home/kim/src/specter-desktop/.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/bitcoinreserve/templates
         # /home/kim/src/specter-desktop/.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/swan/templates
 
+        # filter only directories
         arr = [path for path in arr if path.is_dir()]
         # Those pathes are absolute. Let's make them relative:
-        arr = [Path(*path.parts[-6:]) for path in arr]
+        arr = [cls._make_path_relative(path) for path in arr]
+
+        # result:
+        # site-package/cryptoadvance/specterext/devhelp/templates
+        logger.info(f"After making the pathes relative, example: {arr[0]}")
 
         virtuelenv_path = os.path.relpath(os.environ["VIRTUAL_ENV"], ".")
+
+        logger.info(f"virtuelenv_path: {virtuelenv_path}")
 
         if os.name == "nt":
             virtualenv_search_path = Path(virtuelenv_path, "Lib")
@@ -431,10 +449,13 @@ class ServiceManager:
         src_org_specterext_exts = search_dirs_in_path(
             virtualenv_search_path, return_without_extid=False
         )
+        logger.info(f"src_org_specterext_exts[0]: {src_org_specterext_exts[0]}")
+
         src_org_specterext_exts = [Path(path, x) for path in src_org_specterext_exts]
 
         arr.extend(src_org_specterext_exts)
 
+        logger.debug(f"Returning example: {arr[0]}")
         return arr
 
     @classmethod
@@ -499,3 +520,22 @@ class ServiceManager:
             except ModuleNotFoundError as e:
                 pass
         return arr
+
+    @classmethod
+    def _make_path_relative(cls, path: Path) -> Path:
+        """make out of something like '# /home/kim/src/specter-desktop/.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/swan/templates
+        somethink like:                                                                                   cryptoadvance/specter/services/swan/templates
+        The first part might be completely random. The marker is something like .*env
+        """
+        index = 0
+        sep_index = 0
+        for part in path.parts:
+            if part.endswith("site-packages"):
+                sep_index = index
+            index += 1
+        if sep_index == 0:
+            raise SpecterInternalException(
+                f"Path {path} does not contain an environment directory!"
+            )
+
+        return Path(*path.parts[sep_index:index])

@@ -54,6 +54,11 @@ specter_persistence_callback = "specter_persistence_callback"
 flask_before_request = "flask_before_request"
 
 """ 
+    Will get called right after having access to app.specter
+"""
+specter_added_to_flask_app = "specter_added_to_flask_app"
+
+"""
     Will get called when the server_endpoints.flash is called
 """
 flash = "flash"

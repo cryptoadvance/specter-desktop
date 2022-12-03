@@ -21,7 +21,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.wrappers import Response
 
 from .hwi_server import hwi_server
-from .services.callbacks import after_serverpy_init_app
+from .services.callbacks import after_serverpy_init_app, specter_added_to_flask_app
 from .specter import Specter
 from .util.specter_migrator import SpecterMigrator
 
@@ -180,6 +180,9 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     app.login = login
     # Attach specter instance so child views (e.g. hwi) can access it
     app.specter = specter
+    # Executing callback specter_added_to_flask_app
+    app.logger.info("Executing callback specter_added_to_flask_app ...")
+    specter.service_manager.execute_ext_callbacks(specter_added_to_flask_app)
     if specter.config["auth"].get("method") == "none":
         app.logger.info("Login disabled")
         app.config["LOGIN_DISABLED"] = True
