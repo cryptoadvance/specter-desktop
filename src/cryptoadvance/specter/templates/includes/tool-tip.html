@@ -6,7 +6,7 @@ This also enables responsiveness of the width for the tooltip text. Ideally, put
 
 {# - Usage -
     <div class="search-container">
-        <div style="flex-grow: 0.2">
+        <div data-style="flex-grow: 0.2">
             <input class="search" type="text" placeholder="Search..."></input>
         </div>
         <div id="tooltip-container" class="tooltip-little-grow tooltip-width">
@@ -38,7 +38,7 @@ this.tooltip.addEventListener("customout", () => {
 If you don't care about responsiveness, just use the tooltips as below, you can set a width via the width attribute.
 
 {#
-    <div style="display: flex;">
+    <div data-style="display: flex;">
         <span>{{ _("Load Specter backup") }}:</span>
         <tool-tip>
             <span slot="paragraph">

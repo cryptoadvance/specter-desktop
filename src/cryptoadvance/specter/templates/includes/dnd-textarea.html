@@ -10,7 +10,7 @@
         name="name"
         value="some default text"
         placeholder="placeholder text"
-        textarea-style="style to override default styling of textarea"
+        textarea-data-style="style to override default styling of textarea"
     >
     </dnd-textarea>
 
@@ -20,7 +20,7 @@
 <template id="dnd-textarea">
 
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
+    <div style="display: none;"><!--<style>-->
         :host {
             display: block;
             width: 100%;
@@ -29,7 +29,7 @@
             height: 150px; 
             font-size: 13px;
         }
-    </style>
+    </div><!--</style>-->
     <textarea id="textarea-content" placeholder="{{ _('You can drag & drop here.') }}"></textarea>
 </template>
 

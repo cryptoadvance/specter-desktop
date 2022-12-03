@@ -12,7 +12,7 @@
         {% set supports_hwi = supports_hwi.append(device) %}
     {% endfor %}
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
+    <div style="display: none;"><!--<style>-->
         .addresses-table {
             display: table;
         }
@@ -91,7 +91,7 @@
             max-width: 200px;
             margin: auto;
         }
-    </style>
+    </div><!--</style>-->
 
     <nav class="row">
         <button type="button" class="receive-addresses-view-btn btn radio left checked">
@@ -109,7 +109,7 @@
         <a class="pagination-next pagination-arrow pagination-disabled">&#8250;</a>
         <br>
     </div>
-    <div style="padding-left: 5px">
+    <div data-style="padding-left: 5px">
         {% include "includes/page-limit-select.html" %}
     </div>
     <div class="export-container hidden">
@@ -150,8 +150,8 @@
                 {% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
 					<th class="optional"></th>	
                 {% endif %}
-                <th style="width: 50px; padding: 10px;">
-                    <button type="button" class="export-btn btn" style="width: 50px;">{{ _("Export") }}</button>
+                <th data-style="width: 50px; padding: 10px;">
+                    <button type="button" class="export-btn btn" data-style="width: 50px;">{{ _("Export") }}</button>
                 </th>
             </tr>
         </thead>

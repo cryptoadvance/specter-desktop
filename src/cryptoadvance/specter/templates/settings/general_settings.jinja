@@ -5,7 +5,7 @@
 		<h1 id="title" class="settings-title">Settings</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('general', current_user, ext_settingstabs) }}
-		<div class="card" style="margin: 20px auto;">
+		<div class="card" data-style="margin: 20px auto;">
 			<h1>{{ _("Language") }}</h1>
 			{% include "includes/language/language_select.jinja" %}<br/>
 			<br><br>
@@ -20,7 +20,7 @@
 				<option value="CUSTOM" {% if specter.autohide_sensitive_info_timeout and specter.autohide_sensitive_info_timeout not in [10, 20, 40] %}selected{% endif %}>{{ _("Custom idle time (minutes)") }}</option>
 			</select>
 			<br>
-			<input type="number" min="1" name="custom_autohide_sensitive_info_timeout" id="custom_autohide_sensitive_info_timeout" class="hidden" placeholder='{{ _("minutes") }}' {% if specter.autohide_sensitive_info_timeout and specter.autohide_sensitive_info_timeout not in [10, 20, 40] %}value="{{ specter.autohide_sensitive_info_timeout }}"{% endif %} style="margin-top: 15px; margin-bottom: 30px;"/>
+			<input type="number" min="1" name="custom_autohide_sensitive_info_timeout" id="custom_autohide_sensitive_info_timeout" class="hidden" placeholder='{{ _("minutes") }}' {% if specter.autohide_sensitive_info_timeout and specter.autohide_sensitive_info_timeout not in [10, 20, 40] %}value="{{ specter.autohide_sensitive_info_timeout }}"{% endif %} data-style="margin-top: 15px; margin-bottom: 30px;"/>
 			<br>
 
 			{% if specter.config.auth.method != "none" %}
@@ -33,12 +33,12 @@
 					<option value="CUSTOM" {% if specter.autologout_timeout and specter.autologout_timeout not in [1, 4, 24] %}selected{% endif %}>{{ _("Custom idle time (hours)") }}</option>
 				</select>
 				<br>
-				<input type="number" min="1" name="custom_autologout_timeout" id="custom_autologout_timeout" class="hidden" placeholder='{{ _("hours") }}' {% if specter.autologout_timeout and specter.autologout_timeout not in [1, 4, 24] %}value="{{ specter.autologout_timeout }}"{% endif %} style="margin-top: 15px; margin-bottom: 30px;"/>
+				<input type="number" min="1" name="custom_autologout_timeout" id="custom_autologout_timeout" class="hidden" placeholder='{{ _("hours") }}' {% if specter.autologout_timeout and specter.autologout_timeout not in [1, 4, 24] %}value="{{ specter.autologout_timeout }}"{% endif %} data-style="margin-top: 15px; margin-bottom: 30px;"/>
 				<br>
 			{% endif %}
 			<br/>
 			<h1>{{ _("Backup and Restore") }}</h1>
-			<div style="display: flex;">
+			<div data-style="display: flex;">
 				<span>{{ _("Create Specter backup") }}:</span>
 				<tool-tip width="200px">
 				    <span slot="paragraph">
@@ -51,10 +51,10 @@
 				{{ _("Warning: This backup does not include the private keys of any hot wallet or the BIP 39 seed of your hardware wallets.") }}
 			</div>
 			<div class="row">
-				<a href="{{ url_for('settings_endpoint.backup_file') }}" class="btn" style="max-width: 500px">{{ _("Download Specter backup (zip file)") }}</a>
+				<a href="{{ url_for('settings_endpoint.backup_file') }}" class="btn" data-style="max-width: 500px">{{ _("Download Specter backup (zip file)") }}</a>
 			</div>
 			<br>
-			<div style="display: flex;">
+			<div data-style="display: flex;">
 				<span>{{ _("Load Specter backup") }}:</span>
 				<tool-tip width="200px">
 				    <span slot="paragraph">
@@ -68,13 +68,13 @@
 				<input type="file" id="file" class="inputfile" webkitdirectory mozdirectory/>
 				<input type="hidden" id="restorewallets" name="restorewallets"/>
 				<input type="hidden" id="restoredevices" name="restoredevices"/>
-				<label for="file" class="btn" style="max-width: 500px; margin-top: 5px;">
+				<label for="file" class="btn" data-style="max-width: 500px; margin-top: 5px;">
 					{{ _("Choose backup folder (unzipped)") }}
 				</label>
 			</div>
 			<span id="filesloaded"></span>
-			<div class="row" style="margin-top: 5px;">
-				<button onsubmit="showPacman()" type="submit" class="btn hidden" name="action" value="restore" id="restore" style="margin-bottom: 5px;">{{ _("Load Specter backup") }}</button>
+			<div class="row" data-style="margin-top: 5px;">
+				<button onsubmit="showPacman()" type="submit" class="btn hidden" name="action" value="restore" id="restore" data-style="margin-bottom: 5px;">{{ _("Load Specter backup") }}</button>
 			</div><br><br>
 
 			<h1>{{ _("Miscellaneous") }} </h1>
@@ -87,20 +87,20 @@
 			{{ _("Block explorer URL") }} ({{ specter.chain }}):<br>
 			{% include "components/explorer_select.jinja" %}
 			<div class="warning">
-				<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
+				<img src="{{ url_for('static', filename='img/info_sign.svg') }}" data-style="width: 20px;"/><br>
 				{{ _("Specter does not use the block explorer to get any data whatsoever. This setting is only to allow opening transactions and addresses in a block explorer directly from Specter. All data Specter uses comes directly from your own connected full node.") }}
 			</div>
 			<br>
 			{{ _("Fees estimation source") }}:<br>
-			<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="fee_estimator" value="mempool" onclick="updateFeeEstimator()" {% if specter.fee_estimator=="mempool" %}checked{% endif %}>Mempool.space</label><br>
-			<label><input type="radio" class="inline" style="margin: 0 10px 0 20px"  name="fee_estimator" value="bitcoin_core" onclick="updateFeeEstimator()" {% if specter.fee_estimator=="bitcoin_core" %}checked{% endif %}>Bitcoin Core</label><br>
-			<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="fee_estimator" value="custom" onclick="updateFeeEstimator()" id="fee_estimator_custom_option" {% if specter.fee_estimator=="custom" %}checked{% endif %}>{{ _("Self hosted mempool.space") }}</label>
+			<label><input type="radio" class="inline" data-style="margin: 0 10px 0 20px;" name="fee_estimator" value="mempool" onclick="updateFeeEstimator()" {% if specter.fee_estimator=="mempool" %}checked{% endif %}>Mempool.space</label><br>
+			<label><input type="radio" class="inline" data-style="margin: 0 10px 0 20px"  name="fee_estimator" value="bitcoin_core" onclick="updateFeeEstimator()" {% if specter.fee_estimator=="bitcoin_core" %}checked{% endif %}>Bitcoin Core</label><br>
+			<label><input type="radio" class="inline" data-style="margin: 0 10px 0 20px;" name="fee_estimator" value="custom" onclick="updateFeeEstimator()" id="fee_estimator_custom_option" {% if specter.fee_estimator=="custom" %}checked{% endif %}>{{ _("Self hosted mempool.space") }}</label>
 			<br>
-			<input type="text" name="fee_estimator_custom_url" id="fee_estimator_custom_url" value="{{ fee_estimator_custom_url }}" class="hidden" placeholder="http://yourmempool.space/" style="margin-top: 15px;"/>			
+			<input type="text" name="fee_estimator_custom_url" id="fee_estimator_custom_url" value="{{ fee_estimator_custom_url }}" class="hidden" placeholder="http://yourmempool.space/" data-style="margin-top: 15px;"/>			
 			<br><br>
 			{% if current_user.is_admin %}
-			<div style="display: flex; flex-direction: column">
-				<div style="display: flex;">
+			<div data-style="display: flex; flex-direction: column">
+				<div data-style="display: flex;">
 					<span>{{ _("Logging level") }}:</span>
 					<tool-tip width="200px">
 					    <span slot="paragraph">
@@ -127,10 +127,10 @@
 				<input type="checkbox" id="validatemerkleproof" name="validatemerkleproof" {% if validate_merkle_proofs %}checked{% endif %}>
 				<span class="slider"></span>
 				</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-				<span class="note explorer-link" style="text-decoration: underline;" onclick="toggleHidden('merkle-info-details');">{{ _("What's this?") }}</span>
+				<span class="note explorer-link" data-style="text-decoration: underline;" onclick="toggleHidden('merkle-info-details');">{{ _("What's this?") }}</span>
 			</div>
 			<div class="warning hidden" id="merkle-info-details">
-				<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
+				<img src="{{ url_for('static', filename='img/info_sign.svg') }}" data-style="width: 20px;"/><br>
 		        {{ _('Specter Desktop validates ')}}<a href="https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki" target="_blank">{{ _("BIP 37")}}</a>{{ _(" Merkle Proofs from your full node ")}}<strong>{{ _("guaranteeing")}}</strong>{{ _(" that transactions displayed as confirmed have been included in the specified block hash.")}}<br><br>
 		        {{ _("However, a compromised full node could return a fake block that was never mined.") }}
 		        {{ _("To be sure, you could double check the block hash in other locations (other nodes, block explorers, etc).") }}

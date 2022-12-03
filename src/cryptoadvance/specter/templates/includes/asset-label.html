@@ -1,5 +1,5 @@
 <template id="asset-label">
-    <style>
+    <div style="display: none;"><!--<style>-->
         .asset-label-form {
             display: inline;
         }
@@ -39,7 +39,7 @@
             width: 22px;
             margin-bottom:-5px;
         }
-    </style>
+    </div><!--</style>-->
     <form class="asset-label-form">
         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
         <span class="label help" autocomplete="off" spellcheck="false">Fetching asset label...</span>

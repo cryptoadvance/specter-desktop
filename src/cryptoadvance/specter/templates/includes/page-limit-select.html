@@ -1,5 +1,5 @@
-<div style="display: flex; align-items: center;">
-    <style>
+<div data-style="display: flex; align-items: center;">
+    <div style="display: none;"><!--<style>-->
         .page-limit-fieldset {
             border: none;
             margin-top: 4px; /*to better vertically align on tx history / utxo list overview*/
@@ -16,7 +16,7 @@
         .page-limit-option {
             background-color: var(--cmap-bg-lighter);
         }
-    </style>
+    </div><!--</style>-->
     <span class="page-limit-label">{{ _("Page limit") }}: </span>
     <fieldset class="page-limit-fieldset">
         <select class="page-limit-select">

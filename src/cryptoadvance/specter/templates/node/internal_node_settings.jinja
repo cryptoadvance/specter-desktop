@@ -5,13 +5,13 @@
 	{{ editable_title(node.name) }}
 	<form action="?" method="POST">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-		<div class="card" style="margin: 20px auto 120px; text-align: center;">
+		<div class="card" data-style="margin: 20px auto 120px; text-align: center;">
 			<h2>{{ _("Built-in Bitcoin Node Status:") }} {% if node.bitcoind.status %}{{node.bitcoind.status}}{% else %}Down{% endif %}</h2><br>
-			<span class="note" style="font-size: 1.3em;">{{ _("Bitcoin Core Version:") }} {{node.version}}</span>
+			<span class="note" data-style="font-size: 1.3em;">{{ _("Bitcoin Core Version:") }} {{node.version}}</span>
 			{% if node.version != latest_bitcoind %}
 				<br><br>
-				<div class="warning" style="padding: 30px;">
-					<h1 style="text-align: center; color: #000">{{ _("New Bitcoin version available!") }}</h1>
+				<div class="warning" data-style="padding: 30px;">
+					<h1 data-style="text-align: center; color: #000">{{ _("New Bitcoin version available!") }}</h1>
 					<button type="submit" name="action" value="upgrade_bitcoind" class="btn action centered">{{ _("Upgrade Bitcoin Core version to:") }} v{{ latest_bitcoind }}</button>
 				</div>
 			{% endif %}

@@ -1,5 +1,5 @@
 <template id="address-label">
-    <style>
+    <div style="display: none;"><!--<style>-->
         .address-label-form {
             display: inline;
         }
@@ -62,10 +62,10 @@
         .svg-white {
             filter: invert(100%) sepia(0%) saturate(1%) hue-rotate(304deg) brightness(102%) contrast(101%);
         }
-    </style>
+    </div><!--</style>-->
     <form class="address-label-form">
         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/><img class="service-icon"><a target="_blank" class="explorer-link"><span class="label" autocomplete="off" spellcheck="false">{{ _("Fetching address label...") }}</span></a>
-        <button type="button" class="btn edit" title="Edit label"><img src="{{ url_for('static', filename='img/edit.svg') }}" style="width: 22px; margin-bottom:-5px;" class="svg-white"/></button>
+        <button type="button" class="btn edit" title="Edit label"><img src="{{ url_for('static', filename='img/edit.svg') }}" data-style="width: 22px; margin-bottom:-5px;" class="svg-white"/></button>
         <button type="button" class="btn update hidden">{{ _("Update") }}</button>
         <button type="button" class="btn cancel hidden">{{ _("Cancel") }}</button>
     </form>

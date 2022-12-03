@@ -1,6 +1,6 @@
 {% extends "base.jinja" %}
 {% block head %}
-<style>
+<div style="display: none;"><!--<style>-->
 
     /* copied (and adapted for card-use) from here:
     * "Fork me on GitHub" CSS ribbon v0.2.3 | MIT License
@@ -127,14 +127,14 @@
         transform: rotate(-45deg);
     }
 
-</style>
+</div><!--</style>-->
 
 {% endblock %}
 
 {% block main %}
 {% from 'services/components/plugin_card.jinja' import plugin_card %}
 
-<style>
+<div style="display: none;"><!--<style>-->
 
         .plugin_container {
             border: 4px solid var(--cmap-border);
@@ -181,8 +181,8 @@
         .endnote {
             margin-top: 4em;
         }
-    </style>
-    <h1 style="font-size: 2em;">{{ _("Plugins") }}</h1>
+    </div><!--</style>-->
+    <h1 data-style="font-size: 2em;">{{ _("Plugins") }}</h1>
     
     {% if is_login_disabled %}
         <div class="yellow_warn_box">
@@ -194,7 +194,7 @@
         </div>
     {% endif %}
 
-    <div class="card center auto-width" style="min-width: 90%;">
+    <div class="card center auto-width" data-style="min-width: 90%;">
         <hr>
         <h2>Plugins in Production</h2>
         <br>

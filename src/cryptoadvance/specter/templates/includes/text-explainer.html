@@ -19,7 +19,7 @@
 
 <template id="text-explainer">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
+    <div style="display: none;"><!--<style>-->
         #toggle-explainer {
             cursor: pointer;
             display: flex;
@@ -41,7 +41,7 @@
             flex-direction: column; 
             align-items: center;
         }
-    </style>
+    </div><!--</style>-->
 
     <div id="toggle-explainer">
         <span>&#128218;</span>

@@ -7,7 +7,7 @@
 	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
 	{{ send_nav('import_psbt', wallet_alias) }}
 		<h1 class="padded">{{ _("Import transaction") }}</h1>
-		<span class="center note padded" style="margin-bottom: 10px; font-size:1em">{{ _("PSBT (base64) or serialized transaction (hex)") }}</span>
+		<span class="center note padded" data-style="margin-bottom: 10px; font-size:1em">{{ _("PSBT (base64) or serialized transaction (hex)") }}</span>
 		<form action="{{ url_for('wallets_endpoint.import_psbt',wallet_alias=wallet_alias) }}" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			<div class="card">
@@ -15,9 +15,9 @@
 					<dnd-textarea name="rawpsbt" id="rawpsbt" placeholder="{{ _('You can paste a PSBT or transaction and drag & drop a file here.') }}"></dnd-textarea>
 				</div>
 				<div class="row break-row-mobile">
-					<qr-scanner id="psbt-scan" style="width:50%">
-						<a slot="button" href="#" class="btn" style="margin: 8px;">
-							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Scan") }}
+					<qr-scanner id="psbt-scan" data-style="width:50%">
+						<a slot="button" href="#" class="btn" data-style="margin: 8px;">
+							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" data-style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Scan") }}
 							<tool-tip width="150px">
 								<h4 slot="title">{{ _('Using an airgapped device with QR codes') }}</h4>
 								<span slot="paragraph">{{ _('PSBT should be base64 encoded, raw transaction can be signed or unsigned and should be in hex.') }}
@@ -33,7 +33,7 @@
 						</tool-tip>
 					</file-uploader>
 				</div>
-				<button type="submit" name="action" value="importpsbt" class="btn centered" style="margin-top: 20px;">{{ _("Import transaction") }}</button>
+				<button type="submit" name="action" value="importpsbt" class="btn centered" data-style="margin-top: 20px;">{{ _("Import transaction") }}</button>
 			</div>
 		</form>
 {% endblock %}

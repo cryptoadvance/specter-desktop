@@ -2,12 +2,12 @@
 {% set tab = 'send' %}
 {% block content %}
 
-	<style> 
+	<div style="display: none;"><!--<style>--> 
 		#calculated_tx_fee_label:hover {
 			text-decoration: underline;
 			cursor: pointer;
 		}
-	</style>
+	</div><!--</style>-->
 
 	{% include "includes/qr-scanner.html" %}
 	{% include "includes/recipient-box.html" %}
@@ -15,17 +15,17 @@
 	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
 	{{ send_nav('send_new', wallet_alias) }}
 
-	<message-box type="error" id="amount_errors_container" style="position: absolute; top: 0; display: none;">
+	<message-box type="error" id="amount_errors_container" data-style="position: absolute; top: 0; display: none;">
 		Error!
 		</ul>
 	</message-box>
 
-	<form action="{{ url_for('wallets_endpoint.send_new',wallet_alias=wallet_alias) }}" id="send-form" method="POST" style="width: 100%;">
+	<form action="{{ url_for('wallets_endpoint.send_new',wallet_alias=wallet_alias) }}" id="send-form" method="POST" data-style="width: 100%;">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="rbf_tx_id" value="{{ rbf_tx_id }}"/>
 		<input type="hidden" name="recipient_dicts"  id="recipient_dicts" value=""/>  
 		<h1 class="padded">{{ _("Create Transaction") }}</h1>
-		<div style="display: flex; justify-content: center; margin-bottom: 15px">
+		<div data-style="display: flex; justify-content: center; margin-bottom: 15px">
 			<div>{{ _("Available funds:") }} {{wallet.amount_available | btcunitamount}}
 				{% if specter.unit == 'sat' %}
 					sats
@@ -40,7 +40,7 @@
 					<br>{{ _("Assets:") }}<br>
 					{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
 						{% set balance = wallet.balance.get("assets",{}).get(asset, {}) %}
-						<span style="margin: 0 10px;">
+						<span data-style="margin: 0 10px;">
 							{{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcamount }}
 							<asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}"></asset-label>
 						</span>
@@ -60,36 +60,36 @@
 	        </div>
 	        {% endif %}
 	    </div>
-		<div class="card" style="margin: auto;">			
+		<div class="card" data-style="margin: auto;">			
 			<div id="recipients" {% if ui_option != 'ui' %}class="hidden"{% else %} class="recipient_wrapper" {% endif %}></div>
-			<img src="{{ url_for('static', filename='img/add-person.svg') }}" id="add-recipient" title="Add a recipient" class="recipient_button recipient_add" style="float:right" onclick="addRecipient('', '', 'btc', '')">
+			<img src="{{ url_for('static', filename='img/add-person.svg') }}" id="add-recipient" title="Add a recipient" class="recipient_button recipient_add" data-style="float:right" onclick="addRecipient('', '', 'btc', '')">
 			<div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>
 			{{ _("Unit:") }} 
-			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_text" value="sat" onchange="toggleTextUnit(this)" {% if specter.unit == 'sat' %}checked{% endif %}>sat</label>
-			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_text" value="btc" onchange="toggleTextUnit(this)" {% if specter.unit != 'sat' %}checked{% endif %}>BTC</label><br>
+			<label><input type="radio" class="inline" data-style="margin: 0 5px;" name="amount_unit_text" value="sat" onchange="toggleTextUnit(this)" {% if specter.unit == 'sat' %}checked{% endif %}>sat</label>
+			<label><input type="radio" class="inline" data-style="margin: 0 5px;" name="amount_unit_text" value="btc" onchange="toggleTextUnit(this)" {% if specter.unit != 'sat' %}checked{% endif %}>BTC</label><br>
 
-			<textarea id="recipients-txt" name="recipients" placeholder="{{ _('Enter recipient address, amount') }}" style="margin-top: 5px; font-size: 0.95em;" onblur="validateForm()">{{ recipients_txt }}</textarea>
-				<p class="note" style="line-height: 2; background-color: #16202d; padding: 10px; border-radius: 7px;">
+			<textarea id="recipients-txt" name="recipients" placeholder="{{ _('Enter recipient address, amount') }}" data-style="margin-top: 5px; font-size: 0.95em;" onblur="validateForm()">{{ recipients_txt }}</textarea>
+				<p class="note" data-style="line-height: 2; background-color: #16202d; padding: 10px; border-radius: 7px;">
 					{{ _("Enter each recipient address, amount as a new line:") }}<br>
 					&lt;{{ _("ADDRESS") }}1&gt;, &lt;{{ _("AMOUNT") }}1&gt;<br>
 					&lt;{{ _("ADDRESS") }}2&gt;, &lt;{{ _("AMOUNT") }}2&gt;<br>
 					&lt;{{ _("ADDRESS") }}3&gt;, &lt;{{ _("AMOUNT") }}3&gt;<br>
 				</p>
 			</div>
-			<p><span id="calculated_tx_fee_label" class="note" style="margin-top: 17px;" onclick="calculateEstimatedFee()">{{ _("Calculate estimated fee") }}</span><span class="note" id="calculated_tx_fee"></span><p>
-			<span id="toggle_advanced" style="cursor: pointer;">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
+			<p><span id="calculated_tx_fee_label" class="note" data-style="margin-top: 17px;" onclick="calculateEstimatedFee()">{{ _("Calculate estimated fee") }}</span><span class="note" id="calculated_tx_fee"></span><p>
+			<span id="toggle_advanced" data-style="cursor: pointer;">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
 			<br>
-			<div id="advanced_settings" style="margin: auto; max-width: 90%; display: {% if show_advanced_settings %}block{% else %}none{% endif %};">
+			<div id="advanced_settings" data-style="margin: auto; max-width: 90%; display: {% if show_advanced_settings %}block{% else %}none{% endif %};">
 				<div>{{ _("Transaction editor:") }} 
-					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="ui_option" value="ui" onclick="toggleSendUIType(this)" {% if ui_option == 'ui' %}checked{% endif %} id="ui-radio-btn">UI</label>
-					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="ui_option" value="text" onclick="toggleSendUIType(this);" {% if ui_option != 'ui' %}checked{% endif %}>text</label>
+					<label><input type="radio" class="inline" data-style="margin: 0 10px 0 20px;" name="ui_option" value="ui" onclick="toggleSendUIType(this)" {% if ui_option == 'ui' %}checked{% endif %} id="ui-radio-btn">UI</label>
+					<label><input type="radio" class="inline" data-style="margin: 0 10px 0 20px;" name="ui_option" value="text" onclick="toggleSendUIType(this);" {% if ui_option != 'ui' %}checked{% endif %}>text</label>
 				</div><br>
 				{% include "includes/fee-selection.html" %}
 				<fee-selection id="fee-selection-component"></fee-selection>
 				<br>
 				<br>
 				<br>
-				<div class="row break-row-mobile" id="vertical-space-for-subtract-fees-from-amount-checkbox" style="margin-top: 0px;"></div>
+				<div class="row break-row-mobile" id="vertical-space-for-subtract-fees-from-amount-checkbox" data-style="margin-top: 0px;"></div>
 			</div>
 			{% include "includes/tx-row.html" %}
 			{% include "includes/tx-data.html" %}
@@ -103,7 +103,7 @@
 				is-liquid="{{specter.is_liquid}}"
 				selected-coins="{{ selected_coins }}">
 			</coin-selection>
-			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">{{ _('Create ')}}<span class="optional">&nbsp;{{ _('unsigned')}}&nbsp;</span>{{ _('transaction') }}</button>
+			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" data-style="margin-top: 20px;">{{ _('Create ')}}<span class="optional">&nbsp;{{ _('unsigned')}}&nbsp;</span>{{ _('transaction') }}</button>
 		</div>
 	</form>
 {% endblock %}

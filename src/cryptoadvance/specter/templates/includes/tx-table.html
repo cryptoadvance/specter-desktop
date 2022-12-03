@@ -46,7 +46,7 @@
 <template id="tx-table">
 
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
+    <div style="display: none;"><!--<style>-->
         tx-row {
             display: contents;
         }
@@ -270,7 +270,7 @@
                 flex-direction: column;
             }
         }
-    </style>
+    </div><!--</style>-->
 
     <nav class="switcher row">
         <button
@@ -294,7 +294,7 @@
         <!--Left part of the toolbar-->
         {% include "includes/page-limit-select.html" %}
          <!--Middle part of the toolbar-->
-        <div style="flex-grow: 0.2">
+        <div data-style="flex-grow: 0.2">
             <input class="search" type="text" placeholder="Search..."></input>
         </div>
         <div id="tooltip-container" class="tooltip-no-grow tooltip-width">
@@ -310,7 +310,7 @@
             </tool-tip>
         </div>
         <!--Right part of the toolbar-->
-        <div id="action-teaser" class="action-teaser hidden" style="margin-right: 5px; margin-left: 5px;"> 
+        <div id="action-teaser" class="action-teaser hidden" data-style="margin-right: 5px; margin-left: 5px;"> 
             <span id="action-teaser-text" class="action-teaser-text">Select checkboxes for actions</span>
         </div>
         <div class="selected-rows-action-box row hidden">
@@ -367,15 +367,15 @@
                     <th value="time"     class="column-time time-header optional">{{ _("Time") }}<div class="time-arrow up-arrow"></div></th>
                     <th value="confirmations" class="column-confirmations confirmations-header">{{ _("Confirmations") }}<div class="confirmations-arrow"></div></th>
                     <th value="blockhash" class="column-blockhash optional hidden blockhash-header">
-                        <div style="display: flex">
+                        <div data-style="display: flex">
                             <span>{{ _("Block Hash") }}</span>
-                            <div id="tooltip-container" style="min-width: 175px;">
+                            <div id="tooltip-container" data-style="min-width: 175px;">
                                 {% include "includes/merkletooltip.html" %}
                             </div>
                         </div>
                     </th>
-                    <th class="column-action" style="width: 50px; padding: 10px;">
-                        <button type="button" class="export-btn btn" style="width: 50px;">
+                    <th class="column-action" data-style="width: 50px; padding: 10px;">
+                        <button type="button" class="export-btn btn" data-style="width: 50px;">
                             {{ _("Export") }}
                         </button>
                     </th>

@@ -1,4 +1,4 @@
-<style>
+<div style="display: none;"><!--<style>-->
     .left-toolbar {
         {% if session["is_language_rtl"] %}
             border-radius: 0 0 15px 0;
@@ -32,14 +32,14 @@
             margin: auto;
         }
     }
-</style>
-<a id="price-bar-btn" title="Bitcoin price" type="button" style="cursor: pointer; background: #4a90e2; color: #fff; padding: 0px 20px;" class="settings-bar-btn left-toolbar" onclick="showPageOverlay('price-popup')">
+</div><!--</style>-->
+<a class="text-white h-9 px-2 text-lg bg-dark-800 border-2 border-dark-700 rounded-lg text-md" id="price-bar-btn" title="Bitcoin price" type="button" data-style="cursor: pointer; background: #4a90e2; color: #fff; padding: 0px 20px;" class="settings-bar-btn left-toolbar" onclick="showPageOverlay('price-popup')">
     {% if specter.price_check %}
         <div title="Price settings">
             <span>{{ 1 | altunit}}</span>
         </div>        
     {% else %}
-        <img src="{{ url_for('static', filename='img/no-dollars.svg') }}" style="width: 40px;" title="Enable Fiat price display" class="svg-white"/>
+        <img src="{{ url_for('static', filename='img/no-dollars.svg') }}" data-style="width: 40px;" title="Enable Fiat price display" class="svg-white"/>
     {% endif %}
 </a>
 <div id="price-popup" class="hidden">
@@ -56,22 +56,22 @@
             <br>
             <div id="manual_price">
                 {{ _("Price:") }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <input style="max-width: 150px;" type="number" min="0" step="0.01" name="alt_rate" value="{{ specter.alt_rate }}" placeholder="Set the price of bitcoin in your chosen currency">
+                <input data-style="max-width: 150px;" type="number" min="0" step="0.01" name="alt_rate" value="{{ specter.alt_rate }}" placeholder="Set the price of bitcoin in your chosen currency">
                 <br><br>
                 {{ _("Symbol:") }}&nbsp;&nbsp;
-                <input style="max-width: 150px;" type="text" name="alt_symbol" value="{{ specter.alt_symbol }}" placeholder="eg. $/€/£">
+                <input data-style="max-width: 150px;" type="text" name="alt_symbol" value="{{ specter.alt_symbol }}" placeholder="eg. $/€/£">
                 <br>
             </div>
             <div id="automatic_price" class="hidden">
                 <h2>{{ _("Select price provider:") }}</h2>
-                <table id="auto-price-table" style="border: none; margin: auto;">
+                <table id="auto-price-table" data-style="border: none; margin: auto;">
                     <tbody>
-                        <tr style="background: none;">
-                            <td style="padding-bottom: 0px; border: none; text-align: right;">
+                        <tr data-style="background: none;">
+                            <td data-style="padding-bottom: 0px; border: none; text-align: right;">
                                 {{ _("Currency:") }}
                             </td>
-                            <td style="padding-bottom: 0px; border: none; text-align: left;">
-                                <fieldset style="border:none; display: inline; width: 100%;"> 
+                            <td data-style="padding-bottom: 0px; border: none; text-align: left;">
+                                <fieldset data-style="border:none; display: inline; width: 100%;"> 
                                     <select name="price_provider_currency" id="price_provider_currency" onchange="filterProviderOptions()">
                                         <optgroup label="Fiat currencies" id="fiat_currency">
                                             <option value="usd" selected>$ (USD)</option>
@@ -99,12 +99,12 @@
                                 </fieldset>
                             </td>
                         </tr>
-                        <tr style="background: none;">
-                            <td style="padding-top: 10px; padding-bottom: 0px; padding-right: 15px; border: none; text-align: right;">
+                        <tr data-style="background: none;">
+                            <td data-style="padding-top: 10px; padding-bottom: 0px; padding-right: 15px; border: none; text-align: right;">
                                 <p>{{ _("Provider:") }}</p>
                             </td>
-                            <td style="padding-top: 10px; padding-bottom: 0px; border: none; text-align: left;">
-                                <fieldset style="border:none; display: inline; width: 100%;"> 
+                            <td data-style="padding-top: 10px; padding-bottom: 0px; border: none; text-align: left;">
+                                <fieldset data-style="border:none; display: inline; width: 100%;"> 
                                     <select name="price_provider" id="price_provider" onchange="providerChanged()">
                                         <option data-currency-type="usd" value="bitstamp_usd" {% if specter.price_provider == 'bitstamp' %}selected{% endif %}>Bitstamp USD</option>
                                         <option data-currency-type="usd" value="coindesk_usd" {% if specter.price_provider == 'coindesk' %}selected{% endif %}>Coindesk USD</option>
@@ -163,12 +163,12 @@
                                 </fieldset>
                             </td>
                         </tr>
-                        <tr style="background: none;" class="hidden" id="weight_unit_row">
-                            <td style="padding-top: 10px; padding-bottom: 10px; border: none; text-align: right;">
+                        <tr data-style="background: none;" class="hidden" id="weight_unit_row">
+                            <td data-style="padding-top: 10px; padding-bottom: 10px; border: none; text-align: right;">
                                 {{ _("Weight Unit:") }}
                             </td>
-                            <td style="padding-top: 10px; padding-bottom: 10px; border: none; text-align: left;">
-                                <fieldset style="border:none; display: inline; width: 100%;"> 
+                            <td data-style="padding-top: 10px; padding-bottom: 10px; border: none; text-align: left;">
+                                <fieldset data-style="border:none; display: inline; width: 100%;"> 
                                     <select name="weight_unit" id="weight_unit">
                                         <option value="oz" {% if specter.weight_unit == 'oz' %}selected{% endif %}>Oz.</option>
                                         <option value="gram" {% if specter.weight_unit == 'gram' %}selected{% endif %}>Gram</option>
@@ -179,19 +179,19 @@
                         </tr>
                     </tbody>
                 </table>
-                <p class="note" style="max-width: 300px; margin: auto;">{{ _("Price will automatically be fetched from the selected provider every 10 minutes.") }}</p><br>
-                <p class="note hidden" id="providerwarning"  style="color: red; max-width: 400px; margin: auto;">{{ _("Note: This provider does not support historical data.") }}</p>
+                <p class="note" data-style="max-width: 300px; margin: auto;">{{ _("Price will automatically be fetched from the selected provider every 10 minutes.") }}</p><br>
+                <p class="note hidden" id="providerwarning"  data-style="color: red; max-width: 400px; margin: auto;">{{ _("Note: This provider does not support historical data.") }}</p>
             </div>
             <br>
             <input type="hidden" id="price_type" name="price_type" value="{{ 'automatic' if specter.price_provider else 'manual' }}">
-            <button type="button" class="btn" onclick="savePriceData(true)" style="margin: auto;">{{ _("Save") }}</button>
+            <button type="button" class="btn" onclick="savePriceData(true)" data-style="margin: auto;">{{ _("Save") }}</button>
         </div>
         <br><br>
-        <button type="button" class="btn" onclick="togglePriceCheck(false)" style="margin: auto;" >{{ _("Disable showing price") }}</button>
+        <button type="button" class="btn" onclick="togglePriceCheck(false)" data-style="margin: auto;" >{{ _("Disable showing price") }}</button>
     {% else %}
         <p>{{ _("You can enable showing price feature to see the price")}}<br>{{ _('information of your Bitcoin amounts across Specter.')}}</p>
         <br>
-        <button type="button" class="btn" style="margin: auto;" onclick="togglePriceCheck(true)">{{ _("Enable showing price") }}</button>
+        <button type="button" class="btn" data-style="margin: auto;" onclick="togglePriceCheck(true)">{{ _("Enable showing price") }}</button>
     {% endif %}
     </form>
     <script>

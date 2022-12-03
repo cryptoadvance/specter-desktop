@@ -11,29 +11,29 @@
 		{% else %}
 			<form action="?" method="POST">
 				<h1 id="title">{{ _("Configure new node") }}</h1>
-				<label style="text-align: center; display: block; margin: auto;font-size: 1.2em; margin-bottom: 7px;">{{ _("Name your new node:") }}</label>
-				<input type="text" id="name" name="name" value="{{ node.name }}" placeholder='{{ _("Name your new node") }}' style="width: auto; display: block; margin: auto; width: 70%;">
+				<label data-style="text-align: center; display: block; margin: auto;font-size: 1.2em; margin-bottom: 7px;">{{ _("Name your new node:") }}</label>
+				<input type="text" id="name" name="name" value="{{ node.name }}" placeholder='{{ _("Name your new node") }}' data-style="width: auto; display: block; margin: auto; width: 70%;">
 		{% endif %}
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 
-		<div class="card" style="margin: 10px auto 15px;">
-			<h2 style="text-align: center;">{{ _("JSON-RPC configuration") }} </h2>
+		<div class="card" data-style="margin: 10px auto 15px;">
+			<h2 data-style="text-align: center;">{{ _("JSON-RPC configuration") }} </h2>
 			<br>
 
 			<text-explainer>
                 <span slot="title">{{ _("Need help with the setup?") }} </span>
-                <div slot="content" style="font-size: 0.9em;">
-                    <h4 style="align-self:start;">Bitcoin</h4><br>
+                <div slot="content" data-style="font-size: 0.9em;">
+                    <h4 data-style="align-self:start;">Bitcoin</h4><br>
 					{{ _("When auto-detect is on, Specter will check for environment variables (BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT) to configure the connection or attempt to locate your Bitcoin data directory and load your node configurations from it.") }}<br>
 					{{ _('If your Bitcoin Core data directory is not located at the default location, you will need to enter its path under "Bitcoin Core data directory path" to locate it.') }}<br>
 					{{ _("If you are connecting to a remote node, you need to disable auto-detect and enter the node's configurations manually below.") }} <br><br>
-					<h4 style="align-self:start; margin-top: 5px">Liquid</h4>
+					<h4 data-style="align-self:start; margin-top: 5px">Liquid</h4>
 					{{ _("When auto-detect is on, Specter will here only check for environment variables (ELM_RPC_USER, ELM_RPC_PASSWORD, ELM_RPC_HOST, ELM_RPC_PORT).") }}
             	</div>
             </text-explainer>
 
-            <div style="display: flex; margin-top: 20px">
-				<label style="height: 25px;">Auto-detect:&nbsp;</label>
+            <div data-style="display: flex; margin-top: 20px">
+				<label data-style="height: 25px;">Auto-detect:&nbsp;</label>
 				<label class="switch">
 					<input type="checkbox" id="autodetect" name="autodetect" {% if node.autodetect %}checked{% endif %}>
 					<span class="slider"></span>
@@ -41,12 +41,12 @@
 			</div>
 			<span id="datadir-container">
 			<br>
-				{{ _("Bitcoin Core data directory path:") }}<br><input type="text" id="datadir" name="datadir" type="text" value="{{ node.default_datadir }}" style="margin-bottom: 15px;">
+				{{ _("Bitcoin Core data directory path:") }}<br><input type="text" id="datadir" name="datadir" type="text" value="{{ node.default_datadir }}" data-style="margin-bottom: 15px;">
 			</span>
 			<br>
 			<div id="rpc_settings">
 				<div id="lock" class="center">
-					<p style="text-align: center; margin: auto; ">&#128274;</p>
+					<p data-style="text-align: center; margin: auto; ">&#128274;</p>
 					<span class="note centered"> {{ _("(disable auto-detect to configure manually)") }}</span>
 				</div>
 				Username:<br><input type="text" id="username" name="username" value="{{ node.user }}">
@@ -56,17 +56,17 @@
 				Host:<br><input type="text" id="host" name="host" type="text" value="{{ node.protocol }}://{{ node.host }}">
 				<br>
 				<qr-scanner id="scan_rpc">
-					<a slot="button" href="#" class="btn" style="padding: 7px 15px 5px 10px; margin-top: 10px;">
-						<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 30px; margin: 0px;" class="svg-white">
+					<a slot="button" href="#" class="btn" data-style="padding: 7px 15px 5px 10px; margin-top: 10px;">
+						<img src="{{ url_for('static', filename='img/qr-code.svg') }}" data-style="width: 30px; margin: 0px;" class="svg-white">
 						{{ _("Connect with QR") }}
 					</a>
 				</qr-scanner>
 			</div>
-			<div style="margin-top: 10px">
+			<div data-style="margin-top: 10px">
 			Port:<br><input type="text" id="port" name="port" type="text" value="{{ node.port }}">
 			</div>
-			<div class="note" style="margin: 10px 0px 10px 0px;">
-				<h4 style="font-size: 1.2em;">{{ _("Default ports:") }}</h4>
+			<div class="note" data-style="margin: 10px 0px 10px 0px;">
+				<h4 data-style="font-size: 1.2em;">{{ _("Default ports:") }}</h4>
 				<b>8332</b>{{ _(" for mainnet, ")}}<b>18332</b>{{ _(" for testnet, ")}}<b>18443</b>{{ _(" for regtest and ")}}<b>38332</b>{{ _(" for signet ")}}<br><b>7041</b>{{ _(" for Liquid mainnet, ")}}<b>18891</b>{{ _(" for Liquid testnet and ")}}<b>18884</b>{{ _(" for Liquid regtest") }}
 			</div>
 			<div class="row">
@@ -75,23 +75,23 @@
 			</div>
 			{% if test %}
 				<br><div class="log"><b>{{ _("Test results:") }}</b><br><br>
-				<div style="display: grid;grid-template-columns: auto auto auto; line-height: 2.2;">
+				<div data-style="display: grid;grid-template-columns: auto auto auto; line-height: 2.2;">
 					{% macro tick_or_cross(my_boolean) %}
-					<button style="background: #fff; border: none;" disabled> 
+					<button data-style="background: #fff; border: none;" disabled> 
 						{% if my_boolean %}
-							<div style="color: green; font-size: 1.5em;">&#x2714;</div> 
+							<div data-style="color: green; font-size: 1.5em;">&#x2714;</div> 
 						{% else %} 
-							<div style="color: red; font-size: 1.5em;">&#x274C;</div>  
+							<div data-style="color: red; font-size: 1.5em;">&#x274C;</div>  
 						{% endif %}
 					</button>
 					{% endmacro %}
 					{% if 'connectable' in test['tests'] %}
-						<div style="margin-right: 10px;">{{ _("Connectable") }}</div>
+						<div data-style="margin-right: 10px;">{{ _("Connectable") }}</div>
 						<div>{{ tick_or_cross(test['tests']['connectable']) }} </div>
 						{% if not test['tests']['connectable'] %} 
 							<span class="warning">
 								{{ _("There are a lot of potential issues preventing the connection. Please double-check the host and the port. Make sure you can reach the host and make sure that Bitcoin Core is listening on the port you have specified.") }} 
-								{{ _('For more hints, please look at this') }} <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">{{ _('article.') }}</a>
+								{{ _('For more hints, please look at this') }} <a data-style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">{{ _('article.') }}</a>
 							</span>
 						{% else %}
 							<div></div>
@@ -99,12 +99,12 @@
 					{% endif %}
 
 					{% if 'credentials' in test['tests'] %}
-						<div style="margin-right: 10px;">Credentials</div>
+						<div data-style="margin-right: 10px;">Credentials</div>
 						<div> {{ tick_or_cross(test['tests']['credentials']) }} </div>
 						{% if not test['tests']['credentials'] %}
 							<span class="warning">
 								{{ _("Please double-check the user and the password. Have a look at the bitcoin.conf for the correct values in that field.") }}
-								{{ _('For more hints, please read this') }} <a style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">{{ _('article.') }}</a>
+								{{ _('For more hints, please read this') }} <a data-style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">{{ _('article.') }}</a>
 							</span>
 						{% else %}
 							<div></div>
@@ -112,7 +112,7 @@
 					{% endif %}
 
 					{% if 'recent_version' in test['tests'] %}
-						<div style="margin-right: 10px;">{{ _("Version recent enough") }}</div>
+						<div data-style="margin-right: 10px;">{{ _("Version recent enough") }}</div>
 						<div> {{ tick_or_cross(test['tests']['recent_version']) }} </div>
 						{% if not test['tests']['recent_version'] %}
 							<span class="warning">
@@ -125,7 +125,7 @@
 					{% endif %}
 					
 					{% if 'wallets' in test['tests'] %}
-						<div style="margin-right: 10px;">Wallets enabled</div>
+						<div data-style="margin-right: 10px;">Wallets enabled</div>
 						<div> {{ tick_or_cross(test['tests']['wallets']) }} </div>
 						{% if not test['tests']['wallets'] %}
 							<span class="warning">
@@ -147,7 +147,7 @@
 			{% endif %}
 		</div>
 		{% if specter.node_manager.nodes | length > 1 and node_alias %}
-			<button style="margin-bottom: 100px;" type="submit" name="action" value="forget" class="btn danger centered">{{ _("Forget node") }}</button>
+			<button data-style="margin-bottom: 100px;" type="submit" name="action" value="forget" class="btn danger centered">{{ _("Forget node") }}</button>
 		{% endif %}
 	</form>
 {% endblock %}

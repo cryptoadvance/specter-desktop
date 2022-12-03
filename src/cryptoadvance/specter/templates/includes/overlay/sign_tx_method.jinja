@@ -14,8 +14,8 @@
             {{ _("Please choose a signing method for your") }} {{ device.name }}.
         </div>
         {% if device.hwi_support %}
-            <button id="{{ device.alias }}_hwi_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
-                <img src="{{ url_for('static', filename='img/usb.svg') }}" style="width: 26px; margin-right: 2px;" class="svg-white">{{ _("Sign via USB (HWI)") }}
+            <button id="{{ device.alias }}_hwi_sign_btn" class="btn flex-item" data-style="width: 190px; margin: 15px auto;">
+                <img src="{{ url_for('static', filename='img/usb.svg') }}" data-style="width: 26px; margin-right: 2px;" class="svg-white">{{ _("Sign via USB (HWI)") }}
             </button>
             <script>
                 document.getElementById("{{ device.alias }}_hwi_sign_btn").addEventListener("click", e => {
@@ -36,8 +36,8 @@
         {% endif %}
         {% if device.sd_card_support %}
             {% include "includes/overlay/sd_card_sign.jinja" %}
-            <button id="{{ device.alias }}_file_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
-                <img src="{{ url_for('static', filename='img/sd-card.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Sign with SD Card file") }}
+            <button id="{{ device.alias }}_file_sign_btn" class="btn flex-item" data-style="width: 190px; margin: 15px auto;">
+                <img src="{{ url_for('static', filename='img/sd-card.svg') }}" data-style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Sign with SD Card file") }}
             </button>
             <script>
                 document.getElementById("{{ device.alias }}_file_sign_btn").addEventListener("click", e => {
@@ -49,8 +49,8 @@
         {% endif %}
         {% if device.qr_code_support %}
             {% include "includes/overlay/qr_code_sign.jinja" %}
-            <button id="{{ device.alias }}_qr_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
-                <img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Sign with QR codes") }}
+            <button id="{{ device.alias }}_qr_sign_btn" class="btn flex-item" data-style="width: 190px; margin: 15px auto;">
+                <img src="{{ url_for('static', filename='img/qr-code.svg') }}" data-style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Sign with QR codes") }}
             </button>
             <script>
                 document.getElementById("{{ device.alias }}_qr_sign_btn").addEventListener("click", e => {
@@ -61,7 +61,7 @@
             </script>
         {% endif %}
         {% if device.hot_wallet %}
-            <button id="{{ device.alias }}_hot_sign_btn" class="btn flex-item" style="width: 190px; margin: 15px auto;">
+            <button id="{{ device.alias }}_hot_sign_btn" class="btn flex-item" data-style="width: 190px; margin: 15px auto;">
                 {% if device.device_type == "bitcoincore" %}
                     {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
                     {{ bitcoin_svg(chain, 16) }} {{ _("Sign with Bitcoin Core") }}

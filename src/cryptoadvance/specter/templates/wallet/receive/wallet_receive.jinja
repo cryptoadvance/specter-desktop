@@ -1,7 +1,7 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
 {% set tab = 'receive' %}
 {% block content %}
-	<style>
+	<div style="display: none;"><!--<style>-->
 		.update, .cancel, .edit {
 			margin-left: auto;
 			margin-right: auto;
@@ -27,11 +27,11 @@
 		#address:hover {
 			text-decoration: underline;
 		}
-	</style>
+	</div><!--</style>-->
 
 	{% include "includes/hwi/hwi.jinja" %}
 	<br>
-	<div class="center card" style="width: 610px; padding-top: 25px;">
+	<div class="center card" data-style="width: 610px; padding-top: 25px;">
 		<form action="./" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			<address-label data-address="{{ wallet.address }}" data-label="{{ wallet.getlabel(wallet.address) }}" data-wallet="{{ wallet_alias }}" date-size="title"></address-label>
@@ -42,16 +42,16 @@
 			<button type="button" id="unconfidential_btn" class="btn radio right" onclick="toggle_confidential(false)"> {{ _("Unconfidential") }} </button>
 		</nav>
 		{% endif %}
-		<div class="warning" style="font-weight: lighter; background: #0003; color: #ddd; display: inline-block; margin:5% auto 5%; border: 1px solid #777; padding: 20px; max-width: 100%;">
-			<p title="Click to copy" id="address" class="padded" style="word-break: break-all;" onclick="copyText(this.textContent, '{{ _("Copied Address:") }} ' + this.textContent);">{{ wallet.address }}</p>
+		<div class="warning" data-style="font-weight: lighter; background: #0003; color: #ddd; display: inline-block; margin:5% auto 5%; border: 1px solid #777; padding: 20px; max-width: 100%;">
+			<p title="Click to copy" id="address" class="padded" data-style="word-break: break-all;" onclick="copyText(this.textContent, '{{ _("Copied Address:") }} ' + this.textContent);">{{ wallet.address }}</p>
 			{{ _("(click to copy)") }}
 			<br><br>
-			<qr-code id="address_qr" style="margin: auto;" value="{{'bitcoin:' + wallet.address }}" width="256"></qr-code><br>
+			<qr-code id="address_qr" data-style="margin: auto;" value="{{'bitcoin:' + wallet.address }}" width="256"></qr-code><br>
 		</div>
 		<br>
 		<form action="./" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-			<button type="submit" name="action" value="newaddress" class="btn centered" style="margin-bottom: 15px">{{ _("Get new address") }}</button>
+			<button type="submit" name="action" value="newaddress" class="btn centered" data-style="margin-bottom: 15px">{{ _("Get new address") }}</button>
 			{% set supports_qr_code_verify = [] %}
 			{% for device in wallet.devices if device.qr_code_support_verify %}
 				{% set supports_qr_code_verify = supports_qr_code_verify.append(device) %}
@@ -94,7 +94,7 @@
 		{% endfor %}
 		{% if supports_export_to_device != [] %}
 			<h1>{{ _("Export To Device") }}</h1>
-			<p style="max-width: 500px;">{{ _("Some of your devices require that you first import your multisig wallet data into the device before you can start verifying addresses and sending transactions.") }}</p>
+			<p data-style="max-width: 500px;">{{ _("Some of your devices require that you first import your multisig wallet data into the device before you can start verifying addresses and sending transactions.") }}</p>
 			<div class="note center">
 				{{ _("Import this wallet to a device by scanning its QR code or importing its data file.") }}
 			</div>
@@ -113,7 +113,7 @@
 						</a>
 					{% elif device.wallet_export_type == 'qr' %}
 						<button onclick="hidePageOverlay();showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">{{ _("Show") }} {{ device.name }} {{ _("QR Code") }}</button>
-						<div id="{{ device.alias }}_export_qr_code" style="display: none;">
+						<div id="{{ device.alias }}_export_qr_code" data-style="display: none;">
 							<h1>{{ _("Scan this with your") }} {{ device.name }} "{{ _("device") }} </h1>
 							<qr-code value="{{ device.export_wallet(wallet) }}" width="400" scalable></qr-code>
 							<br>
@@ -124,38 +124,38 @@
 			{% endfor %}
 			<br>
 		{% endif %}
-		<p style="max-width: 500px;">{{ _("You can always do this later from the wallet Settings tab.") }}</p>
+		<p data-style="max-width: 500px;">{{ _("You can always do this later from the wallet Settings tab.") }}</p>
 		<button type="button" class="btn centered padded" onclick="hidePageOverlay()">{{ _("Finish") }}</button>
 	</div>
 	<div class="hidden" id="new_wallet_popup">
 		<h1>{{ _("New wallet was created successfully!") }}</h1>
 		<button id="pdf-wallet-download" class="btn centered action" type="button">
-			<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 30px; margin-right: 2px;" class="svg-white">
+			<img src="{{ url_for('static', filename='img/file.svg') }}" data-style="width: 30px; margin-right: 2px;" class="svg-white">
 			{{ _("Save Backup PDF") }}
 		</button>
 		{% include 'wallet/components/wallet_pdf.jinja' %}
 		<br>
-		<span id="advanced_pdf_export_toggle" style="cursor: pointer;" onclick="togglePDFExportAdvanced()">{{ _("Advanced") }} &#9654;</span>
+		<span id="advanced_pdf_export_toggle" data-style="cursor: pointer;" onclick="togglePDFExportAdvanced()">{{ _("Advanced") }} &#9654;</span>
 		<br>
 		<br>
-		<div style="margin: 0 auto;" class="center hidden" id="advanced_pdf_export_container">
-			<label style="font-size: 1em;"">{{ _("Use SLIP-132:") }}&nbsp;</label>
+		<div data-style="margin: 0 auto;" class="center hidden" id="advanced_pdf_export_container">
+			<label data-style="font-size: 1em;"">{{ _("Use SLIP-132:") }}&nbsp;</label>
 			<label class="switch">
-				<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()">
+				<input type="checkbox" id="use_slip_132_pdf" data-style="margin: auto;" onchange="toggleKeyDisplay()">
 				<span class="slider"></span>
 			</label><br><br>
 		</div>
-		<p class="note center" style="margin-top: 5px; max-width: 90%;">{{ _("To format master keys on the PDF backup document.") }}</p>
-		<p style="max-width: 500px;">
+		<p class="note center" data-style="margin-top: 5px; max-width: 90%;">{{ _("To format master keys on the PDF backup document.") }}</p>
+		<p data-style="max-width: 500px;">
 		{{ _("It is recommended that you print and save this wallet backup file with each of your devices.") }}
 		</p>
-		<p style="max-width: 500px;" class="note">
+		<p data-style="max-width: 500px;" class="note">
 		{{ _("This backup includes all the information you'd need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core itself.") }}<br>
 		<p>
-		<p style="max-width: 500px;" class="note">
+		<p data-style="max-width: 500px;" class="note">
 		{{ _("It is recommended that you keep this file private, as it contains all the information needed to track all of the wallet balance and transactions history.") }}
 		<p>
-		<p style="max-width: 500px;">{{ _("You can always download this file later from the wallet Settings tab.") }}</p>
+		<p data-style="max-width: 500px;">{{ _("You can always download this file later from the wallet Settings tab.") }}</p>
 		{% if wallet.is_multisig and supports_export_to_device != [] %}
 			<button type="button" class="btn centered padded" onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')">{{ _("Continue") }}</button>
 		{% else %}

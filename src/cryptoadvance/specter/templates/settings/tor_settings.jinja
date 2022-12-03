@@ -1,6 +1,6 @@
 {% extends "base.jinja" %}
 {% block main %}
-	<style>
+	<div style="display: none;"><!--<style>-->
 		.radio-btn:hover {
 			background: var(--cmap-bg-lighter);
 			cursor: pointer;
@@ -29,7 +29,7 @@
         .tooltip-max-grow {
             flex-grow: 1; 
         }
-	</style>
+	</div><!--</style>-->
 	<form action="?" method="POST" onsubmit="showPacman()">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<h1 id="title" class="settings-title">Settings</h1>
@@ -37,44 +37,44 @@
 		{{ settings_menu('tor', current_user, ext_settingstabs) }}
 		<br>
 		<h1>
-		<img style="width: 25px; margin-right: 7px; vertical-align: middle;" src="{{ url_for('static', filename='img/tor.svg') }}"/><span style="vertical-align: bottom; margin-right: 10px;">
+		<img data-style="width: 25px; margin-right: 7px; vertical-align: middle;" src="{{ url_for('static', filename='img/tor.svg') }}"/><span data-style="vertical-align: bottom; margin-right: 10px;">
 		{{ _("Tor configurations") }}
 		</h1>
 		<p class="note center">{{ _("Enable Tor to anonymise your data connections.") }}</p>
 		<br>
-		<label for="tor_type_builtin" class="card radio-btn" style="padding: 20px 10px 5px; display: block; margin: auto;">
+		<label for="tor_type_builtin" class="card radio-btn" data-style="padding: 20px 10px 5px; display: block; margin: auto;">
 			{% if torbrowser_installed %}
 				{% if torbrowser_running %}
-					<span style="display: inline; float: right;margin-top: 10px; margin-right: 10px;">
-					<span class="note">Running&nbsp;&nbsp;<img src="{{ url_for('static', filename='img/check.svg') }}" class="svg-check-green" style="vertical-align: middle;"/>&nbsp;&nbsp;</span>
-					<button style="display: inline; width: 80px;" type="submit" class="btn" name="action" value="stoptor">{{ _("Stop") }}</button>&nbsp;
-					<button style="display: inline; width: 80px;" type="submit" class="btn" name="action" value="test_tor">{{ _("Test") }}</button>
+					<span data-style="display: inline; float: right;margin-top: 10px; margin-right: 10px;">
+					<span class="note">Running&nbsp;&nbsp;<img src="{{ url_for('static', filename='img/check.svg') }}" class="svg-check-green" data-style="vertical-align: middle;"/>&nbsp;&nbsp;</span>
+					<button data-style="display: inline; width: 80px;" type="submit" class="btn" name="action" value="stoptor">{{ _("Stop") }}</button>&nbsp;
+					<button data-style="display: inline; width: 80px;" type="submit" class="btn" name="action" value="test_tor">{{ _("Test") }}</button>
 					</span>
 				{% else %}
-					<span style="display: inline; float: right; margin-top: 10px; margin-right: 10px;">
+					<span data-style="display: inline; float: right; margin-top: 10px; margin-right: 10px;">
 					<span class="note">{{ _("Stopped") }}&nbsp;&nbsp;</span>
-					<button style="display: inline; width: 80px;" type="submit" class="btn" name="action" value="uninstalltor">{{ _("Uninstall") }}</button>&nbsp;
-					<button style="display: inline; width: 80px;" type="submit" class="btn" name="action" value="starttor">{{ _("Start") }}</button>
+					<button data-style="display: inline; width: 80px;" type="submit" class="btn" name="action" value="uninstalltor">{{ _("Uninstall") }}</button>&nbsp;
+					<button data-style="display: inline; width: 80px;" type="submit" class="btn" name="action" value="starttor">{{ _("Start") }}</button>
 					</span>
 				{% endif %}
 			{% else %}
-				<a style="display: inline; float: right; width: 110px; margin-top: 10px; margin-right: 10px;" href="{{ url_for('setup_endpoint.tor_from_settings' ) }}" class="btn centered action" id="setup-tor-button">{{ _("Set up") }}</a>
+				<a data-style="display: inline; float: right; width: 110px; margin-top: 10px; margin-right: 10px;" href="{{ url_for('setup_endpoint.tor_from_settings' ) }}" class="btn centered action" id="setup-tor-button">{{ _("Set up") }}</a>
 			{% endif %}
 			<div class="row">
-				<input id="tor_type_builtin" type="radio" name="tor_type" value="builtin" style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="toggletor_type('builtin')" {% if tor_type == 'builtin' %} checked {% endif %}/>
-				<h2 style="text-align: left; margin-left: 10px; font-size: 1.1em;">Built in</h2>
+				<input id="tor_type_builtin" type="radio" name="tor_type" value="builtin" data-style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="toggletor_type('builtin')" {% if tor_type == 'builtin' %} checked {% endif %}/>
+				<h2 data-style="text-align: left; margin-left: 10px; font-size: 1.1em;">Built in</h2>
 			</div>
-			<p class="note" style="text-align: left; margin-left: 38px;margin-top: -5px;">{{ _("Quick and automatic setup.") }}</p>
+			<p class="note" data-style="text-align: left; margin-left: 38px;margin-top: -5px;">{{ _("Quick and automatic setup.") }}</p>
 		</label>
 		<br>
-		<label id="custom-tor-label" for="tor_type_custom" class="card radio-btn no-bottom-border-radius" style="padding: 20px 10px 5px; display: block; margin: auto;">
+		<label id="custom-tor-label" for="tor_type_custom" class="card radio-btn no-bottom-border-radius" data-style="padding: 20px 10px 5px; display: block; margin: auto;">
 			<div class="row">
-				<input id="tor_type_custom" type="radio" name="tor_type" value="custom" style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="toggletor_type('custom')" {% if tor_type == 'custom' %} checked {% endif %}/>
-				<h2 style="text-align: left; margin-left: 10px; font-size: 1.1em;">{{ _("Custom") }}</h2>
+				<input id="tor_type_custom" type="radio" name="tor_type" value="custom" data-style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="toggletor_type('custom')" {% if tor_type == 'custom' %} checked {% endif %}/>
+				<h2 data-style="text-align: left; margin-left: 10px; font-size: 1.1em;">{{ _("Custom") }}</h2>
 			</div>
-			<p class="note" style="text-align: left; margin-left: 38px;margin-top: -5px;">{{ _("Use your own Tor configuration.") }}</p>
+			<p class="note" data-style="text-align: left; margin-left: 38px;margin-top: -5px;">{{ _("Use your own Tor configuration.") }}</p>
 		</label>
-		<div id="custom-tor-details" class="card" style="margin: auto;border-top-left-radius: 0px; border-top-right-radius: 0px; border-top: none;">
+		<div id="custom-tor-details" class="card" data-style="margin: auto;border-top-left-radius: 0px; border-top-right-radius: 0px; border-top: none;">
 			{{ _("Use Tor proxy running at:") }} 
 			<input id="proxy-url" name="proxy_url" value="{{ proxy_url }}" type="url" placeholder="i.e. socks5://127.0.0.1:9050" />
 			<br>
@@ -89,14 +89,14 @@
 			</p>
 			<input name="tor_control_port" value="{{ tor_control_port }}" type="text" placeholder='{{ _("Set to custom port here, if kept empty the default (9051 and 9151) is used") }}' />
 			<br><br>
-			<button type="submit" class="btn" name="action" value="test_tor" style="width: 300px;">{{ _("Test connection") }}</button>
+			<button type="submit" class="btn" name="action" value="test_tor" data-style="width: 300px;">{{ _("Test connection") }}</button>
 		</div>
 		<br><br>
-		<h2 style="text-align: center; color: #ccc;">{{ _("Additional Options") }}</h2>
-		<div style="max-width: 580px; margin: auto;">
+		<h2 data-style="text-align: center; color: #ccc;">{{ _("Additional Options") }}</h2>
+		<div data-style="max-width: 580px; margin: auto;">
 			{% if debug %}
-				<div style="display: flex; align-items: center;">
-					<p style="font-size: 1.1em">{{ _("Enable Tor hidden service") }}</p>
+				<div data-style="display: flex; align-items: center;">
+					<p data-style="font-size: 1.1em">{{ _("Enable Tor hidden service") }}</p>
 					<div id="tooltip-container" class="tooltip-little-grow tooltip-width">
 						<tool-tip id="tooltips-tor">
 						    <h4 slot="title">{{ _("Tor hidden service") }}</h4>
@@ -105,27 +105,27 @@
 						    </span>
 						</tool-tip>
 					</div>
-					<label class="switch" style="margin-left: 5px;">
+					<label class="switch" data-style="margin-left: 5px;">
 						<input type="checkbox" id="hidden_service" name="hidden_service" onchange="checkAuthEabled()"{% if tor_service_id %}checked{% endif %}>
 						<span class="slider"></span>
 					</label>
 				</div>
 				<p class="note">
 				{{ _("Allows access to Specter from anywhere.") }}<br>
-				{{ _('Requires authentication to be enabled.') }} <a style="color: var(--cmap-blue);" href="{{ url_for('settings_endpoint.auth' ) }}">{{ _("Authentication settings") }}</a>
+				{{ _('Requires authentication to be enabled.') }} <a data-style="color: var(--cmap-blue);" href="{{ url_for('settings_endpoint.auth' ) }}">{{ _("Authentication settings") }}</a>
 				</p>
 				{% if tor_service_id %}
 				<p><b>
 					{{ _("Specter hidden service is running at:") }}
-					<span title="Copy Tor address" style="word-break: break-word;" class="explorer-link" onclick="copyText('http:/\/{{ tor_service_id }}.onion', '{{ _("Copied Tor hidden service address:") }} {{ tor_service_id }}.onion')">
+					<span title="Copy Tor address" data-style="word-break: break-word;" class="explorer-link" onclick="copyText('http:/\/{{ tor_service_id }}.onion', '{{ _("Copied Tor hidden service address:") }} {{ tor_service_id }}.onion')">
 					{{ tor_service_id }}.onion
 					</span>
 				</b></p>
 				{% endif %}
 			{% endif %}
 			<br>
-			<div style="display: flex; align-items: center;">
-				<p style="font-size: 1.1em; display: flex">{{ _("Force external calls over Tor?") }}</p>
+			<div data-style="display: flex; align-items: center;">
+				<p data-style="font-size: 1.1em; display: flex">{{ _("Force external calls over Tor?") }}</p>
 				<div id="tooltip-container" class="tooltip-little-grow tooltip-width">
 					<tool-tip id="tooltips-tor">
 					    <h4 slot="title">{{ _("Tor Only mode") }}</h4>
@@ -137,7 +137,7 @@
 					    </span>
 					</tool-tip>
 				</div>
-				<label class="switch" style="margin-left: 5px;">
+				<label class="switch" data-style="margin-left: 5px;">
 					<input type="checkbox" id="only-tor" name="only_tor" {% if only_tor %}checked{% endif %}>
 					<span class="slider"></span>
 				</label>
@@ -146,7 +146,7 @@
 				{{ _("Route all external calls over the Tor proxy for improved privacy.") }}
 			</p>
 			<br><br>
-			<button type="submit" class="btn" name="action" value="save" style="width: 100%;">{{ _("Save changes") }}</button>
+			<button type="submit" class="btn" name="action" value="save" data-style="width: 100%;">{{ _("Save changes") }}</button>
 			<br><br>
 		</div>
 		<script type="text/javascript">

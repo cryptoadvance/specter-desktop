@@ -40,12 +40,12 @@
 				{{ _("Using") }} 
 				<input class="inline" type="number" name="sigs_required" min=1 max="{{ cosigners | length }}" step=1 value="{{ sigs_required }}" />
 				{{ _("of") }} 
-				<span style="margin: 0px 40px; font-size: 1.2em;">{{ cosigners | length }}<span>
+				<span data-style="margin: 0px 40px; font-size: 1.2em;">{{ cosigners | length }}<span>
 			</div>
 			<br>
 		{% endif %}
-		<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 500px; margin: auto;">
-			<div style="display: flex; gap: 3px; margin-top: 10px;">
+		<div data-style="display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 500px; margin: auto;">
+			<div data-style="display: flex; gap: 3px; margin-top: 10px;">
 				<input form="keysform" type="checkbox" name="rescanblockchain" id="rescan" class="inline" onchange="toggleScanOptions(this)">
 				<label for="rescan">{{ _("Scan for existing funds?") }}</label>
 				<tool-tip width="200px">
@@ -54,12 +54,12 @@
             		</span>
         		</tool-tip>
 			</div>
-			<div id="scan-options" class="hidden" style="text-align: center;">
+			<div id="scan-options" class="hidden" data-style="text-align: center;">
 				<br>
-				<div style="display: flex; justify-content: center">
+				<div data-style="display: flex; justify-content: center">
 					{{ _("Rescan type:") }} 
-					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="full_rescan_option" value="full" onclick="toggleFullRescanOption(this)" checked>{{ _("Full rescan") }}</label>
-					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px" name="full_rescan_option" value="utxo" onclick="toggleFullRescanOption(this);">{{ _("UTXO only") }}</label>
+					<label><input type="radio" class="inline" data-style="margin: 0 10px 0 20px;" name="full_rescan_option" value="full" onclick="toggleFullRescanOption(this)" checked>{{ _("Full rescan") }}</label>
+					<label><input type="radio" class="inline" data-style="margin: 0 10px 0 20px" name="full_rescan_option" value="utxo" onclick="toggleFullRescanOption(this);">{{ _("UTXO only") }}</label>
 					<tool-tip width="200px">
             			<span slot="paragraph">
 							{{ _("Full rescan is a slow process which searches for and imports the full wallet transaction history and balance.") }}<br>
@@ -74,19 +74,19 @@
 					{% else %}
 						{% set startblock=(0 if not specter.info['pruned'] else specter.info['pruneheight']) %}
 					{% endif %}
-					{{ _("Rescan blockchain from block:") }} <input type="number" name="startblock" value="{{startblock}}" min="{{startblock}}" style="max-width: 150px; margin-left: 5px;">
+					{{ _("Rescan blockchain from block:") }} <input type="number" name="startblock" value="{{startblock}}" min="{{startblock}}" data-style="max-width: 150px; margin-left: 5px;">
 					{% if specter.info['pruned']  %}
-						<span class="warning" style="display: inline-block; max-width:300px;">
-							<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>{{ _("You are using a pruned node.")}}<br>{{ _("Wallet history may not fully appear.")}}<br>{{ _("Rescan is limited by the pruned height to block:") }} {{specter.info['pruneheight']}}
+						<span class="warning" data-style="display: inline-block; max-width:300px;">
+							<img src="{{ url_for('static', filename='img/info_sign.svg') }}" data-style="width: 20px;"/><br>{{ _("You are using a pruned node.")}}<br>{{ _("Wallet history may not fully appear.")}}<br>{{ _("Rescan is limited by the pruned height to block:") }} {{specter.info['pruneheight']}}
 						</span>
 					{% endif %}
-					<div class="note center" style="margin-top: 5px; line-height: 2;">{{ _("In case you're not sure, it is best to just leave the default number.")}}<br><b>481824</b>{{ _(" was the first Segwit block.")}}</div>
+					<div class="note center" data-style="margin-top: 5px; line-height: 2;">{{ _("In case you're not sure, it is best to just leave the default number.")}}<br><b>481824</b>{{ _(" was the first Segwit block.")}}</div>
 					<br>
 				</div>
-				<div id="utxo-scan-options" style="display: none">
+				<div id="utxo-scan-options" data-style="display: none">
 					{% if specter.info['pruned']  %}
-						<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> {{ _("Fetch missing data from block explorer") }}
-							<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
+						<label for="use_explorer"><input data-style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> {{ _("Fetch missing data from block explorer") }}
+							<span class="warning" id="utxo-warning" data-style="display: inline-block; max-width:300px;">
 								{{ _("You are using a pruned node. Blocks for some transactions may be missing.") }}
 								{{ _("Check this checkbox if you want to fetch missing information from a block explorer.") }}
 							</span>
@@ -95,8 +95,8 @@
 							<br>
 							{{ _("Block explorer URL:") }}
 							{% include "components/explorer_select.jinja" %}
-							<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
-							<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>{{ _("Careful with block explorers!") }}<br>
+							<span class="warning" id="utxo-warning" data-style="display: inline-block; max-width:300px;">
+							<img src="{{ url_for('static', filename='img/info_sign.svg') }}" data-style="width: 20px;"/><br>{{ _("Careful with block explorers!") }}<br>
 							{{ _("This may have privacy implications!") }}<br>
 							{{ _("Information fetched from the block explorer contains a list of unspent transactions of your wallet from old (pruned) blocks.") }}<br>
 							{{ _('"They" will know what transactions you are interested in.') }}

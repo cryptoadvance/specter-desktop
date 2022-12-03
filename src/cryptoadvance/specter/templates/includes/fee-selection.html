@@ -1,7 +1,7 @@
 <template id="fee-selection">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <div class="fee_container">
-        <div id="subtract_fees_div" style="display: flex">
+        <div id="subtract_fees_div" data-style="display: flex">
             <label><input type="checkbox" class="inline" name="subtract" id="subtract" {% if subtract %}checked{% endif %}> {{ _("Subtract fees from amount") }}</label>
             <tool-tip width="200px">
                 <h4 slot="title">{{ _("Subtract fees from amount") }}</h4>
@@ -11,19 +11,19 @@
                 </span>
             </tool-tip>
         </div>
-        <span id="subtract_from" style="display: none">
+        <span id="subtract_from" data-style="display: none">
             <br>{{ _("Subtract from ") }} 
-            <select id="subtract_from_recipient_id_select" name="subtract_from_stale" style="width: 140px; min-width: 140px;"></select>
+            <select id="subtract_from_recipient_id_select" name="subtract_from_stale" data-style="width: 140px; min-width: 140px;"></select>
             <br>                       
         </span>
         <br>
         <div>
             {{ _("Fees:") }} 
-            <label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" id="fee_option_dynamic" name="fee_options" value="dynamic" >{{ _("dynamic") }}</label>
-            <label><input type="radio" class="inline" style="margin: 0 10px 0 20px"  id="fee_option_manual" name="fee_options" value="manual" >{{ _("manual") }}</label>
+            <label><input type="radio" class="inline" data-style="margin: 0 10px 0 20px;" id="fee_option_dynamic" name="fee_options" value="dynamic" >{{ _("dynamic") }}</label>
+            <label><input type="radio" class="inline" data-style="margin: 0 10px 0 20px"  id="fee_option_manual" name="fee_options" value="manual" >{{ _("manual") }}</label>
         </div>
         <br>
-        <div id = "fee_manual" style="display: none">
+        <div id = "fee_manual" data-style="display: none">
             {{ _("Fee rate:") }}<br>
             {% set min_fee = 0.1 if specter.is_liquid else 1 %}
             <input type="number" class="fee_rate" name="fee_rate" id="fee_rate" min="{{min_fee}}" step="0.1" value="{{min_fee}}" autocomplete="off"> sat/vbyte
@@ -31,9 +31,9 @@
                 {{ _("{} sat/vbyte is the minimal fee rate.".format(min_fee)) }}
             </div>
         </div>
-        <div id ="fee_dynamic" style="display: {% if fee_options_dynamic %}block{% else %}none{% endif %}">
+        <div id ="fee_dynamic" data-style="display: {% if fee_options_dynamic %}block{% else %}none{% endif %}">
             <div id="blocks"></div>
-            <input type="range" style="width: 12em" min="{{min_fee}}" max="" value="" step="0.1" id="fees_slider">
+            <input type="range" data-style="width: 12em" min="{{min_fee}}" max="" value="" step="0.1" id="fees_slider">
             <input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="{{min_fee}}">
             <div>
                 {{ _("Estimated speed:") }} <span id="fee_rate_speed_text"></span>
@@ -42,7 +42,7 @@
             </div>
         </div>
         <br>
-        <label class="rbf-label" style="display: none">
+        <label class="rbf-label" data-style="display: none">
             <input type="checkbox" class="rbf-checkbox inline" name="rbf" id="rbf"> {{ _("RBF Enabled") }}
         </label>
     </div>

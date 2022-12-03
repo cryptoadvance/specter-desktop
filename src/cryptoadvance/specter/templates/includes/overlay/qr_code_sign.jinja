@@ -2,14 +2,14 @@
 <form id="{{ device.alias }}_sign_tx_qr" class="flex-center flex-column hidden">
     <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
     <h2>{{ _("Scan this QR code with your") }} {{device.name}}.</h2>
-    <div class="row" style="min-height: 400px; margin-top:20px">
-        <span id="compressed_psbt" style="margin: auto;">
+    <div class="row" data-style="min-height: 400px; margin-top:20px">
+        <span id="compressed_psbt" data-style="margin: auto;">
             <qr-code animate="{{device.qr_code_animate}}" frame-rate="{{device.qr_code_frame_rate}}" class='center' value="{{ device_psbts['qrcode'] }}" width="400" scalable></qr-code>
         </span>
     </div>
     <qr-scanner id="{{ device.alias }}_qr_scan_btn">
-        <a slot="button" class="btn flex-item" style="width: 250px; margin: 15px auto;">
-            <img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 30px; margin: 0px;" class="svg-white"> {{ _("Scan signed transaction") }}
+        <a slot="button" class="btn flex-item" data-style="width: 250px; margin: 15px auto;">
+            <img src="{{ url_for('static', filename='img/qr-code.svg') }}" data-style="width: 30px; margin: 0px;" class="svg-white"> {{ _("Scan signed transaction") }}
         </a>
     </qr-scanner>
 

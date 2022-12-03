@@ -1,4 +1,4 @@
-<style>
+<div style="display: none;"><!--<style>-->
     .key {
         width: 380px;
         word-break: break-word;
@@ -8,7 +8,7 @@
         text-decoration: underline;
         cursor: pointer;
     }
-</style>
+</div><!--</style>-->
 <div class="hidden" id="key_export_qr">
     <form class="flex-center flex-column">
         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -17,23 +17,23 @@
             <br><pre id="key_text" class='key center' onclick="copyText(this.innerText, '{{ _("Copied full key") }}')">{{ key }}</pre>
         </div>
         <br>
-        <table style="text-align: left; width: 70%; margin: auto; border: none;">
-            <tr style="background: unset; border: none;">
-            <td style="border: none;">
+        <table data-style="text-align: left; width: 70%; margin: auto; border: none;">
+            <tr data-style="background: unset; border: none;">
+            <td data-style="border: none;">
                 <label class="switch-label">{{ _("Show derivation path") }}:&nbsp;</label>
             </td>
-            <td style="border: none;">
+            <td data-style="border: none;">
                 <label class="switch">
                     <input type="checkbox" id="show_der_path" onchange="toggleKeyDisplay()">
                     <span class="slider"></span>
                 </label>
             </td>
             </tr>
-            <tr style="background: unset; border: none;">
-            <td style="border: none;">
+            <tr data-style="background: unset; border: none;">
+            <td data-style="border: none;">
                 <label class="switch-label">{{ _("Use SLIP-132") }}:&nbsp;</label>
             </td>
-            <td style="border: none;">
+            <td data-style="border: none;">
                 <label class="switch">
                     <input type="checkbox" id="use_slip_132" onchange="toggleKeyDisplay()">
                     <span class="slider"></span>

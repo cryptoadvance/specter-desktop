@@ -5,11 +5,11 @@
     - size: Svg width and height
  #}
 {% macro liquid_svg(chain, size) -%}
-    <svg class="core {{ chain }}" height="{{ size }}" width="{{ size }}" viewBox="0 0 46 46" style="opacity: 0.95;">
-<style type="text/css">
+    <svg class="core {{ chain }}" height="{{ size }}" width="{{ size }}" viewBox="0 0 46 46" data-style="opacity: 0.95;">
+<div style="display: none;"><!--<style>-->
     .st0{fill:#46B4A5;}
     .st1{fill:#FFFFFF;}
-</style>
+</div><!--</style>-->
 <g id="nav_liquid">
     <g id="Group-7">
         <circle id="Oval" class="st0" cx="23" cy="23" r="23"/>

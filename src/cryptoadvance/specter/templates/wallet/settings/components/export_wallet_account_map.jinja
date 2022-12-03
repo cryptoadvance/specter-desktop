@@ -1,4 +1,4 @@
-<div id="account_map_export" style="display: none; max-width: 500px;">
+<div id="account_map_export" data-style="display: none; max-width: 500px;">
     <h1>Export Wallet</h1>
     <h2>Scan this with your wallet software</h2>
     <br>
@@ -6,7 +6,7 @@
     <br>
     <h2>Import this JSON file</h2>
     <a download="{{ wallet.name }}.json" class="btn centered padded" id="export_wallet_file">Save wallet file</a>
-<pre id="account_map" style="white-space: -moz-pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word; text-align: left;">
+<pre id="account_map" data-style="white-space: -moz-pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word; text-align: left;">
 {{ wallet.account_map }}
 </pre>
     <button onclick="copyText(document.getElementById('account_map').innerText, 'Copied wallet data')" type="button" class="btn centered padded">Copy wallet data</button>

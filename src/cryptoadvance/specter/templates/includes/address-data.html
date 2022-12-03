@@ -1,6 +1,6 @@
 <template id="address-data">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
+    <div style="display: none;"><!--<style>-->
         .address-data-table td {
             text-align: left;
             margin-top: 0;
@@ -40,7 +40,7 @@
             border: 1px solid var(--main-color);
             background: var(--cmap-border);
         }
-    </style>
+    </div><!--</style>-->
     <div class="address-data">
         <h1>{{ _("Address details") }}</h1><br>
         <div class="address-data-info"></div>
@@ -109,10 +109,10 @@
                     let address = jsonResponse.address;
                     let walletLink = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
                     let addressInfoHTML = `
-                        <qr-code style="margin: auto;" value="bitcoin:${address}" width="256"></qr-code><br>
+                        <qr-code data-style="margin: auto;" value="bitcoin:${address}" width="256"></qr-code><br>
                         <table class="address-data-table">
                         <tbody>
-                        <tr><td>{{ _("Address") }}:</td><td style="word-break: break-all;"><explorer-link data-type="address" data-value="${address}"></explorer-link></td></tr>
+                        <tr><td>{{ _("Address") }}:</td><td data-style="word-break: break-all;"><explorer-link data-type="address" data-value="${address}"></explorer-link></td></tr>
                         <tr><td>{{ _("Label") }}:</td><td><address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}" data-label="${this.label}" data-service-id="${this.serviceId}"></address-label><br></td></tr>
                         <tr><td>{{ _("From wallet") }}:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
                         <tr><td>{{ _("Address index") }}:</td><td>${addressIndex}</td></tr>
@@ -136,7 +136,7 @@
                     let redirectUrl = `{{ url_for('devices_endpoint.device', device_alias=device.alias, origin='wallet', address='ADDRESS', derivation_path='DERIVATION_PATH') }}`.replace('ADDRESS', address).replace('DERIVATION_PATH', derivation_path);
                     addressInfoHTML += `<tr><td>{{ _("Message signing") }}:</td><td>
                         <button type="button" id="msg-signing-btn" class="signing-btn" onclick="location.href='${redirectUrl}';">
-                            <div style="word-wrap: anywhere">&#128396;&nbsp;{{ _("Sign a message with your") }} {{ device.name }} {{ _("device") }}</div>
+                            <div data-style="word-wrap: anywhere">&#128396;&nbsp;{{ _("Sign a message with your") }} {{ device.name }} {{ _("device") }}</div>
                         </button></td></tr>`;
                     {% endif %}
 
@@ -149,7 +149,7 @@
                     if (this.isVerifyHwi) { 
                         addressInfoHTML += `
                         <br>
-                        <button type="button" onclick='hidePageOverlay();displayAddressOnDevice("${address}", "${descriptor}", "${xpubs_descriptor}")' class="btn" style="min-width:200px; max-width:300px; margin: auto;">{{ _("Verify address on device") }}</button>`;
+                        <button type="button" onclick='hidePageOverlay();displayAddressOnDevice("${address}", "${descriptor}", "${xpubs_descriptor}")' class="btn" data-style="min-width:200px; max-width:300px; margin: auto;">{{ _("Verify address on device") }}</button>`;
                     }
 
                     if (this.isVerifyQR) { 

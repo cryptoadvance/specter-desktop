@@ -1,6 +1,6 @@
 {% extends "base.jinja" %}
 {% block main %}
-	<style>
+	<div style="display: none;"><!--<style>-->
 		.hasencryptedservicedata {
             background-color: var(--cmap-bg-lighter);
 			border: 2px solid yellow;
@@ -9,14 +9,14 @@
 			text-align: center;
 			margin-bottom: 4em !important;
 		}
-	</style>
+	</div><!--</style>-->
 	<form action="?" method="POST">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="next" value="{{ next }}">
 		<h1 id="title" class="settings-title">Settings</h1>
 		{% from 'settings/components/settings_menu.jinja' import settings_menu %}
 		{{ settings_menu('auth', current_user, ext_settingstabs) }}
-		<div class="card" style="margin: 20px auto;">
+		<div class="card" data-style="margin: 20px auto;">
 			{% if method == "none" or current_user.is_admin %}
 				{{ _("Authentication") }}:<br>
 				<select name="method" onchange="toggleUsernamePassword(this)">
@@ -27,7 +27,7 @@
 				</select>
 				<br><br>
 			{% endif %}
-			<div id="hasencryptedservicedata" style="display: none" class="hasencryptedservicedata note">
+			<div id="hasencryptedservicedata" data-style="display: none" class="hasencryptedservicedata note">
 				<p>{{ _("Note: If you set Authentication to \"None\", Specter will unlink the Service integrations ") }}  
 					"{{ specter.service_manager.services_sorted | selectattr('encrypt_data') | map(attribute='name') | join('", "') }}"
 					{{ _(" as a security precaution.") }}</p>
@@ -53,10 +53,10 @@
 					{% for user in users %}
 						<form action="?" method="POST">
 							<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-							<div class="row break-row-mobile" style="margin: 15px; border: 1px solid var(--cmap-border); border-radius: 4px; padding: 10px;">
-								<span style="line-height: 35px; vertical-align: middle;width: 100%;"><b>{{ _("Username") }}:</b> {{ user.username }}</span>
+							<div class="row break-row-mobile" data-style="margin: 15px; border: 1px solid var(--cmap-border); border-radius: 4px; padding: 10px;">
+								<span data-style="line-height: 35px; vertical-align: middle;width: 100%;"><b>{{ _("Username") }}:</b> {{ user.username }}</span>
 								<br class="mobile-only">
-								<button type="submit" name="action" value="deleteuser" style="float: right; max-width: 250px;" class="btn danger">{{ _("Delete User") }}</button>
+								<button type="submit" name="action" value="deleteuser" data-style="float: right; max-width: 250px;" class="btn danger">{{ _("Delete User") }}</button>
 								<input type="hidden" name="deleteuser" value="{{ user.id }}">
 								<br class="mobile-only">
 								<br class="mobile-only">

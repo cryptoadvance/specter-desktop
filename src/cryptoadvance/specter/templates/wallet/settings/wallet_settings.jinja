@@ -3,7 +3,7 @@
 {% include "includes/dnd-textarea.html" %}
 {% set tab = 'settings' %}
 {% block content %}
-	<style>
+	<div style="display: none;"><!--<style>-->
 		.subtitle {
 			font-size: 1.4em;
 			text-align: center;
@@ -20,27 +20,27 @@
 			border: 0.5px solid orange;
 			border-radius: 10px;
 		}
-	</style>
+	</div><!--</style>-->
 	<br>
 	<nav class="row collapse-on-mobile">
 		<button type="button" id="info_settings_tab_btn" class="btn radio left checked" onclick="setSettingsView('info')"> {{ _("Wallet Info") }} </button>
 		<button type="button" id="export_settings_tab_btn" class="btn radio" onclick="setSettingsView('export')"> {{ _("Export") }} </button>
 		<button type="button" id="advanced_settings_tab_btn" class="btn radio right" onclick="setSettingsView('advanced')"> {{ _("Advanced") }} </button>
 		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`)">
-			<img style="width: 36px;" src="{{ url_for('static', filename='img/caret-down.svg') }}" class="svg-white"/>
+			<img data-style="width: 36px;" src="{{ url_for('static', filename='img/caret-down.svg') }}" class="svg-white"/>
 		</a>
 	</nav><br>
-	<div id="wallet_info_settings_tab" style="width: 100%">
-		<h1 style="font-size: 1.7em;">{{ _("Wallet Info") }}</h1><br>
+	<div id="wallet_info_settings_tab" data-style="width: 100%">
+		<h1 data-style="font-size: 1.7em;">{{ _("Wallet Info") }}</h1><br>
 		{% if wallet.is_multisig %}
 			<h2 class="subtitle">{{ _("Devices") }}</h2>
-			<p style="text-align: center; font-size: 1.2em;">{{ wallet.sigs_required }} out of {{ wallet.keys|length }} multisig</p>
+			<p data-style="text-align: center; font-size: 1.2em;">{{ wallet.sigs_required }} out of {{ wallet.keys|length }} multisig</p>
 		{% else %}
 			<h2 class="subtitle">{{ _("Device") }}</h2>
 		{% endif %}
 		<div class="row overflow">
 			{% for device in wallet.devices %}
-				<a href="{{ url_for('devices_endpoint.device', device_alias=device.alias) }}" style="text-decoration: none;">
+				<a href="{{ url_for('devices_endpoint.device', device_alias=device.alias) }}" data-style="text-decoration: none;">
 					<div class="small-card radio">
 						<img src="{{ url_for('static', filename=device.icon) }}" width="18px">
 						{{ device.name }}
@@ -50,13 +50,13 @@
 		</div>
 		<button onclick="toggleKeysList()" id="toggle_keys_list" type="button" class="btn centered padded">{{ _("Show keys details") }}</button>
 		<br>
-		<div id="keys_list" class="center auto-width" style="display: none;">
-			<label style="font-size: 1.3em;">{{ _("Use SLIP-132:") }}&nbsp;</label>
+		<div id="keys_list" class="center auto-width" data-style="display: none;">
+			<label data-style="font-size: 1.3em;">{{ _("Use SLIP-132:") }}&nbsp;</label>
 			<label class="switch">
 				<input type="checkbox" id="use_slip_132" onchange="toggleKeyDisplay()">
 				<span class="slider"></span>
 			</label><br>
-			<p class="note" style="margin-top: 5px; max-width: 90%;">{{ _("SLIP-132 extended public keys (xpubs) are a different format for xpubs which usually starts with zpub or ypub.") }}</p>
+			<p class="note" data-style="margin-top: 5px; max-width: 90%;">{{ _("SLIP-132 extended public keys (xpubs) are a different format for xpubs which usually starts with zpub or ypub.") }}</p>
 			<br>
 			{% for i in range(wallet.devices | length) %}
 				{% set device = wallet.devices[i] %}
@@ -89,7 +89,7 @@
 		</div>
 	</div>
 	<div class="hidden" id="wallet_export_settings_tab">
-		<h1 style="font-size: 1.7em;">{{ _("Export Wallet") }}</h1>
+		<h1 data-style="font-size: 1.7em;">{{ _("Export Wallet") }}</h1>
 		<div class="card center">
 			{% set supports_export_to_device = [] %}
 			{% for device in wallet.devices if device.exportable_to_wallet %}
@@ -118,7 +118,7 @@
 							</a>
 						{% elif device.wallet_export_type == 'qr' %}
 							<button onclick="showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">Show {{ device.name }} QR Code</button>
-							<div id="{{ device.alias }}_export_qr_code" style="display: none;">
+							<div id="{{ device.alias }}_export_qr_code" data-style="display: none;">
 								<h1>{{ _("Scan this with your") }} {{ device.name }} {{ _("device") }} </h1>
 								<qr-code value="{{ device.export_wallet(wallet) }}" width="400" scalable></qr-code>
 							</div>
@@ -140,7 +140,7 @@
 			</p>
 			<a download="{{ wallet.name }}.json" class="btn centered padded" id="export_specter_format">Download Specter JSON file</a>
 			<div class="section-separator"></div>
-			<div class="row center" style="align-items: center;">
+			<div class="row center" data-style="align-items: center;">
 				<h2 class="subtitle">{{ _("Printable PDF backup") }}</h2>
 				<tool-tip width="180px">
 				    <span slot="paragraph">
@@ -149,23 +149,23 @@
 				    </span>
 				</tool-tip>
 			</div>
-			<p style="max-width: 500px;" class="center">
+			<p data-style="max-width: 500px;" class="center">
 			{{ _("It is recommended that you print this backup and save it with each of your devices.") }}
 			</p>
-			<button id="pdf-wallet-download" type="button" class="btn centered padded" style="margin: 30px auto;">Open backup PDF</button>
-			<span id="advanced_pdf_export_toggle" style="cursor: pointer;" onclick="togglePDFExportAdvanced()">{{ _("Adjust PDF backup (advanced)") }} &#9654;</span>
-			<div style="margin: 20px;" class="center hidden" id="advanced_pdf_export_container">
+			<button id="pdf-wallet-download" type="button" class="btn centered padded" data-style="margin: 30px auto;">Open backup PDF</button>
+			<span id="advanced_pdf_export_toggle" data-style="cursor: pointer;" onclick="togglePDFExportAdvanced()">{{ _("Adjust PDF backup (advanced)") }} &#9654;</span>
+			<div data-style="margin: 20px;" class="center hidden" id="advanced_pdf_export_container">
 				<div class="row center">
-					<label style="font-size: 1em;">{{ _("Use SLIP-132 for xpubs in PDF:") }}&nbsp;</label>
+					<label data-style="font-size: 1em;">{{ _("Use SLIP-132 for xpubs in PDF:") }}&nbsp;</label>
 					<label class="switch">
-						<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()">
+						<input type="checkbox" id="use_slip_132_pdf" data-style="margin: auto;" onchange="toggleKeyDisplay()">
 						<span class="slider"></span>
 					</label>
 				</div>
 			</div>
 			{% if not wallet.is_multisig %} 
 			<div class="section-separator"></div>
-			<div class="row center" style="align-items: center;">
+			<div class="row center" data-style="align-items: center;">
 				<h2 class="subtitle">{{ _("Uncle Jim PDF") }}</h2>
 				<tool-tip width="180px">
 				    <span slot="paragraph">
@@ -176,7 +176,7 @@
 				</tool-tip>
 			</div>
 				<p class="center"> {{ _("PDF optimized for Uncle Jims: hand out addresses to receive funds for friends & family without hardware wallet.") }}</p>
-				<button id="pdf-paperxpub-download" type="button" class="btn centered padded" style="margin: 30px auto;">
+				<button id="pdf-paperxpub-download" type="button" class="btn centered padded" data-style="margin: 30px auto;">
 					Get Uncle Jim PDF
 				</button>
 			{% endif %}
@@ -185,24 +185,24 @@
 		</div>
 	</div>
 	<div class="hidden" id="wallet_advanced_settings_tab">
-		<h1 style="font-size: 1.7em;">{{ _("Advanced Options") }}</h1>
+		<h1 data-style="font-size: 1.7em;">{{ _("Advanced Options") }}</h1>
 		<div class="card">
 			<h2 class="subtitle">{{ _("Import address labels (Electrum or Specter)") }}</h2>
-			<form action="." method="POST" class="padded" style="max-width: 500px">
+			<form action="." method="POST" class="padded" data-style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				<div class="row aligned">
 					<dnd-textarea 
 						name="address_labels_data" 
 						id="address_labels_data" 
 						placeholder="{{ _('You can paste and drag & drop here:') }}&#10&#10{{ _('Electrum JSON file, Specter addresses CSV or Specter JSON file') }}"  
-						textarea-style="margin-bottom: 10px;">
+						textarea-data-style="margin-bottom: 10px;">
 					</dnd-textarea>
 					<file-uploader id="label-uploader" image_src="{{ url_for('static', filename='img/file.svg') }}" image_width="30px" button_width="137px" button_height="50px" button_color="hsl(217, 20%, 35%)">
 						<span slot="description">or upload file</span>
 					</file-uploader>
 				</div>
 				<div class="row center">
-					<button type="submit" name="action" value="import_address_labels" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Import") }}
+					<button type="submit" name="action" value="import_address_labels" class="btn" data-style="max-width: 130px; margin-left: 20px">{{ _("Import") }}
 						<tool-tip width="200px">
 							<span slot="paragraph">
 								{{ _('The expected format for Electrum contains:') }}<br>
@@ -219,26 +219,26 @@
 			</form>
 			<div class="section-separator"></div>
 			<h2 class="subtitle">{{ _("Keypool control") }}</h2>
-			<form action="." method="POST" class="padded" style="max-width: 500px">
+			<form action="." method="POST" class="padded" data-style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				<div>{{ _("Currently watching") }} {{ wallet.keypool }} {{ _("receiving and") }} {{ wallet.change_keypool }} {{ _("change addresses.") }}</div>
 				<div class="row aligned">
-					<div style="flex-grow: 1">{{ _("Watch") }} <input type="number" name="keypooladd" value="100" step="1" style="margin: 10px" class="inline"> {{ _("more addresses") }} </div>
-					<button type="submit" name="action" value="keypoolrefill" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Add") }}</button>
+					<div data-style="flex-grow: 1">{{ _("Watch") }} <input type="number" name="keypooladd" value="100" step="1" data-style="margin: 10px" class="inline"> {{ _("more addresses") }} </div>
+					<button type="submit" name="action" value="keypoolrefill" class="btn" data-style="max-width: 130px; margin-left: 20px">{{ _("Add") }}</button>
 				</div>
 			</form>
 			<div class="section-separator"></div>
 			<h2 class="subtitle" id="blockchain-rescan">{{ _("Blockchain rescan") }}</h2>
-			<form action="." method="POST" class="padded" style="max-width: 500px">
+			<form action="." method="POST" class="padded" data-style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				{% if wallet.rescan_progress %}
 					<div class="row aligned">
-						<div style="margin-right: 30px; flex-grow: 1;">{{ _("Rescanning blockchain:") }} <span id="{{ wallet.alias }}_wallet_rescan_percents">{{"%.2f" % (wallet.rescan_progress*100)}}</span>%</div>
-						<button type="submit" name="action" value="abortrescan" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Abort rescan") }}</button>
+						<div data-style="margin-right: 30px; flex-grow: 1;">{{ _("Rescanning blockchain:") }} <span id="{{ wallet.alias }}_wallet_rescan_percents">{{"%.2f" % (wallet.rescan_progress*100)}}</span>%</div>
+						<button type="submit" name="action" value="abortrescan" class="btn" data-style="max-width: 130px; margin-left: 20px">{{ _("Abort rescan") }}</button>
 					</div>
 				{% else %}
 					{{ _("Rescan blockchain from block:") }}<br>
-					<div class="row aligned" style="justify-content: space-between;">
+					<div class="row aligned" data-style="justify-content: space-between;">
 						{% if specter.info.chain == "main" %}
 							{% if wallet.is_taproot %}
 								{% set startblock=(709632 if not specter.info['pruned'] or specter.info['pruneheight'] < 709632 else specter.info['pruneheight']) %}
@@ -248,8 +248,8 @@
 						{% else %}
 							{% set startblock=(0 if not specter.info['pruned'] else specter.info['pruneheight']) %}
 						{% endif %}
-						<input type="number" name="startblock" value="{{startblock}}" style="flex-basis: 220px;" min="{{startblock}}">
-						<button id="rescan-btn" type="submit" name="action" value="rescanblockchain" class="btn" style="flex-basis: 170px; flex-grow: 0;">{{ _("Rescan") }}</button>
+						<input type="number" name="startblock" value="{{startblock}}" data-style="flex-basis: 220px;" min="{{startblock}}">
+						<button id="rescan-btn" type="submit" name="action" value="rescanblockchain" class="btn" data-style="flex-basis: 170px; flex-grow: 0;">{{ _("Rescan") }}</button>
 					</div>
 					{% if specter.info['pruned']  %}
 						<div class="note full-width">{{ _("Note: You are using a pruned node. Rescan is limited by the pruned height to block:") }} {{specter.info['pruneheight']}}</div>
@@ -261,18 +261,18 @@
 					{% endif %}
 				{% endif %}
 			</form>
-			<form action="." method="POST" class="padded" style="max-width: 500px">
+			<form action="." method="POST" class="padded" data-style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				{% if specter.info["utxorescan"] %}
 				<div class="row aligned padded">
-					<div style="flex-grow: 1">{{ _("UTXO rescan in process:") }} <span id="wallet_rescan_percents">{{ "%.2f"|format(specter.info["utxorescan"]) }}</span>%.</div>
-					<button type="submit" name="action" value="abortrescanutxo" class="btn" style="max-width: 130px; margin-left: 20px">{{ _("Abort rescan") }}</button>
+					<div data-style="flex-grow: 1">{{ _("UTXO rescan in process:") }} <span id="wallet_rescan_percents">{{ "%.2f"|format(specter.info["utxorescan"]) }}</span>%.</div>
+					<button type="submit" name="action" value="abortrescanutxo" class="btn" data-style="max-width: 130px; margin-left: 20px">{{ _("Abort rescan") }}</button>
 				</div>
 				{% else %}
-				<div class="row aligned" style="justify-content: space-between;">
-					<div style="flex-grow: 1">{{ _("Or rescan only unspent transactions:") }}
+				<div class="row aligned" data-style="justify-content: space-between;">
+					<div data-style="flex-grow: 1">{{ _("Or rescan only unspent transactions:") }}
 					</div>
-					<button id="rescan-utxo-btn" type="submit" name="action" value="rescanutxo" class="btn" style="flex-grow: 0; max-width: 170px; max-height: 35.5px">
+					<button id="rescan-utxo-btn" type="submit" name="action" value="rescanutxo" class="btn" data-style="flex-grow: 0; max-width: 170px; max-height: 35.5px">
 						{{ _("Rescan UTXO") }}
 						<tool-tip width="150px" image="note">
         					<h4 slot="title">{{ _("Rescanning UTXO set") }}</h4>
@@ -284,8 +284,8 @@
 					</button>
 				</div>
 				{% if specter.info['pruned'] %}
-					<div class="row" style="margin-top: 10px">
-						<label for="use_explorer"><input style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> {{ _("fetch missing data from block explorer") }}
+					<div class="row" data-style="margin-top: 10px">
+						<label for="use_explorer"><input data-style="width: auto; min-width: auto;" type="checkbox" id="use_explorer" name="use_explorer" checked> {{ _("fetch missing data from block explorer") }}
 						</label>
 						<tool-tip width="150px" image="note">
 						    <h4 slot="title">{{ _("Fetch missing data") }}</h4>
@@ -299,8 +299,8 @@
 						<br>
 						{{ _("Block explorer URL:") }}
 						{% include "components/explorer_select.jinja" %}
-						<span class="warning" id="utxo-warning" style="display: inline-block; max-width:300px;">
-							<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>{{ _("Careful with block explorers!") }}<br>
+						<span class="warning" id="utxo-warning" data-style="display: inline-block; max-width:300px;">
+							<img src="{{ url_for('static', filename='img/info_sign.svg') }}" data-style="width: 20px;"/><br>{{ _("Careful with block explorers!") }}<br>
 							{{ _("This may have privacy implications!") }}<br>
 							{{ _("Information fetched from the block explorer contains a list of unspent transactions of your wallet from old (pruned) blocks.") }}<br>
 							{{ _('"They" will know what transactions you are interested in.') }}
@@ -323,9 +323,9 @@
 			</form>
 			<div class="section-separator"></div>
 			<h2 class="subtitle">{{ _("Delete wallet") }}</h2>
-			<form action="." method="POST" class="padded" style="max-width: 500px">
+			<form action="." method="POST" class="padded" data-style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-				<button type="submit" id="delete_wallet" name="action" value="deletewallet" class="btn danger centered" style="max-width: 160px;">{{ _("Delete Wallet") }}</button>
+				<button type="submit" id="delete_wallet" name="action" value="deletewallet" class="btn danger centered" data-style="max-width: 160px;">{{ _("Delete Wallet") }}</button>
 			</form>
 		</div>
 	</div>

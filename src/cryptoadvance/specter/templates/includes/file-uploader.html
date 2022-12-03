@@ -19,7 +19,7 @@ document.addEventListener('file-upload', e => {
 <template id="file-uploader">
 
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-	<style>
+	<div style="display: none;"><!--<style>-->
 		input {
 			width: 200px;
 	    	height: 100px;
@@ -55,7 +55,7 @@ document.addEventListener('file-upload', e => {
       		padding: 0;
       		margin: 0;
     }
-	</style>
+	</div><!--</style>-->
 
 	<input type="file" id="input-file"/>
 	<label for="input-file">

@@ -201,12 +201,12 @@
                             <div class="card">
                                 <h1>{{ _("Wallet Name") }}: {{wallet.name}}</h1>
                                 <h2>{{ _("Error Details") }}:</h2>
-                                <p style="color: red">{{wallet.loading_error}}</p>
+                                <p data-style="color: red">{{wallet.loading_error}}</p>
                                 <br><br>
                                 <form action="{{ url_for('wallets_endpoint.failed_wallets') }}" method="POST" class="row center">
                                     <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <input type="hidden" name="wallet_data" value='{{ wallet|tojson }}' />
-                                    <a class="btn" id="download_failed_wallet_{{wallet.alias}}" download="{{ wallet.name }}.json" style="width: 180px; height: 35px; margin-top: 1.5px;">{{ _("Download wallet file") }}</a>&nbsp;&nbsp;
+                                    <a class="btn" id="download_failed_wallet_{{wallet.alias}}" download="{{ wallet.name }}.json" data-style="width: 180px; height: 35px; margin-top: 1.5px;">{{ _("Download wallet file") }}</a>&nbsp;&nbsp;
                                     <button class="btn" type="submit" name="action" value="importwallet" formaction="{{ url_for('wallets_endpoint.new_wallet', wallet_type='import_wallet') }}">{{ _("Recreate the wallet") }}</button>&nbsp;&nbsp;
                                     <button class="btn" name="action" value="delete_failed_wallet">{{ _("Delete wallet") }}</button>
                                 </form>
@@ -268,19 +268,22 @@
             );
             let result = await response.json();
             if (result.is_loading) {
+                console.log("is loading still")
                 setTimeout(updateWalletsLoadingData, 1000);
             } else {
                 document.getElementById("wallets-loading-indicator").classList.add("hidden");
                 {% if not specter.wallet_manager.failed_load_wallets %}
-                if ('{{wallet_alias}}' && window.location.href.endsWith('history/')) {
-                    document.getElementById("wallets-loading-done").classList.remove("hidden");
-                }
+                    if ('{{wallet_alias}}' && window.location.href.endsWith('history/')) {
+                        document.getElementById("wallets-loading-done").classList.remove("hidden");
+                    }
                 {% endif %}
             }
+
             for (wallet of result.loaded_wallets) {
                 document.getElementById(`${wallet}-sidebar-loading-placeholder`).style.display = 'none';
                 document.getElementById(`${wallet}-sidebar-list-item`).style.display = 'flex';
             }
+
             for (wallet of result.failed_load_wallets) {
                 document.getElementById(`${wallet}-sidebar-loading-placeholder`).style.display = 'none';
                 document.getElementById(`${wallet}-sidebar-list-item`).style.display = 'none';
