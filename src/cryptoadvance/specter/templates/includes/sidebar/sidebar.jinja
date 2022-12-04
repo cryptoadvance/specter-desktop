@@ -1,199 +1,165 @@
 {% from 'includes/sidebar/components/sidebar_btn.jinja' import sidebar_btn %}
 {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
 {% include "includes/sidebar/components/node_select_popup.jinja" %}
-<style>
-    #wallets_overview_link {
-        text-transform: none;
-        text-decoration: none;
-        float: right;
-        margin-right: 10px;
-    }
 
-    #wallets_overview_link:hover {
-        text-decoration: underline;
-        color: #fff;
-    }
+<div id="side-content" class="p-3 h-screen bg-dark-900 border-r border-dark-700 border-solid w-[300px] min-w-[300px] text-white select-none">
+    <nav class="flex flex-col justify-between h-full overflow-scroll">
+        <div>
+            {% if specter.info.get("initialblockdownload") %}
+                <!-- <p class="warning" data-style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" data-style="width: 20px;"/><br>{{ _("Bitcoin Core is still syncing...")}}<br>{{ _('(data might be outdated)')}}</p> -->
+            {% endif %}
+            {% if specter.network_info.version < 200000 %}
+                <!-- <p class="warning" data-style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/warning_sign.svg') }}" data-style="width: 20px;"/><br>{{ _("Bitcoin Core version is outdated.")}}<br>{{ _('Some features might not work...')}}<br>{{ _("(minimum required: v20.0.0).") }}</p> -->
+            {% endif %}
 
-    #node-switch-icon {
-        padding: 5px;
-        float: right;
-        width: 30px;
-        position: absolute;
-        {% if session["is_language_rtl"] %}
-        right: 210px;
-        {% else %}
-        left: 220px;
-        {% endif %}
-        top: -1px;
-        border-radius: 10px;
-    }
-
-    #node-switch-icon:hover {
-        background-color: #737f98;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% {  transform: rotate(359deg); }
-    }
-
-    .spinning {
-        animation: spin 2s linear infinite;
-    }
-
-    .no-connection {
-        cursor: pointer; 
-        margin: 0px 20px 5px;
-        display: flex;
-        flex-direction: column;
-        align-items: start;
-        padding: 10px 0;
-        border-left: 3px solid transparent;
-        text-decoration: none;
-        color: inherit;
-    }
-    .configure-click {
-        color: var(--default-color);
-        font-size: 0.9em; 
-        line-height: 1.5
-    }
-    .configure-click:hover {
-        color: white;
-    }
-</style>
-<div id="side-content">
-    <nav class="side">
-        {% if specter.info.get("initialblockdownload") %}
-            <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>{{ _("Bitcoin Core is still syncing...")}}<br>{{ _('(data might be outdated)')}}</p>
-        {% endif %}
-        {% if specter.network_info.version < 200000 %}
-            <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/><br>{{ _("Bitcoin Core version is outdated.")}}<br>{{ _('Some features might not work...')}}<br>{{ _("(minimum required: v20.0.0).") }}</p>
-        {% endif %}
-        {% if specter.node.is_running %}
-            <div id="active-node" onclick="showPageOverlay('bitcoin_core_info');document.getElementById('side-content').classList.remove('active');" class="item core" style="cursor: pointer;">
-                {% if specter.is_liquid %}
-                    {% from "components/liquid_svg.jinja" import liquid_svg %}
-                    {{ liquid_svg(specter.info.chain, 40) }}
-                {% else %}
-                    {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-                    {{ bitcoin_svg(specter.info.chain, 40) }}
-                {% endif %}
-                {% include "includes/sidebar/components/bitcoin_core_info.jinja" %}
-                <div>
-                    <span style="max-width: 140px;">{{ specter.node.name }}</span>
-                    <small>
-                        {% if specter.chain %}
-                            {% if specter.bitcoin_core_version != '' %}
-                                v{{ specter.bitcoin_core_version }}
-                            {% endif %}
-                            ({{specter.chain}}):
-                            {% if specter.info["blocks"] %}
-                                {{ specter.info.blocks }} blocks
+            {% if specter.node.is_running %} 
+                <div 
+                    class="flex flex-row justify-between items-center mb-3 bg-dark-700 rounded-xl px-3 py-2 shadow-md hover:bg-dark-800 cursor-pointer group" 
+                    onclick="showPageOverlay('bitcoin_core_info');document.getElementById('side-content').classList.remove('active');"
+                >
+            {% else %}
+                <a 
+                    class="flex flex-row justify-between items-center mb-3 bg-dark-700 rounded-xl px-3 py-2 shadow-md hover:bg-dark-800 cursor-pointer group" 
+                    href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) }}"
+                >
+            {% endif %}
+                <div class="flex flex-row items-center" id="active-node" data-style="cursor: pointer;">
+                    <div class="mr-2">
+                        {% if specter.node.is_running %}
+                            {% if specter.is_liquid %}
+                                {% from "components/liquid_svg.jinja" import liquid_svg %}
+                                {{ liquid_svg(specter.info.chain, 32) }}
                             {% else %}
-                                {{ specter.info.chain }}
+                                {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
+                                {{ bitcoin_svg(specter.info.chain, 32) }}
                             {% endif %}
+                        {% else %}
+                            <svg class="w-7 h-7 fill-current text-dark-600" version="1.1" viewBox="0 0 64 64"><path d="M54.5946,27.4366l5.66603e-08,-5.66066e-08c-0.745305,0.744598 -1.9414,0.780481 -2.73,0.0819001l1.11948e-07,9.86842e-08c-11.3381,-9.99478 -28.3408,-9.99478 -39.6789,-1.97368e-07l4.1375e-08,-3.6659e-08c-0.788564,0.698682 -1.98474,0.662797 -2.73,-0.0818999l-2.831,-2.8295l4.78383e-08,4.78239e-08c-0.782846,-0.782609 -0.783038,-2.05166 -0.000429116,-2.83451c0.0255969,-0.0256047 0.0518829,-0.0505111 0.078829,-0.0746918l-1.08875e-06,9.72979e-07c14.4215,-12.888 36.2226,-12.888 50.6441,-1.94596e-06l-4.18137e-09,-3.75185e-09c0.823858,0.73923 0.892463,2.00636 0.153233,2.83022c-0.0242251,0.0269984 -0.0491787,0.0533343 -0.0748332,0.0789783Zm-17.6311,13.896l1.74829e-07,9.87123e-08c1.00267,0.56613 1.35656,1.8379 0.79043,2.84057c-0.0942659,0.166954 -0.21111,0.320108 -0.34723,0.45513l-3.6928,3.6684l2.2751e-08,-2.25368e-08c-0.943884,0.934995 -2.46482,0.934995 -3.4087,4.50735e-08l-3.6928,-3.6684l-6.02819e-08,-5.98007e-08c-0.8175,-0.810974 -0.82279,-2.13111 -0.0118161,-2.94861c0.134967,-0.136053 0.288047,-0.252849 0.454916,-0.347088l2.96297e-07,-1.66902e-07c3.07549,-1.7324 6.83251,-1.7324 9.908,3.33805e-07Zm-14.8508,-3.792l3.86385e-08,-3.1954e-08c-0.835403,0.690877 -2.05882,0.634623 -2.8273,-0.13l-2.3847,-2.4084c-1.1739,-1.1855 -1.14,-2.6381 -0.1975,-3.4266l9.62086e-07,-8.05987e-07c8.84671,-7.41133 21.7347,-7.41133 30.5814,1.61198e-06l-5.08261e-08,-4.40698e-08c0.88879,0.770643 0.984568,2.11588 0.213926,3.00467c-0.0332999,0.0384052 -0.0679639,0.075606 -0.103925,0.111531l-2.6883,2.7151l2.63897e-08,-2.62774e-08c-0.768944,0.765671 -1.99317,0.823532 -2.8309,0.1338l-1.43462e-07,-1.17058e-07c-5.75168,-4.69307 -14.0109,-4.69307 -19.7626,2.34116e-07Z" /></svg>
                         {% endif %}
-                    </small>
+                    </div>
+                    {% include "includes/sidebar/components/bitcoin_core_info.jinja" %}
+                    <div>
+                        <span class="text-lg text-normal" data-style="max-width: 140px;">
+                            {% if specter.node.is_running %}
+                                {{ specter.node.name }}
+                            {% else %}
+                                {{ _("Disconnected") }}
+                            {% endif %}
+                        </span>
+                        <!--<small class="block">
+                            {% if specter.chain %}
+                                {% if specter.bitcoin_core_version != '' %}
+                                    v{{ specter.bitcoin_core_version }}
+                                {% endif %}
+                                ({{specter.chain}}):
+                                {% if specter.info["blocks"] %}
+                                    {{ specter.info.blocks }} blocks
+                                {% else %}
+                                    {{ specter.info.chain }}
+                                {% endif %}
+                            {% endif %}
+                        </small>-->
+                    </div>
                 </div>
-            </div>
-        {% else %}
-            <a id="no-node-connection" class="no-connection" href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) }}">
-               <div style="display: flex; gap: 5px">
-                    <span>{{ _("No node connection") }}</span>
-                    <img src="{{ url_for('static', filename='img/broken-connection.svg') }}" style="width: 15px;">
+                <div class="w-8 h-8 transition duration-100 flex items-center justify-center rounded-lg hover:drop-shadow hover:bg-dark-700">
+                    <img class="w-7 h-7" id="node-switch-icon" src="{{ url_for('static', filename='img/flip-horizontal.svg')}}" class="svg-white" onclick="showNodeSelectPopup(event);"/>
                 </div>
-                <div id="configure-click" class="configure-click">{{ _("Click to configure") }}</div>
-            </a>
-        {% endif%}
-        <img id="node-switch-icon" src="{{ url_for('static', filename='img/flip-horizontal.svg')}}" class="svg-white" onclick="showNodeSelectPopup()"/>
-        {% if specter.info["utxorescan"] %}
-        <div class="rescan_progress {{ specter.info.chain }}">
-            <div id="utxo_rescan_progress" style='width: {{ specter.info["utxorescan"] }}%'></div>
-        </div>
-        <script>
-            let utxoRescanProgress = '{{ specter.info["utxorescan"] }}';
-            let utxoRescanActive = true;
-            async function fetchUTXORescanProgress() {
-                try {
-                    const response = await fetch(
-                        "{{ url_for('wallets_endpoint_api.get_scantxoutset_status') }}",
-                        {
-                            method: 'GET'
-                        }
-                    );
-                    let result = await response.json();
-                    utxoRescanActive = result.active;
-                    utxoRescanProgress = result.progress;
-                    let walletRescanData = document.getElementById('wallet_rescan_data');
-                    let walletRescanPercentsSettings = document.getElementById('wallet_rescan_percents');
-                    let walletRescanPercents = document.getElementById('{{ specter.utxorescanwallet }}_balances_wallet_rescan_percents');
-                    if (utxoRescanActive) {
-                        document.getElementById('utxo_rescan_progress').style.width = utxoRescanProgress + '%';
-                        if (walletRescanPercents) {
-                            walletRescanPercents.innerHTML = (Math.round(parseFloat(utxoRescanProgress) * 100) / 100).toFixed(2);
-                        } else if (walletRescanPercentsSettings) {
-                            walletRescanPercentsSettings.innerHTML = (Math.round(parseFloat(utxoRescanProgress) * 100) / 100).toFixed(2);
-                        }
-                        setTimeout(fetchUTXORescanProgress, 1000);
-                    } else {
-                        document.getElementById('utxo_rescan_progress').style.display = 'none';
-                        if (walletRescanData) {
-                            walletRescanData.style.display = 'none';
-                        }
-                        if (walletRescanData || walletRescanPercentsSettings) {
-                            window.location = window.location.href;
-                        }
-                    }
-                } catch(e) {
-                    console.log('Caught error:', e);
-                    return { success: false, error: e };
-                }
-            }
-            setTimeout(fetchUTXORescanProgress, 1000);
-        </script>
-        {% endif %}
-        {% if specter.setup_status.stage != "start" and specter.rpc is none %}
-            {{ sidebar_btn(url_for('setup_endpoint.' + specter.setup_status.stage), _('See setup progress'), class='btn action', icon=false) }}
-        {% endif %}
-        <div class="separator">
-            <span id="toggle_wallets_list" style="cursor: pointer;">{{ _("Wallets") }} &nbsp; &#9660;</span>
-            {% if (specter.wallet_manager.wallets | length) > 1 %}
-                <a class="note" id="wallets_overview_link" href="{{ url_for('wallets_endpoint.wallets_overview') }}" style="cursor: pointer;">
-                    {{ _("Wallets overview") }}
+            {% if specter.node.is_running %}
+                </div>
+            {% else %}
                 </a>
             {% endif %}
-        </div>
-        <div id="wallets_list">
-            <span id="wallets-loading-indicator" class="note {% if not specter.wallet_manager.is_loading or not specter.chain %}hidden{% endif %}" style="text-align: left; margin-left: 20px; margin-top: 5px;">
-                <img height="16px" class="spinning" id="wallet-manager-loader" style="vertical-align: sub;" src="{{ url_for('static', filename='img/refresh.svg') }}" />
-                {{ _("Updating wallets data...") }}
-            </span>
-            <span id="wallets-loading-done" class="note hidden" style="text-align: left; margin: 5px 5px 5px 20px;">
-                {{ _("Finished updating your wallets") }}
-                <br>
-                <span id="wallets-loading-done-refresh" class="explorer-link" onclick="location.reload()" style="text-decoration: underline; margin-left: 20px;">
-                    {{ _("Click here to refresh") }}
-                </span>
-            </span>
-            {% set loading_wallets = [] %}
-            {% for wallet in specter.wallet_manager.wallets_update_list if wallet not in specter.wallet_manager.wallets_names %}
-                {% set loading_wallets = loading_wallets.append(specter.wallet_manager.wallets_update_list[wallet]) %}
-            {% endfor %}
-            {% if (specter.device_manager.devices | length) != 0 and specter.chain %}
-                {% from 'includes/sidebar/components/sidebar_wallet_list_item.jinja' import sidebar_wallet_list_item %}
-                {% for wallet in ((specter.wallet_manager.wallets.values()|list) + loading_wallets) | sort(attribute='name') %}
-                    {{ sidebar_wallet_list_item(wallet, wallet_alias, specter.info.chain, loading=(wallet in loading_wallets)) }}
-                {% endfor %}
+
+            {% if (specter.wallet_manager.wallets | length) > 1 %}
+                <a class="text-dark-200 py-1 font-medium hover:bg-dark-800 rounded-lg px-3 flex space-x-2 items-center hover:text-dark-50" id="wallets_overview_link" href="{{ url_for('wallets_endpoint.wallets_overview') }}" data-style="cursor: pointer;" title="Wallets Overview">
+                    <svg class="w-5 h-5 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M15.3154 16.8815H4.69043C3.82749 16.8815 3.12793 16.1819 3.12793 15.319V12.9214V12.9211C3.12793 12.6449 3.14624 12.3689 3.18274 12.0951L4.19721 4.48747C4.30071 3.71119 4.9629 3.13144 5.74605 3.13147H14.2601C15.0432 3.13148 15.7053 3.71121 15.8088 4.48747L16.8232 12.0953V12.0953C16.8598 12.3691 16.8781 12.6451 16.8781 12.9213V15.319V15.319C16.8781 16.1819 16.1785 16.8815 15.3156 16.8815C15.3155 16.8815 15.3155 16.8815 15.3155 16.8815L15.3154 16.8815ZM15.5696 12.1527L14.5696 4.65267C14.5489 4.49743 14.4165 4.3815 14.2599 4.38148H5.74599C5.5894 4.38151 5.45701 4.49744 5.4363 4.65267L4.4363 12.1527C4.41349 12.3237 4.53368 12.4809 4.70475 12.5037C4.71844 12.5056 4.73224 12.5065 4.74605 12.5065H6.96543C7.09994 12.5065 7.21937 12.5926 7.2619 12.7202L7.74446 14.1678C7.78699 14.2954 7.90642 14.3815 8.04093 14.3815H11.9654C12.0999 14.3815 12.2194 14.2954 12.2619 14.1678L12.7445 12.7202C12.787 12.5926 12.9064 12.5065 13.0409 12.5065H15.2602C15.4328 12.5064 15.5726 12.3664 15.5725 12.1938C15.5725 12.1801 15.5716 12.1663 15.5698 12.1527H15.5696Z"/>
+                    </svg>
+                    <span>{{ _("Wallets Overview") }}</span>
+                </a>
             {% endif %}
-            {% if specter.chain %}
-                {{ sidebar_btn(url_for('wallets_endpoint.new_wallet_type'), _('Add new wallet'), 'btn_new_wallet') }}
+            
+            <a class="text-dark-200 py-1 px-3 font-medium hover:bg-dark-800 rounded-lg group flex justify-between items-center hover:text-dark-50" href="https://specter-desktop-docs.netlify.app/" target="_blank" title="Documentation">
+                <div class="space-x-2 flex items-center">
+                    <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" >
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M9.10943 15.8918H9.10943C7.97267 15.2981 6.70746 14.9928 5.42505 15.0028C4.69836 15.0095 3.97546 15.1084 3.27365 15.297C3.08956 15.3565 2.89211 15.2555 2.83264 15.0714C2.82126 15.0362 2.81553 14.9994 2.81568 14.9624V4.76991V4.76989C2.81563 4.62302 2.90688 4.4916 3.04451 4.44034H3.04451C3.81599 4.20215 4.6177 4.07608 5.42505 4.06601H5.42505C6.8691 4.04875 8.28841 4.44164 9.51802 5.19904C9.62659 5.27142 9.69147 5.39355 9.69068 5.52404V15.5574V15.5574C9.68914 15.7719 9.51402 15.9446 9.29953 15.943C9.23281 15.9426 9.16734 15.9249 9.10943 15.8918H9.10943ZM17.1907 4.76988V14.9624V14.9624C17.1914 15.1558 17.0352 15.3132 16.8418 15.314C16.8047 15.3141 16.7679 15.3084 16.7327 15.297C16.0309 15.1084 15.308 15.0095 14.5813 15.0028C13.2989 14.9928 12.0337 15.2981 10.8969 15.8918C10.7108 15.9983 10.4735 15.9337 10.367 15.7475C10.3338 15.6896 10.3161 15.6241 10.3157 15.5574V5.52404V5.52404C10.3149 5.39356 10.3798 5.27142 10.4883 5.19904H10.4883C11.7179 4.44164 13.1372 4.04875 14.5813 4.06601H14.5813C15.3887 4.07609 16.1904 4.20216 16.9619 4.44035C17.0995 4.49165 17.1907 4.62307 17.1907 4.76991V4.76988Z" />
+                    </svg>
+                    <span>{{ _("Documentation") }}</span>
+                </div>
+                <div class="transition duration-100 ease-out group-hover:opacity-100 opacity-0">
+                    <svg class="fill-current w-4 h-4" version="1.1" viewBox="0 0 64 64"><path d="M51.9981,26.9756l5.78282e-08,-5.78559e-11c-1.10457,0.0011051 -2.00089,-0.893429 -2.002,-1.998c-3.39838e-08,-3.39675e-05 -6.71022e-08,-6.7935e-05 -9.93553e-08,-0.000101902v-8.1411l-16.624,16.5775l1.16223e-07,-1.15486e-07c-0.779384,0.774441 -2.03901,0.770434 -2.81345,-0.00894979c-0.774441,-0.779384 -0.770434,-2.03901 0.00894979,-2.81345l16.6424,-16.5953h-8.232l-8.73397e-08,-7.10543e-15c-1.10352,-4.82364e-08 -1.9981,-0.89458 -1.9981,-1.9981c4.82364e-08,-1.10352 0.89458,-1.9981 1.9981,-1.9981h13.02l1.5855e-08,-1.58664e-11c1.10457,-0.00110506 2.00089,0.893429 2.002,1.998c6.38039e-10,6.37761e-07 1.27507e-09,1.27481e-06 1.91251e-09,1.91257e-06v12.9795l6.71771e-08,-7.21156e-05c-0.00100901,1.10457 -0.897257,1.99918 -2.00183,1.99817c-6.01627e-07,-5.4958e-10 -1.20339e-06,-1.09956e-09 -1.80502e-06,-1.64968e-09Zm-23.9981,-4.9824h-12l-1.15444e-07,1.38321e-10c-1.10426,0.00132314 -1.99901,0.896345 -2,2.0006v24.0062l-4.14599e-08,-5.27927e-05c0.000852687,1.1043 0.895646,1.99941 1.99995,2.00065h24.0001l-2.84669e-08,3.83622e-11c1.10419,-0.00148802 1.99884,-0.896413 2,-2.0006v-12l2.13163e-14,3.01992e-07c-1.66785e-07,-1.10457 0.89543,-2 2,-2c1.10457,-1.66785e-07 2,0.89543 2,2c0,0 0,0 0,0v12l9.87819e-08,-0.000107092c-0.00302619,3.31277 -2.68712,5.9979 -5.99989,6.00221h-24.0001l-7.20361e-08,-9.35074e-11c-3.31275,-0.00429953 -5.99686,-2.68935 -6,-6.0021v-24.0062l-9.89574e-08,0.000107275c0.00302629,-3.31274 2.68716,-5.99781 5.99989,-6.00201h12.0001l1.12438e-07,7.94934e-10c1.10493,0.00781187 1.99432,0.909866 1.98651,2.01479c-0.00773387,1.0939 -0.892608,1.97877 -1.98651,1.98651Z" fill-rule="evenodd"/></svg>
+                </div>
+            </a>
+
+            <a class="text-dark-200 py-1 px-3 font-medium hover:bg-dark-800 rounded-lg flex space-x-2 items-center hover:text-dark-50" href="{{ url_for('settings_endpoint.settings') }}" title="Settings" >
+                <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" >
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M17.9014 10.6963L16.655 11.0524C16.5423 11.0854 16.4576 11.1788 16.4356 11.2941V11.2941C16.3803 11.5692 16.3071 11.8405 16.2165 12.1061C16.1776 12.2171 16.2044 12.3406 16.2857 12.4255L17.1881 13.3582C17.2852 13.4585 17.3041 13.6111 17.2343 13.7321L16.8452 14.4059C16.7754 14.5269 16.6338 14.5869 16.4983 14.553L15.2327 14.2361H15.2327C15.1187 14.2082 14.9987 14.2465 14.9219 14.3352C14.7381 14.5444 14.5412 14.7419 14.3325 14.9263C14.2438 15.0031 14.2055 15.123 14.2333 15.237L14.5497 16.5016C14.5837 16.637 14.5237 16.7786 14.4028 16.8484L13.7288 17.2375C13.6079 17.3074 13.4552 17.2886 13.3549 17.1914L12.4176 16.2846C12.3328 16.2032 12.2093 16.1763 12.0983 16.2152C11.8344 16.3055 11.565 16.3788 11.2917 16.4346C11.1766 16.4567 11.0834 16.5414 11.0504 16.6539L10.6931 17.9046C10.6547 18.0389 10.532 18.1315 10.3923 18.1315H9.61417C9.4745 18.1315 9.35175 18.0389 9.31336 17.9046L8.95626 16.6542C8.92327 16.5415 8.82992 16.4567 8.71455 16.4347H8.71455C8.44065 16.3797 8.1706 16.307 7.90608 16.2171C7.79514 16.1784 7.67182 16.2052 7.58699 16.2865L6.6517 17.1914C6.55134 17.2886 6.39872 17.3074 6.27777 17.2375L5.60389 16.8485C5.48301 16.7786 5.42308 16.637 5.45702 16.5016L5.77411 15.2352C5.80202 15.1211 5.76361 15.0009 5.67467 14.9241H5.67467C5.46513 14.7406 5.2674 14.5439 5.08267 14.3354C5.00591 14.247 4.88613 14.2088 4.77233 14.2366L3.50845 14.553C3.37297 14.5869 3.23142 14.5269 3.16158 14.406L2.77226 13.7321C2.70244 13.6111 2.72125 13.4585 2.81836 13.3582L3.72261 12.4238C3.80407 12.3388 3.83085 12.2152 3.79189 12.1041V12.1041C3.70086 11.8391 3.62708 11.5685 3.57101 11.294C3.54893 11.1788 3.46429 11.0856 3.35173 11.0527L2.10514 10.6964C1.97083 10.658 1.87824 10.5353 1.8783 10.3956V9.61747V9.61746C1.87825 9.47778 1.97084 9.35501 2.10515 9.31665L3.35149 8.9604C3.46418 8.92738 3.5489 8.83404 3.57087 8.71869V8.71869C3.62629 8.44357 3.6995 8.17233 3.79002 7.90669C3.82892 7.79568 3.80214 7.67222 3.72074 7.58731L2.81836 6.65487C2.72125 6.5545 2.70244 6.40192 2.77226 6.28097L3.16129 5.60706C3.23118 5.48617 3.37272 5.42624 3.50817 5.46019L4.77401 5.77709C4.888 5.80496 5.008 5.76667 5.08479 5.67794L5.08479 5.67794C5.26864 5.46868 5.46549 5.27124 5.6742 5.08678C5.76292 5.01006 5.80121 4.89012 5.77336 4.77618L5.45673 3.51159C5.42276 3.37614 5.4827 3.23458 5.60361 3.16472L6.27748 2.77565C6.39844 2.70581 6.55103 2.72461 6.65142 2.82172L7.5887 3.72859C7.67363 3.80999 7.79707 3.8368 7.90811 3.79797L7.90811 3.79797C8.17194 3.70761 8.44131 3.63432 8.71454 3.57853C8.82974 3.55644 8.9229 3.47178 8.95589 3.35922L9.31323 2.1085C9.35163 1.97421 9.47438 1.88164 9.61404 1.88162H10.3922C10.5318 1.88165 10.6546 1.97422 10.693 2.1085L11.0502 3.35893C11.0832 3.47167 11.1766 3.55643 11.292 3.57843V3.57843C11.5658 3.63348 11.8359 3.70618 12.1004 3.79606C12.2114 3.83476 12.3347 3.80794 12.4195 3.72665L13.3548 2.82178C13.4551 2.72463 13.6077 2.7058 13.7287 2.77565L14.4025 3.16472C14.5235 3.23458 14.5834 3.37614 14.5494 3.51159L14.2324 4.77797C14.2045 4.8921 14.2429 5.01225 14.3318 5.08903C14.5414 5.27259 14.7391 5.46921 14.9238 5.67772C15.0005 5.76622 15.1203 5.80437 15.2341 5.77656L16.498 5.46018C16.6335 5.4262 16.7751 5.48614 16.8449 5.60706L17.2339 6.28097C17.3038 6.40191 17.285 6.5545 17.1879 6.65487L16.2836 7.5894C16.2022 7.67439 16.1754 7.79794 16.2144 7.90903V7.90903C16.3054 8.17403 16.3791 8.44465 16.4352 8.71918C16.4573 8.83435 16.5419 8.9275 16.6544 8.9605L17.9011 9.31675C18.0354 9.35511 18.128 9.47788 18.128 9.61756V10.3957V10.3957C18.128 10.5352 18.0355 10.6579 17.9014 10.6963L17.9014 10.6963ZM7.07576 6.18597C7.03225 6.11023 6.93558 6.08411 6.85984 6.12762C6.85304 6.13153 6.84654 6.13594 6.84039 6.14081H6.84039C4.70546 7.87952 4.38426 11.0197 6.12297 13.1547C6.33709 13.4176 6.57748 13.658 6.84039 13.8721C6.90886 13.9263 7.00836 13.9148 7.06261 13.8463C7.06747 13.8402 7.07187 13.8337 7.07576 13.8269L8.87576 10.7095C9.12697 10.2744 9.12697 9.73835 8.87576 9.30326L7.07576 6.18597ZM10.0031 5.00625C9.39819 5.00559 8.79817 5.11501 8.23239 5.32915C8.15167 5.36114 8.11216 5.45251 8.14415 5.53323C8.14705 5.54057 8.15051 5.54768 8.15448 5.5545L9.95798 8.67828C10.2092 9.11337 10.6734 9.3814 11.1758 9.3814H14.7776C14.865 9.38146 14.9359 9.31068 14.9359 9.22331C14.9359 9.21556 14.9354 9.20782 14.9342 9.20015C14.5402 6.78277 12.4524 5.00709 10.0031 5.00625H10.0031ZM14.7775 10.6312H11.176C10.6736 10.6312 10.2093 10.8993 9.95814 11.3344L8.15464 14.4581C8.11091 14.5331 8.13627 14.6294 8.21128 14.6731C8.2181 14.6771 8.22521 14.6806 8.23255 14.6835H8.23255C10.8152 15.6597 13.7003 14.3575 14.6766 11.7748C14.7943 11.4634 14.8806 11.141 14.9342 10.8125C14.9468 10.726 14.8869 10.6457 14.8005 10.6331C14.7929 10.632 14.7853 10.6315 14.7777 10.6315L14.7775 10.6312Z"/>
+                </svg>
+                <span>{{ _("Settings") }}</span>
+            </a>
+
+            <a class="text-dark-200 group py-1 px-3 font-medium hover:bg-dark-800 rounded-lg flex justify-between items-center hover:text-dark-50" href="https://help.swanbitcoin.com/hc/en-us" target="_blank" title="Help & Support">
+                <div class="space-x-2 flex items-center">
+                    <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" >
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M10.0032 16.8815C9.51088 16.8749 9.02025 16.8228 8.53755 16.7259C8.30961 16.6869 8.0759 16.7475 7.89555 16.8922C6.97295 17.5699 5.88972 17.9956 4.75255 18.1274C4.56535 18.147 4.39768 18.0112 4.37806 17.824C4.36966 17.7439 4.38989 17.6635 4.43514 17.5969H4.43514C4.87465 17.0495 5.19023 16.4134 5.36014 15.7323C5.39441 15.5464 5.32173 15.3568 5.17189 15.2415C3.51322 14.0093 2.52592 12.0726 2.50317 10.0065C2.50317 6.21425 5.86105 3.1315 10.0032 3.1315C14.1453 3.1315 17.5032 6.21422 17.5032 10.0065C17.5032 13.7988 14.1454 16.8815 10.0032 16.8815H10.0032ZM10.0032 14.3815C10.5209 14.3815 10.9407 13.9618 10.9407 13.444C10.9407 12.9262 10.5209 12.5065 10.0032 12.5065C9.48541 12.5065 9.06567 12.9262 9.06567 13.444C9.06567 13.9618 9.48541 14.3815 10.0032 14.3815ZM10.0032 5.6315C8.62242 5.6315 7.50317 6.61088 7.50317 7.819V7.81901C7.50066 8.0582 7.53095 8.29661 7.5932 8.52757C7.63134 8.66325 7.75523 8.75688 7.89617 8.75654H8.5308C8.70263 8.75658 8.84196 8.61732 8.842 8.44549C8.84201 8.41048 8.83611 8.37571 8.82455 8.34266C8.76863 8.17382 8.74117 7.99686 8.7433 7.81901C8.7433 7.30122 9.34039 6.88151 9.94449 6.88151C10.5486 6.88151 11.1359 7.30119 11.1359 7.81901C11.1359 9.37579 9.37799 9.1801 9.37799 11.2565C9.37799 11.4291 9.5179 11.569 9.69049 11.569H10.3936C10.5662 11.569 10.7061 11.4291 10.7061 11.2565C10.7061 9.74613 12.503 9.82426 12.503 7.81901C12.5032 6.61087 11.384 5.6315 10.0032 5.63153L10.0032 5.6315Z" />
+                    </svg>
+                    <span>{{ _("Support") }}</span>
+                </div>
+                <div class="transition duration-100 ease-out group-hover:opacity-100 opacity-0">
+                    <svg class="fill-current w-4 h-4" version="1.1" viewBox="0 0 64 64"><path d="M51.9981,26.9756l5.78282e-08,-5.78559e-11c-1.10457,0.0011051 -2.00089,-0.893429 -2.002,-1.998c-3.39838e-08,-3.39675e-05 -6.71022e-08,-6.7935e-05 -9.93553e-08,-0.000101902v-8.1411l-16.624,16.5775l1.16223e-07,-1.15486e-07c-0.779384,0.774441 -2.03901,0.770434 -2.81345,-0.00894979c-0.774441,-0.779384 -0.770434,-2.03901 0.00894979,-2.81345l16.6424,-16.5953h-8.232l-8.73397e-08,-7.10543e-15c-1.10352,-4.82364e-08 -1.9981,-0.89458 -1.9981,-1.9981c4.82364e-08,-1.10352 0.89458,-1.9981 1.9981,-1.9981h13.02l1.5855e-08,-1.58664e-11c1.10457,-0.00110506 2.00089,0.893429 2.002,1.998c6.38039e-10,6.37761e-07 1.27507e-09,1.27481e-06 1.91251e-09,1.91257e-06v12.9795l6.71771e-08,-7.21156e-05c-0.00100901,1.10457 -0.897257,1.99918 -2.00183,1.99817c-6.01627e-07,-5.4958e-10 -1.20339e-06,-1.09956e-09 -1.80502e-06,-1.64968e-09Zm-23.9981,-4.9824h-12l-1.15444e-07,1.38321e-10c-1.10426,0.00132314 -1.99901,0.896345 -2,2.0006v24.0062l-4.14599e-08,-5.27927e-05c0.000852687,1.1043 0.895646,1.99941 1.99995,2.00065h24.0001l-2.84669e-08,3.83622e-11c1.10419,-0.00148802 1.99884,-0.896413 2,-2.0006v-12l2.13163e-14,3.01992e-07c-1.66785e-07,-1.10457 0.89543,-2 2,-2c1.10457,-1.66785e-07 2,0.89543 2,2c0,0 0,0 0,0v12l9.87819e-08,-0.000107092c-0.00302619,3.31277 -2.68712,5.9979 -5.99989,6.00221h-24.0001l-7.20361e-08,-9.35074e-11c-3.31275,-0.00429953 -5.99686,-2.68935 -6,-6.0021v-24.0062l-9.89574e-08,0.000107275c0.00302629,-3.31274 2.68716,-5.99781 5.99989,-6.00201h12.0001l1.12438e-07,7.94934e-10c1.10493,0.00781187 1.99432,0.909866 1.98651,2.01479c-0.00773387,1.0939 -0.892608,1.97877 -1.98651,1.98651Z" fill-rule="evenodd"/></svg>
+                </div>
+            </a>
+
+            {% if specter.info["utxorescan"] %}
+                <div class="rescan_progress {{ specter.info.chain }}">
+                    <div id="utxo_rescan_progress" style='width: {{ specter.info["utxorescan"] }}%'></div>
+                </div>
+            {% endif %}
+
+            {% if specter.setup_status.stage != "start" and specter.rpc is none %}
+                <div class="mx-3 mt-3">
+                    {{ sidebar_btn(url_for('setup_endpoint.' + specter.setup_status.stage), _('See setup progress'), class='btn action', icon=false) }}
+                </div>
+            {% endif %}
+
+            <div class="mx-3 mt-8 flex items-center justify-between {% if not specter.chain %}opacity-40 pointer-events-none{% else %}cursor-pointer{% endif %}">
+                <span class="" id="toggle_wallets_list" data-style="cursor: pointer;">{{ _("Wallets") }} ▸</span>
+                <img class="rounded-full bg-dark-700 w-4 h-4 animate-spin {% if not specter.wallet_manager.is_loading or not specter.chain %} hidden {% endif %}" id="wallet-manager-loader" data-style="vertical-align: sub;" src="{{ url_for('static', filename='img/refresh.svg') }}" />
+            </div>
+
+            <div class="mx-3" id="wallets_list">
+                <!-- Loading Incidator -->
+                <!-- <span id="wallets-loading-indicator" class="flex items-center space-x-1 {% if specter.wallet_manager.is_loading or not specter.chain %}hidden{% endif %}"> -->
+                <!--     <img class="w-4 h-4 animate-spin" id="wallet-manager-loader" data-style="vertical-align: sub;" src="{{ url_for('static', filename='img/refresh.svg') }}" /> -->
+                <!--     <div>{{ _("Updating wallets data...") }}</div> -->
+                <!-- </span> -->
+
+                <!-- New data alert -->
+                <span id="wallets-loading-done" class="hidden" data-style="text-align: left; margin: 5px 5px 5px 20px;">
+                    <span id="wallets-loading-done-refresh" class="explorer-link" onclick="location.reload()" data-style="text-decoration: underline; margin-left: 20px;">
+                        {{ _("Click to refresh") }}
+                    </span>
+                </span>
+
+                {% set loading_wallets = [] %}
+                {% for wallet in specter.wallet_manager.wallets_update_list if wallet not in specter.wallet_manager.wallets_names %}
+                    {% set loading_wallets = loading_wallets.append(specter.wallet_manager.wallets_update_list[wallet]) %}
+                {% endfor %}
+                {% if (specter.device_manager.devices | length) != 0 and specter.chain %}
+                    {% from 'includes/sidebar/components/sidebar_wallet_list_item.jinja' import sidebar_wallet_list_item %}
+                    {% for wallet in ((specter.wallet_manager.wallets.values()|list) + loading_wallets) | sort(attribute='name') %}
+                        {{ sidebar_wallet_list_item(wallet, wallet_alias, specter.info.chain, loading=(wallet in loading_wallets)) }}
+                    {% endfor %}
+                {% endif %}
+
+                <!-- {% if specter.chain %} -->
                 {% if specter.wallet_manager.failed_load_wallets %}
                     <form action="{{ url_for('wallets_endpoint.failed_wallets') }}" method="POST">
                         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                         <p class="warning center">
-                            <img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/><br>{{ _("Failed to load some wallets") }}<br>
-                            <button class="btn" name="action" value="retry_loading_wallets" style="margin: auto;">{{ _("Retry loading wallets") }}</button>
-                            <button type="button" class="btn" onclick="showPageOverlay('failed_wallets_popup')" style="margin: auto; margin-top: 5px;">{{ _("Show Details") }}</button>
+                            <img src="{{ url_for('static', filename='img/warning_sign.svg') }}" data-style="width: 20px;"/><br>{{ _("Failed to load some wallets") }}<br>
+                            <button class="btn" name="action" value="retry_loading_wallets" data-style="margin: auto;">{{ _("Retry loading wallets") }}</button>
+                            <button type="button" class="btn" onclick="showPageOverlay('failed_wallets_popup')" data-style="margin: auto; margin-top: 5px;">{{ _("Show Details") }}</button>
                         </p>
                     </form>
                     <div class="hidden" id="failed_wallets_popup">
@@ -219,43 +185,124 @@
                         {% endfor %}
                     </div>
                 {% endif %}
-            {% elif not specter.setup_status.stage == "bitcoind_datadir" %}
-                <p class="warning" style="border: 1px solid #fff;">
-                <img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/>
-                <br>{{ _("Wallets are unavailable if Specter is not connected to Bitcoin Core!") }}<br>
-                {% if current_user.is_admin %}
-                <a style="margin: 5px; transform: scale(0.9); font-size: 1em;" class="btn" href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) }}">
-                    <img src="{{ url_for('static', filename='img/gear.svg') }}" style="width: 24px; margin: 0px;" class="svg-white">{{ _('Configure Node') }}
-                </a>
-                {% endif %}
-                </p>
-            {% endif %}
+                <!-- {% elif not specter.setup_status.stage == "bitcoind_datadir" %} -->
+                <!--     <p class="warning" data-style="border: 1px solid #fff;"> -->
+                <!--     <img src="{{ url_for('static', filename='img/info_sign.svg') }}" data-style="width: 20px;"/> -->
+                <!--     <br>{{ _("Wallets are unavailable if Specter is not connected to Bitcoin Core!") }}<br> -->
+                <!--     {% if current_user.is_admin %} -->
+                <!--     <a data-style="margin: 5px; transform: scale(0.9); font-size: 1em;" class="btn" href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) }}"> -->
+                <!--         <img src="{{ url_for('static', filename='img/gear.svg') }}" data-style="width: 24px; margin: 0px;" class="svg-white">{{ _('Configure Node') }} -->
+                <!--     </a> -->
+                <!--     {% endif %} -->
+                <!--     </p> -->
+                <!-- {% endif %} -->
+            </div>
 
+            <div class="mx-3 mt-3 {% if not specter.chain %}opacity-40 pointer-events-none{% endif %}">
+                {{ sidebar_btn(url_for('wallets_endpoint.new_wallet_type'), _('Add new wallet'), 'btn_new_wallet', icon=false) }}
+            </div>
+
+            <div class="mx-3 mt-8 cursor-pointer">
+                <span class="" id="toggle_devices_list" data-style="cursor: pointer;">{{ _("Devices") }} ▸</span>
+            </div>
+
+            {% from 'includes/sidebar/components/sidebar_device_list_item.jinja' import sidebar_device_list_item %}
+            <div class="mx-3" id="devices_list">
+                {% for device_name in specter.device_manager.devices_names %}
+                        {{ sidebar_device_list_item(specter.device_manager.devices[device_name], device_alias) }}
+                {% endfor %}
+            </div>
+
+            <div class="mx-3 mt-3">
+                {{ sidebar_btn(url_for('devices_endpoint.new_device_type'), _('Add new device'),'btn_new_device', icon=false) }}
+            </div>
+
+            <div class="mx-3 mt-8">
+                <span class="" id="toggle_services_list" data-style="cursor: pointer;">Plugins</span>
+            </div>
+
+            {% include "includes/sidebar/components/sidebar_services_list.jinja" %}
+
+            <div class="mx-3 mt-3">
+                {{ sidebar_btn(url_for('services_endpoint.choose'), 'Choose plugins', 'btn_plugins', icon=false) }}
+            </div>
+            <br>
         </div>
 
-        <div class="separator">
-            <span id="toggle_devices_list" style="cursor: pointer;">{{ _("Devices") }} &nbsp; &#9660;</span>
-        </div>
-        {% from 'includes/sidebar/components/sidebar_device_list_item.jinja' import sidebar_device_list_item %}
-        <div id="devices_list">
-            {% for device_name in specter.device_manager.devices_names %}
-                    {{ sidebar_device_list_item(specter.device_manager.devices[device_name], device_alias) }}
-            {% endfor %}
-            {{ sidebar_btn(url_for('devices_endpoint.new_device_type'), _('Add new device'),'btn_new_device') }}
-        </div>
-        {% include "services/sidebar_services_list.jinja" %}
-        {{ sidebar_btn(url_for('services_endpoint.choose'), 'Choose plugins', 'btn_plugins') }}
-        <br>
         <div class="footer">
-	        <span>{{ _("Specter Version:") }} <strong>{{ specter.version.current }}</strong></span>
-            <a style="color: #fff; font-size: 1.1em; margin: 10px; text-align: center;" href="{{ url_for('welcome_endpoint.about') }}">
-            {{ _("About Specter") }}<br>
-            <img src="{{ url_for('static', filename='img/ghost_3d.png') }}" style="width: 35px;"/>
+	        <!-- <span>{{ _("Specter Version:") }} <strong>{{ specter.version.current }}</strong></span> -->
+            <a class="flex items-center group" data-style="color: #fff; font-size: 1.1em; margin: 10px; text-align: center;" href="{{ url_for('welcome_endpoint.about') }}">
+                <div class="w-10 h-10 rounded-xl bg-dark-700 flex justify-center items-center">
+                    <svg class="fill-current text-white h-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 46 52" fill="none">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M12.2826 12.2827C12.2826 5.49917 17.7664 -0.0103061 24.531 1.4476e-05C29.9681 0.00830974 33.8242 2.95307 35.966 7.96458C37.832 12.3307 38.6454 17.6084 38.9324 21.3988C38.9324 21.3988 45.9657 22.5023 45.9657 27.6361C45.9657 29.332 44.626 30.7068 42.9036 30.7068C40.2721 30.7068 38.8846 28.2599 38.8846 28.2599C38.6454 31.9543 37.4244 37.6848 35.8703 41.3582C34.5307 44.5248 32.0915 47.3645 28.6796 49.1418C26.3542 50.3531 23.7408 50.8704 22.9999 50.9939C22.2591 51.1173 18.3724 51.6177 16.3325 49.8826C15.5469 49.2144 15.6663 48.4937 15.7855 47.7744C15.8822 47.1908 15.9788 46.6081 15.5916 46.055C14.8997 45.0665 13.4148 44.9222 11.8174 44.767C10.0226 44.5926 8.08568 44.4044 6.97175 42.9895C6.07137 41.8459 5.94887 40.3208 5.84475 39.0245C5.77189 38.1174 5.70802 37.3222 5.39285 36.8481C4.94498 36.1744 4.09643 35.6711 3.20446 35.1419L3.20443 35.1419C1.6825 34.2391 0.0341797 33.2613 0.0341797 31.2346C0.0341797 29.7822 1.17691 29.8185 2.79603 29.87C4.76052 29.9324 7.42631 30.0171 9.60324 27.4922C9.77256 27.2658 9.02642 27.3565 8.10111 27.4691C7.45763 27.5473 6.72751 27.6361 6.15838 27.6361C4.46723 27.6361 3.14413 26.2613 3.14413 24.5654C3.14413 20.2494 8.61547 18.4241 13.0172 18.4241C13.0172 18.4241 12.2826 15.6893 12.2826 12.2827ZM33.1136 11.6727C33.2466 12.7556 32.696 13.7143 31.8838 13.8141C31.0716 13.9138 30.3054 13.1168 30.1724 12.0338C30.0394 10.9509 30.5901 9.99215 31.4023 9.89243C32.2145 9.7927 32.9807 10.5898 33.1136 11.6727ZM25.6929 14.2269C26.5051 14.1272 27.0557 13.1685 26.9227 12.0855C26.7897 11.0026 26.0235 10.2055 25.2113 10.3053C24.3991 10.405 23.8485 11.3637 23.9815 12.4467C24.1144 13.5296 24.8807 14.3266 25.6929 14.2269Z" />
+                    </svg>
+                </div>
+                <div class="ml-2 group-hover:ml-3 transition-all ease-out duration-200">{{ _("About Specter") }}</div>
             </a>
         </div>
     </nav>
 </div>
+
+{% if specter.info["utxorescan"] %}
 <script>
+    let utxoRescanProgress = '{{ specter.info["utxorescan"] }}';
+    let utxoRescanActive = true;
+    async function fetchUTXORescanProgress() {
+        try {
+            const response = await fetch(
+                "{{ url_for('wallets_endpoint_api.get_scantxoutset_status') }}",
+                {
+                    method: 'GET'
+                }
+            );
+            let result = await response.json();
+            utxoRescanActive = result.active;
+            utxoRescanProgress = result.progress;
+            let walletRescanData = document.getElementById('wallet_rescan_data');
+            let walletRescanPercentsSettings = document.getElementById('wallet_rescan_percents');
+            let walletRescanPercents = document.getElementById('{{ specter.utxorescanwallet }}_balances_wallet_rescan_percents');
+            if (utxoRescanActive) {
+                document.getElementById('utxo_rescan_progress').style.width = utxoRescanProgress + '%';
+                if (walletRescanPercents) {
+                    walletRescanPercents.innerHTML = (Math.round(parseFloat(utxoRescanProgress) * 100) / 100).toFixed(2);
+                } else if (walletRescanPercentsSettings) {
+                    walletRescanPercentsSettings.innerHTML = (Math.round(parseFloat(utxoRescanProgress) * 100) / 100).toFixed(2);
+                }
+                setTimeout(fetchUTXORescanProgress, 1000);
+            } else {
+                document.getElementById('utxo_rescan_progress').style.display = 'none';
+                if (walletRescanData) {
+                    walletRescanData.style.display = 'none';
+                }
+                if (walletRescanData || walletRescanPercentsSettings) {
+                    window.location = window.location.href;
+                }
+            }
+        } catch(e) {
+            console.log('Caught error:', e);
+            return { success: false, error: e };
+        }
+    }
+    setTimeout(fetchUTXORescanProgress, 1000);
+</script>
+{% endif %}
+
+<script>
+    if (localStorage.wallets === 'true') {
+        document.getElementById('wallets_list').classList.remove('hidden')
+        document.getElementById('toggle_wallets_list').innerHTML = 'Wallets ▾';
+    } else {
+        document.getElementById('wallets_list').classList.add('hidden')
+        document.getElementById('toggle_wallets_list').innerHTML = 'Wallets ▸';
+    }
+
+    if (localStorage.devices === 'true') {
+        document.getElementById('devices_list').classList.remove('hidden')
+        document.getElementById('toggle_devices_list').innerHTML = 'Devices ▾';
+    } else {
+        document.getElementById('devices_list').classList.add('hidden')
+        document.getElementById('toggle_devices_list').innerHTML = 'Devices ▸';
+    }
 
     async function updateWalletsLoadingData() {
         try {
@@ -297,12 +344,14 @@
     function toggleList(type, display_text) {
         let titleButton = document.getElementById('toggle_' + type + '_list');
         let list = document.getElementById(type + '_list');
-        if (list.style.display === 'none') {
-            list.style.display = 'block';
-            titleButton.innerHTML = capitalize(display_text) + ' &nbsp; &#9660;';
+        if (!list.classList || list.classList.contains('hidden')) {
+            document.getElementById(type + '_list').classList.remove('hidden')
+            localStorage[type] = true;
+            titleButton.innerHTML = display_text + ' ▾';
         } else {
-            list.style.display = 'none';
-            titleButton.innerHTML = capitalize(display_text) + ' &nbsp; &#9654;';
+            document.getElementById(type + '_list').classList.add('hidden')
+            localStorage[type] = false;
+            titleButton.innerHTML = display_text + ' ▸';
         }
     }
 
@@ -314,10 +363,6 @@
                 toggleList('devices', '{{ _("Devices") }}');
             });
         }
-        {% if specter.device_manager.devices_names|length > 0 %}
-            // Make the default state hidden
-            toggleList('devices', '{{ _("Devices") }}');
-        {% endif %}
 
         if ('{{ specter.wallet_manager.wallets_names | length }}' == '0') {
             document.getElementById('toggle_wallets_list').innerHTML = `{{ _("Wallets") }}`;
@@ -334,6 +379,7 @@
                 toggleList('services');
             });
         }
+
         {% if specter.wallet_manager.is_loading %}
             updateWalletsLoadingData();
         {% endif %}

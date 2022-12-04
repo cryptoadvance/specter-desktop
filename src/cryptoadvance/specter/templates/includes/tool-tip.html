@@ -70,7 +70,7 @@ You can use the move-right attribute, to move the tooltip to the right if necess
 <template id="tooltip-template-id">
     <style>
         .tooltip {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             margin-left: 0.5em;
             position: relative;
@@ -78,40 +78,28 @@ You can use the move-right attribute, to move the tooltip to the right if necess
         .tooltip__icon {
             background: none;
             cursor: pointer;
-            width: 1.3em;
         }
         .tooltip__box {
             display: none;
             position: absolute;
-            left: 30px;
+            left: 28px;
             top: -20px;
-            background: var(--cmap-bg-lightest);
-            border: 1.5px solid var(--default-color);
-            border-radius: 10px;
-            padding: 10px;
+            background: black;
+            border-radius: 8px;
+            padding: 12px 16px;
             z-index: 4;
-        }
-        /* This makes the arrow */
-        .tooltip__box:before {
-            content: "";
-            position: absolute;
-            left: -10px;
-            top: 20px;
-            border-style: solid;
-            border-width: 10px 10px 10px 0;
-            border-color: transparent var(--default-color);
         }
         .title {
             text-align: start;
             font-size: 14px;
             font-weight: bold;
-            line-height: 1.1;
+            line-height: 1.3;
             color: white;
         }
         .paragraph {
             display: block;
             text-align: start;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 300;
             line-height: 1.3;
             color: white;
@@ -128,38 +116,52 @@ You can use the move-right attribute, to move the tooltip to the right if necess
     </style>
 
     <div class="tooltip">
-        <img class="tooltip__icon" src="{{ url_for('static', filename='img/light-bulb.svg') }}" id="tooltip-img"></img>
+        <!-- <img class="tooltip__icon" src="{{ url_for('static', filename='img/light-bulb.svg') }}" id="tooltip-img"></img> -->
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 20 20"
+            fill="none"
+        >
+            <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M10.0031 16.8816C9.51083 16.875 9.0202 16.8229 8.5375 16.726C8.30957 16.687 8.07586 16.7476 7.8955 16.8923C6.9729 17.57 5.88967 17.9957 4.7525 18.1275C4.5653 18.1471 4.39764 18.0113 4.37801 17.8241C4.36962 17.744 4.38984 17.6636 4.4351 17.597H4.4351C4.8746 17.0496 5.19019 16.4135 5.3601 15.7324C5.39436 15.5464 5.32168 15.3569 5.17185 15.2416C3.51318 14.0094 2.52587 12.0727 2.50313 10.0066C2.50313 6.21434 5.861 3.13159 10.0031 3.13159C14.1453 3.13159 17.5031 6.21431 17.5031 10.0066C17.5031 13.7989 14.1453 16.8816 10.0031 16.8816H10.0031ZM10.0031 14.3816C10.5209 14.3816 10.9406 13.9619 10.9406 13.4441C10.9406 12.9263 10.5209 12.5066 10.0031 12.5066C9.48536 12.5066 9.06563 12.9263 9.06563 13.4441C9.06563 13.9619 9.48536 14.3816 10.0031 14.3816ZM10.0031 5.63159C8.62238 5.63159 7.50313 6.61097 7.50313 7.81909V7.8191C7.50061 8.05829 7.53091 8.2967 7.59316 8.52766C7.63129 8.66334 7.75519 8.75698 7.89613 8.75663H8.53075C8.70258 8.75667 8.84191 8.61741 8.84196 8.44559C8.84197 8.41057 8.83607 8.3758 8.8245 8.34275C8.76858 8.17391 8.74112 7.99695 8.74325 7.8191C8.74325 7.30132 9.34035 6.8816 9.94444 6.8816C10.5485 6.8816 11.1358 7.30129 11.1358 7.8191C11.1358 9.37588 9.37794 9.18019 9.37794 11.2566C9.37794 11.4292 9.51785 11.5691 9.69044 11.5691H10.3936C10.5662 11.5691 10.7061 11.4292 10.7061 11.2566C10.7061 9.74622 12.5029 9.82435 12.5029 7.8191C12.5031 6.61097 11.384 5.63159 10.0031 5.63162L10.0031 5.63159Z"
+                fill="#AAAAAA"
+            />
+        </svg>
         <div class="tooltip__box" id="tooltip-box">
             <slot name="title" class="title"></slot>
             <slot name="paragraph" class="paragraph"></slot>
         </div>
     </div>
 </template>
-  
+
 <script type="module">
     class TooltipElement extends HTMLElement {
         constructor() {
             super();
-            var shadowRoot = this.attachShadow({mode: 'open'});
-            var template = document.getElementById('tooltip-template-id');
+            var shadowRoot = this.attachShadow({ mode: "open" });
+            var template = document.getElementById("tooltip-template-id");
             var clone = template.content.cloneNode(true);
-            this.tooltipImg = clone.getElementById('tooltip-img');
-            this.tooltipDiv = clone.querySelector('.tooltip');
+            this.tooltipImg = clone.getElementById("tooltip-img");
+            this.tooltipDiv = clone.querySelector(".tooltip");
             // CustomEvent that can be picked up to adjust flex properties in the parent
             this.tooltipDiv.addEventListener("mouseover", () => {
-                let event = new CustomEvent('customhover');
+                let event = new CustomEvent("customhover");
                 this.dispatchEvent(event);
-            })
+            });
             this.tooltipDiv.addEventListener("mouseout", () => {
-                let event = new CustomEvent('customout');
+                let event = new CustomEvent("customout");
                 this.dispatchEvent(event);
-            })
+            });
             this.tooltipBox = clone.getElementById("tooltip-box");
             shadowRoot.appendChild(clone);
         }
 
         static get observedAttributes() {
-            return ['width', 'move'];
+            return ["width", "move"];
         }
 
         connectedCallback() {
@@ -171,11 +173,12 @@ You can use the move-right attribute, to move the tooltip to the right if necess
             }
             if (this.getAttribute("image")) {
                 if (this.getAttribute("image") == "note") {
-                    this.tooltipImg.src = "{{ url_for('static', filename='img/note.svg') }}";
+                    this.tooltipImg.src =
+                        "{{ url_for('static', filename='img/note.svg') }}";
                     this.tooltipImg.style.width = "1.5em";
                 }
             }
         }
     }
-customElements.define('tool-tip', TooltipElement);
+    customElements.define("tool-tip", TooltipElement);
 </script>

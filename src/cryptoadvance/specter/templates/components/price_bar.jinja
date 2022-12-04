@@ -35,8 +35,8 @@
 </div><!--</style>-->
 <a class="text-white h-9 px-2 text-lg bg-dark-800 border-2 border-dark-700 rounded-lg text-md" id="price-bar-btn" title="Bitcoin price" type="button" data-style="cursor: pointer; background: #4a90e2; color: #fff; padding: 0px 20px;" class="settings-bar-btn left-toolbar" onclick="showPageOverlay('price-popup')">
     {% if specter.price_check %}
-        <div title="Price settings">
-            <span>{{ 1 | altunit}}</span>
+        <div title="Price settings" class="h-full flex items-center">
+            <span class="leading-none">{{ 1 | altunit}}</span>
         </div>        
     {% else %}
         <img src="{{ url_for('static', filename='img/no-dollars.svg') }}" data-style="width: 40px;" title="Enable Fiat price display" class="svg-white"/>

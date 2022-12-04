@@ -1,6 +1,6 @@
-<div class="page_overlay" id="page_overlay" style="display: none;">
-    <div class="page_overlay_popup" id="page_overlay_popup">
-        <div id="page_overlay_popup_content"></div>
+<div class="hidden absolute w-screen h-screen" id="page_overlay" data-style="display: none;">
+    <div class="w-screen h-screen bg-black/60 flex flex-col items-center justify-center" id="page_overlay_popup" onclick="cancelOverlay()">
+        <div class="box-shadow-xl bg-dark-800 overflow-hidden rounded-2xl text-white" id="page_overlay_popup_content"></div>
         <div class="page_overlay_popup_cancel">
             <a href="#" id="page_overlay_popup_cancel_button" class="item medium" onclick="cancelOverlay()">{{ _("cancel") }}</a>
         </div>
@@ -9,7 +9,7 @@
     </div>
 </div>
 
-<div class="loader" id="pacman">
+<div class="loader hidden" id="pacman">
     <img src="{{ url_for('static', filename='img/loader.gif') }}"/>
     <div>{{ _("Loading... It may take a while...") }}</div>
 </div>
@@ -29,7 +29,7 @@
 
         // Position and show the popup
         var overlayPopup = document.getElementById("page_overlay_popup");
-        overlayPopup.style.display = "block";
+        overlayPopup.style.display = "flex";
 
         // Show the content
         var pageContent = document.getElementById("page_overlay_popup_content").children[0];
