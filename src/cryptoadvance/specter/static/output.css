@@ -841,6 +841,14 @@ select {
   margin-top: -1px;
 }
 
+.mb-10 {
+  margin-bottom: 2.5rem;
+}
+
+.mt-6 {
+  margin-top: 1.5rem;
+}
+
 .block {
   display: block;
 }
@@ -971,6 +979,10 @@ select {
 
 .w-9 {
   width: 2.25rem;
+}
+
+.w-12 {
+  width: 3rem;
 }
 
 .min-w-\[300px\] {
@@ -1252,6 +1264,16 @@ select {
 .text-dark-300 {
   --tw-text-opacity: 1;
   color: rgb(111 112 115 / var(--tw-text-opacity));
+}
+
+.text-dark-400 {
+  --tw-text-opacity: 1;
+  color: rgb(87 88 91 / var(--tw-text-opacity));
+}
+
+.text-dark-500 {
+  --tw-text-opacity: 1;
+  color: rgb(63 64 68 / var(--tw-text-opacity));
 }
 
 .underline {
