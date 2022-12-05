@@ -24,6 +24,13 @@
 						    </span>
 						</tool-tip>
 					{% endif %}
+					{% if not specter.node.is_device_supported(device) %}
+						<tool-tip width="150px" image="note" style="position: absolute; top: 30px; left: 25px;">
+						    <span slot="paragraph">
+						    	{{ _("For this node, this device cannot be selected.") }} <br>
+						    </span>
+						</tool-tip>
+					{% endif %}
 				</label>
 			{% endfor %}
 			<a href="{{ url_for('devices_endpoint.new_device_type') }}" style="text-decoration: none; color: #fff;">

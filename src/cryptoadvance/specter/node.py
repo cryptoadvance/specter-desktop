@@ -3,6 +3,7 @@ import logging
 import os
 from os import path
 import shutil
+from typing import Type
 
 from embit.liquid.networks import get_network
 from flask import render_template
@@ -131,6 +132,14 @@ class AbstractNode(PersistentObject):
         raise NotImplemented(
             "A Node Implementation need to implement the check_blockheight method"
         )
+
+    def is_device_supported(self, device: Type):
+        """Enables the node to deactivate specific devices.
+        e.g.
+        if device == cryptoadvance.specter.device.Trezor
+            return False
+        """
+        return True
 
     def node_info_template(self):
         """This should return the path to a Info template as string"""
