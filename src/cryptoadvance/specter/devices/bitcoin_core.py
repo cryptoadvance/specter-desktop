@@ -27,7 +27,6 @@ class BitcoinCore(Device):
 
     hot_wallet = True
     taproot_support = True
-    spectrum_support = False
 
     # default sighash to use
     SIGHASH = "ALL"
