@@ -49,21 +49,21 @@
   </sodipodi:namedview>
   <path
      d="M6.9303 19.0306V22.4891C6.9303 22.9135 7.27439 23.2576 7.69885 23.2576H22.3013C22.7257 23.2576 23.0698 22.9135 23.0698 22.4891V19.0306"
-     stroke="black"
+     stroke="white"
      stroke-width="1.5"
      stroke-linecap="round"
      stroke-linejoin="round"
      id="path2" />
   <path
      d="M23.0698 13.8902L19.9956 16.9644L16.9214 13.8902"
-     stroke="black"
+     stroke="white"
      stroke-width="1.5"
      stroke-linecap="round"
      stroke-linejoin="round"
      id="path4" />
   <path
      d="M10.0045 16.3144V11.7379C10.0045 8.97896 12.2411 6.74237 15.0001 6.74237V6.74237C17.759 6.74237 19.9956 8.97896 19.9956 11.7379V16.3144"
-     stroke="black"
+     stroke="white"
      stroke-width="1.5"
      stroke-linecap="round"
      stroke-linejoin="round"
@@ -76,7 +76,7 @@
        fill-rule="evenodd"
        clip-rule="evenodd"
        d="m 24,15 c 0,4.9706 -4.0294,9 -9,9 -4.9706,0 -9,-4.0294 -9,-9 0,-4.9706 4.0294,-9 9,-9 4.9706,0 9,4.0294 9,9 z m -9.4998,-0.0149 c -0.004,0.1329 0.0448,0.267 0.1462,0.3684 l 2.8284,2.8284 c 0.1953,0.1953 0.5119,0.1953 0.7071,0 0.1953,-0.1952 0.1953,-0.5118 0,-0.7071 l -2.682,-2.6819 V 9.96997 c 0,-0.27614 -0.2238,-0.5 -0.5,-0.5 -0.2761,0 -0.5,0.22386 -0.5,0.5 V 14.97 c 0,0.005 10e-5,0.0101 3e-4,0.0151 z"
-       fill="#000000"
+       fill="white"
        id="path829" />
   </g>
 </svg>
