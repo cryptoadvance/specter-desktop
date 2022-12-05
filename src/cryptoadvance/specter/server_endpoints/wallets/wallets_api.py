@@ -527,8 +527,9 @@ def addressinfo(wallet_alias):
             match = re.search(derivation_path_pattern, descriptor)
             if not match:
                 logger.debug(
-                    f"Derivation path of this descriptor {descriptor} could not be parsed. Sth. wrong with the regex pattern which was {derivation_path_pattern}?"
+                    f"Derivation path of this descriptor {descriptor} for address {address} could not be parsed. Sth. wrong with the regex pattern which was {derivation_path_pattern}?"
                 )
+                return jsonify(success=False)
             logger.debug(f"This is the derivation path match: {match.group()}")
             derivation_path = "m" + match.group()
             address_info = wallet.get_address_info(address=address)
