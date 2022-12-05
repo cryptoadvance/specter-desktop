@@ -3,7 +3,6 @@ import logging
 import os
 from os import path
 import shutil
-from typing import Type
 
 from embit.liquid.networks import get_network
 from flask import render_template
@@ -20,6 +19,7 @@ from .rpc import (
     get_default_datadir,
 )
 from .specter_error import SpecterError, BrokenCoreConnectionException
+from .device import Device
 
 logger = logging.getLogger(__name__)
 
@@ -133,13 +133,13 @@ class AbstractNode(PersistentObject):
             "A Node Implementation need to implement the check_blockheight method"
         )
 
-    def is_device_supported(self, device: Type):
-        """Enables the node to deactivate specific devices.
+    def device_is_not_supported(self, device: Device):
+        """Lets the node deactivate specific devices based on their class names.
         e.g.
-        if device == cryptoadvance.specter.device.Trezor
-            return False
+        if device.__class__.__name__ == "BitcoinCore":
+            return True
         """
-        return True
+        return False
 
     def node_info_template(self):
         """This should return the path to a Info template as string"""
