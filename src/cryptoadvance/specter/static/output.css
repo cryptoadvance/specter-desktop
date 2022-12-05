@@ -419,6 +419,12 @@ video {
   display: none;
 }
 
+/*
+   *
+   * General HTML Tags
+   *
+   */
+
 h1 {
   margin-bottom: 0.5rem;
   font-size: 2.25rem;
@@ -531,6 +537,54 @@ select {
   outline-offset: 2px;
 }
 
+/*
+   *
+   * Button
+   *
+   */
+
+.button {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  height: 2.75rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+.button > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 0;
+  margin-right: calc(0.5rem * var(--tw-space-x-reverse));
+  margin-left: calc(0.5rem * calc(1 - var(--tw-space-x-reverse)));
+}
+
+.button {
+  border-radius: 0.75rem;
+  --tw-bg-opacity: 1;
+  background-color: rgb(44 45 49 / var(--tw-bg-opacity));
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+.button:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(27 28 33 / var(--tw-bg-opacity));
+}
+
+.button img {
+  height: 1.75rem;
+  width: 1.75rem;
+}
+
+/*
+   *
+   * Selection Items
+   *
+   */
+
 .selection {
   display: flex;
   aspect-ratio: 1 / 1;
@@ -543,7 +597,7 @@ select {
   border-color: rgb(27 28 33 / var(--tw-border-opacity));
   --tw-bg-opacity: 1;
   background-color: rgb(20 21 26 / var(--tw-bg-opacity));
-  padding-bottom: 0.25rem;
+  padding-bottom: 0.5rem;
 }
 
 .selection:hover {
@@ -552,6 +606,7 @@ select {
 }
 
 .selection p {
+  margin: 0px;
   text-align: center;
   font-size: 1rem;
   line-height: 1.5rem;
@@ -772,11 +827,6 @@ select {
   margin-bottom: 0.5rem;
 }
 
-.my-5 {
-  margin-top: 1.25rem;
-  margin-bottom: 1.25rem;
-}
-
 .mx-3 {
   margin-left: 0.75rem;
   margin-right: 0.75rem;
@@ -797,8 +847,13 @@ select {
   margin-bottom: 0.25rem;
 }
 
-.mt-10 {
-  margin-top: 2.5rem;
+.my-5 {
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.mt-6 {
+  margin-top: 1.5rem;
 }
 
 .mb-3 {
@@ -821,16 +876,12 @@ select {
   margin-left: 0.5rem;
 }
 
-.mb-5 {
-  margin-bottom: 1.25rem;
-}
-
 .mb-2 {
   margin-bottom: 0.5rem;
 }
 
-.mb-6 {
-  margin-bottom: 1.5rem;
+.mb-10 {
+  margin-bottom: 2.5rem;
 }
 
 .mb-4 {
@@ -841,12 +892,12 @@ select {
   margin-top: -1px;
 }
 
-.mb-10 {
-  margin-bottom: 2.5rem;
+.mt-10 {
+  margin-top: 2.5rem;
 }
 
-.mt-6 {
-  margin-top: 1.5rem;
+.mb-5 {
+  margin-bottom: 1.25rem;
 }
 
 .block {
@@ -969,6 +1020,10 @@ select {
   width: 2.5rem;
 }
 
+.w-12 {
+  width: 3rem;
+}
+
 .w-6 {
   width: 1.5rem;
 }
@@ -979,10 +1034,6 @@ select {
 
 .w-9 {
   width: 2.25rem;
-}
-
-.w-12 {
-  width: 3rem;
 }
 
 .min-w-\[300px\] {
@@ -1033,12 +1084,12 @@ select {
           user-select: none;
 }
 
-.grid-cols-4 {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
 .grid-cols-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .flex-row {
@@ -1264,16 +1315,6 @@ select {
 .text-dark-300 {
   --tw-text-opacity: 1;
   color: rgb(111 112 115 / var(--tw-text-opacity));
-}
-
-.text-dark-400 {
-  --tw-text-opacity: 1;
-  color: rgb(87 88 91 / var(--tw-text-opacity));
-}
-
-.text-dark-500 {
-  --tw-text-opacity: 1;
-  color: rgb(63 64 68 / var(--tw-text-opacity));
 }
 
 .underline {
