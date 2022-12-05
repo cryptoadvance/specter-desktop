@@ -41,11 +41,6 @@ class NotificationsService(Service):
             scheduler (APScheduler): _description_
             app (_type_): While in other services app is optional, it is required here. python will automatically map the kwargs['app'] to this app
         """
-
-        def every5seconds(hello, world="world"):
-            with scheduler.app.app_context():
-                print(f"Called {hello} {world} every5seconds")
-
         self.scheduler = scheduler
 
         notifications_endpoint_url = "/".join(
