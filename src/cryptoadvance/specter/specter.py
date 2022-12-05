@@ -110,7 +110,9 @@ class Specter:
         # Migrating from Specter 1.3.1 and lower (prior to the node manager)
         self.migrate_old_node_format()
 
-        logger.info("Instantiate NodeManager")
+        logger.info(
+            f"Instantiate NodeManager with node alias: {self.active_node_alias}."
+        )
         self.node_manager = NodeManager(
             proxy_url=self.proxy_url,
             only_tor=self.only_tor,
@@ -118,7 +120,22 @@ class Specter:
             bitcoind_path=self.bitcoind_path,
             internal_bitcoind_version=self._internal_bitcoind_version,
             data_folder=os.path.join(self.data_folder, "nodes"),
+            service_manager=self.service_manager
+            if hasattr(self, "service_manager")
+            else None,
         )
+        try:
+            logger.debug(
+                f"This is the active node in the node manager: {self.node_manager.active_node}"
+            )
+        except SpecterError as e:
+            if str(e).endswith("does not exist!"):
+                logger.warning(
+                    f"Current Node doesn't exist. Switching over to node {self.node_manager.DEFAULT_ALIAS}."
+                )
+                self.update_active_node(self.node_manager.DEFAULT_ALIAS)
+            else:
+                raise e
 
         self.torbrowser_path = os.path.join(
             self.data_folder, f"tor-binaries/tor{get_tor_daemon_suffix()}"
@@ -299,8 +316,10 @@ class Specter:
     # mark
     def update_active_node(self, node_alias):
         """update the current active node to use"""
+        self.node_manager.switch_node(
+            node_alias
+        )  # If the node alias doesn't exist, this throws an exception preventing incorrectly updating the config.
         self.config_manager.update_active_node(node_alias)
-        self.node_manager.switch_node(node_alias)
         self.check()
 
     def update_setup_status(self, software_name, stage):

@@ -628,7 +628,8 @@ class Wallet:
         self.check_addresses()
 
     def check_unused(self):
-        """Check current receive address is unused and get new if needed"""
+        """Check current receive address is unused and get new if needed
+        Used means: the given address having a non-zero amount received in transactions with zero confirmations."""
         addr = self.address
         try:
             while self.rpc.getreceivedbyaddress(addr, 0) != 0:

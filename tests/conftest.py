@@ -35,7 +35,7 @@ from cryptoadvance.specter.util.wallet_importer import WalletImporter
 logger = logging.getLogger(__name__)
 
 pytest_plugins = [
-    # "conftest_visibility",
+    "conftest_visibility",
     "fix_ghost_machine",
     "fix_keys_and_seeds",
     "fix_devices_and_wallets",
@@ -218,18 +218,39 @@ def node(empty_data_folder, bitcoin_regtest):
     nodes_folder = empty_data_folder + "/nodes"
     if not os.path.isdir(nodes_folder):
         os.makedirs(nodes_folder)
-    node = Node.from_json(
-        {
-            "autodetect": False,
-            "datadir": bitcoin_regtest.datadir,
-            "user": bitcoin_regtest.rpcconn.rpcuser,
-            "password": bitcoin_regtest.rpcconn.rpcpassword,
-            "port": bitcoin_regtest.rpcconn.rpcport,
-            "host": bitcoin_regtest.rpcconn.ipaddress,
-            "protocol": "http",
-        },
-        manager=NodeManager(data_folder=nodes_folder),
-        default_fullpath=os.path.join(nodes_folder, "standard_node.json"),
+    nm = NodeManager(data_folder=nodes_folder)
+    node = nm.add_external_node(
+        "BTC",
+        "Standard node",
+        False,
+        bitcoin_regtest.datadir,
+        bitcoin_regtest.rpcconn.rpcuser,
+        bitcoin_regtest.rpcconn.rpcpassword,
+        bitcoin_regtest.rpcconn.rpcport,
+        bitcoin_regtest.rpcconn._ipaddress,
+        "http",
+        "standard_node",
+    )
+    return node
+
+
+@pytest.fixture
+def node_with_different_port(empty_data_folder, bitcoin_regtest):
+    nodes_folder = empty_data_folder + "/nodes"
+    if not os.path.isdir(nodes_folder):
+        os.makedirs(nodes_folder)
+    nm = NodeManager(data_folder=nodes_folder)
+    node = nm.add_external_node(
+        "BTC",
+        "Node with a different port",
+        False,
+        "",
+        bitcoin_regtest.rpcconn.rpcuser,
+        bitcoin_regtest.rpcconn.rpcpassword,
+        18333,
+        bitcoin_regtest.rpcconn._ipaddress,
+        "http",
+        "satoshis_node",
     )
     return node
 
@@ -268,13 +289,17 @@ def elements_elreg(request):
 @pytest.fixture
 def empty_data_folder():
     # Make sure that this folder never ever gets a reasonable non-testing use-case
-    with tempfile.TemporaryDirectory(prefix="specter_home_tmp_") as data_folder:
+    with tempfile.TemporaryDirectory(
+        prefix="specter_home_tmp_", ignore_cleanup_errors=False
+    ) as data_folder:
         yield data_folder
 
 
 @pytest.fixture
 def devices_filled_data_folder(empty_data_folder):
-    os.makedirs(empty_data_folder + "/devices")
+    devices_folder = empty_data_folder + "/devices"
+    if not os.path.isdir(devices_folder):
+        os.makedirs(devices_folder)
     with open(empty_data_folder + "/devices/trezor.json", "w") as text_file:
         text_file.write(
             """
@@ -525,7 +550,9 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder, node
             "allow_threading_for_testing": False,
         },
     }
-    specter = Specter(data_folder=devices_filled_data_folder, config=config)
+    specter = Specter(
+        data_folder=devices_filled_data_folder, config=config, checker_threads=False
+    )
     assert specter.chain == "regtest"
     # Create a User
     someuser = specter.user_manager.add_user(
@@ -641,7 +668,7 @@ def app(specter_regtest_configured) -> SpecterFlask:
 
 @pytest.fixture
 def app_no_node(empty_data_folder) -> SpecterFlask:
-    specter = Specter(data_folder=empty_data_folder)
+    specter = Specter(data_folder=empty_data_folder, checker_threads=False)
     app = create_app(config="cryptoadvance.specter.config.TestConfig")
     app.app_context().push()
     app.config["TESTING"] = True

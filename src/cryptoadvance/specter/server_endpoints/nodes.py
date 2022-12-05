@@ -166,7 +166,7 @@ def node_settings(node_alias):
                 flash(_("Test failed: {}").format(test["err"]), "error")
         elif action == "save":
             if not node_alias:
-                if node.name in app.specter.node_manager.nodes:
+                if node.name in app.specter.node_manager.nodes_names:
                     flash(
                         _(
                             "Node with this name already exists, please choose a different name."
@@ -271,7 +271,7 @@ def internal_node_settings(node_alias):
                 node.rename(node_name)
         elif action == "forget":
             if not node_alias:
-                flash(_("Failed to deleted node. Node isn't saved"), "error")
+                flash(_("Failed to delete node. Node isn't saved"), "error")
             elif len(app.specter.node_manager.nodes) > 1:
                 node.stop()
                 app.specter.node_manager.delete_node(node, app.specter)
