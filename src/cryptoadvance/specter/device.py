@@ -4,6 +4,7 @@ from .persistence import read_json_file, write_json_file
 import logging
 from .helpers import is_testnet, is_liquid
 from embit import ec
+from flask import current_app as app
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,7 @@ class Device:
     bitcoin_core_support = True
     liquid_support = False
     taproot_support = False
+    spectrum_support = True
     template = "device/new_device/new_device_keys.jinja"
 
     def __init__(self, name, alias, keys, blinding_key, fullpath, manager):
@@ -151,6 +153,8 @@ class Device:
         return [key.key_type for key in self.keys if (key.is_testnet == test)]
 
     def has_key_types(self, wallet_type, network="main"):
+        if app.specter.spectrum and not self.spectrum_support:
+            return False
         if is_liquid(network) and not self.liquid_support:
             return False
         if wallet_type == "multisig":
@@ -166,6 +170,8 @@ class Device:
     def no_key_found_reason(self, wallet_type, network="main"):
         if self.has_key_types(wallet_type, network=network):
             return ""
+        if app.specter.spectrum and not self.spectrum_support:
+            return "Hot wallets are disbaled in the alpha version of Spectrum."
         if is_liquid(network) and not self.liquid_support:
             return "This device type does not yet support Liquid"
         reverse_network = "main" if is_testnet(network) else "test"

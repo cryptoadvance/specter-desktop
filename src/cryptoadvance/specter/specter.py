@@ -252,6 +252,17 @@ class Specter:
         return self.node_manager.default_node()
 
     @property
+    def spectrum(self):
+        """Returns True if the active node is a Spectrum node, otherwise false"""
+        if (
+            self.node.fqcn
+            == "cryptoadvance.specterext.spectrum.spectrum_node.SpectrumNode"
+        ):
+            return True
+        else:
+            False
+
+    @property
     def rpc(self):
         return self.node.rpc
 
