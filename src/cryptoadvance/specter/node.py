@@ -137,25 +137,19 @@ class AbstractNode(PersistentObject):
             "A Node Implementation need to implement the check_blockheight method"
         )
 
-    def is_device_supported(self, device_or_device_type):
+    def is_device_supported(self, device_instance_or_device_class):
         """Lets the node deactivate specific devices. The parameter could be a device or a device_type
             You have to check yourself if overriding this method.
         e.g.
-        if device_or_device_type.__class__ == type:
-            device_type = device_or_device_type
+        if device_instance_or_device_class.__class__ == type:
+            device_class = device_instance_or_device_class
         else:
-            device_type = device_or_device_type.__class__
-        if BitcoinCore == device_type:
-            return False
+            device_class = device_instance_or_device_class.__class__
+        # example:
+        # if BitcoinCore == device_class:
+        #    return False
         return True
         """
-        if device_or_device_type.__class__ == type:
-            device_type = device_or_device_type
-        else:
-            device_type = device_or_device_type.__class__
-        # example:
-        # if BitcoinCore == device_type:
-        #    return False
         return True
 
     def node_info_template(self):

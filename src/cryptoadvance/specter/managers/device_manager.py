@@ -107,33 +107,33 @@ class DeviceManager:
         and if we have no node, hot-wallets neither. Liquid support is limited as well.
         """
         if not specter.chain:
-            devices = [
+            device_classes = [
                 device_class
                 for device_class in device_classes
                 if device_class.device_type not in ["bitcoincore", "elementscore"]
             ]
         elif specter.is_liquid:
-            devices = [
+            device_classes = [
                 device_class
                 for device_class in device_classes
                 if device_class.liquid_support
             ]
         else:
-            devices = [
+            device_classes = [
                 device_class
                 for device_class in device_classes
                 if device_class.bitcoin_core_support
             ]
-        if BitcoinCore in devices:
-            devices.remove(BitcoinCoreWatchOnly)
+        if BitcoinCoreWatchOnly in device_classes:
+            device_classes.remove(BitcoinCoreWatchOnly)
 
         # The node might not like to have certain devices
-        new_devices = []
-        for device in devices:
-            if specter.node.is_device_supported(device):
-                new_devices.append(device)
-        devices = new_devices
-        return devices
+        new_device_classes = []
+        for device_class in device_classes:
+            if specter.node.is_device_supported(device_class):
+                new_device_classes.append(device_class)
+        device_classes = new_device_classes
+        return device_classes
 
     def delete(self, specter):
         """Deletes all the devices"""
