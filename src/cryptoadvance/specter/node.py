@@ -10,6 +10,9 @@ from flask import render_template
 from flask_babel import lazy_gettext as _
 from requests.exceptions import ConnectionError
 
+from cryptoadvance.specter.devices.bitcoin_core import BitcoinCore, BitcoinCoreWatchOnly
+from cryptoadvance.specter.devices.elements_core import ElementsCore
+
 from .helpers import deep_update, is_liquid, is_testnet
 from .liquid.rpc import LiquidRPC
 from .persistence import PersistentObject, write_node
@@ -134,13 +137,25 @@ class AbstractNode(PersistentObject):
             "A Node Implementation need to implement the check_blockheight method"
         )
 
-    def is_device_supported(self, device_type: Type):
-        """Lets the node deactivate specific devices
+    def is_device_supported(self, device_or_device_type):
+        """Lets the node deactivate specific devices. The parameter could be a device or a device_type
+            You have to check yourself if overriding this method.
         e.g.
+        if device_or_device_type.__class__ == type:
+            device_type = device_or_device_type
+        else:
+            device_type = device_or_device_type.__class__
         if BitcoinCore == device_type:
             return False
         return True
         """
+        if device_or_device_type.__class__ == type:
+            device_type = device_or_device_type
+        else:
+            device_type = device_or_device_type.__class__
+        # example:
+        # if BitcoinCore == device_type:
+        #    return False
         return True
 
     def node_info_template(self):
