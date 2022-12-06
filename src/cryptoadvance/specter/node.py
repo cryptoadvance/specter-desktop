@@ -137,7 +137,7 @@ class AbstractNode(PersistentObject):
             "A Node Implementation need to implement the check_blockheight method"
         )
 
-    def is_device_supported(self, device_instance_or_device_class):
+    def is_device_supported(self, device_class_or_device_instance):
         """Lets the node deactivate specific devices. The parameter could be a device or a device_type
             You have to check yourself if overriding this method.
         e.g.
