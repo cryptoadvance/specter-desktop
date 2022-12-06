@@ -9,7 +9,7 @@ from cryptoadvance.specter.devices.bitcoin_core import BitcoinCore, BitcoinCoreW
 from ..helpers import alias, load_jsons
 from ..rpc import get_default_datadir
 
-from ..devices import __all__ as device_classes
+from ..devices import __all__ as all_device_classes
 from ..devices.generic import GenericDevice  # default device type
 from ..persistence import write_device, delete_file, delete_folder
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def get_device_class(device_type):
     """Look up device class by its type"""
-    for cls in device_classes:
+    for cls in all_device_classes:
         if device_type == cls.device_type:
             return cls
     return GenericDevice
@@ -100,7 +100,7 @@ class DeviceManager:
 
     @property
     def supported_devices(self):
-        return device_classes
+        return all_device_classes
 
     def supported_devices_for_chain(self, specter):
         """Devices which you can create via the UI. BitcoinCoreWatchonly is not among them
@@ -109,19 +109,19 @@ class DeviceManager:
         if not specter.chain:
             device_classes = [
                 device_class
-                for device_class in device_classes
+                for device_class in all_device_classes
                 if device_class.device_type not in ["bitcoincore", "elementscore"]
             ]
         elif specter.is_liquid:
             device_classes = [
                 device_class
-                for device_class in device_classes
+                for device_class in all_device_classes
                 if device_class.liquid_support
             ]
         else:
             device_classes = [
                 device_class
-                for device_class in device_classes
+                for device_class in all_device_classes
                 if device_class.bitcoin_core_support
             ]
         if BitcoinCoreWatchOnly in device_classes:
