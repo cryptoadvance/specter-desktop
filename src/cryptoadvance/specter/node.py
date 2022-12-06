@@ -3,7 +3,6 @@ import logging
 import os
 from os import path
 import shutil
-from typing import Type
 
 from embit.liquid.networks import get_network
 from flask import render_template
@@ -20,6 +19,7 @@ from .rpc import (
     get_default_datadir,
 )
 from .specter_error import SpecterError, BrokenCoreConnectionException
+from .device import Device
 
 logger = logging.getLogger(__name__)
 
@@ -134,13 +134,13 @@ class AbstractNode(PersistentObject):
         )
 
     def is_device_supported(self, device_type: Type):
-        """Enables the node to deactivate specific devices.
+        """Lets the node deactivate specific devices
         e.g.
         if BitcoinCore == device_type:
             return False
         return True
         """
-        return True
+        return False
 
     def node_info_template(self):
         """This should return the path to a Info template as string"""
