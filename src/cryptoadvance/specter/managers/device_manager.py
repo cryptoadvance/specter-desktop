@@ -130,7 +130,7 @@ class DeviceManager:
         # The node might not like to have certain devices
         new_devices = []
         for device in devices:
-            if specter.node.is_device_supported(device.__class__):
+            if specter.node.is_device_supported(device):
                 new_devices.append(device)
         devices = new_devices
         return devices
