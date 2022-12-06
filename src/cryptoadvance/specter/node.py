@@ -133,11 +133,12 @@ class AbstractNode(PersistentObject):
             "A Node Implementation need to implement the check_blockheight method"
         )
 
-    def is_device_supported(self, device: Type):
+    def is_device_supported(self, device_type: Type):
         """Enables the node to deactivate specific devices.
         e.g.
-        if device == cryptoadvance.specter.device.Trezor
+        if BitcoinCore == device_type:
             return False
+        return True
         """
         return True
 

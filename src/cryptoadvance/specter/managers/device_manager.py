@@ -4,7 +4,7 @@ import logging
 import pathlib
 from flask_babel import lazy_gettext as _
 
-from cryptoadvance.specter.devices.bitcoin_core import BitcoinCoreWatchOnly
+from cryptoadvance.specter.devices.bitcoin_core import BitcoinCore, BitcoinCoreWatchOnly
 
 from ..helpers import alias, load_jsons
 from ..rpc import get_default_datadir
@@ -124,8 +124,15 @@ class DeviceManager:
                 for device_class in device_classes
                 if device_class.bitcoin_core_support
             ]
-        if BitcoinCoreWatchOnly in devices:
+        if BitcoinCore in devices:
             devices.remove(BitcoinCoreWatchOnly)
+
+        # The node might not like to have certain devices
+        new_devices = []
+        for device in devices:
+            if specter.node.is_device_supported(device.__class__):
+                new_devices.append(device)
+        devices = new_devices
         return devices
 
     def delete(self, specter):

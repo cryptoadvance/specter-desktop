@@ -11,7 +11,7 @@
 			{% for device_name in specter.device_manager.devices_names %}
 				{% set device = specter.device_manager.devices[device_name] %}
 				<label style="position: relative;">
-					<input type="{{ 'checkbox' if wallet_type == 'multisig' else 'radio' }}" {% if wallet_type == 'simple' %} onchange="document.getElementById('submit-device').click()" {% endif %} name="devices" value="{{ device.alias }}" class="hidden" chain="{{specter.chain}}" {% if not device.has_key_types(wallet_type, specter.chain) %}disabled{% endif %}>
+					<input type="{{ 'checkbox' if wallet_type == 'multisig' else 'radio' }}" {% if wallet_type == 'simple' %} onchange="document.getElementById('submit-device').click()" {% endif %} name="devices" value="{{ device.alias }}" class="hidden" chain="{{specter.chain}}" {% if not device.has_key_types(wallet_type, specter.chain) or (not specter.node.is_device_supported(device.__class__)) %}disabled{% endif %}>
 					<div class="small-card radio" id="{{device.alias}}">
 						<img src="{{ url_for('static', filename=device.icon) }}" width="18px">
 						{{ device_name }}
@@ -24,10 +24,10 @@
 						    </span>
 						</tool-tip>
 					{% endif %}
-					{% if not specter.node.is_device_supported(device) %}
+					{% if not specter.node.is_device_supported(device.__class__) %}
 						<tool-tip width="150px" image="note" style="position: absolute; top: 30px; left: 25px;">
 						    <span slot="paragraph">
-						    	{{ _("For this node, this device cannot be selected.") }} <br>
+						    	{{ _("The node does not accept creating such devices.") }} <br>
 						    </span>
 						</tool-tip>
 					{% endif %}
