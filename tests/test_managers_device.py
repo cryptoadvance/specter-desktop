@@ -1,5 +1,6 @@
 import os
 import logging
+from unittest.mock import MagicMock
 from cryptoadvance.specter.devices.generic import GenericDevice
 from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.managers.device_manager import DeviceManager
@@ -99,6 +100,25 @@ def test_DeviceManager(empty_data_folder, a_key, a_tpub_only_key):
     assert len(some_device.keys) == 2
     assert some_device.keys[0] == a_key
     assert some_device.keys[1] == a_tpub_only_key
+
+
+def test_DeviceManager_supported_devices_for_chain(empty_data_folder):
+    # A DeviceManager manages devices, specifically the persistence
+    # of them via json-files in an empty data folder
+    dm = DeviceManager(data_folder=empty_data_folder)
+    specter_mock = MagicMock()
+    specter_mock.chain = False
+    device_classes = dm.supported_devices_for_chain(specter=specter_mock)
+    for device_class in device_classes:
+        assert device_class.__class__ == type
+    specter_mock.chain = True
+    device_classes = dm.supported_devices_for_chain(specter=specter_mock)
+    for device_class in device_classes:
+        assert device_class.__class__ == type
+    specter_mock.is_liquid = True
+    device_classes = dm.supported_devices_for_chain(specter=specter_mock)
+    for device_class in device_classes:
+        assert device_class.__class__ == type
 
 
 def test_device_wallets(
