@@ -1,52 +1,60 @@
 {% extends "base.jinja" %}
+
 {% block main %}
-	<div class="spacer"></div>
-	<h1>{{ _("Select the type of the wallet") }}</h1>
-	<div style="display: flex">
-		<span>{{ _("Adding a wallet with existing funds?") }}</span>
+	<h1>{{ _("Select the type of wallet") }}</h1>
+
+	<p>
+		{{ _("Learn more about ") }} 
+		<a href="https://specter-desktop-docs.netlify.app/multisig-guide/" target="_blank">{{ _("multi signature wallets here") }}</a>.
+	</p>
+
+	<nav class="grid gap-5 grid-cols-2 mt-10 mb-5">
+		<a href="./simple/" class="selection">
+			<p>&nbsp;</p>
+			<img src="{{ url_for('static', filename='img/key.svg') }}" />
+			<p>{{ _("Single Signature") }}</p>
+		</a>
+		<a href="./multisig/" class="selection">
+			<p>&nbsp;</p>
+			<img src="{{ url_for('static', filename='img/two-keys.svg') }}" />
+			<p>{{ _("Multiple Signature") }}</p>
+		</a>
+	</nav>
+
+	<div>
+		<button class="selection-button" onclick="showPageOverlay('account_map_import')" type="button">
+			{{ _("Import from wallet software") }}
+		</button>
+
+		<!-- <tool-tip width="200px"> -->
+					<!-- <span slot="paragraph"> -->
+		<!-- 		{{ _("Click here to import an existing wallet from a wallet software like Electrum, Fully-Noded, Sparrow Wallet, or another Specter instance.") }} -->
+		<!-- 		{% if specter.info["pruned"] %} -->
+		<!-- 			<span class="warning"><img src="{{ url_for('static', filename='img/info_sign.svg') }}"/><br> -->
+		<!-- 				{{ _("Please Note: You are using a pruned node. Wallet history may be incomplete.") }} -->
+		<!-- 			</span> -->
+		<!-- 		{% endif %} -->	
+					<!-- </span> -->
+		<!-- </tool-tip> -->
+	</div>
+
+	<div class="mt-10">
+		<div class="inline">{{ _("Adding a wallet with existing funds?") }}</div>
+
 		<tool-tip width="200px">
 			<h4 slot="title">{{ _("Importing an existing wallet?") }}</h4>
-            <span slot="paragraph">
+			<span slot="paragraph">
 				{{ _('After choosing your device(s), select the "Scan for existing funds" checkbox on the next screen.') }}
+
 				{% if specter.info["pruned"] %}
-					<span class="warning" style="display: inline-block;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
+					<span class="warning"><img src="{{ url_for('static', filename='img/info_sign.svg') }}"/><br>
 						{{ _("Please Note: You are using a pruned node. Wallet history may be incomplete.") }}
 					</span>
 				{% endif %}
-            </span>
-    	</tool-tip>
-	</div><br>
-	<nav class="row overflow">
-		<a href="./simple/" class="small-card">
-			<img src="{{ url_for('static', filename='img/key.svg') }}" class="svg-white" style="width: 120px;"/>
-			{{ _("Single key wallet") }}
-		</a>
-		<a class="small-card" href="./multisig/">
-			<img src="{{ url_for('static', filename='img/two-keys.svg') }}" class="svg-white" style="width: 120px;"/>
-			{{ _("Multisignature wallet") }}<br><br>
-		</a>
-	</nav>
-	<div class="row">
-		<button onclick="showPageOverlay('account_map_import')" type="button" class="btn centered padded">
-		{{ _("Import from wallet software") }}
-			<tool-tip width="200px">
-	        	<span slot="paragraph">
-					{{ _("Click here to import an existing wallet from a wallet software like Electrum, Fully-Noded, Sparrow Wallet, or another Specter instance.") }}
-					{% if specter.info["pruned"] %}
-						<span class="warning" style="display: inline-block;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
-							{{ _("Please Note: You are using a pruned node. Wallet history may be incomplete.") }}
-						</span>
-					{% endif %}	
-	        	</span>
-	    	</tool-tip>
-		</button>
+			</span>
+		</tool-tip>
 	</div>
+
 	{% include "wallet/new_wallet/components/import_wallet_account_map.jinja" %}
-
-
-	<span style="font-size: 1.1em; margin: 10px; text-align: center;">
-		{{ _("New to multisig? ") }}&#128217;{{ _(" Learn") }} <a style="color: #fff" href="https://specter-desktop-docs.netlify.app/multisig-guide/" target="_blank">here</a> {{ _("more about multisig") }}. 
-	</span>
-	<br>
 
 {% endblock %}
