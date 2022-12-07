@@ -515,6 +515,11 @@ def addressinfo(wallet_alias):
             descriptor = wallet.get_descriptor(
                 address=address, keep_xpubs=False, to_string=True, with_checksum=True
             )
+            if not descriptor:
+                logger.debug(
+                    f"No descriptor was found for address {address} in wallet {wallet}"
+                )
+                return jsonify(success=False)
             xpubs_descriptor = wallet.get_descriptor(
                 address=address, keep_xpubs=True, to_string=True, with_checksum=True
             )
@@ -527,7 +532,7 @@ def addressinfo(wallet_alias):
             match = re.search(derivation_path_pattern, descriptor)
             if not match:
                 logger.debug(
-                    f"Derivation path of this descriptor {descriptor} for address {address} could not be parsed. Sth. wrong with the regex pattern which was {derivation_path_pattern}?"
+                    f"Derivation path of this descriptor {descriptor} could not be parsed. Sth. wrong with the regex pattern which was {derivation_path_pattern}?"
                 )
                 return jsonify(success=False)
             logger.debug(f"This is the derivation path match: {match.group()}")
