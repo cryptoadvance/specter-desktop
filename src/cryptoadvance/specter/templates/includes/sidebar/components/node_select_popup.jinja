@@ -5,17 +5,9 @@
         <form action="{{url_for('nodes_endpoint.switch_node')}}" id="{{node.alias}}-select-node-form" method="POST">
 		    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		    <input type="hidden" name="node_alias" value="{{ node.alias }}"/>
-            <div class="cursor-pointer flex text-white items-center space-x-2 {% if node.alias == specter.node.alias %}active{% endif %}" data-style="cursor: pointer;" onclick="document.getElementById('{{node.alias}}-select-node-form').submit();">
+            <div class="cursor-pointer flex text-white items-center space-x-2 {% if node.alias == specter.node.alias %}active{% endif %}" onclick="document.getElementById('{{node.alias}}-select-node-form').submit();">
+                {% include node.node_logo_template() %}
                 <div>
-                    {% if node.is_liquid %}
-                        {% from "components/liquid_svg.jinja" import liquid_svg %}
-                        {{ liquid_svg(node.chain, 40) }}
-                    {% else %}
-                        {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-                        {{ bitcoin_svg(node.chain, 40) }}
-                    {% endif %}
-                </div>
-                <div class="" data-style="width: 100%;">
                     <div class="leading-0 h-6 text-lg">{{ node.name }}</div>
                     <small class="leading-0">
                         {% if node.chain %}

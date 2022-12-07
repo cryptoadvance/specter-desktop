@@ -550,7 +550,9 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder, node
             "allow_threading_for_testing": False,
         },
     }
-    specter = Specter(data_folder=devices_filled_data_folder, config=config)
+    specter = Specter(
+        data_folder=devices_filled_data_folder, config=config, checker_threads=False
+    )
     assert specter.chain == "regtest"
     # Create a User
     someuser = specter.user_manager.add_user(
@@ -666,7 +668,7 @@ def app(specter_regtest_configured) -> SpecterFlask:
 
 @pytest.fixture
 def app_no_node(empty_data_folder) -> SpecterFlask:
-    specter = Specter(data_folder=empty_data_folder)
+    specter = Specter(data_folder=empty_data_folder, checker_threads=False)
     app = create_app(config="cryptoadvance.specter.config.TestConfig")
     app.app_context().push()
     app.config["TESTING"] = True

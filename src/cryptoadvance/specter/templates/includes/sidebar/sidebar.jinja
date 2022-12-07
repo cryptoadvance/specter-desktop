@@ -11,6 +11,8 @@
             {% if specter.network_info.version < 200000 %}
                 <!-- <p class="warning" data-style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/warning_sign.svg') }}" data-style="width: 20px;"/><br>{{ _("Bitcoin Core version is outdated.")}}<br>{{ _('Some features might not work...')}}<br>{{ _("(minimum required: v20.0.0).") }}</p> -->
             {% endif %}
+            
+            <!--{% include specter.node.node_connection_template() %}-->
 
             {% if specter.node.is_running %} 
                 <div 
