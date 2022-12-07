@@ -68,6 +68,8 @@ You can use the move-right attribute, to move the tooltip to the right if necess
 -->
 
 <template id="tooltip-template-id">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+
     <style>
         .tooltip {
             display: inline-flex;

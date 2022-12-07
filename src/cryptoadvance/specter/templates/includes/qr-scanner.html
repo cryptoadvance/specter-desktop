@@ -19,6 +19,8 @@
   `e.detail.result` is null if scan was cancelled, a string with data otherwise.
 -->
 <template id="qr-scanner">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+
   <div style="display: none;"><!--<style>-->
     #popup{
       position:fixed;

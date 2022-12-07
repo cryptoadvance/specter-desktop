@@ -1,5 +1,6 @@
 <template id="fee-selection">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+	  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+
     <div class="fee_container">
         <div id="subtract_fees_div" data-style="display: flex">
             <label><input type="checkbox" class="inline" name="subtract" id="subtract" {% if subtract %}checked{% endif %}> {{ _("Subtract fees from amount") }}</label>

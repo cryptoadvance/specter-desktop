@@ -5,6 +5,8 @@
 -->
 
 <template id="messagebox">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+
   <div>
     <a>&#x2715;</a>
     <slot> Error: Something bad happened! </slot>

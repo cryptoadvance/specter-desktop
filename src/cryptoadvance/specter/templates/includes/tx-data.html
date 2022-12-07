@@ -1,5 +1,6 @@
 <template id="tx-data">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+
     <!-- <div style="display: none;"><!--<style>-1->-->
     <!--     .tx-data-table td {-->
     <!--         text-align: left;-->
@@ -12,6 +13,7 @@
     <!--         margin-bottom: 2em;-->
     <!--     }-->
     <!-- </div><!--</style>-1->-->
+
     <div class="tx-data">
         <h2>{{ _("Transaction details") }}</h2><br>
         <div class="tx-data-info"></div>

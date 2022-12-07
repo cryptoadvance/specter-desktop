@@ -1,5 +1,6 @@
 <template id="coin-selection">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+	  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+
     <div style="display: none;"><!--<style>-->
     </div><!--</style>-->
     <span class="toggle_coinselection" data-style="cursor: pointer; margin-bottom: 5px; display: block">{{ _("Coin selection") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>

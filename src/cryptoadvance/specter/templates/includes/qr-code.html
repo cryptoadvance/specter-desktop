@@ -13,7 +13,10 @@
   - `on` - animate by default even if QR code size is reasonably small, can be stopped on click.
   - `off` - don't animate by default even if QR code is too large, can be animated on click.
 -->
+
 <template id="qr-code">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+
   <div style="display: none;"><!--<style>-->
     .qr-holder{
       display: flex;

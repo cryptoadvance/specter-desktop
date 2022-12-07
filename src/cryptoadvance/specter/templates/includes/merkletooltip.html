@@ -1,4 +1,6 @@
 <tool-tip>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+
     <h4 slot="title">{{ _("Merkle Proof Validation") }}</h4>
     <span slot="paragraph">
         {{ _('Specter Desktop validates ')}}<a href="https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki" target="_blank">{{ _('BIP 37')}}</a>

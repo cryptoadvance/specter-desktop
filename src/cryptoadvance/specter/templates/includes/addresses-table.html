@@ -1,4 +1,6 @@
 <template id="addresses-table">
+	  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+
     {% set supports_qr_code_verify = [] %}
     {% for device in wallet.devices if device.qr_code_support_verify %}
         {% set supports_qr_code_verify = supports_qr_code_verify.append(device) %}
@@ -11,7 +13,7 @@
     {% for device in wallet.devices if device.hwi_support %}
         {% set supports_hwi = supports_hwi.append(device) %}
     {% endfor %}
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+
     <div style="display: none;"><!--<style>-->
         .addresses-table {
             display: table;

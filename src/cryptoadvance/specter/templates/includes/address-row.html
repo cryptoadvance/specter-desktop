@@ -1,18 +1,19 @@
 <template id="address-row">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-    <div style="display: none;"><!--<style>-->
-        @media (max-width: 690px){
-            .index {
-                max-width: 10px;
-            }
-            .address {
-                max-width: 160px;
-            }
-        }
-        .address-row:hover {
-            background-color: var(--cmap-bg-lightest);
-        }
-    </div><!--</style>-->
+	  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+
+    <!-- <div style="display: none;"><!--<style>-1->-->
+    <!--     @media (max-width: 690px){-->
+    <!--         .index {-->
+    <!--             max-width: 10px;-->
+    <!--         }-->
+    <!--         .address {-->
+    <!--             max-width: 160px;-->
+    <!--         }-->
+    <!--     }-->
+    <!--     .address-row:hover {-->
+    <!--         background-color: var(--cmap-bg-lightest);-->
+    <!--     }-->
+    <!-- </div><!--</style>-1->-->
     <tr class="address-row">
         <td class="index"></td>
         <td class="address">
