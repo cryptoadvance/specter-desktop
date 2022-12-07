@@ -92,16 +92,15 @@ If the MacOS signatures are missing, it can happen that the following Exception 
   raise Exception(
   Exception: Status-cod04 for url ... )
 ```
-In any case, if the macOS binaries arrive on GitHub too late, you have to manually delete the already created `SHA256SUMS` and `SHA256SUMS.asc`, otherwise the upload to GitHub will fail if you rerun the release signatures job on GitLab (for details see ([this PR](https://github.com/cryptoadvance/specter-desktop/pull/689)). Here you can rerun the release signatures job on GitLab:
+In any case, if the macOS binaries arrive on GitHub too late, you have to manually delete the already created `SHA256SUMS` and `SHA256SUMS.asc`, otherwise the upload to GitHub will fail if you rerun the release signatures job on GitLab - for details see ([this PR](https://github.com/cryptoadvance/specter-desktop/pull/689)). The green arrow in the screenshot is where you rerun the release signatures job on GitLab:
 
 ![](./images/release-guide/rerun-release-signatures.png)
 
 ## Editing the text on the GitHub release page
 We are running a script here to create a markdown file that can be used for copy and paste.
-Checkout this repo: `git@github.com:cryptoadvance/corp-notes.git`
-`cd download-page`
-and run:
-`./build.sh`
+- Checkout this repo: `git@github.com:cryptoadvance/corp-notes.git`
+- `cd download-page`
+- Run `./build.sh`
 
 The result `gh_page.md` can be found in the build directory.
 Edit the release on GitHub and paste the md-file there along with the release notes from `release-notes.md`.
@@ -111,19 +110,17 @@ The above script also produces html files for the website (in the same directory
 - `download-page_current.html`
 - `download-page_releases.html`
 
-Login into:\
-https://specter.solutions/wp-login.php
+Login into: https://specter.solutions/wp-login.php
 
-Go to "Pages"\
-Hover over "Specter Desktop - Elementor" and choose `Edit with Elementor`\
-Click somewhere on area 1 (see screenshot), then somewhere on area 2, select all, delete, and paste:\
-`download-page_current.html`
+- Go to "Pages"
+- Hover over "Specter Desktop - Elementor" and choose `Edit with Elementor`
+- Click somewhere on area 1 (see screenshot), then somewhere on area 2, select all, delete, and paste: `download-page_current.html`
 
 ![](./images/release-guide/website-1.png)\
-Then click `update`\
+- Then click `update`\
 Note: If you see jinja tags, you probably pasted some templates.
 
-Do the same for the "Specter Releases" part, just, in this case, replace with:
+Do the same for the "Specter Releases" part, just, in this case, replace with:\
 `download-page_releases.html`
 
 ![](./images/release-guide/website-2.png)\
