@@ -213,23 +213,42 @@ class RpcError(Exception):
         assert rpce.error_code == -32601
         assert rpce.error_msg == "Method not found"
     See for error_codes https://github.com/bitcoin/bitcoin/blob/v0.15.0.1/src/rpc/protocol.h#L32L87
+    You can create these RpcErrors via a response-object:
+        RpcError("some Message",response)
+    or directly via:
+        raise RpcError("some Message", status_code=500, error_code=-32601, error_msg="Requested wallet does not exist or is not loaded")
+    The message is swallowed if there is a proper error_msg.
     """
 
-    def __init__(self, message, response):
+    def __init__(
+        self, message, response=None, status_code=None, error_code=None, error_msg=None
+    ):
         super(Exception, self).__init__(message)
+        if response is not None:
+            self.init_via_response(response)
+        else:
+
+            self.status_code = status_code or 500
+            self.error_code = error_code or -99
+            self.error_msg = error_msg or str(self)
+
+    def init_via_response(self, response):
         self.status_code = 500  # default
         try:
             self.status_code = response.status_code
             error = response.json()
         except Exception as e:
+            print(e)
+            logger.exception(e)
             # it's a dict already
             error = response
         try:
             self.error_code = error["error"]["code"]
             self.error_msg = error["error"]["message"]
-        except Exception as e:
+        except KeyError as ke:
+            logger.exception(ke)
             self.error_code = -99
-            self.error = "UNKNOWN API-ERROR:%s" % response.text
+            self.error_msg = str(self) + " - UNKNOWN API-ERROR:%s" % response.text
 
 
 class BitcoinRPC:
