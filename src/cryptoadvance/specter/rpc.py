@@ -239,14 +239,11 @@ class RpcError(Exception):
             error = response.json()
         except Exception as e:
             # it's a dict already
-            self.error_code = -99
-            self.error_msg = str(self) + " - UNKNOWN API-ERROR:%s" % response.text
-            return
+            error = response
         try:
             self.error_code = error["error"]["code"]
             self.error_msg = error["error"]["message"]
-        except Exception as e:
-            logger.exception(e)
+        except Exception:
             self.error_code = -99
             self.error_msg = str(self) + " - UNKNOWN API-ERROR:%s" % response.text
 
