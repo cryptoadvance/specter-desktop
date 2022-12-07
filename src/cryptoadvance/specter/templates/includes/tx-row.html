@@ -1,88 +1,89 @@
 <template id="tx-row">
-    <div style="display: none;"><!--<style>-->
-        .svg-send {
-            filter: invert(63%) sepia(67%) saturate(851%) hue-rotate(346deg) brightness(107%) contrast(92%);
-        }
-        .svg-receive, .svg-immature, .svg-generate {
-            filter: invert(61%) sepia(48%) saturate(3609%) hue-rotate(189deg) brightness(91%) contrast(94%);
-        }
-        .svg-selftransfer, .svg-mixed {
-            filter: invert(77%) sepia(68%) saturate(3384%) hue-rotate(44deg) brightness(112%) contrast(74%);
-        }
-        .svg-cancelled {
-            filter: invert(20%) sepia(32%) saturate(4838%) hue-rotate(332deg) brightness(81%) contrast(97%);
-        }
-        .tx-row:hover {
-            background-color: var(--cmap-bg-lightest);
-            vertical-align: middle;
-        }
-        .tx-row {
-            vertical-align: middle;
-        }
-/*        .frozen {
-            background: #48535d
-        #546773;
-        }
-        .frozen:hover {
-            background: #48535d
-        #546773;
-        } */
-        .address {
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .service-icon {
-            margin-top: -5px;
-            margin-right: 0.5em;
-            height:24px;
-            vertical-align: middle;
-        }
-        .coin_select_checkbox {
-            vertical-align: middle;
-        }
+    <!-- <div style="display: none;"><!--<style>-1->-->
+    <!--     .svg-send {-->
+    <!--         filter: invert(63%) sepia(67%) saturate(851%) hue-rotate(346deg) brightness(107%) contrast(92%);-->
+    <!--     }-->
+    <!--     .svg-receive, .svg-immature, .svg-generate {-->
+    <!--         filter: invert(61%) sepia(48%) saturate(3609%) hue-rotate(189deg) brightness(91%) contrast(94%);-->
+    <!--     }-->
+    <!--     .svg-selftransfer, .svg-mixed {-->
+    <!--         filter: invert(77%) sepia(68%) saturate(3384%) hue-rotate(44deg) brightness(112%) contrast(74%);-->
+    <!--     }-->
+    <!--     .svg-cancelled {-->
+    <!--         filter: invert(20%) sepia(32%) saturate(4838%) hue-rotate(332deg) brightness(81%) contrast(97%);-->
+    <!--     }-->
+    <!--     .tx-row:hover {-->
+    <!--         background-color: var(--cmap-bg-lightest);-->
+    <!--         vertical-align: middle;-->
+    <!--     }-->
+    <!--     .tx-row {-->
+    <!--         vertical-align: middle;-->
+    <!--     }-->
+<!-- /*        .frozen {-->
+    <!--         background: #48535d-->
+    <!--     #546773;-->
+    <!--     }-->
+    <!--     .frozen:hover {-->
+    <!--         background: #48535d-->
+    <!--     #546773;-->
+    <!--     } */-->
+    <!--     .address {-->
+    <!--         overflow: hidden;-->
+    <!--         text-overflow: ellipsis;-->
+    <!--     }-->
+    <!--     .service-icon {-->
+    <!--         margin-top: -5px;-->
+    <!--         margin-right: 0.5em;-->
+    <!--         height:24px;-->
+    <!--         vertical-align: middle;-->
+    <!--     }-->
+    <!--     .coin_select_checkbox {-->
+    <!--         vertical-align: middle;-->
+    <!--     }-->
 
-        .icon-info {
-           display: inline-block; 
-           position: relative; 
-           margin-left: 0.5em; 
-        }
-       .icon-info .icon-info-text {
-            display: none;
-            background: #262626;
-            border: 1px solid grey;
-            border-radius: 5px;
-            padding: 0.5em;
-            position: absolute;
-            left: 30px;
-            top: -20px;
-            width: 100px;
-            z-index: 2;
-        }
-        .icon-info .icon-info-text:before, .icon-info .icon-info-text:after {
-            content: "";
-            position: absolute;
-            left: -10px;
-            top: 7px;
-            border-style: solid;
-            border-width: 10px 10px 10px 0;
-            border-color: transparent grey;
-        }
-        .icon-info .icon-info-text:after {
-            left: -8px;
-            border-right-color: #262626;
-        }
-        .icon-info .icon-info-text .info-2 {
-            display: block;
-        }
-        .icon-info-text {
-            text-transform: capitalize;
-            text-align: center;
-        }
-        .icon-info:hover .icon-info-text, .icon-info:focus .icon-info-text {
-            display: inline-block;
-        }
+    <!--     .icon-info {-->
+    <!--        display: inline-block;--> 
+    <!--        position: relative;--> 
+    <!--        margin-left: 0.5em;--> 
+    <!--     }-->
+    <!--    .icon-info .icon-info-text {-->
+    <!--         display: none;-->
+    <!--         background: #262626;-->
+    <!--         border: 1px solid grey;-->
+    <!--         border-radius: 5px;-->
+    <!--         padding: 0.5em;-->
+    <!--         position: absolute;-->
+    <!--         left: 30px;-->
+    <!--         top: -20px;-->
+    <!--         width: 100px;-->
+    <!--         z-index: 2;-->
+    <!--     }-->
+    <!--     .icon-info .icon-info-text:before, .icon-info .icon-info-text:after {-->
+    <!--         content: "";-->
+    <!--         position: absolute;-->
+    <!--         left: -10px;-->
+    <!--         top: 7px;-->
+    <!--         border-style: solid;-->
+    <!--         border-width: 10px 10px 10px 0;-->
+    <!--         border-color: transparent grey;-->
+    <!--     }-->
+    <!--     .icon-info .icon-info-text:after {-->
+    <!--         left: -8px;-->
+    <!--         border-right-color: #262626;-->
+    <!--     }-->
+    <!--     .icon-info .icon-info-text .info-2 {-->
+    <!--         display: block;-->
+    <!--     }-->
+    <!--     .icon-info-text {-->
+    <!--         text-transform: capitalize;-->
+    <!--         text-align: center;-->
+    <!--     }-->
+    <!--     .icon-info:hover .icon-info-text, .icon-info:focus .icon-info-text {-->
+    <!--         display: inline-block;-->
+    <!--     }-->
 
-    </div><!--</style>-->
+    <!-- </div><!--</style>-1->-->
+
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 
     <tr class="tx-row">
