@@ -69,6 +69,14 @@
   select {
     @apply bg-dark-800 border-2 border-dark-700 rounded-lg py-1 px-2 outline-none;
   }
+
+  ol {
+    @apply list-decimal list-inside text-lg mb-8;
+  }
+
+  ol li {
+    @apply my-2;
+  }
   
   /*
    *
@@ -77,7 +85,7 @@
    */
 
   .button {
-    @apply rounded-lg h-11 rounded-xl text-lg flex items-center space-x-2 justify-center bg-dark-600 px-10 my-4 cursor-pointer;
+    @apply rounded-lg h-11 rounded-xl text-lg flex items-center space-x-2 justify-center bg-dark-600 px-10 cursor-pointer;
   }
 
   .button img {
