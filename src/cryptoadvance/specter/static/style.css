@@ -77,7 +77,7 @@
    */
 
   .button {
-    @apply rounded-lg h-11 rounded-xl text-lg flex items-center space-x-2 justify-center bg-dark-600 px-10 hover:bg-dark-700 my-4 cursor-pointer;
+    @apply rounded-lg h-11 rounded-xl text-lg flex items-center space-x-2 justify-center bg-dark-600 px-10 my-4 cursor-pointer;
   }
 
   .button img {
@@ -91,7 +91,7 @@
    */
 
   .selection {
-		@apply aspect-square rounded-lg bg-dark-800 border-dark-700 border-2 flex flex-col justify-between pb-2 items-center hover:bg-dark-700;
+		@apply aspect-square rounded-lg bg-dark-800 border-dark-700 border-2 flex flex-col justify-between pb-2 items-center hover:bg-dark-700 cursor-pointer;
   }
 
   .selection p {
