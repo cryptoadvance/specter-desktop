@@ -94,8 +94,7 @@ cd specter-desktop
 pip3 install virtualenv
 virtualenv --python=python3 .env 
 source .env/bin/activate
-pip3 install -r requirements.txt --require-hashes
-python3 setup.py install # also compiles the babel translation-files
+pip3 install -e . # this does not compile the babel translation-files
 ```
 
 _note: invoking commands in the Windows PowerShell is slightly different:_

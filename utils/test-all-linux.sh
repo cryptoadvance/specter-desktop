@@ -7,8 +7,7 @@ source .env/bin/activate
 # removing modules related to cryptoadvance is faster than doing rm -rf .env
 pip3 freeze | grep cryptoadvance | xargs pip uninstall -y
 pip3 freeze | grep specterext | xargs pip uninstall -y
-pip3 install -r requirements.txt --require-hashes
-python3 setup.py install # also compiles the babel translation-files
+pip3 install -e . # this does not compile the babel translation-files
 
 
 pip3 install -r test_requirements.txt
