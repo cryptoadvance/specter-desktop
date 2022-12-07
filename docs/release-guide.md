@@ -79,12 +79,6 @@ In this stage, the invididual SHA256-hashes and signatures are combined into two
 Everything, apart from the MacOS files, are pulled from the GitLab environment, the MacOS files from GitHub.
 Don't forget to delete the two MacOS files (`SHA256SUMS-macos` and `SHA256SUMS-macos.asc`) on the GitHub release page in the end.
 
-## All assets on GitHub
-
-This should be the final result of all uploaded assets and files:
-
-![](./images/release-guide/final-view-of-assets.png)
-
 ## Trouble shooting
 If the MacOS signatures are missing, it can happen that the following Exception will be raised:
 ```bash
@@ -117,7 +111,7 @@ Login into: https://specter.solutions/wp-login.php
 - Click somewhere on area 1 (see screenshot), then somewhere on area 2, select all, delete, and paste: `download-page_current.html`
 
 ![](./images/release-guide/website-1.png)\
-- Then click `update`\
+- Then click `update`
 Note: If you see jinja tags, you probably pasted some templates.
 
 Do the same for the "Specter Releases" part, just, in this case, replace with:\
