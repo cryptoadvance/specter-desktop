@@ -7,6 +7,7 @@
 git remote -v | grep upstream                                                                  
 upstream        git@github.com:cryptoadvance/specter-desktop.git (fetch)
 upstream        git@github.com:cryptoadvance/specter-desktop.git (push)
+```
 - You need a GitHub token:
 If you don't have one, get one here https://github.com/settings/tokens and make sure to tick the boxes for repo and workflow as below:
 
@@ -28,7 +29,7 @@ Or, if you want to directly set the new version:
 ./utils/release.sh --new-version v1.13.1 --release-notes
 ```
 ## Creating a new tag
-Update your master branch after the release notes PR ([example](http:/https://github.com/cryptoadvance/specter-desktop/commit/65ff6959d7fd85cba745e4d454b30031839f857f/)) has been merged and then run:
+Update your master branch after the release notes PR ([example](https://github.com/cryptoadvance/specter-desktop/commit/65ff6959d7fd85cba745e4d454b30031839f857f/)) has been merged and then run:
 ```bash
 git tag v1.13.1 && git push upstream v1.13.1
 ```
