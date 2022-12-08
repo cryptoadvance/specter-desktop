@@ -829,6 +829,14 @@ select {
   margin: 0.25rem;
 }
 
+.-m-4 {
+  margin: -1rem;
+}
+
+.-m-3 {
+  margin: -0.75rem;
+}
+
 .my-2 {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
@@ -1002,6 +1010,10 @@ select {
 
 .h-12 {
   height: 3rem;
+}
+
+.max-h-screen {
+  max-height: 100vh;
 }
 
 .min-h-\[64px\] {
@@ -1188,6 +1200,10 @@ select {
   align-self: center;
 }
 
+.self-stretch {
+  align-self: stretch;
+}
+
 .overflow-hidden {
   overflow: hidden;
 }
@@ -1226,6 +1242,10 @@ select {
 
 .border-r {
   border-right-width: 1px;
+}
+
+.border-t {
+  border-top-width: 1px;
 }
 
 .border-solid {
@@ -1269,6 +1289,11 @@ select {
 .bg-dark-600 {
   --tw-bg-opacity: 1;
   background-color: rgb(44 45 49 / var(--tw-bg-opacity));
+}
+
+.bg-dark-500 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(63 64 68 / var(--tw-bg-opacity));
 }
 
 .fill-current {
@@ -1315,6 +1340,10 @@ select {
 
 .pr-1 {
   padding-right: 0.25rem;
+}
+
+.pb-4 {
+  padding-bottom: 1rem;
 }
 
 .text-lg {
