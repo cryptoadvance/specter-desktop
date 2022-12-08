@@ -1,5 +1,11 @@
 # Release Notes
 
+## v1.14.1 Dezember 07, 2022
+- Bugfix: Adding migrations to the hidden imports #2007 (k9ert)
+- Bugfix: Bump Spectrum for better error_handling (k9ert)
+- Chore: better error_handling and tested #2005 (k9ert)
+- Docs: Release guide update #2004 (Manolis Mandrapilias)
+
 ## v1.14.0 December 07, 2022
 - Feature: Spectrum addition #1952 (k9ert)
 - Feature: Several things for Spectrum preparation #1913 (k9ert)
