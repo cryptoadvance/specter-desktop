@@ -934,9 +934,11 @@
                     return
                 };
                 if ("error" in jsonResponse) {
-                    showError(`{{ _("Failed to fetch transactions list.") }}: ${jsonResponse["error"]}`)
+                    showError(`${jsonResponse["error"]}`);
+                    this.emptyRowCell.innerText = '{{ _("No transactions fetched. Consider disabling the merkle proofs option in the settings.") }}';
                 } else {
-                    showError(`{{ _("Failed to fetch transactions list.") }}`)
+                    showError(`{{ _("Failed to fetch transactions list.") }}`);
+                    this.emptyRowCell.innerText = '{{ _("No transactions fetched ... ") }}';
                 }
             } catch(e) {
                 console.log("Caught error: ", e);
