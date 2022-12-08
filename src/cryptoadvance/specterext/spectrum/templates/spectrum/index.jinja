@@ -1,0 +1,19 @@
+{% extends "spectrum/components/spectrum_tab.jinja" %}
+{% block title %}Settings{% endblock %}
+{% set tab = 'index' %}
+{% block content %}
+    <br><br>
+    <div class="card">
+        <h1>{{ _("Spectrum - Connecting to Electrum server") }}</h1>
+        <div class="note">
+            {{ _("- Spectrum lets you use Specter with an Electrum server.") }}<br/>
+            {{ _("- You can connect Specter to your own Electrum Server or public servers.") }}<br/>
+            {{ _("- In the alpha version of Spectrum, it's not supported to use a Bitcoin Core node alongside the Spectrum node.") }}<br/>
+        </div>
+        <div class="note">
+            <b>{{ _("To activate Spectrum, choose an electrum server from the list in the settings and save.") }}</b>
+        </div>
+        <br/>
+    </div>
+{% endblock %}
+
