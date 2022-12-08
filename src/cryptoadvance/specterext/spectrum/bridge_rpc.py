@@ -50,6 +50,12 @@ class BridgeRPC(BitcoinRPC):
         """
         return self.__class__(self, self.spectrum, wallet=self.wallet)
 
+    def gettxoutproof(self, *args, **kwargs):
+        """Not implemented."""
+        raise SpecterError(
+            "Sorry, the gettxoutproof call is not implemented in Spectrum. Most probably you switched on 'validate merke proof' which is incompatible with spectrum. Please consider to switch it off in the settings."
+        )
+
     def multi(self, calls: list, **kwargs):
         """Makes batch request to Core"""
         if self.spectrum is None:

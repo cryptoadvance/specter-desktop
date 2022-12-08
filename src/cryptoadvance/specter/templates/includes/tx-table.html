@@ -933,7 +933,11 @@
                     this.render(jsonResponse, showBlockhash)
                     return
                 };
-                showError(`{{ _("Failed to fetch transactions list.") }}`)
+                if ("error" in jsonResponse) {
+                    showError(`{{ _("Failed to fetch transactions list.") }}: ${jsonResponse["error"]}`)
+                } else {
+                    showError(`{{ _("Failed to fetch transactions list.") }}`)
+                }
             } catch(e) {
                 console.log("Caught error: ", e);
                 showError(`{{ _("Failed to fetch transactions list.") }}: ${e}`);
