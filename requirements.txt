@@ -123,9 +123,9 @@ cryptoadvance-liquidissuer==0.2.4 \
     --hash=sha256:5a2c531801854c5a4a46daf184877e22f731cdb42d2cfb840785bda7371ba6fb \
     --hash=sha256:9e468f3e35ecc566b3f74a2263677cf26632548abb194521dba15ad37acd1e9b
     # via -r requirements.in
-cryptoadvance-spectrum==0.2.4 \
-    --hash=sha256:0a0c01d22846837e7dbd6c7424290d0c53c0d295787e9862affa63ea9b69c906 \
-    --hash=sha256:f5e1511994091ea5c29263a5a5e21fc5084775bfd39dd712f302f07d94e75b36
+cryptoadvance-spectrum==0.2.5 \
+    --hash=sha256:83a6bcf9ccb222b44d0fe9fef077bac14c9791e6673e714120ec7e9961ff8f7b \
+    --hash=sha256:fd25e1a53ff99c0023e2205a84ec4841789adbf612e9d73c607b74023dbc49e9
     # via -r requirements.in
 cryptography==3.4.7 \
     --hash=sha256:0f1212a66329c80d68aeeb39b8a16d54ef57071bf22ff4e521657b27372e327d \
