@@ -75,6 +75,13 @@ def test_ServiceManager_get_service_packages(caplog):
     assert "cryptoadvance.specterext.swan.service" in packages
     assert "cryptoadvance.specterext.electrum.service" in packages
     assert "cryptoadvance.specterext.electrum.devices.electrum" in packages
+    assert "cryptoadvance.specterext.devhelp.service" in packages
+    assert "cryptoadvance.specterext.liquidissuer.service" in packages
+
+    assert "cryptoadvance.specter.util.migrations.migration_0000" in packages
+    assert "cryptoadvance.specter.util.migrations.migration_0001" in packages
+    assert "cryptoadvance.specter.util.migrations.migration_0002" in packages
+    assert len(packages) == 25
 
 
 def test_ServiceManager_make_path_relative(caplog):

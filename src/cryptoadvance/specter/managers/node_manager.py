@@ -65,8 +65,6 @@ class NodeManager:
                     default_alias=nodes_files[node_alias]["alias"],
                     default_fullpath=calc_fullpath(self.data_folder, node_alias),
                 )
-                print("---------------------------------------")
-                print(node.__class__.__module__.split("."))
                 if (
                     node.__class__.__module__.split(".")[1] == "specterext"
                 ):  # e.g. cryptoadvance.specterext.spectrum
