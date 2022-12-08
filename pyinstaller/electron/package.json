@@ -19,8 +19,8 @@
   "author": "Specter",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^13.6.9",
-    "electron-builder": "^22.9.1"
+    "electron": "^22.0.0",
+    "electron-builder": "^23.6.0"
   },
   "build": {
     "productName": "Specter",
