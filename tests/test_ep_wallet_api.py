@@ -147,6 +147,56 @@ def test_txout_set_info(caplog, app, client):
     assert json.loads(res.data)["total_amount"] > 0
 
 
+@pytest.mark.slow
+def test_addressinfo(caplog, app, client, funded_ghost_machine_wallet):
+    caplog.set_level(logging.DEBUG)
+    caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
+    login(client, "secret")
+
+    # get loaded wallet info
+    response = client.get("/wallets/wallets_loading/", follow_redirects=True)
+    loaded_wallet_name = json.loads(response.data)["loaded_wallets"][0]
+    receive_address = funded_ghost_machine_wallet.get_address(0, change=False)
+
+    # send post request
+    res = client.post(
+        f"/wallets/wallet/{loaded_wallet_name}/addressinfo/",
+        data={"address": receive_address},
+        follow_redirects=True,
+    )
+    assert res.status == "200 OK"
+    assert (
+        res.data.decode()
+        == '{"address":"bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs","change":false,"derivation_path":"m/84h/1h/0h/0/0","descriptor":"wpkh([8c24a510/84h/1h/0h/0/0]0331edcb16cfd0f8598052f7b287b07047a11c60967c1e7eb0257e02552539d984)#35zjhlhm","index":0,"isMine":true,"label":null,"service_id":null,"success":true,"used":null,"walletName":"ghost_machine","xpubs_descriptor":"wpkh([8c24a510/84h/1h/0h]tpubDC4DsqH5rqHqipMNqUbDFtQT3AkKkUrvLsN6miySvortU3s1LGaNVAb7wX2No2VsuxQV82T8s3HJLv3kdx1CPjsJ3onC1Zo5mWCQzRVaWVX/0/0)#8f5u4zq2"}\n'
+    )
+
+    # send post request with bad address
+    invalid_address = "bcrt1qvtdx7"
+    res = client.post(
+        f"/wallets/wallet/{loaded_wallet_name}/addressinfo/",
+        data={"address": invalid_address},
+        follow_redirects=True,
+    )
+    assert res.data.decode() == '{"success":false}\n'
+
+    # send post request with address, not belonging to wallet
+    valid_address_not_beloging_to_wallet = (
+        "bcrt1q895evdudfrmeut083vs85rc85g2wq6p6ql2hla"
+    )
+    res = client.post(
+        f"/wallets/wallet/{loaded_wallet_name}/addressinfo/",
+        data={"address": valid_address_not_beloging_to_wallet},
+        follow_redirects=True,
+    )
+    assert res.data.decode() == '{"success":false}\n'
+    assert (
+        caplog.text.count(
+            f"No descriptor or xpubs_descriptor was found for address {valid_address_not_beloging_to_wallet} in wallet ghost_machine"
+        )
+        == 1
+    )
+
+
 # Ugly: Code duplication. Cannot import from other test_modules
 def login(client, password):
     """login helper-function"""

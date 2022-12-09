@@ -515,14 +515,17 @@ def addressinfo(wallet_alias):
             descriptor = wallet.get_descriptor(
                 address=address, keep_xpubs=False, to_string=True, with_checksum=True
             )
-            if not descriptor:
-                logger.debug(
-                    f"No descriptor was found for address {address} in wallet {wallet}"
-                )
-                return jsonify(success=False)
             xpubs_descriptor = wallet.get_descriptor(
                 address=address, keep_xpubs=True, to_string=True, with_checksum=True
             )
+            if (not descriptor) or (not xpubs_descriptor):
+                logger.debug(
+                    f"No descriptor or xpubs_descriptor was found for address {address} in wallet {wallet.name}"
+                )
+                return jsonify(success=False)
+
+            address_info = wallet.get_address_info(address=address)
+
             # The last two regex groups are optional since Electrum's derivation path is shorter
             derivation_path_pattern = (
                 r"(\/[0-9h]+)(\/[0-9h]+)(\/[0-9h]+)(\/[0-9h]+)?(\/[0-9h]+)?"
@@ -530,14 +533,24 @@ def addressinfo(wallet_alias):
             # Only "descriptor" gives full derivation path, looks usually like this:
             # wpkh([8c24a510/84h/1h/0h/0/0]0331edcb16cfd ... e02552539d984)#35zjhlhm
             match = re.search(derivation_path_pattern, descriptor)
-            if not match:
+            if match:
+                logger.debug(f"This is the derivation path match: {match.group()}")
+            else:
                 logger.debug(
                     f"Derivation path of this descriptor {descriptor} could not be parsed. Sth. wrong with the regex pattern which was {derivation_path_pattern}?"
                 )
-                return jsonify(success=False)
-            logger.debug(f"This is the derivation path match: {match.group()}")
+                # only partial information can be returned, because no match/derivation_path could be found
+                return {
+                    "success": False,
+                    "address": address,
+                    "descriptor": descriptor,
+                    "xpubs_descriptor": xpubs_descriptor,
+                    "walletName": wallet.name,
+                    "isMine": address_info and not address_info.is_external,
+                    **address_info,  # address_info is an instance of Address(dict)
+                }
+
             derivation_path = "m" + match.group()
-            address_info = wallet.get_address_info(address=address)
             return {
                 "success": True,
                 "address": address,
