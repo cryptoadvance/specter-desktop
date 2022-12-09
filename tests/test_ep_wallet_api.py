@@ -148,7 +148,7 @@ def test_txout_set_info(caplog, app, client):
 
 
 @pytest.mark.slow
-def test_addressinfo(caplog, app, client, funded_ghost_machine_wallet):
+def test_addressinfo(caplog, client, funded_ghost_machine_wallet):
     caplog.set_level(logging.DEBUG)
     caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
     login(client, "secret")
@@ -157,10 +157,11 @@ def test_addressinfo(caplog, app, client, funded_ghost_machine_wallet):
     response = client.get("/wallets/wallets_loading/", follow_redirects=True)
     loaded_wallet_name = json.loads(response.data)["loaded_wallets"][0]
     receive_address = funded_ghost_machine_wallet.get_address(0, change=False)
+    url = f"/wallets/wallet/{loaded_wallet_name}/addressinfo/"
 
     # send post request
     res = client.post(
-        f"/wallets/wallet/{loaded_wallet_name}/addressinfo/",
+        url,
         data={"address": receive_address},
         follow_redirects=True,
     )
@@ -173,7 +174,7 @@ def test_addressinfo(caplog, app, client, funded_ghost_machine_wallet):
     # send post request with bad address
     invalid_address = "bcrt1qvtdx7"
     res = client.post(
-        f"/wallets/wallet/{loaded_wallet_name}/addressinfo/",
+        url,
         data={"address": invalid_address},
         follow_redirects=True,
     )
@@ -184,16 +185,32 @@ def test_addressinfo(caplog, app, client, funded_ghost_machine_wallet):
         "bcrt1q895evdudfrmeut083vs85rc85g2wq6p6ql2hla"
     )
     res = client.post(
-        f"/wallets/wallet/{loaded_wallet_name}/addressinfo/",
+        url,
         data={"address": valid_address_not_beloging_to_wallet},
         follow_redirects=True,
     )
+    assert res.status == "200 OK"
     assert res.data.decode() == '{"success":false}\n'
     assert (
         caplog.text.count(
             f"No descriptor or xpubs_descriptor was found for address {valid_address_not_beloging_to_wallet} in wallet ghost_machine"
         )
         == 1
+    )
+
+    # set erronious descriptor
+    mock_get_descriptor = mock.MagicMock()
+    mock_get_descriptor.return_value = "this is not a descriptor"
+    funded_ghost_machine_wallet.get_descriptor = mock_get_descriptor
+    res = client.post(
+        url,
+        data={"address": receive_address},
+        follow_redirects=True,
+    )
+    assert res.status == "200 OK"
+    assert (
+        res.data.decode()
+        == '{"address":"bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs","change":false,"descriptor":"this is not a descriptor","index":0,"isMine":true,"label":null,"service_id":null,"success":false,"used":null,"walletName":"ghost_machine","xpubs_descriptor":"this is not a descriptor"}\n'
     )
 
 
