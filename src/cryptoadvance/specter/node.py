@@ -318,8 +318,6 @@ class Node(AbstractNode):
                 rpc = BitcoinRPC(
                     **rpc_conf_arr[0], proxy_url=self.proxy_url, only_tor=self.only_tor
                 )
-            if rpc == None:
-                logger.warning(f"No rpc was found for {self}")
             return rpc
         else:
             # if autodetect is disabled and port is not defined
