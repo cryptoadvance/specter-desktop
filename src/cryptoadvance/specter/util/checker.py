@@ -38,6 +38,12 @@ class Checker:
     def stop(self):
         self.running = False
 
+    def run_now(self):
+        """causes an almost immediate run for this checker
+        maximum 1 second delay
+        """
+        self.last_check = 0
+
     def loop(self):
         self.error_counter = 0
         self._execute(first_execution=True)
@@ -56,14 +62,14 @@ class Checker:
             dt = time.time() - t0
             if first_execution:
                 logger.info(
-                    "Checker executed within %.3f seconds. This message won't show again until stopped and started."
+                    f"Checker {self.desc} executed within %.3f seconds. This message won't show again until stopped and started."
                     % dt
                 )
         except Exception as e:
             self.error_counter += 1
             if self.error_counter <= 5:
                 logger.exception(
-                    f"Checker thread {self.desc} threw {e} for the {self.error_counter}th time"
+                    f"Checker {self.desc} threw {e} for the {self.error_counter}th time"
                 )
             if self.error_counter == 5:
                 logger.error(f"The above Error-Message is from now on suppressed!")
