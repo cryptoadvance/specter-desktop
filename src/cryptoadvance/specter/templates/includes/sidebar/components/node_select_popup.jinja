@@ -1,12 +1,14 @@
-<div class="p-4 w-96 hidden" id="node_select_popup" data-style="text-align: left;">
-    <h1 class="mb-4">{{ _("Node Configuration") }}</h1>
+<div class="p-4 w-96 hidden" id="node_select_popup">
+    <h1 class="mb-2">{{ _("Node Configuration") }}</h1>
     {% for node_name in specter.node_manager.nodes_names %}
         {% set node = specter.node_manager.get_by_name(node_name) %}
-        <form action="{{url_for('nodes_endpoint.switch_node')}}" id="{{node.alias}}-select-node-form" method="POST">
-		    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-		    <input type="hidden" name="node_alias" value="{{ node.alias }}"/>
+        <form class="my-3" action="{{url_for('nodes_endpoint.switch_node')}}" id="{{node.alias}}-select-node-form" method="POST">
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="hidden" name="node_alias" value="{{ node.alias }}"/>
             <div class="cursor-pointer flex text-white items-center space-x-2 {% if node.alias == specter.node.alias %}active{% endif %}" onclick="document.getElementById('{{node.alias}}-select-node-form').submit();">
-                {% include node.node_logo_template() %}
+                <div class="w-10 flex justify-center">
+                    {% include node.node_logo_template() %}
+                </div>
                 <div>
                     <div class="leading-0 h-6 text-lg">{{ node.name }}</div>
                     <small class="leading-0">
@@ -17,13 +19,12 @@
                         {% endif %}
                     </small>
                 </div>
-                <a class="flex self-center justify-end grow" href="{{ url_for('nodes_endpoint.node_settings', node_alias=node.alias) }}" data-style="text-align: right; width: 100%px;">
-                    <img src="{{ url_for('static', filename='img/gear.svg')}}" class="svg-white" data-style="width: 40px; margin-right: 10px;"/>
+                <a class="flex self-center justify-end grow" href="{{ url_for('nodes_endpoint.node_settings', node_alias=node.alias) }}">
+                    <img src="{{ url_for('static', filename='img/gear.svg')}}" class="svg-white"/>
                 </a>
             </div>
         </form>
     {% endfor %}
-    <br>
     {{ sidebar_btn(url_for('setup_endpoint.node_type'), 'Connect a new node', 'btn_new_node') }}
 </div>
 
@@ -35,7 +36,7 @@
             e.stopPropagation(); 
             e.preventDefault();
         }
-        hidePageOverlay();
+        // hidePageOverlay();
         document.getElementById('page_overlay_popup').style.padding = '1.5em 0';
         document.getElementById('page_overlay_popup_cancel_button').classList.add('hidden');
         document.getElementById('side-content').classList.remove('active');

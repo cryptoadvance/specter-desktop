@@ -67,7 +67,7 @@
   }
 
   select {
-    @apply bg-dark-800 border-2 border-dark-700 rounded-lg py-1 px-2 outline-none;
+    @apply bg-dark-800 border-2 border-dark-700 rounded-lg py-1 px-2 outline-none h-10;
   }
 
   ol {
@@ -126,7 +126,7 @@
     -moz-appearance: none;
     background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
     background-repeat: no-repeat;
-    background-position: top 3px right 5px;
+    background-position: top 5px right 5px;
   }
 
   .table-holder {
