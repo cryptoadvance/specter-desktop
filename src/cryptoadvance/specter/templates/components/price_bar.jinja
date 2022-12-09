@@ -207,32 +207,6 @@
             if (result) {
                 location.reload();
                 return
-            };
-            
-            try {
-                const response = await fetch(
-                    url,
-                    {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    }
-                );
-                if(response.status != 200){
-                    showError(await response.text());
-                    return;
-                }
-                const jsonResponse = await response.json();
-                if (jsonResponse.success) {
-                    location.reload();
-                    return
-                };
-                showError(`{{ _("Failed to toggle price mode...") }}`)
-            } catch(e) {
-                console.log("Caught error: ", e);
-                showError(e);
             }
         }
 
