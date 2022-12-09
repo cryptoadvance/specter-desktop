@@ -3,45 +3,21 @@
 	{% include "includes/overlay/key_export_qr.jinja" %}
 	{% include "includes/hwi/hwi.jinja" %}
 	{% include "includes/qr-scanner.html" %}
-	<div style="display: none;"><!--<style>-->
-		#keys-table td {
-			padding: 5px 20px;
-		}
-		#keys-table th {
-			padding: 20px 20px;
-		}
-		.signature {
-			background-color: var(--cmap-bg-lightest);
-        	word-break: break-all;
-        	margin-top: 5px;
-        	margin: 1px;
-        	border-radius: 10px;
-        	border: 2px solid hsl(217, 10%, 80%);
-        	padding: 10px 10px 10px 10px;
-        	cursor: pointer;
-		}
-		.signature:hover {
-			border: 2px solid var(--main-color);
-		}
-		.btn {
-			margin-bottom: 5px;
-		}
-		tr:hover {
-			background: rgba(255,255,255,0.03);
-		}
-	</div><!--</style>-->
+
 	<h1 id="title">{{ device.name }}</h1>
+
 	{% from 'components/editable_title.jinja' import editable_title %}
 	{{ editable_title(device.name) }}
+
 	<form action="./" method="POST" data-style="margin-bottom: 15px;">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-		<div class="row" data-style="text-align: center; line-height: 2;">
+		<div class="flex" data-style="text-align: center; line-height: 2;">
 			{% include "device/components/device_type.jinja" %}
 		</div>
 		<button type="submit" class="btn hidden" id="settype" name="action" value="settype" data-style="margin: auto; margin-top: 10px; align-self:center;">{{ _("Update") }}</button>
 	</form>
-	<br>
-	<div class="table-holder">
+
+	<div class="table-holder my-10">
 		<table id="keys-table">
 			<thead>
 				<tr>
@@ -83,18 +59,19 @@
 			</tbody>
 		</table>
 	</div>
+
 	<div data-style="line-height: 1; margin-top: 30px;">
 		<form action="./" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			{% if device.device_type != "bitcoincore_watchonly"%}
-				<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">{{ _("Add more keys") }}</button>
+				<button class="button" id="add_keys" type="submit" name="action" value="add_keys">{{ _("Add more keys") }}</button>
 			{% else %}
-				<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">{{ _("Convert to hot wallet") }}</button>
+				<button class="button"  id="add_keys" type="submit" name="action" value="add_keys">{{ _("Convert to hot wallet") }}</button>
 			{% endif %}
 		</form>
 
 		{% if device.hwi_support or device.supports_qr_message_signing %}
-		<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">{{ _("Sign message") }}</button>
+		<button class="button" type="button" onclick="showPageOverlay('message-signing')">{{ _("Sign message") }}</button>
 		<div id="message-signing" class="hidden" data-style="text-align: left; max-width: 350px;">
 			{% if origin %}
 				{{ _("Address") }}:<input type="text" id="signing-address" type="text" value="" placeholder="bc1q ..."><br><br>
@@ -106,41 +83,47 @@
 			<p id="signature" title='{{ _("Copy signature") }}' class="hidden" onclick="copyText(this.innerText, '{{ _("Copied message signature") }}')">
 			</p>
 			{% if device.hwi_support %}
-				<button id="{{ device.alias }}_usb_sign_msg_btn" type="button" class="btn centered" onclick="signMessageOnDevice();">{{ _("Sign message via USB") }}</button>
+				<button class="button" id="{{ device.alias }}_usb_sign_msg_btn" type="button" onclick="signMessageOnDevice();">{{ _("Sign message via USB") }}</button>
 			{% endif %}
 			{% if device.supports_qr_message_signing %}
 				{% include "includes/overlay/qr_code_sign_message.jinja" %}
-            	<button id="{{ device.alias }}_qr_sign_msg_btn" class="btn centered" data-style="margin-top: 10px;">{{ _("Sign message via QR code") }}</button>
+            	<button class="button" id="{{ device.alias }}_qr_sign_msg_btn">{{ _("Sign message via QR code") }}</button>
 			{% endif %}
 		</div>
 		{% endif %}
+
 		{% if specter.is_liquid %}
 			<br>
-			<a class="btn centered" href="{{ url_for('devices_endpoint.device_blinding_key', device_alias=device.alias) }}">{{ _("Update master blinding key") }}</a>
+			<a class="button" href="{{ url_for('devices_endpoint.device_blinding_key', device_alias=device.alias) }}">{{ _("Update master blinding key") }}</a>
 		{% endif %}
+
 		{% if device.supports_hwi_toggle_passphrase %}
-			<button type="button" class="btn centered" onclick="togglePassphrase('{{ device.device_type }}')">{{ _("Toggle device passphrase") }}</button>
+			<button class="button" type="button" onclick="togglePassphrase('{{ device.device_type }}')">{{ _("Toggle device passphrase") }}</button>
 			<br>
 		{% endif %}
 		<form action="./" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-			<button type="submit" name="action" value="forget" class="btn danger centered" id="forget_device">{{ _("Forget the device") }}</button>
+			<button class="button" type="submit" name="action" value="forget" id="forget_device">{{ _("Forget the device") }}</button>
 		</form>
 	</div>
-	<br>
+
 	{% if wallets %}
-		<h1>{{ _("Wallets Using This Device") }}</h1>
-		<div class="row overflow">
+	<div class="mt-20">
+		<h2>{{ _("Wallets Using This Device") }}</h2>
+		<div class="grid grid-cols-4 gap-5">
 			{% for wallet in wallets %}
 				<a href="{{ url_for('wallets_endpoint.wallet', wallet_alias=wallet.alias) }}" data-style="text-decoration: none;">
-					<div class="small-card radio">
+					<div class="selection">
+						<p> </p>
 						<img src="{{ url_for('static', filename='img/' + ('two-keys' if wallet.is_multisig else 'key') + '.svg') }}" class="svg-white" data-style="width: 120px;">
-						{{ wallet.name }}
+						<p>{{ wallet.name }}</p>
 					</div>
 				</a>
 			{% endfor %}
 		</div>
+	</div>
 	{% endif %}
+
 	<div class="hidden" id="new_device_popup">
 		<h1>{{ _("New device was added successfully!") }}</h1>
 		<div class="row overflow">
@@ -206,14 +189,14 @@
 
 			// Event listener for sign message via QR code-button 
 			{% if device.supports_qr_message_signing %}
-			document.getElementById("{{ device.alias }}_qr_sign_msg_btn").addEventListener("click", e => {
-                    e.preventDefault();
-                    hidePageOverlay();
-                    // This makes qr_code_sign_message.jinja visible
-                    showPageOverlay('{{ device.alias }}_sign_msg_qr');
-                    // This set the qr-code web component in qr_code_sign_message.jinja
-                    QRcodeSetter();
-                });
+				document.getElementById("{{ device.alias }}_qr_sign_msg_btn").addEventListener("click", e => {
+						e.preventDefault();
+						hidePageOverlay();
+						// This makes qr_code_sign_message.jinja visible
+						showPageOverlay('{{ device.alias }}_sign_msg_qr');
+						// This set the qr-code web component in qr_code_sign_message.jinja
+						QRcodeSetter();
+				});
 			{% endif %}
 		});
 
