@@ -44,11 +44,7 @@ def update():
 @price_endpoint.route("/toggle/", methods=["GET", "POST"])
 @login_required
 def toggle():
-    try:
-        app.specter.update_price_check_setting(
-            not app.specter.price_check, current_user
-        )
-        return {"success": True}
-    except Exception as e:
-        logger.warning("Failed to update price settings. Exception: {}".format(e))
-    return {"success": False}
+    app.specter.update_price_check_setting(not app.specter.price_check, current_user)
+    logger.info(f"update_price_check_setting to {app.specter.price_check}")
+
+    return {"success": True}

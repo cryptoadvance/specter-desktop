@@ -125,7 +125,7 @@
 				let url = `{{ url_for('auth_endpoint.toggle_hide_sensitive_info') }}`;
 				var formData = new FormData();
 				
-				result = send_request(url, 'POST', "{{ csrf_token() }}", formData);
+				result = await send_request(url, 'POST', "{{ csrf_token() }}", formData);
 				if (result) {
 					location.reload();
 					return

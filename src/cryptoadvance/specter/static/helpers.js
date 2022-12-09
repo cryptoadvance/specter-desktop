@@ -143,6 +143,9 @@ async function send_request(url, method_str, csrf_token, formData) {
 	formData.append("csrf_token", csrf_token)
 	d = {
 			method: method_str,
+			headers: {
+				'Accept': 'application/json'
+			}
 		}
 	if (method_str == 'POST') {
 		d['body'] = formData;
