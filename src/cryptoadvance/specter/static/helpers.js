@@ -158,7 +158,7 @@ async function send_request(url, method_str, csrf_token, formData) {
 		return
 	}
 	jsonResponse = await response.json();
-	if ("error" in jsonResponse) {
+	if (jsonResponse && "error" in jsonResponse) {
 		showError(`${jsonResponse["error"]}`)
 		return
 	}
