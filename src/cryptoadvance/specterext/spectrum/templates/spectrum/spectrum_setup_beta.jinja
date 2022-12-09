@@ -1,0 +1,52 @@
+{% extends "base.jinja" %}
+{% block main %}
+<style>
+    .feedback-icon {
+        width: 60px; 
+        margin-bottom: 15px
+    }
+    .feedback-text {
+        font-size: 1.1em;
+        color: #ccc;
+    }
+    .feedback-container {
+        max-width: 100%;
+        width: 580px;
+        border: 1px solid var(--cmap-border);
+        border-radius: 4px;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    .button-container {
+        margin-top: 25px;
+    }
+</style>
+<div class="feedback-container">
+    <h1>{{ _("Spectrum - Connecting Specter to Electrum") }}</h1><br>
+    <div style="text-align: center">
+        {% if core_node_exists %}
+                <img  class="feedback-icon" src="{{ url_for('static', filename='img/not-supported.svg') }}"/><br>
+                    <span class="feedback-text">{{ _("In the alpha version of Spectrum, it's not supported to use a Bitcoin Core node alongside the Spectrum node. Your Spectrum node was not saved! Delete the Bitcoin Core node and try again.") }}</span>
+        {% endif %}
+    </div>
+    <div class="button-container">
+        {% if core_node_exists %}
+            <a class="btn" id="back-button">{{ _("Back to Spectrum settings") }}</a>
+        {% else %}
+            <a class="btn" href="{{ url_for('welcome_endpoint.index') }}" >{{ _("Let's go!") }}</a>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    let backButton = document.getElementById('back-button');
+    backButton.setAttribute('href', document.referrer); // Just to have the link preview and open in a new tab functionality, probably not needed here
+    backButton.addEventListener('click', () => {
+        history.back();
+        return false;
+    })
+</script>
+{% endblock %}
