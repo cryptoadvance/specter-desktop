@@ -1068,99 +1068,90 @@ class Wallet:
             != 0
         ):
             self.fetch_transactions()
-        try:
-            _transactions = [
-                tx.__dict__().copy()
-                for tx in self._transactions.values()
-                if tx["ismine"]
-            ]
-            transactions = sorted(
-                _transactions, key=lambda tx: tx["time"], reverse=True
-            )
-            transactions = [
-                tx
-                for tx in transactions
-                if (
-                    not tx["conflicts"]
-                    or max(
-                        [
-                            self.gettransaction(conflicting_tx, 0, full=False)["time"]
-                            for conflicting_tx in tx["conflicts"]
-                        ]
-                    )
-                    < tx["time"]
+
+        _transactions = [
+            tx.__dict__().copy() for tx in self._transactions.values() if tx["ismine"]
+        ]
+        transactions = sorted(_transactions, key=lambda tx: tx["time"], reverse=True)
+        transactions = [
+            tx
+            for tx in transactions
+            if (
+                not tx["conflicts"]
+                or max(
+                    [
+                        self.gettransaction(conflicting_tx, 0, full=False)["time"]
+                        for conflicting_tx in tx["conflicts"]
+                    ]
                 )
-            ]
-            if not current_blockheight:
-                current_blockheight = self.rpc.getblockcount()
-            result = []
-            blocks = {}
-            for tx in transactions:
-                if not tx.get("blockheight", 0):
-                    tx["confirmations"] = 0
-                else:
-                    tx["confirmations"] = current_blockheight - tx["blockheight"] + 1
+                < tx["time"]
+            )
+        ]
+        if not current_blockheight:
+            current_blockheight = self.rpc.getblockcount()
+        result = []
+        blocks = {}
+        for tx in transactions:
+            if not tx.get("blockheight", 0):
+                tx["confirmations"] = 0
+            else:
+                tx["confirmations"] = current_blockheight - tx["blockheight"] + 1
 
-                # coinbase tx
-                if tx["category"] == "generate":
-                    if tx["confirmations"] <= 100:
-                        category = "immature"
+            # coinbase tx
+            if tx["category"] == "generate":
+                if tx["confirmations"] <= 100:
+                    category = "immature"
 
-                if (
-                    tx.get("confirmations") == 0
-                    and tx.get("bip125-replaceable", "no") == "yes"
+            if (
+                tx.get("confirmations") == 0
+                and tx.get("bip125-replaceable", "no") == "yes"
+            ):
+                rpc_tx = self.rpc.gettransaction(tx["txid"])
+                tx["fee"] = rpc_tx.get("fee", 1)
+                tx["confirmations"] = rpc_tx.get("confirmations", 0)
+                tx["vsize"] = decoderawtransaction(rpc_tx["hex"]).get("vsize")
+
+            if isinstance(tx["address"], str):
+                tx["label"] = self.getlabel(tx["address"])
+                addr_obj = self.get_address_obj(tx["address"])
+                if addr_obj and addr_obj.get("service_id"):
+                    tx["service_id"] = addr_obj["service_id"]
+            elif isinstance(tx["address"], list):
+                # TODO: Handle services integration w/batch txs
+                tx["label"] = [self.getlabel(address) for address in tx["address"]]
+            else:
+                tx["label"] = None
+
+            if service_id and (
+                "service_id" not in tx or tx["service_id"] != service_id
+            ):
+                # We only want `service_id`-related txs returned
+                continue
+
+            # TODO: validate for unique txids only
+            tx["validated_blockhash"] = ""  # default is assume unvalidated
+            if validate_merkle_proofs is True and tx["confirmations"] > 0:
+                proof_hex = self.rpc.gettxoutproof([tx["txid"]], tx["blockhash"])
+                logger.debug(
+                    f"Attempting merkle proof validation of tx { tx['txid'] } in block { tx['blockhash'] }"
+                )
+                if is_valid_merkle_proof(
+                    proof_hex=proof_hex,
+                    target_tx_hex=tx["txid"],
+                    target_block_hash_hex=tx["blockhash"],
+                    target_merkle_root_hex=None,
                 ):
-                    rpc_tx = self.rpc.gettransaction(tx["txid"])
-                    tx["fee"] = rpc_tx.get("fee", 1)
-                    tx["confirmations"] = rpc_tx.get("confirmations", 0)
-                    tx["vsize"] = decoderawtransaction(rpc_tx["hex"]).get("vsize")
-
-                if isinstance(tx["address"], str):
-                    tx["label"] = self.getlabel(tx["address"])
-                    addr_obj = self.get_address_obj(tx["address"])
-                    if addr_obj and addr_obj.get("service_id"):
-                        tx["service_id"] = addr_obj["service_id"]
-                elif isinstance(tx["address"], list):
-                    # TODO: Handle services integration w/batch txs
-                    tx["label"] = [self.getlabel(address) for address in tx["address"]]
+                    # NOTE: this does NOT guarantee this blockhash is actually in the real Bitcoin blockchain!
+                    # See merkletooltip.html for details
+                    logger.debug(f"Merkle proof of { tx['txid'] } validation success")
+                    tx["validated_blockhash"] = tx["blockhash"]
                 else:
-                    tx["label"] = None
-
-                if service_id and (
-                    "service_id" not in tx or tx["service_id"] != service_id
-                ):
-                    # We only want `service_id`-related txs returned
-                    continue
-
-                # TODO: validate for unique txids only
-                tx["validated_blockhash"] = ""  # default is assume unvalidated
-                if validate_merkle_proofs is True and tx["confirmations"] > 0:
-                    proof_hex = self.rpc.gettxoutproof([tx["txid"]], tx["blockhash"])
-                    logger.debug(
-                        f"Attempting merkle proof validation of tx { tx['txid'] } in block { tx['blockhash'] }"
+                    logger.warning(
+                        f"Attempted merkle proof validation on {tx['txid']} but failed. This is likely a configuration error but perhaps your node is compromised! Details: {proof_hex}"
                     )
-                    if is_valid_merkle_proof(
-                        proof_hex=proof_hex,
-                        target_tx_hex=tx["txid"],
-                        target_block_hash_hex=tx["blockhash"],
-                        target_merkle_root_hex=None,
-                    ):
-                        # NOTE: this does NOT guarantee this blockhash is actually in the real Bitcoin blockchain!
-                        # See merkletooltip.html for details
-                        logger.debug(
-                            f"Merkle proof of { tx['txid'] } validation success"
-                        )
-                        tx["validated_blockhash"] = tx["blockhash"]
-                    else:
-                        logger.warning(
-                            f"Attempted merkle proof validation on {tx['txid']} but failed. This is likely a configuration error but perhaps your node is compromised! Details: {proof_hex}"
-                        )
 
-                result.append(tx)
-            return result
-        except Exception as e:
-            logging.error("Exception while processing txlist: {}".format(e))
-            return []
+            result.append(tx)
+        return result
 
     def gettransaction(self, txid, blockheight=None, decode=False, full=True):
         """Gets transaction from cache
