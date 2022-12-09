@@ -199,19 +199,22 @@ def test_addressinfo(caplog, client, funded_ghost_machine_wallet):
     )
 
     # set erronious descriptor
-    mock_get_descriptor = mock.MagicMock()
-    mock_get_descriptor.return_value = "this is not a descriptor"
-    funded_ghost_machine_wallet.get_descriptor = mock_get_descriptor
-    res = client.post(
-        url,
-        data={"address": receive_address},
-        follow_redirects=True,
-    )
-    assert res.status == "200 OK"
-    assert (
-        res.data.decode()
-        == '{"address":"bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs","change":false,"descriptor":"this is not a descriptor","index":0,"isMine":true,"label":null,"service_id":null,"success":false,"used":null,"walletName":"ghost_machine","xpubs_descriptor":"this is not a descriptor"}\n'
-    )
+    with mock.patch.object(
+        funded_ghost_machine_wallet,
+        "get_descriptor",
+        return_value="this is not a descriptor",
+        create=True,
+    ) as m:
+        res = client.post(
+            url,
+            data={"address": receive_address},
+            follow_redirects=True,
+        )
+        assert res.status == "200 OK"
+        assert (
+            res.data.decode()
+            == '{"address":"bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs","change":false,"descriptor":"this is not a descriptor","index":0,"isMine":true,"label":null,"service_id":null,"success":false,"used":null,"walletName":"ghost_machine","xpubs_descriptor":"this is not a descriptor"}\n'
+        )
 
 
 # Ugly: Code duplication. Cannot import from other test_modules
