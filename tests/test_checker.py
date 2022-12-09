@@ -26,7 +26,7 @@ def test_checker(caplog):
     checker.stop()
     assert "someException" in caplog.text
     # should output 5 times
-    assert caplog.text.count("[   ERROR] Checker thread") == 5
+    assert caplog.text.count("[   ERROR] Checker ") == 5
     # But should also show stacktrace 5 times
     assert caplog.text.count("Exception: someException") == 5
     assert caplog.text.count("The above Error-Message is from now on suppressed!") == 1

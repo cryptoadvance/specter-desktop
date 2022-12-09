@@ -79,6 +79,7 @@ class SpectrumService(Service):
                 self.spectrum_node.start_spectrum(app, self.data_folder)
             except BrokenCoreConnectionException as e:
                 logger.error(e)
+        self.specter.checker.run_now()
 
     # TODO: Refactor this or the next function to only have one
     def enable_default_spectrum(self):
