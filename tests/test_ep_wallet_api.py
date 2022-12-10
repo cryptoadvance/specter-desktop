@@ -181,6 +181,7 @@ def test_addressinfo(caplog, client, funded_ghost_machine_wallet):
     assert res.data.decode() == '{"success":false}\n'
 
     # send post request with address, not belonging to wallet
+    # this recreates an edge case, see https://github.com/cryptoadvance/specter-desktop/issues/2000
     valid_address_not_beloging_to_wallet = (
         "bcrt1q895evdudfrmeut083vs85rc85g2wq6p6ql2hla"
     )
