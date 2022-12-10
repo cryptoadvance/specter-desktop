@@ -160,7 +160,10 @@ async function send_request(url, method_str, csrf_token, formData) {
 	let jsonResponse = await response.json();
 	console.log('The response from the fetch call:')
 	console.log(jsonResponse)
-	if (jsonResponse && "error" in jsonResponse) {
+	if (typeof(jsonResponse === 'boolean')) {
+		return jsonResponse
+	}
+	else if (jsonResponse && "error" in jsonResponse) {
 		showError(`${jsonResponse["error"]}`)
 		return jsonResponse
 	}
