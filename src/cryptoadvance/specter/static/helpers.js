@@ -157,11 +157,12 @@ async function send_request(url, method_str, csrf_token, formData) {
 		console.log(`Error while calling ${url} with ${method_str} ${formData}`)
 		return
 	}
-	jsonResponse = await response.json();
+	let jsonResponse = await response.json();
+	console.log('The response from the fetch call:')
+	console.log(jsonResponse)
 	if (jsonResponse && "error" in jsonResponse) {
 		showError(`${jsonResponse["error"]}`)
-		return
+		return jsonResponse
 	}
 	return jsonResponse
-
 }
