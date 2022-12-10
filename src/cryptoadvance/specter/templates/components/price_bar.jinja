@@ -203,7 +203,7 @@
             }
             let url = `{{ url_for('price_endpoint.toggle') }}`;
             var formData = new FormData(document.getElementById('price-form'));
-            result = await send_request(url, 'POST', "{{ csrf_token() }}", formData);
+            const result = await send_request(url, 'POST', "{{ csrf_token() }}", formData);
             if (result) {
                 location.reload();
                 return

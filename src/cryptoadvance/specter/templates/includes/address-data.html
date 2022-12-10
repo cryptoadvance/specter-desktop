@@ -84,7 +84,7 @@
             let url = `{{ url_for('wallets_endpoint_api.addressinfo', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
             var formData = new FormData();
             formData.append('address', this.address);
-            jsonResponse = await send_request(url, 'POST', "{{ csrf_token() }}", formData);
+            const jsonResponse = await send_request(url, 'POST', "{{ csrf_token() }}", formData);
             if (jsonResponse.success) {
                 let descriptor = jsonResponse.descriptor;
                 let xpubs_descriptor = jsonResponse.xpubs_descriptor;
