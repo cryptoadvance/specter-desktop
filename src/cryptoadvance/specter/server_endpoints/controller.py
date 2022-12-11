@@ -64,7 +64,7 @@ logger = logging.getLogger(__name__)
 def server_rpc_error(rpce):
     """Specific SpecterErrors get passed on to the User as flash"""
     if request.headers["Accept"] == "application/json":
-        return {"error": str(se)}
+        return {"error": str(rpce)}
     if rpce.error_code == -18:  # RPC_WALLET_NOT_FOUND
         flash(
             _("Wallet not found. Specter reloaded all wallets, please try again."),
