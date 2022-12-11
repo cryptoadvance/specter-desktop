@@ -933,7 +933,13 @@
                     this.render(jsonResponse, showBlockhash)
                     return
                 };
-                showError(`{{ _("Failed to fetch transactions list.") }}`)
+                if ("error" in jsonResponse) {
+                    showError(`${jsonResponse["error"]}`);
+                    this.emptyRowCell.innerText = '{{ _("No transactions fetched. Consider disabling the merkle proofs option in the settings.") }}';
+                } else {
+                    showError(`{{ _("Failed to fetch transactions list.") }}`);
+                    this.emptyRowCell.innerText = '{{ _("No transactions fetched ... ") }}';
+                }
             } catch(e) {
                 console.log("Caught error: ", e);
                 showError(`{{ _("Failed to fetch transactions list.") }}: ${e}`);

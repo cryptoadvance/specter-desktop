@@ -1,0 +1,19 @@
+
+<div style="display: flex; justify-content: center; align-items: center;">
+    <div class="main-description-box" style="margin: 20px">
+        <p style="font-size: 1.1em; margin: 1em auto 1em auto; text-align: left;">{{ _("Use a public Electrum server for the easiest setup. This exposes your transaction data. You can use your own Electrum server to avoid this.") }} <br><br>
+            <a href="{{url_for('spectrum_endpoint.index')}}" class="btn action centered" style="max-width: 200px;">{{ _('Get started!') }}</a>
+        </p>
+    </div>
+
+    <div class="main-description-box" style="margin: 20px">
+        <p style="font-size: 1.1em; margin: 1em auto 1em auto; text-align: left;">{{ _("Set up your own node. This provides a high degree of privacy but takes more time.") }} <br><br>
+            <a href="{{url_for('setup_endpoint.' + specter.setup_status.stage)}}" class="btn action centered" style="max-width: 200px;">{% if specter.setup_status.stage == "start" %}{{ _('Get started!') }}{% else %}{{ _('Continue setup') }}{% endif %}</a>
+        </p>
+    </div>
+</div>
+
+
+
+<br><br>
+

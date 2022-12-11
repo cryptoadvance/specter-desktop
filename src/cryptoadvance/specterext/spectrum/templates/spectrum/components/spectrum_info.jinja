@@ -1,0 +1,82 @@
+<h1>{{ _("Spectrum Info") }}:</h1>
+{% if specter.chain %}
+
+    <p class="warning" id="type_reminder">
+        <img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
+        {{ _("Connecting to public electrum servers may expose some information including your ip address and transaction history.") }}
+    </p>
+    
+    <table>
+        <tr> <td style="text-align: left;">{{ _("Host") }}:</td> <td style="text-align: right;" id="node-info-specter-chain">{{specter.node.host}}</td> </tr>
+        <tr> <td style="text-align: left;">{{ _("Port") }}:</td> <td style="text-align: right;" id="node-info-specter-chain">{{specter.node.port}}</td> </tr>
+        <tr> <td style="text-align: left;">{{ _("SSL") }}:</td> <td style="text-align: right;" id="node-info-specter-chain">{{specter.node.ssl}}</td> </tr>
+        <tr> <td style="text-align: left;">{{ _("Network") }}:</td> <td style="text-align: right;" id="node-info-specter-chain">{{specter.chain}}</td> </tr>
+        <tr> <td style="text-align: left;">{{ _("Blocks count") }}:</td> <td style="text-align: right;">{{specter.info['blocks']}}</td> </tr>
+        <tr> <td style="text-align: left;">{{ _("Last block hash") }}:</td> <td style="text-align: right"><code style="word-break: break-word;">{{specter.info['bestblockhash']}}</code></td> </tr>
+        <tr> <td style="text-align: left;">{{ _("Node uptime") }}:</td> <td style="text-align: right;">~ {{(specter.info['uptime'] / 60 // 60) | int }} {{ _("Hours") }}</td> </tr>
+        {% if specter.info['pruned'] %}
+            <tr> <td style="text-align: left;">{{ _("Automatic pruning") }}:</td> <td style="text-align: right;">{{specter.info['automatic_pruning']}}</td> </tr>
+            <tr> <td style="text-align: left;">{{ _("Prune height") }}:</td> <td style="text-align: right;">{{specter.info['pruneheight']}}</td> </tr>
+            <tr> <td style="text-align: left;">{{ _("Prune target size") }}:</td> <td style="text-align: right;">{{specter.info['prune_target_size']}}</td> </tr>
+        {% endif %}
+    </table>
+
+
+    <p id="total_supply" style="line-height: 2.5;"></p>
+    <div class="row">
+        <button type="button" onclick="fetchTotalSupply()" class="btn centered">
+            {{ _("Run the numbers!") }}
+            <tool-tip width="200px">
+                <h4 slot="title">{{ _("Calculate the total Bitcoin supply") }}</h4>
+                <span slot="paragraph">
+                    {{ _("This will run the ") }} <code>gettxoutsetinfo</code> {{_(" command which will calculate the total amount of Bitcoin's UTXO set.") }}<br>
+                    {{ _("This might take a few minutes...") }}
+                </span>
+            </tool-tip>
+        </button>
+    </div><br>
+    <script>
+        let totalUserBalance = parseFloat(parseFloat("{{ specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') }}").toFixed(8));
+        async function fetchTotalSupply() {
+            document.getElementById('total_supply').innerHTML = `{{ _("Running the numbers... (this might take a few minutes)") }}`;
+            try {
+                const response = await fetch(
+                    "{{ url_for('wallets_endpoint_api.txout_set_info') }}",
+                    {
+                        method: 'GET'
+                    }
+                ).catch((err) => {
+                    showError(err)
+                    return
+                });
+                let result = await response.json();
+                console.log(result)
+                if (result.error) {
+                    showError(result.error)
+                    return
+                }
+                if (totalUserBalance==0) {
+                    document.getElementById('total_supply').innerHTML = `{{ _("Your wallet holds 0 BTC. Get off zero!)") }} `
+                    return
+                }
+                let userBalanceFromTotal = parseFloat((100 / (result.total_amount / totalUserBalance)).toFixed(8));
+                document.getElementById('total_supply').innerHTML = `{{ _("Bitcoin Total Supply") }}: ${result.total_amount} BTC<br>` +
+                `<span class="note" style="margin: 7px auto;">{{ _("Your wallets hold") }} ` +
+                    `${totalUserBalance} BTC (~${userBalanceFromTotal.toFixed(8)}% ` +
+                `{{ _("from the total supply") }}</span>`
+            } catch(e) {
+                console.log('Caught error:', e);
+                showError(e)
+                return { success: false, error: e };
+            }
+        }
+    </script>
+    {% if current_user.is_admin %}
+        <div class="row">
+            <a id="active-node-settings-btn" class="btn centered" href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) }}">
+                <img src="{{ url_for('static', filename='img/gear.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
+                {{ _("Configure Electrum Connection") }}
+            </a>
+        </div>
+    {% endif %}
+{% endif %}
