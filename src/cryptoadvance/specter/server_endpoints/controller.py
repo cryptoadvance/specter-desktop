@@ -63,14 +63,17 @@ logger = logging.getLogger(__name__)
 @app.errorhandler(RpcError)
 def server_rpc_error(rpce):
     """Specific SpecterErrors get passed on to the User as flash"""
+    logger.error(request.headers["Accept"])
     if request.headers["Accept"] == "application/json":
         return {"error": str(rpce)}
     if rpce.error_code == -18:  # RPC_WALLET_NOT_FOUND
+
         flash(
             _("Wallet not found. Specter reloaded all wallets, please try again."),
             "error",
         )
     else:
+
         flash(_("Bitcoin Core RpcError: {}").format(str(rpce)), "error")
     try:
         app.specter.wallet_manager.update()
@@ -148,7 +151,7 @@ def server_error_timeout(e):
     flash(error_msg, "warn")
     return redirect(
         url_for(
-            "node_settings.bitcoin_core_internal_logs",
+            "nodes_endpoint.internal_node_logs",
             node_alias=app.specter.node.alias,
         )
     )
