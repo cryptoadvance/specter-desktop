@@ -392,12 +392,17 @@ def txlist(wallet_alias):
     sortdir = request.form.get("sortdir", "asc")
     service_id = request.form.get("service_id", None)
     fetch_transactions = request.form.get("fetch_transactions", False)
-    txlist = wallet.txlist(
-        fetch_transactions=fetch_transactions,
-        validate_merkle_proofs=app.specter.config.get("validate_merkle_proofs", False),
-        current_blockheight=app.specter.info["blocks"],
-        service_id=service_id,
-    )
+    try:
+        txlist = wallet.txlist(
+            fetch_transactions=fetch_transactions,
+            validate_merkle_proofs=app.specter.config.get(
+                "validate_merkle_proofs", False
+            ),
+            current_blockheight=app.specter.info["blocks"],
+            service_id=service_id,
+        )
+    except SpecterError as se:
+        return {"error": str(se)}
     return process_txlist(
         txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
     )

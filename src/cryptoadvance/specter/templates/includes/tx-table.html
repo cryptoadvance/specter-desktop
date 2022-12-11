@@ -364,7 +364,7 @@
                     <th value="txid"     class="column-txid optional txid-header">TxID<div class="txid-arrow"></div></th>
                     <th value="label"    class="column-label optional label-header">{{ _("Label") }}<div class="label-arrow"></div></th>
                     <th value="amount"   class="column-amount amount-header">{{ _("Amount") }}<div class="amount-arrow"></div></th>
-                    <th value="time"     class="column-time time-header optional">{{ _("Time") }}<div class="time-arrow up-arrow"></div></th>
+                    <th value="time"     class="column-time time-header optional">{{ _("Time") }}<div class="time-arrow"></div></th>
                     <th value="confirmations" class="column-confirmations confirmations-header">{{ _("Confirmations") }}<div class="confirmations-arrow"></div></th>
                     <th value="blockhash" class="column-blockhash optional hidden blockhash-header">
                         <div style="display: flex">
@@ -586,6 +586,8 @@
             }
 
             // Setup sorting functionality for each column of the table header
+            // TODO: Fix sorting issues to enable sorting for all columns
+            /*
             let sortHeaders = [
                 this.categoryHeader,
                 this.txidHeader,
@@ -594,6 +596,10 @@
                 this.timeHeader,
                 this.confirmationsHeader
             ];
+            */
+
+            // Temporarily disable arrows implying sorting functionality while broken
+            let sortHeaders = [];
 
             for (let header of sortHeaders) {
                 header.onclick = () => {
@@ -927,7 +933,13 @@
                     this.render(jsonResponse, showBlockhash)
                     return
                 };
-                showError(`{{ _("Failed to fetch transactions list.") }}`)
+                if ("error" in jsonResponse) {
+                    showError(`${jsonResponse["error"]}`);
+                    this.emptyRowCell.innerText = '{{ _("No transactions fetched. Consider disabling the merkle proofs option in the settings.") }}';
+                } else {
+                    showError(`{{ _("Failed to fetch transactions list.") }}`);
+                    this.emptyRowCell.innerText = '{{ _("No transactions fetched ... ") }}';
+                }
             } catch(e) {
                 console.log("Caught error: ", e);
                 showError(`{{ _("Failed to fetch transactions list.") }}: ${e}`);

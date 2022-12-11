@@ -33,4 +33,4 @@ pytimeparse==1.1.8
 cryptoadvance-liquidissuer==0.2.4
 specterext-exfund==0.1.7
 specterext-faucet==0.1.2
-cryptoadvance.spectrum==0.2.0
+cryptoadvance.spectrum==0.2.5

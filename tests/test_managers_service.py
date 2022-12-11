@@ -8,6 +8,10 @@ from flask import Flask
 from cryptoadvance.specter.managers.service_manager import ServiceManager
 from cryptoadvance.specter.services.callbacks import after_serverpy_init_app
 
+from cryptoadvance.specterext.swan.service import SwanService
+from cryptoadvance.specterext.swan.service import SwanClient
+from cryptoadvance.specterext.devhelp.service import DevhelpService
+
 
 def test_ServiceManager2(mock_specter, mock_flaskapp, caplog):
     ctx = mock_flaskapp.app_context()
@@ -20,6 +24,15 @@ def test_ServiceManager2(mock_specter, mock_flaskapp, caplog):
     assert sm.services["swan"] != None
 
     sm.execute_ext_callbacks(after_serverpy_init_app, scheduler=None)
+
+
+def test_is_class_from_loaded_extension(mock_specter, mock_flaskapp):
+    with mock_flaskapp.app_context():
+        sm = ServiceManager(mock_specter, "alpha")
+        assert type(sm.services_sorted[0]) == SwanService
+        assert sm.is_class_from_loaded_extension(SwanClient)
+        assert sm.is_class_from_loaded_extension(SwanService)
+        assert not sm.is_class_from_loaded_extension(DevhelpService)
 
 
 @pytest.mark.skip(reason="The .buildenv directoy does not exist on the CI-Infra")
@@ -62,6 +75,13 @@ def test_ServiceManager_get_service_packages(caplog):
     assert "cryptoadvance.specterext.swan.service" in packages
     assert "cryptoadvance.specterext.electrum.service" in packages
     assert "cryptoadvance.specterext.electrum.devices.electrum" in packages
+    assert "cryptoadvance.specterext.devhelp.service" in packages
+    assert "cryptoadvance.specterext.liquidissuer.service" in packages
+
+    assert "cryptoadvance.specter.util.migrations.migration_0000" in packages
+    assert "cryptoadvance.specter.util.migrations.migration_0001" in packages
+    assert "cryptoadvance.specter.util.migrations.migration_0002" in packages
+    assert len(packages) == 25
 
 
 def test_ServiceManager_make_path_relative(caplog):

@@ -17,6 +17,8 @@ from flask import current_app as app
 from flask import url_for
 from flask.blueprints import Blueprint
 
+from cryptoadvance.specter.util.specter_migrator import SpecterMigration
+
 from ...services.service import Service
 from ...services import callbacks, ExtensionException
 from ...util.reflection import (
@@ -315,6 +317,17 @@ class ServiceManager:
         )
         return [self._services[s] for s in service_names]
 
+    def is_class_from_loaded_extension(self, claz):
+        """Returns Ture if that class is from a module which belongs to an extension
+        which is loaded, False otherwise
+        """
+        print("")
+        ext_module = ".".join(claz.__module__.split(".")[0:3])
+        for ext in self.services_sorted:
+            if ext.__class__.__module__.startswith(ext_module):
+                return True
+        return False
+
     def user_has_encrypted_storage(self, user: User) -> bool:
         """Looks for any data for any service in the User's ServiceEncryptedStorage.
         This check works even if the user doesn't have their plaintext_user_secret
@@ -439,10 +452,11 @@ class ServiceManager:
 
     @classmethod
     def get_service_packages(cls):
-        """returns a list of strings containing the service-classes (+ controller +config-classes +devices)
+        """returns a list of strings containing the service-classes (+ controller +config-classes +devices +migrations)
         This is used for hiddenimports in pyinstaller
         """
         arr = get_subclasses_for_clazz(Service)
+        arr.extend(get_subclasses_for_clazz(SpecterMigration))
         logger.info(f"initial arr: {arr}")
         arr.extend(
             get_classlist_of_type_clazz_from_modulelist(
@@ -498,6 +512,7 @@ class ServiceManager:
                 arr.append(config_package)
             except ModuleNotFoundError as e:
                 pass
+        arr = list(dict.fromkeys(arr))
         return arr
 
     @classmethod
