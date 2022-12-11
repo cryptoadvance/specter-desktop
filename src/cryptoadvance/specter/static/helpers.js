@@ -62,6 +62,29 @@ document.addEventListener("updateAddressLabel", function (e) {
 	}
 });
 
+// Clicking somewhere else than on the edit label section cancels the label editing
+document.addEventListener("click", (e) => {
+	addressesTableComponent = document.querySelector('addresses-table')
+	const path = e.composedPath()
+	const clickedElement = path[0]
+	const parentElement = path[1]
+	addressesTableComponent.shadowRoot.querySelectorAll('address-row').forEach(addressRow => {
+		const addressLabel = addressRow.shadowRoot.querySelector('address-label')
+		if (addressLabel.isEditing) {
+			if (parentElement == addressLabel.edit || clickedElement == addressLabel.edit) {
+				console.log("Clicking on the edit button or on the label span, don't end the editing ...")
+				return
+			}
+			else {
+				console.log("Clicking somewhere else on the screen. Canceling editing.")
+				if (addressLabel.isEditing) {
+					addressLabel.closeEditMode()
+				}
+			}
+		}
+	})
+})
+
 document.documentElement.style.setProperty('--mobileDistanceElementBottomHeight', `${Math.max(0, window.outerHeight - window.innerHeight)}px`);
 
 function showError(msg, timeout=0) {

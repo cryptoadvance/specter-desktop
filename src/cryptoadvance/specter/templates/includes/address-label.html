@@ -109,10 +109,8 @@
             super();
             // Create a shadow root
             var shadow = this.attachShadow({ mode: "open" });
-
             var style = document.getElementById("address-label").content;
             var clone = style.cloneNode(true);
-
             this.el = clone.querySelector(".address-label-form");
             this.serviceIconImg = clone.querySelector(".service-icon");
             this.label = clone.querySelector(".label");
@@ -187,6 +185,7 @@
 
             this.edit.addEventListener("keyup", (e) => {
                 // Removes default action of spacebar
+                // Only works on Chrome! No space on Firefox ...
                 if (e.keyCode == 32) {
                     e.preventDefault();
                 }
