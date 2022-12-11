@@ -1362,7 +1362,7 @@ class Wallet:
 
     def is_address_mine(self, address):
         addrinfo = self.get_address_info(address)
-        return addrinfo and not addrinfo.is_external
+        return bool(addrinfo) and not addrinfo.is_external
 
     def get_electrum_file(self):
         """Exports the wallet data as Electrum JSON format"""
