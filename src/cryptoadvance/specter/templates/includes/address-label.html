@@ -183,15 +183,24 @@
                 );
             });
 
-            this.edit.addEventListener("keyup", (e) => {
-                // Removes default action of spacebar
-                // Only works on Chrome! No space on Firefox ...
-                if (e.keyCode == 32) {
-                    e.preventDefault();
+            this.label.addEventListener("keyup", (e) => {
+                // Just removes default action of spacebar for Chrome
+                if (navigator.userAgent.indexOf('Chrome') !== -1) {
+                    if (e.keyCode == 32) {
+                        e.preventDefault()
+                    }
+                }
+                // This simpel approach does not work on Firefox, here we have to emulate the spacebar with JS
+                else if (navigator.userAgent.indexOf('Firefox') !== -1) {
+                    if (e.keyCode == 32) {
+                        e.preventDefault()
+                        this.label.innerText = this.label.innerText + '\u00A0'
+                        this.moveCaret(1)
+                    }
                 }
             });
 
-            this.edit.addEventListener("keydown", (e) => {
+            this.label.addEventListener("keydown", (e) => {
                 // Escape = cancel
                 if (e.keyCode == 27) {
                     e.preventDefault();
@@ -272,6 +281,13 @@
             this.cancel.classList.add("hidden");
             this.update.classList.add("hidden");
             this.isEditing = false;
+        }
+
+        moveCaret(charCount) {
+            const selection = window.getSelection()
+            const focusNode = selection.focusNode
+            const newOffset = selection.focusOffset + charCount;
+            selection.collapse(focusNode, newOffset)
         }
 
         async fetchAddressLabel() {
