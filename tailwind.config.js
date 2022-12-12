@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./src/cryptoadvance/specter/templates/**/*.{html,js,jinja}"],
+  content: ["./src/cryptoadvance/**/*.{html,js,jinja}"],
   theme: {
     fontFamily: {
       sans: ["Social", "sans-serif"],

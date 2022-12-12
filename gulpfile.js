@@ -11,8 +11,8 @@ exports.default = function() {
   watch([`src/**/*.{jinja,html,css,svg}`], { events: 'all' }, (cb) => {
     console.log("Change in source folder")
     
-    src(`src/cryptoadvance/specter/**/*.{jinja,html,css,svg}`)
-      .pipe(dest(`.env/lib/python3.10/site-packages/cryptoadvance/specter/`))
+    src(`src/cryptoadvance/**/*.{jinja,html,css,svg}`)
+      .pipe(dest(`.env/lib/python3.10/site-packages/cryptoadvance/`))
       .pipe(livereload()) // trigger update
 
     cb();
