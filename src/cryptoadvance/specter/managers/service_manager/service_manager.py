@@ -17,6 +17,8 @@ from flask import current_app as app
 from flask import url_for
 from flask.blueprints import Blueprint
 
+from cryptoadvance.specter.util.specter_migrator import SpecterMigration
+
 from ...services.service import Service
 from ...services import callbacks, ExtensionException
 from ...util.reflection import (
@@ -450,10 +452,11 @@ class ServiceManager:
 
     @classmethod
     def get_service_packages(cls):
-        """returns a list of strings containing the service-classes (+ controller +config-classes +devices)
+        """returns a list of strings containing the service-classes (+ controller +config-classes +devices +migrations)
         This is used for hiddenimports in pyinstaller
         """
         arr = get_subclasses_for_clazz(Service)
+        arr.extend(get_subclasses_for_clazz(SpecterMigration))
         logger.info(f"initial arr: {arr}")
         arr.extend(
             get_classlist_of_type_clazz_from_modulelist(
@@ -509,6 +512,7 @@ class ServiceManager:
                 arr.append(config_package)
             except ModuleNotFoundError as e:
                 pass
+        arr = list(dict.fromkeys(arr))
         return arr
 
     @classmethod

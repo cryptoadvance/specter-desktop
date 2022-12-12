@@ -20,7 +20,7 @@
         {% endif %}
 
         <div>
-            <h1>{{ _("Import keys from your signing device") }}</h1>
+            <h1>{{ _("Upload Keys") }}</h1>
 
             {% if not existing_device %}
                 <h2 class="mt-4 mb-8">
@@ -28,7 +28,7 @@
                     <input type="text" name="device_name" placeholder="My device" id="device_name" required/>
                 </h2>
             {% endif %}
-
+            
             <div id="coldcard-instructions" class="{%if device_class.device_type != 'coldcard' %}hidden{% endif %}">
                 <p>{{ _("Connect your ColdCard to the computer via USB and unlock it or upload a wallet export file from micro SD card.") }}</p>
 
