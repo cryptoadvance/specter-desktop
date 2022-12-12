@@ -68,21 +68,23 @@ document.addEventListener("click", (e) => {
 	const path = e.composedPath()
 	const clickedElement = path[0]
 	const parentElement = path[1]
-	addressesTableComponent.shadowRoot.querySelectorAll('address-row').forEach(addressRow => {
-		const addressLabel = addressRow.shadowRoot.querySelector('address-label')
-		if (addressLabel.isEditing) {
-			if (parentElement == addressLabel.edit || clickedElement == addressLabel.edit) {
-				console.log("Clicking on the edit button or on the label span, don't end the editing ...")
-				return
-			}
-			else {
-				console.log("Clicking somewhere else on the screen. Canceling editing.")
-				if (addressLabel.isEditing) {
-					addressLabel.closeEditMode()
+	if (addressesTableComponent) {
+		addressesTableComponent.shadowRoot.querySelectorAll('address-row').forEach(addressRow => {
+			const addressLabel = addressRow.shadowRoot.querySelector('address-label')
+			if (addressLabel.isEditing) {
+				if (parentElement == addressLabel.edit || clickedElement == addressLabel.edit) {
+					console.log("Clicking on the edit button or on the label span, don't end the editing ...")
+					return
+				}
+				else {
+					console.log("Clicking somewhere else on the screen. Canceling editing.")
+					if (addressLabel.isEditing) {
+						addressLabel.closeEditMode()
+					}
 				}
 			}
-		}
-	})
+		})
+	}
 })
 
 document.documentElement.style.setProperty('--mobileDistanceElementBottomHeight', `${Math.max(0, window.outerHeight - window.innerHeight)}px`);
