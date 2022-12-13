@@ -168,7 +168,7 @@ def test_addressinfo(caplog, client, funded_ghost_machine_wallet):
     assert res.status == "200 OK"
     assert (
         res.data.decode()
-        == '{"address":"bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs","change":false,"derivation_path":"m/84h/1h/0h/0/0","descriptor":"wpkh([8c24a510/84h/1h/0h/0/0]0331edcb16cfd0f8598052f7b287b07047a11c60967c1e7eb0257e02552539d984)#35zjhlhm","index":0,"isMine":true,"label":null,"service_id":null,"success":true,"used":null,"walletName":"ghost_machine","xpubs_descriptor":"wpkh([8c24a510/84h/1h/0h]tpubDC4DsqH5rqHqipMNqUbDFtQT3AkKkUrvLsN6miySvortU3s1LGaNVAb7wX2No2VsuxQV82T8s3HJLv3kdx1CPjsJ3onC1Zo5mWCQzRVaWVX/0/0)#8f5u4zq2"}\n'
+        == '{"address":"bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs","change":false,"derivation_path":"m/84h/1h/0h/0/0","descriptor":"wpkh([8c24a510/84h/1h/0h/0/0]0331edcb16cfd0f8598052f7b287b07047a11c60967c1e7eb0257e02552539d984)#35zjhlhm","index":0,"is_mine":true,"label":null,"service_id":null,"success":true,"used":null,"wallet_name":"ghost_machine","xpubs_descriptor":"wpkh([8c24a510/84h/1h/0h]tpubDC4DsqH5rqHqipMNqUbDFtQT3AkKkUrvLsN6miySvortU3s1LGaNVAb7wX2No2VsuxQV82T8s3HJLv3kdx1CPjsJ3onC1Zo5mWCQzRVaWVX/0/0)#8f5u4zq2"}\n'
     )
 
     # send post request with bad address
@@ -214,7 +214,7 @@ def test_addressinfo(caplog, client, funded_ghost_machine_wallet):
         assert res.status == "200 OK"
         assert (
             res.data.decode()
-            == '{"address":"bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs","change":false,"descriptor":"this is not a descriptor","index":0,"isMine":true,"label":null,"service_id":null,"success":false,"used":null,"walletName":"ghost_machine","xpubs_descriptor":"this is not a descriptor"}\n'
+            == '{"address":"bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs","change":false,"descriptor":"this is not a descriptor","index":0,"is_mine":true,"label":null,"service_id":null,"success":false,"used":null,"wallet_name":"ghost_machine","xpubs_descriptor":"this is not a descriptor"}\n'
         )
 
 

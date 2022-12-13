@@ -325,7 +325,7 @@ def decoderawtx(wallet_alias):
                 success=True,
                 tx=tx,
                 rawtx=rawtx,
-                walletName=wallet.name,
+                wallet_name=wallet.name,
             )
     except Exception as e:
         app.logger.warning("Failed to fetch transaction data. Exception: {}".format(e))
@@ -550,8 +550,8 @@ def addressinfo(wallet_alias):
                     "address": address,
                     "descriptor": descriptor,
                     "xpubs_descriptor": xpubs_descriptor,
-                    "walletName": wallet.name,
-                    "isMine": address_info and not address_info.is_external,
+                    "wallet_name": wallet.name,
+                    "is_mine": address_info and not address_info.is_external,
                     **address_info,  # address_info is an instance of Address(dict)
                 }
 
@@ -562,8 +562,8 @@ def addressinfo(wallet_alias):
                 "descriptor": descriptor,
                 "xpubs_descriptor": xpubs_descriptor,
                 "derivation_path": derivation_path,
-                "walletName": wallet.name,
-                "isMine": address_info and not address_info.is_external,
+                "wallet_name": wallet.name,
+                "is_mine": address_info and not address_info.is_external,
                 **address_info,  # address_info is an instance of Address(dict)
             }
     except Exception as e:
@@ -710,14 +710,21 @@ def is_address_mine(wallet_alias, address):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
 
     # filter out invalid input
-    if (not address) or not isinstance(address, str):
-        return jsonify(False)
+    # and Segwit addresses are always between 14 and 74 characters long.
+    if (not address) or (not isinstance(address, str)) or len(address) < 14:
+        return jsonify(
+            {
+                "is_mine": False,
+                "wallet_name": wallet.name if wallet else None,
+            }
+        )
 
-    # Segwit addresses are always between 14 and 74 characters long.
-    if len(address) < 14:
-        return jsonify(False)
-
-    return jsonify(wallet.is_address_mine(address))
+    return jsonify(
+        {
+            "is_mine": wallet.is_address_mine(address),
+            "wallet_name": wallet.name if wallet else None,
+        }
+    )
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/send/estimatefee", methods=["POST"])
