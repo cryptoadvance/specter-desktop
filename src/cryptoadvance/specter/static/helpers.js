@@ -155,13 +155,13 @@ async function send_request(url, method_str, csrf_token, formData) {
 		if(response.status != 200){
 			showError(await response.text());
 			console.log(`Error while calling ${url} with ${method_str} ${formData}`)
-			return
+			return {"error": `Error while calling ${url} with ${method_str} ${formData}` }
 		}
 		let jsonResponse = await response.json();
 		console.log('The response from the fetch call:')
 		console.log(jsonResponse)
 		if (typeof(jsonResponse) === 'boolean') {
-			return jsonResponse
+			return {}
 		}
 		else if (jsonResponse !== 'null' && 'error' in jsonResponse) {
 			showError(`${jsonResponse["error"]}`)
@@ -171,5 +171,6 @@ async function send_request(url, method_str, csrf_token, formData) {
 	}
 	catch(error) {
 		showError(`Failed to fetch transactions list: ${error}`)
+		return { 'error': error}
 	}
 }
