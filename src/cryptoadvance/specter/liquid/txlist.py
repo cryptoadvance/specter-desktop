@@ -75,9 +75,11 @@ class LTxItem(TxItem):
                     datas.append(extra)
                 values[i] = value
                 assets[i] = asset
-            except Exception as e:
-                logger.warn(e)  # TODO: remove, it's ok
-                pass
+            except RuntimeError as e:
+                if str(e).startswith("Failed to rewind the proof"):
+                    logger.warn(f"this can probably be ignored: {e}")
+                else:
+                    raise e
 
         # to calculate blinding seed
         tx = PSET(b)
@@ -119,7 +121,7 @@ class LTxItem(TxItem):
                         assets[i] = asset
                         values[i] = value
                     except Exception as e:
-                        logger.warn(f"Failed at unblinding output {i}: {e}")
+                        logger.exception(f"Failed at unblinding output {i}: {e}", e)
                 else:
                     logger.warn(f"Failed at unblinding: {e}")
 

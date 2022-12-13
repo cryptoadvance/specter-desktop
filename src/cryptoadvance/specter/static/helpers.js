@@ -195,19 +195,37 @@ async function send_request(url, method_str, csrf_token, formData) {
 	if (!formData) {
 		formData = new FormData();
 	}
+	const headers = new Headers();
+ 	headers.append('Accept', 'application/json');
 	formData.append("csrf_token", csrf_token)
 	d = {
 			method: method_str,
+			headers: headers
 		}
 	if (method_str == 'POST') {
 		d['body'] = formData;
 	}
-
-	const response = await fetch(url, d);
-	if(response.status != 200){
-		showError(await response.text());
-		console.log(`Error while calling ${url} with ${method_str} ${formData}`)
-		return
+	try {
+		const response = await fetch(url, d);
+		if(response.status != 200){
+			showError(await response.text());
+			console.log(`Error while calling ${url} with ${method_str} ${formData}`)
+			return {"error": `Error while calling ${url} with ${method_str} ${formData}` }
+		}
+		let jsonResponse = await response.json();
+		console.log('The response from the fetch call:')
+		console.log(jsonResponse)
+		if (typeof(jsonResponse) === 'boolean') {
+			return {}
+		}
+		else if (jsonResponse !== null && 'error' in jsonResponse) {
+			showError(`${jsonResponse["error"]}`)
+			return jsonResponse
+		}
+		return jsonResponse
 	}
-	return await response.json();
+	catch(error) {
+		showError(`Failed to fetch transactions list: ${error}`)
+		return { 'error': error}
+	}
 }
