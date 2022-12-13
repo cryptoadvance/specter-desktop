@@ -16,6 +16,7 @@ from io import StringIO
 from typing import List
 
 from cryptoadvance.specter.commands.utxo_scanner import UtxoScanner
+from cryptoadvance.specter.rpc import RpcError
 
 from .addresslist import Address, AddressList
 from .device import Device
@@ -984,9 +985,8 @@ class Wallet:
         if txid and txid in self.pending_psbts:
             try:
                 self.rpc.lockunspent(True, self.pending_psbts[txid].utxo_dict())
-            except Exception as e:
-                logger.exception(e)
-                # UTXO was spent
+            except RpcError as e:
+                # UTXO was probably spent
                 logger.warning(str(e))
             del self.pending_psbts[txid]
             if save:

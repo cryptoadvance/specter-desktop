@@ -75,10 +75,11 @@ class LTxItem(TxItem):
                     datas.append(extra)
                 values[i] = value
                 assets[i] = asset
-            except Exception as e:
-                logger.exception(
-                    e
-                )  # Might be ok, but please catch specific Exception in that case
+            except RuntimeError as e:
+                if str(e).startswith("Failed to rewind the proof"):
+                    logger.warn(f"this can probably be ignored: {e}")
+                else:
+                    raise e
 
         # to calculate blinding seed
         tx = PSET(b)
