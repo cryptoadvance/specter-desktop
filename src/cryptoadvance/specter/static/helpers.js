@@ -163,7 +163,7 @@ async function send_request(url, method_str, csrf_token, formData) {
 		if (typeof(jsonResponse) === 'boolean') {
 			return {}
 		}
-		else if (jsonResponse !== 'null' && 'error' in jsonResponse) {
+		else if (jsonResponse !== null && 'error' in jsonResponse) {
 			showError(`${jsonResponse["error"]}`)
 			return jsonResponse
 		}
