@@ -1,4 +1,6 @@
-import traceback
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class JSONRPC:
@@ -34,6 +36,6 @@ class JSONRPC:
             else:
                 response["result"] = method(**request["params"])  # dict -> **kwargs
         except Exception as e:
-            traceback.print_exc()
+            logger.exception(e)
             response["error"] = {"code": -32000, "message": f"Internal error: {e}."}
         return response

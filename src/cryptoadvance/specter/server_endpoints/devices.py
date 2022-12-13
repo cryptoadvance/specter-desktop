@@ -278,6 +278,7 @@ def device_blinding_key(device_alias):
                 + ("?newdevice=true" if new_device else "")
             )
         except Exception as e:
+            logger.exception(e)
             flash(
                 _("Invalid master blinding key! It should be in WIF or hex format."),
                 "error",
