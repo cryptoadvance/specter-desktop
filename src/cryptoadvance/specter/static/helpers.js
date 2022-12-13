@@ -65,6 +65,8 @@ document.addEventListener("updateAddressLabel", function (e) {
 // Clicking somewhere else than on the edit label section cancels the label editing
 document.addEventListener("click", (e) => {
 	addressesTableComponent = document.querySelector('addresses-table')
+	txTableComponent = document.querySelector('tx-table')
+	addressDataComponent = document.querySelector('address-data')
 	const path = e.composedPath()
 	const clickedElement = path[0]
 	const parentElement = path[1]
@@ -79,7 +81,41 @@ document.addEventListener("click", (e) => {
 				else {
 					console.log("Clicking somewhere else on the screen. Canceling editing.")
 					if (addressLabel.isEditing) {
-						addressLabel.closeEditMode()
+						addressLabel.cancel.click()
+					}
+				}
+			}
+		})
+	}
+	else if (txTableComponent) {
+		txTableComponent.shadowRoot.querySelectorAll('tx-row').forEach(txRow => {
+			const addressLabel = txRow.shadowRoot.querySelector('address-label')
+			if (addressLabel.isEditing) {
+				if (parentElement == addressLabel.edit || clickedElement == addressLabel.edit) {
+					console.log("Clicking on the edit button or on the label span, don't end the editing ...")
+					return
+				}
+				else {
+					console.log("Clicking somewhere else on the screen. Canceling editing.")
+					if (addressLabel.isEditing) {
+						addressLabel.cancel.click()
+					}
+				}
+			}
+		})
+	}
+	// Can't use else if here: Address data is a pop-up so addresses or tx table are still in the DOM
+	if (addressDataComponent) {
+		addressDataComponent.shadowRoot.querySelectorAll('address-label').forEach(addressLabel => {
+			if (addressLabel.isEditing) {
+				if (parentElement == addressLabel.edit || clickedElement == addressLabel.edit) {
+					console.log("Clicking on the edit button or on the label span, don't end the editing ...")
+					return
+				}
+				else {
+					console.log("Clicking somewhere else on the screen. Canceling editing.")
+					if (addressLabel.isEditing) {
+						addressLabel.cancel.click()
 					}
 				}
 			}
