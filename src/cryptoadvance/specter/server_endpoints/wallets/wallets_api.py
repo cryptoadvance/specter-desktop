@@ -328,7 +328,9 @@ def decoderawtx(wallet_alias):
                 walletName=wallet.name,
             )
     except Exception as e:
-        app.logger.warning("Failed to fetch transaction data. Exception: {}".format(e))
+        app.logger.exception(
+            "Failed to fetch transaction data. Exception: {}".format(e), e
+        )
 
     return jsonify(success=False)
 
@@ -881,6 +883,7 @@ def txlist_to_csv(wallet: Wallet, _txlist, includePricesHistory=False):
             try:
                 _wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
             except Exception as e:
+                logger.exception(e)
                 continue
         label = _wallet.getlabel(tx["address"])
         if label == tx["address"]:

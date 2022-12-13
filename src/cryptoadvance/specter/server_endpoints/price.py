@@ -38,6 +38,7 @@ def update():
             return {"success": update_price(app.specter, current_user)}
     except Exception as e:
         logger.warning("Failed to update price settings. Exception: {}".format(e))
+        logger.exception(e)
     return {"success": False}
 
 

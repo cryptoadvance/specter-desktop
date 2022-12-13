@@ -464,19 +464,6 @@ class Node(AbstractNode):
                 logger.debug(
                     f"connection {self.rpc} failed test_connection in check_info:"
                 )
-                try:
-                    self.rpc.multi(
-                        [
-                            ("getblockchaininfo", None),
-                            ("getnetworkinfo", None),
-                            ("getmempoolinfo", None),
-                            ("uptime", None),
-                            ("getblockhash", 0),
-                            ("scantxoutset", "status", []),
-                        ]
-                    )
-                except Exception as e:
-                    logger.exception(e)
             self._mark_node_as_broken()
 
     def test_rpc(self):
@@ -636,7 +623,8 @@ class Node(AbstractNode):
     def network_parameters(self):
         try:
             return self._network_parameters
-        except Exception:
+        except Exception as e:
+            logger.exception(e)
             return get_network("main")
 
     @property
@@ -658,6 +646,7 @@ class Node(AbstractNode):
                 self.info.get("softforks", {}).get("taproot", {}).get("active", False)
             )
         except Exception as e:
+            logger.exception(e)
             return False
 
     @property

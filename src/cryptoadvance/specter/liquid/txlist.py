@@ -76,8 +76,9 @@ class LTxItem(TxItem):
                 values[i] = value
                 assets[i] = asset
             except Exception as e:
-                logger.warn(e)  # TODO: remove, it's ok
-                pass
+                logger.exception(
+                    e
+                )  # Might be ok, but please catch specific Exception in that case
 
         # to calculate blinding seed
         tx = PSET(b)
@@ -119,7 +120,7 @@ class LTxItem(TxItem):
                         assets[i] = asset
                         values[i] = value
                     except Exception as e:
-                        logger.warn(f"Failed at unblinding output {i}: {e}")
+                        logger.exception(f"Failed at unblinding output {i}: {e}", e)
                 else:
                     logger.warn(f"Failed at unblinding: {e}")
 

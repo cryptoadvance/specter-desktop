@@ -133,6 +133,7 @@ def server_broken_core_connection(e):
         app.specter.check()
         return redirect(url_for("welcome_endpoint.about"))
     except Exception as e:
+        logger.exception(e)
         return server_error(e)
 
 
@@ -211,7 +212,7 @@ def slow_request_detection_stop(response):
     try:
         diff = time() - g.start
     except Exception as e:
-        app.logger.error(e)
+        app.logger.exception(e)
         return response
     if (
         (response.response)

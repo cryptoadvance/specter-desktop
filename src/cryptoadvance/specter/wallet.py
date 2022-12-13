@@ -246,6 +246,7 @@ class Wallet:
         try:
             cls.DescriptorCls.from_string(combined)
         except Exception as e:
+            handle_exception(e)
             raise SpecterError(f"Invalid descriptor: {e}")
         return combined
 
@@ -290,7 +291,7 @@ class Wallet:
                 )
                 created = True
             except Exception as e:
-                logger.warning(e)
+                logger.exception(e)
         # if we failed to create or didn't try - create without descriptors
         if not created:
             rpc.createwallet(os.path.join(rpc_path, alias), True)
@@ -635,7 +636,7 @@ class Wallet:
             while self.rpc.getreceivedbyaddress(addr, 0) != 0:
                 addr = self.getnewaddress()
         except Exception as e:
-            logger.error(f"Failed to check for address reuse: {e}")
+            logger.exception(f"Failed to check for address reuse: {e}", e)
 
     def check_addresses(self):
         """Checking the gap limit is still ok"""
@@ -829,6 +830,7 @@ class Wallet:
                     tx["locked"] = False
             self._full_utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
         except Exception as e:
+            logger.exception(e)
             self._full_utxo = []
             raise SpecterError(f"Failed to load utxos, {e}")
 
@@ -983,6 +985,7 @@ class Wallet:
             try:
                 self.rpc.lockunspent(True, self.pending_psbts[txid].utxo_dict())
             except Exception as e:
+                logger.exception(e)
                 # UTXO was spent
                 logger.warning(str(e))
             del self.pending_psbts[txid]
@@ -1002,9 +1005,8 @@ class Wallet:
                         [{"txid": utxo.split(":")[0], "vout": int(utxo.split(":")[1])}],
                     )
                 except Exception as e:
-                    # UTXO was spent
-                    print(e)
-                    pass
+                    # UTXO was spent ?!
+                    logger.exception(e)
                 logger.info(f"Unfreeze {utxo}")
                 self.frozen_utxo.remove(utxo)
             else:
@@ -1164,6 +1166,7 @@ class Wallet:
             )
         except Exception as e:
             logger.warning("Could not get transaction {}, error: {}".format(txid, e))
+            logger.exception(e)
 
     def is_tx_purged(self, txid):
         # Is tx unconfirmed and no longer in the mempool?
@@ -1177,6 +1180,7 @@ class Wallet:
             return txid not in self.rpc.getrawmempool()
         except Exception as e:
             logger.warning("Could not check is_tx_purged {}, error: {}".format(txid, e))
+            logger.exception(e)
 
     def abandontransaction(self, txid):
         # Sanity checks: tx must be unconfirmed and cannot be in the mempool
@@ -1489,6 +1493,7 @@ class Wallet:
             self._addresses.add(addresses, check_rpc=False)
         except Exception as e:
             logger.warning(f"Error while calculating addresses: {e}")
+            logger.exception(e)
 
         # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
         # still have legacy wallets. Use getwalletinfo to check the wallet type.
@@ -1905,8 +1910,9 @@ class Wallet:
                     res = self.gettransaction(txid)
                     inp.non_witness_utxo = self.TxCls.from_string(res["hex"])
                 except Exception as e:
-                    logger.error(
-                        f"Can't find previous transaction in the wallet. Signing might not be possible for certain devices... Txid: {txid}, Exception: {e}"
+                    logger.exception(
+                        f"Can't find previous transaction in the wallet. Signing might not be possible for certain devices... Txid: {txid}, Exception: {e}",
+                        e,
                     )
         else:
             # remove non_witness_utxo if we don't want them
