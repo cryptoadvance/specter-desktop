@@ -74,15 +74,13 @@ document.addEventListener("click", (e) => {
 		addressesTableComponent.shadowRoot.querySelectorAll('address-row').forEach(addressRow => {
 			const addressLabel = addressRow.shadowRoot.querySelector('address-label')
 			if (addressLabel.isEditing) {
-				if (parentElement == addressLabel.edit || clickedElement == addressLabel.edit) {
-					console.log("Clicking on the edit button or on the label span, don't end the editing ...")
+				if ([addressLabel.edit, addressLabel.cancel, addressLabel.update].includes(parentElement) || clickedElement == addressLabel.edit) {
+					console.log("Clicking on the label buttons, don't end the editing ...")
 					return
 				}
 				else {
 					console.log("Clicking somewhere else on the screen. Canceling editing.")
-					if (addressLabel.isEditing) {
-						addressLabel.cancel.click()
-					}
+					addressLabel.cancelEditing()
 				}
 			}
 		})
@@ -91,15 +89,13 @@ document.addEventListener("click", (e) => {
 		txTableComponent.shadowRoot.querySelectorAll('tx-row').forEach(txRow => {
 			const addressLabel = txRow.shadowRoot.querySelector('address-label')
 			if (addressLabel.isEditing) {
-				if (parentElement == addressLabel.edit || clickedElement == addressLabel.edit) {
-					console.log("Clicking on the edit button or on the label span, don't end the editing ...")
+				if ([addressLabel.edit, addressLabel.cancel, addressLabel.update].includes(parentElement) || clickedElement == addressLabel.edit) {
+					console.log("Clicking on the label buttons, don't end the editing ...")
 					return
 				}
 				else {
 					console.log("Clicking somewhere else on the screen. Canceling editing.")
-					if (addressLabel.isEditing) {
-						addressLabel.cancel.click()
-					}
+					addressLabel.cancelEditing()
 				}
 			}
 		})
@@ -108,15 +104,13 @@ document.addEventListener("click", (e) => {
 	if (addressDataComponent) {
 		addressDataComponent.shadowRoot.querySelectorAll('address-label').forEach(addressLabel => {
 			if (addressLabel.isEditing) {
-				if (parentElement == addressLabel.edit || clickedElement == addressLabel.edit) {
-					console.log("Clicking on the edit button or on the label span, don't end the editing ...")
+				if ([addressLabel.edit, addressLabel.cancel, addressLabel.update].includes(parentElement) || clickedElement == addressLabel.edit) {
+					console.log("Clicking on the label buttons, don't end the editing ...")
 					return
 				}
 				else {
 					console.log("Clicking somewhere else on the screen. Canceling editing.")
-					if (addressLabel.isEditing) {
-						addressLabel.cancel.click()
-					}
+					addressLabel.cancelEditing()
 				}
 			}
 		})

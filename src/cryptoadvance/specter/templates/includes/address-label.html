@@ -204,13 +204,13 @@
                 // Escape = cancel
                 if (e.keyCode == 27) {
                     e.preventDefault();
-                    this.cancel.click();
+                    this.cancelEditing();
                 }
                 // Return = update
                 // Removes default action of new line on return press
                 if (e.keyCode == 13) {
                     e.preventDefault();
-                    this.update.click();
+                    this.updateAddressLabel();
                 }
             });
 
@@ -230,30 +230,11 @@
             };
 
             this.cancel.onclick = () => {
-                this.label.innerText = this.labelValue;
-                this.closeEditMode();
+                this.cancelEditing()
             };
 
-            this.update.onclick = async () => {
-                if (this.label.innerText) {
-                    if (await this.setAddressLabel()) {
-                        this.labelValue = this.label.innerText;
-                        this.closeEditMode();
-                        let event = new CustomEvent("updateAddressLabel", {
-                            detail: {
-                                label: this.labelValue,
-                                address: this.address,
-                            },
-                        });
-                        document.dispatchEvent(event);
-                    } else {
-                        showError(
-                            `{{ _("Failed to update address label. Please refresh the page and try again.") }}`
-                        );
-                    }
-                } else {
-                    this.closeEditMode();
-                }
+            this.update.onclick = () => {
+                this.updateAddresLabel()
             };
 
             this.addEventListener("updateAddressLabel", function (e) {
@@ -281,6 +262,33 @@
             this.cancel.classList.add("hidden");
             this.update.classList.add("hidden");
             this.isEditing = false;
+        }
+
+        cancelEditing() {
+            this.label.innerText = this.labelValue;
+            this.closeEditMode()
+        }
+
+        async updateAddressLabel() {
+            if (this.label.innerText) {
+                if (await this.setAddressLabel()) {
+                    this.labelValue = this.label.innerText;
+                    this.closeEditMode();
+                    let event = new CustomEvent("updateAddressLabel", {
+                        detail: {
+                            label: this.labelValue,
+                            address: this.address,
+                        },
+                    });
+                    document.dispatchEvent(event);
+                } else {
+                    showError(
+                        `{{ _("Failed to update address label. Please refresh the page and try again.") }}`
+                    );
+                }
+            } else {
+                this.closeEditMode();
+            }
         }
 
         moveCaret(charCount) {
