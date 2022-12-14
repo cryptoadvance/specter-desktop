@@ -3,11 +3,15 @@ import logging
 import os
 from os import path
 import shutil
+from typing import Type
 
 from embit.liquid.networks import get_network
 from flask import render_template
 from flask_babel import lazy_gettext as _
 from requests.exceptions import ConnectionError
+
+from cryptoadvance.specter.devices.bitcoin_core import BitcoinCore, BitcoinCoreWatchOnly
+from cryptoadvance.specter.devices.elements_core import ElementsCore
 
 from .helpers import deep_update, is_liquid, is_testnet
 from .liquid.rpc import LiquidRPC
@@ -19,6 +23,7 @@ from .rpc import (
     get_default_datadir,
 )
 from .specter_error import SpecterError, BrokenCoreConnectionException
+from .device import Device
 
 logger = logging.getLogger(__name__)
 
@@ -132,6 +137,21 @@ class AbstractNode(PersistentObject):
             "A Node Implementation need to implement the check_blockheight method"
         )
 
+    def is_device_supported(self, device_class_or_device_instance):
+        """Lets the node deactivate specific devices. The parameter could be a device or a device_type
+            You have to check yourself if overriding this method.
+        e.g.
+        if device_instance_or_device_class.__class__ == type:
+            device_class = device_instance_or_device_class
+        else:
+            device_class = device_instance_or_device_class.__class__
+        # example:
+        # if BitcoinCore == device_class:
+        #    return False
+        return True
+        """
+        return True
+
     def node_info_template(self):
         """This should return the path to a Info template as string"""
         return "node/components/bitcoin_core_info.jinja"
@@ -146,6 +166,16 @@ class AbstractNode(PersistentObject):
     def node_connection_template(self):
         """This should return the path to a connection template as string"""
         return "includes/sidebar/components/node_connection.jinja"
+
+    def delete_wallet_file(self, wallet) -> bool:
+        """Deleting the wallet file located on the node. This only works if the node is on the same machine as Specter.
+        Returns True if the wallet file could be deleted, otherwise returns False.
+
+        In the case of an Abtract Node, we consider that method as an edge-case anyway and we just return False here.
+        That is the normal usage if you don't have access to the internals of your Bitcoin Core.
+        Overwrite as necessary.
+        """
+        return False
 
 
 class Node(AbstractNode):
