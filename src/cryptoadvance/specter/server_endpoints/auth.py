@@ -149,6 +149,7 @@ def register():
                 plaintext_password=password,
                 config=config,
             )
+            app.specter.service_manager.add_required_services_to_users([user])
 
             flash(
                 _(

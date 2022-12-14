@@ -197,9 +197,17 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
             from cryptoadvance.specter.server_endpoints import controller
             from cryptoadvance.specter.services import controller as serviceController
 
+            # this number of view_functions needs to be updated by hand when some are added or removed.
+            number_of_expected_view_functions = 105
             if app.config.get("TESTING"):
-                logger.info(f"We have {len(app.view_functions)} view Functions")
-            if app.config.get("TESTING") and len(app.view_functions) <= 51:
+                logger.info(
+                    f"We have {len(app.view_functions)} view Functions. "
+                    f"There should be {number_of_expected_view_functions}."
+                )
+            if (
+                app.config.get("TESTING")
+                and len(app.view_functions) < number_of_expected_view_functions
+            ):
                 # Need to force a reload as otherwise the import is skipped
                 # in pytest, the app is created anew for each test
                 # But we shouldn't do that if not necessary as this would result in
@@ -268,6 +276,8 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
 
     scheduler.init_app(app)
     scheduler.start()
+    specter.service_manager.add_required_services_to_users(specter.user_manager.users)
+
     logger.info("----> starting service callback_after_serverpy_init_app ")
     specter.service_manager.execute_ext_callbacks(
         after_serverpy_init_app, scheduler=scheduler
