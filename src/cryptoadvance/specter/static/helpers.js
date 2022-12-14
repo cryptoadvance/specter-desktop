@@ -88,7 +88,8 @@ document.addEventListener("click", (e) => {
 	else if (txTableComponent) {
 		txTableComponent.shadowRoot.querySelectorAll('tx-row').forEach(txRow => {
 			const addressLabel = txRow.shadowRoot.querySelector('address-label')
-			if (addressLabel.isEditing) {
+			// In the tx labeling there also "3 Recipients labels"
+			if (addressLabel !== null && addressLabel.isEditing) {
 				if ([addressLabel.edit, addressLabel.cancel, addressLabel.update].includes(parentElement) || clickedElement == addressLabel.edit) {
 					console.log("Clicking on the label buttons, don't end the editing ...")
 					return
