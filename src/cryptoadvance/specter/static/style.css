@@ -11,7 +11,6 @@
 }
 
 @layer base {
-
   /*
    *
    * General HTML Tags
@@ -24,6 +23,10 @@
 
   h2 {
     @apply text-2xl font-medium mb-2;
+  }
+
+  h3 {
+    @apply text-xl font-medium mb-2;
   }
 
   p {
@@ -43,7 +46,6 @@
   }
 
   tbody {
-
   }
 
   tr {
@@ -54,7 +56,8 @@
     @apply last:border-b-0;
   }
 
-  td, th {
+  td,
+  th {
     @apply px-2 py-3 first:pl-4 last:pr-4 text-left break-all; /* break-words whitespace-nowrap; */
   }
 
@@ -62,13 +65,6 @@
     @apply text-dark-200 font-normal break-keep;
   }
 
-  input {
-    @apply bg-dark-800 border-2 border-dark-700 rounded-lg py-1 px-2 outline-none h-10;
-  }
-
-  select {
-    @apply bg-dark-800 border-2 border-dark-700 rounded-lg py-1 px-2 outline-none h-10;
-  }
 
   ol {
     @apply list-decimal list-inside text-lg mb-8;
@@ -77,7 +73,50 @@
   ol li {
     @apply my-2;
   }
-  
+
+  /*
+   *
+   * Form
+   *
+   */
+
+  form h3 {
+    @apply text-xl font-normal;
+  }
+
+  form section {
+    @apply mt-8 mb-4;
+  }
+
+  input[type="text"],
+  input[type="password"] {
+    @apply bg-dark-800 border-2 border-dark-700 rounded-lg px-2 outline-none h-12 w-full focus:border-accent duration-200 ease-out;
+  }
+
+  input[type="checkbox"] {
+    @apply w-4 h-4 mr-2;
+  }
+
+  .floating-wrapper {
+    @apply relative;
+  }
+
+  .floating-input {
+    @apply placeholder-shown:pt-0 pt-4;
+  }
+
+  .floating-label {
+    @apply cursor-text absolute duration-200 transform -translate-y-1.5 opacity-50 scale-75 top-2 left-1 px-2 z-10 origin-[0] peer-focus:px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 pointer-events-none select-none;
+  }
+
+  .floating-info {
+    @apply absolute right-3 top-2.5;
+  }
+
+  select {
+    @apply bg-dark-800 border-2 border-dark-700 rounded-lg px-2 outline-none h-12 w-full;
+  }
+
   /*
    *
    * Button
@@ -85,7 +124,7 @@
    */
 
   .button {
-    @apply rounded-lg h-11 rounded-xl text-lg flex items-center space-x-2 justify-center bg-dark-600 px-10 cursor-pointer w-[calc(680px/2)] mb-5;
+    @apply rounded h-11 rounded-xl text-lg flex items-center space-x-2 justify-center bg-dark-600 px-10 cursor-pointer w-[calc(688px/2)] mb-5;
   }
 
   .button img {
@@ -103,7 +142,7 @@
    */
 
   .selection {
-		@apply aspect-square rounded-lg bg-dark-800 border-dark-700 border-2 flex flex-col justify-between pb-2 items-center hover:bg-dark-700 cursor-pointer;
+    @apply aspect-square rounded-lg bg-dark-800 border-dark-700 border-2 flex flex-col justify-between pb-2 items-center hover:bg-dark-700 cursor-pointer;
   }
 
   .selection p {
@@ -117,7 +156,6 @@
   .selection-button {
     @apply rounded-lg w-full h-10 bg-dark-800 border-2 border-dark-700 text-center block text-lg py-1 hover:bg-dark-700;
   }
-
 }
 
 @layer components {
@@ -126,12 +164,12 @@
     -moz-appearance: none;
     background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
     background-repeat: no-repeat;
-    background-position: top 5px right 5px;
+    background-position: top 9px right 12px;
+    padding-right: 32px;
   }
 
   .table-holder {
     margin: 20px calc((100vw - 1080px) / -2);
     max-width: calc((100vw - 300px - 80px));
   }
-
 }
