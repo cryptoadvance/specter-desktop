@@ -15,43 +15,39 @@ from sys import exit
 from urllib.parse import urlparse
 
 import requests
-from requests.exceptions import ConnectionError
-from stem.control import Controller
-from urllib3.exceptions import NewConnectionError
-
 from cryptoadvance.specter.devices.device_types import DeviceTypes
 from cryptoadvance.specter.services.service_encrypted_storage import (
     ServiceEncryptedStorageManager,
     ServiceUnencryptedStorageManager,
 )
+from requests.exceptions import ConnectionError
+from stem import SocketError
+from stem.control import Controller
+from urllib3.exceptions import NewConnectionError
 
-from .helpers import clean_psbt, deep_update, is_liquid, get_asset_label
+from .helpers import clean_psbt, deep_update, get_asset_label, is_liquid
 from .internal_node import InternalNode
 from .liquid.rpc import LiquidRPC
 from .managers.config_manager import ConfigManager
 from .managers.node_manager import NodeManager
 from .managers.otp_manager import OtpManager
+from .managers.service_manager import ServiceManager
 from .managers.user_manager import UserManager
 from .managers.wallet_manager import WalletManager
 from .node import Node
 from .persistence import read_json_file, write_json_file, write_node
 from .process_controller.bitcoind_controller import BitcoindPlainController
-from .rpc import (
-    BitcoinRPC,
-    RpcError,
-    get_default_datadir,
-)
-from .managers.service_manager import ServiceManager
+from .rpc import BitcoinRPC, RpcError, get_default_datadir
 from .services.service import devstatus_alpha, devstatus_beta, devstatus_prod
 from .services import callbacks
 from .specter_error import ExtProcTimeoutException, SpecterError
 from .tor_daemon import TorDaemonController
 from .user import User
 from .util.checker import Checker
-from .util.version import VersionChecker
 from .util.price_providers import update_price
 from .util.setup_states import SETUP_STATES
 from .util.tor import get_tor_daemon_suffix
+from .util.version import VersionChecker
 
 logger = logging.getLogger(__name__)
 
@@ -165,7 +161,7 @@ class Specter:
             if os.path.isfile(self.torbrowser_path):
                 self.tor_daemon.start_tor_daemon()
         except Exception as e:
-            logger.error(e)
+            logger.exception(e)
 
         self.update_tor_controller()
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
@@ -433,7 +429,7 @@ class Specter:
             self._tor_controller.authenticate(
                 password=self.config.get("torrc_password", "")
             )
-        except Exception as e:
+        except SocketError as e:
             logger.warning(f"Failed to connect to Tor control port. Error: {e}")
             self._tor_controller = None
 

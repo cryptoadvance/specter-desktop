@@ -187,16 +187,10 @@ def logout():
 @login_required
 @app.csrf.exempt  # might get called by a timeout in the browser --> csrf-issues
 def toggle_hide_sensitive_info():
-    try:
-        app.specter.update_hide_sensitive_info(
-            not app.specter.hide_sensitive_info, current_user
-        )
-        return {"success": True}
-    except Exception as e:
-        app.logger.warning(
-            "Failed to update sensitive info display settings. Exception: {}".format(e)
-        )
-    return {"success": False}
+    app.specter.update_hide_sensitive_info(
+        not app.specter.hide_sensitive_info, current_user
+    )
+    return {"success": True}
 
 
 ################### Util ######################
