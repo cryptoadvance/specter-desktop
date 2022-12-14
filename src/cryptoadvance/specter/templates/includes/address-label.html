@@ -82,7 +82,7 @@
                 value="{{ csrf_token() }}"
             />
             <img class="service-icon" />
-            <span class="label" autocomplete="off" spellcheck="false" title="Edit label">
+            <span class="label" tabindex="-1" autocomplete="off" spellcheck="false" title="Edit label">
                 {{ _("Fetching address label...") }}
             </span>
         </button>
@@ -183,19 +183,21 @@
                 );
             });
 
+
+            // Browsers can interpret releasing the spacebar as a click
             this.label.addEventListener("keyup", (e) => {
-                // Just removes default action of spacebar for Chrome
-                if (navigator.userAgent.indexOf('Chrome') !== -1) {
-                    if (e.keyCode == 32) {
-                        e.preventDefault()
-                    }
+                if (e.keyCode == 32) {
+                    e.preventDefault()
                 }
-                // This simpel approach does not work on Firefox, here we have to emulate the spacebar with JS
-                else if (navigator.userAgent.indexOf('Firefox') !== -1) {
+            })
+
+            // Pressing the spacebar does not work in Firefox by default
+            this.label.addEventListener("keydown", (e) => {
+                if (navigator.userAgent.indexOf('Firefox') !== -1) {
                     if (e.keyCode == 32) {
                         e.preventDefault()
-                        this.label.innerText = this.label.innerText + '\u00A0'
-                        this.moveCaret(1)
+                        // This inserts a space and moves the cursor to the right
+                        document.execCommand('insertHTML', false, '\u00A0');
                     }
                 }
             });
@@ -217,10 +219,12 @@
             this.edit.onclick = () => {
                 this.isEditing = true;
                 this.label.setAttribute("contenteditable", "true");
+                // Setting contenteditable is already giving focus, just as a safeguard.
+                if (!this.label.matches(':focus')) {
+                    this.label.focus()
+                } 
                 let selection = window.getSelection();
                 selection.selectAllChildren(this.label);
-                this.label.blur(); // This blur is needed on Firefox to display the caret - for whatever reasons ...
-                this.label.focus();
                 if (this.isTitle) {
                     this.label.style["font-size"] = "1.1em";
                 }
@@ -289,13 +293,6 @@
             } else {
                 this.closeEditMode();
             }
-        }
-
-        moveCaret(charCount) {
-            const selection = window.getSelection()
-            const focusNode = selection.focusNode
-            const newOffset = selection.focusOffset + charCount;
-            selection.collapse(focusNode, newOffset)
         }
 
         async fetchAddressLabel() {
