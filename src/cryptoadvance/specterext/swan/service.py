@@ -50,15 +50,12 @@ class SwanService(Service):
     def client(cls) -> SwanClient:
         if hasattr(cls, "_client"):
             return cls._client
-        try:
-            cls._client = SwanClient(
-                urlparse(request.url).netloc,
-                cls.get_current_user_service_data().get(cls.ACCESS_TOKEN),
-                cls.get_current_user_service_data().get(cls.ACCESS_TOKEN_EXPIRES),
-                cls.get_current_user_service_data().get(cls.REFRESH_TOKEN),
-            )
-        except Exception as e:
-            raise e
+        cls._client = SwanClient(
+            urlparse(request.url).netloc,
+            cls.get_current_user_service_data().get(cls.ACCESS_TOKEN),
+            cls.get_current_user_service_data().get(cls.ACCESS_TOKEN_EXPIRES),
+            cls.get_current_user_service_data().get(cls.REFRESH_TOKEN),
+        )
         return cls._client
 
     @classmethod

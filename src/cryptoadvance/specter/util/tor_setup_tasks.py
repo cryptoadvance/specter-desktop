@@ -94,5 +94,5 @@ def setup_tor_thread(specter=None):
         specter.update_tor_controller()
         specter.reset_setup("torbrowser")
     except Exception as e:
-        logger.error(f"Failed to install Tor. Error: {e}")
+        logger.exception(f"Failed to install Tor. Error: {e}", e)
         specter.update_setup_error("torbrowser", str(e))

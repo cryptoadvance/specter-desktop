@@ -109,7 +109,7 @@ class TxItem(dict, AbstractTxListContext):
                         self._tx = tx
                         return tx
             except Exception as e:
-                logger.error(e)
+                logger.exception(e)
         # if we failed to load tx from file - load it from RPC
         if not self._tx:
             # get transaction from rpc
@@ -119,7 +119,7 @@ class TxItem(dict, AbstractTxListContext):
                 self._tx = tx
                 return tx
             except Exception as e:
-                logger.error(e)
+                logger.exception(e)
         return self._tx
 
     @property
@@ -154,12 +154,12 @@ class TxItem(dict, AbstractTxListContext):
             if not os.path.isdir(self.rawdir):
                 os.mkdir(self.rawdir)
         except Exception as e:
-            logger.error(e)
+            logger.exception(e)
         try:
             with open(self.fname, "wb") as f:
                 self.tx.write_to(f)
         except Exception as e:
-            logger.error(e)
+            logger.exception(e)
         # clear cached tx as we saved the transaction to file
         self._tx = None
 
@@ -219,7 +219,7 @@ class TxList(dict, AbstractTxListContext):
                     self[tx.txid] = tx
                 file_exists = True
         except Exception as e:
-            logger.error(e)
+            logger.exception(e)
         self._file_exists = file_exists
 
     def _save(self):

@@ -911,38 +911,23 @@
             this.emptyRow.classList.remove('hidden');
             this.emptyRow.classList.add('empty-row');
             this.emptyRowCell.innerText = '{{ _("Fetching transactions ...") }}';
-            try {
-                let callId = this.callId;
-                const response = await fetch(
-                    url,
-                    {
-                        method: 'POST',
-                        body: formData
-                    }
-                );
-                if (callId != this.callId) {
-                    return;
-                }
-                if(response.status != 200){
-                    showError(await response.text());
-                    return;
-                }
-                const jsonResponse = await response.json();
-                let showBlockhash = !this.blockhashHeader.classList.contains('hidden');
-                if ("txlist" in jsonResponse) {
-                    this.render(jsonResponse, showBlockhash)
-                    return
-                };
-                if ("error" in jsonResponse) {
-                    showError(`${jsonResponse["error"]}`);
+            let callId = this.callId;
+            let jsonResponse = await send_request(url, 'POST', `{{ csrf_token() }}`, formData);
+            if (callId != this.callId) {
+                return;
+            }
+            let showBlockhash = !this.blockhashHeader.classList.contains('hidden');
+            if ("txlist" in jsonResponse) {
+                this.render(jsonResponse, showBlockhash)
+                return
+            };
+            if ('error' in jsonResponse) {
+                if (jsonResponse['error'] == "Using merkle proofs is not supported with Spectrum.") {
                     this.emptyRowCell.innerText = '{{ _("No transactions fetched. Consider disabling the merkle proofs option in the settings.") }}';
-                } else {
-                    showError(`{{ _("Failed to fetch transactions list.") }}`);
+                } 
+                else {
                     this.emptyRowCell.innerText = '{{ _("No transactions fetched ... ") }}';
                 }
-            } catch(e) {
-                console.log("Caught error: ", e);
-                showError(`{{ _("Failed to fetch transactions list.") }}: ${e}`);
             }
         }
         

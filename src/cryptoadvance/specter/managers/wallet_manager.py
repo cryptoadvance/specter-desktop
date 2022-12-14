@@ -96,7 +96,9 @@ class WalletManager:
 
         if self.working_folder is not None:
             wallets_files = load_jsons(self.working_folder, key="name")
-            logger.info(f"Iterating over {len(wallets_files.values())} wallet files")
+            logger.info(
+                f"Iterating over {len(wallets_files.values())} wallet files in {self.working_folder}"
+            )
             for wallet in wallets_files:
                 wallet_name = wallets_files[wallet]["name"]
                 wallets_update_list[wallet_name] = wallets_files[wallet]

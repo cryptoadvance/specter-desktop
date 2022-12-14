@@ -60,5 +60,4 @@ class LAddressList(AddressList):
         except KeyError:
             return default
         except TypeError:
-            logger.warning(f"{addr} seems to be invalid")
             return default
