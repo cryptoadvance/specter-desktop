@@ -7,12 +7,11 @@
     <form action="./" method="POST">
         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
         <input class="mb-2" type="text" autocomplete="off" spellcheck="false" id="newtitle" name="newtitle" value="{{ title }}" style="display: none;" />
-        <div class="row center">
+        <div class="flex">
             <button type="submit" class="btn" id="save" name="action" value="rename" style="display: none;">{{ _("Update") }}</button>
             <button type="button" class="btn" id="cancel" onclick="toggleEdit()" style="display: none;">{{ _("Cancel") }}</button>
             <button type="button" class="btn" id="edit" onclick="toggleEdit()">{{ _("Edit Name") }}</button>
         </div>
-        <br>
     </form>
 
     <script>
