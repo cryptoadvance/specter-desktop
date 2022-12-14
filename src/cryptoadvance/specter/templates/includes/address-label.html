@@ -216,7 +216,7 @@
                 }
             });
 
-            this.edit.onclick = () => {
+            this.edit.onclick = (e) => {
                 this.isEditing = true;
                 this.label.setAttribute("contenteditable", "true");
                 // Setting contenteditable is already giving focus, just as a safeguard.
@@ -231,6 +231,7 @@
                 this.labelValue = this.label.innerText; //store the value of the element
                 this.cancel.classList.remove("hidden");
                 this.update.classList.remove("hidden");
+                e.stopPropagation()
             };
 
             this.cancel.onclick = () => {
