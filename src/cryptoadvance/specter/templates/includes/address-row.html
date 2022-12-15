@@ -15,27 +15,11 @@
         td {
             vertical-align: middle !important;
         }
-        .address {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .copy {
-            display: none;
-            height: 30px;
-            width: 30px;
-            color: white;
-            cursor: pointer;
-            border-radius: 3px;
-            background: rgba(255,255,255,0.08);
-            padding: 3px;
-        }
     </style>
     <tr class="address-row">
         <td class="index"></td>
-        <td id="address-container" title="See address details" class="address">
+        <td title="See address details" class="address">
             <span class="explorer-link"></span>
-            <a id="copy-btn" class="copy"><img src="{{ url_for('static', filename='img/copy-color.svg') }}" style="width: 26px; height: 26px;"></a>
         </td>
         <td class="label optional"></td>
         <td class="used optional"></td>
@@ -63,11 +47,8 @@
             var style = document.getElementById('address-row').content;
             var clone = style.cloneNode(true);
             this.el = clone.querySelector(".address-row");
-
             this.index = clone.querySelector(".index");
             this.address = clone.querySelector(".address .explorer-link");
-            this.addressContainer = clone.getElementById('address-container')
-            this.copyBtn = clone.getElementById('copy-btn')
             this.label = clone.querySelector(".label");
             this.used = clone.querySelector(".used");
             this.utxo = clone.querySelector(".utxo");
@@ -99,15 +80,6 @@
                     showAddressData(this.amountText.innerText, this.amountPrice.innerText, this.addressData, this.wallet);
                 }
             }
-
-            this.copyBtn.addEventListener('click', () => {
-                let address = this.addressData.address 
-                copyText(address, "Copied address")
-            })
-            this.addressContainer.addEventListener('mouseover', () => {
-                console.log("Is the hover event listener working at all?")
-                this.copyBtn.style.display = "block"
-            })
 
             if  (this.hideSensitiveInfo) {
                 this.label.innerHTML = '############'
