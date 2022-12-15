@@ -117,7 +117,6 @@
             this.update = clone.querySelector(".update");
             this.cancel = clone.querySelector(".cancel");
             this.edit = clone.querySelector(".edit");
-
             // Attach the created element to the shadow dom
             shadow.appendChild(clone);
         }
@@ -136,6 +135,11 @@
         }
 
         connectedCallback() {
+            // We want to set editable=false only selectively
+            this.editable = this.hasAttribute('editable') ? JSON.parse(this.getAttribute('editable')) : true;
+            if (!this.editable) {
+                this.edit.disabled = true
+            }
             this.address = this.getAttribute("data-address");
             this.wallet = this.getAttribute("data-wallet");
             this.labelValue = this.getAttribute("data-label");
