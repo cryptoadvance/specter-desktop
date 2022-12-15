@@ -217,14 +217,21 @@
             });
 
             this.edit.onclick = (e) => {
-                this.isEditing = true;
+                let editingStarted = false
+                if (!this.isEditing) {
+                    this.isEditing = true
+                    editingStarted = true
+                }
                 this.label.setAttribute("contenteditable", "true");
                 // Setting contenteditable is already giving focus, just as a safeguard.
                 if (!this.label.matches(':focus')) {
                     this.label.focus()
                 } 
-                let selection = window.getSelection();
-                selection.selectAllChildren(this.label);
+                // Select all only when we start editing
+                if (editingStarted === true) {
+                    let selection = window.getSelection()
+                    selection.selectAllChildren(this.label)
+                }
                 if (this.isTitle) {
                     this.label.style["font-size"] = "1.1em";
                 }
