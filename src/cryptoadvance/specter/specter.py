@@ -79,6 +79,7 @@ class Specter:
         if not os.path.isdir(data_folder):
             os.makedirs(data_folder)
 
+        self.call_functions_at_cleanup_on_exit = []
         self.data_folder = data_folder
         self._config = config
         self._internal_bitcoind_version = internal_bitcoind_version
@@ -190,14 +191,6 @@ class Specter:
             # This is for kill $pid --> SIGTERM
             signal.signal(signal.SIGTERM, self.cleanup_on_exit)
         # a list of functions that are called at cleanup_on_exit taking in each signum, frame
-        self.call_functions_at_cleanup_on_exit = []
-
-        def service_manager_cleanup_on_exit(signum, frame):
-            return self.service_manager.execute_ext_callbacks(
-                callbacks.cleanup_on_exit, signum, frame
-            )
-
-        self.call_functions_at_cleanup_on_exit.append(service_manager_cleanup_on_exit)
 
     def cleanup_on_exit(self, signum=0, frame=0):
         if self._tor_daemon:

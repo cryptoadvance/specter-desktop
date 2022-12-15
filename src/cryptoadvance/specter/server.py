@@ -153,6 +153,13 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )
 
+    def service_manager_cleanup_on_exit(signum, frame):
+        return specter.service_manager.execute_ext_callbacks(
+            callbacks.cleanup_on_exit, signum, frame
+        )
+
+    specter.call_functions_at_cleanup_on_exit.append(service_manager_cleanup_on_exit)
+
     specter.initialize()
 
     # HWI

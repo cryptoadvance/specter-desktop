@@ -81,7 +81,7 @@ def test_ServiceManager_get_service_packages(caplog):
     assert "cryptoadvance.specter.util.migrations.migration_0000" in packages
     assert "cryptoadvance.specter.util.migrations.migration_0001" in packages
     assert "cryptoadvance.specter.util.migrations.migration_0002" in packages
-    assert len(packages) == 25
+    assert len(packages) == 28
 
 
 def test_ServiceManager_make_path_relative(caplog):
