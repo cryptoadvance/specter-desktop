@@ -139,6 +139,7 @@
             this.editable = this.hasAttribute('editable') ? JSON.parse(this.getAttribute('editable')) : true;
             if (!this.editable) {
                 this.edit.disabled = true
+                this.edit.style.cursor = "default"
             }
             this.address = this.getAttribute("data-address");
             this.wallet = this.getAttribute("data-wallet");
