@@ -1,3 +1,4 @@
+from functools import cmp_to_key
 import subprocess
 import sys
 import logging
@@ -164,7 +165,7 @@ class VersionChecker:
                 .json()["releases"]
                 .keys()
             )
-            latest = list(releases)[-1]
+            latest = sorted(releases, key=cmp_to_key(compare))[0]
         except Exception as e:
             logger.exception(e)
             latest = "unknown"
@@ -190,10 +191,6 @@ def compare(version1: str, version2: str) -> int:
     version1 = _parse_version(version1)
     version2 = _parse_version(version2)
 
-    if version1["postfix"] != "" or version2["postfix"] != "":
-        raise SpecterError(
-            f"Cannot compare if either version has a postfix : {version1} and {version2}"
-        )
     if version1["major"] > version2["major"]:
         return -1
     elif version1["major"] < version2["major"]:
@@ -206,14 +203,30 @@ def compare(version1: str, version2: str) -> int:
         return -1
     elif version1["patch"] < version2["patch"]:
         return 1
+    if version1["postfix"] == "" and version2["postfix"] == "":
+        return 0
+    if version1["postfix"] == "" and version2["postfix"] != "":
+        return -1
+    if version1["postfix"] != "" and version2["postfix"] == "":
+        return 1
+    version1["postfix"] = (
+        version1["postfix"].replace("-", "").replace("rc", "").replace("pre", "")
+    )
+    version2["postfix"] = (
+        version2["postfix"].replace("-", "").replace("rc", "").replace("pre", "")
+    )
+    if version1["postfix"] < version2["postfix"]:
+        return 1
+    if version1["postfix"] > version2["postfix"]:
+        return -1
     return 0
 
 
 def _parse_version(version: str) -> dict:
     """Parses version-strings like v1.5.6-pre5 and returns a dict"""
-    if version[0] != "v":
-        raise SpecterError(f"version {version} does not have a preceding 'v'")
-    version = version[1:]
+    if version[0] == "v":
+        version = version[1:]
+    version = version.replace("rc", "-pre")
     version_ar = version.split(".")
     if len(version_ar) != 3:
         raise SpecterError(f"version {version} does not have 3 separated digits")
