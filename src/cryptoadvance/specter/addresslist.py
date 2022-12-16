@@ -141,7 +141,7 @@ class AddressList(dict):
                     self[addr.address] = addr
                 file_exists = True
             except Exception as e:
-                logger.error(e)
+                logger.exception(e)
         self._file_exists = file_exists
 
     def save(self):

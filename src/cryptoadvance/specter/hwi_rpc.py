@@ -1,30 +1,33 @@
-from hwilib.psbt import PSBT
-from hwilib.common import Chain
-import hwilib.commands as hwi_commands
-from .helpers import locked
-from .util.xpub import convert_xpub_prefix
-from .util.json_rpc import JSONRPC
-from .util.descriptor import AddChecksum
+import logging
 import threading
-from .devices import __all__ as device_classes
 from contextlib import contextmanager
+from typing import Callable
+
+import bitbox02
+import hwilib.commands as hwi_commands
 from embit import bip32
 from embit.liquid import networks
-import logging
-import bitbox02
-from typing import Callable
 from flask import current_app as app
+from hwilib.common import Chain
+from hwilib.devices.bitbox02 import Bitbox02Client
+from hwilib.devices.trezorlib.transport import get_transport
+from hwilib.psbt import PSBT
+from usb1 import USBError
+
+from .devices import __all__ as device_classes
+from .devices.hwi.jade import JadeClient
+from .devices.hwi.specter_diy import SpecterClient
 from .helpers import (
     deep_update,
     hwi_get_config,
-    save_hwi_bridge_config,
-    is_testnet,
     is_liquid,
+    is_testnet,
+    locked,
+    save_hwi_bridge_config,
 )
-from hwilib.devices.bitbox02 import Bitbox02Client
-from hwilib.devices.trezorlib.transport import get_transport
-from .devices.hwi.specter_diy import SpecterClient
-from .devices.hwi.jade import JadeClient
+from .util.descriptor import AddChecksum
+from .util.json_rpc import JSONRPC
+from .util.xpub import convert_xpub_prefix
 
 logger = logging.getLogger(__name__)
 
@@ -117,8 +120,13 @@ class HWIBridge(JSONRPC):
                         if client is not None:
                             client.close()
                 devices += devs
-            except Exception as e:
-                logger.warning(f"enumerate failed: {e}")
+            except USBError as e:
+                logger.warning(
+                    f"an error {e} was thrown which might indicate that an USB device is connected, which is deferring the startup"
+                )
+                logger.warning(
+                    f"Consider to unplug USB devices to speed up the boot process"
+                )
 
         self.devices = devices
         return self.devices
@@ -265,6 +273,7 @@ class HWIBridge(JSONRPC):
                 logger.warning(
                     f"Failed to import Nested Segwit singlesig mainnet key. Error: {e}"
                 )
+                logger.exception(e)
 
     @locked(hwilock)
     def display_address(
@@ -379,6 +388,7 @@ class HWIBridge(JSONRPC):
                 logger.warning(
                     f"Failed to get the master blinding key from the device. Error: {e}"
                 )
+                logger.exception(e)
 
     def bitbox02_pairing(self, chain=""):
         config = hwi_get_config(app.specter)
@@ -453,6 +463,7 @@ class HWIBridge(JSONRPC):
                 logger.warning(
                     f"Failed to import Nested Segwit singlesig mainnet key. Error {e}"
                 )
+                logger.exception(e)
 
             try:
                 # native Segwit
@@ -465,6 +476,7 @@ class HWIBridge(JSONRPC):
                 logger.warning(
                     f"Failed to import native Segwit singlesig mainnet key: {e}"
                 )
+                logger.exception(e)
 
             try:
                 # Multisig nested Segwit
@@ -477,6 +489,7 @@ class HWIBridge(JSONRPC):
                 logger.warning(
                     f"Failed to import Nested Segwit multisig mainnet key: {e}"
                 )
+                logger.exception(e)
 
             try:
                 # Multisig native Segwit
@@ -489,6 +502,7 @@ class HWIBridge(JSONRPC):
                 logger.warning(
                     f"Failed to import native Segwit multisig mainnet key {e}"
                 )
+                logger.exception(e)
 
             # And testnet
             client.chain = Chain.TEST
@@ -504,6 +518,7 @@ class HWIBridge(JSONRPC):
                 logger.warning(
                     f"Failed to import Nested Segwit singlesig testnet key: {e}"
                 )
+                logger.exception(e)
 
             try:
                 # Testnet native Segwit
@@ -516,6 +531,7 @@ class HWIBridge(JSONRPC):
                 logger.warning(
                     f"Failed to import native Segwit singlesig testnet key: {e}"
                 )
+                logger.exception(e)
 
             try:
                 # Testnet multisig nested Segwit
@@ -528,6 +544,7 @@ class HWIBridge(JSONRPC):
                 logger.warning(
                     f"Failed to import Nested Segwit multisigsig testnet key: {e}"
                 )
+                logger.exception(e)
 
             try:
                 # Testnet multisig native Segwit
@@ -540,6 +557,7 @@ class HWIBridge(JSONRPC):
                 logger.warning(
                     f"Failed to import native Segwit multisig testnet key: {e}"
                 )
+                logger.exception(e)
 
             # Do proper cleanup otherwise have to reconnect device to access again
             client.close()

@@ -7,6 +7,7 @@
 git remote -v | grep upstream                                                                  
 upstream        git@github.com:cryptoadvance/specter-desktop.git (fetch)
 upstream        git@github.com:cryptoadvance/specter-desktop.git (push)
+```
 - You need a GitHub token:
 If you don't have one, get one here https://github.com/settings/tokens and make sure to tick the boxes for repo and workflow as below:
 
@@ -28,7 +29,7 @@ Or, if you want to directly set the new version:
 ./utils/release.sh --new-version v1.13.1 --release-notes
 ```
 ## Creating a new tag
-Update your master branch after the release notes PR ([example](http:/https://github.com/cryptoadvance/specter-desktop/commit/65ff6959d7fd85cba745e4d454b30031839f857f/)) has been merged and then run:
+Update your master branch after the release notes PR ([example](https://github.com/cryptoadvance/specter-desktop/commit/65ff6959d7fd85cba745e4d454b30031839f857f/)) has been merged and then run:
 ```bash
 git tag v1.13.1 && git push upstream v1.13.1
 ```
@@ -78,51 +79,45 @@ In this stage, the invididual SHA256-hashes and signatures are combined into two
 Everything, apart from the MacOS files, are pulled from the GitLab environment, the MacOS files from GitHub.
 Don't forget to delete the two MacOS files (`SHA256SUMS-macos` and `SHA256SUMS-macos.asc`) on the GitHub release page in the end.
 
-## All assets on GitHub
-
-This should be the final result of all uploaded assets and files:
-
-![](./images/release-guide/final-view-of-assets.png)
-
 ## Trouble shooting
-If the MacOS signatures are missing, the following Exception will be raised:
+If the MacOS signatures are missing, it can happen that the following Exception will be raised:
 ```bash
   File "/builds/cryptoadvance/specter-desktop/utils/github.py", line 295, in download_artifact
   raise Exception(
   Exception: Status-cod04 for url ... )
 ```
-If the macOS binaries arrive on GitHub too late, you have to manually delete the already created `SHA256SUMS` and `SHA256SUMS.asc` and rerun the job release signatures in the latest stage on GitLab:
+In any case, if the macOS binaries arrive on GitHub too late, you have to manually delete the already created `SHA256SUMS` and `SHA256SUMS.asc`, otherwise the upload to GitHub will fail if you rerun the release signatures job on GitLab - for details see ([this PR](https://github.com/cryptoadvance/specter-desktop/pull/689)). The green arrow in the screenshot is where you rerun the release signatures job on GitLab:
 
 ![](./images/release-guide/rerun-release-signatures.png)
 
 ## Editing the text on the GitHub release page
 We are running a script here to create a markdown file that can be used for copy and paste.
-Checkout this repo: `git@github.com:cryptoadvance/corp-notes.git`
-`cd download`
-Follow the instructions in `README.md`
-`./build.sh`
+- Checkout this repo: `git@github.com:cryptoadvance/corp-notes.git`
+- `cd download-page`
+- Run `./build.sh`
 
-The result `gh_page.md` can then be found in the build directory.
-Edit the release on GitHub and paste this md-file there.
+The result `gh_page.md` can be found in the build directory.
+Edit the release on GitHub and paste the md-file there along with the release notes from `release-notes.md`.
 
 ## Website 
 The above script also produces html files for the website (in the same directory):
 - `download-page_current.html`
 - `download-page_releases.html`
 
-Login into:
-https://specter.solutions/wp-login.php
+Login into: https://specter.solutions/wp-login.php
 
-Go to "Pages"
-Edit "Specter Desktop - Elementor" with Elementor
-Click somewhere on 1 (see screenshot), then somewhere on 2, select all, delete, and paste
-`download-page_current.html`
+- Go to "Pages"
+- Hover over "Specter Desktop - Elementor" and choose `Edit with Elementor`
+- Click somewhere on area 1 (see screenshot), then somewhere on area 2, select all, delete, and paste: `download-page_current.html`
 
-![](./images/release-guide/website-1.png)
-Then click update
-Be careful, not to paste the templates, otherwise you will see nasty jinja tags. 
+![](./images/release-guide/website-1.png)\
+- Then click `update`
+Note: If you see jinja tags, you probably pasted some templates.
 
-Do the same for this part of the website, just, in this case, replace it with 
+Do the same for the "Specter Releases" part, just, in this case, replace with:\
 `download-page_releases.html`
 
-![](./images/release-guide/website-2.png)
+![](./images/release-guide/website-2.png)\
+
+You can then just exit the editing with Elementor.
+
