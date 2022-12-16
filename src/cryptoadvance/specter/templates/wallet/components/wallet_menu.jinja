@@ -23,8 +23,8 @@
 			{% endfor %}
 		{% endfor %}
 		{{ wallet_menu_item('settings', _('Settings'), wallet_alias, active_menuitem, isRight=true, id='btn_settings') }}
-		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`)">
-			<img data-style="width: 36px;" src="{{ url_for('static', filename='img/caret-down.svg') }}" class="svg-white"/>
-		</a>
+		<!-- <a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`)"> -->
+		<!-- 	<img data-style="width: 36px;" src="{{ url_for('static', filename='img/caret-down.svg') }}" class="svg-white"/> -->
+		<!-- </a> -->
 	</nav>
 {%- endmacro %}

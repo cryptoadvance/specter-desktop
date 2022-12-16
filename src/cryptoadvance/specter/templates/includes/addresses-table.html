@@ -14,122 +14,39 @@
         {% set supports_hwi = supports_hwi.append(device) %}
     {% endfor %}
 
-    <div style="display: none;"><!--<style>-->
-        .addresses-table {
-            display: table;
-        }
+    <div class="flex justify-between items-center">
+        <nav class="row">
+            <button type="button" class="receive-addresses-view-btn btn radio left checked">
+                {{ _("Receive Addresses") }}
+            </button>
+            <button type="button" class="change-addresses-view-btn btn radio right">
+                {{ _("Change Addresses") }}
+            </button>
+        </nav>
 
-        address-row {
-            display: contents;
-        }
-
-        .pagination-container {
-            text-align: center;
-            width: 100%;
-        }
-
-        .pagination-next,
-        .pagination-back {
-            cursor: pointer;
-        }
-
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        /* Firefox */
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
-
-        .pagination-idx {
-            min-width: 50px;
-            max-width: 50px;
-            width: 50px;
-            margin: 7px 7px 7px 3px;
-            text-align: center;
-            height: 35px;
-        }
-
-        .up-arrow {
-            width: 0;
-            height: 0;
-            border: solid 5px transparent;
-            background: transparent;
-            border-bottom: solid 7px #fff;
-            border-top-width: 0;
-            cursor: pointer;
-            float: right;
-            margin-right: 50px;
-            margin-top: 5px;
-        }
-
-        .down-arrow {
-            width: 0;
-            height: 0;
-            border: solid 5px transparent;
-            background: transparent;
-            border-top: solid 7px #fff;
-            border-bottom-width: 0;
-            margin-top: 1px;
-            cursor: pointer;
-            float: right;
-            margin-right: 50px;
-            margin-top: 5px;
-        }
-
-        .export-container {
-            max-width: 50%;
-            margin: 20px auto;
-            border: 1px solid #fff;
-            padding: 20px;
-            text-align: center;
-            border-radius: 7px;
-        }
-
-        .export {
-            max-width: 200px;
-            margin: auto;
-        }
-    </div><!--</style>-->
-
-    <nav class="row">
-        <button type="button" class="receive-addresses-view-btn btn radio left checked">
-            {{ _("Receive Addresses") }}
-        </button>
-        <button type="button" class="change-addresses-view-btn btn radio right">
-            {{ _("Change Addresses") }}
-        </button>
-    </nav>
-
-    <div class="pagination-container">
-        <a class="pagination-back pagination-arrow pagination-disabled">&#8249;</a>
-        {{ _("Page") }} <input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span
-            class="pagination-counter"></span>
-        <a class="pagination-next pagination-arrow pagination-disabled">&#8250;</a>
-        <br>
-    </div>
-    <div data-style="padding-left: 5px">
-        {% include "includes/page-limit-select.html" %}
-    </div>
-    <div class="export-container hidden">
-        <h1>{{ _("Export addresses to CSV") }}</h1>
-
-
-
-        <div>
-            <span class="switch-text"></span>
-            <label class="switch">
-                <input type="checkbox" class="only-current-type-checkbox" checked>
-                <span class="slider"></span>
-            </label><br><br>
+        <div class="pagination-container">
+            <a class="btn pagination-back pagination-arrow pagination-disabled">&#8249;</a>
+            {{ _("Page") }} <input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span
+                class="pagination-counter"></span>
+            <a class="btn pagination-next pagination-arrow pagination-disabled">&#8250;</a>
+            <br>
         </div>
+        <div data-style="padding-left: 5px">
+            {% include "includes/page-limit-select.html" %}
+        </div>
+        <div class="export-container hidden">
+            <h1>{{ _("Export addresses to CSV") }}</h1>
 
+            <div>
+                <span class="switch-text"></span>
+                <label class="switch">
+                    <input type="checkbox" class="only-current-type-checkbox" checked>
+                    <span class="slider"></span>
+                </label><br><br>
+            </div>
 
-
-        <a class="export btn" download>{{ _("Export") }}</a>
+            <a class="export btn" download>{{ _("Export") }}</a>
+        </div>
     </div>
 
     <table class="addresses-table">

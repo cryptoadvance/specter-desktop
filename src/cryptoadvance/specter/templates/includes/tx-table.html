@@ -272,66 +272,71 @@
     <!--     }-->
     <!-- </div><!--</style>-1->-->
 
-    <nav class="switcher row">
-        <button
-            type="button"
-            class="txlist-view-btn btn radio left">
-            {{ _("History") }}
-        </button>
-        <button
-            type="button"
-            class="utxo-view-btn btn radio right">
-            UTXO
-        </button>
-    </nav>
-    <div class="pagination-container">
-        <a class="pagination-back pagination-arrow pagination-disabled">&#8249;</a>
-        {{ _("Page") }} &nbsp;<input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span class="pagination-counter"></span>
-        <a class="pagination-next pagination-arrow pagination-disabled">&#8250;</a>
-        <br>
-    </div>
-    <div class="search-container">
-        <!--Left part of the toolbar-->
-        {% include "includes/page-limit-select.html" %}
-         <!--Middle part of the toolbar-->
-        <div data-style="flex-grow: 0.2">
-            <input class="search" type="text" placeholder="Search..."></input>
+    <div class="flex my-2 justify-between items-center">
+        <nav class="flex h-8">
+            <button
+                type="button"
+                class="txlist-view-btn btn radio left">
+                {{ _("History") }}
+            </button>
+            <button
+                type="button"
+                class="utxo-view-btn btn radio right">
+                UTXO
+            </button>
+        </nav>
+
+        <div class="flex space-x-2 search-container">
+            <!--Left part of the toolbar-->
+            {% include "includes/page-limit-select.html" %}
+             <!--Middle part of the toolbar-->
+            <div data-style="flex-grow: 0.2">
+                <input class="search" type="text" placeholder="Search..."></input>
+            </div>
+            <div id="tooltip-container" class="tooltip-no-grow tooltip-width">
+                <tool-tip>
+                    <h4 slot="title">{{ _('Search options') }}</h4>
+                    <span slot="paragraph">
+                        {{ _("You can search using addresses, tx-IDs, labels, confirmations or amounts.") }}<br><br>
+                        {{ _('Search like this in the time field:') }} <code>%d.%m.%Y %H:%M</code><br><br>
+                        {{ _('Search like this for amounts:') }} <br>
+                        <code> 1</code> {{ _("for anything more than 1") }}<br>
+                        <code>< 1</code> {{ _("for less than 1 BTC (don't forget the space)") }}<br>
+                    </span>
+                </tool-tip>
+            </div>
+            <!--Right part of the toolbar-->
+            <div id="action-teaser" class="action-teaser hidden" data-style="margin-right: 5px; margin-left: 5px;"> 
+                <span id="action-teaser-text" class="action-teaser-text">Select checkboxes for actions</span>
+            </div>
+            <div class="selected-rows-action-box row hidden">
+                <form class="freeze-tx-form" method="POST">
+                    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="button" class="btn freeze-tx-btn">
+                        Un/Freeze UTXOs
+                        <tool-tip width="200px" move-right="true">
+                            <span slot="paragraph">
+                                {{ _("Freezing a UTXO will make Specter disallow spending it.") }}<br><br>
+                                {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }}
+                            </span>
+                        </tool-tip>
+                    </button>
+                </form>
+                <form class="compose-tx-form" method="POST">
+                    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="button" class="btn compose-tx-btn">{{ _("Create new transaction") }}</button>
+                </form>
+                <a id="manage-psbt-btn" type="button" class="btn manage-psbt-btn hidden" href="">{{ _("Manage unsigned PSBT") }}</a>
+            </div>
         </div>
-        <div id="tooltip-container" class="tooltip-no-grow tooltip-width">
-            <tool-tip>
-                <h4 slot="title">{{ _('Search options') }}</h4>
-                <span slot="paragraph">
-                    {{ _("You can search using addresses, tx-IDs, labels, confirmations or amounts.") }}<br><br>
-                    {{ _('Search like this in the time field:') }} <code>%d.%m.%Y %H:%M</code><br><br>
-                    {{ _('Search like this for amounts:') }} <br>
-                    <code> 1</code> {{ _("for anything more than 1") }}<br>
-                    <code>< 1</code> {{ _("for less than 1 BTC (don't forget the space)") }}<br>
-                </span>
-            </tool-tip>
+
+        <div class="pagination-container">
+            <a class="pagination-back pagination-arrow pagination-disabled">&#8249;</a>
+            {{ _("Page") }} &nbsp;<input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span class="pagination-counter"></span>
+            <a class="pagination-next pagination-arrow pagination-disabled">&#8250;</a>
+            <br>
         </div>
-        <!--Right part of the toolbar-->
-        <div id="action-teaser" class="action-teaser hidden" data-style="margin-right: 5px; margin-left: 5px;"> 
-            <span id="action-teaser-text" class="action-teaser-text">Select checkboxes for actions</span>
-        </div>
-        <div class="selected-rows-action-box row hidden">
-            <form class="freeze-tx-form" method="POST">
-                <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-                <button type="button" class="btn freeze-tx-btn">
-                    Un/Freeze UTXOs
-                    <tool-tip width="200px" move-right="true">
-                        <span slot="paragraph">
-                            {{ _("Freezing a UTXO will make Specter disallow spending it.") }}<br><br>
-                            {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }}
-                        </span>
-                    </tool-tip>
-                </button>
-            </form>
-            <form class="compose-tx-form" method="POST">
-                <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-                <button type="button" class="btn compose-tx-btn">{{ _("Create new transaction") }}</button>
-            </form>
-            <a id="manage-psbt-btn" type="button" class="btn manage-psbt-btn hidden" href="">{{ _("Manage unsigned PSBT") }}</a>
-        </div>
+
         <div id="scrollbar-checkbox-div" class="scrollbar-checkbox-div row hidden">
             {{ _("Table scrollbar") }} &nbsp;&nbsp;
             <label class="switch">
@@ -339,7 +344,9 @@
                 <span class="slider"></span>
             </label>
         </div>
+
     </div>
+
     <div class="export-container hidden">
         <h1>{{ _("Export transactions to CSV") }}</h1>
         <div class="{% if not specter.price_check or not (specter.alt_rate and specter.alt_symbol) %}hidden{% endif %}">

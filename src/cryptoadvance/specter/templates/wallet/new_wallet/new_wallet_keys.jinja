@@ -1,14 +1,19 @@
 {% extends "base.jinja" %}
+
 {% block main %}
 	<form id="keysform" action="./" method="POST" onsubmit="showPacman()" class="table-holder">
+
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+
 		<h1>{{ _("Name your Wallet") }}</h1>
-		<div class="center">
+
+		<div>
 			<input type="text" id="wallet_name" name="wallet_name" class="inline" value="{{ wallet_name }}" placeholder="My new wallet" required>
 		</div>
-		<br>
+
 		<h1>{{ _("Type of the wallet") }}</h1>
 		{% set enable_taproot = (wallet_type == 'simple' and specter.taproot_support and cosigners[0].taproot_support) %}
+
 		<nav class="row">
 			<label>
 				<input type="radio" name="type" value="{{'sh-wsh' if wallet_type == 'multisig' else 'sh-wpkh'}}"
@@ -30,9 +35,7 @@
 		</nav>
 
 		<div class="note optional">
-			<center>
-				<br><b>{{ _("Segwit")}}</b>{{ _(" uses bech32-encoded addresses (bc1), ")}}<b>{{ _("Nested Segwit")}}</b>{{ _(" makes it compatible with legacy software. Don't use legacy.")}}
-			</center>
+				<b>{{ _("Segwit")}}</b>{{ _(" uses bech32-encoded addresses (bc1), ")}}<b>{{ _("Nested Segwit")}}</b>{{ _(" makes it compatible with legacy software. Don't use legacy.")}}
 		</div>
 		<br>
 		{% if wallet_type == 'multisig' %}
@@ -169,6 +172,7 @@
 	</form>
 	<div class="spacer"></div>
 {% endblock %}
+
 {% block scripts %}
 	<script>
 		function updateType(val){

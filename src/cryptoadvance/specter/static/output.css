@@ -458,7 +458,7 @@ p {
 
 p a {
   --tw-text-opacity: 1;
-  color: rgb(0 71 255 / var(--tw-text-opacity));
+  color: rgb(46 92 255 / var(--tw-text-opacity));
 }
 
 p a:hover {
@@ -572,7 +572,7 @@ input[type="text"],
 input[type="text"]:focus,
   input[type="password"]:focus {
   --tw-border-opacity: 1;
-  border-color: rgb(0 71 255 / var(--tw-border-opacity));
+  border-color: rgb(46 92 255 / var(--tw-border-opacity));
 }
 
 input[type="checkbox"] {
@@ -1362,16 +1362,16 @@ select {
   margin-bottom: calc(0.75rem * var(--tw-space-y-reverse));
 }
 
-.space-y-1 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-y-reverse: 0;
-  margin-top: calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));
-  margin-bottom: calc(0.25rem * var(--tw-space-y-reverse));
-}
-
 .space-x-1 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 0;
   margin-right: calc(0.25rem * var(--tw-space-x-reverse));
   margin-left: calc(0.25rem * calc(1 - var(--tw-space-x-reverse)));
+}
+
+.space-y-1 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0.25rem * var(--tw-space-y-reverse));
 }
 
 .self-end {
@@ -1457,7 +1457,7 @@ select {
 
 .bg-accent {
   --tw-bg-opacity: 1;
-  background-color: rgb(0 71 255 / var(--tw-bg-opacity));
+  background-color: rgb(46 92 255 / var(--tw-bg-opacity));
 }
 
 .bg-black\/60 {
@@ -1524,21 +1524,12 @@ select {
   padding-bottom: 0.25rem;
 }
 
-.px-1 {
-  padding-left: 0.25rem;
-  padding-right: 0.25rem;
-}
-
 .pr-1 {
   padding-right: 0.25rem;
 }
 
 .pl-1 {
   padding-left: 0.25rem;
-}
-
-.pr-2 {
-  padding-right: 0.5rem;
 }
 
 .pr-3 {

@@ -19,7 +19,8 @@ module.exports = {
           800: "#14151A", // card background
           900: "#0F1015", // background
         },
-        accent: "#0047FF",
+        // accent: "#0047FF",
+        accent: "#2E5CFF",
       },
     },
   },

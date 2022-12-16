@@ -1,8 +1,10 @@
 {% extends "base.jinja" %}
+
 {% block main %}
 	<h1 id="title">{{ node.name }}</h1>
 	{% from 'components/editable_title.jinja' import editable_title %}
 	{{ editable_title(node.name) }}
+
 	<form action="?" method="POST">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<div class="card" data-style="margin: 20px auto 120px; text-align: center;">

@@ -9,7 +9,7 @@
     - isRight: Is the item at the right edge (last item) of the navigation bar?
  #}
 {% macro wallet_menu_item(tab, title, wallet_alias, active_menuitem, isLeft=false, isRight=false, id="", blueprint="wallets_endpoint") -%}
-	<a 
+    <a 
         href="{{ url_for(blueprint+'.'+ tab, wallet_alias=wallet_alias)}}"
         class="btn radio {% if isLeft %}left{% endif %} {% if isRight %}right{% endif %} {% if active_menuitem == tab %}checked{% endif %}"
         {% if id!=""%} id="{{id}}"{% endif %} >

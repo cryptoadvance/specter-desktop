@@ -9,12 +9,12 @@
 	{% from 'components/editable_title.jinja' import editable_title %}
 	{{ editable_title(device.name) }}
 
-	<form action="./" method="POST" data-style="margin-bottom: 15px;">
+	<form action="./" method="POST">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-		<div class="flex" data-style="text-align: center; line-height: 2;">
+		<div class="flex">
 			{% include "device/components/device_type.jinja" %}
 		</div>
-		<button type="submit" class="btn hidden" id="settype" name="action" value="settype" data-style="margin: auto; margin-top: 10px; align-self:center;">{{ _("Update") }}</button>
+		<button type="submit" class="btn hidden" id="settype" name="action" value="settype">{{ _("Update") }}</button>
 	</form>
 
 	<div class="table-holder my-10">
@@ -36,8 +36,8 @@
 						{% if specter.hide_sensitive_info %}
 							<td></td>
 						{% else %}
-							<td width="15" onclick="showPageOverlay('key_export_qr');document.getElementById('key_selected').value='{{loop.index0}}';toggleKeyDisplay();" title="{{ _('Show key QR code') }}" data-style="cursor: pointer;">
-								<img data-style="margin-top: 5px; width: 40px;" src="{{ url_for('static', filename='img/qr-code.svg') }}" class="svg-white"/>
+							<td width="15" onclick="showPageOverlay('key_export_qr');document.getElementById('key_selected').value='{{loop.index0}}';toggleKeyDisplay();" title="{{ _('Show key QR code') }}">
+								<img src="{{ url_for('static', filename='img/qr-code.svg') }}"/>
 							</td>
 						{% endif %}
 						<td class="xpub scroll optional">
@@ -60,7 +60,7 @@
 		</table>
 	</div>
 
-	<div data-style="line-height: 1; margin-top: 30px;">
+	<div>
 		<form action="./" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			{% if device.device_type != "bitcoincore_watchonly"%}
@@ -72,13 +72,13 @@
 
 		{% if device.hwi_support or device.supports_qr_message_signing %}
 		<button class="button" type="button" onclick="showPageOverlay('message-signing')">{{ _("Sign message") }}</button>
-		<div id="message-signing" class="hidden" data-style="text-align: left; max-width: 350px;">
+		<div id="message-signing" class="hidden" >
 			{% if origin %}
 				{{ _("Address") }}:<input type="text" id="signing-address" type="text" value="" placeholder="bc1q ..."><br><br>
 			{% endif %}
 			{{ _("Derivation path") }}:<input type="text" id="messageDerivationPath" type="text" value="" placeholder="e.g. m/84h/0h/0h/0/0"><br><br>
 			{{ _("Message") }}:<br>
-			<textarea id="message" placeholder="Enter the message you would like to sign" data-style="font-size: 0.95em; margin-bottom: 15px;"></textarea>
+			<textarea id="message" placeholder="Enter the message you would like to sign"></textarea>
 			<span id="signature-label" class="hidden">{{ _("Message signature") }}:</span>
 			<p id="signature" title='{{ _("Copy signature") }}' class="hidden" onclick="copyText(this.innerText, '{{ _("Copied message signature") }}')">
 			</p>
@@ -112,10 +112,10 @@
 		<h2>{{ _("Wallets Using This Device") }}</h2>
 		<div class="grid grid-cols-4 gap-5">
 			{% for wallet in wallets %}
-				<a href="{{ url_for('wallets_endpoint.wallet', wallet_alias=wallet.alias) }}" data-style="text-decoration: none;">
+				<a href="{{ url_for('wallets_endpoint.wallet', wallet_alias=wallet.alias) }}" >
 					<div class="selection">
 						<p> </p>
-						<img src="{{ url_for('static', filename='img/' + ('two-keys' if wallet.is_multisig else 'key') + '.svg') }}" class="svg-white" data-style="width: 120px;">
+						<img src="{{ url_for('static', filename='img/' + ('two-keys' if wallet.is_multisig else 'key') + '.svg') }}">
 						<p>{{ wallet.name }}</p>
 					</div>
 				</a>
@@ -126,10 +126,10 @@
 
 	<div class="hidden" id="new_device_popup">
 		<h1>{{ _("New device was added successfully!") }}</h1>
-		<div class="row overflow">
-			<a href="{{ url_for('devices_endpoint.new_device_type') }}" data-style="text-decoration: none;">
-				<div class="small-card radio">
-					<img src="{{ url_for('static', filename='img/plus.svg') }}" class="svg-white" data-style="transform: scale(1.5);">
+		<div>
+			<a href="{{ url_for('devices_endpoint.new_device_type') }}">
+				<div>
+					<img src="{{ url_for('static', filename='img/plus.svg') }}">
 					{{ _("Add another device") }}
 				</div>
 			</a>
@@ -137,17 +137,17 @@
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				<input type="hidden" name="device" value="{{ device.alias }}" />
 				<input type="hidden" name="action" value="preselected_device" />
-				<button type="submit" data-style="background: none; color: inherit; border: none; padding: 0; font: inherit; cursor: pointer; outline: inherit;">
-					<div class="small-card radio">
-						<img src="{{ url_for('static', filename='img/key.svg') }}" class="svg-white" data-style="width: 120px;">
+				<button type="submit">
+					<div>
+						<img src="{{ url_for('static', filename='img/key.svg') }}">
 						{{ _("Create single key wallet") }}
 					</div>
 				</button>
 			</form>
 			{% if specter.device_manager.devices | length > 1 %}
-				<a href="{{ url_for('wallets_endpoint.new_wallet', wallet_type='multisig') }}" data-style="text-decoration: none;">
-					<div class="small-card radio">
-						<img src="{{ url_for('static', filename='img/two-keys.svg') }}" class="svg-white" data-style="width: 120px;">
+				<a href="{{ url_for('wallets_endpoint.new_wallet', wallet_type='multisig') }}">
+					<div>
+						<img src="{{ url_for('static', filename='img/two-keys.svg') }}">
 						{{ _("Create multisignature wallet") }}
 					</div>
 				</a>

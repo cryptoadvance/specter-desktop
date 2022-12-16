@@ -103,9 +103,6 @@
                     <svg class="fill-current w-4 h-4" version="1.1" viewBox="0 0 64 64"><path d="M51.9981,26.9756l5.78282e-08,-5.78559e-11c-1.10457,0.0011051 -2.00089,-0.893429 -2.002,-1.998c-3.39838e-08,-3.39675e-05 -6.71022e-08,-6.7935e-05 -9.93553e-08,-0.000101902v-8.1411l-16.624,16.5775l1.16223e-07,-1.15486e-07c-0.779384,0.774441 -2.03901,0.770434 -2.81345,-0.00894979c-0.774441,-0.779384 -0.770434,-2.03901 0.00894979,-2.81345l16.6424,-16.5953h-8.232l-8.73397e-08,-7.10543e-15c-1.10352,-4.82364e-08 -1.9981,-0.89458 -1.9981,-1.9981c4.82364e-08,-1.10352 0.89458,-1.9981 1.9981,-1.9981h13.02l1.5855e-08,-1.58664e-11c1.10457,-0.00110506 2.00089,0.893429 2.002,1.998c6.38039e-10,6.37761e-07 1.27507e-09,1.27481e-06 1.91251e-09,1.91257e-06v12.9795l6.71771e-08,-7.21156e-05c-0.00100901,1.10457 -0.897257,1.99918 -2.00183,1.99817c-6.01627e-07,-5.4958e-10 -1.20339e-06,-1.09956e-09 -1.80502e-06,-1.64968e-09Zm-23.9981,-4.9824h-12l-1.15444e-07,1.38321e-10c-1.10426,0.00132314 -1.99901,0.896345 -2,2.0006v24.0062l-4.14599e-08,-5.27927e-05c0.000852687,1.1043 0.895646,1.99941 1.99995,2.00065h24.0001l-2.84669e-08,3.83622e-11c1.10419,-0.00148802 1.99884,-0.896413 2,-2.0006v-12l2.13163e-14,3.01992e-07c-1.66785e-07,-1.10457 0.89543,-2 2,-2c1.10457,-1.66785e-07 2,0.89543 2,2c0,0 0,0 0,0v12l9.87819e-08,-0.000107092c-0.00302619,3.31277 -2.68712,5.9979 -5.99989,6.00221h-24.0001l-7.20361e-08,-9.35074e-11c-3.31275,-0.00429953 -5.99686,-2.68935 -6,-6.0021v-24.0062l-9.89574e-08,0.000107275c0.00302629,-3.31274 2.68716,-5.99781 5.99989,-6.00201h12.0001l1.12438e-07,7.94934e-10c1.10493,0.00781187 1.99432,0.909866 1.98651,2.01479c-0.00773387,1.0939 -0.892608,1.97877 -1.98651,1.98651Z" fill-rule="evenodd"/></svg>
                 </div>
             </a>
-        </div>
-
-        <div class="overflow-scroll p-3 flex flex-col grow">
 
             {% if specter.info["utxorescan"] %}
                 <div class="rescan_progress {{ specter.info.chain }}">
@@ -118,7 +115,9 @@
                     {{ sidebar_btn(url_for('setup_endpoint.' + specter.setup_status.stage), _('See setup progress'), class='btn action', icon=false) }}
                 </div>
             {% endif %}
+        </div>
 
+        <div class="overflow-scroll p-3 flex flex-col grow">
             <div class="mx-3 flex items-center justify-between {% if not specter.chain %}opacity-40 pointer-events-none{% else %}cursor-pointer{% endif %}">
                 <span class="" id="toggle_wallets_list" data-style="cursor: pointer;">{{ _("Wallets") }} ▸</span>
                 <img class="rounded-full bg-dark-700 w-4 h-4 animate-spin {% if not specter.wallet_manager.is_loading or not specter.chain %} hidden {% endif %}" id="wallet-manager-loader" data-style="vertical-align: sub;" src="{{ url_for('static', filename='img/refresh.svg') }}" />

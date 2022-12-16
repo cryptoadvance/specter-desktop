@@ -1,25 +1,6 @@
-<div data-style="display: flex; align-items: center;">
-	  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+<div>
+    <!-- <span class="page-limit-label">{{ _("Page limit") }}: </span> -->
 
-    <div style="display: none;"><!--<style>-->
-        .page-limit-fieldset {
-            border: none;
-            margin-top: 4px; /*to better vertically align on tx history / utxo list overview*/
-        }
-        .page-limit-select {
-            background-color: var(--cmap-bg-lighter);
-            background-repeat: no-repeat;
-            appearance: none; /* Remove default arrow */
-            background-image: url(/../../static/img/down-arrow.svg);
-            background-position: right;
-            background-size: 1.3em;
-            min-width: 80px;
-        }
-        .page-limit-option {
-            background-color: var(--cmap-bg-lighter);
-        }
-    </div><!--</style>-->
-    <span class="page-limit-label">{{ _("Page limit") }}: </span>
     <fieldset class="page-limit-fieldset">
         <select class="page-limit-select">
             <option value="" class="page-limit-option" disabled="disabled">Entries</option>

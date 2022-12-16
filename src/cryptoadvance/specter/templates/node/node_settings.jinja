@@ -1,78 +1,120 @@
 {% extends "base.jinja" %}
+
 {% block main %}
 	{% include "includes/qr-scanner.html" %}
 	{% include "includes/text-explainer.html" %}
-	
-		{% if node_alias %}
-			<h1 id="title">{{ node.name }}</h1>
-			{% from 'components/editable_title.jinja' import editable_title %}
-			{{ editable_title(node.name) }}
-			<form action="?" method="POST">
-		{% else %}
-			<form action="?" method="POST">
-				<h1 id="title">{{ _("Configure new node") }}</h1>
-				<label data-style="text-align: center; display: block; margin: auto;font-size: 1.2em; margin-bottom: 7px;">{{ _("Name your new node:") }}</label>
-				<input type="text" id="name" name="name" value="{{ node.name }}" placeholder='{{ _("Name your new node") }}' data-style="width: auto; display: block; margin: auto; width: 70%;">
+
+	{% if node_alias %}
+		<h1 id="title">{{ node.name }}</h1>
+		{% from 'components/editable_title.jinja' import editable_title %}
+		{{ editable_title(node.name) }}
+	{% else %}
+		<h1 id="title">{{ _("Configure your node") }}</h1>
+	{% endif %}
+
+	<form action="?" method="POST">
+		{% if not node_alias %}
+			<section>
+				<h3>{{ _("Name your node") }} </h3>
+				<div class="floating-wrapper">
+					<input class="floating-input peer" placeholder=" " type="text" id="name" name="name" value="{{ node.name }}">
+					<label class="floating-label" for="name">{{ _("Name") }}</label>
+				</div>
+			</section>
 		{% endif %}
+
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 
-		<div class="card" data-style="margin: 10px auto 15px;">
-			<h2 data-style="text-align: center;">{{ _("JSON-RPC configuration") }} </h2>
-			<br>
+		<div class="card">
+			<section>
+				<h3>{{ _("Bitcoin Core Path") }} </h3>
 
-			<text-explainer>
-                <span slot="title">{{ _("Need help with the setup?") }} </span>
-                <div slot="content" data-style="font-size: 0.9em;">
-                    <h4 data-style="align-self:start;">Bitcoin</h4><br>
-					{{ _("When auto-detect is on, Specter will check for environment variables (BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT) to configure the connection or attempt to locate your Bitcoin data directory and load your node configurations from it.") }}<br>
-					{{ _('If your Bitcoin Core data directory is not located at the default location, you will need to enter its path under "Bitcoin Core data directory path" to locate it.') }}<br>
-					{{ _("If you are connecting to a remote node, you need to disable auto-detect and enter the node's configurations manually below.") }} <br><br>
-					<h4 data-style="align-self:start; margin-top: 5px">Liquid</h4>
-					{{ _("When auto-detect is on, Specter will here only check for environment variables (ELM_RPC_USER, ELM_RPC_PASSWORD, ELM_RPC_HOST, ELM_RPC_PORT).") }}
-            	</div>
-            </text-explainer>
-
-            <div data-style="display: flex; margin-top: 20px">
-				<label data-style="height: 25px;">Auto-detect:&nbsp;</label>
-				<label class="switch">
-					<input type="checkbox" id="autodetect" name="autodetect" {% if node.autodetect %}checked{% endif %}>
-					<span class="slider"></span>
-				</label>
-			</div>
-			<span id="datadir-container">
-			<br>
-				{{ _("Bitcoin Core data directory path:") }}<br><input type="text" id="datadir" name="datadir" type="text" value="{{ node.default_datadir }}" data-style="margin-bottom: 15px;">
-			</span>
-			<br>
-			<div id="rpc_settings">
-				<div id="lock" class="center">
-					<p data-style="text-align: center; margin: auto; ">&#128274;</p>
-					<span class="note centered"> {{ _("(disable auto-detect to configure manually)") }}</span>
+				<div id="datadir-container" class="floating-wrapper">
+					<input class="floating-input peer" placeholder=" " type="text" id="datadir" name="datadir" type="text" value="{{ node.default_datadir }}">
+					<label class="floating-label" for="datadir">{{ _("Bitcoin Core Directory Path") }}</label>
 				</div>
-				Username:<br><input type="text" id="username" name="username" value="{{ node.user }}">
-				<br><br>
-				Password:<br><input type="password" id="password" name="password" value="{{ node.password }}">
-				<br><br>
-				Host:<br><input type="text" id="host" name="host" type="text" value="{{ node.protocol }}://{{ node.host }}">
-				<br>
-				<qr-scanner id="scan_rpc">
-					<a slot="button" href="#" class="btn" data-style="padding: 7px 15px 5px 10px; margin-top: 10px;">
-						<img src="{{ url_for('static', filename='img/qr-code.svg') }}" data-style="width: 30px; margin: 0px;" class="svg-white">
-						{{ _("Connect with QR") }}
-					</a>
-				</qr-scanner>
+
+				<div class="floating-wrapper flex items-center mt-3">
+					<input type="checkbox" id="autodetect" name="autodetect" {% if node.autodetect %}checked{% endif %}>
+					<label for="autodetect">Auto-detect Bitcoin Core</label>
+					<span class="slider"></span>
+				</div>
+			</section>
+
+			<section>
+				<div id="rpc_settings">
+					<div class="flex justify-between items-center">
+						<h3>{{ _("JSON-RPC Configuration") }} </h3>
+						<qr-scanner id="scan_rpc" class="mb-2 rounded-lg hover:bg-dark-700 pl-1 pr-3">
+							<a slot="button" href="#" class="flex items-center">
+								<img class="w-7 h-7" src="{{ url_for('static', filename='img/qr-code.svg') }}">
+								{{ _("Connect with QR") }}
+							</a>
+						</qr-scanner>
+					</div>
+
+					<div class="space-y-3">
+						<div class="floating-wrapper">
+							<input class="floating-input peer" placeholder=" " type="text" id="username" name="username" value="{{ node.user }}">
+							<label class="floating-label" for="username">Username</label>
+						</div>
+
+						<div class="floating-wrapper">
+							<input class="floating-input peer" placeholder=" " type="password" id="password" name="password" value="{{ node.password }}">
+							<label class="floating-label" for="password">Password</label>
+						</div>
+
+						<div class="grid grid-cols-2 gap-3 mb-3">
+							<div class="floating-wrapper">
+								<input class="floating-input peer" placeholder=" " type="text" id="host" name="host" type="text" value="{{ node.protocol }}://{{ node.host }}">
+								<label class="floating-label" for="host">Host</label>
+							</div>
+							<div class="floating-wrapper">
+								<input class="floating-input peer" placeholder=" " type="text" id="port" name="port" type="text" value="{{ node.port }}">
+								<label class="floating-label" for="port">Port</label>
+								<tool-tip class="floating-info">
+									<span slot="paragraph">
+										{{ _("Mainnet: ")}}<b>8332</b>,
+										{{ _("Testnet: ")}}<b>18332</b>,
+										{{ _("Regtest: ")}}<b>18443</b>,
+										{{ _("Signet:  ")}}<b>38332</b>,
+										<br>
+										{{ _("Liquid Mainnet: ")}}<b>7041</b>,
+										{{ _("Liquid Testnet: ")}}<b>18891</b>,
+										{{ _("Liquid Regtest: ") }}<b>18884</b>
+									</span>
+								</tool-tip>
+							</div>
+						</div>
+
+						<div class="mt-3">
+							<text-explainer>
+								<span slot="title" class="cursor-pointer">{{ _("Need help with the setup?") }} </span>
+								<div slot="content" class="mb-8">
+									<h3 class="mt-3">Bitcoin</h3>
+									<p>
+										{{ _("When auto-detect is on, Specter will check for environment variables (BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT) to configure the connection or attempt to locate your Bitcoin data directory and load your node configurations from it.") }}
+										{{ _('If your Bitcoin Core data directory is not located at the default location, you will need to enter its path under "Bitcoin Core data directory path" to locate it.') }}
+										{{ _("If you are connecting to a remote node, you need to disable auto-detect and enter the node's configurations manually below.") }}
+									</p>
+
+									<h3 class="mt-3">Liquid</h3>
+									<p>{{ _("When auto-detect is on, Specter will here only check for environment variables (ELM_RPC_USER, ELM_RPC_PASSWORD, ELM_RPC_HOST, ELM_RPC_PORT).") }}</p>
+								</div>
+							</text-explainer>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<div class="flex space-x-3 mt-8">
+				{% if specter.node_manager.nodes | length > 1 and node_alias %}
+					<button type="submit" name="action" value="forget" class="button">{{ _("Forget node") }}</button>
+				{% endif %}
+				<button type="submit" class="button" name="action" value="test">{{ _("Test") }}</button>
+				<button type="submit" class="button grow bg-accent text-white" name="action" value="save">{{ _("Save") }}</button>
 			</div>
-			<div data-style="margin-top: 10px">
-			Port:<br><input type="text" id="port" name="port" type="text" value="{{ node.port }}">
-			</div>
-			<div class="note" data-style="margin: 10px 0px 10px 0px;">
-				<h4 data-style="font-size: 1.2em;">{{ _("Default ports:") }}</h4>
-				<b>8332</b>{{ _(" for mainnet, ")}}<b>18332</b>{{ _(" for testnet, ")}}<b>18443</b>{{ _(" for regtest and ")}}<b>38332</b>{{ _(" for signet ")}}<br><b>7041</b>{{ _(" for Liquid mainnet, ")}}<b>18891</b>{{ _(" for Liquid testnet and ")}}<b>18884</b>{{ _(" for Liquid regtest") }}
-			</div>
-			<div class="row">
-				<button type="submit" class="btn" name="action" value="test">{{ _("Test") }}</button>&nbsp;
-				<button type="submit" class="btn" name="action" value="save">{{ _("Save") }}</button>
-			</div>
+
 			{% if test %}
 				<br><div class="log"><b>{{ _("Test results:") }}</b><br><br>
 				<div data-style="display: grid;grid-template-columns: auto auto auto; line-height: 2.2;">
@@ -146,9 +188,6 @@
 				</div>
 			{% endif %}
 		</div>
-		{% if specter.node_manager.nodes | length > 1 and node_alias %}
-			<button data-style="margin-bottom: 100px;" type="submit" name="action" value="forget" class="btn danger centered">{{ _("Forget node") }}</button>
-		{% endif %}
 	</form>
 {% endblock %}
 
@@ -160,28 +199,25 @@
 			function toggleAutoDetectMode() {
 				var rpcSettings = document.getElementById("rpc_settings");
 				var scanRpc = document.getElementById("scan_rpc");
-				var lock = document.getElementById("lock");
 				var datadirContainer = document.getElementById("datadir-container");
-				if (autodetect.checked) {
-					lock.style.removeProperty('display');
-					datadirContainer.style.removeProperty('display');
-					rpcSettings.style['pointer-events'] = 'none';
-					rpcSettings.style['background-color'] = '#8881';
-					rpcSettings.style['padding'] = '10px';
-					rpcSettings.style['border-radius'] = '10px';
 
-					scanRpc.style.display = 'none';
+				if (autodetect.checked) {
+					datadirContainer.style.removeProperty('pointer-events');
+					datadirContainer.style.removeProperty('opacity');
+
+					rpcSettings.style['pointer-events'] = 'none';
+					rpcSettings.style['opacity'] = '0.4';
+
 					document.getElementById("username").value = '{{ node.user }}';
 					document.getElementById("password").value = '{{ node.password }}';
 				} else {
-					lock.style['display'] = 'none';
-					datadirContainer.style['display'] = 'none';
-					rpcSettings.style.removeProperty('background-color');
+					datadirContainer.style['pointer-events'] = 'none';
+					datadirContainer.style['opacity'] = '0.4';
+
 					rpcSettings.style.removeProperty('pointer-events');
-					rpcSettings.style.removeProperty('padding');
-					rpcSettings.style.removeProperty('border-radius');
-					scanRpc.style.removeProperty('display');
+					rpcSettings.style.removeProperty('opacity');
 				}
+
 			}
 
 			autodetect.addEventListener("change", function() {
