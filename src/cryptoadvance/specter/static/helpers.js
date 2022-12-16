@@ -74,30 +74,18 @@ document.addEventListener("click", (e) => {
 		addressesTableComponent.shadowRoot.querySelectorAll('address-row').forEach(addressRow => {
 			const addressLabel = addressRow.shadowRoot.querySelector('address-label')
 			if (addressLabel.isEditing) {
-				if ([addressLabel.edit, addressLabel.cancel, addressLabel.update].includes(parentElement) || clickedElement == addressLabel.edit) {
-					console.log("Clicking on the label buttons, don't end the editing ...")
-					return
-				}
-				else {
-					console.log("Clicking somewhere else on the screen. Canceling editing.")
-					addressLabel.cancelEditing()
-				}
+				console.log("Clicking somewhere else on the screen. Canceling editing.")
+				addressLabel.cancelEditing()
 			}
 		})
 	}
 	else if (txTableComponent) {
 		txTableComponent.shadowRoot.querySelectorAll('tx-row').forEach(txRow => {
 			const addressLabel = txRow.shadowRoot.querySelector('address-label')
-			// In the tx labeling there also "3 Recipients labels"
+			// In the tx labeling there also "labels" ("X Recipients") which aren't label components
 			if (addressLabel !== null && addressLabel.isEditing) {
-				if ([addressLabel.edit, addressLabel.cancel, addressLabel.update].includes(parentElement) || clickedElement == addressLabel.edit) {
-					console.log("Clicking on the label buttons, don't end the editing ...")
-					return
-				}
-				else {
-					console.log("Clicking somewhere else on the screen. Canceling editing.")
-					addressLabel.cancelEditing()
-				}
+				console.log("Clicking somewhere else on the screen. Canceling editing.")
+				addressLabel.cancelEditing()
 			}
 		})
 	}
@@ -105,14 +93,8 @@ document.addEventListener("click", (e) => {
 	if (addressDataComponent) {
 		addressDataComponent.shadowRoot.querySelectorAll('address-label').forEach(addressLabel => {
 			if (addressLabel.isEditing) {
-				if ([addressLabel.edit, addressLabel.cancel, addressLabel.update].includes(parentElement) || clickedElement == addressLabel.edit) {
-					console.log("Clicking on the label buttons, don't end the editing ...")
-					return
-				}
-				else {
-					console.log("Clicking somewhere else on the screen. Canceling editing.")
-					addressLabel.cancelEditing()
-				}
+				console.log("Clicking somewhere else on the screen. Canceling editing.")
+				addressLabel.cancelEditing()
 			}
 		})
 	}
