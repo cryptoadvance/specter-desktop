@@ -246,12 +246,15 @@
                 e.stopPropagation()
             };
 
-            this.cancel.onclick = () => {
+            this.cancel.onclick = (e) => {
                 this.cancelEditing()
+                e.stopPropagation()
             };
 
-            this.update.onclick = () => {
+            this.update.onclick = (e) => {
+                console.log('Update button was clicked.')
                 this.updateAddressLabel()
+                e.stopPropagation()
             };
 
             this.addEventListener("updateAddressLabel", function (e) {
