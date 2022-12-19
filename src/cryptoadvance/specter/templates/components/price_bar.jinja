@@ -203,27 +203,10 @@
             }
             let url = `{{ url_for('price_endpoint.toggle') }}`;
             var formData = new FormData(document.getElementById('price-form'));
-            try {
-                const response = await fetch(
-                    url,
-                    {
-                        method: 'POST',
-                        body: formData
-                    }
-                );
-                if(response.status != 200){
-                    showError(await response.text());
-                    return;
-                }
-                const jsonResponse = await response.json();
-                if (jsonResponse.success) {
-                    location.reload();
-                    return
-                };
-                showError(`{{ _("Failed to toggle price mode...") }}`)
-            } catch(e) {
-                console.log("Caught error: ", e);
-                showError(e);
+            const result = await send_request(url, 'POST', "{{ csrf_token() }}", formData);
+            if (result) {
+                location.reload();
+                return
             }
         }
 
@@ -236,7 +219,10 @@
                     url,
                     {
                         method: 'POST',
-                        body: formData
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json'
+                        }
                     }
                 );
                 if(response.status != 200){

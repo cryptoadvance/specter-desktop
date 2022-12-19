@@ -34,7 +34,7 @@
 	<div class="center card" data-style="width: 610px; padding-top: 25px;">
 		<form action="./" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-			<address-label data-address="{{ wallet.address }}" data-label="{{ wallet.getlabel(wallet.address) }}" data-wallet="{{ wallet_alias }}" date-size="title"></address-label>
+			<address-label editable="false" data-address="{{ wallet.address }}" data-label="{{ wallet.getlabel(wallet.address) }}" data-wallet="{{ wallet_alias }}" date-size="title"></address-label>
 		</form>
 		{% if specter.is_liquid  and wallet.address != wallet.unconfidential_address %}
 		<nav class="row">

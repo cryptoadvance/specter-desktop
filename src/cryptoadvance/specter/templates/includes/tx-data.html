@@ -168,8 +168,9 @@
                         var price = formatPrice(spentOutput.value, spentOutput.assetlabel, this.symbol, this.price); 
 
                         addressAndValue = `
-                            {{ _("Address:") }} 
-                            <address-label 
+                            {{ _("Address:") }} <span style="word-wrap: break-word;">${address}</span><br>
+                            {{ _("Label:") }} 
+                            <address-label  style="display: inline-block; vertical-align: middle;"
                                 data-copy-hidden="true"
                                 data-address="${address}"
                                 data-wallet="${this.wallet}"
@@ -251,8 +252,9 @@
                     rawtxHTML += `
                     <p class="tx_info" data-style="text-align: left; background-color: ${bgColor};">
                         <b>{{ _("Output #${i}") }}</b><br><br>
-                        {{ _("Address:") }} 
-                        <address-label
+                        {{ _("Address:") }} <span style="word-break: break-all;">${address}</span><br>
+                        {{ _("Label:") }} 
+                        <address-label style="display: inline-block; vertical-align: middle;"
                             data-copy-hidden="true"
                             data-address="${address}"
                             data-wallet="${this.wallet}"

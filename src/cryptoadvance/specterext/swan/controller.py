@@ -167,7 +167,7 @@ def integration_check():
     except Exception as e:
         # Expected to fail in various possible ways: not logged in, user_secret
         # not decrypted, Swan integration not complete.
-        pass
+        logger.exception(e)
     return jsonify(success=False)
 
 
