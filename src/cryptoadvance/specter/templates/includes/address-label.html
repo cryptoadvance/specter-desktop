@@ -71,7 +71,7 @@
     </style>
 
     <form class="address-label-form">
-        <button type="button" class="btn edit" title="Edit label">
+        <button type="button" class="btn edit" title="Edit label" data-cy="edit-label-btn">
             <img
                 src="{{ url_for('static', filename='img/tag.svg') }}"
                 style="width: 22px; margin-top: -2px"
@@ -84,18 +84,18 @@
                 value="{{ csrf_token() }}"
             />
             <img class="service-icon" />
-            <span class="label" tabindex="-1" autocomplete="off" spellcheck="false" title="Edit label">
+            <span class="label" tabindex="-1" autocomplete="off" spellcheck="false" title="Edit label" data-cy="label">
                 {{ _("Fetching address label...") }}
             </span>
         </button>
-        <button type="button" class="btn update hidden" title="Update">
+        <button type="button" class="btn update hidden" title="Update" data-cy="update-label-btn">
             <img
                 src="{{ url_for('static', filename='img/check_thick.svg') }}"
                 style="width: 18px"
                 class="svg-white"
             />
         </button>
-        <button type="button" class="btn cancel hidden" title="Cancel">
+        <button type="button" class="btn cancel hidden" title="Cancel" data-cy="cancel-edit-btn">
             <img
                 src="{{ url_for('static', filename='img/cross_thick.svg') }}"
                 style="width: 18px"
