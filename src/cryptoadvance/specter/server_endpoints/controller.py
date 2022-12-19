@@ -63,8 +63,7 @@ logger = logging.getLogger(__name__)
 @app.errorhandler(RpcError)
 def server_rpc_error(rpce):
     """Specific SpecterErrors get passed on to the User as flash"""
-    logger.error(request.headers["Accept"])
-    if request.headers["Accept"] == "application/json":
+    if request.headers.get("Accept") == "application/json":
         return {"error": str(rpce)}
     if rpce.error_code == -18:  # RPC_WALLET_NOT_FOUND
 
@@ -85,7 +84,7 @@ def server_rpc_error(rpce):
 @app.errorhandler(SpecterError)
 def server_specter_error(se):
     """Specific SpecterErrors get passed on to the User as flash (or in error-field for json)"""
-    if request.headers["Accept"] == "application/json":
+    if request.headers.get("Accept") == "application/json":
         return {"error": str(se)}
     flash(str(se), "error")
     try:
@@ -105,7 +104,7 @@ def server_notFound_error(e):
     # if rpc is not available
     error_msg = "Could not find Resource (404): %s" % request.url
     app.logger.error(error_msg)
-    if request.headers["Accept"] == "application/json":
+    if request.headers.get("Accept") == "application/json":
         return {"error": error_msg}
     return render_template("500.jinja", error=e), 404
 
@@ -117,7 +116,7 @@ def server_error(e):
     app.logger.error(error_msg)
     trace = traceback.format_exc()
     app.logger.error(trace)
-    if request.headers["Accept"] == "application/json":
+    if request.headers.get("Accept") == "application/json":
         return {"error": error_msg}
     return render_template("500.jinja", error=e, traceback=trace), 500
 
@@ -126,7 +125,7 @@ def server_error(e):
 def server_broken_core_connection(e):
     error_msg = "You got disconnected from your node (no RPC connection)"
     logger.exception(e)
-    if request.headers["Accept"] == "application/json":
+    if request.headers.get("Accept") == "application/json":
         return {"error": error_msg}
     flash(error_msg, "error")
     try:
@@ -147,7 +146,7 @@ def server_error_timeout(e):
         # make sure specter knows that rpc is not there
         app.specter.check()
     app.logger.error("ExternalProcessTimeoutException: %s" % e)
-    if request.headers["Accept"] == "application/json":
+    if request.headers.get("Accept") == "application/json":
         return {"error": error_msg}
     flash(error_msg, "warn")
     return redirect(
@@ -167,7 +166,7 @@ def server_error_csrf(e):
     app.logger.error("CSRF Exception: %s" % e)
     trace = traceback.format_exc()
     app.logger.error(trace)
-    if request.headers["Accept"] == "application/json":
+    if request.headers.get("Accept") == "application/json":
         return {"error": error_msg}
     flash(error_msg, "error")
     return redirect(request.url)
@@ -180,7 +179,7 @@ def server_error_405(e):
     app.logger.error(f"{error_msg} : {e}")
     trace = traceback.format_exc()
     app.logger.error(trace)
-    if request.headers["Accept"] == "application/json":
+    if request.headers.get("Accept") == "application/json":
         return {"error": error_msg}
     flash(_("Session expired. Please refresh and try again."), "error")
     return redirect(request.url)
