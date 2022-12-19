@@ -158,12 +158,14 @@ def test_addressinfo(caplog, client, funded_ghost_machine_wallet):
     loaded_wallet_name = json.loads(response.data)["loaded_wallets"][0]
     receive_address = funded_ghost_machine_wallet.get_address(0, change=False)
     url = f"/wallets/wallet/{loaded_wallet_name}/addressinfo/"
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "ACCEPT": "application/json",
+    }
 
     # send post request
     res = client.post(
-        url,
-        data={"address": receive_address},
-        follow_redirects=True,
+        url, data={"address": receive_address}, follow_redirects=True, headers=headers
     )
     assert res.status == "200 OK"
     assert (
@@ -174,11 +176,12 @@ def test_addressinfo(caplog, client, funded_ghost_machine_wallet):
     # send post request with bad address
     invalid_address = "bcrt1qvtdx7"
     res = client.post(
-        url,
-        data={"address": invalid_address},
-        follow_redirects=True,
+        url, data={"address": invalid_address}, follow_redirects=True, headers=headers
     )
-    assert res.data.decode() == '{"success":false}\n'
+    assert (
+        res.data.decode()
+        == '{"error":"Request error for method getaddressinfo: Invalid address format"}\n'
+    )
 
     # send post request with address, not belonging to wallet
     # this recreates an edge case, see https://github.com/cryptoadvance/specter-desktop/issues/2000
@@ -189,6 +192,7 @@ def test_addressinfo(caplog, client, funded_ghost_machine_wallet):
         url,
         data={"address": valid_address_not_beloging_to_wallet},
         follow_redirects=True,
+        headers=headers,
     )
     assert res.status == "200 OK"
     assert res.data.decode() == '{"success":false}\n'
@@ -210,6 +214,7 @@ def test_addressinfo(caplog, client, funded_ghost_machine_wallet):
             url,
             data={"address": receive_address},
             follow_redirects=True,
+            headers=headers,
         )
         assert res.status == "200 OK"
         assert (
