@@ -26,7 +26,7 @@ devstatus_prod = "prod"
 
 
 class ServiceOptionality:
-    mandatory = "mandatory"
+    mandatory = "mandatory"  # mandatory is not used yet by any service. Before it can be used it has to be clarified what happens in delete_services_with_encrypted_storage of mandatory services
     opt_in = "opt_in"
     opt_out = "opt_out"
 
