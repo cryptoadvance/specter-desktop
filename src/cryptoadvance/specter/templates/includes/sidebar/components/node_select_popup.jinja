@@ -59,12 +59,14 @@
         justify-content: space-between;
     }
     .node-name {
-        cursor: pointer;
         color: white
     }
     .node-list-item:hover {
         border: 1px solid orange;
         border-radius: 10px;
+    }
+    .node-list-item-selected:hover {
+        cursor: default
     }
 </style>
 
@@ -82,11 +84,11 @@
                     <div id="node-logo" {% if running %} class="node-logo-running" {% else %} class="node-logo-unreachable" {% endif %}>
                         {% include node.node_logo_template() %}
                     </div>
-                    <div id="node-description" class="node-description" title="Select node">
+                    <div id="node-description" class="node-description" {% if selected_node %} title="Selected node" {% else %} title="Select node" {% endif%}>
                         <div style="display: flex; gap: 10px">
                             <div class="node-name">{{ node.name }}</div>
                             {% if running %}
-                                <img title="running" class="selected-icon"src="{{ url_for('static', filename='img/radio-button-running-node.svg')}}">
+                                <img title="Node is running" class="selected-icon"src="{{ url_for('static', filename='img/radio-button-running-node.svg')}}">
                             {% endif %}
                         </div>
                         <small>
