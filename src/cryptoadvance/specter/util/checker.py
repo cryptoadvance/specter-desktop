@@ -28,17 +28,24 @@ class Checker:
     def start(self):
         if not self.running:
             self.running = True
-            self.error_counter = 0
             self.thread = FlaskThread(target=self.loop)
             self.thread.daemon = True
             self.thread.start()
-        logger.info(f"Checker {self.desc} started with period {self.period}")
+            logger.info(f"Checker {self.desc} started with period {self.period}")
+        else:
+            logger.warning(f"Checker {self.desc} started but ran already")
 
     def stop(self):
-        logger.info(f"Checker {self.desc} stopped.")
         self.running = False
 
+    def run_now(self):
+        """causes an almost immediate run for this checker
+        maximum 1 second delay
+        """
+        self.last_check = 0
+
     def loop(self):
+        self.error_counter = 0
         self._execute(first_execution=True)
         while self.running:
             # check if it's time to update
@@ -46,6 +53,7 @@ class Checker:
                 self._execute()
             # wait 1 second
             self._sleep()
+        logger.info(f"Checker {self.desc} stopped.")
 
     def _execute(self, first_execution=False):
         try:
@@ -54,15 +62,17 @@ class Checker:
             dt = time.time() - t0
             if first_execution:
                 logger.info(
-                    "Checker executed within %.3f seconds. This message won't show again until stopped and started."
+                    f"Checker {self.desc} executed within %.3f seconds. This message won't show again until stopped and started."
                     % dt
                 )
         except Exception as e:
-            if self.error_counter < 5:
-                logger.exception(e)
-                self.error_counter = self.error_counter + 1
-            if self.error_counter == 4:
-                logger.error("The above Error-Message is now suppressed!")
+            self.error_counter += 1
+            if self.error_counter <= 5:
+                logger.exception(
+                    f"Checker {self.desc} threw {e} for the {self.error_counter}th time"
+                )
+            if self.error_counter == 5:
+                logger.error(f"The above Error-Message is from now on suppressed!")
         finally:
             self.last_check = time.time()
 

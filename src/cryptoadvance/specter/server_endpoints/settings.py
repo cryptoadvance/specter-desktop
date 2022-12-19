@@ -192,10 +192,11 @@ def general():
                         app.logger.info("Rescanning Blockchain ...")
                         rescanning = True
                     except Exception as e:
-                        app.logger.error(
+                        app.logger.exception(
                             "Exception while rescanning blockchain for wallet {}: {}".format(
                                 wallet["alias"], e
-                            )
+                            ),
+                            e,
                         )
                         flash(
                             _("Failed to perform rescan for wallet: {}").format(e),
@@ -326,7 +327,7 @@ def tor():
                 flash(_("Specter stopped Tor successfully"))
             except Exception as e:
                 flash(_("Failed to stop Tor, error: {}").format(e), "error")
-                logger.error(f"Failed to start Tor, error: {e}")
+                logger.exception(f"Failed to start Tor, error: {e}", e)
         elif action == "uninstalltor":
             logger.info("Uninstalling Tor...")
             try:
@@ -337,7 +338,7 @@ def tor():
                 flash(_("Tor uninstalled successfully"))
             except Exception as e:
                 flash(_("Failed to uninstall Tor, error: {}").format(e), "error")
-                logger.error(f"Failed to uninstall Tor, error: {e}")
+                logger.exception(f"Failed to uninstall Tor, error: {e}", e)
         elif action == "test_tor":
             logger.info("Testing the Tor connection...")
             try:
@@ -372,7 +373,9 @@ def tor():
                     _("Failed to make test request over Tor.\nError: {}").format(e),
                     "error",
                 )
-                logger.error(f"Failed to make test request over Tor.\nError: {e}")
+                logger.exception(
+                    f"Failed to make test request over Tor.\nError: {e}", e
+                )
                 if tor_type == "builtin":
                     logger.error("Tor-Logs:")
                     app.specter.tor_daemon.stop_tor_daemon()
@@ -666,6 +669,7 @@ def set_asset_label():
     try:
         app.specter.update_asset_label(asset, label)
     except Exception as e:
+        logger.exception(e)
         return str(e), 500
     return {"success": True}
 
@@ -690,6 +694,7 @@ def get_asset(asset):
             return {"error": "asset lookup by label failed"}, 404
         return {"asset": asset, "label": app.specter.asset_label(asset)}
     except Exception as e:
+        logger.exception(e)
         return {"error": str(e)}, 500
 
 

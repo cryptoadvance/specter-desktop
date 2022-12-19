@@ -328,7 +328,9 @@ def decoderawtx(wallet_alias):
                 walletName=wallet.name,
             )
     except Exception as e:
-        app.logger.warning("Failed to fetch transaction data. Exception: {}".format(e))
+        app.logger.exception(
+            "Failed to fetch transaction data. Exception: {}".format(e), e
+        )
 
     return jsonify(success=False)
 
@@ -508,43 +510,39 @@ def addresses_list(wallet_alias):
 @login_required
 @app.csrf.exempt
 def addressinfo(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-        address = request.form.get("address", "")
-        if address:
-            descriptor = wallet.get_descriptor(
-                address=address, keep_xpubs=False, to_string=True, with_checksum=True
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    address = request.form.get("address", "")
+    if address:
+        descriptor = wallet.get_descriptor(
+            address=address, keep_xpubs=False, to_string=True, with_checksum=True
+        )
+        xpubs_descriptor = wallet.get_descriptor(
+            address=address, keep_xpubs=True, to_string=True, with_checksum=True
+        )
+        # The last two regex groups are optional since Electrum's derivation path is shorter
+        derivation_path_pattern = (
+            r"(\/[0-9h]+)(\/[0-9h]+)(\/[0-9h]+)(\/[0-9h]+)?(\/[0-9h]+)?"
+        )
+        # Only "descriptor" gives full derivation path, looks usually like this:
+        # wpkh([8c24a510/84h/1h/0h/0/0]0331edcb16cfd ... e02552539d984)#35zjhlhm
+        match = re.search(derivation_path_pattern, descriptor)
+        if not match:
+            logger.debug(
+                f"Derivation path of this descriptor {descriptor} could not be parsed. Sth. wrong with the regex pattern which was {derivation_path_pattern}?"
             )
-            xpubs_descriptor = wallet.get_descriptor(
-                address=address, keep_xpubs=True, to_string=True, with_checksum=True
-            )
-            # The last two regex groups are optional since Electrum's derivation path is shorter
-            derivation_path_pattern = (
-                r"(\/[0-9h]+)(\/[0-9h]+)(\/[0-9h]+)(\/[0-9h]+)?(\/[0-9h]+)?"
-            )
-            # Only "descriptor" gives full derivation path, looks usually like this:
-            # wpkh([8c24a510/84h/1h/0h/0/0]0331edcb16cfd ... e02552539d984)#35zjhlhm
-            match = re.search(derivation_path_pattern, descriptor)
-            if not match:
-                logger.debug(
-                    f"Derivation path of this descriptor {descriptor} could not be parsed. Sth. wrong with the regex pattern which was {derivation_path_pattern}?"
-                )
-            logger.debug(f"This is the derivation path match: {match.group()}")
-            derivation_path = "m" + match.group()
-            address_info = wallet.get_address_info(address=address)
-            return {
-                "success": True,
-                "address": address,
-                "descriptor": descriptor,
-                "xpubs_descriptor": xpubs_descriptor,
-                "derivation_path": derivation_path,
-                "walletName": wallet.name,
-                "isMine": address_info and not address_info.is_external,
-                **address_info,  # address_info is an instance of Address(dict)
-            }
-    except Exception as e:
-        handle_exception(e)
-    return jsonify(success=False)
+        logger.debug(f"This is the derivation path match: {match.group()}")
+        derivation_path = "m" + match.group()
+        address_info = wallet.get_address_info(address=address)
+        return {
+            "success": True,
+            "address": address,
+            "descriptor": descriptor,
+            "xpubs_descriptor": xpubs_descriptor,
+            "derivation_path": derivation_path,
+            "walletName": wallet.name,
+            "isMine": address_info and not address_info.is_external,
+            **address_info,  # address_info is an instance of Address(dict)
+        }
 
 
 ################## Wallet CSV export data endpoints #######################
@@ -885,6 +883,7 @@ def txlist_to_csv(wallet: Wallet, _txlist, includePricesHistory=False):
             try:
                 _wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
             except Exception as e:
+                logger.exception(e)
                 continue
         label = _wallet.getlabel(tx["address"])
         if label == tx["address"]:

@@ -1,5 +1,8 @@
 import os, platform
 from stem.control import Controller
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_tor_daemon_suffix():
@@ -51,23 +54,27 @@ def start_hidden_service(app):
     app.tor_service_id = app.tor_service_id
     app.tor_enabled = True
     if app.specter.config["auth"].get("method", "none") == "none":
-        print(" * ############################# Warning! #############################")
-        print(
+        logger.warning(
+            " * ############################# Warning! #############################"
+        )
+        logger.warning(
             " * Your are running Specter over Tor with no authentication settings configured."
         )
-        print(
+        logger.warning(
             " * This means your Specter instance is accessible to anyone with the .onion URL."
         )
-        print(
+        logger.warning(
             " * This .onion URL is publicly exposed and indexed on the Tor network - it is not secret!"
         )
-        print(
+        logger.warning(
             " * It is stronly adviced that you configure proper authentication while running Specter behind a Tor hidden service."
         )
-        print(
+        logger.warning(
             " * Please go to Settings -> Authentication and set up an authentication method."
         )
-        print(" * ####################################################################")
+        logger.warning(
+            " * ####################################################################"
+        )
 
 
 def stop_hidden_services(app):
@@ -76,14 +83,15 @@ def stop_hidden_services(app):
             password=app.specter.config.get("torrc_password", "")
         )
         hidden_services = app.specter.tor_controller.list_ephemeral_hidden_services()
-        print(" * Shutting down our hidden service")
+        logger.info(" * Shutting down our hidden service")
         for tor_service_id in hidden_services:
             app.specter.tor_controller.remove_ephemeral_hidden_service(tor_service_id)
         # Sanity
         if len(app.specter.tor_controller.list_ephemeral_hidden_services()) != 0:
-            print(" * Failed to shut down our hidden services...")
+            logger.error(" * Failed to shut down our hidden services...")
         else:
-            print(" * Hidden services were shut down successfully")
+            logger.info(" * Hidden services were shut down successfully")
             app.tor_service_id = None
-    except Exception:
+    except Exception as e:
+        logger.exception(e)
         pass  # we tried...

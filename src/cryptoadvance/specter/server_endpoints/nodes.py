@@ -327,6 +327,7 @@ def internal_node_settings(node_alias):
                     )
                 )
             except Exception as e:
+                logger.exception(e)
                 flash(_("Failed to remove Bitcoin Core, error: {}").format(e), "error")
         elif action == "upgrade_bitcoind":
             if node.version != app.config["INTERNAL_BITCOIND_VERSION"]:
@@ -335,6 +336,7 @@ def internal_node_settings(node_alias):
                         app.specter, app.config["INTERNAL_BITCOIND_VERSION"]
                     )
                 except Exception as e:
+                    logger.exception(e)
                     flash(
                         _("Failed to upgrade Bitcoin Core version, error: {}").format(
                             e

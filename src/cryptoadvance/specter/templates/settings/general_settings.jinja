@@ -131,9 +131,11 @@
 			</div>
 			<div class="warning hidden" id="merkle-info-details">
 				<img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>
-		        {{ _('Specter Desktop validates ')}}<a href="https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki" target="_blank">{{ _("BIP 37")}}</a>{{ _(" Merkle Proofs from your full node ")}}<strong>{{ _("guaranteeing")}}</strong>{{ _(" that transactions displayed as confirmed have been included in the specified block hash.")}}<br><br>
-		        {{ _("However, a compromised full node could return a fake block that was never mined.") }}
-		        {{ _("To be sure, you could double check the block hash in other locations (other nodes, block explorers, etc).") }}
+					{{ _("This option is intended for the usage of Specter Desktop with nodes that you don't fully trust (e.g. remote / cloud nodes).") }} <br>
+					{{ _("If enabled, you will see block hashes in the transactions overview.") }} <br>
+					{{ _("You can take those block hashes to double check whether they also exist in other locations (other nodes, block explorers, etc).") }} <br>
+					{{ _("If so, you can be sure that the corresponding transaction was included in this block, since there is a relationship between the blockhash and the tx.") }} <br><br>
+					{{ _("In a nutshell: It substitutes double checking a specific tx in a block explorer with checking a blockhash which increases privacy.") }}
 			</div>
 			<br>
 			<div class="row">
