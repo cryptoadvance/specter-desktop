@@ -4,11 +4,21 @@
         justify-content: flex-start;
         flex-grow: 1;
         width: 100%;
-        padding: 10px 0;
+        padding: 10px;
         display: flex;
         flex-direction: row;
         align-items: center;
-        border-left: 3px solid transparent;
+        border-left: 3px solid transparent;     
+        width: 275px;
+        height: 60px;
+        cursor: pointer;
+        border: 1px solid transparent;
+        border-radius: 10px;
+    }
+    .node-list-item-selected {
+        border: 1px solid orange;
+        border-radius: 10px;
+        cursor: unset;
     }
     .node-list-item>svg {
         width: 80px;
@@ -23,9 +33,9 @@
         text-align: unset;
     }
     .node-select-popup-container {
-        display: flex;
         flex-direction: column;
         align-items: start;
+        gap: 10px;
     }
     .selected-icon {
         width: 20px
@@ -52,8 +62,9 @@
         cursor: pointer;
         color: white
     }
-    .node-name:hover {
-        color: #ffc864d9;
+    .node-list-item:hover {
+        border: 1px solid orange;
+        border-radius: 10px;
     }
 </style>
 
@@ -61,22 +72,19 @@
     <h1 style="align-self: center">{{ _("Node selection") }}</h1>
     {% for node_name in specter.node_manager.nodes_names %}
         {% set node = specter.node_manager.get_by_name(node_name) %}
+        {% set selected_node = node.alias == specter.node.alias %}
+        {% set running = node.is_running %}
         <div id="node-row" class="node-row">
             <form action="{{url_for('nodes_endpoint.switch_node')}}" id="{{node.alias}}-select-node-form" method="POST">
                 <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
                 <input type="hidden" name="node_alias" value="{{ node.alias }}"/>
-                <div class="core node-list-item" onclick="document.getElementById('{{node.alias}}-select-node-form').submit();">
-                    {% set selected_node = node.alias == specter.node.alias %}
-                    {% set running = node.is_running %}
+                <div {% if selected_node %} class="core node-list-item node-list-item-selected" {% else %} class="core node-list-item" {% endif %} onclick="document.getElementById('{{node.alias}}-select-node-form').submit();">
                     <div id="node-logo" {% if running %} class="node-logo-running" {% else %} class="node-logo-unreachable" {% endif %}>
                         {% include node.node_logo_template() %}
                     </div>
                     <div id="node-description" class="node-description" title="Select node">
                         <div style="display: flex; gap: 10px">
                             <div class="node-name">{{ node.name }}</div>
-                            {% if selected_node %}
-                                <img title="selected" class="selected-icon"src="{{ url_for('static', filename='img/radio-button-selected-node.svg')}}">
-                            {% endif %} 
                             {% if running %}
                                 <img title="running" class="selected-icon"src="{{ url_for('static', filename='img/radio-button-running-node.svg')}}">
                             {% endif %}
@@ -97,7 +105,7 @@
         </div>
     {% endfor %}
     <div style="align-self: center; margin-top: 10px">
-        {{ sidebar_btn(url_for('setup_endpoint.node_type'), 'Connect a new node', 'btn_new_node') }}
+        <a href="{{ url_for('setup_endpoint.node_type') }}" class="btn">Connect a new node</a>
     </div>
 </div>
 
@@ -115,7 +123,8 @@
         // Change the default styling of the node selection popup 
         let pageOverlayPopup = document.getElementById('page_overlay_popup')
         pageOverlayPopup.classList.add('page_overlay_popup')
-        let nodeSelectPopupContainer = document.getElementById("page_overlay_popup_content").children[0];
+        let nodeSelectPopupContainer = document.getElementById('node_select_popup');
+        nodeSelectPopupContainer.style.display = 'flex'
         nodeSelectPopupContainer.classList.add('node-select-popup-container')
     }
 
