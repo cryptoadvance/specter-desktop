@@ -20,7 +20,8 @@
   "scripts": {
     "dev": "gulp",
     "tailwind": "npx tailwindcss -i ./src/cryptoadvance/specter/static/style.css -o ./src/cryptoadvance/specter/static/output.css --watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": " rm -rf .env && virtualenv --python=python3 .env && source .env/bin/activate && pip3 install -r requirements.txt --require-hashes && pip3 install -e . && python3 setup.py install && python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug"
   },
   "repository": {
     "type": "git",
