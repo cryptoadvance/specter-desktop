@@ -894,3 +894,22 @@ def settings(wallet_alias):
         error=error,
         scroll_to_rescan_blockchain=scroll_to_rescan_blockchain,
     )
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/settings/clearcache", methods=["POST"])
+@login_required
+def settings_clearcache(wallet_alias):
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    error = None
+    wallet.clear_cache()
+    flash("Cache cleared successfully!")
+    return render_template(
+        "wallet/settings/wallet_settings.jinja",
+        purposes=purposes,
+        wallet_alias=wallet_alias,
+        wallet=wallet,
+        specter=app.specter,
+        rand=rand,
+        error=error,
+        scroll_to_rescan_blockchain=None,
+    )

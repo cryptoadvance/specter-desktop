@@ -930,6 +930,9 @@ class Wallet:
         except:
             pass
 
+    def clear_cache(self):
+        self._transactions.clear_cache()
+
     @property
     def use_descriptors(self):
         if not self.info:

@@ -110,6 +110,11 @@ class TxItem(dict, AbstractTxListContext):
         if "walletconflicts" in kwargs:
             self["conflicts"] = kwargs["walletconflicts"]
 
+    def clear_cache(self):
+        """removes the binary cache for this tx"""
+        if os.path.isfile(self.fname):
+            delete_file(self.fname)
+
     @property
     def fname(self):
         return os.path.join(self.rawdir, self.txid + ".bin")
@@ -338,8 +343,15 @@ class TxList(dict, AbstractTxListContext):
             write_csv(self.path, list(self.values()), self.ItemCls)
             self._file_exists = True
         else:
-            delete_file(self.path)
-            self._file_exists = False
+            self.clear_cache()
+
+    def clear_cache(self):
+        """Asks all Txs to clear its cache and removes the csv-file"""
+        for tx in self.values():
+            tx.clear_cache()
+        delete_file(self.path)
+        self._file_exists = False
+        logger.info(f"Cleared the Cache for {self.path} (and rawdir)")
 
     def getfetch(self, txid):
         """
