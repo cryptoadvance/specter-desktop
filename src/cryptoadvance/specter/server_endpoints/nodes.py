@@ -373,17 +373,6 @@ def internal_node_logs(node_alias):
 def switch_node():
     node_alias = request.form["node_alias"]
     node_name = app.specter.node_manager.get_name_from_alias(node_alias)
-    try:
-        app.specter.update_active_node(node_alias)
-        flash(_(f"Switched to use {node_name} as node."))
-        return redirect(url_for("index"))
-    except SpecterError:
-        flash(
-            _(f"Can't switch to {node_alias}, the node seems to not exist anymore ..."),
-            "error",
-        )
-    except Exception as e:
-        flash(
-            _(f"There's been a glitch in the matrix: {e}"),
-            "error",
-        )
+    app.specter.update_active_node(node_alias)
+    flash(_(f"Switched to use {node_name} as node."))
+    return redirect(url_for("index"))
