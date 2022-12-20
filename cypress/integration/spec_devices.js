@@ -13,7 +13,7 @@ describe('Test adding different devices', () => {
     it('Filter devices', () => {
         cy.get('#toggle_devices_list').click()
         cy.get('#btn_new_device').click()
-        cy.contains('Select Your Device Type')
+        cy.contains('Select your signing device')
         cy.get('#device-type-searchbar').type("Specter")
         cy.get('#trezor_device_card').should('not.be.visible')
         cy.get('#specter_device_card').should('be.visible')
