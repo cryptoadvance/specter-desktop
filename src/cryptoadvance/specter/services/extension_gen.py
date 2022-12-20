@@ -113,6 +113,7 @@ class ExtGen:
         self.render(f"{package_path}/templates/dummy/index.jinja")
         if self.devicename:
             self.render(f"{package_path}/devices/devicename.py")
+            self.render(f"{package_path}/devices/__init__.py")
             self.create_binary_file(f"{package_path}/static/dummy/img/device_icon.svg")
         if not self.isolated_client:
             self.render(f"{package_path}/static/dummy/css/styles.css")

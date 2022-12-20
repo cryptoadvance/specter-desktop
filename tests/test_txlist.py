@@ -4,6 +4,7 @@ import time
 from binascii import hexlify
 from datetime import datetime
 from pathlib import Path
+from typing import List
 
 from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
@@ -11,7 +12,7 @@ from cryptoadvance.specter.process_controller.bitcoind_controller import (
 from cryptoadvance.specter.txlist import TxItem, TxList
 from embit.descriptor.arguments import Key
 from embit.descriptor.descriptor import Descriptor
-from embit.transaction import Transaction, TransactionInput
+from embit.transaction import Transaction, TransactionInput, TransactionOutput
 from mock import MagicMock
 
 descriptor = "pkh([78738c82/84h/1h/0h]vpub5YN2RvKrA9vGAoAdpsruQGfQMWZzaGt3M5SGMMhW8i2W4SyNSHMoLtyyLLS6EjSzLfrQcbtWdQcwNS6AkCWne1Y7U8bt9JgVYxfeH9mCVPH/1/*)"
@@ -33,22 +34,31 @@ with open("tests/xtestdata_txlist/tx2_confirmed2.json") as f:
 
 
 def test_understandTransaction():
-    mytx = Transaction.from_string(tx1_confirmed["hex"])
+    mytx: Transaction = Transaction.from_string(tx1_confirmed["hex"])
     assert mytx.version == 2
     assert mytx.locktime == 415
+
     assert type(mytx.vin[0]) == TransactionInput
     assert (
         hexlify(mytx.vin[0].txid)
         == b"c7c9dd852fa9cbe72b2f6e3b2eeba1a2b47dc4422b3719a55381be8010d7993f"
     )
-    assert mytx.vout[0].value == 1999999890
+
+    assert type(mytx.vout[0]) == TransactionOutput
+    assert mytx.vout[0].value == 1999999890  # sats
     assert (
         hexlify(mytx.txid())
         == b"42f5c9e826e52cde883cde7a6c7b768db302e0b8b32fc52db75ad3c5711b4a9e"
     )
 
+    # The computed txid is the same than the input
+    assert mytx.txid().hex() == tx1_confirmed["txid"]
+
 
 def test_TxItem(empty_data_folder):
+    # those two arrays could have been implemented as dict and need
+    # same size
+    assert len(TxItem.type_converter) == len(TxItem.columns)
     mytxitem = TxItem(
         None,
         [],
@@ -56,11 +66,13 @@ def test_TxItem(empty_data_folder):
         hex=tx1_confirmed["hex"],
         blocktime=1642182445,  # arbitrary stuff can get passed
     )
-    # a TxItem pretty much works like a hash with some extrafunctionality
+    assert str(mytxitem) == "txid undefined"
+    assert mytxitem.__repr__() == "TxItem(txid undefined)"
+    # a TxItem pretty much works like a dict with some extrafunctionality
     assert mytxitem["blocktime"] == 1642182445
     # We can also add data after the fact
     mytxitem["confirmations"] = 123
-    assert mytxitem.tx.vout
+    assert type(mytxitem.tx.vout) == list
     assert mytxitem["confirmations"] == 123
 
 
@@ -100,7 +112,9 @@ def test_txlist(empty_data_folder, bitcoin_regtest):
     mock_parent = MagicMock()
     mock_parent.rpc = mock_rpc
     mytxlist.parent = mock_parent
-    # mytxlist.getfetch("42f5c9e826e52cde883cde7a6c7b768db302e0b8b32fc52db75ad3c5711b4a9e")
+    mytxlist.getfetch(
+        "42f5c9e826e52cde883cde7a6c7b768db302e0b8b32fc52db75ad3c5711b4a9e"
+    )
 
     # assert False
 

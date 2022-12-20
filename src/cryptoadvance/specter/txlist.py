@@ -28,6 +28,14 @@ def parse_arr(v):
 
 
 class AbstractTxListContext(AbstractTxContext):
+    """An Abstract useful data-structure which solves 4 things:
+    * Passing the rpc-reference around is not necessary as long as we're navigating in some hierarchical structure where
+      we can ask the "parent" for an rpc-reference as the rpc reference is the same
+    * Same idea but with the chain. We don't want to tell each small data-structure what its chain is. Just pass a parent
+      in the constructor.
+    * It's derived from AbstractTxContext so it's also providing the attributes "descriptor" and "network"
+    """
+
     @property
     def rpc(self):
         if hasattr(self, "parent"):
@@ -42,6 +50,12 @@ class AbstractTxListContext(AbstractTxContext):
 
 
 class TxItem(dict, AbstractTxListContext):
+    """A TxItem tries to be a clever dict, holding all sorts of values which belongs to a Tx and might be valuable for client-code
+    The hex-represeantation of a Tx is cached in the "rawdir". If the the txid is existing as file in the rawdir, the hex
+    representation will be loaded from there.
+
+    """
+
     TransactionCls = Transaction
     columns = [
         "txid",  # str, txid in hex
@@ -55,6 +69,8 @@ class TxItem(dict, AbstractTxListContext):
         "category",
         "address",
         "amount",
+        "flow_amount",
+        "utxo_amount",
         "ismine",
     ]
     type_converter = [
@@ -67,6 +83,8 @@ class TxItem(dict, AbstractTxListContext):
         parse_arr,
         int,
         str,
+        parse_arr,
+        parse_arr,
         parse_arr,
         parse_arr,
         bool,
@@ -172,10 +190,11 @@ class TxItem(dict, AbstractTxListContext):
         return str(self.tx)
 
     def __str__(self):
-        return self.txid
+        """Good implementation ? I'm not sure"""
+        return self.get("txid") or "txid undefined"
 
     def __repr__(self):
-        return f"TxItem({str(self)})"
+        return f"{self.__class__.__name__}({str(self)})"
 
     def __dict__(self):
         return {
@@ -190,12 +209,99 @@ class TxItem(dict, AbstractTxListContext):
             "category": self["category"],
             "address": self["address"],
             "amount": self["amount"],
+            "flow_amount": self["flow_amount"],
+            "utxo_amount": self["utxo_amount"],
             "ismine": self["ismine"],
         }
 
 
+class WalletAwareTxItem(TxItem):
+    PSBTCls = SpecterPSBT
+
+    @property
+    def psbt(self):
+        """This tx but as a psbt. Need rpc-calls"""
+        if hasattr(self, "_psbt"):
+            return self._psbt
+        self._psbt = self.PSBTCls.from_transaction(
+            self.tx, self.descriptor, self.network
+        )
+        # fill derivation paths etc
+        updated = self.rpc.walletprocesspsbt(str(self._psbt), False).get("psbt", None)
+        if updated:
+            self._psbt.update(updated)
+        return self._psbt
+
+    @property
+    def category(self):
+        """One of mixed (default), generate, selftransfer, receive or send"""
+        if self.get("_category"):
+            return self["_category"]
+        # detect category
+        category = "mixed"
+
+        # calculate everything once
+        inputs = [inp.to_dict() for inp in self.psbt.inputs]
+        outputs = [out.to_dict() for out in self.psbt.outputs]
+        all_inputs_mine = all([inp["is_mine"] for inp in inputs])
+        all_outputs_mine = all([out["is_mine"] for out in outputs])
+        all_inputs_external = not any([inp["is_mine"] for inp in inputs])
+
+        if b"\x00" * 32 in [vin.txid for vin in self.tx.vin]:
+            category = "generate"
+        elif all_inputs_mine and all_outputs_mine:
+            category = "selftransfer"
+        elif all_inputs_external:
+            category = "receive"
+        elif all_inputs_mine:
+            category = "send"
+        self["category"] = category
+        return self["category"]
+
+    @property
+    def utxo_amount(self):
+        """In the UTXO-view, you want to know how much the UTXOs from that TX are worth.
+        So you return the sum of the wallet-specific outputs
+        """
+        if self.get("float_amount"):
+            return self["float_amount"]
+        outputs = [out.to_dict() for out in self.psbt.outputs]
+        self["float_amount"] = sum(
+            [output["float_amount"] for output in outputs if output["is_mine"]]
+        )
+        return self["float_amount"]
+
+    @property
+    def flow_amount(self):
+        """In the history-view, you want to know how many sats your wallet gained or lost.
+        that's the flow amount of a tx: All wallet_specifc outputs minus wallet-specific inputs
+        """
+        if self.get("float_amount"):
+            return self["float_amount"]
+        inputs = [inp.to_dict() for inp in self.psbt.inputs]
+        outputs = [out.to_dict() for out in self.psbt.outputs]
+        all_my_inputs_sum = sum(
+            [input["float_amount"] for input in inputs if input["is_mine"]]
+        )
+        all_my_ouputs_sum = sum(
+            [output["float_amount"] for output in outputs if output["is_mine"]]
+        )
+        # This includes fees!
+        self["float_amount"] = all_my_ouputs_sum - all_my_inputs_sum
+        return self["float_amount"]
+
+    def __dict__(self):
+        super_dict = dict(self)
+        super_dict["category"] = self.category
+        super_dict["flow_amount"] = self.flow_amount
+        super_dict["utxo_amount"] = self.utxo_amount
+        return super_dict
+
+
 class TxList(dict, AbstractTxListContext):
-    ItemCls = TxItem  # for inheritance
+    """A TxList is a dict with txids as keys and TxItems as values."""
+
+    ItemCls = WalletAwareTxItem  # for inheritance
     PSBTCls = SpecterPSBT
 
     def __init__(self, path, parent, addresses):
@@ -348,15 +454,6 @@ class TxList(dict, AbstractTxListContext):
             addresses = addresses[0]
             amounts = amounts[0]
         tx["address"] = addresses
-        tx["amount"] = amounts
-
-    def _get_psbt(self, raw_tx):
-        psbt = self.PSBTCls.from_transaction(raw_tx, self.descriptor, self.network)
-        # fill derivation paths etc
-        updated = self.rpc.walletprocesspsbt(str(psbt), False).get("psbt", None)
-        if updated:
-            psbt.update(updated)
-        return psbt
 
     def _fill_missing(self, tx):
         """This seem to calculate the category of the tx which is one of:
@@ -364,46 +461,30 @@ class TxList(dict, AbstractTxListContext):
 
         Also the tx gets a key with a boolean to figure out whether its "mine"
         """
-        raw_tx = tx.tx
-        psbt = self._get_psbt(raw_tx)
-        # detect category
-        category = "mixed"
-
-        # calculate everything once
-        inputs = [inp.to_dict() for inp in psbt.inputs]
-        outputs = [out.to_dict() for out in psbt.outputs]
-        all_inputs_mine = all([inp["is_mine"] for inp in inputs])
-        all_outputs_mine = all([out["is_mine"] for out in outputs])
-        all_inputs_external = not any([inp["is_mine"] for inp in inputs])
-
-        if b"\x00" * 32 in [vin.txid for vin in raw_tx.vin]:
-            category = "generate"
-        elif all_inputs_mine and all_outputs_mine:
-            category = "selftransfer"
-        elif all_inputs_external:
-            category = "receive"
-        elif all_inputs_mine:
-            category = "send"
-
-        all_outs = [out for out in outputs]
-        my_outs = [out for out in all_outs if out["is_mine"]]
-        my_receiving = [out for out in my_outs if not out["change"]]
-        external = [out for out in all_outs if out not in my_outs]
-        # decide what addresses to show
-        if category in ["generate", "receive", "selftransfer"]:
-            # either receiving only (if not empty), or only mine (if not empty), or all
-            outs = my_receiving or my_outs or all_outs
-        elif category in ["send"]:
-            # keep only external addresses if they are present
-            outs = external or all_outs
-        else:
-            # not sure what's the best here
-            outs = my_receiving or my_outs or external or all_outs
-
         self._update_destinations(tx, outs)
-        tx["category"] = category
-        # at least one input or output is ours - tx is ours
-        tx["ismine"] = any(scope["is_mine"] for scope in (inputs + outputs))
+
+    # Those two methods probably better fit to member-methods of transaction classes but i simply
+    # don't know which one is best suited
+    @classmethod
+    def calculate_flow_amount(cls, inputs, outputs):
+        """In the history-view, you want to know how many sats your wallet gained or lost.
+        that's the flow amount of a tx: All wallet_specifc outputs minus wallet-specific inputs
+        """
+        all_my_inputs_sum = sum(
+            [input["float_amount"] for input in inputs if input["is_mine"]]
+        )
+        all_my_ouputs_sum = sum(
+            [output["float_amount"] for output in outputs if output["is_mine"]]
+        )
+        # This includes fees!
+        return all_my_ouputs_sum - all_my_inputs_sum
+
+    @classmethod
+    def calculate_utxo_amount(cls, inputs, outputs):
+        """In the UTXO-view, you want to know how much the UTXOs from that TX are worth.
+        So you return the sum of the wallet-specific outputs
+        """
+        return sum([output["float_amount"] for output in outputs if output["is_mine"]])
 
     def load(self, arr):
         """

@@ -164,7 +164,7 @@
             this.hideSensitiveInfo = this.getAttribute('data-hide-sensitive-info') == 'true';
             // Listening for changes of coin selection checkboxes
             this.coinSelectCheckbox.value=`${this.tx['txid']},${this.tx['vout']}` // Necessary?
-            this.coinSelectCheckbox.amount = `${this.tx['amount']}` // a bit hackish, doing that to have access via this in next line - necessary?
+            this.coinSelectCheckbox.amount = `${this.tx['flow_amount']}` // a bit hackish, doing that to have access via this in next line - necessary?
             this.coinSelectCheckbox.addEventListener("change", (e) => {
                 let event = new CustomEvent(('coinSelectRowSelected'), { detail: {
                         txid: this.tx.txid, // Detail currently not used, remove?
@@ -233,10 +233,14 @@
             }
             
             // Set amount
-            if (Array.isArray(this.tx.amount)) {
-                this.amount = parseFloat(this.tx.amount.reduce((a, b) => a + b, 0).toFixed(8))
+            if (this.mode == 'utxo') {
+                this.amount = this.tx.amount.toFixed(8)
             } else {
-                this.amount = parseFloat(this.tx.amount.toFixed(8));
+                if (this.tx.flow_amount) {
+                    this.amount = this.tx.flow_amount.toFixed(8)
+                } else {
+                    this.amount = this.tx.amount.toFixed(8)
+                }
             }
 
             if (!this.price || !this.symbol || this.amount == 1e-8 || this.hideSensitiveInfo) {

@@ -386,7 +386,7 @@ def set_label(wallet_alias):
 @login_required
 @app.csrf.exempt
 def txlist(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     idx = int(request.form.get("idx", 0))
     limit = int(request.form.get("limit", 100))
     search = request.form.get("search", None)
@@ -870,7 +870,7 @@ def txlist_to_csv(wallet: Wallet, _txlist, includePricesHistory=False):
             # No idea how this could be?!
             for i in range(0, len(tx["address"])):
                 tx_copy["address"] = tx["address"][i]
-                tx_copy["amount"] = tx["amount"][i]
+                tx_copy["amount"] = tx["flow_amount"][i]
                 txlist.append(tx_copy.copy())
         else:
             txlist.append(tx.copy())
@@ -898,7 +898,7 @@ def txlist_to_csv(wallet: Wallet, _txlist, includePricesHistory=False):
         lazy_gettext("Timestamp"),
     )
     if not wallet:
-        row = (_("Wallet"),) + row
+        row = ("Wallet",) + row
     w.writerow(row)
     yield data.getvalue()
     data.seek(0)
@@ -924,7 +924,7 @@ def txlist_to_csv(wallet: Wallet, _txlist, includePricesHistory=False):
             else:
                 tx["blockheight"] = "Unconfirmed"
         if app.specter.unit == "sat":
-            value = float(tx["amount"])
+            value = float(tx["flow_amount"])
             tx["amount"] = round(value * 1e8)
         amount_price = "not supported"
         rate = "not supported"
@@ -939,7 +939,7 @@ def txlist_to_csv(wallet: Wallet, _txlist, includePricesHistory=False):
                 rate = float(rate)
                 if app.specter.unit == "sat":
                     rate = rate / 1e8
-                amount_price = float(tx["amount"]) * rate
+                amount_price = float(tx["flow_amount"]) * rate
                 amount_price = round(amount_price * 100) / 100
                 if app.specter.unit == "sat":
                     rate = round(1 / rate)
