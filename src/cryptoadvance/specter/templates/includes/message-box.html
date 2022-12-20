@@ -7,7 +7,7 @@
 <template id="messagebox">
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
 
-  <div>
+  <div id="main">
     <a>&#x2715;</a>
     <slot> Error: Something bad happened! </slot>
   </div>
@@ -21,7 +21,7 @@
       var shadow = this.attachShadow({ mode: "open" });
       var style = document.getElementById("messagebox").content;
       var clone = style.cloneNode(true);
-      this.main = clone.querySelector(".main");
+      this.main = clone.querySelector("#main");
       clone.querySelector("a").addEventListener("click", (e) => {
         this.close();
       });

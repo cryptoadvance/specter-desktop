@@ -37,7 +37,6 @@
 				<div class="floating-wrapper flex items-center mt-3">
 					<input type="checkbox" id="autodetect" name="autodetect" {% if node.autodetect %}checked{% endif %}>
 					<label for="autodetect">Auto-detect Bitcoin Core</label>
-					<span class="slider"></span>
 				</div>
 			</section>
 
@@ -195,6 +194,7 @@
 <script>
 	document.addEventListener("DOMContentLoaded", function(){
 		var autodetect = document.getElementById("autodetect");
+
 		if (autodetect != null) {
 			function toggleAutoDetectMode() {
 				var rpcSettings = document.getElementById("rpc_settings");
