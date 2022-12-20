@@ -77,7 +77,7 @@
             if (jsonResponse !== null && jsonResponse.success) {
                 console.log(jsonResponse);
                 let rawtx = jsonResponse.rawtx;
-                let walletName = jsonResponse.walletName;
+                let walletName = jsonResponse.wallet_name;
                 let tx = jsonResponse.tx;
                 let walletLink = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
                 let rawtxHTML = "";
@@ -274,28 +274,12 @@
         }
         
         async fetchAddressIsMine(address) {
-            let url = `{{ url_for('wallets_endpoint_api.addressinfo', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
-            var formData = new FormData();
-            formData.append('address', address)
-            formData.append('csrf_token', '{{ csrf_token() }}');
+            let url = `{{ url_for('wallets_endpoint_api.is_address_mine', wallet_alias='WALLET_ALIAS', address='ADDRESS') }}`.replace("WALLET_ALIAS", this.wallet).replace("ADDRESS", address);
             try {
-                const response = await fetch(
-                    url,
-                    {
-                        method: 'POST',
-                        body: formData
-                    }
-                );
-                if(response.status != 200){
-                    showError(await response.text());
-                    return false;
-                }
-                const jsonResponse = await response.json();
-                if (jsonResponse.success) {
-                    return jsonResponse.isMine;
-                }
+                const response = await send_request(url, 'GET', '{{ csrf_token() }}'); 
+                return response['is_mine'];
             }  catch(e) {
-                showError(`{{ _("Failed to load address data...") }}`);
+                showError(`{{ _("Failed to check is_address_mine...") }}`);
                 showError(e);
             }
             return false;

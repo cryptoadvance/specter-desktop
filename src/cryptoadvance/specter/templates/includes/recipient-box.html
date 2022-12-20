@@ -470,8 +470,8 @@
 			let url="{{ url_for('wallets_endpoint_api.is_address_mine', wallet_alias=wallet.alias, address='this_address') }}"
 			url = url.replace('this_address', address)			
 					
-			let is_address_mine = send_request(url, 'GET', "{{ csrf_token() }}");
-			return is_address_mine;
+			let response = await send_request(url, 'GET', "{{ csrf_token() }}");
+			return response['is_mine'];
 		}
 
 		markRecipient(is_address_mine){
