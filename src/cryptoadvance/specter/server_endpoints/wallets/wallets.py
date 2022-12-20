@@ -785,94 +785,25 @@ def addresses(wallet_alias):
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/settings/", methods=["GET", "POST"])
+# In case of exceptions in the "subactions" POST method handlers, the error-handler
+# will redirect to the same endpoint but GET-method. Specifying them here:
+@wallets_endpoint.route(
+    "/wallet/<wallet_alias>/settings/importaddresslabels", methods=["GET"]
+)
+@wallets_endpoint.route(
+    "/wallet/<wallet_alias>/settings/keypoolrefill", methods=["GET"]
+)
+@wallets_endpoint.route("/wallet/<wallet_alias>/settings/rescan", methods=["GET"])
+@wallets_endpoint.route("/wallet/<wallet_alias>/settings/deletewallet", methods=["GET"])
+@wallets_endpoint.route("/wallet/<wallet_alias>/settings/clearcache", methods=["GET"])
 @login_required
 def settings(wallet_alias):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    error = None
     if request.method == "POST":
         action = request.form["action"]
-        if action == "rescanblockchain":
-            startblock = int(request.form["startblock"])
-            try:
-                delete_file(wallet._transactions.path)
-                wallet.fetch_transactions()
-
-                # This rpc call does not seem to return a result; use no_wait to ignore timeout errors
-                wallet.rpc.rescanblockchain(startblock, no_wait=True)
-            except Exception as e:
-                handle_exception(e)
-                error = "%r" % e
-            wallet.getdata()
-        elif action == "abortrescan":
-            res = wallet.rpc.abortrescan()
-            if not res:
-                error = _("Failed to abort rescan. Maybe already complete?")
-            wallet.getdata()
-        elif action == "rescanutxo":
-            explorer = None
-            if "use_explorer" in request.form:
-                if request.form["explorer"] == "CUSTOM":
-                    explorer = request.form["custom_explorer"]
-                else:
-                    explorer = app.config["EXPLORERS_LIST"][request.form["explorer"]][
-                        "url"
-                    ]
-
-            wallet.rescanutxo(
-                explorer,
-                app.specter.requests_session(explorer and explorer.endswith(".onion")),
-                app.specter.only_tor,
-            )
-            app.specter.info["utxorescan"] = 1
-            app.specter.utxorescanwallet = wallet.alias
-            flash(
-                "Rescan started. Check the status bar on the left for progress and/or the logs for potential issues."
-            )
-        elif action == "abortrescanutxo":
-            app.specter.node.abortrescanutxo()
-            app.specter.info["utxorescan"] = None
-            app.specter.utxorescanwallet = None
-            flash(_("Successfully aborted the UTXO rescan"))
-        elif action == "import_address_labels":
-            address_labels = request.form["address_labels_data"]
-            imported_addresses_len = wallet.import_address_labels(address_labels)
-            if imported_addresses_len > 1:
-                flash(f"Successfully imported {imported_addresses_len} address labels.")
-            elif imported_addresses_len == 1:
-                flash(f"Successfully imported {imported_addresses_len} address label.")
-            else:
-                flash("No address labels were imported.")
-        elif action == "keypoolrefill":
-            delta = int(request.form["keypooladd"])
-            wallet.keypoolrefill(wallet.keypool, wallet.keypool + delta)
-            wallet.keypoolrefill(
-                wallet.change_keypool, wallet.change_keypool + delta, change=True
-            )
-            wallet.getdata()
-        elif action == "deletewallet":
-            deleted = app.specter.wallet_manager.delete_wallet(wallet, app.specter.node)
-            # deleted is a tuple: (specter_wallet_deleted, core_wallet_file_deleted)
-            if deleted == (True, True):
-                flash(
-                    _("Wallet in Specter and wallet file on node deleted successfully.")
-                )
-            elif deleted == (True, False):
-                flash(
-                    _(
-                        "Wallet in Specter deleted successfully but wallet file on node could not be removed automatically."
-                    )
-                )
-            elif deleted == (False, True):
-                flash(
-                    _(
-                        "Deletion of wallet in Specter failed, but wallet on node was removed."
-                    ),
-                    "error",
-                )
-            else:
-                flash(_("Deletion of wallet failed."), "error")
-            return redirect(url_for("index"))
-        elif action == "rename":
+        # Would like to refactor this to another endpoint as well
+        # but that's not so easy as the ui part is also used elsewhere
+        if action == "rename":
             wallet_name = request.form["newtitle"]
             if not wallet_name:
                 flash(_("Wallet name cannot be empty"), "error")
@@ -882,7 +813,144 @@ def settings(wallet_alias):
                 flash(_("Wallet already exists"), "error")
             else:
                 app.specter.wallet_manager.rename_wallet(wallet, wallet_name)
+                flash("Wallet successfully renamed!")
+        else:
+            flash(f"Unknown action: {action}")
+    return render_template(
+        "wallet/settings/wallet_settings.jinja",
+        purposes=purposes,
+        wallet_alias=wallet_alias,
+        wallet=wallet,
+        specter=app.specter,
+        rand=rand,
+        scroll_to_rescan_blockchain=request.args.get("rescan_blockchain"),
+    )
 
+
+@wallets_endpoint.route(
+    "/wallet/<wallet_alias>/settings/importaddresslabels", methods=["POST"]
+)
+@login_required
+def settings_importaddresslabels(wallet_alias):
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    action = request.form["action"]
+    address_labels = request.form["address_labels_data"]
+    imported_addresses_len = wallet.import_address_labels(address_labels)
+    if imported_addresses_len > 1:
+        flash(f"Successfully imported {imported_addresses_len} address labels.")
+    elif imported_addresses_len == 1:
+        flash(f"Successfully imported {imported_addresses_len} address label.")
+    else:
+        flash("No address labels were imported.")
+    return redirect(url_for("wallets_endpoint.settings"))
+
+
+@wallets_endpoint.route(
+    "/wallet/<wallet_alias>/settings/keypoolrefill", methods=["POST"]
+)
+@login_required
+def settings_keypoolrefill(wallet_alias):
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    delta = int(request.form["keypooladd"])
+    wallet.keypoolrefill(wallet.keypool, wallet.keypool + delta)
+    wallet.keypoolrefill(
+        wallet.change_keypool, wallet.change_keypool + delta, change=True
+    )
+    wallet.getdata()
+    return render_template(
+        "wallet/settings/wallet_settings.jinja",
+        purposes=purposes,
+        wallet_alias=wallet_alias,
+        wallet=wallet,
+        specter=app.specter,
+        rand=rand,
+        scroll_to_rescan_blockchain=request.args.get("rescan_blockchain"),
+    )
+
+
+@wallets_endpoint.route("/wallet/<wallet_alias>/settings/rescan", methods=["POST"])
+@login_required
+def settings_rescan(wallet_alias):
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    error = None
+    action = request.form["action"]
+    if action == "rescanblockchain":
+        startblock = int(request.form["startblock"])
+        try:
+            delete_file(wallet._transactions.path)
+            wallet.fetch_transactions()
+
+            # This rpc call does not seem to return a result; use no_wait to ignore timeout errors
+            wallet.rpc.rescanblockchain(startblock, no_wait=True)
+        except Exception as e:
+            handle_exception(e)
+            error = "%r" % e
+        wallet.getdata()
+    elif action == "abortrescan":
+        res = wallet.rpc.abortrescan()
+        if not res:
+            error = _("Failed to abort rescan. Maybe already complete?")
+        wallet.getdata()
+    elif action == "rescanutxo":
+        explorer = None
+        if "use_explorer" in request.form:
+            if request.form["explorer"] == "CUSTOM":
+                explorer = request.form["custom_explorer"]
+            else:
+                explorer = app.config["EXPLORERS_LIST"][request.form["explorer"]]["url"]
+        wallet.rescanutxo(
+            explorer,
+            app.specter.requests_session(explorer and explorer.endswith(".onion")),
+            app.specter.only_tor,
+        )
+        app.specter.info["utxorescan"] = 1
+        app.specter.utxorescanwallet = wallet.alias
+        flash(
+            "Rescan started. Check the status bar on the left for progress and/or the logs for potential issues."
+        )
+    elif action == "abortrescanutxo":
+        app.specter.node.abortrescanutxo()
+        app.specter.info["utxorescan"] = None
+        app.specter.utxorescanwallet = None
+        flash(_("Successfully aborted the UTXO rescan"))
+    scroll_to_rescan_blockchain = request.args.get("rescan_blockchain")
+    return render_template(
+        "wallet/settings/wallet_settings.jinja",
+        purposes=purposes,
+        wallet_alias=wallet_alias,
+        wallet=wallet,
+        specter=app.specter,
+        rand=rand,
+        error=error,
+        scroll_to_rescan_blockchain=scroll_to_rescan_blockchain,
+    )
+
+
+@wallets_endpoint.route(
+    "/wallet/<wallet_alias>/settings/deletewallet", methods=["POST"]
+)
+@login_required
+def settings_deletewallet(wallet_alias):
+    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    error = None
+    deleted = app.specter.wallet_manager.delete_wallet(wallet, app.specter.node)
+    # deleted is a tuple: (specter_wallet_deleted, core_wallet_file_deleted)
+    if deleted == (True, True):
+        flash(_("Wallet in Specter and wallet file on node deleted successfully."))
+    elif deleted == (True, False):
+        flash(
+            _(
+                "Wallet in Specter deleted successfully but wallet file on node could not be removed automatically."
+            )
+        )
+    elif deleted == (False, True):
+        flash(
+            _("Deletion of wallet in Specter failed, but wallet on node was removed."),
+            "error",
+        )
+    else:
+        flash(_("Deletion of wallet failed."), "error")
+        return redirect(url_for("index"))
     scroll_to_rescan_blockchain = request.args.get("rescan_blockchain")
     return render_template(
         "wallet/settings/wallet_settings.jinja",
@@ -903,6 +971,7 @@ def settings_clearcache(wallet_alias):
     error = None
     wallet.clear_cache()
     flash("Cache cleared successfully!")
+    scroll_to_rescan_blockchain = request.args.get("rescan_blockchain")
     return render_template(
         "wallet/settings/wallet_settings.jinja",
         purposes=purposes,
@@ -911,5 +980,5 @@ def settings_clearcache(wallet_alias):
         specter=app.specter,
         rand=rand,
         error=error,
-        scroll_to_rescan_blockchain=None,
+        scroll_to_rescan_blockchain=scroll_to_rescan_blockchain,
     )
