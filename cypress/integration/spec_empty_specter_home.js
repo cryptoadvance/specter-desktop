@@ -11,7 +11,7 @@ describe('Completely empty specter-home', () => {
     cy.get('#node-switch-icon').click()
     cy.get('[href="/nodes/node/default/"]').first().click()
     cy.contains('Bitcoin Core')
-    cy.get('[href="/settings/"] > img').click()
+    cy.get('[href="/settings/"]').click()
     cy.contains('Backup and Restore')
     cy.get('[href="/settings/auth"]').click()
     cy.contains('Authentication:')
