@@ -76,7 +76,7 @@ describe('Configuring nodes', () => {
         cy.viewport(1200,660)
         cy.visit('/')
         cy.get('#node-switch-icon').click()
-        cy.get('#default-select-node-form > .item > div').click()
+        cy.get('#default-select-node-form #node_item').click()
     })   
   
   })
