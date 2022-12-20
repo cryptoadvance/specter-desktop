@@ -196,7 +196,7 @@ async function send_request(url, method_str, csrf_token, formData) {
 			return {"error": `Error while calling ${url} with ${method_str} ${formData}` }
 		}
 		let jsonResponse = await response.json();
-		console.log('The response from the fetch call:')
+		console.log(`${method_str} call response:`)
 		console.log(jsonResponse)
 		if (typeof(jsonResponse) === 'boolean') {
 			return {}
