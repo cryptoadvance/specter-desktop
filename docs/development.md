@@ -446,7 +446,7 @@ If you see this to need some improvements, please make it in small steps and exp
 As a quite young project, we don't have many dependencies yet and as a quite secure-aware use-case, we don't even want to have too many dependencies. That's sometimes the reason that we decide to roll our own rather then taking in new dependencies. This is especially true for javascript. We prefer plain javascript over any kind of frameworks.
 
 If you update `requirements.in` you will need to run the code snippet below to generate a new `requirements.txt`. 
-In order to produce consistent values in `requirements.txt`, delete any pre-existing `requirements.txt` file before doing `pip-compile`.
+You need `pip-tools`for that. If you get errors, upgrade `pip` and `pip-tools` to their latest versions.
 ```sh
 $ pip-compile --generate-hashes requirements.in
 ```
