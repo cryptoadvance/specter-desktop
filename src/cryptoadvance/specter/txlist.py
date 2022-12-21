@@ -1,7 +1,7 @@
 """
 Manages the list of transactions for the wallet
 """
-from typing import Union
+from typing import List, Union
 import os
 from .specter_error import SpecterError
 from .persistence import delete_file, write_csv, read_csv
@@ -13,7 +13,13 @@ import json
 import math
 import logging
 from .util.tx import decoderawtransaction
-from .util.psbt import SpecterTx, AbstractTxContext, SpecterPSBT
+from .util.psbt import (
+    SpecterInputScope,
+    SpecterOutputScope,
+    SpecterTx,
+    AbstractTxContext,
+    SpecterPSBT,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -69,8 +75,6 @@ class TxItem(dict, AbstractTxListContext):
         "category",
         "address",
         "amount",
-        "flow_amount",
-        "utxo_amount",
         "ismine",
     ]
     type_converter = [
@@ -83,8 +87,6 @@ class TxItem(dict, AbstractTxListContext):
         parse_arr,
         int,
         str,
-        parse_arr,
-        parse_arr,
         parse_arr,
         parse_arr,
         bool,
@@ -104,7 +106,7 @@ class TxItem(dict, AbstractTxListContext):
         super().__init__(**kwargs)
         self._tx = None
         # if we have hex data
-        if "hex" in kwargs:
+        if "hex" in kwargs and kwargs["hex"] is not None:
             self._tx = self.TransactionCls.from_string(kwargs["hex"])
         # conflicts were renamed to walletconflicts
         if "walletconflicts" in kwargs:
@@ -214,8 +216,6 @@ class TxItem(dict, AbstractTxListContext):
             "category": self["category"],
             "address": self["address"],
             "amount": self["amount"],
-            "flow_amount": self["flow_amount"],
-            "utxo_amount": self["utxo_amount"],
             "ismine": self["ismine"],
         }
 
@@ -264,36 +264,61 @@ class WalletAwareTxItem(TxItem):
         return self["category"]
 
     @property
-    def utxo_amount(self):
+    def utxo_amount(self) -> float:
         """In the UTXO-view, you want to know how much the UTXOs from that TX are worth.
         So you return the sum of the wallet-specific outputs
         """
-        if self.get("float_amount"):
-            return self["float_amount"]
+        if self.get("utxo_amount"):
+            return self["utxo_amount"]
         outputs = [out.to_dict() for out in self.psbt.outputs]
-        self["float_amount"] = sum(
+        self["utxo_amount"] = sum(
             [output["float_amount"] for output in outputs if output["is_mine"]]
         )
-        return self["float_amount"]
+        return self["utxo_amount"]
 
     @property
-    def flow_amount(self):
+    def flow_amount(self) -> float:
         """In the history-view, you want to know how many sats your wallet gained or lost.
         that's the flow amount of a tx: All wallet_specifc outputs minus wallet-specific inputs
         """
-        if self.get("float_amount"):
-            return self["float_amount"]
-        inputs = [inp.to_dict() for inp in self.psbt.inputs]
-        outputs = [out.to_dict() for out in self.psbt.outputs]
+        if self.get("flow_amount"):
+            return self["flow_amount"]
+        inputs: List[SpecterInputScope] = self.psbt.inputs
+        outputs: List[SpecterOutputScope] = self.psbt.outputs
         all_my_inputs_sum = sum(
-            [input["float_amount"] for input in inputs if input["is_mine"]]
+            [input.float_amount for input in inputs if input.is_mine]
         )
         all_my_ouputs_sum = sum(
-            [output["float_amount"] for output in outputs if output["is_mine"]]
+            [output.float_amount for output in outputs if output.is_mine]
         )
         # This includes fees!
-        self["float_amount"] = all_my_ouputs_sum - all_my_inputs_sum
-        return self["float_amount"]
+        self["flow_amount"] = all_my_ouputs_sum - all_my_inputs_sum
+        return self["flow_amount"]
+
+    @property
+    def address(self):
+        """Does it make sense to show an address for a transaction? Maybe yes in certain
+        situations. For those, you can use this one:
+        """
+        if self.get("address"):
+            return self["address"]
+        all_outs = [out.to_dict() for out in self.psbt.outputs]
+        my_outs = [out for out in all_outs if out["is_mine"]]
+        my_receiving = [out for out in my_outs if not out["change"]]
+        external = [out for out in all_outs if out not in my_outs]
+        # decide what addresses to show
+        if self.category in ["generate", "receive", "selftransfer"]:
+            # either receiving only (if not empty), or only mine (if not empty), or all
+            outs = my_receiving or my_outs or all_outs
+        elif self.category in ["send"]:
+            # keep only external addresses if they are present
+            outs = external or all_outs
+        else:
+            # not sure what's the best here
+            outs = my_receiving or my_outs or external or all_outs
+        addresses = [out.get("address", "Unknown") for out in outs]
+        self["address"] = addresses[0]
+        return self["address"]
 
     def __dict__(self):
         super_dict = dict(self)
@@ -419,6 +444,7 @@ class TxList(dict, AbstractTxListContext):
             "conflicts", - list of txids spending the same inputs (rbf)
             "bip125-replaceable", - str ("yes" or "no") - is rbf enabled for this tx
         }
+        (format of listtransactions)
         """
         # here we store all addresses in transactions
         # to set them used later
@@ -454,49 +480,7 @@ class TxList(dict, AbstractTxListContext):
                     except:
                         pass  # maybe not an address, but a raw script?
         self._addresses.set_used(addresses)
-        # detect category, amounts and addresses
-        for tx in [self[txid] for txid in self if txid in txs]:
-            self._fill_missing(tx)
         self._save()
-
-    def _update_destinations(self, tx, outs):
-        addresses = [out.get("address", "Unknown") for out in outs]
-        amounts = [out["float_amount"] for out in outs]
-        if len(addresses) == 1:
-            addresses = addresses[0]
-            amounts = amounts[0]
-        tx["address"] = addresses
-
-    def _fill_missing(self, tx):
-        """This seem to calculate the category of the tx which is one of:
-        mixed (default), generate, selftransfer, receive or send
-
-        Also the tx gets a key with a boolean to figure out whether its "mine"
-        """
-        self._update_destinations(tx, outs)
-
-    # Those two methods probably better fit to member-methods of transaction classes but i simply
-    # don't know which one is best suited
-    @classmethod
-    def calculate_flow_amount(cls, inputs, outputs):
-        """In the history-view, you want to know how many sats your wallet gained or lost.
-        that's the flow amount of a tx: All wallet_specifc outputs minus wallet-specific inputs
-        """
-        all_my_inputs_sum = sum(
-            [input["float_amount"] for input in inputs if input["is_mine"]]
-        )
-        all_my_ouputs_sum = sum(
-            [output["float_amount"] for output in outputs if output["is_mine"]]
-        )
-        # This includes fees!
-        return all_my_ouputs_sum - all_my_inputs_sum
-
-    @classmethod
-    def calculate_utxo_amount(cls, inputs, outputs):
-        """In the UTXO-view, you want to know how much the UTXOs from that TX are worth.
-        So you return the sum of the wallet-specific outputs
-        """
-        return sum([output["float_amount"] for output in outputs if output["is_mine"]])
 
     def load(self, arr):
         """
