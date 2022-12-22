@@ -197,48 +197,44 @@ class LiquidRPC(BitcoinRPC):
 
         # replace change addresses from the transactions if we can
         if change_addresses and psbt:
-            try:
-                tx = PSET.from_string(psbt)
-                cur = 0
-                for out in tx.outputs:
-                    # fee
-                    if out.script_pubkey.data == b"":
-                        continue
-                    # not change for sure
-                    if not out.bip32_derivations:
-                        continue
-                    # do change replacement
-                    if out.script_pubkey not in destinations:
-                        sc, bkey = addr_decode(change_addresses[cur])
-                        cur += 1
-                        out.script_pubkey = sc
-                        out.blinding_pubkey = bkey.sec() if bkey else None
-                        out.bip32_derivations = {}
-                        out.redeem_script = None
-                        out.witness_script = None
-                # fill derivation info
-                patched = (
-                    super().__getattr__("walletprocesspsbt")(str(tx), False).get("psbt")
-                )
-                patchedtx = PSET.from_string(patched)
-                assert len(tx.outputs) == len(patchedtx.outputs)
-                for out1, out2 in zip(tx.outputs, patchedtx.outputs):
-                    # fee
-                    if out1.script_pubkey.data == b"":
-                        continue
-                    # not change for sure
-                    if not out2.bip32_derivations:
-                        continue
-                    # do change replacement
-                    if out1.script_pubkey not in destinations:
-                        out1.bip32_derivations = out2.bip32_derivations
-                        out1.redeem_script = out2.redeem_script
-                        out1.witness_script = out2.witness_script
+            tx = PSET.from_string(psbt)
+            cur = 0
+            for out in tx.outputs:
+                # fee
+                if out.script_pubkey.data == b"":
+                    continue
+                # not change for sure
+                if not out.bip32_derivations:
+                    continue
+                # do change replacement
+                if out.script_pubkey not in destinations:
+                    sc, bkey = addr_decode(change_addresses[cur])
+                    cur += 1
+                    out.script_pubkey = sc
+                    out.blinding_pubkey = bkey.sec() if bkey else None
+                    out.bip32_derivations = {}
+                    out.redeem_script = None
+                    out.witness_script = None
+            # fill derivation info
+            patched = (
+                super().__getattr__("walletprocesspsbt")(str(tx), False).get("psbt")
+            )
+            patchedtx = PSET.from_string(patched)
+            assert len(tx.outputs) == len(patchedtx.outputs)
+            for out1, out2 in zip(tx.outputs, patchedtx.outputs):
+                # fee
+                if out1.script_pubkey.data == b"":
+                    continue
+                # not change for sure
+                if not out2.bip32_derivations:
+                    continue
+                # do change replacement
+                if out1.script_pubkey not in destinations:
+                    out1.bip32_derivations = out2.bip32_derivations
+                    out1.redeem_script = out2.redeem_script
+                    out1.witness_script = out2.witness_script
 
-                res["psbt"] = str(tx)
-            except Exception as e:
-                logger.error(e)
-                raise e
+            res["psbt"] = str(tx)
 
         psbt = res.get("psbt", None)
         # check if we should blind the transaction
@@ -382,7 +378,7 @@ class LiquidRPC(BitcoinRPC):
             if "hex" in blinded:
                 obj["hex"] = blinded["hex"]
         except Exception as e:
-            logger.error(e)
+            logger.exception(e)
             obj = blinded
         try:
             # unblind the rest of outputs
@@ -437,7 +433,7 @@ class LiquidRPC(BitcoinRPC):
                     if len(extra.rstrip(b"\x00")) > 0:
                         datas.append(extra)
                 except Exception as e:
-                    pass
+                    logger.exception(e)
 
             # should be changed with seed from tx
             tx = PSET(b)
@@ -500,7 +496,7 @@ class LiquidRPC(BitcoinRPC):
             if fee != 0:
                 obj["fee"] = round(-fee * 1e-8, 8)
         except Exception as e:
-            logger.warn(f"Failed at unblinding transaction: {e}")
+            logger.exception(f"Failed at unblinding transaction: {e}", e)
         return obj
 
     def __repr__(self) -> str:

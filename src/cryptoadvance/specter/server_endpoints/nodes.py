@@ -327,6 +327,7 @@ def internal_node_settings(node_alias):
                     )
                 )
             except Exception as e:
+                logger.exception(e)
                 flash(_("Failed to remove Bitcoin Core, error: {}").format(e), "error")
         elif action == "upgrade_bitcoind":
             if node.version != app.config["INTERNAL_BITCOIND_VERSION"]:
@@ -335,6 +336,7 @@ def internal_node_settings(node_alias):
                         app.specter, app.config["INTERNAL_BITCOIND_VERSION"]
                     )
                 except Exception as e:
+                    logger.exception(e)
                     flash(
                         _("Failed to upgrade Bitcoin Core version, error: {}").format(
                             e
@@ -370,5 +372,7 @@ def internal_node_logs(node_alias):
 @login_required
 def switch_node():
     node_alias = request.form["node_alias"]
+    node_name = app.specter.node_manager.get_name_from_alias(node_alias)
     app.specter.update_active_node(node_alias)
-    return redirect(url_for("nodes_endpoint.node_settings", node_alias=node_alias))
+    flash(_(f"Switched to use {node_name} as node."))
+    return redirect(url_for("index"))

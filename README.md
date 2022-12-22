@@ -72,7 +72,7 @@ The easiest way to run Specter Desktop is by installing the Specter Desktop app,
 With this method, all you need to do is just download the right file for your operating system and install it like a normal desktop app (Debian buster is only [partially supported](https://github.com/cryptoadvance/specter-desktop/issues/769))
 
 ### Installing Specter from Pip
-* Specter requires Python version 3.7 to 3.9.
+* Specter requires Python version 3.9 to 3.10.
 * Bitcoin Core node should be at least v0.19+, better if it's the latest one from [bitcoincore.org](https://bitcoincore.org/en/download/).
 * HWI support requires `libusb` 
   * Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev python3-dev`

@@ -52,6 +52,7 @@ def run_shell(cmd):
         stdout, stderr = proc.communicate()
         return {"code": proc.returncode, "out": stdout, "err": stderr}
     except Exception as e:
+        logger.exception(e)
         return {"code": 0xF00DBABE, "out": b"", "err": e}
 
 
