@@ -171,14 +171,16 @@ def test_WalletAwareTxItem(bitcoin_regtest, parent_mock, empty_data_folder):
     # so here is the matching descriptor:
     i = 0
     for desc in wrpc.listdescriptors()["descriptors"]:
-        desc = Descriptor.from_string(desc["desc"])
         print(f"{i}: {desc}")
         i += 1
+        if desc["desc"].startswith("wpkh(["):
+            descriptor = desc
     print()
     descriptor = wrpc.listdescriptors()["descriptors"][2]
     print(descriptor)
     assert descriptor["desc"].startswith("wpkh([")  # Single Segit
     descriptor = Descriptor.from_string(descriptor["desc"])
+    print("Our descriptor:")
     print(descriptor)
     type(parent_mock).descriptor = PropertyMock(return_value=descriptor)
 
