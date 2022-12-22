@@ -132,6 +132,15 @@ class SpecterScope(AbstractTxContext):
     def float_amount(self) -> float:
         return round(self.sat_amount * 1e-8, 8)
 
+    def __repr__(self) -> str:
+        if self.is_receiving:
+            addr_type = "r"
+        elif self.is_change:
+            addr_type = "c"
+        else:
+            addr_type = "u"  # unknown
+        return f"{self.__class__.__name__}(float_amount={self.float_amount} mine={self.is_mine} adr={self.address} r/c={addr_type})"
+
     def to_dict(self) -> dict:
         addr = self.address
         try:
@@ -184,6 +193,11 @@ class SpecterInputScope(SpecterScope):
 
     @property
     def sat_amount(self) -> int:
+        if self.scope.utxo is None:
+            # If utxo is not there, then the wallet-api from Core was not able to provide
+            # the underlying utxo (as it's not part of the wallet). Therefore not mine
+            # Therefore float_amount is 0
+            return 0
         return self.scope.utxo.value
 
     @property
@@ -243,7 +257,7 @@ class SpecterPSBT(AbstractTxContext):
         network: dict,
         raw: Union[None, str] = None,
         devices: List[Tuple[Key, str]] = [],  # list of tuples: (Key, device_alias)
-        **kwargs
+        **kwargs,
     ):
         """
         kwargs can contain:

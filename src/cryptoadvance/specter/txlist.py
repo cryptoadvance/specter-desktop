@@ -1,25 +1,28 @@
 """
 Manages the list of transactions for the wallet
 """
-from typing import List, Union
-import os
-from .specter_error import SpecterError
-from .persistence import delete_file, write_csv, read_csv
-from .helpers import get_address_from_dict
-from embit.transaction import Transaction
-from embit.liquid.networks import get_network
-from embit import bip32
 import json
-import math
 import logging
-from .util.tx import decoderawtransaction
+import math
+import os
+from typing import List, Union
+
+from embit import bip32
+from embit.liquid.networks import get_network
+from embit.transaction import Transaction
+
+from .helpers import get_address_from_dict
+from .persistence import delete_file, read_csv, write_csv
+from .specter_error import SpecterError, SpecterInternalException
+from embit.descriptor import Descriptor
 from .util.psbt import (
+    AbstractTxContext,
     SpecterInputScope,
     SpecterOutputScope,
-    SpecterTx,
-    AbstractTxContext,
     SpecterPSBT,
+    SpecterTx,
 )
+from .util.tx import decoderawtransaction
 
 logger = logging.getLogger(__name__)
 
@@ -56,10 +59,14 @@ class AbstractTxListContext(AbstractTxContext):
 
 
 class TxItem(dict, AbstractTxListContext):
-    """A TxItem tries to be a clever dict, holding all sorts of values which belongs to a Tx and might be valuable for client-code
+    """A TxItem tries to be a clever dict which can easily be cached, holding all sorts of values which belongs to a Tx
+    and might be valuable for client-code.
     The hex-represeantation of a Tx is cached in the "rawdir". If the the txid is existing as file in the rawdir, the hex
     representation will be loaded from there.
-
+    The keys for the values which are returned if you call dict(obj) need to be specified in:
+    * columns
+    * type_converter (basically the type of the key)
+    * __dict__ method
     """
 
     TransactionCls = Transaction
@@ -194,6 +201,7 @@ class TxItem(dict, AbstractTxListContext):
             return self["txid"]
         if self._tx:
             return self._tx.txid().hex()
+        return "undefined"
 
     @property
     def hex(self):
@@ -201,10 +209,12 @@ class TxItem(dict, AbstractTxListContext):
 
     def __str__(self):
         """Good implementation ? I'm not sure"""
-        return self.get("txid") or "txid undefined"
+        return self.txid
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({str(self)})"
+        return (
+            f"{self.__class__.__name__}({str(self)}{ ' with hex' if self._tx else ''})"
+        )
 
     def __dict__(self):
         return {
@@ -225,6 +235,13 @@ class TxItem(dict, AbstractTxListContext):
 
 class WalletAwareTxItem(TxItem):
     PSBTCls = SpecterPSBT
+
+    def __init__(self, parent, addresses, rawdir, **kwargs):
+        super().__init__(parent, addresses, rawdir, **kwargs)
+        if type(self.parent.descriptor) != Descriptor:
+            raise SpecterInternalException(
+                f"Cannot instantiate WalletAwareTxItem without proper Descriptor, got: {type(self.parent.descriptor)}"
+            )
 
     @property
     def psbt(self):
@@ -249,11 +266,11 @@ class WalletAwareTxItem(TxItem):
         category = "mixed"
 
         # calculate everything once
-        inputs = [inp.to_dict() for inp in self.psbt.inputs]
-        outputs = [out.to_dict() for out in self.psbt.outputs]
-        all_inputs_mine = all([inp["is_mine"] for inp in inputs])
-        all_outputs_mine = all([out["is_mine"] for out in outputs])
-        all_inputs_external = not any([inp["is_mine"] for inp in inputs])
+        inputs = self.psbt.inputs
+        outputs = self.psbt.outputs
+        all_inputs_mine = all([inp.is_mine for inp in inputs])
+        all_outputs_mine = all([out.is_mine for out in outputs])
+        all_inputs_external = not any([inp.is_mine for inp in inputs])
 
         if b"\x00" * 32 in [vin.txid for vin in self.tx.vin]:
             category = "generate"

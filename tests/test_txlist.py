@@ -16,9 +16,9 @@ from cryptoadvance.specter.process_controller.bitcoind_controller import (
 from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.txlist import TxItem, TxList, WalletAwareTxItem
 from embit.descriptor.arguments import Key
-from embit.descriptor.descriptor import Descriptor
+from embit.descriptor import Descriptor
 from embit.transaction import Transaction, TransactionInput, TransactionOutput
-from embit.psbt import InputScope
+from embit.psbt import InputScope, OutputScope
 from mock import MagicMock, PropertyMock
 
 from cryptoadvance.specter.util.psbt import (
@@ -123,8 +123,14 @@ def test_TxItem(empty_data_folder):
         mytxitem.txid
         == "42f5c9e826e52cde883cde7a6c7b768db302e0b8b32fc52db75ad3c5711b4a9e"
     )
-    assert str(mytxitem) == "txid undefined"
-    assert mytxitem.__repr__() == "TxItem(txid undefined)"
+    assert (
+        str(mytxitem)
+        == "42f5c9e826e52cde883cde7a6c7b768db302e0b8b32fc52db75ad3c5711b4a9e"
+    )
+    assert (
+        mytxitem.__repr__()
+        == "TxItem(42f5c9e826e52cde883cde7a6c7b768db302e0b8b32fc52db75ad3c5711b4a9e with hex)"
+    )
     # a TxItem pretty much works like a dict with some extrafunctionality
     assert mytxitem["blocktime"] == 1642182445
     # We can also add data after the fact
@@ -135,6 +141,94 @@ def test_TxItem(empty_data_folder):
     assert not os.listdir(empty_data_folder)
     # let's save:
     mytxitem.dump()
+    assert os.listdir(empty_data_folder)
+
+
+def test_WalletAwareTxItem(bitcoin_regtest, parent_mock, empty_data_folder):
+    # No testing of a WalletAwareTxItem if you don't have a wallet
+    result = bitcoin_regtest.get_rpc().createwallet(
+        "test_WalletAwareTxItem", False, False, "", False, True
+    )
+    wrpc = bitcoin_regtest.get_rpc().wallet("test_WalletAwareTxItem")
+    # ... with some funds
+    txid_funding = bitcoin_regtest.testcoin_faucet(wrpc.getnewaddress(), amount=1)
+    assert wrpc.getbalances()["mine"]["trusted"] == 1
+
+    txid_selftransfer = wrpc.sendtoaddress(wrpc.getnewaddress(), 0.1)
+    # bitcoin_regtest.get_rpc().generatetoaddress(1, bitcoin_regtest.get_rpc().wallet("").getnewaddress(""))
+    assert wrpc.getbalances()["mine"]["trusted"] < 1
+    assert wrpc.getbalances()["mine"]["trusted"] > 0.99
+    print(wrpc.getbalances())
+    txid_outgoing = wrpc.sendtoaddress("n4MN27Lk7Yh3pwfjCiAbRXtRVjs4Uk67fG", 0.2)
+    assert wrpc.getbalances()["mine"]["trusted"] < 0.8
+    print(wrpc.getbalances())
+
+    # The wallet is not directly passed but via the parent which
+    # holds the wallet_rpc and the descriptor describing the wallet
+
+    # mock the property rpc to be wallet rpc
+    type(parent_mock).rpc = PropertyMock(return_value=wrpc)
+    # so here is the matching descriptor:
+    i = 0
+    for desc in wrpc.listdescriptors()["descriptors"]:
+        desc = Descriptor.from_string(desc["desc"])
+        print(f"{i}: {desc}")
+        i += 1
+    print()
+    descriptor = wrpc.listdescriptors()["descriptors"][2]
+    print(descriptor)
+    assert descriptor["desc"].startswith("wpkh([")  # Single Segit
+    descriptor = Descriptor.from_string(descriptor["desc"])
+    print(descriptor)
+    type(parent_mock).descriptor = PropertyMock(return_value=descriptor)
+
+    mywalletawaretxitem = WalletAwareTxItem(
+        parent_mock, [], empty_data_folder, txid=txid_funding
+    )
+    assert mywalletawaretxitem.category == "receive"
+    print("Receiving-Transaction:")
+    print("\nINPUTS\n=====")
+    for inp in mywalletawaretxitem.psbt.inputs:
+        print(str(inp))
+    print("\nOUTPUTS\n=====")
+    for out in mywalletawaretxitem.psbt.outputs:
+        print(str(out))
+    assert mywalletawaretxitem.flow_amount == 1
+
+    mywalletawaretxitem = WalletAwareTxItem(
+        parent_mock, [], empty_data_folder, txid=txid_selftransfer
+    )
+    # assert mywalletawaretxitem.category == "selftransfer"
+    print("\n\nSelftransfer-Transaction:")
+    print("INPUTS\n=======")
+    for inp in mywalletawaretxitem.psbt.inputs:
+        print(str(inp))
+    print("\nOUTPUTS\n=======")
+    for out in mywalletawaretxitem.psbt.outputs:
+        print(str(out))
+    assert type(mywalletawaretxitem.psbt.outputs[1].scope) == OutputScope
+    assert type(mywalletawaretxitem.psbt.outputs[1].scope.vout) == TransactionOutput
+    assert mywalletawaretxitem.psbt.outputs[1].scope.vout.value < 89000000
+    assert mywalletawaretxitem.psbt.outputs[0].is_mine
+    assert mywalletawaretxitem.psbt.outputs[1].is_mine
+    # Why not?
+    assert mywalletawaretxitem.flow_amount == 0.1
+
+    mywalletawaretxitem = WalletAwareTxItem(
+        parent_mock, [], empty_data_folder, txid=txid_outgoing
+    )
+    # assert mywalletawaretxitem.category == "selftransfer"
+    print("\n\nOutgoing-Transaction:")
+    print("INPUTS\n=======")
+    for inp in mywalletawaretxitem.psbt.inputs:
+        print(str(inp))
+    print("\nOUTPUTS\n=======")
+    for out in mywalletawaretxitem.psbt.outputs:
+        print(str(out))
+    # why not?
+    assert mywalletawaretxitem.psbt.input[0].is_mine
+    # Why not?
+    assert mywalletawaretxitem.flow_amount == 0.1
 
 
 def test_txlist(empty_data_folder, parent_mock, bitcoin_regtest):
