@@ -1445,6 +1445,11 @@ select {
   border-color: rgb(27 28 33 / var(--tw-border-opacity));
 }
 
+.border-accent {
+  --tw-border-opacity: 1;
+  border-color: rgb(46 92 255 / var(--tw-border-opacity));
+}
+
 .bg-dark-900 {
   --tw-bg-opacity: 1;
   background-color: rgb(15 16 21 / var(--tw-bg-opacity));
@@ -1613,6 +1618,14 @@ select {
 
 .opacity-40 {
   opacity: 0.4;
+}
+
+.opacity-100 {
+  opacity: 1;
+}
+
+.opacity-10 {
+  opacity: 0.1;
 }
 
 .shadow {
