@@ -104,7 +104,7 @@ class TxItem(dict, AbstractTxListContext):
             kwargs[k] = None if v in ["", None] else self.type_converter[i](v)
 
         super().__init__(**kwargs)
-        self._tx = None
+        self._tx: Transaction = None
         # if we have hex data
         if "hex" in kwargs and kwargs["hex"] is not None:
             self._tx = self.TransactionCls.from_string(kwargs["hex"])
@@ -140,7 +140,7 @@ class TxItem(dict, AbstractTxListContext):
             # get transaction from rpc
             try:
                 res = self.rpc.gettransaction(self.txid)
-                tx = self.TransactionCls.from_string(res["hex"])
+                tx: Transaction = self.TransactionCls.from_string(res["hex"])
                 self._tx = tx
                 return tx
             except Exception as e:
@@ -190,7 +190,10 @@ class TxItem(dict, AbstractTxListContext):
 
     @property
     def txid(self):
-        return self["txid"]
+        if self.get("txid"):
+            return self["txid"]
+        if self._tx:
+            return self._tx.txid().hex()
 
     @property
     def hex(self):

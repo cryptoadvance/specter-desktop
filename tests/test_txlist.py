@@ -1,19 +1,32 @@
 import json
 import os
+import shutil
 import time
 from binascii import hexlify
 from datetime import datetime
 from pathlib import Path
+from tokenize import Floatnumber
 from typing import List
 
+import pytest
+from cryptoadvance.specter.util.psbt import SpecterScope
 from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
 )
-from cryptoadvance.specter.txlist import TxItem, TxList
+from cryptoadvance.specter.rpc import BitcoinRPC
+from cryptoadvance.specter.txlist import TxItem, TxList, WalletAwareTxItem
 from embit.descriptor.arguments import Key
 from embit.descriptor.descriptor import Descriptor
 from embit.transaction import Transaction, TransactionInput, TransactionOutput
-from mock import MagicMock
+from embit.psbt import InputScope
+from mock import MagicMock, PropertyMock
+
+from cryptoadvance.specter.util.psbt import (
+    SpecterInputScope,
+    SpecterOutputScope,
+    SpecterPSBT,
+)
+
 
 descriptor = "pkh([78738c82/84h/1h/0h]vpub5YN2RvKrA9vGAoAdpsruQGfQMWZzaGt3M5SGMMhW8i2W4SyNSHMoLtyyLLS6EjSzLfrQcbtWdQcwNS6AkCWne1Y7U8bt9JgVYxfeH9mCVPH/1/*)"
 # The example transaction from a regtest
@@ -31,6 +44,21 @@ with open("tests/xtestdata_txlist/tx2_confirmed.json") as f:
 
 with open("tests/xtestdata_txlist/tx2_confirmed2.json") as f:
     tx2_confirmed2 = json.load(f)
+
+
+@pytest.fixture
+def parent_mock(bitcoin_regtest):
+    """A Mock implementing AbstractTxListContext and AbstractTxContext"""
+    parent_mock = MagicMock()
+    # AbstractTxListContext:
+    type(parent_mock).rpc = PropertyMock(return_value=bitcoin_regtest.get_rpc())
+    assert parent_mock.rpc.getblockchaininfo()["chain"] == "regtest"
+    type(parent_mock).chain = PropertyMock(return_value="regtest")
+    assert parent_mock.chain == "regtest"
+    # AbstractTxContext
+    parent_mock.network.return_value = "regtest"
+    # omit descriptor!
+    return parent_mock
 
 
 def test_understandTransaction():
@@ -55,9 +83,33 @@ def test_understandTransaction():
     assert mytx.txid().hex() == tx1_confirmed["txid"]
 
 
+def test_TxItem_load(empty_data_folder):
+    fname = "c518428b318612e60ba8a90ef767a0c6ea0ccf989ed69c3b10b1df537fab850e.bin"
+    shutil.copyfile(
+        f"tests/xtestdata_txlist/{fname}", os.path.join(empty_data_folder, fname)
+    )
+    mytxitem = TxItem(
+        None,
+        [],
+        empty_data_folder,
+        arbitrary_key=1642182445,  # arbitrary stuff can get passed
+        txid="c518428b318612e60ba8a90ef767a0c6ea0ccf989ed69c3b10b1df537fab850e",
+    )
+    # The property is loading the tx from disk
+    assert type(mytxitem.tx) == Transaction
+    assert (
+        mytxitem.txid
+        == "c518428b318612e60ba8a90ef767a0c6ea0ccf989ed69c3b10b1df537fab850e"
+    )
+    assert (
+        mytxitem.tx.txid().hex()
+        == "c518428b318612e60ba8a90ef767a0c6ea0ccf989ed69c3b10b1df537fab850e"
+    )
+
+
 def test_TxItem(empty_data_folder):
     # those two arrays could have been implemented as dict and need
-    # same size
+    # therefore same size
     assert len(TxItem.type_converter) == len(TxItem.columns)
     mytxitem = TxItem(
         None,
@@ -66,17 +118,97 @@ def test_TxItem(empty_data_folder):
         hex=tx1_confirmed["hex"],
         blocktime=1642182445,  # arbitrary stuff can get passed
     )
+    assert type(mytxitem.tx) == Transaction  # the parsed Tx from the hex
+    assert (
+        mytxitem.txid
+        == "42f5c9e826e52cde883cde7a6c7b768db302e0b8b32fc52db75ad3c5711b4a9e"
+    )
     assert str(mytxitem) == "txid undefined"
     assert mytxitem.__repr__() == "TxItem(txid undefined)"
     # a TxItem pretty much works like a dict with some extrafunctionality
     assert mytxitem["blocktime"] == 1642182445
     # We can also add data after the fact
     mytxitem["confirmations"] = 123
-    assert type(mytxitem.tx.vout) == list
     assert mytxitem["confirmations"] == 123
+    assert type(mytxitem.tx.vout) == list
+    # It's not saved yet:
+    assert not os.listdir(empty_data_folder)
+    # let's save:
+    mytxitem.dump()
 
 
-def test_txlist(empty_data_folder, bitcoin_regtest):
+def test_txlist(empty_data_folder, parent_mock, bitcoin_regtest):
+    # assert funded_hot_wallet_1.rpc()
+    # Non Empty hotwallet using descriptors
+    result = bitcoin_regtest.get_rpc().createwallet(
+        "mywallet", False, False, "", False, True
+    )
+    wrpc = bitcoin_regtest.get_rpc().wallet("mywallet")
+    print(json.dumps(wrpc.listdescriptors()))
+
+    # A new address is by default of type bech32
+    print(wrpc.getnewaddress())
+
+    # so here is the matching descriptor:
+    descriptor = wrpc.listdescriptors()["descriptors"][0]
+    print(f"Descriptor: {descriptor}")
+
+    # mock the property rpc to be wallet rpc
+    type(parent_mock).rpc = PropertyMock(return_value=wrpc)
+
+    for i in range(0, 10):
+        bitcoin_regtest.testcoin_faucet(wrpc.getnewaddress(), amount=0.1)
+    assert bitcoin_regtest.get_rpc().listwallets() == ["", "mywallet"]
+
+    filename = os.path.join(empty_data_folder, "my_filename.csv")
+    mytxlist = TxList(filename, parent_mock, MagicMock())
+
+    print("How do the Txs look like?\n===================")
+
+    tx_from_listtransactions = wrpc.listtransactions()[-1]
+    tx = tx_from_listtransactions
+    print("a transaction as it looks like from listtransaction:")
+    # print(tx)
+    print(f"  those keys: {sorted(tx.keys())}")
+    print()
+    tx_from_gettransaction = wrpc.gettransaction(tx["txid"])
+    tx = tx_from_gettransaction
+    print("A tx from gettransaction")
+    # print(tx)
+    print(f"  those keys: {sorted(tx.keys())}")
+    print()
+    print("A tx from decoderawtransaction")
+    hex = tx["hex"]
+    tx_from_decoderawtransaction = wrpc.decoderawtransaction(hex)
+    tx = tx_from_decoderawtransaction
+    # print(tx)
+    print(f"  those keys: {sorted(tx.keys())}")
+    print(tx["vout"])
+
+    # print("So now we create a PSBT out of that: ")
+    # psbt = SpecterPSBT.from_transaction(hex, parent_mock.descriptor, parent_mock.network)
+    # print(psbt)
+
+    mytxlist.add({tx["txid"]: tx_from_gettransaction})
+    assert type(mytxlist[tx["txid"]]) == WalletAwareTxItem
+    assert type(mytxlist[tx["txid"]].psbt) == SpecterPSBT
+
+    assert type(mytxlist[tx["txid"]].psbt.outputs[0]) == SpecterOutputScope
+    assert type(mytxlist[tx["txid"]].psbt.outputs[0].float_amount) == float
+    assert mytxlist[tx["txid"]].psbt.outputs[0].is_mine
+
+    assert type(mytxlist[tx["txid"]].psbt.inputs[0]) == SpecterInputScope
+    print(mytxlist[tx["txid"]].psbt.inputs[0].scope)
+    assert type(mytxlist[tx["txid"]].psbt.inputs[0].scope) == InputScope
+    assert type(mytxlist[tx["txid"]].psbt.inputs[0].float_amount) == float
+    assert mytxlist[tx["txid"]].psbt.inputs[0].is_mine
+
+    for tx in mytxlist.values():
+        assert tx.flow_amount < 0
+    assert False
+
+
+def test_txlist_unrelated_tx(empty_data_folder, bitcoin_regtest):
     parent_mock = MagicMock()
     bitcoin_regtest.get_rpc().createwallet("txlist1")
     wrpc = bitcoin_regtest.get_rpc().wallet("txlist1")
@@ -90,6 +222,8 @@ def test_txlist(empty_data_folder, bitcoin_regtest):
     mytxlist = TxList(filename, parent_mock, MagicMock())
     # mytxlist.descriptor = descriptor
     mytxlist.add({tx1_confirmed["txid"]: tx1_confirmed})
+    assert mytxlist[tx1_confirmed["txid"]].flow_amount == 0  # makes sense as the
+    assert mytxlist[tx1_confirmed["txid"]]["flow_amount"] == 0
     # .add will save implicitely.
     # mytxlist._save()
     with open(filename, "r+") as file:

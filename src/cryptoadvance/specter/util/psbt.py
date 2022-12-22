@@ -252,7 +252,7 @@ class SpecterPSBT(AbstractTxContext):
         """
         if isinstance(psbt, str):
             psbt = self.PSBTCls.from_string(psbt)
-        self.psbt = psbt
+        self.psbt: PSBT = psbt
         self._descriptor = descriptor
         self._network = network
         self.devices = devices
