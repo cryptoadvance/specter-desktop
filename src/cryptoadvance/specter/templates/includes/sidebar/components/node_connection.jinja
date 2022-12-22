@@ -1,5 +1,5 @@
 {% set node = specter.node %}
-{% if specter.node.is_running %}
+{% if node.is_running %}
     <div id="active-node" onclick="showPageOverlay('node-info-popup');document.getElementById('side-content').classList.remove('active');" class="item core flex flex-row items-center" data-style="cursor: pointer;">
         {% include node.node_logo_template() %}
         <div class="hidden" id="node-info-popup">
@@ -17,7 +17,7 @@
 {% else %}
     <img class="w-5 h-5 mr-2" src="{{ url_for('static', filename='img/broken-connection.svg') }}">
     <a id="no-node-connection" class="flex items-center flex-wrap content-evenly gap-2 max-w-1" href="{{ url_for('nodes_endpoint.node_settings', node_alias=node.alias) }}">
-        <div>{{ _("Spectrum not connected") }}</div>
+        <div>{{ _("No Bitcoin Core connection") }}</div>
         <div class="text-xs">{{ _("Click to configure") }}</div>
     </a>
 {% endif%}
