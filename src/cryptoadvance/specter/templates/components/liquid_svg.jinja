@@ -4,8 +4,8 @@
     - chain: Chain to use to colorize the Bitcoin icon
     - size: Svg width and height
  #}
-{% macro liquid_svg(chain, size) -%}
-    <svg class="core {{ chain }}" height="{{ size }}" width="{{ size }}" viewBox="0 0 46 46" style="opacity: 0.95;">
+{% macro liquid_svg(node, size) -%}
+    <svg class="core {{ node.chain }}" height="{{ size }}" width="{{ size }}" viewBox="0 0 46 46" style="opacity: 0.95;">
 <style type="text/css">
     .st0{fill:#46B4A5;}
     .st1{fill:#FFFFFF;}

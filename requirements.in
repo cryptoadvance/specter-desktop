@@ -24,7 +24,6 @@ cbor==1.0.0
 mnemonic==0.20
 cryptography==3.4.7
 Flask-APScheduler==1.12.3
-backports.zoneinfo==0.2.1 ; python_version < '3.10'
 gunicorn==20.1.0
 protobuf==3.20.2
 PyJWT==2.4.0
@@ -33,4 +32,4 @@ pytimeparse==1.1.8
 cryptoadvance-liquidissuer==0.2.4
 specterext-exfund==0.1.7
 specterext-faucet==0.1.2
-cryptoadvance.spectrum==0.2.5
+cryptoadvance.spectrum==0.3.0
