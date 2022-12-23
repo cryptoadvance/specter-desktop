@@ -156,10 +156,13 @@
       background: var(--cmap-blue);
     }
   </div><!--</style>-->
-  <div class="qr-holder">
-    <a class="copy"><img src="{{ url_for('static', filename='img/copy.svg') }}" data-style="width: 26px; height: 26px;"></a>
+  <div class="qr-holder flex flex-col items-center space-y-3 bg-white p-5 rounded-lg pt-3">
+    <a class="copy hidden"><img src="{{ url_for('static', filename='img/copy.svg') }}" data-style="width: 26px; height: 26px;"></a>
+
     <div class="qr-code"></div>
+
     <div class="note">Click to animate</div>
+
     <div class="range" data-style="margin-top: 10px; margin-bottom: -5px;">
       <span class="minus-size" data-style="cursor: pointer;">&nbsp;&nbsp;-&nbsp;&nbsp;</span><input type="range" class="size-slider"><span class="plus-size" data-style="cursor: pointer;">&nbsp;&nbsp;+&nbsp;&nbsp;</span>
     </div>
