@@ -1,6 +1,6 @@
 {% set node = specter.node %}
 {% if specter.node.is_running %}
-    <div id="active-node" onclick="showPageOverlay('node-info-popup');document.getElementById('side-content').classList.remove('active');" class="item core flex flex-row items-center" data-style="cursor: pointer;">
+    <div id="active-node" onclick="showPageOverlay('node-info-popup');document.getElementById('side-content').classList.remove('active');" class="item core flex flex-row items-center cursor-pointer">
         {% include node.node_logo_template() %}
         <div class="hidden" id="node-info-popup">
             {% include node.node_info_template() %}
@@ -10,9 +10,10 @@
         </div>
     </div>
 {% else %}
-    <img class="w-5 h-5 mr-2" src="{{ url_for('static', filename='img/broken-connection.svg') }}">
-    <a id="no-node-connection" class="flex items-center flex-wrap content-evenly gap-2 max-w-1" href="{{ url_for('nodes_endpoint.node_settings', node_alias=node.alias) }}">
-        <div>{{ _("Spectrum not connected") }}</div>
-        <div class="text-xs">{{ _("Click to configure") }}</div>
-    </a>
+    <div class="flex ml-2 gap-2">
+        <img src="{{ url_for('static', filename='img/disconnected.svg') }}" width="32px" height="32px">
+        <a id="no-node-connection" href="{{ url_for('nodes_endpoint.node_settings', node_alias=node.alias) }}">  
+            <div class="hover:bg-dark-700 rounded-lg p-1 cursor-pointer">{{ _("Click to configure") }}</div>
+        </a>
+    </div>
 {% endif%}
