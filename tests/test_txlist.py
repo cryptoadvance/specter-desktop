@@ -160,18 +160,24 @@ def test_WalletAwareTxItem(bitcoin_regtest, parent_mock, empty_data_folder):
     i = 0
     for desc in wrpc.listdescriptors()["descriptors"]:
         i += 1
-        if desc["desc"].startswith("wpkh(["):
+        print(f"{i} {desc}")
+        if desc["desc"].startswith("wpkh([") and not desc["internal"]:
             descriptor = desc
-    descriptor = wrpc.listdescriptors()["descriptors"][2]
-    assert descriptor["desc"].startswith("wpkh([")  # Single Segit
-    descriptor = Descriptor.from_string(descriptor["desc"])
+
+    # We need One descriptor for both, receiving and change-addresses. However, core
+    # delivers two of them, one for each.
+    # So we take the receiving one, and create that special form out of it:
+    descriptor = descriptor["desc"].replace("/0/", "/{0,1}/")
+    descriptor = Descriptor.from_string(descriptor)
     print("Our descriptor:")
     print(descriptor)
     print("\n")
     type(parent_mock).descriptor = PropertyMock(return_value=descriptor)
 
     # Let's fund the wallet
-    print("\nFUNDING TX\n==========")
+    print("=========================================")
+    print("\nFUNDING TX (1btc)")
+    print("=========================================")
     txid_funding_addr = wrpc.getnewaddress()
     print(f"address: {txid_funding_addr}")
     txid_funding = bitcoin_regtest.testcoin_faucet(txid_funding_addr, amount=1)
@@ -181,7 +187,7 @@ def test_WalletAwareTxItem(bitcoin_regtest, parent_mock, empty_data_folder):
     mywalletawaretxitem = WalletAwareTxItem(
         parent_mock, [], empty_data_folder, txid=txid_funding
     )
-    assert mywalletawaretxitem.category == "receive"
+
     print("INPUTS\n------")
     for inp in mywalletawaretxitem.psbt.inputs:
         print(str(inp))
@@ -189,89 +195,142 @@ def test_WalletAwareTxItem(bitcoin_regtest, parent_mock, empty_data_folder):
     for out in mywalletawaretxitem.psbt.outputs:
         print(str(out))
     assert mywalletawaretxitem.flow_amount == 1
+    assert mywalletawaretxitem.category == "receive"
 
     # Let's do a selftransfer
-    print("\n\nSELFTRANSFER TX\n==========")
+    print("=========================================")
+    print("\n\nSELFTRANSFER TX (0.1btc)")
+    print("=========================================")
     txid_selftransfer_addr = wrpc.getnewaddress()
     print(f"address = {txid_selftransfer_addr}")
-    txid_selftransfer = wrpc.sendtoaddress(wrpc.getnewaddress(), 0.1)
+    txid_selftransfer = wrpc.sendtoaddress(txid_selftransfer_addr, 0.1)
     print(f"balance: {wrpc.getbalances()['mine']['trusted']}")
-    # bitcoin_regtest.get_rpc().generatetoaddress(1, bitcoin_regtest.get_rpc().wallet("").getnewaddress(""))
     assert wrpc.getbalances()["mine"]["trusted"] < 1
     assert wrpc.getbalances()["mine"]["trusted"] > 0.99
-    txid_outgoing = wrpc.sendtoaddress("n4MN27Lk7Yh3pwfjCiAbRXtRVjs4Uk67fG", 0.2)
-    assert wrpc.getbalances()["mine"]["trusted"] < 0.8
 
     mywalletawaretxitem = WalletAwareTxItem(
         parent_mock, [], empty_data_folder, txid=txid_selftransfer
     )
-    # assert mywalletawaretxitem.category == "selftransfer"
+
     print("INPUTS\n------")
     for inp in mywalletawaretxitem.psbt.inputs:
         print(str(inp))
     print("\nOUTPUTS\n-------")
-    for out in mywalletawaretxitem.psbt.outputs:
-        print(str(out))
+    print(str(mywalletawaretxitem.psbt.outputs[0]))
+    print(str(mywalletawaretxitem.psbt.outputs[1]))
 
     print("\n\nOUTPUT[0] INVESTIGATION\n====================")
-    assert type(mywalletawaretxitem.psbt) == SpecterPSBT
-    assert type(mywalletawaretxitem.psbt.psbt) == PSBT
-    assert type(mywalletawaretxitem.psbt.psbt.outputs[0]) == OutputScope
-    assert type(mywalletawaretxitem.psbt.outputs[0]) == SpecterOutputScope
-    assert type(mywalletawaretxitem.psbt.outputs[0].scope) == OutputScope
-    assert type(mywalletawaretxitem.psbt.outputs[0].scope.vout) == TransactionOutput
+    assert mywalletawaretxitem.tx.is_segwit
+    assert type(mywalletawaretxitem.tx.vout[0]) == TransactionOutput
+
+    address = mywalletawaretxitem.tx.vout[0].script_pubkey.address(NETWORKS["regtest"])
+    # Core thinks that the address belongs to the wallet
+    assert wrpc.getaddressinfo(address)["ismine"]
+
+    print(
+        f"address (via my.tx.vout[0].script_pubkey.address):        {mywalletawaretxitem.tx.vout[0].script_pubkey.address(NETWORKS['regtest'])}"
+    )
 
     specter_psbt = mywalletawaretxitem.psbt
     embit_psbt = specter_psbt.psbt
 
-    print(f"TransactionOutput: {embit_psbt.outputs[0].vout}")
-    print(f"script_pubkey: {embit_psbt.outputs[0].script_pubkey}")
+    # Some Type Checks
+    assert type(specter_psbt) == SpecterPSBT
+    assert type(specter_psbt.psbt) == PSBT
+    assert type(specter_psbt.psbt.outputs[0]) == OutputScope
+    assert type(specter_psbt.outputs[0]) == SpecterOutputScope
+    assert type(specter_psbt.outputs[0].scope) == OutputScope
+    assert type(specter_psbt.outputs[0].scope.vout) == TransactionOutput
 
-    print(f"network (via specter_psbt.network):    {specter_psbt.network}")
+    # The ways to get the addresses ...
+    address = specter_psbt.outputs[0].address
+    print(f"address (via specter_psbt.SpecterOutputScope.address):    {address}")
+    assert address == specter_psbt.outputs[0].scope.script_pubkey.address(
+        NETWORKS["regtest"]
+    )
+    assert address == specter_psbt.outputs[0].scope.vout.script_pubkey.address(
+        NETWORKS["regtest"]
+    )
+    assert address == embit_psbt.outputs[0].script_pubkey.address(NETWORKS["regtest"])
 
-    print(
-        f"address (via specter_psbt.SpecterOutputScope.address):    {specter_psbt.outputs[0].address}"
-    )
-    print(
-        f"address (via specter_psbt.SpecterOutputScope.scope):      {specter_psbt.outputs[0].scope.script_pubkey.address(NETWORKS['regtest'])}"
-    )
-    print(
-        f"address (via specter_psbt.SpecterOutputScope.scope.vout): {specter_psbt.outputs[0].scope.vout.script_pubkey.address(NETWORKS['regtest'])}"
-    )
-    print(
-        f"address (via embit_psbt.OutputScope):                     {embit_psbt.outputs[0].script_pubkey.address(NETWORKS['regtest'])}"
-    )
-
+    # Let's check the two outputs
+    # Order is not reliable, so make fixed indexes
+    if specter_psbt.outputs[0].address == txid_selftransfer_addr:
+        rcv_idx = 0
+        cha_idx = 1
+    else:
+        rcv_idx = 1
+        cha_idx = 0
+    # The receiving one:
     assert (
-        embit_psbt.outputs[0].script_pubkey.address(NETWORKS["regtest"])
-        == txid_selftransfer_addr
-    )
+        specter_psbt.outputs[rcv_idx].scope.vout.value == 10000000
+    )  # 0.1 btc == 10 mil sats
+    assert specter_psbt.outputs[rcv_idx].is_mine
+    assert specter_psbt.outputs[
+        rcv_idx
+    ].is_receiving  # the 0 output is the receiving one (0.1)
+    assert not specter_psbt.outputs[rcv_idx].is_change
 
-    bug_output = mywalletawaretxitem.psbt.outputs[0]
-    print(f"the descriptor: {bug_output.descriptor}")
-    print(f"the scope: {bug_output.scope}")
-    print(f"\n\n {bug_output.descriptor.owns(bug_output.scope)} ")
-    assert bug_output.descriptor.owns(bug_output.scope)
-    assert mywalletawaretxitem.psbt.outputs[1].scope.vout.value < 90000000
-    assert mywalletawaretxitem.psbt.outputs[0].is_mine
-    assert mywalletawaretxitem.psbt.outputs[1].is_mine
-    assert mywalletawaretxitem.flow_amount == 0.1
+    # The change one:
+    assert specter_psbt.outputs[cha_idx].scope.vout.value < 90000000
+    assert specter_psbt.outputs[cha_idx].is_mine
+    assert specter_psbt.outputs[cha_idx].is_change
+    assert not specter_psbt.outputs[cha_idx].is_receiving
+
+    # amounts
+    assert specter_psbt.inputs[0].float_amount == 1
+    assert specter_psbt.outputs[rcv_idx].float_amount == 0.1
+    assert specter_psbt.outputs[cha_idx].float_amount >= 0.89
+    assert mywalletawaretxitem.flow_amount >= -0.0001  # the wallet lost some fees
+    assert mywalletawaretxitem.category == "selftransfer"
+
+    print("=========================================")
+    print("\n\nOutgoing-Transaction (0.2 btc)")
+    print("=========================================")
+
+    txid_outgoing_addr = "n4MN27Lk7Yh3pwfjCiAbRXtRVjs4Uk67fG"
+    print(f"address = {txid_outgoing_addr}")
+    txid_outgoing = wrpc.sendtoaddress(txid_outgoing_addr, 0.2)
+    print(f"balance: {wrpc.getbalances()['mine']['trusted']}")
+    assert wrpc.getbalances()["mine"]["trusted"] < 0.8
 
     mywalletawaretxitem = WalletAwareTxItem(
         parent_mock, [], empty_data_folder, txid=txid_outgoing
     )
-    # assert mywalletawaretxitem.category == "selftransfer"
-    print("\n\nOutgoing-Transaction:\n============")
+
     print("INPUTS\n-------")
     for inp in mywalletawaretxitem.psbt.inputs:
         print(str(inp))
     print("\nOUTPUTS\n------")
     for out in mywalletawaretxitem.psbt.outputs:
         print(str(out))
-    # why not?
-    assert mywalletawaretxitem.psbt.input[0].is_mine
-    # Why not?
-    assert mywalletawaretxitem.flow_amount == 0.1
+
+    # Let's check the two outputs
+    # Order is not reliable, so make fixed indexes
+    specter_psbt = mywalletawaretxitem.psbt
+    if specter_psbt.outputs[0].address == txid_outgoing_addr:
+        snd_idx = 0
+        cha_idx = 1
+    else:
+        snd_idx = 1
+        cha_idx = 0
+    # The sending one:
+    assert not specter_psbt.outputs[snd_idx].is_mine
+    assert not specter_psbt.outputs[
+        snd_idx
+    ].is_receiving  # the 0 output is the receiving one (0.1)
+    assert not specter_psbt.outputs[snd_idx].is_change
+
+    # The change one:
+    assert specter_psbt.outputs[cha_idx].is_mine
+    assert specter_psbt.outputs[cha_idx].is_change
+    assert not specter_psbt.outputs[cha_idx].is_receiving
+
+    # amounts
+    assert specter_psbt.inputs[0].float_amount >= 0.8
+    assert specter_psbt.outputs[snd_idx].float_amount == 0.2
+    assert specter_psbt.outputs[cha_idx].float_amount >= 0.6
+    assert mywalletawaretxitem.flow_amount <= -0.2  # 0.2 wallet lost plus some fees
 
 
 def test_txlist(empty_data_folder, parent_mock, bitcoin_regtest):
@@ -282,9 +341,6 @@ def test_txlist(empty_data_folder, parent_mock, bitcoin_regtest):
     )
     wrpc = bitcoin_regtest.get_rpc().wallet("mywallet")
     print(json.dumps(wrpc.listdescriptors()))
-
-    # A new address is by default of type bech32
-    print(wrpc.getnewaddress())
 
     # so here is the matching descriptor:
     descriptor = wrpc.listdescriptors()["descriptors"][0]
