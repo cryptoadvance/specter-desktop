@@ -234,12 +234,12 @@
             
             // Set amount
             if (this.mode == 'utxo') {
-                this.amount = this.tx.amount.toFixed(8)
+                this.amount = parseFloat(this.tx.amount.toFixed(8))
             } else {
                 if (this.tx.flow_amount) {
-                    this.amount = this.tx.flow_amount.toFixed(8)
+                    this.amount = parseFloat(this.tx.flow_amount.toFixed(8))
                 } else {
-                    this.amount = this.tx.amount.toFixed(8)
+                    this.amount = parseFloat(this.tx.amount.toFixed(8))
                 }
             }
 
