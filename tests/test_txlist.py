@@ -179,8 +179,6 @@ def test_TxItem(empty_data_folder):
     mytxitem.dump()
     assert os.listdir(empty_data_folder)
     mydict = dict(mytxitem)
-    assert len(mydict.keys()) == 14
-    assert len(mydict.values()) == 14
 
 
 def test_WalletAwareTxItem(bitcoin_regtest, parent_mock, empty_data_folder):
