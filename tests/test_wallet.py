@@ -1,4 +1,7 @@
+import random
+import time
 import pytest, logging
+from cryptoadvance.specter.device import Device
 
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.wallet import Wallet
@@ -6,8 +9,50 @@ from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
 )
 from cryptoadvance.specter.specter_error import SpecterError
+from fix_devices_and_wallets import create_hot_wallet_device, create_hot_segwit_wallet
 
 logger = logging.getLogger(__name__)
+
+
+def test_txlist(
+    bitcoin_regtest,
+    specter_regtest_configured: Specter,
+    hot_wallet_device_1: Device,
+    hot_ghost_machine_device,
+    caplog,
+):
+    """this is very similiar of what you can find in fix_devices_and_wallets.py but here you get a failure and nor an error
+    (Always search for failures first before checking errors)
+        so this should speed up the fixing process although it's a duplication.
+    """
+    caplog.set_level(logging.ERROR)
+    logging.getLogger("urllib3.connectionpool").setLevel(logging.INFO)
+    wallet = create_hot_segwit_wallet(
+        specter_regtest_configured,
+        hot_wallet_device_1,
+        f"a_hotwallet_{random.randint(0, 999999)}",
+    )
+    assert len(wallet.txlist()) == 0
+    for i in range(0, 10):
+        bitcoin_regtest.testcoin_faucet(wallet.getnewaddress(), amount=1)
+    wallet.update()
+    for i in range(0, 2):
+        bitcoin_regtest.testcoin_faucet(
+            wallet.getnewaddress(),
+            amount=2.5,
+            confirm_payment=False,
+        )
+    time.sleep(5)  # needed for tx to propagate
+    wallet.update()
+
+    wallet.fetch_transactions()
+    for tx in wallet._transactions.values():
+        print(f"..   {tx['ismine']} .. {tx}")
+
+    # 12 txs
+    assert len(wallet.txlist()) == 12
+    # two of them are unconfirmed
+    assert len([tx for tx in wallet.txlist() if tx["confirmations"] == 0]) == 2
 
 
 @pytest.mark.slow

@@ -952,7 +952,7 @@ def txlist_to_csv(wallet: Wallet, _txlist, includePricesHistory=False):
             time.strftime("%Y-%m-%d", time.localtime(timestamp)),
             label,
             tx["category"],
-            round(tx["amount"], (0 if app.specter.unit == "sat" else 8)),
+            round(tx["flow_amount"], (0 if app.specter.unit == "sat" else 8)),
             amount_price,
             rate,
             tx["txid"],

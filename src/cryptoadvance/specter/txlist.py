@@ -70,6 +70,7 @@ class TxItem(dict, AbstractTxListContext):
     """
 
     TransactionCls = Transaction
+    # columns will be used by _write_csv in order to derive the columns
     columns = [
         "txid",  # str, txid in hex
         "blockhash",  # str, blockhash, None if not confirmed
@@ -79,10 +80,7 @@ class TxItem(dict, AbstractTxListContext):
         "bip125-replaceable",  # str ("yes" / "no"), whatever RBF is enabled for the transaction
         "conflicts",  # rbf conflicts, list of txids
         "vsize",
-        "category",
         "address",
-        "amount",
-        "ismine",
     ]
     type_converter = [
         str,
@@ -93,10 +91,7 @@ class TxItem(dict, AbstractTxListContext):
         str,
         parse_arr,
         int,
-        str,
         parse_arr,
-        parse_arr,
-        bool,
     ]
 
     def __init__(self, parent, addresses, rawdir, **kwargs):
@@ -226,15 +221,19 @@ class TxItem(dict, AbstractTxListContext):
             "conflicts": self["conflicts"],
             "bip125-replaceable": self["bip125-replaceable"],
             "vsize": self["vsize"],
-            "category": self["category"],
             "address": self["address"],
-            "amount": self["amount"],
-            "ismine": self["ismine"],
         }
 
 
 class WalletAwareTxItem(TxItem):
     PSBTCls = SpecterPSBT
+    columns = TxItem.columns.copy()
+    columns.extend(
+        ["category", "flow_amount", "utxo_amount", "ismine"],
+    )
+
+    type_converter = TxItem.type_converter.copy()
+    type_converter.extend([str, float, float, bool])
 
     def __init__(self, parent, addresses, rawdir, **kwargs):
         super().__init__(parent, addresses, rawdir, **kwargs)
@@ -242,13 +241,18 @@ class WalletAwareTxItem(TxItem):
             raise SpecterInternalException(
                 f"Cannot instantiate WalletAwareTxItem without proper Descriptor, got: {type(self.parent.descriptor)}"
             )
+        # ToDo: Make that more lazy. We're triggering those properties to fill the dict with the corresponding keys
+        self.category
+        self.address
+        self.flow_amount
+        self.ismine
 
     @property
-    def psbt(self):
+    def psbt(self) -> SpecterPSBT:
         """This tx but as a psbt. Need rpc-calls"""
         if hasattr(self, "_psbt"):
             return self._psbt
-        self._psbt = self.PSBTCls.from_transaction(
+        self._psbt: SpecterPSBT = self.PSBTCls.from_transaction(
             self.tx, self.descriptor, self.network
         )
         # fill derivation paths etc
@@ -316,6 +320,17 @@ class WalletAwareTxItem(TxItem):
         return self["flow_amount"]
 
     @property
+    def ismine(self) -> bool:
+        if self.get("ismine"):
+            return self["ismine"]
+        inputs = self.psbt.inputs
+        outputs = self.psbt.outputs
+        any_inputs_mine = any([inp.is_mine for inp in inputs])
+        any_outputs_mine = any([out.is_mine for out in outputs])
+        self["ismine"] = any_inputs_mine or any_outputs_mine
+        return self["ismine"]
+
+    @property
     def address(self):
         """Does it make sense to show an address for a transaction? Maybe yes in certain
         situations. For those, you can use this one:
@@ -345,6 +360,7 @@ class WalletAwareTxItem(TxItem):
         super_dict["category"] = self.category
         super_dict["flow_amount"] = self.flow_amount
         super_dict["utxo_amount"] = self.utxo_amount
+        super_dict["ismine"] = (self["ismine"] or self.ismine,)
         return super_dict
 
 

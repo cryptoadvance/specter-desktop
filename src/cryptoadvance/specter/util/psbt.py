@@ -3,6 +3,7 @@ The goal of this module is to slowly migrate from json-like representation of PS
 to a normal PSBT class that does not require RPC calls and can do more things.
 to_dict and from_dict methods are maintained for backward-compatibility
 """
+import logging
 from cryptoadvance.specter.key import Key
 from embit.psbt import PSBT, InputScope, OutputScope, DerivationPath
 from embit.transaction import Transaction, TransactionOutput, TransactionInput
@@ -12,6 +13,8 @@ from embit.descriptor import Descriptor
 from math import ceil
 import time
 from typing import Union, Tuple, List
+
+logger = logging.getLogger(__name__)
 
 
 class AbstractTxContext:
@@ -120,7 +123,12 @@ class SpecterScope(AbstractTxContext):
                 return "OP_RETURN " + self.scope.script_pubkey.data.hex()
             else:
                 return self.scope.script_pubkey.address(self.network)
-        except:
+        except AttributeError as e:  # 'NoneType' object has no attribute 'data'
+            if type(self.scope) != InputScope:  # known issue in this case
+                logger.exception()
+            return None
+        except TypeError:
+            # remove this and you get in trouble with tests/test_util_psbt.py
             return None
 
     @property

@@ -45,6 +45,43 @@ with open("tests/xtestdata_txlist/tx2_confirmed2.json") as f:
     tx2_confirmed2 = json.load(f)
 
 
+def calc_descriptor(wrpc) -> Descriptor:
+    """calculates one descriptor via a wallet_rpc , most importantly:
+    replace("/0/", "/{0,1}/")
+    """
+    i = 0
+    for desc in wrpc.listdescriptors()["descriptors"]:
+        i += 1
+        # print(f"{i} {desc}")
+        if desc["desc"].startswith("wpkh([") and not desc["internal"]:
+            descriptor = desc
+
+    # We need One descriptor for both, receiving and change-addresses. However, core
+    # delivers two of them, one for each.
+    # So we take the receiving one, and create that special form out of it:
+    descriptor = descriptor["desc"].replace("/0/", "/{0,1}/")
+    descriptor = Descriptor.from_string(descriptor)
+    return descriptor
+
+
+def calc_parent_mock(wrpc, parent_mock):
+
+    # The wallet is not directly passed but via the parent which
+    # holds the wallet_rpc and the descriptor describing the wallet
+
+    # mock the property rpc to be wallet rpc
+    type(parent_mock).rpc = PropertyMock(return_value=wrpc)
+    # so here is the matching descriptor:
+
+    print("\nDESCRIPTOR\n==========")
+    descriptor = calc_descriptor(wrpc)
+    print("Our descriptor:")
+    print(descriptor)
+    print("\n")
+    type(parent_mock).descriptor = PropertyMock(return_value=descriptor)
+    return parent_mock
+
+
 @pytest.fixture
 def parent_mock(bitcoin_regtest):
     """A Mock implementing AbstractTxListContext and AbstractTxContext"""
@@ -141,38 +178,22 @@ def test_TxItem(empty_data_folder):
     # let's save:
     mytxitem.dump()
     assert os.listdir(empty_data_folder)
+    mydict = dict(mytxitem)
+    assert len(mydict.keys()) == 14
+    assert len(mydict.values()) == 14
 
 
 def test_WalletAwareTxItem(bitcoin_regtest, parent_mock, empty_data_folder):
+    # those two arrays could have been implemented as dict and need
+    # therefore same size
+    assert len(WalletAwareTxItem.type_converter) == len(WalletAwareTxItem.columns)
+
     # No testing of a WalletAwareTxItem if you don't have a wallet
     result = bitcoin_regtest.get_rpc().createwallet(
         "test_WalletAwareTxItem", False, False, "", False, True
     )
     wrpc = bitcoin_regtest.get_rpc().wallet("test_WalletAwareTxItem")
-
-    # The wallet is not directly passed but via the parent which
-    # holds the wallet_rpc and the descriptor describing the wallet
-
-    # mock the property rpc to be wallet rpc
-    type(parent_mock).rpc = PropertyMock(return_value=wrpc)
-    # so here is the matching descriptor:
-    print("\nDESCRIPTOR\n==========")
-    i = 0
-    for desc in wrpc.listdescriptors()["descriptors"]:
-        i += 1
-        print(f"{i} {desc}")
-        if desc["desc"].startswith("wpkh([") and not desc["internal"]:
-            descriptor = desc
-
-    # We need One descriptor for both, receiving and change-addresses. However, core
-    # delivers two of them, one for each.
-    # So we take the receiving one, and create that special form out of it:
-    descriptor = descriptor["desc"].replace("/0/", "/{0,1}/")
-    descriptor = Descriptor.from_string(descriptor)
-    print("Our descriptor:")
-    print(descriptor)
-    print("\n")
-    type(parent_mock).descriptor = PropertyMock(return_value=descriptor)
+    parent_mock = calc_parent_mock(wrpc, parent_mock)
 
     # Let's fund the wallet
     print("=========================================")
@@ -337,13 +358,13 @@ def test_txlist(empty_data_folder, parent_mock, bitcoin_regtest):
     # assert funded_hot_wallet_1.rpc()
     # Non Empty hotwallet using descriptors
     result = bitcoin_regtest.get_rpc().createwallet(
-        "mywallet", False, False, "", False, True
+        "mywallet_for_test_txlist", False, False, "", False, True
     )
-    wrpc = bitcoin_regtest.get_rpc().wallet("mywallet")
-    print(json.dumps(wrpc.listdescriptors()))
+    wrpc = bitcoin_regtest.get_rpc().wallet("mywallet_for_test_txlist")
+    parent_mock = calc_parent_mock(wrpc, parent_mock)
 
     # so here is the matching descriptor:
-    descriptor = wrpc.listdescriptors()["descriptors"][0]
+    descriptor: Descriptor = calc_descriptor(wrpc)
     print(f"Descriptor: {descriptor}")
 
     # mock the property rpc to be wallet rpc
@@ -351,7 +372,6 @@ def test_txlist(empty_data_folder, parent_mock, bitcoin_regtest):
 
     for i in range(0, 10):
         bitcoin_regtest.testcoin_faucet(wrpc.getnewaddress(), amount=0.1)
-    assert bitcoin_regtest.get_rpc().listwallets() == ["", "mywallet"]
 
     filename = os.path.join(empty_data_folder, "my_filename.csv")
     mytxlist = TxList(filename, parent_mock, MagicMock())
@@ -388,61 +408,19 @@ def test_txlist(empty_data_folder, parent_mock, bitcoin_regtest):
 
     assert type(mytxlist[tx["txid"]].psbt.outputs[0]) == SpecterOutputScope
     assert type(mytxlist[tx["txid"]].psbt.outputs[0].float_amount) == float
-    assert mytxlist[tx["txid"]].psbt.outputs[0].is_mine
+    assert len(mytxlist[tx["txid"]].psbt.outputs) == 2
+    assert (
+        mytxlist[tx["txid"]].psbt.outputs[0].is_mine
+        or mytxlist[tx["txid"]].psbt.outputs[1].is_mine
+    )
 
     assert type(mytxlist[tx["txid"]].psbt.inputs[0]) == SpecterInputScope
     print(mytxlist[tx["txid"]].psbt.inputs[0].scope)
     assert type(mytxlist[tx["txid"]].psbt.inputs[0].scope) == InputScope
     assert type(mytxlist[tx["txid"]].psbt.inputs[0].float_amount) == float
-    assert mytxlist[tx["txid"]].psbt.inputs[0].is_mine
 
     for tx in mytxlist.values():
-        assert tx.flow_amount < 0
-    assert False
-
-
-def test_txlist_unrelated_tx(empty_data_folder, bitcoin_regtest):
-    parent_mock = MagicMock()
-    bitcoin_regtest.get_rpc().createwallet("txlist1")
-    wrpc = bitcoin_regtest.get_rpc().wallet("txlist1")
-    parent_mock.rpc = wrpc
-
-    parent_mock.descriptor = Descriptor.from_string(descriptor)
-    assert type(parent_mock.descriptor.key) == Key
-    assert parent_mock.descriptor.key.allowed_derivation != None
-    assert parent_mock.descriptor.to_string() == descriptor
-    filename = os.path.join(empty_data_folder, "my_filename.csv")
-    mytxlist = TxList(filename, parent_mock, MagicMock())
-    # mytxlist.descriptor = descriptor
-    mytxlist.add({tx1_confirmed["txid"]: tx1_confirmed})
-    assert mytxlist[tx1_confirmed["txid"]].flow_amount == 0  # makes sense as the
-    assert mytxlist[tx1_confirmed["txid"]]["flow_amount"] == 0
-    # .add will save implicitely.
-    # mytxlist._save()
-    with open(filename, "r+") as file:
-        # Reading form a file
-
-        assert file.readline().startswith(
-            "txid,blockhash,blockheight,time,blocktime,bip125-replaceable,conflicts,vsize,category,address,amount,ismine"
-        )
-        assert file.readline().startswith(
-            "42f5c9e826e52cde883cde7a6c7b768db302e0b8b32fc52db75ad3c5711b4a9e,72523c637e0b93505806564495b1acf915a88bacc45f50e35e8a536becd2f914,,1642494258,1642494258,no,[],,receive,Unknown,19.9999989,False"
-        )
-    assert len(mytxlist) == 1
-    mytxlist.invalidate(tx1_confirmed["txid"])
-    assert len(mytxlist) == 0
-    assert not Path(filename).is_file()
-
-    # Mock rpc-calls
-    mock_rpc = MagicMock()
-    mock_rpc.gettransaction.return_value = tx2_confirmed
-    mock_parent = MagicMock()
-    mock_parent.rpc = mock_rpc
-    mytxlist.parent = mock_parent
-    mytxlist.getfetch(
-        "42f5c9e826e52cde883cde7a6c7b768db302e0b8b32fc52db75ad3c5711b4a9e"
-    )
-
+        assert tx.flow_amount > 0
     # assert False
 
 
