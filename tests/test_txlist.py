@@ -9,24 +9,23 @@ from tokenize import Floatnumber
 from typing import List
 
 import pytest
-from cryptoadvance.specter.util.psbt import SpecterScope
 from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
 )
 from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.txlist import TxItem, TxList, WalletAwareTxItem
-from embit.descriptor.arguments import Key
-from embit.descriptor import Descriptor
-from embit.transaction import Transaction, TransactionInput, TransactionOutput
-from embit.psbt import InputScope, OutputScope
-from mock import MagicMock, PropertyMock
-
 from cryptoadvance.specter.util.psbt import (
     SpecterInputScope,
     SpecterOutputScope,
     SpecterPSBT,
+    SpecterScope,
 )
-
+from embit.descriptor import Descriptor
+from embit.descriptor.arguments import Key
+from embit.networks import NETWORKS
+from embit.psbt import PSBT, InputScope, OutputScope
+from embit.transaction import Transaction, TransactionInput, TransactionOutput
+from mock import MagicMock, PropertyMock
 
 descriptor = "pkh([78738c82/84h/1h/0h]vpub5YN2RvKrA9vGAoAdpsruQGfQMWZzaGt3M5SGMMhW8i2W4SyNSHMoLtyyLLS6EjSzLfrQcbtWdQcwNS6AkCWne1Y7U8bt9JgVYxfeH9mCVPH/1/*)"
 # The example transaction from a regtest
@@ -56,7 +55,7 @@ def parent_mock(bitcoin_regtest):
     type(parent_mock).chain = PropertyMock(return_value="regtest")
     assert parent_mock.chain == "regtest"
     # AbstractTxContext
-    parent_mock.network.return_value = "regtest"
+    type(parent_mock).network = PropertyMock(return_value=NETWORKS["regtest"])
     # omit descriptor!
     return parent_mock
 
@@ -150,18 +149,6 @@ def test_WalletAwareTxItem(bitcoin_regtest, parent_mock, empty_data_folder):
         "test_WalletAwareTxItem", False, False, "", False, True
     )
     wrpc = bitcoin_regtest.get_rpc().wallet("test_WalletAwareTxItem")
-    # ... with some funds
-    txid_funding = bitcoin_regtest.testcoin_faucet(wrpc.getnewaddress(), amount=1)
-    assert wrpc.getbalances()["mine"]["trusted"] == 1
-
-    txid_selftransfer = wrpc.sendtoaddress(wrpc.getnewaddress(), 0.1)
-    # bitcoin_regtest.get_rpc().generatetoaddress(1, bitcoin_regtest.get_rpc().wallet("").getnewaddress(""))
-    assert wrpc.getbalances()["mine"]["trusted"] < 1
-    assert wrpc.getbalances()["mine"]["trusted"] > 0.99
-    print(wrpc.getbalances())
-    txid_outgoing = wrpc.sendtoaddress("n4MN27Lk7Yh3pwfjCiAbRXtRVjs4Uk67fG", 0.2)
-    assert wrpc.getbalances()["mine"]["trusted"] < 0.8
-    print(wrpc.getbalances())
 
     # The wallet is not directly passed but via the parent which
     # holds the wallet_rpc and the descriptor describing the wallet
@@ -169,62 +156,116 @@ def test_WalletAwareTxItem(bitcoin_regtest, parent_mock, empty_data_folder):
     # mock the property rpc to be wallet rpc
     type(parent_mock).rpc = PropertyMock(return_value=wrpc)
     # so here is the matching descriptor:
+    print("\nDESCRIPTOR\n==========")
     i = 0
     for desc in wrpc.listdescriptors()["descriptors"]:
-        print(f"{i}: {desc}")
         i += 1
         if desc["desc"].startswith("wpkh(["):
             descriptor = desc
-    print()
     descriptor = wrpc.listdescriptors()["descriptors"][2]
-    print(descriptor)
     assert descriptor["desc"].startswith("wpkh([")  # Single Segit
     descriptor = Descriptor.from_string(descriptor["desc"])
     print("Our descriptor:")
     print(descriptor)
+    print("\n")
     type(parent_mock).descriptor = PropertyMock(return_value=descriptor)
+
+    # Let's fund the wallet
+    print("\nFUNDING TX\n==========")
+    txid_funding_addr = wrpc.getnewaddress()
+    print(f"address: {txid_funding_addr}")
+    txid_funding = bitcoin_regtest.testcoin_faucet(txid_funding_addr, amount=1)
+    print(f"balance: {wrpc.getbalances()['mine']['trusted']}")
+    assert wrpc.getbalances()["mine"]["trusted"] == 1
 
     mywalletawaretxitem = WalletAwareTxItem(
         parent_mock, [], empty_data_folder, txid=txid_funding
     )
     assert mywalletawaretxitem.category == "receive"
-    print("Receiving-Transaction:")
-    print("\nINPUTS\n=====")
+    print("INPUTS\n------")
     for inp in mywalletawaretxitem.psbt.inputs:
         print(str(inp))
-    print("\nOUTPUTS\n=====")
+    print("\nOUTPUTS\n------")
     for out in mywalletawaretxitem.psbt.outputs:
         print(str(out))
     assert mywalletawaretxitem.flow_amount == 1
+
+    # Let's do a selftransfer
+    print("\n\nSELFTRANSFER TX\n==========")
+    txid_selftransfer_addr = wrpc.getnewaddress()
+    print(f"address = {txid_selftransfer_addr}")
+    txid_selftransfer = wrpc.sendtoaddress(wrpc.getnewaddress(), 0.1)
+    print(f"balance: {wrpc.getbalances()['mine']['trusted']}")
+    # bitcoin_regtest.get_rpc().generatetoaddress(1, bitcoin_regtest.get_rpc().wallet("").getnewaddress(""))
+    assert wrpc.getbalances()["mine"]["trusted"] < 1
+    assert wrpc.getbalances()["mine"]["trusted"] > 0.99
+    txid_outgoing = wrpc.sendtoaddress("n4MN27Lk7Yh3pwfjCiAbRXtRVjs4Uk67fG", 0.2)
+    assert wrpc.getbalances()["mine"]["trusted"] < 0.8
 
     mywalletawaretxitem = WalletAwareTxItem(
         parent_mock, [], empty_data_folder, txid=txid_selftransfer
     )
     # assert mywalletawaretxitem.category == "selftransfer"
-    print("\n\nSelftransfer-Transaction:")
-    print("INPUTS\n=======")
+    print("INPUTS\n------")
     for inp in mywalletawaretxitem.psbt.inputs:
         print(str(inp))
-    print("\nOUTPUTS\n=======")
+    print("\nOUTPUTS\n-------")
     for out in mywalletawaretxitem.psbt.outputs:
         print(str(out))
-    assert type(mywalletawaretxitem.psbt.outputs[1].scope) == OutputScope
-    assert type(mywalletawaretxitem.psbt.outputs[1].scope.vout) == TransactionOutput
-    assert mywalletawaretxitem.psbt.outputs[1].scope.vout.value < 89000000
+
+    print("\n\nOUTPUT[0] INVESTIGATION\n====================")
+    assert type(mywalletawaretxitem.psbt) == SpecterPSBT
+    assert type(mywalletawaretxitem.psbt.psbt) == PSBT
+    assert type(mywalletawaretxitem.psbt.psbt.outputs[0]) == OutputScope
+    assert type(mywalletawaretxitem.psbt.outputs[0]) == SpecterOutputScope
+    assert type(mywalletawaretxitem.psbt.outputs[0].scope) == OutputScope
+    assert type(mywalletawaretxitem.psbt.outputs[0].scope.vout) == TransactionOutput
+
+    specter_psbt = mywalletawaretxitem.psbt
+    embit_psbt = specter_psbt.psbt
+
+    print(f"TransactionOutput: {embit_psbt.outputs[0].vout}")
+    print(f"script_pubkey: {embit_psbt.outputs[0].script_pubkey}")
+
+    print(f"network (via specter_psbt.network):    {specter_psbt.network}")
+
+    print(
+        f"address (via specter_psbt.SpecterOutputScope.address):    {specter_psbt.outputs[0].address}"
+    )
+    print(
+        f"address (via specter_psbt.SpecterOutputScope.scope):      {specter_psbt.outputs[0].scope.script_pubkey.address(NETWORKS['regtest'])}"
+    )
+    print(
+        f"address (via specter_psbt.SpecterOutputScope.scope.vout): {specter_psbt.outputs[0].scope.vout.script_pubkey.address(NETWORKS['regtest'])}"
+    )
+    print(
+        f"address (via embit_psbt.OutputScope):                     {embit_psbt.outputs[0].script_pubkey.address(NETWORKS['regtest'])}"
+    )
+
+    assert (
+        embit_psbt.outputs[0].script_pubkey.address(NETWORKS["regtest"])
+        == txid_selftransfer_addr
+    )
+
+    bug_output = mywalletawaretxitem.psbt.outputs[0]
+    print(f"the descriptor: {bug_output.descriptor}")
+    print(f"the scope: {bug_output.scope}")
+    print(f"\n\n {bug_output.descriptor.owns(bug_output.scope)} ")
+    assert bug_output.descriptor.owns(bug_output.scope)
+    assert mywalletawaretxitem.psbt.outputs[1].scope.vout.value < 90000000
     assert mywalletawaretxitem.psbt.outputs[0].is_mine
     assert mywalletawaretxitem.psbt.outputs[1].is_mine
-    # Why not?
     assert mywalletawaretxitem.flow_amount == 0.1
 
     mywalletawaretxitem = WalletAwareTxItem(
         parent_mock, [], empty_data_folder, txid=txid_outgoing
     )
     # assert mywalletawaretxitem.category == "selftransfer"
-    print("\n\nOutgoing-Transaction:")
-    print("INPUTS\n=======")
+    print("\n\nOutgoing-Transaction:\n============")
+    print("INPUTS\n-------")
     for inp in mywalletawaretxitem.psbt.inputs:
         print(str(inp))
-    print("\nOUTPUTS\n=======")
+    print("\nOUTPUTS\n------")
     for out in mywalletawaretxitem.psbt.outputs:
         print(str(out))
     # why not?
