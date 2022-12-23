@@ -15,82 +15,100 @@
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 
 			{% if not device %}
-				<div class="floating-wrapper">
-					<input class="floating-input peer" placeholder=" " type="text" id="device_name" name="device_name" value="{{ device_name }}">
-					<label class="floating-label" for="device_name">{{ _("Name Your Device") }}</label>
-				</div>
-				{% include "device/components/device_type.jinja" %}
-				<p class="warning hidden" id="type_reminder"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" data-style="width: 20px;"/><br>{{ _("Please make sure to choose the device type before continuing") }}</p>
-				<div id="toggle_passphrase_container" class="hidden">
-					<p>{{ _("Device Management") }}</p>
-					<div>
-						<button type="button" class="button" onclick="togglePassphrase(document.getElementById('device_type').value)">{{ _("Toggle device passphrase") }}</button>
+				<div class="space-y-3 mt-5">
+					<div class="floating-wrapper">
+						<input class="floating-input peer" placeholder=" " type="text" id="device_name" name="device_name" value="{{ device_name }}">
+						<label class="floating-label" for="device_name">{{ _("Name Your Device") }}</label>
+					</div>
+					{% include "device/components/device_type.jinja" %}
+
+					<p class="warning hidden" id="type_reminder"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" data-style="width: 20px;"/>{{ _("Please make sure to choose the device type before continuing") }}</p>
+
+					<div id="toggle_passphrase_container" class="hidden">
+						<p>{{ _("Device Management") }}</p>
+						<div>
+							<button type="button" class="button" onclick="togglePassphrase(document.getElementById('device_type').value)">{{ _("Toggle device passphrase") }}</button>
+						</div>
 					</div>
 				</div>
 			{% endif %}
 
 			{% if not device or not device.hot_wallet %}
-				<div id="cold_device">
+				<div id="cold_device" class="mt-10 flex flex-col">
 					<h2>{{ _("Scan, paste or load xpubs") }}</h2>
-					<div class="note">
-						{% if not device %}
+
+					{% if not device %}
+						<p>
 							{{ _("You will be able add more keys later from the device menu.") }}
-						{% endif %}
-					</div>
+						</p>
+					{% endif %}
+
 					<p>{{ _("One line per xpub. Ideally with derivation path in the form") }}: <span data-style="font-style: italic; font-weight: bold; font-size: 15px;">[ fingerprint / derivation / path ] xpub.</span></p>
-					<textarea data-style="margin: 5px;" id="txt" name="xpubs" placeholder='{{ _("Enter your xpubs here") }}'>{{ xpubs }}</textarea>
-					<div class="row">
-						<qr-scanner id="xpub-scan" data-style="width:50%">
-							<a slot="button" href="#" class="btn" data-style="margin: 8px;">
-								<img src="{{ url_for('static', filename='img/qr-code.svg') }}" data-style="width: 26px; margin-right: 2px;" class="svg-white"> {{ _("Scan") }}
+
+					<textarea id="txt" name="xpubs" placeholder='{{ _("Enter your xpubs here") }}'>{{ xpubs }}</textarea>
+
+					<p class="mt-3 mb-0 selection-button cursor-pointer" data-style="text-decoration: underline; cursor: pointer;" onclick="showPageOverlay('usb_import_account_number')">{{ _("Specify account number (advanced)") }}</p>
+
+					<div class="flex space-x-3 mt-3">
+						<qr-scanner id="xpub-scan">
+							<a slot="button" href="#" class="button mb-3">
+								<img src="{{ url_for('static', filename='img/qr-code.svg') }}" data-style="width: 26px; margin-right: 2px;" class="svg-white"> {{ _("Scan QR Code") }}
 								<tool-tip width="200px">
 											<h4 slot="title">{{ _("Using an airgapped device with QR codes") }}</h4>
 											<span slot="paragraph">
-										{{ _("Scan QR codes with extended public keys one by one.") }}
-										{{ _("We recommend importing ")}}<b>{{ _('Native Segwit')}}</b>{{ _(' and ')}}<b>{{ _('Segwit Multisig')}}</b>{{ _(' keys.')}}
+												{{ _("Scan QR codes with extended public keys one by one.") }}
+												{{ _("We recommend importing ")}}<b>{{ _('Native Segwit')}}</b>{{ _(' and ')}}<b>{{ _('Segwit Multisig')}}</b>{{ _(' keys.')}}
 											</span>
 									</tool-tip>
 							</a>
 						</qr-scanner>
-						<input type="file" id="file" class="inputfile" multiple/>
-						<label for="file" class="btn" data-style="margin: 8px;">
-							<img src="{{ url_for('static', filename='img/file.svg') }}" data-style="width: 26px; margin-right: 2px;" class="svg-white">
-							{{ _("Choose files") }}
-							<tool-tip width="200px">
-										<h4 slot="title">{{ _("Using an airgapped ColdCard with MicroSD") }}</h4>
-										<span slot="paragraph">
-									{{ _("Export extended public keys for single-key wallets to the SD card from") }}
-									<b>Advanced → MicroSD → Export Wallet → Generic JSON</b>
-									{{ _("To export multisignature pubkeys go to") }}
-									<b>Settings → Multisig Wallets → Export XPUB</b>
-									{{ _("We recommend using Native Segwit.") }}
-										</span>
-							</tool-tip>
-						</label>
+
+						<div>
+							<input type="file" id="file" class="inputfile hidden" multiple/>
+							<label for="file" class="button mb-3" data-style="margin: 8px;">
+								<img src="{{ url_for('static', filename='img/file.svg') }}" data-style="width: 26px; margin-right: 2px;" class="svg-white">
+								{{ _("Choose files") }}
+								<tool-tip width="200px">
+											<h4 slot="title">{{ _("Using an airgapped ColdCard with MicroSD") }}</h4>
+											<span slot="paragraph">
+										{{ _("Export extended public keys for single-key wallets to the SD card from") }}
+										<b>Advanced → MicroSD → Export Wallet → Generic JSON</b>
+										{{ _("To export multisignature pubkeys go to") }}
+										<b>Settings → Multisig Wallets → Export XPUB</b>
+										{{ _("We recommend using Native Segwit.") }}
+											</span>
+								</tool-tip>
+							</label>
+						</div>
 					</div>
-					<div class="row">
-						<button type="button" class="btn" data-style="margin: 8px;" id="askhwi">
+
+					<div class="flex">
+						<button type="button" class="button" data-style="margin: 8px;" id="askhwi">
 							<img src="{{ url_for('static', filename='img/usb.svg') }}" data-style="width: 26px; margin-right: 2px;" class="svg-white"> {{ _("Get via USB") }}
 						</button>
 					</div>
-					<p class="note center" data-style="text-decoration: underline; cursor: pointer;" onclick="showPageOverlay('usb_import_account_number')">{{ _("Specify account number (advanced)") }}</p>
+
+
 					<div class="hidden" id="usb_import_account_number">
 						<h1>{{ _("Select the account you wish to import") }}</h1>
 						<p class="center" data-style="max-width: 500px; margin: 5px auto;">{{ _("You can set which account number you wish to import.")}}{{ _("Account derivation uses the number choosen here to derive an xpub as specified in") }} <a data-style="color: #fff" href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#account" target="_blank">BIP44</a>.</p>
 						Account # <input type="number" step="1" min="0" value="0" id="usb_account_number" data-style="max-width: 100px; min-width: 100px;">
 						<p class="note center">{{ _("This is an advanced feature.")}}{{ _("If you're not familiar with account derivations please leave this as 0.") }}</p>
-						<button class="btn centered" type="button" onclick="hidePageOverlay()">{{ _("Close") }}</button>
+						<button class="button centered" type="button" onclick="hidePageOverlay()">{{ _("Close") }}</button>
 					</div>
-					<div class="note">
+
+					<div class="mb-5">
 						{{ _("Examples") }}:
-				<pre data-style="font-size: 1em">
-	[f79ec910/84'/1'/0']tpubDA5h1hw24fzoBi9...pR1DiM4EBu
-	[F79EC910/48h/1h/0h/2h]Vpub5DRk6RvRAjZf9rmZV1Q8...TZSDQL67e5i
-	upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
-				</pre>
+						<pre data-style="font-size: 1em">
+[f79ec910/84'/1'/0']tpubDA5h1hw24fzoBi9...pR1DiM4EBu
+[F79EC910/48h/1h/0h/2h]Vpub5DRk6RvRAjZf9rmZV1Q8...TZSDQL67e5i
+upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
+						</pre>
 					</div>
-					<button type="submit" class="btn centered" name="action" value="newcolddevice" onsubmit="showPacman()">{{ _("Continue") }}</button>
+
+					<button type="submit" class="button bg-accent text-white self-end" name="action" value="newcolddevice" onsubmit="showPacman()">{{ _("Continue") }}</button>
 				</div>
+
 			{% endif %}
 {% if not device or device.hot_wallet %}
 			<div id="hot_device" class="hidden">
@@ -103,8 +121,8 @@
 				<p><b>{{ _("Make sure to backup these words!") }}</b></p>
 				{% set wordslist = mnemonic.split(' ') %}
 				<nav class="row">
-					<button type="button" id="generate_mnemonic_btn" class="btn radio left checked" onclick="setMnemonicView('generate')"> {{ _("Generate") }} </button>
-					<button type="button" id="import_mnemonic_btn" class="btn radio right" onclick="setMnemonicView('import')"> {{ _("Import") }} </button>
+					<button type="button" id="generate_mnemonic_btn" class="button radio left checked" onclick="setMnemonicView('generate')"> {{ _("Generate") }} </button>
+					<button type="button" id="import_mnemonic_btn" class="button radio right" onclick="setMnemonicView('import')"> {{ _("Import") }} </button>
 				</nav>
 				<input id="mnemonic_value" type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
 				<textarea id="import_mnemonic" class="hidden" id="txt" placeholder='{{ _("Enter your mnemonic here (English, Spanish and Italian are supported)") }}'></textarea>
@@ -116,7 +134,7 @@
 								<option value="256">24 words</option>
 							</select>
 						</fieldset>
-						<button type="submit" class="btn" name="action" value="generatemnemonic" data-style="margin: auto;max-width: 200px;">{{ _("Generate New Mnemonic") }}</button>
+						<button type="submit" class="button" name="action" value="generatemnemonic" data-style="margin: auto;max-width: 200px;">{{ _("Generate New Mnemonic") }}</button>
 					</div>
 					<table>
 						{% for i in range(wordslist|length // 4) %}
@@ -149,10 +167,8 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 				<br class="mobile-only">
 				<br class="mobile-only">
 				{{ _("to") }}: <input type="number" name="range_end" class="inline" placeholder="start" value=1000 step=1 min=0 max=100000>
-				<br>
 				</div>
-				<br><br>
-				<button type="submit" class="btn centered" name="action" value="newhotdevice">{{ _("Continue") }}</button>
+				<button type="submit" class="button centered" name="action" value="newhotdevice">{{ _("Continue") }}</button>
 			</div>
 {% endif %}
 		</form>
@@ -219,9 +235,9 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 			var hotDevice = document.getElementById("hot_device");
 			if (deviceType.value == 'bitcoincore' || deviceType.value == 'bitcoincore_watchonly') {
 				coldDevice.style.display = 'none';
-				hotDevice.style.display = 'block';
+				hotDevice.style.display = 'flex';
 			} else {
-				coldDevice.style.display = 'block';
+				coldDevice.style.display = 'flex';
 				hotDevice.style.display = 'none';
 			}
 			{% for cls in specter.device_manager.supported_devices %}

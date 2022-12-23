@@ -547,7 +547,8 @@ form section {
 }
 
 input[type="text"],
-  input[type="password"] {
+  input[type="password"],
+  textarea {
   height: 3rem;
   width: 100%;
   border-radius: 0.5rem;
@@ -565,9 +566,15 @@ input[type="text"],
 }
 
 input[type="text"]:focus,
-  input[type="password"]:focus {
+  input[type="password"]:focus,
+  textarea:focus {
   --tw-border-opacity: 1;
   border-color: rgb(46 92 255 / var(--tw-border-opacity));
+}
+
+textarea {
+  min-height: 80px;
+  padding-top: 0.5rem;
 }
 
 input[type="checkbox"] {
@@ -1009,6 +1016,26 @@ select {
   margin-top: 5rem;
 }
 
+.mt-5 {
+  margin-top: 1.25rem;
+}
+
+.mt-10 {
+  margin-top: 2.5rem;
+}
+
+.mr-4 {
+  margin-right: 1rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.ml-4 {
+  margin-left: 1rem;
+}
+
 .mr-1 {
   margin-right: 0.25rem;
 }
@@ -1041,10 +1068,6 @@ select {
   margin-top: 1rem;
 }
 
-.mt-10 {
-  margin-top: 2.5rem;
-}
-
 .ml-2 {
   margin-left: 0.5rem;
 }
@@ -1073,16 +1096,8 @@ select {
   margin-bottom: 0px;
 }
 
-.mr-4 {
-  margin-right: 1rem;
-}
-
-.mb-4 {
-  margin-bottom: 1rem;
-}
-
-.ml-4 {
-  margin-left: 1rem;
+.mt-2 {
+  margin-top: 0.5rem;
 }
 
 .block {
@@ -1325,6 +1340,10 @@ select {
   align-content: space-evenly;
 }
 
+.items-end {
+  align-items: flex-end;
+}
+
 .items-center {
   align-items: center;
 }
@@ -1364,16 +1383,16 @@ select {
   margin-left: calc(0.75rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
-.space-x-2 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 0;
-  margin-right: calc(0.5rem * var(--tw-space-x-reverse));
-  margin-left: calc(0.5rem * calc(1 - var(--tw-space-x-reverse)));
-}
-
 .space-y-3 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-y-reverse: 0;
   margin-top: calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));
   margin-bottom: calc(0.75rem * var(--tw-space-y-reverse));
+}
+
+.space-x-2 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 0;
+  margin-right: calc(0.5rem * var(--tw-space-x-reverse));
+  margin-left: calc(0.5rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
 .space-x-1 > :not([hidden]) ~ :not([hidden]) {
@@ -1418,12 +1437,12 @@ select {
   border-radius: 0.25rem;
 }
 
-.rounded-2xl {
-  border-radius: 1rem;
-}
-
 .rounded-xl {
   border-radius: 0.75rem;
+}
+
+.rounded-2xl {
+  border-radius: 1rem;
 }
 
 .rounded-full {
@@ -1469,6 +1488,11 @@ select {
   background-color: rgb(20 21 26 / var(--tw-bg-opacity));
 }
 
+.bg-dark-700 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(27 28 33 / var(--tw-bg-opacity));
+}
+
 .bg-accent {
   --tw-bg-opacity: 1;
   background-color: rgb(46 92 255 / var(--tw-bg-opacity));
@@ -1476,11 +1500,6 @@ select {
 
 .bg-black\/60 {
   background-color: rgb(0 0 0 / 0.6);
-}
-
-.bg-dark-700 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(27 28 33 / var(--tw-bg-opacity));
 }
 
 .bg-dark-600 {

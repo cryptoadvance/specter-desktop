@@ -85,8 +85,13 @@
   }
 
   input[type="text"],
-  input[type="password"] {
+  input[type="password"],
+  textarea {
     @apply bg-dark-800 border-2 border-dark-700 rounded-lg px-2 outline-none h-12 w-full focus:border-accent duration-200 ease-out;
+  }
+  
+  textarea {
+    @apply pt-2 min-h-[80px];
   }
 
   input[type="checkbox"] {
