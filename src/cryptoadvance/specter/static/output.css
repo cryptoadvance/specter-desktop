@@ -465,11 +465,6 @@ p a:hover {
   opacity: 0.8;
 }
 
-img {
-  height: 2.5rem;
-  width: 2.5rem;
-}
-
 table {
   min-width: 100%;
   --tw-bg-opacity: 1;
@@ -996,11 +991,6 @@ select {
   margin-right: 0.75rem;
 }
 
-.my-3 {
-  margin-top: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
 .-mx-3 {
   margin-left: -0.75rem;
   margin-right: -0.75rem;
@@ -1055,10 +1045,6 @@ select {
   margin-top: 2.5rem;
 }
 
-.mr-2 {
-  margin-right: 0.5rem;
-}
-
 .ml-2 {
   margin-left: 0.5rem;
 }
@@ -1069,6 +1055,10 @@ select {
 
 .mb-10 {
   margin-bottom: 2.5rem;
+}
+
+.mr-2 {
+  margin-right: 0.5rem;
 }
 
 .mt-\[-1px\] {
@@ -1161,6 +1151,10 @@ select {
 
 .h-7 {
   height: 1.75rem;
+}
+
+.h-11 {
+  height: 2.75rem;
 }
 
 .h-10 {
@@ -1315,6 +1309,10 @@ select {
   flex-wrap: wrap;
 }
 
+.content-evenly {
+  align-content: space-evenly;
+}
+
 .items-center {
   align-items: center;
 }
@@ -1337,6 +1335,10 @@ select {
 
 .gap-3 {
   gap: 0.75rem;
+}
+
+.gap-2 {
+  gap: 0.5rem;
 }
 
 .gap-x-5 {
@@ -1443,11 +1445,6 @@ select {
 .border-dark-700 {
   --tw-border-opacity: 1;
   border-color: rgb(27 28 33 / var(--tw-border-opacity));
-}
-
-.border-accent {
-  --tw-border-opacity: 1;
-  border-color: rgb(46 92 255 / var(--tw-border-opacity));
 }
 
 .bg-dark-900 {
@@ -1564,6 +1561,11 @@ select {
   line-height: 1.5rem;
 }
 
+.text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
 .font-medium {
   font-weight: 500;
 }
@@ -1587,11 +1589,6 @@ select {
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
-}
-
-.text-dark-600 {
-  --tw-text-opacity: 1;
-  color: rgb(44 45 49 / var(--tw-text-opacity));
 }
 
 .text-dark-200 {
@@ -1622,10 +1619,6 @@ select {
 
 .opacity-100 {
   opacity: 1;
-}
-
-.opacity-10 {
-  opacity: 0.1;
 }
 
 .shadow {
@@ -1710,11 +1703,6 @@ select {
 .hover\:text-dark-50:hover {
   --tw-text-opacity: 1;
   color: rgb(231 231 232 / var(--tw-text-opacity));
-}
-
-.hover\:drop-shadow:hover {
-  --tw-drop-shadow: drop-shadow(0 1px 2px rgb(0 0 0 / 0.1)) drop-shadow(0 1px 1px rgb(0 0 0 / 0.06));
-  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
 }
 
 .group:hover .group-hover\:ml-3 {

@@ -37,10 +37,6 @@
     @apply text-accent hover:opacity-80;
   }
 
-  img {
-    @apply w-10 h-10;
-  }
-
   table {
     @apply bg-dark-800 min-w-full;
   }

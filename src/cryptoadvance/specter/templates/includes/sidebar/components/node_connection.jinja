@@ -2,17 +2,12 @@
 {% if node.is_running %}
     <div id="active-node" onclick="showPageOverlay('node-info-popup');document.getElementById('side-content').classList.remove('active');" class="item core flex flex-row items-center" data-style="cursor: pointer;">
         {% include node.node_logo_template() %}
+
         <div class="hidden" id="node-info-popup">
             {% include node.node_info_template() %}
         </div>
-        <div>
-            <span style="max-width: 140px;">{{ node.name }}</span> <br>
-            <small>
-                {% if specter.chain %}
-                    {{node.chain | title}} node
-                {% endif %}
-            </small>
-        </div>
+
+        <div class="ml-2 text-lg">{{ node.name }}</div>
     </div>
 {% else %}
     <img class="w-5 h-5 mr-2" src="{{ url_for('static', filename='img/broken-connection.svg') }}">

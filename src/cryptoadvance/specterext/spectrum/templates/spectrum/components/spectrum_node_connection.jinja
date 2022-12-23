@@ -5,13 +5,8 @@
         <div class="hidden" id="node-info-popup">
             {% include node.node_info_template() %}
         </div>
-        <div>
-            <span style="max-width: 140px;">{{ node.name }}</span> <br>
-            <small>
-                {% if specter.chain %}
-                    {{node.chain | title}} node
-                {% endif %}
-            </small>
+        <div class="text-lg ml-2">
+            {{ node.name }}
         </div>
     </div>
 {% else %}

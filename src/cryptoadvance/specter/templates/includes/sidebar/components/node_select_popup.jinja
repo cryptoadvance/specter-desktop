@@ -1,10 +1,10 @@
 <div class="p-4 w-96 hidden flex flex-col" id="node_select_popup">
-    <h1 class="mb-2">{{ _("Node Configuration") }}</h1>
+    <h1 class="mb-2">{{ _("Node Selection") }}</h1>
     {% for node_name in specter.node_manager.nodes_names %}
         {% set node = specter.node_manager.get_by_name(node_name) %}
         {% set selected_node = node.alias == specter.node.alias %}
         {% set running = node.is_running %}
-        <form class="py-2 mb-2 {% if selected_node%} border-dark-700 rounded-xl border-2 {% endif %}" action="{{url_for('nodes_endpoint.switch_node')}}" id="{{node.alias}}-select-node-form" method="POST">
+        <form class="py-2 px-2 mb-3 hover:bg-dark-700 rounded-xl {% if selected_node %} bg-dark-700 {% endif %}" action="{{url_for('nodes_endpoint.switch_node')}}" id="{{node.alias}}-select-node-form" method="POST">
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="hidden" name="node_alias" value="{{ node.alias }}"/>
 
@@ -20,7 +20,7 @@
                             <img title="Node is running" class="w-4" src="{{ url_for('static', filename='img/radio-button-running-node.svg')}}">
                         {% endif %}
                     </div>
-                    <small class="leading-0">
+                    <small class="leading-0 text-dark-200 text-base">
                         {% if running %}
                             {{node.chain | title}} node
                         {% else %}
