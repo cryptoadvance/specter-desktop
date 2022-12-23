@@ -7,9 +7,9 @@
 <template id="messagebox">
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
 
-  <div id="main">
-    <a>&#x2715;</a>
+  <div class="shadow-md rounded-xl p-4 mr-4 mb-4 bg-dark-700" id="main">
     <slot class="text-white"> Error: Something bad happened! </slot>
+    <a class="ml-4 text-white cursor-pointer">&#x2715;</a>
   </div>
 </template>
 
