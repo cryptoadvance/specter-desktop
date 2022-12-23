@@ -777,7 +777,7 @@
         attributeChangedCallback(attrName, oldValue, newValue) {
             if (attrName != "selected-coins") {
                 if (this.getAttribute('type') == "txlist") {
-                    this.amountHeader.innerText="Flow Amount"
+                    this.amountHeader.innerText="Amount \u0394"
                 } else {
                     this.amountHeader.innerText = "Value Amount"
                 }
