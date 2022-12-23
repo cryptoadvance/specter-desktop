@@ -970,7 +970,7 @@ def settings_clearcache(wallet_alias):
     wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     error = None
     wallet.clear_cache()
-    flash("Cache cleared successfully!")
+    flash("Cache with transactions cleared successfully!")
     scroll_to_rescan_blockchain = request.args.get("rescan_blockchain")
     return render_template(
         "wallet/settings/wallet_settings.jinja",
