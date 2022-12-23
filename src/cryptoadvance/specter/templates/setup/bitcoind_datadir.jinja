@@ -1,7 +1,7 @@
 {% extends "setup/setup_page.jinja" %}
 
 {% block setup %}
-    <h1><img src="{{ url_for('static', filename='img/ghost_3d.png') }}" data-style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" data-style="width: 60px;" class="svg-white"/>&nbsp;{{ bitcoin_svg(network, 60) }}<br>
+    <h1><img src="{{ url_for('static', filename='img/ghost_3d.png') }}" data-style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" data-style="width: 60px;" class="svg-white"/>&nbsp;<br>
     <br>{{ _("Configure your node") }}</h1>
     <div class="flex-center">
         <p id="quicksync-option" {% if network != 'main' %}class="hidden"{% endif %}>{{ _("QuickSync?") }}&nbsp;&nbsp;
@@ -98,28 +98,24 @@
         <div class="row overflow">
             <a href="{{ url_for('setup_endpoint.bitcoind_datadir', network='main') }}" data-style="color: #fff; text-decoration: none;">
                 <div class="small-card radio" data-style="min-width: 150px;">
-                    {{ bitcoin_svg('main', 40) }}
                     <br>
                     {{ _("Mainnet") }}
                 </div>
             </a>
             <a href="{{ url_for('setup_endpoint.bitcoind_datadir', network='testnet') }}" data-style="color: #fff; text-decoration: none;">
                 <div class="small-card radio" data-style="min-width: 150px;">
-                    {{ bitcoin_svg('test', 40) }}
                     <br>
                     {{ _("Testnet") }}
                 </div>
             </a>
             <a href="{{ url_for('setup_endpoint.bitcoind_datadir', network='signet') }}" data-style="color: #fff; text-decoration: none;">
                 <div class="small-card radio" data-style="min-width: 150px;">
-                    {{ bitcoin_svg('signet', 40) }}
                     <br>
                     Signet
                 </div>
             </a>
             <a href="{{ url_for('setup_endpoint.bitcoind_datadir', network='regtest') }}" data-style="color: #fff; text-decoration: none;">
                 <div class="small-card radio" data-style="min-width: 150px;">
-                    {{ bitcoin_svg('regtest', 40) }}
                     <br>
                     Regtest
                 </div>

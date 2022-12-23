@@ -63,11 +63,11 @@
         {% if device.hot_wallet %}
             <button id="{{ device.alias }}_hot_sign_btn" class="btn flex-item" data-style="width: 190px; margin: 15px auto;">
                 {% if device.device_type == "bitcoincore" %}
-                    {% from "components/bitcoin_svg.jinja" import bitcoin_svg %}
-                    {{ bitcoin_svg(chain, 16) }} {{ _("Sign with Bitcoin Core") }}
+                    <img src="{{ url_for('static', filename='img/devices/bitcoincore_icon.svg') }}"/>
+                    {{ _("Sign with Bitcoin Core") }}
                 {% else %}
-                    {% from "components/liquid_svg.jinja" import liquid_svg %}
-                    {{ liquid_svg(chain, 16) }} {{ _("Sign with Elements Core") }}
+                    <img src="{{ url_for('static', filename='img/devices/elementscore_icon.svg') }}"/>
+                    {{ _("Sign with Elements Core") }}
                 {% endif %}
             </button>
             <script>
