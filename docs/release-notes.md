@@ -1,5 +1,21 @@
 # Release Notes
 
+## v1.14.2 December 21, 2022
+- UIUX: Address labeling revamp #1978 (OTK & Manolis Mandrapilias)
+- UIUX: Better node selection #1987 (Manolis Mandrapilias)
+- UIUX: Update Passport connection instructions #2010 (BitcoinQnA)
+- Bugfix: Long loading time of wallets at start-up with Spectrum #2015 (k9ert)
+- Bugfix: Merkle proofs with Spectrum #2012 (k9ert)
+- Bugfix: Addressinfo edge case fixed #2001 (relativisticelectron)
+- Bugfix: Version not properly detected #2020 (k9ert)
+- Chore: Generic error handling for API calls #2014 (k9ert)
+- Chore: Moving the Spectrum extension to a core extension #2011 (k9ert)
+- Chore: Bump qs from 6.5.2 to 6.5.3 in /pyinstaller/electron #2002 (dependabot[bot])
+- Chore: Bump Spectrum and Python version #2027 (Manolis Mandrapilias)
+- Chore: Cypress test for address labeling #2021 (Manolis Mandrapilias)
+- Chore: Fix nix shell by generating hashes with pip-compile #2016 (hodlwave)
+- Docs: Corrected build instructions #1996 (relativisticelectron)
+
 ## v1.14.1 Dezember 07, 2022
 - Bugfix: Adding migrations to the hidden imports #2007 (k9ert)
 - Bugfix: Bump Spectrum for better error_handling (k9ert)
