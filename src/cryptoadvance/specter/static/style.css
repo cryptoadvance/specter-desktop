@@ -126,13 +126,14 @@
    */
 
   .button {
-    @apply rounded h-11 rounded-xl text-lg flex items-center space-x-2 justify-center bg-dark-600 px-10 cursor-pointer w-[calc(688px/2)] mb-5;
+    @apply h-11 rounded-xl text-lg flex items-center space-x-2 justify-center bg-dark-600 hover:opacity-80 px-10 cursor-pointer w-[calc(688px/2)] mb-5;
   }
 
   .button img {
     @apply w-7 h-7;
   }
 
+  /* Smaller button, that also has darker background color as of now, naming should be changed!*/
   .btn {
     @apply py-[2px] px-3 rounded-full bg-dark-800 border-dark-800 border-2 hover:border-dark-700 mr-1 ml-[-2px] break-keep;
   }

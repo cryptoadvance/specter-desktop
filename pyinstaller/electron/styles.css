@@ -839,10 +839,6 @@ table tr:hover .btn.hovering{
     z-index: 5;
     padding: 1.5em;
 }
-.page_overlay_popup_cancel {
-    margin-top: 2em;
-    float: right;
-}
 
 /************** Tool Tip Styles ********************************/
 .tool-tip {
