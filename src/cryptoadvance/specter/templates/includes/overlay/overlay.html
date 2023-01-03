@@ -73,8 +73,9 @@
             }
         });
 
-        document.getElementById("page_overlay").addEventListener("click", function(e) {
-            // Ignore clicks on children
+        // Clicking outside of the popup cancels the overlay
+        document.getElementById("page_overlay_popup").addEventListener("click", function(e) {
+            console.log(e.currentTarget)
             if(e.target !== e.currentTarget) return;
             cancelOverlay();
         });
