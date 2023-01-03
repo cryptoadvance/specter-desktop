@@ -3,12 +3,13 @@
     {% if specter.chain %}
         <table>
             <tr> <td data-style="text-align: left;">{{ _("Network") }}:</td> <td data-style="text-align: right;" id="node-info-specter-chain">{{specter.chain}}</td> </tr>
+            <tr> <td data-style="text-align: left;">{{ _("Blocks count") }}:</td> <td data-style="text-align: right;">{{specter.info['blocks']}}</td> </tr>
+            <tr> <td data-style="text-align: left;">{{ _("Host") }}:</td> <td data-style="text-align: right;" id="node-info-specter-chain">{{specter.node.host}}</td> </tr>
+            <tr> <td data-style="text-align: left;">{{ _("Port") }}:</td> <td data-style="text-align: right;" id="node-info-specter-chain">{{specter.node.port}}</td> </tr>
             <tr> <td data-style="text-align: left; width: 35%;">{{ _("Bitcoin Core Version") }}:</td> <td data-style="text-align: right;">v{{specter.bitcoin_core_version}}</td> </tr>
             <tr> <td data-style="text-align: left;">{{ _("Connections count") }}:</td> <td data-style="text-align: right;">{{specter.network_info['connections']}}</td> </tr>
-            <tr> <td data-style="text-align: left;">{{ _("Difficulty") }}:</td> <td data-style="text-align: right;">{{specter.info.get('difficulty', 0) | int}}</td> </tr>
             <tr> <td data-style="text-align: left;">{{ _("Size on disk") }}:</td> <td data-style="text-align: right;">{{specter.info['size_on_disk']|bytessize }}</td> </tr>
-            <tr> <td data-style="text-align: left;">{{ _("Blocks count") }}:</td> <td data-style="text-align: right;">{{specter.info['blocks']}}</td> </tr>
-            <tr> <td data-style="text-align: left;">{{ _("Mempool Size") }}:</td> <td data-style="text-align: right;">{{specter.info['mempool_info'].size}} transactions</td> </tr>
+            <tr> <td data-style="text-align: left;">{{ _("Mempool size") }}:</td> <td data-style="text-align: right;">{{specter.info['mempool_info'].size}} transactions</td> </tr>
             <tr> <td data-style="text-align: left;">{{ _("Node uptime") }}:</td> <td data-style="text-align: right;">~ {{(specter.info['uptime'] / 60 // 60) | int }} {{ _("Hours") }}</td> </tr>
             {% if specter.info['pruned'] %}
                 <tr> <td data-style="text-align: left;">{{ _("Automatic pruning") }}:</td> <td data-style="text-align: right;">{{specter.info['automatic_pruning']}}</td> </tr>
@@ -39,7 +40,7 @@
         <script>
             let totalUserBalance = parseFloat(parseFloat("{{ specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') }}").toFixed(8));
             async function fetchTotalSupply() {
-                document.getElementById('total_supply').innerHTML = `{{ _("Running the numbers... (this might take a few minutes)") }}`;
+                document.getElementById('total_supply').innerText = `{{ _("Calculating ... (this might take a few minutes)") }}`;
                 try {
                     const response = await fetch(
                         "{{ url_for('wallets_endpoint_api.txout_set_info') }}",
@@ -57,7 +58,7 @@
                         return
                     }
                     if (totalUserBalance==0) {
-                        document.getElementById('total_supply').innerHTML = `Your wallet holds 0 BTC and so, you're effectively a precoiner! Get off zero! `
+                        document.getElementById('total_supply').innerText = "Your wallet holds 0 BTC. Get off zero!"
                         return
                     }
                     let totalSupply = result.total_amount
