@@ -65,7 +65,7 @@ sudo yum -y install libusb libudev-devel libffi libffi-devel openssl-devel && su
 ```
 
 #### Windows
-* Install python 3.8.x by downloading from [python.org](https://www.python.org/downloads/windows/)
+* Install python 3.1.x by downloading from [python.org](https://www.python.org/downloads/windows/)
 
     _Do NOT install python from the Microsoft Store! It runs in a different execution environment that creates enormous headaches!_
 
@@ -85,8 +85,7 @@ sudo yum -y install libusb libudev-devel libffi libffi-devel openssl-devel && su
 
 
 ### Set up virtualenv
-Specter is using `hwi-2.1.0` which by now supports higher Python versions than Specter itself. Specter currently supports Python 3.7-3.9.
-If you have Python 3.10 as your global version then be sure to also install an old Python version and pass it to `virtualenv` (e.g. `virtualenv --python=python3.8 .env`) or use pyenv.
+Specter is using `hwi-2.1.0` which by now supports higher Python versions than Specter itself. Specter currently supports Python 3.9 and 3.1.
 
 ```sh
 git clone https://github.com/cryptoadvance/specter-desktop.git
