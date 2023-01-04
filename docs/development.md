@@ -112,6 +112,7 @@ Run the server:
 cd specter-desktop
 python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
 ```
+After that, Specter will be available at http://127.0.0.1:25441/.
 
 #### If `pip install` fails on `cryptography==3.4.x`
 
