@@ -9,35 +9,19 @@ const DESTINATION = '.env/lib/python3.10/site-packages/'
 
 exports.default = function() {
   watch([`src/**/*.{jinja,html,css,svg}`], { events: 'all' }, (cb) => {
-    console.log("Change in source folder")
-    
-    src(`src/cryptoadvance/**/*.{jinja,html,css,svg}`)
+    if (process.argv.includes('--site-packages')) {
+      console.log('Running gulp livereload and copying files to site-packages.')
+      src(`src/cryptoadvance/**/*.{jinja,html,css,svg}`)
       .pipe(dest(`.env/lib/python3.10/site-packages/cryptoadvance/`))
-      .pipe(livereload()) // trigger update
-
+      .pipe(livereload())
+    }
+    else {
+      console.log('Running gulp livereload.')
+      src(`src/cryptoadvance/**/*.{jinja,html,css,svg}`)
+      .pipe(livereload())
+   }
     cb();
   })
-  
-  // watch([`${SRC_PREFIX}${TEMPLATE_FOLDER}/**/*.{jinja,html}`], { events: 'all' }, (cb) => {
-  //   console.log('Template: Copying files to', `${DESTINATION}${TEMPLATE_FOLDER}`)
-    
-  //   src(`${SRC_PREFIX}${TEMPLATE_FOLDER}/**/*.{jinja,html}`)
-  //     .pipe(dest(`${DESTINATION}${TEMPLATE_FOLDER}`))
-  //     .pipe(livereload()) // trigger update
-
-  //   cb();
-  // })
-
-  // watch([`${SRC_PREFIX}${STATIC_FOLDER}/**/*.{css,svg}`], { events: 'all' }, (cb) => {
-  //   console.log('Static: Copying files to', `${DESTINATION}${TEMPLATE_FOLDER}`)
-
-  //   src(`${SRC_PREFIX}${STATIC_FOLDER}/*.{css,svg}`)
-  //     .pipe(dest(`${DESTINATION}${STATIC_FOLDER}/**/*.{css,svg}`))
-  //     .pipe(livereload()) // trigger update
-
-  //   cb();
-  // })
-
   // start live reload
   livereload.listen({ port: 35729 })
 }
