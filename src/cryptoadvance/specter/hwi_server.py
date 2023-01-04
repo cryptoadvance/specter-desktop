@@ -5,7 +5,9 @@ from flask import current_app as app
 from flask_cors import CORS
 from .hwi_rpc import HWIBridge
 from .helpers import deep_update, hwi_get_config, save_hwi_bridge_config
+import logging
 
+logger = logging.getLogger(__name__)
 
 hwi_server = Blueprint("hwi_server", __name__)
 CORS(hwi_server)
@@ -55,6 +57,7 @@ def api():
     try:
         data = json.loads(request.data)
     except Exception as e:
+        logger.exception(e)
         return (
             jsonify(
                 {

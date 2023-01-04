@@ -80,6 +80,7 @@ class TorDaemonController:
             s.close()
             return True
         except Exception as e:
+            logger.exception(e)
             return False
 
     def stop_tor_daemon(self):

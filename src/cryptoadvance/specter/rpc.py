@@ -59,7 +59,6 @@ def _get_rpcconfig(datadir=get_default_datadir()):
         "cookies": [],
     }
     if not os.path.isdir(datadir):  # we don't know where to search for files
-        logger.warning(f"{datadir} not found")
         return config
     # load content from bitcoin.conf
     bitcoin_conf_file = os.path.join(datadir, "bitcoin.conf")
@@ -198,8 +197,6 @@ def autodetect_rpc_confs(
                 pass
                 # have to make a list of acceptable exception unfortunately
                 # please enlarge if you find new ones
-    else:
-        logger.info(f"No candidates for BTC-connection autodetection found")
     return available_conf_arr
 
 
