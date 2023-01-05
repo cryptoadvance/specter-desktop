@@ -119,6 +119,7 @@ def node_settings(node_alias):
                 flash(_("Node with this name already exists"), "error")
             else:
                 node.rename(node_name)
+            flash(_(f"New node name saved."))
         elif action == "forget":
             if not node_alias:
                 flash(_("Failed to deleted node. Node isn't saved"), "error")
@@ -199,10 +200,20 @@ def node_settings(node_alias):
                     host,
                     protocol,
                 )
-                app.specter.update_active_node(node.alias)
-                return redirect(
-                    url_for("nodes_endpoint.node_settings", node_alias=node.alias)
-                )
+                test = node.test_rpc()
+                if not test["tests"] or False in list(test["tests"].values()):
+                    flash(
+                        _(
+                            f"Node saved but not selected (no connection). Configuration changes needed. Try the test button!"
+                        )
+                    )
+                    return redirect(
+                        url_for("nodes_endpoint.node_settings", node_alias=node.alias)
+                    )
+                else:
+                    flash(_(f"New node saved and selected."))
+                    app.specter.update_active_node(node.alias)
+                    return redirect(url_for("welcome_endpoint.index"))
 
             success = node.update_rpc(
                 autodetect=autodetect,
@@ -214,8 +225,16 @@ def node_settings(node_alias):
                 protocol=protocol,
             )
             if not success:
-                flash(_("Saving failed: no connection to node"), "error")
+                flash(
+                    _("Update of configuration details failed (no connection)"), "error"
+                )
             if success:
+                flash(
+                    _(
+                        f"Configuration details updated and switched to {node.name} as node."
+                    )
+                )
+                app.specter.update_active_node(node.alias)
                 return redirect(url_for("welcome_endpoint.index"))
 
     return render_template(
