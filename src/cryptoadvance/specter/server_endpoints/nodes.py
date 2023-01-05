@@ -125,7 +125,9 @@ def node_settings(node_alias):
                 flash(_("Failed to deleted node. Node isn't saved"), "error")
             elif len(app.specter.node_manager.nodes) > 1:
                 app.specter.node_manager.delete_node(node, app.specter)
-                flash(_("Node deleted successfully"))
+                flash(
+                    _("Node deleted successfully. Switched to the next available node.")
+                )
                 return redirect(
                     url_for(
                         "nodes_endpoint.node_settings",
