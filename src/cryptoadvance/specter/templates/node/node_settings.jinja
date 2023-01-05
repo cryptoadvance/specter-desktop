@@ -71,16 +71,17 @@
 							<div class="floating-wrapper">
 								<input class="floating-input peer" placeholder=" " type="text" id="port" name="port" type="text" value="{{ node.port }}">
 								<label class="floating-label" for="port">Port</label>
-								<tool-tip class="floating-info">
+								<tool-tip class="floating-info" width="150px">
 									<span slot="paragraph">
-										{{ _("Mainnet: ")}}<b>8332</b>,
-										{{ _("Testnet: ")}}<b>18332</b>,
-										{{ _("Regtest: ")}}<b>18443</b>,
-										{{ _("Signet:  ")}}<b>38332</b>,
-										<br>
-										{{ _("Liquid Mainnet: ")}}<b>7041</b>,
-										{{ _("Liquid Testnet: ")}}<b>18891</b>,
-										{{ _("Liquid Regtest: ") }}<b>18884</b>
+										<p>Bitcoin</p>
+										{{ _("Mainnet: ")}} 8332 <br>
+										{{ _("Testnet: ")}} 18332 <br>
+										{{ _("Regtest: ")}} 18443 <br>
+										{{ _("Signet: ")}} 38332 <br>
+										<p>Liquid</p>
+										{{ _("Mainnet: ")}} 7041 <br>
+										{{ _("Testnet: ")}} 18891 <br>
+										{{ _("Regtest: ") }}  18884 <br>
 									</span>
 								</tool-tip>
 							</div>
