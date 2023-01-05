@@ -9,14 +9,6 @@
 	{% from 'components/editable_title.jinja' import editable_title %}
 	{{ editable_title(device.name) }}
 
-	<form action="./" method="POST">
-		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-		<div class="flex">
-			{% include "device/components/device_type.jinja" %}
-		</div>
-		<button type="submit" class="btn hidden" id="settype" name="action" value="settype">{{ _("Update") }}</button>
-	</form>
-
 	<div class="table-holder my-10">
 		<table id="keys-table">
 			<thead>
@@ -61,6 +53,14 @@
 	</div>
 
 	<div>
+		<form action="./" method="POST">
+			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+			<div class="flex mb-5 w-[344px]">
+				{% include "device/components/device_type.jinja" %}
+			</div>
+			<button type="submit" class="button text-white bg-accent mt-3 hidden" id="settype" name="action" value="settype">{{ _("Update") }}</button>
+		</form>
+
 		<form action="./" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			{% if device.device_type != "bitcoincore_watchonly"%}
