@@ -29,7 +29,7 @@
                     </small>
                 </div>
 
-                <a class="flex self-center justify-end grow" href="{{ url_for('nodes_endpoint.node_settings', node_alias=node.alias) }}">
+                <a class="flex self-center justify-end grow" title="Configure node" href="{{ url_for('nodes_endpoint.node_settings', node_alias=node.alias) }}">
                     <img src="{{ url_for('static', filename='img/gear.svg')}}" class="svg-white"/>
                 </a>
             </div>
