@@ -106,84 +106,69 @@
 				</div>
 			</section>
 
-			<div class="flex space-x-3 mt-8">
+			<div class="lg:flex gap-2 mt-8">
 				{% if specter.node_manager.nodes | length > 1 and node_alias %}
 					<button type="submit" name="action" value="forget" class="button">{{ _("Forget node") }}</button>
 				{% endif %}
 				<button type="submit" class="button" name="action" value="test">{{ _("Test") }}</button>
-				<button type="submit" class="button grow bg-accent text-white" name="action" value="save">{{ _("Save") }}</button>
+				<button type="submit" class="button bg-accent text-white" name="action" value="save">{{ _("Save") }}</button>
 			</div>
 
 			{% if test %}
-				<br><div class="log"><b>{{ _("Test results:") }}</b><br><br>
-				<div data-style="display: grid;grid-template-columns: auto auto auto; line-height: 2.2;">
-					{% macro tick_or_cross(my_boolean) %}
-					<button data-style="background: #fff; border: none;" disabled> 
+				{% set test_failure = failed_test != "" %}
+				{% macro tick_or_cross(my_boolean) %}
+					<button disabled> 
 						{% if my_boolean %}
-							<div data-style="color: green; font-size: 1.5em;">&#x2714;</div> 
+							<div class="mr-2" data-cy="node-test-passed">&#x2714;</div> 
 						{% else %} 
-							<div data-style="color: red; font-size: 1.5em;">&#x274C;</div>  
+							<div class="mr-2" data-cy="node-test-failed">&#x274C;</div>  
 						{% endif %}
 					</button>
-					{% endmacro %}
-					{% if 'connectable' in test['tests'] %}
-						<div data-style="margin-right: 10px;">{{ _("Connectable") }}</div>
-						<div>{{ tick_or_cross(test['tests']['connectable']) }} </div>
-						{% if not test['tests']['connectable'] %} 
-							<span class="warning">
-								{{ _("There are a lot of potential issues preventing the connection. Please double-check the host and the port. Make sure you can reach the host and make sure that Bitcoin Core is listening on the port you have specified.") }} 
-								{{ _('For more hints, please look at this') }} <a data-style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">{{ _('article.') }}</a>
-							</span>
-						{% else %}
-							<div></div>
-						{% endif %}
+				{% endmacro %}
+				<h3 class="mt-8">{{ _("Test results") }}</h3>
+				<div class="grid grid-cols-4 grid-rows-1">
+					{% if not test_failure %}
+						<div>{{ tick_or_cross(test['tests']['connectable']) }} Connectable</div>
+						<div>{{ tick_or_cross(test['tests']['credentials']) }} Credentials</div>
+						<div>{{ tick_or_cross(test['tests']['recent_version']) }} Version</div>
+						<div>{{ tick_or_cross(test['tests']['wallets']) }} Wallet enabled</div>
 					{% endif %}
-
-					{% if 'credentials' in test['tests'] %}
-						<div data-style="margin-right: 10px;">Credentials</div>
-						<div> {{ tick_or_cross(test['tests']['credentials']) }} </div>
-						{% if not test['tests']['credentials'] %}
-							<span class="warning">
-								{{ _("Please double-check the user and the password. Have a look at the bitcoin.conf for the correct values in that field.") }}
-								{{ _('For more hints, please read this') }} <a data-style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">{{ _('article.') }}</a>
-							</span>
-						{% else %}
-							<div></div>
-						{% endif %}
+					{% if failed_test == 'connectable' %}
+						<div>{{ tick_or_cross(test['tests']['connectable']) }} Connectable</div>
+						<div class="col-span-4">
+							<p>
+								{{ _("No connection with your Bitcoin Core node could be established. There are a lot of potential issues preventing the connection. Start with double-checking the host and port. Make sure you can reach the host and that Bitcoin Core is listening on the port you have specified.") }} 
+								{{ _('For more hints, have a look at this') }} <a href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">{{ _('article.') }}</a>
+							</p>
+						</div>
 					{% endif %}
-
-					{% if 'recent_version' in test['tests'] %}
-						<div data-style="margin-right: 10px;">{{ _("Version recent enough") }}</div>
-						<div> {{ tick_or_cross(test['tests']['recent_version']) }} </div>
-						{% if not test['tests']['recent_version'] %}
-							<span class="warning">
-								{{ _("Your Core Node might be too old.") }}
-								{{ _("Specter is working well up from Bitcoin Core version 0.17. The version of your node is too old, unfortunatley. Please upgrade!") }}
-							</span>
-						{% else %}
-							<div></div>
-						{% endif %}
+					{% if failed_test == 'credentials' %}
+						<div>{{ tick_or_cross(test['tests']['credentials']) }} Credentials</div>
+						<div class="col-span-4">
+							<p>
+								{{ _("The RPC authentication with your Bitcoin Core node failed. Double-check that the username and password you have specified in the bitcoin.conf-file are correct.") }}
+								{{ _('For more hints, see') }} <a data-style="color:grey" href="https://github.com/cryptoadvance/specter-desktop/blob/master/docs/connect-your-node.md" target="_blank">{{ _('article.') }}</a>
+							</p>
+						</div>
 					{% endif %}
-					
-					{% if 'wallets' in test['tests'] %}
-						<div data-style="margin-right: 10px;">Wallets enabled</div>
-						<div> {{ tick_or_cross(test['tests']['wallets']) }} </div>
-						{% if not test['tests']['wallets'] %}
-							<span class="warning">
-								{{ _("You don't have wallet support enabled on your Core node.") }}
-								{{ _("The RPC interface of your Core node is available, but the Core wallet API is not. Please make sure to have 'disablewallet=0' in your bitcoin.conf.") }}
-							</span>
-						{% else %}
-							<div></div>
-						{% endif %}
+					{% if failed_test == 'recent_version' %}
+						<div>{{ tick_or_cross(test['tests']['recent_version']) }} Bitcoin Core version</div>
+						<div class="col-span-4">
+							<p>
+								{{ _("The Bitcoin Core version you are using is too old.") }}
+								{{ _("Specter is working well with Bitcoin Core version 0.17. and higher. You need to upgrade.") }}
+							</p>
+						</div>
 					{% endif %}
-
-				</div>
-
-				<br>
-					<code>
-						<pre>{{ _("Process finished with code ") }}<b>{{ test.code }}</b>{% if test.code == 0 %} {{ _("Output:") }} {{ test.out }}{% else %}{{ _("Error message:") }} {{ test.err }}{% endif %}</pre>
-					</code>
+					{% if failed_test == 'wallets' %}
+						<div>{{ tick_or_cross(test['tests']['wallets']) }} Bitcoin Core wallet</div>
+						<div class="col-span-4">
+							<p>
+								{{ _("You don't have wallet support enabled for your Bitcoin Core node.") }}
+								{{ _("Please make sure to have 'disablewallet=0' in your bitcoin.conf.") }}
+							</p>
+						</div>
+					{% endif %}
 				</div>
 			{% endif %}
 		</div>

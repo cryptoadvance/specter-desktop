@@ -334,29 +334,6 @@ a.item:hover {
     opacity: 1;
 }
 
-/* disconnected node */
-svg.core {
-    fill: var(--network-color, #79869B);
-}
-svg.core.test {
-    fill: var(--test-color);
-}
-svg.core.testnet {
-    fill: var(--test-color);
-}
-svg.core.main {
-    fill: var(--main-color);
-}
-svg.core.mainnet {
-    fill: var(--main-color);
-}
-svg.core.regtest {
-    fill: var(--regtest-color);
-}
-svg.core.signet {
-    fill: var(--signet-color);
-}
-
 small,
 .small {
     font-size: 0.7em;

@@ -84,6 +84,7 @@ def node_settings(node_alias):
         node.update_rpc()
 
     test = None
+    failed_test = ""
     if request.method == "POST":
         action = request.form["action"]
 
@@ -161,8 +162,14 @@ def node_settings(node_alias):
                 if not test["tests"] or False in list(test["tests"].values()):
                     flash(_("Test failed: {}").format(test["err"]), "error")
                 else:
-                    flash(_("Test passed"), "info")
-            elif "err" in test:
+                    flash(_("All tests passed. Good to go!"), "info")
+                # Determine the first failed test
+                for test_name, value in test["tests"].items():
+                    if value == False:
+                        failed_test = test_name
+                        break
+            # Not sure whether it ever comes to this, "tests"-key should always be present
+            elif test["err"] != "":
                 flash(_("Test failed: {}").format(test["err"]), "error")
         elif action == "save":
             if not node_alias:
@@ -216,6 +223,7 @@ def node_settings(node_alias):
         node=node,
         node_alias=node_alias,
         test=test,
+        failed_test=failed_test,
         specter=app.specter,
         rand=rand,
     )
