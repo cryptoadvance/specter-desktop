@@ -189,8 +189,13 @@ def node_settings(node_alias):
                         specter=app.specter,
                         rand=rand,
                     )
+                # Set the node type (BTC or ELM) - TODO: Remove if the Liquid node inherits from the abstract node as the Spectrum node does
+                node_type = "BTC"
+                liquid_ports = [7041, 18891, 18884]
+                if int(port) in liquid_ports:  # port is a string
+                    node_type = "ELM"
                 node = app.specter.node_manager.add_external_node(
-                    "BTC",
+                    node_type,
                     node.name,
                     autodetect,
                     datadir,

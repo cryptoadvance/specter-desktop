@@ -1,6 +1,5 @@
-{% if node.is_liquid %}
+{% if node.node_type == "ELM" %}
     {# Liquid Logo #}
-    {# Unfortunately, there is no way to deterimine right now whether a node is a Liquid node if there is no connection with it #}
     <img src="{{ url_for('static', filename='img/liquid-logo.svg') }}" width="32px" height="32px"/>
 {% else %}
     {# Bitcoin Logo #}
