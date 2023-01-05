@@ -9,21 +9,24 @@
     	{'rubberduck': [{'title': 'Special rubberduck settings', 'endpoint': 'special_rubberduck_settings'}]}
  #}
 {% macro settings_menu(active_menuitem, current_user, ext_settingstabs={}) -%}
-
-	<nav class="row collapse-on-mobile">
-		{{ settings_menu_item('general', _('General'), active_menuitem, isLeft=true) }}
-		{{ settings_menu_item('auth', _('Authentication'), active_menuitem, isRight=false) }}
-		{{ settings_menu_item('hwi', _('USB Devices'), active_menuitem, isRight=(not current_user.is_admin)) }}
-		{% for ext_id, settingstabs in ext_settingstabs.items() %}
-			{% for settingstab in settingstabs %}
-				{{ settings_menu_item(settingstab["endpoint"], _(settingstab["title"]), active_menuitem, isRight=false, blueprint=ext_id+"_endpoint") }}
+	<!-- <nav class="row collapse-on-mobile"> -->
+	<nav class="text-center text-dark-200 border-b border-dark-600">
+		<ul class="flex flex-wrap -mb-px">
+			{{ settings_menu_item('general', _('General'), active_menuitem, isLeft=true) }}
+			{{ settings_menu_item('auth', _('Authentication'), active_menuitem, isRight=false) }}
+			{{ settings_menu_item('hwi', _('USB Devices'), active_menuitem, isRight=(not current_user.is_admin)) }}
+			{% for ext_id, settingstabs in ext_settingstabs.items() %}
+				{% for settingstab in settingstabs %}
+					{{ settings_menu_item(settingstab["endpoint"], _(settingstab["title"]), active_menuitem, isRight=false, blueprint=ext_id+"_endpoint") }}
+				{% endfor %}
 			{% endfor %}
-		{% endfor %}
-		{% if current_user.is_admin %}
-			{{ settings_menu_item('tor', 'Tor', active_menuitem, isRight=true) }}
-		{% endif %}
-		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`)">
-			<img data-style="width: 36px;" src="{{ url_for('static', filename='img/caret-down.svg') }}" class="svg-white"/>
-		</a>
+			{% if current_user.is_admin %}
+				{{ settings_menu_item('tor', 'Tor', active_menuitem, isRight=true) }}
+			{% endif %}
+			<!-- <a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`)"> -->
+			<!-- 	<img data-style="width: 36px;" src="{{ url_for('static', filename='img/caret-down.svg') }}" class="svg-white"/> -->
+			<!-- </a> -->
+		</ul>
+	<!-- </nav> -->
 	</nav>
 {%- endmacro %}
