@@ -993,6 +993,22 @@ select {
   right: 0px;
 }
 
+.right-10 {
+  right: 2.5rem;
+}
+
+.top-1 {
+  top: 0.25rem;
+}
+
+.top-2 {
+  top: 0.5rem;
+}
+
+.top-2\.5 {
+  top: 0.625rem;
+}
+
 .z-50 {
   z-index: 50;
 }
@@ -1479,6 +1495,10 @@ select {
   white-space: nowrap;
 }
 
+.break-all {
+  word-break: break-all;
+}
+
 .rounded-lg {
   border-radius: 0.5rem;
 }
@@ -1638,6 +1658,11 @@ select {
 .py-1 {
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 .pr-1 {

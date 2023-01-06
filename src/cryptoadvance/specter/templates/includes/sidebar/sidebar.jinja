@@ -10,7 +10,7 @@
             {% if specter.network_info.version < 200000 %}
                 <!-- <p class="warning" data-style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/warning_sign.svg') }}" data-style="width: 20px;"/><br>{{ _("Bitcoin Core version is outdated.")}}<br>{{ _('Some features might not work...')}}<br>{{ _("(minimum required: v20.0.0).") }}</p> -->
             {% endif %}
-                <div class="h-11 flex flex-row justify-between items-center mb-3 bg-dark-700 rounded-xl px-3 py-2 shadow-md hover:bg-dark-800 group">
+                <div class="h-13 flex flex-row justify-between items-center mb-3 bg-dark-700 rounded-xl px-3 py-2 shadow-md hover:bg-dark-800 group">
                     {% include specter.node.node_connection_template() %}
                     <div class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-dark-700 cursor-pointer">
                         <img class="w-7 h-7" id="node-switch-icon" src="{{ url_for('static', filename='img/flip-horizontal.svg')}}" class="svg-white" onclick="showNodeSelectPopup(event);"/>
