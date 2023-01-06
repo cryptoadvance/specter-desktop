@@ -1724,6 +1724,11 @@ select {
   color: rgb(111 112 115 / var(--tw-text-opacity));
 }
 
+.text-red-100 {
+  --tw-text-opacity: 1;
+  color: rgb(254 226 226 / var(--tw-text-opacity));
+}
+
 .underline {
   text-decoration-line: underline;
 }
@@ -1821,6 +1826,11 @@ select {
 .hover\:bg-dark-800:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(20 21 26 / var(--tw-bg-opacity));
+}
+
+.hover\:bg-dark-200:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(159 159 161 / var(--tw-bg-opacity));
 }
 
 .hover\:text-dark-50:hover {

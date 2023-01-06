@@ -3,13 +3,12 @@
   You can use it as a normal html tag, for example:
   <message-box type="error">error happened!!!</message-box>
 -->
-
 <template id="messagebox">
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
 
   <div class="shadow-md rounded-xl p-4 mr-4 mb-4 bg-dark-700" id="main">
-    <slot class="text-white"> Error: Something bad happened! </slot>
-    <a class="ml-4 text-white cursor-pointer">&#x2715;</a>
+    <slot class="text-white" id="error-text">Error: Something bad happened!</slot>
+    <a class="ml-4 text-white cursor-pointer" id="cancel-icon">&#x2715;</a>
   </div>
 </template>
 
@@ -22,6 +21,8 @@
       var style = document.getElementById("messagebox").content;
       var clone = style.cloneNode(true);
       this.main = clone.querySelector("#main");
+      this.text = clone.getElementById('error-text')
+      this.cancelIcon = clone.getElementById('cancel-icon')
       clone.querySelector("a").addEventListener("click", (e) => {
         this.close();
       });
@@ -45,7 +46,12 @@
       }, 200);
     }
     setType(mytype) {
-      this.main.classList.add("error");
+      this.main.classList.remove("bg-dark-700");
+      this.text.classList.remove("text-white");
+      this.cancelIcon.classList.remove("text-white")
+      this.main.classList.add("bg-red-100");
+      this.text.classList.add("text-red-700");
+      this.cancelIcon.classList.add("text-red-700")
     }
     connectedCallback() {
       this.main.style.opacity = 0;
