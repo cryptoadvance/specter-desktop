@@ -22,14 +22,17 @@
 		}
 	</div><!--</style>-->
 	<br>
-	<nav class="row collapse-on-mobile">
-		<button type="button" id="info_settings_tab_btn" class="btn radio left checked" onclick="setSettingsView('info')"> {{ _("Wallet Info") }} </button>
-		<button type="button" id="export_settings_tab_btn" class="btn radio" onclick="setSettingsView('export')"> {{ _("Export") }} </button>
-		<button type="button" id="advanced_settings_tab_btn" class="btn radio right" onclick="setSettingsView('advanced')"> {{ _("Advanced") }} </button>
-		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`)">
-			<img data-style="width: 36px;" src="{{ url_for('static', filename='img/caret-down.svg') }}" class="svg-white"/>
-		</a>
-	</nav><br>
+	<nav class="text-center text-dark-200 border-b border-dark-600">
+		<ul class="flex flex-wrap -mb-px">
+			<button type="button" id="info_settings_tab_btn" class="btn radio left checked" onclick="setSettingsView('info')"> {{ _("Wallet Info") }} </button>
+			<button type="button" id="export_settings_tab_btn" class="btn radio" onclick="setSettingsView('export')"> {{ _("Export") }} </button>
+			<button type="button" id="advanced_settings_tab_btn" class="btn radio right" onclick="setSettingsView('advanced')"> {{ _("Advanced") }} </button>
+			<!-- <a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`)"> -->
+			<!-- 	<img data-style="width: 36px;" src="{{ url_for('static', filename='img/caret-down.svg') }}" class="svg-white"/> -->
+			<!-- </a> -->
+		</ul>
+	</nav>
+
 	<div id="wallet_info_settings_tab" data-style="width: 100%">
 		<h1 data-style="font-size: 1.7em;">{{ _("Wallet Info") }}</h1><br>
 		{% if wallet.is_multisig %}

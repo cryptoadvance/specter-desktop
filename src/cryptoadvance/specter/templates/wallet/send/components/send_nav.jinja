@@ -7,13 +7,14 @@
 	- wallet_alias: The wallet alias (used in the URL navigation).
  #}
 {% macro send_nav(active_menuitem, wallet_alias) -%}
-	<br>
-    <nav class="row collapse-on-mobile">
-		{{ wallet_menu_item('send_new', _('New'), wallet_alias, active_menuitem, isLeft=true) }}
-		{{ wallet_menu_item('send_pending', _('Saved'), wallet_alias, active_menuitem) }}
-		{{ wallet_menu_item('import_psbt', _('Import'), wallet_alias, active_menuitem, isRight=true) }}
-		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`)">
-			<img data-style="width: 36px;" src="{{ url_for('static', filename='img/caret-down.svg') }}" class="svg-white"/>
-		</a>
+	<nav class="text-center text-dark-200 border-b border-dark-600">
+		<ul class="flex flex-wrap -mb-px">
+			{{ wallet_menu_item('send_new', _('New'), wallet_alias, active_menuitem, isLeft=true) }}
+			{{ wallet_menu_item('send_pending', _('Saved'), wallet_alias, active_menuitem) }}
+			{{ wallet_menu_item('import_psbt', _('Import'), wallet_alias, active_menuitem, isRight=true) }}
+			<!-- <a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`)"> -->
+			<!-- 	<img data-style="width: 36px;" src="{{ url_for('static', filename='img/caret-down.svg') }}" class="svg-white"/> -->
+			<!-- </a> -->
+		</ul>
 	</nav>
 {%- endmacro %}
