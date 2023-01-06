@@ -1,13 +1,10 @@
 {% set node = specter.node %}
 {% if specter.node.is_running %}
-    <div id="active-node" onclick="showPageOverlay('node-info-popup');document.getElementById('side-content').classList.remove('active');" class="item core flex flex-row items-center cursor-pointer">
+    <div class="px-3 py-2 h-full min-w-0 grow flex items-center cursor-pointer" id="active-node" onclick="showPageOverlay('node-info-popup');document.getElementById('side-content').classList.remove('active');" >
         {% include node.node_logo_template() %}
-        <div class="hidden" id="node-info-popup">
-            {% include node.node_info_template() %}
-        </div>
-        <div class="text-lg ml-2">
-            {{ node.name }}
-        </div>
+        <div class="ml-2 text-lg min-w-0 text-ellipsis truncate">{{ node.name }}</div>
+
+        <div class="hidden" id="node-info-popup">{% include node.node_info_template() %}</div>
     </div>
 {% else %}
     <div class="flex ml-2 gap-2">
