@@ -1,9 +1,10 @@
-<div class="z-50 hidden absolute w-screen h-screen" id="page_overlay" data-style="display: none;">
-    <div class="w-screen h-screen bg-black/60 flex flex-col items-center justify-center" id="page_overlay_popup">
-        <div class="box-shadow-xl bg-dark-800 overflow-hidden rounded-2xl text-white" id="page_overlay_popup_content"></div>
-        <div class="mt-1 text-white btn align-self-end">
-            <a href="#" id="page_overlay_popup_cancel_button" onclick="cancelOverlay()">{{ _("Cancel") }}</a>
-        </div>
+<div class="hidden z-50 absolute w-screen h-screen" id="page_overlay">
+    <div class="w-screen h-screen bg-black/40 flex flex-col relative items-center justify-center" id="page_overlay_popup">
+        <div class="box-shadow-xl top-16 left-4 absolute overflow-hidden rounded-xl text-white" id="page_overlay_popup_content"></div>
+
+        <!-- <div class="mt-2 text-white btn align-self-end"> -->
+        <!--     <a href="#" id="page_overlay_popup_cancel_button" onclick="cancelOverlay()">{{ _("Cancel") }}</a> -->
+        <!-- </div> -->
     </div>
 </div>
 

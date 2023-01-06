@@ -39,7 +39,7 @@
 							<option value="24" {% if specter.autologout_timeout == 24 %}selected{% endif %}>{{ _("After being idle for 24 hours") }}</option>
 							<option value="CUSTOM" {% if specter.autologout_timeout and specter.autologout_timeout not in [1, 4, 24] %}selected{% endif %}>{{ _("Custom idle time (hours)") }}</option>
 						</select>
-						<label class="floating-label" for="autologout_timeout">{{ _("Auto-logout user") }}</label>
+						<label class="floating-label" for="autologout_timeout">{{ _("Auto-Logout User") }}</label>
 					</div>
 
 					<input type="number" min="1" name="custom_autologout_timeout" id="custom_autologout_timeout" class="hidden" placeholder='{{ _("hours") }}' {% if specter.autologout_timeout and specter.autologout_timeout not in [1, 4, 24] %}value="{{ specter.autologout_timeout }}"{% endif %} data-style="margin-top: 15px; margin-bottom: 30px;"/>
