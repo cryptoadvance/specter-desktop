@@ -11,8 +11,8 @@ from flask import (
 )
 from flask_babel import lazy_gettext as _
 from flask_login import login_required, current_user
-from flask import current_app as app
-from ..rpc import get_default_datadir
+from flask import current_app as app, session
+from ..rpc import get_default_datadir, get_rpcconfig
 from ..node import Node
 from ..specter_error import (
     ExtProcTimeoutException,
@@ -36,90 +36,163 @@ nodes_endpoint = Blueprint("nodes_endpoint", __name__)
 @nodes_endpoint.route("node/<node_alias>/", methods=["GET", "POST"])
 @login_required
 def node_settings(node_alias):
-    if node_alias:
-        try:
-            node: Node = app.specter.node_manager.get_by_alias(node_alias)
-            if not node.is_specter_core_object:
-                return redirect(
-                    url_for(
-                        # This is a convention which should be documented
-                        # Maybe we should do that differently
-                        f"{node.blueprint}.node_settings",
-                        node_alias=node.alias,
-                    )
-                )
-            if not node.external_node:
-                return redirect(
-                    url_for(
-                        "nodes_endpoint.internal_node_settings",
-                        node_alias=node.alias,
-                    )
-                )
-        except SpecterError as se:
-            assert str(se).endswith("does not exist!")
-            return render_template(
-                "base.jinja", error=_("Node not found"), specter=app.specter, rand=rand
-            )
-    else:
-        node = Node.from_json(
-            {
-                "name": "New Node",
-                "autodetect": True,
-                "datadir": get_default_datadir(),
-                "user": "",
-                "password": "",
-                "port": 8332,
-                "host": "localhost",
-                "protocol": "http",
-            },
-            app.specter.node_manager,
-        )
-
     if not current_user.is_admin:
         flash(_("Only an admin is allowed to access this page"), "error")
         return redirect("")
-    # The node might have been down but is now up again
-    # (and the checker did not realized yet) and the user clicked "Configure Node"
-    if node.rpc is None and node_alias:
-        node.update_rpc()
+    if request.method == "GET":
+        # Checking for node alias is to distinguish between an existing node and a new node which has not been saved yet (saving sets an alias)
+        if node_alias:
+            try:
+                node: Node = app.specter.node_manager.get_by_alias(node_alias)
+                if not node.is_specter_core_object:
+                    return redirect(
+                        url_for(
+                            # This is a convention which should be documented
+                            # Maybe we should do that differently
+                            f"{node.blueprint}.node_settings",
+                            node_alias=node.alias,
+                        )
+                    )
+                if not node.external_node:
+                    return redirect(
+                        url_for(
+                            "nodes_endpoint.internal_node_settings",
+                            node_alias=node.alias,
+                        )
+                    )
+            except SpecterError as se:
+                assert str(se).endswith("does not exist!")
+                return render_template(
+                    "base.jinja",
+                    error=_("Node not found"),
+                    specter=app.specter,
+                    rand=rand,
+                )
+            return render_template(
+                "node/node_settings.jinja",
+                node=node,
+                node_alias=node_alias,
+                specter=app.specter,
+                rand=rand,
+            )
+        if node_alias == None:
+            bitcoin_conf_values = False
+            # First check whether the Bitcoin Core data directory can be accessed at all
+            datadir_accessable = False
+            node_type = ""
+            default_datadir = ""
+            for node_type in ["BTC", "ELM"]:
+                default_datadir = get_default_datadir(node_type)
+                if default_datadir != None:
+                    datadir_accessable = True
+                    if "Bitcoin" in default_datadir:
+                        node_type = "BTC"
+                    else:
+                        node_type = "ELM"
+                    break
+            # If the data directory can be accessed, we can try reading config values from a bitcoin.conf file
+            if datadir_accessable:
+                config = get_rpcconfig(default_datadir)["bitcoin.conf"]
+                bitcoin_conf_values = False
+                for key, value in config.items():
+                    if value:
+                        bitcoin_conf_values = True
+                        break
+            if bitcoin_conf_values:
+                user = config["default"].get("rpcuser", "")
+                password = config["default"].get("rpcpassword", "")
+                port = ""
+                # Try-except only necessary for regtest or testnet
+                try:
+                    if config["default"]["rpcport"]:
+                        port = config["default"].get("rpcport", 8332)
+                except KeyError:
+                    rpcport = None
+                    for key, value in config.items():
+                        if "rpcport" in value:
+                            port = value["rpcport"]
+                            break
 
-    test = None
-    failed_test = ""
-    if request.method == "POST":
-        action = request.form["action"]
-
-        if action != "rename":
-            autodetect = "autodetect" in request.form
-            if autodetect:
-                datadir = request.form["datadir"]
+                node = Node.from_json(
+                    {
+                        "name": "Your New Node",
+                        "autodetect": True,
+                        "node_type": node_type,
+                        "datadir": default_datadir,
+                        "user": user,
+                        "password": password,
+                        "port": port,
+                        "host": "localhost",
+                        "protocol": "http",
+                    },
+                    app.specter.node_manager,
+                )
+                flash(
+                    f"Configuration file detected for a {node_type} node. Check the imported values and if all is fine save."
+                )
             else:
-                datadir = ""
+                node = Node.from_json(
+                    {
+                        "name": "Your New Node X",
+                        "autodetect": False,
+                        "datadir": "",
+                        "user": "",
+                        "password": "",
+                        "port": 8332,
+                        "host": "",
+                        "protocol": "http",
+                    },
+                    app.specter.node_manager,
+                )
+            session["new_node"] = node.json
+            return render_template(
+                "node/node_settings.jinja",
+                node=node,
+                bitcoin_conf_values=bitcoin_conf_values,
+                specter=app.specter,
+                rand=rand,
+            )
+    if request.method == "POST":
+        if node_alias:
+            node = app.specter.node_manager.get_by_alias(node_alias)
+        else:
+            node_json = session.get("new_node", None)
+            node = Node.from_json(node_json, app.specter.node_manager)
+        test = None
+        failed_test = ""
+        # The node might have been down but is now up again
+        # and the checker did not realise it yet when the user clicked "Configure Node"
+        if node.rpc is None and node_alias:
+            node.update_rpc()
+        action = request.form["action"]
+        if action in ["save", "test"]:
             user = request.form["username"]
             password = request.form["password"]
             port = request.form["port"]
             host = request.form["host"].rstrip("/")
-            # protocol://host
+            protocol = ""
             if "://" in host:
                 arr = host.split("://")
                 protocol = arr[0]
                 host = arr[1]
             else:
                 protocol = "http"
-
-            if not node_alias:
-                node.name = request.form["name"]
-
         if action == "rename":
             node_name = request.form["newtitle"]
             if not node_name:
                 flash(_("Node name cannot be empty"), "error")
             elif node_name == node.name:
                 pass
-            elif node_name in app.specter.device_manager.devices_names:
-                flash(_("Node with this name already exists"), "error")
+            elif node_name in app.specter.node_manager.nodes_names:
+                flash(
+                    _(
+                        "Node with this name already exists, please choose a different name"
+                    ),
+                    "error",
+                )
             else:
                 node.rename(node_name)
-            flash(_(f"New node name saved."))
+                flash(_(f"New node name saved."))
         elif action == "forget":
             if not node_alias:
                 flash(_("Failed to deleted node. Node isn't saved"), "error")
@@ -148,16 +221,16 @@ def node_settings(node_alias):
             node = Node(
                 node.name,
                 node.alias,
-                autodetect,
-                datadir,
+                node.autodetect,
+                node.datadir,
                 user,
                 password,
                 port,
                 host,
                 protocol,
                 node.fullpath,
-                "BTC",
-                node.manager,
+                node.node_type,
+                app.specter.node_manager,
             )
             test = node.test_rpc()
             if "tests" in test:
@@ -165,7 +238,7 @@ def node_settings(node_alias):
                 if not test["tests"] or False in list(test["tests"].values()):
                     flash(_("Test failed: {}").format(test["err"]), "error")
                 else:
-                    flash(_("All tests passed. Good to go!"), "info")
+                    flash(_("All tests passed. Good to go to save this node!"))
                 # Determine the first failed test
                 for test_name, value in test["tests"].items():
                     if value == False:
@@ -176,6 +249,9 @@ def node_settings(node_alias):
                 flash(_("Test failed: {}").format(test["err"]), "error")
         elif action == "save":
             if not node_alias:
+                node.name = request.form[
+                    "name"
+                ]  # Name form field is only used when setting up new nodes
                 if node.name in app.specter.node_manager.nodes_names:
                     flash(
                         _(
@@ -194,13 +270,13 @@ def node_settings(node_alias):
                 # Set the node type (BTC or ELM) - TODO: Remove if the Liquid node inherits from the abstract node as the Spectrum node does
                 node_type = "BTC"
                 liquid_ports = [7041, 18891, 18884]
-                if int(port) in liquid_ports:  # port is a string
+                if port != "" and int(port) in liquid_ports:  # port is a string
                     node_type = "ELM"
                 node = app.specter.node_manager.add_external_node(
                     node_type,
                     node.name,
-                    autodetect,
-                    datadir,
+                    node.autodetect,
+                    node.datadir,
                     user,
                     password,
                     port,
@@ -221,15 +297,15 @@ def node_settings(node_alias):
                     flash(_(f"New node saved and selected."))
                     app.specter.update_active_node(node.alias)
                     return redirect(url_for("welcome_endpoint.index"))
-
+            # Updating a node with autodetect with incorrect values doesn't lead to a failure since the get_rpc in the node class
+            # is restablishing the rpc connection with re-reading the bitcoin.conf. To avoid confusion we set autodetect here to False.
             success = node.update_rpc(
-                autodetect=autodetect,
-                datadir=datadir,
                 user=user,
                 password=password,
                 port=port,
                 host=host,
                 protocol=protocol,
+                autodetect=False,
             )
             if not success:
                 flash(

@@ -50,9 +50,14 @@ def get_default_datadir(node_type="BTC"):
     return datadir
 
 
-def _get_rpcconfig(datadir=get_default_datadir()):
-    """returns the bitcoin.conf configurations (multiple) in a datastructure
-    for all networks of a specific datadir.
+def get_rpcconfig(datadir=get_default_datadir()) -> dict:
+    """Returns the bitcoin.conf configurations for all networks.
+    If the bitcoin.conf is empty or doesn't exist, it returns the (empty) dict defined at the start.
+    Example for regtest:
+    {'bitcoin.conf': {'default': {'regtest': '1', 'server': '1', 'rpcuser': 'satoshi', 'rpcpassword': 'secret', 'disablewallet': '0', 'fallbackfee': '0.000001'
+            }, 'main': {}, 'test': {}, 'regtest': {'rpcport': '18443'}
+        }, 'cookies': []
+    }
     """
     config = {
         "bitcoin.conf": {"default": {}, "main": {}, "test": {}, "regtest": {}},
@@ -103,7 +108,7 @@ def _get_rpcconfig(datadir=get_default_datadir()):
 
 def _detect_rpc_confs_via_datadir(config=None, datadir=get_default_datadir()):
     if config is None:
-        config = _get_rpcconfig(datadir=datadir)
+        config = get_rpcconfig(datadir=datadir)
     confs = []
     default = {}
     for network in config["bitcoin.conf"]:

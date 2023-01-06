@@ -27,20 +27,6 @@
 
 		<div class="card">
 			<section>
-				<h3>{{ _("Bitcoin Core Path") }} </h3>
-
-				<div id="datadir-container" class="floating-wrapper">
-					<input class="floating-input peer" placeholder=" " type="text" id="datadir" name="datadir" type="text" value="{{ node.default_datadir }}">
-					<label class="floating-label" for="datadir">{{ _("Bitcoin Core Directory Path") }}</label>
-				</div>
-
-				<div class="floating-wrapper flex items-center mt-3">
-					<input type="checkbox" id="autodetect" name="autodetect" {% if node.autodetect %}checked{% endif %}>
-					<label for="autodetect">Auto-detect Bitcoin Core</label>
-				</div>
-			</section>
-
-			<section>
 				<div id="rpc_settings">
 					<div class="flex justify-between items-center">
 						<h3>{{ _("JSON-RPC Configuration") }} </h3>
@@ -177,44 +163,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-	document.addEventListener("DOMContentLoaded", function(){
-		var autodetect = document.getElementById("autodetect");
-
-		if (autodetect != null) {
-			function toggleAutoDetectMode() {
-				var rpcSettings = document.getElementById("rpc_settings");
-				var scanRpc = document.getElementById("scan_rpc");
-				var datadirContainer = document.getElementById("datadir-container");
-
-				if (autodetect.checked) {
-					datadirContainer.style.removeProperty('pointer-events');
-					datadirContainer.style.removeProperty('opacity');
-
-					rpcSettings.style['pointer-events'] = 'none';
-					rpcSettings.style['opacity'] = '0.4';
-
-					document.getElementById("username").value = '{{ node.user }}';
-					document.getElementById("password").value = '{{ node.password }}';
-				} else {
-					datadirContainer.style['pointer-events'] = 'none';
-					datadirContainer.style['opacity'] = '0.4';
-
-					rpcSettings.style.removeProperty('pointer-events');
-					rpcSettings.style.removeProperty('opacity');
-				}
-
-			}
-
-			autodetect.addEventListener("change", function() {
-				toggleAutoDetectMode();
-			}, false);
-			toggleAutoDetectMode();
-		}
-	});
-
-</script>
-
 <script type="text/javascript">
 	let scanner = document.getElementById('scan_rpc');
 	if(scanner != null) {
