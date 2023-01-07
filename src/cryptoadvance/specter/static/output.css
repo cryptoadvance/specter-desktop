@@ -1244,16 +1244,16 @@ select {
   height: 1.75rem;
 }
 
+.h-11 {
+  height: 2.75rem;
+}
+
 .h-10 {
   height: 2.5rem;
 }
 
 .h-12 {
   height: 3rem;
-}
-
-.h-11 {
-  height: 2.75rem;
 }
 
 .max-h-screen {
@@ -1318,10 +1318,6 @@ select {
 
 .w-12 {
   width: 3rem;
-}
-
-.w-96 {
-  width: 24rem;
 }
 
 .w-72 {
@@ -1647,14 +1643,6 @@ select {
 
 .bg-black\/60 {
   background-color: rgb(0 0 0 / 0.6);
-}
-
-.bg-black\/40 {
-  background-color: rgb(0 0 0 / 0.4);
-}
-
-.bg-dark-800\/70 {
-  background-color: rgb(20 21 26 / 0.7);
 }
 
 .fill-current {
