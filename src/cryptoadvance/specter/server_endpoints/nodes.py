@@ -128,7 +128,8 @@ def node_settings(node_alias):
                     app.specter.node_manager,
                 )
                 flash(
-                    f"Configuration file detected for a {node_type} node. Check the imported values and if all is fine save."
+                    f"Configuration file detected for a {node_type} node. Check the imported values and if all is fine save.",
+                    "warning",
                 )
             else:
                 node = Node.from_json(

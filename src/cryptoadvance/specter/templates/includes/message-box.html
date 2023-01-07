@@ -45,13 +45,23 @@
         this.main.style.display = "none";
       }, 200);
     }
-    setType(mytype) {
-      this.main.classList.remove("bg-dark-700");
-      this.text.classList.remove("text-white");
-      this.cancelIcon.classList.remove("text-white")
-      this.main.classList.add("bg-red-100");
-      this.text.classList.add("text-red-700");
-      this.cancelIcon.classList.add("text-red-700")
+    setType(type) {
+      if (type === 'error') {
+        this.main.classList.remove("bg-dark-700");
+        this.text.classList.remove("text-white");
+        this.cancelIcon.classList.remove("text-white")
+        this.main.classList.add("bg-red-100");
+        this.text.classList.add("text-red-700");
+        this.cancelIcon.classList.add("text-red-700")
+      }
+      else if (type == 'warning') {
+        this.main.classList.remove("bg-dark-700");
+        this.text.classList.remove("text-white");
+        this.cancelIcon.classList.remove("text-white")
+        this.main.classList.add("bg-orange-100");
+        this.text.classList.add("text-orange-700");
+        this.cancelIcon.classList.add("text-orange-700")
+      }
     }
     connectedCallback() {
       this.main.style.opacity = 0;
@@ -61,9 +71,11 @@
     attributeChangedCallback(attrName, oldValue, newValue) {
       var type = this.getAttribute("type");
       var timeout = parseInt(this.getAttribute("timeout"));
-      this.main.classList.remove("error");
       if (type == "error") {
         this.setType("error");
+      }
+      if (type == "warning") {
+        this.setType("warning");
       }
       if (timeout > 0) {
         setTimeout(() => {
