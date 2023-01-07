@@ -2,7 +2,7 @@
 {% if specter.node.is_running %}
     <div class="px-3 py-2 h-full min-w-0 grow flex items-center cursor-pointer" id="active-node" onclick="showPageOverlay('node-info-popup');document.getElementById('side-content').classList.remove('active');" >
         {% include node.node_logo_template() %}
-        <div class="ml-2 text-lg min-w-0 text-ellipsis truncate">{{ node.name }}</div>
+        <div class="ml-2 text-lg min-w-0 truncate">{{ node.name }}</div>
 
         <div class="hidden" id="node-info-popup">{% include node.node_info_template() %}</div>
     </div>
