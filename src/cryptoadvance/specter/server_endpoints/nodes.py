@@ -483,7 +483,16 @@ def internal_node_logs(node_alias):
 @login_required
 def switch_node():
     node_alias = request.form["node_alias"]
-    node_name = app.specter.node_manager.get_name_from_alias(node_alias)
-    app.specter.update_active_node(node_alias)
-    flash(_(f"Switched to use {node_name} as node."))
-    return redirect(url_for("index"))
+    node = app.specter.node_manager.get_by_alias(node_alias)
+    if node.is_running:
+        app.specter.update_active_node(node_alias)
+        flash(_(f"Switched to use {node.name} as node."))
+        return redirect(url_for("index"))
+    else:
+        flash(
+            _(
+                f"Can't select {node.name} as node (no connection). Try a different configuration."
+            ),
+            "error",
+        )
+        return redirect(url_for("nodes_endpoint.node_settings", node_alias=node.alias))
