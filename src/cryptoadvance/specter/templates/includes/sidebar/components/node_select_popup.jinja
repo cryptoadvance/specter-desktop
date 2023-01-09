@@ -14,7 +14,7 @@
 
                 <div class="min-w-0" id="node_item" {% if selected_node %} title="Selected node" {% else %} title="Select node" {% endif%}>
                     <div class="min-w-0 flex items-center space-x-2 mr-2">
-                        <div class="truncate text-ellipsis leading-1 text-base">
+                        <div class="truncate leading-1 text-base">
                             {% if node.name == "Spectrum Node" %}
                                 {{ _("Bitcoin Network") }}
                             {% else %} 
@@ -25,10 +25,26 @@
                     </div>
                     <div class="leading-0 text-dark-200 text-sm">
                         {% if running %}
-                            {% if node.name == "Spectrum Node" %}
-                                {{ node.name }}
-                            {% else %} 
-                                {{node.chain | title}} Network
+                            {% if node.alias == "spectrum_node" %}
+                                {% if node.chain == "main" %}
+                                    {{ node.name }}
+                                {% else %}
+                                    {{ node.name }} ({{node.chain | title }})
+                                {% endif %}
+                            {% else %}
+                                {% if node.node_type == "BTC" %}
+                                    {% if node.chain == "main" %}
+                                        Bitcoin Network
+                                    {% else %}
+                                        Bitcoin Network ({{node.chain | title }})
+                                    {% endif %}
+                                {% else %}
+                                    {% if node.chain == "main" %}
+                                        Liquid Network
+                                    {% else %}
+                                        Liquid Network ({{node.chain | title }})
+                                    {% endif %}
+                                {% endif %}
                             {% endif %}
                         {% else %}
                             {{ _("Unreachable...") }}
