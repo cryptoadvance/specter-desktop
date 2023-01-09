@@ -115,7 +115,7 @@ def node_settings(node_alias):
 
                 node = Node.from_json(
                     {
-                        "name": "Your New Node",
+                        "name": "",
                         "autodetect": True,
                         "node_type": node_type,
                         "datadir": default_datadir,

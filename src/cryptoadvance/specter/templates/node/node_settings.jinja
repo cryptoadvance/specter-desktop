@@ -15,7 +15,7 @@
 	<form action="?" method="POST">
 		{% if not node_alias %}
 			<section>
-				<h3>{{ _("Name your node") }} </h3>
+				<h3>{{ _("Information") }} </h3>
 				<div class="floating-wrapper">
 					<input class="floating-input peer" placeholder=" " type="text" id="name" name="name" value="{{ node.name }}">
 					<label class="floating-label" for="name">{{ _("Name") }}</label>
@@ -29,13 +29,13 @@
 			<section>
 				<div id="rpc_settings">
 					<div class="flex justify-between items-center">
-						<h3>{{ _("JSON-RPC Configuration") }} </h3>
-						<qr-scanner id="scan_rpc" class="mb-2 rounded-lg hover:bg-dark-700 pl-1 pr-3">
-							<a slot="button" href="#" class="flex items-center">
-								<img class="w-7 h-7" src="{{ url_for('static', filename='img/qr-code.svg') }}">
-								{{ _("Connect with QR") }}
-							</a>
-						</qr-scanner>
+						<h3>{{ _("Configuration") }} </h3>
+						<!-- <qr-scanner id="scan_rpc" class="mb-2 rounded-lg hover:bg-dark-700 pl-1 pr-3"> -->
+						<!-- 	<a slot="button" href="#" class="flex items-center"> -->
+						<!-- 		<img class="w-7 h-7" src="{{ url_for('static', filename='img/qr-code.svg') }}"> -->
+						<!-- 		{{ _("Connect with QR") }} -->
+						<!-- 	</a> -->
+						<!-- </qr-scanner> -->
 					</div>
 
 					<div class="space-y-3">
@@ -93,12 +93,12 @@
 				</div>
 			</section>
 
-			<div class="lg:flex gap-2 mt-8">
+			<div class="lg:flex gap-2 mt-10 justify-end">
 				{% if specter.node_manager.nodes | length > 1 and node_alias %}
 					<button type="submit" name="action" value="forget" class="button">{{ _("Forget node") }}</button>
 				{% endif %}
-				<button type="submit" class="button" name="action" value="test">{{ _("Test") }}</button>
-				<button type="submit" class="button bg-accent text-white" name="action" value="save">{{ _("Save") }}</button>
+				<!-- <button type="submit" class="button" name="action" value="test">{{ _("Test") }}</button> -->
+				<button type="submit" class="button bg-accent text-white" name="action" value="save">{{ _("Connect") }}</button>
 			</div>
 
 			{% if test %}

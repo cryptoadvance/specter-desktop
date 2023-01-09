@@ -1160,10 +1160,6 @@ select {
   margin-bottom: 3rem;
 }
 
-.mt-1 {
-  margin-top: 0.25rem;
-}
-
 .block {
   display: block;
 }
@@ -1328,10 +1324,6 @@ select {
   width: 2.25rem;
 }
 
-.w-96 {
-  width: 24rem;
-}
-
 .min-w-\[300px\] {
   min-width: 300px;
 }
@@ -1426,6 +1418,10 @@ select {
 
 .flex-wrap {
   flex-wrap: wrap;
+}
+
+.items-end {
+  align-items: flex-end;
 }
 
 .items-center {
@@ -1543,10 +1539,6 @@ select {
   border-radius: 9999px;
 }
 
-.rounded-2xl {
-  border-radius: 1rem;
-}
-
 .border {
   border-width: 1px;
 }
@@ -1641,8 +1633,9 @@ select {
   background-color: rgb(20 21 26 / 0.7);
 }
 
-.bg-black\/60 {
-  background-color: rgb(0 0 0 / 0.6);
+.bg-orange-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 237 213 / var(--tw-bg-opacity));
 }
 
 .fill-current {
@@ -1799,6 +1792,11 @@ select {
 .text-accent {
   --tw-text-opacity: 1;
   color: rgb(46 92 255 / var(--tw-text-opacity));
+}
+
+.text-orange-700 {
+  --tw-text-opacity: 1;
+  color: rgb(194 65 12 / var(--tw-text-opacity));
 }
 
 .underline {
