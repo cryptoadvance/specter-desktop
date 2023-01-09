@@ -14,6 +14,7 @@ from pathlib import Path
 import cryptography
 import pgpy
 import requests
+from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from flask import Blueprint, Flask
 from flask import current_app as app
 from flask import jsonify, redirect, render_template, request, send_file, url_for
@@ -29,7 +30,7 @@ from ..helpers import (
 from ..persistence import write_devices, write_wallet
 from ..server_endpoints import flash
 from ..services.service import callbacks
-from ..specter_error import handle_exception
+from ..specter_error import SpecterError, handle_exception
 from ..user import UserSecretException
 from ..util.sha256sum import sha256sum
 from ..util.shell import get_last_lines_from_file
@@ -149,66 +150,87 @@ def general():
             app.specter.device_manager.update()
 
             rescanning = False
+            logger.info(f"Importing {len(restore_wallets)} wallets ...")
+            counter = {
+                "success": 0,
+                "specific_errror": 0,
+                "unspecific_error": 0,
+                "rescan_error": 0,
+            }
             for wallet in restore_wallets:
                 try:
-                    app.specter.wallet_manager.rpc.createwallet(
-                        os.path.join(
-                            app.specter.wallet_manager.rpc_path, wallet["alias"]
-                        ),
-                        True,
+                    logger.info(f"Importing wallet {wallet['name']}")
+                    wallet_importer: WalletImporter = WalletImporter(
+                        json.dumps(wallet),
+                        app.specter,
                     )
-                except Exception as e:
-                    # if wallet already exists in Bitcoin Core
-                    # continue with the existing one
-                    if "already exists" not in str(e):
-                        flash(
-                            _("Failed to import wallet {}, error: {}").format(
-                                wallet["name"], e
-                            ),
-                            "error",
-                        )
-                        handle_exception(e)
-                        continue
-                    logger.debug(
-                        f"Wallet {wallet['alias']} already exists, skipping creation"
-                    )
-                write_wallet(wallet)
-                app.specter.wallet_manager.update(use_threading=False)
-
-                try:
-                    wallet_obj = app.specter.wallet_manager.get_by_alias(
-                        wallet["alias"]
-                    )
-                    wallet_obj.keypoolrefill(0, wallet_obj.IMPORT_KEYPOOL, change=False)
-                    wallet_obj.keypoolrefill(0, wallet_obj.IMPORT_KEYPOOL, change=True)
-                    wallet_obj.import_labels(wallet.get("labels", {}))
-                    try:
-                        wallet_obj.rpc.rescanblockchain(
-                            wallet["blockheight"]
-                            if "blockheight" in wallet
-                            else get_startblock_by_chain(app.specter),
-                            no_wait=True,
-                        )
-                        app.logger.info("Rescanning Blockchain ...")
-                        rescanning = True
-                    except Exception as e:
-                        app.logger.exception(
-                            "Exception while rescanning blockchain for wallet {}: {}".format(
-                                wallet["alias"], e
-                            ),
-                            e,
-                        )
-                        flash(
-                            _("Failed to perform rescan for wallet: {}").format(e),
-                            "error",
-                        )
-                    wallet_obj.getdata()
+                    wallet_importer.create_wallet(app.specter.wallet_manager)
+                    counter["success"] += 1
+                except SpecterError as se:
+                    flash(f"Wallet '{wallet.get('name')}': {se} (skipped)", "error")
+                    counter["specific_errror"] += 1
+                    continue
                 except Exception as e:
                     flash(
-                        _("Failed to import wallet {}").format(wallet["name"]), "error"
+                        f"Exception {e} while importing wallet {wallet}, check logs fo details! (skipped)"
                     )
-                    handle_exception(e)
-            flash(_("Specter data was successfully loaded from backup"), "info")
+                    logger.exception(f"Exception {e} while importing wallet {wallet}")
+                    counter["unspecific_error"] += 1
+                    continue
+                try:
+                    wallet_importer.rescan_as_needed(app.specter)
+                except SpecterError as se:
+                    flash(
+                        f"Wallet '{wallet.get('name')}': {se} (balances might not be corrrect)",
+                        "error",
+                    )
+                    counter["rescan_error"] += 1
+                except Exception as e:
+                    flash(
+                        f"Exception {e} while rescanning wallet {wallet}, check logs fo details!"
+                    )
+                    logger.exception(f"Exception {e} while importing wallet {wallet}")
+                    counter["unspecific_error"] += 1
+
+            if (
+                counter["specific_errror"]
+                + counter["unspecific_error"]
+                + counter["rescan_error"]
+                == 0
+                and counter["success"] > 0
+            ):
+                flash(_(f"{counter['success'] } wallets successfully restored"), "info")
+            elif (
+                counter["specific_errror"] + counter["unspecific_error"] == 0
+                and counter["rescan_error"] > 0
+                and counter["success"] > 0
+            ):
+                flash(
+                    _(
+                        f"{counter['success'] } wallets successfully restored however, {counter['rescan_error']} had rescanning issues"
+                    ),
+                    "error",
+                )
+            elif (
+                counter["specific_errror"] + counter["unspecific_error"] != 0
+                and counter["success"] > 0
+            ):
+                flash(
+                    _(
+                        f"{counter['success'] } wallet successfully restored, however {counter['unspecific_error']} severe issues and {counter['specific_errror']} issues and {counter['rescan_error']} rescanning issues"
+                    ),
+                    "warning",
+                )
+            elif (
+                counter["specific_errror"] + counter["unspecific_error"] != 0
+                and counter["success"] == 0
+            ):
+                flash(
+                    _(
+                        f"Sorry, could not import {len(restore_wallets)} wallets: {counter['unspecific_error']} severe issues and {counter['specific_errror']} issues and {counter['rescan_error']} rescanning issues"
+                    ),
+                    "error",
+                )
             if rescanning:
                 flash(
                     _(
