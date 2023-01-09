@@ -1,7 +1,7 @@
 <div class="w-72 hidden flex flex-col bg-dark-800/70 backdrop-blur rounded-xl border-2 border-dark-700" id="node_select_popup">
-    {% for node_name in specter.node_manager.nodes_names %}
-        {% set node = specter.node_manager.get_by_name(node_name) %}
-        {% set selected_node = node.alias == specter.node.alias %}
+    {% for node_alias in specter.node_manager.nodes if node_alias != "default" %}
+        {% set node = specter.node_manager.get_by_alias(node_alias) %}
+        {% set selected_node = node_alias == specter.node.alias %}
         {% set running = node.is_running %}
         <form class="py-2 pl-2 pr-3 group hover:bg-dark-700 {% if selected_node %} bg-dark-700 {% endif %}" action="{{url_for('nodes_endpoint.switch_node')}}" id="{{node.alias}}-select-node-form" method="POST">
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
