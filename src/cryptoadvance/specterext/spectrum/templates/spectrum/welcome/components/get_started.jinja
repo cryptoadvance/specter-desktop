@@ -2,14 +2,14 @@
 
 <div class="mb-8 grid grid-cols-2 gap-5">
     <div class="main-description-box p-5 bg-dark-800 flex flex-col items-center border-2 border-dark-700 rounded-lg">
-        <h2 class="text-center">{{ _("Automatic connection") }}</h2>
-        <p class="mb-12 text-center flex grow">{{ _(" Connect to a reputable bitcoin service provider. This is the easiest way to get started, however it exposes your financial activity to the bitcoin service provider you’re connected to.") }}</p>
-        <a href="{{url_for('spectrum_endpoint.index')}}" class="mb-0 button bg-accent text-white w-full">{{ _('Get Connected') }}</a>
+        <h2 class="text-center">{{ _("Spectrum connection") }}</h2>
+        <p class="mb-12 text-center flex grow">{{ _("This is the easiest way to get started since you can connect to a third-party server. However, it exposes your financial activity. You can also choose your own server.") }}</p>
+        <a href="{{url_for('spectrum_endpoint.index')}}" class="mb-0 button bg-accent text-white w-full">{{ _('Configure Connection') }}</a>
     </div>
 
     <div class="main-description-box p-5 bg-dark-800 flex flex-col items-center border-2 border-dark-700 rounded-lg">
-        <h2 class="text-center">{{ _("Connect to your own node") }}</h2>
-        <p class="mb-12 text-center flex grow">{{ _("Connect to your own bitcoin node for total privacy and self-sovereignty. This is a more complex configuration to setup.") }}</p>
-        <a href="{{url_for('setup_endpoint.' + specter.setup_status.stage)}}" class="mb-0 button bg-accent text-white w-full">{% if specter.setup_status.stage == "start" %}{{ _('Configure Connection') }}{% else %}{{ _('Continue Setup') }}{% endif %}</a>
+        <h2 class="text-center">{{ _("Connect to your own Bitcoin Core node") }}</h2>
+        <p class="mb-12 text-center flex grow">{{ _("The classic Specter setup for total privacy and self-sovereignty.") }}</p>
+        <a href="{{ url_for('nodes_endpoint.node_settings')}}" class="mb-0 button bg-accent text-white w-full">{{ _('Configure Connection') }}</a>
     </div>
 </div>
