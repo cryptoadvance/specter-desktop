@@ -1457,6 +1457,7 @@ class Wallet:
                 else self.rpc.getbalances()["watchonly"]
             )
         except Exception as e:
+            handle_exception(e)
             raise SpecterError(f"was not able to get wallet_balance because {e}")
         self.balance = balance
         return self.balance
