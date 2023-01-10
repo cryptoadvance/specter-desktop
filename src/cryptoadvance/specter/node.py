@@ -180,11 +180,9 @@ class AbstractNode(PersistentObject):
 
 class Node(AbstractNode):
     """A Node represents the connection to a Bitcoin and/or Liquid (Full-) node.
-    It can be created via Constructor or from_json, and mainly it can give you A
-    RPC-object to use the API.
-    On top of the RPC-connection it manages the stability of the rpc. It will only
-    persist healthy connections.
-    One or many Nodes are managed via the NodeManager
+    It can be created via constructor or from json. It mainly gives you a
+    RPC object to use the JSON RPC API of the node. It also manages the stability of this connection. It will only
+    persist healthy connections. One or more Nodes are managed via the NodeManager
     """
 
     external_node = True
