@@ -1,4 +1,5 @@
 {% extends "base.jinja" %}
+
 {% block main %}
 	<form action="./" method="POST" class="center">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
