@@ -101,8 +101,7 @@
 				<button type="submit" class="button bg-accent text-white" name="action" value="connect">{{ _("Connect") }}</button>
 			</div>
 
-			{% if test %}
-				{% set test_failure = failed_test != "" %}
+			{% if failed_test %}
 				{% macro tick_or_cross(my_boolean) %}
 					<button disabled> 
 						{% if my_boolean %}
@@ -112,7 +111,11 @@
 						{% endif %}
 					</button>
 				{% endmacro %}
-				<h3 class="mt-8">{{ _("Why did the connection attempt fail?") }}</h3>
+				{% if not node_alias %} 
+					<h3 class="mt-8">{{ _("Why did the connection attempt fail?") }}</h3>
+				{% else %}
+					<h3 class="mt-8">{{ _("What went wrong with the update of the connection details?") }}</h3>
+				{% endif %}
 				<div class="grid grid-cols-4 grid-rows-1">
 					{% if failed_test == 'connectable' %}
 						<div>{{ tick_or_cross(test['tests']['connectable']) }} Connectable</div>

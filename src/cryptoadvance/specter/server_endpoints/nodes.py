@@ -154,36 +154,25 @@ def node_settings(node_alias):
                 rand=rand,
             )
     if request.method == "POST":
+        node_manager = app.specter.node_manager
         if node_alias:
-            node = app.specter.node_manager.get_by_alias(node_alias)
+            node = node_manager.get_by_alias(node_alias)
         else:
             node_json = session.get("new_node", None)
-            node = Node.from_json(node_json, app.specter.node_manager)
+            node = Node.from_json(node_json, node_manager)
         test = None
         failed_test = ""
         # The node might have been down but is up again and the checker did not realise it when the user clicked to configure the connection
         if node.rpc is None and node_alias:
             node.update_rpc()
         action = request.form["action"]
-        if action not in ["rename", "delete"]:
-            user = request.form["username"]
-            password = request.form["password"]
-            port = request.form["port"]
-            host = request.form["host"].rstrip("/")
-            protocol = ""
-            if "://" in host:
-                arr = host.split("://")
-                protocol = arr[0]
-                host = arr[1]
-            else:
-                protocol = "http"
         if action == "rename":
             node_name = request.form["newtitle"]
             if not node_name:
                 flash(_("Name cannot be empty!"), "error")
             elif node_name == node.name:
                 pass
-            elif node_name in app.specter.node_manager.nodes_names:
+            elif node_name in node_manager.nodes_names:
                 flash(
                     _(
                         "A connection with this name already exists, please choose a different name."
@@ -202,7 +191,7 @@ def node_settings(node_alias):
                     "error",
                 )
             else:
-                app.specter.node_manager.delete_node(node, app.specter)
+                node_manager.delete_node(node, app.specter)
                 if app.specter.node.alias != "default":
                     flash(
                         _(
@@ -228,10 +217,25 @@ def node_settings(node_alias):
                         )
                     )
         elif action == "connect":
+            user = request.form["username"]
+            password = request.form["password"]
+            port = request.form["port"]
+            # Set the node type (BTC or ELM) - TODO: Remove if the Liquid node inherits from the abstract node as the Spectrum node does
+            node_type = "BTC"
+            liquid_ports = [7041, 18891, 18884]
+            if port != "" and int(port) in liquid_ports:  # port is a string
+                node_type = "ELM"
+            host = request.form["host"].rstrip("/")
+            protocol = ""
+            if "://" in host:
+                arr = host.split("://")
+                protocol = arr[0]
+                host = arr[1]
+            else:
+                protocol = "http"
             if not node_alias:
                 # Name form field is only used when setting up new nodes
                 node.name = request.form["name"]
-                node_manager = app.specter.node_manager
                 if node.name in node_manager.nodes_names:
                     flash(
                         _(
@@ -243,19 +247,13 @@ def node_settings(node_alias):
                         "node/node_settings.jinja",
                         node=node,
                         node_alias=node_alias,
-                        test=test,
                         specter=app.specter,
                         rand=rand,
                     )
-                # Set the node type (BTC or ELM) - TODO: Remove if the Liquid node inherits from the abstract node as the Spectrum node does
-                node_type = "BTC"
-                liquid_ports = [7041, 18891, 18884]
-                if port != "" and int(port) in liquid_ports:  # port is a string
-                    node_type = "ELM"
-                node = Node(
+                node_for_test = Node(
                     node.name,
                     node.alias,
-                    node.autodetect,
+                    False,  # We set this to False for the test to avoid a re-establishment of the rpc connection by re-reading the bitcoin.conf
                     node.datadir,
                     user,
                     password,
@@ -266,7 +264,7 @@ def node_settings(node_alias):
                     node_type,
                     node_manager,
                 )
-                test = node.test_rpc()
+                test = node_for_test.test_rpc()
                 if not test["tests"] or False in list(test["tests"].values()):
                     flash(
                         _(f"Connection attempt failed, configuration changes needed"),
@@ -277,6 +275,15 @@ def node_settings(node_alias):
                         if value == False:
                             failed_test = test_name
                             break
+                    return render_template(
+                        "node/node_settings.jinja",
+                        node=node_for_test,
+                        node_alias=node_alias,
+                        test=test,
+                        failed_test=failed_test,
+                        specter=app.specter,
+                        rand=rand,
+                    )
                 else:
                     # All good, we can save the node to the node manager, to disk and switch to it
                     connectable_node = node_manager.add_external_node(
@@ -295,7 +302,7 @@ def node_settings(node_alias):
                     return redirect(url_for("welcome_endpoint.index"))
             else:
                 # Updating a node with autodetect with incorrect values doesn't lead to a failure since the get_rpc in the node class
-                # is re-establishing the rpc connection with re-reading the bitcoin.conf. To avoid confusion we set autodetect here to False.
+                # is re-establishing the rpc connection by re-reading the bitcoin.conf. To avoid confusion we set autodetect here to False.
                 success = node.update_rpc(
                     user=user,
                     password=password,
@@ -305,7 +312,40 @@ def node_settings(node_alias):
                     autodetect=False,
                 )
                 if not success:
-                    flash(_("Update of configuration failed (no connection)"), "error")
+                    node_for_test = Node(
+                        node.name,
+                        node.alias,
+                        False,  # We set this to False for the test to avoid a re-establishment of the rpc connection by re-reading the bitcoin.conf
+                        node.datadir,
+                        user,
+                        password,
+                        port,
+                        host,
+                        protocol,
+                        node.fullpath,
+                        node_type,
+                        node_manager,
+                    )
+                    test = node_for_test.test_rpc()
+                    if not test["tests"] or False in list(test["tests"].values()):
+                        flash(
+                            _(f"Update of configuration failed"),
+                            "error",
+                        )
+                        # Determine the first failed test
+                        for test_name, value in test["tests"].items():
+                            if value == False:
+                                failed_test = test_name
+                                break
+                        return render_template(
+                            "node/node_settings.jinja",
+                            node=node_for_test,
+                            node_alias=node_alias,
+                            test=test,
+                            failed_test=failed_test,
+                            specter=app.specter,
+                            rand=rand,
+                        )
                 if success:
                     flash(
                         _(
@@ -314,16 +354,6 @@ def node_settings(node_alias):
                     )
                     app.specter.update_active_node(node.alias)
                     return redirect(url_for("welcome_endpoint.index"))
-
-    return render_template(
-        "node/node_settings.jinja",
-        node=node,
-        node_alias=node_alias,
-        test=test,
-        failed_test=failed_test,
-        specter=app.specter,
-        rand=rand,
-    )
 
 
 @nodes_endpoint.route("specter_node/<node_alias>/", methods=["GET", "POST"])

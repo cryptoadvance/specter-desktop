@@ -1152,12 +1152,12 @@ select {
   margin-top: -1px;
 }
 
-.mb-12 {
-  margin-bottom: 3rem;
-}
-
 .mr-0 {
   margin-right: 0px;
+}
+
+.mb-12 {
+  margin-bottom: 3rem;
 }
 
 .block {
