@@ -81,7 +81,7 @@
 					{% with messages = get_flashed_messages(with_categories=True) %}
 						{% if messages %}
 							{% for category, message in messages | unique %}
-								<message-box type="{{ category }}" timeout=5000>{{ message | safe }}</message-box>
+								<message-box type="{{ category }}" timeout=7000>{{ message | safe }}</message-box>
 							{% endfor %}
 						{% endif %}
 					{% endwith %}
