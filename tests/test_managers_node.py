@@ -91,7 +91,7 @@ def test_switch_nodes_across_chains(
             "http",
             "bitcoin_regtest_alias",
         )
-        assert nm.nodes_names == ["Bitcoin Core", "bitcoin_regtest"]
+        assert nm.nodes_names == ["", "bitcoin_regtest"]
         nm.switch_node("bitcoin_regtest_alias")
         assert nm.active_node.rpc.getblockchaininfo()["chain"] == "regtest"
         nm.add_external_node(
@@ -105,6 +105,6 @@ def test_switch_nodes_across_chains(
             elements_elreg.rpcconn._ipaddress,
             "http",
         )
-        assert nm.nodes_names == ["Bitcoin Core", "bitcoin_regtest", "elements_elreg"]
+        assert nm.nodes_names == ["", "bitcoin_regtest", "elements_elreg"]
         nm.switch_node("elements_elreg")
         assert nm.active_node.rpc.getblockchaininfo()["chain"] == "elreg"
