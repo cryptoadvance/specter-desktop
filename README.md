@@ -4,7 +4,7 @@
 
 - [Specter Desktop](#specter-desktop)
   - [DISCLAIMER](#disclaimer)
-  - [Video Walkthrough](#video-walkthrough)
+  - [Documentation and Video Walkthrough](#documentation-and-video-walkthrough)
   - [Why?](#why)
   - [Help wanted: Do you like Specter?](#help-wanted-do-you-like-specter)
   - [How to run](#how-to-run)
@@ -27,7 +27,6 @@
     The Crypto Anarchist Manifesto - Timothy C. May - Sun, 22 Nov 92 12:11:24 PST
 
 [![Build Status](https://api.cirrus-ci.com/github/cryptoadvance/specter-desktop.svg)](https://cirrus-ci.com/github/cryptoadvance/specter-desktop)
-[![Support the project](https://img.shields.io/badge/btcpay-support%20project-orange.svg)](https://donate.specter.solutions/apps/3k77BAT6zshCGNd3i7gw9WKwXQy1/pos)
 
 ## DISCLAIMER
 
@@ -35,8 +34,10 @@ This software might be ready to be used but at your own risk.
 
 If something doesn't work open an issue here or ask a question in our [Telegram group](https://t.me/spectersupport).
 
-## Video Walkthrough
-![video](https://www.youtube.com/embed/v3SEp0SkOWs) [Watch here](https://www.youtube.com/watch?v=v3SEp0SkOWs)
+## Documentation and Video Walkthrough
+
+* ![video](https://www.youtube.com/embed/v3SEp0SkOWs) [Watch here](https://www.youtube.com/watch?v=v3SEp0SkOWs)
+* [documentation](https://docs.specter.solutions/desktop/)
 
 ## Why?
 
