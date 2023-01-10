@@ -108,7 +108,7 @@ class NodeManager:
             )
             self.add_external_node(
                 node_type="BTC",
-                name="Bitcoin Core",
+                name="",
                 autodetect=True,
                 datadir=get_default_datadir(),
                 user="",
@@ -130,7 +130,7 @@ class NodeManager:
             logger.debug("Recreating the default node.")
             self.add_external_node(
                 node_type="BTC",
-                name="Bitcoin Core",
+                name="",
                 autodetect=True,
                 datadir=get_default_datadir(),
                 user="",
@@ -212,7 +212,7 @@ class NodeManager:
         default_alias=None,
     ):
         """Adding a node. Params:
-        :param node_type: only valid for autodetect. Either BTC or ELM
+        :param node_type: Either BTC or ELM, used to distinguish between Bitcoin and Liquid nodes.
         This should only be used for an external node. Use add_internal_node for internal node
         and if you have defined your own node type, use save_node directly to save the node (and create it yourself)
         """
