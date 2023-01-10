@@ -153,92 +153,55 @@ def general():
             logger.info(f"Importing {len(restore_wallets)} wallets ...")
             counter = {
                 "success": 0,
-                "specific_errror": 0,
+                "specific_error": 0,
                 "unspecific_error": 0,
                 "rescan_error": 0,
             }
             for wallet in restore_wallets:
+
                 try:
                     logger.info(f"Importing wallet {wallet['name']}")
-                    wallet_importer: WalletImporter = WalletImporter(
-                        json.dumps(wallet),
-                        app.specter,
-                    )
+                    wallet_importer = WalletImporter(json.dumps(wallet), app.specter)
                     wallet_importer.create_wallet(app.specter.wallet_manager)
+                    wallet_importer.rescan_as_needed(app.specter)
                     counter["success"] += 1
                 except SpecterError as se:
+                    error_type = (
+                        "rescan_error" if "rescan" in str(se) else "specific_error"
+                    )
                     flash(f"Wallet '{wallet.get('name')}': {se} (skipped)", "error")
-                    counter["specific_errror"] += 1
-                    continue
+                    counter[error_type] += 1
                 except Exception as e:
                     flash(
-                        f"Exception {e} while importing wallet {wallet}, check logs fo details! (skipped)"
-                    )
-                    logger.exception(f"Exception {e} while importing wallet {wallet}")
-                    counter["unspecific_error"] += 1
-                    continue
-                try:
-                    wallet_importer.rescan_as_needed(app.specter)
-                except SpecterError as se:
-                    flash(
-                        f"Wallet '{wallet.get('name')}': {se} (balances might not be corrrect)",
+                        f"Error while importing wallet {wallet['name']}, check logs for details! (skipped)",
                         "error",
                     )
-                    counter["rescan_error"] += 1
-                except Exception as e:
-                    flash(
-                        f"Exception {e} while rescanning wallet {wallet}, check logs fo details!"
+                    logger.exception(
+                        f"Error while importing wallet {wallet['name']}: {e}"
                     )
-                    logger.exception(f"Exception {e} while importing wallet {wallet}")
                     counter["unspecific_error"] += 1
 
-            if (
-                counter["specific_errror"]
+            counter["errors_sum"] = (
+                counter["rescan_error"]
+                + counter["specific_error"]
                 + counter["unspecific_error"]
-                + counter["rescan_error"]
-                == 0
-                and counter["success"] > 0
-            ):
-                flash(_(f"{counter['success'] } wallets successfully restored"), "info")
-            elif (
-                counter["specific_errror"] + counter["unspecific_error"] == 0
-                and counter["rescan_error"] > 0
-                and counter["success"] > 0
-            ):
-                flash(
-                    _(
-                        f"{counter['success'] } wallets successfully restored however, {counter['rescan_error']} had rescanning issues"
-                    ),
-                    "error",
-                )
-            elif (
-                counter["specific_errror"] + counter["unspecific_error"] != 0
-                and counter["success"] > 0
-            ):
-                flash(
-                    _(
-                        f"{counter['success'] } wallet successfully restored, however {counter['unspecific_error']} severe issues and {counter['specific_errror']} issues and {counter['rescan_error']} rescanning issues"
-                    ),
-                    "warning",
-                )
-            elif (
-                counter["specific_errror"] + counter["unspecific_error"] != 0
-                and counter["success"] == 0
-            ):
-                flash(
-                    _(
-                        f"Sorry, could not import {len(restore_wallets)} wallets: {counter['unspecific_error']} severe issues and {counter['specific_errror']} issues and {counter['rescan_error']} rescanning issues"
-                    ),
-                    "error",
-                )
+            )
+            if counter["success"] > 0:
+                message = f"{counter['success']} wallets successfully restored. "
+
+            else:
+                message = f"Sorry, this doesn't went that well. "
+            if counter["errors_sum"] > 0:
+                message += "hovever, we had " if counter["success"] > 0 else "We had "
+                message += f"""<br>
+                Successful imports: {counter["success"]}<br>
+                Specific errors:    {counter["specific_error"]}<br>
+                Unspecific errors:  {counter["unspecific_error"]} (create an issue about it on github)<br>
+                Rescan issues:      {counter["rescan_error"]}<br>
+                """
             if rescanning:
-                flash(
-                    _(
-                        "Wallets are rescanning for transactions history.\n\
-This may take a few hours to complete."
-                    ),
-                    "info",
-                )
+                message += "Wallets are rescanning for transactions history. This may take a few hours to complete."
+            flash(message, "info")
 
     return render_template(
         "settings/general_settings.jinja",
