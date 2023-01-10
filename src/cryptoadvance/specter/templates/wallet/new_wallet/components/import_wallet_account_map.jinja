@@ -1,34 +1,37 @@
-<div id="account_map_import" style="display: none;">
-    <h1>Import Wallet</h1>
+<div id="account_map_import" class="bg-dark-800 p-4 w-96" style="display: none;">
+    <div class="flex justify-between mb-2">
+        <h3 class="mb-0">{{ _("Import Wallet") }}</h3>
+        <p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer">Close</p>
+    </div>
 
     <p>Import an existing wallet into Specter by either pasting its data, scanning its QR code or uploading its data file.</p>
 
     <form action="./import_wallet/" method="POST">
         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 
-        <textarea id="txt" name="wallet_data" placeholder="Enter your wallet data here"></textarea>
+        <textarea class="mt-3" id="txt" name="wallet_data" placeholder="Enter your wallet data here"></textarea>
+
+        <div class="popup hidden rounded-md overflow-hidden" id="popup">
+          <video muted playsinline id="qr-video"></video>
+        </div>
 
         <div>
-            <a href="#" id="scanme">
+            <a class="button w-full mt-3" href="#" id="scanme">
                 <img src="{{ url_for('static', filename='img/qr-code.svg') }}">
                 {{ _("Scan") }}
             </a>
 
-            <input type="file" id="file" multiple/>
-
-            <label for="file">
+            <input class="hidden" type="file" id="file" multiple/>
+            <label class="button w-full" for="file">
                 <img src="{{ url_for('static', filename='img/file.svg') }}">
                 {{ _("Choose files") }}
             </label>
         </div>
 
-        <button type="submit" name="action" value="importwallet">{{ _("Continue") }}</button>
+        <button class="w-full mt-2 mb-0 mr-0 button bg-accent text-white" type="submit" name="action" value="importwallet">{{ _("Continue") }}</button>
     </form>
 </div>
 
-<div class="popup" id="popup">
-	<video muted playsinline id="qr-video"></video>
-</div>
 
 <script type="module">
 	import QrScanner from "{{ url_for('static', filename='qr/qr-scanner.min.js') }}";
@@ -42,8 +45,8 @@
             document.getElementById("popup").style.display = 'none';
             let deviceType = document.getElementById("device_type");
             document.getElementById("txt").value = result;
-            
         });
+
         document.getElementById("scanme").addEventListener("click", function(){
             try{
                 scanner.start();
@@ -52,6 +55,7 @@
                 showError(`{{ _("Can't start the QR scanner!") }}\n\n` + e);
             }
         });
+
         document.getElementById("popup").addEventListener("click", function(){
             document.getElementById("popup").style.display = 'none';
             scanner.stop();
