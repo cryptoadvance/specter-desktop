@@ -4,7 +4,7 @@
 
 - [Specter Desktop](#specter-desktop)
   - [DISCLAIMER](#disclaimer)
-  - [Video Walkthrough](#video-walkthrough)
+  - [Documentation and Video Walkthrough](#documentation-and-video-walkthrough)
   - [Why?](#why)
   - [Help wanted: Do you like Specter?](#help-wanted-do-you-like-specter)
   - [How to run](#how-to-run)
