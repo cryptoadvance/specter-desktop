@@ -128,13 +128,13 @@ def node_settings(node_alias):
                     app.specter.node_manager,
                 )
                 flash(
-                    f"Configuration file detected for a {node_type} node. Check the imported values and if all is fine save.",
+                    f"Values from a {node_type} configuration file used. Double-check and click connect.",
                     "warning",
                 )
             else:
                 node = Node.from_json(
                     {
-                        "name": "Your New Node X",
+                        "name": "",
                         "autodetect": False,
                         "datadir": "",
                         "user": "",
@@ -161,12 +161,11 @@ def node_settings(node_alias):
             node = Node.from_json(node_json, app.specter.node_manager)
         test = None
         failed_test = ""
-        # The node might have been down but is now up again
-        # and the checker did not realise it yet when the user clicked "Configure Node"
+        # The node might have been down but is up again and the checker did not realise it when the user clicked to configure the connection
         if node.rpc is None and node_alias:
             node.update_rpc()
         action = request.form["action"]
-        if action in ["save", "test"]:
+        if action not in ["rename", "delete"]:
             user = request.form["username"]
             password = request.form["password"]
             port = request.form["port"]
@@ -181,82 +180,62 @@ def node_settings(node_alias):
         if action == "rename":
             node_name = request.form["newtitle"]
             if not node_name:
-                flash(_("Node name cannot be empty"), "error")
+                flash(_("Name cannot be empty!"), "error")
             elif node_name == node.name:
                 pass
             elif node_name in app.specter.node_manager.nodes_names:
                 flash(
                     _(
-                        "Node with this name already exists, please choose a different name"
+                        "A connection with this name already exists, please choose a different name."
                     ),
                     "error",
                 )
             else:
                 node.rename(node_name)
-                flash(_(f"New node name saved."))
-        elif action == "forget":
+                flash(_(f"New name saved"))
+        elif action == "delete":
             if not node_alias:
-                flash(_("Failed to deleted node. Node isn't saved"), "error")
-            elif len(app.specter.node_manager.nodes) > 1:
-                app.specter.node_manager.delete_node(node, app.specter)
-                flash(
-                    _("Node deleted successfully. Switched to the next available node.")
-                )
-                return redirect(
-                    url_for(
-                        "nodes_endpoint.node_settings",
-                        node_alias=app.specter.node.alias,
-                    )
-                )
-            else:
                 flash(
                     _(
-                        "Failed to delete node. Specter must have at least one node configured"
+                        "Failed to delete connection, connection had not been saved before."
                     ),
                     "error",
                 )
-        elif action == "test":
-            # If this is failing, the test_rpc-method needs improvement
-            # Don't wrap this into a try/except otherwise the feedback
-            # of what's wrong to the user gets broken
-            node = Node(
-                node.name,
-                node.alias,
-                node.autodetect,
-                node.datadir,
-                user,
-                password,
-                port,
-                host,
-                protocol,
-                node.fullpath,
-                node.node_type,
-                app.specter.node_manager,
-            )
-            test = node.test_rpc()
-            if "tests" in test:
-                # If any test has failed, we notify the user that the test has not passed
-                if not test["tests"] or False in list(test["tests"].values()):
-                    flash(_("Test failed: {}").format(test["err"]), "error")
-                else:
-                    flash(_("All tests passed. Good to go to save this node!"))
-                # Determine the first failed test
-                for test_name, value in test["tests"].items():
-                    if value == False:
-                        failed_test = test_name
-                        break
-            # Not sure whether it ever comes to this, "tests"-key should always be present
-            elif test["err"] != "":
-                flash(_("Test failed: {}").format(test["err"]), "error")
-        elif action == "save":
-            if not node_alias:
-                node.name = request.form[
-                    "name"
-                ]  # Name form field is only used when setting up new nodes
-                if node.name in app.specter.node_manager.nodes_names:
+            else:
+                app.specter.node_manager.delete_node(node, app.specter)
+                if app.specter.node.alias != "default":
                     flash(
                         _(
-                            "Node with this name already exists, please choose a different name."
+                            "Connection deleted successfully, switched to the available connection"
+                        )
+                    )
+                    return redirect(
+                        url_for(
+                            "nodes_endpoint.node_settings",
+                            node_alias=app.specter.node.alias,
+                        )
+                    )
+                else:
+                    flash(
+                        _(
+                            "Connection deleted successfully, you need to configure a new connection"
+                        )
+                    )
+                    return redirect(
+                        url_for(
+                            "nodes_endpoint.node_settings",
+                            node_alias=None,
+                        )
+                    )
+        elif action == "connect":
+            if not node_alias:
+                # Name form field is only used when setting up new nodes
+                node.name = request.form["name"]
+                node_manager = app.specter.node_manager
+                if node.name in node_manager.nodes_names:
+                    flash(
+                        _(
+                            "Connection with this name already exists, please choose a different name."
                         ),
                         "error",
                     )
@@ -273,9 +252,9 @@ def node_settings(node_alias):
                 liquid_ports = [7041, 18891, 18884]
                 if port != "" and int(port) in liquid_ports:  # port is a string
                     node_type = "ELM"
-                node = app.specter.node_manager.add_external_node(
-                    node_type,
+                node = Node(
                     node.name,
+                    node.alias,
                     node.autodetect,
                     node.datadir,
                     user,
@@ -283,43 +262,58 @@ def node_settings(node_alias):
                     port,
                     host,
                     protocol,
+                    node.fullpath,
+                    node_type,
+                    node_manager,
                 )
                 test = node.test_rpc()
                 if not test["tests"] or False in list(test["tests"].values()):
                     flash(
+                        _(f"Connection attempt failed, configuration changes needed"),
+                        "error",
+                    )
+                    # Determine the first failed test
+                    for test_name, value in test["tests"].items():
+                        if value == False:
+                            failed_test = test_name
+                            break
+                else:
+                    # All good, we can save the node to the node manager, to disk and switch to it
+                    connectable_node = node_manager.add_external_node(
+                        node_type,
+                        node.name,
+                        node.autodetect,
+                        node.datadir,
+                        user,
+                        password,
+                        port,
+                        host,
+                        protocol,
+                    )
+                    app.specter.update_active_node(connectable_node.alias)
+                    flash(_(f"New connection saved and selected"))
+                    return redirect(url_for("welcome_endpoint.index"))
+            else:
+                # Updating a node with autodetect with incorrect values doesn't lead to a failure since the get_rpc in the node class
+                # is re-establishing the rpc connection with re-reading the bitcoin.conf. To avoid confusion we set autodetect here to False.
+                success = node.update_rpc(
+                    user=user,
+                    password=password,
+                    port=port,
+                    host=host,
+                    protocol=protocol,
+                    autodetect=False,
+                )
+                if not success:
+                    flash(_("Update of configuration failed (no connection)"), "error")
+                if success:
+                    flash(
                         _(
-                            f"Node saved but not selected (no connection). Configuration changes needed. Try the test button!"
+                            f"Configuration details updated successfully, switched to {node.name} connection"
                         )
                     )
-                    return redirect(
-                        url_for("nodes_endpoint.node_settings", node_alias=node.alias)
-                    )
-                else:
-                    flash(_(f"New node saved and selected."))
                     app.specter.update_active_node(node.alias)
                     return redirect(url_for("welcome_endpoint.index"))
-            # Updating a node with autodetect with incorrect values doesn't lead to a failure since the get_rpc in the node class
-            # is restablishing the rpc connection with re-reading the bitcoin.conf. To avoid confusion we set autodetect here to False.
-            success = node.update_rpc(
-                user=user,
-                password=password,
-                port=port,
-                host=host,
-                protocol=protocol,
-                autodetect=False,
-            )
-            if not success:
-                flash(
-                    _("Update of configuration details failed (no connection)"), "error"
-                )
-            if success:
-                flash(
-                    _(
-                        f"Configuration details updated and switched to {node.name} as node."
-                    )
-                )
-                app.specter.update_active_node(node.alias)
-                return redirect(url_for("welcome_endpoint.index"))
 
     return render_template(
         "node/node_settings.jinja",
