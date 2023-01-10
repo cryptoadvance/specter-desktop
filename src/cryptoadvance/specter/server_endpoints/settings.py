@@ -192,7 +192,7 @@ def general():
             else:
                 message = f"Sorry, this doesn't went that well. "
             if counter["errors_sum"] > 0:
-                message += "hovever, we had " if counter["success"] > 0 else "We had "
+                message += "however, we had " if counter["success"] > 0 else "We had "
                 message += f"""<br>
                 Successful imports: {counter["success"]}<br>
                 Specific errors:    {counter["specific_error"]}<br>
