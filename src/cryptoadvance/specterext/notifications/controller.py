@@ -73,6 +73,8 @@ def websocket():
         )
     # returning something solved some error message when the function ends: https://stackoverflow.com/questions/25034123/flask-value-error-view-function-did-not-return-a-response
     # and this mimetype does not trigger slow_request_detection_stop
+    # however when connected via ssl the following error still occurs
+    # ssl.SSLEOFError: EOF occurred in violation of protocol (_ssl.c:2384)
     return Response(json.dumps({}), mimetype="application/json")
 
 

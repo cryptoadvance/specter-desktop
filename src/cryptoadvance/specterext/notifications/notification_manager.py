@@ -134,7 +134,7 @@ class NotificationManager:
         return self._websocket_tokens
 
     def quit(self):
-        if self.websockets_client:
+        if self.websockets_client and self.websockets_client.is_connected():
             self.websockets_client.quit_server()
         logger.debug(f"{self.__class__.__name__} quit was called.")
 

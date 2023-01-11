@@ -426,10 +426,18 @@ class WebsocketClient:
         self.thread.daemon = True  # die when the main thread dies
         self.thread.start()
 
+    def is_connected(self):
+        return bool(self.websocket)
+
+    def _close(self):
+        self.websocket.close()
+        self.websocket = None
+
     def quit_server(self):
         "Sends the command 'quit_server' to the websocket server. which then shuts down the connection."
         message_dictionary = {"title": "quit_server"}
         self.send(message_dictionary)
+        self._close()
 
     def _initialize_connection_to_server(self):
         "Sends a message to the server, that does nothing, but enables the server to register the user_token to the websocket_client"
