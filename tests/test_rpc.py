@@ -7,7 +7,7 @@ from cryptoadvance.specter.rpc import (
     BitcoinRPC,
     RpcError,
     _detect_rpc_confs_via_datadir,
-    _get_rpcconfig,
+    get_rpcconfig,
 )
 from cryptoadvance.specter.specter_error import SpecterError
 
@@ -30,12 +30,12 @@ class CustomResponse(Response):
 
 
 def test_get_rpcconfig(empty_data_folder):
-    c = _get_rpcconfig(empty_data_folder)
+    c = get_rpcconfig(empty_data_folder)
     assert c["bitcoin.conf"]["default"] == {}
     assert c["bitcoin.conf"]["main"] == {}
     assert c["bitcoin.conf"]["regtest"] == {}
     assert c["bitcoin.conf"]["test"] == {}
-    c = _get_rpcconfig("./tests/misc_testdata")
+    c = get_rpcconfig("./tests/misc_testdata")
     # Looks like this:
     # regtest=1
     # rpcconnect=bitcoin
