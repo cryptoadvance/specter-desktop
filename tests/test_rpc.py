@@ -3,7 +3,12 @@ import logging
 import pytest
 import requests
 from requests import Response
-from cryptoadvance.specter.rpc import BitcoinRPC, RpcError
+from cryptoadvance.specter.rpc import (
+    BitcoinRPC,
+    RpcError,
+    _detect_rpc_confs_via_datadir,
+    _get_rpcconfig,
+)
 from cryptoadvance.specter.specter_error import SpecterError
 
 # To investigate the Bitcoin API, here are some great resources:
@@ -22,6 +27,49 @@ class CustomResponse(Response):
         self._content = json
         self.headers = headers
         self.encoding = None
+
+
+def test_get_rpcconfig(empty_data_folder):
+    c = _get_rpcconfig(empty_data_folder)
+    assert c["bitcoin.conf"]["default"] == {}
+    assert c["bitcoin.conf"]["main"] == {}
+    assert c["bitcoin.conf"]["regtest"] == {}
+    assert c["bitcoin.conf"]["test"] == {}
+    c = _get_rpcconfig("./tests/misc_testdata")
+    # Looks like this:
+    # regtest=1
+    # rpcconnect=bitcoin
+    # main.rpcport=8332
+    # test.rpcport=18332
+    # regtest.rpcport=18443
+    # rpcuser=bitcoin
+    # rpcpassword=CHANGEME
+    assert c["bitcoin.conf"] == {
+        "default": {
+            "regtest": "1",
+            "rpcconnect": "bitcoin",
+            "rpcpassword": "CHANGEME",
+            "rpcuser": "bitcoin",
+        },
+        "main": {"rpcport": "8332"},
+        "regtest": {"rpcport": "18443"},
+        "test": {"rpcport": "18332"},
+    }
+
+
+def test_detect_rpc_confs_via_datadir(empty_data_folder):
+    c = _detect_rpc_confs_via_datadir(datadir="./tests/misc_testdata")
+    # Looks like this:
+    # regtest=1
+    # rpcconnect=bitcoin
+    # main.rpcport=8332
+    # test.rpcport=18332
+    # regtest.rpcport=18443
+    # rpcuser=bitcoin
+    # rpcpassword=CHANGEME
+    assert c == [
+        {"host": "bitcoin", "password": "CHANGEME", "port": 18443, "user": "bitcoin"}
+    ]
 
 
 def test_RpcError_response(caplog):
