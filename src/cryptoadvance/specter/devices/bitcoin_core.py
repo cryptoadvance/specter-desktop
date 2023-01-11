@@ -15,7 +15,6 @@ from ..util.base58 import decode_base58, encode_base58_checksum
 from ..util.descriptor import AddChecksum
 from ..util.xpub import convert_xpub_prefix, get_xpub_fingerprint
 from ..util.mnemonic import mnemonic_to_root
-from . import DeviceTypes
 
 logger = logging.getLogger(__name__)
 
@@ -271,7 +270,7 @@ class BitcoinCoreWatchOnly(BitcoinCore):
     It can be converted back to a device of Type BitcoinCore by providing the 12 words again.
     """
 
-    device_type = DeviceTypes.BITCOINCORE_WATCHONLY
+    device_type = "bitcoincore_watchonly"
     name = "Bitcoin Core (watch only)"
     hot_wallet = False
 
@@ -306,6 +305,6 @@ class BitcoinCoreWatchOnly(BitcoinCore):
         )
 
         # Change type (also triggers write to file)
-        self.set_type(DeviceTypes.BITCOINCORE)
+        self.set_type(BitcoinCore.device_type)
         # After update this device will be available as a BitcoinCore (hot) instance
         self.manager.update()

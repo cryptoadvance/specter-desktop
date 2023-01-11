@@ -5,13 +5,14 @@ import time
 from unittest.mock import MagicMock
 
 import pytest
+from cryptoadvance.specter.devices.bitcoin_core import BitcoinCore
+from cryptoadvance.specter.devices.generic import GenericDevice
 from cryptoadvance.specter.helpers import is_testnet
 from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
 )
 from cryptoadvance.specter.util.mnemonic import generate_mnemonic
 from cryptoadvance.specter.key import Key
-from cryptoadvance.specter.devices import DeviceTypes
 from cryptoadvance.specter.managers.wallet_manager import WalletManager
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.util.descriptor import AddChecksum, Descriptor
@@ -496,7 +497,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured,
     ) = descriptor.parse_signers(device_manager.devices, cosigners_types)
 
     assert len(cosigners_types) == 0
-    assert unknown_cosigners_types[0] == DeviceTypes.GENERICDEVICE
+    assert unknown_cosigners_types[0] == GenericDevice.device_type
 
     # Re-create the device
     new_device = device_manager.add_device(
@@ -546,7 +547,7 @@ def test_multisig_wallet_backup_and_restore(
 
     # Create a pair of hot wallet signers
     hot_wallet_1_device = device_manager.add_device(
-        name="hot_key_1", device_type=DeviceTypes.BITCOINCORE, keys=[]
+        name="hot_key_1", device_type=BitcoinCore.device_type, keys=[]
     )
     hot_wallet_1_device.setup_device(file_password=None, wallet_manager=wallet_manager)
     hot_wallet_1_device.add_hot_wallet_keys(
@@ -560,7 +561,7 @@ def test_multisig_wallet_backup_and_restore(
         keys_purposes=[],
     )
     hot_wallet_2_device = device_manager.add_device(
-        name="hot_key_2", device_type=DeviceTypes.BITCOINCORE, keys=[]
+        name="hot_key_2", device_type=BitcoinCore.device_type, keys=[]
     )
     hot_wallet_2_device.setup_device(file_password=None, wallet_manager=wallet_manager)
     hot_wallet_2_device.add_hot_wallet_keys(
@@ -622,10 +623,10 @@ def test_multisig_wallet_backup_and_restore(
     assert cosigners_types[0]["type"] == device_type
 
     assert cosigners_types[1]["label"] == "hot_key_1"
-    assert cosigners_types[1]["type"] == DeviceTypes.BITCOINCORE
+    assert cosigners_types[1]["type"] == BitcoinCore.device_type
 
     assert cosigners_types[2]["label"] == "hot_key_2"
-    assert cosigners_types[2]["type"] == DeviceTypes.BITCOINCORE
+    assert cosigners_types[2]["type"] == BitcoinCore.device_type
 
     # Re-create the Trezor device
     new_device = device_manager.add_device(
@@ -682,7 +683,7 @@ def test_multisig_wallet_backup_and_restore(
 
     # Now we don't know any of the cosigners' types
     assert len(cosigners_types) == 0
-    assert unknown_cosigners_types[0] == DeviceTypes.GENERICDEVICE
+    assert unknown_cosigners_types[0] == GenericDevice.device_type
 
     # Re-create all three devices
     for i, (unknown_cosigner_key, label) in enumerate(unknown_cosigners):

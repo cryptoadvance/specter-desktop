@@ -1,4 +1,3 @@
-from . import DeviceTypes
 from .hwi_device import HWIDevice
 from .hwi.jade import JadeClient
 from .hwi.jade import enumerate as jade_enumerate
@@ -6,7 +5,7 @@ from ..helpers import is_liquid
 
 
 class Jade(HWIDevice):
-    device_type = DeviceTypes.JADE
+    device_type = "jade"
     name = "Jade"
     icon = "img/devices/jade_icon.svg"
 

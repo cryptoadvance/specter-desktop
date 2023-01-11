@@ -1,6 +1,5 @@
 from binascii import a2b_base64
 from typing import List
-from . import DeviceTypes
 from ..util.base43 import b43_encode
 from ..device import Device
 
