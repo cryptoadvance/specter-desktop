@@ -500,9 +500,7 @@ def device(device_alias):
             ):
                 device.set_type(device_type)
             else:
-                flash(
-                    f"Sorry, Type of Device {device.device_type} is not supported by that node."
-                )
+                flash(f"Type of Device {device_type} is not supported by that node.")
     device = copy.deepcopy(device)
 
     def sort_accounts(k):
