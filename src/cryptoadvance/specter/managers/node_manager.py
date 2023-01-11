@@ -94,7 +94,7 @@ class NodeManager:
                 self.add_external_node(
                     node_type="ELM",
                     name="Blockstream Liquid",
-                    autodetect=True,
+                    autodetect=False,
                     datadir=get_default_datadir(node_type="ELM"),
                     user="",
                     password="",
@@ -109,7 +109,7 @@ class NodeManager:
             self.add_external_node(
                 node_type="BTC",
                 name="",
-                autodetect=True,
+                autodetect=False,
                 datadir=get_default_datadir(),
                 user="",
                 password="",
@@ -131,7 +131,7 @@ class NodeManager:
             self.add_external_node(
                 node_type="BTC",
                 name="",
-                autodetect=True,
+                autodetect=False,
                 datadir=get_default_datadir(),
                 user="",
                 password="",
