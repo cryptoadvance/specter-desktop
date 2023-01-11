@@ -1,4 +1,4 @@
-certifi==2021.10.08
+certifi==2022.12.7
 chardet==3.0.4
 Click==8.1.1
 Flask==2.1.1
@@ -23,7 +23,7 @@ pgpy==0.5.4
 cbor==1.0.0
 mnemonic==0.20
 cryptography==3.4.7
-Flask-APScheduler==1.12.3
+Flask-APScheduler==1.12.4
 gunicorn==20.1.0
 protobuf==3.20.2
 PyJWT==2.4.0
