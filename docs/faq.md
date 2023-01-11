@@ -380,13 +380,13 @@ To check (before and/or afterwards) your installed version, you can use: `pip3 s
 ### Raspiblitz
 You might want to wait until raspiblitz is providing an update. It takes longer but if you're not technically literate, that might be a better option. However, up from Version 1.6.1, Raspiblitz offers an update-possibility in the menu. Prior to that or as a part of troubleshooting-procedure, you can also do something like this:
 ```
-sudo su - bitcoin
-cd .specter/
+sudo su - specter
 . ./.env/bin/activate
 pip3 list | grep specter
 pip3 install cryptoadvance.specter --upgrade
 pip3 list | grep specter
-service cryptoadvance-specter restart
+exit
+sudo systemctl restart specter
 ```
 
 ### umbrel

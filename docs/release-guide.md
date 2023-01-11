@@ -91,7 +91,7 @@ In any case, if the macOS binaries arrive on GitHub too late, you have to manual
 ![](./images/release-guide/rerun-release-signatures.png)
 
 ## Editing the text on the GitHub release page
-We are running a script here to create a markdown file that can be used for copy and paste.
+We are running a script here to create a markdown file that can be used for copy and paste. The script uses the latest release on GitHub to create links to the artifacts in the release, so it only makes sense to run it once the previous step has been completed. 
 - Checkout this repo: `git@github.com:cryptoadvance/corp-notes.git`
 - `cd download-page`
 - Run `./build.sh`
@@ -100,7 +100,7 @@ The result `gh_page.md` can be found in the build directory.
 Edit the release on GitHub and paste the md-file there along with the release notes from `release-notes.md`.
 
 ## Website 
-The above script also produces html files for the website (in the same directory):
+The above script also produces html files for the website (in the same directory). The second item needs to have the release notes on GitHub, otherwise the content for the details button is missing. So, you need to re-run `./build.sh` after the release notes on GitHub are done.
 - `download-page_current.html`
 - `download-page_releases.html`
 

@@ -4,72 +4,135 @@
         justify-content: flex-start;
         flex-grow: 1;
         width: 100%;
-        padding: 10px 0;
+        padding: 10px;
         display: flex;
         flex-direction: row;
         align-items: center;
-        border-left: 3px solid transparent;
+        border-left: 3px solid transparent;     
+        width: 275px;
+        height: 60px;
+        cursor: pointer;
+        border: 1px solid transparent;
+        border-radius: 10px;
+    }
+    .node-list-item-selected {
+        border: 1px solid orange;
+        border-radius: 10px;
+        cursor: unset;
     }
     .node-list-item>svg {
         width: 80px;
-    }
-    .node-list-item.active{
-        background: #394659;
     }
     @media (min-width: 600px){
         #node_select_popup {
             width: 350px;
         }
     }
+    .page_overlay_popup {
+        padding: '1.5em 0';
+        text-align: unset;
+    }
+    .node-select-popup-container {
+        flex-direction: column;
+        align-items: start;
+        gap: 10px;
+    }
+    .selected-icon {
+        width: 20px
+    }
+    .node-logo-unreachable {
+        margin-right: 15px;
+        opacity: 0.1;
+    }
+    .node-logo-running {
+         margin-right: 15px;
+         opacity: 1;
+    }
+    .node-description {
+        display: flex;
+        flex-direction: column;
+    }
+    .node-row {
+        display: flex; 
+        flex-direction: row; 
+        align-items: center;
+        justify-content: space-between;
+    }
+    .node-name {
+        color: white
+    }
+    .node-list-item:hover {
+        border: 1px dotted orange;
+        border-radius: 10px;
+    }
+    .node-list-item-selected:hover {
+        cursor: default;
+        border: 1px solid orange;
+        border-radius: 10px;
+    }
 </style>
-<div id="node_select_popup" class="hidden" style="text-align: left;">
-    <h1>{{ _("Node configuration") }}</h1>
+
+<div id="node_select_popup" class="hidden">
+    <h1 style="align-self: center">{{ _("Node selection") }}</h1>
     {% for node_name in specter.node_manager.nodes_names %}
         {% set node = specter.node_manager.get_by_name(node_name) %}
-        <form action="{{url_for('nodes_endpoint.switch_node')}}" id="{{node.alias}}-select-node-form" method="POST">
-		    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-		    <input type="hidden" name="node_alias" value="{{ node.alias }}"/>
-            <div class="item core node-list-item {% if node.alias == specter.node.alias %}active{% endif %}" style="cursor: pointer;"
-            onclick="document.getElementById('{{node.alias}}-select-node-form').submit();">
-                {% include node.node_logo_template() %}
-                <div style="width: 100%;">
-                    {{ node.name }}
-                    <br>
-                    <small>
-                        {% if node.chain %}
-                            {{node.chain | title}}, {{ node.host }}:{{ node.port }}
-                        {% else %}
-                            {{ _("Node unreachable...") }}
-                        {% endif %}
-                    </small>
+        {% set selected_node = node.alias == specter.node.alias %}
+        {% set running = node.is_running %}
+        <div id="node-row" class="node-row">
+            <form action="{{url_for('nodes_endpoint.switch_node')}}" id="{{node.alias}}-select-node-form" method="POST">
+                <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="node_alias" value="{{ node.alias }}"/>
+                <div {% if selected_node %} class="core node-list-item node-list-item-selected" {% else %} class="core node-list-item" {% endif %} onclick="document.getElementById('{{node.alias}}-select-node-form').submit();">
+                    <div id="node-logo" {% if running %} class="node-logo-running" {% else %} class="node-logo-unreachable" {% endif %}>
+                        {% include node.node_logo_template() %}
+                    </div>
+                    <div id="node-description" class="node-description" {% if selected_node %} title="Selected node" {% else %} title="Select node" {% endif%}>
+                        <div style="display: flex; gap: 10px">
+                            <div class="node-name">{{ node.name }}</div>
+                            {% if running %}
+                                <img title="Node is running" class="selected-icon"src="{{ url_for('static', filename='img/radio-button-running-node.svg')}}">
+                            {% endif %}
+                        </div>
+                        <small>
+                            {% if running %}
+                                {{node.chain | title}} node
+                            {% else %}
+                                <span style="color: grey; font-size: 12px">Node unreachable</span>
+                            {% endif %}
+                        </small>
+                    </div>
                 </div>
-                <a href="{{ url_for('nodes_endpoint.node_settings', node_alias=node.alias) }}" style="text-align: right; width: 100%px;">
-                    <img src="{{ url_for('static', filename='img/gear.svg')}}" class="svg-white" style="width: 40px; margin-right: 10px;"/>
-                </a>
-            </div>
-        </form>
+            </form>
+            <a title="Configure node" href="{{ url_for('nodes_endpoint.node_settings', node_alias=node.alias) }}">
+                <img src="{{ url_for('static', filename='img/gear.svg')}}" class="svg-gray" style="width: 40px; margin-right: 10px;"/>
+            </a>
+        </div>
     {% endfor %}
-    <br>
-    {{ sidebar_btn(url_for('setup_endpoint.node_type'), 'Connect a new node', 'btn_new_node') }}
+    <div style="align-self: center; margin-top: 10px">
+        <a href="{{ url_for('setup_endpoint.node_type') }}" class="btn" data-cy="connect-new-node-btn">Connect a new node</a>
+    </div>
 </div>
 
 <script type="text/javascript">
     function showNodeSelectPopup() {
+        // Show node selection popup when clicking on the arrows on the sidebar 
         hidePageOverlay();
         if (!e) var e = window.event;
         e.cancelBubble = true;
         if (e.stopPropagation) { 
             e.stopPropagation(); 
         }
-        document.getElementById('page_overlay_popup').style.padding = '1.5em 0';
-        document.getElementById('page_overlay_popup_cancel_button').classList.add('hidden');
         document.getElementById('side-content').classList.remove('active');
         showPageOverlay('node_select_popup');
+        // Change the default styling of the node selection popup 
+        let pageOverlayPopup = document.getElementById('page_overlay_popup')
+        pageOverlayPopup.classList.add('page_overlay_popup')
+        let nodeSelectPopupContainer = document.getElementById('node_select_popup');
+        nodeSelectPopupContainer.style.display = 'flex'
+        nodeSelectPopupContainer.classList.add('node-select-popup-container')
     }
 
     function onCancelOverlay() {
         document.getElementById('page_overlay_popup').style.padding = '1.5em';
-        document.getElementById('page_overlay_popup_cancel_button').classList.remove('hidden');
-
     }
 </script>

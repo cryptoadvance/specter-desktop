@@ -171,11 +171,11 @@ class BitcoinCore(Device):
                         xpub, keys_purposes[i] if len(keys_purposes) > i else ""
                     )
                 )
-            except Exception:
+            except Exception as e:
                 # TODO: This should never occur, but just in case,
                 # we must make sure to catch it properly so it
                 # doesn't crash the app no matter what.
-                raise Exception("Failed to parse this xpub:\n" + "\n".join(xpub))
+                raise Exception("Failed to parse this xpub:\n" + "\n".join(xpub), e)
         self.add_keys(keys)
 
     def _load_wallet(self, wallet_manager):
@@ -204,6 +204,7 @@ class BitcoinCore(Device):
             return "unlocked_until" in info
         except Exception as e:
             logger.warning("Cannot fetch hot wallet info")
+            logger.exception(e)
         # Assuming encrypted by default
         return True
 

@@ -16,6 +16,7 @@ from io import StringIO
 from typing import List
 
 from cryptoadvance.specter.commands.utxo_scanner import UtxoScanner
+from cryptoadvance.specter.rpc import RpcError
 
 from .addresslist import Address, AddressList
 from .device import Device
@@ -246,6 +247,7 @@ class Wallet:
         try:
             cls.DescriptorCls.from_string(combined)
         except Exception as e:
+            handle_exception(e)
             raise SpecterError(f"Invalid descriptor: {e}")
         return combined
 
@@ -290,7 +292,7 @@ class Wallet:
                 )
                 created = True
             except Exception as e:
-                logger.warning(e)
+                logger.exception(e)
         # if we failed to create or didn't try - create without descriptors
         if not created:
             rpc.createwallet(os.path.join(rpc_path, alias), True)
@@ -635,7 +637,7 @@ class Wallet:
             while self.rpc.getreceivedbyaddress(addr, 0) != 0:
                 addr = self.getnewaddress()
         except Exception as e:
-            logger.error(f"Failed to check for address reuse: {e}")
+            logger.exception(f"Failed to check for address reuse: {e}", e)
 
     def check_addresses(self):
         """Checking the gap limit is still ok"""
@@ -829,6 +831,7 @@ class Wallet:
                     tx["locked"] = False
             self._full_utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
         except Exception as e:
+            logger.exception(e)
             self._full_utxo = []
             raise SpecterError(f"Failed to load utxos, {e}")
 
@@ -982,8 +985,8 @@ class Wallet:
         if txid and txid in self.pending_psbts:
             try:
                 self.rpc.lockunspent(True, self.pending_psbts[txid].utxo_dict())
-            except Exception as e:
-                # UTXO was spent
+            except RpcError as e:
+                # UTXO was probably spent
                 logger.warning(str(e))
             del self.pending_psbts[txid]
             if save:
@@ -1002,9 +1005,8 @@ class Wallet:
                         [{"txid": utxo.split(":")[0], "vout": int(utxo.split(":")[1])}],
                     )
                 except Exception as e:
-                    # UTXO was spent
-                    print(e)
-                    pass
+                    # UTXO was spent ?!
+                    logger.exception(e)
                 logger.info(f"Unfreeze {utxo}")
                 self.frozen_utxo.remove(utxo)
             else:
@@ -1068,99 +1070,90 @@ class Wallet:
             != 0
         ):
             self.fetch_transactions()
-        try:
-            _transactions = [
-                tx.__dict__().copy()
-                for tx in self._transactions.values()
-                if tx["ismine"]
-            ]
-            transactions = sorted(
-                _transactions, key=lambda tx: tx["time"], reverse=True
-            )
-            transactions = [
-                tx
-                for tx in transactions
-                if (
-                    not tx["conflicts"]
-                    or max(
-                        [
-                            self.gettransaction(conflicting_tx, 0, full=False)["time"]
-                            for conflicting_tx in tx["conflicts"]
-                        ]
-                    )
-                    < tx["time"]
+
+        _transactions = [
+            tx.__dict__().copy() for tx in self._transactions.values() if tx["ismine"]
+        ]
+        transactions = sorted(_transactions, key=lambda tx: tx["time"], reverse=True)
+        transactions = [
+            tx
+            for tx in transactions
+            if (
+                not tx["conflicts"]
+                or max(
+                    [
+                        self.gettransaction(conflicting_tx, 0, full=False)["time"]
+                        for conflicting_tx in tx["conflicts"]
+                    ]
                 )
-            ]
-            if not current_blockheight:
-                current_blockheight = self.rpc.getblockcount()
-            result = []
-            blocks = {}
-            for tx in transactions:
-                if not tx.get("blockheight", 0):
-                    tx["confirmations"] = 0
-                else:
-                    tx["confirmations"] = current_blockheight - tx["blockheight"] + 1
+                < tx["time"]
+            )
+        ]
+        if not current_blockheight:
+            current_blockheight = self.rpc.getblockcount()
+        result = []
+        blocks = {}
+        for tx in transactions:
+            if not tx.get("blockheight", 0):
+                tx["confirmations"] = 0
+            else:
+                tx["confirmations"] = current_blockheight - tx["blockheight"] + 1
 
-                # coinbase tx
-                if tx["category"] == "generate":
-                    if tx["confirmations"] <= 100:
-                        category = "immature"
+            # coinbase tx
+            if tx["category"] == "generate":
+                if tx["confirmations"] <= 100:
+                    category = "immature"
 
-                if (
-                    tx.get("confirmations") == 0
-                    and tx.get("bip125-replaceable", "no") == "yes"
+            if (
+                tx.get("confirmations") == 0
+                and tx.get("bip125-replaceable", "no") == "yes"
+            ):
+                rpc_tx = self.rpc.gettransaction(tx["txid"])
+                tx["fee"] = rpc_tx.get("fee", 1)
+                tx["confirmations"] = rpc_tx.get("confirmations", 0)
+                tx["vsize"] = decoderawtransaction(rpc_tx["hex"]).get("vsize")
+
+            if isinstance(tx["address"], str):
+                tx["label"] = self.getlabel(tx["address"])
+                addr_obj = self.get_address_obj(tx["address"])
+                if addr_obj and addr_obj.get("service_id"):
+                    tx["service_id"] = addr_obj["service_id"]
+            elif isinstance(tx["address"], list):
+                # TODO: Handle services integration w/batch txs
+                tx["label"] = [self.getlabel(address) for address in tx["address"]]
+            else:
+                tx["label"] = None
+
+            if service_id and (
+                "service_id" not in tx or tx["service_id"] != service_id
+            ):
+                # We only want `service_id`-related txs returned
+                continue
+
+            # TODO: validate for unique txids only
+            tx["validated_blockhash"] = ""  # default is assume unvalidated
+            if validate_merkle_proofs is True and tx["confirmations"] > 0:
+                proof_hex = self.rpc.gettxoutproof([tx["txid"]], tx["blockhash"])
+                logger.debug(
+                    f"Attempting merkle proof validation of tx { tx['txid'] } in block { tx['blockhash'] }"
+                )
+                if is_valid_merkle_proof(
+                    proof_hex=proof_hex,
+                    target_tx_hex=tx["txid"],
+                    target_block_hash_hex=tx["blockhash"],
+                    target_merkle_root_hex=None,
                 ):
-                    rpc_tx = self.rpc.gettransaction(tx["txid"])
-                    tx["fee"] = rpc_tx.get("fee", 1)
-                    tx["confirmations"] = rpc_tx.get("confirmations", 0)
-                    tx["vsize"] = decoderawtransaction(rpc_tx["hex"]).get("vsize")
-
-                if isinstance(tx["address"], str):
-                    tx["label"] = self.getlabel(tx["address"])
-                    addr_obj = self.get_address_obj(tx["address"])
-                    if addr_obj and addr_obj.get("service_id"):
-                        tx["service_id"] = addr_obj["service_id"]
-                elif isinstance(tx["address"], list):
-                    # TODO: Handle services integration w/batch txs
-                    tx["label"] = [self.getlabel(address) for address in tx["address"]]
+                    # NOTE: this does NOT guarantee this blockhash is actually in the real Bitcoin blockchain!
+                    # See merkletooltip.html for details
+                    logger.debug(f"Merkle proof of { tx['txid'] } validation success")
+                    tx["validated_blockhash"] = tx["blockhash"]
                 else:
-                    tx["label"] = None
-
-                if service_id and (
-                    "service_id" not in tx or tx["service_id"] != service_id
-                ):
-                    # We only want `service_id`-related txs returned
-                    continue
-
-                # TODO: validate for unique txids only
-                tx["validated_blockhash"] = ""  # default is assume unvalidated
-                if validate_merkle_proofs is True and tx["confirmations"] > 0:
-                    proof_hex = self.rpc.gettxoutproof([tx["txid"]], tx["blockhash"])
-                    logger.debug(
-                        f"Attempting merkle proof validation of tx { tx['txid'] } in block { tx['blockhash'] }"
+                    logger.warning(
+                        f"Attempted merkle proof validation on {tx['txid']} but failed. This is likely a configuration error but perhaps your node is compromised! Details: {proof_hex}"
                     )
-                    if is_valid_merkle_proof(
-                        proof_hex=proof_hex,
-                        target_tx_hex=tx["txid"],
-                        target_block_hash_hex=tx["blockhash"],
-                        target_merkle_root_hex=None,
-                    ):
-                        # NOTE: this does NOT guarantee this blockhash is actually in the real Bitcoin blockchain!
-                        # See merkletooltip.html for details
-                        logger.debug(
-                            f"Merkle proof of { tx['txid'] } validation success"
-                        )
-                        tx["validated_blockhash"] = tx["blockhash"]
-                    else:
-                        logger.warning(
-                            f"Attempted merkle proof validation on {tx['txid']} but failed. This is likely a configuration error but perhaps your node is compromised! Details: {proof_hex}"
-                        )
 
-                result.append(tx)
-            return result
-        except Exception as e:
-            logging.error("Exception while processing txlist: {}".format(e))
-            return []
+            result.append(tx)
+        return result
 
     def gettransaction(self, txid, blockheight=None, decode=False, full=True):
         """Gets transaction from cache
@@ -1173,6 +1166,7 @@ class Wallet:
             )
         except Exception as e:
             logger.warning("Could not get transaction {}, error: {}".format(txid, e))
+            logger.exception(e)
 
     def is_tx_purged(self, txid):
         # Is tx unconfirmed and no longer in the mempool?
@@ -1186,6 +1180,7 @@ class Wallet:
             return txid not in self.rpc.getrawmempool()
         except Exception as e:
             logger.warning("Could not check is_tx_purged {}, error: {}".format(txid, e))
+            logger.exception(e)
 
     def abandontransaction(self, txid):
         # Sanity checks: tx must be unconfirmed and cannot be in the mempool
@@ -1371,7 +1366,7 @@ class Wallet:
 
     def is_address_mine(self, address):
         addrinfo = self.get_address_info(address)
-        return addrinfo and not addrinfo.is_external
+        return bool(addrinfo) and not addrinfo.is_external
 
     def get_electrum_file(self):
         """Exports the wallet data as Electrum JSON format"""
@@ -1459,6 +1454,7 @@ class Wallet:
                 else self.rpc.getbalances()["watchonly"]
             )
         except Exception as e:
+            handle_exception(e)
             raise SpecterError(f"was not able to get wallet_balance because {e}")
         self.balance = balance
         return self.balance
@@ -1498,6 +1494,7 @@ class Wallet:
             self._addresses.add(addresses, check_rpc=False)
         except Exception as e:
             logger.warning(f"Error while calculating addresses: {e}")
+            logger.exception(e)
 
         # Descriptor wallets were introduced in v0.21.0, but upgraded nodes may
         # still have legacy wallets. Use getwalletinfo to check the wallet type.
@@ -1914,8 +1911,9 @@ class Wallet:
                     res = self.gettransaction(txid)
                     inp.non_witness_utxo = self.TxCls.from_string(res["hex"])
                 except Exception as e:
-                    logger.error(
-                        f"Can't find previous transaction in the wallet. Signing might not be possible for certain devices... Txid: {txid}, Exception: {e}"
+                    logger.exception(
+                        f"Can't find previous transaction in the wallet. Signing might not be possible for certain devices... Txid: {txid}, Exception: {e}",
+                        e,
                     )
         else:
             # remove non_witness_utxo if we don't want them

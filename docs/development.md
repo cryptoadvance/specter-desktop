@@ -65,7 +65,7 @@ sudo yum -y install libusb libudev-devel libffi libffi-devel openssl-devel && su
 ```
 
 #### Windows
-* Install python 3.8.x by downloading from [python.org](https://www.python.org/downloads/windows/)
+* Install python 3.10.x by downloading from [python.org](https://www.python.org/downloads/windows/)
 
     _Do NOT install python from the Microsoft Store! It runs in a different execution environment that creates enormous headaches!_
 
@@ -85,8 +85,7 @@ sudo yum -y install libusb libudev-devel libffi libffi-devel openssl-devel && su
 
 
 ### Set up virtualenv
-Specter is using `hwi-2.1.0` which by now supports higher Python versions than Specter itself. Specter currently supports Python 3.7-3.9.
-If you have Python 3.10 as your global version then be sure to also install an old Python version and pass it to `virtualenv` (e.g. `virtualenv --python=python3.8 .env`) or use pyenv.
+Specter is using `hwi-2.1.0` which by now supports higher Python versions than Specter itself. Specter currently supports Python 3.9 and 3.10.
 
 ```sh
 git clone https://github.com/cryptoadvance/specter-desktop.git
@@ -113,6 +112,7 @@ Run the server:
 cd specter-desktop
 python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
 ```
+After that, Specter will be available at http://127.0.0.1:25441/.
 
 #### If `pip install` fails on `cryptography==3.4.x`
 
@@ -446,7 +446,7 @@ If you see this to need some improvements, please make it in small steps and exp
 As a quite young project, we don't have many dependencies yet and as a quite secure-aware use-case, we don't even want to have too many dependencies. That's sometimes the reason that we decide to roll our own rather then taking in new dependencies. This is especially true for javascript. We prefer plain javascript over any kind of frameworks.
 
 If you update `requirements.in` you will need to run the code snippet below to generate a new `requirements.txt`. 
-In order to produce consistent values in `requirements.txt`, delete any pre-existing `requirements.txt` file before doing `pip-compile`.
+You need `pip-tools`for that. If you get errors, upgrade `pip` and `pip-tools` to their latest versions.
 ```sh
 $ pip-compile --generate-hashes requirements.in
 ```

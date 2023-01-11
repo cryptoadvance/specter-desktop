@@ -68,14 +68,26 @@ def test_VersionChecker_get_binary_version(
     caplog,
 ):
     mock_requests_session.Session().get().json.return_value = {
-        "releases": {"0.10.0": None, "1.9.0rc5": None}
+        "releases": {
+            "1.9.0rc5": None,
+            "0.10.0": None,
+            "1.14.0": None,
+            "1.14.1": None,
+            "1.2.0": None,
+        }
     }
     vc = VersionChecker(name="joke")
-    assert vc._get_latest_version_from_github() == "1.9.0rc5"
+    assert compare(vc._get_latest_version_from_github(), "1.14.0") == -1
 
 
 def test_parse_version():
     assert _parse_version("v1.5.9") == {
+        "major": 1,
+        "minor": 5,
+        "patch": 9,
+        "postfix": "",
+    }
+    assert _parse_version("1.5.9") == {
         "major": 1,
         "minor": 5,
         "patch": 9,
@@ -87,10 +99,12 @@ def test_parse_version():
         "patch": 5,
         "postfix": "pre12",
     }
-    with pytest.raises(SpecterError):
-        _parse_version("3.4.5-pre12")
-    with pytest.raises(SpecterError):
-        _parse_version("3.4.5.6-pre12")
+    assert _parse_version("3.4.5rc12") == {
+        "major": 3,
+        "minor": 4,
+        "patch": 5,
+        "postfix": "pre12",
+    }
 
 
 def test_compare():
@@ -104,6 +118,9 @@ def test_compare():
     assert compare("v2.2.5", "v2.2.2") == -1
 
     assert compare("v2.2.5", "v2.2.5") == 0
+    assert compare("v2.2.5-pre5", "v2.2.5-pre5") == 0
 
-    with pytest.raises(SpecterError):
-        assert compare("v2.2.3-pre2", "v1.2.3") == -1
+    assert compare("v2.2.3-pre2", "v1.2.3") == -1
+    assert compare("v2.2.3", "v1.2.3-pre2") == -1
+    assert compare("v2.2.5-pre6", "v2.2.5-pre5") == -1
+    assert compare("v2.2.5-pre5", "v2.2.5-pre6") == 1
