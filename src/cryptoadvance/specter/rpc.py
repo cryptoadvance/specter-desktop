@@ -61,7 +61,7 @@ def get_rpcconfig(datadir=get_default_datadir()) -> dict:
     """
     config = {
         "bitcoin.conf": {"default": {}, "main": {}, "test": {}, "regtest": {}},
-        "cookies": [],
+        "cookies": {},
     }
     if not os.path.isdir(datadir):  # we don't know where to search for files
         return config
@@ -94,12 +94,13 @@ def get_rpcconfig(datadir=get_default_datadir()) -> dict:
     for chain in folders:
         fname = os.path.join(datadir, folders[chain], ".cookie")
         if os.path.exists(fname):
+            logger.debug(f"Found a cookie file for chain {chain}")
             try:
                 with open(fname, "r") as f:
                     content = f.read()
                     user, password = content.split(":")
                     obj = {"user": user, "password": password, "port": RPC_PORTS[chain]}
-                    config["cookies"].append(obj)
+                    config["cookies"][chain] = obj
             except Exception as e:
                 handle_exception(e)
                 print("Can't open %s file" % fname)
@@ -107,33 +108,57 @@ def get_rpcconfig(datadir=get_default_datadir()) -> dict:
 
 
 def _detect_rpc_confs_via_datadir(config=None, datadir=get_default_datadir()):
-    if config is None:
-        config = get_rpcconfig(datadir=datadir)
+    """returns the bitcoin.conf configuration for the network
+    specified in bitcoin.conf with testnet=1, regtest=1, etc. as
+    well as the network's auth cookie information.
+    """
+
     confs = []
-    default = {}
-    for network in config["bitcoin.conf"]:
+    conf = {}
+    networks = []
+    selected_network = "main"
+
+    if config is None:
+        config = _get_rpcconfig(datadir=datadir)
+
+    if "default" in config["bitcoin.conf"]:
+        default = config["bitcoin.conf"]["default"]
+        networks.append("default")
+        if "regtest" in default and default["regtest"] == "1":
+            selected_network = "regtest"
+        elif "testnet" in default and default["testnet"] == "1":
+            selected_network = "test"
+        elif "signet" in default and default["signet"] == "1":
+            selected_network = "signet"
+
+    logger.debug(f"Bitcoin network set to {selected_network}")
+
+    # Network specific options take precedence over default ones,
+    # as per https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#network-specific-options
+    networks.append(selected_network)
+
+    for network in networks:
         if "rpcuser" in config["bitcoin.conf"][network]:
-            default["user"] = config["bitcoin.conf"][network]["rpcuser"]
+            conf["user"] = config["bitcoin.conf"][network]["rpcuser"]
         if "rpcpassword" in config["bitcoin.conf"][network]:
-            default["password"] = config["bitcoin.conf"][network]["rpcpassword"]
+            conf["password"] = config["bitcoin.conf"][network]["rpcpassword"]
         if "rpcconnect" in config["bitcoin.conf"][network]:
-            default["host"] = config["bitcoin.conf"][network]["rpcconnect"]
+            conf["host"] = config["bitcoin.conf"][network]["rpcconnect"]
         if "rpcport" in config["bitcoin.conf"][network]:
-            default["port"] = int(config["bitcoin.conf"][network]["rpcport"])
-        if "user" in default and "password" in default:
-            if (
-                "port" not in config["bitcoin.conf"]["default"]
-            ):  # only one rpc makes sense in this case
-                if network == "default":
-                    continue
-                default["port"] = RPC_PORTS[network]
-            confs.append(default.copy())
-    # try cookies now
-    for cookie in config["cookies"]:
+            conf["port"] = int(config["bitcoin.conf"][network]["rpcport"])
+    if conf:
+        confs.append(conf)
+
+    # Check for cookies as auth fallback, rpcpassword in bitcoin.conf takes precedence
+    # as per https://github.com/bitcoin/bitcoin/blob/master/doc/init.md#configuration
+    # Only take the selected network cookie info
+    if "cookies" in config and selected_network in config["cookies"]:
+        cookie = config["cookies"][selected_network]
         o = {}
-        o.update(default)
+        o.update(conf)
         o.update(cookie)
         confs.append(o)
+
     return confs
 
 
@@ -183,12 +208,7 @@ def autodetect_rpc_confs(
     available_conf_arr = []
     if len(conf_arr) > 0:
         for conf in conf_arr:
-            rpc = BitcoinRPC(
-                **conf, proxy_url="socks5h://localhost:9050", only_tor=False
-            )
-            if port is not None:
-                if int(rpc.port) != port:
-                    continue
+            rpc = BitcoinRPC(**conf, proxy_url=proxy_url, only_tor=only_tor)
             try:
                 rpc.getmininginfo()
                 available_conf_arr.append(conf)
@@ -199,6 +219,9 @@ def autodetect_rpc_confs(
                 # Timeout
                 pass
             except RpcError:
+                pass
+            except BrokenCoreConnectionException:
+                # If conf's auth doesn't work, let's try cookie's auth if found
                 pass
                 # have to make a list of acceptable exception unfortunately
                 # please enlarge if you find new ones
