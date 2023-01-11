@@ -9,7 +9,7 @@
     - isRight: Is the item at the right edge (last item) of the navigation bar?
  #}
 {% macro settings_menu_item(tab, title, active_menuitem, isLeft=false, isRight=false, blueprint="settings_endpoint") -%}
-    <li class="mr-2 py-2 border-b-2 border-transparent {% if active_menuitem == tab %}text-blue-600 border-b-2 border-blue-600 active{% endif %}">
+    <li class="mr-2 py-2 border-b-2 border-transparent {% if active_menuitem == tab %}text-link border-b-2 border-link active{% endif %}">
         <a class="text-lg inline-block py-1 px-3 hover:text-white rounded-lg hover:bg-dark-700" href="{{ url_for(blueprint+'.'+ tab)}}">{{ title }}</a>
     </li>
 {%- endmacro %}

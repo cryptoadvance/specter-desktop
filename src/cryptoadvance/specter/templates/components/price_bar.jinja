@@ -25,10 +25,10 @@
 
             <nav class="text-center text-dark-200 border-b border-dark-600">
                 <ul class="flex flex-wrap -mb-px">
-                    <li aria-checked="{% if not specter.price_provider %}true{% endif %}" class="mr-2 py-2 border-b-2 border-transparent aria-checked:text-blue-600 aria-checked:border-b-2 aria-checked:border-blue-600" id="manual_menu_item">
+                    <li aria-checked="{% if not specter.price_provider %}true{% endif %}" class="mr-2 py-2 border-b-2 border-transparent aria-checked:text-link aria-checked:border-b-2 aria-checked:border-link" id="manual_menu_item">
                         <button type="button" id="manual_price_btn" class="text-lg inline-block py-1 px-3 hover:text-white rounded-lg hover:bg-dark-700" onclick="setPriceView('manual')">{{ _("Manual") }}</button>
                     </li>
-                    <li aria-checked="{% if specter.price_provider %}true{% endif %}" class="mr-2 py-2 border-b-2 border-transparent aria-checked:text-blue-600 aria-checked:border-b-2 aria-checked:border-blue-600" id="automatic_menu_item">
+                    <li aria-checked="{% if specter.price_provider %}true{% endif %}" class="mr-2 py-2 border-b-2 border-transparent aria-checked:text-link aria-checked:border-b-2 aria-checked:border-link" id="automatic_menu_item">
                         <button type="button" id="automatic_price_btn" class="text-lg inline-block py-1 px-3 hover:text-white rounded-lg hover:bg-dark-700" onclick="setPriceView('automatic')">{{ _("Automatic") }}</button>
                     </li>
                 </ul>

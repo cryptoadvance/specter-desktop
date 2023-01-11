@@ -38,7 +38,7 @@
   }
 
   p a {
-    @apply text-accent hover:opacity-80;
+    @apply text-link hover:opacity-80 hover:underline underline-offset-4;
   }
 
   table {

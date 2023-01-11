@@ -21,6 +21,7 @@ module.exports = {
         },
         // accent: "#0047FF",
         accent: "#2E5CFF",
+        link: "#2997ff"
       },
     },
   },

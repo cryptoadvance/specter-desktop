@@ -1,7 +1,7 @@
 {% extends "base.jinja" %}
 
 {% block main %}
-    <h1>{{ _('👋 Welcome to Specter Desktop') }}</h1>
+    <h1>{{ _('👋 Welcome to Specter') }}</h1>
 
     {% if ('://localhost:' not in url_for('index', _external=True) and '://127.0.0.1:' not in url_for('index', _external=True)) and specter.hwi_bridge_url != "http://127.0.0.1:25441/hwi/api/" %}
         {% include welcome_vm.specter_remote_include %}
@@ -10,7 +10,7 @@
     <div class="max-w-prose">
         <p>{{ _("Specter is a convenient wallet to self-custody your bitcoin. It’s great for single signature wallets, but is specifically designed with a focus on multiple signature setups with multiple signing devices.") }}</p>
         <p class="mt-6">
-            &#128217; {{ _("Learn more about ") }}
+            {{ _("Learn more about ") }}
             <a href="https://specter-desktop-docs.netlify.app/multisig-guide/" target="_blank">{{ _("multiple signature setups here") }}</a>.
         </p>
     </div>
