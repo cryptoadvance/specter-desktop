@@ -119,7 +119,7 @@ def _detect_rpc_confs_via_datadir(config=None, datadir=get_default_datadir()):
     selected_network = "main"
 
     if config is None:
-        config = _get_rpcconfig(datadir=datadir)
+        config = get_rpcconfig(datadir=datadir)
 
     if "default" in config["bitcoin.conf"]:
         default = config["bitcoin.conf"]["default"]
