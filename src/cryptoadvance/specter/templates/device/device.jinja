@@ -124,34 +124,40 @@
 	</div>
 	{% endif %}
 
-	<div class="hidden" id="new_device_popup">
-		<h1>{{ _("New device was added successfully!") }}</h1>
-		<div>
-			<a href="{{ url_for('devices_endpoint.new_device_type') }}">
-				<div>
-					<img src="{{ url_for('static', filename='img/plus.svg') }}">
-					{{ _("Add another device") }}
-				</div>
-			</a>
-			<form action="{{ url_for('wallets_endpoint.new_wallet', wallet_type='simple') }}" method="POST">
+	<div class="hidden bg-dark-900 p-4 pb-6" id="new_device_popup">
+    <div class="flex justify-between mb-5">
+        <h3 class="mb-0">{{ _("Device Added") }}</h3>
+        <p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer">Close</p>
+    </div>
+		<div class="grid grid-cols-2 gap-3">
+			<form class="text-[0px]" action="{{ url_for('wallets_endpoint.new_wallet', wallet_type='simple') }}" method="POST">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				<input type="hidden" name="device" value="{{ device.alias }}" />
 				<input type="hidden" name="action" value="preselected_device" />
 				<button type="submit">
-					<div>
+					<div class="selection">
+						<p></p>
 						<img src="{{ url_for('static', filename='img/key.svg') }}">
-						{{ _("Create single key wallet") }}
+						<p>{{ _("Create single key wallet") }}</p>
 					</div>
 				</button>
 			</form>
 			{% if specter.device_manager.devices | length > 1 %}
 				<a href="{{ url_for('wallets_endpoint.new_wallet', wallet_type='multisig') }}">
-					<div>
+					<div class="selection">
+						<p></p>
 						<img src="{{ url_for('static', filename='img/two-keys.svg') }}">
-						{{ _("Create multisignature wallet") }}
+						<p>{{ _("Create multisignature wallet") }}</p>
 					</div>
 				</a>
 			{% endif %}
+			<a href="{{ url_for('devices_endpoint.new_device_type') }}">
+				<div class="selection">
+					<p></p>
+					<img src="{{ url_for('static', filename='img/plus.svg') }}">
+					<p>{{ _("Add another device") }}</p>
+				</div>
+			</a>
 		</div>
 	</div>
 {% endblock %}

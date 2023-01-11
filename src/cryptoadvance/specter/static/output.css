@@ -1727,6 +1727,14 @@ select {
   padding-left: 1rem;
 }
 
+.pb-8 {
+  padding-bottom: 2rem;
+}
+
+.pb-6 {
+  padding-bottom: 1.5rem;
+}
+
 .text-center {
   text-align: center;
 }
@@ -1748,6 +1756,10 @@ select {
 .text-base {
   font-size: 1rem;
   line-height: 1.5rem;
+}
+
+.text-\[0px\] {
+  font-size: 0px;
 }
 
 .font-medium {
