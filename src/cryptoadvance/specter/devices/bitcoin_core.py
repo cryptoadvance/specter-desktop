@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class BitcoinCore(Device):
-    device_type = DeviceTypes.BITCOINCORE
+    device_type = "bitcoincore"
     name = "Bitcoin Core (hot wallet)"
     icon = "img/devices/bitcoincore_icon.svg"
 
