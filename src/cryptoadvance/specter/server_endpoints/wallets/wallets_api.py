@@ -325,7 +325,7 @@ def decoderawtx(wallet_alias):
                 success=True,
                 tx=tx,
                 rawtx=rawtx,
-                walletName=wallet.name,
+                wallet_name=wallet.name,
             )
     except Exception as e:
         app.logger.exception(
@@ -512,37 +512,59 @@ def addresses_list(wallet_alias):
 def addressinfo(wallet_alias):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     address = request.form.get("address", "")
-    if address:
-        descriptor = wallet.get_descriptor(
-            address=address, keep_xpubs=False, to_string=True, with_checksum=True
+    if not address:
+        return jsonify(success=False)
+
+    descriptor = wallet.get_descriptor(
+        address=address, keep_xpubs=False, to_string=True, with_checksum=True
+    )
+
+    xpubs_descriptor = wallet.get_descriptor(
+        address=address, keep_xpubs=True, to_string=True, with_checksum=True
+    )
+    if (not descriptor) or (not xpubs_descriptor):
+        logger.debug(
+            f"No descriptor or xpubs_descriptor was found for address {address} in wallet {wallet.name}"
         )
-        xpubs_descriptor = wallet.get_descriptor(
-            address=address, keep_xpubs=True, to_string=True, with_checksum=True
-        )
-        # The last two regex groups are optional since Electrum's derivation path is shorter
-        derivation_path_pattern = (
-            r"(\/[0-9h]+)(\/[0-9h]+)(\/[0-9h]+)(\/[0-9h]+)?(\/[0-9h]+)?"
-        )
-        # Only "descriptor" gives full derivation path, looks usually like this:
-        # wpkh([8c24a510/84h/1h/0h/0/0]0331edcb16cfd ... e02552539d984)#35zjhlhm
-        match = re.search(derivation_path_pattern, descriptor)
-        if not match:
-            logger.debug(
-                f"Derivation path of this descriptor {descriptor} could not be parsed. Sth. wrong with the regex pattern which was {derivation_path_pattern}?"
-            )
+        return jsonify(success=False)
+
+    address_info = wallet.get_address_info(address=address)
+
+    # The last two regex groups are optional since Electrum's derivation path is shorter
+    derivation_path_pattern = (
+        r"(\/[0-9h]+)(\/[0-9h]+)(\/[0-9h]+)(\/[0-9h]+)?(\/[0-9h]+)?"
+    )
+    # Only "descriptor" gives full derivation path, looks usually like this:
+    # wpkh([8c24a510/84h/1h/0h/0/0]0331edcb16cfd ... e02552539d984)#35zjhlhm
+    match = re.search(derivation_path_pattern, descriptor)
+    if match:
         logger.debug(f"This is the derivation path match: {match.group()}")
-        derivation_path = "m" + match.group()
-        address_info = wallet.get_address_info(address=address)
+    else:
+        logger.debug(
+            f"Derivation path of this descriptor {descriptor} could not be parsed. Sth. wrong with the regex pattern which was {derivation_path_pattern}?"
+        )
+        # only partial information can be returned, because no match/derivation_path could be found
         return {
-            "success": True,
+            "success": False,
             "address": address,
             "descriptor": descriptor,
             "xpubs_descriptor": xpubs_descriptor,
-            "derivation_path": derivation_path,
-            "walletName": wallet.name,
-            "isMine": address_info and not address_info.is_external,
+            "wallet_name": wallet.name,
+            "is_mine": address_info and not address_info.is_external,
             **address_info,  # address_info is an instance of Address(dict)
         }
+
+    derivation_path = "m" + match.group()
+    return {
+        "success": True,
+        "address": address,
+        "descriptor": descriptor,
+        "xpubs_descriptor": xpubs_descriptor,
+        "derivation_path": derivation_path,
+        "wallet_name": wallet.name,
+        "is_mine": address_info and not address_info.is_external,
+        **address_info,  # address_info is an instance of Address(dict)
+    }
 
 
 ################## Wallet CSV export data endpoints #######################
@@ -684,14 +706,21 @@ def is_address_mine(wallet_alias, address):
     wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
 
     # filter out invalid input
-    if (not address) or not isinstance(address, str):
-        return jsonify(False)
+    # and Segwit addresses are always between 14 and 74 characters long.
+    if (not address) or (not isinstance(address, str)) or len(address) < 14:
+        return jsonify(
+            {
+                "is_mine": False,
+                "wallet_name": wallet.name if wallet else None,
+            }
+        )
 
-    # Segwit addresses are always between 14 and 74 characters long.
-    if len(address) < 14:
-        return jsonify(False)
-
-    return jsonify(wallet.is_address_mine(address))
+    return jsonify(
+        {
+            "is_mine": wallet.is_address_mine(address),
+            "wallet_name": wallet.name if wallet else None,
+        }
+    )
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/send/estimatefee", methods=["POST"])

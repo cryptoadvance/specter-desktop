@@ -3,7 +3,7 @@ describe('Operating with an elements singlesig wallet', () => {
         cy.viewport(1300,660)
         cy.visit('/')
         cy.get('#node-switch-icon').click()
-        cy.get('#elements_node-select-node-form > .item > div').click()
+        cy.contains('Elements Node').click()
 
         // Delete Wallet if existing
         cy.deleteWallet("Elm Single Segwit Hot Wallet")

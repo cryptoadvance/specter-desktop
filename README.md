@@ -4,7 +4,7 @@
 
 - [Specter Desktop](#specter-desktop)
   - [DISCLAIMER](#disclaimer)
-  - [Video Walkthrough](#video-walkthrough)
+  - [Documentation and Video Walkthrough](#documentation-and-video-walkthrough)
   - [Why?](#why)
   - [Help wanted: Do you like Specter?](#help-wanted-do-you-like-specter)
   - [How to run](#how-to-run)
@@ -27,7 +27,6 @@
     The Crypto Anarchist Manifesto - Timothy C. May - Sun, 22 Nov 92 12:11:24 PST
 
 [![Build Status](https://api.cirrus-ci.com/github/cryptoadvance/specter-desktop.svg)](https://cirrus-ci.com/github/cryptoadvance/specter-desktop)
-[![Support the project](https://img.shields.io/badge/btcpay-support%20project-orange.svg)](https://donate.specter.solutions/apps/3k77BAT6zshCGNd3i7gw9WKwXQy1/pos)
 
 ## DISCLAIMER
 
@@ -35,8 +34,10 @@ This software might be ready to be used but at your own risk.
 
 If something doesn't work open an issue here or ask a question in our [Telegram group](https://t.me/spectersupport).
 
-## Video Walkthrough
-![video](https://www.youtube.com/embed/v3SEp0SkOWs) [Watch here](https://www.youtube.com/watch?v=v3SEp0SkOWs)
+## Documentation and Video Walkthrough
+
+* ![video](https://www.youtube.com/embed/v3SEp0SkOWs) [Watch here](https://www.youtube.com/watch?v=v3SEp0SkOWs)
+* [documentation](https://docs.specter.solutions/desktop/)
 
 ## Why?
 
@@ -72,7 +73,7 @@ The easiest way to run Specter Desktop is by installing the Specter Desktop app,
 With this method, all you need to do is just download the right file for your operating system and install it like a normal desktop app (Debian buster is only [partially supported](https://github.com/cryptoadvance/specter-desktop/issues/769))
 
 ### Installing Specter from Pip
-* Specter requires Python version 3.7 to 3.9.
+* Specter requires Python version 3.9 to 3.10.
 * Bitcoin Core node should be at least v0.19+, better if it's the latest one from [bitcoincore.org](https://bitcoincore.org/en/download/).
 * HWI support requires `libusb` 
   * Ubuntu/Debian: `sudo apt install libusb-1.0-0-dev libudev-dev python3-dev`
