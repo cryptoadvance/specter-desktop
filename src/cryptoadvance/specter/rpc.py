@@ -116,14 +116,14 @@ def _detect_rpc_confs_via_datadir(config=None, datadir=get_default_datadir()):
     if config is None:
         config = _get_rpcconfig(datadir=datadir)
 
-    if ("default" in config["bitcoin.conf"]):
+    if "default" in config["bitcoin.conf"]:
         default = config["bitcoin.conf"]["default"]
         networks.append("default")
-        if ("regtest" in default and default["regtest"] == "1"):
+        if "regtest" in default and default["regtest"] == "1":
             selected_network = "regtest"
-        elif ("testnet" in default and default["testnet"] == "1"):
+        elif "testnet" in default and default["testnet"] == "1":
             selected_network = "test"
-        elif ("signet" in default and default["signet"] == "1"):
+        elif "signet" in default and default["signet"] == "1":
             selected_network = "signet"
 
     logger.debug(f"Bitcoin network set to {selected_network}")
@@ -147,7 +147,7 @@ def _detect_rpc_confs_via_datadir(config=None, datadir=get_default_datadir()):
     # Check for cookies as auth fallback, rpcpassword in bitcoin.conf takes precedence
     # as per https://github.com/bitcoin/bitcoin/blob/master/doc/init.md#configuration
     # Only take the selected network cookie info
-    if ("cookies" in config and selected_network in config["cookies"]):
+    if "cookies" in config and selected_network in config["cookies"]:
         cookie = config["cookies"][selected_network]
         o = {}
         o.update(conf)
@@ -203,9 +203,7 @@ def autodetect_rpc_confs(
     available_conf_arr = []
     if len(conf_arr) > 0:
         for conf in conf_arr:
-            rpc = BitcoinRPC(
-                **conf, proxy_url=proxy_url, only_tor=only_tor
-            )
+            rpc = BitcoinRPC(**conf, proxy_url=proxy_url, only_tor=only_tor)
             try:
                 rpc.getmininginfo()
                 available_conf_arr.append(conf)
