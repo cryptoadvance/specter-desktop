@@ -5,9 +5,16 @@
 	{% include "includes/text-explainer.html" %}
 
 	{% if node_alias %}
-		<h1 id="title">{{ node.name }}</h1>
-		{% from 'components/editable_title.jinja' import editable_title %}
-		{{ editable_title(node.name) }}
+		<h1 id="connection-name">{{ node.name }}</h1>
+		<form id="name-form" action="./" method="POST">
+			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+			<input class="mb-2" type="text" autocomplete="off" spellcheck="false" id="new-name" name="new-name" value="{{ node.name }}" style="display: none;" required/>
+			<div class="flex">
+				<button type="submit" class="btn" id="update" name="action" style="display: none;">{{ _("Update") }}</button>
+				<button type="button" class="btn" id="cancel" onclick="toggleEdit()" style="display: none;">{{ _("Cancel") }}</button>
+				<button type="button" class="btn" id="edit" onclick="toggleEdit()">{{ _("Edit name") }}</button>
+			</div>
+		</form>
 	{% else %}
 		<h1 id="title">{{ _("Configure new connection") }}</h1>
 	{% endif %}
@@ -160,28 +167,58 @@
 {% endblock %}
 
 {% block scripts %}
-<script type="text/javascript">
-	let scanner = document.getElementById('scan_rpc');
-	if(scanner != null) {
-		scanner.addEventListener('scan', e=>{
-			let result = e.detail.result;
-			if(result==null){
-				return;
-			}
-			try {
-				let data = result.split('btcrpc://')[1].split(':')
-				let username = data[0];
-				let password = data[1].split('@')[0];
-				let host = data[1].split('@')[1];
-				let port = data[2].split('?')[0].split('/')[0];
-				document.getElementById('username').value = username;
-				document.getElementById('password').value = password;
-				document.getElementById('host').value = host;
-				document.getElementById('port').value = port;
-			} catch {
-				showError(`{{ _("Failed to read connection data from the QR") }}`, 3000)
-			}
-		});
+<script>
+	const connectionNameElement = document.getElementById("connection-name");
+	const siderbarConnectionNameElement = document.getElementById("sidebar-connection-name");
+	const newNameElement = document.getElementById("new-name");
+	const editBtn = document.getElementById("edit");
+	const cancelBtn = document.getElementById("cancel");
+	const updateBtn = document.getElementById("update");
+	const nameForm = document.getElementById('name-form')
+	nameForm.addEventListener('submit', (e) => {
+		e.preventDefault()
+		renameNode()
+	})
+
+	async function renameNode() {
+		let url = `{{ url_for('nodes_endpoint.rename_node') }}`;
+		const newName = newNameElement.value
+		const nodeAlias = '{{ node_alias }}'
+		const formData = new FormData();
+    	formData.append('newName', newName);
+		formData.append('nodeAlias', nodeAlias);
+		const response = await send_request(url, 'POST', "{{ csrf_token() }}", formData);
+		// Displaying the error messages is handled by the send_request helper function
+		if (response.nameChanged == true) {
+			connectionNameElement.innerText = newName
+			toggleEdit()
+			const connectionRenamedEvent = new CustomEvent('connectionRenamed', {
+				detail: {
+					'newName': newName
+				}
+			})
+			document.dispatchEvent(connectionRenamedEvent)
+			showNotification(`{{ _("Connection name successfully updated.") }}`, 50000)
+		}
 	}
+
+	function toggleEdit() {
+		if (editBtn.style.display === 'none'){
+			editBtn.style.display = 'block';
+			cancelBtn.style.display = 'none';
+			updateBtn.style.display = 'none';
+			connectionNameElement.style.display = 'block';
+			newNameElement.style.display = 'none';
+		} else {
+			newNameElement.style.fontSize = '1.5em';
+			newNameElement.value = connectionNameElement.innerText
+			newNameElement.style.display = 'block';
+			editBtn.style.display = 'none';
+			cancelBtn.style.display = 'inline-block';
+			updateBtn.style.display = 'inline-block';
+			connectionNameElement.style.display = 'none';
+		}
+    }
+
 </script>
 {% endblock %}

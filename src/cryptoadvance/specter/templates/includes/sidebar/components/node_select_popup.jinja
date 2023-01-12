@@ -14,8 +14,8 @@
 
                 <div class="min-w-0" id="node_item" {% if selected_node %} title="Selected node" {% else %} title="Select node" {% endif%}>
                     <div class="min-w-0 flex items-center space-x-2 mr-2">
-                        <div class="truncate leading-1 text-base">
-                            {% if node.name == "Spectrum Node" %}
+                        <div id="overlay-connection-name" class="truncate leading-1 text-base">
+                            {% if node.alias == "spectrum_node" %}
                                 {{ _("Bitcoin Network") }}
                             {% else %} 
                                 {{ node.name }} 
@@ -94,4 +94,9 @@
     function onCancelOverlay() {
         document.getElementById('page_overlay_popup').style.padding = '1.5em';
     }
+
+    const overlayConnectionNameElement = document.getElementById("overlay-connection-name")
+    document.addEventListener('connectionRenamed', (e) => {
+        overlayConnectionNameElement.innerText = e.detail.newName
+    })
 </script>

@@ -166,23 +166,7 @@ def node_settings(node_alias):
         if node.rpc is None and node_alias:
             node.update_rpc()
         action = request.form["action"]
-        if action == "rename":
-            node_name = request.form["newtitle"]
-            if not node_name:
-                flash(_("Name cannot be empty!"), "error")
-            elif node_name == node.name:
-                pass
-            elif node_name in node_manager.nodes_names:
-                flash(
-                    _(
-                        "A connection with this name already exists, please choose a different name."
-                    ),
-                    "error",
-                )
-            else:
-                node.rename(node_name)
-                flash(_(f"New name saved"))
-        elif action == "delete":
+        if action == "delete":
             if not node_alias:
                 flash(
                     _(
@@ -520,3 +504,26 @@ def switch_node():
             "error",
         )
         return redirect(url_for("nodes_endpoint.node_settings", node_alias=node.alias))
+
+
+@nodes_endpoint.route("rename/", methods=["POST"])
+@login_required
+def rename_node():
+    new_name = request.form["newName"]
+    node_alias = request.form["nodeAlias"]
+    node_manager = app.specter.node_manager
+    node = node_manager.get_by_alias(node_alias)
+    if not new_name:
+        # Should not be possible because of the required, but still ...
+        response = {"nameChanged": False, "error": "Name cannot be empty"}
+    elif node.name == new_name:
+        response = {"nameChanged": False, "error": "You didn't change the name."}
+    elif new_name in node_manager.nodes_names:
+        response = {
+            "nameChanged": False,
+            "error": "A connection with this name already exists, please choose a different name.",
+        }
+    else:
+        node.rename(new_name)
+        response = {"nameChanged": True, "error": None}
+    return jsonify(response)
