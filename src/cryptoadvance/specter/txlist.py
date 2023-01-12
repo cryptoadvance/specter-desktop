@@ -234,7 +234,7 @@ class TxItem(dict, AbstractTxListContext):
     def bip125_replaceable(self):
         if self.get("bip125-replaceable"):
             return self["bip125-replaceable"]
-        return None
+        return "no"
 
     @property
     def conflicts(self):

@@ -296,7 +296,7 @@
                 this.category.classList.add('svg-cancelled');
             }
 
-            if ((this.tx.category == "send" || this.tx.category == "selftransfer") && this.tx["bip125-replaceable"] == "yes") {
+            if ((this.tx.category == "send" || this.tx.category == "selftransfer") && this.tx["bip125-replaceable"] == "yes" && this.tx["confirmations"] == 0) {
                 this.rbf.classList.remove('hidden');
                 if (this.tx.category == "selftransfer") {
                     this.rbfCancel.classList.add('hidden');
