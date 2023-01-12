@@ -1,39 +1,31 @@
-<div style="display: none;"><!--<style>-->
-    .key {
-        width: 380px;
-        word-break: break-word;
-        margin: auto;
-    }
-    .key:hover {
-        text-decoration: underline;
-        cursor: pointer;
-    }
-</div><!--</style>-->
-<div class="hidden" id="key_export_qr">
+<div class="hidden bg-dark-800 pb-4" id="key_export_qr">
+    <div class="flex justify-between p-4 pb-0">
+        <h3 class="mb-0">{{ _("Export XPub") }}</h3>
+        <p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer">Close</p>
+    </div>
     <form class="flex-center flex-column">
         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-        <div>
+        <div class="p-4">
             <span id='key_qr_code'></span>
-            <br><pre id="key_text" class='key center' onclick="copyText(this.innerText, '{{ _("Copied full key") }}')">{{ key }}</pre>
+            <br><pre id="key_text" class='key truncate' onclick="copyText(this.innerText, '{{ _("Copied full key") }}')">{{ key }}</pre>
         </div>
-        <br>
-        <table data-style="text-align: left; width: 70%; margin: auto; border: none;">
-            <tr data-style="background: unset; border: none;">
-            <td data-style="border: none;">
+        <table>
+            <tr>
+            <td>
                 <label class="switch-label">{{ _("Show derivation path") }}:&nbsp;</label>
             </td>
-            <td data-style="border: none;">
+            <td>
                 <label class="switch">
                     <input type="checkbox" id="show_der_path" onchange="toggleKeyDisplay()">
                     <span class="slider"></span>
                 </label>
             </td>
             </tr>
-            <tr data-style="background: unset; border: none;">
-            <td data-style="border: none;">
+            <tr>
+            <td>
                 <label class="switch-label">{{ _("Use SLIP-132") }}:&nbsp;</label>
             </td>
-            <td data-style="border: none;">
+            <td>
                 <label class="switch">
                     <input type="checkbox" id="use_slip_132" onchange="toggleKeyDisplay()">
                     <span class="slider"></span>
@@ -43,6 +35,7 @@
         </table>
     </form>
 </div>
+
 <script>
     let keys = [];
     {% for key in device.keys %}

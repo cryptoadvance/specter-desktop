@@ -18,48 +18,12 @@
         total_wallet_balances("", wallet.amount_total, wallet.amount_confirmed,  wallet.amount_unconfirmed, wallet.amount_immature, wallet.balance, wallet.rescan_progress, wallet.alias, specter)
  #}
 {% macro total_wallet_balances(title, amount_total, amount_confirmed, amount_unconfirmed, amount_immature, balance, rescan_progress, alias, specter) -%}
-<div style="display: none;"><!--<style>-->
-    table {
-        font-size: 1.1em;
-        border: none;
-        border-collapse: initial;
-    } 
-
-    th {
-        text-align: left;
-        font-weight: inherit;
-        border-bottom: initial;
-        padding:initial;
-        padding-left:5px;
-    }
-    tr {
-        background: initial;
-    }
-    .btn {
-        font-size: 0.9em;
-    }
-    button.btn {
-        display: inline-flex;
-        font-size: 0.9em;
-        padding: 2px 10px 2px 10px;
-        height: initial;
-        min-height: initial;
-        width: initial;
-        min-width: initial;
-    }
-    .right-align {
-        text-align: right;
-    }
-    h4 {
-        font-weight: unset;
-    }
-</div><!--</style>-->
-    <div data-style="display: flex; flex-direction: column; min-width: 300px; align-items: center">
-        <div class="smaller-card">            
+    <div>
+        <div>            
             {% if title %}
                 <!-- <div data-style="text-align: center; width:100%; line-height:30px; font-size: 1.2em;">{{ title }}</div> -->
             {% endif %}
-            <table class="mt-10">
+            <table class="mt-3">
                 <tr>
                     <td>Total amount:</td>
                     <td id="fullbalance_amount" class="right-align">{{ amount_total | btcunitamount_fixed_decimals | safe }}</td>

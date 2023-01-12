@@ -1707,6 +1707,10 @@ select {
   padding-right: 0.25rem;
 }
 
+.pb-6 {
+  padding-bottom: 1.5rem;
+}
+
 .pt-3 {
   padding-top: 0.75rem;
 }
@@ -1721,6 +1725,10 @@ select {
 
 .pb-4 {
   padding-bottom: 1rem;
+}
+
+.pb-0 {
+  padding-bottom: 0px;
 }
 
 .pl-2 {
@@ -1742,6 +1750,10 @@ select {
 .text-lg {
   font-size: 1.125rem;
   line-height: 1.75rem;
+}
+
+.text-\[0px\] {
+  font-size: 0px;
 }
 
 .text-sm {

@@ -107,39 +107,40 @@
 			<button type="button" class="btn centered padded" onclick="hidePageOverlay()">{{ _("Finish") }}</button>
 		</div>
 
-		<div class="hidden" id="new_wallet_popup">
-			<h1>{{ _("New wallet was created successfully!") }}</h1>
-			<button id="pdf-wallet-download" class="btn centered action" type="button">
-				<img src="{{ url_for('static', filename='img/file.svg') }}" data-style="width: 30px; margin-right: 2px;" class="svg-white">
+		<div class="hidden bg-dark-800 w-96 p-4" id="new_wallet_popup">
+			<div class="flex justify-between mb-3">
+					<h3 class="mb-0">{{ _("Wallet Added") }}</h3>
+					<p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer">Close</p>
+			</div>
+
+			{% include 'wallet/components/wallet_pdf.jinja' %}
+
+			<p>
+				{{ _("It's recommended that you print and save this wallet backup file with each of your devices.") }}
+				{{ _("It includes everything you need to restore your wallet in Specter or other compatible wallets including Bitcoin Core itself.") }}<br>
+			<p>
+			<p>
+				{{ _("Keep this file private as it contains all the information needed to track your transaction history.") }}
+			<p>
+
+			<span class="mt-2 mb-3 block" id="advanced_pdf_export_toggle" onclick="togglePDFExportAdvanced()">{{ _("Advanced") }} &#9654;</span>
+
+			<div class="hidden mb-5" id="advanced_pdf_export_container">
+				<label class="flex items-center">
+					<input type="checkbox" id="use_slip_132_pdf" data-style="margin: auto;" onchange="toggleKeyDisplay()">
+					{{ _("Use SLIP-132") }}
+				</label>
+			</div>
+
+			<button id="pdf-wallet-download" class="button bg-accent text-white" type="button">
+				<img src="{{ url_for('static', filename='img/file.svg') }}">
 				{{ _("Save Backup PDF") }}
 			</button>
-			{% include 'wallet/components/wallet_pdf.jinja' %}
-			<br>
-			<span id="advanced_pdf_export_toggle" data-style="cursor: pointer;" onclick="togglePDFExportAdvanced()">{{ _("Advanced") }} &#9654;</span>
-			<br>
-			<br>
-			<div data-style="margin: 0 auto;" class="center hidden" id="advanced_pdf_export_container">
-				<label data-style="font-size: 1em;"">{{ _("Use SLIP-132:") }}&nbsp;</label>
-				<label class="switch">
-					<input type="checkbox" id="use_slip_132_pdf" data-style="margin: auto;" onchange="toggleKeyDisplay()">
-					<span class="slider"></span>
-				</label><br><br>
-			</div>
-			<p class="note center" data-style="margin-top: 5px; max-width: 90%;">{{ _("To format master keys on the PDF backup document.") }}</p>
-			<p data-style="max-width: 500px;">
-			{{ _("It is recommended that you print and save this wallet backup file with each of your devices.") }}
-			</p>
-			<p data-style="max-width: 500px;" class="note">
-			{{ _("This backup includes all the information you'd need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core itself.") }}<br>
-			<p>
-			<p data-style="max-width: 500px;" class="note">
-			{{ _("It is recommended that you keep this file private, as it contains all the information needed to track all of the wallet balance and transactions history.") }}
-			<p>
-			<p data-style="max-width: 500px;">{{ _("You can always download this file later from the wallet Settings tab.") }}</p>
+
 			{% if wallet.is_multisig and supports_export_to_device != [] %}
-				<button type="button" class="btn centered padded" onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')">{{ _("Continue") }}</button>
+				<button type="button" class="button mb-0" onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')">{{ _("Continue") }}</button>
 			{% else %}
-				<button type="button" class="btn centered padded" onclick="hidePageOverlay()" id="btn_continue">{{ _("Continue") }}</button>
+				<button type="button" class="button mb-0" onclick="hidePageOverlay()" id="btn_continue">{{ _("Skip") }}</button>
 			{% endif %}
 		</div>
 	</div>

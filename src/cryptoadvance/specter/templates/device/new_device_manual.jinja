@@ -89,12 +89,18 @@
 					</div>
 
 
-					<div class="hidden" id="usb_import_account_number">
-						<h1>{{ _("Select the account you wish to import") }}</h1>
-						<p class="center" data-style="max-width: 500px; margin: 5px auto;">{{ _("You can set which account number you wish to import.")}}{{ _("Account derivation uses the number choosen here to derive an xpub as specified in") }} <a data-style="color: #fff" href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#account" target="_blank">BIP44</a>.</p>
-						Account # <input type="number" step="1" min="0" value="0" id="usb_account_number" data-style="max-width: 100px; min-width: 100px;">
-						<p class="note center">{{ _("This is an advanced feature.")}}{{ _("If you're not familiar with account derivations please leave this as 0.") }}</p>
-						<button class="button centered" type="button" onclick="hidePageOverlay()">{{ _("Close") }}</button>
+					<div class="hidden p-4 bg-dark-800 w-96" id="usb_import_account_number">
+						<div class="flex justify-between mb-3">
+								<h3 class="mb-0">{{ _("Select Account") }}</h3>
+								<p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer">Close</p>
+						</div>
+						<p>{{ _("You can set which account number you wish to import. ")}}{{ _("Account derivation uses the number choosen here to derive an xpub as specified in") }} <a data-style="color: #fff" href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#account" target="_blank">BIP44</a>.</p>
+						<p>{{ _("This is an advanced feature.")}}{{ _(" If you're not familiar with account derivations please leave this as 0.") }}</p>
+						<div class="floating-wrapper mb-5 mt-3">
+							<input class="floating-input peer" placeholder=" " type="number" step="1" min="0" value="0" id="usb_account_number">
+							<label class="floating-label">Account Number</label>
+						</div>
+						<button class="button text-white bg-accent" type="button" onclick="hidePageOverlay()">{{ _("Complete") }}</button>
 					</div>
 
 					<div class="mb-5">
