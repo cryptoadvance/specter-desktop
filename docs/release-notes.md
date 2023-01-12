@@ -1,5 +1,24 @@
 # Release Notes
 
+## v1.14.3 Januar 12, 2023
+- Bugfix: autodetect from bitcoin.conf file with network set #2037 (kexkey)
+- Bugfix: change settings_restore implementation #2042 (k9ert)
+- Bugfix: internal node needs to be saved #2045 (k9ert)
+- Chore: Bump json5 from 2.1.3 to 2.2.3 in /pyinstaller/electron #2039 (dependabot[bot])
+- Chore: Bump minimatch from 3.0.4 to 3.1.2 #1966 (dependabot[bot])
+- Chore: Bump minimatch from 3.0.4 to 3.1.2 in /pyinstaller/electron #1965 (dependabot[bot])
+- Chore: some dependency improvements #2046 (k9ert)
+- Docs: Add Documentation Link to Readme #2043 (k9ert)
+- Docs: MacOS build instructions #2023 (Manolis Mandrapilias)
+- Docs: Updated instructions to upgrade Specter on Raspiblitz #2040 (k9ert)
+- Docs: Update of developer guide #2036 (Paarth Agarwal)
+- Docs: Update release guide #2029 (Manolis Mandrapilias)
+- Feature: delete spectrum node #2047 (k9ert)
+
+## v1.14.3 Januar 12, 2023
+
+## v1.14.3 Januar 12, 2023
+
 ## v1.14.2 December 21, 2022
 - UIUX: Address labeling revamp #1978 (OTK & Manolis Mandrapilias)
 - UIUX: Better node selection #1987 (Manolis Mandrapilias)
