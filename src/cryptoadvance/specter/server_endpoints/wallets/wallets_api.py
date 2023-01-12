@@ -923,9 +923,8 @@ def txlist_to_csv(wallet: Wallet, _txlist, includePricesHistory=False):
                 tx["blockheight"] = tx_raw["blockheight"]
             else:
                 tx["blockheight"] = "Unconfirmed"
-        if app.specter.unit == "sat":
-            value = float(tx["flow_amount"])
-            tx["amount"] = round(value * 1e8)
+        # For txs, the relevant amount is flow_amount
+        tx["amount"] = tx["flow_amount"]
         amount_price = "not supported"
         rate = "not supported"
         if tx.get("blocktime"):
@@ -952,7 +951,7 @@ def txlist_to_csv(wallet: Wallet, _txlist, includePricesHistory=False):
             time.strftime("%Y-%m-%d", time.localtime(timestamp)),
             label,
             tx["category"],
-            round(tx.get("amount"), (0 if app.specter.unit == "sat" else 8)),
+            round(tx.get("amount", 9999), (0 if app.specter.unit == "sat" else 8)),
             amount_price,
             rate,
             tx["txid"],
