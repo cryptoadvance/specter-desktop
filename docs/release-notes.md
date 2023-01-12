@@ -1,6 +1,6 @@
 # Release Notes
 
-## v1.14.3 Januar 12, 2023
+## v1.14.3 January 12, 2023
 - Bugfix: autodetect from bitcoin.conf file with network set #2037 (kexkey)
 - Bugfix: change settings_restore implementation #2042 (k9ert)
 - Bugfix: internal node needs to be saved #2045 (k9ert)
@@ -14,10 +14,6 @@
 - Docs: Update of developer guide #2036 (Paarth Agarwal)
 - Docs: Update release guide #2029 (Manolis Mandrapilias)
 - Feature: delete spectrum node #2047 (k9ert)
-
-## v1.14.3 Januar 12, 2023
-
-## v1.14.3 Januar 12, 2023
 
 ## v1.14.2 December 21, 2022
 - UIUX: Address labeling revamp #1978 (OTK & Manolis Mandrapilias)
@@ -35,7 +31,7 @@
 - Chore: Fix nix shell by generating hashes with pip-compile #2016 (hodlwave)
 - Docs: Corrected build instructions #1996 (relativisticelectron)
 
-## v1.14.1 Dezember 07, 2022
+## v1.14.1 December 07, 2022
 - Bugfix: Adding migrations to the hidden imports #2007 (k9ert)
 - Bugfix: Bump Spectrum for better error_handling (k9ert)
 - Chore: better error_handling and tested #2005 (k9ert)
