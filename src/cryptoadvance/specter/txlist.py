@@ -532,6 +532,7 @@ class TxList(dict, AbstractTxListContext):
         for tx in transactions:
             # 3. with a confirmation-key
             tx.set_current_blockheight = current_blockheight
+            tx.confirmations  # trigger calculation
 
         return transactions
 
