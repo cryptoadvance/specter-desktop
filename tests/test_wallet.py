@@ -1,6 +1,11 @@
+from asyncio.streams import FlowControlMixin
 import random
 import time
+from typing import List
 import pytest, logging
+from cryptoadvance.specter.util.psbt import SpecterPSBT
+from cryptoadvance.specter.commands.psbt_creator import PsbtCreator
+from cryptoadvance.specter.txlist import WalletAwareTxItem
 from cryptoadvance.specter.device import Device
 
 from cryptoadvance.specter.specter import Specter
@@ -14,8 +19,51 @@ from fix_devices_and_wallets import create_hot_wallet_device, create_hot_segwit_
 logger = logging.getLogger(__name__)
 
 
+def send_helper(specter_regtest_configured: Specter, wallet: Wallet, device: Device):
+    """A small heper method to send some fund with a hot-wallet. Maybe this should be in wallet.py ?
+    To understand der PSBT-workflow, i like this article:
+    https://github.com/bitcoin/bitcoin/blob/master/doc/psbt.md
+    """
+    # sending some funds is quite complicated:
+    request_json = """
+        {
+            "recipients" : [
+                { 
+                    "address": "bcrt1q3kfetuxpxvujasww6xas94nawklvpz0e52uw8a",
+                    "amount": 0.2,
+                    "unit": "btc",
+                    "label": "someLabel"
+                }
+            ],
+            "rbf_tx_id": "",
+            "subtract_from": "0",
+            "fee_rate": "64",
+            "rbf": true
+        }
+    """
+
+    psbt_creator: PsbtCreator = PsbtCreator(
+        specter_regtest_configured, wallet, "json", request_json=request_json
+    )
+
+    psbt_dict = psbt_creator.create_psbt(wallet)
+    psbt = psbt_creator.psbt_as_object
+
+    b64psbt = str(psbt_dict["base64"])
+    signed_psbt = specter_regtest_configured.device_manager.get_by_alias(
+        device.alias
+    ).sign_psbt(b64psbt, wallet, "")
+    print()
+    print(f"signed_psbt: {signed_psbt}")
+
+    if signed_psbt["complete"]:
+        raw = wallet.rpc.finalizepsbt(signed_psbt["psbt"])
+    psbt.update(signed_psbt["psbt"], raw)
+    specter_regtest_configured.broadcast(raw["hex"])
+
+
 def test_txlist(
-    bitcoin_regtest,
+    bitcoin_regtest: BitcoindPlainController,
     specter_regtest_configured: Specter,
     hot_wallet_device_1: Device,
     hot_ghost_machine_device,
@@ -35,7 +83,12 @@ def test_txlist(
     assert len(wallet.txlist()) == 0
     for i in range(0, 10):
         bitcoin_regtest.testcoin_faucet(wallet.getnewaddress(), amount=1)
+
+    # Send some funds somewhere
+    send_helper(specter_regtest_configured, wallet, hot_wallet_device_1)
+
     wallet.update()
+    bitcoin_regtest.get_rpc().generatetoaddress(1, wallet.getnewaddress())
     for i in range(0, 2):
         bitcoin_regtest.testcoin_faucet(
             wallet.getnewaddress(),
@@ -46,11 +99,33 @@ def test_txlist(
     wallet.update()
 
     wallet.fetch_transactions()
-    for tx in wallet._transactions.values():
-        print(f"..   {tx['ismine']} .. {tx}")
+    txlist: List(WalletAwareTxItem) = wallet.txlist()
+    assert txlist[0].__class__ == WalletAwareTxItem
+
+    tx: WalletAwareTxItem = txlist[0]
+    psbt = tx.psbt
+    print(psbt)
+
+    print(
+        "mine \t category \t flow_amount \t blockh \t time \t conflicts \t #conf \t vsize \t fee"
+    )
+    print("-" * 100)
+    tx: WalletAwareTxItem
+    for tx in txlist:
+        print(
+            f"{tx.ismine} \t {tx.category:<8} \t {tx.flow_amount: {2}.{3}} \t\t {tx.blockheight} \
+\t {tx.time} \t {tx.conflicts} \t\t {tx.confirmations} \t  {tx.vsize} \t {tx['fee']}"
+        )
+        assert tx.ismine
+        assert tx.category in ["receive", "generate", "send"]
+        assert tx.flow_amount > 0.9 or tx.flow_amount < 0.2
+        assert tx.blockheight is None or tx.blockheight > 200
+        assert tx.time > 1673512597
+        assert tx.conflicts == None
+        assert tx.confirmations >= 0
 
     # 12 txs
-    assert len(wallet.txlist()) == 12
+    assert len(wallet.txlist()) == 14
     # two of them are unconfirmed
     assert len([tx for tx in wallet.txlist() if tx["confirmations"] == 0]) == 2
 
@@ -90,19 +165,20 @@ def test_createpsbt(
         1,
         selected_coins=selected_coin,  # Selecting only one UTXO since input ordering seems to also be random in Core.
     )
-    assert len(psbt["tx"]["vin"]) == 1
-    assert len(psbt["inputs"]) == 1
+    psbt_dict = psbt.to_dict()
+    assert len(psbt_dict["tx"]["vin"]) == 1
+    assert len(psbt_dict["inputs"]) == 1
 
     # Input fields
     assert (
-        psbt["inputs"][0]["bip32_derivs"][0]["pubkey"]
+        psbt_dict["inputs"][0]["bip32_derivs"][0]["pubkey"]
         == "0330955ab511845fb48fc5739da551875ed54fa1f2fdd4cf77f3473ce2cffb4c75"
     )
-    assert psbt["inputs"][0]["bip32_derivs"][0]["path"] == "m/84h/1h/0h/0/1"
-    assert psbt["inputs"][0]["bip32_derivs"][0]["master_fingerprint"] == "8c24a510"
+    assert psbt_dict["inputs"][0]["bip32_derivs"][0]["path"] == "m/84h/1h/0h/0/1"
+    assert psbt_dict["inputs"][0]["bip32_derivs"][0]["master_fingerprint"] == "8c24a510"
 
     # Output fields
-    for output in psbt["outputs"]:  # The ordering of the outputs is random
+    for output in psbt_dict["outputs"]:  # The ordering of the outputs is random
         if output["change"] == False:
             assert output["address"] == "bcrt1q7mlxxdna2e2ufzgalgp5zhtnndl7qddlxjy5eg"
         else:
@@ -127,20 +203,25 @@ def test_createpsbt(
         0,
         1,
     )
+    psbt_dict = psbt.to_dict()
     # Input fields
-    assert psbt["inputs"][0]["taproot_bip32_derivs"][0]["path"] == "m/86h/1h/0h/0/1"
     assert (
-        psbt["inputs"][0]["taproot_bip32_derivs"][0]["master_fingerprint"] == "8c24a510"
+        psbt_dict["inputs"][0]["taproot_bip32_derivs"][0]["path"] == "m/86h/1h/0h/0/1"
     )
-    assert psbt["inputs"][0]["taproot_bip32_derivs"][0]["leaf_hashes"] == []
+    assert (
+        psbt_dict["inputs"][0]["taproot_bip32_derivs"][0]["master_fingerprint"]
+        == "8c24a510"
+    )
+    assert psbt_dict["inputs"][0]["taproot_bip32_derivs"][0]["leaf_hashes"] == []
     complete_pubkey = (
         "0274fea50d7f2a69489c2d2a146e317e02f47ad032e81b35fe6059e066670a100e"
     )
     assert (
-        psbt["inputs"][0]["taproot_bip32_derivs"][0]["pubkey"] == complete_pubkey[2:]
+        psbt_dict["inputs"][0]["taproot_bip32_derivs"][0]["pubkey"]
+        == complete_pubkey[2:]
     )  # The pubkey is "xonly", for details: https://embit.rocks/#/api/ec/public_key?id=xonly
     # Output fields
-    for output in psbt["outputs"]:
+    for output in psbt_dict["outputs"]:
         if output["change"] == False:
             assert output["address"] == "bcrt1q7mlxxdna2e2ufzgalgp5zhtnndl7qddlxjy5eg"
         else:
@@ -221,5 +302,5 @@ def test_check_utxo_and_amounts(funded_hot_wallet_1: Wallet):
         selected_coins=selected_coins,
     )
     assert wallet.amount_locked_unsigned == selected_coins_amount_sum
-    wallet.delete_pending_psbt(psbt["tx"]["txid"])
+    wallet.delete_pending_psbt(psbt.to_dict()["tx"]["txid"])
     assert wallet.amount_locked_unsigned == 0

@@ -13,7 +13,7 @@ from embit.liquid.networks import get_network
 from embit.psbt import DerivationPath
 from embit.transaction import Transaction
 from io import StringIO
-from typing import List
+from typing import Dict, List
 
 from cryptoadvance.specter.commands.utxo_scanner import UtxoScanner
 from cryptoadvance.specter.rpc import RpcError
@@ -25,7 +25,7 @@ from .util.merkleblock import is_valid_merkle_proof
 from .helpers import get_address_from_dict
 from .persistence import write_json_file, delete_file, delete_folder
 from .specter_error import SpecterError, handle_exception
-from .txlist import TxList
+from .txlist import TxItem, TxList
 from .util.psbt import SpecterPSBT
 from .util.tx import decoderawtransaction
 from .util.xpub import get_xpub_fingerprint
@@ -376,7 +376,14 @@ class Wallet:
         self._addresses.add(recv + change, check_rpc=True)
 
     def fetch_transactions(self):
-        """Load transactions from Bitcoin Core"""
+        """Loads new transactions from Bitcoin Core. A quite confusing method which mainly tries to figure out which transactions are new
+        and need to be added to the local TxList self._transactions and adding them.
+        So the method doesn't return anything but has these side_effects:
+        1. Adding the new interesting transactions to self._transactions
+        2. for self.use_descriptors create new addresses and add them to self._addresses
+        3. calls self.delete_spent_pending_psbts
+        Most of that code could probably encapsulated in the TxList class.
+        """
         arr = []
         idx = 0
         # unconfirmed_selftransfers needed since Bitcoin Core does not properly list `selftransfer` txs in `listtransactions` command
@@ -388,7 +395,7 @@ class Wallet:
         unconfirmed_selftransfers = [
             txid
             for txid in self._transactions
-            if self._transactions[txid].get("category", "") == "selftransfer"
+            if self._transactions[txid].category == "selftransfer"
             and not self._transactions[txid].get("blockhash", None)
         ]
         unconfirmed_selftransfers_txs = []
@@ -1060,6 +1067,7 @@ class Wallet:
         #    validate_merkle_proofs (bool): Return transactions with validated_blockhash
         #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
         """
+        # Consider to update self._transactions via self.fetch_transactions()
         if fetch_transactions or (
             self.use_descriptors
             and len(
@@ -1074,47 +1082,9 @@ class Wallet:
         ):
             self.fetch_transactions()
 
-        _transactions = [
-            tx.__dict__().copy() for tx in self._transactions.values() if tx["ismine"]
-        ]
-        transactions = sorted(_transactions, key=lambda tx: tx["time"], reverse=True)
-        transactions = [
-            tx
-            for tx in transactions
-            if (
-                not tx["conflicts"]
-                or max(
-                    [
-                        self.gettransaction(conflicting_tx, 0, full=False)["time"]
-                        for conflicting_tx in tx["conflicts"]
-                    ]
-                )
-                < tx["time"]
-            )
-        ]
-        if not current_blockheight:
-            current_blockheight = self.rpc.getblockcount()
+        transactions = self._transactions.get_transactions()
         result = []
-        blocks = {}
         for tx in transactions:
-            if not tx.get("blockheight", 0):
-                tx["confirmations"] = 0
-            else:
-                tx["confirmations"] = current_blockheight - tx["blockheight"] + 1
-
-            # coinbase tx
-            if tx["category"] == "generate":
-                if tx["confirmations"] <= 100:
-                    category = "immature"
-
-            if (
-                tx.get("confirmations") == 0
-                and tx.get("bip125-replaceable", "no") == "yes"
-            ):
-                rpc_tx = self.rpc.gettransaction(tx["txid"])
-                tx["fee"] = rpc_tx.get("fee", 1)
-                tx["confirmations"] = rpc_tx.get("confirmations", 0)
-                tx["vsize"] = decoderawtransaction(rpc_tx["hex"]).get("vsize")
 
             if isinstance(tx["address"], str):
                 tx["label"] = self.getlabel(tx["address"])
@@ -1158,7 +1128,7 @@ class Wallet:
             result.append(tx)
         return result
 
-    def gettransaction(self, txid, blockheight=None, decode=False, full=True):
+    def gettransaction(self, txid, blockheight=None, decode=False, full=True) -> Dict:
         """Gets transaction from cache
         If full=True it will also contain "hex" key with full hex transaction.
         If decode=True it will decode the transaction similar to Core decoderawtransaction call
@@ -1643,7 +1613,7 @@ class Wallet:
         readonly=False,  # fee estimation
         rbf=True,
         rbf_edit_mode=False,
-    ) -> dict:
+    ) -> SpecterPSBT:
         """
         Returns psbt as dictionary.
         fee_rate: in sat/B or BTC/kB. If set to 0 Bitcoin Core sets feeRate automatically.
@@ -1749,7 +1719,7 @@ class Wallet:
             # TODO: Re-evaluate if this is necessary if user is running Bitcoin Core w/BIP-371 support
             b64psbt = self.fill_psbt(r["psbt"])
 
-            psbt = self.PSBTCls(
+            psbt: SpecterPSBT = self.PSBTCls(
                 b64psbt,
                 self.descriptor,
                 self.network,
@@ -1757,7 +1727,7 @@ class Wallet:
             )
         if not readonly:
             self.save_pending_psbt(psbt)
-        return psbt.to_dict()
+        return psbt
 
     def get_rbf_utxo(self, rbf_tx_id):
         decoded_tx = self.decode_tx(rbf_tx_id)

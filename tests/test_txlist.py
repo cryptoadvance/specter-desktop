@@ -131,16 +131,28 @@ def test_TxItem_load(empty_data_folder):
         arbitrary_key=1642182445,  # arbitrary stuff can get passed
         txid="c518428b318612e60ba8a90ef767a0c6ea0ccf989ed69c3b10b1df537fab850e",
     )
+    mytxitem_copy = mytxitem.copy()
     # The property is loading the tx from disk
     assert type(mytxitem.tx) == Transaction
+    assert type(mytxitem_copy.tx) == Transaction
     assert (
         mytxitem.txid
+        == "c518428b318612e60ba8a90ef767a0c6ea0ccf989ed69c3b10b1df537fab850e"
+    )
+    assert (
+        mytxitem_copy.txid
         == "c518428b318612e60ba8a90ef767a0c6ea0ccf989ed69c3b10b1df537fab850e"
     )
     assert (
         mytxitem.tx.txid().hex()
         == "c518428b318612e60ba8a90ef767a0c6ea0ccf989ed69c3b10b1df537fab850e"
     )
+    assert (
+        mytxitem_copy.tx.txid().hex()
+        == "c518428b318612e60ba8a90ef767a0c6ea0ccf989ed69c3b10b1df537fab850e"
+    )
+    assert mytxitem["arbitrary_key"] == 1642182445
+    assert mytxitem_copy["arbitrary_key"] == 1642182445
 
 
 def test_TxItem(empty_data_folder):
@@ -172,6 +184,7 @@ def test_TxItem(empty_data_folder):
     # We can also add data after the fact
     mytxitem["confirmations"] = 123
     assert mytxitem["confirmations"] == 123
+    assert mytxitem.copy()["confirmations"] == 123
     assert type(mytxitem.tx.vout) == list
     # It's not saved yet:
     assert not os.listdir(empty_data_folder)
@@ -179,6 +192,26 @@ def test_TxItem(empty_data_folder):
     mytxitem.dump()
     assert os.listdir(empty_data_folder)
     mydict = dict(mytxitem)
+
+
+def test_WalletAwareTxItem_fromTxItem(bitcoin_regtest, parent_mock, empty_data_folder):
+    result = bitcoin_regtest.get_rpc().createwallet(
+        "test_WalletAwareTxItem_fromTxItem", False, False, "", False, True
+    )
+    wrpc = bitcoin_regtest.get_rpc().wallet("test_WalletAwareTxItem_fromTxItem")
+    parent_mock = calc_parent_mock(wrpc, parent_mock)
+    # Let's fund the wallet
+    txid_funding_addr = wrpc.getnewaddress()
+    print(f"address: {txid_funding_addr}")
+    txid_funding = bitcoin_regtest.testcoin_faucet(txid_funding_addr, amount=1)
+    print(f"balance: {wrpc.getbalances()['mine']['trusted']}")
+    assert wrpc.getbalances()["mine"]["trusted"] == 1
+    mywalletawaretxitem = WalletAwareTxItem(
+        parent_mock, [], empty_data_folder, txid=txid_funding
+    )
+    mywalletawaretxitem_copy = mywalletawaretxitem.copy()
+    assert mywalletawaretxitem.flow_amount == mywalletawaretxitem_copy.flow_amount
+    assert mywalletawaretxitem.txid == mywalletawaretxitem_copy.txid
 
 
 def test_WalletAwareTxItem(bitcoin_regtest, parent_mock, empty_data_folder):

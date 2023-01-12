@@ -485,7 +485,7 @@ def send(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/send/new", methods=["GET", "POST"])
 @login_required
 def send_new(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     # update balances in the wallet
     wallet.update_balance()
     # update utxo list for coin selection
@@ -528,7 +528,7 @@ def send_new(wallet_alias):
                 recipients_txt=request.form["recipients"],
                 recipients_amount_unit=request.form.get("amount_unit_text"),
             )
-            psbt = psbt_creator.create_psbt(wallet)
+            psbt = psbt_creator.create_psbt(wallet).to_dict()
             return render_template(
                 "wallet/send/sign/wallet_send_sign_psbt.jinja",
                 psbt=psbt,

@@ -66,7 +66,7 @@ def hot_ghost_machine_device(
 def create_hot_segwit_wallet(
     specter_regtest_configured: Specter, device: Device, wallet_id
 ) -> Wallet:
-    wallet_manager = specter_regtest_configured.wallet_manager
+    wallet_manager: WalletManager = specter_regtest_configured.wallet_manager
     assert device.taproot_available(specter_regtest_configured.rpc)
 
     # create the wallet

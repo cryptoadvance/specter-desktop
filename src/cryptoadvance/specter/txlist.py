@@ -5,7 +5,7 @@ import json
 import logging
 import math
 import os
-from typing import List, Union
+from typing import Dict, List, Union
 
 from embit import bip32
 from embit.liquid.networks import get_network
@@ -73,6 +73,7 @@ class TxItem(dict, AbstractTxListContext):
     # columns will be used by _write_csv in order to derive the columns
     columns = [
         "txid",  # str, txid in hex
+        "fee",  # int
         "blockhash",  # str, blockhash, None if not confirmed
         "blockheight",  # int, blockheight, None if not confirmed
         "time",  # int (timestamp in seconds), time received
@@ -84,6 +85,7 @@ class TxItem(dict, AbstractTxListContext):
     ]
     type_converter = [
         str,
+        int,
         str,
         int,
         int,
@@ -113,6 +115,17 @@ class TxItem(dict, AbstractTxListContext):
         # conflicts were renamed to walletconflicts
         if "walletconflicts" in kwargs:
             self["conflicts"] = kwargs["walletconflicts"]
+        self.confirmations  # trigger calculation
+
+    def copy(self):
+        """Creates a copy of this TxItem"""
+        mycopy = self.__class__(
+            self.parent, self._addresses, self.rawdir, txid=self.txid
+        )
+        for k, v in dict(self).items():
+            if not mycopy.get(k):
+                mycopy[k] = v
+        return mycopy
 
     def clear_cache(self):
         """removes the binary cache for this tx"""
@@ -149,25 +162,6 @@ class TxItem(dict, AbstractTxListContext):
                 logger.exception(e)
         return self._tx
 
-    @property
-    def vsize(self):
-        if self.get("vsize"):
-            return self["vsize"]
-        tx = self.tx
-        txsize = len(tx.serialize())
-        if tx.is_segwit:
-            # tx size - flag - marker - witness
-            non_witness_size = (
-                txsize - 2 - sum([len(inp.witness.serialize()) for inp in tx.vin])
-            )
-            witness_size = txsize - non_witness_size
-            weight = non_witness_size * 4 + witness_size
-            vsize = math.ceil(weight / 4)
-        else:
-            vsize = txsize
-            weight = txsize * 4
-        return vsize
-
     def dump(self):
         """Dumps transaction in binary to the folder if it's not there"""
         # nothing to do if file exists or we don't have binary tx
@@ -191,12 +185,82 @@ class TxItem(dict, AbstractTxListContext):
         self._tx = None
 
     @property
+    def current_blockheight(self):
+        """Just for the completeness, this property is not suppose to be used. The current_blockheight is just there to compute self.confirmations"""
+        return self.get("_current_blockheight")
+
+    @current_blockheight.setter
+    def set_current_blockheight(self, current_blockheight):
+        self["_current_blockheight"] = current_blockheight
+
+    @property
+    def confirmations(self):
+        if not self.blockheight:
+            self["confirmations"] = 0  # still in the mempool
+            return self["confirmations"]
+        if self.current_blockheight:
+            self["confirmations"] = self.current_blockheight - self.blockheight + 1
+            return self["confirmations"]
+        else:
+            # hmmm difficult to decide what to do here, we simply don't know
+            # Being actice and using parent.rpc.getblockcount() ?
+            # Might be a perf nightmare
+            # Raising an exception is not an option but
+            # returning a phantasy 0 or a magic number (-1 ?!) is also not cool
+            self["confirmations"] = None
+            return None
+
+    @property
     def txid(self):
         if self.get("txid"):
             return self["txid"]
         if self._tx:
             return self._tx.txid().hex()
         return "undefined"
+
+    @property
+    def blockheight(self):
+        if self.get("blockheight"):
+            return self["blockheight"]
+        return None
+
+    @property
+    def time(self):
+        if self.get("time"):
+            return self["time"]
+        return None
+
+    @property
+    def bip125_replaceable(self):
+        if self.get("bip125-replaceable"):
+            return self["bip125-replaceable"]
+        return None
+
+    @property
+    def conflicts(self):
+        if self.get("conflicts"):
+            return self["conflicts"]
+        return None
+
+    @property
+    def vsize(self):
+        if self.get("vsize"):
+            return self["vsize"]
+        tx = self.tx
+        txsize = len(tx.serialize())
+        if tx.is_segwit:
+            # tx size - flag - marker - witness
+            non_witness_size = (
+                txsize - 2 - sum([len(inp.witness.serialize()) for inp in tx.vin])
+            )
+            witness_size = txsize - non_witness_size
+            weight = non_witness_size * 4 + witness_size
+            vsize = math.ceil(weight / 4)
+        else:
+            vsize = txsize
+            weight = txsize * 4
+        self["vsize"] = vsize
+        return self["vsize"]
 
     @property
     def hex(self):
@@ -212,17 +276,19 @@ class TxItem(dict, AbstractTxListContext):
         )
 
     def __dict__(self):
-        return {
-            "txid": self["txid"],
-            "blockhash": self["blockhash"],
-            "blockheight": self["blockheight"],
-            "time": self["time"],
-            "blocktime": self["blocktime"],
-            "conflicts": self["conflicts"],
-            "bip125-replaceable": self["bip125-replaceable"],
-            "vsize": self["vsize"],
-            "address": self["address"],
-        }
+        # I don't get why we return a dict here as we are already a dict. So let's instead return a copy
+        return self.copy()
+        # {
+        #     "txid": self["txid"],
+        #     "blockhash": self["blockhash"],
+        #     "blockheight": self["blockheight"],
+        #     "time": self["time"],
+        #     "blocktime": self["blocktime"],
+        #     "conflicts": self["conflicts"],
+        #     "bip125-replaceable": self["bip125-replaceable"],
+        #     "vsize": self["vsize"],
+        #     "address": self["address"],
+        # }
 
 
 class WalletAwareTxItem(TxItem):
@@ -426,7 +492,50 @@ class TxList(dict, AbstractTxListContext):
             self.add({txid: tx})
         return self[txid]
 
-    def gettransaction(self, txid, blockheight=None, decode=False, full=True):
+    def get_transactions(self, current_blockheight=None) -> WalletAwareTxItem:
+        """A great method to get massaged Txs. Those are all copies so mess with it as you see fit.
+        This is what's added:
+        1. sorted by time
+        2. conflict free (only the oldest if conflicts)
+        3. have a confirmation key with the number of confirmations
+        So what's missing?
+        1. No labels (not cached in TxList)
+        """
+        if not current_blockheight:
+            current_blockheight = self.rpc.getblockcount()
+
+        tx: WalletAwareTxItem
+
+        # Make a copy of all txs if the tx.ismine (which should be all of them)
+        # As TxItem is derived from Dict, the __Dict__ will return a TxItem
+        transactions: List(TxItem) = [tx.copy() for tx in self.values() if tx.ismine]
+        # 1. sorted
+        transactions = sorted(transactions, key=lambda tx: tx["time"], reverse=True)
+
+        # 2. conflict free
+        # conflict-filter: only tx which don't have conflicts or, if it has conflicts, only the one
+        # with the highest time-stamp
+        transactions = [
+            tx
+            for tx in transactions
+            if (
+                not tx.conflicts
+                or max(
+                    [
+                        self.gettransaction(conflicting_tx, 0, full=False)["time"]
+                        for conflicting_tx in tx["conflicts"]
+                    ]
+                )
+                < tx["time"]
+            )
+        ]
+        for tx in transactions:
+            # 3. with a confirmation-key
+            tx.set_current_blockheight = current_blockheight
+
+        return transactions
+
+    def gettransaction(self, txid, blockheight=None, decode=False, full=True) -> Dict:
         """
         Will ask Bitcoin Core for a transaction if blockheight is None or txid not known
         Provide blockheight or 0 if you don't care about confirmations number
@@ -497,6 +606,7 @@ class TxList(dict, AbstractTxListContext):
             )
             obj = {
                 "txid": txid,
+                "fee": tx.get("fee", None),
                 "blockheight": tx.get("blockheight", None),
                 "blockhash": tx.get("blockhash", None),
                 "time": time,

@@ -26,12 +26,13 @@ def should_intercept(call):
     This needs to be more and more restricted overtime as we hopefully
     have less and less flaky tests in the future and the normal output is enough.
     """
-    return not (
-        isinstance(call.excinfo.value, RpcError)
-        or isinstance(call.excinfo.value, SpecterError)
-        or isinstance(call.excinfo.value, AssertionError)
-        or isinstance(call.excinfo.value, AttributeError)
-    )
+    # Modify that manually!
+    return False
+
+    # isinstance(call.excinfo.value, RpcError)
+    # or isinstance(call.excinfo.value, SpecterError)
+    # or isinstance(call.excinfo.value, AssertionError)
+    # or isinstance(call.excinfo.value, AttributeError)
 
 
 @pytest.hookimpl(hookwrapper=True)
