@@ -31,7 +31,7 @@ def test_txlist_to_csv(
     caplog,
     app,
     specter_regtest_configured,
-    funded_hot_wallet_1,
+    funded_hot_wallet_1: Wallet,
 ):
     caplog.set_level(logging.DEBUG)
 
@@ -73,7 +73,7 @@ def test_txlist_to_csv(
             assert tx[0] == curr_date.strftime("%Y-%m-%d")
             assert tx[1].startswith("Address #")
             assert tx[2] == "receive"
-            # assert float(tx[3]) > 0
+            assert float(tx[3]) > 0
             assert (
                 float(tx[4]) <= 1000000 * 10
             )  # funded_hot_wallet_1 has no transactions >= 10 btc
