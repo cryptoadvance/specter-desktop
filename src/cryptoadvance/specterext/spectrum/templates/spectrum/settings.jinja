@@ -48,8 +48,13 @@
                 </select>
             </div>
             <div class="row" style="margin-top: 25px">
-                <button type="submit" class="btn">{{ _("Save") }}</button>
+                <button type="submit" class="btn" name="action" value="save">{{ _("Save") }}</button>
             </div>
+            {% if node_is_running %}
+                <div class="row" style="margin-top: 25px">
+                    <button type="submit" class="btn danger centered" name="action" value="delete">{{ _("Delete Node") }}</button>
+                </div>
+            {% endif %}
         </form>
     </div>
     <br/>
