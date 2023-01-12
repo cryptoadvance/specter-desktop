@@ -748,7 +748,7 @@ def estimate_fee(wallet_alias):
     )
     try:
         # Won't get persisted
-        psbt = psbt_creator.create_psbt(wallet)
+        psbt = psbt_creator.create_psbt(wallet).to_dict()
         return jsonify(success=True, psbt=psbt)
     except SpecterError as se:
         app.logger.error(se)
@@ -952,7 +952,7 @@ def txlist_to_csv(wallet: Wallet, _txlist, includePricesHistory=False):
             time.strftime("%Y-%m-%d", time.localtime(timestamp)),
             label,
             tx["category"],
-            round(tx["flow_amount"], (0 if app.specter.unit == "sat" else 8)),
+            round(tx.get("amount"), (0 if app.specter.unit == "sat" else 8)),
             amount_price,
             rate,
             tx["txid"],
