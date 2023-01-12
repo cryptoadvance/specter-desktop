@@ -528,7 +528,7 @@ def send_new(wallet_alias):
                 recipients_txt=request.form["recipients"],
                 recipients_amount_unit=request.form.get("amount_unit_text"),
             )
-            psbt = psbt_creator.create_psbt(wallet).to_dict()
+            psbt = psbt_creator.create_psbt(wallet)
             return render_template(
                 "wallet/send/sign/wallet_send_sign_psbt.jinja",
                 psbt=psbt,
