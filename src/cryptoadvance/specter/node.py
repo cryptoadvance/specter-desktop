@@ -284,7 +284,6 @@ class Node(AbstractNode):
                 "port": self.port,
                 "host": self.host,
                 "protocol": self.protocol,
-                "fullpath": self.fullpath,
                 "node_type": self.node_type,
             },
         )
