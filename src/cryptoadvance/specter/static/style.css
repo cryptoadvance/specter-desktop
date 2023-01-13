@@ -58,7 +58,7 @@
 
   td,
   th {
-    @apply px-2 py-3 first:pl-4 last:pr-4 text-left break-all; /* break-words whitespace-nowrap; */
+    @apply px-2 py-3 text-white truncate text-ellipsis first:pl-4 last:pr-4 text-left;
   }
 
   th {
@@ -179,5 +179,9 @@
   .table-holder {
     margin: 20px calc((100vw - 1080px) / -2);
     max-width: calc((100vw - 300px - 80px));
+  }
+
+  .table-holder::-webkit-scrollbar {
+    display: none;
   }
 }

@@ -493,12 +493,16 @@ tbody tr:last-child {
 
 td,
   th {
-  word-break: break-all;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
   text-align: left;
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity));
 }
 
 td:first-child,
@@ -509,11 +513,6 @@ td:first-child,
 td:last-child,
   th:last-child {
   padding-right: 1rem;
-}
-
-td,
-  th {
-  /* break-words whitespace-nowrap; */
 }
 
 th {
@@ -943,6 +942,10 @@ select {
   max-width: calc((100vw - 300px - 80px));
 }
 
+.table-holder::-webkit-scrollbar {
+  display: none;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -1013,10 +1016,6 @@ select {
 
 .col-span-4 {
   grid-column: span 4 / span 4;
-}
-
-.clear-both {
-  clear: both;
 }
 
 .m-1 {
@@ -1374,10 +1373,6 @@ select {
   flex-grow: 0;
 }
 
-.border-collapse {
-  border-collapse: collapse;
-}
-
 .transform {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
@@ -1642,6 +1637,11 @@ select {
 
 .bg-black\/40 {
   background-color: rgb(0 0 0 / 0.4);
+}
+
+.bg-red-800 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(153 27 27 / var(--tw-bg-opacity));
 }
 
 .bg-dark-800\/70 {

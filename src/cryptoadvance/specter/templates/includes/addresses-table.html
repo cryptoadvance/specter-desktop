@@ -88,8 +88,7 @@
             <td></td>
         </tr>
 
-        <tbody class="addr-tbody">
-        </tbody>
+        <tbody class="addr-tbody"></tbody>
     </table>
 </template>
 
@@ -375,16 +374,17 @@
                         for (let addr of addressesList) {
                             // Address data is embedded into each row as stringified JSON in the "data-address" attr.
                             let addrRow = document.createRange().createContextualFragment(`
-                            <address-row 
-                                data-verify-qr="{{ supports_qr_code_verify != [] }}"
-                                data-verify-hwi="{{ supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) }}"
-                                data-btc-unit="${this.btcUnit ? this.btcUnit : 'btc'}"
-                                data-price="${this.price ? this.price : 0}"
-                                data-symbol="${this.symbol ? this.symbol : ''}"
-                                data-address='${JSON.stringify(addr).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
-                                data-hide-sensitive-info="${this.hideSensitiveInfo}"
-                                data-wallet="${this.wallet}">
-                            </<address-row>`);
+                                <address-row 
+                                    data-verify-qr="{{ supports_qr_code_verify != [] }}"
+                                    data-verify-hwi="{{ supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) }}"
+                                    data-btc-unit="${this.btcUnit ? this.btcUnit : 'btc'}"
+                                    data-price="${this.price ? this.price : 0}"
+                                    data-symbol="${this.symbol ? this.symbol : ''}"
+                                    data-address='${JSON.stringify(addr).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
+                                    data-hide-sensitive-info="${this.hideSensitiveInfo}"
+                                    data-wallet="${this.wallet}"
+                                />`
+                            );
 
                             this.tbody.append(addrRow);
                         }
