@@ -59,9 +59,7 @@ check:
    - pip3 install -e .
    - pip3 install -r test_requirements.txt
    - python3 setup.py install # compiles babel stuff as well (might make pip install obsolete)
-   # pytest --docker not working? Uncomment this for better debugging:
-   # - python3 tests/conftest.py 
-   - py.test --cov-report term --cov cryptoadvance --docker
+   - py.test --cov-report term --cov cryptoadvance
 
 .test-cypress:
   image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python-jammy:v9.7.0
