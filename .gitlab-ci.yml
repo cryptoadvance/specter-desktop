@@ -136,7 +136,7 @@ release_binary_windows:
 
     # That error message above doesn't even help a bit
     # However it seems that if you do that yet another time, it doesn't fail!
-    - pip install -r test_requirements.txt
+    - pip install -r test_requirements.txt -vv
     
   script:
     # This script won't execute if the script before that fails
