@@ -63,7 +63,6 @@ Subcommands:
 
 generic-options:
     --debug             Run as much stuff in debug as we can
-    --docker            Run bitcoind in docker instead of directly
 EOF
 }
 
@@ -154,11 +153,6 @@ function start_node {
   else
     if [ "$ELMLOGSTDOUT" = "true" ]; then
       addopts="--log-stdout"
-    fi
-  fi
-  if [ "$DOCKER" != "true" ]; then
-    if [ "$node_impl" != "elementsd" ]; then # no docker for elementsd yet
-      addopts="$addopts --nodocker"
     fi
   fi
   echo "--> Starting $node_impl with $addopts ..."
@@ -417,10 +411,6 @@ function parse_and_execute() {
       ;;
     --elm-log-stdout)
       ELMLOGSTDOUT=true
-      shift
-      ;;
-    --docker)
-      DOCKER=true
       shift
       ;;
     *)

@@ -1,7 +1,6 @@
 # requirements for testing
 black==22.3.0
 pre-commit==2.13.0
-docker==4.3.1
 pip==22.0.4
 pip-tools==5.5.0
 pytest==7.1.2
