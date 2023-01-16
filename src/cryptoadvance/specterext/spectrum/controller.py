@@ -23,27 +23,18 @@ logger = logging.getLogger(__name__)
 spectrum_endpoint = SpectrumService.blueprint
 
 
-@spectrum_endpoint.route("/")
-@login_required
-def index(node_alias=None):
-    if node_alias is not None and node_alias != "spectrum_node":
-        raise SpecterError(f"Unknown Spectrum Node: {node_alias}")
-    return render_template(
-        "spectrum/index.jinja",
-    )
-
-
 @spectrum_endpoint.route("node/<node_alias>/", methods=["GET", "POST"])
 @login_required
 def node_settings(node_alias=None):
     if node_alias is not None and node_alias != "spectrum_node":
         raise SpecterError(f"Unknown Spectrum Node: {node_alias}")
-    return redirect(url_for("spectrum_endpoint.settings_get"))
+    return redirect(url_for("spectrum_endpoint.index"))
 
 
-@spectrum_endpoint.route("/settings", methods=["GET"])
+@spectrum_endpoint.route("/", methods=["GET"])
 @login_required
-def settings_get():
+# index_get would be more consistent but in sidebar_services_list.jinja the url_for looks by default for all plugins for just an "index()" view function
+def index():
     # Show current configuration
     if ext().id in specter().user.services:
         show_menu = "yes"
@@ -60,7 +51,7 @@ def settings_get():
             if elec["host"] == host and elec["port"] == port and elec["ssl"] == ssl:
                 elec_chosen_option = opt_key
         return render_template(
-            "spectrum/settings.jinja",
+            "spectrum/index.jinja",
             elec_options=electrum_options,
             elec_chosen_option=elec_chosen_option,
             host=host,
@@ -71,7 +62,7 @@ def settings_get():
         )
     else:
         return render_template(
-            "spectrum/settings.jinja",
+            "spectrum/index.jinja",
             elec_options=electrum_options,
             elec_chosen_option="list",
             node_is_running=ext().is_spectrum_node_running,
@@ -79,9 +70,9 @@ def settings_get():
         )
 
 
-@spectrum_endpoint.route("/settings", methods=["POST"])
+@spectrum_endpoint.route("/", methods=["POST"])
 @login_required
-def settings_post():
+def index_post():
     # Node status before saving the settings
     node_is_running_before_request = ext().is_spectrum_node_running
     logger.debug(
@@ -97,14 +88,12 @@ def settings_post():
     if action == "delete":
         if node_is_running_before_request:
             ext().disable_spectrum()
-            flash("Spectrum Node deleted")
+            flash("Spectrum connection deleted")
         else:
-            flash("There is no node running, can't delete", "error")
-        return redirect(
-            url_for(f"{ SpectrumService.get_blueprint_name()}.settings_get")
-        )
+            flash("There is no Spectrum connection to delete", "error")
+        return redirect(url_for(f"{ SpectrumService.get_blueprint_name()}.index"))
 
-    if action == "save":
+    if action == "connect":
         # Gather the Electrum server settings from the form and update with them
         success = False
         host = request.form.get("host")
