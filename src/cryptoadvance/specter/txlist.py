@@ -15,6 +15,7 @@ from .helpers import get_address_from_dict
 from .persistence import delete_file, read_csv, write_csv
 from .specter_error import SpecterError, SpecterInternalException
 from embit.descriptor import Descriptor
+from embit.liquid.descriptor import LDescriptor
 from .util.psbt import (
     AbstractTxContext,
     SpecterInputScope,
@@ -303,7 +304,7 @@ class WalletAwareTxItem(TxItem):
 
     def __init__(self, parent, addresses, rawdir, **kwargs):
         super().__init__(parent, addresses, rawdir, **kwargs)
-        if type(self.parent.descriptor) != Descriptor:
+        if type(self.parent.descriptor) not in [Descriptor, LDescriptor]:
             raise SpecterInternalException(
                 f"Cannot instantiate WalletAwareTxItem without proper Descriptor, got: {type(self.parent.descriptor)}"
             )

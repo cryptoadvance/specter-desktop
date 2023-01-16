@@ -248,7 +248,7 @@ class LWallet(Wallet):
 
         if not readonly:
             self.save_pending_psbt(psbt)
-        return psbt.to_dict()
+        return psbt
 
     def canceltx(self, *args, **kwargs):
         raise SpecterError("RBF is not implemented on Liquid")
