@@ -1,5 +1,5 @@
 <div class="hidden z-50 absolute w-screen h-screen" id="page_overlay">
-    <div class="w-screen overflow-scroll h-screen bg-black/40 flex flex-col relative items-center justify-center" id="page_overlay_popup">
+    <div class="w-screen overflow-auto h-screen bg-black/40 flex flex-col relative justify-start items-center py-5" id="page_overlay_popup">
         <div class="box-shadow-xl transition-all absolute max-w-[700px] overflow-hidden rounded-xl text-white" id="page_overlay_popup_content"></div>
     </div>
 </div>
@@ -64,6 +64,7 @@
             contentContainer.style.top = "auto";
             contentContainer.style.right = "auto";
             contentContainer.style.bottom = "auto";
+            contentContainer.style.justifySelf = "center";
 
             // A file using `overlay.html` should implement `onCancelOverlay` JS function to handle popup cancel logic
             onCancelOverlay();

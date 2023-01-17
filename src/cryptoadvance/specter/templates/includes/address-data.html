@@ -1,7 +1,7 @@
 <template id="address-data">
 	  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
 
-    <div style="display: none;"><!--<style>-->
+    <style>
         .address-data-table td {
             text-align: left;
             margin-top: 0;
@@ -12,7 +12,6 @@
             white-space: -o-pre-wrap;
             white-space: pre-wrap;
             word-wrap: break-word;
-            margin: auto;
         }
         .service-icon {
             margin-top: -5px;
@@ -41,9 +40,12 @@
             border: 1px solid var(--main-color);
             background: var(--cmap-border);
         }
-    </div><!--</style>-->
-    <div class="address-data">
-        <h1>{{ _("Address details") }}</h1><br>
+    </style>
+    <div class="address-data bg-dark-800 rounded-xl p-4">
+        <div class="flex justify-between mb-2">
+            <h3 class="mb-0">{{ _("Address Data") }}</h3>
+            <p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer">Close</p>
+        </div>
         <div class="address-data-info"></div>
         <div class="note"></div>
     </div>
@@ -61,6 +63,9 @@
             this.el = clone.querySelector(".address-data");
             this.note = clone.querySelector(".note");
             this.info = clone.querySelector(".address-data-info");
+            this.popupContent = document.querySelector('#page_overlay_popup_content')
+            this.popupContent.style.justifySelf = "start";
+            this.popupContent.parentElement.style.display = "flex";
 
             // Read input "data-*" attributes
             this.isVerifyQR = this.getAttribute('data-verify-qr') == 'True';
@@ -96,8 +101,8 @@
                 let address = jsonResponse.address;
                 let walletLink = `{{ url_for('wallets_endpoint.wallet', wallet_alias='WALLET_ALIAS') }}`.replace("WALLET_ALIAS", this.wallet);
                 let addressInfoHTML = `
-                    <qr-code style="margin: auto;" value="bitcoin:${address}" width="256"></qr-code><br>
-                    <table class="address-data-table">
+                    <qr-code style="margin: auto;" value="bitcoin:${address}" width="256"></qr-code>
+                    <table class="address-data-table -mx-4 mt-8">
                     <tbody>
                     <tr><td>{{ _("Address") }}:</td><td style="word-break: break-all;"><explorer-link data-type="address" data-value="${address}"></explorer-link></td></tr>
                     <tr><td>{{ _("Label") }}:</td><td><address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}" data-label="${this.label}" data-service-id="${this.serviceId}"></address-label><br></td></tr>
@@ -135,26 +140,22 @@
 
                 if (this.isVerifyHwi) { 
                     addressInfoHTML += `
-                    <br>
                     <button type="button" onclick='hidePageOverlay();displayAddressOnDevice("${address}", "${descriptor}", "${xpubs_descriptor}")' class="btn" style="min-width:200px; max-width:300px; margin: auto;">{{ _("Verify address on device") }}</button>`;
                 }
 
                 if (this.isVerifyQR) { 
                     addressInfoHTML += `
                     <p>{{ _("Or scan this QR code") }}:</p>
-                    <qr-code value="bitcoin:${address}?index=${addressIndex}" width="256" scalable></qr-code><br>`;
+                    <qr-code value="bitcoin:${address}?index=${addressIndex}" width="256" scalable></qr-code>`;
                 }
 
                 addressInfoHTML += `
-                <br>
                 <h2>{{ _("Address descriptor") }}</h2>
-                <br>
                 <div>
-                    <span class="switch-text">{{ _("Show raw public keys") }}&nbsp;</span>
-                    <label class="switch">
+                    <label class="switch mb-8 flex items-center">
                         <input type="checkbox" class="descriptor-switch" checked>
-                        <span class="slider"></span>
-                    </label><br><br>
+                        <span class="switch-text">{{ _("Show raw public keys") }}</span>
+                    </label>
                 </div>
                 <pre class="descriptor"><code class="explorer-link" onclick='copyText(unescape("${escape(descriptor)}"), "{{ _("Copied address descriptor") }}")'>${descriptor}</code></pre>
                 `;

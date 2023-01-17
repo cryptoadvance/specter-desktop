@@ -1,4 +1,4 @@
-<!-- 
+<!--
     Custom element for showing a table of transactions.
     Can be configured to show:
      - The transaction history of a wallet (set attribute `type` to "txlist" and `wallet` to the wallet's alias)
@@ -13,7 +13,7 @@
      - Configuring limit for transactions displayed per page
      - Pagination, jumping between pages and showing the total pages count
      - Export - export the full (unfiltered) list from which the table is drawing its data as CSV (optionally with price history)
-    
+
     The table also supports:
      - Showing amounts in either BTC or sats (set attribute `btc-unit` to either "btc" or "sat")
      - Showing prices next to the amounts (set attribute `price` to the BTC price and symbol to the symbol of the currency you're pricing at)
@@ -22,15 +22,13 @@
      - Hide columns by hide-columns="category time"
      - Style options
      - Scrollbar settings
-
 {#- Usage -
-
 <tx-table
     btc-unit="{{ specter.unit }}"
     hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
-    type="utxo" 
-    hide-columns="category time txid confirmations action" 
-    blockhash="true" 
+    type="utxo"
+    hide-columns="category time txid confirmations action"
+    blockhash="true"
     hide-switcher="true"
     wallet="{{ wallet.alias }}"
     table-height="333px"
@@ -40,303 +38,298 @@
     scrollbar-switch="true"
     scrollbar-default="off">
 </tx-table>
-#} 
+#}
 -->
 
 <template id="tx-table">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
 
-    <!-- <div style="display: none;"><!--<style>-1->-->
-    <!--     tx-row {-->
-    <!--         display: contents;-->
-    <!--     }-->
-    <!--     .pagination-container {-->
-    <!--         display: flex;-->
-    <!--         justify-content: center;-->
-    <!--         align-items: center;-->
-    <!--     }-->
-    <!--     .pagination-next, .pagination-back {-->
-    <!--         cursor: pointer;-->
-    <!--     }-->
-    <!--     input::-webkit-outer-spin-button,-->
-    <!--     input::-webkit-inner-spin-button {-->
-    <!--         -webkit-appearance: none;-->
-    <!--         margin: 0;-->
-    <!--     }-->
-    <!--     /* Firefox */-->
-    <!--     input[type=number] {-->
-    <!--         -moz-appearance: textfield;-->
-    <!--     }-->
-    <!--     .pagination-idx {-->
-    <!--         min-width: 50px;-->
-    <!--         max-width: 50px;-->
-    <!--         width: 50px;-->
-    <!--         margin: 7px 7px 7px 3px;-->
-    <!--         text-align: center;-->
-    <!--         height: 35px;-->
-    <!--     }-->
-    <!--     .search-container {-->
-    <!--         width: 100%;-->
-    <!--         display: flex;-->
-    <!--         justify-content: center;-->
-    <!--         align-items: center;-->
-    <!--         gap: 10px;-->
-    <!--         flex-wrap: wrap;-->
-    <!--         margin-bottom: 0.5em;-->
-    <!--         position: sticky;-->
-    <!--         top: 0;-->
-    <!--         background-color: var(--cmap-bg-lighter);-->
-    <!--         border: 1.5px solid var(--cmap-border);-->
-    <!--         z-index: 3;-->
-    <!--         padding: 5px 5px 5px 5px;-->
-    <!--     }-->
-    <!--     .page-limit-label {-->
-    <!--         margin-left: 5px;-->
-    <!--     }-->
-    <!--     .search {-->
-    <!--         margin: auto;-->
-    <!--     }-->
-    <!--     .tooltip-width {-->
-    <!--         max-width: 350px;-->
-    <!--     }-->
-    <!--     .tooltip-no-grow {-->
-    <!--         flex-grow: 0;--> 
-    <!--     }-->
-    <!--     .tooltip-little-grow {-->
-    <!--         flex-grow: 0.2;--> 
-    <!--     }-->
-    <!--     .tooltip-max-grow {-->
-    <!--         flex-grow: 1;--> 
-    <!--     }-->
-    <!--     .up-arrow {-->
-    <!--         width: 0;-->
-    <!--         height: 0;-->
-    <!--         border: solid 5px transparent;-->
-    <!--         background: transparent;-->
-    <!--         border-bottom: solid 7px #fff;-->
-    <!--         border-top-width: 0;-->
-    <!--         cursor: pointer;-->
-    <!--         float: right;-->
-    <!--         margin-right: 50px;-->
-    <!--         margin-top: 5px;-->
-    <!--     }-->
-    <!--     .down-arrow {-->
-    <!--         width: 0;-->
-    <!--         height: 0;-->
-    <!--         border: solid 5px transparent;-->
-    <!--         background: transparent;-->
-    <!--         border-top: solid 7px #fff;-->
-    <!--         border-bottom-width: 0;-->
-    <!--         margin-top:1px;-->
-    <!--         cursor: pointer;-->
-    <!--         float: right;-->
-    <!--         margin-right: 50px;-->
-    <!--         margin-top: 5px;-->
-    <!--     }-->
-    <!--     .export-container {-->
-    <!--         max-width: 50%;-->
-    <!--         margin: 20px auto;-->
-    <!--         border: 1px solid #fff;-->
-    <!--         padding: 20px;-->
-    <!--         text-align: center;-->
-    <!--         border-radius: 7px;-->
-    <!--     }-->
-    <!--     .export {-->
-    <!--         max-width: 200px;-->
-    <!--         margin: auto;-->
-    <!--     }-->
-    <!--     .selected-rows-action-box {-->
-    <!--         align-items: center;-->
-    <!--     }-->
-    <!--     .selected-rows-action-box .btn {-->
-    <!--         min-width: 170px;-->
-    <!--         margin: 5px;-->
-    <!--         height: 38px;-->
-    <!--     }-->
-    <!--     .action-teaser {-->
-    <!--         max-width: 20em;-->
-    <!--         text-align: center;-->
-    <!--         font-size: 15px;-->
-    <!--         line-height: 12px;-->
-    <!--         font-weight: 50;-->
-    <!--     }-->
-    <!--     .freeze-tx-btn {-->
-    <!--         border: 1px solid var(--cmap-border);-->
-    <!--         border-radius: 0.5em;-->
-    <!--         background-color: var(--cmap-border);-->
-    <!--         padding: 0.8em;-->
-    <!--         text-align: center;-->
-    <!--         font-weight: 250;-->
-    <!--     }-->
-    <!--     .freeze-tx-btn:hover {-->
-    <!--         background-color: var(--cmap-border);-->
-    <!--         border: 1px solid var(--main-color);-->
-    <!--     }-->
-    <!--     .compose-tx-btn {-->
-    <!--         border: 1px solid var(--cmap-border);-->
-    <!--         border-radius: 0.5em;-->
-    <!--         background-color: var(--cmap-border);-->
-    <!--         padding: 0.8em;-->
-    <!--         text-align: center;-->
-    <!--         font-weight: 250;-->
-    <!--     }-->
-    <!--     .compose-tx-btn:hover {-->
-    <!--         background-color: var(--cmap-border);-->
-    <!--         border: 1px solid var(--main-color);-->
-    <!--     }-->
-    <!--     .manage-psbt-btn {-->
-    <!--         border: 1px solid var(--cmap-border);-->
-    <!--         border-radius: 0.5em;-->
-    <!--         background-color: var(--cmap-border);-->
-    <!--         padding: 0.8em;-->
-    <!--         text-align: center;-->
-    <!--         font-weight: 250;-->
-    <!--     }-->
-    <!--     .manage-psbt-btn:hover {-->
-    <!--         background-color: var(--cmap-border);-->
-    <!--         border: 1px solid var(--main-color);-->
-    <!--     }-->
-    <!--     .table-container {-->
-    <!--         width: 100%;-->
-    <!--         margin-bottom: 10px;-->
-    <!--         border: 1.5px solid var(--cmap-border);-->
-    <!--     }-->
-    <!--     .scrollbar {-->
-    <!--         overflow-y: auto;-->
-    <!--         scrollbar-color: hsl(217, 10%, 80%) var(--cmap-border);--> 
-    <!--         scrollbar-width: thin;-->
-    <!--     }-->
-    <!--     .table-container::-webkit-scrollbar {-->
-    <!--         width: 0.3em;-->
-    <!--     }-->
-    <!--     .table-container::-webkit-scrollbar-track {-->
-    <!--         background: var(--cmap-border);-->
-    <!--         border-radius: 100vw;-->
-    <!--         margin-top: 0.3em;-->
-    <!--         margin-bottom: 0.3em;-->
-    <!--     }-->
-    <!--     .table-container::-webkit-scrollbar-thumb {-->
-    <!--         background: hsl(217, 10%, 80%);-->
-    <!--         border-radius: 100vw;-->
-    <!--     }-->
-    <!--     .table-container::-webkit-scrollbar-thumb:hover {-->
-    <!--         background: white;-->
-    <!--     }-->
-    <!--     .table-container::-webkit-scrollbar:horizontal {-->
-    <!--         display: none;-->
-    <!--     }-->
-    <!--     .scrollbar-checkbox-div {-->
-    <!--         margin-left: 15px;-->
-    <!--     }-->
-    <!--     input:checked + .slider {-->
-    <!--         background-color: hsl(217, 30%, 50%);-->
-    <!--     }-->
-    <!--     .feedback-row {-->
-    <!--         display: flex;-->
-    <!--         justify-content: center;-->
-    <!--     }-->
-    <!--     .rescan-hint {-->
-    <!--         display: flex;--> 
-    <!--         flex-direction: column;--> 
-    <!--         align-items: center;-->
-    <!--         font-size: 1.1em;-->
-    <!--     }-->
-    <!--     .go-to-rescan-btn {-->
-    <!--         max-width: 175px;--> 
-    <!--         margin: 0 0 5px 0;-->
-    <!--         border: 1px solid var(--cmap-border);-->
-    <!--         border-radius: 0.5em;-->
-    <!--         background-color: var(--cmap-border);-->
-    <!--         padding: 0.8em;-->
-    <!--         text-align: center;-->
-    <!--         font-weight: 250;-->
-    <!--     }-->
-    <!--     .go-to-rescan-btn:hover {-->
-    <!--         background-color: var(--cmap-border);-->
-    <!--         border: 1px solid var(--main-color);-->
-    <!--         text-decoration: none;-->
-    <!--     }-->
-    <!--     .empty-row {-->
-    <!--         display: table-row;-->
-    <!--         text-align: center;-->
-    <!--     }-->
-    <!--     :host {-->
-    <!--         display: flex;-->
-    <!--         flex-direction: column;-->
-    <!--         height: 100%;-->
-    <!--     }-->
-    <!--     @media (max-width: 690px){-->
-    <!--         .selected-rows-action-box{-->
-    <!--             flex-direction: column;-->
-    <!--         }-->
-    <!--     }-->
-    <!-- </div><!--</style>-1->-->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        tx-row {
+            display: contents;
+        }
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .pagination-next, .pagination-back {
+            cursor: pointer;
+        }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        .pagination-idx {
+            min-width: 50px;
+            max-width: 50px;
+            width: 50px;
+            margin: 7px 7px 7px 3px;
+            text-align: center;
+            height: 35px;
+        }
+        .search-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 0.5em;
+            position: sticky;
+            top: 0;
+            background-color: var(--cmap-bg-lighter);
+            border: 1.5px solid var(--cmap-border);
+            z-index: 3;
+            padding: 5px 5px 5px 5px;
+        }
+        .page-limit-label {
+            margin-left: 5px;
+        }
+        .search {
+            margin: auto;
+        }
+        .tooltip-width {
+            max-width: 350px;
+        }
+        .tooltip-no-grow {
+            flex-grow: 0;
+        }
+        .tooltip-little-grow {
+            flex-grow: 0.2;
+        }
+        .tooltip-max-grow {
+            flex-grow: 1;
+        }
+        .up-arrow {
+            width: 0;
+            height: 0;
+            border: solid 5px transparent;
+            background: transparent;
+            border-bottom: solid 7px #fff;
+            border-top-width: 0;
+            cursor: pointer;
+            float: right;
+            margin-right: 50px;
+            margin-top: 5px;
+        }
+        .down-arrow {
+            width: 0;
+            height: 0;
+            border: solid 5px transparent;
+            background: transparent;
+            border-top: solid 7px #fff;
+            border-bottom-width: 0;
+            margin-top:1px;
+            cursor: pointer;
+            float: right;
+            margin-right: 50px;
+            margin-top: 5px;
+        }
+        .export-container {
+            max-width: 50%;
+            margin: 20px auto;
+            border: 1px solid #fff;
+            padding: 20px;
+            text-align: center;
+            border-radius: 7px;
+        }
+        .export {
+            max-width: 200px;
+            margin: auto;
+        }
+        .selected-rows-action-box {
+            align-items: center;
+        }
+        .selected-rows-action-box .btn {
+            min-width: 170px;
+            margin: 5px;
+            height: 38px;
+        }
+        .action-teaser {
+            max-width: 20em;
+            text-align: center;
+            font-size: 15px;
+            line-height: 12px;
+            font-weight: 50;
+        }
+        .freeze-tx-btn {
+            border: 1px solid var(--cmap-border);
+            border-radius: 0.5em;
+            background-color: var(--cmap-border);
+            padding: 0.8em;
+            text-align: center;
+            font-weight: 250;
+        }
+        .freeze-tx-btn:hover {
+            background-color: var(--cmap-border);
+            border: 1px solid var(--main-color);
+        }
+        .compose-tx-btn {
+            border: 1px solid var(--cmap-border);
+            border-radius: 0.5em;
+            background-color: var(--cmap-border);
+            padding: 0.8em;
+            text-align: center;
+            font-weight: 250;
+        }
+        .compose-tx-btn:hover {
+            background-color: var(--cmap-border);
+            border: 1px solid var(--main-color);
+        }
+        .manage-psbt-btn {
+            border: 1px solid var(--cmap-border);
+            border-radius: 0.5em;
+            background-color: var(--cmap-border);
+            padding: 0.8em;
+            text-align: center;
+            font-weight: 250;
+        }
+        .manage-psbt-btn:hover {
+            background-color: var(--cmap-border);
+            border: 1px solid var(--main-color);
+        }
+        .table-container {
+            width: 100%;
+            margin-bottom: 10px;
+            border: 1.5px solid var(--cmap-border);
+        }
+        .scrollbar {
+            overflow-y: auto;
+            scrollbar-color: hsl(217, 10%, 80%) var(--cmap-border);
+            scrollbar-width: thin;
+        }
+        .table-container::-webkit-scrollbar {
+            width: 0.3em;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: var(--cmap-border);
+            border-radius: 100vw;
+            margin-top: 0.3em;
+            margin-bottom: 0.3em;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background: hsl(217, 10%, 80%);
+            border-radius: 100vw;
+        }
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: white;
+        }
+        .table-container::-webkit-scrollbar:horizontal {
+            display: none;
+        }
+        .scrollbar-checkbox-div {
+            margin-left: 15px;
+        }
+        input:checked + .slider {
+            background-color: hsl(217, 30%, 50%);
+        }
+        .feedback-row {
+            display: flex;
+            justify-content: center;
+        }
+        .rescan-hint {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 1.1em;
+        }
+        .go-to-rescan-btn {
+            max-width: 175px;
+            margin: 0 0 5px 0;
+            border: 1px solid var(--cmap-border);
+            border-radius: 0.5em;
+            background-color: var(--cmap-border);
+            padding: 0.8em;
+            text-align: center;
+            font-weight: 250;
+        }
+        .go-to-rescan-btn:hover {
+            background-color: var(--cmap-border);
+            border: 1px solid var(--main-color);
+            text-decoration: none;
+        }
+        .empty-row {
+            display: table-row;
+            text-align: center;
+        }
+        :host {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        @media (max-width: 690px){
+            .selected-rows-action-box{
+                flex-direction: column;
+            }
+        }
+    </style>
 
-    <div class="flex my-2 justify-between items-center">
-        <nav class="flex h-8">
-            <button
-                type="button"
-                class="txlist-view-btn btn radio left">
-                {{ _("History") }}
-            </button>
-            <button
-                type="button"
-                class="utxo-view-btn btn radio right">
-                UTXO
-            </button>
-        </nav>
-
-        <div class="flex space-x-2 search-container">
-            <!--Left part of the toolbar-->
-            {% include "includes/page-limit-select.html" %}
-             <!--Middle part of the toolbar-->
-            <div data-style="flex-grow: 0.2">
-                <input class="search" type="text" placeholder="Search..."></input>
-            </div>
-            <div id="tooltip-container" class="tooltip-no-grow tooltip-width">
-                <tool-tip>
-                    <h4 slot="title">{{ _('Search options') }}</h4>
-                    <span slot="paragraph">
-                        {{ _("You can search using addresses, tx-IDs, labels, confirmations or amounts.") }}<br><br>
-                        {{ _('Search like this in the time field:') }} <code>%d.%m.%Y %H:%M</code><br><br>
-                        {{ _('Search like this for amounts:') }} <br>
-                        <code> 1</code> {{ _("for anything more than 1") }}<br>
-                        <code>< 1</code> {{ _("for less than 1 BTC (don't forget the space)") }}<br>
-                    </span>
-                </tool-tip>
-            </div>
-            <!--Right part of the toolbar-->
-            <div id="action-teaser" class="action-teaser hidden" data-style="margin-right: 5px; margin-left: 5px;"> 
-                <span id="action-teaser-text" class="action-teaser-text">Select checkboxes for actions</span>
-            </div>
-            <div class="selected-rows-action-box row hidden">
-                <form class="freeze-tx-form" method="POST">
-                    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button type="button" class="btn freeze-tx-btn">
-                        Un/Freeze UTXOs
-                        <tool-tip width="200px" move-right="true">
-                            <span slot="paragraph">
-                                {{ _("Freezing a UTXO will make Specter disallow spending it.") }}<br><br>
-                                {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }}
-                            </span>
-                        </tool-tip>
-                    </button>
-                </form>
-                <form class="compose-tx-form" method="POST">
-                    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button type="button" class="btn compose-tx-btn">{{ _("Create new transaction") }}</button>
-                </form>
-                <a id="manage-psbt-btn" type="button" class="btn manage-psbt-btn hidden" href="">{{ _("Manage unsigned PSBT") }}</a>
-            </div>
+    <nav class="switcher row">
+        <button
+            type="button"
+            class="txlist-view-btn btn radio left">
+            {{ _("History") }}
+        </button>
+        <button
+            type="button"
+            class="utxo-view-btn btn radio right">
+            UTXO
+        </button>
+    </nav>
+    <div class="pagination-container">
+        <a class="pagination-back pagination-arrow pagination-disabled">&#8249;</a>
+        {{ _("Page") }} &nbsp;<input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span class="pagination-counter"></span>
+        <a class="pagination-next pagination-arrow pagination-disabled">&#8250;</a>
+        <br>
+    </div>
+    <div class="search-container">
+        <!--Left part of the toolbar-->
+        {% include "includes/page-limit-select.html" %}
+         <!--Middle part of the toolbar-->
+        <div style="flex-grow: 0.2">
+            <input class="search" type="text" placeholder="Search..."></input>
         </div>
-
-        <div class="pagination-container">
-            <a class="pagination-back pagination-arrow pagination-disabled">&#8249;</a>
-            {{ _("Page") }} &nbsp;<input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span class="pagination-counter"></span>
-            <a class="pagination-next pagination-arrow pagination-disabled">&#8250;</a>
-            <br>
+        <div id="tooltip-container" class="tooltip-no-grow tooltip-width">
+            <tool-tip>
+                <h4 slot="title">{{ _('Search options') }}</h4>
+                <span slot="paragraph">
+                    {{ _("You can search using addresses, tx-IDs, labels, confirmations or amounts.") }}<br><br>
+                    {{ _('Search like this in the time field:') }} <code>%d.%m.%Y %H:%M</code><br><br>
+                    {{ _('Search like this for amounts:') }} <br>
+                    <code> 1</code> {{ _("for anything more than 1") }}<br>
+                    <code>< 1</code> {{ _("for less than 1 BTC (don't forget the space)") }}<br>
+                </span>
+            </tool-tip>
         </div>
-
+        <!--Right part of the toolbar-->
+        <div id="action-teaser" class="action-teaser hidden" style="margin-right: 5px; margin-left: 5px;">
+            <span id="action-teaser-text" class="action-teaser-text">Select checkboxes for actions</span>
+        </div>
+        <div class="selected-rows-action-box row hidden">
+            <form class="freeze-tx-form" method="POST">
+                <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="button" class="btn freeze-tx-btn">
+                    Un/Freeze UTXOs
+                    <tool-tip width="200px" move-right="true">
+                        <span slot="paragraph">
+                            {{ _("Freezing a UTXO will make Specter disallow spending it.") }}<br><br>
+                            {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }}
+                        </span>
+                    </tool-tip>
+                </button>
+            </form>
+            <form class="compose-tx-form" method="POST">
+                <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="button" class="btn compose-tx-btn">{{ _("Create new transaction") }}</button>
+            </form>
+            <a id="manage-psbt-btn" type="button" class="btn manage-psbt-btn hidden" href="">{{ _("Manage unsigned PSBT") }}</a>
+        </div>
         <div id="scrollbar-checkbox-div" class="scrollbar-checkbox-div row hidden">
             {{ _("Table scrollbar") }} &nbsp;&nbsp;
             <label class="switch">
@@ -344,9 +337,7 @@
                 <span class="slider"></span>
             </label>
         </div>
-
     </div>
-
     <div class="export-container hidden">
         <h1>{{ _("Export transactions to CSV") }}</h1>
         <div class="{% if not specter.price_check or not (specter.alt_rate and specter.alt_symbol) %}hidden{% endif %}">
@@ -374,15 +365,15 @@
                     <th value="time"     class="column-time time-header optional">{{ _("Time") }}<div class="time-arrow"></div></th>
                     <th value="confirmations" class="column-confirmations confirmations-header">{{ _("Confirmations") }}<div class="confirmations-arrow"></div></th>
                     <th value="blockhash" class="column-blockhash optional hidden blockhash-header">
-                        <div data-style="display: flex">
+                        <div style="display: flex">
                             <span>{{ _("Block Hash") }}</span>
-                            <div id="tooltip-container" data-style="min-width: 175px;">
+                            <div id="tooltip-container" style="min-width: 175px;">
                                 {% include "includes/merkletooltip.html" %}
                             </div>
                         </div>
                     </th>
-                    <th class="column-action" data-style="width: 50px; padding: 10px;">
-                        <button type="button" class="export-btn btn" data-style="width: 50px;">
+                    <th class="column-action" style="width: 50px; padding: 10px;">
+                        <button type="button" class="export-btn btn" style="width: 50px;">
                             {{ _("Export") }}
                         </button>
                     </th>
@@ -428,7 +419,7 @@
             this.tableHeader = clone.getElementById('table-header')
             this.tbody = clone.querySelector(".tx-tbody");
             this.tableContainer = clone.getElementById("table-container");
-            
+
             // Hook up tooltips width responsiveness
             this.tooltips = clone.querySelectorAll('tool-tip');
             this.tooltipContainers = clone.querySelectorAll('#tooltip-container');
@@ -467,7 +458,7 @@
             this.paginationContainer = clone.querySelector(".pagination-container");
             this.paginationCounter = clone.querySelector(".pagination-counter");
             this.paginationIdxInput = clone.querySelector(".pagination-idx");
-            this.pageLimitSelect = clone.querySelector(".page-limit-select");
+            this.pageLimitSelect = clone.querySelector("#page-limit-select");
 
             // Search bar element
             this.searchInput = clone.querySelector(".search");
@@ -507,7 +498,7 @@
             this.selectedRows = [];
 
             // Action teaser
-            this.actionTeaserDiv = clone.getElementById("action-teaser") 
+            this.actionTeaserDiv = clone.getElementById("action-teaser")
             this.actionTeaserText = clone.getElementById("action-teaser-text")
 
             // Scrollbar checkbox
@@ -516,7 +507,7 @@
 
             // CustomAction Preselection default
             this.selectedCoins = []
-            
+
 			this.txlistViewBtn.onclick = () => {
 				if (!this.txlistViewBtn.classList.contains("checked")) {
                     this.idx = 0
@@ -533,13 +524,13 @@
 					this.txlistViewBtn.classList.remove("checked");
 					this.utxoViewBtn.classList.add("checked");
 					this.setAttribute("type","utxo");
-                    // The action teaser should not be visible on wallets overview 
-                    if (this.wallet != null) { 
+                    // The action teaser should not be visible on wallets overview
+                    if (this.wallet != null) {
                     this.actionTeaserDiv.classList.remove("hidden");
                     }
 				}
             }
-            
+
             // Init call id to avoid fetch returning after another one triggered
             this.callId = 0
 
@@ -550,12 +541,12 @@
             this.sortby = "time";
             this.sortdir = "desc";
             this.pageCount = 1;
-            
+
             // Next page action
             this.paginationNext.onclick = () => {
                 this.idx++;
                 console.log("paginationNext fetch");
-                this.update();         
+                this.update();
             }
 
             // Previous page action
@@ -647,7 +638,7 @@
                 this.exportContainer.classList.add('hidden');
                 this.exportBtn.innerText = 'Export';
             }
-            
+
             // Export prices switch toggle
             this.exportPricesSwitch.onchange = () => {
                 this.export.href = this.export.href.split('?')[0] + `?exportPrices=${this.exportPricesSwitch.checked}&search=${this.search}&sortby=${this.sortby}&sortdir=${this.sortdir}`;
@@ -701,7 +692,7 @@
             }
             if (this.getAttribute("scrollbar") == "on") {
                 this.tableContainer.classList.add("scrollbar")
-            } 
+            }
             if (this.getAttribute("scrollbar-switch") == "true") {
                 this.scrollbarCheckboxDiv.classList.remove("hidden")
             }
@@ -715,7 +706,7 @@
                     this.tableContainer.classList.add("scrollbar")
                 }
                 else {
-                 this.tableContainer.classList.remove("scrollbar")   
+                 this.tableContainer.classList.remove("scrollbar")
                 }
             })
 
@@ -766,7 +757,7 @@
         }
 
         /**
-         * 
+         *
          * Listens to changes on the following attributes:
          * - blockhash: Should show blockhash column. Either "true" or "false"
          * - btc-unit: Bitcoin unit to display amounts with. Either "btc" or "sat"
@@ -814,11 +805,11 @@
                     if (oldValue) {
                         this.update();
                     }
-                    
+
                 }
             }
             if (attrName == "selected-coins" && newValue != undefined && newValue != "undefined") {
-                
+
                 let selectedCoins = JSON.parse(newValue)
                 this.selectedCoins = selectedCoins.map((txid_vout) => {
                     // For easier comparison, we're removing the vout
@@ -832,7 +823,7 @@
          * searches this.selectedCoins for a transactionId and removes that if found and returns True in that case.
          * Explanation: An initial pre ticking of the checkboxes is not that easy as the state of the component is
          * created dynamically. This also involves the preselected checkboxes which get set by setAttribute("selected-coins",...)
-         * In order to solve this, this.selectedCoins is an array of txids which nedd to be checked and they get "consumed" when the 
+         * In order to solve this, this.selectedCoins is an array of txids which nedd to be checked and they get "consumed" when the
          * the check is positive.
          */
         checkForSelectedCoin(txid) {
@@ -847,7 +838,7 @@
                    this.selectedCoins = filtered
                    return true
                }
-           } 
+           }
            return false
         }
 
@@ -931,17 +922,17 @@
             if ('error' in jsonResponse) {
                 if (jsonResponse['error'] == "Using merkle proofs is not supported with Spectrum.") {
                     this.emptyRowCell.innerText = '{{ _("No transactions fetched. Consider disabling the merkle proofs option in the settings.") }}';
-                } 
+                }
                 else {
                     this.emptyRowCell.innerText = '{{ _("No transactions fetched ... ") }}';
                 }
             }
         }
-        
+
         async render(jsonResponse, showBlockhash) {
             // jsonresponse is something like:
             // {
-            //  "pageCount": 1, 
+            //  "pageCount": 1,
             //  "txlist": "[{\"txid\": \"1f2b4f9b6762ab37d3b0495cda51d8733c68a5e3a01356f0a67f215a29b2f05e\", \"blockhash\": \"05d7c1f7c4fa2a530e0916dcd15551657c22f4c30df175292b0c0b0f320adc10\", \"blockheight\": 722, \"time\": 1644162928, \"conflicts\": [], \"bip125-replaceable\": \"no\", \"vsize\": null, \"category\": \"receive\", \"address\": \"bcrt1qc3z4j7kksr3wm2heaahzx62yjrj8fn83s7x3ps\", \"amount\": 20.0, \"ismine\": true, \"confirmations\": 132, \"label\": \"Address #7\", \"validated_blockhash\": \"\", \"wallet_alias\": \"myhot_2\"}, {\"txid\": \"aafaecb085944a6fce4556885c1f10c1cd97bac146a2a0e676a2b12bcf428d3b\", \"blockhash\": \"201eea173347cdc8e8effeaf96053b5867860cec163f3eacec7c8918c94bdaaa\", \"blockheight\": 721, \"time\": 1644162928, \"conflicts\": [], \"bip125-replaceable\": \"no\", \"vsize\": null, \"category\": \"receive\", \"address\": \"bcrt1qyncynwdxmeynk245wa3f4urul3nm2v0ulfueek\", \"amount\": 20.0, \"ismine\": true, \"confirmations\": 133, \"label\": \"Address #6\", \"validated_blockhash\": \"\", \"wallet_alias\": \"myhot_2\"}, {\"txid\": \"bf34b090996dfcd2971c88f645edd4a0a0ad180e15096389d8841cf2bac0ecde\", \"blockhash\": \"07952e41edea8a9507722531e922b9d217518d6116ba4fba47c9e62ce12dee9e\", \"blockheight\": 305, \"time\": 1644159720, \"conflicts\": [], \"bip125-replaceable\": \"no\", \"vsize\": null, \"category\": \"receive\", \"address\": \"bcrt1qyncynwdxmeynk245wa3f4urul3nm2v0ulfueek\", \"amount\": 20.0, \"ismine\": true, \"confirmations\": 549, \"label\": \"Address #6\", \"validated_blockhash\": \"\", \"wallet_alias\": \"myhot_2\"}]"
             //  }
 
@@ -1089,19 +1080,19 @@
                     txRow.category.addEventListener("mouseover", () => {
                         if (txRow.tx.confirmations == 0) {
                         txRow.iconInfoText.innerText = `${txRow.tx.category} (unconfirmed)`
-                        } 
+                        }
                         else {
                         txRow.iconInfoText.innerText = txRow.tx.category
-                        }  
+                        }
                     })
-                    // Adding additional text to special UTXO in coin selection and UTXO list                 
+                    // Adding additional text to special UTXO in coin selection and UTXO list
                     if (txRow.tx.locked && pending_psbts_txids.includes(txRow.tx.txid) == false) {
                         // Replaces checkbox for locked UTXO in coin selection by snowflake image
                         txRow.callbackaction.innerHTML = ""
                         // Need to clone otherwise we're ripping the node from the UTXO overview
                         let frozenImgClone = txRow.frozenImg.cloneNode()
                         txRow.callbackaction.append(frozenImgClone)
-                        // Adding "Frozen" in coin selection and UTXO overview 
+                        // Adding "Frozen" in coin selection and UTXO overview
                         txRow.callbackaction.append("Frozen")
                         txRow.categoryCell.append("Frozen")
                     }
@@ -1109,7 +1100,7 @@
                         txRow.callbackaction.innerHTML = ""
                         let frozenImgClone = txRow.frozenImg.cloneNode()
                         txRow.callbackaction.append(frozenImgClone)
-                        // Adding "Unsigned" in coin selection and UTXO overview 
+                        // Adding "Unsigned" in coin selection and UTXO overview
                         txRow.callbackaction.append("Unsigned")
                         txRow.categoryCell.append("Unsigned")
                     }
@@ -1126,7 +1117,7 @@
                                 txRow.callbackaction.append("Unconfirmed");
                             }
                     }
-         
+
                     // Preselect if necessary
                     if (this.checkForSelectedCoin(txRow.tx.txid)) {
                         txRow.select()
@@ -1136,18 +1127,18 @@
                     txRow.addEventListener('coinSelectRowSelected', (e) => {
                         this.fireCustomSelectedEvent()
                     })
-                    
+
                     // Listening for (un-) selecting standard checkboxes
                     txRow.addEventListener('txRowSelected', (e) => {
-                        let selectedRow = e.target; 
+                        let selectedRow = e.target;
                         if (e.detail.selected) {
                             // Good idea to Check whether it's already in before adding (had some issues with that)
-                            if (this.selectedRows.filter(t => t.txid == e.detail.txid).length == 0) { 
+                            if (this.selectedRows.filter(t => t.txid == e.detail.txid).length == 0) {
                                 this.selectedRows.push({
                                     txid: e.detail.txid,
                                     vout: e.detail.vout,
                                     amount: e.detail.amount.toFixed(8),
-                                    locked: e.detail.locked, 
+                                    locked: e.detail.locked,
                                 });
                             }
                         } else {
@@ -1221,7 +1212,7 @@
                 }
             }
         }
-     
+
         // If this event is fired, then some row got ticked/unticked in the custom-selection-column
         // This is picked up by coin selection
         fireCustomSelectedEvent() {

@@ -7,7 +7,7 @@
 	- wallet_alias: The wallet alias (used in the URL navigation).
  #}
 {% macro send_nav(active_menuitem, wallet_alias) -%}
-	<nav class="text-center text-dark-200 border-b border-dark-600">
+	<nav class="text-center text-dark-200 border-b border-dark-600 mb-8">
 		<ul class="flex flex-wrap -mb-px">
 			{{ wallet_menu_item('send_new', _('New'), wallet_alias, active_menuitem, isLeft=true) }}
 			{{ wallet_menu_item('send_pending', _('Saved'), wallet_alias, active_menuitem) }}

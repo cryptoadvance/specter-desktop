@@ -1,14 +1,10 @@
-<div>
-    <!-- <span class="page-limit-label">{{ _("Page limit") }}: </span> -->
-
-    <fieldset class="page-limit-fieldset">
-        <select class="page-limit-select">
-            <option value="" class="page-limit-option" disabled="disabled">Entries</option>
-            <option value="10" class="page-limit-option">10</option>
-            <option value="25" selected class="page-limit-option">25</option>
-            <option value="50" class="page-limit-option">50</option>
-            <option value="100" class="page-limit-option">100</option>
-            <option value="0" class="page-limit-option">{{ _("All") }}</option>
-        </select>
-    </fieldset>
-</div>
+<fieldset id="page-limit-fieldset">
+    <select id="page-limit-select" class="h-10">
+        <option value="" class="page-limit-option" disabled="disabled">Entries</option>
+        <option value="10" class="page-limit-option">10</option>
+        <option value="25" selected class="page-limit-option">25</option>
+        <option value="50" class="page-limit-option">50</option>
+        <option value="100" class="page-limit-option">100</option>
+        <option value="0" class="page-limit-option">{{ _("All") }}</option>
+    </select>
+</fieldset>

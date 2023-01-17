@@ -1,21 +1,14 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
 {% set tab = 'send' %}
+
 {% block content %}
-
-	<div style="display: none;"><!--<style>--> 
-		#calculated_tx_fee_label:hover {
-			text-decoration: underline;
-			cursor: pointer;
-		}
-	</div><!--</style>-->
-
 	{% include "includes/qr-scanner.html" %}
 	{% include "includes/recipient-box.html" %}
 
 	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
 	{{ send_nav('send_new', wallet_alias) }}
 
-	<message-box type="error" id="amount_errors_container" data-style="position: absolute; top: 0; display: none;">
+	<message-box type="error" id="amount_errors_container" style="position: absolute; top: 0; display: none;">
 		Error!
 		</ul>
 	</message-box>
@@ -24,43 +17,46 @@
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="rbf_tx_id" value="{{ rbf_tx_id }}"/>
 		<input type="hidden" name="recipient_dicts"  id="recipient_dicts" value=""/>  
-		<h1 class="padded">{{ _("Create Transaction") }}</h1>
-		<div data-style="display: flex; justify-content: center; margin-bottom: 15px">
-			<div>{{ _("Available funds:") }} {{wallet.amount_available | btcunitamount}}
-				{% if specter.unit == 'sat' %}
-					sats
-				{% else %}
-					{% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
-				{% endif %}<br>
+
+		<h3>{{ _("Create Transaction") }}</h3>
+
+		<div>
+			<div>
+				{{ _("Available funds:") }} {{wallet.amount_available | btcunitamount}}
+				{% if specter.unit == 'sat' %}sats{% else %}{% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC{% endif %}
+
 				{% if specter.price_check %}
-					<span class="note">{{ wallet.amount_available | altunit }}</span>
+					<span>{{ wallet.amount_available | altunit }}</span>
 				{% endif %}
+
 				{% if specter.is_liquid and wallet.balance.get("assets", {}) %}
-				<span>
-					<br>{{ _("Assets:") }}<br>
-					{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
-						{% set balance = wallet.balance.get("assets",{}).get(asset, {}) %}
-						<span data-style="margin: 0 10px;">
-							{{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcamount }}
-							<asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}"></asset-label>
-						</span>
-					{% endfor %}
-				</span>
+					<span>
+						{{ _("Assets:") }}
+						{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
+							{% set balance = wallet.balance.get("assets",{}).get(asset, {}) %}
+							<span data-style="margin: 0 10px;">
+								{{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcamount }}
+								<asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}"></asset-label>
+							</span>
+						{% endfor %}
+					</span>
 				{% endif %}
 			</div>
+
 			{% if wallet.amount_locked_unsigned  > 0 or wallet.amount_frozen > 0 %}
-			<div>
-				<tool-tip width="150px">
-				    <h4 slot="title">{{ _("Why is this less than my total balance?") }}</h4>
-				    <span slot="paragraph">
-						{{ _(' Frozen outputs and outputs locked in unsigned transactions are not available here.  
-						To make more funds available, click on the "Unsigned" tab and delete not required transactions or unfreeze UTXO under "Transactions".') }}
-				    </span>
-				</tool-tip>
-	        </div>
-	        {% endif %}
-	    </div>
-		<div class="card" data-style="margin: auto;">			
+				<div>
+					<tool-tip width="150px">
+							<h4 slot="title">{{ _("Why is this less than my total balance?") }}</h4>
+							<span slot="paragraph">
+							{{ _(' Frozen outputs and outputs locked in unsigned transactions are not available here.  
+							To make more funds available, click on the "Unsigned" tab and delete not required transactions or unfreeze UTXO under "Transactions".') }}
+							</span>
+					</tool-tip>
+				</div>
+			{% endif %}
+		</div>
+
+		<div>			
 			<div id="recipients" {% if ui_option != 'ui' %}class="hidden"{% else %} class="recipient_wrapper" {% endif %}></div>
 			<img src="{{ url_for('static', filename='img/add-person.svg') }}" id="add-recipient" title="Add a recipient" class="recipient_button recipient_add" data-style="float:right" onclick="addRecipient('', '', 'btc', '')">
 			<div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>
@@ -76,9 +72,14 @@
 					&lt;{{ _("ADDRESS") }}3&gt;, &lt;{{ _("AMOUNT") }}3&gt;<br>
 				</p>
 			</div>
-			<p><span id="calculated_tx_fee_label" class="note" data-style="margin-top: 17px;" onclick="calculateEstimatedFee()">{{ _("Calculate estimated fee") }}</span><span class="note" id="calculated_tx_fee"></span><p>
-			<span id="toggle_advanced" data-style="cursor: pointer;">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
-			<br>
+
+			<p>
+				<span id="calculated_tx_fee_label" onclick="calculateEstimatedFee()">{{ _("Calculate estimated fee") }}</span>
+				<span id="calculated_tx_fee"></span>
+			</p>
+
+			<span id="toggle_advanced">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
+
 			<div id="advanced_settings" data-style="margin: auto; max-width: 90%; display: {% if show_advanced_settings %}block{% else %}none{% endif %};">
 				<div>{{ _("Transaction editor:") }} 
 					<label><input type="radio" class="inline" data-style="margin: 0 10px 0 20px;" name="ui_option" value="ui" onclick="toggleSendUIType(this)" {% if ui_option == 'ui' %}checked{% endif %} id="ui-radio-btn">UI</label>
@@ -86,11 +87,9 @@
 				</div><br>
 				{% include "includes/fee-selection.html" %}
 				<fee-selection id="fee-selection-component"></fee-selection>
-				<br>
-				<br>
-				<br>
 				<div class="row break-row-mobile" id="vertical-space-for-subtract-fees-from-amount-checkbox" data-style="margin-top: 0px;"></div>
 			</div>
+
 			{% include "includes/tx-row.html" %}
 			{% include "includes/tx-data.html" %}
 			{% include "includes/explorer-link.html" %}
@@ -103,7 +102,7 @@
 				is-liquid="{{specter.is_liquid}}"
 				selected-coins="{{ selected_coins }}">
 			</coin-selection>
-			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" data-style="margin-top: 20px;">{{ _('Create ')}}<span class="optional">&nbsp;{{ _('unsigned')}}&nbsp;</span>{{ _('transaction') }}</button>
+			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="button">{{ _('Create ')}}<span class="optional">&nbsp;{{ _('unsigned')}}&nbsp;</span>{{ _('transaction') }}</button>
 		</div>
 	</form>
 {% endblock %}

@@ -26,7 +26,7 @@
         <td class="used optional"></td>
         <td class="utxo optional"></td>
         <td class="optional"><span class="amount"></span> <span class="amount-price note hidden">()</span></td>
-        <td class="verify optional"><button type="button" class="btn" data-style="width:150px; max-width:150px;margin: 0px;">{{ _("Verify on device") }}</button></td>
+        <td class="verify optional"><button type="button" class="btn" style="width:150px; max-width:150px;margin: 0px;">{{ _("Verify on device") }}</button></td>
         <td></td>
     </tr>
 </template>
@@ -94,7 +94,7 @@
             this.used.innerText = this.hideSensitiveInfo ? '###' : `${this.addressData.used ? 'Yes' : 'No'}`;
 
             this.utxo.innerText = this.hideSensitiveInfo ? '###' : this.addressData.utxo;
-            
+
             if (this.addressData.assets) {
                 this.assetsCount = Object.keys(this.addressData.assets).length;
             } else {
@@ -138,7 +138,7 @@
                     }
                 }
             }
-            
+
             const onlyLBTC = (this.assetsCount == 1 && Object.keys(this.addressData.assets)[0] == "{{ specter.default_asset }}");
             const isLiquid = this.assetsCount > 0;
             if ((isLiquid && !onlyLBTC) || !this.price || !this.symbol || this.hideSensitiveInfo) {

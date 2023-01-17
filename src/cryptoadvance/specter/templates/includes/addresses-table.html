@@ -1,6 +1,4 @@
 <template id="addresses-table">
-	  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
-
     {% set supports_qr_code_verify = [] %}
     {% for device in wallet.devices if device.qr_code_support_verify %}
         {% set supports_qr_code_verify = supports_qr_code_verify.append(device) %}
@@ -13,44 +11,96 @@
     {% for device in wallet.devices if device.hwi_support %}
         {% set supports_hwi = supports_hwi.append(device) %}
     {% endfor %}
+    <!-- <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}"> -->
+	  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+    <style>
+        .addresses-table {
+            display: table;
+        }
 
-    <div class="flex justify-between items-center">
-        <nav class="row">
-            <button type="button" class="receive-addresses-view-btn btn radio left checked">
-                {{ _("Receive Addresses") }}
-            </button>
-            <button type="button" class="change-addresses-view-btn btn radio right">
-                {{ _("Change Addresses") }}
-            </button>
-        </nav>
+        address-row {
+            display: contents;
+        }
 
-        <div class="pagination-container">
-            <a class="btn pagination-back pagination-arrow pagination-disabled">&#8249;</a>
-            {{ _("Page") }} <input class="pagination-idx" type="number" step="1" min="1" value="1"></input><span
-                class="pagination-counter"></span>
-            <a class="btn pagination-next pagination-arrow pagination-disabled">&#8250;</a>
-            <br>
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .up-arrow {
+            width: 0;
+            height: 0;
+            border: solid 5px transparent;
+            background: transparent;
+            border-bottom: solid 7px #fff;
+            border-top-width: 0;
+            cursor: pointer;
+            float: right;
+            margin-right: 50px;
+            margin-top: 5px;
+        }
+
+        .down-arrow {
+            width: 0;
+            height: 0;
+            border: solid 5px transparent;
+            background: transparent;
+            border-top: solid 7px #fff;
+            border-bottom-width: 0;
+            margin-top: 1px;
+            cursor: pointer;
+            float: right;
+            margin-right: 50px;
+            margin-top: 5px;
+        }
+    </style>
+
+    <div id="export-container" class="space-y-3 mb-8 max-w-[700px] m-auto hidden">
+        <h3>{{ _("Export addresses to CSV") }}</h3>
+        <div class="flex items-center">
+            <input type="checkbox" class="only-current-type-checkbox" checked>
+            <label class="switch-text"></label>
         </div>
-        <div data-style="padding-left: 5px">
-            {% include "includes/page-limit-select.html" %}
-        </div>
-        <div class="export-container hidden">
-            <h1>{{ _("Export addresses to CSV") }}</h1>
-
-            <div>
-                <span class="switch-text"></span>
-                <label class="switch">
-                    <input type="checkbox" class="only-current-type-checkbox" checked>
-                    <span class="slider"></span>
-                </label><br><br>
-            </div>
-
-            <a class="export btn" download>{{ _("Export") }}</a>
-        </div>
+        <a class="button text-white bg-accent" id="export" download>{{ _("Export") }}</a>
     </div>
 
-    <table class="addresses-table">
+    <nav class="text-center text-dark-200 border-b border-dark-600 flex justify-between items-center">
+        <ul class="flex flex-wrap -mb-px self-end">
+            <li aria-checked="true" class="mr-2 py-2 border-b-2 border-transparent aria-checked:text-link aria-checked:border-b-2 aria-checked:border-link" id="">
+                <button type="button" id="receive-addresses-view-btn" class="text-lg inline-block py-1 px-3 hover:text-white rounded-lg hover:bg-dark-700">
+                    {{ _("Receive Addresses") }}
+                </button>
+            </li>
+            <li aria-checked="false" class="mr-2 py-2 border-b-2 border-transparent aria-checked:text-link aria-checked:border-b-2 aria-checked:border-link" id="">
+                <button type="button" id="change-addresses-view-btn" class="text-lg inline-block py-1 px-3 hover:text-white rounded-lg hover:bg-dark-700">
+                    {{ _("Change Addresses") }}
+                </button>
+            </li>
+        </ul>
 
+        <div class="flex items-center select-none">
+            <div id="pagination-container" class="flex items-center mx-4">
+                <a id="pagination-back" class="hidden cursor-pointer w-6">←</a>
+                {{ _("Page") }} <input id="pagination-idx" class="text-center max-w-[40px] block max-h-[40px] mx-2" type="number" step="1" min="1" value="1"></input>
+                <div id="pagination-counter" class="block break-keep"></div>
+                <a id="pagination-next" class="hidden cursor-pointer w-6">→</a>
+            </div>
+
+            {% include "includes/page-limit-select.html" %}
+
+            <div id="export-btn" class="ml-4 hover:bg-dark-700 rounded-lg py-2 px-3">
+                Export
+            </div>
+        </div>
+    </nav>
+
+    <table class="addresses-table">
         <thead>
             <tr>
                 <th value="index" class="index-header">
@@ -67,11 +117,8 @@
                 <th value="amount" class="amount-header optional">{{ _("Amount") }}<div class="amount-arrow">
                 </th>
                 {% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
-					<th class="optional"></th>	
+                  <th class="optional"></th>
                 {% endif %}
-                <th data-style="width: 50px; padding: 10px;">
-                    <button type="button" class="export-btn btn" data-style="width: 50px;">{{ _("Export") }}</button>
-                </th>
             </tr>
         </thead>
 
@@ -83,12 +130,13 @@
             <td class="optional"></td>
             <td class="optional"></td>
             {% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
-                <th class="optional"></th>	
+                <th class="optional"></th>
             {% endif %}
             <td></td>
         </tr>
 
-        <tbody class="addr-tbody"></tbody>
+        <tbody class="addr-tbody">
+        </tbody>
     </table>
 </template>
 
@@ -105,7 +153,7 @@
      *  - Configuring limit for addresses displayed per page
      *  - Pagination, jumping between pages and showing the total pages count
      *  - Export - export the all addresses or only receive or change addresses depending on the currently active tab as CSV
-     * 
+     *
      * The table also supports:
      *  - Showing amounts in either BTC or sats (set attribute `btc-unit` to either "btc" or "sat")
      *  - Showing prices next to the amounts (set attribute `price` to the BTC price and symbol to the symbol of the currency you're pricing at)
@@ -124,16 +172,16 @@
             this.emptyRow = clone.querySelector(".empty");
 
             // Tabs (Receive Addresses/ Change Addresses)
-            this.receiveAddressesViewBtn = clone.querySelector(".receive-addresses-view-btn");
-            this.changeAddressesViewBtn = clone.querySelector(".change-addresses-view-btn");
+            this.receiveAddressesViewBtn = clone.querySelector("#receive-addresses-view-btn");
+            this.changeAddressesViewBtn = clone.querySelector("#change-addresses-view-btn");
 
             // Pagination
-            this.paginationNext = clone.querySelector(".pagination-next");
-            this.paginationBack = clone.querySelector(".pagination-back");
-            this.paginationContainer = clone.querySelector(".pagination-container");
-            this.paginationCounter = clone.querySelector(".pagination-counter");
-            this.paginationIdxInput = clone.querySelector(".pagination-idx");
-            this.pageLimitSelect = clone.querySelector(".page-limit-select");
+            this.paginationNext = clone.querySelector("#pagination-next");
+            this.paginationBack = clone.querySelector("#pagination-back");
+            this.paginationContainer = clone.querySelector("#pagination-container");
+            this.paginationCounter = clone.querySelector("#pagination-counter");
+            this.paginationIdxInput = clone.querySelector("#pagination-idx");
+            this.pageLimitSelect = clone.querySelector("#page-limit-select");
 
             // Sorting headers and arrows
             this.indexHeader = clone.querySelector(".index-header");
@@ -151,27 +199,23 @@
             this.amountArrow = clone.querySelector(".amount-arrow");
 
             // Export button
-            this.exportBtn = clone.querySelector(".export-btn");
-            this.exportContainer = clone.querySelector(".export-container");
-            this.export = clone.querySelector(".export");
+            this.exportBtn = clone.querySelector("#export-btn");
+            this.exportContainer = clone.querySelector("#export-container");
+            this.export = clone.querySelector("#export");
             this.switchText = clone.querySelector(".switch-text");
             this.onlyCurrentTypeSwitch = clone.querySelector(".only-current-type-checkbox");
 
             // Setup tabs switching
             this.receiveAddressesViewBtn.onclick = () => {
-                if (!this.receiveAddressesViewBtn.classList.contains("checked")) {
-                    this.changeAddressesViewBtn.classList.remove("checked");
-                    this.receiveAddressesViewBtn.classList.add("checked");
-                    this.setAttribute("type", "receive");
-                }
+                this.changeAddressesViewBtn.parentElement.setAttribute("aria-checked", false);
+                this.receiveAddressesViewBtn.parentElement.setAttribute("aria-checked", true);
+                this.setAttribute("type", "receive");
             }
 
             this.changeAddressesViewBtn.onclick = () => {
-                if (!this.changeAddressesViewBtn.classList.contains("checked")) {
-                    this.receiveAddressesViewBtn.classList.remove("checked");
-                    this.changeAddressesViewBtn.classList.add("checked");
-                    this.setAttribute("type", "change");
-                }
+                this.changeAddressesViewBtn.parentElement.setAttribute("aria-checked", true);
+                this.receiveAddressesViewBtn.parentElement.setAttribute("aria-checked", false);
+                this.setAttribute("type", "change");
             }
 
             // Init call id to avoid fetch returning after another one triggered
@@ -374,17 +418,16 @@
                         for (let addr of addressesList) {
                             // Address data is embedded into each row as stringified JSON in the "data-address" attr.
                             let addrRow = document.createRange().createContextualFragment(`
-                                <address-row 
-                                    data-verify-qr="{{ supports_qr_code_verify != [] }}"
-                                    data-verify-hwi="{{ supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) }}"
-                                    data-btc-unit="${this.btcUnit ? this.btcUnit : 'btc'}"
-                                    data-price="${this.price ? this.price : 0}"
-                                    data-symbol="${this.symbol ? this.symbol : ''}"
-                                    data-address='${JSON.stringify(addr).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
-                                    data-hide-sensitive-info="${this.hideSensitiveInfo}"
-                                    data-wallet="${this.wallet}"
-                                />`
-                            );
+                            <address-row
+                                data-verify-qr="{{ supports_qr_code_verify != [] }}"
+                                data-verify-hwi="{{ supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) }}"
+                                data-btc-unit="${this.btcUnit ? this.btcUnit : 'btc'}"
+                                data-price="${this.price ? this.price : 0}"
+                                data-symbol="${this.symbol ? this.symbol : ''}"
+                                data-address='${JSON.stringify(addr).replace(/[\(]/g, "&lpar;").replace(/[\)]/g, "&rpar;").replace(/[\/]/g, "&sol;").replace(/[\']/g, "&apos;")}'
+                                data-hide-sensitive-info="${this.hideSensitiveInfo}"
+                                data-wallet="${this.wallet}">
+                            </address-row>`);
 
                             this.tbody.append(addrRow);
                         }
@@ -420,16 +463,16 @@
 
                         // Disable pagination back button if on the first page
                         if (this.idx == 0) {
-                            this.paginationBack.classList.add('pagination-disabled');
+                            this.paginationBack.classList.add('hidden');
                         } else {
-                            this.paginationBack.classList.remove('pagination-disabled');
+                            this.paginationBack.classList.remove('hidden');
                         }
 
                         // Disable pagination next button if on the last page
                         if (this.idx + 1 == this.pageCount) {
-                            this.paginationNext.classList.add('pagination-disabled');
+                            this.paginationNext.classList.add('hidden');
                         } else {
-                            this.paginationNext.classList.remove('pagination-disabled');
+                            this.paginationNext.classList.remove('hidden');
                         }
                     }
                     return;

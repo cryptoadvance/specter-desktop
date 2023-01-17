@@ -1018,10 +1018,6 @@ select {
   grid-column: span 4 / span 4;
 }
 
-.clear-both {
-  clear: both;
-}
-
 .m-1 {
   margin: 0.25rem;
 }
@@ -1032,6 +1028,10 @@ select {
 
 .m-4 {
   margin: 1rem;
+}
+
+.m-auto {
+  margin: auto;
 }
 
 .my-2 {
@@ -1067,6 +1067,31 @@ select {
 .my-1 {
   margin-top: 0.25rem;
   margin-bottom: 0.25rem;
+}
+
+.mx-2 {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.mx-4 {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+.my-20 {
+  margin-top: 5rem;
+  margin-bottom: 5rem;
+}
+
+.-mx-4 {
+  margin-left: -1rem;
+  margin-right: -1rem;
+}
+
+.my-\[2px\] {
+  margin-top: 2px;
+  margin-bottom: 2px;
 }
 
 .mb-2 {
@@ -1165,12 +1190,32 @@ select {
   margin-right: 0px;
 }
 
+.mt-1 {
+  margin-top: 0.25rem;
+}
+
 .mb-12 {
   margin-bottom: 3rem;
 }
 
-.ml-0 {
-  margin-left: 0px;
+.mt-40 {
+  margin-top: 10rem;
+}
+
+.mt-80 {
+  margin-top: 20rem;
+}
+
+.-mt-1 {
+  margin-top: -0.25rem;
+}
+
+.-mt-\[2px\] {
+  margin-top: -2px;
+}
+
+.mr-1 {
+  margin-right: 0.25rem;
 }
 
 .block {
@@ -1269,8 +1314,20 @@ select {
   max-height: 100vh;
 }
 
+.max-h-\[40px\] {
+  max-height: 40px;
+}
+
 .min-h-\[64px\] {
   min-height: 64px;
+}
+
+.min-h-\[0px\] {
+  min-height: 0px;
+}
+
+.min-h-\[0\] {
+  min-height: 0;
 }
 
 .w-screen {
@@ -1341,6 +1398,14 @@ select {
   width: 2.25rem;
 }
 
+.w-16 {
+  width: 4rem;
+}
+
+.w-3 {
+  width: 0.75rem;
+}
+
 .min-w-\[300px\] {
   min-width: 300px;
 }
@@ -1355,6 +1420,18 @@ select {
 
 .max-w-\[700px\] {
   max-width: 700px;
+}
+
+.max-w-\[80px\] {
+  max-width: 80px;
+}
+
+.max-w-\[60px\] {
+  max-width: 60px;
+}
+
+.max-w-\[40px\] {
+  max-width: 40px;
 }
 
 .flex-shrink-0 {
@@ -1379,10 +1456,6 @@ select {
 
 .grow-0 {
   flex-grow: 0;
-}
-
-.border-collapse {
-  border-collapse: collapse;
 }
 
 .transform {
@@ -1443,6 +1516,10 @@ select {
 
 .items-center {
   align-items: center;
+}
+
+.justify-start {
+  justify-content: flex-start;
 }
 
 .justify-end {
@@ -1510,12 +1587,28 @@ select {
   margin-bottom: calc(0.25rem * var(--tw-space-y-reverse));
 }
 
+.self-start {
+  align-self: flex-start;
+}
+
 .self-end {
   align-self: flex-end;
 }
 
 .self-center {
   align-self: center;
+}
+
+.justify-self-start {
+  justify-self: start;
+}
+
+.justify-self-center {
+  justify-self: center;
+}
+
+.overflow-auto {
+  overflow: auto;
 }
 
 .overflow-hidden {
@@ -1534,6 +1627,10 @@ select {
 
 .break-all {
   word-break: break-all;
+}
+
+.break-keep {
+  word-break: keep-all;
 }
 
 .rounded-lg {
@@ -1660,6 +1757,14 @@ select {
   background-color: rgb(20 21 26 / 0.7);
 }
 
+.bg-white\/80 {
+  background-color: rgb(255 255 255 / 0.8);
+}
+
+.bg-white\/10 {
+  background-color: rgb(255 255 255 / 0.1);
+}
+
 .fill-current {
   fill: currentColor;
 }
@@ -1678,6 +1783,10 @@ select {
 
 .p-5 {
   padding: 1.25rem;
+}
+
+.p-2 {
+  padding: 0.5rem;
 }
 
 .px-\[calc\(\(100\%-700px\)\/2\)\] {
@@ -1713,6 +1822,21 @@ select {
 .py-3 {
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
+}
+
+.py-5 {
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
+}
+
+.px-1 {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+.px-1\.5 {
+  padding-left: 0.375rem;
+  padding-right: 0.375rem;
 }
 
 .pr-1 {
@@ -1751,14 +1875,6 @@ select {
   padding-left: 1rem;
 }
 
-.pl-0 {
-  padding-left: 0px;
-}
-
-.text-left {
-  text-align: left;
-}
-
 .text-center {
   text-align: center;
 }
@@ -1786,9 +1902,9 @@ select {
   line-height: 1.5rem;
 }
 
-.text-xs {
-  font-size: 0.75rem;
-  line-height: 1rem;
+.text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
 }
 
 .font-medium {
@@ -1809,6 +1925,14 @@ select {
 
 .leading-4 {
   line-height: 1rem;
+}
+
+.leading-10 {
+  line-height: 2.5rem;
+}
+
+.leading-9 {
+  line-height: 2.25rem;
 }
 
 .text-white {
@@ -1881,6 +2005,11 @@ select {
   --tw-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.outline-none {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
 }
 
 .outline {
