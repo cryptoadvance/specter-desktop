@@ -22,10 +22,10 @@
         </div>
         <div id = "elec_manual_container" style="display: none">
             <div style="margin-top: 20px">
-                Host:<br><input id="host-input" type="text" name="host" type="text" value="{{ host }}" placeholder="127.0.0.1">
+                Host:<br><input id="host-input" type="text" name="host" type="text" value="{{ host }}" placeholder="127.0.0.1" required>
             </div>
             <div style="margin-top: 20px; margin-bottom: 10px">
-                Port:<br><input id="port-input" type="text"  name="port" type="text" value="{{ port }}" placeholder="50000">
+                Port:<br><input id="port-input" type="text"  name="port" type="text" value="{{ port }}" placeholder="50000" required>
             </div>
             <label style="font-size: 1em;">{{ _("Use ssl:") }}&nbsp;</label>
             <label class="switch">
@@ -39,7 +39,7 @@
             {% else %}
                 Select server:
             {% endif %}
-            <select id="server-list" name="elec_option">
+            <select id="server-list" name="elec_option" required>
                 <option selected style='display: none'></option>
                 {% for electrum_option in elec_options %}
                     <option value="{{ electrum_option }}" {% if elec_chosen_option == electrum_option %}selected{% endif %}>{{ electrum_option }}</option>
