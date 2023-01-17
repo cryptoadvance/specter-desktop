@@ -78,16 +78,10 @@
         <div class="overflow-scroll p-3 flex flex-col grow">
             <div class="mx-3 flex items-center justify-between {% if not specter.chain %}opacity-40 pointer-events-none{% else %}cursor-pointer{% endif %}">
                 <span class="" id="toggle_wallets_list" data-style="cursor: pointer;">{{ _("Wallets") }} ▸</span>
-                <img class="rounded-full bg-dark-700 w-4 h-4 animate-spin {% if not specter.wallet_manager.is_loading or not specter.chain %} hidden {% endif %}" id="wallet-manager-loader" data-style="vertical-align: sub;" src="{{ url_for('static', filename='img/refresh.svg') }}" />
+                <img class="rounded-full bg-dark-700 w-4 h-4 animate-spin {% if not specter.wallet_manager.is_loading or not specter.chain %} hidden {% endif %}" id="wallets-loading-indicator" data-style="vertical-align: sub;" src="{{ url_for('static', filename='img/refresh.svg') }}" />
             </div>
 
             <div class="mx-3" id="wallets_list">
-                <!-- Loading Incidator -->
-                <!-- <span id="wallets-loading-indicator" class="flex items-center space-x-1 {% if specter.wallet_manager.is_loading or not specter.chain %}hidden{% endif %}"> -->
-                <!--     <img class="w-4 h-4 animate-spin" id="wallet-manager-loader" data-style="vertical-align: sub;" src="{{ url_for('static', filename='img/refresh.svg') }}" /> -->
-                <!--     <div>{{ _("Updating wallets data...") }}</div> -->
-                <!-- </span> -->
-
                 <!-- New data alert -->
                 <span id="wallets-loading-done" class="hidden" data-style="text-align: left; margin: 5px 5px 5px 20px;">
                     <span id="wallets-loading-done-refresh" class="explorer-link" onclick="location.reload()" data-style="text-decoration: underline; margin-left: 20px;">
@@ -95,14 +89,11 @@
                     </span>
                 </span>
 
-                {% set loading_wallets = [] %}
-                {% for wallet in specter.wallet_manager.wallets_update_list if wallet not in specter.wallet_manager.wallets_names %}
-                    {% set loading_wallets = loading_wallets.append(specter.wallet_manager.wallets_update_list[wallet]) %}
-                {% endfor %}
+                {# This populates the wallet list #}
                 {% if (specter.device_manager.devices | length) != 0 and specter.chain %}
                     {% from 'includes/sidebar/components/sidebar_wallet_list_item.jinja' import sidebar_wallet_list_item %}
-                    {% for wallet in ((specter.wallet_manager.wallets.values()|list) + loading_wallets) | sort(attribute='name') %}
-                        {{ sidebar_wallet_list_item(wallet, wallet_alias, specter.info.chain, loading=(wallet in loading_wallets)) }}
+                    {% for wallet in (specter.wallet_manager.wallets.values() | list) | sort(attribute='name') %}
+                        {{ sidebar_wallet_list_item(wallet, specter.info.chain) }}
                     {% endfor %}
                 {% endif %}
 
@@ -269,25 +260,12 @@
             );
             let result = await response.json();
             if (result.is_loading) {
-                console.log("is loading still")
+                console.log("Wallets are still updating ... ")
                 setTimeout(updateWalletsLoadingData, 1000);
             } else {
-                document.getElementById("wallets-loading-indicator").classList.add("hidden");
-                {% if not specter.wallet_manager.failed_load_wallets %}
-                    if ('{{wallet_alias}}' && window.location.href.endsWith('history/')) {
-                        document.getElementById("wallets-loading-done").classList.remove("hidden");
-                    }
-                {% endif %}
-            }
-
-            for (wallet of result.loaded_wallets) {
-                document.getElementById(`${wallet}-sidebar-loading-placeholder`).style.display = 'none';
-                document.getElementById(`${wallet}-sidebar-list-item`).style.display = 'flex';
-            }
-
-            for (wallet of result.failed_load_wallets) {
-                document.getElementById(`${wallet}-sidebar-loading-placeholder`).style.display = 'none';
-                document.getElementById(`${wallet}-sidebar-list-item`).style.display = 'none';
+                console.log('Wallet update is finished.')
+                document.getElementById("wallets-loading-indicator").classList.add('hidden')
+                location.reload()
             }
         } catch(e) {
             console.log('Caught error:', e);
