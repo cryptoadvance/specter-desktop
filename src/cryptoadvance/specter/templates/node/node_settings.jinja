@@ -58,7 +58,7 @@
 
 						<div class="grid grid-cols-2 gap-3 mb-3">
 							<div class="floating-wrapper">
-								<input class="floating-input peer" placeholder=" " type="text" id="host" name="host" type="text" value="{{ node.protocol }}://{{ node.host }}">
+								<input class="floating-input peer" type="text" id="host" name="host" type="text" {% if node.host %} value="{{ node.protocol }}://{{ node.host }}" {% else %} placeholder="" {% endif %}>
 								<label class="floating-label" for="host">Host</label>
 							</div>
 							<div class="floating-wrapper">
@@ -79,23 +79,35 @@
 								</tool-tip>
 							</div>
 						</div>
-
-						<div class="mt-3">
-							<text-explainer>
-								<span slot="title" class="cursor-pointer">{{ _("Need help with the setup?") }} </span>
-								<div slot="content" class="mb-8">
-									<h3 class="mt-3">Bitcoin</h3>
-									<p>
-										{{ _("When auto-detect is on, Specter will check for environment variables (BTC_RPC_USER, BTC_RPC_PASSWORD, BTC_RPC_HOST, BTC_RPC_PORT) to configure the connection or attempt to locate your Bitcoin data directory and load your node configurations from it.") }}
-										{{ _('If your Bitcoin Core data directory is not located at the default location, you will need to enter its path under "Bitcoin Core data directory path" to locate it.') }}
-										{{ _("If you are connecting to a remote node, you need to disable auto-detect and enter the node's configurations manually below.") }}
-									</p>
-
-									<h3 class="mt-3">Liquid</h3>
-									<p>{{ _("When auto-detect is on, Specter will here only check for environment variables (ELM_RPC_USER, ELM_RPC_PASSWORD, ELM_RPC_HOST, ELM_RPC_PORT).") }}</p>
-								</div>
-							</text-explainer>
-						</div>
+						{% if not node_alias %}
+							<div class="mt-3">
+								<text-explainer>
+									<span slot="title" class="text-lg">{{ _("Need help with the setup?") }} </span>
+									<div class="text-dark-100 max-w-prose" slot="content">
+										{% if datadir_accessable %}
+											You are running Bitcoin Core and Specter on the same machine,
+											{% if bitcoin_conf_values %}
+												and you have created a bitcoin.conf file from which Specter automatically imports the necessary credentials. If you can't connect, perhaps sth. is missing. <br>
+											{% else %}
+												but you haven't created a bitcoin.conf file yet or it is empty. Go to <code class="text-sm">{{ node.datadir }}</code> and create it. <br>
+											{% endif %}
+												 See below for the necessary lines in this file.
+										{% else %}
+											You are not running Bitcoin Core on the same machine as Specter.
+											Make sure you have created a bitcoin.conf file as below on the machine you are runnnig Bitcoin Core.
+											You need to enter the RPC credentials from this file here. You also need to enter the IP (within your LAN e.g. 172.16.0.20) or onion address (if you use Tor) of the remote machine in the host field. <br>
+										{% endif %}
+										<div class="my-1 max-w-prose text-white">Bitcoin.conf sample file</div>
+										<code class="text-sm">
+											server=1 <br>
+											rpcuser=YOURUSERNAME <br>
+											rpcpassword=YOURPASSWORD <br>
+											disablewallet=0 <br>
+										</code>
+									</div>
+								</text-explainer>
+							</div>
+						{% endif %}
 					</div>
 				</div>
 			</section>
@@ -174,10 +186,13 @@
 	const cancelBtn = document.getElementById("cancel");
 	const updateBtn = document.getElementById("update");
 	const nameForm = document.getElementById('name-form')
-	nameForm.addEventListener('submit', (e) => {
-		e.preventDefault()
-		renameNode()
-	})
+	// nameForm is null for new connections
+	if (nameForm) {
+		nameForm.addEventListener('submit', (e) => {
+			e.preventDefault()
+			renameNode()
+		})
+	}
 
 	async function renameNode() {
 		let url = `{{ url_for('nodes_endpoint.rename_node') }}`;

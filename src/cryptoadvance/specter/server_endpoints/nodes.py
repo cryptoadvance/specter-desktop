@@ -79,17 +79,10 @@ def node_settings(node_alias):
             bitcoin_conf_values = False
             # First check whether the Bitcoin Core data directory can be accessed at all
             datadir_accessable = False
-            node_type = ""
-            default_datadir = ""
-            for node_type in ["BTC", "ELM"]:
-                default_datadir = get_default_datadir(node_type)
-                if default_datadir != None:
-                    datadir_accessable = True
-                    if "Bitcoin" in default_datadir:
-                        node_type = "BTC"
-                    else:
-                        node_type = "ELM"
-                    break
+            node_type = "BTC"
+            default_datadir = get_default_datadir(node_type)
+            if os.path.exists(default_datadir):
+                datadir_accessable = True
             # If the data directory can be accessed, we can try reading config values from a bitcoin.conf file
             if datadir_accessable:
                 config = get_rpcconfig(default_datadir)["bitcoin.conf"]
@@ -98,38 +91,53 @@ def node_settings(node_alias):
                     if value:
                         bitcoin_conf_values = True
                         break
-            if bitcoin_conf_values:
-                user = config["default"].get("rpcuser", "")
-                password = config["default"].get("rpcpassword", "")
-                port = 8332
-                # Try-except only necessary for regtest or testnet
-                try:
-                    if config["default"]["rpcport"]:
-                        port = config["default"].get("rpcport", 8332)
-                except KeyError:
-                    for key, value in config.items():
-                        if "rpcport" in value:
-                            port = value["rpcport"]
-                            break
+                if bitcoin_conf_values:
+                    user = config["default"].get("rpcuser", "")
+                    password = config["default"].get("rpcpassword", "")
+                    port = 8332
+                    # Try-except only necessary for regtest or testnet
+                    try:
+                        if config["default"]["rpcport"]:
+                            port = config["default"].get("rpcport", 8332)
+                    except KeyError:
+                        for key, value in config.items():
+                            if "rpcport" in value:
+                                port = value["rpcport"]
+                                break
 
-                node = Node.from_json(
-                    {
-                        "name": "",
-                        "autodetect": True,
-                        "node_type": node_type,
-                        "datadir": default_datadir,
-                        "user": user,
-                        "password": password,
-                        "port": port,
-                        "host": "localhost",
-                        "protocol": "http",
-                    },
-                    app.specter.node_manager,
-                )
-                flash(
-                    f"Values from a {node_type} configuration file used. Double-check and click connect.",
-                    "warning",
-                )
+                    node = Node.from_json(
+                        {
+                            "name": "",
+                            "autodetect": True,
+                            "node_type": node_type,
+                            "datadir": default_datadir,
+                            "user": user,
+                            "password": password,
+                            "port": port,
+                            "host": "localhost",
+                            "protocol": "http",
+                        },
+                        app.specter.node_manager,
+                    )
+                    flash(
+                        f"Values from a {node_type} configuration file used. Double-check and click connect.",
+                        "warning",
+                    )
+                else:
+                    node = Node.from_json(
+                        {
+                            "name": "",
+                            "autodetect": False,
+                            "node_type": node_type,
+                            "datadir": default_datadir,
+                            "user": "",
+                            "password": "",
+                            "port": 8332,
+                            "host": "localhost",
+                            "protocol": "http",
+                        },
+                        app.specter.node_manager,
+                    )
             else:
                 node = Node.from_json(
                     {
@@ -149,6 +157,7 @@ def node_settings(node_alias):
                 "node/node_settings.jinja",
                 node=node,
                 bitcoin_conf_values=bitcoin_conf_values,
+                datadir_accessable=datadir_accessable,
                 specter=app.specter,
                 rand=rand,
             )

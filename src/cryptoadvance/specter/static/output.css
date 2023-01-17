@@ -1169,6 +1169,10 @@ select {
   margin-bottom: 3rem;
 }
 
+.ml-0 {
+  margin-left: 0px;
+}
+
 .block {
   display: block;
 }
@@ -1747,6 +1751,14 @@ select {
   padding-left: 1rem;
 }
 
+.pl-0 {
+  padding-left: 0px;
+}
+
+.text-left {
+  text-align: left;
+}
+
 .text-center {
   text-align: center;
 }
@@ -1772,6 +1784,11 @@ select {
 .text-base {
   font-size: 1rem;
   line-height: 1.5rem;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
 }
 
 .font-medium {
@@ -1827,6 +1844,11 @@ select {
 .text-accent {
   --tw-text-opacity: 1;
   color: rgb(46 92 255 / var(--tw-text-opacity));
+}
+
+.text-dark-100 {
+  --tw-text-opacity: 1;
+  color: rgb(207 207 208 / var(--tw-text-opacity));
 }
 
 .underline {
