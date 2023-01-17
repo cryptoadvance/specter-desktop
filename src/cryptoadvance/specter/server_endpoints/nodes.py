@@ -101,13 +101,12 @@ def node_settings(node_alias):
             if bitcoin_conf_values:
                 user = config["default"].get("rpcuser", "")
                 password = config["default"].get("rpcpassword", "")
-                port = ""
+                port = 8332
                 # Try-except only necessary for regtest or testnet
                 try:
                     if config["default"]["rpcport"]:
                         port = config["default"].get("rpcport", 8332)
                 except KeyError:
-                    rpcport = None
                     for key, value in config.items():
                         if "rpcport" in value:
                             port = value["rpcport"]
