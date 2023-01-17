@@ -1,6 +1,6 @@
 # Release Notes
 
-## v1.14.4 Januar 17, 2023
+## v1.14.5 Januar 17, 2023
 - Bugfix: autodetect from bitcoin.conf file with network set #2037 (kexkey)
 - Bugfix: change settings_restore implementation #2042 (k9ert)
 - Bugfix: fixes #1997 for Docker builds as well as command line installs #2053 (Michael Henke)
