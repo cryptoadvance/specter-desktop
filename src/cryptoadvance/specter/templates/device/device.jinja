@@ -127,7 +127,7 @@
 	<div class="hidden bg-dark-900 p-4 pb-6" id="new_device_popup">
     <div class="flex justify-between mb-5">
         <h3 class="mb-0">{{ _("Device Added") }}</h3>
-        <p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer">Close</p>
+        <p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer" data-cy="new-device-added-screen-close-btn">Close</p>
     </div>
 		<div class="grid grid-cols-2 gap-3">
 			<form class="text-[0px]" action="{{ url_for('wallets_endpoint.new_wallet', wallet_type='simple') }}" method="POST">
