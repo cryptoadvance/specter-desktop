@@ -1,4 +1,5 @@
 import json
+from typing import Type
 
 from cryptoadvance.specter.util.reflection import get_subclasses_for_clazz
 from .key import Key
@@ -62,7 +63,7 @@ class Device:
         return "static"
 
     @classmethod
-    def get_device_class_by_device_type_string(cls, device_type: str):
+    def get_device_class_by_device_type_string(cls, device_type: str) -> Type:
         for clazz in get_subclasses_for_clazz(Device):
             if clazz.device_type == device_type:
                 return clazz
