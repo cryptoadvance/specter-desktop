@@ -1,13 +1,16 @@
 # Release Notes
 
-## v1.14.3 January 12, 2023
+## v1.14.5 January 17, 2023
 - Bugfix: autodetect from bitcoin.conf file with network set #2037 (kexkey)
 - Bugfix: change settings_restore implementation #2042 (k9ert)
+- Bugfix: fixes #1997 for Docker builds as well as command line installs #2053 (Michael Henke)
 - Bugfix: internal node needs to be saved #2045 (k9ert)
 - Chore: Bump json5 from 2.1.3 to 2.2.3 in /pyinstaller/electron #2039 (dependabot[bot])
 - Chore: Bump minimatch from 3.0.4 to 3.1.2 #1966 (dependabot[bot])
 - Chore: Bump minimatch from 3.0.4 to 3.1.2 in /pyinstaller/electron #1965 (dependabot[bot])
+- Chore: Remove docker support #2054 (k9ert)
 - Chore: some dependency improvements #2046 (k9ert)
+- Chore: testing bridge_rpc errorhandling #2055 (k9ert)
 - Docs: Add Documentation Link to Readme #2043 (k9ert)
 - Docs: MacOS build instructions #2023 (Manolis Mandrapilias)
 - Docs: Updated instructions to upgrade Specter on Raspiblitz #2040 (k9ert)
