@@ -130,9 +130,7 @@ class Wallet:
 
         self.device_manager = device_manager
         self.manager = manager
-        self.rpc = self.manager.rpc.wallet(
-            os.path.join(self.manager.rpc_path, self.alias)
-        )
+        self.manager_rpc = manager.rpc
         self._devices = devices
         # check that all of the devices exist
         if None in self.devices:
@@ -175,6 +173,22 @@ class Wallet:
             or "" in [address, change_address]
         ):
             self.save_to_file()
+
+    @property
+    def rpc(self):
+        """caches an rpc-instance as long as the rpc from the wallet_manager did not change
+        This instance is also used by a lot of objects created by the wallet TxList/TxItem/...
+        """
+        if hasattr(self, "_rpc"):
+            if (
+                self.manager.rpc is self.manager_rpc
+            ):  # did the manager not change its rpc-instance?
+                return self._rpc
+        self.manager_rpc = self.manager.rpc
+        self._rpc = self.manager_rpc.wallet(
+            os.path.join(self.manager.rpc_path, self.alias)
+        )
+        return self._rpc
 
     @property
     def recv_descriptor(self):
