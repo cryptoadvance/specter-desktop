@@ -2,9 +2,6 @@ import logging
 import os
 
 import pytest
-from cryptoadvance.specter.process_controller.bitcoind_docker_controller import (
-    BitcoindDockerController,
-)
 from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
 )
@@ -61,7 +58,7 @@ def test_fetch_wallet_addresses_for_mining(caplog, wallets_filled_data_folder):
 
 
 @pytest.mark.slow
-def test_node_running_elements(caplog, docker, request):
+def test_node_running_elements(caplog, request):
     # TODO: Refactor this to use conftest.instantiate_bitcoind_controller
     # to reduce redundant code?
     caplog.set_level(logging.INFO)

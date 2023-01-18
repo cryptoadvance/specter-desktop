@@ -2,7 +2,6 @@ import json, logging, pytest, time, os
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.wallet import Wallet
 from cryptoadvance.specter.managers.wallet_manager import WalletManager
-from conftest import instantiate_bitcoind_controller
 
 logger = logging.getLogger(__name__)
 

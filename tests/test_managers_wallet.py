@@ -17,14 +17,12 @@ from cryptoadvance.specter.managers.wallet_manager import WalletManager
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.util.descriptor import AddChecksum, Descriptor
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
-from conftest import instantiate_bitcoind_controller
 
 logger = logging.getLogger(__name__)
 
 
 @pytest.mark.slow
 def test_WalletManager(
-    docker,
     request,
     devices_filled_data_folder,
     device_manager,
@@ -120,7 +118,6 @@ def test_WalletManager(
 @pytest.mark.bottleneck
 @pytest.mark.threading
 def test_WalletManager_2_nodes(
-    docker,
     request,
     devices_filled_data_folder,
     device_manager,
