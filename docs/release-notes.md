@@ -1,6 +1,40 @@
 # Release Notes
 
-## v1.14.1 Dezember 07, 2022
+## v1.14.5 January 17, 2023
+- Bugfix: autodetect from bitcoin.conf file with network set #2037 (kexkey)
+- Bugfix: change settings_restore implementation #2042 (k9ert)
+- Bugfix: fixes #1997 for Docker builds as well as command line installs #2053 (Michael Henke)
+- Bugfix: internal node needs to be saved #2045 (k9ert)
+- Chore: Bump json5 from 2.1.3 to 2.2.3 in /pyinstaller/electron #2039 (dependabot[bot])
+- Chore: Bump minimatch from 3.0.4 to 3.1.2 #1966 (dependabot[bot])
+- Chore: Bump minimatch from 3.0.4 to 3.1.2 in /pyinstaller/electron #1965 (dependabot[bot])
+- Chore: Remove docker support #2054 (k9ert)
+- Chore: some dependency improvements #2046 (k9ert)
+- Chore: testing bridge_rpc errorhandling #2055 (k9ert)
+- Docs: Add Documentation Link to Readme #2043 (k9ert)
+- Docs: MacOS build instructions #2023 (Manolis Mandrapilias)
+- Docs: Updated instructions to upgrade Specter on Raspiblitz #2040 (k9ert)
+- Docs: Update of developer guide #2036 (Paarth Agarwal)
+- Docs: Update release guide #2029 (Manolis Mandrapilias)
+- Feature: delete spectrum node #2047 (k9ert)
+
+## v1.14.2 December 21, 2022
+- UIUX: Address labeling revamp #1978 (OTK & Manolis Mandrapilias)
+- UIUX: Better node selection #1987 (Manolis Mandrapilias)
+- UIUX: Update Passport connection instructions #2010 (BitcoinQnA)
+- Bugfix: Long loading time of wallets at start-up with Spectrum #2015 (k9ert)
+- Bugfix: Merkle proofs with Spectrum #2012 (k9ert)
+- Bugfix: Addressinfo edge case fixed #2001 (relativisticelectron)
+- Bugfix: Version not properly detected #2020 (k9ert)
+- Chore: Generic error handling for API calls #2014 (k9ert)
+- Chore: Moving the Spectrum extension to a core extension #2011 (k9ert)
+- Chore: Bump qs from 6.5.2 to 6.5.3 in /pyinstaller/electron #2002 (dependabot[bot])
+- Chore: Bump Spectrum and Python version #2027 (Manolis Mandrapilias)
+- Chore: Cypress test for address labeling #2021 (Manolis Mandrapilias)
+- Chore: Fix nix shell by generating hashes with pip-compile #2016 (hodlwave)
+- Docs: Corrected build instructions #1996 (relativisticelectron)
+
+## v1.14.1 December 07, 2022
 - Bugfix: Adding migrations to the hidden imports #2007 (k9ert)
 - Bugfix: Bump Spectrum for better error_handling (k9ert)
 - Chore: better error_handling and tested #2005 (k9ert)

@@ -54,6 +54,12 @@ class SpectrumService(Service):
         """Whether there is a spectrum Node available (activated or not)"""
         return not self.spectrum_node is None
 
+    @property
+    def is_spectrum_node_running(self):
+        if self.is_spectrum_node_available:
+            return self.spectrum_node.is_running
+        return False
+
     def callback_specter_added_to_flask_app(self):
         logger.debug("Setting up Spectrum ...")
         # See comments in config.py which would be the natural place to define SPECTRUM_DATADIR

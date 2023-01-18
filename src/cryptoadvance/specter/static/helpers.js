@@ -62,6 +62,44 @@ document.addEventListener("updateAddressLabel", function (e) {
 	}
 });
 
+// Clicking somewhere else than on the edit label section cancels the label editing
+document.addEventListener("click", (e) => {
+	addressesTableComponent = document.querySelector('addresses-table')
+	txTableComponent = document.querySelector('tx-table')
+	addressDataComponent = document.querySelector('address-data')
+	const path = e.composedPath()
+	const clickedElement = path[0]
+	const parentElement = path[1]
+	if (addressesTableComponent) {
+		addressesTableComponent.shadowRoot.querySelectorAll('address-row').forEach(addressRow => {
+			const addressLabel = addressRow.shadowRoot.querySelector('address-label')
+			if (addressLabel.isEditing) {
+				console.log("Clicking somewhere else on the screen. Canceling editing.")
+				addressLabel.cancelEditing()
+			}
+		})
+	}
+	else if (txTableComponent) {
+		txTableComponent.shadowRoot.querySelectorAll('tx-row').forEach(txRow => {
+			const addressLabel = txRow.shadowRoot.querySelector('address-label')
+			// In the tx labeling there also "labels" ("X Recipients") which aren't label components
+			if (addressLabel !== null && addressLabel.isEditing) {
+				console.log("Clicking somewhere else on the screen. Canceling editing.")
+				addressLabel.cancelEditing()
+			}
+		})
+	}
+	// Can't use else if here: Address data is a pop-up so addresses or tx table are still in the DOM
+	if (addressDataComponent) {
+		addressDataComponent.shadowRoot.querySelectorAll('address-label').forEach(addressLabel => {
+			if (addressLabel.isEditing) {
+				console.log("Clicking somewhere else on the screen. Canceling editing.")
+				addressLabel.cancelEditing()
+			}
+		})
+	}
+})
+
 document.documentElement.style.setProperty('--mobileDistanceElementBottomHeight', `${Math.max(0, window.outerHeight - window.innerHeight)}px`);
 
 function showError(msg, timeout=0) {
@@ -158,7 +196,7 @@ async function send_request(url, method_str, csrf_token, formData) {
 			return {"error": `Error while calling ${url} with ${method_str} ${formData}` }
 		}
 		let jsonResponse = await response.json();
-		console.log('The response from the fetch call:')
+		console.log(`${method_str} call response:`)
 		console.log(jsonResponse)
 		if (typeof(jsonResponse) === 'boolean') {
 			return {}

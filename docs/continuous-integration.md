@@ -28,7 +28,6 @@ https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#use-docker-socket-b
 
 Due to that setup there are some specifics which are mainly addressed in tests/conftest 
 start_bitcoind-function:
-* some pytest specific stuff to enable "pytest --docker" (used in .gitlab-ci.yml)
 * adding -rpcallowip= (from a docker network) to bitcoind
 * not use localhost but the docker-network-ip-address when talking to the bitcoind
 

@@ -183,13 +183,21 @@
 						reader.onload = function(e) {
 							if (files[i].webkitRelativePath.indexOf('devices/') != -1) {
 								console.log(files[i].name);
-								devices.push(JSON.parse(reader.result));
+								try {
+									devices.push(JSON.parse(reader.result));
+								} catch {
+									showError(`Could not load Device ${files[i].name}: not valid json! This Device will be skipped for import which might affect corresponding Wallets.`)
+								}
 								document.getElementById('restoredevices').value = JSON.stringify(devices);
 								document.getElementById('filesloaded').innerHTML = `<br>Found ${devices.length} devices and ${wallets.length} wallets:`;
 								document.getElementById('restore').style.display = 'block';
 							} else if (files[i].webkitRelativePath.indexOf('wallets/') != -1) {
 								console.log(files[i].name);
-								wallets.push(JSON.parse(reader.result));
+								try {
+									wallets.push(JSON.parse(reader.result));
+								} catch {
+									showError(`Could not load Wallet ${files[i].name}: not valid json! This wallet will be skipped for import.`)
+								}
 								document.getElementById('restorewallets').value = JSON.stringify(wallets);
 								document.getElementById('filesloaded').innerHTML = `<br>Found ${devices.length} devices and ${wallets.length} wallets:`;
 								document.getElementById('restore').style.display = 'block';

@@ -52,6 +52,8 @@ class PersistentObject:
         """
         self_json = {}
         self_json["python_class"] = self.fqcn
+        if hasattr(self, "fullpath"):
+            self_json["fullpath"] = self.fullpath
         return self_json
 
     @property

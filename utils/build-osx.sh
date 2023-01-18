@@ -24,30 +24,35 @@ function create_virtualenv_for_pyinstaller {
 
 function sub_help {
     cat << EOF
-# possible prerequisites
+
+### Quick overview
+: <<'END_COMMENT'
+    What do you need to sign the Specter app with Apple's notary service?
+    - An Apple Developer account
+    - You must create a signing certificate in your developer account, which will be used to sign your app.
+    - This certificate must be stored in your keychain on your Mac.
+    - When you create a signing certificate in your developer account, you will be asked to specify a password for the certificate.
+    - You can store this password in the keychain, too, so that it - and thus the certificate - can be accessed automatically during the signing process. Like so:
+        xcrun altool --store-password-in-keychain-item AC_PASSWORD -u '<your apple id>' -p apassword
+    - As seen above, you need the the xcrun command line tool: This tool is also used to upload your app to the notary service and check the status of the notarization process.
+
+In summary, to sign a macOS app with Apple's notary service, you need an Apple Developer account, a signing certificate, a password for your keychain, the app package to be signed, and the xcrun command line tool.
+END_COMMENT
+
+### Prerequisites
 # brew install gmp # to prevent module 'embit.util' has no attribute 'ctypes_secp256k1'
 # npm install --global create-dmg
-
-# Download into torbrowser:
+# Download Tor browser:
 # wget -P torbrowser https://archive.torproject.org/tor-package-archive/torbrowser/10.0.15/TorBrowser-10.0.15-osx64_en-US.dmg
 
+### Trouble shooting 
 # Currently, only MacOS Catalina is supported to build the dmg-file
 # Therefore we expect xcode 12.1 (according to google)
 # After installation of xcode: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 # otherwise you get xcrun: error: unable to find utility "altool", not a developer tool or in PATH
-
 # catalina might have a a too old version of bash. You need at least 4.0 or so
 # 3.2 is too low definitely
 # brew install bash
-
-# Fill the keychain with your password like this
-# xcrun altool --store-password-in-keychain-item AC_PASSWORD -u '<your apple id>' -p apassword
-
-# You need to participate in the Apple-Developer Program (Eur 99,- yearly fee)
-# https://developer.apple.com/programs/enroll/ 
-
-# Then you need to create a cert which you need to store in the keychain
-# https://developer.apple.com/account/resources/certificates/list
 
 # If you have the common issue "errSecInternalComponent" while signing the code:
 # https://medium.com/@ceyhunkeklik/how-to-fix-ios-application-code-signing-error-4818bd331327
@@ -57,7 +62,7 @@ function sub_help {
 
 The different "tasks" are now somehow separated from one another.
 We have:
-*  make-hash is rather a flag for the electron-build to incorporate the hash of the specterd
+* make-hash is rather a flag for the electron-build to incorporate the hash of the specterd
 * specterd will trigger the pyinstaller build of the specterd
 * electron will build the electron-app
 * sign will upload the electron-app to the Apple notary service and get it back notarized

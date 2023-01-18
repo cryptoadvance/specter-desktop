@@ -69,7 +69,6 @@ def pytest_addoption(parser):
     see pytest_generate_tests(metafunc) on how to check that
     Also used to register the SIGUSR2 (12) as decribed in conftest.py
     """
-    parser.addoption("--docker", action="store_true", help="run bitcoind in docker")
     parser.addoption(
         "--bitcoind-version",
         action="store",
@@ -103,32 +102,23 @@ def pytest_generate_tests(metafunc):
 
 
 def instantiate_bitcoind_controller(
-    docker, request, rpcport=18543, extra_args=[]
+    request, rpcport=18543, extra_args=[]
 ) -> BitcoindPlainController:
     # logging.getLogger().setLevel(logging.DEBUG)
     requested_version = request.config.getoption("--bitcoind-version")
     log_stdout = str2bool(request.config.getoption("--bitcoind-log-stdout"))
-    if docker:
-        from cryptoadvance.specter.process_controller.bitcoind_docker_controller import (
-            BitcoindDockerController,
-        )
-
-        bitcoind_controller = BitcoindDockerController(
-            rpcport=rpcport, docker_tag=requested_version
-        )
+    if os.path.isfile("tests/bitcoin/src/bitcoind"):
+        bitcoind_controller = BitcoindPlainController(
+            bitcoind_path="tests/bitcoin/src/bitcoind", rpcport=rpcport
+        )  # always prefer the self-compiled bitcoind if existing
+    elif os.path.isfile("tests/bitcoin/bin/bitcoind"):
+        bitcoind_controller = BitcoindPlainController(
+            bitcoind_path="tests/bitcoin/bin/bitcoind", rpcport=rpcport
+        )  # next take the self-installed binary if existing
     else:
-        if os.path.isfile("tests/bitcoin/src/bitcoind"):
-            bitcoind_controller = BitcoindPlainController(
-                bitcoind_path="tests/bitcoin/src/bitcoind", rpcport=rpcport
-            )  # always prefer the self-compiled bitcoind if existing
-        elif os.path.isfile("tests/bitcoin/bin/bitcoind"):
-            bitcoind_controller = BitcoindPlainController(
-                bitcoind_path="tests/bitcoin/bin/bitcoind", rpcport=rpcport
-            )  # next take the self-installed binary if existing
-        else:
-            bitcoind_controller = BitcoindPlainController(
-                rpcport=rpcport
-            )  # Alternatively take the one on the path for now
+        bitcoind_controller = BitcoindPlainController(
+            rpcport=rpcport
+        )  # Alternatively take the one on the path for now
     bitcoind_controller.start_bitcoind(
         cleanup_at_exit=True,
         cleanup_hard=True,
@@ -188,8 +178,8 @@ def bitcoind_path():
 
 
 @pytest.fixture(scope="session")
-def bitcoin_regtest(docker, request):
-    bitcoind_regtest = instantiate_bitcoind_controller(docker, request, extra_args=None)
+def bitcoin_regtest(request) -> BitcoindPlainController:
+    bitcoind_regtest = instantiate_bitcoind_controller(request, extra_args=None)
     try:
         assert bitcoind_regtest.get_rpc().test_connection()
         assert not bitcoind_regtest.datadir is None
@@ -200,10 +190,10 @@ def bitcoin_regtest(docker, request):
 
 
 @pytest.fixture(scope="session")
-def bitcoin_regtest2(docker, request):
+def bitcoin_regtest2(request) -> BitcoindPlainController:
     """If a test needs two nodes ..."""
     bitcoind_regtest = instantiate_bitcoind_controller(
-        docker, request, rpcport=18544, extra_args=None
+        request, rpcport=18544, extra_args=None
     )
     try:
         assert bitcoind_regtest.get_rpc().test_connection()

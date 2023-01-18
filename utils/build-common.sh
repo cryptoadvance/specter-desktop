@@ -114,6 +114,11 @@ function building_electron_app {
 }
 
 function macos_code_sign {
+    # This creates a ZIP archive from the app package (using the ditto command).
+    # This ZIP archive is then used to upload the app to the Apple notarization service.
+    # After the app has been uploaded to the Apple servers and notarized, the ZIP archive is not used again.
+    # The function uses the xcrun stapler command to attach the notarization result to the app, and then exits.
+
     # docs:
     # https://help.apple.com/itc/apploader/#/apdATD1E53-D1E1A1303-D1E53A1126
     # https://keith.github.io/xcode-man-pages/altool.1.html
