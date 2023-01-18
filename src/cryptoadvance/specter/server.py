@@ -1,3 +1,4 @@
+from distutils.core import setup
 import logging
 import os
 import sys
@@ -24,6 +25,7 @@ from .hwi_server import hwi_server
 from .services.callbacks import after_serverpy_init_app, specter_added_to_flask_app
 from .specter import Specter
 from .util.specter_migrator import SpecterMigrator
+from .cli.utils import setup_debug_logging
 
 logger = logging.getLogger(__name__)
 
@@ -272,15 +274,4 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     specter.service_manager.execute_ext_callbacks(
         after_serverpy_init_app, scheduler=scheduler
     )
-    return app
-
-
-def create_and_init(config="cryptoadvance.specter.config.ProductionConfig"):
-    """This method can be used to fill the FLASK_APP-env variable like
-    export FLASK_APP="src/cryptoadvance/specter/server:create_and_init()"
-    See Development.md to use this for debugging
-    """
-    app = create_app(config)
-    with app.app_context():
-        init_app(app)
     return app
