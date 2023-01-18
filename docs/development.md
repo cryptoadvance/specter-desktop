@@ -167,8 +167,8 @@ docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:v0
 # install prerequisites
 pip3 install docker
 
-# Run all the tests against the docker bitcoind image
-pytest -m "no elm" --docker 
+# Run all the tests but not elm ones
+pytest -m "no elm" 
 ```
 
 Running specific test subsets:
@@ -374,11 +374,9 @@ In order to enable that, you need to activate pytest support by placing a settin
     "python.pythonPath": ".env/bin/python3.7",
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,
-    "python.testing.pytestEnabled": true,
-    "python.testing.pytestArgs": ["--docker"]
+    "python.testing.pytestEnabled": true
 }
 ```
-**WARNING**: Make sure to never stop a unittest in between. Simply continue with the test and let it run through. Otherwise the docker-container used for the test won't get cleaned up and your subsequent test-runs will fail with strange issues. If you did that, simply kill the container (```docker ps; docker kill ...```)
 
 More information on python-unit-tests on VS-Code can be found at the [VS-python-documentation](https://code.visualstudio.com/docs/python/testing).
 
@@ -428,7 +426,7 @@ PyCharm already comes with integrated support for pyTest.
 
 To run/debug all tests:
 * Right click on the `<PROJECT_ROOT>/test` folder and execute `Run pytest in tests`
-* Edit the automatically generated run configuration and optionally add the `--docker` argument, change the working directory to your `<PROJECT_ROOT>` directory
+* Edit the automatically generated run configuration, change the working directory to your `<PROJECT_ROOT>` directory
 * Apply, Save & Run again
 
 To run/debug an individual test, open the script and run/debug by clicking the play icon on the left side of the method declaration.
