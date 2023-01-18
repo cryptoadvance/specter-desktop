@@ -120,12 +120,7 @@ class TxItem(dict, AbstractTxListContext):
 
     def copy(self):
         """Creates a copy of this TxItem"""
-        mycopy = self.__class__(
-            self.parent, self._addresses, self.rawdir, txid=self.txid
-        )
-        for k, v in dict(self).items():
-            if not mycopy.get(k):
-                mycopy[k] = v
+        mycopy = self.__class__(self.parent, self._addresses, self.rawdir, **self)
         return mycopy
 
     def clear_cache(self):
