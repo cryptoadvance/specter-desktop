@@ -703,7 +703,7 @@ def utxo_csv(wallet_alias):
 )
 @login_required
 def is_address_mine(wallet_alias, address):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
 
     # filter out invalid input
     # and Segwit addresses are always between 14 and 74 characters long.

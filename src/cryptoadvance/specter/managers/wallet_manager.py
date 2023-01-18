@@ -63,12 +63,15 @@ class WalletManager:
         rpc: BitcoinRPC = None,
         chain: str = None,
         use_threading=True,
+        comment="",
     ):
         """Restructures the instance, specifically if chain/rpc changed
         The _update internal method will resync the internal status with Bitcoin Core
         use_threading : for the _update method which is heavily communicating with Bitcoin Core
         """
-        logger.debug("starting update of wallet_manager")
+        logger.debug(
+            f"starting update of wallet_manager (threading: {use_threading} , comment: {comment})"
+        )
         if self.is_loading:
             logger.debug("update in progress, aborting!")
             return
