@@ -259,6 +259,7 @@ class CypressTestConfig(TestConfig):
     )
     BITCOIN_RPC_TIMEOUT = 30
     LIQUID_RPC_TIMEOUT = 40
+    SERVICES_DEVSTATUS_THRESHOLD = os.getenv("SERVICES_DEVSTATUS_THRESHOLD", "alpha")
 
 
 class ProductionConfig(BaseConfig):

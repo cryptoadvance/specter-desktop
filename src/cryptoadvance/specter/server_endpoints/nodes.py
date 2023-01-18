@@ -502,12 +502,12 @@ def switch_node():
     node = app.specter.node_manager.get_by_alias(node_alias)
     if node.is_running:
         app.specter.update_active_node(node_alias)
-        flash(_(f"Switched to use {node.name} as node."))
+        flash(_(f"Switched to use {node.name} as connection"))
         return redirect(url_for("index"))
     else:
         flash(
             _(
-                f"Can't select {node.name} as node (no connection). Try a different configuration."
+                f"Can't select {node.name} (no connection). Try a different configuration."
             ),
             "error",
         )
