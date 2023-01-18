@@ -30,9 +30,7 @@ def test_specter(specter_regtest_configured, caplog):
 
 
 @pytest.mark.slow
-def test_abandon_purged_tx(
-    caplog, docker, request, devices_filled_data_folder, device_manager
-):
+def test_abandon_purged_tx(caplog, request, devices_filled_data_folder, device_manager):
     # Specter should support calling abandontransaction if a pending tx has been purged
     # from the mempool. Test starts a new bitcoind with a restricted mempool to make it
     # easier to spam the mempool and purge our target tx.
@@ -53,7 +51,6 @@ def test_abandon_purged_tx(
     # Instantiate a new bitcoind w/limited mempool. Use a different port to not interfere
     # with existing instance for other tests.
     bitcoind_controller = instantiate_bitcoind_controller(
-        docker,
         request,
         rpcport=18998,
         extra_args=["-acceptnonstdtxn=1", "-maxmempool=5", "-spendzeroconfchange=0"],
