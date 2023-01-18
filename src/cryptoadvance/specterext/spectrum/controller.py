@@ -66,6 +66,7 @@ def settings_get():
             host=host,
             port=port,
             ssl=ssl,
+            node_is_running=ext().is_spectrum_node_running,
             show_menu=show_menu,
         )
     else:
@@ -73,6 +74,7 @@ def settings_get():
             "spectrum/settings.jinja",
             elec_options=electrum_options,
             elec_chosen_option="list",
+            node_is_running=ext().is_spectrum_node_running,
             show_menu=show_menu,
         )
 
@@ -81,88 +83,102 @@ def settings_get():
 @login_required
 def settings_post():
     # Node status before saving the settings
-    node_is_running_before_request = False
-    host_before_request = None
-    if ext().is_spectrum_node_available:
-        node_is_running_before_request = ext().spectrum_node.is_running
-        host_before_request = ext().spectrum_node.host
-        logger.debug(f"The host before saving the new settings: {host_before_request}")
+    node_is_running_before_request = ext().is_spectrum_node_running
     logger.debug(
         f"Node running before updating settings: {node_is_running_before_request}"
     )
-
-    # Gather the Electrum server settings from the form and update with them
-    success = False
-    host = request.form.get("host")
-    try:
-        port = int(request.form.get("port"))
-    except ValueError:
-        port = 0
-    ssl = request.form.get("ssl") == "on"
-    option_mode = request.form.get("option_mode")
-    electrum_options = app.config["ELECTRUM_OPTIONS"]
-    elec_option = request.form.get("elec_option")
-    if option_mode == "list":
-        host = electrum_options[elec_option]["host"]
-        port = electrum_options[elec_option]["port"]
-        ssl = electrum_options[elec_option]["ssl"]
-    # If there is already a Spectrum node, just update with the new values (restarts Spectrum)
+    host_before_request = None
     if ext().is_spectrum_node_available:
-        ext().update_electrum(host, port, ssl)
-    # Otherwise, create the Spectrum node and then start Spectrum
-    else:
-        ext().enable_spectrum(host, port, ssl, activate_spectrum_node=False)
-    # Make the Spectrum node the new active node and save it to disk, but only if the connection is working"""
-    # BETA_VERSION: Additional check that there is no Bitcoin Core node for the same network alongside the Spectrum node
-    spectrum_node = ext().spectrum_node
+        host_before_request = ext().spectrum_node.host
+        logger.debug(f"The host before saving the new settings: {host_before_request}")
 
-    if check_for_node_on_same_network(spectrum_node, specter()):
-        # Delete Spectrum node again (it wasn't saved to disk yet)
-        del specter().node_manager.nodes[spectrum_node.alias]
-        return render_template(
-            "spectrum/spectrum_setup_beta.jinja", core_node_exists=True
-        )
+    action = request.form["action"]
 
-    if ext().spectrum_node.is_running:
-        logger.debug("Activating Spectrum node ...")
-        ext().activate_spectrum_node()
-        success = True
-
-    # Set the menu item
-    show_menu = request.form["show_menu"]
-    user = specter().user_manager.get_user()
-    if show_menu == "yes":
-        user.add_service(ext().id)
-    else:
-        user.remove_service(ext().id)
-
-    # Determine changes for better feedback message in the jinja template
-    logger.debug(f"Node running after updating settings: {success}")
-    host_after_request = ext().spectrum_node.host
-    logger.debug(f"The host after saving the new settings: {host_after_request}")
-
-    if (
-        node_is_running_before_request == success
-        and success == True
-        and host_before_request == host_after_request
-    ):
-        # Case 1: We changed a setting that didn't impact the Spectrum node, currently only the menu item setting
+    if action == "delete":
+        if node_is_running_before_request:
+            ext().disable_spectrum()
+            flash("Spectrum Node deleted")
+        else:
+            flash("There is no node running, can't delete", "error")
         return redirect(
             url_for(f"{ SpectrumService.get_blueprint_name()}.settings_get")
         )
 
-    changed_host, check_port_and_ssl = evaluate_current_status(
-        node_is_running_before_request,
-        success,
-        host_before_request,
-        host_after_request,
-    )
+    if action == "save":
+        # Gather the Electrum server settings from the form and update with them
+        success = False
+        host = request.form.get("host")
+        try:
+            port = int(request.form.get("port"))
+        except ValueError:
+            port = 0
+        ssl = request.form.get("ssl") == "on"
+        option_mode = request.form.get("option_mode")
+        electrum_options = app.config["ELECTRUM_OPTIONS"]
+        elec_option = request.form.get("elec_option")
+        if option_mode == "list":
+            host = electrum_options[elec_option]["host"]
+            port = electrum_options[elec_option]["port"]
+            ssl = electrum_options[elec_option]["ssl"]
+        # If there is already a Spectrum node, just update with the new values (restarts Spectrum)
+        if ext().is_spectrum_node_available:
+            ext().update_electrum(host, port, ssl)
+        # Otherwise, create the Spectrum node and then start Spectrum
+        else:
+            ext().enable_spectrum(host, port, ssl, activate_spectrum_node=False)
+        # Make the Spectrum node the new active node and save it to disk, but only if the connection is working"""
+        # BETA_VERSION: Additional check that there is no Bitcoin Core node for the same network alongside the Spectrum node
+        spectrum_node = ext().spectrum_node
 
-    return render_template(
-        "spectrum/spectrum_setup.jinja",
-        success=success,
-        node_is_running_before_request=node_is_running_before_request,
-        changed_host=changed_host,
-        host_type=option_mode,
-        check_port_and_ssl=check_port_and_ssl,
-    )
+        if check_for_node_on_same_network(spectrum_node, specter()):
+            # Delete Spectrum node again (it wasn't saved to disk yet)
+            del specter().node_manager.nodes[spectrum_node.alias]
+            return render_template(
+                "spectrum/spectrum_setup_beta.jinja", core_node_exists=True
+            )
+
+        if ext().spectrum_node.is_running:
+            logger.debug("Activating Spectrum node ...")
+            ext().activate_spectrum_node()
+            success = True
+
+        # Set the menu item
+        show_menu = request.form["show_menu"]
+        user = specter().user_manager.get_user()
+        if show_menu == "yes":
+            user.add_service(ext().id)
+        else:
+            user.remove_service(ext().id)
+
+        # Determine changes for better feedback message in the jinja template
+        logger.debug(f"Node running after updating settings: {success}")
+        host_after_request = ext().spectrum_node.host
+        logger.debug(f"The host after saving the new settings: {host_after_request}")
+
+        if (
+            node_is_running_before_request == success
+            and success == True
+            and host_before_request == host_after_request
+        ):
+            # Case 1: We changed a setting that didn't impact the Spectrum node, currently only the menu item setting
+            return redirect(
+                url_for(f"{ SpectrumService.get_blueprint_name()}.settings_get")
+            )
+
+        changed_host, check_port_and_ssl = evaluate_current_status(
+            node_is_running_before_request,
+            success,
+            host_before_request,
+            host_after_request,
+        )
+
+        return render_template(
+            "spectrum/spectrum_setup.jinja",
+            success=success,
+            node_is_running_before_request=node_is_running_before_request,
+            changed_host=changed_host,
+            host_type=option_mode,
+            check_port_and_ssl=check_port_and_ssl,
+        )
+
+    raise Exception(f"Unknown action: {action}")

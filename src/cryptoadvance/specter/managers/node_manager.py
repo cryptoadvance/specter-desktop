@@ -247,13 +247,10 @@ class NodeManager:
         return node
 
     def save_node(self, node):
-        fullpath = (
-            node.fullpath
-            if hasattr(node, "fullpath")
-            else calc_fullpath(self.data_folder, node.alias)
-        )
-        write_node(node, fullpath)
-        logger.info("Added new node {}".format(node.alias))
+        if not hasattr(node, "fullpath"):
+            node.fullpath = calc_fullpath(self.data_folder, node.alias)
+        write_node(node, node.fullpath)
+        logger.info(f"Saved new node {node.alias} at {node.fullpath}")
 
     def add_internal_node(
         self,
