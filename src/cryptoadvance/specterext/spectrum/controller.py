@@ -150,9 +150,7 @@ def index_post():
             and host_before_request == host_after_request
         ):
             # Case 1: We changed a setting that didn't impact the Spectrum node, currently only the menu item setting
-            return redirect(
-                url_for(f"{ SpectrumService.get_blueprint_name()}.settings_get")
-            )
+            return redirect(url_for(f"{ SpectrumService.get_blueprint_name()}.index"))
 
         changed_host, check_port_and_ssl = evaluate_current_status(
             node_is_running_before_request,
