@@ -154,8 +154,9 @@ Cypress.Commands.add("addWallet", (walletName, walletType, funded, nodeType, key
   }
   cy.get('body').then(($body) => {
       if ($body.text().includes(walletName)) {
+        cy.get('#toggle_wallets_list').click()
         cy.contains(walletName).click()
-        cy.get('#btn_settings' ).click( {force: true})
+        cy.get('#btn_settings').click()
         cy.get('#advanced_settings_tab_btn').click()
         cy.get('#delete_wallet').click()
       }
@@ -191,8 +192,8 @@ Cypress.Commands.add("addWallet", (walletName, walletType, funded, nodeType, key
         cy.get(':nth-child(9) > .inline').type(2)
       }
       cy.get('#keysform > .centered').click()
-      cy.get('body').contains("New wallet was created successfully!")
-      cy.get('#page_overlay_popup_cancel_button').click()
+      cy.get('[data-cy="new-wallet-added-headline"]')
+      cy.get('[data-cy="new-wallet-added-overlay-close-btn"]').click()
       if (funded) {
         cy.mine2wallet(nodeType)
       }  
@@ -254,4 +255,19 @@ Cypress.Commands.add("createPsbt", (address, label="a_label", amount=0.01) => {
   //cy.get('#send_max_0').click()
   cy.get('#recipient_0').find('#amount', { includeShadowDom: true }).type(amount, { force: true })
   cy.get('#create_psbt_btn').click()
+})
+
+Cypress.Commands.add("connect", () => { 
+  cy.get('#node-switch-icon').click()
+  cy.get('[data-cy="new-connection-btn"]').click()
+  cy.get('#name').type('Bitcoin Core')
+  cy.get('#username').clear()
+  cy.get('#username').type('bitcoin')
+  cy.get('#password').clear()
+  cy.get('#password').type('secret')
+  cy.get('#host').clear()
+  cy.get('#host').type('http://localhost')
+  cy.get('#port').clear()
+  cy.get('#port').type(15443)
+  cy.get('[data-cy="connect-btn"]').click()
 })

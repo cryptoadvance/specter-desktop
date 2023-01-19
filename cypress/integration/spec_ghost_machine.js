@@ -3,6 +3,16 @@ describe('Ghost machine', () => {
         cy.viewport(1200,660)
         cy.visit('/')
         cy.addDevice('DIY ghost', 'Specter-DIY', 'ghost_machine')
-        cy.addWallet('Ghost wallet', 'segwit', 'funded', 'btc', 'singlesig', 'DIY ghost')
+        // addWallet assumes that we have a connection, so let's check for that and establish one if we don't have one
+        cy.get('body')
+            .then($body => {
+                if ($body.find('[data-cy="no-core-connection"]').length) {
+                    cy.connect()
+                    cy.addWallet('Ghost wallet', 'segwit', 'funded', 'btc', 'singlesig', 'DIY ghost')
+                }
+                else {
+                cy.addWallet('Ghost wallet', 'segwit', 'funded', 'btc', 'singlesig', 'DIY ghost')
+                }
+            })
     })
 })

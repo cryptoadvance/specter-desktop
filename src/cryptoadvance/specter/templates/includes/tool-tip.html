@@ -173,13 +173,6 @@ You can use the move-right attribute, to move the tooltip to the right if necess
             if (this.getAttribute("move-right")) {
                 this.tooltipBox.style.left = "60px";
             }
-            if (this.getAttribute("image")) {
-                if (this.getAttribute("image") == "note") {
-                    this.tooltipImg.src =
-                        "{{ url_for('static', filename='img/note.svg') }}";
-                    this.tooltipImg.style.width = "1.5em";
-                }
-            }
         }
     }
     customElements.define("tool-tip", TooltipElement);

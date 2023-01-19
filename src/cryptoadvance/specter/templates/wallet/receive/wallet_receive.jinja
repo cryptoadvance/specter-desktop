@@ -109,8 +109,8 @@
 
 		<div class="hidden bg-dark-800 w-96 p-4" id="new_wallet_popup">
 			<div class="flex justify-between mb-3">
-					<h3 class="mb-0">{{ _("Wallet Added") }}</h3>
-					<p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer">Close</p>
+				<h3 class="mb-0" data-cy="new-wallet-added-headline">{{ _("Wallet Added") }}</h3>
+				<p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer" data-cy="new-wallet-added-overlay-close-btn">Close</p>
 			</div>
 
 			{% include 'wallet/components/wallet_pdf.jinja' %}

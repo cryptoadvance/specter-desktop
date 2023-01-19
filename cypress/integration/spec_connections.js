@@ -11,7 +11,6 @@ describe('Connecting nodes', () => {
     it('Connect with Bitcoin Core node', () => {
       // Starting from the welcome page
       cy.get('[data-cy="core-connection-btn"]').click()
-      cy.get('#cancel-icon').click()
       // Using a wrong RPC password
       cy.get('#name').type('Bitcoin Core')
       cy.get('#username').clear()
@@ -36,7 +35,6 @@ describe('Connecting nodes', () => {
     it('Connect with Liquid node', () => {
       cy.get('#node-switch-icon').click()
       cy.get('[data-cy="new-connection-btn"]').click()
-      cy.get('#cancel-icon').click()
       cy.get('#name').clear()
       cy.get('#name').type("Liquid")
       cy.get('#username').clear()
