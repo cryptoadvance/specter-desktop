@@ -77,15 +77,25 @@ def wallets_overview():
     wallets_overview_vm_dict = app.specter.service_manager.execute_ext_callbacks(
         adjust_view_model, WalletsOverviewVm()
     )
-    if len(wallets_overview_vm_dict.values()) > 1:
-        raise logger.error(
-            "Seems that we have more than one WalletsOverviewVm Extension"
+    number_of_wallets_overview_vm = len(
+        [
+            wallets_overview_vm
+            for wallets_overview_vm in wallets_overview_vm_dict.values()
+            if type(wallets_overview_vm) == WalletsOverviewVm
+        ]
+    )
+    if number_of_wallets_overview_vm > 1:
+        raise Exception(
+            f"Seems that we have more than one WalletsOverviewVm Extension: {wallets_overview_vm_dict} "
         )
-    if len(wallets_overview_vm_dict.values()) == 1:
+    if number_of_wallets_overview_vm == 1:
         wallets_overview_vm = list(wallets_overview_vm_dict.values())[0]
     else:
         wallets_overview_vm = WalletsOverviewVm()
     if wallets_overview_vm.wallets_overview_redirect != None:
+        logger.info(
+            f"Extension {list(wallets_overview_vm_dict.keys())[0]} redirects to {wallets_overview_vm.wallets_overview_redirect}"
+        )
         return redirect(wallets_overview_vm.wallets_overview_redirect)
 
     for wallet in list(app.specter.wallet_manager.wallets.values()):
