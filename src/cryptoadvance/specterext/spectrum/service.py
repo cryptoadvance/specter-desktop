@@ -159,4 +159,6 @@ class SpectrumService(Service):
             view_model.get_started_include = (
                 "spectrum/welcome/components/get_started.jinja"
             )
+        else:
+            return None
         return view_model
