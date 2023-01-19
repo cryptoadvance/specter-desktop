@@ -14,8 +14,11 @@
     <!--     }-->
     <!-- </div><!--</style>-1->-->
 
-    <div class="tx-data">
-        <h2>{{ _("Transaction details") }}</h2><br>
+    <div class="tx-data bg-dark-800 rounded-xl p-4">
+        <div class="flex justify-between mb-2">
+            <h3 class="mb-0">{{ _("Transaction Details") }}</h3>
+            <p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer">Close</p>
+        </div>
         <div class="tx-data-info"></div>
         <div class="note"></div>
     </div>
@@ -100,7 +103,7 @@
                     `;
                 }
                 rawtxHTML += `
-                <table class="tx-data-table">
+                <table class="tx-data-table -mx-4 mt-8">
                 <tbody>
                 <tr><td><span class="optional">{{ _("Transaction id") }}:</span><span class="mobile-only">TxID:</span></td><td data-style="word-break: break-all;"><explorer-link data-type="tx" data-value="${this.txid}"></explorer-link></td></tr>
                 <tr><td>From wallet:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
