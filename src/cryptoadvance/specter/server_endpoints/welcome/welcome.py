@@ -12,7 +12,7 @@ from ...helpers import notify_upgrade
 from ...managers.wallet_manager import purposes
 from ...server_endpoints import flash
 from ...services.callbacks import adjust_view_model
-from ...specter_error import SpecterError
+from ...specter_error import SpecterError, SpecterInternalException
 from .welcome_vm import WelcomeVm
 
 logger = logging.getLogger(__name__)
@@ -64,7 +64,7 @@ def about():
         ]
     )
     if number_of_welcome_vm > 1:
-        raise Exception(
+        raise SpecterInternalException(
             f"Seems that we have more than one WelcomeVm Extension: {welcome_vm_dict} "
         )
     if number_of_welcome_vm == 1:
