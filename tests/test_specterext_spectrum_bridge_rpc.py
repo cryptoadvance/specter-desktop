@@ -1,4 +1,7 @@
+from unittest.mock import MagicMock
 from cryptoadvance.specterext.spectrum.bridge_rpc import BridgeRPC
+from cryptoadvance.spectrum.spectrum import RPCError as SpectrumRpcError
+from cryptoadvance.specter.rpc import RpcError as SpecterRpcError
 from flask import Flask
 import pytest
 
@@ -36,3 +39,15 @@ def test_getmininginfobridge(caplog, app: Flask):
         assert data["walletname"] == "some_test_wallet_name_123"
 
     # assert False
+
+
+def test_exceptionHandling():
+    spectrum_mock: MagicMock = MagicMock()
+    spectrum_mock.walletcreatefundedpsbt.side_effect = SpectrumRpcError("Muh")
+
+    with pytest.raises(SpectrumRpcError):
+        spectrum_mock.walletcreatefundedpsbt("muh", "meh")
+
+    brpc = BridgeRPC(spectrum_mock)
+    with pytest.raises(SpecterRpcError):
+        brpc.walletcreatefundedpsbt()
