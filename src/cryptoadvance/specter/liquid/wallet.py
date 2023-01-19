@@ -279,7 +279,7 @@ class LWallet(Wallet):
                 for utxo in self.full_utxo
                 if to_unconfidential(utxo["address"]) == to_unconfidential(addr.address)
             ]:
-                addr_amount = addr_amount + utxo["amount"]
+                addr_amount = addr_amount + utxo.utxo_amount
                 addr_utxo = addr_utxo + 1
                 addr_assets[utxo.get("asset")] = (
                     addr_assets.get(utxo.get("asset"), 0) + utxo["amount"]

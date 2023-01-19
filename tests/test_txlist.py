@@ -182,9 +182,16 @@ def test_TxItem(empty_data_folder):
     # a TxItem pretty much works like a dict with some extrafunctionality
     assert mytxitem["blocktime"] == 1642182445
     # We can also add data after the fact
+    mytxitem["some_data"] = 123
+    assert mytxitem["some_data"] == 123
+    assert mytxitem.copy()["some_data"] == 123
+    # Don't do that with reserved keys which have meaning:
     mytxitem["confirmations"] = 123
-    assert mytxitem["confirmations"] == 123
-    assert mytxitem.copy()["confirmations"] == 123
+    assert (
+        mytxitem["confirmations"] == 123
+    )  # might work for the instance itself but ...
+    assert not mytxitem.copy()["confirmations"] == 123  # not for the copy
+
     assert type(mytxitem.tx.vout) == list
     # It's not saved yet:
     assert not os.listdir(empty_data_folder)

@@ -25,7 +25,7 @@ from .util.merkleblock import is_valid_merkle_proof
 from .helpers import get_address_from_dict
 from .persistence import write_json_file, delete_file, delete_folder
 from .specter_error import SpecterError, handle_exception
-from .txlist import TxItem, TxList
+from .txlist import TxItem, TxList, WalletAwareTxItem
 from .util.psbt import SpecterPSBT
 from .util.tx import decoderawtransaction
 from .util.xpub import get_xpub_fingerprint
@@ -185,7 +185,7 @@ class Wallet:
         return add_checksum(str(self.descriptor.branch(1)))
 
     @property
-    def devices(self):
+    def devices(self) -> List[Device]:
         return [
             (
                 device
@@ -206,7 +206,7 @@ class Wallet:
         return get_network(self.chain)
 
     @classmethod
-    def construct_descriptor(cls, sigs_required, key_type, keys, devices):
+    def construct_descriptor(cls, sigs_required, key_type, keys, devices) -> Descriptor:
         """
         Creates a wallet descriptor from arguments.
         We need to pass `devices` for Liquid wallet, here it's not used.
@@ -812,13 +812,24 @@ class Wallet:
         return self.info
 
     def check_utxo(self):
+        """fetches the utxo-set from core and stores the result in self.__full_utxo which is
+        a List[WalletAwareTxItem] enriched with utxo specific data:
+        * item["locked"] if the item is locked in Core
+        * item["vout"] to enable its use in coinselection
+        """
+        result_utxos = []
         try:
             # listunspent only lists not locked utxos
             # so we need to unlock, then list, then lock back
             locked_utxo = self.rpc.listlockunspent()
+            # e.g. [
+            #       {'txid': '1211aaba2b261e1bf06a3d46d5ac8837cee4669980ddfa7e1e73b2a7cd593f23', 'vout': 0},
+            #       {'txid': '7cdc6c668b665c47de5823caca41c194f2d70815420c564aa4fa5786d4c0693f', 'vout': 0}
+            # ]
             if locked_utxo:
                 self.rpc.lockunspent(True, locked_utxo)
             utxo = self.rpc.listunspent(0)
+            utxo_dict = {item["txid"]: item for item in utxo}
             if locked_utxo:
                 self.rpc.lockunspent(False, locked_utxo)
                 for tx in utxo:
@@ -830,13 +841,30 @@ class Wallet:
                         tx["locked"] = True
             # list only the ones we know (have descriptor for it)
             utxo = [tx for tx in utxo if tx.get("desc", "")]
-            for tx in utxo:
-                tx_data = self.gettransaction(tx["txid"], 0, full=False)
-                tx["time"] = tx_data["time"]
-                tx["category"] = tx_data.get("category") or "send"
-                if "locked" not in tx:
-                    tx["locked"] = False
-            self._full_utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
+            # We need a list in order to check later whether an txid is in that list
+            utxo = [tx["txid"] for tx in utxo]
+            # same for locked_utxo_list
+            locked_utxo_list = [tx["txid"] for tx in locked_utxo]
+
+            # This is the full txlist:
+            txlist = self._transactions.get_transactions()
+            tx: WalletAwareTxItem
+            for tx in txlist:
+
+                if tx.txid in utxo:
+                    result_utxos.append(tx)
+                    tx["vout"] = utxo_dict[tx.txid]["vout"]
+                    if tx.txid in locked_utxo_list:
+                        tx["locked"] = True
+                    else:
+                        tx["locked"] = False
+                    tx["amount"] = tx.utxo_amount
+
+            self._full_utxo = sorted(
+                result_utxos,
+                key=lambda result_utxos: result_utxos["time"],
+                reverse=True,
+            )
         except Exception as e:
             logger.exception(e)
             self._full_utxo = []
@@ -869,7 +897,11 @@ class Wallet:
             self.save_to_file()
 
     @property
-    def full_utxo(self):
+    def full_utxo(self) -> List[WalletAwareTxItem]:
+        """Lazy getter for the current full_utxo-set. Full means locked and not locked utxo. The result
+        us a List of WalletAwareTxItem. Check check_utxo for more details
+        Call check_utxo() to update it with recent data from core
+        """
         if hasattr(self, "_full_utxo"):
             return self._full_utxo
         else:
@@ -877,11 +909,13 @@ class Wallet:
             return self._full_utxo
 
     @property
-    def utxo(self):
+    def utxo(self) -> List[WalletAwareTxItem]:
+        """utxos which are not locked."""
         return [utxo for utxo in self._full_utxo if not utxo["locked"]]
 
     @property
-    def locked_utxo(self):
+    def locked_utxo(self) -> List[WalletAwareTxItem]:
+        """utxos which are locked"""
         return [utxo for utxo in self._full_utxo if utxo["locked"]]
 
     @property
@@ -1550,7 +1584,7 @@ class Wallet:
         frozen_txid = [utxo.split(":")[0] for utxo in self.frozen_utxo]
         for utxo in self.locked_utxo:
             if utxo["txid"] in frozen_txid:
-                amount += utxo["amount"]
+                amount += utxo.utxo_amount
         return amount
 
     @property
@@ -1977,7 +2011,7 @@ class Wallet:
             for utxo in [
                 utxo for utxo in self._full_utxo if utxo["address"] == addr.address
             ]:
-                addr_amount = addr_amount + utxo["amount"]
+                addr_amount = addr_amount + utxo.utxo_amount
                 addr_utxo = addr_utxo + 1
 
             if service_id and (

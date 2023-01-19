@@ -45,7 +45,7 @@ def check_wallet(func):
         """checks the wallet for healthiness A wrapper function"""
         if kwargs["wallet_alias"]:
             wallet_alias = kwargs["wallet_alias"]
-            wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+            wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
             wallet.get_info()
         return func(*args, **kwargs)
 
@@ -88,6 +88,7 @@ def wallets_overview():
     if wallets_overview_vm.wallets_overview_redirect != None:
         return redirect(wallets_overview_vm.wallets_overview_redirect)
 
+    wallet: Wallet
     for wallet in list(app.specter.wallet_manager.wallets.values()):
         wallet.update_balance()
         wallet.check_utxo()
@@ -315,7 +316,7 @@ def new_wallet(wallet_type):
 
             # create a wallet here
             try:
-                wallet = app.specter.wallet_manager.create_wallet(
+                wallet: Wallet = app.specter.wallet_manager.create_wallet(
                     wallet_name, sigs_required, address_type, keys, cosigners
                 )
             except Exception as e:
@@ -398,7 +399,7 @@ def new_wallet(wallet_type):
 @wallets_endpoint.route("/wallet/<wallet_alias>/")
 @login_required
 def wallet(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if wallet.amount_total > 0:
         return redirect(url_for("wallets_endpoint.history", wallet_alias=wallet_alias))
     else:
@@ -409,7 +410,7 @@ def wallet(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/history/", methods=["GET", "POST"])
 @login_required
 def history(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     tx_list_type = "txlist"
 
     if request.method == "POST":
@@ -473,7 +474,7 @@ def receive(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/send")
 @login_required
 def send(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if len(wallet.pending_psbts) > 0:
         return redirect(
             url_for("wallets_endpoint.send_pending", wallet_alias=wallet_alias)
@@ -685,7 +686,7 @@ def send_new(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/send/pending/", methods=["GET", "POST"])
 @login_required
 def send_pending(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if request.method == "POST":
         action = request.form["action"]
         if action == "deletepsbt":
@@ -719,7 +720,7 @@ def send_pending(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/send/import", methods=["GET", "POST"])
 @login_required
 def import_psbt(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if request.method == "POST":
         action = request.form["action"]
         if action == "importpsbt":
@@ -764,7 +765,7 @@ def addresses(wallet_alias):
     """Show informations about cached addresses (wallet._addresses) of the <wallet_alias>.
     It updates balances in the wallet before renderization in order to show updated UTXO and
     balance of each address."""
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
 
     # update balances in the wallet
     app.specter.check_blockheight()
@@ -798,7 +799,7 @@ def addresses(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/settings/clearcache", methods=["GET"])
 @login_required
 def settings(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     if request.method == "POST":
         action = request.form["action"]
         # Would like to refactor this to another endpoint as well
@@ -832,7 +833,7 @@ def settings(wallet_alias):
 )
 @login_required
 def settings_importaddresslabels(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     action = request.form["action"]
     address_labels = request.form["address_labels_data"]
     imported_addresses_len = wallet.import_address_labels(address_labels)
@@ -850,7 +851,7 @@ def settings_importaddresslabels(wallet_alias):
 )
 @login_required
 def settings_keypoolrefill(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     delta = int(request.form["keypooladd"])
     wallet.keypoolrefill(wallet.keypool, wallet.keypool + delta)
     wallet.keypoolrefill(
@@ -871,7 +872,7 @@ def settings_keypoolrefill(wallet_alias):
 @wallets_endpoint.route("/wallet/<wallet_alias>/settings/rescan", methods=["POST"])
 @login_required
 def settings_rescan(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     error = None
     action = request.form["action"]
     if action == "rescanblockchain":
@@ -931,7 +932,7 @@ def settings_rescan(wallet_alias):
 )
 @login_required
 def settings_deletewallet(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     error = None
     deleted = app.specter.wallet_manager.delete_wallet(wallet, app.specter.node)
     # deleted is a tuple: (specter_wallet_deleted, core_wallet_file_deleted)
