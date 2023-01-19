@@ -816,6 +816,59 @@ class Wallet:
         a List[WalletAwareTxItem] enriched with utxo specific data:
         * item["locked"] if the item is locked in Core
         * item["vout"] to enable its use in coinselection
+        * item["amount"] is the utxo_amount
+        """
+        _full_utxo = []
+        try:
+            # listunspent only lists not locked utxos
+            # so we need to unlock, then list, then lock back
+            locked_utxo = self.rpc.listlockunspent()
+            # e.g. [
+            #       {'txid': '1211aaba2b261e1bf06a3d46d5ac8837cee4669980ddfa7e1e73b2a7cd593f23', 'vout': 0},
+            #       {'txid': '7cdc6c668b665c47de5823caca41c194f2d70815420c564aa4fa5786d4c0693f', 'vout': 0}
+            # ]
+            locked_utxo_list = [tx["txid"] for tx in locked_utxo]
+            utxo = self.rpc.listunspent(0)
+            utxo.extend(locked_utxo)
+
+            txlist = self._transactions.get_transactions()
+            txlist_dict = {_tx["txid"]: _tx for _tx in txlist}
+            # iterating over the utxos/vouts and creating a list of WalletAwareTxItems
+            for utxo_txid, utxo_vout in {
+                _utxo["txid"]: _utxo["vout"] for _utxo in utxo
+            }.items():
+                # maybe the txlist is outdated and it's a new utxo?!
+                if utxo_txid not in txlist_dict.keys():
+                    self.fetch_transactions()  # ToDo: make this much slimmer!
+                    txlist = self._transactions.get_transactions()
+                    txlist_dict = {_tx["txid"]: _tx for _tx in txlist}
+                tx: WalletAwareTxItem = txlist_dict[utxo_txid]
+                # Adding vout, locked and amount
+                tx["vout"] = utxo_vout
+                if tx.txid in locked_utxo_list:
+                    tx["locked"] = True
+                else:
+                    tx["locked"] = False
+                tx["amount"] = tx.utxo_amount
+                _full_utxo.append(tx)
+
+            # Finally sorting:
+            self._full_utxo = sorted(
+                _full_utxo,
+                key=lambda _full_utxo: _full_utxo["time"],
+                reverse=True,
+            )
+        except Exception as e:
+            logger.exception(e)
+            self._full_utxo = []
+            raise SpecterError(f"Failed to load utxos, {e}")
+
+    def check_utxo_orig(self):
+        """fetches the utxo-set from core and stores the result in self.__full_utxo which is
+        a List[WalletAwareTxItem] enriched with utxo specific data:
+        * item["locked"] if the item is locked in Core
+        * item["vout"] to enable its use in coinselection
+        * item["amount"] is the utxo_amount
         """
         result_utxos = []
         try:
@@ -853,6 +906,7 @@ class Wallet:
 
                 if tx.txid in utxo:
                     result_utxos.append(tx)
+                    # ToDo: What if a tx contains more than one spendable output?
                     tx["vout"] = utxo_dict[tx.txid]["vout"]
                     if tx.txid in locked_utxo_list:
                         tx["locked"] = True
