@@ -173,7 +173,7 @@
 		<div>
 			<h3>{{ _("Import address labels (Electrum or Specter)") }}</h3>
 
-			<form action="." method="POST" class="padded" data-style="max-width: 500px">
+			<form action="./importaddresslabels" method="POST" class="padded" data-style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				<div>
 					<dnd-textarea 
@@ -208,7 +208,7 @@
 			<div class="section-separator"></div>
 			<h3 class="mt-8">{{ _("Keypool control") }}</h3>
 			<p>{{ _("You're currently watching") }} {{ wallet.keypool }} {{ _("receiving addresses, and") }} {{ wallet.change_keypool }} {{ _("change addresses.") }}</p>
-			<form action="." method="POST" class="padded" data-style="max-width: 500px">
+			<form action="./keypoolrefill" method="POST" class="padded" data-style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				<div class="floating-wrapper my-3">
 					<input class="floating-input peer" placeholder=" " type="number" name="keypooladd" value="100" step="1">
@@ -226,7 +226,7 @@
 					<b>481824</b> {{ _("was the first Segwit block.") }}
 				{% endif %}
 			</p>
-			<form action="." method="POST" class="padded" data-style="max-width: 500px">
+			<form action="./rescan" method="POST" class="padded" data-style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				{% if wallet.rescan_progress %}
 					<div class="row aligned">
@@ -256,7 +256,7 @@
 				{% endif %}
 			</form>
 
-			<form action="." method="POST" class="padded" data-style="max-width: 500px">
+			<form action="./rescan" method="POST" class="padded" data-style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				{% if specter.info["utxorescan"] %}
 					<div>
@@ -315,8 +315,24 @@
 				{% endif %}
 			</form>
 
+			<h3 h3 class="mt-8">{{ _("Clear Cache") }}</h3>
+			<form action="./clearcache" method="POST" class="padded" data-style="max-width: 500px">
+				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+				<button type="submit" name="action" value="clearcache" class="button">{{ _("Clear Cache") }}
+					<tool-tip width="200px">
+						<span slot="paragraph">
+							{{ _('Each wallet maintains a cache which stores the details of transactions') }}<br>
+							{{ _('in order to speed up loading of the tx-list. ') }}<br>
+							{{ _('Clearing that cache is not deleting any crucial data and possible any time.') }}<br>
+							{{ _('You might want to try this if your transactions look outdated.') }}<br>
+							{{ _('However, expect a longer loading time after clearing the cache') }}<br><br>
+						</span>
+					</tool-tip>
+				</button>
+			</form>
+
 			<h3 class="mt-8">{{ _("Delete wallet") }}</h3>
-			<form action="." method="POST" class="padded" data-style="max-width: 500px">
+			<form action="./deletewallet" method="POST" class="padded" data-style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				<button type="submit" id="delete_wallet" name="action" value="deletewallet" class="button bg-red-800 text-white">{{ _("Delete Wallet") }}</button>
 			</form>

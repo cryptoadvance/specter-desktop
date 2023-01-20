@@ -778,6 +778,11 @@
         */
         attributeChangedCallback(attrName, oldValue, newValue) {
             if (attrName != "selected-coins") {
+                if (this.getAttribute('type') == "txlist") {
+                    this.amountHeader.innerText="Amount \u0394"
+                } else {
+                    this.amountHeader.innerText = "Amount"
+                }
                 if (this.getAttribute('blockhash') == 'true' && this.getAttribute('type') == "txlist" && this.getAttribute('wallet')) {
                         this.blockhashHeader.classList.remove('hidden');
                         this.blockhashSummary.classList.remove('hidden');
