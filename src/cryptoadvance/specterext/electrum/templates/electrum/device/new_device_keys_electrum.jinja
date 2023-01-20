@@ -22,7 +22,7 @@
                 <input type="text" name="device_name" placeholder="My Electrum device" id="device_name" value="{{ device_name }}" required/>
             </h2>
             <h2>{{ _("Master public key:") }}
-                <input id="master_pub_key" name="master_pub_key" value="{{ master_pub_key }}" placeholder="Your master public key" required>
+                <input type="text" id="master_pub_key" name="master_pub_key" value="{{ master_pub_key }}" placeholder="Your master public key" required>
             </h2>
             <text-explainer style="align-self: start;">
                 <span slot="title" style="font-size: 1.2em;">{{ _("How to get this info from Electrum?") }}</span>
