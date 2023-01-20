@@ -31,7 +31,7 @@
 				<a href="{{ url_for('devices_endpoint.device', device_alias=device.alias) }}">
 					<div class="selection">
 						<p></p>
-						<img src="{{ url_for('static', filename=device.icon) }}" width="18px">
+						<img src="{{ url_for(device.blueprint(), filename=device.icon) }}" width="18px">
 						<p>{{ device.name }}</p>
 					</div>
 				</a>
