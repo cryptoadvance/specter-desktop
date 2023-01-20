@@ -1,19 +1,29 @@
 """
 Manages the list of transactions for the wallet
 """
-from typing import Union
-import os
-from .specter_error import SpecterError
-from .persistence import delete_file, write_csv, read_csv
-from .helpers import get_address_from_dict
-from embit.transaction import Transaction
-from embit.liquid.networks import get_network
-from embit import bip32
 import json
-import math
 import logging
+import math
+import os
+from typing import Dict, List, Union
+
+from embit import bip32
+from embit.liquid.networks import get_network
+from embit.transaction import Transaction
+
+from .helpers import get_address_from_dict
+from .persistence import delete_file, read_csv, write_csv
+from .specter_error import SpecterError, SpecterInternalException
+from embit.descriptor import Descriptor
+from embit.liquid.descriptor import LDescriptor
+from .util.psbt import (
+    AbstractTxContext,
+    SpecterInputScope,
+    SpecterOutputScope,
+    SpecterPSBT,
+    SpecterTx,
+)
 from .util.tx import decoderawtransaction
-from .util.psbt import SpecterTx, AbstractTxContext, SpecterPSBT
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +38,14 @@ def parse_arr(v):
 
 
 class AbstractTxListContext(AbstractTxContext):
+    """An Abstract useful data-structure which solves 4 things:
+    * Passing the rpc-reference around is not necessary as long as we're navigating in some hierarchical structure where
+      we can ask the "parent" for an rpc-reference as the rpc reference is the same
+    * Same idea but with the chain. We don't want to tell each small data-structure what its chain is. Just pass a parent
+      in the constructor.
+    * It's derived from AbstractTxContext so it's also providing the attributes "descriptor" and "network"
+    """
+
     @property
     def rpc(self):
         if hasattr(self, "parent"):
@@ -42,9 +60,21 @@ class AbstractTxListContext(AbstractTxContext):
 
 
 class TxItem(dict, AbstractTxListContext):
+    """A TxItem tries to be a clever dict which can easily be cached, holding all sorts of values which belongs to a Tx
+    and might be valuable for client-code.
+    The hex-represeantation of a Tx is cached in the "rawdir". If the the txid is existing as file in the rawdir, the hex
+    representation will be loaded from there.
+    The keys for the values which are returned if you call dict(obj) need to be specified in:
+    * columns
+    * type_converter (basically the type of the key)
+    * __dict__ method
+    """
+
     TransactionCls = Transaction
+    # columns will be used by _write_csv in order to derive the columns
     columns = [
         "txid",  # str, txid in hex
+        "fee",  # int
         "blockhash",  # str, blockhash, None if not confirmed
         "blockheight",  # int, blockheight, None if not confirmed
         "time",  # int (timestamp in seconds), time received
@@ -52,24 +82,19 @@ class TxItem(dict, AbstractTxListContext):
         "bip125-replaceable",  # str ("yes" / "no"), whatever RBF is enabled for the transaction
         "conflicts",  # rbf conflicts, list of txids
         "vsize",
-        "category",
         "address",
-        "amount",
-        "ismine",
     ]
     type_converter = [
         str,
-        str,
-        int,
-        int,
         int,
         str,
-        parse_arr,
+        int,
+        int,
         int,
         str,
         parse_arr,
+        int,
         parse_arr,
-        bool,
     ]
 
     def __init__(self, parent, addresses, rawdir, **kwargs):
@@ -84,13 +109,24 @@ class TxItem(dict, AbstractTxListContext):
             kwargs[k] = None if v in ["", None] else self.type_converter[i](v)
 
         super().__init__(**kwargs)
-        self._tx = None
+        self._tx: Transaction = None
         # if we have hex data
-        if "hex" in kwargs:
+        if "hex" in kwargs and kwargs["hex"] is not None:
             self._tx = self.TransactionCls.from_string(kwargs["hex"])
         # conflicts were renamed to walletconflicts
         if "walletconflicts" in kwargs:
             self["conflicts"] = kwargs["walletconflicts"]
+        self.confirmations  # trigger calculation
+
+    def copy(self):
+        """Creates a copy of this TxItem"""
+        mycopy = self.__class__(self.parent, self._addresses, self.rawdir, **self)
+        return mycopy
+
+    def clear_cache(self):
+        """removes the binary cache for this tx"""
+        if os.path.isfile(self.fname):
+            delete_file(self.fname)
 
     @property
     def fname(self):
@@ -115,31 +151,12 @@ class TxItem(dict, AbstractTxListContext):
             # get transaction from rpc
             try:
                 res = self.rpc.gettransaction(self.txid)
-                tx = self.TransactionCls.from_string(res["hex"])
+                tx: Transaction = self.TransactionCls.from_string(res["hex"])
                 self._tx = tx
                 return tx
             except Exception as e:
                 logger.exception(e)
         return self._tx
-
-    @property
-    def vsize(self):
-        if self.get("vsize"):
-            return self["vsize"]
-        tx = self.tx
-        txsize = len(tx.serialize())
-        if tx.is_segwit:
-            # tx size - flag - marker - witness
-            non_witness_size = (
-                txsize - 2 - sum([len(inp.witness.serialize()) for inp in tx.vin])
-            )
-            witness_size = txsize - non_witness_size
-            weight = non_witness_size * 4 + witness_size
-            vsize = math.ceil(weight / 4)
-        else:
-            vsize = txsize
-            weight = txsize * 4
-        return vsize
 
     def dump(self):
         """Dumps transaction in binary to the folder if it's not there"""
@@ -164,38 +181,255 @@ class TxItem(dict, AbstractTxListContext):
         self._tx = None
 
     @property
+    def current_blockheight(self):
+        """Just for the completeness, this property is not suppose to be used. The current_blockheight is just there to compute self.confirmations"""
+        return self.get("_current_blockheight")
+
+    @current_blockheight.setter
+    def set_current_blockheight(self, current_blockheight):
+        self["_current_blockheight"] = current_blockheight
+
+    @property
+    def confirmations(self):
+        if not self.blockheight:
+            self["confirmations"] = 0  # still in the mempool
+            return self["confirmations"]
+        if self.current_blockheight:
+            self["confirmations"] = self.current_blockheight - self.blockheight + 1
+            return self["confirmations"]
+        else:
+            # hmmm difficult to decide what to do here, we simply don't know
+            # Being actice and using parent.rpc.getblockcount() ?
+            # Might be a perf nightmare
+            # Raising an exception is not an option but
+            # returning a phantasy 0 or a magic number (-1 ?!) is also not cool
+            self["confirmations"] = None
+            return None
+
+    @property
     def txid(self):
-        return self["txid"]
+        if self.get("txid"):
+            return self["txid"]
+        if self._tx:
+            return self._tx.txid().hex()
+        return "undefined"
+
+    @property
+    def blockheight(self):
+        if self.get("blockheight"):
+            return self["blockheight"]
+        return None
+
+    @property
+    def time(self):
+        if self.get("time"):
+            return self["time"]
+        return None
+
+    @property
+    def bip125_replaceable(self):
+        if self.get("bip125-replaceable"):
+            return self["bip125-replaceable"]
+        return "no"
+
+    @property
+    def conflicts(self):
+        if self.get("conflicts"):
+            return self["conflicts"]
+        return None
+
+    @property
+    def vsize(self):
+        if self.get("vsize"):
+            return self["vsize"]
+        tx = self.tx
+        txsize = len(tx.serialize())
+        if tx.is_segwit:
+            # tx size - flag - marker - witness
+            non_witness_size = (
+                txsize - 2 - sum([len(inp.witness.serialize()) for inp in tx.vin])
+            )
+            witness_size = txsize - non_witness_size
+            weight = non_witness_size * 4 + witness_size
+            vsize = math.ceil(weight / 4)
+        else:
+            vsize = txsize
+            weight = txsize * 4
+        self["vsize"] = vsize
+        return self["vsize"]
 
     @property
     def hex(self):
         return str(self.tx)
 
     def __str__(self):
+        """Good implementation ? I'm not sure"""
         return self.txid
 
     def __repr__(self):
-        return f"TxItem({str(self)})"
+        return (
+            f"{self.__class__.__name__}({str(self)}{ ' with hex' if self._tx else ''})"
+        )
 
     def __dict__(self):
-        return {
-            "txid": self["txid"],
-            "blockhash": self["blockhash"],
-            "blockheight": self["blockheight"],
-            "time": self["time"],
-            "blocktime": self["blocktime"],
-            "conflicts": self["conflicts"],
-            "bip125-replaceable": self["bip125-replaceable"],
-            "vsize": self["vsize"],
-            "category": self["category"],
-            "address": self["address"],
-            "amount": self["amount"],
-            "ismine": self["ismine"],
-        }
+        # I don't get why we return a dict here as we are already a dict. So let's instead return a copy
+        return self.copy()
+        # {
+        #     "txid": self["txid"],
+        #     "blockhash": self["blockhash"],
+        #     "blockheight": self["blockheight"],
+        #     "time": self["time"],
+        #     "blocktime": self["blocktime"],
+        #     "conflicts": self["conflicts"],
+        #     "bip125-replaceable": self["bip125-replaceable"],
+        #     "vsize": self["vsize"],
+        #     "address": self["address"],
+        # }
+
+
+class WalletAwareTxItem(TxItem):
+    PSBTCls = SpecterPSBT
+    columns = TxItem.columns.copy()
+    columns.extend(
+        ["category", "flow_amount", "utxo_amount", "ismine"],
+    )
+
+    type_converter = TxItem.type_converter.copy()
+    type_converter.extend([str, float, float, bool])
+
+    def __init__(self, parent, addresses, rawdir, **kwargs):
+        super().__init__(parent, addresses, rawdir, **kwargs)
+        if type(self.parent.descriptor) not in [Descriptor, LDescriptor]:
+            raise SpecterInternalException(
+                f"Cannot instantiate WalletAwareTxItem without proper Descriptor, got: {type(self.parent.descriptor)}"
+            )
+        # ToDo: Make that more lazy. We're triggering those properties to fill the dict with the corresponding keys
+        self.category
+        self.address
+        self.flow_amount
+        self.ismine
+
+    @property
+    def psbt(self) -> SpecterPSBT:
+        """This tx but as a psbt. Need rpc-calls"""
+        if hasattr(self, "_psbt"):
+            return self._psbt
+        self._psbt: SpecterPSBT = self.PSBTCls.from_transaction(
+            self.tx, self.descriptor, self.network
+        )
+        # fill derivation paths etc
+        updated = self.rpc.walletprocesspsbt(str(self._psbt), False).get("psbt", None)
+        if updated:
+            self._psbt.update(updated)
+        return self._psbt
+
+    @property
+    def category(self):
+        """One of mixed (default), generate, selftransfer, receive or send"""
+        if self.get("_category"):
+            return self["_category"]
+        # detect category
+        category = "mixed"
+
+        # calculate everything once
+        inputs = self.psbt.inputs
+        outputs = self.psbt.outputs
+        all_inputs_mine = all([inp.is_mine for inp in inputs])
+        all_outputs_mine = all([out.is_mine for out in outputs])
+        all_inputs_external = not any([inp.is_mine for inp in inputs])
+
+        if b"\x00" * 32 in [vin.txid for vin in self.tx.vin]:
+            category = "generate"
+        elif all_inputs_mine and all_outputs_mine:
+            category = "selftransfer"
+        elif all_inputs_external:
+            category = "receive"
+        elif all_inputs_mine:
+            category = "send"
+        self["category"] = category
+        return self["category"]
+
+    @property
+    def utxo_amount(self) -> float:
+        """In the UTXO-view, you want to know how much the UTXOs from that TX are worth.
+        So you return the sum of the wallet-specific outputs
+        """
+        if self.get("utxo_amount"):
+            return self["utxo_amount"]
+        outputs = [out.to_dict() for out in self.psbt.outputs]
+        self["utxo_amount"] = sum(
+            [output["float_amount"] for output in outputs if output["is_mine"]]
+        )
+        return self["utxo_amount"]
+
+    @property
+    def flow_amount(self) -> float:
+        """In the history-view, you want to know how many sats your wallet gained or lost.
+        that's the flow amount of a tx: All wallet_specifc outputs minus wallet-specific inputs
+        """
+        if self.get("flow_amount"):
+            return self["flow_amount"]
+        inputs: List[SpecterInputScope] = self.psbt.inputs
+        outputs: List[SpecterOutputScope] = self.psbt.outputs
+        all_my_inputs_sum = sum(
+            [input.float_amount for input in inputs if input.is_mine]
+        )
+        all_my_ouputs_sum = sum(
+            [output.float_amount for output in outputs if output.is_mine]
+        )
+        # This includes fees!
+        self["flow_amount"] = all_my_ouputs_sum - all_my_inputs_sum
+        return self["flow_amount"]
+
+    @property
+    def ismine(self) -> bool:
+        if self.get("ismine"):
+            return self["ismine"]
+        inputs = self.psbt.inputs
+        outputs = self.psbt.outputs
+        any_inputs_mine = any([inp.is_mine for inp in inputs])
+        any_outputs_mine = any([out.is_mine for out in outputs])
+        self["ismine"] = any_inputs_mine or any_outputs_mine
+        return self["ismine"]
+
+    @property
+    def address(self):
+        """Does it make sense to show an address for a transaction? Maybe yes in certain
+        situations. For those, you can use this one:
+        """
+        if self.get("address"):
+            return self["address"]
+        all_outs = [out.to_dict() for out in self.psbt.outputs]
+        my_outs = [out for out in all_outs if out["is_mine"]]
+        my_receiving = [out for out in my_outs if not out["change"]]
+        external = [out for out in all_outs if out not in my_outs]
+        # decide what addresses to show
+        if self.category in ["generate", "receive", "selftransfer"]:
+            # either receiving only (if not empty), or only mine (if not empty), or all
+            outs = my_receiving or my_outs or all_outs
+        elif self.category in ["send"]:
+            # keep only external addresses if they are present
+            outs = external or all_outs
+        else:
+            # not sure what's the best here
+            outs = my_receiving or my_outs or external or all_outs
+        addresses = [out.get("address", "Unknown") for out in outs]
+        self["address"] = addresses[0]
+        return self["address"]
+
+    def __dict__(self):
+        super_dict = dict(self)
+        super_dict["category"] = self.category
+        super_dict["flow_amount"] = self.flow_amount
+        super_dict["utxo_amount"] = self.utxo_amount
+        super_dict["ismine"] = (self["ismine"] or self.ismine,)
+        return super_dict
 
 
 class TxList(dict, AbstractTxListContext):
-    ItemCls = TxItem  # for inheritance
+    """A TxList is a dict with txids as keys and TxItems as values."""
+
+    ItemCls = WalletAwareTxItem  # for inheritance
     PSBTCls = SpecterPSBT
 
     def __init__(self, path, parent, addresses):
@@ -232,8 +466,15 @@ class TxList(dict, AbstractTxListContext):
             write_csv(self.path, list(self.values()), self.ItemCls)
             self._file_exists = True
         else:
-            delete_file(self.path)
-            self._file_exists = False
+            self.clear_cache()
+
+    def clear_cache(self):
+        """Asks all Txs to clear its cache and removes the csv-file"""
+        for tx in self.values():
+            tx.clear_cache()
+        delete_file(self.path)
+        self._file_exists = False
+        logger.info(f"Cleared the Cache for {self.path} (and rawdir)")
 
     def getfetch(self, txid):
         """
@@ -247,7 +488,51 @@ class TxList(dict, AbstractTxListContext):
             self.add({txid: tx})
         return self[txid]
 
-    def gettransaction(self, txid, blockheight=None, decode=False, full=True):
+    def get_transactions(self, current_blockheight=None) -> WalletAwareTxItem:
+        """A great method to get massaged Txs. Those are all copies so mess with it as you see fit.
+        This is what's added:
+        1. sorted by time
+        2. conflict free (only the oldest if conflicts)
+        3. have a confirmation key with the number of confirmations
+        So what's missing?
+        1. No labels (not cached in TxList)
+        """
+        if not current_blockheight:
+            current_blockheight = self.rpc.getblockcount()
+
+        tx: WalletAwareTxItem
+
+        # Make a copy of all txs if the tx.ismine (which should be all of them)
+        # As TxItem is derived from Dict, the __Dict__ will return a TxItem
+        transactions: List(TxItem) = [tx.copy() for tx in self.values() if tx.ismine]
+        # 1. sorted
+        transactions = sorted(transactions, key=lambda tx: tx["time"], reverse=True)
+
+        # 2. conflict free
+        # conflict-filter: only tx which don't have conflicts or, if it has conflicts, only the one
+        # with the highest time-stamp
+        transactions = [
+            tx
+            for tx in transactions
+            if (
+                not tx.conflicts
+                or max(
+                    [
+                        self.gettransaction(conflicting_tx, 0, full=False)["time"]
+                        for conflicting_tx in tx["conflicts"]
+                    ]
+                )
+                < tx["time"]
+            )
+        ]
+        for tx in transactions:
+            # 3. with a confirmation-key
+            tx.set_current_blockheight = current_blockheight
+            tx.confirmations  # trigger calculation
+
+        return transactions
+
+    def gettransaction(self, txid, blockheight=None, decode=False, full=True) -> Dict:
         """
         Will ask Bitcoin Core for a transaction if blockheight is None or txid not known
         Provide blockheight or 0 if you don't care about confirmations number
@@ -301,6 +586,7 @@ class TxList(dict, AbstractTxListContext):
             "conflicts", - list of txids spending the same inputs (rbf)
             "bip125-replaceable", - str ("yes" or "no") - is rbf enabled for this tx
         }
+        (format of listtransactions)
         """
         # here we store all addresses in transactions
         # to set them used later
@@ -317,6 +603,7 @@ class TxList(dict, AbstractTxListContext):
             )
             obj = {
                 "txid": txid,
+                "fee": tx.get("fee", None),
                 "blockheight": tx.get("blockheight", None),
                 "blockhash": tx.get("blockhash", None),
                 "time": time,
@@ -336,74 +623,7 @@ class TxList(dict, AbstractTxListContext):
                     except:
                         pass  # maybe not an address, but a raw script?
         self._addresses.set_used(addresses)
-        # detect category, amounts and addresses
-        for tx in [self[txid] for txid in self if txid in txs]:
-            self._fill_missing(tx)
         self._save()
-
-    def _update_destinations(self, tx, outs):
-        addresses = [out.get("address", "Unknown") for out in outs]
-        amounts = [out["float_amount"] for out in outs]
-        if len(addresses) == 1:
-            addresses = addresses[0]
-            amounts = amounts[0]
-        tx["address"] = addresses
-        tx["amount"] = amounts
-
-    def _get_psbt(self, raw_tx):
-        psbt = self.PSBTCls.from_transaction(raw_tx, self.descriptor, self.network)
-        # fill derivation paths etc
-        updated = self.rpc.walletprocesspsbt(str(psbt), False).get("psbt", None)
-        if updated:
-            psbt.update(updated)
-        return psbt
-
-    def _fill_missing(self, tx):
-        """This seem to calculate the category of the tx which is one of:
-        mixed (default), generate, selftransfer, receive or send
-
-        Also the tx gets a key with a boolean to figure out whether its "mine"
-        """
-        raw_tx = tx.tx
-        psbt = self._get_psbt(raw_tx)
-        # detect category
-        category = "mixed"
-
-        # calculate everything once
-        inputs = [inp.to_dict() for inp in psbt.inputs]
-        outputs = [out.to_dict() for out in psbt.outputs]
-        all_inputs_mine = all([inp["is_mine"] for inp in inputs])
-        all_outputs_mine = all([out["is_mine"] for out in outputs])
-        all_inputs_external = not any([inp["is_mine"] for inp in inputs])
-
-        if b"\x00" * 32 in [vin.txid for vin in raw_tx.vin]:
-            category = "generate"
-        elif all_inputs_mine and all_outputs_mine:
-            category = "selftransfer"
-        elif all_inputs_external:
-            category = "receive"
-        elif all_inputs_mine:
-            category = "send"
-
-        all_outs = [out for out in outputs]
-        my_outs = [out for out in all_outs if out["is_mine"]]
-        my_receiving = [out for out in my_outs if not out["change"]]
-        external = [out for out in all_outs if out not in my_outs]
-        # decide what addresses to show
-        if category in ["generate", "receive", "selftransfer"]:
-            # either receiving only (if not empty), or only mine (if not empty), or all
-            outs = my_receiving or my_outs or all_outs
-        elif category in ["send"]:
-            # keep only external addresses if they are present
-            outs = external or all_outs
-        else:
-            # not sure what's the best here
-            outs = my_receiving or my_outs or external or all_outs
-
-        self._update_destinations(tx, outs)
-        tx["category"] = category
-        # at least one input or output is ours - tx is ours
-        tx["ismine"] = any(scope["is_mine"] for scope in (inputs + outputs))
 
     def load(self, arr):
         """
