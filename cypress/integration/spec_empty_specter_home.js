@@ -8,7 +8,7 @@ describe('Completely empty specter-home', () => {
 
   it('Click around on the welcome page', () => {
     cy.contains('Welcome to Specter')
-    cy.contains('Settings').click()
+    cy.get('[data-cy="settings-btn"]').click()
     cy.contains('Backup and Restore')
     cy.contains('Authentication').click()
     cy.contains('USB Devices').click()

@@ -62,24 +62,18 @@ Cypress.Commands.add("addHotDevice", (name, node_type) => {
   // node_type is either elements or bitcoin
   cy.get('body').then(($body) => {
       if ($body.text().includes(name)) {
-        cy.deleteDevice(name)
-        // We might get an error here, if the device is used in a wallet
-        // We assume therefore that this is ok (see below)
+        return
       } 
       cy.get('#side-content').click()
       if (!cy.get('#btn_new_device').isVisible) {
         cy.get('#toggle_devices_list').click()
       }
       cy.get('#btn_new_device').click( {force: true} )
-      cy.contains('Select Your Device Type')
       cy.get(`#${node_type}core_device_card`).click()
       cy.get('#submit-mnemonic').click()
       cy.get('#device_name').type(name)
       cy.get('#submit-keys').click()
-      cy.get('#toggle_devices_list').click()
-      // It's a bit hackish as if the device already exists, we'll get an error
-      // but continue flaslessly nevertheless
-      cy.get('#devices_list > .item > div',  { timeout: 8000 }).contains(name)
+      cy.get('[data-cy="new-device-added-screen-close-btn"]').click()
     })
 })
 
@@ -97,11 +91,16 @@ Cypress.Commands.add("deleteDevice", (name) => {
       })
 })
 
-Cypress.Commands.add("changeDeviceType", (nameDevice, newType) => { 
+Cypress.Commands.add("changeDeviceType", (deviceName, newType) => { 
     cy.get('body').then(($body) => {
-        if ($body.text().includes(nameDevice)) {
-          cy.get('#toggle_devices_list').click()
-          cy.contains(nameDevice).click()
+        if ($body.text().includes(deviceName)) {
+          cy.get('#toggle_devices_list').then(($devicesList) => {
+            if ($devicesList.text() == 'Devices ▸') {
+              cy.get('#toggle_devices_list').click()
+            }
+          })
+          let refDeviceName = deviceName.toLowerCase().replace(/ /g,"_");
+          cy.get(`[data-cy='device-sidebar-btn-${refDeviceName}']`).click()
           cy.get('#device_type').select(newType)
           cy.get('#settype').click()
         } 
@@ -154,8 +153,6 @@ Cypress.Commands.add("addWallet", (walletName, walletType, funded, nodeType, key
   }
   cy.get('body').then(($body) => {
       if ($body.text().includes(walletName)) {
-        cy.get('#toggle_wallets_list').click()
-        cy.contains(walletName).click()
         return
       }
       cy.get('#side-content').click()
@@ -198,23 +195,29 @@ Cypress.Commands.add("addWallet", (walletName, walletType, funded, nodeType, key
     })
 })
 
-Cypress.Commands.add("deleteWallet", (name) => { 
+Cypress.Commands.add("deleteWallet", (walletName) => { 
   cy.get('body').then(($body) => {
-    if ($body.text().includes(name)) {
-        cy.contains(name).click()
+    if ($body.text().includes(walletName)) {
+        cy.get(`[data-cy='wallet-sidebar-btn-${walletName}']`).click()
         cy.get('#btn_settings').click( {force: true} )
         cy.get('#advanced_settings_tab_btn').click()
         cy.get('#delete_wallet').click()
-        // That does not seem to delete the wallet-file in elements, though
-        // So let's do that as well
-        cy.task("delete:elements-hotwallet")
     } 
   })
 })
 
-Cypress.Commands.add("selectWallet", (name) => { 
-  cy.get('body').then(() => {
-    cy.contains(name).click( {force: true} ) 
+Cypress.Commands.add("selectWallet", (walletName) => { 
+  cy.get('body').then(($body) => {
+    if ($body.text().includes(walletName)) {
+        cy.get('#toggle_wallets_list').then(($walletsList) => {
+          // Only toggle the wallets list if it is not already toggled
+          if ($walletsList.text() == 'Wallets ▸') {
+            cy.get('#toggle_wallets_list').click()
+          }
+          cy.get(`[data-cy='wallet-sidebar-btn-${walletName}']`).click()
+      })
+      
+    }
   })
 })
 

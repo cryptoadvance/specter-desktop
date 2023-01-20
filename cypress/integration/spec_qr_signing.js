@@ -2,17 +2,17 @@
 describe('Test QR code signing flow', () => {
     before(() => {
         Cypress.config('includeShadowDom', true)
-        cy.visit('/')
     })
 
     // Keeps the session cookie alive, Cypress by default clears all cookies before each test
     beforeEach(() => {
+        cy.visit('/')
         cy.viewport(1200,660)
         Cypress.Cookies.preserveOnce('session')
     })
 
     it('Message signing with Specter DIY', () => {
-        cy.get('.side').contains('Ghost wallet').click()
+        cy.selectWallet('Ghost wallet')
         cy.get('main').contains('Addresses').click()
         // Click on the first address
         cy.contains('td', '#0').siblings().contains('bcrt').click()
@@ -22,7 +22,8 @@ describe('Test QR code signing flow', () => {
         cy.get('#message').type('The DIY is the best signing device.')
         cy.get('#diy_ghost_qr_sign_msg_btn').click()
         cy.get('#diy_ghost_sign_msg_qr > h2').contains('Scan this QR code')
-        cy.get('#page_overlay_popup_cancel_button').click()
+        // To close the overlay (no cancel button here)
+        cy.get('#page_overlay_popup').click()
     })
 
     it('No QR message signing button for a Trezor', () => {
@@ -33,36 +34,41 @@ describe('Test QR code signing flow', () => {
         // Only USB signing available for a Trezor device
         cy.contains('Sign message via USB').should('be.visible')
         cy.contains('Sign message via QR code').should('not.exist')
-        // Change device type back to DIY
+        cy.get('#page_overlay_popup').click()
         cy.changeDeviceType("DIY ghost", "specter")
     })
-
+    
     it('No message signing with Electrum', () => {
-        Cypress.on('uncaught:exception', (err, runnable) => {
-                     return false
+        cy.get('body').then(($body) => {
+            if (!$body.text().includes("Electrum Device")) {
+                cy.get('#toggle_devices_list').click()
+                cy.get('#btn_new_device').click()
+                cy.get('#electrum_device_card').click()
+                cy.get('#device_name').type("Electrum Device")
+                cy.get('#master_pub_key').type("vpub5VGXXixD2pHLFtcKtCF57e8mx2JW6fie8VydXijC8sRKAL4RshgjEmzbmV915NeVB9pd23DVYem6zWM7HXFLNwaffNVHowdD9SJWwESyQhp")
+                cy.get('.small-card > .btn').click()
+                cy.contains('Close').click()
+            }
         })
-        // returning false here prevents Cypress from
-        // failing the test due to this thus far unidentified error:
-        // "The following error originated from your application code, not from Cypress.
-        // > missing ) after argument list"
-
-        cy.deleteWallet("Wallet that can't sign messages")
-        cy.deleteDevice("Electron's Electrum Device")
-        cy.get('#toggle_devices_list').click()
-        cy.get('#btn_new_device').click()
-        cy.get('#electrum_device_card').click()
-        cy.get('#device_name').type("Electron's Electrum Device")
-        cy.get('#master_pub_key').type("vpub5VGXXixD2pHLFtcKtCF57e8mx2JW6fie8VydXijC8sRKAL4RshgjEmzbmV915NeVB9pd23DVYem6zWM7HXFLNwaffNVHowdD9SJWwESyQhp")
-        cy.get('.small-card > .btn').click()
-        cy.get('button').contains("Create single key wallet").click()
-        cy.get('#wallet_name').type("Wallet that can't sign messages")
-        cy.get('#keysform').contains("Create wallet").click()
-        cy.get('#btn_continue').click()
+        cy.get('body').then(($body) => {
+            if (!$body.text().includes("Wallet that cannot sign messages")) {
+                cy.get('#btn_new_wallet').click()
+                cy.get('[data-cy="singlesig-wallet-btn"]').click()
+                cy.get('#electrum_device').click()
+                cy.get('#wallet_name').type("Wallet that cannot sign messages")
+                cy.get('#keysform').contains("Create wallet").click()
+                cy.get('#btn_continue').click()
+            }
+        })
+        cy.selectWallet("Wallet that cannot sign messages")
         cy.get('main').contains('Addresses').click()
         cy.contains('td', '#0').siblings().contains('bcrt').click()
         cy.get('#msg-signing-btn').should('not.exist')
+        // Close the address data screen
+        cy.get('[data-cy="address-data-screen-close-btn"]').click()
+
         // Clean up
-        cy.deleteWallet("Wallet that can't sign messages")
-        cy.deleteDevice("Electron's Electrum Device")
+        cy.deleteWallet("Wallet that cannot sign messages")
+        cy.deleteDevice("Electrum Device")
     })
 })

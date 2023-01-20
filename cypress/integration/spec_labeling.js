@@ -13,7 +13,7 @@ describe('Test the labeling of addresses and transactions', () => {
 
     it('Labeling an address on the address overview', () => {
         // Using the ghost wallet
-        cy.get('.side').contains('Ghost wallet').click()
+        cy.selectWallet('Ghost wallet')
         cy.get('main').contains('Addresses').click()
         // Checking the correct titles since those are the only orientation for the user right now
         cy.get('[data-cy="edit-label-btn"]').last().should('have.attr', 'title', 'Edit label') // The last element in the array is the first one on the screen ...

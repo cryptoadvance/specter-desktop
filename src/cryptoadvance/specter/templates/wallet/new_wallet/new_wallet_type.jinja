@@ -9,12 +9,12 @@
 	</p>
 
 	<nav class="grid gap-5 grid-cols-2 mt-10 mb-5">
-		<a href="./simple/" class="selection">
+		<a href="./simple/" class="selection" data-cy="singlesig-wallet-btn">
 			<p>&nbsp;</p>
 			<img src="{{ url_for('static', filename='img/key.svg') }}" />
 			<p>{{ _("Single Signature") }}</p>
 		</a>
-		<a href="./multisig/" class="selection">
+		<a href="./multisig/" class="selection" data-cy="multisig-wallet-btn">
 			<p>&nbsp;</p>
 			<img src="{{ url_for('static', filename='img/two-keys.svg') }}" />
 			<p>{{ _("Multiple Signature") }}</p>
