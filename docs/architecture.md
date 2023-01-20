@@ -29,3 +29,16 @@ This is also a pattern used for plugins.
 The more specific a functionality became, the more awkward it felt to integrate it in the core architecture. When we started to make exchange specific functionality, we wanted to protect the core architecture. Therefore, we created a plugin concept which allows to have the above concepts replicated in their own self-contained standalone units. 
 
 We now try to implement bigger chunks of functionality in plugins. Maybe, even core functionality might be implemented in "core plugins" in the future. Internal plugins are placed in `src/specterext`. But, plugins can also live in there own repos, have their own release lifecycle and be used by Specter like any other dependency. For more information about plugins see [Third Party Service Integrations](./extensions.md) where we also discuss the nuances between plugins and extensions.
+
+# The Crypto Engine
+The Crypto Engine consists of a bunch of classes which partially are based on Embit.
+The documentation here is incomplete but will better over time.
+
+## psbt classes
+
+[![](https://mermaid.ink/img/pako:eNqVU11PgzAU_StNnzTO_QDiizoffNKEPRkS0rWXrRF6SXurLHP_3QKOsjHNhIRczj0997M7LlEBT7gshXMLLdZWVJlh4blfObJC0rJ5REPQELv7ur1laQ2SwC6bS1ipxBp64hg54jyb2tMlxBdPx8y_Y7-mD8vM9G_L7iqcntn1XsZulJbEDNAn2vcBXICTVteElqlo9u79WHjoSxT80CYnzFvdq-uIoqcz8AlyTrsrPcqvEEumXV5pAxNQboRZT2ELEnTIaz14QjuYUMqCcwOmTcGcoFxU6A0NcFGiINZ9T1wXJB_HHCuIGNOmHoWnc-FXWwLHqNGKHVHbhv4jkdEaxUxGIBvJTVL5XbZdt6g3n88H29dKEIxGXVisTsffYWEzjQvLqdEMFfAZr8BWQqtwS7sAGacNVJDxJJgKCuFLynhmWmof60npsKU8KUTpYMaFJ0y3RvKErIcD6eeyD6xamDfEw__-G-B6VVQ?type=png)](https://mermaid-js.github.io/mermaid-live-editor/edit#pako:eNqVU11PgzAU_StNnzTO_QDiizoffNKEPRkS0rWXrRF6SXurLHP_3QKOsjHNhIRczj0997M7LlEBT7gshXMLLdZWVJlh4blfObJC0rJ5REPQELv7ur1laQ2SwC6bS1ipxBp64hg54jyb2tMlxBdPx8y_Y7-mD8vM9G_L7iqcntn1XsZulJbEDNAn2vcBXICTVteElqlo9u79WHjoSxT80CYnzFvdq-uIoqcz8AlyTrsrPcqvEEumXV5pAxNQboRZT2ELEnTIaz14QjuYUMqCcwOmTcGcoFxU6A0NcFGiINZ9T1wXJB_HHCuIGNOmHoWnc-FXWwLHqNGKHVHbhv4jkdEaxUxGIBvJTVL5XbZdt6g3n88H29dKEIxGXVisTsffYWEzjQvLqdEMFfAZr8BWQqtwS7sAGacNVJDxJJgKCuFLynhmWmof60npsKU8KUTpYMaFJ0y3RvKErIcD6eeyD6xamDfEw__-G-B6VVQ)
+
+## embit classes
+Here is a diagram of all the classes from the embit library. No properties/attributes or methods are in there, yet.
+
+[![](https://mermaid.ink/img/pako:eNqFk19rgzAQwL-K5Ln9ArKnYtnGNiqzbDDycsZrDcREkstGcX73xT9tLejqSzx_Py935NIwYQpkMRMKnEskHC1UXBfSoiBpdPT6znUUnm2VS9qAw-jhd70ewhc8TWCIBvaU3ILrX5k8aiBvcZ6KUhtrgzSXNfW5kmJhy9TKbyBc2jfBnod-UqByVkmzzT4Tph5Lu4QDfda1p2W883TLZ5IvtGxlTbPoU5JG52bZ3oJ20B_QPd5Xfk8a6udjsn4UokdlclAT6UPiT3N22qnatbdMsxIs_oMypCllK1ahrUAWYSqb7jNnVGKFnMXhtcADeEWccd0G1ddFOPdtIclYFh9AOVwx8GSykxYsJuvxLI3DfbFq0F_GXGPsk7yN16Fb2j-RrgZR?type=png)](https://mermaid-js.github.io/mermaid-live-editor/edit#pako:eNqFk19rgzAQwL-K5Ln9ArKnYtnGNiqzbDDycsZrDcREkstGcX73xT9tLejqSzx_Py935NIwYQpkMRMKnEskHC1UXBfSoiBpdPT6znUUnm2VS9qAw-jhd70ewhc8TWCIBvaU3ILrX5k8aiBvcZ6KUhtrgzSXNfW5kmJhy9TKbyBc2jfBnod-UqByVkmzzT4Tph5Lu4QDfda1p2W883TLZ5IvtGxlTbPoU5JG52bZ3oJ20B_QPd5Xfk8a6udjsn4UokdlclAT6UPiT3N22qnatbdMsxIs_oMypCllK1ahrUAWYSqb7jNnVGKFnMXhtcADeEWccd0G1ddFOPdtIclYFh9AOVwx8GSykxYsJuvxLI3DfbFq0F_GXGPsk7yN16Fb2j-RrgZR)
