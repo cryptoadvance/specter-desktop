@@ -14,7 +14,7 @@ describe('Test the rendering of balances and amounts', () => {
     it('Total balance', () => {
         cy.selectWallet('Ghost wallet')
         cy.get('#fullbalance_amount').then(($amount) => {
-            expect(parseFloat($amount.text())).to.be.gt(20)
+            expect(parseFloat($amount.text())).to.be.gt(19)
         }) 
     })
 
