@@ -21,7 +21,7 @@
 					<input class="peer hidden" type="{{ 'checkbox' if wallet_type == 'multisig' else 'radio' }}" {% if wallet_type == 'simple' %} onchange="document.getElementById('submit-device').click()" {% endif %} name="devices" value="{{ device.alias }}" chain="{{specter.chain}}" {% if not device.has_key_types(wallet_type, specter.chain) or (not specter.node.is_device_supported(device)) %}disabled{% endif %}>
 					<div class="selection peer-checked:bg-dark-700" id="{{device.alias}}">
 						<p>&nbsp;</p>
-						<img src="{{ url_for('static', filename=device.icon) }}" width="18px">
+						<img src="{{ url_for(device.blueprint(), filename=device.icon) }}" width="18px">
 						<p>{{ device_name }}</p>
 					</div>
 					{% if not device.has_key_types(wallet_type, specter.chain) %}
