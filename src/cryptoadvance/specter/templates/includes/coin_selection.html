@@ -112,7 +112,7 @@
         }
 
         isCoinSelectionActive() {
-            return this.coinselectionDiv.style.display !== 'none';
+            return !this.coinselectionDiv.classList.contains('hidden');
         }
 
         getSpendableAmount(unit) {
