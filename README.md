@@ -1,3 +1,11 @@
+[![docs -  netlify](https://img.shields.io/badge/docs-_netlify-2ea44f)](https://docs.specter.solutions/desktop/)
+![Cirrus CI - Specific Task Build Status](https://img.shields.io/cirrus/github/cryptoadvance/specter-desktop?label=pytest&task=test)
+![Cirrus CI - Specific Task Build Status](https://img.shields.io/cirrus/github/cryptoadvance/specter-desktop?label=cypress&task=cypress_test)
+![GitHub Release Date](https://img.shields.io/github/release-date/cryptoadvance/specter-desktop)
+[![PyPI version](https://img.shields.io/pypi/v/cryptoadvance.specter)](https://pypi.org/project/cryptoadvance.specter/)
+![Docker Image Version (latest by date)](https://img.shields.io/docker/v/lncm/specter-desktop?label=docker)
+![GitHub all releases](https://img.shields.io/github/downloads/cryptoadvance/specter-desktop/total)
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
@@ -25,8 +33,6 @@
 
     "A specter is haunting the modern world, the specter of crypto anarchy."
     The Crypto Anarchist Manifesto - Timothy C. May - Sun, 22 Nov 92 12:11:24 PST
-
-[![Build Status](https://api.cirrus-ci.com/github/cryptoadvance/specter-desktop.svg)](https://cirrus-ci.com/github/cryptoadvance/specter-desktop)
 
 ## DISCLAIMER
 
