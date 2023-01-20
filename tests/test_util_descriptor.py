@@ -9,7 +9,7 @@ import pytest
 
 
 def test_parse_descriptor_with_origin():
-    desc = Descriptor.parse(
+    desc: Descriptor = Descriptor.parse(
         "wpkh([00000001/84'/1'/0']tpubD6NzVbkrYhZ4WaWSyoBvQwbpLkojyoTZPRsgXELWz3Popb3qkjcJyJUGLnL4qHHoQvao8ESaAstxYSnhyswJ76uZPStJRJCTKvosUCJZL5B/0/0)",
         True,
     )
@@ -26,6 +26,8 @@ def test_parse_descriptor_with_origin():
     assert desc.testnet == True
     assert desc.m_path_base == "m/84'/1'/0'"
     assert desc.m_path == "m/84'/1'/0'/0/0"
+    assert desc.address_type == "wpkh"
+    assert type(desc.derive(1)) == Descriptor
 
 
 def test_parse_multisig_descriptor_with_origin():

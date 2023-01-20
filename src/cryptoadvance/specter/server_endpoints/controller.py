@@ -181,7 +181,12 @@ def server_error_405(e):
     app.logger.error(trace)
     if request.headers.get("Accept") == "application/json":
         return {"error": error_msg}
-    flash(_("Session expired. Please refresh and try again."), "error")
+    flash(
+        _(
+            "Method not allowed. Probably the session expired. Please refresh and try again."
+        ),
+        "error",
+    )
     return redirect(request.url)
 
 
