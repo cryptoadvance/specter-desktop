@@ -7,7 +7,11 @@ describe('Connecting nodes', () => {
       cy.visit('/')
       cy.viewport(1200,660)
     })
-  
+
+    // Important! 
+    // If you have a bitcoin.conf at the default data dir location this can create awkwardness. 
+    // Either move your bitcoin.conf or use the exact RPC credentials that Cypress does
+
     it('Connect with Bitcoin Core node', () => {
       // Starting from the welcome page
       cy.get('[data-cy="core-connection-btn"]').click()

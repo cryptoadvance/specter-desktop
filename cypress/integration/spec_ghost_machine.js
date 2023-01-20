@@ -11,7 +11,7 @@ describe('Ghost machine', () => {
                     cy.addWallet('Ghost wallet', 'segwit', 'funded', 'btc', 'singlesig', 'DIY ghost')
                 }
                 else {
-                cy.addWallet('Ghost wallet', 'segwit', 'funded', 'btc', 'singlesig', 'DIY ghost')
+                    cy.addWallet('Ghost wallet', 'segwit', 'funded', 'btc', 'singlesig', 'DIY ghost')
                 }
             })
     })

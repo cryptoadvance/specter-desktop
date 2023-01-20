@@ -31,7 +31,7 @@ Cypress.Commands.add("addDevice", (name, device_type, mnemonic) => {
         if ($body.text().includes(name)) {
           cy.get('#toggle_devices_list').click()
           cy.contains(name).click()
-          cy.get('#forget_device').click()
+          return
         } 
         cy.get('#side-content').click()
         if (!cy.get('#btn_new_device').isVisible) {
@@ -156,9 +156,7 @@ Cypress.Commands.add("addWallet", (walletName, walletType, funded, nodeType, key
       if ($body.text().includes(walletName)) {
         cy.get('#toggle_wallets_list').click()
         cy.contains(walletName).click()
-        cy.get('#btn_settings').click()
-        cy.get('#advanced_settings_tab_btn').click()
-        cy.get('#delete_wallet').click()
+        return
       }
       cy.get('#side-content').click()
       cy.get('#btn_new_wallet').click()
@@ -215,7 +213,7 @@ Cypress.Commands.add("deleteWallet", (name) => {
 })
 
 Cypress.Commands.add("selectWallet", (name) => { 
-  cy.get('body').then(($body) => {
+  cy.get('body').then(() => {
     cy.contains(name).click( {force: true} ) 
   })
 })

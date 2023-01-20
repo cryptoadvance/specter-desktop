@@ -11,7 +11,7 @@ describe('Test the UI related to a blockchain rescan', () => {
     })
 
     it('Go to the rescan section from a fresh wallet', () => {
-        // Create a completely fresh wallet which is not receiving funds from the continous mining
+        // Create a completely fresh wallet without any funds
         cy.addDevice('Trezor hold', 'Trezor', 'hold_accident')
         cy.addWallet('Fresh wallet', 'segwit', false, 'btc', 'singlesig', 'Trezor hold')
         cy.get('#btn_transactions').click()
