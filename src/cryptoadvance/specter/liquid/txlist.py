@@ -9,7 +9,7 @@ from io import BytesIO
 from embit.psbt import read_string
 
 
-class LTxItem(TxItem):
+class LTxItem(WalletAwareTxItem):
     TransactionCls = LTransaction
     columns = [
         "txid",  # str, txid in hex
@@ -147,6 +147,27 @@ class LTxItem(TxItem):
         weight = non_witness_size * 4 + witness_size
         vsize = math.ceil(weight / 4)
         return vsize
+
+    # Three properties which are defined in WalletAwareTxItem which we can't calculate here but which need to
+    # return something as the getter is called in WalletAwareTxItem`#s constructor
+    # This is definitely not a good way to fix this.
+    # ToDo: Do it properly if we have more time for Liquid
+
+    @property
+    def category(self):
+        return None
+
+    @property
+    def address(self):
+        return None
+
+    @property
+    def flow_amount(self):
+        return None
+
+    @property
+    def ismine(self):
+        return None
 
     def __dict__(self):
         return {

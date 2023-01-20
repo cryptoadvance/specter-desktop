@@ -393,7 +393,6 @@ class WalletManager:
                 wallet.delete_files()
                 # Remove the wallet instance
                 del self.wallets[wallet.name]
-                self.update()
                 specter_wallet_deleted = True
             except KeyError:
                 raise SpecterError(
