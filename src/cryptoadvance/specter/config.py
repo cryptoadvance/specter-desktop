@@ -180,6 +180,7 @@ class BaseConfig(object):
         "cryptoadvance.specterext.faucet.service",
         "cryptoadvance.specterext.electrum.service",
         "cryptoadvance.specterext.spectrum.service",
+        "cryptoadvance.specterext.stacktrack.service",
     ]
 
     # This is just a placeholder in order to be aware that you cannot set this
