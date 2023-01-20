@@ -1,3 +1,4 @@
+![](https://img.shields.io/badge/Bitcoin-000000?style=flat&logo=bitcoin&logoColor=white)
 [![docs -  netlify](https://img.shields.io/badge/docs-_netlify-2ea44f)](https://docs.specter.solutions/desktop/)
 ![Cirrus CI - Specific Task Build Status](https://img.shields.io/cirrus/github/cryptoadvance/specter-desktop?label=pytest&task=test)
 ![Cirrus CI - Specific Task Build Status](https://img.shields.io/cirrus/github/cryptoadvance/specter-desktop?label=cypress&task=cypress_test)
