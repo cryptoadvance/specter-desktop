@@ -132,10 +132,6 @@ Cypress.Commands.add("addHotWallet", (wallet_name, device_name, node_type, walle
       }
       // Create Wallet button:
       cy.get('#keysform > .centered').click()
-      cy.get('body').contains("New wallet was created successfully!")
-      // // Download PDF
-      // // unfortunately this results in weird effects in cypress run
-      // //cy.get('#pdf-wallet-download > img').click()
       cy.get('#btn_continue').click()
 
       //Get some funds

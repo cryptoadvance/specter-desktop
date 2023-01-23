@@ -31,7 +31,6 @@ describe('Test sending transactions', () => {
         })
     })
 
-    // 
     it('Open up transaction details', () => {
         cy.selectWallet("Test Hot Wallet 1")
         cy.get('#btn_transactions').click()
@@ -41,9 +40,9 @@ describe('Test sending transactions', () => {
         cy.get('.tx-data-info').contains('Value: 20 tBTC')
         // Output
         cy.get('.tx-data-info').contains(/Value:\s19\.9999\d{3}/) // The amount from the raw tx has 7 decimals, fees change apparently
-        cy.get('#page_overlay_popup_cancel_button').click()
+        cy.get('[data-cy="transaction-details-screen-close-btn"]').click()
         // Change to sats and check amounts and units
-        cy.get('[href="/settings/"]').click()
+        cy.get('[data-cy="settings-btn"]').click()
         cy.get('[name="unit"]').select('sats')
         cy.contains('Save').click()
         cy.selectWallet("Test Hot Wallet 1")
@@ -53,9 +52,9 @@ describe('Test sending transactions', () => {
         cy.get('.tx-data-info').contains('Value: 2,000,000,000 tsat')
         // Output
         cy.get('.tx-data-info').contains(/Value:\s1,999,99\d,\d{3}\stsat/) // Fees change apparently
-        cy.get('#page_overlay_popup_cancel_button').click()
+        cy.get('[data-cy="transaction-details-screen-close-btn"]').click()
         // Change back to btc
-        cy.get('[href="/settings/"]').click()
+        cy.get('[data-cy="settings-btn"]').click()
         cy.get('[name="unit"]').select('BTC')
         cy.contains('Save').click()
     })
