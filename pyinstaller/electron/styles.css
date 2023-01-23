@@ -901,6 +901,11 @@ table tr:hover .btn.hovering{
 a:focus + .tool-tip .tool-tip__info {
     display: inline-block;
 }
+
+code {
+    word-wrap: break-word;
+}
+
 .switch-label {
     height: 25px;
     vertical-align: sub;
