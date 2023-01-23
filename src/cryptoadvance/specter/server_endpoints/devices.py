@@ -499,8 +499,12 @@ def device(device_alias):
                 Device.get_device_class_by_device_type_string(device_type)
             ):
                 device.set_type(device_type)
+            # Should actually not be possible to end up here (UI doesn't let you select this) but just in case
             else:
-                flash(f"Type of Device {device_type} is not supported by that node.")
+                flash(
+                    f"The device type {Device.get_device_class_by_device_type_string(device_type).name} is not supported by your connection.",
+                    "error",
+                )
     device = copy.deepcopy(device)
 
     def sort_accounts(k):
