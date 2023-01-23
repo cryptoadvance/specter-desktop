@@ -246,9 +246,7 @@ def get_subclasses(cls):
     Returns all subclasses of a specific call including sususub...classes
     """
     subclasses = []
-    logger.fatal(f"Searching {cls}")
     for subclass in cls.__subclasses__():
-        logger.fatal(subclass)
         # if not subclass.__module__.startswith("test_"):
         subclasses.append(subclass)
         subclasses.extend(get_subclasses(subclass))
