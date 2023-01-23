@@ -26,6 +26,7 @@ class SpectrumNode(AbstractNode):
         host=None,
         port=None,
         ssl=None,
+        fullpath=None,
     ):
         self._spectrum = spectrum
         self.bridge = bridge
@@ -34,6 +35,8 @@ class SpectrumNode(AbstractNode):
         self._host = host
         self._port = port
         self._ssl = ssl
+        if fullpath != None:
+            self.fullpath = fullpath
 
         # ToDo: Should not be necessary
         self._rpc = None
@@ -91,8 +94,9 @@ class SpectrumNode(AbstractNode):
         host = node_dict.get("host", None)
         port = node_dict.get("port", None)
         ssl = node_dict.get("ssl", None)
+        fullpath = node_dict.get("fullpath", None)
 
-        return cls(name, alias, host=host, port=port, ssl=ssl)
+        return cls(name, alias, host=host, port=port, ssl=ssl, fullpath=fullpath)
 
     @property
     def json(self):
