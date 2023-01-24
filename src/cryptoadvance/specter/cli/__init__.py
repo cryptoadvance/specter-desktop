@@ -1,14 +1,13 @@
 import logging
 import os
-from http.client import HTTPConnection
 
 import click
 
-from .cli_noded import bitcoind, elementsd
+from ..server import setup_logging
 from .cli_ext import ext
-from .cli_server import server
 from .cli_gunicorn import gunicorn
-from .utils import setup_logging
+from .cli_noded import bitcoind, elementsd
+from .cli_server import server
 
 logger = logging.getLogger(__name__)
 

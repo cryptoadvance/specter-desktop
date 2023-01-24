@@ -11,10 +11,9 @@ import click
 from OpenSSL import SSL, crypto
 from stem.control import Controller
 
-from ..server import create_app, init_app
+from ..server import create_app, init_app, setup_logging, setup_debug_logging
 from ..specter_error import SpecterError
 from ..util.tor import start_hidden_service, stop_hidden_services
-from .utils import setup_debug_logging, setup_logging
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +88,12 @@ def server(
     specter_data_folder,
     config,
 ):
-    """Run Specter Desktop as a http(s)-service"""
+    """This code is a function that runs Specter Desktop as a http(s)-service.
+    It sets up logging, creates an app to get Specter instance and its data folder,
+    sets certificates, initializes the app with the given parameters,
+    runs the app with the given parameters,
+    and stops any hidden services when it's done.
+    """
     # logging
     if debug:
         setup_debug_logging()
@@ -256,16 +260,3 @@ def configure_ssl(kwargs, app_config, ssl):
     logger.info("Configuring SSL-certificate " + app_config["CERT"])
     kwargs["ssl_context"] = (app_config["CERT"], app_config["KEY"])
     return kwargs
-
-
-def create_and_init(config="cryptoadvance.specter.config.DevelopmentConfig"):
-    """This method can be used to fill the FLASK_APP-env variable like
-    export FLASK_APP="src/cryptoadvance/specter/server:create_and_init()"
-    See Development.md to use this for debugging
-    """
-    setup_logging(debug=True)
-    setup_debug_logging()
-    app = create_app(config)
-    with app.app_context():
-        init_app(app)
-    return app

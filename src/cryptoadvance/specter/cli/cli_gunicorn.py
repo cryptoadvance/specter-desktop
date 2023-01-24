@@ -19,7 +19,7 @@ except ModuleNotFoundError as e:
     else:
         raise e
 from cryptoadvance.specter.server import create_app, init_app
-from cryptoadvance.specter.cli.cli_server import create_and_init
+from cryptoadvance.specter.server import create_and_init
 from OpenSSL import SSL, crypto
 from stem.control import Controller
 
