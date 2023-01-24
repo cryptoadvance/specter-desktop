@@ -12,10 +12,6 @@ apscheduler==3.9.1 \
     --hash=sha256:65e6574b6395498d371d045f2a8a7e4f7d50c6ad21ef7313d15b1c7cf20df1e3 \
     --hash=sha256:ddc25a0ddd899de44d7f451f4375fb971887e65af51e41e5dcf681f59b8b2c9a
     # via flask-apscheduler
-attrs==22.1.0 \
-    --hash=sha256:29adc2665447e5191d0e7c568fde78b21f9672d344281d0c6e1ab085429b22b6 \
-    --hash=sha256:86efa402f67bf2df34f51a335487cf46b1ec130d02b8d39fd248abfd30da551c
-    # via pytest
 babel==2.10.3 \
     --hash=sha256:7614553711ee97490f732126dc077f8d0ae084ebc6a96e23db1482afabdb2c51 \
     --hash=sha256:ff56f4892c1c4bf0d814575ea23471c230d544203c7748e8c68f0089478d48eb
@@ -123,9 +119,9 @@ cryptoadvance-liquidissuer==0.2.4 \
     --hash=sha256:5a2c531801854c5a4a46daf184877e22f731cdb42d2cfb840785bda7371ba6fb \
     --hash=sha256:9e468f3e35ecc566b3f74a2263677cf26632548abb194521dba15ad37acd1e9b
     # via -r requirements.in
-cryptoadvance.spectrum==0.3.0 \
-    --hash=sha256:2f231622fab424ed80aff1259c519091cbe69d8d682772f3aafd6da557d34968 \
-    --hash=sha256:e86dc356cdd8dc976970e20445880d8263421a72af17ab38ade7b5a4ad89273e
+cryptoadvance.spectrum==0.3.1 \
+    --hash=sha256:c0eedce7d88f28a1fbf3a5afbcf3b03f1effdb0983f07445953a1d9fbe789209 \
+    --hash=sha256:c8eba63d3aec6cc391784e5dde99ec39b13f719a062ef1ce786e5fdf850150d8
     # via -r requirements.in
 cryptography==3.4.7 \
     --hash=sha256:0f1212a66329c80d68aeeb39b8a16d54ef57071bf22ff4e521657b27372e327d \
@@ -158,10 +154,6 @@ embit==0.6.1 \
     # via
     #   -r requirements.in
     #   cryptoadvance.spectrum
-exceptiongroup==1.0.0 \
-    --hash=sha256:2ac84b496be68464a2da60da518af3785fff8b7ec0d090a581604bc870bdee41 \
-    --hash=sha256:affbabf13fb6e98988c38d9c5650e701569fe3c1de3233cfb61c5f33774690ad
-    # via pytest
 flask-apscheduler==1.12.4 \
     --hash=sha256:681dae34dc6cc9403ce674795e53abd0bff540472129cfd3d3c93e0e1d502da8
     # via -r requirements.in
@@ -329,10 +321,6 @@ importlib_metadata==4.8.1 \
     --hash=sha256:b618b6d2d5ffa2f16add5697cf57a46c76a56229b0ed1c438322e4e95645bd15 \
     --hash=sha256:f284b3e11256ad1e5d03ab86bb2ccd6f5339688ff17a4d797a0fe7df326f23b1
     # via -r requirements.in
-iniconfig==1.1.1 \
-    --hash=sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3 \
-    --hash=sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32
-    # via pytest
 itsdangerous==2.1.2 \
     --hash=sha256:2c2349112351b88699d8d4b6b075022c0808887cb7ad10069318a8b0bc88db44 \
     --hash=sha256:5dbbc68b317e5e42f327f9021763545dc3fc3bfe22e6deb96aaf1fc38874156a
@@ -435,10 +423,6 @@ numpy==1.24.1 \
     --hash=sha256:ef85cf1f693c88c1fd229ccd1055570cb41cdf4875873b7728b6301f12cd05bf \
     --hash=sha256:f1b739841821968798947d3afcefd386fa56da0caf97722a5de53e07c4ccedc7
     # via pandas
-packaging==21.3 \
-    --hash=sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb \
-    --hash=sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522
-    # via pytest
 pandas==1.5.2 \
     --hash=sha256:0183cb04a057cc38fde5244909fca9826d5d57c4a5b7390c0cc3fa7acd9fa883 \
     --hash=sha256:1fc87eac0541a7d24648a001d553406f4256e744d92df1df8ebe41829a915028 \
@@ -476,10 +460,6 @@ plotly==5.10.0 \
     --hash=sha256:4d36d9859b7a153b273562deeed8c292587a472eb1fd57cd4158ec89d9defadb \
     --hash=sha256:989b13825cc974390aa0169479485d9257d37848a47bc63957251f8e1a7046ba
     # via specterext-stacktrack
-pluggy==1.0.0 \
-    --hash=sha256:4224373bacce55f955a878bf9cfa763c1e360858e330072059e10bad68531159 \
-    --hash=sha256:74134bbf457f031a36d68416e1509f34bd5ccc019f0bcc952c7b909d06b37bd3
-    # via pytest
 protobuf==3.20.2 \
     --hash=sha256:03d76b7bd42ac4a6e109742a4edf81ffe26ffd87c5993126d894fe48a120396a \
     --hash=sha256:09e25909c4297d71d97612f04f41cea8fa8510096864f2835ad2f3b3df5a5559 \
@@ -634,10 +614,6 @@ pyopenssl==20.0.1 \
     --hash=sha256:4c231c759543ba02560fcd2480c48dcec4dae34c9da7d3747c508227e0624b51 \
     --hash=sha256:818ae18e06922c066f777a33f1fca45786d85edfe71cd043de6379337a7f274b
     # via -r requirements.in
-pyparsing==3.0.9 \
-    --hash=sha256:2b020ecf7d21b687f219b71ecad3631f644a47f01403fa1d1036b0c6416d70fb \
-    --hash=sha256:5026bae9a10eeaefb61dab2f09052b9f4307d44aee4eda64b309723d8d206bbc
-    # via packaging
 pyserial==3.5 \
     --hash=sha256:3c77e014170dfffbd816e6ffc205e9842efb10be9f58ec16d3e8675b4925cddb \
     --hash=sha256:c4451db6ba391ca6ca299fb3ec7bae67a5c55dde170964c7a14ceefec02f2cf0
@@ -647,10 +623,6 @@ pysocks==1.7.1 \
     --hash=sha256:2725bd0a9925919b9b51739eea5f9e2bae91e83288108a9ad338b2e3a4435ee5 \
     --hash=sha256:3f8804571ebe159c380ac6de37643bb4685970655d3bba243530d6558b799aa0
     # via -r requirements.in
-pytest==7.2.0 \
-    --hash=sha256:892f933d339f068883b6fd5a459f03d85bfcb355e4981e146d2c7616c21fef71 \
-    --hash=sha256:c4014eb40e10f11f355ad4e3c2fb2c6c6d1919c73f3b5a433de4708202cade59
-    # via cryptoadvance.spectrum
 python-dateutil==2.8.2 \
     --hash=sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86 \
     --hash=sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9
@@ -706,9 +678,9 @@ specterext-exfund==0.1.7 \
 specterext-faucet==0.1.2 \
     --hash=sha256:86db78a6c41688152cfeec14efafd6d06c97e6edd9735461ee897495f90cb2e8
     # via -r requirements.in
-specterext-stacktrack==0.1.1 \
-    --hash=sha256:4bcecda020a1556be0cde36f255713692360dcf569d8ad18408b6fba26d2d730 \
-    --hash=sha256:760d405101afd31359a3f7fc852a1be6f975c5526f506f492025df546a0204a8
+specterext-stacktrack==0.2.1 \
+    --hash=sha256:28729d1a981d8c061902b3d26baefc723d286aecea4d203ed729d1c89a9de267 \
+    --hash=sha256:34a5e9da8a3cb7a4c8b7bc4e0a417a043150e608a7261e56d84fbfba9af15b8a
     # via -r requirements.in
 sqlalchemy==1.4.42 \
     --hash=sha256:04f2598c70ea4a29b12d429a80fad3a5202d56dce19dd4916cc46a965a5ca2e9 \
@@ -760,10 +732,6 @@ tenacity==8.1.0 \
     --hash=sha256:35525cd47f82830069f0d6b73f7eb83bc5b73ee2fff0437952cedf98b27653ac \
     --hash=sha256:e48c437fdf9340f5666b92cd7990e96bc5fc955e1298baf4a907e3972067a445
     # via plotly
-tomli==2.0.1 \
-    --hash=sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc \
-    --hash=sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f
-    # via pytest
 typing-extensions==3.10.0.2 \
     --hash=sha256:49f75d16ff11f1cd258e1b988ccff82a3ca5570217d7ad8c5f48205dd99a677e \
     --hash=sha256:d8226d10bc02a29bcc81df19a26e56a9647f8b0a6d4a83924139f4a8b01f17b7 \
