@@ -1,3 +1,4 @@
+// This test builds upon the ghost machine test.
 describe('Test sending transactions', () => {
     before(() => {
         Cypress.config('includeShadowDom', true)
@@ -225,7 +226,8 @@ describe('Test sending transactions', () => {
     it('Send a transaction from a multisig wallet', () => {
         // We need a second hot wallet
         cy.addHotDevice("Hot Device 2","bitcoin")
-        cy.addWallet('Test Multisig Wallet', 'segwit', 'funded', 'btc', 'multisig', 'Hot Device 1', 'Hot Device 2', 'DIY ghost')        
+        cy.addWallet('Test Multisig Wallet', 'segwit', 'funded', 'btc', 'multisig', 'Hot Device 1', 'Hot Device 2', 'DIY ghost')  
+        cy.selectWallet('Test Multisig Wallet')      
         cy.get('#btn_send').click()
         cy.get('#recipient_0').find('#address').type("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u", { force: true })
         cy.get('#recipient_0').find('#label').type("Burn address", { force: true })

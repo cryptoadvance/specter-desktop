@@ -49,7 +49,7 @@
 		{% if wallet_type == 'multisig' %}
 			<div class="center">
 				{{ _("Using") }} 
-				<input class="inline" type="number" name="sigs_required" min=1 max="{{ cosigners | length }}" step=1 value="{{ sigs_required }}" />
+				<input class="inline" type="number" name="sigs_required" min=1 max="{{ cosigners | length }}" step=1 value="{{ sigs_required }}" data-cy="number-of-required-signatures-in-multisig"/>
 				{{ _("of") }} 
 				<span data-style="margin: 0px 40px; font-size: 1.2em;">{{ cosigners | length }}<span>
 			</div>
@@ -179,7 +179,7 @@
 			</div>
 		</div>
 
-		<button type="submit" name="action" value="key" class="btn centered action">{{ _("Create wallet") }}</button>
+		<button type="submit" name="action" value="key" class="btn centered action" data-cy="create-multisig-wallet-btn">{{ _("Create wallet") }}</button>
 	</form>
 {% endblock %}
 

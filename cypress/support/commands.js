@@ -154,7 +154,7 @@ Cypress.Commands.add("addWallet", (walletName, walletType, funded, nodeType, key
       cy.get('#side-content').click()
       cy.get('#btn_new_wallet').click()
       if (keyType == 'singlesig') {
-        cy.get('[href="./simple/"]').click()
+        cy.get('[data-cy="singlesig-wallet-btn"]').click()
         var device_button = "#"+deviceNameOne.toLowerCase().replace(/ /g,"_")
         cy.get(device_button).click()
         cy.get('#wallet_name').type(walletName)
@@ -167,7 +167,7 @@ Cypress.Commands.add("addWallet", (walletName, walletType, funded, nodeType, key
       }
       // Makes a 2 out 3 multisig
       else if (keyType == "multisig") {
-        cy.get('[href="./multisig/"]').click()
+        cy.get('[data-cy="multisig-wallet-btn"]').click()
         var deviceButtonOne = "#"+deviceNameOne.toLowerCase().replace(/ /g,"_")
         cy.get(deviceButtonOne).click()
         var deviceButtonTwo = "#"+deviceNameTwo.toLowerCase().replace(/ /g,"_")
@@ -179,10 +179,10 @@ Cypress.Commands.add("addWallet", (walletName, walletType, funded, nodeType, key
         if (walletType == "nested_segwit") {
           cy.get('#type_nested_segwit_btn').click()
         }
-        cy.get(':nth-child(9) > .inline').clear()
-        cy.get(':nth-child(9) > .inline').type(2)
+        cy.get('[data-cy="number-of-required-signatures-in-multisig"]').clear()
+        cy.get('[data-cy="number-of-required-signatures-in-multisig"]').type(2)
       }
-      cy.get('#keysform > .centered').click()
+      cy.get('[data-cy="create-multisig-wallet-btn"]').click()
       cy.get('[data-cy="new-wallet-added-headline"]')
       cy.get('[data-cy="new-wallet-added-overlay-close-btn"]').click()
       if (funded) {
