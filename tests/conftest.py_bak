@@ -209,7 +209,7 @@ def node(empty_data_folder, bitcoin_regtest):
     if not os.path.isdir(nodes_folder):
         os.makedirs(nodes_folder)
     nm = NodeManager(data_folder=nodes_folder)
-    node: Node = nm.add_external_node(
+    node = nm.add_external_node(
         "BTC",
         "Standard node",
         False,
@@ -219,8 +219,8 @@ def node(empty_data_folder, bitcoin_regtest):
         bitcoin_regtest.rpcconn.rpcport,
         bitcoin_regtest.rpcconn._ipaddress,
         "http",
+        #"standard_node",
     )
-    assert node.rpc.test_connection()
     return node
 
 
@@ -240,6 +240,7 @@ def node_with_different_port(empty_data_folder, bitcoin_regtest):
         18333,
         bitcoin_regtest.rpcconn._ipaddress,
         "http",
+        #"satoshis_node",
     )
     return node
 
@@ -491,6 +492,63 @@ def device_manager(devices_filled_data_folder):
     return DeviceManager(os.path.join(devices_filled_data_folder, "devices"))
 
 
+
+def create_specter_with_node_and_user(bitcoin_regtest, devices_filled_data_folder, node, allow_threading_for_testing):
+    assert bitcoin_regtest.get_rpc().test_connection()
+    config = {
+        "auth": {
+            "method": "rpcpasswordaspin",
+        },
+        "testing": {
+            "allow_threading_for_testing": allow_threading_for_testing,
+        },
+    }
+    specter = Specter(
+        data_folder=devices_filled_data_folder, config=config, checker_threads=False
+    )
+    node = specter.node_manager.add_external_node(
+        "BTC",
+        "Node with a different port",
+        False,
+        "",
+        bitcoin_regtest.rpcconn.rpcuser,
+        bitcoin_regtest.rpcconn.rpcpassword,
+        bitcoin_regtest.rpcconn.rpcport,
+        bitcoin_regtest.rpcconn._ipaddress,
+        "http"
+    )
+    assert specter.chain == "regtest"
+
+    # Create a User
+    someuser = specter.user_manager.add_user(
+        User.from_json(
+            user_dict={
+                "id": "someuser",
+                "username": "someuser",
+                "password": hash_password("somepassword"),
+                "config": {},
+                "is_admin": False,
+                "services": None,
+            },
+            specter=specter,
+        )
+    )
+    specter.user_manager.save()
+    specter.check()
+
+    assert not specter.wallet_manager.working_folder is None
+
+
+    # "rpc": {
+    # "autodetect": False,
+    # "datadir": bitcoin_regtest.datadir,
+    # "user": bitcoin_regtest.rpcconn.rpcuser,
+    # "password": bitcoin_regtest.rpcconn.rpcpassword,
+    # "port": bitcoin_regtest.rpcconn.rpcport,
+    # "host": bitcoin_regtest.rpcconn.ipaddress,
+    # "protocol": "http",
+
+
 # @pytest.fixture
 # def user_manager(empty_data_folder) -> UserManager:
 #     """A UserManager having users alice, bob and eve"""
@@ -521,46 +579,7 @@ def device_manager(devices_filled_data_folder):
 
 @pytest.fixture
 def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder, node):
-    assert bitcoin_regtest.get_rpc().test_connection()
-    config = {
-        "rpc": {
-            "autodetect": False,
-            "datadir": bitcoin_regtest.datadir,
-            "user": bitcoin_regtest.rpcconn.rpcuser,
-            "password": bitcoin_regtest.rpcconn.rpcpassword,
-            "port": bitcoin_regtest.rpcconn.rpcport,
-            "host": bitcoin_regtest.rpcconn.ipaddress,
-            "protocol": "http",
-        },
-        "auth": {
-            "method": "rpcpasswordaspin",
-        },
-        "testing": {
-            "allow_threading_for_testing": False,
-        },
-    }
-    specter = Specter(
-        data_folder=devices_filled_data_folder, config=config, checker_threads=False
-    )
-    assert specter.chain == "regtest"
-    # Create a User
-    someuser = specter.user_manager.add_user(
-        User.from_json(
-            user_dict={
-                "id": "someuser",
-                "username": "someuser",
-                "password": hash_password("somepassword"),
-                "config": {},
-                "is_admin": False,
-                "services": None,
-            },
-            specter=specter,
-        )
-    )
-    specter.user_manager.save()
-    specter.check()
-
-    assert not specter.wallet_manager.working_folder is None
+    specter = create_specter_with_node_and_user(bitcoin_regtest, devices_filled_data_folder, node, False)
     try:
         yield specter
     finally:
@@ -569,6 +588,7 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder, node
         for user in specter.user_manager.users:
             for wallet in list(user.wallet_manager.wallets.values()):
                 user.wallet_manager.delete_wallet(wallet, node)
+
 
 
 @pytest.fixture

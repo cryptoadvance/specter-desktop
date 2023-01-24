@@ -42,8 +42,10 @@ class SpectrumService(Service):
     def spectrum_node(self):
         """Iterates all nodes and returns the spectrum Node or None if it doesn't exist"""
         for node in app.specter.node_manager.nodes.values():
+
             if (
-                node.fqcn
+                hasattr(node, "fqcn")
+                and node.fqcn
                 == "cryptoadvance.specterext.spectrum.spectrum_node.SpectrumNode"
             ):
                 return node

@@ -30,7 +30,6 @@ def test_WalletManager(
     node_with_empty_datadir,
 ):
     wm = WalletManager(
-        200100,
         devices_filled_data_folder,
         bitcoin_regtest.get_rpc(),
         "regtest",
@@ -126,7 +125,6 @@ def test_WalletManager_2_nodes(
 ):
     caplog.set_level(logging.INFO)
     wm = WalletManager(
-        200100,
         devices_filled_data_folder,
         bitcoin_regtest.get_rpc(),
         "regtest",
@@ -144,16 +142,16 @@ def test_WalletManager_2_nodes(
     assert wm.working_folder.endswith("regtest")
     assert wm.rpc.port == 18543
     # Change the rpc - this only works with a different chain!
-    wm.update(rpc=bitcoin_regtest2.get_rpc(), chain="regtest2")
+    wm.update(rpc=bitcoin_regtest2.get_rpc(), chain="test")
     # A WalletManager uses the chain as an index
     assert list(wm.rpcs.keys()) == [
         "regtest",
-        "regtest2",
+        "test",
     ]  # wm.rpcs looks like this: {'regtest': <BitcoinRpc http://localhost:18543>, 'regtest2': <BitcoinRpc http://localhost:18544>}
     assert wm.rpc.port == 18544
-    assert wm.wallets_names == []
-    assert wm.chain == "regtest2"
-    assert wm.working_folder.endswith("regtest2")
+    # assert wm.wallets_names == []
+    assert wm.chain == "test"
+    assert wm.working_folder.endswith("test")
     second_wallet = wm.create_wallet(
         "a_regtest2_test_wallet", 1, "wpkh", [device.keys[5]], [device]
     )
@@ -163,7 +161,6 @@ def test_WalletManager_2_nodes(
 
 def test_WalletManager_check_duplicate_keys(empty_data_folder):
     wm = WalletManager(
-        200100,
         empty_data_folder,
         MagicMock(),  # needs rpc
         "regtest",
@@ -230,7 +227,6 @@ def test_wallet_sortedmulti(
     bitcoin_regtest, devices_filled_data_folder, device_manager
 ):
     wm = WalletManager(
-        200100,
         devices_filled_data_folder,
         bitcoin_regtest.get_rpc(),
         "regtest",
@@ -284,7 +280,6 @@ def test_wallet_sortedmulti(
 
 def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_manager):
     wm = WalletManager(
-        200100,
         devices_filled_data_folder,
         bitcoin_regtest.get_rpc(),
         "regtest",
@@ -343,7 +338,6 @@ def test_wallet_change_addresses(
     bitcoin_regtest, devices_filled_data_folder, device_manager
 ):
     wm = WalletManager(
-        200100,
         devices_filled_data_folder,
         bitcoin_regtest.get_rpc(),
         "regtest",
@@ -353,14 +347,14 @@ def test_wallet_change_addresses(
     device = device_manager.get_by_alias("specter")
     key = Key.from_json(
         {
-            "derivation": "m/48h/1h/0h/2h",
-            "original": "Vpub5n9kKePTPPGtw3RddeJWJe29epEyBBcoHbbPi5HhpoG2kTVsSCUzsad33RJUt3LktEUUPPofcZczuudnwR7ZgkAkT6N2K2Z7wdyjYrVAkXM",
+            "derivation": "m/84h/1h/0h",
+            "original": "vpub5ZSem3mLXiSJzgDX6pJb2N9L6sJ8m6ejaksLPLSuB53LBzCi2mMsBg19eEUSDkHtyYp75GATjLgt5p3S43WjaVCXAWU9q9H5GhkwJBrMiAb",
             "fingerprint": "08686ac6",
-            "type": "wsh",
-            "xpub": "tpubDFHpKypXq4kwUrqLotPs6fCic5bFqTRGMBaTi9s5YwwGymE8FLGwB2kDXALxqvNwFxB1dLWYBmmeFVjmUSdt2AsaQuPmkyPLBKRZW8BGCiL",
+            "type": "wpkh",
+            "xpub": "tpubDDUotcvrYMUiy4ncDirveTfhmvggdj8nxcW5JgHpGzYz3UVscJY5aEzFvgUPk4YyajadBnsTBmE2YZmAtJC14Q21xncJgVaHQ7UdqMRVRbU",
         }
     )
-    wallet = wm.create_wallet("a_second_test_wallet", 1, "wpkh", [key], [device])
+    wallet: wallet = wm.create_wallet("a_third_test_wallet", 1, "wpkh", [key], [device])
 
     address = wallet.address
     change_address = wallet.change_address

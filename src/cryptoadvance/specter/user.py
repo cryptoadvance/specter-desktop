@@ -293,7 +293,6 @@ class User(UserMixin):
         ):
 
             wallet_manager = WalletManager(
-                self.specter.bitcoin_core_version_raw,
                 wallets_folder,
                 self.specter.rpc,
                 self.specter.chain,

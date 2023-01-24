@@ -127,10 +127,8 @@ class Specter:
             )
         except SpecterError as e:
             if str(e).endswith("does not exist!"):
-                logger.warning(
-                    f"Current Node doesn't exist. Switching over to node {self.node_manager.DEFAULT_ALIAS}."
-                )
-                self.update_active_node(self.node_manager.DEFAULT_ALIAS)
+                if len(self.node_manager.nodes) > 0:
+                    self.update_active_node(next(iter(self.nodes.values())).alias)
             else:
                 raise e
 
@@ -238,11 +236,8 @@ class Specter:
     def node(self) -> Node:
         try:
             return self.node_manager.active_node
-        except SpecterError as e:
-            logger.error("SpecterError while accessing active_node")
-            logger.exception(e)
-            self.update_active_node(list(self.node_manager.nodes.values())[0].alias)
-            return self.node_manager.active_node
+        except IndexError:
+            return None
 
     @property
     def default_node(self):
@@ -250,6 +245,8 @@ class Specter:
 
     @property
     def rpc(self):
+        if not self.node:
+            return None
         return self.node.rpc
 
     @property
@@ -564,7 +561,7 @@ class Specter:
 
     @property
     def active_node_alias(self):
-        return self.user_config.get("active_node_alias", "default")
+        return self.user_config.get("active_node_alias", None)
 
     @property
     def explorer(self):
