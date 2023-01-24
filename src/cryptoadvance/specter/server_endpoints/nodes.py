@@ -199,7 +199,7 @@ def node_settings(node_alias):
                 )
                 return redirect(
                     url_for(
-                        "nodes_endpoint.node_settings",
+                        "nodes_endpoint.node_settings_get",
                         node_alias=app.specter.node.alias,
                     )
                 )
@@ -211,8 +211,7 @@ def node_settings(node_alias):
                 )
                 return redirect(
                     url_for(
-                        "nodes_endpoint.node_settings",
-                        node_alias=None,
+                        "nodes_endpoint.node_settings_new_node_get",
                     )
                 )
     elif action == "connect":
