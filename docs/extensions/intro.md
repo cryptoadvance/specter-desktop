@@ -64,6 +64,7 @@ Should the extension work in isolated client mode (y/n)?: n
 
         Here is how to get it to run in your development environment:
             pip3 install -e .
+            pip3 install cryptoadvance.specter
             python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
             # Point your browser to http://localhost:25441
             # Click "Choose plugins" --> rubberduck
