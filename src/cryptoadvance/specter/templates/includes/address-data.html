@@ -104,7 +104,7 @@
                     <qr-code style="margin: auto;" value="bitcoin:${address}" width="256"></qr-code>
                     <table class="address-data-table -mx-4 mt-8">
                     <tbody>
-                    <tr><td>{{ _("Address") }}:</td><td style="word-break: break-all;"><explorer-link data-type="address" data-value="${address}"></explorer-link></td></tr>
+                    <tr><td>{{ _("Address") }}:</td><td class="cursor-pointer" title="Copy address" style="word-break: break-all;"><explorer-link data-type="address" data-value="${address}"></explorer-link></td></tr>
                     <tr><td>{{ _("Label") }}:</td><td><address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}" data-label="${this.label}" data-service-id="${this.serviceId}"></address-label><br></td></tr>
                     <tr><td>{{ _("From wallet") }}:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
                     <tr><td>{{ _("Address index") }}:</td><td>${addressIndex}</td></tr>
