@@ -176,8 +176,8 @@ class Wallet:
 
     @property
     def rpc(self):
-        """caches an rpc-instance as long as the rpc from the wallet_manager did not change
-        This instance is also used by a lot of objects created by the wallet TxList/TxItem/...
+        """Cache RPC instance. Reuse if manager's RPC instance hasn't changed. Create new RPC instance otherwise."""
+        This RPC instance is also used by objects created by the wallet, such as TxList or TxItem
         """
         if hasattr(self, "_rpc"):
             if (
