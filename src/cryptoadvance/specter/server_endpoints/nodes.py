@@ -296,7 +296,13 @@ def node_settings(node_alias):
                     protocol,
                 )
                 app.specter.update_active_node(connectable_node.alias)
-                flash(_(f"New connection saved and selected"))
+                if len(node_manager.nodes_by_chain(app.specter.chain)) > 1:
+                    flash(
+                        f"You connected to more than one Bitcoin Core node on the same network ({app.specter.chain}). Your connection was saved. But be aware, this is a beta feature.",
+                        "warning",
+                    )
+                else:
+                    flash(_(f"New connection saved and selected"))
                 return redirect(url_for("welcome_endpoint.index"))
         else:
             # Updating a node with autodetect with incorrect values doesn't lead to a failure since the get_rpc in the node class
