@@ -80,7 +80,9 @@ class BaseConfig(object):
 
     # This will be used to search for a bitcoin.conf in order to enable the
     # auth method "RPC password as pin"
-    RASPIBLITZ_SPECTER_RPC_LOGIN_BITCOIN_CONF_LOCATION = "/mnt/hdd/bitcoin"
+    RASPIBLITZ_SPECTER_RPC_LOGIN_BITCOIN_CONF_LOCATION = os.getenv(
+        "RASPIBLITZ_SPECTER_RPC_LOGIN_BITCOIN_CONF_LOCATION", "/mnt/hdd/bitcoin"
+    )
 
     # This will get passed to initialize the specter-object
     DEFAULT_SPECTER_CONFIG = {}
