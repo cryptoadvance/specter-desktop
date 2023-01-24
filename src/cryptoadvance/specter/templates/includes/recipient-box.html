@@ -485,16 +485,11 @@
 			return response['is_mine'];
 		}
 
-		markRecipient(is_address_mine){
-			let html_address = this.addressElement;
+		markRecipient(is_address_mine) {
 			if (is_address_mine) {
-				html_address.style.backgroundColor= 'var(--cmap-bg-address-is-mine)';
-			} else {
-				html_address.style.backgroundColor= "rgba(1, 1, 1, 0)";
-			}
-
+				this.addressElement.setAttribute('data-cy', 'address-is-mine')
+			} 
 		}
-
 	}
 	customElements.define('recipient-box', RecipientBox);
 </script>

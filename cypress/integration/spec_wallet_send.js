@@ -214,10 +214,12 @@ describe('Test sending transactions', () => {
         cy.get('#btn_send').click()
         // Simulating pasting the address, this also reduces the amount of fetch API calls to just one
         cy.get('#recipient_0').find('#address').invoke('val', "bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs").trigger('input')
-        cy.get('#recipient_0').find('#label').type('To my own wallet', { force: true })
+        cy.get('#recipient_0').find('#label').type('To my own wallet')
+        // By passing { force: true }, Cypress will interact with the input element
+        // bypassing any constraints that would prevent it from interacting with it, such as the min and step attributes
         cy.get('#recipient_0').find('#amount').type(10, { force: true })
-        // Checking that the background colour of the address is green as it belongs to the wallet
-        cy.get('#recipients').find('#recipient_0').find('#address').should('have.css', 'background-color','rgb(48, 109, 48)')
+        // Checking that the address belongs to the wallet
+        cy.get('#recipients').find('#recipient_0').find('#address').should('have.attr', 'data-cy','address-is-mine')
     })
     
     it('Send a transaction from a multisig wallet', () => {
