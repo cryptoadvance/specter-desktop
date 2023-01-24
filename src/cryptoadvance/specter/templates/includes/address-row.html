@@ -1,5 +1,5 @@
 <template id="address-row">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}"> -->
 	  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
     <style>
         @media (max-width: 690px){
@@ -27,7 +27,6 @@
         <td class="utxo optional"></td>
         <td class="optional"><span class="amount"></span> <span class="amount-price note hidden">()</span></td>
         <td class="verify optional"><button type="button" class="btn" style="width:150px; max-width:150px;margin: 0px;">{{ _("Verify on device") }}</button></td>
-        <td></td>
     </tr>
 </template>
 

@@ -35,44 +35,46 @@
 <template id="recipient-box">
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
 
-	<div style="display: none;"><!--<style>-->
-		.max-btn:hover {
-			text-decoration: underline;
-			cursor: pointer;
-		}
-		.address {
-			padding: 7px;
-		}
-		.address-label {
-			padding: 7px;
-			margin-top: 5px;
-			margin-bottom: 5px;
-		}
-	</div><!--</style>-->
+	<div id="recipient" class="recipient_wrapper_item">		
+		<div class="px-4 py-3 flex justify-between bg-dark-700">
+			<span id='title' class="text-lg"><!-- the title comes in here--></span>		
+			<img src="{{ url_for('static', filename='img/close.svg') }}" class="recipient_button recipient_remove cursor-pointer" title="Remove recipient" id="remove" data-style="float:right">
+		</div>
 
-	<div id="recipient" class="recipient_wrapper_item" >		
-				<span id='title'><!-- the title comes in here--></span>		
-				<img src="{{ url_for('static', filename='img/close.svg') }}" class="recipient_button recipient_remove" title="Remove recipient" id="remove" data-style="float:right">
-				<div class="recipient_wrapper_inner_box"  >
-					<div class="row" data-style="gap: 5px">
-						<input type="text" id="address" name="address" class="address" value="" placeholder='{{ _("Recipient address") }}'>
-						<qr-scanner id="address-scan" data-style="margin-top: 3px;">
-							<a slot="button" class="btn" data-style="height: 35px;">
-							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" data-style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Scan") }}</a>
-						</qr-scanner>
-					</div>				
-					<input type="text" id="label" class="address-label" name="label" value="" placeholder='{{ _("Address label") }}'>
-					<br>
-					{{ _("Amount:") }}<br>
-					<input data-style="width: 200px" type="number" name="amount" id="amount" min=0 step='1e-8' autocomplete="off" placeholder="0"> <!-- the value comes in here-->
-					<div class="mobile-only" data-style="margin-top: 10px;"></div>
-					<span id='asset_selector'><!-- the assetSelector comes in here--></span>
-					<span class="note max-btn" data-style="margin-left: 5px;" id="send_max">({{ _("send max") }})</span>
-					<div>
-						<span class="note" id="converted_unit_amount">-</span> <span class="note" id="converted_unit_label"><!-- the convertedUnit comes in here--></span> <span class="note" id="converted_unit_alt"></span>
-					</div>
+		<div class="recipient_wrapper_inner_box px-3 py-3 space-y-3 border-l-2 border-r-2 border-dark-700">
+			<div class="flex space-x-3">
+				<div class="floating-wrapper grow-[3]">
+					<input class="floating-input peer" type="text" id="address" name="address" value="" placeholder=" ">
+					<label class="floating-label">Recipient Address</label>
+					<qr-scanner id="address-scan" class="absolute right-2 top-2">
+						<a slot="button" class="cursor-pointer">
+							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" data-style="width: 26px; margin: 0px;" class="svg-white">
+						</a>
+					</qr-scanner>
 				</div>
-			<div>
+
+				<div class="floating-wrapper grow-[1]">
+					<input class="floating-input peer" type="text" id="label" class="address-label" name="label" value="" placeholder=" ">
+					<label class="floating-label">Address Label</label>
+				</div>
+			</div>
+
+			<div class="floating-wrapper">
+				<input class="floating-input peer" type="number" name="amount" id="amount" min=0 step='1e-8' autocomplete="off" placeholder=" "> <!-- the value comes in here-->
+				<label class="floating-label">Amount</label>
+				<span class="btn absolute right-0.5 top-2 cursor-pointer" id="send_max">{{ _("Send Max") }}</span>
+			</div>
+
+			<div class="flex justify-between">
+				<span class="text-base">Unit Selection</span>
+				<span id='asset_selector' class="space-x-4 flex items-center"><!-- the assetSelector comes in here--></span>
+			</div>
+
+			<div class="hidden" id="converted_unit_container">
+				<span id="converted_unit_amount">-</span> <span class="note" id="converted_unit_label"><!-- the convertedUnit comes in here--></span> <span class="note" id="converted_unit_alt"></span>
+			</div>
+		</div>
+	<div>
 </template>
 
 
@@ -87,8 +89,14 @@
 </template>
 
 <template id="bitcoin-asset-selector">
-	<label><input id="amount_unit_sat" type="radio" class="inline" data-style="margin: 0 5px;" name="amount_unit"  value="sat">sat</label>
-	<label><input id="amount_unit_btc" type="radio" class="inline" data-style="margin: 0 5px;" name="amount_unit"  value="btc">BTC</label>
+	<label class="flex items-center space-x-1">
+		<input id="amount_unit_sat" type="radio" class="" name="amount_unit"  value="sat">
+		<span class="text-lg">Satoshi</span>
+	</label>
+	<label class="flex items-center space-x-1">
+		<input id="amount_unit_btc" type="radio" class="" name="amount_unit"  value="btc">
+		<span class="text-lg">BTC</span>
+	</label>
 </template>
 
 
@@ -123,7 +131,7 @@
 			this.titleElement = clone.getElementById('title'); 
 			this.removeElement = clone.getElementById('remove'); 
 
-            this.shadowRoot.appendChild(clone);
+			this.shadowRoot.appendChild(clone);
 			this.addAssetSelectorToShadowRoot()			
 		}
 
@@ -438,23 +446,26 @@
 
 		calculateConvertedUnit() {
 			let convertedAmount = parseFloat(Number.parseFloat(this.amount / (this.unit == 'sat' ? 1e8 : 1e-8)).toFixed((this.unit == 'sat' ? 8 : 0)));
-			if (convertedAmount == 'NaN') {
+			if (isNaN(convertedAmount)) {
 				convertedAmount = '-'
+				this.shadowRoot.getElementById('converted_unit_container').classList.add("hidden")
+			} else {
+				this.shadowRoot.getElementById('converted_unit_container').classList.remove("hidden")
 			}
 
 			if(this.unit == 'sat' || this.unit == 'btc'){
 				this.shadowRoot.getElementById('converted_unit_amount').innerHTML = (isNaN(convertedAmount) ? '-' : convertedAmount.toFixed(8).replace(/(\.0+|0+)$/, ''));
-			{% if specter.price_check %}
-				let altRate = parseFloat('{{ specter.alt_rate }}');
-				let altSymbol = '{{ specter.alt_symbol }}';
-				let altAmount = parseFloat((altRate * this.btcAmount).toFixed(2))
-				if (!isNaN(altAmount) && (altSymbol && altRate)) {
-					this.shadowRoot.getElementById('converted_unit_alt').innerHTML = '&nbsp;(' + altAmount + altSymbol + ')';
-				} else {
-					this.shadowRoot.getElementById('converted_unit_alt').innerHTML = '';
-				}
-			{% endif %}
-			}else{
+				{% if specter.price_check %}
+					let altRate = parseFloat('{{ specter.alt_rate }}');
+					let altSymbol = '{{ specter.alt_symbol }}';
+					let altAmount = parseFloat((altRate * this.btcAmount).toFixed(2))
+					if (!isNaN(altAmount) && (altSymbol && altRate)) {
+						this.shadowRoot.getElementById('converted_unit_alt').innerHTML = '&nbsp;(' + altAmount + altSymbol + ')';
+					} else {
+						this.shadowRoot.getElementById('converted_unit_alt').innerHTML = '';
+					}
+				{% endif %}
+			} else {
 				this.shadowRoot.getElementById('converted_unit_amount').innerHTML = '&nbsp;';
 				this.shadowRoot.getElementById('converted_unit_alt').innerHTML = '&nbsp;';
 			}

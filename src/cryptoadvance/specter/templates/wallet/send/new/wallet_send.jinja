@@ -21,7 +21,7 @@
 		<h3>{{ _("Create Transaction") }}</h3>
 
 		<div>
-			<div>
+			<p>
 				{{ _("Available funds:") }} {{wallet.amount_available | btcunitamount}}
 				{% if specter.unit == 'sat' %}sats{% else %}{% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC{% endif %}
 
@@ -41,7 +41,7 @@
 						{% endfor %}
 					</span>
 				{% endif %}
-			</div>
+			</p>
 
 			{% if wallet.amount_locked_unsigned  > 0 or wallet.amount_frozen > 0 %}
 				<div>
@@ -56,13 +56,14 @@
 			{% endif %}
 		</div>
 
-		<div>			
-			<div id="recipients" {% if ui_option != 'ui' %}class="hidden"{% else %} class="recipient_wrapper" {% endif %}></div>
-			<img src="{{ url_for('static', filename='img/add-person.svg') }}" id="add-recipient" title="Add a recipient" class="recipient_button recipient_add" data-style="float:right" onclick="addRecipient('', '', 'btc', '')">
+		<div class="flex flex-col">			
+			<div id="recipients" class="mt-3 rounded-t-xl overflow-hidden {% if ui_option != 'ui' %}hidden{% else %} recipient_wrapper" {% endif %}></div>
+			<div class="px-4 py-3 cursor-pointer hover:bg-dark-700 rounded-b-xl bg-dark-600 text-white mb-2" id="add-recipient" title="Add a recipient" class="recipient_button recipient_add" onclick="addRecipient('', '', 'btc', '')">+ Add Recipient</div>
+			<!-- <img src="{{ url_for('static', filename='img/add-person.svg') }}" id="add-recipient" title="Add a recipient" class="recipient_button recipient_add" data-style="float:right" onclick="addRecipient('', '', 'btc', '')"> -->
 			<div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>
 			{{ _("Unit:") }} 
 			<label><input type="radio" class="inline" data-style="margin: 0 5px;" name="amount_unit_text" value="sat" onchange="toggleTextUnit(this)" {% if specter.unit == 'sat' %}checked{% endif %}>sat</label>
-			<label><input type="radio" class="inline" data-style="margin: 0 5px;" name="amount_unit_text" value="btc" onchange="toggleTextUnit(this)" {% if specter.unit != 'sat' %}checked{% endif %}>BTC</label><br>
+			<label><input type="radio" class="inline" data-style="margin: 0 5px;" name="amount_unit_text" value="btc" onchange="toggleTextUnit(this)" {% if specter.unit != 'sat' %}checked{% endif %}>BTC</label>
 
 			<textarea id="recipients-txt" name="recipients" placeholder="{{ _('Enter recipient address, amount') }}" data-style="margin-top: 5px; font-size: 0.95em;" onblur="validateForm()">{{ recipients_txt }}</textarea>
 				<p class="note" data-style="line-height: 2; background-color: #16202d; padding: 10px; border-radius: 7px;">
@@ -80,11 +81,11 @@
 
 			<span id="toggle_advanced">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
 
-			<div id="advanced_settings" data-style="margin: auto; max-width: 90%; display: {% if show_advanced_settings %}block{% else %}none{% endif %};">
+			<div id="advanced_settings" class="{% if not show_advanced_settings %}hidden{% endif %}">
 				<div>{{ _("Transaction editor:") }} 
 					<label><input type="radio" class="inline" data-style="margin: 0 10px 0 20px;" name="ui_option" value="ui" onclick="toggleSendUIType(this)" {% if ui_option == 'ui' %}checked{% endif %} id="ui-radio-btn">UI</label>
 					<label><input type="radio" class="inline" data-style="margin: 0 10px 0 20px;" name="ui_option" value="text" onclick="toggleSendUIType(this);" {% if ui_option != 'ui' %}checked{% endif %}>text</label>
-				</div><br>
+				</div>
 				{% include "includes/fee-selection.html" %}
 				<fee-selection id="fee-selection-component"></fee-selection>
 				<div class="row break-row-mobile" id="vertical-space-for-subtract-fees-from-amount-checkbox" data-style="margin-top: 0px;"></div>
@@ -95,6 +96,7 @@
 			{% include "includes/explorer-link.html" %}
 			{% include "includes/tx-table.html" %}
 			{% include "includes/coin_selection.html" %}
+
 			<coin-selection  
 				id="coinselection-webcomponent"
 				wallet-alias="{{wallet.alias}}"
@@ -102,7 +104,7 @@
 				is-liquid="{{specter.is_liquid}}"
 				selected-coins="{{ selected_coins }}">
 			</coin-selection>
-			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="button">{{ _('Create ')}}<span class="optional">&nbsp;{{ _('unsigned')}}&nbsp;</span>{{ _('transaction') }}</button>
+			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="self-end mt-8 button bg-accent text-white">{{ _('Create ')}}<span class="optional">&nbsp;{{ _('unsigned')}}&nbsp;</span>{{ _('transaction') }}</button>
 		</div>
 	</form>
 {% endblock %}
@@ -244,6 +246,7 @@
 			newRecipient.amount = amount;
 			newRecipient.unit = amount_unit;
 			newRecipient.label = label;
+			newRecipient.classList = "group"
 			newRecipient.addEventListener('remove', (event) => {
 				removeRecipient(newRecipient.recipientId);
 			})
@@ -257,9 +260,6 @@
 				setMaxAmount(newRecipient.recipientId);
 			})
 
-				
-
-
 			recipients.appendChild(newRecipient);
 
 			// This adds the id's to the subtract_from_recipient_id_select
@@ -269,7 +269,6 @@
 			opt.value = recipientId;
 			opt.innerHTML = newRecipient.title;
 			subtractFromRecipientIdSelect.appendChild(opt);		
-
 
 			// Make the remove button visible again for all recipient components
 			setVisibilityRemoveRecipientButton();

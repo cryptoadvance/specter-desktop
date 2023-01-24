@@ -36,27 +36,20 @@
             width: 0;
             height: 0;
             border: solid 5px transparent;
-            background: transparent;
             border-bottom: solid 7px #fff;
             border-top-width: 0;
-            cursor: pointer;
             float: right;
-            margin-right: 50px;
-            margin-top: 5px;
+            margin-top: 7px;
         }
 
         .down-arrow {
             width: 0;
             height: 0;
             border: solid 5px transparent;
-            background: transparent;
             border-top: solid 7px #fff;
             border-bottom-width: 0;
-            margin-top: 1px;
-            cursor: pointer;
             float: right;
-            margin-right: 50px;
-            margin-top: 5px;
+            margin-top: 7px;
         }
     </style>
 
@@ -103,6 +96,7 @@
         <thead>
             <tr>
                 <th value="index" class="index-header">
+                    {{ _("Index") }}
                     <div class="index-arrow down-arrow"></div>
                 </th>
                 <th value="address" class="address-header">{{ _("Address") }}<div class="address-arrow"></div>

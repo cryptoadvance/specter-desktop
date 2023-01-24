@@ -58,13 +58,12 @@
 
   td,
   th {
-    @apply px-2 py-3 text-white truncate text-ellipsis first:pl-4 last:pr-4 text-left;
+    @apply px-2 py-1.5 text-white text-ellisis break-all text-left border-r border-dark-700; /* first:pl-4 last:pr-4 */
   }
 
   th {
     @apply text-dark-200 font-normal break-keep;
   }
-
 
   ol {
     @apply list-decimal list-inside text-lg mb-8;
@@ -95,7 +94,7 @@
   textarea {
     @apply bg-dark-800 border-2 border-dark-700 rounded-lg px-2 outline-none h-12 w-full focus:border-accent duration-200 ease-out;
   }
-  
+
   textarea {
     @apply pt-2 min-h-[80px];
   }
@@ -174,6 +173,14 @@
     background-repeat: no-repeat;
     background-position: top 9px right 12px;
     padding-right: 32px;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"] {
+    -webkit-appearance: none;
+    margin: 0;
+    -moz-appearance: textfield !important;
   }
 
   .table-holder {
