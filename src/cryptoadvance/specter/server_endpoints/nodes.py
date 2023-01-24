@@ -284,10 +284,16 @@ def node_settings(node_alias):
                 )
             else:
                 # All good, we can save the node to the node manager, to disk and switch to it
+                autodetect = node.autodetect
+                # Set autodetect to False for Cypress tests
+                if app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"].endswith(
+                    "CypressTestConfig"
+                ):
+                    autodetect = False
                 connectable_node = node_manager.add_external_node(
                     node_type,
                     node.name,
-                    node.autodetect,
+                    autodetect,
                     node.datadir,
                     user,
                     password,
