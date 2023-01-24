@@ -25,6 +25,8 @@ from .helpers import (
     locked,
     save_hwi_bridge_config,
 )
+
+# deprecated, use embit.descriptor.checksum.add_checksum
 from .util.descriptor import AddChecksum
 from .util.json_rpc import JSONRPC
 from .util.xpub import convert_xpub_prefix
