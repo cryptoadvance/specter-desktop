@@ -7,25 +7,22 @@
             <tool-tip width="200px">
                 <h4 slot="title">{{ _("Subtract fees from amount") }}</h4>
                 <span slot="paragraph">
-                    {{ _("If checked, the transaction fees will be paid off from the transaction amount.") }}<br><br>
+                    {{ _("If checked, the transaction fees will be paid off from the transaction amount.") }}
                     {{ _("Otherwise, the fees will be paid in addition to the amount sent.") }}       
                 </span>
             </tool-tip>
         </div>
         <span id="subtract_from" data-style="display: none">
-            <br>{{ _("Subtract from ") }} 
+            {{ _("Subtract from ") }} 
             <select id="subtract_from_recipient_id_select" name="subtract_from_stale" data-style="width: 140px; min-width: 140px;"></select>
-            <br>                       
         </span>
-        <br>
         <div>
             {{ _("Fees:") }} 
             <label><input type="radio" class="inline" data-style="margin: 0 10px 0 20px;" id="fee_option_dynamic" name="fee_options" value="dynamic" >{{ _("dynamic") }}</label>
             <label><input type="radio" class="inline" data-style="margin: 0 10px 0 20px"  id="fee_option_manual" name="fee_options" value="manual" >{{ _("manual") }}</label>
         </div>
-        <br>
         <div id = "fee_manual" data-style="display: none">
-            {{ _("Fee rate:") }}<br>
+            {{ _("Fee rate:") }}
             {% set min_fee = 0.1 if specter.is_liquid else 1 %}
             <input type="number" class="fee_rate" name="fee_rate" id="fee_rate" min="{{min_fee}}" step="0.1" value="{{min_fee}}" autocomplete="off"> sat/vbyte
             <div class="note">
@@ -38,11 +35,9 @@
             <input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="{{min_fee}}">
             <div>
                 {{ _("Estimated speed:") }} <span id="fee_rate_speed_text"></span>
-                <br>
                 <span class="note">({{ _("Fee rate:") }} <span id="fee_rate_dynamic_text"></span> sat/vbyte)</span>
             </div>
         </div>
-        <br>
         <label class="rbf-label" data-style="display: none">
             <input type="checkbox" class="rbf-checkbox inline" name="rbf" id="rbf"> {{ _("RBF Enabled") }}
         </label>
