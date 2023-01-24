@@ -493,6 +493,7 @@ tbody tr:last-child {
 
 td,
   th {
+  text-overflow: ellipsis;
   word-break: break-all;
   border-right-width: 1px;
   --tw-border-opacity: 1;
@@ -937,10 +938,9 @@ input[type="number"]::-webkit-outer-spin-button,
   -moz-appearance: textfield !important;
 }
 
-table {
+.table-holder {
   margin: 20px calc((100vw - 1080px) / -2);
   max-width: calc((100vw - 300px - 80px));
-  overflow: hidden;
 }
 
 .table-holder::-webkit-scrollbar {
@@ -1802,25 +1802,6 @@ table {
 .px-1\.5 {
   padding-left: 0.375rem;
   padding-right: 0.375rem;
-<<<<<<< Updated upstream
-}
-
-.px-1 {
-  padding-left: 0.25rem;
-  padding-right: 0.25rem;
-}
-
-.py-5 {
-  padding-top: 1.25rem;
-  padding-bottom: 1.25rem;
-}
-
-.py-3 {
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
-}
-
-=======
 }
 
 .px-1 {
@@ -1843,7 +1824,6 @@ table {
   padding-bottom: 1.25rem;
 }
 
->>>>>>> Stashed changes
 .pr-1 {
   padding-right: 0.25rem;
 }
@@ -1902,14 +1882,11 @@ table {
   line-height: 1.5rem;
 }
 
-<<<<<<< Updated upstream
-=======
 .text-sm {
   font-size: 0.875rem;
   line-height: 1.25rem;
 }
 
->>>>>>> Stashed changes
 .font-medium {
   font-weight: 500;
 }
@@ -2104,6 +2081,31 @@ table {
 
 .group:hover .group-hover\:opacity-100 {
   opacity: 1;
+}
+
+.peer:checked ~ .peer-checked\:bg-dark-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(207 207 208 / var(--tw-bg-opacity));
+}
+
+.peer:checked ~ .peer-checked\:bg-dark-300 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(111 112 115 / var(--tw-bg-opacity));
+}
+
+.peer:checked ~ .peer-checked\:bg-dark-400 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(87 88 91 / var(--tw-bg-opacity));
+}
+
+.peer:checked ~ .peer-checked\:bg-dark-500 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(63 64 68 / var(--tw-bg-opacity));
+}
+
+.peer:checked ~ .peer-checked\:bg-dark-600 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(44 45 49 / var(--tw-bg-opacity));
 }
 
 .peer:checked ~ .peer-checked\:bg-dark-700 {

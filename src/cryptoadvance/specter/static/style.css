@@ -58,7 +58,7 @@
 
   td,
   th {
-    @apply px-2 py-1.5 text-white text-ellisis break-all text-left border-r border-dark-700; /* first:pl-4 last:pr-4 */
+    @apply px-2 py-1.5 text-white text-ellipsis break-all text-left border-r border-dark-700; /* first:pl-4 last:pr-4 */
   }
 
   th {
