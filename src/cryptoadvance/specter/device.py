@@ -1,5 +1,6 @@
 import json
 from .key import Key
+from typing import List
 from .persistence import read_json_file, write_json_file
 import logging
 from .helpers import is_testnet, is_liquid
@@ -41,7 +42,7 @@ class Device:
         """
         self.name = name
         self.alias = alias
-        self.keys = keys
+        self.keys: List[Key] = keys
         self.fullpath = fullpath
         self.blinding_key = blinding_key
         self.manager = manager

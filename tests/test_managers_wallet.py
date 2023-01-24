@@ -141,22 +141,26 @@ def test_WalletManager_2_nodes(
     assert wm.chain == "regtest"
     assert wm.working_folder.endswith("regtest")
     assert wm.rpc.port == 18543
-    # Change the rpc - this only works with a different chain!
-    wm.update(rpc=bitcoin_regtest2.get_rpc(), chain="test")
+    # Change the rpc - this works differently with a different chain!
+    # If we use something different that regtest, unfortunately a liquid address gets
+    # generated.
+    # So we don't test that scanrio here of different chains. We test the scenario with the same chain.
+    # but different node
+    wm.update(rpc=bitcoin_regtest2.get_rpc(), chain="regtest")
     # A WalletManager uses the chain as an index
     assert list(wm.rpcs.keys()) == [
         "regtest",
-        "test",
     ]  # wm.rpcs looks like this: {'regtest': <BitcoinRpc http://localhost:18543>, 'regtest2': <BitcoinRpc http://localhost:18544>}
     assert wm.rpc.port == 18544
-    # assert wm.wallets_names == []
-    assert wm.chain == "test"
+    assert wm.wallets_names == ["a_test_wallet"]
+    assert wm.chain == "regtest"
     assert wm.working_folder.endswith("test")
     second_wallet = wm.create_wallet(
         "a_regtest2_test_wallet", 1, "wpkh", [device.keys[5]], [device]
     )
     # Note: "regtest2" is recognised by the get_network() from embit as Liquid, that is why there is an error in the logs saying the Bitcoin address is not valid since a Liquid address is derived.
-    assert wm.wallets_names == ["a_regtest2_test_wallet"]
+    assert len(wm.wallets_names) == 2
+    assert wm.wallets_names == ["a_regtest2_test_wallet", "a_test_wallet"]
 
 
 def test_WalletManager_check_duplicate_keys(empty_data_folder):

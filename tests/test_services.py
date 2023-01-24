@@ -417,7 +417,8 @@ def test_reserve_addresses_with_mocks(empty_data_folder, caplog):
     assert addresses == ["a", "b"]
 
 
-def test_reserve_addresses_with_an_actual_wallet(wallet):
+def test_reserve_addresses_with_an_actual_wallet(trezor_wallet_acc1):
+    wallet = trezor_wallet_acc1
     specter_mock = MagicMock()
     test_service = MyTestService(True, specter_mock)
     # Reserve first address

@@ -1,5 +1,6 @@
 from mock import patch
 from cryptoadvance.specterext.swan.service import SwanService
+from cryptoadvance.specter.wallet import Wallet
 import json
 
 
@@ -11,11 +12,20 @@ class SwanServiceNoEncryption(SwanService):
 @patch(
     "cryptoadvance.specterext.swan.client.SwanClient.update_autowithdrawal_addresses"
 )
-def test_reserve_addresses(mocked_update_autowithdrawal_addresses, app_no_node, wallet):
+def test_reserve_addresses(
+    mocked_update_autowithdrawal_addresses, app_no_node, trezor_wallet_acc0: Wallet
+):
+    wallet = trezor_wallet_acc0
     mocked_update_autowithdrawal_addresses.return_value = "some_id"
     specter = app_no_node.specter
     storage_manager = specter.service_unencrypted_storage_manager
     swan = SwanServiceNoEncryption(True, specter)
+    print("Name")
+    print(wallet.alias)
+    print("DESCRIPTOR")
+    print(wallet.descriptor)
+    print("walle balance")
+    print(wallet.get_info())
     # No data stored befre the reserve_addresses call
     assert storage_manager.get_current_user_service_data("reckless_swan") == {}
     # We need to mock flask's request context since reserve_addresses is calling client() which in turn calls request.url
@@ -81,7 +91,10 @@ class SwanServiceWithMockedMethods(SwanService):
 
 
 @patch("cryptoadvance.specterext.swan.client.SwanClient.set_autowithdrawal")
-def test_set_autowithdrawal_settings(mocked_set_autowithdrawal, app_no_node, wallet):
+def test_set_autowithdrawal_settings(
+    mocked_set_autowithdrawal, app_no_node, trezor_wallet_acc3
+):
+    wallet = trezor_wallet_acc3
     autowithdrawal_api_response = """
             {
                 "entity": "automaticWithdrawal",
