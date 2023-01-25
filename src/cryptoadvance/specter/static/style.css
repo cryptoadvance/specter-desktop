@@ -184,7 +184,7 @@
   }
 
   .table-holder {
-    margin: 20px calc((100vw - 1080px) / -2);
+    margin: 0 calc((100vw - 1080px) / -2);
     max-width: calc((100vw - 300px - 80px));
   }
 
