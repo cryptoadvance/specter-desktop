@@ -3,17 +3,19 @@ import code
 import json
 import logging
 import os
+import shutil
 import signal
 import sys
 import tempfile
 import traceback
 
 import pytest
+
 from cryptoadvance.specter.config import TestConfig
-from cryptoadvance.specter.node import Node
 from cryptoadvance.specter.managers.device_manager import DeviceManager
 from cryptoadvance.specter.managers.node_manager import NodeManager
 from cryptoadvance.specter.managers.user_manager import UserManager
+from cryptoadvance.specter.node import Node
 from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
 )
@@ -289,224 +291,15 @@ def devices_filled_data_folder(empty_data_folder):
     devices_folder = empty_data_folder + "/devices"
     if not os.path.isdir(devices_folder):
         os.makedirs(devices_folder)
-    with open(empty_data_folder + "/devices/trezor.json", "w") as text_file:
-        text_file.write(
-            """
-{
-    "name": "Trezor",
-    "alias": "mytrezor",
-    "type": "trezor",
-    "keys": [
-        {
-            "original": "upub5EKoQv21nQNkhdt4yuLyRnWitA3EGhW1ru1Y8VTG8gdys2JZhqiYkhn4LHp2heHnH41kz95bXPvrYVRuFUrdUMik6YdjFV4uL4EubnesttQ",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/49h/1h/0h",
-            "type": "sh-wpkh",
-            "purpose": "#0 Single Sig (Nested)",
-            "xpub": "tpubDDCDr9rSwixeXKeGwAgwFy8bjBaE5wya9sAVqEC4ccXWmcQxY34KmLRJdwmaDsCnHsu5r9P9SUpYtXmCoRwukWDqmAUJgkBbjC2FXUzicn6"
-        },
-        {
-            "original": "vpub5Y35MNUT8sUR2SnRCU9A9S6z1JDACMTuNnM8WHXvuS7hCwuVuoRAWJGpi66Yo8evGPiecN26oLqx19xf57mqVQjiYb9hbb4QzbNmFfsS9ko",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/84h/1h/0h",
-            "type": "wpkh",
-            "purpose": "#0 Single Sig (Segwit)",
-            "xpub": "tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc"
-        },
-        {
-            "original": "Upub5Tk9tZtdzVaTGWtygRTKDDmaN5vfB59pn2L5MQyH6BkVpg2Y5J95rtpQndjmXNs3LNFiy8zxpHCTtvxxeePjgipF7moTHQZhe3E5uPzDXh8",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/48h/1h/0h/1h",
-            "type": "sh-wsh",
-            "purpose": "#0 Multisig Sig (Nested)",
-            "xpub": "tpubDFiVCZzdarbyfdVoh2LJDL3eVKRPmxwnkiqN8tSYCLod75a2966anQbjHajqVAZ97j54xZJPr9hf7ogVuNL4pPCfwvXdKGDQ9SjZF7vXQu1"
-        },
-        {
-            "original": "Vpub5naRCEZZ9B7wCKLWuqoNdg6ddWEx8ruztUygXFZDJtW5LRMqUP5HV2TsNw1nc74Ba3QPDSH7qzauZ8LdfNmnmofpfmztCGPgP7vaaYSmpgN",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/48h/1h/0h/2h",
-            "type": "wsh",
-            "purpose": "#0 Multisig Sig (Segwit)",
-            "xpub": "tpubDFiVCZzdarbyk8kE65tjRhHCambEo8iTx4xkXL8b33BKZj66HWsDnUb3rg4GZz6Mwm6vTNyzRCjYtiScCQJ77ENedb2deDDtcoNQXiUouJQ"
-        },
-        {
-            "original": "upub5EKoQv21nQNkkbeX7RLSUgcjnR6nTWFudhmGo5Nxq48FqkKxgPBkWiAwKazG3cd1KjENnTbeGJtNB7iqyuH4QXpxFnVvsRtbGkN2Fg9wStD",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/49h/1h/1h",
-            "type": "sh-wpkh",
-            "purpose": "#1 Single Sig (Nested)",
-            "xpub": "tpubDDCDr9rSwixeaHQj4ggQJsEcdSdnGkjTvfvEVp7mJz1nkLSMWaXXXLpBdEwoZqY1LZ7heTuCBPn4XA49XrNLggL3vQLWJh1Hft9NBQDrZ29"
-        },
-        {
-            "original": "vpub5Y35MNUT8sUR6SVwH1nkeiUwWky58XopeJaFWLwJfQj2GgcGFbwmkmhp3yBMEVTqw2xfvzpvMqSUzCXiGZdxAiWyvmxyyrErPBwPoKSJzus",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/84h/1h/1h",
-            "type": "wpkh",
-            "purpose": "#1 Single Sig (Segwit)",
-            "xpub": "tpubDC5EUwdy9WWq4q52PvM6Gp1KBpMd1AHt2ACzRgnDmLEg8AuRq97z9LgvLRBJkoivYDjC3XXupFydSxFT6pKDedLUj478qCY4Wbf6LZHaEuo"
-        },
-        {
-            "original": "Upub5SNDKzLBXW3QBrbxK14LDuVtxxR2MWYxChNjShS338xKtx1tgwp1tZoM5Prts4J2DXpPKATS1vfntAHrorEXZA7VFBCaUNhemfWYejJRPHg",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/48h/1h/1h/1h",
-            "type": "sh-wsh",
-            "purpose": "#1 Multisig Sig (Nested)",
-            "xpub": "tpubDELYdzSB7s4vayCnKbwKE1my6BukxQLvBPt2EAuJ9J1TBMZNkjmWp5afaLrxpqz7ztdjJaks3oAz731Q4aArgpVv5KvkWEMMH521zaj118Z"
-        },
-        {
-            "original": "Vpub5mCUdf16gBat7LhtqCQne7zV3en2XV2nodPGR85jhHqv9E4A7UXNnZ9UsA5x3H2fxhc38t5gXcp1XvqGp8ASa3ErgXhyFKNAt1cSMdWGXNN",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/48h/1h/1h/2h",
-            "type": "wsh",
-            "purpose": "#1 Multisig Sig (Segwit)",
-            "xpub": "tpubDELYdzSB7s4vfA7c1SW9S9B3zv8KBkqFsDNLRCf7RSXANXnQvcKK61GfLu8S1A4rLRJaNpnZ6pxesWwFM9gkuTwgeLjihGCP7h4GJuCxsd3"
-        },
-        {
-            "original": "upub5EKoQv21nQNknik1KU1syMoEgo8NwkDkYeX6hYSTexRhSdCXqNHHHKsd9W1o8qvqRgqfBP9KmuWBxuMWvmCMqMSicMBqwCJGGa5TVau3eD1",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/49h/1h/2h",
-            "type": "sh-wpkh",
-            "purpose": "#2 Single Sig (Nested)",
-            "xpub": "tpubDDCDr9rSwixecQWDGjMqoYR7XpfNkzhJqcg4QHBG8tKEMDJvfZd4HxWsT9yLf4qqSWiz3PSsgzPtJwgpUiHe7VwpGy2RNTQxfhroRPqfBfM"
-        },
-        {
-            "original": "vpub5Y35MNUT8sUR85w9G2bVdZQrHWXLdxPcsi75fgnBWkJNATPfgbv4Qpabv59fMTG5cVdePeveifFk5TPePFdU7jvPm1qb9fVYcxXKXSvUtgz",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/84h/1h/2h",
-            "type": "wpkh",
-            "purpose": "#2 Single Sig (Segwit)",
-            "xpub": "tpubDC5EUwdy9WWq6UWENw9qFewDxZutWasgFZjpb2d6cfp21wgqG96GoPZiCX9csmXADgQAWBdeB5ntYD7PDWJjbejtZHyk11nkkNF24i7RnLV"
-        },
-        {
-            "original": "Upub5TVK2qPsm6eMaSm9JpaDCqGACPHtXMmn6reTthgdvpqnV7qcyHD3awVpEawcMxRKDbEyvMLr1pKNWFAQYBhzfwzrAo8BpMefcymgMsYvdw4",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/48h/1h/2h/1h",
-            "type": "sh-wsh",
-            "purpose": "#2 Multisig Sig (Nested)",
-            "xpub": "tpubDFTeLqVsMTfsyZMyKRTCCwYEKcnd8FZk5Z9kgB9u2ytumXP735AYWTH8jXwgKk7Qzx4KumeH3gpZj7swnueKocPGzwrMrDJN8PH9hh7AnfJ"
-        },
-        {
-            "original": "Vpub5nKaLW4nunBqSzRVKf4oTaGySWh8kTJUd3wQHvVMnNp4ksukeC7spEmCyKRfAEHz31UPAkBGQwrEwS5iFpQbuNB4EuigfoTLTSwYmXXP2JK",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/48h/1h/2h/2h",
-            "type": "wsh",
-            "purpose": "#2 Multisig Sig (Segwit)",
-            "xpub": "tpubDFTeLqVsMTfszoqCVuAAFbTYPn3RQj6wgdvUJ14jWXVJzBe1TKup7gtPT4U987LAQjAvQgt8z9ztH2BgnqvvEnstCikS7kHYh8PNimvL3mt"
-        },
-        {
-            "original": "upub5EKoQv21nQNkquuCusEL8ofnQaM4V8rsdzPuWe48FD4rRWvmF61hEqVMwwNje2zxpma7ju39zT1ub1hogbGaKdAvmMfPJtdqCSR5FovbUSF",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/49h/1h/3h",
-            "type": "sh-wpkh",
-            "purpose": "#3 Single Sig (Nested)",
-            "xpub": "tpubDDCDr9rSwixefbfQs8aHxzHfFbt4JPLRvxYsDNnvj8xPL73A5HMUFU8cFbLHAFuxqbTSbuLhuXubw437EYMrbmg2RyVxk9kXbaCRBYbHftq"
-        },
-        {
-            "original": "vpub5Y35MNUT8sURA6hs4HJw67NHTFmMsmjDSu9pQS3abpJDrkUdSpXn7n5WEVHvU2uuJWAKHSkdpDYKuFBvhQAJ2xtezVurh2WfBMsP8HorJxH",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/84h/1h/3h",
-            "type": "wpkh",
-            "purpose": "#3 Single Sig (Segwit)",
-            "xpub": "tpubDC5EUwdy9WWq8VGxBBsGiCtf8K9ukQDGpknZKmtVhjosiEmo2MhzWM4cWwHszMAyugvqPyTdGe5UMzufXeqZWsi9nn41YNosJmb5fYoCqFy"
-        },
-        {
-            "original": "Upub5TYty5hhC1kpHss1TPBrhzsP7Jy2UScv6VF8HeEN1jbvVhryoPsrN9sBGxWjcvJp4TZLdkaqKmEvLqFP2CVtnSFw4Vv4HcG1pcp66PCAxnr",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/48h/1h/3h/1h",
-            "type": "sh-wsh",
-            "purpose": "#3 Multisig Sig (Nested)",
-            "xpub": "tpubDFXEH5ognNnLgzTqTz4qi79TEYTm5LQt5BkR57hd7tf3n7QTsBqMHfeVmuWoahzuqpNgdAtGMdk7ZhxvGvSDv6eMteeEKTuiL2KZS7oDNBc"
-        },
-        {
-            "original": "Vpub5nPAGkNcLhJJCHZhGRt47wH5mBab9m5PfJmUjSazw1XAkbax3vG9RCJQVMei2Z84PgirRvTUHU93uUXynBUXwiiPVT4VwG45Xas6KWDPh5T",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/48h/1h/3h/2h",
-            "type": "wsh",
-            "purpose": "#3 Multisig Sig (Segwit)",
-            "xpub": "tpubDFXEH5ognNnLk6yQSfyQuxTeiSvsp2sritkYjXANfACQyuKCs445ieRay6hBzSAEmQRPfsALrgHhF4dxKCzrH9RDTG6FPCtHmGJvGi6sSC8"
-        },
-        {
-            "original": "upub5EKoQv21nQNktcVEn7ormrgocRuFrKvU6wum7ZRfXcTKYtfUfG1RXihAgq4cWyTVM4smEV5VTejiCXot2akjMDr6sYCghMnqUSVuNctuCbm",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/49h/1h/4h",
-            "type": "sh-wpkh",
-            "purpose": "#4 Single Sig (Nested)",
-            "xpub": "tpubDDCDr9rSwixeiJFSjP9pc3JgTTSFfaQ2Pv4ipJAU1YLrTUmsVTMCYMLQzV2A3CNVMtm66VP3NjdQYa9BaXr1dNMCYA3G8cuXsaHFJMZNVDP"
-        },
-        {
-            "original": "vpub5Y35MNUT8sUREDYApTNH7Y188zckaDj6NHaK8tkgRFLsjF2a8cQRXrSzgvJbMoEgHgqZm8259DGsHUXmUA8P3FKEFkjNeMh7aMaivei27JR",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/84h/1h/4h",
-            "type": "wpkh",
-            "purpose": "#4 Single Sig (Segwit)",
-            "xpub": "tpubDC5EUwdy9WWqCc7FwMvcjdXVp41JSrD9k9D44EbbXArXajKji9advRS6yNJYt7Vktsc5sej4bdp1kEFWJQoeXA8j42sXVhzKhmJRTmvjiZL"
-        },
-        {
-            "original": "Upub5TNPzsZrx1ZhKLgEqViJqi6cWUrUyQdPpCwFQ1fbBqtVBGC6CwCscoqnH34TEGGbWnEL4C2eJDPnsqcM2sGnPZXuyH7Dy511H3qnCVK7P5f",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/48h/1h/4h/1h",
-            "type": "sh-wsh",
-            "purpose": "#4 Multisig Sig (Nested)",
-            "xpub": "tpubDFLjJsfrYNbDiTH4r6bHqpNgdiMDaJRMnuSYBV8rHzwcTfjaGjANYKd6mz4XC3xhJ93g3cL5L5tz6iKtHbD7XDvLoRqPzvehnTMFYEJv8rh"
-        },
-        {
-            "original": "Vpub5nCfJYEn6h7BDYF3ZiuhYa6RgEb6FnVb2ewjDpiYEWKyQVuuHuise1Ygbo1r5EggzF1zfyDSCmywMieJKCR3q1Ergim9UQSUZEWrpGkeBvk",
-            "fingerprint": "1ef4e492",
-            "derivation": "m/48h/1h/4h/2h",
-            "type": "wsh",
-            "purpose": "#4 Multisig Sig (Segwit)",
-            "xpub": "tpubDFLjJsfrYNbDmMekjy14LbGzdVwNv4J46EvoDuHuxf1DdoeA73WowTfs5Y4L37isMxiXuuvJmz8ahJkGrDwNARwgeXntvMGgnuxgmXxNsnU"
-        }
-    ]
-}
-"""
-        )
-    with open(empty_data_folder + "/devices/specter.json", "w") as text_file:
-        text_file.write(
-            """
-{
-    "name": "Specter",
-    "type": "specter",
-    "keys": [
-        {
-            "derivation": "m/48h/1h/0h/2h",
-            "original": "Vpub5n9kKePTPPGtw3RddeJWJe29epEyBBcoHbbPi5HhpoG2kTVsSCUzsad33RJUt3LktEUUPPofcZczuudnwR7ZgkAkT6N2K2Z7wdyjYrVAkXM",
-            "fingerprint": "08686ac6",
-            "type": "wsh",
-            "xpub": "tpubDFHpKypXq4kwUrqLotPs6fCic5bFqTRGMBaTi9s5YwwGymE8FLGwB2kDXALxqvNwFxB1dLWYBmmeFVjmUSdt2AsaQuPmkyPLBKRZW8BGCiL"
-        },
-        {
-            "derivation": "m/84h/1h/0h",
-            "original": "vpub5ZSem3mLXiSJzgDX6pJb2N9L6sJ8m6ejaksLPLSuB53LBzCi2mMsBg19eEUSDkHtyYp75GATjLgt5p3S43WjaVCXAWU9q9H5GhkwJBrMiAb",
-            "fingerprint": "08686ac6",
-            "type": "wpkh",
-            "xpub": "tpubDDUotcvrYMUiy4ncDirveTfhmvggdj8nxcW5JgHpGzYz3UVscJY5aEzFvgUPk4YyajadBnsTBmE2YZmAtJC14Q21xncJgVaHQ7UdqMRVRbU"
-        },
-        {
-            "derivation": "m/84h/1h/1h",
-            "original": "vpub5ZSem3mLXiSK55jPzfLVhbHbTEwGzEFZv3xrGFCw1vGHSNw7WcVuJXysJLWcgENQd3iXSNQaeSXUBW55Hy4GAjSTjrWP4vpKKkUN9jiU1Tc",
-            "fingerprint": "08686ac6",
-            "type": "wpkh",
-            "xpub": "tpubDDUotcvrYMUj3UJV7ZtqKgoy8JKprrjdHubbBb3r7qmwHsEH69g7h6xyanWaCYdVEEV3Yu7a6s4ceFnp8DjXeeFxY8eXvH7XTAC4gxfDNEW"
-        },
-        {
-            "derivation": "m/84h/1h/2h",
-            "original": "vpub5ZSem3mLXiSK64v64deytnDCoYqbUSYHvmVurUGVMEnXMyEybtF3FEnNuiFDDC6J18a81fv5ptQXaQaaRiYx8MRxahipgxPLdxubpYt1dkD",
-            "fingerprint": "08686ac6",
-            "type": "wpkh",
-            "xpub": "tpubDDUotcvrYMUj4TVBBYDKWsjaUcE9M52MJd8emp7QTAJBDTY9BRRFdomVCAFAjWMNcKLe8Cd5HJwg3AJKFyEDcGFTNyryYJgYmNdJMhwB2RG"
-        },
-        {
-            "derivation": "m/84h/1h/3h",
-            "original": "vpub5ZSem3mLXiSK8cKzh4sHxTvN7mgYQA29HfoAZeCDtX1M2zdejN5XVAtVyqhk8eui18JTtZ9M3VD3AiWCz8VwrybhBUh3HxzS8js3mLVybDT",
-            "fingerprint": "08686ac6",
-            "type": "wpkh",
-            "xpub": "tpubDDUotcvrYMUj6zu5oyRdaZSjnq56GnWCfXRuUz38zSWztUvpJuFjsjscGHhheyAncK4z15rLVukBdUDwpPBDLtRBykqC9KHeG9akJWRipKK"
-        }
-    ]
-}
-"""
-        )
+
+    shutil.copy2(
+        "./tests/misc_testdata/trezor_device.json",
+        empty_data_folder + "/devices/trezor.json",
+    )
+    shutil.copy2(
+        "./tests/misc_testdata/specter_device.json",
+        empty_data_folder + "/devices/specter.json",
+    )
     return empty_data_folder  # no longer empty, though
 
 

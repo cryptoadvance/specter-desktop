@@ -13,19 +13,13 @@ class SwanServiceNoEncryption(SwanService):
     "cryptoadvance.specterext.swan.client.SwanClient.update_autowithdrawal_addresses"
 )
 def test_reserve_addresses(
-    mocked_update_autowithdrawal_addresses, app_no_node, trezor_wallet_acc0: Wallet
+    mocked_update_autowithdrawal_addresses, app_no_node, trezor_wallet_acc5: Wallet
 ):
-    wallet = trezor_wallet_acc0
+    wallet = trezor_wallet_acc5
     mocked_update_autowithdrawal_addresses.return_value = "some_id"
     specter = app_no_node.specter
     storage_manager = specter.service_unencrypted_storage_manager
     swan = SwanServiceNoEncryption(True, specter)
-    print("Name")
-    print(wallet.alias)
-    print("DESCRIPTOR")
-    print(wallet.descriptor)
-    print("walle balance")
-    print(wallet.get_info())
     # No data stored befre the reserve_addresses call
     assert storage_manager.get_current_user_service_data("reckless_swan") == {}
     # We need to mock flask's request context since reserve_addresses is calling client() which in turn calls request.url
@@ -35,11 +29,11 @@ def test_reserve_addresses(
         swan.reserve_addresses(wallet, label="Swan withdrawals", num_addresses=5)
         # Check that the correct addresse list was passed to the client's update_autowithdrawal_addresses-method, should be addresses #1, #3, #5, #7, #9 from the test_wallet (the first address is skipped)
         addresses = [
-            "bcrt1qsqnuk9hulcfta7kj7687favjv66d5e9yy0lr7t",
-            "bcrt1qee494mauu3fv5aje0t4p6e52hvwq6d5hcqfxqt",
-            "bcrt1qpnem6p9vr8rmjsf7k49p9sleu0h020g34ggn6k",
-            "bcrt1q8534jsqkympwaelaqxhvfr6hc3g8y4kjtgr6d6",
-            "bcrt1qxd6ndd7mt7jqut7797l84675fz4kqhs4fcfgny",
+            "bcrt1qrfdnsdhmp5chxxexywdz37ppre7s5f0y4z4ykn",
+            "bcrt1qp8hq4ngf0uy4r5atackw9ak5ngl8vfd54dz226",
+            "bcrt1qsdzhz4q8y32maeay899jyfdw03pdlrrktx838g",
+            "bcrt1qc65gchplxw57e7hdzdxcudjq90y0y3mxm9m96l",
+            "bcrt1qasuqqj5u7t5e8zr3ug68yzfr2fjj4eg4u4ucj4",
         ]
         assert (
             mocked_update_autowithdrawal_addresses.call_args_list[0].kwargs["addresses"]
@@ -58,8 +52,8 @@ def test_reserve_addresses(
         swan.reserve_addresses(wallet, label="Swan withdrawals", num_addresses=7)
         # Adding address #11 and #13
         additional_addresses = [
-            "bcrt1q32gd5s7rk9ptkv8e74q4c64ntf48u4sza6c9d9",
-            "bcrt1q463mg67f3tj5d223vf6387ty30qlx2wep4s5gp",
+            "bcrt1qa4n6687f53recfcthfu2xpgcwcqvmzz4pdfw98",
+            "bcrt1qcxq5md4jsnldpc6fswld8edaxgzpstamswt3r6",
         ]
         addresses.extend(additional_addresses)
         assert (
