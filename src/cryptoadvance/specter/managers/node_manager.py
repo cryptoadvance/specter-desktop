@@ -53,6 +53,7 @@ class NodeManager:
             if not os.path.isdir(data_folder):
                 os.mkdir(data_folder)
         nodes_files = load_jsons(self.data_folder, key="alias")
+        logger.debug(nodes_files)
         for node_alias in nodes_files:
             try:
                 valid_node = True
@@ -102,6 +103,9 @@ class NodeManager:
 
     @property
     def active_node(self) -> Node:
+        """returns the current active node or a NonExistingNode
+        if no node is active, currently.
+        """
         active_node = self.get_by_alias(self._active_node)
         return active_node if active_node else NonExistingNode()
 
@@ -125,18 +129,27 @@ class NodeManager:
         self._active_node = node_alias
 
     def get_by_alias(self, alias: str) -> Node:
+        """Returns a Node instance for the given alias.
+        None if a node with that alias doesn't exist
+        """
         for node in self.nodes.values():
             if node.alias == alias:
                 return node
         return None
 
     def get_by_name(self, name: str) -> Node:
+        """Returns a Node instance for the given alias.
+        raises an SpecterError if it doesn't exist
+        """
         for node in self.nodes.values():
             if node.name == name:
                 return node
         raise SpecterError("Node name %s does not exist!" % name)
 
     def get_name_from_alias(self, alias: str) -> str:
+        """Returns the name for a specific node alias
+        raises an SpecterError if it doesn't exist
+        """
         for node in self.nodes.values():
             if node.alias == alias:
                 return node.name
@@ -162,18 +175,21 @@ class NodeManager:
 
     def add_external_node(
         self,
-        node_type,
-        name,
-        autodetect,
+        node_type: str,
+        name: str,
+        autodetect: bool,
         datadir,
-        user,
-        password,
-        port,
-        host,
-        protocol,
+        user: str,
+        password: str,
+        port: str,
+        host: str,
+        protocol: str,
     ):
-        """Adding a node. Params:
-        :param node_type: only valid for autodetect. Either BTC or ELM
+        """Adding a node and saves it to disk as well. Params:
+        * node_type: only valid for autodetect. Either BTC or ELM
+        * name: A nice name for this node. The alias will get calculated out of that
+        * autodetect (boolean): whether this node should get autodetected
+        * datadir: questionable! Why is that here needed?!
         This should only be used for an external node. Use add_internal_node for internal node
         and if you have defined your own node type, use save_node directly to save the node (and create it yourself)
         """
@@ -205,6 +221,8 @@ class NodeManager:
         return node
 
     def save_node(self, node):
+        """writes the node to disk. Will also apply a fullpath based on the datadir of the
+        NodeManager if the node doesn't have one."""
         if not hasattr(node, "fullpath"):
             node.fullpath = calc_fullpath(self.data_folder, node.alias)
         write_node(node, node.fullpath)
@@ -212,20 +230,16 @@ class NodeManager:
 
     def add_internal_node(
         self,
-        name,
+        name: str,
         network="main",
-        port=None,
-        default_alias=None,
+        port: str = None,
         datadir=None,
     ):
         """Adding an internal node. Params:
         This should only be used for internal nodes. Use add__External_node for external nodes
         and if you have defined your own node-type, use save_node directly. to save the node (and create it yourself)
         """
-        if not default_alias:
-            node_alias = alias(name)
-        else:
-            node_alias = default_alias
+        node_alias = alias(name)
         fullpath = os.path.join(self.data_folder, "%s.json" % node_alias)
         i = 2
         while os.path.isfile(fullpath):
@@ -256,6 +270,7 @@ class NodeManager:
         return node
 
     def delete_node(self, node, specter):
+        """Deletes the node. Also from the disk."""
         logger.info("Deleting {}".format(node.alias))
         try:
             # Delete from wallet manager

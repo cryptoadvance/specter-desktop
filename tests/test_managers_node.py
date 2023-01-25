@@ -23,7 +23,7 @@ def test_node_manager_basics(
     nm = specter_regtest_configured.node_manager
     # # Load from disk to get the other two nodes
     assert sorted(list(nm.nodes.keys())) == [
-        "default",
+        "bitcoin_core",
         "node_with_a_different_port",
         "standard_node",
     ]
@@ -42,14 +42,14 @@ def test_node_manager_basics(
     assert nm.get_by_alias("node_with_a_different_port") == nm.get_by_name(
         "Node with a different port"
     )
-    default_node = nm.get_by_alias("default")
+    default_node = nm.get_by_alias("bitcoin_core")
     node_with_a_different_port = nm.get_by_alias("node_with_a_different_port")
     assert nm.active_node == default_node
-    assert specter_regtest_configured.config["active_node_alias"] == "default"
+    assert specter_regtest_configured.config["active_node_alias"] == "bitcoin_core"
     # Switching the node via the node manager does not change the active_node_alias in the config, only specter.update_active_node() does
     nm.switch_node("node_with_a_different_port")
     assert nm.active_node == node_with_a_different_port
-    assert specter_regtest_configured.config["active_node_alias"] == "default"
+    assert specter_regtest_configured.config["active_node_alias"] == "bitcoin_core"
     specter_regtest_configured.update_active_node("node_with_a_different_port")
     assert (
         specter_regtest_configured.config["active_node_alias"]

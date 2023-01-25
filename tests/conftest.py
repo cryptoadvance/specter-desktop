@@ -437,9 +437,11 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder, node
             "allow_threading_for_testing": False,
         },
     }
-    specter = Specter(
+    specter: Specter = Specter(
         data_folder=devices_filled_data_folder, config=config, checker_threads=False
     )
+    assert specter.active_node_alias == "bitcoin_core"
+    assert specter.node_manager.active_node.alias == "bitcoin_core"
     assert specter.chain == "regtest"
     # Create a User
     someuser = specter.user_manager.add_user(
