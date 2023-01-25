@@ -263,12 +263,12 @@
     <nav class="text-center text-dark-200 border-b border-dark-600 flex justify-between items-center mt-3">
         <ul class="flex -mb-px self-end" id="switcher">
             <li aria-checked="true" class="mr-2 py-2 border-b-2 border-transparent aria-checked:text-link aria-checked:border-b-2 aria-checked:border-link" id="">
-                <button type="button" id="txlist-view-btn" class="text-lg inline-block py-1 px-3 hover:text-white rounded-lg hover:bg-dark-700">
+                <button type="button" id="txlist-view-btn" class="text-lg inline-block py-1 px-3 hover:text-white rounded-lg hover:bg-dark-700" data-cy="transaction-history-btn">
                     {{ _("History") }}
                 </button>
             </li>
             <li aria-checked="false" class="mr-2 py-2 border-b-2 border-transparent aria-checked:text-link aria-checked:border-b-2 aria-checked:border-link" id="">
-                <button type="button" id="utxo-view-btn" class="text-lg inline-block py-1 px-3 hover:text-white rounded-lg hover:bg-dark-700">
+                <button type="button" id="utxo-view-btn" class="text-lg inline-block py-1 px-3 hover:text-white rounded-lg hover:bg-dark-700" data-cy="utxo-list-btn">
                     {{ _("UTXO") }}
                 </button>
             </li>

@@ -90,7 +90,7 @@
 
     <tr class="tx-row">
         <td id="column-callbackaction" class="callbackaction">
-            <input id="coin-select-checkbox" class="checkbox coin_select_checkbox" type="checkbox" name="coinselect" value="">
+            <input id="coin-select-checkbox" class="checkbox coin_select_checkbox" type="checkbox" name="coinselect" value="" data-cy="selectable-utxo-checkbox">
         </td>
         <td id="column-category">
             <div class="icon-info">
@@ -115,7 +115,7 @@
         <td class="hidden optional blockhash"></td>
         <td id="column-action" class="highlight-box">
             <input class="select-tx-value" type="hidden" value="">
-            <img data-style="vertical-align: middle;" class="select-tx-img" src="{{ url_for('static', filename='img/checkbox-untick.svg') }}" width="25px">
+            <img data-style="vertical-align: middle;" class="select-tx-img" src="{{ url_for('static', filename='img/checkbox-untick.svg') }}" width="25px" data-cy="select-img-for-utxo-actions">
             <div data-style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap;">
                 <button class="rbf btn optional hidden" data-style="width: 130px; margin: 2px;" type="button">{{ _("Speed up") }}</button>
                 <button class="rbf-cancel danger btn optional hidden" data-style="width: 130px; margin: 2px;" type="button">{{ _("Cancel transaction") }}</button>

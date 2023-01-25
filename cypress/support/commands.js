@@ -116,10 +116,7 @@ Cypress.Commands.add("addHotWallet", (wallet_name, device_name, node_type, walle
   }
   cy.get('body').then(($body) => {
       if ($body.text().includes(wallet_name)) {
-        cy.contains(wallet_name).click()
-        cy.get('#btn_settings' ).click( {force: true})
-        cy.get('#advanced_settings_tab_btn').click()
-        cy.get('#delete_wallet').click()
+        return
       }
       cy.get('#side-content').click()
       cy.get('#btn_new_wallet').click()
@@ -131,7 +128,7 @@ Cypress.Commands.add("addHotWallet", (wallet_name, device_name, node_type, walle
         cy.get(':nth-child(1) > #type_nested_segwit_btn').click()
       }
       // Create Wallet button:
-      cy.get('#keysform > .centered').click()
+      cy.get('[data-cy="create-wallet-btn"]').click()
       cy.get('#btn_continue').click()
 
       //Get some funds
@@ -182,7 +179,7 @@ Cypress.Commands.add("addWallet", (walletName, walletType, funded, nodeType, key
         cy.get('[data-cy="number-of-required-signatures-in-multisig"]').clear()
         cy.get('[data-cy="number-of-required-signatures-in-multisig"]').type(2)
       }
-      cy.get('[data-cy="create-multisig-wallet-btn"]').click()
+      cy.get('[data-cy="create-wallet-btn"]').click()
       cy.get('[data-cy="new-wallet-added-headline"]')
       cy.get('[data-cy="new-wallet-added-overlay-close-btn"]').click()
       if (funded) {
