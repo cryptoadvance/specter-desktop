@@ -19,7 +19,7 @@
 			<label for="bordered-radio-2" class="flex items-center h-12 pl-4 border-2 rounded-lg space-x-2 cursor-pointer border-dark-700 bg-dark-800">
 					<input 
 						type="radio" 
-						name="bordered-radio" 
+						name="type" 
 						id="bordered-radio-2" 
 						class="type_nested_segwit w-4 h-4"
 						value="{{'wsh' if wallet_type == 'multisig' else 'wpkh'}}" 
@@ -31,7 +31,7 @@
 			<label for="bordered-radio-1" class="flex items-center h-12 pl-4 border-2 rounded-lg space-x-2 cursor-pointer border-dark-700 bg-dark-800">
 					<input 
 						type="radio" 
-						name="bordered-radio" 
+						name="type" 
 						id="bordered-radio-1" 
 						class="w-4 h-4"
 						value="{{'sh-wsh' if wallet_type == 'multisig' else 'sh-wpkh'}}" 
@@ -42,7 +42,7 @@
 			<label for="bordered-radio-3" class="flex items-center h-12 pl-4 border-2 rounded-lg space-x-2 cursor-pointer border-dark-700 bg-dark-800">
 					<input 
 						type="radio" 
-						name="bordered-radio" 
+						name="type" 
 						id="bordered-radio-3" 
 						class="w-4 h-4 disabled:opacity-20 peer"
 						{% if not enable_taproot %}disabled{% endif %}
