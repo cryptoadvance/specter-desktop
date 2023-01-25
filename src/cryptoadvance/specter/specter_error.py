@@ -53,13 +53,13 @@ def handle_exception(exception, user=None):
             "DevelopmentConfig"
         ):
             raise exception
-        logger.error("Unexpected error:")
-        logger.error(
-            "----START-TRACEBACK-----------------------------------------------------------------"
-        )
-        logger.exception(exception)  # the exception instance
-        logger.error(
-            "----END---TRACEBACK-----------------------------------------------------------------"
-        )
-    except RuntimeError as e:
-        raise exception
+    except RuntimeError:  # Application context might be missing
+        pass
+    logger.error("Unexpected error:")
+    logger.error(
+        "----START-TRACEBACK-----------------------------------------------------------------"
+    )
+    logger.exception(exception)  # the exception instance
+    logger.error(
+        "----END---TRACEBACK-----------------------------------------------------------------"
+    )
