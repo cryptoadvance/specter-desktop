@@ -200,8 +200,8 @@
 									<td class="scroll xpub optional"><span>{{ key.original }}</span></td>
 									<td width="120px">
 										<label>
-											<input class="device-key hidden" data-key-types="{{key.key_type}}" type="radio" name="key{{ outer_loop.index0 }}" value="{{ key.original }}" {% if loop.index == 1 %}checked{% endif %}/>
-											<div class="btn inline hovering">{{ _("Use this key") }}</div>
+											<input class="device-key hidden peer" data-key-types="{{key.key_type}}" type="radio" name="key{{ outer_loop.index0 }}" value="{{ key.original }}" {% if loop.index == 1 %}checked{% endif %}/>
+											<div class="btn inline hovering peer-checked:bg-dark-500">{{ _("Use this key") }}</div>
 										</label>
 									</td>
 								</tr>
