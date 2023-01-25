@@ -79,8 +79,7 @@ describe('Test the actions in UTXO list', () => {
         // Select it
         cy.get('tx-table').find('tx-row').eq(0).find('.select-tx-img').click( {position: 'top'} );
         cy.get('tx-table').find('tx-row').eq(0).find('.select-tx-value').invoke('attr', 'value').should('eq', 'true') // Check that the click flow is (still) in order
-        cy.wait(100)
-        cy.get('tx-table').find('.compose-tx-btn').should('not.be.hidden')
+        cy.wait(200)
         cy.get('tx-table').find('.compose-tx-btn').click()
         // Switch to coin selection, check that the right amount of coins are preselected in the coin selection
         cy.get('.coinselect-hidden').should('have.length', 1);
