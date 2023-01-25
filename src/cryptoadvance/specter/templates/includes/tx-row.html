@@ -100,7 +100,7 @@
             </div>
             <img class="frozen-img hidden svg-white" data-style="vertical-align: middle; height: 28px;" src="{{ url_for('static', filename='img/snowflake.svg') }}"/>
         </td>
-        <td id="column-txid" class="tx scroll optional txid">
+        <td id="column-txid" class="tx scroll optional txid cursor-pointer" title="Open transaction details">
             <span class="explorer-link"></span>
         </td>
         <td id="column-label" class="tx optional address" style="display: flex; align-items: center;"></td>
@@ -183,6 +183,7 @@
             // Set category image
             this.category.src = this.getCategoryImg(this.tx.category, this.tx.confirmations > 0);
             this.category.classList.add('svg-' + this.tx.category)
+            this.txid.setAttribute('data-cy', `tx-category-${this.tx.category}`)
             
             // TODO:
             // Setup tx popup for mobile

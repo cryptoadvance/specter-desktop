@@ -35,8 +35,8 @@ describe('Test sending transactions', () => {
     it('Open up transaction details', () => {
         cy.selectWallet("Test Hot Wallet 1")
         cy.get('#btn_transactions').click()
-        // Click on the txid of the (hopefully) only send tx
-        cy.get('tbody.tx-tbody').find('tr').find('.svg-send').parent().parent().parent().find('#column-txid').find('.explorer-link').click()
+        // Click on the first txid with category "send"
+        cy.get('[data-cy="tx-category-send"]').click()
         // Input
         cy.get('.tx-data-info').contains('Value: 20 tBTC')
         // Output
