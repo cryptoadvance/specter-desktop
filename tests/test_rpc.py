@@ -29,13 +29,16 @@ class CustomResponse(Response):
         self.encoding = None
 
 
-def test_get_rpcconfig(empty_data_folder):
+def test_get_rpcconfig0(empty_data_folder):
     c = _get_rpcconfig(empty_data_folder)
     assert c["bitcoin.conf"]["default"] == {}
     assert c["bitcoin.conf"]["main"] == {}
     assert c["bitcoin.conf"]["regtest"] == {}
     assert c["bitcoin.conf"]["test"] == {}
-    c = _get_rpcconfig("./tests/misc_testdata")
+
+
+def test_get_rpcconfig1():
+    c = _get_rpcconfig("./tests/misc_testdata/rpc_autodetection/example1")
     # Looks like this:
     # regtest=1
     # rpcconnect=bitcoin
@@ -57,8 +60,41 @@ def test_get_rpcconfig(empty_data_folder):
     }
 
 
-def test_detect_rpc_confs_via_datadir(empty_data_folder):
-    c = _detect_rpc_confs_via_datadir(datadir="./tests/misc_testdata")
+def test_get_rpcconfig2(empty_data_folder):
+    c = _get_rpcconfig("./tests/misc_testdata/rpc_autodetection/example2")
+    # maxmempool=700
+    # server=1
+    # prune=700
+    # [main]
+    # [test]
+    # [regtest]
+    # prune=0
+    # zmqpubrawblock=tcp://127.0.0.1:29000
+    # zmqpubrawtx=tcp://127.0.0.1:29000
+    # zmqpubhashtx=tcp://127.0.0.1:29000
+    # zmqpubhashblock=tcp://127.0.0.1:29000
+    assert c["bitcoin.conf"] == {
+        "default": {
+            "maxmempool": "700",
+            "server": "1",
+            "prune": "700",
+        },
+        "main": {},
+        "regtest": {
+            "prune": "0",
+            "zmqpubrawblock": "tcp://127.0.0.1:29000",
+            "zmqpubrawtx": "tcp://127.0.0.1:29000",
+            "zmqpubhashtx": "tcp://127.0.0.1:29000",
+            "zmqpubhashblock": "tcp://127.0.0.1:29000",
+        },
+        "test": {},
+    }
+
+
+def test_detect_rpc_confs_via_datadir1(empty_data_folder):
+    c = _detect_rpc_confs_via_datadir(
+        datadir="./tests/misc_testdata/rpc_autodetection/example1"
+    )
     # Looks like this:
     # regtest=1
     # rpcconnect=bitcoin
@@ -67,6 +103,27 @@ def test_detect_rpc_confs_via_datadir(empty_data_folder):
     # regtest.rpcport=18443
     # rpcuser=bitcoin
     # rpcpassword=CHANGEME
+    assert c == [
+        {"host": "bitcoin", "password": "CHANGEME", "port": 18443, "user": "bitcoin"}
+    ]
+
+
+def test_detect_rpc_confs_via_datadir2(caplog, empty_data_folder):
+    caplog.set_level(logging.DEBUG)
+    c = _detect_rpc_confs_via_datadir(
+        datadir="./tests/misc_testdata/rpc_autodetection/example2"
+    )
+    # maxmempool=700
+    # server=1
+    # prune=700
+    # [main]
+    # [test]
+    # [regtest]
+    # prune=0
+    # zmqpubrawblock=tcp://127.0.0.1:29000
+    # zmqpubrawtx=tcp://127.0.0.1:29000
+    # zmqpubhashtx=tcp://127.0.0.1:29000
+    # zmqpubhashblock=tcp://127.0.0.1:29000
     assert c == [
         {"host": "bitcoin", "password": "CHANGEME", "port": 18443, "user": "bitcoin"}
     ]
