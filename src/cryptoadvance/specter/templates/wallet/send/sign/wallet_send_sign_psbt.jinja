@@ -111,10 +111,10 @@
 			<label for="showdetails" class="btn togglebtn">
 				{{ _("transaction details") }}
 			</label>
-			<div class="toggle" id="tx_details" data-style="word-break: break-all;">
-				<br>
+
+			<div class="hidden" id="tx_details" data-style="word-break: break-all;">
 				<h2 class="tx_details_header">{{ _("Transaction Info") }}</h2>
-				<p data-style="text-align: left; background-color: #131a24; padding: 10px; line-height: 2; border-radius: 15px;">
+				<p>
 					<b>{{ _("Total fee:") }}</b> {{ psbt['fee'] | btc2sat }} sats {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['fee'] | altunit }})</span>{% endif %}<br>
 					<b>{{ _("Fee rate:") }}</b>
 					{% if 'tx_full_size' in psbt %}
@@ -176,21 +176,21 @@
 				{% endfor %}
 				{{ _("Raw PSBT:") }}<textarea id="raw-psbt" disabled data-style="background-color: #131a24;">{{ psbt['base64'] }}</textarea>
 				<div class="row break-row-mobile" data-style="margin:auto">
-					<a id="download-psbt-btn" class="btn"
+					<a id="download-psbt-btn" class="button"
 					download="binary_{{ psbt['tx']['hash'] }}.psbt" href="data:application/octet-stream;base64;content-disposition=attachment,{{ psbt['base64'] }}">
 						<img src="{{ url_for('static', filename='img/file.svg') }}" data-style="width: 26px; margin: 0px;" class="svg-white">
 						{{ _("Save binary") }}
 					</a>&nbsp;
-					<a id="download-psbt-btn" class="btn"
+					<a id="download-psbt-btn" class="button"
 					download="base64_{{ psbt['tx']['hash'] }}.psbt" href="data:text/plain;content-disposition=attachment,{{ psbt['base64'] }}">
 						<img src="{{ url_for('static', filename='img/file.svg') }}" data-style="width: 26px; margin: 0px;" class="svg-white">
 						{{ _("Save base64") }}
 					</a>&nbsp;
-					<a id="copy-raw-psbt-btn" class="btn">
+					<a id="copy-raw-psbt-btn" class="button">
 						<img src="{{ url_for('static', filename='img/copy.svg') }}" data-style="width: 26px; margin: 0px;" class="svg-white">
 						{{ _("Copy Raw PSBT") }}
 					</a>&nbsp;
-					<a id="show-qr-psbt-btn" class="btn">
+					<a id="show-qr-psbt-btn" class="button">
 						<img src="{{ url_for('static', filename='img/qr-code.svg') }}" data-style="width: 26px; margin: 0px;" class="svg-white">
 						{{ _("Show QR code") }}
 					</a>
@@ -203,7 +203,7 @@
 			{% for device in wallet.devices %}
 				{% if device.type != "bitcoincore_watchonly" %}
 					{% set device_signed = (device.alias in psbt.get("devices_signed")) %}
-					<button type="button" class="btn signing-column-btn" id="{{ device.alias }}_tx_sign_btn" {% if device_signed %} disabled data-style="background-color:#303c49;" {% endif %}>
+					<button type="button" class="button signing-column-btn" id="{{ device.alias }}_tx_sign_btn" {% if device_signed %} disabled data-style="background-color:#303c49;" {% endif %}>
 						{{ device.name }} {% if device.alias in psbt.get('devices_signed',[]) %} (&#10004;) {% endif %}
 					</button>
 				{% endif %}
@@ -218,24 +218,28 @@
 		<div id="ready_container" class="output_option {% if not psbt['raw'] %}hidden{% endif %}">
 			<p>{{ _("Transaction is ready to send") }} (&#10004;)</p>
 			<div class="output_option">
-				<a class="btn centered" id="send_tx_btn">{{ _("Send transaction") }}</a>
+				<a class="button bg-accent text-white" id="send_tx_btn">{{ _("Send Transaction") }}</a>
 			</div>
 		</div>
+
 		<div id="paste_signed" class="output_option {% if psbt['raw'] %}hidden{% endif %}" data-style="margin-top:20px">
-			<button type="button" onclick="showPageOverlay('paste-tx-popup')" class="btn centered" id="pastetx">{{ _("Paste signed transaction") }}</a>
+			<button type="button" onclick="showPageOverlay('paste-tx-popup')" class="button centered" id="pastetx">{{ _("Paste signed transaction") }}</a>
 		</div>
-		<div class="hidden" id="paste-tx-popup">
-			<h1>{{ _("Paste signed transaction") }}</h1>
-			<input type="text" id="paste-tx-text" placeholder="{{ _('Paste your transaction here') }}">
-			<br><br>
-			<button type="button" onclick="currentSigningDevice = '';combine(document.getElementById('paste-tx-text').value);hidePageOverlay();document.getElementById('paste-tx-text').value='';" class="btn centered">{{ _("Confirm") }}</button>
+
+		<div class="hidden bg-dark-800 rounded-lg p-4" id="paste-tx-popup">
+			<div class="flex justify-between mb-2">
+					<h3 class="mb-0">{{ _("Paste signed transaction") }}</h3>
+					<p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer">Close</p>
+			</div>
+			<textarea type="text" class="mt-2" id="paste-tx-text" placeholder="{{ _('Paste your transaction here') }}"></textarea>
+			<button class="mb-0 mt-2 button bg-accent text-white" type="button" onclick="currentSigningDevice = '';combine(document.getElementById('paste-tx-text').value);hidePageOverlay();document.getElementById('paste-tx-text').value='';">{{ _("Confirm") }}</button>
 		</div>
 		
 		{% include 'includes/overlay/broadcast_tx.jinja' %}
 
 		<div class="row padded">
 			<input type="hidden" name="pending_psbt" value='{{psbt|tojson|safe}}'>
-			<button id="deletepsbt_btn" type="submit" name="action" value="deletepsbt" class="btn danger centered" data-style="margin-left: 5px;">{{ _("Delete Transaction") }}</button>
+			<button id="deletepsbt_btn" type="submit" name="action" value="deletepsbt" class="button danger centered" data-style="margin-left: 5px;">{{ _("Delete Transaction") }}</button>
 		</div>
 	</form>
 

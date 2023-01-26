@@ -1,6 +1,6 @@
 <template id="coin-selection">
 	  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
-    <span class="toggle_coinselection cursor-pointer" data-cy="coin-selection-toggle">{{ _("Coin selection") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
+    <span class="toggle_coinselection mt-3 cursor-pointer" data-cy="coin-selection-toggle">{{ _("Coin selection") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
     <div class="coinselection_div hidden">
         <div class="errorMessagesDiv">
             <message-box type="error" class="hidden"></message-box>

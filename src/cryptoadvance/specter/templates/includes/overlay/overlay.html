@@ -8,7 +8,7 @@
 <!--     <a href="#" id="page_overlay_popup_cancel_button" onclick="cancelOverlay()">{{ _("Cancel") }}</a> -->
 <!-- </div> -->
 
-<div class="loader hidden" id="pacman">
+<div class="loader hidden absolute self-center z-100" id="pacman">
     <img src="{{ url_for('static', filename='img/loader.gif') }}"/>
     <div>{{ _("Loading... It may take a while...") }}</div>
 </div>

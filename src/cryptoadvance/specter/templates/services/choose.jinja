@@ -1,7 +1,7 @@
 {% extends "base.jinja" %}
-{% block head %}
-<div style="display: none;"><!--<style>-->
 
+{% block head %}
+<style>
     /* copied (and adapted for card-use) from here:
     * "Fork me on GitHub" CSS ribbon v0.2.3 | MIT License
     * https://github.com/simonwhitaker/github-fork-ribbon-css
@@ -127,13 +127,13 @@
         transform: rotate(-45deg);
     }
 
-</div><!--</style>-->
+</style>
 
 {% endblock %}
 
 {% block main %}
-{% from 'services/components/plugin_card.jinja' import plugin_card %}
 
+{% from 'services/components/plugin_card.jinja' import plugin_card %}
 <div style="display: none;"><!--<style>-->
 
         .plugin_container {
@@ -182,74 +182,57 @@
             margin-top: 4em;
         }
     </div><!--</style>-->
-    <h1 data-style="font-size: 2em;">{{ _("Plugins") }}</h1>
-    
+    <h1>{{ _("Plugins") }}</h1>
     {% if is_login_disabled %}
         <div class="yellow_warn_box">
             <p>{{ _("Current Authentication method: \"None\"")}}</p>
             <p>{{ _("Service integrations require secure per-user storage. This is only possible with a user authentication method that is password protected (any method other than \"None\").") }}</p>
             <br/>
-            <p>{{ _("Select a new method in:") }}<br/>
-            <a class="btn" href="{{ url_for('settings_endpoint.auth', next=url_for('services_endpoint.choose')) }}">{{ _("Settings") }}</a></p>
+            <p>{{ _("Select a new method in: ") }}
+            <a class="btn inline-flex" href="{{ url_for('settings_endpoint.auth', next=url_for('services_endpoint.choose')) }}">{{ _("Settings") }}</a></p>
         </div>
     {% endif %}
 
     <div class="card center auto-width" data-style="min-width: 90%;">
-        <hr>
-        <h2>Plugins in Production</h2>
-        <br>
-        
+        <h3 class="mt-8 mb-3">Plugins in Production</h3>
+        <div class="grid grid-cols-2 gap-3">
+            {% for plugin in services %}
+                {% if plugin.__class__.devstatus == "prod" %}
+                    {{ plugin_card(plugin.name, plugin.desc, url_for(plugin.id + '_endpoint' + '.static', filename=plugin.icon), url_for(plugin.id + '_endpoint' + '.index')) }}
+                {% endif %}
+            {% endfor %}
+        </div>
 
-        {% for plugin in services %}
-            {% if plugin.__class__.devstatus == "prod" %}
-                {{ plugin_card(plugin.name, plugin.desc, url_for(plugin.id + '_endpoint' + '.static', filename=plugin.icon), url_for(plugin.id + '_endpoint' + '.index')) }}
-            {% endif %}
-        {% endfor %}
+        <h3 class="mt-8 mb-3">Plugins in Beta</h3>
+        <div class="grid grid-cols-2 gap-3">
+            {% for plugin in services %}
+                {% if plugin.__class__.devstatus == "beta" %}
+                    {{ plugin_card(plugin.name, plugin.desc, url_for(plugin.id + '_endpoint' + '.static', filename=plugin.icon), url_for(plugin.id + '_endpoint' + '.index')) }}
+                {% endif %}
+            {% endfor %}
+            {{ plugin_card('Slush Pool', 'Import your mining rewards history', "https://github.com/kdmukai/slushpool-importer/raw/fc62445d9e1ac304cb7f0bc25ede9618bd9403dc/src/kdmukai/specterext/slushpool/static/slushpool/img/slushpool_icon.png", "https://github.com/kdmukai/slushpool-importer") }}
+        </div>
 
-        <hr>
-        <h2>Plugins in Beta</h2>
-        <br>
+        <h3 class="mt-8 mb-3">Plugins in Alpha</h3>
+        <div class="grid grid-cols-2 gap-3">
+            {% for plugin in services %}
+                {% if plugin.__class__.devstatus == "alpha" %}
+                    {{ plugin_card(plugin.name, plugin.desc, url_for(plugin.id + '_endpoint' + '.static', filename=plugin.icon), url_for(plugin.id + '_endpoint' + '.index')) }}
+                {% endif %}
+            {% endfor %}
+            {{ plugin_card("Specter Dice", "Simulate Satoshi Dice on Regtest", "https://github.com/k9ert/specterext-dice/raw/v0.0.0-pre1/src/k9ert/specterext/dice/static/dice/dice_logo.png","https://github.com/k9ert/specterext-dice") }}
+            {{ plugin_card('Spotbit', 'Price info service', "https://github.com/ahv15/spotbit/raw/spotbit-plugin/images/logos/spotbit_avatar.jpg", "https://github.com/ahv15/spotbit") }}
+            {{ plugin_card('Warden', 'Portfolio tracker', "https://github.com/yogendra-17/specterext-warden/raw/20e834e32a533fd0693244efe3b2830a4cd1b79f/src/yogendra/specterext/warden/static/images/warden_square_logo.png", "https://github.com/yogendra-17/specterext-warden") }}
+        </div>
 
-        {% for plugin in services %}
-            {% if plugin.__class__.devstatus == "beta" %}
-                {{ plugin_card(plugin.name, plugin.desc, url_for(plugin.id + '_endpoint' + '.static', filename=plugin.icon), url_for(plugin.id + '_endpoint' + '.index')) }}
-            {% endif %}
-        {% endfor %}
+        <h3 class="mt-8 mb-3">Plugin Wishlist</h3>
+        <div class="grid grid-cols-2 gap-3">
+            {% include "services/components/wishlist.jinja" %}
+        </div>
 
-        {{ plugin_card('Slush Pool', 'Import your mining rewards history', "https://github.com/kdmukai/slushpool-importer/raw/fc62445d9e1ac304cb7f0bc25ede9618bd9403dc/src/kdmukai/specterext/slushpool/static/slushpool/img/slushpool_icon.png", "https://github.com/kdmukai/slushpool-importer") }}
-
-        <hr>
-        <h2>Plugins in Alpha</h2>
-        <br>
-
-        {% for plugin in services %}
-            {% if plugin.__class__.devstatus == "alpha" %}
-                {{ plugin_card(plugin.name, plugin.desc, url_for(plugin.id + '_endpoint' + '.static', filename=plugin.icon), url_for(plugin.id + '_endpoint' + '.index')) }}
-            {% endif %}
-        {% endfor %}
-
-    
-        {{ plugin_card("Specter Dice", "Simulate Satoshi Dice on Regtest", "https://github.com/k9ert/specterext-dice/raw/v0.0.0-pre1/src/k9ert/specterext/dice/static/dice/dice_logo.png","https://github.com/k9ert/specterext-dice") }}
-
-        {{ plugin_card('Spotbit', 'Price info service', "https://github.com/ahv15/spotbit/raw/spotbit-plugin/images/logos/spotbit_avatar.jpg", "https://github.com/ahv15/spotbit") }}
-
-        {{ plugin_card('Warden', 'Portfolio tracker', "https://github.com/yogendra-17/specterext-warden/raw/20e834e32a533fd0693244efe3b2830a4cd1b79f/src/yogendra/specterext/warden/static/images/warden_square_logo.png", "https://github.com/yogendra-17/specterext-warden") }}
-
-        <hr>
-        <h2>Plugin Wishlist</h2>
-        <br>
-
-        {% include "services/components/wishlist.jinja" %}
-
-        <div class="note endnote">
+        <div class="mt-8">
             {{ _("Some plugins might not respect the Tor-only policy.") }}
         </div>
     </div>
 {% endblock %}
 
-
-
-{% block scripts %}
-    <script>
-    </script>
-{% endblock %}

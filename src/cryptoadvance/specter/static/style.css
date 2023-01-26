@@ -58,7 +58,7 @@
 
   td,
   th {
-    @apply px-2 py-1.5 text-white whitespace-nowrap text-left border-r border-dark-700; /* first:pl-4 last:pr-4 */
+    @apply px-3 py-1.5 text-white whitespace-nowrap text-left border-r border-dark-700 last:border-r-0; /* first:pl-4 last:pr-4 */
   }
 
   .table-key {
@@ -206,7 +206,7 @@
   }
 
   .table-holder {
-    margin: 0 calc((100vw - 1080px) / -2);
+    margin: 20px calc((100vw - 1080px) / -2) 0;
     max-width: calc((100vw - 300px - 80px));
   }
 

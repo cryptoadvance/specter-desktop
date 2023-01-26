@@ -80,13 +80,13 @@
                 <tr>
                     <td data-style="display: flex;">
                         <span>Immature:</span>
-                        <tool-tip width="200px">
-                            <h4 slot="title">{{ _("What are immature outputs?") }}</h4>
-                            <span slot="paragraph">
-                            {{ _('The UTXO of coinbase transactions (mining rewards) have the special condition that they cannot be spent for at least 100 blocks. Their amount is not included in the total balance here.') }}
-                            {% if specter.chain == "regtest" %}{{ _('You see these outputs because you are using regtest and have mined blocks.')}}{% endif %}
-                            </span>
-                        </tool-tip>
+                        <!-- <tool-tip width="200px"> -->
+                        <!--     <h4 slot="title">{{ _("What are immature outputs?") }}</h4> -->
+                        <!--     <span slot="paragraph"> -->
+                        <!--     {{ _('The UTXO of coinbase transactions (mining rewards) have the special condition that they cannot be spent for at least 100 blocks. Their amount is not included in the total balance here.') }} -->
+                        <!--     {% if specter.chain == "regtest" %}{{ _('You see these outputs because you are using regtest and have mined blocks.')}}{% endif %} -->
+                        <!--     </span> -->
+                        <!-- </tool-tip> -->
                     <td class="right-align">{{ amount_immature | btcunitamount_fixed_decimals | safe }}</td>
                     </td>      
                     <td> 

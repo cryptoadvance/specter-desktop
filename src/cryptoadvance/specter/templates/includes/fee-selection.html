@@ -1,45 +1,65 @@
 <template id="fee-selection">
 	  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+    <div class="fee_container space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+            <label class="checkbox-wrapper">
+                <input type="radio" class="checkbox-input" id="fee_option_dynamic" name="fee_options" value="dynamic" >
+                <span class="checkbox-label">{{ _("Dynamic") }}</span>
+            </label>
+            <label class="checkbox-wrapper">
+                <input type="radio" class="checkbox-input" id="fee_option_manual" name="fee_options" value="manual" >
+                <span class="checkbox-label">{{ _("Manual") }}</span>
+            </label>
+        </div>
 
-    <div class="fee_container">
-        <div id="subtract_fees_div" data-style="display: flex">
-            <label><input type="checkbox" class="inline" name="subtract" id="subtract" {% if subtract %}checked{% endif %}> {{ _("Subtract fees from amount") }}</label>
-            <tool-tip width="200px">
-                <h4 slot="title">{{ _("Subtract fees from amount") }}</h4>
+        <div id="fee_manual" class="floating-wrapper" style="display: none">
+            {% set min_fee = 0.1 if specter.is_liquid else 1 %}
+            <input type="number" class="fee_rate floating-input peer" placeholder=" " name="fee_rate" id="fee_rate" min="{{min_fee}}" step="0.1" value="{{min_fee}}" autocomplete="off">
+            <label class="floating-label">{{ _("Fee Rate") }} (sat/vbyte)</label>
+            <tool-tip width="200px" class="floating-info">
                 <span slot="paragraph">
-                    {{ _("If checked, the transaction fees will be paid off from the transaction amount.") }}
-                    {{ _("Otherwise, the fees will be paid in addition to the amount sent.") }}       
+                    {{ _("{} sat/vbyte is the minimal fee rate.".format(min_fee)) }}
                 </span>
             </tool-tip>
         </div>
-        <span id="subtract_from" data-style="display: none">
-            {{ _("Subtract from ") }} 
-            <select id="subtract_from_recipient_id_select" name="subtract_from_stale" data-style="width: 140px; min-width: 140px;"></select>
-        </span>
-        <div>
-            {{ _("Fees:") }} 
-            <label><input type="radio" class="inline" data-style="margin: 0 10px 0 20px;" id="fee_option_dynamic" name="fee_options" value="dynamic" >{{ _("dynamic") }}</label>
-            <label><input type="radio" class="inline" data-style="margin: 0 10px 0 20px"  id="fee_option_manual" name="fee_options" value="manual" >{{ _("manual") }}</label>
-        </div>
-        <div id = "fee_manual" data-style="display: none">
-            {{ _("Fee rate:") }}
-            {% set min_fee = 0.1 if specter.is_liquid else 1 %}
-            <input type="number" class="fee_rate" name="fee_rate" id="fee_rate" min="{{min_fee}}" step="0.1" value="{{min_fee}}" autocomplete="off"> sat/vbyte
-            <div class="note">
-                {{ _("{} sat/vbyte is the minimal fee rate.".format(min_fee)) }}
-            </div>
-        </div>
-        <div id ="fee_dynamic" data-style="display: {% if fee_options_dynamic %}block{% else %}none{% endif %}">
+
+        <div id="fee_dynamic" style="display: {% if fee_options_dynamic %}block{% else %}none{% endif %}">
             <div id="blocks"></div>
-            <input type="range" data-style="width: 12em" min="{{min_fee}}" max="" value="" step="0.1" id="fees_slider">
             <input type="hidden" id="fee_rate_dynamic" name="fee_rate_dynamic" value="{{min_fee}}">
-            <div>
-                {{ _("Estimated speed:") }} <span id="fee_rate_speed_text"></span>
-                <span class="note">({{ _("Fee rate:") }} <span id="fee_rate_dynamic_text"></span> sat/vbyte)</span>
+
+            <div class="border-2 border-dark-700 bg-dark-800 rounded-lg px-6 py-3">
+                <input type="range" min="{{min_fee}}" step="0.1" id="fees_slider" class="w-full h-2 bg-dark-500 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                <div class="w-full text-center text-base mt-2 font-medium">
+                    {{ _("Estimated speed:") }} <span id="fee_rate_speed_text"></span>
+                    <span class="note">({{ _("Fee rate:") }} <span id="fee_rate_dynamic_text"></span> sat/vbyte)</span>
+                </div>
             </div>
         </div>
-        <label class="rbf-label" data-style="display: none">
-            <input type="checkbox" class="rbf-checkbox inline" name="rbf" id="rbf"> {{ _("RBF Enabled") }}
+
+        <div class="grid grid-cols-2 gap-3">
+            <div id="subtract_fees_div" data-style="display: flex">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" class="checkbox-input" name="subtract" id="subtract" {% if subtract %}checked{% endif %}>
+                    <span class="checkbox-label">{{ _("Subtract fees from amount") }}</span>
+                    <tool-tip width="200px">
+                        <h4 slot="title">{{ _("Subtract fees from amount") }}</h4>
+                        <span slot="paragraph">
+                            {{ _("If checked, the transaction fees will be paid off from the transaction amount.") }}
+                            {{ _("Otherwise, the fees will be paid in addition to the amount sent.") }}       
+                        </span>
+                    </tool-tip>
+                </label>
+            </div>
+
+            <div class="floating-wrapper" id="subtract_from">
+                <select class="floating-input peer" id="subtract_from_recipient_id_select" name="subtract_from_stale"></select>
+                <label class="floating-label">Subtract From</label>
+            </div>
+        </div>
+
+        <label class="rbf-label checkbox-wrapper-inline" style="display: none">
+            <input type="checkbox" class="rbf-checkbox checkbox-input" name="rbf" id="rbf">
+            <span class="checkbox-label">{{ _("RBF Enabled") }}</span>
         </label>
     </div>
 </template>

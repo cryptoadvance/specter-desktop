@@ -1,9 +1,8 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
 {% set tab = 'addresses' %}
+
 {% block content %}
-
 	<div class="table-holder">
-
 		{% include "includes/services-data.html" %}
 		{% include "includes/hwi/hwi.jinja" %}
 		{% include "includes/explorer-link.html" %}
@@ -19,7 +18,8 @@
 			btc-unit="{{ specter.unit }}"
 			hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
 			type="receive"
-			wallet="{{ wallet.alias }}"></addresses-table>
+			wallet="{{ wallet.alias }}">
+		</addresses-table>
 	</div>
 	<div id="address-popup" class="hidden"></div>
 {% endblock %}

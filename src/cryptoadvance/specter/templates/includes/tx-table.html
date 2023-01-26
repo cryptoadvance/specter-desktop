@@ -275,10 +275,11 @@
         </ul>
 
         <div class="flex items-center select-none">
-            <div id="pagination-container" class="flex items-center mx-4">
+            <div id="pagination-container" class="flex items-center mx-4 space-x-2">
                 <a id="pagination-back" class="hidden cursor-pointer w-6">←</a>
-                {{ _("Page") }} <input id="pagination-idx" class="text-center max-w-[40px] block max-h-[40px] mx-2" type="number" step="1" min="1" value="1"></input>
-                <div id="pagination-counter" class="block break-keep"></div>
+                <span>{{ _("Page") }}</span>
+                <input id="pagination-idx" class="text-center max-w-[40px] block max-h-[40px] mx-2" type="number" step="1" min="1" value="1"></input>
+                <div id="pagination-counter" class="block whitespace-nowrap"></div>
                 <a id="pagination-next" class="hidden cursor-pointer w-6">→</a>
             </div>
 
@@ -289,7 +290,7 @@
             </div>
         </div>
 
-        <div class="search-container">
+        <div class="search-container hidden">
             <input class="search" type="text" placeholder="Search..."></input>
 
             <!-- <div id="tooltip-container" class="tooltip-no-grow tooltip-width"> -->

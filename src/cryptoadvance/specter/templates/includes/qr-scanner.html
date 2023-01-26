@@ -21,7 +21,7 @@
 <template id="qr-scanner">
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
 
-  <div style="display: none;"><!--<style>-->
+  <style>
     #popup{
       position:fixed;
       top: 0px;
@@ -35,6 +35,8 @@
       align-content: center;
       justify-content: center;
       align-items: center;
+      overflow: hidden;
+      border-radius: 12px;
     }
     #qr-progress{
       font-size: 30px;
@@ -46,12 +48,14 @@
     #qr-video{
       width: 80%;
       height: 80%;
+      border-radius: 12px;
+      overflow: hidden;
     }
     :host,slot{
       padding: 0;
       margin: 0;
     }
-  </div><!--</style>-->
+  </style>
   <div class="popup" id="popup">
     <video muted playsinline id="qr-video" class="video"></video>
     <div id="qr-progress"></div>
