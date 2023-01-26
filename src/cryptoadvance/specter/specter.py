@@ -231,6 +231,7 @@ class Specter:
             user = self.user_manager.get_user(user)
             user.check()
         else:
+            u: User
             for u in self.user_manager.users:
                 u.check()
 
