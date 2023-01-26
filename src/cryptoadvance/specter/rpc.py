@@ -329,6 +329,7 @@ class BitcoinRPC:
         self.session = session
 
     def wallet(self, name=""):
+        """Return new instance connected to a specific wallet"""
         return type(self)(
             user=self.user,
             password=self.password,

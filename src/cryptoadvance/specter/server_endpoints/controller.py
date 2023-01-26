@@ -88,7 +88,7 @@ def server_specter_error(se):
         return {"error": str(se)}
     flash(str(se), "error")
     try:
-        app.specter.wallet_manager.update()
+        app.specter.wallet_manager.update(comment="via server_specter_error")
     except SpecterError as se:
         flash(str(se), "error")
     if request.method == "POST":

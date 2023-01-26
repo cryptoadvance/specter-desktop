@@ -35,7 +35,7 @@ wallets_endpoint = Blueprint("wallets_endpoint", __name__)
 def handle_wallet_error(func_name, error):
     flash(_("SpecterError while {}: {}").format(func_name, error), "error")
     app.logger.error(f"SpecterError while {func_name}: {error}")
-    app.specter.wallet_manager.update()
+    app.specter.wallet_manager.update(comment="via handle_wallet_error")
     return redirect(url_for("welcome_endpoint.about"))
 
 
@@ -121,7 +121,9 @@ def failed_wallets():
     if request.method == "POST":
         action = request.form["action"]
         if action == "retry_loading_wallets":
-            app.specter.wallet_manager.update()
+            app.specter.wallet_manager.update(
+                comment="via failed_wallets_retry_loading_wallets"
+            )
         elif action == "delete_failed_wallet":
             try:
                 wallet = json.loads(request.form["wallet_data"])
@@ -130,7 +132,9 @@ def failed_wallets():
                 delete_file(fullpath + ".bkp")
                 delete_file(fullpath.replace(".json", "_addr.csv"))
                 delete_file(fullpath.replace(".json", "_txs.csv"))
-                app.specter.wallet_manager.update()
+                app.specter.wallet_manager.update(
+                    comment="via failed_wallets_delete_failed_wallet"
+                )
             except Exception as e:
                 handle_exception(e)
                 flash(_("Failed to delete wallet: {}").format(str(e)), "error")
@@ -440,7 +444,7 @@ def history(wallet_alias):
     wallet.update_balance()
     wallet.check_utxo()
 
-    return render_template(
+    renderting = render_template(
         "wallet/history/wallet_history.jinja",
         wallet_alias=wallet_alias,
         wallet=wallet,
@@ -449,6 +453,8 @@ def history(wallet_alias):
         rand=rand,
         services=app.specter.service_manager.services,
     )
+    logger.info("-------------------end render_template()")
+    return renderting
 
 
 ###### Wallet receive ######
