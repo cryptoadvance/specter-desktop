@@ -58,7 +58,11 @@
 
   td,
   th {
-    @apply px-2 py-1.5 text-white text-ellipsis break-all text-left border-r border-dark-700; /* first:pl-4 last:pr-4 */
+    @apply px-2 py-1.5 text-white whitespace-nowrap text-left border-r border-dark-700; /* first:pl-4 last:pr-4 */
+  }
+
+  .table-key {
+    @apply overflow-scroll w-80;
   }
 
   th {
@@ -75,7 +79,9 @@
 
   /*
    *
+   *
    * Form
+   *
    *
    */
 
@@ -116,7 +122,23 @@
   }
 
   .floating-info {
-    @apply absolute right-3 top-2.5;
+    @apply absolute right-3 top-2;
+  }
+
+  .checkbox-wrapper-inline {
+    @apply flex items-center relative space-x-1 cursor-pointer;
+  }
+
+  .checkbox-wrapper {
+    @apply flex items-center relative h-12 px-3 border-2 rounded-lg space-x-2 cursor-pointer border-dark-700 bg-dark-800;
+  }
+
+  .checkbox-input {
+    @apply w-4 h-4 disabled:opacity-20;
+  }
+
+  .checkbox-label {
+    @apply font-medium peer-disabled:opacity-20;
   }
 
   select {
@@ -188,7 +210,8 @@
     max-width: calc((100vw - 300px - 80px));
   }
 
-  .table-holder::-webkit-scrollbar {
+  .table-holder::-webkit-scrollbar,
+  .table-key::-webkit-scrollbar {
     display: none;
   }
 }
