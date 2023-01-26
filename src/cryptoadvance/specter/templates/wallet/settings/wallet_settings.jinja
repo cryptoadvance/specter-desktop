@@ -40,7 +40,7 @@
 
 		<button onclick="toggleKeysList()" id="toggle_keys_list" type="button" class="button mt-3">{{ _("Show keys details") }}</button>
 
-		<div id="keys_list">
+		<div id="keys_list" style="display: none">
 			<h3 class="mt-8">{{ _("Slip-132") }}</h3>
 			<p>{{ _("SLIP-132 extended public keys (xpubs) are a different format for xpubs which usually starts with zpub or ypub.") }}</p>
 			<label class="flex space-x-1 items-center">
@@ -59,7 +59,7 @@
 								<th>{{ _("Network") }}</th>
 								<th>{{ _("Purpose") }}</th>
 								<th class="optional">{{ _("Derivation") }}</th>
-								<th class="optional">{{ _("Key") }}</th>
+								<th class="optional table-key">{{ _("Key") }}</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -69,7 +69,7 @@
 								</td>
 								<td>{{ purposes[key.key_type] }}</td>
 								<td class="optional">{{ key.derivation }}</td>
-								<td class="scroll xpub optional"><span class="normal_xpub hidden">{{ key.original }}</span><span class="slip132_xpub">{{ key.xpub }}</span></td>
+								<td class="scroll xpub optional"><div class="table-key normal_xpub hidden">{{ key.original }}</div><div class="table-key slip132_xpub">{{ key.xpub }}</div></td>
 							</tr>
 						</tbody>
 					</table>
