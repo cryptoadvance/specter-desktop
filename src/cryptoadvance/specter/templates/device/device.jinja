@@ -13,7 +13,7 @@
 		<table id="keys-table">
 			<thead>
 				<tr>
-					<th>{{ _("Network") }}</th><th>{{ _("Purpose") }}</th><th class="optional">{{ _("Derivation") }}</th><th class="mobile-only">{{ _("Export") }}</th><th class="optional">{{ _("Key") }}</th><th class="optional">{{ _("Actions") }}</th>
+					<th>{{ _("Network") }}</th><th>{{ _("Purpose") }}</th><th class="optional">{{ _("Derivation") }}</th><th class="mobile-only">{{ _("Export") }}</th><th class="optional table-key">{{ _("Key") }}</th><th class="optional">{{ _("Actions") }}</th>
 				</tr>
 			</thead>
 			<input type="hidden" id="key_selected" value="0" />
@@ -33,17 +33,19 @@
 							</td>
 						{% endif %}
 						<td class="xpub scroll optional">
-							{% if specter.hide_sensitive_info %}
-								<span class="explorer-link">##################################################</span>
-							{% else %}
-								<span class="explorer-link" onclick="copyText('{{ key }}', 'Copied key: {{ key }}')">{{ key }}</span>
-							{% endif %}
+							<div class="table-key">
+								{% if specter.hide_sensitive_info %}
+									<span class="explorer-link">##################################################</span>
+								{% else %}
+									<span class="explorer-link" onclick="copyText('{{ key }}', 'Copied key: {{ key }}')">{{ key }}</span>
+								{% endif %}
+							</div>
 						</td>
 						<td width="80px" class="optional">
 							<form action="./" method="POST">
 								<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 								<input type="hidden" name="key" value="{{ key.original }}">
-								<button type="submit" name="action" value="delete_key" class="btn danger hovering">{{ _("Delete") }}</button>
+								<button type="submit" name="action" value="delete_key" class="btn bg-dark-600 w-20">{{ _("Delete") }}</button>
 							</form>
 						</td>
 					</tr>
