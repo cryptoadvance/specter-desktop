@@ -308,4 +308,4 @@ class BitcoinCoreWatchOnly(BitcoinCore):
         # Change type (also triggers write to file)
         self.set_type(DeviceTypes.BITCOINCORE)
         # After update this device will be available as a BitcoinCore (hot) instance
-        self.manager.update()
+        self.manager.update(comment="via BitcoinCoreWatchOnly")
