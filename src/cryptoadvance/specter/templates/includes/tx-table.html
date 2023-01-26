@@ -1101,6 +1101,7 @@
                         // Adding "Unsigned" in coin selection and UTXO overview
                         txRow.callbackaction.append("Unsigned")
                         txRow.categoryCell.append("Unsigned")
+                        txRow.el.setAttribute('data-cy', 'unsigned-tx-row')
                     }
                     if (txRow.tx.confirmations == 0) {
                         var el = txRow.callbackaction.childNodes
