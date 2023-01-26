@@ -4,11 +4,11 @@
     <h1><img src="{{ url_for('static', filename='img/ghost_3d.png') }}" style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" style="width: 60px;" class="svg-white"/>&nbsp;<img style="width: 60px;" src="{{ url_for('static', filename='img/tor.svg') }}"/><br>
     <br>{{ _("Setup Tor daemon") }}</h1>
     <br><br>
-    <div class="row">
+    <div class="row" style="flex-wrap: wrap;display: flex; justify-content: center;">
         {% if nextURL == 'setup_endpoint.node_type'%}
-            <a href="{{ url_for('setup_endpoint.node_type') }}" class="btn wizard-btn">{{ _("Skip") }}</a>
+            <a href="{{ url_for('setup_endpoint.node_type') }}" class="btn wizard-btn" style="margin: 20px;">{{ _("Skip") }}</a>
         {% endif %}
-        <button type="button" class="btn wizard-btn action" id="setup-tor-button" onclick="setupTorDaemon()">{{ _("Setup Tor") }}</button>
+        <button type="button" class="btn wizard-btn action" id="setup-tor-button" onclick="setupTorDaemon()" style="margin: 20px;">{{ _("Setup Tor") }}</button>
     </div>
 {% endblock %}
 
