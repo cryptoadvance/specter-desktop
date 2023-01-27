@@ -52,7 +52,6 @@ class NonExistingNode(PersistentObject):
 
     @property
     def bitcoin_core_version_raw(self):
-        raise Exception()
         return 9999999
 
     def update_rpc(self):
