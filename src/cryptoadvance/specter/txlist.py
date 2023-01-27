@@ -342,7 +342,7 @@ class WalletAwareTxItem(TxItem):
         elif mode == "embit":
             return self.psbt.to_dict()
         else:
-            raise SpecterInternalException("Mode not existing")
+            raise SpecterInternalException(f"Mode {mode} does not exist")
 
     @property
     def category(self):
