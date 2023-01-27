@@ -330,10 +330,19 @@ class WalletAwareTxItem(TxItem):
     def is_taproot(self):
         return str(self.descriptor).startswith("tr(")
 
-    @property
-    def psbt_decoded(self) -> SpecterPSBT:
-        """This tx but as a psbt. Need rpc-calls"""
-        return self.rpc.decodepsbt(str(self.psbt))
+    def decode_psbt(self, mode="embit") -> SpecterPSBT:
+        """Utility function which decodes this tx as psbt
+        as in the core rpc-call 'decodepsbt'.
+        However, it uses embit to calculate the details
+        use mode=core to ask core directly.
+        embit might support taproot, core might not.
+        """
+        if mode == "core":
+            return self.rpc.decodepsbt(str(self.psbt))
+        elif mode == "embit":
+            return self.psbt.to_dict()
+        else:
+            raise SpecterInternalException("Mode not existing")
 
     @property
     def category(self):
@@ -432,13 +441,13 @@ class WalletAwareTxItem(TxItem):
         self["address"] = addresses[0]
         return self["address"]
 
-    def __dict__(self):
-        super_dict = dict(self)
-        super_dict["category"] = self.category
-        super_dict["flow_amount"] = self.flow_amount
-        super_dict["utxo_amount"] = self.utxo_amount
-        super_dict["ismine"] = (self["ismine"] or self.ismine,)
-        return super_dict
+    # def __dict__(self):
+    #     super_dict = dict(self)
+    #     super_dict["category"] = self.category
+    #     super_dict["flow_amount"] = self.flow_amount
+    #     super_dict["utxo_amount"] = self.utxo_amount
+    #     super_dict["ismine"] = (self["ismine"] or self.ismine,)
+    #     return super_dict
 
 
 class TxList(dict, AbstractTxListContext):

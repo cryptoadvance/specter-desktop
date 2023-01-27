@@ -265,14 +265,11 @@ class WalletManager:
             logger.error(f"Failed updating wallet manager. RPC error: {e}")
         finally:
             self.is_loading = False
-        logger.info("Updating wallet manager done. Result:")
-        logger.info(f"  * loaded_wallets: {len(self.wallets)}")
-        logger.info(f"  * failed_load_wallets: {len(self._failed_load_wallets)}")
-        for wallet in self._failed_load_wallets:
-            logger.info(f"    * {wallet['name']} : {wallet['loading_error']}")
-
-        wallets_update_list = {}
-        self.is_loading = False
+            logger.info("Updating wallet manager done. Result:")
+            logger.info(f"  * loaded_wallets: {len(self.wallets)}")
+            logger.info(f"  * failed_load_wallets: {len(self._failed_load_wallets)}")
+            for wallet in self._failed_load_wallets:
+                logger.info(f"    * {wallet['name']} : {wallet['loading_error']}")
 
     def get_by_alias(self, alias):
         for wallet_name in self.wallets:
