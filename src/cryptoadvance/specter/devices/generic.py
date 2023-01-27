@@ -1,9 +1,8 @@
-from . import DeviceTypes
 from ..device import Device
 
 
 class GenericDevice(Device):
-    device_type = DeviceTypes.GENERICDEVICE
+    device_type = "other"
     name = "Other"
 
     sd_card_support = True

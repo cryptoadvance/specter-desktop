@@ -15,7 +15,7 @@ from sys import exit
 from urllib.parse import urlparse
 
 import requests
-from cryptoadvance.specter.devices.device_types import DeviceTypes
+from cryptoadvance.specter.devices.bitcoin_core import BitcoinCore, BitcoinCoreWatchOnly
 from cryptoadvance.specter.services.service_encrypted_storage import (
     ServiceEncryptedStorageManager,
     ServiceUnencryptedStorageManager,
@@ -229,6 +229,7 @@ class Specter:
             user = self.user_manager.get_user(user)
             user.check()
         else:
+            u: User
             for u in self.user_manager.users:
                 u.check()
 
@@ -720,8 +721,8 @@ class Specter:
                     data.compress_type = zipfile.ZIP_DEFLATED
                     device = device.json
                     # Exporting the bitcoincore hot wallet as watchonly
-                    if device["type"] == DeviceTypes.BITCOINCORE:
-                        device["type"] = DeviceTypes.BITCOINCORE_WATCHONLY
+                    if device["type"] == BitcoinCore.device_type:
+                        device["type"] = BitcoinCoreWatchOnly.device_type
                     zf.writestr(
                         "devices/{}.json".format(device["alias"]), json.dumps(device)
                     )

@@ -305,7 +305,10 @@ class User(UserMixin):
             self._wallet_manager = wallet_manager
         else:
             wallet_manager.update(
-                wallets_folder, self.specter.rpc, chain=self.specter.chain
+                wallets_folder,
+                self.specter.rpc,
+                chain=self.specter.chain,
+                comment="via user",
             )
 
     def check_device_manager(self, user=None):

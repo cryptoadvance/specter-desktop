@@ -1,10 +1,9 @@
-from . import DeviceTypes
 from .hwi_device import HWIDevice
 from hwilib.devices.trezor import TrezorClient
 
 
 class Trezor(HWIDevice):
-    device_type = DeviceTypes.TREZOR
+    device_type = "trezor"
     name = "Trezor"
     icon = "img/devices/trezor_icon.svg"
 

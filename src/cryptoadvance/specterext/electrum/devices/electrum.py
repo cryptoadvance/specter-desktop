@@ -1,6 +1,5 @@
 from binascii import a2b_base64
 from typing import List
-from cryptoadvance.specter.devices.device_types import DeviceTypes
 from cryptoadvance.specter.util.base43 import b43_encode
 from cryptoadvance.specter.device import Device
 

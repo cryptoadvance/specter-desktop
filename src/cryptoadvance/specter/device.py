@@ -1,4 +1,7 @@
 import json
+from typing import Type
+
+from cryptoadvance.specter.util.reflection import get_subclasses_for_clazz
 from .key import Key
 from typing import List
 from .persistence import read_json_file, write_json_file
@@ -59,6 +62,13 @@ class Device:
         if "specterext" in module_array:
             return f"{module_array[2]}_endpoint.static"
         return "static"
+
+    @classmethod
+    def get_device_class_by_device_type_string(cls, device_type: str) -> Type:
+        for clazz in get_subclasses_for_clazz(Device):
+            if clazz.device_type == device_type:
+                return clazz
+        return None
 
     def create_psbts(self, base64_psbt, wallet):
         """
