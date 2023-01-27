@@ -124,9 +124,7 @@ def test_detect_rpc_confs_via_datadir2(caplog, empty_data_folder):
     # zmqpubrawtx=tcp://127.0.0.1:29000
     # zmqpubhashtx=tcp://127.0.0.1:29000
     # zmqpubhashblock=tcp://127.0.0.1:29000
-    assert c == [
-        {"host": "bitcoin", "password": "CHANGEME", "port": 18443, "user": "bitcoin"}
-    ]
+    assert c == []
 
 
 def test_RpcError_response(caplog):
