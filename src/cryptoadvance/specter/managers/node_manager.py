@@ -65,8 +65,6 @@ class NodeManager:
                     default_alias=nodes_files[node_alias]["alias"],
                     default_fullpath=calc_fullpath(self.data_folder, node_alias),
                 )
-                print("---------------------------------------")
-                print(node.__class__.__module__.split("."))
                 if (
                     node.__class__.__module__.split(".")[1] == "specterext"
                 ):  # e.g. cryptoadvance.specterext.spectrum
@@ -176,6 +174,12 @@ class NodeManager:
                 return node
         raise SpecterError("Node name %s does not exist!" % name)
 
+    def get_name_from_alias(self, alias: str) -> str:
+        for node in self.nodes.values():
+            if node.alias == alias:
+                return node.name
+        raise SpecterError("Node alias %s does not exist!" % alias)
+
     def update_bitcoind_version(self, specter, version):
         stopped_nodes = []
         for node in (node for node in self.nodes.values() if not node.external_node):
@@ -243,13 +247,10 @@ class NodeManager:
         return node
 
     def save_node(self, node):
-        fullpath = (
-            node.fullpath
-            if hasattr(node, "fullpath")
-            else calc_fullpath(self.data_folder, node.alias)
-        )
-        write_node(node, fullpath)
-        logger.info("Added new node {}".format(node.alias))
+        if not hasattr(node, "fullpath"):
+            node.fullpath = calc_fullpath(self.data_folder, node.alias)
+        write_node(node, node.fullpath)
+        logger.info(f"Saved new node {node.alias} at {node.fullpath}")
 
     def add_internal_node(
         self,
@@ -293,6 +294,7 @@ class NodeManager:
             self.internal_bitcoind_version,
         )
         self.nodes[node_alias] = node
+        self.save_node(node)
         return node
 
     def delete_node(self, node, specter):

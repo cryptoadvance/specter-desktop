@@ -56,10 +56,9 @@ def _get_rpcconfig(datadir=get_default_datadir()):
     """
     config = {
         "bitcoin.conf": {"default": {}, "main": {}, "test": {}, "regtest": {}},
-        "cookies": [],
+        "cookies": {},
     }
     if not os.path.isdir(datadir):  # we don't know where to search for files
-        logger.warning(f"{datadir} not found")
         return config
     # load content from bitcoin.conf
     bitcoin_conf_file = os.path.join(datadir, "bitcoin.conf")
@@ -90,12 +89,13 @@ def _get_rpcconfig(datadir=get_default_datadir()):
     for chain in folders:
         fname = os.path.join(datadir, folders[chain], ".cookie")
         if os.path.exists(fname):
+            logger.debug(f"Found a cookie file for chain {chain}")
             try:
                 with open(fname, "r") as f:
                     content = f.read()
                     user, password = content.split(":")
                     obj = {"user": user, "password": password, "port": RPC_PORTS[chain]}
-                    config["cookies"].append(obj)
+                    config["cookies"][chain] = obj
             except Exception as e:
                 handle_exception(e)
                 print("Can't open %s file" % fname)
@@ -103,33 +103,57 @@ def _get_rpcconfig(datadir=get_default_datadir()):
 
 
 def _detect_rpc_confs_via_datadir(config=None, datadir=get_default_datadir()):
+    """returns the bitcoin.conf configuration for the network
+    specified in bitcoin.conf with testnet=1, regtest=1, etc. as
+    well as the network's auth cookie information.
+    """
+
+    confs = []
+    conf = {}
+    networks = []
+    selected_network = "main"
+
     if config is None:
         config = _get_rpcconfig(datadir=datadir)
-    confs = []
-    default = {}
-    for network in config["bitcoin.conf"]:
+
+    if "default" in config["bitcoin.conf"]:
+        default = config["bitcoin.conf"]["default"]
+        networks.append("default")
+        if "regtest" in default and default["regtest"] == "1":
+            selected_network = "regtest"
+        elif "testnet" in default and default["testnet"] == "1":
+            selected_network = "test"
+        elif "signet" in default and default["signet"] == "1":
+            selected_network = "signet"
+
+    logger.debug(f"Bitcoin network set to {selected_network}")
+
+    # Network specific options take precedence over default ones,
+    # as per https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#network-specific-options
+    networks.append(selected_network)
+
+    for network in networks:
         if "rpcuser" in config["bitcoin.conf"][network]:
-            default["user"] = config["bitcoin.conf"][network]["rpcuser"]
+            conf["user"] = config["bitcoin.conf"][network]["rpcuser"]
         if "rpcpassword" in config["bitcoin.conf"][network]:
-            default["password"] = config["bitcoin.conf"][network]["rpcpassword"]
+            conf["password"] = config["bitcoin.conf"][network]["rpcpassword"]
         if "rpcconnect" in config["bitcoin.conf"][network]:
-            default["host"] = config["bitcoin.conf"][network]["rpcconnect"]
+            conf["host"] = config["bitcoin.conf"][network]["rpcconnect"]
         if "rpcport" in config["bitcoin.conf"][network]:
-            default["port"] = int(config["bitcoin.conf"][network]["rpcport"])
-        if "user" in default and "password" in default:
-            if (
-                "port" not in config["bitcoin.conf"]["default"]
-            ):  # only one rpc makes sense in this case
-                if network == "default":
-                    continue
-                default["port"] = RPC_PORTS[network]
-            confs.append(default.copy())
-    # try cookies now
-    for cookie in config["cookies"]:
+            conf["port"] = int(config["bitcoin.conf"][network]["rpcport"])
+    if conf:
+        confs.append(conf)
+
+    # Check for cookies as auth fallback, rpcpassword in bitcoin.conf takes precedence
+    # as per https://github.com/bitcoin/bitcoin/blob/master/doc/init.md#configuration
+    # Only take the selected network cookie info
+    if "cookies" in config and selected_network in config["cookies"]:
+        cookie = config["cookies"][selected_network]
         o = {}
-        o.update(default)
+        o.update(conf)
         o.update(cookie)
         confs.append(o)
+
     return confs
 
 
@@ -179,12 +203,7 @@ def autodetect_rpc_confs(
     available_conf_arr = []
     if len(conf_arr) > 0:
         for conf in conf_arr:
-            rpc = BitcoinRPC(
-                **conf, proxy_url="socks5h://localhost:9050", only_tor=False
-            )
-            if port is not None:
-                if int(rpc.port) != port:
-                    continue
+            rpc = BitcoinRPC(**conf, proxy_url=proxy_url, only_tor=only_tor)
             try:
                 rpc.getmininginfo()
                 available_conf_arr.append(conf)
@@ -196,10 +215,11 @@ def autodetect_rpc_confs(
                 pass
             except RpcError:
                 pass
+            except BrokenCoreConnectionException:
+                # If conf's auth doesn't work, let's try cookie's auth if found
+                pass
                 # have to make a list of acceptable exception unfortunately
                 # please enlarge if you find new ones
-    else:
-        logger.info(f"No candidates for BTC-connection autodetection found")
     return available_conf_arr
 
 
@@ -213,10 +233,26 @@ class RpcError(Exception):
         assert rpce.error_code == -32601
         assert rpce.error_msg == "Method not found"
     See for error_codes https://github.com/bitcoin/bitcoin/blob/v0.15.0.1/src/rpc/protocol.h#L32L87
+    You can create these RpcErrors via a response-object:
+        RpcError("some Message",response)
+    or directly via:
+        raise RpcError("some Message", status_code=500, error_code=-32601, error_msg="Requested wallet does not exist or is not loaded")
+    The message is swallowed if there is a proper error_msg.
     """
 
-    def __init__(self, message, response):
+    def __init__(
+        self, message, response=None, status_code=None, error_code=None, error_msg=None
+    ):
         super(Exception, self).__init__(message)
+        if response is not None:
+            self.init_via_response(response)
+        else:
+
+            self.status_code = status_code or 500
+            self.error_code = error_code or -99
+            self.error_msg = error_msg or str(self)
+
+    def init_via_response(self, response):
         self.status_code = 500  # default
         try:
             self.status_code = response.status_code
@@ -227,9 +263,9 @@ class RpcError(Exception):
         try:
             self.error_code = error["error"]["code"]
             self.error_msg = error["error"]["message"]
-        except Exception as e:
+        except Exception:
             self.error_code = -99
-            self.error = "UNKNOWN API-ERROR:%s" % response.text
+            self.error_msg = str(self) + " - UNKNOWN API-ERROR:%s" % response.text
 
 
 class BitcoinRPC:
@@ -288,6 +324,7 @@ class BitcoinRPC:
         self.session = session
 
     def wallet(self, name=""):
+        """Return new instance connected to a specific wallet"""
         return type(self)(
             user=self.user,
             password=self.password,

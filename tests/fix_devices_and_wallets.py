@@ -66,7 +66,7 @@ def hot_ghost_machine_device(
 def create_hot_segwit_wallet(
     specter_regtest_configured: Specter, device: Device, wallet_id
 ) -> Wallet:
-    wallet_manager = specter_regtest_configured.wallet_manager
+    wallet_manager: WalletManager = specter_regtest_configured.wallet_manager
     assert device.taproot_available(specter_regtest_configured.rpc)
 
     # create the wallet
@@ -166,9 +166,10 @@ def funded_ghost_machine_wallet(
     bitcoin_regtest: NodeController, unfunded_ghost_machine_wallet: Wallet
 ) -> Wallet:
     funded_ghost_machine_wallet = unfunded_ghost_machine_wallet
-    bitcoin_regtest.testcoin_faucet(
-        funded_ghost_machine_wallet.getnewaddress()
-    )  # default value are 20 BTC
+    if funded_ghost_machine_wallet.amount_total == 0:
+        bitcoin_regtest.testcoin_faucet(
+            funded_ghost_machine_wallet.getnewaddress()
+        )  # default value are 20 BTC
     return funded_ghost_machine_wallet
 
 

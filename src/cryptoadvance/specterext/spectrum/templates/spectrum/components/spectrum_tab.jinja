@@ -1,0 +1,8 @@
+{% extends "spectrum/base.jinja" %}
+{% block main %}
+    <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" width="100"/>    
+    {% from 'spectrum/components/spectrum_menu.jinja' import spectrum_menu with context %}
+    {{ spectrum_menu(tab) }}
+    {% block content %}
+    {% endblock %}
+{% endblock %}

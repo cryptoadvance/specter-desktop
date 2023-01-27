@@ -15,22 +15,24 @@ from sys import exit
 from urllib.parse import urlparse
 
 import requests
-from requests.exceptions import ConnectionError
-from stem.control import Controller
-from urllib3.exceptions import NewConnectionError
-
-from cryptoadvance.specter.devices.device_types import DeviceTypes
+from cryptoadvance.specter.devices.bitcoin_core import BitcoinCore, BitcoinCoreWatchOnly
 from cryptoadvance.specter.services.service_encrypted_storage import (
     ServiceEncryptedStorageManager,
     ServiceUnencryptedStorageManager,
 )
+from requests.exceptions import ConnectionError
+from stem import SocketError
+from stem.control import Controller
+from urllib3.exceptions import NewConnectionError
 
-from .helpers import clean_psbt, deep_update, is_liquid, get_asset_label
+from .helpers import clean_psbt, deep_update, get_asset_label, is_liquid
 from .internal_node import InternalNode
 from .liquid.rpc import LiquidRPC
 from .managers.config_manager import ConfigManager
+from .managers.device_manager import DeviceManager
 from .managers.node_manager import NodeManager
 from .managers.otp_manager import OtpManager
+from .managers.service_manager import ServiceManager
 from .managers.user_manager import UserManager
 from .managers.wallet_manager import WalletManager
 from .node import Node
@@ -47,10 +49,10 @@ from .specter_error import ExtProcTimeoutException, SpecterError
 from .tor_daemon import TorDaemonController
 from .user import User
 from .util.checker import Checker
-from .util.version import VersionChecker
 from .util.price_providers import update_price
 from .util.setup_states import SETUP_STATES
 from .util.tor import get_tor_daemon_suffix
+from .util.version import VersionChecker
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +166,7 @@ class Specter:
             if os.path.isfile(self.torbrowser_path):
                 self.tor_daemon.start_tor_daemon()
         except Exception as e:
-            logger.error(e)
+            logger.exception(e)
 
         self.update_tor_controller()
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
@@ -234,6 +236,7 @@ class Specter:
             user = self.user_manager.get_user(user)
             user.check()
         else:
+            u: User
             for u in self.user_manager.users:
                 u.check()
 
@@ -420,7 +423,7 @@ class Specter:
             self._tor_controller.authenticate(
                 password=self.config.get("torrc_password", "")
             )
-        except Exception as e:
+        except SocketError as e:
             logger.warning(f"Failed to connect to Tor control port. Error: {e}")
             self._tor_controller = None
 
@@ -655,31 +658,31 @@ class Specter:
         return self.user_config.get("alt_symbol", "BTC")
 
     @property
-    def admin(self):
+    def admin(self) -> User:
         for u in self.user_manager.users:
             if u.is_admin:
                 return u
 
     @property
-    def user(self):
+    def user(self) -> User:
         return self.user_manager.user
 
     @property
-    def config_manager(self):
+    def config_manager(self) -> ConfigManager:
         if not hasattr(self, "_config_manager"):
             self._config_manager = ConfigManager(self.data_folder)
         return self._config_manager
 
     @property
-    def device_manager(self):
+    def device_manager(self) -> DeviceManager:
         return self.user.device_manager
 
     @property
-    def wallet_manager(self):
+    def wallet_manager(self) -> WalletManager:
         return self.user.wallet_manager
 
     @property
-    def otp_manager(self):
+    def otp_manager(self) -> OtpManager:
         if not hasattr(self, "_otp_manager"):
             self._otp_manager = OtpManager(self.data_folder)
         return self._otp_manager
@@ -731,8 +734,8 @@ class Specter:
                     data.compress_type = zipfile.ZIP_DEFLATED
                     device = device.json
                     # Exporting the bitcoincore hot wallet as watchonly
-                    if device["type"] == DeviceTypes.BITCOINCORE:
-                        device["type"] = DeviceTypes.BITCOINCORE_WATCHONLY
+                    if device["type"] == BitcoinCore.device_type:
+                        device["type"] = BitcoinCoreWatchOnly.device_type
                     zf.writestr(
                         "devices/{}.json".format(device["alias"]), json.dumps(device)
                     )

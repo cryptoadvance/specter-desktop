@@ -63,12 +63,16 @@ logger = logging.getLogger(__name__)
 @app.errorhandler(RpcError)
 def server_rpc_error(rpce):
     """Specific SpecterErrors get passed on to the User as flash"""
+    if request.headers.get("Accept") == "application/json":
+        return {"error": str(rpce)}
     if rpce.error_code == -18:  # RPC_WALLET_NOT_FOUND
+
         flash(
             _("Wallet not found. Specter reloaded all wallets, please try again."),
             "error",
         )
     else:
+
         flash(_("Bitcoin Core RpcError: {}").format(str(rpce)), "error")
     try:
         app.specter.wallet_manager.update()
@@ -79,10 +83,12 @@ def server_rpc_error(rpce):
 
 @app.errorhandler(SpecterError)
 def server_specter_error(se):
-    """Specific SpecterErrors get passed on to the User as flash"""
+    """Specific SpecterErrors get passed on to the User as flash (or in error-field for json)"""
+    if request.headers.get("Accept") == "application/json":
+        return {"error": str(se)}
     flash(str(se), "error")
     try:
-        app.specter.wallet_manager.update()
+        app.specter.wallet_manager.update(comment="via server_specter_error")
     except SpecterError as se:
         flash(str(se), "error")
     if request.method == "POST":
@@ -96,47 +102,56 @@ def server_specter_error(se):
 def server_notFound_error(e):
     """Unspecific Exceptions get a 404 Error-Page"""
     # if rpc is not available
-    app.logger.error("Could not find Resource (404): %s" % request.url)
+    error_msg = "Could not find Resource (404): %s" % request.url
+    app.logger.error(error_msg)
+    if request.headers.get("Accept") == "application/json":
+        return {"error": error_msg}
     return render_template("500.jinja", error=e), 404
 
 
 @app.errorhandler(Exception)
 def server_error(e):
     """Unspecific Exceptions get a 500 Error-Page"""
-    app.logger.error("Uncaught exception: %s" % e)
+    error_msg = "Uncaught exception: %s" % e
+    app.logger.error(error_msg)
     trace = traceback.format_exc()
     app.logger.error(trace)
+    if request.headers.get("Accept") == "application/json":
+        return {"error": error_msg}
     return render_template("500.jinja", error=e, traceback=trace), 500
 
 
 @app.errorhandler(BrokenCoreConnectionException)
 def server_broken_core_connection(e):
+    error_msg = "You got disconnected from your node (no RPC connection)"
     logger.exception(e)
-    flash("You got disconnected from your node (no RPC connection)", "error")
+    if request.headers.get("Accept") == "application/json":
+        return {"error": error_msg}
+    flash(error_msg, "error")
     try:
         app.specter.check()
         return redirect(url_for("welcome_endpoint.about"))
     except Exception as e:
+        logger.exception(e)
         return server_error(e)
 
 
 @app.errorhandler(ExtProcTimeoutException)
 def server_error_timeout(e):
     """Unspecific Exceptions get a 500 Error-Page"""
-    # if rpc is not available
+    error_msg = _(
+        "Bitcoin Core is not coming up in time. Maybe it's just slow but please check the logs below"
+    )
     if app.specter.rpc is None or not app.specter.rpc.test_connection():
         # make sure specter knows that rpc is not there
         app.specter.check()
     app.logger.error("ExternalProcessTimeoutException: %s" % e)
-    flash(
-        _(
-            "Bitcoin Core is not coming up in time. Maybe it's just slow but please check the logs below"
-        ),
-        "warn",
-    )
+    if request.headers.get("Accept") == "application/json":
+        return {"error": error_msg}
+    flash(error_msg, "warn")
     return redirect(
         url_for(
-            "node_settings.bitcoin_core_internal_logs",
+            "nodes_endpoint.internal_node_logs",
             node_alias=app.specter.node.alias,
         )
     )
@@ -147,20 +162,31 @@ def server_error_csrf(e):
     """CSRF token missing. Most likely session expired.
     If persisting after refresh this could mean the front-end
     is not sending the CSRF token properly in some form"""
+    error_msg = _("Session expired (CSRF). Please refresh and try again.")
     app.logger.error("CSRF Exception: %s" % e)
     trace = traceback.format_exc()
     app.logger.error(trace)
-    flash(_("Session expired. Please refresh and try again."), "error")
+    if request.headers.get("Accept") == "application/json":
+        return {"error": error_msg}
+    flash(error_msg, "error")
     return redirect(request.url)
 
 
 @app.errorhandler(MethodNotAllowed)
 def server_error_405(e):
     """405 method not allowed. Token might have expired."""
-    app.logger.error("405 MethodNotAllowed Exception: %s" % e)
+    error_msg = _("405 method not allowed. Token might have expired.")
+    app.logger.error(f"{error_msg} : {e}")
     trace = traceback.format_exc()
     app.logger.error(trace)
-    flash(_("Session expired. Please refresh and try again."), "error")
+    if request.headers.get("Accept") == "application/json":
+        return {"error": error_msg}
+    flash(
+        _(
+            "Method not allowed. Probably the session expired. Please refresh and try again."
+        ),
+        "error",
+    )
     return redirect(request.url)
 
 
@@ -190,7 +216,7 @@ def slow_request_detection_stop(response):
     try:
         diff = time() - g.start
     except Exception as e:
-        app.logger.error(e)
+        app.logger.exception(e)
         return response
     if (
         (response.response)

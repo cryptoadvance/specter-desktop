@@ -5,15 +5,15 @@ import sys
 import time
 from os import path
 from socket import gethostname
+from urllib.parse import urlparse
 
 import click
 from OpenSSL import SSL, crypto
 from stem.control import Controller
-from urllib.parse import urlparse
 
-from ..server import create_app, init_app
-from ..util.tor import start_hidden_service, stop_hidden_services
+from ..server import create_app, init_app, setup_logging, setup_debug_logging
 from ..specter_error import SpecterError
+from ..util.tor import start_hidden_service, stop_hidden_services
 
 logger = logging.getLogger(__name__)
 
@@ -88,12 +88,15 @@ def server(
     specter_data_folder,
     config,
 ):
-    """Run Specter Desktop as a http(s)-service"""
+    """This code is a function that runs Specter Desktop as a http(s)-service.
+    It sets up logging, creates an app to get Specter instance and its data folder,
+    sets certificates, initializes the app with the given parameters,
+    runs the app with the given parameters,
+    and stops any hidden services when it's done.
+    """
     # logging
     if debug:
-        ca_logger = logging.getLogger("cryptoadvance")
-        ca_logger.setLevel(logging.DEBUG)
-        logger.debug("We're now on level DEBUG on logger cryptoadvance")
+        setup_debug_logging()
 
     # create an app to get Specter instance
     # and it's data folder
@@ -190,8 +193,9 @@ def server(
                     if app.specter.config["tor_status"] == False:
                         app.specter.toggle_tor_status()
                 except Exception as e:
-                    print(f" * Failed to start Tor hidden service: {e}")
-                    print(" * Continuing process with Tor disabled")
+                    logger.error(f" * Failed to start Tor hidden service: {e}")
+                    logger.error(" * Continuing process with Tor disabled")
+                    logger.exception(e)
                     app.tor_service_id = None
                     app.tor_enabled = False
             else:

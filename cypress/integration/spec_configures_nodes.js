@@ -46,7 +46,7 @@ describe('Configuring nodes', () => {
       cy.viewport(1200,660)
       cy.visit('/')
       cy.get('#node-switch-icon').click()
-      cy.get('#btn_new_node').click()
+      cy.get('[data-cy="connect-new-node-btn"]').click()
       cy.get('[href="/nodes/new_node/"]').click()
       cy.get('#name').clear()
       cy.get('#name').type("Elements Node")
@@ -83,7 +83,7 @@ describe('Configuring nodes', () => {
         cy.viewport(1200,660)
         cy.visit('/')
         cy.get('#node-switch-icon').click()
-        cy.get('#default-select-node-form > .item > div').click()
+        cy.contains('Bitcoin Core').click()
     })   
   
   })

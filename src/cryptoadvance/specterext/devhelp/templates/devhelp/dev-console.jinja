@@ -27,9 +27,10 @@
         <br><br>
         <input name="Submit" class="btn" type="submit" value="Submit" />
     </form>
-    you can also do that in any javascript.console with:
+    Press <b>F12</b> to open the dev-console (helpful to see objects)<br>
+    You can also do that in any javascript.console with:
     <pre>
-    await pythonCommand("app.specter") 
+    await pythonCommand('app.specter') 
     </pre>
     Some usefull idioms:
     <pre>
@@ -109,6 +110,7 @@
 
 
             } else {
+                console.log(result)
                 if (result == "") {
                     result = "(empty string)"
                 }

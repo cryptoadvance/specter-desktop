@@ -63,12 +63,15 @@ class WalletManager:
         rpc: BitcoinRPC = None,
         chain: str = None,
         use_threading=True,
+        comment="",
     ):
         """Restructures the instance, specifically if chain/rpc changed
         The _update internal method will resync the internal status with Bitcoin Core
         use_threading : for the _update method which is heavily communicating with Bitcoin Core
         """
-        logger.debug("starting update of wallet_manager")
+        logger.debug(
+            f"starting update of wallet_manager (threading: {use_threading} , comment: {comment})"
+        )
         if self.is_loading:
             logger.debug("update in progress, aborting!")
             return
@@ -96,7 +99,9 @@ class WalletManager:
 
         if self.working_folder is not None:
             wallets_files = load_jsons(self.working_folder, key="name")
-            logger.info(f"Iterating over {len(wallets_files.values())} wallet files")
+            logger.info(
+                f"Iterating over {len(wallets_files.values())} wallet files in {self.working_folder}"
+            )
             for wallet in wallets_files:
                 wallet_name = wallets_files[wallet]["name"]
                 wallets_update_list[wallet_name] = wallets_files[wallet]
@@ -244,7 +249,7 @@ class WalletManager:
                                 )
                                 self.wallets[wallet_name] = loaded_wallet
                             except Exception as e:
-                                handle_exception(e)
+                                logger.exception(e)
                                 self._failed_load_wallets.append(
                                     {
                                         **wallets_update_list[wallet],
@@ -258,12 +263,13 @@ class WalletManager:
         # only ignore rpc errors
         except RpcError as e:
             logger.error(f"Failed updating wallet manager. RPC error: {e}")
-        logger.info("Updating wallet manager done. Result:")
-        logger.info(f"  * failed_load_wallets: {self._failed_load_wallets}")
-        logger.info(f"  * loaded_wallets: {len(self.wallets)}")
-
-        wallets_update_list = {}
-        self.is_loading = False
+        finally:
+            self.is_loading = False
+            logger.info("Updating wallet manager done. Result:")
+            logger.info(f"  * loaded_wallets: {len(self.wallets)}")
+            logger.info(f"  * failed_load_wallets: {len(self._failed_load_wallets)}")
+            for wallet in self._failed_load_wallets:
+                logger.info(f"    * {wallet['name']} : {wallet['loading_error']}")
 
     def get_by_alias(self, alias):
         for wallet_name in self.wallets:
@@ -386,7 +392,6 @@ class WalletManager:
                 wallet.delete_files()
                 # Remove the wallet instance
                 del self.wallets[wallet.name]
-                self.update()
                 specter_wallet_deleted = True
             except KeyError:
                 raise SpecterError(
