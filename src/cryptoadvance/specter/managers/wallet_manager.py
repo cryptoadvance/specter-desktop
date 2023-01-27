@@ -249,7 +249,7 @@ class WalletManager:
                                 )
                                 self.wallets[wallet_name] = loaded_wallet
                             except Exception as e:
-                                handle_exception(e)
+                                logger.exception(e)
                                 self._failed_load_wallets.append(
                                     {
                                         **wallets_update_list[wallet],
@@ -263,6 +263,8 @@ class WalletManager:
         # only ignore rpc errors
         except RpcError as e:
             logger.error(f"Failed updating wallet manager. RPC error: {e}")
+        finally:
+            self.is_loading = False
         logger.info("Updating wallet manager done. Result:")
         logger.info(f"  * loaded_wallets: {len(self.wallets)}")
         logger.info(f"  * failed_load_wallets: {len(self._failed_load_wallets)}")
