@@ -22,5 +22,6 @@
     "reporterOptions": {
       "mochaFile": "cypresstest-output.xml",
       "toConsole": true
-    }
+    },
+    "experimentalSessionAndOrigin": true
 }
