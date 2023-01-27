@@ -26,6 +26,12 @@ def test_ExtensionManager2(mock_specter, mock_flaskapp, caplog):
     sm.execute_ext_callbacks(after_serverpy_init_app, scheduler=None)
 
 
+def test_ExtensionManager_register_devices_from_ext():
+    dev_help_ext = DevhelpService(None, MagicMock())
+    ExtensionManager.register_callbacks_from_ext(dev_help_ext)
+    from cryptoadvance.specterext.devhelp.callbacks import my_callback
+
+
 def test_is_class_from_loaded_extension(mock_specter, mock_flaskapp):
     with mock_flaskapp.app_context():
         sm = ExtensionManager(mock_specter, "alpha")

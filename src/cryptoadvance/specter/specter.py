@@ -32,7 +32,7 @@ from .managers.config_manager import ConfigManager
 from .managers.device_manager import DeviceManager
 from .managers.node_manager import NodeManager
 from .managers.otp_manager import OtpManager
-from .managers.service_manager import ServiceManager
+from .managers.service_manager import ExtensionManager
 from .managers.user_manager import UserManager
 from .managers.wallet_manager import WalletManager
 from .node import Node

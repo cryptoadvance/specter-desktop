@@ -6,6 +6,7 @@ from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.wallet import Wallet
 from cryptoadvance.specter import util
 from .console import Console
+from .callbacks import my_callback
 import flask
 import flask_login
 from flask_login import current_user
@@ -22,6 +23,7 @@ class DevhelpService(Service):
     has_blueprint = True
     blueprint_module = "cryptoadvance.specterext.devhelp.controller"
     devices = ["cryptoadvance.specterext.devhelp.devices.devhelpdevice"]
+    callbacks = ["cryptoadvance.specterext.devhelp.callbacks"]
     devstatus = devstatus_alpha
     console = Console()
     console.updateNamespace(
@@ -32,6 +34,12 @@ class DevhelpService(Service):
 
     # ServiceEncryptedStorage field names for Swan
     SPECTER_WALLET_ALIAS = "wallet"
+
+    def inform_world(self, msg="Hello World"):
+        app.specter.service_manager.execute_ext_callbacks(my_callback, msg)
+
+    def callback_my_callback(self, msg):
+        print(msg)
 
     @classmethod
     def get_associated_wallet(cls) -> Wallet:

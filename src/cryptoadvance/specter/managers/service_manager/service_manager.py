@@ -6,7 +6,7 @@ from inspect import isclass
 from pathlib import Path
 from pkgutil import iter_modules
 import sys
-from typing import Dict, List
+from typing import Dict, List, Type
 
 from cryptoadvance.specter.config import ProductionConfig
 from cryptoadvance.specter.device import Device
@@ -29,6 +29,8 @@ from ...util.reflection import (
     get_subclasses_for_clazz_in_cwd,
 )
 from ...util.reflection_fs import search_dirs_in_path
+
+from .callback_executor import CallbackExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -68,24 +70,28 @@ class ExtensionManager:
                 # First configure the service
                 self.configure_service_for_module(clazz)
                 # Now activate it
-                self._services[clazz.id] = clazz(
+                ext = clazz(
                     active=clazz.id in self.specter.config.get("services", []),
                     specter=self.specter,
                 )
-                self.specter.ext[clazz.id] = self._services[clazz.id]
-                # maybe register the blueprint
-                self.register_blueprint_for_ext(clazz, self._services[clazz.id])
-                self.add_devices_for_ext(clazz, self._services[clazz.id])
+                self._services[clazz.id] = ext
+                self.specter.ext[clazz.id] = ext
+                # maybe register some things
+                self.register_blueprint_for_ext(ext)
+                self.register_devices_from_ext(ext)
+                self.register_callbacks_from_ext(ext)
                 logger.info(f"Service {clazz.__name__} activated ({clazz.devstatus})")
             else:
                 logger.info(
                     f"Service {clazz.__name__} not activated due to devstatus ( {self.devstatus_threshold} > {clazz.devstatus} )"
                 )
         logger.info("----> finished service processing")
-        self.execute_ext_callbacks("afterExtensionManagerInit")
+        self.callback_executor = CallbackExecutor(self.services)
+        self.execute_ext_callbacks(callbacks.afterExtensionManagerInit)
 
     @classmethod
-    def register_blueprint_for_ext(cls, clazz, ext):
+    def register_blueprint_for_ext(cls, ext):
+        clazz = ext.__class__
         if not clazz.has_blueprint:
             return
         if hasattr(clazz, "blueprint_modules"):
@@ -187,36 +193,58 @@ class ExtensionManager:
                     )
 
     @classmethod
-    def add_devices_for_ext(cls, clazz, ext):
-        if hasattr(clazz, "devices"):
-            devices_modules = clazz.devices
+    def register_devices_from_ext(cls, ext):
+        classes = cls.extract_thing_classes_from_extension("devices", Device, ext)
+        if not classes:
+            return
+        from cryptoadvance.specter.devices import __all__ as all_devices
+
+        for device_class in classes:
+            all_devices.append(device_class)
+            logger.debug(f"  Loaded Device {device_class}")
+
+    @classmethod
+    def register_callbacks_from_ext(cls, ext):
+        classes = cls.extract_thing_classes_from_extension(
+            "callbacks", callbacks.Callback, ext
+        )
+        if not classes:
+            return
+        from cryptoadvance.specter.services.callbacks import __all__ as all_callbacks
+
+        for callback_class in classes:
+            all_callbacks.append(callback_class)
+            logger.debug(f"  Loaded Callback {callback_class}")
+
+    @classmethod
+    def extract_thing_classes_from_extension(
+        cls, things: str, thing_class: Type, ext
+    ) -> List[type]:
+        if hasattr(ext.__class__, things):
+            thing_modules: List[str] = getattr(ext.__class__, things)
         else:
             return
         classes = []
-        for module in devices_modules:
+        for module in thing_modules:
             try:
                 classes.extend(
-                    get_classlist_of_type_clazz_from_modulelist(Device, [module])
+                    get_classlist_of_type_clazz_from_modulelist(thing_class, [module])
                 )
             except ModuleNotFoundError:
                 raise SpecterError(
                     f"""
-                    The extension {ext.id} declared devices and a module called {module}
+                    The extension {ext.id} declared {things} and a module called {module}
                     But that module is not existing.
                 """
                 )
         if len(classes) == 0:
             raise SpecterError(
                 f"""
-                    The extension {ext.id} declared devices and a module called {module}
-                    But that module doesn't contain any devices.
+                    The extension {ext.id} declared {things} and a module called {module}
+                    But that module doesn't contain any {things}.
             """
             )
-        from cryptoadvance.specter.devices import __all__ as all_devices
-
-        for device_class in classes:
-            all_devices.append(device_class)
-            logger.debug(f"  Loaded Device {device_class}")
+        return classes
 
     @classmethod
     def configure_service_for_module(cls, clazz):
@@ -278,50 +306,23 @@ class ExtensionManager:
         the callback_id needs to be passed and specify why the callback has been called.
         It needs to be one of the constants defined in cryptoadvance.specter.services.callbacks
         """
-        if callback_id not in dir(callbacks):
-            raise Exception(f"Non existing callback_id: {callback_id}")
-        # No debug statement here possible as this is called for every request and would flood the logs
-        # logger.debug(f"Executing callback {callback_id}")
-        return_values = {}
-        for ext in self.services.values():
-            if hasattr(ext, f"callback_{callback_id}"):
-                try:
-                    return_values[ext.id] = getattr(ext, f"callback_{callback_id}")(
-                        *args, **kwargs
-                    )
-                except Exception as e:
-                    # Development should catch all errors early!
-                    if app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"].endswith(
-                        "DevelopmentConfig"
-                    ):
-                        raise e
-                    logger.error(
-                        "Exception {e} while executing {callback_id} for extension {ext.id}"
-                    )
-                    logger.exception(e)
-            elif hasattr(ext, "callback"):
-                return_values[ext.id] = ext.callback(callback_id, *args, **kwargs)
-        # Filtering out all None return values
-        return_values = {k: v for k, v in return_values.items() if v is not None}
-        # logger.debug(f"return_values for callback {callback_id} {return_values}")
-        return return_values
+        return self.callback_executor.execute_ext_callbacks(
+            callback_id, *args, **kwargs
+        )
 
     @property
     def services(self) -> Dict[str, Service]:
         return self._services or {}
 
     @property
-    def services_sorted(self):
-        service_names = sorted(
-            self._services, key=lambda s: self._services[s].sort_priority
-        )
-        return [self._services[s] for s in service_names]
+    def services_sorted(self) -> List[Service]:
+        """A list of sorted extensions. First sort-criteria is the dependency. Second one the sort-priority"""
+        return self.callback_executor._services_sorted
 
     def is_class_from_loaded_extension(self, claz):
         """Returns Ture if that class is from a module which belongs to an extension
         which is loaded, False otherwise
         """
-        print("")
         ext_module = ".".join(claz.__module__.split(".")[0:3])
         for ext in self.services_sorted:
             if ext.__class__.__module__.startswith(ext_module):
