@@ -15,7 +15,7 @@ from sys import exit
 from urllib.parse import urlparse
 
 import requests
-from cryptoadvance.specter.devices.device_types import DeviceTypes
+from cryptoadvance.specter.devices.bitcoin_core import BitcoinCore, BitcoinCoreWatchOnly
 from cryptoadvance.specter.services.service_encrypted_storage import (
     ServiceEncryptedStorageManager,
     ServiceUnencryptedStorageManager,
@@ -29,6 +29,7 @@ from .helpers import clean_psbt, deep_update, get_asset_label, is_liquid
 from .internal_node import InternalNode
 from .liquid.rpc import LiquidRPC
 from .managers.config_manager import ConfigManager
+from .managers.device_manager import DeviceManager
 from .managers.node_manager import NodeManager
 from .managers.otp_manager import OtpManager
 from .managers.service_manager import ServiceManager
@@ -230,6 +231,7 @@ class Specter:
             user = self.user_manager.get_user(user)
             user.check()
         else:
+            u: User
             for u in self.user_manager.users:
                 u.check()
 
@@ -651,31 +653,31 @@ class Specter:
         return self.user_config.get("alt_symbol", "BTC")
 
     @property
-    def admin(self):
+    def admin(self) -> User:
         for u in self.user_manager.users:
             if u.is_admin:
                 return u
 
     @property
-    def user(self):
+    def user(self) -> User:
         return self.user_manager.user
 
     @property
-    def config_manager(self):
+    def config_manager(self) -> ConfigManager:
         if not hasattr(self, "_config_manager"):
             self._config_manager = ConfigManager(self.data_folder)
         return self._config_manager
 
     @property
-    def device_manager(self):
+    def device_manager(self) -> DeviceManager:
         return self.user.device_manager
 
     @property
-    def wallet_manager(self):
+    def wallet_manager(self) -> WalletManager:
         return self.user.wallet_manager
 
     @property
-    def otp_manager(self):
+    def otp_manager(self) -> OtpManager:
         if not hasattr(self, "_otp_manager"):
             self._otp_manager = OtpManager(self.data_folder)
         return self._otp_manager
@@ -727,8 +729,8 @@ class Specter:
                     data.compress_type = zipfile.ZIP_DEFLATED
                     device = device.json
                     # Exporting the bitcoincore hot wallet as watchonly
-                    if device["type"] == DeviceTypes.BITCOINCORE:
-                        device["type"] = DeviceTypes.BITCOINCORE_WATCHONLY
+                    if device["type"] == BitcoinCore.device_type:
+                        device["type"] = BitcoinCoreWatchOnly.device_type
                     zf.writestr(
                         "devices/{}.json".format(device["alias"]), json.dumps(device)
                     )

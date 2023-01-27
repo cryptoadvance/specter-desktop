@@ -1,9 +1,8 @@
-from . import DeviceTypes
 from .hwi_device import HWIDevice
 
 
 class Ledger(HWIDevice):
-    device_type = DeviceTypes.LEDGER
+    device_type = "ledger"
     name = "Ledger"
     icon = "img/devices/ledger_icon.svg"
 

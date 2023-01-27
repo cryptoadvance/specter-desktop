@@ -4,8 +4,7 @@ import os
 from cryptoadvance.specter.managers.node_manager import NodeManager
 from cryptoadvance.specter.services.service import (
     Service,
-    devstatus_prod,
-    devstatus_alpha,
+    devstatus_beta,
 )
 
 # A SpecterError can be raised and will be shown to the user as a red banner
@@ -32,7 +31,7 @@ class SpectrumService(Service):
     desc = "An electrum hidden behind a core API"
     has_blueprint = True
     blueprint_module = "cryptoadvance.specterext.spectrum.controller"
-    devstatus = devstatus_alpha
+    devstatus = devstatus_beta
     isolated_client = False
 
     # TODO: As more Services are integrated, we'll want more robust categorization and sorting logic
@@ -53,6 +52,12 @@ class SpectrumService(Service):
     def is_spectrum_node_available(self):
         """Whether there is a spectrum Node available (activated or not)"""
         return not self.spectrum_node is None
+
+    @property
+    def is_spectrum_node_running(self):
+        if self.is_spectrum_node_available:
+            return self.spectrum_node.is_running
+        return False
 
     def callback_specter_added_to_flask_app(self):
         logger.debug("Setting up Spectrum ...")
@@ -153,4 +158,6 @@ class SpectrumService(Service):
             view_model.get_started_include = (
                 "spectrum/welcome/components/get_started.jinja"
             )
+        else:
+            return None
         return view_model

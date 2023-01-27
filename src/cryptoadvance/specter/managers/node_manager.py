@@ -247,13 +247,10 @@ class NodeManager:
         return node
 
     def save_node(self, node):
-        fullpath = (
-            node.fullpath
-            if hasattr(node, "fullpath")
-            else calc_fullpath(self.data_folder, node.alias)
-        )
-        write_node(node, fullpath)
-        logger.info("Added new node {}".format(node.alias))
+        if not hasattr(node, "fullpath"):
+            node.fullpath = calc_fullpath(self.data_folder, node.alias)
+        write_node(node, node.fullpath)
+        logger.info(f"Saved new node {node.alias} at {node.fullpath}")
 
     def add_internal_node(
         self,
@@ -297,6 +294,7 @@ class NodeManager:
             self.internal_bitcoind_version,
         )
         self.nodes[node_alias] = node
+        self.save_node(node)
         return node
 
     def delete_node(self, node, specter):

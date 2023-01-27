@@ -13,7 +13,7 @@ from embit.liquid.networks import get_network
 from embit.psbt import DerivationPath
 from embit.transaction import Transaction
 from io import StringIO
-from typing import List
+from typing import Dict, List
 
 from cryptoadvance.specter.commands.utxo_scanner import UtxoScanner
 from cryptoadvance.specter.rpc import RpcError
@@ -25,7 +25,7 @@ from .util.merkleblock import is_valid_merkle_proof
 from .helpers import get_address_from_dict
 from .persistence import write_json_file, delete_file, delete_folder
 from .specter_error import SpecterError, handle_exception
-from .txlist import TxList
+from .txlist import TxItem, TxList, WalletAwareTxItem
 from .util.psbt import SpecterPSBT
 from .util.tx import decoderawtransaction
 from .util.xpub import get_xpub_fingerprint
@@ -130,9 +130,7 @@ class Wallet:
 
         self.device_manager = device_manager
         self.manager = manager
-        self.rpc = self.manager.rpc.wallet(
-            os.path.join(self.manager.rpc_path, self.alias)
-        )
+        self.manager_rpc = manager.rpc
         self._devices = devices
         # check that all of the devices exist
         if None in self.devices:
@@ -177,6 +175,22 @@ class Wallet:
             self.save_to_file()
 
     @property
+    def rpc(self):
+        """Cache RPC instance. Reuse if manager's RPC instance hasn't changed. Create new RPC instance otherwise.
+        This RPC instance is also used by objects created by the wallet, such as TxList or TxItem
+        """
+        if hasattr(self, "_rpc"):
+            if (
+                self.manager.rpc is self.manager_rpc
+            ):  # did the manager not change its rpc-instance?
+                return self._rpc
+        self.manager_rpc = self.manager.rpc
+        self._rpc = self.manager_rpc.wallet(
+            os.path.join(self.manager.rpc_path, self.alias)
+        )
+        return self._rpc
+
+    @property
     def recv_descriptor(self):
         return add_checksum(str(self.descriptor.branch(0)))
 
@@ -185,7 +199,7 @@ class Wallet:
         return add_checksum(str(self.descriptor.branch(1)))
 
     @property
-    def devices(self):
+    def devices(self) -> List[Device]:
         return [
             (
                 device
@@ -206,7 +220,7 @@ class Wallet:
         return get_network(self.chain)
 
     @classmethod
-    def construct_descriptor(cls, sigs_required, key_type, keys, devices):
+    def construct_descriptor(cls, sigs_required, key_type, keys, devices) -> Descriptor:
         """
         Creates a wallet descriptor from arguments.
         We need to pass `devices` for Liquid wallet, here it's not used.
@@ -376,7 +390,14 @@ class Wallet:
         self._addresses.add(recv + change, check_rpc=True)
 
     def fetch_transactions(self):
-        """Load transactions from Bitcoin Core"""
+        """Loads new transactions from Bitcoin Core. A quite confusing method which mainly tries to figure out which transactions are new
+        and need to be added to the local TxList self._transactions and adding them.
+        So the method doesn't return anything but has these side_effects:
+        1. Adding the new interesting transactions to self._transactions
+        2. for self.use_descriptors create new addresses and add them to self._addresses
+        3. calls self.delete_spent_pending_psbts
+        Most of that code could probably encapsulated in the TxList class.
+        """
         arr = []
         idx = 0
         # unconfirmed_selftransfers needed since Bitcoin Core does not properly list `selftransfer` txs in `listtransactions` command
@@ -388,7 +409,7 @@ class Wallet:
         unconfirmed_selftransfers = [
             txid
             for txid in self._transactions
-            if self._transactions[txid].get("category", "") == "selftransfer"
+            if self._transactions[txid].category == "selftransfer"
             and not self._transactions[txid].get("blockhash", None)
         ]
         unconfirmed_selftransfers_txs = []
@@ -805,13 +826,77 @@ class Wallet:
         return self.info
 
     def check_utxo(self):
+        """fetches the utxo-set from core and stores the result in self.__full_utxo which is
+        a List[WalletAwareTxItem] enriched with utxo specific data:
+        * item["locked"] if the item is locked in Core
+        * item["vout"] to enable its use in coinselection
+        * item["amount"] is the utxo_amount
+        """
+        _full_utxo = []
         try:
             # listunspent only lists not locked utxos
             # so we need to unlock, then list, then lock back
             locked_utxo = self.rpc.listlockunspent()
+            # e.g. [
+            #       {'txid': '1211aaba2b261e1bf06a3d46d5ac8837cee4669980ddfa7e1e73b2a7cd593f23', 'vout': 0},
+            #       {'txid': '7cdc6c668b665c47de5823caca41c194f2d70815420c564aa4fa5786d4c0693f', 'vout': 0}
+            # ]
+            locked_utxo_list = [tx["txid"] for tx in locked_utxo]
+            utxo = self.rpc.listunspent(0)
+            utxo.extend(locked_utxo)
+
+            txlist = self._transactions.get_transactions()
+            txlist_dict = {_tx["txid"]: _tx for _tx in txlist}
+            # iterating over the utxos/vouts and creating a list of WalletAwareTxItems
+            for utxo_txid, utxo_vout in {
+                _utxo["txid"]: _utxo["vout"] for _utxo in utxo
+            }.items():
+                # maybe the txlist is outdated and it's a new utxo?!
+                if utxo_txid not in txlist_dict.keys():
+                    self.fetch_transactions()  # ToDo: make this much slimmer!
+                    txlist = self._transactions.get_transactions()
+                    txlist_dict = {_tx["txid"]: _tx for _tx in txlist}
+                tx: WalletAwareTxItem = txlist_dict[utxo_txid]
+                # Adding vout, locked and amount
+                tx["vout"] = utxo_vout
+                if tx.txid in locked_utxo_list:
+                    tx["locked"] = True
+                else:
+                    tx["locked"] = False
+                tx["amount"] = tx.utxo_amount
+                _full_utxo.append(tx)
+
+            # Finally sorting:
+            self._full_utxo = sorted(
+                _full_utxo,
+                key=lambda _full_utxo: _full_utxo["time"],
+                reverse=True,
+            )
+        except Exception as e:
+            logger.exception(e)
+            self._full_utxo = []
+            raise SpecterError(f"Failed to load utxos, {e}")
+
+    def check_utxo_orig(self):
+        """fetches the utxo-set from core and stores the result in self.__full_utxo which is
+        a List[WalletAwareTxItem] enriched with utxo specific data:
+        * item["locked"] if the item is locked in Core
+        * item["vout"] to enable its use in coinselection
+        * item["amount"] is the utxo_amount
+        """
+        result_utxos = []
+        try:
+            # listunspent only lists not locked utxos
+            # so we need to unlock, then list, then lock back
+            locked_utxo = self.rpc.listlockunspent()
+            # e.g. [
+            #       {'txid': '1211aaba2b261e1bf06a3d46d5ac8837cee4669980ddfa7e1e73b2a7cd593f23', 'vout': 0},
+            #       {'txid': '7cdc6c668b665c47de5823caca41c194f2d70815420c564aa4fa5786d4c0693f', 'vout': 0}
+            # ]
             if locked_utxo:
                 self.rpc.lockunspent(True, locked_utxo)
             utxo = self.rpc.listunspent(0)
+            utxo_dict = {item["txid"]: item for item in utxo}
             if locked_utxo:
                 self.rpc.lockunspent(False, locked_utxo)
                 for tx in utxo:
@@ -823,13 +908,31 @@ class Wallet:
                         tx["locked"] = True
             # list only the ones we know (have descriptor for it)
             utxo = [tx for tx in utxo if tx.get("desc", "")]
-            for tx in utxo:
-                tx_data = self.gettransaction(tx["txid"], 0, full=False)
-                tx["time"] = tx_data["time"]
-                tx["category"] = tx_data.get("category") or "send"
-                if "locked" not in tx:
-                    tx["locked"] = False
-            self._full_utxo = sorted(utxo, key=lambda utxo: utxo["time"], reverse=True)
+            # We need a list in order to check later whether an txid is in that list
+            utxo = [tx["txid"] for tx in utxo]
+            # same for locked_utxo_list
+            locked_utxo_list = [tx["txid"] for tx in locked_utxo]
+
+            # This is the full txlist:
+            txlist = self._transactions.get_transactions()
+            tx: WalletAwareTxItem
+            for tx in txlist:
+
+                if tx.txid in utxo:
+                    result_utxos.append(tx)
+                    # ToDo: What if a tx contains more than one spendable output?
+                    tx["vout"] = utxo_dict[tx.txid]["vout"]
+                    if tx.txid in locked_utxo_list:
+                        tx["locked"] = True
+                    else:
+                        tx["locked"] = False
+                    tx["amount"] = tx.utxo_amount
+
+            self._full_utxo = sorted(
+                result_utxos,
+                key=lambda result_utxos: result_utxos["time"],
+                reverse=True,
+            )
         except Exception as e:
             logger.exception(e)
             self._full_utxo = []
@@ -862,7 +965,11 @@ class Wallet:
             self.save_to_file()
 
     @property
-    def full_utxo(self):
+    def full_utxo(self) -> List[WalletAwareTxItem]:
+        """Lazy getter for the current full_utxo-set. Full means locked and not locked utxo. The result
+        us a List of WalletAwareTxItem. Check check_utxo for more details
+        Call check_utxo() to update it with recent data from core
+        """
         if hasattr(self, "_full_utxo"):
             return self._full_utxo
         else:
@@ -870,11 +977,13 @@ class Wallet:
             return self._full_utxo
 
     @property
-    def utxo(self):
+    def utxo(self) -> List[WalletAwareTxItem]:
+        """utxos which are not locked."""
         return [utxo for utxo in self._full_utxo if not utxo["locked"]]
 
     @property
-    def locked_utxo(self):
+    def locked_utxo(self) -> List[WalletAwareTxItem]:
+        """utxos which are locked"""
         return [utxo for utxo in self._full_utxo if utxo["locked"]]
 
     @property
@@ -929,6 +1038,9 @@ class Wallet:
             delete_folder(self._transactions.rawdir)
         except:
             pass
+
+    def clear_cache(self):
+        self._transactions.clear_cache()
 
     @property
     def use_descriptors(self):
@@ -1057,6 +1169,7 @@ class Wallet:
         #    validate_merkle_proofs (bool): Return transactions with validated_blockhash
         #    current_blockheight (int): Current blockheight for calculating confirmations number (None will fetch the block count from the RPC)
         """
+        # Consider to update self._transactions via self.fetch_transactions()
         if fetch_transactions or (
             self.use_descriptors
             and len(
@@ -1071,47 +1184,9 @@ class Wallet:
         ):
             self.fetch_transactions()
 
-        _transactions = [
-            tx.__dict__().copy() for tx in self._transactions.values() if tx["ismine"]
-        ]
-        transactions = sorted(_transactions, key=lambda tx: tx["time"], reverse=True)
-        transactions = [
-            tx
-            for tx in transactions
-            if (
-                not tx["conflicts"]
-                or max(
-                    [
-                        self.gettransaction(conflicting_tx, 0, full=False)["time"]
-                        for conflicting_tx in tx["conflicts"]
-                    ]
-                )
-                < tx["time"]
-            )
-        ]
-        if not current_blockheight:
-            current_blockheight = self.rpc.getblockcount()
+        transactions = self._transactions.get_transactions()
         result = []
-        blocks = {}
         for tx in transactions:
-            if not tx.get("blockheight", 0):
-                tx["confirmations"] = 0
-            else:
-                tx["confirmations"] = current_blockheight - tx["blockheight"] + 1
-
-            # coinbase tx
-            if tx["category"] == "generate":
-                if tx["confirmations"] <= 100:
-                    category = "immature"
-
-            if (
-                tx.get("confirmations") == 0
-                and tx.get("bip125-replaceable", "no") == "yes"
-            ):
-                rpc_tx = self.rpc.gettransaction(tx["txid"])
-                tx["fee"] = rpc_tx.get("fee", 1)
-                tx["confirmations"] = rpc_tx.get("confirmations", 0)
-                tx["vsize"] = decoderawtransaction(rpc_tx["hex"]).get("vsize")
 
             if isinstance(tx["address"], str):
                 tx["label"] = self.getlabel(tx["address"])
@@ -1155,7 +1230,7 @@ class Wallet:
             result.append(tx)
         return result
 
-    def gettransaction(self, txid, blockheight=None, decode=False, full=True):
+    def gettransaction(self, txid, blockheight=None, decode=False, full=True) -> Dict:
         """Gets transaction from cache
         If full=True it will also contain "hex" key with full hex transaction.
         If decode=True it will decode the transaction similar to Core decoderawtransaction call
@@ -1577,7 +1652,7 @@ class Wallet:
         frozen_txid = [utxo.split(":")[0] for utxo in self.frozen_utxo]
         for utxo in self.locked_utxo:
             if utxo["txid"] in frozen_txid:
-                amount += utxo["amount"]
+                amount += utxo.utxo_amount
         return amount
 
     @property
@@ -1640,7 +1715,7 @@ class Wallet:
         readonly=False,  # fee estimation
         rbf=True,
         rbf_edit_mode=False,
-    ) -> dict:
+    ) -> SpecterPSBT:
         """
         Returns psbt as dictionary.
         fee_rate: in sat/B or BTC/kB. If set to 0 Bitcoin Core sets feeRate automatically.
@@ -1746,7 +1821,7 @@ class Wallet:
             # TODO: Re-evaluate if this is necessary if user is running Bitcoin Core w/BIP-371 support
             b64psbt = self.fill_psbt(r["psbt"])
 
-            psbt = self.PSBTCls(
+            psbt: SpecterPSBT = self.PSBTCls(
                 b64psbt,
                 self.descriptor,
                 self.network,
@@ -1754,7 +1829,7 @@ class Wallet:
             )
         if not readonly:
             self.save_pending_psbt(psbt)
-        return psbt.to_dict()
+        return psbt
 
     def get_rbf_utxo(self, rbf_tx_id):
         decoded_tx = self.decode_tx(rbf_tx_id)
@@ -2004,7 +2079,7 @@ class Wallet:
             for utxo in [
                 utxo for utxo in self._full_utxo if utxo["address"] == addr.address
             ]:
-                addr_amount = addr_amount + utxo["amount"]
+                addr_amount = addr_amount + utxo.utxo_amount
                 addr_utxo = addr_utxo + 1
 
             if service_id and (

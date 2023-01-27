@@ -1,10 +1,9 @@
-from . import DeviceTypes
 from .hwi_device import HWIDevice
 from hwilib.devices.keepkey import KeepkeyClient
 
 
 class Keepkey(HWIDevice):
-    device_type = DeviceTypes.KEEPKEY
+    device_type = "keepkey"
     name = "KeepKey"
     icon = "img/devices/keepkey_icon.svg"
 

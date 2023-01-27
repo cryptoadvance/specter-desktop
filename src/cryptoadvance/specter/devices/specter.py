@@ -1,5 +1,4 @@
 import hashlib
-from . import DeviceTypes
 from .sd_card_device import SDCardDevice
 from .hwi.specter_diy import enumerate as specter_enumerate, SpecterClient
 from ..helpers import to_ascii20
@@ -60,7 +59,7 @@ def fill_external_wallet_derivations(psbt, wallet):
 
 
 class Specter(SDCardDevice):
-    device_type = DeviceTypes.SPECTERDIY
+    device_type = "specter"
     name = "Specter-DIY"
     icon = "img/devices/specter_icon.svg"
 

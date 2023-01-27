@@ -1,4 +1,6 @@
 import logging
+from cryptoadvance.specter.util.reflection import get_class
+from cryptoadvance.specter.util.common import snake_case2camelcase
 from cryptoadvance.specterext.spectrum.bridge_rpc import BridgeRPC
 from cryptoadvance.specter.helpers import deep_update
 from cryptoadvance.specter.node import AbstractNode
@@ -24,6 +26,7 @@ class SpectrumNode(AbstractNode):
         host=None,
         port=None,
         ssl=None,
+        fullpath=None,
     ):
         self._spectrum = spectrum
         self.bridge = bridge
@@ -32,6 +35,8 @@ class SpectrumNode(AbstractNode):
         self._host = host
         self._port = port
         self._ssl = ssl
+        if fullpath != None:
+            self.fullpath = fullpath
 
         # ToDo: Should not be necessary
         self._rpc = None
@@ -89,8 +94,9 @@ class SpectrumNode(AbstractNode):
         host = node_dict.get("host", None)
         port = node_dict.get("port", None)
         ssl = node_dict.get("ssl", None)
+        fullpath = node_dict.get("fullpath", None)
 
-        return cls(name, alias, host=host, port=port, ssl=ssl)
+        return cls(name, alias, host=host, port=port, ssl=ssl, fullpath=fullpath)
 
     @property
     def json(self):
@@ -194,8 +200,18 @@ class SpectrumNode(AbstractNode):
         # If a device class is passed as argument, take that, otherwise derive the class from the instance
         if device_class_or_device_instance.__class__ == type:
             device_class = device_class_or_device_instance
+        elif device_class_or_device_instance.__class__ == str:
+            if device_class_or_device_instance.__contains__("."):
+                device_class = get_class(device_class)
+            else:
+                fqcn_device_class = (
+                    "cryptoadvance.specter.devices."
+                    + snake_case2camelcase(device_class_or_device_instance)
+                )
+                device_class = get_class(fqcn_device_class)
         else:
             device_class = device_class_or_device_instance.__class__
+        logger.debug(f"Device_class = {device_class}")
         if device_class == BitcoinCore:
             return False
         return True

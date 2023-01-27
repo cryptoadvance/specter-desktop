@@ -59,9 +59,7 @@ check:
    - pip3 install -e .
    - pip3 install -r test_requirements.txt
    - python3 setup.py install # compiles babel stuff as well (might make pip install obsolete)
-   # pytest --docker not working? Uncomment this for better debugging:
-   # - python3 tests/conftest.py 
-   - py.test --cov-report term --cov cryptoadvance --docker
+   - py.test --cov-report term --cov cryptoadvance
 
 .test-cypress:
   image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python-jammy:v9.7.0
@@ -122,12 +120,24 @@ release_binary_windows:
   tags:
     - windows
   before_script:
+    - whoami
     - python -V
-    - pip3 install virtualenv
+    - pip3 --version
+    - pip install virtualenv
     - virtualenv --python=python3 .env
     - .\.env\Scripts\activate
-    - pip3 install -r test_requirements.txt
-    - whoami
+    - pip install -r test_requirements.txt || echo "why the heck does this fail with:"
+    # Collecting distlib<1,>=0.3.6
+    #  Downloading distlib-0.3.6-py2.py3-none-any.whl (468 kB)
+    #  ------------------------------------- 468.5/468.5 kB 30.6 MB/s eta 0:00:00
+    # ERROR: To modify pip, please run the following command:
+    # C:\gitlab-runner\builds\xPkLDUk2\0\k9ert\specter-desktop\.env\Scripts\python.exe -m pip install -r test_requirements.txt
+    # Uploading artifacts for failed job
+
+    # That error message above doesn't even help a bit
+    # However it seems that if you do that yet another time, it doesn't fail!
+    - pip install -r test_requirements.txt -vv
+    
   script:
     # This script won't execute if the script before that fails
     # No need to check the version-scheme again
