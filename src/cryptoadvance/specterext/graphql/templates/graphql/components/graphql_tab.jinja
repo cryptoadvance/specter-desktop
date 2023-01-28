@@ -1,0 +1,8 @@
+{% extends "graphql/base.jinja" %}
+{% block main %}
+    <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" width="300"/>    
+    {% from 'graphql/components/graphql_menu.jinja' import graphql_menu with context %}
+    {{ graphql_menu(tab) }}
+    {% block content %}
+    {% endblock %}
+{% endblock %}
