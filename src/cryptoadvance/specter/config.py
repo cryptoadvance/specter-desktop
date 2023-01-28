@@ -181,6 +181,7 @@ class BaseConfig(object):
         "cryptoadvance.specterext.electrum.service",
         "cryptoadvance.specterext.spectrum.service",
         "cryptoadvance.specterext.stacktrack.service",
+        "cryptoadvance.specterext.graphql.service",
     ]
 
     # This is just a placeholder in order to be aware that you cannot set this

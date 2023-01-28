@@ -42,11 +42,6 @@ class CallbackExecutor:
                 )
                 if callback.return_style == "middleware":
                     args = (return_values[ext.id],)
-
-            elif hasattr(ext, "callback"):
-                return_values[ext.id] = ext.callback(callback, *args, **kwargs)
-                if callback.return_style == "middleware":
-                    args = (return_values[ext.id],)
         # Filtering out all None return values
         return_values = {k: v for k, v in return_values.items() if v is not None}
         # logger.debug(f"return_values for callback {callback.id} {return_values}")

@@ -15,6 +15,7 @@ from .service_annotations_storage import ServiceAnnotationsStorage
 
 from cryptoadvance.specter.addresslist import Address
 from cryptoadvance.specter.services import callbacks
+from ..specter_error import SpecterInternalException
 
 
 logger = logging.getLogger(__name__)
@@ -61,9 +62,10 @@ class Service:
         )
 
     def callback(self, callback_id, *argv, **kwargv):
-        if callback_id == callbacks.after_serverpy_init_app:
-            if hasattr(self, "callback_after_serverpy_init_app"):
-                self.callback_after_serverpy_init_app(kwargv["scheduler"])
+        """DEPRECATED"""
+        raise SpecterInternalException(
+            "This style of callback is deprecated. Please revisit the extension which is using it."
+        )
 
     @classmethod
     def set_current_user_service_data(cls, service_data: dict):
