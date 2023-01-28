@@ -1,19 +1,30 @@
 {% extends "setup/setup_page.jinja" %}
 
 {% block setup %}
-    <h1><img src="{{ url_for('static', filename='img/ghost_3d.png') }}" data-style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" data-style="width: 60px;" class="svg-white"/>&nbsp;<img data-style="width: 60px;" src="{{ url_for('static', filename='img/tor.svg') }}"/><br>
-    <br>{{ _("Setup Tor daemon") }}</h1>
-    <br><br>
-    <div class="row">
-        {% if nextURL == 'setup_endpoint.node_type'%}
-            <a href="{{ url_for('setup_endpoint.node_type') }}" class="btn wizard-btn">{{ _("Skip") }}</a>
-        {% endif %}
-        <button type="button" class="btn wizard-btn action" id="setup-tor-button" onclick="setupTorDaemon()">{{ _("Setup Tor") }}</button>
+    <div style="display: flex; justify-content: center;" >
+        <img style="width: 100px;" src="{{ url_for('static', filename='img/ghost_3d.png') }}" data-style="width: 60px;"/> 
+        <img style="width: 50px; margin: 20px;" src="{{ url_for('static', filename='img/arrow-right.svg') }}" data-style="width: 60px;" class="svg-white"/>&nbsp;
+        <img style="width: 95px;" data-style="width: 60px;" src="{{ url_for('static', filename='img/tor.svg') }}"/><br>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; margin-top: 100px;">
+        <h1 style="text-align: center;">{{ _("Setup Tor daemon") }} </h1>
+        <br><br>
+        <div class="row" style="display: flex; justify-content: center; flex-wrap: wrap;">
+            {% if nextURL == 'setup_endpoint.node_type'%}
+                <button class="btn wizard-btn action" style="background-color: #4C5E72;" onclick="skipTorSetup()">{{ _("Skip") }}</button>
+            {% endif %} 
+            <button type="button" class="btn wizard-btn action" style="background-color: #2C68C1;" id="setup-tor-button" onclick="setupTorDaemon()">{{ _("Setup Tor") }}</button>
+        </div>
     </div>
 {% endblock %}
 
 {% block setup_scripts %}
     <script>
+
+        function skipTorSetup(){
+            window.location.href = "{{ url_for('setup_endpoint.node_type') }}"
+        }
+
         async function setupTorDaemon() {
             let url = "{{ url_for('setup_endpoint.setup_tor') }}";
             var formData = new FormData();
