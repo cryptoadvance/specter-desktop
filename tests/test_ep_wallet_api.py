@@ -31,7 +31,7 @@ def test_txlist_to_csv(
     caplog,
     app,
     specter_regtest_configured,
-    funded_hot_wallet_1,
+    funded_hot_wallet_1: Wallet,
 ):
     caplog.set_level(logging.DEBUG)
 

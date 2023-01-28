@@ -263,10 +263,11 @@ class NodeController:
             rpc.generatetoaddress(102, default_address)
             btc_balance = default_rpc.getbalance()
 
-        default_rpc.sendtoaddress(address, amount)
+        result = default_rpc.sendtoaddress(address, amount)
         if confirm_payment:
             # confirm it
             rpc.generatetoaddress(1, default_address)
+        return result
 
     @staticmethod
     def check_node(rpcconn, raise_exception=False):

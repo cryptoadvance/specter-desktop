@@ -69,6 +69,7 @@ def test_ServiceManager_get_service_x_dirs(caplog):
 
 def test_ServiceManager_get_service_packages(caplog):
     caplog.set_level(logging.DEBUG)
+
     packages = ServiceManager.get_service_packages()
     assert "cryptoadvance.specterext.electrum.service" in packages
     assert "cryptoadvance.specterext.electrum.devices.electrum" in packages
@@ -81,6 +82,10 @@ def test_ServiceManager_get_service_packages(caplog):
     assert "cryptoadvance.specter.util.migrations.migration_0000" in packages
     assert "cryptoadvance.specter.util.migrations.migration_0001" in packages
     assert "cryptoadvance.specter.util.migrations.migration_0002" in packages
+
+    # This needs to be adjusted with each new extension
+    # We don't need to assert every single package but we also ensure with that, that we don't
+    # loose anything on the way of changing something in the service_manager
     assert len(packages) == 28
 
 

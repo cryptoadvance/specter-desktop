@@ -248,7 +248,7 @@ class LWallet(Wallet):
 
         if not readonly:
             self.save_pending_psbt(psbt)
-        return psbt.to_dict()
+        return psbt
 
     def canceltx(self, *args, **kwargs):
         raise SpecterError("RBF is not implemented on Liquid")
@@ -279,7 +279,7 @@ class LWallet(Wallet):
                 for utxo in self.full_utxo
                 if to_unconfidential(utxo["address"]) == to_unconfidential(addr.address)
             ]:
-                addr_amount = addr_amount + utxo["amount"]
+                addr_amount = addr_amount + utxo.utxo_amount
                 addr_utxo = addr_utxo + 1
                 addr_assets[utxo.get("asset")] = (
                     addr_assets.get(utxo.get("asset"), 0) + utxo["amount"]

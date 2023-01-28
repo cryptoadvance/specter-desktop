@@ -146,7 +146,9 @@ A reasonable `mywalletdetails.jinja` would look like this:
 
 ![](./images/extensions/add_wallettabs.png)
 
-## Extending certain pages or complete endpoints
+## Extending certain pages or complete endpoints (don't use this for now)
+
+Unfortunately this method is only able to be used once per Extension. So it's more or less unusable right now as there are already two extensions which are using those.
 
 For some endpoints, there is the possibility to extend/change parts of a page or the complete page. This works by declaring the `callback_adjust_view_model` method in your extension and modify the ViewModel which got passed into the callback. As there is only one callback for all types of ViewModels, you will need to check for the type that you're expecting and only adjust this type. Here is an example:
 
@@ -161,8 +163,10 @@ class ExtensionidService(Service):
             # view_model.about_redirect=url_for("spectrum_endpoint.some_enpoint_here")
             # but we do it small here and only replace a specific component:
             view_model.get_started_include = "spectrum/welcome/components/get_started.jinja"
-        return view_model
+            return view_model
+        return None
 ```
+Make sure to return `None` if the `view_model` is not the type you're interested in.
 
 In this example, a certain part of the page gets replaced. As you can read in the comments, you could also trigger a complete redirect to a different endpoint.
 
