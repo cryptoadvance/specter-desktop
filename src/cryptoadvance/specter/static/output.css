@@ -2274,8 +2274,6 @@ input[type="number"]::-webkit-outer-spin-button,
 }
 
 .wizard-btn{
-  width: 160px;
-  height: 50px;
   border-radius: 5px;
   font-size: 1.2rem;
   margin: 10px;

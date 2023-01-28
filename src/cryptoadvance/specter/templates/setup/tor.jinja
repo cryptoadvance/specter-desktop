@@ -11,20 +11,15 @@
         <br><br>
         <div class="row" style="display: flex; justify-content: center; flex-wrap: wrap;">
             {% if nextURL == 'setup_endpoint.node_type'%}
-                <button class="btn wizard-btn action" style="background-color: #4C5E72;" onclick="skipTorSetup()">{{ _("Skip") }}</button>
+                <a class="btn wizard-btn action" style="padding:10px 50px 10px 50px;background-color: #4C5E72;" href="{{ url_for('setup_endpoint.node_type') }}">{{ _("Skip") }}</a>
             {% endif %} 
-            <button type="button" class="btn wizard-btn action" style="background-color: #2C68C1;" id="setup-tor-button" onclick="setupTorDaemon()">{{ _("Setup Tor") }}</button>
+            <button type="button" class="btn wizard-btn action" style="width:160px;height:50px;background-color: #2C68C1;" id="setup-tor-button" onclick="setupTorDaemon()">{{ _("Setup Tor") }}</button>
         </div>
     </div>
 {% endblock %}
 
 {% block setup_scripts %}
     <script>
-
-        function skipTorSetup(){
-            window.location.href = "{{ url_for('setup_endpoint.node_type') }}"
-        }
-
         async function setupTorDaemon() {
             let url = "{{ url_for('setup_endpoint.setup_tor') }}";
             var formData = new FormData();

@@ -1,17 +1,23 @@
 {% extends "setup/setup_page.jinja" %}
 
 {% block setup %}
-    <h1><img src="{{ url_for('static', filename='img/ghost_3d.png') }}" data-style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" data-style="width: 60px;" class="svg-white"/>&nbsp;<br>
-    <br>{{ _("Would you like to setup a new Bitcoin node or connect to an existing one?") }}</h1>
-    <p class="hidden warning" id="helper-text">{{ _("If you have an existing Bitcoin Core node you would like to use, either running locally on this computer or somewhere else, like on Umbrel, myNode, or RaspiBlitz, you can just connect and use it.") }}<br><br>
-    {{ _("Don't have a node? Specter can help you setup a new one! This guide will help you get it up and running!") }}</p>
-    <div class="row center">
-        <p class="explorer-link" id="helper" onclick="toggleHelper()">{{ _("Unsure? Click here for more info!") }}</p>
-        <a class="explorer-link hidden" id="support" href="https://t.me/spectersupport" target="_blank">{{ _("Still need help?") }}</a>
+    <div style="display: flex; justify-content: center;">
+        <img style="width: 70px;" src="{{ url_for('static', filename='img/ghost_3d.png') }}" data-style="width: 60px;"/> 
+        <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" data-style="width: 60px;" class="svg-white"/>&nbsp; 
+        <img style="width: 70px;" src="{{url_for('static', filename='img/bitcoin-logo.svg') }}" alt=""> <br>
     </div>
-    <br><br>
-    <div class="row">
-        <a href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) if not specter.node.rpc and specter.node.external_node else url_for('nodes_endpoint.node_settings') }}"  class="btn wizard-btn">{{ _("Connect existing node") }}</a>
-        <a href="{{ url_for('setup_endpoint.bitcoind' if not bitcoind_installed else 'setup_endpoint.bitcoind_datadir') }}" class="btn wizard-btn action" id="setup-node-btn">{{ _("Setup a new node") }}</a>
+    <div style="display: flex; flex-direction: column; align-items: center ;margin-top: 80px">
+        <h2 style="width: 90%; text-align: center;">{{ _("Would you like to setup a new Bitcoin node or connect to an existing one?") }}</h2>
+        <p class="hidden warning" id="helper-text">{{ _("If you have an existing Bitcoin Core node you would like to use, either running locally on this computer or somewhere else, like on Umbrel, myNode, or RaspiBlitz, you can just connect and use it.") }}<br><br>
+        {{ _("Don't have a node? Specter can help you setup a new one! This guide will help you get it up and running!") }}</p>
+        <div class="row center">
+            <p class="explorer-link" id="helper" onclick="toggleHelper()">{{ _("Unsure? Click here for more info!") }}</p>
+            <a class="explorer-link hidden" id="support" href="https://t.me/spectersupport" target="_blank">{{ _("Still need help?") }}</a>
+        </div>
+        <br><br>
+        <div class="row" style="display: flex; flex-wrap: wrap;justify-content: center;">
+            <a style="background-color: #4C5E72;" href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) if not specter.node.rpc and specter.node.external_node else url_for('nodes_endpoint.node_settings') }}"  class="btn wizard-btn">{{ _("Connect existing node") }}</a>
+            <a style="background-color: #2C68C1;" href="{{ url_for('setup_endpoint.bitcoind' if not bitcoind_installed else 'setup_endpoint.bitcoind_datadir') }}" class="btn wizard-btn action" id="setup-node-btn">{{ _("Setup a new node") }}</a>
+        </div>
     </div>
 {% endblock %}
