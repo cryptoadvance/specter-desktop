@@ -28,7 +28,11 @@ gunicorn==20.1.0
 protobuf==3.20.2
 PyJWT==2.4.0
 pytimeparse==1.1.8
+# core-extension dependencies
+cryptoadvance.spectrum==0.3.1
 psycopg2-binary==2.9.5
+typing_extensions==4.0.0
+strawberry-graphql==0.155.2
 # Extensions
 cryptoadvance-liquidissuer==0.2.4
 specterext-exfund==0.1.7
