@@ -125,6 +125,8 @@ All the attributes of an extension are currently (json support is planned) defin
 Here is an example. This class definition MUST be stored in a file called "service.py" within a package with the name `mynym.specterext.myextensionid`. You don't have to create such files yourself. Please always use the extension generation procedure to create your extension.
 
 ```python
+from cryptoadvance.specterext.graphql.service.GraphqlService
+
 class MyextensionidService(Service):
     id = "myextensionid"
     name = "A Nice name for my Extension"
@@ -133,6 +135,8 @@ class MyextensionidService(Service):
     desc = "A nice description"
     has_blueprint = True
     blueprint_module = "mynym.specterext.myextensionid.controller"
+    callbacks = ["cryptoadvance.specterext.devhelp.callbacks"]
+    depends = [GraphqlService]
     isolated_client = False
     devices = ["mynym.specterext.myextensionid.devices.mydevice"]
     devstatus = devstatus_alpha
@@ -143,6 +147,11 @@ With inheriting from `Service` you get some useful methods explained later.
 The `id` needs to be unique within a specific Specter instance where this extension is part of. The `name` is the display name as shown to the user in the plugin-area (currently there is not yet a technical difference between extensions and plugins). The `icon` will be used where labels are used to be diplayed if this extension is reserving addresses. The `logo` and the `desc`ription is also used in the plugin area ("choose plugins").
 
 If the extension has a UI (currently all of them have one), `has_blueprint` is True. `The blueprint_module` is referencing the controller module where endpoints are defined. It's recommended to follow the format `org-id.specterext.myextensionid.controller`.
+
+As an extension, you can specify your own `callbacks`. Those are functions which can be registered by other extensions which can be called in your plugin-code whenever you think you want to provide an extension of functionality of your plugin. The attribute specifies the modules to search for those.
+
+Also you can let your extension depend on other extension. You should e.g. do that if you register callbacks which other extension has provided. In practice, it's determine the order of the callback functions which will be called. e.g. if your Extension A depends on a Extension B, and both extensions register a callback-function `adjust_view_model`, then the Extension B will get called before Extension A.
+
 `isolated_client` should not be used yet. It is determining where in the url-path tree the blueprint will be mounted. This might have an impact on whether the extension's frontend client has access to the cookie used in Specter. Check `config.py` for details.
 
 In `devices`, you can specify the modules where you're implementing new Devices.
