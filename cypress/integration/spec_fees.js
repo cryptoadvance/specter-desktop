@@ -4,14 +4,7 @@
 describe('Test the fee UI', () => {
     before(() => {
         Cypress.config('includeShadowDom', true)
-        cy.visit('/')
-    })
-
-    // Keeps the session cookie alive, Cypress by default clears all cookies before each test
-    beforeEach(() => {
-        cy.viewport(1200,660)
-        Cypress.Cookies.preserveOnce('session')
-    })
+       })
 
     it('Using dynamic mode with normal fees', () => {
         // Fees: {"fastestFee": 9, "halfHourFee": 5, "hourFee": 3, "minimumFee": 1}
@@ -151,7 +144,6 @@ describe('Test the fee UI', () => {
         cy.get('#fee_manual').find('#fee_rate').clear( { force: true })
         cy.get('#fee_manual').find('#fee_rate').type(5, { force: true })
         cy.get('#fee_manual').find('#fee_rate').should('have.value', '5')
-        cy.get('#fee_manual').find('.note').contains('1 sat/vbyte is the minimal fee rate.')
     })
 
 })

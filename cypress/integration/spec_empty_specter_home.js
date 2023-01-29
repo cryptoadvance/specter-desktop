@@ -2,7 +2,6 @@
 describe('Completely empty specter-home', () => {
   before(() => {
     cy.task("clear:specter-home")
-    cy.viewport(1200,660)
     cy.visit('/welcome/about')
   })
 
