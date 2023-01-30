@@ -1,14 +1,6 @@
-// 
 describe('Test the rendering of balances and amounts', () => {
     before(() => {
         Cypress.config('includeShadowDom', true)
-        cy.visit('/')
-    })
-
-    // Keeps the session cookie alive, Cypress by default clears all cookies before each test
-    beforeEach(() => {
-        cy.viewport(1200,660)
-        Cypress.Cookies.preserveOnce('session')
     })
 
     it('Total balance', () => {

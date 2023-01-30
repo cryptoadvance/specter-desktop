@@ -7,7 +7,7 @@ describe('Test the labeling of addresses and transactions', () => {
 
     // Keeps the session cookie alive, Cypress by default clears all cookies before each test
     beforeEach(() => {
-        cy.viewport(1200,660)
+        cy.viewport('macbook-13')
         Cypress.Cookies.preserveOnce('session')
     })
 

@@ -3,7 +3,6 @@ describe('Test the actions in UTXO list', () => {
     
     before(() => {
         cy.visit('/')
-        cy.viewport(1200,660)
         Cypress.config('includeShadowDom', true)
         const device_name = "UTXO device"
         const wallet_name = "UTXO wallet"
@@ -20,13 +19,6 @@ describe('Test the actions in UTXO list', () => {
                 return
             }
         })
-    })
-
-    // Keeps the session cookie alive, Cypress by default clears all cookies before each test
-    beforeEach(() => {
-        cy.visit('/')
-        cy.viewport(1200,660)
-        Cypress.Cookies.preserveOnce('session')
     })
 
     it('Freezing', () => {

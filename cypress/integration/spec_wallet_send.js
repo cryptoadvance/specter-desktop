@@ -4,13 +4,6 @@ describe('Test sending transactions', () => {
         Cypress.config('includeShadowDom', true)
     })
 
-    // Keeps the session cookie alive, Cypress by default clears all cookies before each test
-    beforeEach(() => {
-        cy.viewport(1200,660)
-        cy.visit('/')
-        Cypress.Cookies.preserveOnce('session')
-    })
-
     it('Send a standard transaction', () => {
         cy.addHotDevice("Hot Device 1","bitcoin")
         cy.addWallet('Test Hot Wallet 1', 'segwit', 'funded', 'btc', 'singlesig', 'Hot Device 1')
@@ -21,6 +14,7 @@ describe('Test sending transactions', () => {
         cy.get('#recipient_0').get('#send_max').click()
         cy.get('#create_psbt_btn').click()
         cy.get('body').contains("Paste signed transaction")
+        // TODO: Add check of transaction details here
         cy.get('#hot_device_1_tx_sign_btn').click()
         cy.get('#hot_device_1_hot_sign_btn').click()
         cy.get('#hot_enter_passphrase__submit').click()
@@ -95,13 +89,15 @@ describe('Test sending transactions', () => {
         cy.get('#recipient_4').find('#amount').type(5, { force: true })
         cy.get('main').scrollTo('bottom')
         
-        // Check the fee selection
+        // Check subtract fees from amount checkbox to subtract from a specific recipient
         cy.get('#toggle_advanced').click()
-        cy.get('#fee-selection-component').find('.fee_container').find('input#subtract').click()
-        cy.get('#fee-selection-component').find('.fee_container').find('input#subtract').invoke('prop', 'checked').should('eq', true)
+        cy.get('main').scrollTo('bottom')
+        cy.get('[data-cy="subtract-fees-checkbox"]').click()
+        cy.get('[data-cy="subtract-fees-checkbox"]').should('be.checked')
 
-        // Check whether the recipient number select field is visible
-        cy.get('#fee-selection-component').find('.fee_container').find('span#subtract_from').should('be.visible')
+        // Check whether the recipient number select field popped up
+        cy.get('[data-cy="subtract-from-recipient-selection"]').as('subtractFromRecipientSelection')
+        cy.get('@subtractFromRecipientSelection').should('be.visible')
 
         // Check the values of the hidden inputs in the light DOM which are used for the form
         // Note: Despite identical ids the hidden inputs seem to be fetched first since they are higher up in the DOM
@@ -112,11 +108,12 @@ describe('Test sending transactions', () => {
         cy.get('#recipient_2').find('#remove').click({ force: true })  
 
         // Select different recipients to subtract the fees from
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 4') // html select with cypress: https://www.cypress.io/blog/2020/03/20/working-with-select-elements-and-select2-widgets-in-cypress/
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 5')  
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 2')   
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').should('have.value', '1');
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').find(':selected').should('have.text', 'Recipient 2');
+        cy.get('[data-cy="subtract-from-recipient-selection"]').as('subtractFromRecipientSelection')
+        cy.get('@subtractFromRecipientSelection').select('Recipient 4') // html select with cypress: https://www.cypress.io/blog/2020/03/20/working-with-select-elements-and-select2-widgets-in-cypress/
+        cy.get('@subtractFromRecipientSelection').select('Recipient 5')  
+        cy.get('@subtractFromRecipientSelection').select('Recipient 2')   
+        cy.get('@subtractFromRecipientSelection').should('have.value', '1');
+        cy.get('@subtractFromRecipientSelection').find(':selected').should('have.text', 'Recipient 2');
 
         cy.get('#create_psbt_btn').click()
         var amount = 0
@@ -162,32 +159,37 @@ describe('Test sending transactions', () => {
      
         // Check whether the subtract fees box is ticked (we used send max)
         cy.get('#toggle_advanced').click()
-        cy.get('#fee-selection-component').find('.fee_container').find('input#subtract').invoke('prop', 'checked').should('eq', true)
-        
-        // Check whether the recipient number input field is visible
-        cy.get('#fee-selection-component').find('.fee_container').find('span#subtract_from').should('be.visible')
+        cy.get('[data-cy="subtract-fees-checkbox"]').should('be.checked')
+
+        // Check whether the selection of the recipient to subtract the fees from is visible
+        cy.get('main').scrollTo('bottom')
+        cy.get('[data-cy="subtract-from-recipient-selection"]').as('subtractFromRecipientSelection')
+        cy.get('@subtractFromRecipientSelection').should('be.visible')
         
         // Check the values of the hidden inputs in the light DOM which are used for the form
         // Note: Despite identical ids the hidden inputs seem to be fetched first since they are higher up in the DOM
         cy.get('#fee-selection-component').find('#subtract').invoke('attr', 'value').should('eq', 'true')
         
         // Check whether send max set subtract_from to Recipient 3
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').should('have.value', '2');
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').find(':selected').should('have.text', 'Recipient 3');
+        cy.get('@subtractFromRecipientSelection').should('have.value', '2');
+        cy.get('@subtractFromRecipientSelection').find(':selected').should('have.text', 'Recipient 3');
         
         // Select Recipient 2 to subract the fee from
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').select('Recipient 2')
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').should('have.value', '1');
-        cy.get('#fee-selection-component').find('.fee_container').find('#subtract_from_recipient_id_select').find(':selected').should('have.text', 'Recipient 2');
+        cy.get('@subtractFromRecipientSelection').select('Recipient 2')
+        cy.get('@subtractFromRecipientSelection').should('have.value', '1');
+        cy.get('@subtractFromRecipientSelection').find(':selected').should('have.text', 'Recipient 2');
 
         // Change it back to Recipient 3
         cy.get('#recipient_2').find('#send_max').click()
 
         // The fee should be subtracted from the third recipient
         cy.get('#create_psbt_btn').click()
+        // TODO: Avoid nth child
         cy.get('div.tx_info > :nth-child(3) > :nth-child(1)').then(($div) => {
             const amount = parseFloat($div.text())
-            expect(amount).to.be.lte(5)
+            // Subtracting fees should give a number with decimals (amount above where whole numbers)
+            expect(amount % 1).not.to.equal(0);
+
         })
         cy.get('#deletepsbt_btn').click()
         // Clean up (Hot Device 1 is still needed below)
