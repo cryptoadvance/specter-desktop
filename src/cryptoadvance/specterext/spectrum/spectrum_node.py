@@ -224,3 +224,7 @@ class SpectrumNode(AbstractNode):
 
     def node_connection_template(self):
         return "spectrum/components/spectrum_node_connection.jinja"
+
+    @property
+    def taproot_support(self):
+        return False
