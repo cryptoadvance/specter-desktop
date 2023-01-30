@@ -441,14 +441,6 @@ class WalletAwareTxItem(TxItem):
         self["address"] = addresses[0]
         return self["address"]
 
-    # def __dict__(self):
-    #     super_dict = dict(self)
-    #     super_dict["category"] = self.category
-    #     super_dict["flow_amount"] = self.flow_amount
-    #     super_dict["utxo_amount"] = self.utxo_amount
-    #     super_dict["ismine"] = (self["ismine"] or self.ismine,)
-    #     return super_dict
-
 
 class TxList(dict, AbstractTxListContext):
     """A TxList is a dict with txids as keys and TxItems as values."""
