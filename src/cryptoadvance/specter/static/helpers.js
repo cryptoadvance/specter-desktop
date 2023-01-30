@@ -208,7 +208,7 @@ async function send_request(url, method_str, csrf_token, formData) {
 		return jsonResponse
 	}
 	catch(error) {
-		showError(`Failed to fetch transactions list: ${error}`)
+		showError(`Error occured durch fetch call: ${error}`)
 		return { 'error': error}
 	}
 }
