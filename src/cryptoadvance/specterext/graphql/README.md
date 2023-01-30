@@ -2,6 +2,9 @@ Inspired by strawberry and the small [POC](https://github.com/k9ert/nomstr)
 
 # potential issues
 
+with typing_extensions==4.0.0 and strawberry-graphql==0.155.2
+
+
 There might be a dependency conflict:
 ```
   typing_extensions<5.0.0,>=3.7.4 (from strawberry-graphql==0.155.2->-r requirements.in (line 35))

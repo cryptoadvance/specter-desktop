@@ -94,15 +94,24 @@ def get_classlist_of_type_clazz_from_modulelist(clazz, modulelist):
             module = import_module(fq_module_name)
         except ModuleNotFoundError as e:
             # ToDo: make it somehow clear where specific extensions are coming from: external or within same repo
-            raise SpecterError(
-                f"""
+            if e.name != fq_module_name:
+                raise SpecterError(
+                    f"""
+                Module {e.name} could not be found. Probably the the reason for this is that
+                the extension {fq_module_name} is using modules which has not been pip installed.
+                Consider: pip3 install -e .
+                """
+                )
+            else:
+                raise SpecterError(
+                    f""" 
                 Module {fq_module_name}  could not be found. This could have these reasons:
                 * You might have forgot to: 
                     pip3 install yourPackage
                 * You're trying to start the ProductionConfig in a Development Environment. 
                     If you checked out the specter-Sourcecode, you should start specter like this:
                     python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug"""
-            )
+                )
         logger.debug(f"Imported {fq_module_name}")
         for attribute_name in dir(module):
             attribute = getattr(module, attribute_name)
