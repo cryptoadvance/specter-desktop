@@ -1413,6 +1413,10 @@ input[type="number"]::-webkit-outer-spin-button,
   max-height: 100vh;
 }
 
+.max-h-\[36px\] {
+  max-height: 36px;
+}
+
 .min-h-\[64px\] {
   min-height: 64px;
 }
@@ -1798,6 +1802,10 @@ input[type="number"]::-webkit-outer-spin-button,
   border-style: solid;
 }
 
+.border-none {
+  border-style: none;
+}
+
 .border-dark-700 {
   --tw-border-opacity: 1;
   border-color: rgb(27 28 33 / var(--tw-border-opacity));
@@ -1882,6 +1890,14 @@ input[type="number"]::-webkit-outer-spin-button,
 .bg-red-600 {
   --tw-bg-opacity: 1;
   background-color: rgb(220 38 38 / var(--tw-bg-opacity));
+}
+
+.bg-transparent {
+  background-color: transparent;
+}
+
+.bg-none {
+  background-image: none;
 }
 
 .fill-current {
