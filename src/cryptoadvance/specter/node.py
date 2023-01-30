@@ -28,7 +28,94 @@ from .device import Device
 logger = logging.getLogger(__name__)
 
 
-class AbstractNode(PersistentObject):
+class NonExistingNode(PersistentObject):
+    """A kind of Null-object as it represents a non-existing Node. It's deriving from PersistentObject but is not meant to be
+    persisted. Instead, it's be created on the fly from the NodeManager if it doesn't have a reasonable node available.
+    It also works as some kind of minimal implementation so that specter doesn't fail gracefully.
+    """
+
+    @property
+    def info(self):
+        return {}
+
+    @property
+    def network_info(self):
+        return {}
+
+    @property
+    def uptime(self):
+        return -1
+
+    @property
+    def chain(self):
+        return None
+
+    @property
+    def bitcoin_core_version_raw(self):
+        return 9999999
+
+    def update_rpc(self):
+        pass
+
+    @property
+    def is_running(self):
+        return False
+
+    @property
+    def rpc(self):
+        return None
+
+    def check_blockheight(self):
+        """check_blockheight is a method which is probably deprecated.
+        It should return True if there are new blocks available since check_info has been called
+        (which updates the cached _info[] dict)
+        """
+        raise NotImplemented(
+            "A Node Implementation need to implement the check_blockheight method"
+        )
+
+    def is_device_supported(self, device_class_or_device_instance):
+        """Lets the node deactivate specific devices. The parameter could be a device or a device_type
+            You have to check yourself if overriding this method.
+        e.g.
+        if device_instance_or_device_class.__class__ == type:
+            device_class = device_instance_or_device_class
+        else:
+            device_class = device_instance_or_device_class.__class__
+        # example:
+        # if BitcoinCore == device_class:
+        #    return False
+        return True
+        """
+        return True
+
+    def node_info_template(self):
+        """This should return the path to a Info template as string"""
+        return "node/components/bitcoin_core_info.jinja"
+
+    def node_logo_template(self):
+        """This should return the path to a Logo template as string
+        The template should contain the logo independent from the
+        status of the node. It's used in the node-selector
+        """
+        return "includes/sidebar/components/node_logo.jinja"
+
+    def node_connection_template(self):
+        """This should return the path to a connection template as string"""
+        return "includes/sidebar/components/node_connection.jinja"
+
+    def delete_wallet_file(self, wallet) -> bool:
+        """Deleting the wallet file located on the node. This only works if the node is on the same machine as Specter.
+        Returns True if the wallet file could be deleted, otherwise returns False.
+
+        In the case of an Abtract Node, we consider that method as an edge-case anyway and we just return False here.
+        That is the normal usage if you don't have access to the internals of your Bitcoin Core.
+        Overwrite as necessary.
+        """
+        return False
+
+
+class AbstractNode(NonExistingNode):
     """This is a Node class worth deriving from. It tries to define as many attributes as possible which are needed but probably in a very
     inefficient way, e.g. without any caching. Feel free to improve that in subclasses and you might get inspired by existing sublasses
     """
@@ -127,55 +214,6 @@ class AbstractNode(PersistentObject):
             return False
         else:
             return True
-
-    def check_blockheight(self):
-        """check_blockheight is a method which is probably deprecated.
-        It should return True if there are new blocks available since check_info has been called
-        (which updates the cached _info[] dict)
-        """
-        raise NotImplemented(
-            "A Node Implementation need to implement the check_blockheight method"
-        )
-
-    def is_device_supported(self, device_class_or_device_instance):
-        """Lets the node deactivate specific devices. The parameter could be a device or a device_type
-            You have to check yourself if overriding this method.
-        e.g.
-        if device_instance_or_device_class.__class__ == type:
-            device_class = device_instance_or_device_class
-        else:
-            device_class = device_instance_or_device_class.__class__
-        # example:
-        # if BitcoinCore == device_class:
-        #    return False
-        return True
-        """
-        return True
-
-    def node_info_template(self):
-        """This should return the path to a Info template as string"""
-        return "node/components/bitcoin_core_info.jinja"
-
-    def node_logo_template(self):
-        """This should return the path to a Logo template as string
-        The template should contain the logo independent from the
-        status of the node. It's used in the node-selector
-        """
-        return "includes/sidebar/components/node_logo.jinja"
-
-    def node_connection_template(self):
-        """This should return the path to a connection template as string"""
-        return "includes/sidebar/components/node_connection.jinja"
-
-    def delete_wallet_file(self, wallet) -> bool:
-        """Deleting the wallet file located on the node. This only works if the node is on the same machine as Specter.
-        Returns True if the wallet file could be deleted, otherwise returns False.
-
-        In the case of an Abtract Node, we consider that method as an edge-case anyway and we just return False here.
-        That is the normal usage if you don't have access to the internals of your Bitcoin Core.
-        Overwrite as necessary.
-        """
-        return False
 
 
 class Node(AbstractNode):

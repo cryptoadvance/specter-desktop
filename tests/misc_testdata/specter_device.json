@@ -1,0 +1,41 @@
+{
+    "name": "Specter",
+    "type": "specter",
+    "keys": [
+        {
+            "derivation": "m/48h/1h/0h/2h",
+            "original": "Vpub5n9kKePTPPGtw3RddeJWJe29epEyBBcoHbbPi5HhpoG2kTVsSCUzsad33RJUt3LktEUUPPofcZczuudnwR7ZgkAkT6N2K2Z7wdyjYrVAkXM",
+            "fingerprint": "08686ac6",
+            "type": "wsh",
+            "xpub": "tpubDFHpKypXq4kwUrqLotPs6fCic5bFqTRGMBaTi9s5YwwGymE8FLGwB2kDXALxqvNwFxB1dLWYBmmeFVjmUSdt2AsaQuPmkyPLBKRZW8BGCiL"
+        },
+        {
+            "derivation": "m/84h/1h/0h",
+            "original": "vpub5ZSem3mLXiSJzgDX6pJb2N9L6sJ8m6ejaksLPLSuB53LBzCi2mMsBg19eEUSDkHtyYp75GATjLgt5p3S43WjaVCXAWU9q9H5GhkwJBrMiAb",
+            "fingerprint": "08686ac6",
+            "type": "wpkh",
+            "xpub": "tpubDDUotcvrYMUiy4ncDirveTfhmvggdj8nxcW5JgHpGzYz3UVscJY5aEzFvgUPk4YyajadBnsTBmE2YZmAtJC14Q21xncJgVaHQ7UdqMRVRbU"
+        },
+        {
+            "derivation": "m/84h/1h/1h",
+            "original": "vpub5ZSem3mLXiSK55jPzfLVhbHbTEwGzEFZv3xrGFCw1vGHSNw7WcVuJXysJLWcgENQd3iXSNQaeSXUBW55Hy4GAjSTjrWP4vpKKkUN9jiU1Tc",
+            "fingerprint": "08686ac6",
+            "type": "wpkh",
+            "xpub": "tpubDDUotcvrYMUj3UJV7ZtqKgoy8JKprrjdHubbBb3r7qmwHsEH69g7h6xyanWaCYdVEEV3Yu7a6s4ceFnp8DjXeeFxY8eXvH7XTAC4gxfDNEW"
+        },
+        {
+            "derivation": "m/84h/1h/2h",
+            "original": "vpub5ZSem3mLXiSK64v64deytnDCoYqbUSYHvmVurUGVMEnXMyEybtF3FEnNuiFDDC6J18a81fv5ptQXaQaaRiYx8MRxahipgxPLdxubpYt1dkD",
+            "fingerprint": "08686ac6",
+            "type": "wpkh",
+            "xpub": "tpubDDUotcvrYMUj4TVBBYDKWsjaUcE9M52MJd8emp7QTAJBDTY9BRRFdomVCAFAjWMNcKLe8Cd5HJwg3AJKFyEDcGFTNyryYJgYmNdJMhwB2RG"
+        },
+        {
+            "derivation": "m/84h/1h/3h",
+            "original": "vpub5ZSem3mLXiSK8cKzh4sHxTvN7mgYQA29HfoAZeCDtX1M2zdejN5XVAtVyqhk8eui18JTtZ9M3VD3AiWCz8VwrybhBUh3HxzS8js3mLVybDT",
+            "fingerprint": "08686ac6",
+            "type": "wpkh",
+            "xpub": "tpubDDUotcvrYMUj6zu5oyRdaZSjnq56GnWCfXRuUz38zSWztUvpJuFjsjscGHhheyAncK4z15rLVukBdUDwpPBDLtRBykqC9KHeG9akJWRipKK"
+        }
+    ]
+}
