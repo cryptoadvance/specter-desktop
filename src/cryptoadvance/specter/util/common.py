@@ -4,6 +4,7 @@ from datetime import datetime
 import json
 from flask_babel.speaklater import LazyString
 from typing import Union
+from distutils.util import strtobool
 
 logger = logging.getLogger(__name__)
 
@@ -12,11 +13,9 @@ def str2bool(my_str):
     """returns a reasonable boolean from a string so that "False" will result in False"""
     if my_str is None:
         return False
-    elif isinstance(my_str, str) and my_str.lower() == "false":
-        return False
-    elif isinstance(my_str, str) and my_str.lower() == "off":
-        return False
-    return bool(my_str)
+    elif isinstance(my_str, bool):
+        return my_str
+    return bool(strtobool(my_str))
 
 
 def camelcase2snake_case(name):
