@@ -13,7 +13,7 @@ from cryptoadvance.specter.key import Key
 from ..helpers import add_dicts, alias, is_liquid, load_jsons
 from ..liquid.wallet import LWallet
 from ..persistence import delete_folder
-from ..rpc import RpcError, get_default_datadir
+from ..rpc import RpcError, get_default_datadir, BrokenCoreConnectionException
 from ..specter_error import SpecterError, SpecterInternalException, handle_exception
 from ..util.flask import FlaskThread
 from ..wallet import (  # TODO: `purposes` unused here, but other files rely on this import
@@ -31,7 +31,6 @@ class WalletManager:
     # chain is required to manage wallets when bitcoind is not running
     def __init__(
         self,
-        bitcoin_core_version_raw,
         data_folder,
         rpc,
         chain,
@@ -50,8 +49,6 @@ class WalletManager:
         # key is the name of the wallet, value is the actual instance
 
         self.wallets = {}
-        # A way to communicate failed wallets to the outside
-        self.bitcoin_core_version_raw = bitcoin_core_version_raw
         self.allow_threading_for_testing = allow_threading_for_testing
         # define different wallet classes for liquid and bitcoin
         self.WalletClass = LWallet if is_liquid(chain) else Wallet
@@ -333,6 +330,16 @@ class WalletManager:
         if not self._wallets.get(self.chain):
             self._wallets[self.chain] = {}
         self._wallets[self.chain] = value
+
+    @property
+    def bitcoin_core_version_raw(self):
+        try:
+            bitcoin_core_version_raw = self.rpc.getnetworkinfo()["version"]
+            return bitcoin_core_version_raw or 200000
+        except BrokenCoreConnectionException:
+            # In good faith and in order to keep the tests running, we assume
+            # a reasonable core version
+            return 200000
 
     def create_wallet(self, name, sigs_required, key_type, keys, devices, **kwargs):
         try:
