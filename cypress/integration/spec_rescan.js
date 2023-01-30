@@ -3,13 +3,6 @@ describe('Test the UI related to a blockchain rescan', () => {
         Cypress.config('includeShadowDom', true)
     })
 
-    // Keeps the session cookie alive, Cypress by default clears all cookies before each test
-    beforeEach(() => {
-        cy.visit('/')
-        cy.viewport(1200,660)
-        Cypress.Cookies.preserveOnce('session')
-    })
-
     it('Go to the rescan section from a fresh wallet', () => {
         // Create a completely fresh wallet without any funds
         cy.addDevice('Trezor hold', 'Trezor', 'hold_accident')

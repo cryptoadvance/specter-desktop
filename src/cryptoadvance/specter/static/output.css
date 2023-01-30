@@ -1389,16 +1389,12 @@ input[type="number"]::-webkit-outer-spin-button,
   height: 2.75rem;
 }
 
-.h-64 {
-  height: 16rem;
-}
-
 .h-12 {
   height: 3rem;
 }
 
-.h-20 {
-  height: 5rem;
+.h-64 {
+  height: 16rem;
 }
 
 .max-h-\[40px\] {

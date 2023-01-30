@@ -52,7 +52,7 @@
             </div>
 
             <div class="floating-wrapper" id="subtract_from">
-                <select class="floating-input peer" id="subtract_from_recipient_id_select" name="subtract_from_stale"></select>
+                <select class="floating-input peer" id="subtract_from_recipient_id_select" name="subtract_from_stale" data-cy="subtract-from-recipient-selection"></select>
                 <label class="floating-label">Subtract From</label>
             </div>
         </div>
@@ -198,6 +198,8 @@
          * (can be called many times if an element is repeatedly added/removed)
          */
         connectedCallback() {
+            // Adding the data-cy attribute here to avoid it be cloned when creating the light DOM elements
+            this.subtract.setAttribute('data-cy', 'subtract-fees-checkbox')
             // fetch the fees
             this.fetchFees()
             // Looks like this: {"result": {"fastestFee": 8, "halfHourFee": 8, "hourFee": 8, "minimumFee": 1}, "error_messages": []}

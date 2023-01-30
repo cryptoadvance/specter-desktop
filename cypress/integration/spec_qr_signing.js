@@ -4,13 +4,6 @@ describe('Test QR code signing flow', () => {
         Cypress.config('includeShadowDom', true)
     })
 
-    // Keeps the session cookie alive, Cypress by default clears all cookies before each test
-    beforeEach(() => {
-        cy.visit('/')
-        cy.viewport(1200,660)
-        Cypress.Cookies.preserveOnce('session')
-    })
-
     it('Message signing with Specter DIY', () => {
         cy.selectWallet('Ghost wallet')
         cy.get('main').contains('Addresses').click()

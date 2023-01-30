@@ -1,7 +1,5 @@
 describe('Ghost machine', () => {
     it('Create a DIY device with ghost machine keys and a wallet', () => {
-        cy.viewport(1200,660)
-        cy.visit('/')
         cy.addDevice('DIY ghost', 'Specter-DIY', 'ghost_machine')
         // addWallet assumes that we have a connection, so let's check for that and establish one if we don't have one
         cy.get('body')
