@@ -41,7 +41,6 @@
             document.getElementById('unfinished-ibd-indicator').classList.remove('animate-spin')
             document.getElementById("unfinished-ibd-indicator").classList.add('hidden')
             document.getElementById('connected-icon').classList.remove('hidden')
-            showNotification(`{{ _("Your Bitcoin node is now fully synced.") }}`)
         }
         else {
             console.log('IBD is not finished yet.')
