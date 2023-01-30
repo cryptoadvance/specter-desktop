@@ -7,10 +7,13 @@ from flask import jsonify, redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required, logout_user
 
+from cryptoadvance.specter.specter import Specter
+
 from ..helpers import alias
 from ..server_endpoints import flash
 from ..services import ExtensionException
 from ..user import User, hash_password, verify_password
+from ..rpc import BitcoinRPC, _detect_rpc_confs_via_datadir
 
 rand = random.randint(0, 1e32)  # to force style refresh
 last_sensitive_request = 0  # to rate limit sensitive requests
@@ -28,60 +31,13 @@ def login():
         auth = app.specter.config["auth"]
 
         if auth["method"] == "none":
-            app.login("admin")
-            app.logger.info("AUDIT: Successful Login no credentials")
-            return redirect_login(request)
-
-        if auth["method"] == "rpcpasswordaspin":
-            # TODO: check the password via RPC-call
-            if (
-                app.specter.default_node.rpc is None
-                or not app.specter.default_node.rpc.test_connection()
-            ):
-                if app.specter.default_node.password == request.form["password"]:
-                    app.login("admin", request.form["password"])
-                    app.logger.info(
-                        "AUDIT: Successfull Login via RPC-credentials (node disconnected)"
-                    )
-                    return redirect_login(request)
-
-                flash(
-                    _(
-                        "We could not check your password, maybe Bitcoin Core is not running or not configured?"
-                    ),
-                    "error",
-                )
-                app.logger.info("AUDIT: Failed to check password")
-                return (
-                    render_template(
-                        "login.jinja",
-                        specter=app.specter,
-                        data={"controller": "controller.login"},
-                    ),
-                    401,
-                )
-            rpc = app.specter.default_node.rpc.clone()
-            rpc.password = request.form["password"]
-            if rpc.test_connection():
-                app.login("admin", request.form["password"])
-                app.logger.info("AUDIT: Successfull Login via RPC-credentials")
-                return redirect_login(request)
-
+            return login_method_none()
+        elif auth["method"] == "rpcpasswordaspin":
+            return login_method_rpcpasswordaspin()
         elif auth["method"] == "passwordonly":
-            password = request.form["password"]
-            if verify_password(app.specter.user_manager.admin.password_hash, password):
-                app.login("admin", request.form["password"])
-                return redirect_login(request)
-
+            return login_method_passwordonly()
         elif auth["method"] == "usernamepassword":
-            # TODO: This way both "User" and "user" will pass as usernames, should there be strict check on that here? Or should we keep it like this?
-            username = request.form["username"]
-            password = request.form["password"]
-            user = app.specter.user_manager.get_user_by_username(username)
-            if user:
-                if verify_password(user.password_hash, password):
-                    app.login(user.id, request.form["password"])
-                    return redirect_login(request)
+            return login_method_usernamepassword()
 
         # Either invalid method or incorrect credentials
         flash(_("Invalid username or password"), "error")
@@ -101,6 +57,83 @@ def login():
         return render_template(
             "login.jinja", specter=app.specter, data={"next": request.args.get("next")}
         )
+
+
+def deny_login(comment=""):
+    flash("Invalid user or password!")
+    app.logger.info("AUDIT: Invalid password login attempt")
+    return redirect("login")
+
+
+def login_method_none():
+    app.login("admin")
+    app.logger.info("AUDIT: Successful Login no credentials")
+    return redirect_login(request)
+
+
+def login_method_rpcpasswordaspin():
+    # This authentiaction method has been especially created for Raspiblitz
+    # We assume here, that no preconfigured node-connection is available
+    # otherwise, which configured node should we use?
+    # We want to get rid of the default node, so we can't use that
+    # Instead we use a default location where we assume the bitcoin.conf
+    # This can be overridden via ENV_var.
+
+    specter: Specter = app.specter
+    if specter.node and specter.node._get_rpc().test_connection():
+        rpc = specter.node._get_rpc().clone()
+    else:
+        confs = _detect_rpc_confs_via_datadir(
+            None,
+            datadir=app.config["RASPIBLITZ_SPECTER_RPC_LOGIN_BITCOIN_CONF_LOCATION"],
+        )
+        if len(confs) == 0:
+            flash(
+                "No RPC connection to Bitcoin Core found. Cannot Log you in.", "error"
+            )
+            return redirect(url_for("login"))
+        conf = confs[0]
+        rpc = BitcoinRPC(**conf)
+
+    # A bit redundant as this has been checked before but let's be sure
+    if not rpc.test_connection():
+        flash(
+            "It seems that there is no working RPC connection to Bitcoin Core. Cannot Log you in."
+        )
+        return redirect(url_for("login"))
+    orig_password = rpc.password
+    rpc.password = request.form["password"]
+    if rpc.password == request.form["password"] and rpc.test_connection():
+        app.login("admin", request.form["password"])
+        app.logger.info("AUDIT: Successfull Login via RPC-credentials")
+        return redirect_login(request)
+    if orig_password == request.form["password"]:
+        app.login("admin", request.form["password"])
+        app.logger.info(
+            f"AUDIT: Successfull Login via RPC-credentials (node not reachable) {rpc.password}"
+        )
+        return redirect_login(request)
+    return deny_login(comment="Pin")
+
+
+def login_method_passwordonly():
+    password = request.form["password"]
+    if verify_password(app.specter.user_manager.admin.password_hash, password):
+        app.login("admin", request.form["password"])
+        return redirect_login(request)
+    return deny_login(comment="passwordonly")
+
+
+def login_method_usernamepassword():
+    # TODO: This way both "User" and "user" will pass as usernames, should there be strict check on that here? Or should we keep it like this?
+    username = request.form["username"]
+    password = request.form["password"]
+    user = app.specter.user_manager.get_user_by_username(username)
+    if user:
+        if verify_password(user.password_hash, password):
+            app.login(user.id, request.form["password"])
+            return redirect_login(request)
+    return deny_login(comment="usernamepassword")
 
 
 @auth_endpoint.route("/register", methods=["GET", "POST"])
