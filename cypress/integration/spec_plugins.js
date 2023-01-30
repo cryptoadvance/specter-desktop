@@ -3,12 +3,6 @@ describe('Test plugins', () => {
         Cypress.config('includeShadowDom', true)
     })
 
-    // Keeps the session cookie alive, Cypress by default clears all cookies before each test
-    beforeEach(() => {
-        cy.viewport(1200,660)
-        cy.visit('/')
-    })
-    
     it('Associate an address with a service', () => {
         // choose address
         cy.selectWallet("Ghost wallet")

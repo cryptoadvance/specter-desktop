@@ -3,15 +3,6 @@ describe('Connecting nodes', () => {
         Cypress.config('includeShadowDom', true)
     })
 
-    beforeEach(() => {
-      cy.visit('/')
-      cy.viewport(1200,660)
-    })
-
-    // Important! 
-    // If you have a bitcoin.conf at the default data dir location this can create awkwardness. 
-    // Either move your bitcoin.conf or use the exact RPC credentials that Cypress does
-
     it('Connect with Bitcoin Core node', () => {
       // Starting from the welcome page
       cy.get('[data-cy="core-connection-btn"]').click()
@@ -53,7 +44,6 @@ describe('Connecting nodes', () => {
     })
 
     // TODO: For testing the deletion we could delete the Liquid connection here if we don't run the Liquid tests
-
     it('Select Bitcoin Core connection', () => {
         cy.get('#node-switch-icon').click()
         cy.contains('Bitcoin Core').click()
