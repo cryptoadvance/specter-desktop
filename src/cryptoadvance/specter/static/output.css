@@ -2241,6 +2241,10 @@ input[type="number"]::-webkit-outer-spin-button,
   display: block;
 }
 
+.peer:checked ~ .peer-checked\:flex {
+  display: flex;
+}
+
 .peer:checked ~ .peer-checked\:hidden {
   display: none;
 }
