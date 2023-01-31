@@ -768,7 +768,8 @@ select {
 }
 
 .button:hover {
-  opacity: 0.8;
+  background-color: rgba(44, 45, 49, 0.8);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .button img {
