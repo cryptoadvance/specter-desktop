@@ -91,7 +91,6 @@ def test_abandon_purged_tx(caplog, request, devices_filled_data_folder, device_m
         # TODO: Make a test fixture in conftest.py that sets up already funded wallets
         # for a bitcoin core hot wallet.
         wallet_manager = WalletManager(
-            210100,
             devices_filled_data_folder,
             rpc,
             "regtest",

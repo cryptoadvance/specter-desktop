@@ -185,6 +185,10 @@
   .selection-button {
     @apply rounded-lg w-full h-10 bg-dark-800 border-2 border-dark-700 text-center block text-lg py-1 hover:bg-dark-700;
   }
+
+  .animate-spin-slow {
+    animation: spin 1.5s linear infinite;
+  }
 }
 
 @layer components {
