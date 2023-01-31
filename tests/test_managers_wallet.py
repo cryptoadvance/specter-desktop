@@ -2,7 +2,7 @@ import json
 import logging
 import os
 import time
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from cryptoadvance.specter.devices.bitcoin_core import BitcoinCore
@@ -21,6 +21,7 @@ from cryptoadvance.specter.util.wallet_importer import WalletImporter
 logger = logging.getLogger(__name__)
 
 
+@patch("cryptoadvance.specter.util.wallet_importer.flash", print)
 @pytest.mark.slow
 def test_WalletManager(
     request,
