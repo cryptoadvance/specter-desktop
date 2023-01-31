@@ -227,7 +227,7 @@
 
             {% include "includes/page-limit-select.html" %}
 
-            <div id="export-btn" class="ml-4 hover:bg-dark-700 rounded-lg py-2 px-3">
+            <div id="export-btn" class="ml-4 hover:bg-dark-700 rounded-lg py-2 px-3 cursor-pointer">
                 Export
             </div>
         </div>
@@ -1129,6 +1129,7 @@
                             this.composeTxForm.classList.add('hidden');
                             this.freezeTxForm.classList.add('hidden');
                             this.managePSBTBtn.classList.add('hidden');
+                            this.selectedRowsActionBox.classList.add('hidden');
                             this.actionTeaserDiv.classList.remove("hidden");
                         }
                     });
