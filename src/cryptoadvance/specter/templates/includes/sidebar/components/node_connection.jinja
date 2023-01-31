@@ -53,7 +53,7 @@
                 showNotification(`{{ _("Your Bitcoin node is syncing. Check the progress by clicking on the name of the node.") }}`)
             }
             count++
-            setTimeout(checkSyncStatus, 5000);
+            setTimeout(checkSyncStatus, 5*60000);
         }   
 	}
 </script>
