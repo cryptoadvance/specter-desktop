@@ -86,7 +86,7 @@ class ExtensionManager:
                 )
         logger.info("----> finished service processing")
         self.callback_executor = CallbackExecutor(self.services)
-        self.execute_ext_callbacks("afterExtensionManagerInit")
+        self.execute_ext_callbacks(callbacks.afterExtensionManagerInit)
 
     @classmethod
     def register_blueprint_for_ext(cls, clazz, ext):

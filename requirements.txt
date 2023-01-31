@@ -686,9 +686,9 @@ specterext-exfund==0.1.7 \
 specterext-faucet==0.1.2 \
     --hash=sha256:86db78a6c41688152cfeec14efafd6d06c97e6edd9735461ee897495f90cb2e8
     # via -r requirements.in
-specterext-stacktrack==0.2.1 \
-    --hash=sha256:28729d1a981d8c061902b3d26baefc723d286aecea4d203ed729d1c89a9de267 \
-    --hash=sha256:34a5e9da8a3cb7a4c8b7bc4e0a417a043150e608a7261e56d84fbfba9af15b8a
+specterext-stacktrack==0.3.0 \
+    --hash=sha256:14f96f1f552f57ba017b8bc642f07343edbb1abafe09e03bbaae179d78d7ce23 \
+    --hash=sha256:9e2946185730aab377951e83a27d8791a34e0f031e44f15991212b6b85722ca0
     # via -r requirements.in
 sqlalchemy==1.4.42 \
     --hash=sha256:04f2598c70ea4a29b12d429a80fad3a5202d56dce19dd4916cc46a965a5ca2e9 \
