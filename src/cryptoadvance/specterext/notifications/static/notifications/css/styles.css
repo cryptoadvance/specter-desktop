@@ -1,0 +1,105 @@
+/* This is the place to put all your styles */
+
+
+html, body{
+    /* msgbox colors*/
+    --cmap-msgbox-debug: #000000;
+    --cmap-msgbox-information: #4a90e2;
+    --cmap-msgbox-warning: #FF9A00;
+    --cmap-msgbox-error: #951E2D;
+    --cmap-msgbox-exception: #951E2D;
+}
+
+
+/*****************************/
+/* MESSAGE BOX RELATED CLASS */
+/* (START) */
+/*****************************/
+.msgbox-area {
+    font-size: inherit;
+    max-height: 100%;
+    position: fixed;
+    bottom: 15px;
+    left: 20px;
+    right: 20px;
+    z-index: 10;
+}
+.msgbox-box {
+    font-size: inherit;
+    color: #fff;
+    background-color: var(--cmap-msgbox-information);
+    border: 2px var(--cmap-border) solid;
+    margin: 0 0 1rem;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 1);
+    backdrop-filter: blur(4px);
+    transition: opacity 256ms ease-in;
+}
+.msgbox-box.msgbox-box-hide {
+    opacity: 0;
+}
+.msgbox-box:last-child {
+    margin: 0;
+}
+.msgbox-content {
+   font-size: inherit;
+   padding-top: 10px;
+   padding-left: 10px;
+   padding-right: 10px;
+   display: flex;
+}
+.msgbox-img {
+   margin-right: 5px;
+}
+.msgbox-text {
+   width: 100%;
+} 
+.msgbox-title {
+   width: 100%;
+} 
+.msgbox-wrapper {
+   width: 100%;
+} 
+.msgbox-command {
+   padding-right: 10px;
+   padding-bottom: 10px;
+    display: flex;
+}
+.msgbox-close {
+    color: #fff;
+    font-size: inherit;
+    text-decoration: none;
+    margin: 0 10px;
+    flex-grow: 0;
+    flex-shrink: 0;
+    position: relative;
+    transition: color 64ms ease-out, text-shadow 64ms ease-out;
+}
+.msgbox-close:hover {
+    color: #efefef;
+    text-shadow: 0 0 4px #fff;
+}
+.msgbox-close:first-child {
+    margin-left: auto;
+}
+.msgbox-close:last-child {
+    margin-right: 0;
+}
+@media (min-width: 481px) and (max-width: 767px) {
+    .msgbox-area {
+        left: 80px;
+        right: 80px;
+   }
+}
+@media (min-width: 768px) {
+    .msgbox-area {
+        width: 480px;
+        height: 0;
+        top: 15px;
+        left: auto;
+        right: 15px;
+   }
+}
