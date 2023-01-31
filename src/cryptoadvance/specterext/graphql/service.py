@@ -48,7 +48,7 @@ class GraphqlService(Service):
         field_list = create_fields()
 
         # later on, we'll do that via extenstioncallbacks
-        (field_list,) = app.specter.service_manager.execute_ext_callbacks(
+        field_list = app.specter.service_manager.execute_ext_callbacks(
             create_graphql_schema, field_list
         )
 
