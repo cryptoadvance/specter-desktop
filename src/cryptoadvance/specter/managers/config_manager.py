@@ -46,7 +46,7 @@ class ConfigManager(GenericDataManager):
             "asset_labels": {
                 "liquidv1": {},
             },
-            "active_node_alias": "default",
+            "active_node_alias": None,
             "proxy_url": "socks5h://localhost:9050",  # Tor proxy URL
             "only_tor": False,
             "tor_control_port": "",
