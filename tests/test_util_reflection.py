@@ -90,7 +90,7 @@ def test_get_subclasses_for_class(caplog):
     classlist = get_subclasses_for_clazz(SpecterMigration)
     assert len(classlist) >= 3
     classlist = get_subclasses_for_clazz(Service)
-    assert len(classlist) >= 4
+    assert len(classlist) >= 5
     # checking naively for certain Services would be counterproductive if you import
     # the class. THis needs to work without importing the class!
     # But we can test like this:
