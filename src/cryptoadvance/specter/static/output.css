@@ -863,6 +863,10 @@ select {
   background-color: rgb(27 28 33 / var(--tw-bg-opacity));
 }
 
+.animate-spin-slow {
+  animation: spin 1.5s linear infinite;
+}
+
 *, ::before, ::after {
   --tw-border-spacing-x: 0;
   --tw-border-spacing-y: 0;
@@ -1120,6 +1124,10 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .m-auto {
   margin: auto;
+}
+
+.m-3 {
+  margin: 0.75rem;
 }
 
 .m-4 {
@@ -1752,6 +1760,11 @@ input[type="number"]::-webkit-outer-spin-button,
   border-radius: 0.375rem;
 }
 
+.rounded-l-md {
+  border-top-left-radius: 0.375rem;
+  border-bottom-left-radius: 0.375rem;
+}
+
 .rounded-t-xl {
   border-top-left-radius: 0.75rem;
   border-top-right-radius: 0.75rem;
@@ -1920,6 +1933,10 @@ input[type="number"]::-webkit-outer-spin-button,
   padding: 1.25rem;
 }
 
+.p-2 {
+  padding: 0.5rem;
+}
+
 .px-\[calc\(\(100\%-700px\)\/2\)\] {
   padding-left: calc((100% - 700px) / 2);
   padding-right: calc((100% - 700px) / 2);
@@ -2045,6 +2062,11 @@ input[type="number"]::-webkit-outer-spin-button,
 .text-sm {
   font-size: 0.875rem;
   line-height: 1.25rem;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
 }
 
 .font-medium {
@@ -2195,8 +2217,16 @@ input[type="number"]::-webkit-outer-spin-button,
   transition-duration: 200ms;
 }
 
+.duration-1000 {
+  transition-duration: 1000ms;
+}
+
 .ease-out {
   transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+}
+
+.ease-in-out {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {

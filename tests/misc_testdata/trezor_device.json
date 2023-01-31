@@ -1,0 +1,360 @@
+{
+    "name": "Trezor",
+    "alias": "mytrezor",
+    "type": "trezor",
+    "keys": [
+        {
+            "original": "upub5EKoQv21nQNkhdt4yuLyRnWitA3EGhW1ru1Y8VTG8gdys2JZhqiYkhn4LHp2heHnH41kz95bXPvrYVRuFUrdUMik6YdjFV4uL4EubnesttQ",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/49h/1h/0h",
+            "type": "sh-wpkh",
+            "purpose": "#0 Single Sig (Nested)",
+            "xpub": "tpubDDCDr9rSwixeXKeGwAgwFy8bjBaE5wya9sAVqEC4ccXWmcQxY34KmLRJdwmaDsCnHsu5r9P9SUpYtXmCoRwukWDqmAUJgkBbjC2FXUzicn6"
+        },
+        {
+            "original": "vpub5Y35MNUT8sUR2SnRCU9A9S6z1JDACMTuNnM8WHXvuS7hCwuVuoRAWJGpi66Yo8evGPiecN26oLqx19xf57mqVQjiYb9hbb4QzbNmFfsS9ko",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/84h/1h/0h",
+            "type": "wpkh",
+            "purpose": "#0 Single Sig (Segwit)",
+            "xpub": "tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc"
+        },
+        {
+            "original": "Upub5Tk9tZtdzVaTGWtygRTKDDmaN5vfB59pn2L5MQyH6BkVpg2Y5J95rtpQndjmXNs3LNFiy8zxpHCTtvxxeePjgipF7moTHQZhe3E5uPzDXh8",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/0h/1h",
+            "type": "sh-wsh",
+            "purpose": "#0 Multisig Sig (Nested)",
+            "xpub": "tpubDFiVCZzdarbyfdVoh2LJDL3eVKRPmxwnkiqN8tSYCLod75a2966anQbjHajqVAZ97j54xZJPr9hf7ogVuNL4pPCfwvXdKGDQ9SjZF7vXQu1"
+        },
+        {
+            "original": "Vpub5naRCEZZ9B7wCKLWuqoNdg6ddWEx8ruztUygXFZDJtW5LRMqUP5HV2TsNw1nc74Ba3QPDSH7qzauZ8LdfNmnmofpfmztCGPgP7vaaYSmpgN",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/0h/2h",
+            "type": "wsh",
+            "purpose": "#0 Multisig Sig (Segwit)",
+            "xpub": "tpubDFiVCZzdarbyk8kE65tjRhHCambEo8iTx4xkXL8b33BKZj66HWsDnUb3rg4GZz6Mwm6vTNyzRCjYtiScCQJ77ENedb2deDDtcoNQXiUouJQ"
+        },
+        {
+            "original": "upub5EKoQv21nQNkkbeX7RLSUgcjnR6nTWFudhmGo5Nxq48FqkKxgPBkWiAwKazG3cd1KjENnTbeGJtNB7iqyuH4QXpxFnVvsRtbGkN2Fg9wStD",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/49h/1h/1h",
+            "type": "sh-wpkh",
+            "purpose": "#1 Single Sig (Nested)",
+            "xpub": "tpubDDCDr9rSwixeaHQj4ggQJsEcdSdnGkjTvfvEVp7mJz1nkLSMWaXXXLpBdEwoZqY1LZ7heTuCBPn4XA49XrNLggL3vQLWJh1Hft9NBQDrZ29"
+        },
+        {
+            "original": "vpub5Y35MNUT8sUR6SVwH1nkeiUwWky58XopeJaFWLwJfQj2GgcGFbwmkmhp3yBMEVTqw2xfvzpvMqSUzCXiGZdxAiWyvmxyyrErPBwPoKSJzus",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/84h/1h/1h",
+            "type": "wpkh",
+            "purpose": "#1 Single Sig (Segwit)",
+            "xpub": "tpubDC5EUwdy9WWq4q52PvM6Gp1KBpMd1AHt2ACzRgnDmLEg8AuRq97z9LgvLRBJkoivYDjC3XXupFydSxFT6pKDedLUj478qCY4Wbf6LZHaEuo"
+        },
+        {
+            "original": "Upub5SNDKzLBXW3QBrbxK14LDuVtxxR2MWYxChNjShS338xKtx1tgwp1tZoM5Prts4J2DXpPKATS1vfntAHrorEXZA7VFBCaUNhemfWYejJRPHg",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/1h/1h",
+            "type": "sh-wsh",
+            "purpose": "#1 Multisig Sig (Nested)",
+            "xpub": "tpubDELYdzSB7s4vayCnKbwKE1my6BukxQLvBPt2EAuJ9J1TBMZNkjmWp5afaLrxpqz7ztdjJaks3oAz731Q4aArgpVv5KvkWEMMH521zaj118Z"
+        },
+        {
+            "original": "Vpub5mCUdf16gBat7LhtqCQne7zV3en2XV2nodPGR85jhHqv9E4A7UXNnZ9UsA5x3H2fxhc38t5gXcp1XvqGp8ASa3ErgXhyFKNAt1cSMdWGXNN",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/1h/2h",
+            "type": "wsh",
+            "purpose": "#1 Multisig Sig (Segwit)",
+            "xpub": "tpubDELYdzSB7s4vfA7c1SW9S9B3zv8KBkqFsDNLRCf7RSXANXnQvcKK61GfLu8S1A4rLRJaNpnZ6pxesWwFM9gkuTwgeLjihGCP7h4GJuCxsd3"
+        },
+        {
+            "original": "upub5EKoQv21nQNknik1KU1syMoEgo8NwkDkYeX6hYSTexRhSdCXqNHHHKsd9W1o8qvqRgqfBP9KmuWBxuMWvmCMqMSicMBqwCJGGa5TVau3eD1",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/49h/1h/2h",
+            "type": "sh-wpkh",
+            "purpose": "#2 Single Sig (Nested)",
+            "xpub": "tpubDDCDr9rSwixecQWDGjMqoYR7XpfNkzhJqcg4QHBG8tKEMDJvfZd4HxWsT9yLf4qqSWiz3PSsgzPtJwgpUiHe7VwpGy2RNTQxfhroRPqfBfM"
+        },
+        {
+            "original": "vpub5Y35MNUT8sUR85w9G2bVdZQrHWXLdxPcsi75fgnBWkJNATPfgbv4Qpabv59fMTG5cVdePeveifFk5TPePFdU7jvPm1qb9fVYcxXKXSvUtgz",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/84h/1h/2h",
+            "type": "wpkh",
+            "purpose": "#2 Single Sig (Segwit)",
+            "xpub": "tpubDC5EUwdy9WWq6UWENw9qFewDxZutWasgFZjpb2d6cfp21wgqG96GoPZiCX9csmXADgQAWBdeB5ntYD7PDWJjbejtZHyk11nkkNF24i7RnLV"
+        },
+        {
+            "original": "Upub5TVK2qPsm6eMaSm9JpaDCqGACPHtXMmn6reTthgdvpqnV7qcyHD3awVpEawcMxRKDbEyvMLr1pKNWFAQYBhzfwzrAo8BpMefcymgMsYvdw4",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/2h/1h",
+            "type": "sh-wsh",
+            "purpose": "#2 Multisig Sig (Nested)",
+            "xpub": "tpubDFTeLqVsMTfsyZMyKRTCCwYEKcnd8FZk5Z9kgB9u2ytumXP735AYWTH8jXwgKk7Qzx4KumeH3gpZj7swnueKocPGzwrMrDJN8PH9hh7AnfJ"
+        },
+        {
+            "original": "Vpub5nKaLW4nunBqSzRVKf4oTaGySWh8kTJUd3wQHvVMnNp4ksukeC7spEmCyKRfAEHz31UPAkBGQwrEwS5iFpQbuNB4EuigfoTLTSwYmXXP2JK",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/2h/2h",
+            "type": "wsh",
+            "purpose": "#2 Multisig Sig (Segwit)",
+            "xpub": "tpubDFTeLqVsMTfszoqCVuAAFbTYPn3RQj6wgdvUJ14jWXVJzBe1TKup7gtPT4U987LAQjAvQgt8z9ztH2BgnqvvEnstCikS7kHYh8PNimvL3mt"
+        },
+        {
+            "original": "upub5EKoQv21nQNkquuCusEL8ofnQaM4V8rsdzPuWe48FD4rRWvmF61hEqVMwwNje2zxpma7ju39zT1ub1hogbGaKdAvmMfPJtdqCSR5FovbUSF",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/49h/1h/3h",
+            "type": "sh-wpkh",
+            "purpose": "#3 Single Sig (Nested)",
+            "xpub": "tpubDDCDr9rSwixefbfQs8aHxzHfFbt4JPLRvxYsDNnvj8xPL73A5HMUFU8cFbLHAFuxqbTSbuLhuXubw437EYMrbmg2RyVxk9kXbaCRBYbHftq"
+        },
+        {
+            "original": "vpub5Y35MNUT8sURA6hs4HJw67NHTFmMsmjDSu9pQS3abpJDrkUdSpXn7n5WEVHvU2uuJWAKHSkdpDYKuFBvhQAJ2xtezVurh2WfBMsP8HorJxH",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/84h/1h/3h",
+            "type": "wpkh",
+            "purpose": "#3 Single Sig (Segwit)",
+            "xpub": "tpubDC5EUwdy9WWq8VGxBBsGiCtf8K9ukQDGpknZKmtVhjosiEmo2MhzWM4cWwHszMAyugvqPyTdGe5UMzufXeqZWsi9nn41YNosJmb5fYoCqFy"
+        },
+        {
+            "original": "Upub5TYty5hhC1kpHss1TPBrhzsP7Jy2UScv6VF8HeEN1jbvVhryoPsrN9sBGxWjcvJp4TZLdkaqKmEvLqFP2CVtnSFw4Vv4HcG1pcp66PCAxnr",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/3h/1h",
+            "type": "sh-wsh",
+            "purpose": "#3 Multisig Sig (Nested)",
+            "xpub": "tpubDFXEH5ognNnLgzTqTz4qi79TEYTm5LQt5BkR57hd7tf3n7QTsBqMHfeVmuWoahzuqpNgdAtGMdk7ZhxvGvSDv6eMteeEKTuiL2KZS7oDNBc"
+        },
+        {
+            "original": "Vpub5nPAGkNcLhJJCHZhGRt47wH5mBab9m5PfJmUjSazw1XAkbax3vG9RCJQVMei2Z84PgirRvTUHU93uUXynBUXwiiPVT4VwG45Xas6KWDPh5T",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/3h/2h",
+            "type": "wsh",
+            "purpose": "#3 Multisig Sig (Segwit)",
+            "xpub": "tpubDFXEH5ognNnLk6yQSfyQuxTeiSvsp2sritkYjXANfACQyuKCs445ieRay6hBzSAEmQRPfsALrgHhF4dxKCzrH9RDTG6FPCtHmGJvGi6sSC8"
+        },
+        {
+            "original": "upub5EKoQv21nQNktcVEn7ormrgocRuFrKvU6wum7ZRfXcTKYtfUfG1RXihAgq4cWyTVM4smEV5VTejiCXot2akjMDr6sYCghMnqUSVuNctuCbm",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/49h/1h/4h",
+            "type": "sh-wpkh",
+            "purpose": "#4 Single Sig (Nested)",
+            "xpub": "tpubDDCDr9rSwixeiJFSjP9pc3JgTTSFfaQ2Pv4ipJAU1YLrTUmsVTMCYMLQzV2A3CNVMtm66VP3NjdQYa9BaXr1dNMCYA3G8cuXsaHFJMZNVDP"
+        },
+        {
+            "original": "vpub5Y35MNUT8sUREDYApTNH7Y188zckaDj6NHaK8tkgRFLsjF2a8cQRXrSzgvJbMoEgHgqZm8259DGsHUXmUA8P3FKEFkjNeMh7aMaivei27JR",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/84h/1h/4h",
+            "type": "wpkh",
+            "purpose": "#4 Single Sig (Segwit)",
+            "xpub": "tpubDC5EUwdy9WWqCc7FwMvcjdXVp41JSrD9k9D44EbbXArXajKji9advRS6yNJYt7Vktsc5sej4bdp1kEFWJQoeXA8j42sXVhzKhmJRTmvjiZL"
+        },
+        {
+            "original": "Upub5TNPzsZrx1ZhKLgEqViJqi6cWUrUyQdPpCwFQ1fbBqtVBGC6CwCscoqnH34TEGGbWnEL4C2eJDPnsqcM2sGnPZXuyH7Dy511H3qnCVK7P5f",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/4h/1h",
+            "type": "sh-wsh",
+            "purpose": "#4 Multisig Sig (Nested)",
+            "xpub": "tpubDFLjJsfrYNbDiTH4r6bHqpNgdiMDaJRMnuSYBV8rHzwcTfjaGjANYKd6mz4XC3xhJ93g3cL5L5tz6iKtHbD7XDvLoRqPzvehnTMFYEJv8rh"
+        },
+        {
+            "original": "Vpub5nCfJYEn6h7BDYF3ZiuhYa6RgEb6FnVb2ewjDpiYEWKyQVuuHuise1Ygbo1r5EggzF1zfyDSCmywMieJKCR3q1Ergim9UQSUZEWrpGkeBvk",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/4h/2h",
+            "type": "wsh",
+            "purpose": "#4 Multisig Sig (Segwit)",
+            "xpub": "tpubDFLjJsfrYNbDmMekjy14LbGzdVwNv4J46EvoDuHuxf1DdoeA73WowTfs5Y4L37isMxiXuuvJmz8ahJkGrDwNARwgeXntvMGgnuxgmXxNsnU"
+        },
+        {
+            "original": "upub5EKoQv21nQNkx9AMEjSYNDSic2p59T2uGrJQYD5URuDZbaF3itK2mjDD9mJutuYmVnzjQuSSCvxE6xjpwXCY8YNpzr3GLqSjWH4n2Cuokvy",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/49h/1h/5h",
+            "type": "sh-wpkh",
+            "purpose": "#5 Single Sig (Nested)",
+            "xpub": "tpubDDCDr9rSwixempvZBznWCQ4bT4M4xhWTZpTNEwpGuq76WAMSZ5eonMrTTRGTR8TmWct4Gujz81qvT158VUHpQgsvfTsqn6ZRuQr7x22dD1E"
+        },
+        {
+            "original": "vpub5Y35MNUT8sURH2nXVtZGcoWLn6CRrkNkFCoYpvbeEvxFqigBvaT8ExBqPPNVzrnCjBq9meh2Adci4WmLrmDBTfpztnpxq1Sa3sAcMK3ub5d",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/84h/1h/5h",
+            "type": "wpkh",
+            "purpose": "#5 Single Sig (Segwit)",
+            "xpub": "tpubDC5EUwdy9WWqFRMcco7cEu2iT9ayjNrod4SHkGSZLrTuhCyMW7dLdXAwfqNTXB3HLNbftBQ1d49rXGV5h1tSwaeVh4y7gMjnBGtJtRw2UE8"
+        },
+        {
+            "original": "Upub5SbGvWuQjHSN9SNQSCQ7x1EeV5iidqbmjzqR6aBmThDNCQqWSZ3R8HmY8vLTcwYUt5PLSZC5hjp3VHTq9hek56Qkka8pPqFNGKAoJRddAPg",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/5h/1h",
+            "type": "sh-wsh",
+            "purpose": "#5 Multisig Sig (Nested)",
+            "xpub": "tpubDEZcEX1QKeTtYYyESoH6x7WicKDTEjPjihLht3f2ZrGVUpNzWLzv3oYrdsLXajEafSCgRyVWjcKEiABNQRb5CkoBairzRgu4migGeGKXkCR"
+        },
+        {
+            "original": "Vpub5mRYEBaKsxyr2NFZRzrstJ9EKSMsfT7tLWQv6Cm1DNN4XMQJkTmQvVnvp6cEqb9vTvEF8xZTmGSGLevopuuaoCxWnD9m26NTSXdHMTYwU3V",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/5h/2h",
+            "type": "wsh",
+            "purpose": "#5 Multisig Sig (Segwit)",
+            "xpub": "tpubDEZcEX1QKeTtaBfGcExEgKKoGhiAKivMQ6Pz6HLNwX3Jkf8ZZbZMDwv7HqeioUC6qdvnNuGLLUaugF2nMwRu8dfLk2BWU3CfgD57JiADegZ"
+        },
+        {
+            "original": "upub5EKoQv21nQNm1DqJZU9wsGAQHT9vZofiwYVKih5SNWA5TDCKmiPzabATbmeFcvQQ7MKKPFHovRqnnVX9a9KZYQzXiLFKGDLbGoQ8AuuMGc9",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/49h/1h/6h",
+            "type": "sh-wpkh",
+            "purpose": "#6 Single Sig (Nested)",
+            "xpub": "tpubDDCDr9rSwixepubWWjVuhSnH8UgvP49HEWeHRRpErS3cMoJibujmbDohuRbo99KQ8BCeFFbMqWjV8XrT86QqpZVdNx5thUTHfwBU6fdP51e"
+        },
+        {
+            "original": "vpub5Y35MNUT8sURKFuKEy9mp1mH9AwEsNMDmF1JzvmD61CkPmsiL2ufvzKTDNNsG7QLKN6RwNSowYVW5g7uJqMFL9thVW9QChJ2KxXagZ2UdJE",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/84h/1h/6h",
+            "type": "wpkh",
+            "purpose": "#6 Single Sig (Segwit)",
+            "xpub": "tpubDC5EUwdy9WWqHeUQMsi7S7HepEKnjzqH96e3vGc8BviQFGAsua5tKZJZVpNpnRfQvYrx3u9oPy2eYRqe962Wp4iCHnHZ43bETNFHDfyLoem"
+        },
+        {
+            "original": "Upub5SibFFj1EPmNEfxxZPKFet6rGVDAdiAXStukEA6AywfBgFrhoQAkkVjYgCbk4VXYUEypFmCsuR5QZSnRtF7s3pREQkKkHCkeHy8oM8GiSk5",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/6h/1h",
+            "type": "sh-wsh",
+            "purpose": "#6 Multisig Sig (Nested)",
+            "xpub": "tpubDEgvZFpzpkntdnZnZzCEezNvPihuEbxVRbR31dZS66iJxfQBsC8Fg1WsB9bp2HDeFboAFBWJwHabnKVy8y4CBUofEu3vK4QLoNeGgwgVMZi"
+        },
+        {
+            "original": "Vpub5mYrYvPvP5Jr8draW5U6M7m9xCPukVXQtTCp6h5HKDQRQb2W8Ce2Vsc4KbQRuTuaJhyPSJRB7koQ6sTtM4jj4Mi6GN1vHAXZSdQ8SG55ihw",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/6h/2h",
+            "type": "wsh",
+            "purpose": "#6 Multisig Sig (Segwit)",
+            "xpub": "tpubDEgvZFpzpkntgTGHgKZT98wiuTkCQmKsx3Bt6mef3N5fdtkkwLRxoKjEoLSusLwkgRfvgF83gxx3STZrt6G3PnQvEB3fj7MmgJqxPWbWPxa"
+        },
+        {
+            "original": "upub5EKoQv21nQNm1q8NAC2rewfMBmq19fvRPM7mwo1A7agcwMHGBEfD6RWz5ucCZSpeQXGjLJPFxN7K838YyVtqwzc1DKYfxtv8UatsPoYeTHC",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/49h/1h/7h",
+            "type": "sh-wpkh",
+            "purpose": "#7 Single Sig (Nested)",
+            "xpub": "tpubDDCDr9rSwixeqWta7TNpV8HE2oMzxvPygKGjeXjxbWa9qwPf1Rzz74AEPZZk5fjeRMA4CJgosT11U5TrXSz8E976swPFQA2psigDKUJemiv"
+        },
+        {
+            "original": "vpub5Y35MNUT8sURLyMhyndVrEKhoKYv3hzjhYFoMGTdK6nm3jtXkBG1u45WrLf2u5fKRyR64Uao5Xs1DnGNgvrpAVv8xojSLET69caKBg7ypie",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/84h/1h/7h",
+            "type": "wpkh",
+            "purpose": "#7 Single Sig (Segwit)",
+            "xpub": "tpubDC5EUwdy9WWqKMvo6hBqUKr5UNwTvLUo5PtYGcJYR2JQuEBhKiSEHd4d8nezRPvQ3ABcB1HnXxQ9gXz7XBY5eQjdm5sbBakJH2J1iq8UvZc"
+        },
+        {
+            "original": "Upub5T4M7Sm4okSNqdSmt1TxbsmWpLczVoot5cmLjw7EbSUoQ13Yh622XmvjTphUgr2MMqWymfGijavxRPo3ZnvRiPteKHSWVFz5KBgMdBVGHMz",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/7h/1h",
+            "type": "sh-wsh",
+            "purpose": "#7 Multisig Sig (Nested)",
+            "xpub": "tpubDF2gRSs4Q7TuEk3btcLwbz3awa7j6hbr4KGdXQaVhbXvgQb2ksyXTHi3xmhYediT9CLKm5a9mTS9eGWapWrkr4H59SAgX7dmpbBpy24rrEq"
+        },
+        {
+            "original": "Vpub5mtcR7RyxRyrhxjb1ZVmHvzadnmMk6k8PvfyvtosdaA1jVrnCGv73wmkKWk3v8SBrBDNz98wkLAVTmeSfp9xPFKeo7KdM5TbZPCzw7vZoTt",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/7h/2h",
+            "type": "wsh",
+            "purpose": "#7 Multisig Sig (Segwit)",
+            "xpub": "tpubDF2gRSs4Q7TuFn9JBob85xB9b47eQNYbTWf3vyPFMiqFxob31Qi3MPtvoFnXt1UNDtuvE5qpKYK8oMkRCqgGig2UkvMNo2Hoo4eptLhCiST"
+        },
+        {
+            "original": "upub5EKoQv21nQNm4XeNALECoMbF21HFcyfrXQb24kQu1LVq8pFpozWp5Uridk19VLT4o6J7Q6RAauT22crjYtDX8zYPYrrreRbcW6X4EpX9Mpn",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/49h/1h/8h",
+            "type": "sh-wpkh",
+            "purpose": "#8 Single Sig (Nested)",
+            "xpub": "tpubDDCDr9rSwixetDQa7baAdYD7s2pFSE9QpNjymV9hVGPN3QNDeBrb67VxwPxh1ZN4ovBSG6iiVzLiNfC36qJoR93VDUhS5giJuEJQAZdV1ip"
+        },
+        {
+            "original": "vpub5Y35MNUT8sURPk9bgmUzqMDNXgyTtNUrTMX56xf4MaYLJhSC8uWGsj1QYeemMAEeJ3dCcUbHSRhpdSsH8cVeD559N6tLpwXKQjJD1eKenwu",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/84h/1h/8h",
+            "type": "wpkh",
+            "purpose": "#8 Single Sig (Segwit)",
+            "xpub": "tpubDC5EUwdy9WWqN8igog3LTSjkCkN1kzxuqD9p2JVyTW3zABjMiSgVGHzWq6eisUViuEPij1JGtrEy6Cb1xsAugyteAP2VgHpXY91uYpkixb8"
+        },
+        {
+            "original": "Upub5SAJAYu4nm5wC2JZT4Pq67xQ7vLsVLqYJgoVqLoyQvWDWkw1XpbhyezkrSmfs6qM28gJ8hnHVnmvtaA4j5PNBHxG5NeWneL6TLdWxva7533",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/8h/1h",
+            "type": "sh-wsh",
+            "purpose": "#8 Multisig Sig (Nested)",
+            "xpub": "tpubDE8dUZ14P87Tb8uPTfGp6EEUF9qc6EdWHPJncpHEX5ZLoAUVbcZCuAn5MPmjptXSoVVe885iXfH87SsbyoKhJxLguXNgpVynxk8zJiSXwxa"
+        },
+        {
+            "original": "Vpub5kzZUDZywSdR7T4wKcXz61aTTjHQP6Qd19qGsgwjzg4Gi7Wzf26wpq38tX2Kx9qLvUVZbsvULrLSTuFsKHcMhh5YHTmhF48m2qhqiakyF6e",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/8h/2h",
+            "type": "wsh",
+            "purpose": "#8 Multisig Sig (Segwit)",
+            "xpub": "tpubDE8dUZ14P87TfGUeVrdLt2m2Qzdh3ND64jpLsmX7ipjWwRFFU9tt8HAKNG4ov2sXJCC6qpdLv4V5oVMqrK8g37nNFGoSgzxyGX9ffsxL8Cz"
+        },
+        {
+            "original": "upub5EKoQv21nQNm6Y8Na9Ep6m8H7A6z9PhAoW8dF1BfLBAvuVYb1xgEqaXRYrRpkxe7vXYw1AaRSB1JE9WuKAxvRMoSCRcpae1CRsSRaWbh43y",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/49h/1h/9h",
+            "type": "sh-wpkh",
+            "purpose": "#9 Single Sig (Nested)",
+            "xpub": "tpubDDCDr9rSwixevDtaXQamvwk9xBdyxeAj6UHawjvTp74Tp5eyrA21rDAfrWPNHBZ7wMSFsAsyMFtzaBrCs84ChWJXs3TQ1u7tq1DmWERYJhX"
+        },
+        {
+            "original": "vpub5Y35MNUT8sURRVraj7fgYjPgp15hqEAjm8jMW6DBMHKfSywQY2GCoAKqUjSzWXzE6KcWdCgKju4vmiPYEa8L3wtdcPSPe1EGi7EgHABMg2o",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/84h/1h/9h",
+            "type": "wpkh",
+            "purpose": "#9 Single Sig (Segwit)",
+            "xpub": "tpubDC5EUwdy9WWqPtRfr2E2Apv4V4UFhreo8zN6RS46TCqKJUEa7ZSRBjJwmBSx2rFJhWP2jjPKCKc5EU7H4pobXri8QfaYVMXUqWxNpM4Thp3"
+        },
+        {
+            "original": "Upub5SZqPpGQLXLrZiASDasMaoUae2fRr6frs17aAWyEpKmnrytb3uDK2TyPJawmuayNdpaheEjLjMBxAfg2j9M2zte5iFwjxSo4tvnuKsryBZW",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/9h/1h",
+            "type": "sh-wsh",
+            "purpose": "#9 Multisig Sig (Nested)",
+            "xpub": "tpubDEYAhpNPvtNNxpmGEBkLaukemGAASzTpqhcrwzSVvUpv9PS57hAowykhoXwqsNfURBQ3df2mmDh9PYPZysHN8Z2WYQfuzJSmQLJNfeBysrh"
+        },
+        {
+            "original": "Vpub5mQ6hUwKVCtLSmZFysmVTUeMfkSgYdwFYipCf6zaLfyXdVRGY4LjUuKvM7fi5zJKuA7VoZ5gKkuHUdjkS5HH81V9owruYMvZM5JPHgpU94i",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/9h/2h",
+            "type": "wsh",
+            "purpose": "#9 Multisig Sig (Segwit)",
+            "xpub": "tpubDEYAhpNPvtNNzaxyA7rrFVpvd1nyCujicJoGfBZx4pemro9XMC8fnMT6priC3sLWGsp33VnYty3vpDqiy6obTSBymktezJkmakkDEwVb9e2"
+        },
+        {
+            "original": "upub5EKoQv21nQNmBMp8zqKWqi4exGTsvswkeDNbexHNursybdRAiYoXprZFy6yfZDwKQgHmLxPpKh9BwNa1fJdyjRcE3a51s11UVCLaRkmbE3U",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/49h/1h/10h",
+            "type": "sh-wpkh",
+            "purpose": "#10 Single Sig (Nested)",
+            "xpub": "tpubDDCDr9rSwixf13aLx6fUftgXoHzsk8RJwBXZMh2BPnmWWDXZYk9JqVCWGkwD5SrKRWB6CxhNEn2tHQuKDFjG1a7KiBubJG8AtL7vMZ2ccQc"
+        },
+        {
+            "original": "vpub5Y35MNUT8sURVkrRjbTjecBsrupUkvEJMVu7z6xkYoRMMnorxKeBAPbRjAzk3s8qwPJeFbEWi6BFSuVYV46Z1YnEQJ1wuwMpoA1m4LyZ17p",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/84h/1h/10h",
+            "type": "wpkh",
+            "purpose": "#10 Single Sig (Segwit)",
+            "xpub": "tpubDC5EUwdy9WWqU9RWrW25GhiFXyD2dYiMjMXruSofeiw1DH72XrpPYxaY1czhaBPvYa5AN7wWAWiPufDHKJmpVTbjCaA6mHf2vZjTbYS944S"
+        },
+        {
+            "original": "Upub5TmeuYoRtjgjZWavZYFmc7rnHgUWw2kVw6N4Y19u5xjXPu8K5ZM3YT6kZyxwAD2tMHa5tbpJJi1B7zkpzTu6cCE3rRppmFy3BU9DPcLU9AS",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/10h/1h",
+            "type": "sh-wsh",
+            "purpose": "#10 Multisig Sig (Nested)",
+            "xpub": "tpubDFjzDYuRV6iFxdBka98kcE8rQuyFXvYTunsMKUdAC7negJfo9MJYTxt54vy17ziz8ePRt27jLaWNLsUNFBqRjrcUgaYzo7cjgsegjT4EYhP"
+        },
+        {
+            "original": "Vpub5nbvDDUM3REDStVR5hGfkf6DtJAFsWhyg9c2ZAFrBx9sTE16sJeoUe1cWG1UaSZVMn9FFf8hzoQtUMMfLK6Li5AiKgDYS6JSxJ3LuZBRA4K",
+            "fingerprint": "1ef4e492",
+            "derivation": "m/48h/1h/10h/2h",
+            "type": "wsh",
+            "purpose": "#10 Multisig Sig (Segwit)",
+            "xpub": "tpubDFjzDYuRV6iFzhu8FwN2YgGnqZWYXnWSjjb6ZEqDv6q7gXjMgSSjn68nz13xYKbfjVqnVbqaa1ZXowTdsLcf3VsYHVFHt38fByVArkpZ5ZP"
+        }
+
+    ]
+}

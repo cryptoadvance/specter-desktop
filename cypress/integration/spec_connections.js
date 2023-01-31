@@ -45,9 +45,16 @@ describe('Connecting nodes', () => {
 
     // TODO: For testing the deletion we could delete the Liquid connection here if we don't run the Liquid tests
     it('Select Bitcoin Core connection', () => {
-        cy.get('#node-switch-icon').click()
-        cy.contains('Bitcoin Core').click()
-        cy.contains('Switched to use Bitcoin Core as connection')
+      cy.get('#node-switch-icon').click()
+      cy.contains('Bitcoin Core').click()
+      cy.contains('Switched to use Bitcoin Core as connection')
+    })
+    
+    it('Check sync status of Bitcoin Core node', () => {
+      cy.intercept("GET", "/nodes/sync_status/", {'fullySynced': false});
+      cy.visit('/')
+      cy.contains('Your Bitcoin node is syncing.')
+      cy.get('[data-cy="unfinished-sync-indicator"]').should('be.visible')
     })   
   
   })
