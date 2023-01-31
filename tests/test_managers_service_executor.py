@@ -1,4 +1,5 @@
 import pytest
+import logging
 from cryptoadvance.specter.managers.service_manager.callback_executor import (
     CallbackExecutor,
 )
@@ -7,14 +8,24 @@ from cryptoadvance.specter.managers.service_manager.callback_executor import (
     topological_sort,
     set_dependency_level_recursive,
 )
-from cryptoadvance.specter.services.callbacks import *
+from cryptoadvance.specter.services.callbacks import (
+    flask_before_request,
+    adjust_view_model,
+    Callback,
+)
+from cryptoadvance.specter.specter_error import SpecterInternalException
+
+logger = logging.getLogger(__name__)
 
 # Testclasses
 class A:
     id = "A"
     depends = []
 
-    def callback_adjust_view_model(model):
+    def callback_adjust_view_model(self, model):
+        logger.info(
+            f"A.callback_adjust_view_model has been called with model='{model}'!"
+        )
         return "Hello"
 
 
@@ -27,7 +38,7 @@ class C:
     id = "C"
     depends = [A]
 
-    def callback_adjust_view_model(model):
+    def callback_adjust_view_model(self, model):
         return model + " World"
 
 
@@ -46,18 +57,37 @@ class F:
     depends = [A, D]
 
 
-exts = [F, E, D, C, B, A]
+@pytest.fixture
+def exts():
+    return [F(), E(), D(), C(), B(), A()]
 
 
-def test_topological_sort():
+@pytest.fixture
+def callback_executor(exts):
+    service_dict = {ext.__class__.__name__: ext for ext in exts}
+    print(service_dict)
+    ce = CallbackExecutor(service_dict)
+    return ce
 
-    ext_sorted = topological_sort([F, E, D, C, B, A])
-    assert ext_sorted == [A, C, B, D, F, E]
+
+def test_check_callback(callback_executor: CallbackExecutor):
+    ce = callback_executor
+    with pytest.raises(SpecterInternalException):
+        ce.check_callback("muh")
+    ce.check_callback(flask_before_request)
+    ce.check_callback(adjust_view_model)
 
 
-def test_set_dependency_level_recursive():
+def test_topological_sort(exts):
+
+    ext_sorted = topological_sort(exts)
+    ext_classes = [ext.__class__ for ext in ext_sorted]
+    assert ext_classes == [A, C, B, D, F, E]
+
+
+def test_set_dependency_level_recursive(exts):
     for ext in exts:
-        ext.dependency_level = 0
+        ext.__class__.dependency_level = 0
 
     set_dependency_level_recursive(C)
     assert A.dependency_level == 1
@@ -78,40 +108,35 @@ def test_set_dependency_level_recursive():
     assert D.dependency_level == 1
 
 
-def test_CallbackExecutor_services_sorted():
+def test_CallbackExecutor_services_sorted(exts):
     A.sort_priority = 2
     B.sort_priority = 1
     E.sort_priority = 3
 
-    service_dict = {ext.__name__: ext for ext in exts}
+    service_dict = {ext.__class__.__name__: ext for ext in exts}
     print(service_dict)
     ce = CallbackExecutor(service_dict)
     assert len(ce.services_sorted) == 6
     for ext in ce.services_sorted:
         print(
-            f"{ext.__name__}    {ext.dependency_level}    {getattr(ext, 'sort_priority',9999)}"
+            f"{ext.__class__.__name__}    {ext.__class__.dependency_level}    {getattr(ext, 'sort_priority',9999)}"
         )
-    assert ce.services_sorted == [A, B, C, D, E, F]
+    assert [ext.__class__ for ext in ce.services_sorted] == [A, B, C, D, E, F]
+
+
+def test_CallbackExecutor_execute(caplog, callback_executor):
+    caplog.set_level(logging.DEBUG)
+    ce = callback_executor
+    rv = ce.execute_ext_callbacks(flask_before_request, "bumm", ["diedel", "bummm"])
+    assert rv == {}
+    assert ce.execute_ext_callbacks(adjust_view_model, "") == "Hello World"
+
+
+def test_topological_sort_cyclic_dependencies():
 
     A.depends.append(F)  # cyclic dependency
 
     with pytest.raises(ValueError):
-        ext_sorted = topological_sort([F, E, D, C, B, A])
+        ext_sorted = topological_sort([F(), E(), D(), C(), B(), A()])
 
     del A.depends
-
-
-def test_CallbackExecutor_all_callbacks():
-    service_dict = {ext.__name__: ext for ext in exts}
-    print(service_dict)
-    ce = CallbackExecutor(service_dict)
-    assert len(ce.all_callbacks) == 8
-
-
-def test_CallbackExecutor_execute():
-    service_dict = {ext.__name__: ext for ext in exts}
-    print(service_dict)
-    ce = CallbackExecutor(service_dict)
-    rv = ce.execute_ext_callbacks(flask_before_request, "bumm", ["diedel", "bummm"])
-    assert rv == {}
-    assert ce.execute_ext_callbacks(adjust_view_model, "") == ("Hello World",)
