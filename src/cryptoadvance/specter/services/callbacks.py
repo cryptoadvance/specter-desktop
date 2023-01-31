@@ -4,7 +4,7 @@
     and it'll throw an exception if the constant does not exist.
 
     Callbacks have a return_style which determines how the return values get collected:
-    * "dict" will return a dict where the key is the id of the extension and the value is
+    * "collect" will return a dict where the key is the id of the extension and the value is
         the returnvalue of that extension
     * "middleware" will expect that the extension is returning something which will in turn
         get a parameter to the next extension`s call. The last extension's returnvalue will
@@ -21,7 +21,7 @@
 
 
 class Callback:
-    return_style = "dict"
+    return_style = "collect"
 
 
 class afterExtensionManagerInit(Callback):
