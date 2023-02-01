@@ -553,3 +553,13 @@ def rename_node():
         node.rename(new_name)
         response = {"nameChanged": True, "error": None}
     return jsonify(response)
+
+
+@nodes_endpoint.route("sync_status/", methods=["GET"])
+@login_required
+def check_sync_status():
+    if app.specter.info.get("initialblockdownload") == True:
+        response = {"fullySynced": False}
+    else:
+        response = {"fullySynced": True}
+    return jsonify(response)

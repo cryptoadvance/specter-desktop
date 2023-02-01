@@ -863,6 +863,10 @@ select {
   background-color: rgb(27 28 33 / var(--tw-bg-opacity));
 }
 
+.animate-spin-slow {
+  animation: spin 1.5s linear infinite;
+}
+
 *, ::before, ::after {
   --tw-border-spacing-x: 0;
   --tw-border-spacing-y: 0;
@@ -1094,12 +1098,28 @@ input[type="number"]::-webkit-outer-spin-button,
   top: 0px;
 }
 
+.top-\[45\%\] {
+  top: 45%;
+}
+
 .z-50 {
   z-index: 50;
 }
 
+.z-40 {
+  z-index: 40;
+}
+
+.z-30 {
+  z-index: 30;
+}
+
 .col-span-4 {
   grid-column: span 4 / span 4;
+}
+
+.clear-both {
+  clear: both;
 }
 
 .m-1 {
@@ -1112,6 +1132,10 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .m-auto {
   margin: auto;
+}
+
+.m-3 {
+  margin: 0.75rem;
 }
 
 .m-4 {
@@ -1493,6 +1517,10 @@ input[type="number"]::-webkit-outer-spin-button,
   width: 2.25rem;
 }
 
+.w-48 {
+  width: 12rem;
+}
+
 .min-w-\[300px\] {
   min-width: 300px;
 }
@@ -1543,6 +1571,10 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .grow-0 {
   flex-grow: 0;
+}
+
+.border-collapse {
+  border-collapse: collapse;
 }
 
 .transform {
@@ -1740,6 +1772,11 @@ input[type="number"]::-webkit-outer-spin-button,
   border-radius: 0.375rem;
 }
 
+.rounded-l-md {
+  border-top-left-radius: 0.375rem;
+  border-bottom-left-radius: 0.375rem;
+}
+
 .rounded-t-xl {
   border-top-left-radius: 0.75rem;
   border-top-right-radius: 0.75rem;
@@ -1876,6 +1913,11 @@ input[type="number"]::-webkit-outer-spin-button,
   background-color: rgb(220 38 38 / var(--tw-bg-opacity));
 }
 
+.bg-dark-400 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(87 88 91 / var(--tw-bg-opacity));
+}
+
 .fill-current {
   fill: currentColor;
 }
@@ -1894,6 +1936,10 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .p-5 {
   padding: 1.25rem;
+}
+
+.p-2 {
+  padding: 0.5rem;
 }
 
 .px-\[calc\(\(100\%-700px\)\/2\)\] {
@@ -2021,6 +2067,11 @@ input[type="number"]::-webkit-outer-spin-button,
 .text-sm {
   font-size: 0.875rem;
   line-height: 1.25rem;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
 }
 
 .font-medium {
@@ -2231,6 +2282,10 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .peer:checked ~ .peer-checked\:block {
   display: block;
+}
+
+.peer:checked ~ .peer-checked\:flex {
+  display: flex;
 }
 
 .peer:checked ~ .peer-checked\:hidden {
