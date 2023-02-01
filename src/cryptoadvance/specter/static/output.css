@@ -742,6 +742,7 @@ select {
    */
 
 .button {
+  z-index: 10;
   margin-bottom: 0.75rem;
   display: flex;
   height: 2.75rem;
@@ -770,6 +771,10 @@ select {
 .button:hover {
   background-color: rgba(44, 45, 49, 0.8);
   color: rgba(255, 255, 255, 0.8);
+}
+
+.tooltip:hover .tooltip__box {
+  z-index: 40;
 }
 
 .button img {
@@ -1061,10 +1066,6 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .relative {
   position: relative;
-}
-
-.sticky {
-  position: sticky;
 }
 
 .bottom-0 {
@@ -1390,16 +1391,16 @@ input[type="number"]::-webkit-outer-spin-button,
   height: 2.5rem;
 }
 
+.h-12 {
+  height: 3rem;
+}
+
 .h-7 {
   height: 1.75rem;
 }
 
 .h-11 {
   height: 2.75rem;
-}
-
-.h-12 {
-  height: 3rem;
 }
 
 .h-64 {
@@ -1478,6 +1479,10 @@ input[type="number"]::-webkit-outer-spin-button,
   width: 300px;
 }
 
+.w-48 {
+  width: 12rem;
+}
+
 .w-10 {
   width: 2.5rem;
 }
@@ -1500,10 +1505,6 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .w-9 {
   width: 2.25rem;
-}
-
-.w-48 {
-  width: 12rem;
 }
 
 .min-w-\[300px\] {
@@ -1878,6 +1879,11 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .bg-black\/40 {
   background-color: rgb(0 0 0 / 0.4);
+}
+
+.bg-dark-400 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(87 88 91 / var(--tw-bg-opacity));
 }
 
 .bg-red-800 {
