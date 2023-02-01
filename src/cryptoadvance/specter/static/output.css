@@ -1505,6 +1505,10 @@ input[type="number"]::-webkit-outer-spin-button,
   width: 2.25rem;
 }
 
+.w-48 {
+  width: 12rem;
+}
+
 .min-w-\[300px\] {
   min-width: 300px;
 }
@@ -1891,6 +1895,16 @@ input[type="number"]::-webkit-outer-spin-button,
 .bg-red-600 {
   --tw-bg-opacity: 1;
   background-color: rgb(220 38 38 / var(--tw-bg-opacity));
+}
+
+.bg-dark-300 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(111 112 115 / var(--tw-bg-opacity));
+}
+
+.bg-dark-400 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(87 88 91 / var(--tw-bg-opacity));
 }
 
 .fill-current {
