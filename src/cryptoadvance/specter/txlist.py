@@ -16,6 +16,7 @@ from .persistence import delete_file, read_csv, write_csv
 from .specter_error import SpecterError, SpecterInternalException
 from embit.descriptor import Descriptor
 from embit.liquid.descriptor import LDescriptor
+from .util.common import str2bool
 from .util.psbt import (
     AbstractTxContext,
     SpecterInputScope,
@@ -84,6 +85,7 @@ class TxItem(dict, AbstractTxListContext):
         "vsize",
         "address",
     ]
+    # type_converter will be used to _read_csv to have a proper mapping
     type_converter = [
         str,
         int,
@@ -289,13 +291,14 @@ class TxItem(dict, AbstractTxListContext):
 
 class WalletAwareTxItem(TxItem):
     PSBTCls = SpecterPSBT
+
+    # Columns for writing CSVs, type_converter for reading
     columns = TxItem.columns.copy()
     columns.extend(
         ["category", "flow_amount", "utxo_amount", "ismine"],
     )
-
     type_converter = TxItem.type_converter.copy()
-    type_converter.extend([str, float, float, bool])
+    type_converter.extend([str, float, float, str2bool])
 
     def __init__(self, parent, addresses, rawdir, **kwargs):
         super().__init__(parent, addresses, rawdir, **kwargs)
@@ -322,6 +325,24 @@ class WalletAwareTxItem(TxItem):
         if updated:
             self._psbt.update(updated)
         return self._psbt
+
+    @property
+    def is_taproot(self):
+        return str(self.descriptor).startswith("tr(")
+
+    def decode_psbt(self, mode="embit") -> SpecterPSBT:
+        """Utility function which decodes this tx as psbt
+        as in the core rpc-call 'decodepsbt'.
+        However, it uses embit to calculate the details
+        use mode=core to ask core directly.
+        embit might support taproot, core might not.
+        """
+        if mode == "core":
+            return self.rpc.decodepsbt(str(self.psbt))
+        elif mode == "embit":
+            return self.psbt.to_dict()
+        else:
+            raise SpecterInternalException("Mode not existing")
 
     @property
     def category(self):
@@ -385,8 +406,11 @@ class WalletAwareTxItem(TxItem):
     def ismine(self) -> bool:
         if self.get("ismine"):
             return self["ismine"]
-        inputs = self.psbt.inputs
-        outputs = self.psbt.outputs
+        if self.is_taproot:
+            # This is a bug mitigation, see #2078
+            return True
+        inputs: List[SpecterInputScope] = self.psbt.inputs
+        outputs: List[SpecterOutputScope] = self.psbt.outputs
         any_inputs_mine = any([inp.is_mine for inp in inputs])
         any_outputs_mine = any([out.is_mine for out in outputs])
         self["ismine"] = any_inputs_mine or any_outputs_mine
@@ -417,13 +441,13 @@ class WalletAwareTxItem(TxItem):
         self["address"] = addresses[0]
         return self["address"]
 
-    def __dict__(self):
-        super_dict = dict(self)
-        super_dict["category"] = self.category
-        super_dict["flow_amount"] = self.flow_amount
-        super_dict["utxo_amount"] = self.utxo_amount
-        super_dict["ismine"] = (self["ismine"] or self.ismine,)
-        return super_dict
+    # def __dict__(self):
+    #     super_dict = dict(self)
+    #     super_dict["category"] = self.category
+    #     super_dict["flow_amount"] = self.flow_amount
+    #     super_dict["utxo_amount"] = self.utxo_amount
+    #     super_dict["ismine"] = (self["ismine"] or self.ismine,)
+    #     return super_dict
 
 
 class TxList(dict, AbstractTxListContext):
@@ -474,6 +498,8 @@ class TxList(dict, AbstractTxListContext):
             tx.clear_cache()
         delete_file(self.path)
         self._file_exists = False
+        self.clear()
+
         logger.info(f"Cleared the Cache for {self.path} (and rawdir)")
 
     def getfetch(self, txid):

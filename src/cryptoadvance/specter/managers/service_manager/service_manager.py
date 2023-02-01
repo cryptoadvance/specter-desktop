@@ -19,7 +19,7 @@ from flask.blueprints import Blueprint
 
 from cryptoadvance.specter.util.specter_migrator import SpecterMigration
 
-from ...services.service import Service
+from ...services.service import Service, ServiceOptionality
 from ...services import callbacks, ExtensionException
 from ...util.reflection import (
     _get_module_from_class,
@@ -394,6 +394,16 @@ class ServiceManager:
 
         self.specter.service_unencrypted_storage_manager.delete_all_service_data(user)
         logger.debug(f"Deleted unencrypted services")
+
+    def add_required_services_to_users(self, users, force_opt_out=False):
+        "Adds the mandatory and opt_out (only if no services activated for user) services to users"
+        for service in self.services.values():
+            for user in users:
+                if service.optionality == ServiceOptionality.mandatory or (
+                    service.optionality == ServiceOptionality.opt_out
+                    and ((service.id not in user.services) or force_opt_out)
+                ):
+                    user.add_service(service.id)
 
     @classmethod
     def get_service_x_dirs(cls, x):

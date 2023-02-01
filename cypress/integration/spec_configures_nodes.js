@@ -5,13 +5,15 @@ describe('Configuring nodes', () => {
       cy.viewport(1200,660)
       cy.visit('/')
       cy.get('#node-switch-icon').click()
-      cy.get('[href="/nodes/node/default/"]').first().click()
+      cy.get('[data-cy="connect-new-node-btn"]').click()
+      cy.get(':nth-child(6) > [href="/nodes/new_node/"]').click()
       cy.get('#datadir-container').then(($datadir) => {
         cy.log($datadir)
         if (!Cypress.dom.isVisible($datadir)) {
           cy.get('.slider').click()
         }
       })
+      cy.get('#name').type('Bitcoin Core')
       cy.get('.slider').click()
       cy.get('#username').clear()
       cy.get('#username').type("bitcoin")

@@ -444,7 +444,7 @@ def history(wallet_alias):
     wallet.update_balance()
     wallet.check_utxo()
 
-    renderting = render_template(
+    return render_template(
         "wallet/history/wallet_history.jinja",
         wallet_alias=wallet_alias,
         wallet=wallet,
@@ -453,8 +453,6 @@ def history(wallet_alias):
         rand=rand,
         services=app.specter.service_manager.services,
     )
-    logger.info("-------------------end render_template()")
-    return renderting
 
 
 ###### Wallet receive ######

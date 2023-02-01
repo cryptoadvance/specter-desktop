@@ -1,5 +1,11 @@
 {% set node = specter.node %}
 {% if node.is_running %}
+    {% if specter.info.get("initialblockdownload") %}
+        <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>{{ _("Bitcoin Core is still syncing...")}}<br>{{ _('(data might be outdated)')}}</p>
+    {% endif %}
+    {% if specter.bitcoin_core_version_raw < 200000 %}
+        <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/><br>{{ _("Bitcoin Core version is outdated.")}}<br>{{ _('Some features might not work...')}}<br>{{ _("(minimum required: v20.0.0).") }}</p>
+    {% endif %}
     <div id="active-node" onclick="showPageOverlay('bitcoin_core_info');document.getElementById('side-content').classList.remove('active');" class="item core" style="cursor: pointer;">
         {% include node.node_logo_template() %}
         {% include "includes/sidebar/components/bitcoin_core_info.jinja" %}

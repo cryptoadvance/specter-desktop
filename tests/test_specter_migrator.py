@@ -88,7 +88,7 @@ def _check_port_free(port=8332):
 def test_SpecterMigrator(empty_data_folder, caplog):
 
     caplog.set_level(logging.DEBUG)
-    assert _check_port_free()
+    assert _check_port_free(), "You probably have a bitcoind running on port 8332"
     assert MigDataManager.initial_data()["events"] == []
     assert MigDataManager.initial_data()["migration_executions"] == []
     assert len(os.listdir(empty_data_folder)) == 0

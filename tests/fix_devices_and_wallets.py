@@ -184,18 +184,88 @@ def funded_taproot_wallet(
     return funded_taproot_wallet
 
 
-@pytest.fixture
-def wallet(devices_filled_data_folder, device_manager, node):
+def create_trezor_wallet_with_account(
+    devices_filled_data_folder,
+    device_manager,
+    node,
+    account_number: int,
+    checkbalance=True,
+):
     """An ordinary wallet without private keys"""
     wm = WalletManager(
-        200100,
         devices_filled_data_folder,
         node._get_rpc(),
         "regtest",
         device_manager,
     )
-    device = device_manager.get_by_alias("trezor")
+    device: Device = device_manager.get_by_alias("trezor")
     wallet_name = f"test_wallet_{random.randint(0, 999999)}"
-    wm.create_wallet(wallet_name, 1, "wpkh", [device.keys[5]], [device])
-    wallet = wm.wallets[wallet_name]
+    ss_segwit_index = account_number * 4 + 1
+    assert device.keys[ss_segwit_index].derivation.startswith(
+        f"m/84h/1h/{account_number}h"
+    ), f"At index ss_segwit_index has weird derivation {device.keys[ss_segwit_index].derivation}"
+    wm.create_wallet(wallet_name, 1, "wpkh", [device.keys[ss_segwit_index]], [device])
+    wallet: Wallet = wm.wallets[wallet_name]
+    if checkbalance:
+        assert (
+            wallet.rpc.getbalance() == 0
+        ), f"account {account_number} does have a non-zero balance: {wallet.rpc.getbalance()}"
     return wallet
+
+
+@pytest.fixture
+def trezor_wallet_acc0(devices_filled_data_folder, device_manager, node):
+    """This wallet might have a nonzero balance"""
+    return create_trezor_wallet_with_account(
+        devices_filled_data_folder, device_manager, node, 0, checkbalance=False
+    )
+    # raise Exception("Do not use this fixture!")
+
+
+@pytest.fixture
+def trezor_wallet_acc1(devices_filled_data_folder, device_manager, node):
+    return create_trezor_wallet_with_account(
+        devices_filled_data_folder, device_manager, node, 1
+    )
+
+
+@pytest.fixture
+def trezor_wallet_acc2(devices_filled_data_folder, device_manager, node):
+    return create_trezor_wallet_with_account(
+        devices_filled_data_folder, device_manager, node, 2
+    )
+
+
+@pytest.fixture
+def trezor_wallet_acc3(devices_filled_data_folder, device_manager, node):
+    return create_trezor_wallet_with_account(
+        devices_filled_data_folder, device_manager, node, 3
+    )
+
+
+@pytest.fixture
+def trezor_wallet_acc4(devices_filled_data_folder, device_manager, node):
+    return create_trezor_wallet_with_account(
+        devices_filled_data_folder, device_manager, node, 4
+    )
+
+
+@pytest.fixture
+def trezor_wallet_acc5(devices_filled_data_folder, device_manager, node):
+    return create_trezor_wallet_with_account(
+        devices_filled_data_folder, device_manager, node, 5
+    )
+
+
+@pytest.fixture
+def trezor_wallet_acc6(devices_filled_data_folder, device_manager, node):
+    return create_trezor_wallet_with_account(
+        devices_filled_data_folder, device_manager, node, 6
+    )
+
+
+@pytest.fixture
+def trezor_wallet_acc7(devices_filled_data_folder, device_manager, node):
+    return create_trezor_wallet_with_account(
+        devices_filled_data_folder, device_manager, node, 7
+    )
