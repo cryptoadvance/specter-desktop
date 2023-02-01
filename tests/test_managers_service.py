@@ -91,7 +91,7 @@ def test_ExtensionManager_get_service_packages(caplog):
     # This needs to be adjusted with each new extension
     # We don't need to assert every single package but we also ensure with that, that we don't
     # loose anything on the way of changing something in the service_manager
-    assert len(packages) == 31
+    assert len(packages) == 32
 
 
 def test_ExtensionManager_make_path_relative(caplog):

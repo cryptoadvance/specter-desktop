@@ -205,15 +205,12 @@ class ExtensionManager:
 
     @classmethod
     def register_callbacks_from_ext(cls, ext):
+        # importing it is the main job here. If it's impored, it'll also be discovered
+        # as a subclass of Callback.
         classes = cls.extract_thing_classes_from_extension(
             "callbacks", callbacks.Callback, ext
         )
-        if not classes:
-            return
-        from cryptoadvance.specter.services.callbacks import __all__ as all_callbacks
-
         for callback_class in classes:
-            all_callbacks.append(callback_class)
             logger.debug(f"  Loaded Callback {callback_class}")
 
     @classmethod
@@ -223,7 +220,7 @@ class ExtensionManager:
         if hasattr(ext.__class__, things):
             thing_modules: List[str] = getattr(ext.__class__, things)
         else:
-            return
+            return []
         classes = []
         for module in thing_modules:
             try:
@@ -475,12 +472,13 @@ class ExtensionManager:
             )
         )
         logger.info(f"After extending: {arr}")
+
         # Before we transform the arr into an array of strings, we iterate through all services to discover
         # the devices which might be specified in there
         devices_arr = []
         for clazz in arr:
             if hasattr(clazz, "devices"):
-                logger.debug("class {clazz} has devices: {clazz.devices}")
+                logger.debug(f"class {clazz.__name__} has devices: {clazz.devices}")
                 for device in clazz.devices:
                     try:
                         import_module(device)
@@ -488,12 +486,24 @@ class ExtensionManager:
                     except ModuleNotFoundError as e:
                         pass
 
+        # Same for callbacks
+        callbacks_arr = []
+        for clazz in arr:
+            if hasattr(clazz, "callbacks"):
+                logger.debug(f"class {clazz.__name__} has callbacks: {clazz.callbacks}")
+                for device in clazz.callbacks:
+                    try:
+                        import_module(device)
+                        callbacks_arr.append(device)
+                    except ModuleNotFoundError as e:
+                        pass
+
         # Transform into array of strings
         arr = [clazz.__module__ for clazz in arr]
 
-        # Add the devices
         arr.extend(devices_arr)
-        logger.debug(f"After transforming + devices: {arr}")
+        arr.extend(callbacks_arr)
+        logger.debug(f"After transforming + devices + callbacks: {arr}")
 
         # Controller-Packagages from the services are not imported via the service but via the baseclass
         # Therefore hiddenimport don't find them. We have to do it here.
