@@ -126,7 +126,6 @@ def test_device_wallets(
 ):
     caplog.set_level(logging.DEBUG)
     wm = WalletManager(
-        200100,
         devices_filled_data_folder,
         bitcoin_regtest.get_rpc(),
         "regtest",

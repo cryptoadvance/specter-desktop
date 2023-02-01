@@ -1,5 +1,8 @@
 {% set node = specter.node %}
 {% if specter.node.is_running %}
+    {% if specter.info.get("initialblockdownload") %}
+    <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>{{ _("Spectrum is still syncing...")}}<br>{{ _('(data might be outdated)')}}</p>
+    {% endif %}
     <div id="active-node" onclick="showPageOverlay('bitcoin_core_info');document.getElementById('side-content').classList.remove('active');" class="item core" style="cursor: pointer;">
         <img src="{{ url_for('spectrum_endpoint.static', filename='spectrum/img/logo.svg') }}" width="40"/>
         {% include "includes/sidebar/components/bitcoin_core_info.jinja" %}

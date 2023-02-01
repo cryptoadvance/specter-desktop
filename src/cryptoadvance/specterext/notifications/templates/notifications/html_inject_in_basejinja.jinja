@@ -1,0 +1,13 @@
+<script>
+	// the following block loads a css file to the document, 
+	// and is therefore available whereever this jinja file is injected
+	var head = document.getElementsByTagName('HEAD')[0];
+	var link = document.createElement('link');
+	link.rel = 'stylesheet';	
+	link.type = 'text/css';
+	link.href = "{{ url_for('notifications_endpoint' + '.static', filename='notifications/css/styles.css') }}";
+	head.appendChild(link);
+
+	// load main js file
+	{% include "notifications/notifications.js" %}
+</script>

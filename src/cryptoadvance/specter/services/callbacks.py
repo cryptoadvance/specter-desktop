@@ -96,4 +96,27 @@ class specter_added_to_flask_app(Callback):
     id = "specter_added_to_flask_app"
 
 
-__all__ = []
+class flash:
+    """Will get called if anyone is calling server_endpoionts.flash"""
+
+    id = "flash"
+
+
+class cleanup_on_exit(Callback):
+    """
+    Callback that is called last in specter.cleanup_on_exit()
+    """
+
+    id = "cleanup_on_exit"
+
+
+# ToDo: Think about this callback as it's specific to the notification-extension
+# We have now the possibility that callbacks are added by extensions but on the other hand
+# Core code should not execute code which got specified in extensions.
+# Maybe we could weaken that principle, though.
+class create_and_show_notification(Callback):
+    """
+    Callback that is not used yet, but could be implmented in server_endpoints just as flash
+    """
+
+    id = "create_and_show_notification"
