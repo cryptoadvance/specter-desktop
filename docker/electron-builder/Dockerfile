@@ -3,7 +3,65 @@ FROM electronuserland/builder:14-wine-10.22
 # It's based on node 14 and focal and therefore has glibc 2.31.
 # It has been created on Oct 22
 
-# Let's put python3.10 on top
+# Let's put python3.10 on top:
+# * electronuserland/builder:14-wine-10.22 is same as wine which depends on "node"
+# * which depends on "base" which builds on buildpack-deps:focal curl
+#   https://github.com/docker-library/buildpack-deps/blob/98a5ab81d47a106c458cdf90733df0ee8beea06c/ubuntu/focal/curl/Dockerfile
+# * now the coe below to install python is copied from:
+#   https://github.com/docker-library/python/blob/master/3.10/bullseye/Dockerfile
+#   which builds ontop of buildpack-deps:bullseye-scm
+# * So to make the python installation fully functional, we have to install some stuff ...
+# * and then do the python installation
+
+
+# Copying some stuff from https://github.com/docker-library/python/blob/master/3.10/bullseye/Dockerfile
+
+RUN set -ex; \
+	apt-get update; \
+	apt-get install -y --no-install-recommends \
+		autoconf \
+		automake \
+		bzip2 \
+		dpkg-dev \
+		file \
+		g++ \
+		gcc \
+		imagemagick \
+		libbz2-dev \
+		libc6-dev \
+		libcurl4-openssl-dev \
+		libdb-dev \
+		libevent-dev \
+		libffi-dev \
+		libgdbm-dev \
+		libglib2.0-dev \
+		libgmp-dev \
+		libjpeg-dev \
+		libkrb5-dev \
+		liblzma-dev \
+		libmagickcore-dev \
+		libmagickwand-dev \
+		libmaxminddb-dev \
+		libncurses5-dev \
+		libncursesw5-dev \
+		libpng-dev \
+		libpq-dev \
+		libreadline-dev \
+		libsqlite3-dev \
+		libssl-dev \
+		libtool \
+		libwebp-dev \
+		libxml2-dev \
+		libxslt-dev \
+		libyaml-dev \
+		make \
+		patch \
+		unzip \
+		zip \
+		jq \
+		xz-utils \
+		zlib1g-dev
+
 
 # This has been copied from:
 # https://github.com/docker-library/python/blob/master/3.10/bullseye/Dockerfile
