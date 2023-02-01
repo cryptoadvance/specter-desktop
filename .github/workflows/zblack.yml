@@ -8,4 +8,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
-      - uses: psf/black@stable # https://black.readthedocs.io/en/stable/integrations/github_actions.html
+      - uses: psf/black@22.12.0 # https://black.readthedocs.io/en/stable/integrations/github_actions.html
