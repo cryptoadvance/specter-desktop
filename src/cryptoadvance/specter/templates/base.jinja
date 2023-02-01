@@ -77,7 +77,7 @@
 				{% endif %}
 
 				<!-- Message System -->
-				<div id="messages" class="absolute bottom-0 right-0">
+				<div id="messages" class="absolute bottom-0 right-0 z-50">
 					{% with messages = get_flashed_messages(with_categories=True) %}
 						{% if messages %}
 							{% for category, message in messages | unique %}
