@@ -410,22 +410,20 @@
             // TODO: get fee diff from specter
             newFee += 2;
             txDataPopup.innerHTML = `
-            <form action="${url}" method="POST">
-            <h1>${rbfType == 'cancel' ? '{{ _("Cancel") }}' : '{{ _("Speed up") }}'} {{ _("the Transaction") }}</h1>
-            <p>{{ _("You can") }} ${rbfType == 'cancel' ? `{{ _("cancel") }}` : `{{ _("speed up") }}`} {{ _("the transaction by increasing its fee rate") }}${rbfType == 'cancel' ? ` {{ _("and sending the funds back to yourself") }}` : ''}:</p>
-            <input type="hidden" name="rbf_tx_id" value='${this.tx.txid}' />
-            <input type="number" min="${newFee}" value="${newFee}" class="fee_rate" name="rbf_fee_rate" id="rbf_fee_rate" min="1" step="any" autocomplete="off"> sat/vbyte
-            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-            <br>
-            <br>
-            <button type="submit" name="action" value="${rbfType == 'cancel' ? 'rbf_cancel' : 'rbf'}" class="btn centered ${rbfType == 'cancel' ? 'danger' : ''}">${rbfType == 'cancel' ? `{{ _("Cancel transaction") }}` : `{{ _("Speed up!") }}`}</button>
-            <br>
-            <span class="toggle_advanced_rbf" data-style="cursor: pointer;">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
-            <div class="advanced_rbf hidden warning">
-                <p data-style="max-width: 400px;">{{ _("If you would like further customization, you can click here to fully edit the transaction.") }}<br>{{ _("(advanced, not recommended for new users)") }}</p>
-                <button type="submit" name="action" value="rbf_edit" class="btn centered">{{ _("Edit the transaction (advanced)") }}</button>
-            </div>
-            </form>
+            <div class="bg-dark-800 p-4 rounded-lg">
+                <form action="${url}" method="POST">
+                    <h1>${rbfType == 'cancel' ? '{{ _("Cancel") }}' : '{{ _("Speed up transaction") }}'}</h1>
+                    <p>{{ _("You can") }} ${rbfType == 'cancel' ? `{{ _("cancel") }}` : `{{ _("speed up") }}`} {{ _("the transaction by increasing its fee rate") }}${rbfType == 'cancel' ? ` {{ _("and sending the funds back to yourself") }}` : ''}:</p>
+                    <input type="hidden" name="rbf_tx_id" value='${this.tx.txid}' />
+                    <input type="number" min="${newFee}" value="${newFee}" class="fee_rate" name="rbf_fee_rate" id="rbf_fee_rate" min="1" step="any" autocomplete="off" required> sat/vbyte
+                    <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button class="button mt-2 bg-accent" type="submit" name="action" value="${rbfType == 'cancel' ? 'rbf_cancel' : 'rbf'}" ${rbfType == 'cancel' ? 'danger' : ''}">${rbfType == 'cancel' ? `{{ _("Cancel transaction") }}` : `{{ _("Speed up!") }}`}</button>
+                    <span class="toggle_advanced_rbf cursor-pointer">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
+                    <div class="advanced_rbf hidden warning flex flex-col">
+                        <button class="button mt-2" type="submit" name="action" value="rbf_edit">{{ _("Fully edit the transaction") }}</button>
+                    </div>
+                </form>
+            </div>  
             `;
             txDataPopup.querySelector('.toggle_advanced_rbf').onclick = () => {
                 let advancedButton = txDataPopup.querySelector('.toggle_advanced_rbf')
