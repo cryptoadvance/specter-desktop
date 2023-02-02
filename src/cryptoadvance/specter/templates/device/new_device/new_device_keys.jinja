@@ -25,7 +25,7 @@
             {% if not existing_device %}
                 <h3 class="mt-8">Information</h3>
                 <div class="floating-wrapper mb-1">
-                    <input type="text" name="device_name" placeholder=" " class="floating-input peer" id="device_name" required/>
+                    <input type="text" pattern="^[^']+" title="Do not use single quotes" name="device_name" placeholder=" " class="floating-input peer" id="device_name" required/>
                     <label class="floating-label">Device Name</label>
                 </div>
             {% endif %}
