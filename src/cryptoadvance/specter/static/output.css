@@ -1098,12 +1098,28 @@ input[type="number"]::-webkit-outer-spin-button,
   top: 0px;
 }
 
+.top-\[45\%\] {
+  top: 45%;
+}
+
 .z-50 {
   z-index: 50;
 }
 
+.z-40 {
+  z-index: 40;
+}
+
+.z-30 {
+  z-index: 30;
+}
+
 .col-span-4 {
   grid-column: span 4 / span 4;
+}
+
+.clear-both {
+  clear: both;
 }
 
 .m-1 {
@@ -1501,6 +1517,10 @@ input[type="number"]::-webkit-outer-spin-button,
   width: 2.25rem;
 }
 
+.w-48 {
+  width: 12rem;
+}
+
 .min-w-\[300px\] {
   min-width: 300px;
 }
@@ -1551,6 +1571,10 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .grow-0 {
   flex-grow: 0;
+}
+
+.border-collapse {
+  border-collapse: collapse;
 }
 
 .transform {
@@ -1889,6 +1913,11 @@ input[type="number"]::-webkit-outer-spin-button,
   background-color: rgb(220 38 38 / var(--tw-bg-opacity));
 }
 
+.bg-dark-400 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(87 88 91 / var(--tw-bg-opacity));
+}
+
 .fill-current {
   fill: currentColor;
 }
@@ -2193,16 +2222,8 @@ input[type="number"]::-webkit-outer-spin-button,
   transition-duration: 200ms;
 }
 
-.duration-1000 {
-  transition-duration: 1000ms;
-}
-
 .ease-out {
   transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
-}
-
-.ease-in-out {
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {
@@ -2261,6 +2282,10 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .peer:checked ~ .peer-checked\:block {
   display: block;
+}
+
+.peer:checked ~ .peer-checked\:flex {
+  display: flex;
 }
 
 .peer:checked ~ .peer-checked\:hidden {

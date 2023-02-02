@@ -84,6 +84,11 @@
 				</p>
 			</div>
 
+			<div class="mt-3 cursor-pointer flex" onclick="calculateEstimatedFee()">
+				<p id="calculated_tx_fee_label">{{ _("Calculate Estimated Fee") }}</p>
+				<p id="calculated_tx_fee"></p>
+			</div>
+
 			<span class="cursor-pointer mt-3" id="toggle_advanced">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
 
 			<div id="advanced_settings" class="{% if not show_advanced_settings %}hidden{% endif %}">
@@ -123,12 +128,8 @@
 				</coin-selection>
 			</div>
 
-			<div class="grid grid-cols-2 gap-3 mt-8">
-				<button class="button" onclick="calculateEstimatedFee()">
-					<span id="calculated_tx_fee_label">{{ _("Calculate Estimated Fee") }}</span>
-					<!-- <span id="calculated_tx_fee"></span> -->
-				</button>
-				<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="button bg-accent text-white">{{ _('Create ')}}<span class="optional">&nbsp;{{ _('unsigned')}}&nbsp;</span>{{ _('transaction') }}</button>
+			<div class="flex justify-end mt-8">
+				<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="button bg-accent text-white">{{ _('Create ')}}<span class="optional">&nbsp;{{ _('Unsigned')}}&nbsp;</span>{{ _('Transaction') }}</button>
 			</div>
 		</div>
 	</form>
@@ -595,7 +596,7 @@
 		}
 
 		async function calculateEstimatedFee() {
-			document.getElementById('calculated_tx_fee_label').innerText = ``;
+			document.getElementById('calculated_tx_fee').innerText = ``;
 			if (await validateForm(true) !== true) {
 				return;
 			}
@@ -609,22 +610,22 @@
 				if (result.success) {
 					let psbt = result.psbt;
 					let fees = parseInt(psbt.fee * 1e8)
-					document.getElementById('calculated_tx_fee_label').innerText = `: ${fees} sats`;
+					document.getElementById('calculated_tx_fee').innerText = `: ${fees} sats`;
 					if('{{ specter.price_check }}' == 'True'){
 						let altRate = parseFloat('{{ specter.alt_rate }}');
 						let altSymbol = '{{ specter.alt_symbol }}';
 						let altAmount = parseFloat((altRate * fees / 1e8).toFixed(2))
 						if (!isNaN(altAmount) && (altSymbol && altRate)) {
-							document.getElementById('calculated_tx_fee_label').innerText = `: ${fees} sats (${altAmount}${altSymbol})`;
+							document.getElementById('calculated_tx_fee').innerText = `: ${fees} sats (${altAmount}${altSymbol})`;
 						}
 					}
 					return fees;
 				} else {
-					document.getElementById('calculated_tx_fee_label').innerText = `: ${result.error}`;
+					document.getElementById('calculated_tx_fee').innerText = `: ${result.error}`;
 				}
 			} catch (e) {
 				console.log(e);
-				document.getElementById('calculated_tx_fee_label').innerText = `: {{ _("Failed to calculate transaction fees.") }}`;
+				document.getElementById('calculated_tx_fee').innerText = `: {{ _("Failed to calculate transaction fees.") }}`;
 			}
 			return -1;
 		}

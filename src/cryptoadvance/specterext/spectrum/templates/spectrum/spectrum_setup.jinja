@@ -1,72 +1,49 @@
 {% extends "base.jinja" %}
+
 {% block main %}
-<style>
-    .feedback-icon {
-        width: 50px; 
-        margin-bottom: 15px
-    }
-    .feedback-text {
-        font-size: 1.1em;
-        color: #ccc;
-    }
-    .feedback-container {
-        max-width: 100%;
-        width: 580px;
-        border: 1px solid var(--cmap-border);
-        border-radius: 4px;
-        padding: 40px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-    .button-container {
-        margin-top: 25px;
-    }
-</style>
-<div class="feedback-container">
+<div>
     <h1>{{ _("Spectrum - Connecting Specter to Electrum") }}</h1><br>
-    <div style="text-align: center">
+    <div>
         {% if host_type == "list" %}
             {% if success %}
-                <img class="feedback-icon" src="{{ url_for('static', filename='img/party.png') }}"/><br>
+                <!-- <img class="feedback-icon" src="{{ url_for('static', filename='img/party.png') }}"/><br> -->
                 {# TODO: Adding the exact name of the server? #}
-                {% if changed_host %} <span class="feedback-text">{{ _("You switched the Electrum server successfully:") }}</span><br> {% endif %}
-                <span class="feedback-text">{{ _("Specter is connected via Spectrum to a public Electrum server!") }}</span>
+                {% if changed_host %} <p>{{ _("You switched the Electrum server successfully:") }}</p> {% endif %}
+                <p>{{ _("Specter is connected via Spectrum to a public Electrum server!") }}</p>
             {% else %}
-                <img  class="feedback-icon" src="{{ url_for('static', filename='img/failed.svg') }}"/><br>
+                <!-- <img  class="feedback-icon" src="{{ url_for('static', filename='img/failed.svg') }}"/><br> -->
                 {% if changed_host and node_is_running_before_request %}
-                    <span class="feedback-text">{{ _("Cannot connect to the public Electrum server. You changed the settings from a working connection to a server that is not responding. 
-                    Consider switching back to the one you had chosen before.") }}</span>
+                    <p>{{ _("Cannot connect to the public Electrum server. You changed the settings from a working connection to a server that is not responding. 
+                        Consider switching back to the one you had chosen before.") }}</p>
                 {% else %}
-                    <span class="feedback-text">{{ _("Cannot connect to the public Electrum server.") }}</span>
+                    <p>{{ _("Cannot connect to the public Electrum server.") }}</p>
                 {% endif %}
             {% endif %}
         {% else %}
             {% if success %}
-                <img class="feedback-icon" src="{{ url_for('static', filename='img/party.png') }}"/><br>
-                {% if changed_host %} <span class="feedback-text">{{ _("You switched the Electrum server successfully:") }}</span><br> {% endif %}
-                <span class="feedback-text">{{ _("Specter is connected via Spectrum to a manually configured Electrum server!") }}</span>
+                <!-- <img class="feedback-icon" src="{{ url_for('static', filename='img/party.png') }}"/><br> -->
+                {% if changed_host %} <p>{{ _("You switched the Electrum server successfully:") }}</p> {% endif %}
+                <p>{{ _("Specter is connected via Spectrum to a manually configured Electrum server!") }}</p>
             {% else %}
-                <img class="feedback-icon" src="{{ url_for('static', filename='img/failed.svg') }}"/><br>
+                <!-- <img class="feedback-icon" src="{{ url_for('static', filename='img/failed.svg') }}"/><br> -->
                 {% if changed_host and node_is_running_before_request %}
-                    <span class="feedback-text">{{ _("Cannot connect to the manually configured Electrum server. You changed the settings from a working connection to a server that is not responding. 
-                    Consider switching back to the one you had chosen before.") }}</span>
+                    <p>{{ _("Cannot connect to the manually configured Electrum server. You changed the settings from a working connection to a server that is not responding. 
+                    Consider switching back to the one you had chosen before.") }}</p>
                 {% elif not changed_host and check_port_and_ssl %}
-                    <span class="feedback-text">{{ _("Cannot connect to the manually configured Electrum server. Double-check that the port and SSL settings are correct.") }}</span>
+                    <p>{{ _("Cannot connect to the manually configured Electrum server. Double-check that the port and SSL settings are correct.") }}</p>
                 {% elif changed_host and check_port_and_ssl %}
-                    <span class="feedback-text">{{ _("Cannot connect to the manually configured Electrum server. Double-check all the configuration settings.") }}</span>
+                    <p>{{ _("Cannot connect to the manually configured Electrum server. Double-check all the configuration settings.") }}</p>
                 {% else %}
-                    <span class="feedback-text">{{ _("Cannot connect to the manually configured Electrum server.") }}</span>
+                    <p>{{ _("Cannot connect to the manually configured Electrum server.") }}</p>
                 {% endif %}
             {% endif %}
         {% endif %}
     </div>
     <div class="button-container">
         {% if success %}
-            <a class="btn" href="{{ url_for('welcome_endpoint.index') }}" >{{ _("Let's go!") }}</a>
+            <a class="button bg-accent mt-8" href="{{ url_for('welcome_endpoint.index') }}" >{{ _("Let's go!") }}</a>
         {% else %}
-            <a class="btn" id="back-button">{{ _("Back to Spectrum settings") }}</a>
+            <a class="button mt-8" id="back-button">{{ _("Back to Spectrum settings") }}</a>
         {% endif %}
     </div>
 </div>
