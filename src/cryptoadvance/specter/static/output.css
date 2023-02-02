@@ -1098,8 +1098,20 @@ input[type="number"]::-webkit-outer-spin-button,
   top: 0px;
 }
 
+.top-\[45\%\] {
+  top: 45%;
+}
+
 .z-50 {
   z-index: 50;
+}
+
+.z-40 {
+  z-index: 40;
+}
+
+.z-30 {
+  z-index: 30;
 }
 
 .col-span-4 {
@@ -2270,6 +2282,10 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .peer:checked ~ .peer-checked\:block {
   display: block;
+}
+
+.peer:checked ~ .peer-checked\:flex {
+  display: flex;
 }
 
 .peer:checked ~ .peer-checked\:hidden {
