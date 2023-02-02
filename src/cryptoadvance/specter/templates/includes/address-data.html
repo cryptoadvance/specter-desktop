@@ -46,7 +46,7 @@
             <h3 class="mb-0">{{ _("Address Data") }}</h3>
             <p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer" data-cy="address-data-screen-close-btn">Close</p>
         </div>
-        <div class="address-data-info"></div>
+        <div id="address-data-info" class="flex flex-col items-center"></div>
         <div class="note"></div>
     </div>
 </template>
@@ -62,7 +62,7 @@
 
             this.el = clone.querySelector(".address-data");
             this.note = clone.querySelector(".note");
-            this.info = clone.querySelector(".address-data-info");
+            this.info = clone.getElementById("address-data-info");
             this.popupContent = document.querySelector('#page_overlay_popup_content')
             this.popupContent.style.justifySelf = "start";
             this.popupContent.parentElement.style.display = "flex";
