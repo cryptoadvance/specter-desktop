@@ -25,6 +25,7 @@ from .util.psbt import (
     SpecterTx,
 )
 from .util.tx import decoderawtransaction
+from threading import RLock
 
 logger = logging.getLogger(__name__)
 
@@ -448,6 +449,8 @@ class TxList(dict, AbstractTxListContext):
     ItemCls = WalletAwareTxItem  # for inheritance
     PSBTCls = SpecterPSBT
 
+    lock = RLock()
+
     def __init__(self, path, parent, addresses):
         self.parent = parent
         self.path = path
@@ -522,7 +525,11 @@ class TxList(dict, AbstractTxListContext):
 
         # Make a copy of all txs if the tx.ismine (which should be all of them)
         # As TxItem is derived from Dict, the __Dict__ will return a TxItem
-        transactions: List(TxItem) = [tx.copy() for tx in self.values() if tx.ismine]
+        with self.lock:
+            tx_values = self.values()
+            transactions: List(TxItem) = [
+                tx.copy() for tx in self.values() if tx.ismine
+            ]
         # 1. sorted
         transactions = sorted(transactions, key=lambda tx: tx["time"], reverse=True)
 
@@ -606,42 +613,43 @@ class TxList(dict, AbstractTxListContext):
         }
         (format of listtransactions)
         """
-        # here we store all addresses in transactions
-        # to set them used later
-        addresses = []
-        # first we add all transactions to cache
-        for txid in txs:
-            tx = txs[txid]
-            # find minimal from 3 times:
-            maxtime = 10445238000  # TODO: change after 31 dec 2300 lol
-            time = min(
-                tx.get("blocktime", maxtime),
-                tx.get("timereceived", maxtime),
-                tx.get("time", maxtime),
-            )
-            obj = {
-                "txid": txid,
-                "fee": tx.get("fee", None),
-                "blockheight": tx.get("blockheight", None),
-                "blockhash": tx.get("blockhash", None),
-                "time": time,
-                "blocktime": tx.get("blocktime", None),
-                "conflicts": tx.get("walletconflicts", []),
-                "bip125-replaceable": tx.get("bip125-replaceable", "no"),
-                "hex": tx.get("hex", None),
-            }
-            txitem = self.ItemCls(self, self._addresses, self.rawdir, **obj)
-            self[txid] = txitem
-            if txitem.tx:
-                for vout in txitem.tx.vout:
-                    try:
-                        addr = vout.script_pubkey.address(get_network(self.chain))
-                        if addr not in addresses:
-                            addresses.append(addr)
-                    except:
-                        pass  # maybe not an address, but a raw script?
-        self._addresses.set_used(addresses)
-        self._save()
+        with self.lock:
+            # here we store all addresses in transactions
+            # to set them used later
+            addresses = []
+            # first we add all transactions to cache
+            for txid in txs:
+                tx = txs[txid]
+                # find minimal from 3 times:
+                maxtime = 10445238000  # TODO: change after 31 dec 2300 lol
+                time = min(
+                    tx.get("blocktime", maxtime),
+                    tx.get("timereceived", maxtime),
+                    tx.get("time", maxtime),
+                )
+                obj = {
+                    "txid": txid,
+                    "fee": tx.get("fee", None),
+                    "blockheight": tx.get("blockheight", None),
+                    "blockhash": tx.get("blockhash", None),
+                    "time": time,
+                    "blocktime": tx.get("blocktime", None),
+                    "conflicts": tx.get("walletconflicts", []),
+                    "bip125-replaceable": tx.get("bip125-replaceable", "no"),
+                    "hex": tx.get("hex", None),
+                }
+                txitem = self.ItemCls(self, self._addresses, self.rawdir, **obj)
+                self[txid] = txitem
+                if txitem.tx:
+                    for vout in txitem.tx.vout:
+                        try:
+                            addr = vout.script_pubkey.address(get_network(self.chain))
+                            if addr not in addresses:
+                                addresses.append(addr)
+                        except:
+                            pass  # maybe not an address, but a raw script?
+            self._addresses.set_used(addresses)
+            self._save()
 
     def load(self, arr):
         """
