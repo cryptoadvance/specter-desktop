@@ -13,4 +13,4 @@ jobs:
         with:
             options: "--check --verbose"
             src: "./src"
-            version: "~= 22.3.0"
+            version: "22.3.0"
