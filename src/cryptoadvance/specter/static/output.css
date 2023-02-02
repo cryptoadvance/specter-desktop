@@ -1102,10 +1102,6 @@ input[type="number"]::-webkit-outer-spin-button,
   z-index: 50;
 }
 
-.z-40 {
-  z-index: 40;
-}
-
 .z-30 {
   z-index: 30;
 }
