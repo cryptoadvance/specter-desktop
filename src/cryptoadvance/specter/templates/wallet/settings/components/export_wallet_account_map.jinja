@@ -1,14 +1,14 @@
-<div id="account_map_export" data-style="display: none; max-width: 500px;">
+<div id="account_map_export" class="bg-dark-800 p-4 rounded-lg">
 
-    <h3 class="mt-8">Export Wallet</h3>
-    <p>Scan this with your wallet software</p>
+    <h3>Export Wallet</h3>
+    <p class="mb-3">Scan this with your wallet software</p>
     <qr-code value='{{ wallet.account_map }}' width="400"></qr-code>
 
     <h3 class="mt-10">Wallet JSON Data</h3>
     <textarea id="account_map" class="max-w-[700px] mb-3">{{ wallet.account_map }}</textarea>
-    <div class="flex justify-between">
-        <button onclick="copyText(document.getElementById('account_map').innerText, 'Copied wallet data')" type="button" class="button">Copy Wallet Data</button>
-        <a download="{{ wallet.name }}.json" class="button" id="export_wallet_file">Save Wallet File</a>
+    <div class="grid grid-cols-2 gap-3">
+        <button onclick="copyText(document.getElementById('account_map').innerText, 'Copied wallet data')" type="button" class="w-full button">Copy Wallet Data</button>
+        <a download="{{ wallet.name }}.json" class="button w-full" id="export_wallet_file">Save Wallet File</a>
     </div>
 
     <h3 class="mt-8">Create Electrum Wallet</h3>

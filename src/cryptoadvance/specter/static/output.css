@@ -1087,6 +1087,10 @@ input[type="number"]::-webkit-outer-spin-button,
   position: relative;
 }
 
+.sticky {
+  position: sticky;
+}
+
 .bottom-0 {
   bottom: 0px;
 }
@@ -1133,6 +1137,10 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .col-span-4 {
   grid-column: span 4 / span 4;
+}
+
+.clear-both {
+  clear: both;
 }
 
 .m-1 {
@@ -1584,6 +1592,10 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .grow-0 {
   flex-grow: 0;
+}
+
+.border-collapse {
+  border-collapse: collapse;
 }
 
 .transform {
