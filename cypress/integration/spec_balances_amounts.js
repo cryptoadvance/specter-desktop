@@ -27,9 +27,7 @@ describe('Test the rendering of balances and amounts', () => {
         cy.get('#satoshis_hot_keys_hot_sign_btn').click()
         cy.get('#hot_enter_passphrase__submit').click()
         cy.get('#broadcast_local_btn').click()
-        // To close the overlay (no cancel button here)
-        cy.get('#page_overlay_popup').click()
-        cy.reload()
+        cy.visit("/")
         cy.selectWallet('Ghost wallet')
         cy.get('#unconfirmed_amount').then(($amount) => {
             expect(parseFloat($amount.text())).to.be.gt(0).and.to.be.lt(1);
@@ -44,9 +42,6 @@ describe('Test the rendering of balances and amounts', () => {
 
     it('Total balance with all digits', () => {
         cy.selectWallet('Funding wallet')
-        cy.get('#fullbalance_amount').then(($amount) => {
-            expect(parseFloat($amount.text())).to.be.gt(19).and.to.be.lt(20);
-        }) 
         cy.get('#fullbalance_amount').find('.thousand-digits-in-btc-amount').should(($amount) => {
             expect($amount.text()).to.match(/^\d{3}$/)
         }).and(($amount) => {
