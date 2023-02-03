@@ -11,7 +11,9 @@ class Jade(HWIDevice):
 
     qr_code_support = True
     supported_qr_code_format = "crypto-psbt"
+    qr_code_support_verify = True
     sd_card_support = False
+    supports_qr_message_signing = True
     supports_hwi_toggle_passphrase = False
     supports_hwi_multisig_display_address = True
     liquid_support = True
