@@ -1,4 +1,17 @@
 describe('Test adding different devices', () => {
+
+    const pattern = /^[^']+/;
+
+    it('Valid Device or Wallet name', () => {
+        const input = "valid";
+        expect(input).to.match(pattern);
+    });
+
+    it('Invalid Device or Wallet name', () => {
+        const input = "'invalid";
+        expect(input).not.to.match(pattern);
+    });
+
     before(() => {
         Cypress.config('includeShadowDom', true)
     })
