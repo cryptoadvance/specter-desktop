@@ -220,6 +220,7 @@
 
 		<div id="signing_container" class="signing_container mt-8 flex-column {% if psbt['raw'] %}hidden{% endif %}">
 			<h3>{{ _("Sign Transaction") }}</h3>
+			<div class="mt-3 space-y-3">
 			{% for device in wallet.devices %}
 				{% if device.type != "bitcoincore_watchonly" %}
 					{% set device_signed = (device.alias in psbt.get("devices_signed")) %}
@@ -231,6 +232,7 @@
 					<p>{{ _("Cannot sign with a watchonly wallet") }}</p>
 				{% endif %}
 			{% endfor %}
+			</div>
 		</div>
 
 		{# ===================== Possible tx signers' outputs ===================== #}
