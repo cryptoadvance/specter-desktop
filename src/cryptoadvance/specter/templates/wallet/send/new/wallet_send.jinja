@@ -65,17 +65,17 @@
 					<span class="text-base">Unit Selection</span>
 					<div class="space-x-4 flex items-center">
 						<label class="checkbox-wrapper-inline">
-							<input type="radio" name="amount_unit_text" value="sat" onchange="toggleTextUnit(this)" {% if specter.unit == 'sat' %}checked{% endif %}>
+							<input type="radio" name="amount_unit_text" value="sat" onchange="toggleTextUnit(this)" {% if specter.unit == 'sat' %}checked{% endif %} data-cy="csv-editor-sats-checkbox">
 							<span>sat</span>
 						</label>
 						<label class="checkbox-wrapper-inline">
-							<input type="radio" name="amount_unit_text" value="btc" onchange="toggleTextUnit(this)" {% if specter.unit != 'sat' %}checked{% endif %}>
+							<input type="radio" name="amount_unit_text" value="btc" onchange="toggleTextUnit(this)" {% if specter.unit != 'sat' %}checked{% endif %} data-cy="csv-editor-btc-checkbox">
 							<span>BTC</span>
 						</label>
 					</div>
 				</div>
 
-				<textarea id="recipients-txt" name="recipients" placeholder="{{ _('Enter recipient address, amount') }}" onblur="validateForm()">{{ recipients_txt }}</textarea>
+				<textarea id="recipients-txt" name="recipients" placeholder="{{ _('Enter recipient address, amount') }}" onblur="validateForm()" data-cy="csv-editor-textarea">{{ recipients_txt }}</textarea>
 				<p class="note" data-style="line-height: 2; background-color: #16202d; padding: 10px; border-radius: 7px;">
 					{{ _("Enter each recipient address, amount as a new line:") }}<br>
 					&lt;{{ _("ADDRESS") }}1&gt;, &lt;{{ _("AMOUNT") }}1&gt;<br>
@@ -101,7 +101,7 @@
 						<span class="checkbox-label">Interface</span>
 					</label>
 					<label class="checkbox-wrapper">
-						<input type="radio" class="peer checkbox-input" name="ui_option" value="text" onclick="toggleSendUIType(this);" {% if ui_option != 'ui' %}checked{% endif %}>
+						<input type="radio" class="peer checkbox-input" name="ui_option" value="text" onclick="toggleSendUIType(this);" {% if ui_option != 'ui' %}checked{% endif %} data-cy="csv-editor-checkbox">
 						<span>CSV</span>
 					</label>
 				</div>
