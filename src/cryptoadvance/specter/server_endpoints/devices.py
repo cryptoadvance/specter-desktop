@@ -440,7 +440,7 @@ def device(device_alias):
                     bitcoin_datadir=app.specter.bitcoin_datadir,
                     chain=app.specter.chain,
                 )
-                return redirect("")
+                return redirect(url_for("welcome_endpoint.index"))
         elif action == "delete_key":
             key = Key.from_json({"original": request.form["key"]})
             wallets_with_key = [w for w in wallets if key in w.keys]
