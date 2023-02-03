@@ -1,20 +1,28 @@
 describe('Test adding different devices', () => {
 
-    const pattern = /^[^']+/;
-
-    it('Valid Device or Wallet name', () => {
-        const input = "valid";
-        expect(input).to.match(pattern);
-    });
-
-    it('Invalid Device or Wallet name', () => {
-        const input = "'invalid";
-        expect(input).not.to.match(pattern);
-    });
-
     before(() => {
         Cypress.config('includeShadowDom', true)
     })
+
+    it('Should be a valid device name', () => {
+        cy.get("input[pattern = '/^[^']+/']").type("valid");
+        cy.get('button[type="submit"]').click();      
+        cy.get('a').should('have.attr', 'id', 'device_list_item_valid');
+    });
+
+    it('Should be a valid wallet name', () => {
+        cy.get("input[pattern = '/^[^']+/']").type("valid");
+        cy.get('button[type="submit"]').click();      
+        cy.get('a').should('have.attr', 'id', 'valid-sidebar-list-item');
+    });
+
+    it('Should be an invalid device or wallet name', () => {
+        cy.get("input[pattern = '/^[^']+/']").type("'invalid");
+        cy.get('button[type="submit"]').click();
+        cy.get('a').should(($a) => {
+            expect($a).to.not.have.attr('id', "'invalid-sidebar-list-item").and.not.have.attr('id', "device_list_item_'invalid");
+        });
+    });
 
     it('Filter devices', () => {
         cy.get('#toggle_devices_list').click()
