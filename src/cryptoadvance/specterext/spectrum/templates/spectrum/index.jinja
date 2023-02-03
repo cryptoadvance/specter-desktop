@@ -52,7 +52,7 @@
             <option value="no" {% if show_menu == 'no'  %}selected{% endif %}>No</option>
         </select>
         <div class="lg:flex gap-2 mt-10 justify-end">
-            {% if node_is_running %}
+            {% if node_is_available %}
                 <button type="submit" class="button" name="action" value="delete">{{ _("Delete") }}</button>
             {% endif %}
             <button type="submit" class="button bg-accent text-white" name="action" value="connect">{{ _("Connect") }}</button>
