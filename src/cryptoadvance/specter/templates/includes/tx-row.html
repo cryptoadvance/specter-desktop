@@ -14,10 +14,6 @@
         .svg-cancelled {
             filter: invert(20%) sepia(32%) saturate(4838%) hue-rotate(332deg) brightness(81%) contrast(97%);
         }
-        .tx-row:hover {
-            background-color: var(--cmap-bg-lightest);
-            vertical-align: middle;
-        }
         .tx-row {
             vertical-align: middle;
         }
@@ -28,6 +24,9 @@
         .frozen:hover {
             background: #48535d
         #546773;
+        }
+        td {
+            height: 100%;
         }
         .address {
             overflow: hidden;
@@ -92,17 +91,18 @@
             <input id="coin-select-checkbox" class="checkbox coin_select_checkbox" type="checkbox" name="coinselect" value="" data-cy="selectable-utxo-checkbox">
         </td>
         <td id="column-category">
-            <div class="icon-info">
-                <img class="category" data-style="vertical-align: middle; margin-right: 10px;"/>
-                <p id="icon-info-text" class="icon-info-text">
-                </p>
+            <div class="flex items-center space-x-1">
+                <div class="icon-info">
+                    <img class="category" data-style="vertical-align: middle; margin-right: 10px;"/>
+                    <p id="icon-info-text" class="icon-info-text"></p>
+                </div>
+                <img class="frozen-img hidden svg-white" data-style="vertical-align: middle; height: 28px;" src="{{ url_for('static', filename='img/snowflake.svg') }}"/>
             </div>
-            <img class="frozen-img hidden svg-white" data-style="vertical-align: middle; height: 28px;" src="{{ url_for('static', filename='img/snowflake.svg') }}"/>
         </td>
         <td id="column-txid" class="tx scroll optional txid cursor-pointer" title="Open transaction details">
             <span class="explorer-link"></span>
         </td>
-        <td id="column-label" class="tx optional address" style="display: flex; align-items: center;"></td>
+        <td id="column-label" class="tx h-full optional address" style="display: flex; align-items: center;"></td>
         <td id="column-amount">
             <span class="amount"></span> 
             <span class="amount-price note hidden">()</span>
@@ -113,11 +113,13 @@
         </td>
         <td class="hidden optional blockhash"></td>
         <td id="column-action" class="highlight-box">
-            <input class="select-tx-value" type="hidden" value="">
-            <img data-style="vertical-align: middle;" class="select-tx-img" src="{{ url_for('static', filename='img/checkbox-untick.svg') }}" width="25px" data-cy="checkbox-utxo-actions">
-            <div data-style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap;">
-                <button class="rbf btn optional hidden" data-style="width: 130px; margin: 2px;" type="button">{{ _("Speed up") }}</button>
-                <button class="rbf-cancel danger btn optional hidden" data-style="width: 130px; margin: 2px;" type="button">{{ _("Cancel transaction") }}</button>
+            <div class="flex items-center space-x-1">
+                <input class="select-tx-value mr-2" type="hidden" value="">
+                <img data-style="vertical-align: middle;" class="select-tx-img" src="{{ url_for('static', filename='img/checkbox-untick.svg') }}" width="25px" data-cy="checkbox-utxo-actions">
+                <div data-style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap;">
+                    <button class="rbf btn optional hidden" data-style="width: 130px; margin: 2px;" type="button">{{ _("Speed up") }}</button>
+                    <button class="rbf-cancel danger btn optional " data-style="width: 130px; margin: 2px;" type="button">{{ _("Cancel transaction") }}</button>
+                </div>
             </div>
         </td>
     </tr>
