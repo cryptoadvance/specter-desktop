@@ -159,6 +159,13 @@ describe('Test the fee UI', () => {
         cy.get('[data-cy="estimated-fee-box"]').contains('5944 sats')
         cy.get('[data-cy="close-fee-box-btn"]').click()
         cy.get('[data-cy="estimated-fee-box"]').should('not.be.visible')
+        cy.get('#toggle_advanced').click()
+        cy.get('[data-cy="csv-editor-checkbox"]').click()
+        cy.get('[data-cy="csv-editor-sats-checkbox"]').click()
+        cy.get('[data-cy="csv-editor-textarea"]').type('bcrt1q3fcv4hqd5cw55lh0zeg83vlau07fjceukn0a85, 50000{ctrl}{enter}')
+        cy.get('[data-cy="csv-editor-textarea"]').type('bcrt1qs74297wdnd0wmztekcmz3wnd6f6c3glj77ted9, 70000{ctrl}')
+        cy.get('[data-cy="show-estimated-fee-btn"]').click()
+        cy.get('[data-cy="estimated-fee-box"]').contains('5944 sats')
     })
 
 })

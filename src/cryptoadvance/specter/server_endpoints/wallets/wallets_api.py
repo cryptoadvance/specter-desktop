@@ -726,7 +726,19 @@ def is_address_mine(wallet_alias, address):
 def estimate_fee(wallet_alias):
     """Returns the fee value from a created PSBT in dictionary form. The PSBT doesn't get persisted"""
     wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    psbt_creator = PsbtCreator(app.specter, wallet, "ui", request.form)
+    # Assumes CSV input of recipients is still supported, can be simplified if this feature is removed
+    ui_option = request.form.get("ui_option", "ui")
+    request_form = request.form
+    recipients_txt = request.form["recipients"]
+    recipients_amount_unit = request.form.get("amount_unit_text")
+    psbt_creator = PsbtCreator(
+        app.specter,
+        wallet,
+        ui_option,
+        request_form,
+        recipients_txt,
+        recipients_amount_unit,
+    )
     psbt = psbt_creator.create_psbt(wallet)
     fee = psbt["fee"]
     response = {"fee": fee}
