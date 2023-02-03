@@ -42,7 +42,7 @@ describe('Test sending transactions', () => {
         cy.contains('Save').click()
         cy.selectWallet("Test Hot Wallet 1")
         cy.get('#btn_transactions').click()
-        cy.get('tbody.tx-tbody').find('tr').find('.svg-send').parent().parent().parent().find('#column-txid').find('.explorer-link').click()
+        cy.get('tbody.tx-tbody').find('tr').find('.svg-send').parent().parent().parent().parent().find('#column-txid').find('.explorer-link').click()
         // Input
         cy.get('.tx-data-info').contains('Value: 2,000,000,000 tsat')
         // Output
