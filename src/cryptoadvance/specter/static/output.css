@@ -867,6 +867,29 @@ select {
   animation: spin 1.5s linear infinite;
 }
 
+/*
+   *
+   * ScrollBars
+   *
+   */
+
+*::-webkit-scrollbar-track {
+  width: 0.5rem;
+  background-color: transparent;
+  padding: 2px;
+}
+
+*::-webkit-scrollbar-thumb {
+  width: 0.25rem;
+  border-radius: 0.75rem;
+  --tw-bg-opacity: 1;
+  background-color: rgb(27 28 33 / var(--tw-bg-opacity));
+}
+
+*::-webkit-scrollbar-corner {
+  background-color: transparent;
+}
+
 *, ::before, ::after {
   --tw-border-spacing-x: 0;
   --tw-border-spacing-y: 0;
