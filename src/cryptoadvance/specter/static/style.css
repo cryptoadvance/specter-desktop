@@ -37,9 +37,13 @@
   p {
     @apply text-lg my-1 max-w-prose text-dark-100;
   }
+  
+  a {
+    @apply !no-underline;
+  }
 
   p a {
-    @apply text-link hover:opacity-80 hover:underline underline-offset-2;
+    @apply text-link hover:opacity-80;
   }
 
   table {
