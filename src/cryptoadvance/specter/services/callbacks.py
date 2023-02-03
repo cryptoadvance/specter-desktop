@@ -96,7 +96,7 @@ class specter_added_to_flask_app(Callback):
     id = "specter_added_to_flask_app"
 
 
-class flash:
+class flash(Callback):
     """Will get called if anyone is calling server_endpoionts.flash"""
 
     id = "flash"
