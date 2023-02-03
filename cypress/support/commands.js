@@ -145,6 +145,7 @@ Cypress.Commands.add("addWallet", (walletName, walletType, funded, nodeType, key
     deviceNameOne = "DIY ghost"
   }
   cy.get('body').then(($body) => {
+      var walletAlias = walletName.toLowerCase().replace(/ /g,"_")
       if ($body.text().includes(walletName)) {
         return
       }
@@ -181,6 +182,8 @@ Cypress.Commands.add("addWallet", (walletName, walletType, funded, nodeType, key
       }
       cy.get('[data-cy="create-wallet-btn"]').click()
       cy.get('[data-cy="new-wallet-added-headline"]')
+      cy.get('#pdf-wallet-download').click()
+      cy.readFile(`./cypress/downloads/${walletAlias}_backup.pdf`)
       cy.get('[data-cy="new-wallet-added-overlay-close-btn"]').click()
       if (funded) {
         cy.mine2wallet(nodeType)

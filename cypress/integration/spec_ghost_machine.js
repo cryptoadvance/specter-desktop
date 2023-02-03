@@ -13,4 +13,27 @@ describe('Ghost machine', () => {
                 }
             })
     })
+
+    it('has downloadable artifacts', () => {
+        cy.selectWallet('Ghost wallet')
+        cy.get('#btn_settings').click()
+        cy.contains("DIY ghost")
+
+        cy.get('#btn_settings').click()
+        cy.get('#advanced_settings_tab_btn').click()
+        cy.contains("Import address labels")
+
+        cy.get('#export_settings_tab_btn').click()
+        cy.get('#export_specter_format').click()
+        cy.readFile(`./cypress/downloads/Ghost wallet.json`)
+
+        cy.get('#pdf-wallet-download').click()
+        cy.readFile(`./cypress/downloads/ghost_wallet_backup.pdf`)
+
+        cy.get('#pdf-paperxpub-download').click()
+        cy.readFile(`./cypress/downloads/ghost_wallet_uj_backup.pdf`)
+
+        cy.get('#electrum_export').click()
+        cy.readFile(`./cypress/downloads/ghost_wallet_electrum.backup`)
+    })
 })
