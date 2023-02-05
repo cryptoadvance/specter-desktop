@@ -5,23 +5,18 @@ describe('Test adding different devices', () => {
     })
 
     it('Should be a valid device name', () => {
-        cy.get("input[pattern = '/^[^']+/']").type("valid");
-        cy.get('button[type="submit"]').click();      
-        cy.get('a').should('have.attr', 'id', 'device_list_item_valid');
-    });
-
-    it('Should be a valid wallet name', () => {
-        cy.get("input[pattern = '/^[^']+/']").type("valid");
-        cy.get('button[type="submit"]').click();      
-        cy.get('a').should('have.attr', 'id', 'valid-sidebar-list-item');
-    });
-
-    it('Should be an invalid device or wallet name', () => {
-        cy.get("input[pattern = '/^[^']+/']").type("'invalid");
-        cy.get('button[type="submit"]').click();
-        cy.get('a').should(($a) => {
-            expect($a).to.not.have.attr('id', "'invalid-sidebar-list-item").and.not.have.attr('id', "device_list_item_'invalid");
-        });
+        cy.get('#toggle_devices_list').click()
+        cy.get('#btn_new_device').click()
+        cy.get('#bitcoincore_device_card').click()
+        cy.get('#submit-mnemonic').click()
+        cy.get("#device_name").type("'invalid");
+        cy.get('#submit-keys').click();
+        cy.contains('Upload Keys')
+        cy.get("#device_name").clear().type("valid");
+        cy.get('#submit-keys').click();    
+        cy.contains('valid was added successfully!');
+        cy.get('[data-cy="new-device-added-screen-close-btn"]').click()
+        cy.get('#forget_device').click()
     });
 
     it('Filter devices', () => {
