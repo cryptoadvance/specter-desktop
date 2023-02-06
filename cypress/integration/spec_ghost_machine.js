@@ -6,11 +6,15 @@ describe('Ghost machine', () => {
             .then($body => {
                 if ($body.find('[data-cy="no-core-connection"]').length) {
                     cy.connect()
-                    cy.addWallet('Ghost wallet', 'segwit', 'funded', 'btc', 'singlesig', 'DIY ghost')
+                    cy.addWallet('Ghost wallet', 'segwit', false, false, 'btc', 'singlesig', 'DIY ghost')
                 }
                 else {
-                    cy.addWallet('Ghost wallet', 'segwit', 'funded', 'btc', 'singlesig', 'DIY ghost')
+                    cy.addWallet('Ghost wallet', 'segwit', false, false, 'btc', 'singlesig', 'DIY ghost')
                 }
+                cy.get('#pdf-wallet-download').click()
+                cy.readFile(`./cypress/downloads/ghost_wallet_backup.pdf`)
+                cy.get('[data-cy="new-wallet-added-overlay-close-btn"]').click()
+                cy.mine2wallet('btc')
             })
     })
 

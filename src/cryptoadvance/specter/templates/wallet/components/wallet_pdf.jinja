@@ -57,7 +57,7 @@
             currentHeight = 20;
         }
 
-        let qrCode = document.getElementById('export-wallet-qr-code').shadowRoot.childNodes[6].children[1].children[1].src;
+        let qrCode = document.getElementById('export-wallet-qr-code').el.children[1].src;
         doc.addImage(qrCode, 'PNG', 55, currentHeight, 100, 100)
         currentHeight += 110;
 
@@ -180,7 +180,7 @@
             doc.setFontSize(18);
             doc.setFont("Roboto", "normal");
 
-            let qrCode = document.getElementById('export-wallet-qr-code').shadowRoot.childNodes[3].children[1].children[1].src;
+            let qrCode = document.getElementById('export-wallet-qr-code').el.children[1].src;
             doc.addImage(qrCode, 'PNG', 5, currentHeight, 30, 30)
             doc.text({{ wallet.name | tojson | safe }}.replace(/(.{55})/g, "$1\n"), 105, currentHeight, {align: 'center'});
             doc.setFontSize(9);
@@ -202,7 +202,7 @@
             for (var row = 0; row <=3 ; row++) {
                 let offset = 5
                 for (var i = 1+row*6; i <= (row+1)*6; i++) {
-                    let addressqr = document.getElementById('address'+i).shadowRoot.childNodes[3].children[1].children[1].src;
+                    let addressqr = document.getElementById('address'+i).el.children[1].src;
                     let address = wallet_addresses[i]
                     doc.addImage(addressqr, 'PNG', offset, currentHeight, qr_size, qr_size)
                     doc.text("[ ]", offset + qr_size +2, currentHeight + 3, {align: 'left'} )

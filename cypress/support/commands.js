@@ -137,9 +137,12 @@ Cypress.Commands.add("addHotWallet", (wallet_name, device_name, node_type, walle
     })
 })
 
-Cypress.Commands.add("addWallet", (walletName, walletType, funded, nodeType, keyType, deviceNameOne, deviceNameTwo, deviceNameThree) => { 
+Cypress.Commands.add("addWallet", (walletName, walletType, funded, closeOverlay, nodeType, keyType, deviceNameOne, deviceNameTwo, deviceNameThree) => { 
   if (walletType == null) {
     walletType = "segwit"
+  }
+  if (closeOverlay == null) {
+    closeOverlay = true
   }
   if (deviceNameOne == null) {
     deviceNameOne = "DIY ghost"
@@ -182,9 +185,9 @@ Cypress.Commands.add("addWallet", (walletName, walletType, funded, nodeType, key
       }
       cy.get('[data-cy="create-wallet-btn"]').click()
       cy.get('[data-cy="new-wallet-added-headline"]')
-      cy.get('#pdf-wallet-download').click()
-      cy.readFile(`./cypress/downloads/${walletAlias}_backup.pdf`)
-      cy.get('[data-cy="new-wallet-added-overlay-close-btn"]').click()
+      if (closeOverlay) {
+        cy.get('[data-cy="new-wallet-added-overlay-close-btn"]').click()
+      }
       if (funded) {
         cy.mine2wallet(nodeType)
       }  
