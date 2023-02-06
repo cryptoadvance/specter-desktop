@@ -1018,8 +1018,8 @@
                         let frozenImgClone = txRow.frozenImg.cloneNode()
                         txRow.callbackaction.append(frozenImgClone)
                         // Adding "Frozen" in coin selection and UTXO overview
-                        txRow.callbackaction.append("Frozen")
-                        txRow.categoryCell.append("Frozen")
+                        // txRow.callbackaction.append("Frozen")
+                        // txRow.categoryCell.append("Frozen")
                     }
                     if (txRow.tx.locked && pending_psbts_txids.includes(txRow.tx.txid) == true) {
                         txRow.callbackaction.innerHTML = ""
