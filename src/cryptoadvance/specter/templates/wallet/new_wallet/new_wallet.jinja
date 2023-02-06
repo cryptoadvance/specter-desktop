@@ -22,23 +22,22 @@
 					<div class="selection peer-checked:bg-dark-700 peer-checked:border-accent" id="{{device.alias}}">
 						<p>&nbsp;</p>
 						<img src="{{ url_for(device.blueprint(), filename=device.icon) }}" width="18px">
-						<p>{{ device_name }}</p>
+						<p class="flex items-center">
+							<span>{{ device_name }}</span>
+							{% if not device.has_key_types(wallet_type, specter.chain) or not specter.node.is_device_supported(device) %}
+								<tool-tip width="150px" image="note">
+										<span slot="paragraph">
+											{% if not device.has_key_types(wallet_type, specter.chain) %}
+												{{ _("The device cannot be selected:") }} {{device.no_key_found_reason(wallet_type, specter.chain)}}
+											{% endif %}
+											{% if not specter.node.is_device_supported(device) %}
+													{{ _("The node you are using does not support this device.") }} <br>
+											{% endif %}
+										</span>
+								</tool-tip>
+							{% endif %}
+						</p>
 					</div>
-					{% if not device.has_key_types(wallet_type, specter.chain) %}
-						<tool-tip width="150px" image="note" data-style="position: absolute; top: 30px; left: 25px;">
-						    <span slot="paragraph">
-						    	{{ _("The device cannot be selected:") }} <br>
-						        {{device.no_key_found_reason(wallet_type, specter.chain)}}
-						    </span>
-						</tool-tip>
-					{% endif %}
-					{% if not specter.node.is_device_supported(device) %}
-						<tool-tip width="150px" image="note" style="position: absolute; top: 30px; left: 25px;">
-						    <span slot="paragraph">
-						    	{{ _("The node you are using does not support this device.") }} <br>
-						    </span>
-						</tool-tip>
-					{% endif %}
 				</label>
 			{% endfor %}
 			<a href="{{ url_for('devices_endpoint.new_device_type') }}" data-style="text-decoration: none; color: #fff;">
