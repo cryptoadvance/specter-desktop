@@ -282,7 +282,9 @@ class PsbtCreator:
         """calculates the needed kwargs fow wallet.createpsbt() out of a request_form"""
         # Who pays the fees?
         subtract = str2bool(request_form.get("subtract", False))
-        subtract_from = int(request_form.get("subtract_from", 0))
+        subtract_from = request_form.get("subtract_from", 0)
+        # subtract_from is an empty string in the form request if "Subtract fees from amount" is not checked in the UI
+        subtract_from = int(subtract_from) if subtract_from else 0
         fee_option = request_form.get("fee_option")
         fee_rate = None
         if fee_option:
