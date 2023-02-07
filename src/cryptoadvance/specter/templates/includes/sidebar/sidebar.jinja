@@ -63,12 +63,6 @@
 </style>
 <div id="side-content">
     <nav class="side">
-        {% if specter.info.get("initialblockdownload") %}
-            <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/><br>{{ _("Bitcoin Core is still syncing...")}}<br>{{ _('(data might be outdated)')}}</p>
-        {% endif %}
-        {% if specter.network_info.version < 200000 %}
-            <p class="warning" style="margin-top: 30px;"><img src="{{ url_for('static', filename='img/warning_sign.svg') }}" style="width: 20px;"/><br>{{ _("Bitcoin Core version is outdated.")}}<br>{{ _('Some features might not work...')}}<br>{{ _("(minimum required: v20.0.0).") }}</p>
-        {% endif %}
         {% include specter.node.node_connection_template() %}
         
         <img id="node-switch-icon" src="{{ url_for('static', filename='img/flip-horizontal.svg')}}" class="svg-white" onclick="showNodeSelectPopup()"/>
@@ -190,7 +184,7 @@
                 <img src="{{ url_for('static', filename='img/info_sign.svg') }}" style="width: 20px;"/>
                 <br>{{ _("Wallets are unavailable if Specter is not connected to Bitcoin Core!") }}<br>
                 {% if current_user.is_admin %}
-                <a style="margin: 5px; transform: scale(0.9); font-size: 1em;" class="btn" href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) }}">
+                <a style="margin: 5px; transform: scale(0.9); font-size: 1em;" class="btn" href="{{ url_for('nodes_endpoint.node_settings') }}">
                     <img src="{{ url_for('static', filename='img/gear.svg') }}" style="width: 24px; margin: 0px;" class="svg-white">{{ _('Configure Node') }}
                 </a>
                 {% endif %}

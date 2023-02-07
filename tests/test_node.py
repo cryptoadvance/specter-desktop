@@ -10,7 +10,8 @@ from cryptoadvance.specter.specter_error import SpecterError
 from mock import MagicMock, call, patch
 
 
-def test_Node_btc(bitcoin_regtest, wallet):
+def test_Node_btc(bitcoin_regtest, trezor_wallet_acc2):
+    wallet = trezor_wallet_acc2
     with tempfile.TemporaryDirectory("_some_datafolder_tmp") as data_folder:
         node = Node.from_json(
             {

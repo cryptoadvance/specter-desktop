@@ -48,8 +48,13 @@ class ExtProcTimeoutException(SpecterInternalException):
 
 def handle_exception(exception, user=None):
     """prints the exception and most important the stacktrace"""
-    if app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"].endswith("DevelopmentConfig"):
-        raise exception
+    try:
+        if app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"].endswith(
+            "DevelopmentConfig"
+        ):
+            raise exception
+    except RuntimeError:  # Application context might be missing
+        pass
     logger.error("Unexpected error:")
     logger.error(
         "----START-TRACEBACK-----------------------------------------------------------------"

@@ -96,4 +96,24 @@ class specter_added_to_flask_app(Callback):
     id = "specter_added_to_flask_app"
 
 
+class flash(Callback):
+    """
+    Callback that is not used yet, but could be implmented in server_endpoints just as flash
+    """
+
+    id = "flash"
+
+
+class create_and_show_notification(Callback):
+    """
+    Callback that is called last in specter.cleanup_on_exit()
+    """
+
+    id = "create_and_show_notification"
+
+
+class cleanup_on_exit(Callback):
+    id = "cleanup_on_exit"
+
+
 __all__ = []
