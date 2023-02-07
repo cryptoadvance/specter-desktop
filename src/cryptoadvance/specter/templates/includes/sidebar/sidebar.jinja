@@ -100,7 +100,7 @@
                 {% if specter.wallet_manager.failed_load_wallets %}
                     <form action="{{ url_for('wallets_endpoint.failed_wallets') }}" method="POST">
                         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <div class="flex flex-col items-center justify-center p-4 bg-dark-600 rounded-lg" role="alert">
+                        <div class="flex flex-col items-center justify-center p-4 bg-dark-600 rounded-lg mt-2" role="alert">
                             <img src="{{ url_for('static', filename='img/warning_sign.svg') }}" width="28px" height="28px">
                             <div class="mt-2 flex items-center">
                                 {{ _("Not all wallets loaded") }}
