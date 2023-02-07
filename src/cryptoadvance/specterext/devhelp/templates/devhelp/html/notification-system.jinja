@@ -1,0 +1,136 @@
+{% extends "base.jinja" %}
+
+{% block main %}
+
+<h1>Notification System</h1>
+    <div class="card">
+    <p>
+        The notification System is a flexible way to Notify the user. Other than flask's flash, it's working instantly via WebSockets
+        and takes advantage of <a href="https://developer.mozilla.org/en-US/docs/Web/API/notification">Web Api Notifications</a>.
+        It has been introduced with <a href="https://github.com/cryptoadvance/specter-desktop/pull/1766">#1766</a>
+    </p>
+    <p>
+        It can e.g. be used in javascript like this(see below for the options):
+    </p>
+    <code class="html">
+    <textarea rows="40" cols="90" style="height: 140px">
+        createNotification(title,
+            {
+                target_uis:[targetUis], 
+                notification_type: notificationType,
+                body: msgBody,
+                image:'/static/img/ghost_3d.png', 
+                timeout:0
+            }
+        )
+    </textarea>    
+    </code>
+    <p>
+        In python, you would rather use somehing like:
+    </p>
+    <textarea rows="5" cols="90" style="height: 70px">
+        from cryptoadvance.specter.notifications.current_flask_user import flash
+
+        flash(_("Some Error Message for the user"),"error")
+    </textarea>    
+    </code>
+</div>
+
+<br><br>
+
+<div class="card">
+    <p>
+        Let's create a Notification:
+    </p>
+    <form name="aye" onSubmit="return handleIt()">
+
+        <div style="display: flex;">
+            <span>The Title of the message:</span>
+        </div>
+        <p><input type="text" id="title" name="title" value="Some title here!"></p>
+        
+        <div style="display: flex;">
+            <span>The Text of the message:</span>
+        </div>
+        <p><input type="text" id="msgBody" name="msgBody" value="Some body text here!"></p>
+
+        <div style="display: flex;">
+            <span>{{ _("The target_uis") }}:</span>
+            <tool-tip width="400px">
+                <span slot="paragraph">
+                    <ul>
+                        <li><b>js_message_box</b> the default</li>
+                        <li><b>webapi</b> uses <a href="https://developer.mozilla.org/en-US/docs/Web/API/notification">Web Api Notifications</a></li>
+                        <li><b>js_console</b> same as console.log("bla")</li>
+                        <li><b>flash</b> same as flash("some message")</li>
+                        <li><b>logging</b> same as logger.info("Some message")</li>
+                    </ul>
+                </span>
+            </tool-tip>
+        </div>
+        <select name="target_uis" id="target_uis" tabindex="1">
+            <option value="js_message_box">js_message_box</option>
+            <option value="webapi">webapi</option>
+            <option value="js_console">js_console</option>
+            <option value="flash">flash</option>
+            <option value="logging">logging</option>
+        </select>
+        <br><br>
+
+        <div style="display: flex;">
+            <span>{{ _("The Notification Type") }}:</span>
+            <tool-tip width="400px">
+                <span slot="paragraph">
+                    This is called category in flash. Some sort of severity
+            </tool-tip>
+        </div>
+        <select name="notification_type" id="notification_type" tabindex="2">
+            <option value="debug">debug</option>
+            <option value="information"  selected>information</option>
+            <option value="warning">warning</option>
+            <option value="error">error</option>
+            <option value="exception">exception</option>
+        </select>
+        <br><br>
+
+        <div style="display: flex;">
+            <span>An optional image:</span>
+        </div>
+        <p><input type="text" id="image_url" name="image_url" value="/static/img/ghost_3d.png"></p>
+        <div style="display: flex;">
+            <span>Timeout:</span>
+        </div>
+        <p><input type="timeout" id="timeout" value=3000></p>
+
+        <br><br>
+        <input name="Submit" class="btn" type="submit" value="Submit" />
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+
+    function handleIt() {
+        var title = document.getElementById("title").value;
+        var msgBody = document.getElementById("msgBody").value;
+        var targetUis = document.getElementById("target_uis").value;
+        var notificationType = document.getElementById("notification_type").value;
+        var image_url = document.getElementById("image_url").value;
+        var timeout = document.getElementById("timeout").value;
+        console.log(notificationType)
+        createNotification(title,
+            {
+                target_uis:[targetUis], 
+                notification_type: notificationType,
+                body: msgBody,
+                image:image_url, 
+                timeout:parseInt(timeout)
+            }
+        )
+        
+        return false
+    }
+
+</script>
+{% endblock %}
