@@ -65,17 +65,17 @@
 					<span class="text-base">Unit Selection</span>
 					<div class="space-x-4 flex items-center">
 						<label class="checkbox-wrapper-inline">
-							<input type="radio" name="amount_unit_text" value="sat" onchange="toggleTextUnit(this)" {% if specter.unit == 'sat' %}checked{% endif %}>
+							<input type="radio" name="amount_unit_text" value="sat" onchange="toggleTextUnit(this)" {% if specter.unit == 'sat' %}checked{% endif %} data-cy="csv-editor-sats-checkbox">
 							<span>sat</span>
 						</label>
 						<label class="checkbox-wrapper-inline">
-							<input type="radio" name="amount_unit_text" value="btc" onchange="toggleTextUnit(this)" {% if specter.unit != 'sat' %}checked{% endif %}>
+							<input type="radio" name="amount_unit_text" value="btc" onchange="toggleTextUnit(this)" {% if specter.unit != 'sat' %}checked{% endif %} data-cy="csv-editor-btc-checkbox">
 							<span>BTC</span>
 						</label>
 					</div>
 				</div>
 
-				<textarea id="recipients-txt" name="recipients" placeholder="{{ _('Enter recipient address, amount') }}" onblur="validateForm()">{{ recipients_txt }}</textarea>
+				<textarea id="recipients-txt" name="recipients" placeholder="{{ _('Enter recipient address, amount') }}" onblur="validateForm()" data-cy="csv-editor-textarea">{{ recipients_txt }}</textarea>
 				<p class="note" data-style="line-height: 2; background-color: #16202d; padding: 10px; border-radius: 7px;">
 					{{ _("Enter each recipient address, amount as a new line:") }}<br>
 					&lt;{{ _("ADDRESS") }}1&gt;, &lt;{{ _("AMOUNT") }}1&gt;<br>
@@ -84,9 +84,10 @@
 				</p>
 			</div>
 
-			<div class="mt-3 cursor-pointer flex" onclick="calculateEstimatedFee()">
-				<p id="calculated_tx_fee_label">{{ _("Calculate Estimated Fee") }}</p>
-				<p id="calculated_tx_fee"></p>
+			<div class="my-3 flex">
+				<button type="button" class="btn cursor-pointer" id="calculated_tx_fee_label" onclick="showEstimatedFee()" data-cy="show-estimated-fee-btn">{{ _("Show Estimated Fee") }}</button>
+				<div class="text-white bg-dark-800 rounded-full py-1 px-2 hidden" id="estimated-fee-box" data-cy="estimated-fee-box"></div>
+				<button type="button" class="btn cursor-pointer hidden" id="close-estimated-fee-box-btn" onclick="closeFeeBox()" data-cy="close-fee-box-btn">&times;</div>
 			</div>
 
 			<span class="cursor-pointer mt-3" id="toggle_advanced">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
@@ -100,7 +101,7 @@
 						<span class="checkbox-label">Interface</span>
 					</label>
 					<label class="checkbox-wrapper">
-						<input type="radio" class="peer checkbox-input" name="ui_option" value="text" onclick="toggleSendUIType(this);" {% if ui_option != 'ui' %}checked{% endif %}>
+						<input type="radio" class="peer checkbox-input" name="ui_option" value="text" onclick="toggleSendUIType(this);" {% if ui_option != 'ui' %}checked{% endif %} data-cy="csv-editor-checkbox">
 						<span>CSV</span>
 					</label>
 				</div>
@@ -418,7 +419,7 @@
 		// Form validation
 		function validateAmount(unit, amount, recipientId, allowZero=false) {
 			if (isNaN(amount)) {
-				showError(`{{ _("Amount entered is invalid!") }}`, 5000);
+				showError(`{{ _("Amount entered is invalid.") }}`, 5000);
 				return false;
 			}
 			if (recipientId) {				
@@ -595,39 +596,42 @@
 			}
 		}
 
-		async function calculateEstimatedFee() {
-			document.getElementById('calculated_tx_fee').innerText = ``;
-			if (await validateForm(true) !== true) {
+		const feeBox = document.getElementById('estimated-fee-box')
+		const closeFeeBoxBtn = document.getElementById('close-estimated-fee-box-btn')
+
+		async function showEstimatedFee() {	
+			if (!validateForm(true)) {
 				return;
 			}
-			try {				
-				var formData = new FormData(document.getElementById('send-form'));
-				let url="{{ url_for('wallets_endpoint_api.estimate_fee', wallet_alias=wallet.alias) }}"
-				formData.append("estimate_fee", true)
-			
-				let result = await send_request(url, 'POST', "{{ csrf_token() }}", formData);
-				console.log(result);
-				if (result.success) {
-					let psbt = result.psbt;
-					let fees = parseInt(psbt.fee * 1e8)
-					document.getElementById('calculated_tx_fee').innerText = `: ${fees} sats`;
-					if('{{ specter.price_check }}' == 'True'){
-						let altRate = parseFloat('{{ specter.alt_rate }}');
-						let altSymbol = '{{ specter.alt_symbol }}';
-						let altAmount = parseFloat((altRate * fees / 1e8).toFixed(2))
-						if (!isNaN(altAmount) && (altSymbol && altRate)) {
-							document.getElementById('calculated_tx_fee').innerText = `: ${fees} sats (${altAmount}${altSymbol})`;
-						}
+			const url = `{{ url_for("wallets_endpoint_api.estimate_fee", wallet_alias=wallet.alias) }}`	
+			const formData = new FormData(document.getElementById('send-form'));
+			formData.append("estimate_fee", true)
+			const response = await send_request(url, 'POST', "{{ csrf_token() }}", formData);
+			const fee = response.fee
+			if (fee) {
+				feeBox.classList.remove('hidden')
+				closeFeeBoxBtn.classList.remove('hidden')
+				let feeInSats = parseInt(response.fee * 1e8)
+				if ('{{ specter.price_check }}' == 'True') {
+					let altRate = parseFloat('{{ specter.alt_rate }}');
+					let altSymbol = '{{ specter.alt_symbol }}';
+					let altAmount = parseFloat((altRate * fee).toFixed(2))
+					if (!isNaN(altAmount) && (altSymbol && altRate)) {
+						feeBox.innerText = `${feeInSats} sats (${altAmount}${altSymbol})`;
 					}
-					return fees;
-				} else {
-					document.getElementById('calculated_tx_fee').innerText = `: ${result.error}`;
 				}
-			} catch (e) {
-				console.log(e);
-				document.getElementById('calculated_tx_fee').innerText = `: {{ _("Failed to calculate transaction fees.") }}`;
+				else {
+					feeBox.innerText = `${feeInSats} sats`
+				}
 			}
-			return -1;
+			else {
+				feeBox.innerText = "Fee estimate didn't work"
+			}
+		}
+
+		function closeFeeBox() {
+			feeBox.classList.add('hidden')
+			closeFeeBoxBtn.classList.add('hidden')
 		}
 
 		document.addEventListener("DOMContentLoaded", function() {

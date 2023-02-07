@@ -57,7 +57,7 @@ def index():
             host=host,
             port=port,
             ssl=ssl,
-            node_is_running=ext().is_spectrum_node_running,
+            node_is_available=ext().is_spectrum_node_available,
             show_menu=show_menu,
         )
     else:
@@ -65,7 +65,7 @@ def index():
             "spectrum/index.jinja",
             elec_options=electrum_options,
             elec_chosen_option="list",
-            node_is_running=ext().is_spectrum_node_running,
+            node_is_available=ext().is_spectrum_node_available,
             show_menu=show_menu,
         )
 
@@ -86,11 +86,8 @@ def index_post():
     action = request.form["action"]
 
     if action == "delete":
-        if node_is_running_before_request:
-            ext().disable_spectrum()
-            flash("Spectrum connection deleted")
-        else:
-            flash("There is no Spectrum connection to delete", "error")
+        ext().disable_spectrum()
+        flash("Spectrum connection deleted")
         return redirect(url_for(f"{ SpectrumService.get_blueprint_name()}.index"))
 
     if action == "connect":

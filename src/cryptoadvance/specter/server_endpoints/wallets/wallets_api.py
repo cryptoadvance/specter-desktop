@@ -721,36 +721,28 @@ def is_address_mine(wallet_alias, address):
     )
 
 
-@wallets_endpoint_api.route("/wallet/<wallet_alias>/send/estimatefee", methods=["POST"])
+@wallets_endpoint_api.route("/wallet/<wallet_alias>/estimate_fee", methods=["POST"])
 @login_required
 def estimate_fee(wallet_alias):
-    """Returns a json-representation of a psbt which did not get persisted. Kind of a draft-run."""
+    """Returns the fee value from a created PSBT in dictionary form. The PSBT doesn't get persisted"""
     wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    # update balances in the wallet
-    wallet.update_balance()
-    # update utxo list for coin selection
-    wallet.check_utxo()
-    if request.form.get("estimate_fee") != "true":
-        # Very critical as this form-value will prevent persisting the PSBT
-        return jsonify(
-            success=False,
-            error="Your Form did not specify estimate_fee = false. This call is not allowed",
-        )
+    # Assumes CSV input of recipients is still supported, can be simplified if this feature is removed
+    ui_option = request.form.get("ui_option", "ui")
+    request_form = request.form
+    recipients_txt = request.form["recipients"]
+    recipients_amount_unit = request.form.get("amount_unit_text")
     psbt_creator = PsbtCreator(
         app.specter,
         wallet,
-        request.form.get("ui_option", "ui"),
-        request_form=request.form,
-        recipients_txt=request.form["recipients"],
-        recipients_amount_unit=request.form.get("amount_unit_text"),
+        ui_option,
+        request_form,
+        recipients_txt,
+        recipients_amount_unit,
     )
-    try:
-        # Won't get persisted
-        psbt = psbt_creator.create_psbt(wallet).to_dict()
-        return jsonify(success=True, psbt=psbt)
-    except SpecterError as se:
-        app.logger.error(se)
-        return jsonify(success=False, error=str(se))
+    psbt = psbt_creator.create_psbt(wallet)
+    fee = psbt["fee"]
+    response = {"fee": fee}
+    return jsonify(response)
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/asset_balances")
