@@ -869,29 +869,6 @@ select {
   animation: spin 1.5s linear infinite;
 }
 
-/*
-   *
-   * ScrollBars
-   *
-   */
-
-*::-webkit-scrollbar-track {
-  width: 0.5rem;
-  background-color: transparent;
-  padding: 2px;
-}
-
-*::-webkit-scrollbar-thumb {
-  width: 0.25rem;
-  border-radius: 0.75rem;
-  --tw-bg-opacity: 1;
-  background-color: rgb(27 28 33 / var(--tw-bg-opacity));
-}
-
-*::-webkit-scrollbar-corner {
-  background-color: transparent;
-}
-
 *, ::before, ::after {
   --tw-border-spacing-x: 0;
   --tw-border-spacing-y: 0;
@@ -2123,6 +2100,11 @@ input[type="number"]::-webkit-outer-spin-button,
   color: rgb(194 65 12 / var(--tw-text-opacity));
 }
 
+.text-black {
+  --tw-text-opacity: 1;
+  color: rgb(0 0 0 / var(--tw-text-opacity));
+}
+
 .text-dark-100 {
   --tw-text-opacity: 1;
   color: rgb(207 207 208 / var(--tw-text-opacity));
@@ -2141,11 +2123,6 @@ input[type="number"]::-webkit-outer-spin-button,
 .text-accent {
   --tw-text-opacity: 1;
   color: rgb(46 92 255 / var(--tw-text-opacity));
-}
-
-.text-black {
-  --tw-text-opacity: 1;
-  color: rgb(0 0 0 / var(--tw-text-opacity));
 }
 
 .underline {
@@ -2246,6 +2223,25 @@ input[type="number"]::-webkit-outer-spin-button,
   font-variant: normal;
   text-transform: none;
   -webkit-font-smoothing: antialiased;
+}
+
+/*
+ *
+ * ScrollBars
+ *
+ */
+
+*::-webkit-scrollbar,
+*::-webkit-scrollbar-track-piece,
+*::-webkit-scrollbar-corner {
+  width: 0.5rem !important;
+  background-color: transparent !important;
+}
+
+*::-webkit-scrollbar-thumb {
+  border-radius: 0.75rem;
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(44 45 49 / var(--tw-bg-opacity)) !important;
 }
 
 .hover\:border-dark-800:hover {
