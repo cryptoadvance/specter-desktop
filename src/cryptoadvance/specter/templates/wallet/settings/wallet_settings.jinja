@@ -108,10 +108,13 @@
 								Save {{ device.name }} file
 							</a>
 						{% elif device.wallet_export_type == 'qr' %}
-							<button onclick="showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="button mt-3">Show {{ device.name }} QR Code</button>
-							<div id="{{ device.alias }}_export_qr_code" data-style="display: none;">
-								<h1>{{ _("Scan this with your") }} {{ device.name }} {{ _("device") }} </h1>
-								<qr-code value="{{ device.export_wallet(wallet) }}" width="400" scalable></qr-code>
+							<button onclick="showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="button mt-3 mb-8">Show {{ device.name }} QR Code</button>
+							<div id="{{ device.alias }}_export_qr_code" class="bg-dark-800 p-4 w-120" style="display: none;">
+								<div class="flex justify-between mb-4">
+										<h3 class="mb-0">{{ _("Scan this with your") }} {{ device.name }} {{ _("device") }} </h3>
+										<p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer">Close</p>
+								</div>
+								<qr-code value="{{ device.export_wallet(wallet) }}" width="400"></qr-code>
 							</div>
 						{% endif %}
 					{% endif %}
