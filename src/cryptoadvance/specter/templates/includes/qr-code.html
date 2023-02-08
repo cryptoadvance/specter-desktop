@@ -17,7 +17,7 @@
 <template id="qr-code">
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
 
-  <div style="display: none;"><!--<style>-->
+  <style>
     .qr-holder{
       display: flex;
       flex-direction: column;
@@ -155,16 +155,13 @@
     input[type="range"]:hover::-moz-range-track {
       background: var(--cmap-blue);
     }
-  </div><!--</style>-->
-  <div class="qr-holder flex flex-col items-center space-y-3 bg-white p-5 rounded-lg pt-3">
-    <a class="copy hidden"><img src="{{ url_for('static', filename='img/copy.svg') }}" data-style="width: 26px; height: 26px;"></a>
-
+  </style>
+  <div class="flex flex-col items-center space-y-3 bg-white p-5 rounded-lg pt-3">
+    <a class="copy hidden"><img src="{{ url_for('static', filename='img/copy.svg') }}" style="width: 26px; height: 26px;"></a>
     <div class="qr-code"></div>
-
     <div class="note">Click to animate</div>
-
-    <div class="range" data-style="margin-top: 10px; margin-bottom: -5px;">
-      <span class="minus-size" data-style="cursor: pointer;">&nbsp;&nbsp;-&nbsp;&nbsp;</span><input type="range" class="size-slider"><span class="plus-size" data-style="cursor: pointer;">&nbsp;&nbsp;+&nbsp;&nbsp;</span>
+    <div class="range hidden" style="margin-top: 10px; margin-bottom: -5px;">
+      <span class="minus-size" style="cursor: pointer;">&nbsp;&nbsp;-&nbsp;&nbsp;</span><input type="range" class="size-slider"><span class="plus-size" style="cursor: pointer;">&nbsp;&nbsp;+&nbsp;&nbsp;</span>
     </div>
   </div>
 </template>

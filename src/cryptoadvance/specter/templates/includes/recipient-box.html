@@ -60,7 +60,7 @@
 			</div>
 
 			<div class="floating-wrapper">
-				<input class="floating-input peer" type="number" name="amount" id="amount" min=0 step='1e-8' autocomplete="off" placeholder=" "> <!-- the value comes in here-->
+				<input class="floating-input peer" type="number" name="amount" id="amount" min=0 step='1e-8' autocomplete="off" placeholder=" " data-cy="amount-input"> <!-- the value comes in here-->
 				<label class="floating-label">Amount</label>
 				<span class="btn absolute right-0.5 top-2 cursor-pointer" id="send_max">{{ _("Send Max") }}</span>
 			</div>
@@ -90,7 +90,7 @@
 
 <template id="bitcoin-asset-selector">
 	<label class="flex items-center space-x-1">
-		<input id="amount_unit_sat" type="radio" class="" name="amount_unit"  value="sat">
+		<input id="amount_unit_sat" type="radio" class="" name="amount_unit" value="sat" data-cy="sats-checkbox">
 		<span class="text-lg">Satoshi</span>
 	</label>
 	<label class="flex items-center space-x-1">

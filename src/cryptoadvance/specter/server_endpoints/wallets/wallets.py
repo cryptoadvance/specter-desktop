@@ -150,9 +150,7 @@ def new_wallet_type():
     err = None
     if not app.specter.node.is_running:
         flash(_("You need a node connection to create wallets."), "error")
-        return redirect(
-            url_for("nodes_endpoint.node_settings", node_alias=app.specter.node.alias)
-        )
+        return redirect(url_for("nodes_endpoint.node_settings_new_node_get"))
     try:
         # Make sure wallet is enabled on Bitcoin Core
         app.specter.rpc.listwallets()

@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+
 * {
   font-family: "Social";
   font-style: normal;
@@ -36,9 +37,13 @@
   p {
     @apply text-lg my-1 max-w-prose text-dark-100;
   }
+  
+  a {
+    @apply !no-underline;
+  }
 
   p a {
-    @apply text-link hover:opacity-80 hover:underline underline-offset-2;
+    @apply text-link hover:opacity-80;
   }
 
   table {
@@ -188,6 +193,24 @@
 
   .animate-spin-slow {
     animation: spin 1.5s linear infinite;
+  }
+
+  /*
+   *
+   * ScrollBars
+   *
+   */
+
+  *::-webkit-scrollbar-track {
+    @apply bg-transparent w-2 p-[2px]; 
+  }
+
+  *::-webkit-scrollbar-thumb {
+    @apply w-1 bg-dark-700 rounded-xl;
+  }
+
+  *::-webkit-scrollbar-corner {
+    @apply bg-transparent;
   }
 }
 

@@ -461,14 +461,16 @@ p {
   color: rgb(207 207 208 / var(--tw-text-opacity));
 }
 
+a {
+  text-decoration-line: none !important;
+}
+
 p a {
   --tw-text-opacity: 1;
   color: rgb(41 151 255 / var(--tw-text-opacity));
-  text-underline-offset: 2px;
 }
 
 p a:hover {
-  text-decoration-line: underline;
   opacity: 0.8;
 }
 
@@ -865,6 +867,29 @@ select {
 
 .animate-spin-slow {
   animation: spin 1.5s linear infinite;
+}
+
+/*
+   *
+   * ScrollBars
+   *
+   */
+
+*::-webkit-scrollbar-track {
+  width: 0.5rem;
+  background-color: transparent;
+  padding: 2px;
+}
+
+*::-webkit-scrollbar-thumb {
+  width: 0.25rem;
+  border-radius: 0.75rem;
+  --tw-bg-opacity: 1;
+  background-color: rgb(27 28 33 / var(--tw-bg-opacity));
+}
+
+*::-webkit-scrollbar-corner {
+  background-color: transparent;
 }
 
 *, ::before, ::after {

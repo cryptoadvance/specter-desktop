@@ -191,10 +191,10 @@ def node_settings(node_alias):
             )
         else:
             node_manager.delete_node(node, app.specter)
-            if app.specter.node.alias != "default":
+            if len(node_manager.nodes) > 0:
                 flash(
                     _(
-                        "Connection deleted successfully, switched to the available connection"
+                        "Connection deleted successfully, switched to the next available connection"
                     )
                 )
                 return redirect(

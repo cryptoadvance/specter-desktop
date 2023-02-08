@@ -25,6 +25,12 @@ devstatus_beta = "beta"
 devstatus_prod = "prod"
 
 
+class ServiceOptionality:
+    mandatory = "mandatory"  # mandatory is not used yet by any service. Before it can be used it has to be clarified what happens in delete_services_with_encrypted_storage of mandatory services
+    opt_in = "opt_in"
+    opt_out = "opt_out"
+
+
 class Service:
     """A base class for Services"""
 
@@ -38,6 +44,8 @@ class Service:
     # If the blueprint gets a "/ext" prefix (isolated_client = True), the login cookie won't work for all specter core functionality
     isolated_client = True
     devstatus = devstatus_alpha
+    optionality = ServiceOptionality.opt_in
+    visible_in_sidebar = True
     encrypt_data = False
 
     def __init__(self, active, specter):
