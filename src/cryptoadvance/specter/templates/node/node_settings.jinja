@@ -113,7 +113,7 @@
 			</section>
 
 			<div class="lg:flex gap-2 mt-10 justify-end">
-				{% if specter.node_manager.nodes | length > 1 and node_alias %}
+				{% if node_alias %}
 					<button type="submit" name="action" value="delete" class="button">{{ _("Delete") }}</button>
 				{% endif %}
 				<button type="submit" class="button bg-accent text-white" name="action" value="connect" data-cy="connect-btn">{{ _("Connect") }}</button>

@@ -259,7 +259,7 @@
 
 		<div class="row padded">
 			<input type="hidden" name="pending_psbt" value='{{psbt|tojson|safe}}'>
-			<button id="deletepsbt_btn" type="submit" name="action" value="deletepsbt" class="button danger centered" data-style="margin-left: 5px;">{{ _("Delete Transaction") }}</button>
+			<button id="deletepsbt_btn" type="submit" name="action" value="deletepsbt" class="button danger centered" data-cy="delete-tx-btn">{{ _("Delete Transaction") }}</button>
 		</div>
 	</form>
 

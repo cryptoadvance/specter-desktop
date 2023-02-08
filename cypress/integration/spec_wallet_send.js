@@ -6,7 +6,7 @@ describe('Test sending transactions', () => {
 
     it('Send a standard transaction', () => {
         cy.addHotDevice("Hot Device 1","bitcoin")
-        cy.addWallet('Test Hot Wallet 1', 'segwit', 'funded', 'btc', 'singlesig', 'Hot Device 1')
+        cy.addWallet('Test Hot Wallet 1', 'segwit', 'funded', true, 'btc', 'singlesig', 'Hot Device 1')
         cy.selectWallet("Test Hot Wallet 1")
         cy.get('#btn_send').click()
         cy.get('#recipient_0').find('#address').type("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u", { force: true })
@@ -26,6 +26,20 @@ describe('Test sending transactions', () => {
         })
     })
 
+    it('Create a transaction with the CSV editor', () => {
+        cy.selectWallet("Ghost wallet")
+        cy.get('#btn_send').click()
+        cy.get('#toggle_advanced').click()
+        cy.get('[data-cy="csv-editor-checkbox"]').click()
+        cy.get('[data-cy="csv-editor-sats-checkbox"]').click()
+        cy.get('[data-cy="csv-editor-textarea"]').type('bcrt1q3fcv4hqd5cw55lh0zeg83vlau07fjceukn0a85, 50000{ctrl}{enter}')
+        cy.get('[data-cy="csv-editor-textarea"]').type('bcrt1qs74297wdnd0wmztekcmz3wnd6f6c3glj77ted9, 70000{ctrl}')
+        cy.get('#create_psbt_btn').click()
+        cy.contains('Sending 0.0005')
+        cy.get('[data-cy="delete-tx-btn"]').click()
+    })
+
+
     it('Open up transaction details', () => {
         cy.selectWallet("Test Hot Wallet 1")
         cy.get('#btn_transactions').click()
@@ -42,7 +56,7 @@ describe('Test sending transactions', () => {
         cy.contains('Save').click()
         cy.selectWallet("Test Hot Wallet 1")
         cy.get('#btn_transactions').click()
-        cy.get('tbody.tx-tbody').find('tr').find('.svg-send').parent().parent().parent().find('#column-txid').find('.explorer-link').click()
+        cy.get('tbody.tx-tbody').find('tr').find('.svg-send').parent().parent().parent().parent().find('#column-txid').find('.explorer-link').click()
         // Input
         cy.get('.tx-data-info').contains('Value: 2,000,000,000 tsat')
         // Output
@@ -228,7 +242,7 @@ describe('Test sending transactions', () => {
     it('Send a transaction from a multisig wallet', () => {
         // We need a second hot wallet
         cy.addHotDevice("Hot Device 2","bitcoin")
-        cy.addWallet('Test Multisig Wallet', 'segwit', 'funded', 'btc', 'multisig', 'Hot Device 1', 'Hot Device 2', 'DIY ghost')  
+        cy.addWallet('Test Multisig Wallet', 'segwit', 'funded', true, 'btc', 'multisig', 'Hot Device 1', 'Hot Device 2', 'DIY ghost')  
         cy.selectWallet('Test Multisig Wallet')      
         cy.get('#btn_send').click()
         cy.get('#recipient_0').find('#address').type("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u", { force: true })
