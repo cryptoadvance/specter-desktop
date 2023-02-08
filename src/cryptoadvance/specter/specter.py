@@ -32,7 +32,7 @@ from .managers.config_manager import ConfigManager
 from .managers.device_manager import DeviceManager
 from .managers.node_manager import NodeManager
 from .managers.otp_manager import OtpManager
-from .managers.service_manager import ExtensionManager
+from .managers import ExtensionManager
 from .managers.user_manager import UserManager
 from .managers.wallet_manager import WalletManager
 from .node import Node
@@ -43,7 +43,7 @@ from .rpc import (
     RpcError,
     get_default_datadir,
 )
-from .managers.service_manager import ExtensionManager
+from .managers import ExtensionManager
 from .services.service import devstatus_alpha, devstatus_beta, devstatus_prod
 from .services import callbacks
 from .specter_error import ExtProcTimeoutException, SpecterError
@@ -74,7 +74,7 @@ class Specter:
         initialize=True,
     ):
         """Very basic Initialisation of the Specter Object. Will, by default call specter.initialize() shortly after
-        This might be unwanted (e.g. in server.py) in order to apply specter.service_manager so that all the
+        This might be unwanted (e.g. in server.py) in order to apply specter.ext_manager so that all the
         managers can make callbacks in the initialize method.
         """
         if data_folder.startswith("~"):
@@ -124,9 +124,7 @@ class Specter:
             bitcoind_path=self.bitcoind_path,
             internal_bitcoind_version=self._internal_bitcoind_version,
             data_folder=os.path.join(self.data_folder, "nodes"),
-            service_manager=self.service_manager
-            if hasattr(self, "service_manager")
-            else None,
+            ext_manager=self.ext_manager if hasattr(self, "ext_manager") else None,
         )
         try:
             logger.debug(

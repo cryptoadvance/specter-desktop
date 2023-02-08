@@ -206,9 +206,9 @@ def slow_request_detection_start():
 
 
 @app.before_request
-def execute_service_manager_hook():
+def execute_ext_manager_hook():
     """inform extensions about the request"""
-    app.specter.service_manager.execute_ext_callbacks(flask_before_request, request)
+    app.specter.ext_manager.execute_ext_callbacks(flask_before_request, request)
 
 
 @app.after_request

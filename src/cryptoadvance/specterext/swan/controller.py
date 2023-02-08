@@ -78,7 +78,7 @@ def withdrawals():
         "swan/withdrawals.jinja",
         # txlist=swan_txs,
         wallet=wallet,
-        services=app.specter.service_manager.services,
+        services=app.specter.ext_manager.services,
         swan_id=SwanService.id,
         autowithdrawal_threshold=SwanService.get_current_user_service_data().get(
             SwanService.AUTOWITHDRAWAL_THRESHOLD

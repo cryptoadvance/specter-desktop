@@ -20,7 +20,7 @@ from cryptoadvance.specter.services.service_encrypted_storage import (
     ServiceEncryptedStorageError,
     ServiceEncryptedStorageManager,
 )
-from cryptoadvance.specter.managers.service_manager import ExtensionManager
+from cryptoadvance.specter.managers import ExtensionManager
 from cryptoadvance.specter.user import User, hash_password
 
 
@@ -40,15 +40,15 @@ class FakeService(Service):
     encrypt_data = True
 
 
-# @patch("cryptoadvance.specter.services.service_manager.app")
+# @patch("cryptoadvance.specter.services.ext_manager.app")
 # def test_ExtensionManager_loads_services(empty_data_folder, app):
 #     # app.config = MagicMock()
 #     # app.config.get.return_value = "prod"
 #     specter_mock = MagicMock()
 #     specter_mock.data_folder.return_value = empty_data_folder
 
-#     service_manager = ExtensionManager(specter=specter_mock, devstatus_threshold="alpha")
-#     services = service_manager.services
+#     ext_manager = ExtensionManager(specter=specter_mock, devstatus_threshold="alpha")
+#     services = ext_manager.services
 #     assert "swan" in services
 
 
@@ -183,7 +183,7 @@ def test_remove_encrypted_services_from_user(
     )
 
     storage_manager = app_no_node.specter.service_encrypted_storage_manager
-    service_manager = app_no_node.specter.service_manager
+    ext_manager = app_no_node.specter.ext_manager
     storage_manager.storage_by_user = {}
 
     # Need a simulated request context to enable `current_user` lookup
@@ -211,21 +211,21 @@ def test_remove_encrypted_services_from_user(
         assert FakeService.id in data_on_disk
 
         # Remove all services that need encryption
-        # we add the fakeservice to the service_manager.services otherwise delete_services_with_encrypted_storage doesn't know it exists
+        # we add the fakeservice to the ext_manager.services otherwise delete_services_with_encrypted_storage doesn't know it exists
         # strictly speaking the important call is here user.delete_user_secret(autosave=True) which will execute regardless of adding fakeservice
         fake_service = FakeService(True, app_no_node.specter)
-        service_manager.services[fake_service.id] = fake_service
-        assert fake_service.id in service_manager.services
+        ext_manager.services[fake_service.id] = fake_service
+        assert fake_service.id in ext_manager.services
 
         # also add it to the user, and check later it was remove from the user
         user.add_service(fake_service.id)
         assert user.has_service(fake_service.id)
 
-        app_no_node.specter.service_manager.delete_services_with_encrypted_storage(user)
+        app_no_node.specter.ext_manager.delete_services_with_encrypted_storage(user)
         # the user should not have the fake_service activated any more
         assert not user.has_service(fake_service.id)
-        # the service_manager on the other hand keeps all services, no matter what
-        assert service_manager.services[fake_service.id]
+        # the ext_manager on the other hand keeps all services, no matter what
+        assert ext_manager.services[fake_service.id]
 
         # Verify data on disk; Bob's user should have his user_secret cleared.
         users_file = app_no_node.specter.user_manager.users_file
@@ -269,21 +269,19 @@ def test_check_differences_between_encrypted_and_non_encrypted_services(
         config={},
     )
 
-    service_manager = app_no_node.specter.service_manager
+    ext_manager = app_no_node.specter.ext_manager
     user = user_manager.get_user("bob")
 
     def setup_services():
         # Remove all services that need encryption
-        # we add the fakeservice to the service_manager.services otherwise delete_services_with_encrypted_storage doesn't know it exists
+        # we add the fakeservice to the ext_manager.services otherwise delete_services_with_encrypted_storage doesn't know it exists
         # strictly speaking the important call is here user.delete_user_secret(autosave=True) which will execute regardless of adding fakeservice
         fake_service = FakeService(True, app_no_node.specter)
         fake_service_no_encryption = FakeServiceNoEncryption(True, app_no_node.specter)
-        service_manager.services[fake_service.id] = fake_service
-        service_manager.services[
-            fake_service_no_encryption.id
-        ] = fake_service_no_encryption
-        assert fake_service.id in service_manager.services
-        assert fake_service_no_encryption.id in service_manager.services
+        ext_manager.services[fake_service.id] = fake_service
+        ext_manager.services[fake_service_no_encryption.id] = fake_service_no_encryption
+        assert fake_service.id in ext_manager.services
+        assert fake_service_no_encryption.id in ext_manager.services
 
         # also add it to the user, and check later it was remove from the user
         user.add_service(fake_service.id)
@@ -295,27 +293,27 @@ def test_check_differences_between_encrypted_and_non_encrypted_services(
 
     fake_service, fake_service_no_encryption = setup_services()
     # delete the encrypted ones
-    app_no_node.specter.service_manager.delete_services_with_encrypted_storage(user)
+    app_no_node.specter.ext_manager.delete_services_with_encrypted_storage(user)
     assert not user.has_service(fake_service.id)
     assert user.has_service(fake_service_no_encryption.id)
     # delete the unencrypted ones
-    app_no_node.specter.service_manager.delete_services_with_unencrypted_storage(user)
+    app_no_node.specter.ext_manager.delete_services_with_unencrypted_storage(user)
     assert not user.has_service(fake_service_no_encryption.id)
 
     # now setup again and check a different order of execution
     fake_service, fake_service_no_encryption = setup_services()
     # delete the unencrypted ones
-    app_no_node.specter.service_manager.delete_services_with_unencrypted_storage(user)
+    app_no_node.specter.ext_manager.delete_services_with_unencrypted_storage(user)
     assert not user.has_service(fake_service_no_encryption.id)
     assert user.has_service(fake_service.id)
     # delete the encrypted ones
-    app_no_node.specter.service_manager.delete_services_with_encrypted_storage(user)
+    app_no_node.specter.ext_manager.delete_services_with_encrypted_storage(user)
     # the user should not have the fake_service activated any more
     assert not user.has_service(fake_service.id)
 
-    # the service_manager on the other hand keeps all services, no matter what
-    assert service_manager.services[fake_service.id]
-    assert service_manager.services[fake_service_no_encryption.id]
+    # the ext_manager on the other hand keeps all services, no matter what
+    assert ext_manager.services[fake_service.id]
+    assert ext_manager.services[fake_service_no_encryption.id]
 
 
 def test_ServiceUnEncryptedStorage(empty_data_folder, user1, user2):

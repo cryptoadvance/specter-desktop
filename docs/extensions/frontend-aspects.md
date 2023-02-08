@@ -88,7 +88,7 @@ In this case, this would add a tab called "myexttitle" and you're now supposed t
 def myext_something():
     return render_template(
         "myext/some_settingspage.jinja",
-        ext_settingstabs = app.specter.service_manager.execute_ext_callbacks(
+        ext_settingstabs = app.specter.ext_manager.execute_ext_callbacks(
             callbacks.add_settingstabs
         )
     )
@@ -105,7 +105,7 @@ def myext_mywalletdetails(wallet_alias):
         wallet_alias=wallet_alias,
         wallet=wallet,
         specter=app.specter,
-        ext_wallettabs = app.specter.service_manager.execute_ext_callbacks(
+        ext_wallettabs = app.specter.ext_manager.execute_ext_callbacks(
             callbacks.add_wallettabs
         )
     )

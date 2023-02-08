@@ -5,7 +5,7 @@ from pathlib import PosixPath, Path
 import os
 from unittest.mock import MagicMock
 from flask import Flask
-from cryptoadvance.specter.managers.service_manager import ExtensionManager
+from cryptoadvance.specter.managers import ExtensionManager
 from cryptoadvance.specter.services.callbacks import after_serverpy_init_app
 
 from cryptoadvance.specterext.swan.service import SwanService
@@ -90,7 +90,7 @@ def test_ExtensionManager_get_service_packages(caplog):
 
     # This needs to be adjusted with each new extension
     # We don't need to assert every single package but we also ensure with that, that we don't
-    # loose anything on the way of changing something in the service_manager
+    # loose anything on the way of changing something in the ext_manager
     assert len(packages) == 32
 
 

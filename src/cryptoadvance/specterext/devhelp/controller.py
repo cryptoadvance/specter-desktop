@@ -28,7 +28,7 @@ def html_component(html_component):
     return render_template(
         f"devhelp/html/{html_component}",
         wallet=associated_wallet,
-        services=app.specter.service_manager.services,
+        services=app.specter.ext_manager.services,
         address=associated_wallet.get_address(3) if associated_wallet else None,
     )
 

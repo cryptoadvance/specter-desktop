@@ -271,7 +271,7 @@ def storage_callback(mode="write", path=None):
     # First, call extensions which want to get informed.
     # This is working synchronously!
     try:
-        app.specter.service_manager.execute_ext_callbacks(
+        app.specter.ext_manager.execute_ext_callbacks(
             specter_persistence_callback, path=path, mode=mode
         )
     except AttributeError as e:

@@ -36,7 +36,7 @@ class DevhelpService(Service):
     SPECTER_WALLET_ALIAS = "wallet"
 
     def inform_world(self, msg="Hello World"):
-        app.specter.service_manager.execute_ext_callbacks(my_callback, msg)
+        app.specter.ext_manager.execute_ext_callbacks(my_callback, msg)
 
     def callback_my_callback(self, msg):
         print(msg)

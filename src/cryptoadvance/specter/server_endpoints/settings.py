@@ -49,7 +49,7 @@ def inject_common_stuff():
     """Can be used in all jinja2 templates of this Blueprint
     Injects the additional settings_tabs via extentions
     """
-    ext_settingstabs = app.specter.service_manager.execute_ext_callbacks(
+    ext_settingstabs = app.specter.ext_manager.execute_ext_callbacks(
         callbacks.add_settingstabs
     )
     return dict(ext_settingstabs=ext_settingstabs)
@@ -70,7 +70,7 @@ def general():
     fee_estimator_custom_url = app.specter.config.get("fee_estimator_custom_url", "")
     loglevel = get_loglevel(app)
     unit = app.specter.unit
-    services = app.specter.service_manager.services
+    services = app.specter.ext_manager.services
     if request.method == "POST":
         action = request.form["action"]
 
@@ -131,7 +131,7 @@ def general():
                 validate_bool=validate_merkleproof_bool
             )
             if current_user.is_admin:
-                app.specter.service_manager.set_active_services(active_services)
+                app.specter.ext_manager.set_active_services(active_services)
             app.specter.update_fee_estimator(
                 fee_estimator=fee_estimator,
                 custom_url=fee_estimator_custom_url,
@@ -450,7 +450,7 @@ def auth():
                             specter=app.specter,
                             current_version=current_version,
                             rand=rand,
-                            has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(
+                            has_service_encrypted_storage=app.specter.ext_manager.user_has_encrypted_storage(
                                 current_user
                             ),
                         )
@@ -473,7 +473,7 @@ def auth():
                             specter=app.specter,
                             current_version=current_version,
                             rand=rand,
-                            has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(
+                            has_service_encrypted_storage=app.specter.ext_manager.user_has_encrypted_storage(
                                 current_user
                             ),
                         )
@@ -502,7 +502,7 @@ def auth():
                                 specter=app.specter,
                                 current_version=current_version,
                                 rand=rand,
-                                has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(
+                                has_service_encrypted_storage=app.specter.ext_manager.user_has_encrypted_storage(
                                     current_user
                                 ),
                             )
@@ -532,7 +532,7 @@ def auth():
                                 specter=app.specter,
                                 current_version=current_version,
                                 rand=rand,
-                                has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(
+                                has_service_encrypted_storage=app.specter.ext_manager.user_has_encrypted_storage(
                                     current_user
                                 ),
                             )
@@ -560,7 +560,7 @@ def auth():
 
                     # if there is no password, we have to delete the previously encrypted data from services
                     for user in app.specter.user_manager.users:
-                        app.specter.service_manager.delete_services_with_encrypted_storage(
+                        app.specter.ext_manager.delete_services_with_encrypted_storage(
                             user
                         )
 
@@ -621,7 +621,7 @@ def auth():
         specter=app.specter,
         current_version=current_version,
         rand=rand,
-        has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(
+        has_service_encrypted_storage=app.specter.ext_manager.user_has_encrypted_storage(
             current_user
         ),
         next=request.args.get("next", ""),

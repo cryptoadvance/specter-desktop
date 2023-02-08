@@ -17,7 +17,7 @@ from werkzeug.wrappers import Response
 
 from cryptoadvance.specter.hwi_rpc import HWIBridge
 from cryptoadvance.specter.liquid.rpc import LiquidRPC
-from cryptoadvance.specter.managers.service_manager import ExtensionManager
+from cryptoadvance.specter.managers import ExtensionManager
 from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.services import callbacks
 from cryptoadvance.specter.util.reflection import get_template_static_folder
@@ -157,17 +157,17 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     # ExtensionManager will instantiate and register blueprints for extensions
     # It's an attribute to the specter but specter is not aware of it.
     # However some managers are aware of it and so we need to split
-    # instantiation from initializing and in between attach the service_manager
-    specter.service_manager = ExtensionManager(
+    # instantiation from initializing and in between attach the ext_manager
+    specter.ext_manager = ExtensionManager(
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )
 
-    def service_manager_cleanup_on_exit(signum, frame):
-        return specter.service_manager.execute_ext_callbacks(
+    def ext_manager_cleanup_on_exit(signum, frame):
+        return specter.ext_manager.execute_ext_callbacks(
             callbacks.cleanup_on_exit, signum, frame
         )
 
-    specter.call_functions_at_cleanup_on_exit.append(service_manager_cleanup_on_exit)
+    specter.call_functions_at_cleanup_on_exit.append(ext_manager_cleanup_on_exit)
 
     specter.initialize()
 
@@ -198,7 +198,7 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     app.specter = specter
     # Executing callback specter_added_to_flask_app
     app.logger.info("Executing callback specter_added_to_flask_app ...")
-    specter.service_manager.execute_ext_callbacks(specter_added_to_flask_app)
+    specter.ext_manager.execute_ext_callbacks(specter_added_to_flask_app)
     if specter.config["auth"].get("method") == "none":
         app.logger.info("Login disabled")
         app.config["LOGIN_DISABLED"] = True
@@ -282,7 +282,7 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     def every5seconds():
         ctx = app.app_context()
         ctx.push()
-        app.specter.service_manager.execute_ext_callbacks(callbacks.every5seconds)
+        app.specter.ext_manager.execute_ext_callbacks(callbacks.every5seconds)
         ctx.pop()
 
     # initialize scheduler
@@ -292,9 +292,9 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
 
     scheduler.init_app(app)
     scheduler.start()
-    specter.service_manager.add_required_services_to_users(specter.user_manager.users)
+    specter.ext_manager.add_required_services_to_users(specter.user_manager.users)
     logger.info("----> starting service callback_after_serverpy_init_app ")
-    specter.service_manager.execute_ext_callbacks(
+    specter.ext_manager.execute_ext_callbacks(
         after_serverpy_init_app, scheduler=scheduler
     )
     return app

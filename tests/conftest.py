@@ -528,7 +528,7 @@ def specter_app_with_config(config={}, specter=None):
         tempClass = type("tempClass", (TestConfig,), {})
         for key, value in config.items():
             setattr(tempClass, key, value)
-        # service_manager will expect the class to be defined as a direct property of the module:
+        # ext_manager will expect the class to be defined as a direct property of the module:
         if hasattr(sys.modules[__name__], "tempClass"):
             delattr(sys.modules[__name__], "tempClass")
         assert not hasattr(sys.modules[__name__], "tempClass")

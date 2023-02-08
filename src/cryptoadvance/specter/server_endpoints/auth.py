@@ -182,7 +182,7 @@ def register():
                 plaintext_password=password,
                 config=config,
             )
-            app.specter.service_manager.add_required_services_to_users([user])
+            app.specter.ext_manager.add_required_services_to_users([user])
 
             flash(
                 _(
@@ -242,7 +242,7 @@ def redirect_login(request):
 
     for service_id in app.specter.user_manager.get_user().services:
         try:
-            service_cls = app.specter.service_manager.get_service(service_id)
+            service_cls = app.specter.ext_manager.get_service(service_id)
             service_cls.on_user_login()
         except ExtensionException as ee:
             if not str(ee).startswith("No such plugin"):

@@ -1,5 +1,5 @@
 import logging
-from cryptoadvance.specter.managers.service_manager import ExtensionManager
+from cryptoadvance.specter.managers import ExtensionManager
 
 logger = logging.getLogger(__name__)
 

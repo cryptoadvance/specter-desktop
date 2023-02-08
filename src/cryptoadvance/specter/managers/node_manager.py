@@ -11,7 +11,7 @@ from ..helpers import alias, calc_fullpath, load_jsons
 from ..node import Node, NonExistingNode
 from ..internal_node import InternalNode
 from ..services import callbacks
-from ..managers.service_manager.service_manager import ExtensionManager
+from ..managers import ExtensionManager
 from ..util.bitcoind_setup_tasks import setup_bitcoind_thread
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class NodeManager:
         bitcoind_path="",
         internal_bitcoind_version="",
         data_folder="",
-        service_manager=None,
+        ext_manager=None,
     ):
         self.nodes = {}
         # Dict is sth. like: {'nigiri_regtest': <Node name=Nigiri regtest fullpath=...>, 'default': <Node name=Bitcoin Core fullpath=...>}
@@ -36,7 +36,7 @@ class NodeManager:
         self.only_tor = only_tor
         self.bitcoind_path = bitcoind_path
         self.internal_bitcoind_version = internal_bitcoind_version
-        self.service_manager: ExtensionManager = service_manager
+        self.ext_manager: ExtensionManager = ext_manager
         self.load_from_disk(data_folder)
         internal_nodes = [
             node for node in self.nodes.values() if not node.external_node
@@ -66,8 +66,8 @@ class NodeManager:
                 if (
                     node.__class__.__module__.split(".")[1] == "specterext"
                 ):  # e.g. cryptoadvance.specterext.spectrum
-                    if self.service_manager:
-                        if not self.service_manager.is_class_from_loaded_extension(
+                    if self.ext_manager:
+                        if not self.ext_manager.is_class_from_loaded_extension(
                             node.__class__
                         ):
                             logger.warning(

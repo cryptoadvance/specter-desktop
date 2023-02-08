@@ -19,9 +19,9 @@ services_endpoint = Blueprint(
 )
 
 # All blueprint from Services are no longer loaded statically but dynamically when the service-class in initialized
-# check cryptoadvance.specter.services.service_manager.Service for doing that and
+# check cryptoadvance.specter.managers.extension_manager.ExtensionManager for doing that and
 # check cryptoadvance.specter.services/**/manifest for instances of Service-classes and
-# check cryptoadvance.specter.services.service_manager.ExtensionManager.services for initialisation of ServiceClasses
+# check cryptoadvance.specter.services.extension_manager.ExtensionManager.services for initialisation of ServiceClasses
 
 
 def user_secret_decrypted_required(func):
@@ -51,7 +51,7 @@ def choose():
         "services/choose.jinja",
         is_login_disabled=app.config["LOGIN_DISABLED"],
         specter=app.specter,
-        services=app.specter.service_manager.services_sorted,
+        services=app.specter.ext_manager.services_sorted,
     )
 
 
@@ -66,7 +66,7 @@ def associate_addr(wallet_alias, address):
     if request.method == "POST":
         service_id = request.form["service_id"]
         wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-        service_cls = app.specter.service_manager.get_service(service_id)
+        service_cls = app.specter.ext_manager.get_service(service_id)
         service_cls.reserve_address(wallet=wallet, address=address)
         return redirect(
             url_for("wallets_endpoint.addresses", wallet_alias=wallet_alias)
@@ -78,7 +78,7 @@ def associate_addr(wallet_alias, address):
     services = []
     for service_id in current_user.services:
         try:
-            services.append(app.specter.service_manager.get_service(service_id))
+            services.append(app.specter.ext_manager.get_service(service_id))
         except ExtensionException:
             pass
 

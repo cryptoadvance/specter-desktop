@@ -1,10 +1,10 @@
 import pytest
 import logging
-from cryptoadvance.specter.managers.service_manager.callback_executor import (
+from cryptoadvance.specter.managers.extension_manager.callback_executor import (
     CallbackExecutor,
 )
 
-from cryptoadvance.specter.managers.service_manager.callback_executor import (
+from cryptoadvance.specter.managers.extension_manager.callback_executor import (
     topological_sort,
     set_dependency_level_recursive,
 )

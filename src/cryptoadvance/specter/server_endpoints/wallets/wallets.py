@@ -57,7 +57,7 @@ def inject_common_stuff():
     """Can be used in all jinja2 templates of this Blueprint
     Injects the additional wallet_tabs via extentions
     """
-    ext_wallettabs = app.specter.service_manager.execute_ext_callbacks(
+    ext_wallettabs = app.specter.ext_manager.execute_ext_callbacks(
         callbacks.add_wallettabs
     )
     return dict(ext_wallettabs=ext_wallettabs)
@@ -74,7 +74,7 @@ def wallets_overview():
     # that's why we need so many lines for just expressing:
     # "Here is a ViewModel, adjust it if you want"
     # We need to change that method to enable "middleware"
-    wallets_overview_vm = app.specter.service_manager.execute_ext_callbacks(
+    wallets_overview_vm = app.specter.ext_manager.execute_ext_callbacks(
         adjust_view_model, WalletsOverviewVm()
     )
     if wallets_overview_vm.wallets_overview_redirect != None:
@@ -90,7 +90,7 @@ def wallets_overview():
         "wallet/overview/wallets_overview.jinja",
         specter=app.specter,
         rand=rand,
-        services=app.specter.service_manager.services,
+        services=app.specter.ext_manager.services,
         wallets_overview_vm=wallets_overview_vm,
     )
 
@@ -434,7 +434,7 @@ def history(wallet_alias):
         tx_list_type=tx_list_type,
         specter=app.specter,
         rand=rand,
-        services=app.specter.service_manager.services,
+        services=app.specter.ext_manager.services,
     )
 
 
@@ -775,7 +775,7 @@ def addresses(wallet_alias):
         wallet=wallet,
         specter=app.specter,
         rand=rand,
-        services=app.specter.service_manager.services,
+        services=app.specter.ext_manager.services,
     )
 
 

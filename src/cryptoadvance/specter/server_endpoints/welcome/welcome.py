@@ -53,7 +53,7 @@ def about():
     # that's why we need so many lines for just expressing:
     # "Here is a ViewModel, adjust it if you want"
     # We need to change that method to enable "middleware"
-    welcome_vm = app.specter.service_manager.execute_ext_callbacks(
+    welcome_vm = app.specter.ext_manager.execute_ext_callbacks(
         adjust_view_model, WelcomeVm()
     )
     if welcome_vm.about_redirect != None:

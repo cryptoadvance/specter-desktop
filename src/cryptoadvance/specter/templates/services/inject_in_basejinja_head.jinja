@@ -1,4 +1,4 @@
-{% for _,service in specter.service_manager.services.items() %}
+{% for _,service in specter.ext_manager.services.items() %}
     {% if service.id in current_user.services %}
         {% set html_inject_in_basejinja = service.inject_in_basejinja_head() %}
         {% if html_inject_in_basejinja %}
