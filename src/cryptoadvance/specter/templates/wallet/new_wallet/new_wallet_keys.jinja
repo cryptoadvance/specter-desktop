@@ -9,7 +9,7 @@
 
 		<h3 class="mt-8">Information</h3>
 		<div class="floating-wrapper">
-			<input type="text" id="wallet_name" name="wallet_name" class="peer floating-input" value="{{ wallet_name }}" placeholder=" " required>
+			<input type="text" pattern="^[^']+" title="Do not use single quotes" id="wallet_name" name="wallet_name" class="peer floating-input" value="{{ wallet_name }}" placeholder=" " required>
 			<label class="floating-label">Wallet Name</label>
 		</div>
 
