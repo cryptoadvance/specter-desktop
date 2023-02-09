@@ -78,7 +78,7 @@ class ExtensionManager:
                 self.specter.ext[clazz.id] = self._services[clazz.id]
                 # maybe register the blueprint
                 self.register_blueprint_for_ext(clazz, self._services[clazz.id])
-                self.add_devices_for_ext(clazz, self._services[clazz.id])
+                self.register_devices_from_ext(self._services[clazz.id])
                 logger.info(f"Service {clazz.__name__} activated ({clazz.devstatus})")
             else:
                 logger.info(
@@ -213,14 +213,14 @@ class ExtensionManager:
 
     @classmethod
     def extract_thing_classes_from_extension(
-        cls, things: str, thing_class: Type, ext
+        cls, things: str, thing_class: type, ext
     ) -> List[type]:
         if hasattr(ext.__class__, things):
             thing_modules: List[str] = getattr(ext.__class__, things)
         else:
             return []
         classes = []
-        for module in devices_modules:
+        for module in thing_modules:
             try:
                 classes.extend(
                     get_classlist_of_type_clazz_from_modulelist(Device, [module])
