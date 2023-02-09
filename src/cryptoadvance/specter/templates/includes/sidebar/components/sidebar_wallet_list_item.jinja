@@ -24,11 +24,9 @@
         <div class="flex flex-col justify-between space-y-1">
             <div class="text-lg leading-none">{{ wallet.name }}</div>
             <span class="text-sm text-dark-300 leading-none" data-style="font-size: 0.75em;">{% if wallet.is_multisig %}{{ wallet.sigs_required }} out of {{ wallet.keys_count }} {{ _("Multisig") }}{% else %}{{ _("Single Key") }}{% endif %}</span>
-            {% if wallet.rescan_progress %}
-                <span id="{{ wallet.alias }}_sidebar_rescan_progress_container" data-style="display: contents;">
-                <br>
-                <span class="note" data-style="font-size: 0.7em;">{{ _("Rescanning blockchain") }}: <span id="{{ wallet.alias }}_sidebar_wallet_rescan_percents">{{ "%.2f"|format(wallet.rescan_progress * 100) }}</span>%</span> </span>
-            {% endif %}
+            <!-- {% if wallet.rescan_progress %} -->
+            <!--     <span id="{{ wallet.alias }}_sidebar_rescan_progress_container" style="display: contents;"><span>{{ _("Rescanning blockchain") }}: <span id="{{ wallet.alias }}_sidebar_wallet_rescan_percents">{{ "%.2f"|format(wallet.rescan_progress * 100) }}</span>%</span></span> -->
+            <!-- {% endif %} -->
         </div>
     </a>
 
