@@ -145,7 +145,7 @@
             for (let existingRow of xpubsTable.children) {
                 let existingRowDerivation = document.getElementById(existingRow.id + '-derivation')
                 if (existingRowDerivation && existingRowDerivation.innerHTML == derivation) {
-                    document.getElementById(existingRow.id + '-xpub').innerHTML = xpub;
+                    document.getElementById(existingRow.id + '-xpub').childNodes[0].innerHTML = xpub;
                     document.getElementById(existingRow.id + '-xpub-hidden').value = xpub;
                     if (purpose != 'Custom' && document.getElementById(existingRow.id + '-purpose').value == 'Custom') {
                         document.getElementById(existingRow.id + '-purpose').value = purpose;
@@ -325,7 +325,7 @@
             let xpubsTable = document.getElementById('xpubs_table');
             
             for (let xpubRow of [].slice.call(xpubsTable.children, 0, xpubsTable.children.length - 3)) {
-                if (document.getElementById(xpubRow.id + '-xpub').innerHTML != '-') {
+                if (document.getElementById(xpubRow.id + '-xpub').childNodes[0].innerHTML != '-') {
                     continue
                 }
 
