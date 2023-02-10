@@ -256,7 +256,7 @@ function initMainWindow(specterURL) {
 }
 
 function downloadSpecterd(specterdPath) {
-  updatingLoaderMsg(`Fetching the ${appName} binary...<br>This might take a minute...`)
+  updatingLoaderMsg(`Fetching the ${appName} binary.<br>This might take a minute...`)
   updateSpecterdStatus(`Fetching ${appName} binary...`)
   logger.info("Using version " + appSettings.specterdVersion);
   logger.info("Using platformName " + platformName);
