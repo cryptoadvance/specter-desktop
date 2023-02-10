@@ -45,7 +45,7 @@
 			<div class="flex space-x-3">
 				<div class="floating-wrapper grow-[3]">
 					<input class="floating-input peer" type="text" id="address" name="address" value="" placeholder=" ">
-					<label class="floating-label">Recipient Address</label>
+					<label class="floating-label" id="addressInputLabel">Recipient Address</label>
 					<qr-scanner id="address-scan" class="absolute right-2 top-2">
 						<a slot="button" class="cursor-pointer">
 							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" data-style="width: 26px; margin: 0px;" class="svg-white">
@@ -127,6 +127,7 @@
 
 			this.amountElement = clone.getElementById('amount');
 			this.addressElement = clone.getElementById('address');
+			this.addressInputLabel = clone.getElementById('addressInputLabel')
 			this.labelElement = clone.getElementById('label');
 			this.titleElement = clone.getElementById('title'); 
 			this.removeElement = clone.getElementById('remove'); 
@@ -189,12 +190,17 @@
 				});	
 			}); 	
 
-
-			this.addressElement.addEventListener('input', event=>{
-				this.dispatchAddressOnInput();
-			});			
-
-
+			this.addressElement.addEventListener('input', (e) => {
+				// Resetting for the case that user inputs own address and then clears the address at once
+				if (this.addressElement.value === '') {
+					this.addressElement.removeAttribute('data-cy', 'address-is-mine')
+					this.addressInputLabel.innerText = "Recipient Address"
+				}
+				else {
+					this.dispatchAddressOnInput();
+				}
+			});
+			
 			this.shadowRoot.getElementById('address-scan').addEventListener('scan', event=>{
 				let addr = event.detail.result;
 				if(addr == null){
@@ -488,7 +494,12 @@
 		markRecipient(is_address_mine) {
 			if (is_address_mine) {
 				this.addressElement.setAttribute('data-cy', 'address-is-mine')
-			} 
+				this.addressInputLabel.innerText = "Own Address"
+			}
+			else {
+				this.addressElement.removeAttribute('data-cy', 'address-is-mine')
+				this.addressInputLabel.innerText = "Recipient Address"
+			}
 		}
 	}
 	customElements.define('recipient-box', RecipientBox);
