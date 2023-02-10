@@ -6,7 +6,7 @@ describe('Test sending transactions', () => {
 
     it('Send a standard transaction', () => {
         cy.addHotDevice("Hot Device 1","bitcoin")
-        cy.addWallet('Test Hot Wallet 1', 'segwit', 'funded', 'btc', 'singlesig', 'Hot Device 1')
+        cy.addWallet('Test Hot Wallet 1', 'segwit', 'funded', true, 'btc', 'singlesig', 'Hot Device 1')
         cy.selectWallet("Test Hot Wallet 1")
         cy.get('#btn_send').click()
         cy.get('#recipient_0').find('#address').type("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u", { force: true })
@@ -242,7 +242,7 @@ describe('Test sending transactions', () => {
     it('Send a transaction from a multisig wallet', () => {
         // We need a second hot wallet
         cy.addHotDevice("Hot Device 2","bitcoin")
-        cy.addWallet('Test Multisig Wallet', 'segwit', 'funded', 'btc', 'multisig', 'Hot Device 1', 'Hot Device 2', 'DIY ghost')  
+        cy.addWallet('Test Multisig Wallet', 'segwit', 'funded', true, 'btc', 'multisig', 'Hot Device 1', 'Hot Device 2', 'DIY ghost')  
         cy.selectWallet('Test Multisig Wallet')      
         cy.get('#btn_send').click()
         cy.get('#recipient_0').find('#address').type("bcrt1qsj30deg0fgzckvlrn5757yk55yajqv6dqx0x7u", { force: true })
