@@ -869,29 +869,6 @@ select {
   animation: spin 1.5s linear infinite;
 }
 
-/*
-   *
-   * ScrollBars
-   *
-   */
-
-*::-webkit-scrollbar-track {
-  width: 0.5rem;
-  background-color: transparent;
-  padding: 2px;
-}
-
-*::-webkit-scrollbar-thumb {
-  width: 0.25rem;
-  border-radius: 0.75rem;
-  --tw-bg-opacity: 1;
-  background-color: rgb(27 28 33 / var(--tw-bg-opacity));
-}
-
-*::-webkit-scrollbar-corner {
-  background-color: transparent;
-}
-
 *, ::before, ::after {
   --tw-border-spacing-x: 0;
   --tw-border-spacing-y: 0;
@@ -1558,12 +1535,12 @@ input[type="number"]::-webkit-outer-spin-button,
   flex-shrink: 0;
 }
 
-.shrink {
-  flex-shrink: 1;
-}
-
 .shrink-0 {
   flex-shrink: 0;
+}
+
+.shrink {
+  flex-shrink: 1;
 }
 
 .flex-grow {
@@ -2123,6 +2100,11 @@ input[type="number"]::-webkit-outer-spin-button,
   color: rgb(194 65 12 / var(--tw-text-opacity));
 }
 
+.text-black {
+  --tw-text-opacity: 1;
+  color: rgb(0 0 0 / var(--tw-text-opacity));
+}
+
 .text-dark-100 {
   --tw-text-opacity: 1;
   color: rgb(207 207 208 / var(--tw-text-opacity));
@@ -2161,6 +2143,14 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .opacity-100 {
   opacity: 1;
+}
+
+.opacity-50 {
+  opacity: 0.5;
+}
+
+.opacity-80 {
+  opacity: 0.8;
 }
 
 .shadow {
@@ -2243,6 +2233,25 @@ input[type="number"]::-webkit-outer-spin-button,
   -webkit-font-smoothing: antialiased;
 }
 
+/*
+ *
+ * ScrollBars
+ *
+ */
+
+*::-webkit-scrollbar,
+*::-webkit-scrollbar-track-piece,
+*::-webkit-scrollbar-corner {
+  width: 0.5rem !important;
+  background-color: transparent !important;
+}
+
+*::-webkit-scrollbar-thumb {
+  border-radius: 0.75rem;
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(44 45 49 / var(--tw-bg-opacity)) !important;
+}
+
 .hover\:border-dark-800:hover {
   --tw-border-opacity: 1;
   border-color: rgb(20 21 26 / var(--tw-border-opacity));
@@ -2273,6 +2282,10 @@ input[type="number"]::-webkit-outer-spin-button,
   color: rgb(231 231 232 / var(--tw-text-opacity));
 }
 
+.hover\:opacity-100:hover {
+  opacity: 1;
+}
+
 .group:hover .group-hover\:ml-3 {
   margin-left: 0.75rem;
 }
@@ -2299,6 +2312,11 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .peer:checked ~ .peer-checked\:hidden {
   display: none;
+}
+
+.peer:checked ~ .peer-checked\:border-accent {
+  --tw-border-opacity: 1;
+  border-color: rgb(46 92 255 / var(--tw-border-opacity));
 }
 
 .peer:checked ~ .peer-checked\:bg-dark-700 {

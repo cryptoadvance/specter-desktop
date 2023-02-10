@@ -15,8 +15,6 @@ from cryptoadvance.specter.devices.elements_core import ElementsCore
 from cryptoadvance.specter.managers.node_manager import NodeManager
 from cryptoadvance.specter.node import Node
 
-from cryptoadvance.specterext.electrum.controller import specter
-
 from ..devices.bitcoin_core import BitcoinCore, BitcoinCoreWatchOnly
 from ..helpers import is_testnet
 from ..key import Key
