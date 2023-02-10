@@ -1,5 +1,8 @@
-<div id="hwi_selector" class="hidden">
-    <h1>{{ _("Select USB Wallet") }}</h1>
+<div id="hwi_selector" class="p-4 bg-dark-800 rounded-lg hidden">
+    <div class="flex justify-between mb-2">
+        <h3 class="mb-0">{{ _("Select USB Device") }}</h3>
+        <p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer">Close</p>
+    </div>
     <div class="flex-center flex-column" id="hwi_selector_container">
     </div>
 </div>
@@ -15,9 +18,7 @@
         el.innerHTML = "";
         devices.forEach(dev =>{
             let btn = document.createElement('button');
-            btn.classList.add('btn');
-            btn.classList.add('flex-item');
-            btn.style.width = "200px";
+            btn.classList.add('button bg-accent');
             let mfp = "unknown";
             if('fingerprint' in dev){
                 mfp = dev.fingerprint;
