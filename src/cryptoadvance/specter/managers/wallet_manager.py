@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 import os
 import sys
 import pathlib
@@ -159,6 +160,7 @@ class WalletManager:
         logger.info(
             f"Started updating wallets with {len(wallets_update_list.values())} wallets"
         )
+        timestamp = datetime.now()
         # list of wallets in the dict
         existing_names = list(self.wallets.keys())
         # list of wallet to keep
@@ -262,7 +264,10 @@ class WalletManager:
             logger.error(f"Failed updating wallet manager. RPC error: {e}")
         finally:
             self.is_loading = False
-            logger.info("Updating wallet manager done. Result:")
+            timediff_ms = int((datetime.now() - timestamp).total_seconds() * 1000)
+            logger.info(
+                "Updating wallet manager done in {: >5}ms. Result:".format(timediff_ms)
+            )
             logger.info(f"  * loaded_wallets: {len(self.wallets)}")
             logger.info(f"  * failed_load_wallets: {len(self._failed_load_wallets)}")
             for wallet in self._failed_load_wallets:
