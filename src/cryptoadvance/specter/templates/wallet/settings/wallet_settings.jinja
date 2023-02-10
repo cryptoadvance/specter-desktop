@@ -108,10 +108,13 @@
 								Save {{ device.name }} file
 							</a>
 						{% elif device.wallet_export_type == 'qr' %}
-							<button onclick="showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="button mt-3">Show {{ device.name }} QR Code</button>
-							<div id="{{ device.alias }}_export_qr_code" data-style="display: none;">
-								<h1>{{ _("Scan this with your") }} {{ device.name }} {{ _("device") }} </h1>
-								<qr-code value="{{ device.export_wallet(wallet) }}" width="400" scalable></qr-code>
+							<button onclick="showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="button mt-3 mb-8">Show {{ device.name }} QR Code</button>
+							<div id="{{ device.alias }}_export_qr_code" class="bg-dark-800 p-4 w-120" style="display: none;">
+								<div class="flex justify-between mb-4">
+										<h3 class="mb-0">{{ _("Scan this with your") }} {{ device.name }} {{ _("device") }} </h3>
+										<p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer">Close</p>
+								</div>
+								<qr-code value="{{ device.export_wallet(wallet) }}" width="400"></qr-code>
 							</div>
 						{% endif %}
 					{% endif %}
@@ -120,7 +123,7 @@
 			
 			<h3>{{ _("Export to wallet software") }}</h3>
 			<p>{{ _("Export this wallet to another Specter instance or other supported wallet softwares by scanning the QR code or importing the JSON file.") }}</p>
-			<button onclick="showPageOverlay('account_map_export')" type="button" class="button mt-3">{{ _("Go to export details") }}</button>
+			<button onclick="showPageOverlay('account_map_export')" type="button" class="button mt-3" data-cy="show-export-details-overlay-btn">{{ _("Go to export details") }}</button>
 
 			<h3 class="mt-8">{{ _("Specter wallet backup") }}</h3>
 			<p>{{ _("Create a JSON file containing all wallet data including labels.") }}</p>

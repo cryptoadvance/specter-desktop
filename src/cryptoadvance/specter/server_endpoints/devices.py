@@ -15,8 +15,6 @@ from cryptoadvance.specter.devices.elements_core import ElementsCore
 from cryptoadvance.specter.managers.node_manager import NodeManager
 from cryptoadvance.specter.node import Node
 
-from cryptoadvance.specterext.electrum.controller import specter
-
 from ..devices.bitcoin_core import BitcoinCore, BitcoinCoreWatchOnly
 from ..helpers import is_testnet
 from ..key import Key
@@ -440,7 +438,7 @@ def device(device_alias):
                     bitcoin_datadir=app.specter.bitcoin_datadir,
                     chain=app.specter.chain,
                 )
-                return redirect("")
+                return redirect(url_for("welcome_endpoint.index"))
         elif action == "delete_key":
             key = Key.from_json({"original": request.form["key"]})
             wallets_with_key = [w for w in wallets if key in w.keys]

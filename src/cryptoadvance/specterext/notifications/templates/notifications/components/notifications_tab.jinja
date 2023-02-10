@@ -1,0 +1,8 @@
+{% extends "notifications/base.jinja" %}
+{% block main %}
+    <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" width="300"/>    
+    {% from 'notifications/components/notifications_menu.jinja' import notifications_menu with context %}
+    {{ notifications_menu(tab) }}
+    {% block content %}
+    {% endblock %}
+{% endblock %}

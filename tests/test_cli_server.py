@@ -8,6 +8,7 @@ from cryptoadvance.specter.cli import server
 from mock import MagicMock, call, patch
 
 mock_config_dict = {
+    "HOST": "127.0.0.1",
     "PORT": "123",
     "DEBUG": "WURSTBROT",
     "SPECTER_SSL_CERT_SUBJECT_C": "AT",
@@ -139,6 +140,7 @@ def test_server_config(init_app, create_app, caplog):
     mock_app = MagicMock()
     mock_app.config = MagicMock()
     d = {
+        "HOST": "127.0.0.1",
         "PORT": "123",
         "DEBUG": "WURSTBROT",
         "SPECTER_SSL_CERT_SUBJECT_C": "AT",
