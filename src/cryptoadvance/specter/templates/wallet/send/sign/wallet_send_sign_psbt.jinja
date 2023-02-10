@@ -75,7 +75,7 @@
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<div class="tx_info">
 			{% for i in range(psbt['address']|length) %}
-				<div class="flex items-center space-x-2 whitespace-nowrap">
+				<div class="flex items-center flex-wrap whitespace-nowrap">
 					{% if "asset" in psbt %}
 						{{ _("Sending ") }} <b>&nbsp;{{ psbt["amount"][i] | btcamount }}&nbsp;</b> <asset-label data-asset="{{psbt['asset'][i]}}" data-label="{{psbt['asset'][i] | assetlabel}}"></asset-label>
 					{% else %}
@@ -89,7 +89,7 @@
 							({{ psbt["amount"][i] | altunit }})
 						{% endif %}
 					{% endif %}
-					{{ _(" to") }}<b>
+					{{ _(" to ") }}<b class="ml-2">
 						{% set addr_label = wallet.getlabel(psbt['address'][i]) %}
 						<address-label data-address="{{ psbt['address'][i] }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
 					</b>
@@ -101,13 +101,13 @@
 				</div>
 			{% endfor %}
 			{% if wallet.is_multisig %}
-				<div class="log" data-style="margin: auto;">
+				<div class="log mb-5" data-style="margin: auto;">
 					{{ _("Acquired") }} <b id="sigscount">{{ psbt['sigs_count'] }}</b> {{ _("of") }} <b>{{ wallet.sigs_required }}</b> {{ _("signatures") }}.
 				</div>
 			{% endif %}
 
 			<input hidden class="peer" type="checkbox" id="showdetails">
-			<label for="showdetails" class="btn togglebtn">
+			<label for="showdetails" class="mt-5 button togglebtn">
 				{{ _("Transaction Details") }}
 			</label>
 
@@ -220,6 +220,7 @@
 
 		<div id="signing_container" class="signing_container mt-8 flex-column {% if psbt['raw'] %}hidden{% endif %}">
 			<h3>{{ _("Sign Transaction") }}</h3>
+			<div class="mt-3 space-y-3">
 			{% for device in wallet.devices %}
 				{% if device.type != "bitcoincore_watchonly" %}
 					{% set device_signed = (device.alias in psbt.get("devices_signed")) %}
@@ -231,6 +232,7 @@
 					<p>{{ _("Cannot sign with a watchonly wallet") }}</p>
 				{% endif %}
 			{% endfor %}
+			</div>
 		</div>
 
 		{# ===================== Possible tx signers' outputs ===================== #}
@@ -242,7 +244,7 @@
 			</div>
 		</div>
 
-		<div id="paste_signed" class="output_option {% if psbt['raw'] %}hidden{% endif %}" data-style="margin-top:20px">
+		<div id="paste_signed" class="mt-3 output_option {% if psbt['raw'] %}hidden{% endif %}" data-style="margin-top:20px">
 			<button type="button" onclick="showPageOverlay('paste-tx-popup')" class="button centered" id="pastetx">{{ _("Paste signed transaction") }}</a>
 		</div>
 
