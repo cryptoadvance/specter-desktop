@@ -208,7 +208,7 @@ app.whenReady().then(() => {
         
         startSpecterd(specterdPath)
       } else if (appSettings.specterdVersion != "") {
-        updatingLoaderMsg('Specterd version could not be validated.<br>Retrying fetching specterd...<br>This might take a minute...')
+        updatingLoaderMsg('Specterd version could not be validated. Retrying fetching specterd...')
         updateSpecterdStatus('Fetching Specter binary...')
         downloadSpecterd(specterdPath)
       } else {

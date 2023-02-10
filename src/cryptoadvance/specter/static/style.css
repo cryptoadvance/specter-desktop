@@ -18,10 +18,6 @@
    *
    */
 
-  html {
-    @apply overflow-hidden max-h-full;
-  }
-
   h1 {
     @apply text-4xl font-medium mb-2;
   }
