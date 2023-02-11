@@ -31,8 +31,8 @@ class ServiceOptionality:
     opt_out = "opt_out"
 
 
-class Service:
-    """A base class for Services"""
+class Extension:
+    """A base class for Extensions"""
 
     # These should be overrided in implementation classes
     id = None
@@ -42,7 +42,7 @@ class Service:
     desc = None  # TODO: rename to "description" to be explicit
     has_blueprint = True  # the default
     # If the blueprint gets a "/ext" prefix (isolated_client = True), the login cookie won't work for all specter core functionality
-    isolated_client = True
+    isolated_client = False
     devstatus = devstatus_alpha
     optionality = ServiceOptionality.opt_in
     visible_in_sidebar = True
@@ -246,3 +246,11 @@ class Service:
         return render_template("myext/inject_in_basejinja_body_bottom.jinja")
         """
         pass
+
+
+class Service(Extension):
+    """Deprecated! You should derive from Extension!
+    This is only here for backwards compatibility and will be removed after some time
+    """
+
+    pass

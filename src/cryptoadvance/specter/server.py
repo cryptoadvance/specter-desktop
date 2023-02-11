@@ -5,6 +5,11 @@ from distutils.core import setup
 from http.client import HTTPConnection
 from pathlib import Path
 
+from cryptoadvance.specter.liquid.rpc import LiquidRPC
+from cryptoadvance.specter.managers.service_manager import ExtensionManager
+from cryptoadvance.specter.rpc import BitcoinRPC
+from cryptoadvance.specter.services import callbacks
+from cryptoadvance.specter.util.reflection import get_template_static_folder
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, request, session, url_for
 from flask_apscheduler import APScheduler
@@ -17,7 +22,7 @@ from werkzeug.wrappers import Response
 
 from cryptoadvance.specter.hwi_rpc import HWIBridge
 from cryptoadvance.specter.liquid.rpc import LiquidRPC
-from cryptoadvance.specter.managers.service_manager import ServiceManager
+from cryptoadvance.specter.managers.service_manager import ExtensionManager
 from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.services import callbacks
 from cryptoadvance.specter.util.reflection import get_template_static_folder
@@ -158,7 +163,7 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     # It's an attribute to the specter but specter is not aware of it.
     # However some managers are aware of it and so we need to split
     # instantiation from initializing and in between attach the service_manager
-    specter.service_manager = ServiceManager(
+    specter.service_manager = ExtensionManager(
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )
 

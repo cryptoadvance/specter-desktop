@@ -20,7 +20,7 @@ from cryptoadvance.specter.services.service_encrypted_storage import (
     ServiceEncryptedStorageError,
     ServiceEncryptedStorageManager,
 )
-from cryptoadvance.specter.managers.service_manager import ServiceManager
+from cryptoadvance.specter.managers.service_manager import ExtensionManager
 from cryptoadvance.specter.user import User, hash_password
 
 
@@ -41,13 +41,13 @@ class FakeService(Service):
 
 
 # @patch("cryptoadvance.specter.services.service_manager.app")
-# def test_ServiceManager_loads_services(empty_data_folder, app):
+# def test_ExtensionManager_loads_services(empty_data_folder, app):
 #     # app.config = MagicMock()
 #     # app.config.get.return_value = "prod"
 #     specter_mock = MagicMock()
 #     specter_mock.data_folder.return_value = empty_data_folder
 
-#     service_manager = ServiceManager(specter=specter_mock, devstatus_threshold="alpha")
+#     service_manager = ExtensionManager(specter=specter_mock, devstatus_threshold="alpha")
 #     services = service_manager.services
 #     assert "swan" in services
 
