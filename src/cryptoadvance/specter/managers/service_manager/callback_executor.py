@@ -83,6 +83,14 @@ class CallbackExecutor:
         return get_subclasses(Callback)
 
     def check_callback(self, callback, *args, **kwargs):
+        """A callback argument needs to:
+        * be a class which derives from callback
+        * or a instance of such a class. This might simplify the the whole extensionframework in the future
+        * If a callback has the return-type "middleware", it has to have exactly one argument (otherwise the whole thing gets to complicated)
+        If one of the checks fails, it'll raise an SpecterInternalException. This behaviour should be improved over time but as long as
+        the number of extensions are so small, that behaviour helps to catch issues in all extensions.
+        ToDo in the future: Complaining and ignoring.
+        """
         if type(callback) != type:
             callback: Callback = callback.__class__
         if callback not in self.all_callbacks:

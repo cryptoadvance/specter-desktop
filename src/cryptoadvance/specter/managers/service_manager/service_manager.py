@@ -192,6 +192,9 @@ class ExtensionManager:
 
     @classmethod
     def register_devices_from_ext(cls, ext):
+        """extract the devices from the extension and appends all found one to
+        cryptoadvance.specter.devices
+        """
         classes = cls.extract_thing_classes_from_extension("devices", Device, ext)
         if not classes:
             return
@@ -203,7 +206,10 @@ class ExtensionManager:
 
     @classmethod
     def register_callbacks_from_ext(cls, ext):
-        # importing it is the main job here. If it's impored, it'll also be discovered
+        """extract all callbacks from the extension and import them so that they are
+        discoverable as subclass of Callback.
+        """
+        # importing it is the main job here. If it's imported, it'll also be discovered
         # as a subclass of Callback.
         classes = cls.extract_thing_classes_from_extension(
             "callbacks", callbacks.Callback, ext
@@ -215,6 +221,13 @@ class ExtensionManager:
     def extract_thing_classes_from_extension(
         cls, things: str, thing_class: type, ext
     ) -> List[type]:
+        """If an extension has a definition like that:
+        class SomeExtension(Extension)
+            things = ["someNym.specterext.some_extensions.things"]
+        then this method will return a list of all the thing_class classes
+        which can be found in that module:
+        extract_thing_classes_from_extension("things",Thing, someExtension)
+        """
         if hasattr(ext.__class__, things):
             thing_modules: List[str] = getattr(ext.__class__, things)
         else:
