@@ -21,7 +21,7 @@ services_endpoint = Blueprint(
 # All blueprint from Services are no longer loaded statically but dynamically when the service-class in initialized
 # check cryptoadvance.specter.services.service_manager.Service for doing that and
 # check cryptoadvance.specter.services/**/manifest for instances of Service-classes and
-# check cryptoadvance.specter.services.service_manager.ServiceManager.services for initialisation of ServiceClasses
+# check cryptoadvance.specter.services.service_manager.ExtensionManager.services for initialisation of ServiceClasses
 
 
 def user_secret_decrypted_required(func):

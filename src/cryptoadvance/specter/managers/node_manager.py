@@ -11,7 +11,7 @@ from ..helpers import alias, calc_fullpath, load_jsons
 from ..node import Node, NonExistingNode
 from ..internal_node import InternalNode
 from ..services import callbacks
-from ..managers.service_manager import ServiceManager
+from ..managers.service_manager import ExtensionManager
 from ..util.bitcoind_setup_tasks import setup_bitcoind_thread
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ class NodeManager:
         self.only_tor = only_tor
         self.bitcoind_path = bitcoind_path
         self.internal_bitcoind_version = internal_bitcoind_version
-        self.service_manager: ServiceManager = service_manager
+        self.service_manager: ExtensionManager = service_manager
         self.load_from_disk(data_folder)
         internal_nodes = [
             node for node in self.nodes.values() if not node.external_node

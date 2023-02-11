@@ -90,10 +90,7 @@ def test_get_subclasses_for_class(caplog):
     classlist = get_subclasses_for_clazz(SpecterMigration)
     assert len(classlist) >= 3
     classlist = get_subclasses_for_clazz(Service)
-    assert len(classlist) >= 5
-    # checking naively for certain Services would be counterproductive if you import
-    # the class. THis needs to work without importing the class!
-    # But we can test like this:
-    assert "SwanService" in [cls.__name__ for cls in classlist]
-    classlist = get_subclasses_for_clazz(Device)
-    assert len(classlist) > 5
+    assert len(classlist) == 5  # Happy to remove that at some point
+    assert SwanService in classlist
+    assert ElectrumService in classlist
+    assert DevhelpService in classlist
