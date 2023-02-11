@@ -96,6 +96,7 @@ describe('Test the actions in UTXO list', () => {
         cy.get('#btn_transactions').click()
         cy.wait(1000)
         cy.get('[data-cy="utxo-list-btn"]').click()
+        cy.wait(500)
         cy.get('@unsignedTxRow').should('have.attr', 'data-cy', 'unsigned-tx-row')
         // Check that only the checkbox of the unsigned UTXO are visible if it is selected
         cy.get('@unsignedTxRow').find('.select-tx-img').click( {position: 'top'} )
