@@ -18,7 +18,7 @@
         el.innerHTML = "";
         devices.forEach(dev =>{
             let btn = document.createElement('button');
-            btn.classList.add('button bg-accent');
+            btn.classList.add('button', 'bg-accent');
             let mfp = "unknown";
             if('fingerprint' in dev){
                 mfp = dev.fingerprint;
