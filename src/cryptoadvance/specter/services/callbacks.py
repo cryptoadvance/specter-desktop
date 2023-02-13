@@ -57,3 +57,19 @@ flask_before_request = "flask_before_request"
     Will get called right after having access to app.specter
 """
 specter_added_to_flask_app = "specter_added_to_flask_app"
+
+"""
+    Will get called when the server_endpoints.flash is called
+"""
+flash = "flash"
+
+""" 
+    Callback that is not used yet, but could be implmented in server_endpoints just as flash
+"""
+create_and_show_notification = "create_and_show_notification"
+
+
+""" 
+    Callback that is called last in specter.cleanup_on_exit()
+"""
+cleanup_on_exit = "cleanup_on_exit"

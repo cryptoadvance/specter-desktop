@@ -40,6 +40,7 @@ from .persistence import read_json_file, write_json_file, write_node
 from .process_controller.bitcoind_controller import BitcoindPlainController
 from .rpc import BitcoinRPC, RpcError, get_default_datadir
 from .services.service import devstatus_alpha, devstatus_beta, devstatus_prod
+from .services import callbacks
 from .specter_error import ExtProcTimeoutException, SpecterError
 from .tor_daemon import TorDaemonController
 from .user import User
@@ -79,6 +80,7 @@ class Specter:
         if not os.path.isdir(data_folder):
             os.makedirs(data_folder)
 
+        self.call_functions_at_cleanup_on_exit = []
         self.data_folder = data_folder
         self._config = config
         self._internal_bitcoind_version = internal_bitcoind_version
@@ -127,10 +129,8 @@ class Specter:
             )
         except SpecterError as e:
             if str(e).endswith("does not exist!"):
-                logger.warning(
-                    f"Current Node doesn't exist. Switching over to node {self.node_manager.DEFAULT_ALIAS}."
-                )
-                self.update_active_node(self.node_manager.DEFAULT_ALIAS)
+                if len(self.node_manager.nodes) > 0:
+                    self.update_active_node(next(iter(self.nodes.values())).alias)
             else:
                 raise e
 
@@ -189,6 +189,7 @@ class Specter:
             signal.signal(signal.SIGINT, self.cleanup_on_exit)
             # This is for kill $pid --> SIGTERM
             signal.signal(signal.SIGTERM, self.cleanup_on_exit)
+        # a list of functions that are called at cleanup_on_exit taking in each signum, frame
 
     def cleanup_on_exit(self, signum=0, frame=0):
         if self._tor_daemon:
@@ -198,6 +199,9 @@ class Specter:
         for node in self.node_manager.nodes.values():
             if not node.external_node:
                 node.stop()
+
+        for f in self.call_functions_at_cleanup_on_exit:
+            f(signum, frame)
 
         logger.info("Closing Specter after cleanup")
         # For some reason we need to explicitely exit here. Otherwise it will hang
@@ -237,13 +241,7 @@ class Specter:
 
     @property
     def node(self) -> Node:
-        try:
-            return self.node_manager.active_node
-        except SpecterError as e:
-            logger.error("SpecterError while accessing active_node")
-            logger.exception(e)
-            self.update_active_node(list(self.node_manager.nodes.values())[0].alias)
-            return self.node_manager.active_node
+        return self.node_manager.active_node
 
     @property
     def default_node(self):
@@ -565,7 +563,7 @@ class Specter:
 
     @property
     def active_node_alias(self):
-        return self.user_config.get("active_node_alias", "default")
+        return self.user_config.get("active_node_alias", None)
 
     @property
     def explorer(self):
@@ -745,7 +743,7 @@ class Specter:
         old_internal_rpc = self.config.get("internal_node", None)
         if old_internal_rpc and os.path.isfile(self.bitcoind_path):
             internal_node = InternalNode(
-                "Specter Bitcoin",
+                "Specter Bitcoin internal",
                 "specter_bitcoin",
                 old_internal_rpc.get("autodetect", False),
                 old_internal_rpc.get("datadir", get_default_datadir()),
@@ -755,7 +753,7 @@ class Specter:
                 old_internal_rpc.get("host", "localhost"),
                 old_internal_rpc.get("protocol", "http"),
                 os.path.join(
-                    os.path.join(self.data_folder, "nodes"), "specter_bitcoin.json"
+                    os.path.join(self.data_folder, "nodes"), "bitcoin_core.json"
                 ),
                 self,
                 self.bitcoind_path,
@@ -776,7 +774,7 @@ class Specter:
         if old_rpc:
             node = Node(
                 "Bitcoin Core",
-                "default",
+                "bitcoin_core",
                 old_rpc.get("autodetect", True),
                 old_rpc.get("datadir", get_default_datadir()),
                 old_rpc.get("user", ""),
@@ -784,16 +782,21 @@ class Specter:
                 old_rpc.get("port", None),
                 old_rpc.get("host", "localhost"),
                 old_rpc.get("protocol", "http"),
-                os.path.join(os.path.join(self.data_folder, "nodes"), "default.json"),
+                os.path.join(
+                    os.path.join(self.data_folder, "nodes"), "bitcoin_core.json"
+                ),
                 "BTC",
                 self,
             )
             logger.info(f"persisting {node} in migrate_old_node_format")
             write_node(
                 node,
-                os.path.join(os.path.join(self.data_folder, "nodes"), "default.json"),
+                os.path.join(
+                    os.path.join(self.data_folder, "nodes"), "bitcoin_core.json"
+                ),
             )
             del self.config["rpc"]
+            self.config_manager.update_active_node("bitcoin_core")
         self._save()
 
 

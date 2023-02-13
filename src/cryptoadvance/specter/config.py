@@ -57,6 +57,7 @@ class BaseConfig(object):
     # The prefix for extensions which don't get access to the session cookie (if SPECTER_URL_PREFIX isn't compromised)
     ISOLATED_CLIENT_EXT_URL_PREFIX = "/ext"
 
+    HOST = os.getenv("HOST", "127.0.0.1")
     PORT = os.getenv("PORT", 25441)
     CONNECT_TOR = _get_bool_env_var(os.getenv("CONNECT_TOR", "False"))
     SPECTER_DATA_FOLDER = os.path.expanduser(
@@ -77,6 +78,13 @@ class BaseConfig(object):
     # CERT and KEY is for running self-signed-ssl-certs. Check cli_server for details
     CERT = os.getenv("CERT", None)
     KEY = os.getenv("KEY", None)
+
+    # This will be used to search for a bitcoin.conf in order to enable the
+    # auth method "RPC password as pin"
+    RASPIBLITZ_SPECTER_RPC_LOGIN_BITCOIN_CONF_LOCATION = os.getenv(
+        "RASPIBLITZ_SPECTER_RPC_LOGIN_BITCOIN_CONF_LOCATION", "/mnt/hdd/bitcoin"
+    )
+
     # This will get passed to initialize the specter-object
     DEFAULT_SPECTER_CONFIG = {}
 
@@ -176,6 +184,7 @@ class BaseConfig(object):
         "cryptoadvance.specterext.swan.service",
         "cryptoadvance.specterext.liquidissuer.service",
         "cryptoadvance.specterext.devhelp.service",
+        "cryptoadvance.specterext.notifications.service",
         "cryptoadvance.specterext.exfund.service",
         "cryptoadvance.specterext.faucet.service",
         "cryptoadvance.specterext.electrum.service",

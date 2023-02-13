@@ -875,7 +875,7 @@ class Wallet:
         except Exception as e:
             logger.exception(e)
             self._full_utxo = []
-            raise SpecterError(f"Failed to load utxos, {e}")
+            raise SpecterError(f"Failed to load utxos, {type(e).__name__}: {e}")
 
     def check_utxo_orig(self):
         """fetches the utxo-set from core and stores the result in self.__full_utxo which is
