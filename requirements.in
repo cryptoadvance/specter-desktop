@@ -2,7 +2,7 @@ certifi==2022.12.7
 chardet==3.0.4
 Click==8.1.1
 Flask==2.1.1
-Werkzeug==2.0.0 # need to pin because Flask doesn't work with newer ones
+Werkzeug==2.0.3 # need to pin because Flask doesn't work with newer ones
 Flask-Babel==2.0.0
 Flask-Cors==3.0.10
 Flask-Login==0.5.0
@@ -25,6 +25,7 @@ mnemonic==0.20
 cryptography==3.4.7
 Flask-APScheduler==1.12.4
 gunicorn==20.1.0
+simple-websocket==0.8.1
 protobuf==3.20.2
 PyJWT==2.4.0
 pytimeparse==1.1.8
@@ -33,5 +34,5 @@ psycopg2-binary==2.9.5
 cryptoadvance-liquidissuer==0.2.4
 specterext-exfund==0.1.7
 specterext-faucet==0.1.2
-cryptoadvance.spectrum==0.3.1
+cryptoadvance.spectrum==0.3.3
 specterext-stacktrack==0.2.1

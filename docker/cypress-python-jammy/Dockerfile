@@ -11,6 +11,9 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get install  --no-install-recommends -y
 			libboost-test-dev libboost-filesystem-dev libboost-thread-dev libsqlite3-dev git \
 			libevent-pthreads-2.1-7  
 
+# Stuff from the pre_prep script
+RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends python3-dev python3-pip python3-virtualenv bc
+
 WORKDIR /test
 RUN rm -rf node_modules package-lock.json ~/.cache/Cypress
 RUN npm install --save-dev cypress@9.7.0

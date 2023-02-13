@@ -32,14 +32,20 @@ from .managers.config_manager import ConfigManager
 from .managers.device_manager import DeviceManager
 from .managers.node_manager import NodeManager
 from .managers.otp_manager import OtpManager
-from .managers.service_manager import ServiceManager
+from .managers.service_manager import ExtensionManager
 from .managers.user_manager import UserManager
 from .managers.wallet_manager import WalletManager
 from .node import Node
 from .persistence import read_json_file, write_json_file, write_node
 from .process_controller.bitcoind_controller import BitcoindPlainController
-from .rpc import BitcoinRPC, RpcError, get_default_datadir
+from .rpc import (
+    BitcoinRPC,
+    RpcError,
+    get_default_datadir,
+)
+from .managers.service_manager import ExtensionManager
 from .services.service import devstatus_alpha, devstatus_beta, devstatus_prod
+from .services import callbacks
 from .specter_error import ExtProcTimeoutException, SpecterError
 from .tor_daemon import TorDaemonController
 from .user import User
@@ -79,6 +85,7 @@ class Specter:
         if not os.path.isdir(data_folder):
             os.makedirs(data_folder)
 
+        self.call_functions_at_cleanup_on_exit = []
         self.data_folder = data_folder
         self._config = config
         self._internal_bitcoind_version = internal_bitcoind_version
@@ -187,6 +194,7 @@ class Specter:
             signal.signal(signal.SIGINT, self.cleanup_on_exit)
             # This is for kill $pid --> SIGTERM
             signal.signal(signal.SIGTERM, self.cleanup_on_exit)
+        # a list of functions that are called at cleanup_on_exit taking in each signum, frame
 
     def cleanup_on_exit(self, signum=0, frame=0):
         if self._tor_daemon:
@@ -196,6 +204,9 @@ class Specter:
         for node in self.node_manager.nodes.values():
             if not node.external_node:
                 node.stop()
+
+        for f in self.call_functions_at_cleanup_on_exit:
+            f(signum, frame)
 
         logger.info("Closing Specter after cleanup")
         # For some reason we need to explicitely exit here. Otherwise it will hang
