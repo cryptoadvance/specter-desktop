@@ -53,28 +53,11 @@ def about():
     # that's why we need so many lines for just expressing:
     # "Here is a ViewModel, adjust it if you want"
     # We need to change that method to enable "middleware"
-    welcome_vm_dict = app.specter.service_manager.execute_ext_callbacks(
+    welcome_vm = app.specter.service_manager.execute_ext_callbacks(
         adjust_view_model, WelcomeVm()
     )
-    number_of_welcome_vm = len(
-        [
-            wallets_overview_vm
-            for wallets_overview_vm in welcome_vm_dict.values()
-            if type(wallets_overview_vm) == WelcomeVm
-        ]
-    )
-    if number_of_welcome_vm > 1:
-        raise SpecterInternalException(
-            f"Seems that we have more than one WelcomeVm Extension: {welcome_vm_dict} "
-        )
-    if number_of_welcome_vm == 1:
-        welcome_vm = list(welcome_vm_dict.values())[0]
-    else:
-        welcome_vm = WelcomeVm()
     if welcome_vm.about_redirect != None:
-        logger.info(
-            f"Extension {list(welcome_vm_dict.keys())[0]} redirects to {welcome_vm_dict.wallets_overview_redirect}"
-        )
+        logger.info(f"redirecting to {welcome_vm.about_redirect}")
         return redirect(welcome_vm.about_redirect)
 
     if request.method == "POST":

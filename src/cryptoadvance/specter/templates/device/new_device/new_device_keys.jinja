@@ -25,7 +25,7 @@
             {% if not existing_device %}
                 <h3 class="mt-8">Information</h3>
                 <div class="floating-wrapper mb-1">
-                    <input type="text" name="device_name" placeholder=" " class="floating-input peer" id="device_name" required/>
+                    <input type="text" pattern="^[^']+" title="Do not use single quotes" name="device_name" placeholder=" " class="floating-input peer" id="device_name" required/>
                     <label class="floating-label">Device Name</label>
                 </div>
             {% endif %}
@@ -84,7 +84,7 @@
                     <tr>
                         <th>{{ _("Purpose") }}</th>
                         <th>{{ _("Derivation") }}</th>
-                        <th>{{ _("XPUB") }}</th>
+                        <th class="table-key">{{ _("XPUB") }}</th>
                         <th><button type="button" class="btn" data-style="width: 60px;" id="edit-xpubs-table-btn" onclick="editXpubsTable(this)">{{ _("Edit") }}</button></th>
                     </tr>
                 </thead>
@@ -145,7 +145,7 @@
             for (let existingRow of xpubsTable.children) {
                 let existingRowDerivation = document.getElementById(existingRow.id + '-derivation')
                 if (existingRowDerivation && existingRowDerivation.innerHTML == derivation) {
-                    document.getElementById(existingRow.id + '-xpub').innerHTML = xpub;
+                    document.getElementById(existingRow.id + '-xpub').childNodes[0].innerHTML = xpub;
                     document.getElementById(existingRow.id + '-xpub-hidden').value = xpub;
                     if (purpose != 'Custom' && document.getElementById(existingRow.id + '-purpose').value == 'Custom') {
                         document.getElementById(existingRow.id + '-purpose').value = purpose;
@@ -160,7 +160,7 @@
                 <td><input id="xpubs-table-row-${xpubsTableRows}-purpose" name="xpubs-table-row-${xpubsTableRows}-purpose" type="text" value="${purpose}" placeholder="{{ _("XPUB purpose") }}" data-style="width: 90%; min-width: 100px;"></td>
                 <td id="xpubs-table-row-${xpubsTableRows}-derivation" data-style="min-width: 0px;">${derivation}</td>
                 <input id="xpubs-table-row-${xpubsTableRows}-derivation-hidden" name="xpubs-table-row-${xpubsTableRows}-derivation-hidden" type="hidden" value="${derivation}">
-                <td id="xpubs-table-row-${xpubsTableRows}-xpub" class="xpub scroll" data-style="overflow: auto;">${xpub}</td>
+                <td id="xpubs-table-row-${xpubsTableRows}-xpub" class="xpub scroll" data-style="overflow: auto;"><div class="table-key">${xpub}</div></td>
                 <input id="xpubs-table-row-${xpubsTableRows}-xpub-hidden" name="xpubs-table-row-${xpubsTableRows}-xpub-hidden" type="hidden" value="${xpub}">
                 <td><button type="button" class="btn xpubs_edit" data-style="width: 60px;" onclick="document.getElementById('xpubs-table-row-${xpubsTableRows}').remove()">Remove</button></td>
             `
@@ -325,7 +325,7 @@
             let xpubsTable = document.getElementById('xpubs_table');
             
             for (let xpubRow of [].slice.call(xpubsTable.children, 0, xpubsTable.children.length - 3)) {
-                if (document.getElementById(xpubRow.id + '-xpub').innerHTML != '-') {
+                if (document.getElementById(xpubRow.id + '-xpub').childNodes[0].innerHTML != '-') {
                     continue
                 }
 

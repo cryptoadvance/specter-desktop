@@ -9,7 +9,7 @@
 ARG USER=specter
 ARG DIR=/data/
 
-FROM python:3.9-slim-bullseye AS builder
+FROM python:3.10-slim-bullseye AS builder
 
 ARG VERSION
 ARG REPO
@@ -27,7 +27,7 @@ RUN pip3 install babel cryptography
 RUN pip3 install .
 
 
-FROM python:3.9-slim-bullseye as final
+FROM python:3.10-slim-bullseye as final
 
 ARG USER
 ARG DIR
@@ -48,7 +48,7 @@ RUN mkdir -p "$DIR/.specter/"
 
 
 # Copy over python stuff
-COPY --from=builder /usr/local/lib/python3.9 /usr/local/lib/python3.9
+COPY --from=builder /usr/local/lib/python3.10 /usr/local/lib/python3.10
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 

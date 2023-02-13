@@ -10,7 +10,10 @@ from typing import Dict, List
 
 from cryptoadvance.specter.config import ProductionConfig
 from cryptoadvance.specter.device import Device
-from cryptoadvance.specter.specter_error import SpecterError, SpecterInternalException
+from cryptoadvance.specter.managers.service_manager.callback_executor import (
+    CallbackExecutor,
+)
+from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.user import User
 from cryptoadvance.specter.util.reflection import get_template_static_folder
 from flask import current_app as app
@@ -19,7 +22,7 @@ from flask.blueprints import Blueprint
 
 from cryptoadvance.specter.util.specter_migrator import SpecterMigration
 
-from ...services.service import Service
+from ...services.service import Service, ServiceOptionality
 from ...services import callbacks, ExtensionException
 from ...util.reflection import (
     _get_module_from_class,
@@ -33,7 +36,7 @@ from ...util.reflection_fs import search_dirs_in_path
 logger = logging.getLogger(__name__)
 
 
-class ServiceManager:
+class ExtensionManager:
     """Loads support for all Services it auto-discovers."""
 
     def __init__(self, specter, devstatus_threshold):
@@ -75,14 +78,15 @@ class ServiceManager:
                 self.specter.ext[clazz.id] = self._services[clazz.id]
                 # maybe register the blueprint
                 self.register_blueprint_for_ext(clazz, self._services[clazz.id])
-                self.add_devices_for_ext(clazz, self._services[clazz.id])
+                self.register_devices_from_ext(self._services[clazz.id])
                 logger.info(f"Service {clazz.__name__} activated ({clazz.devstatus})")
             else:
                 logger.info(
                     f"Service {clazz.__name__} not activated due to devstatus ( {self.devstatus_threshold} > {clazz.devstatus} )"
                 )
-        logger.info("----> finished service loading")
-        self.execute_ext_callbacks("afterServiceManagerInit")
+        logger.info("----> finished service processing")
+        self.callback_executor = CallbackExecutor(self.services)
+        self.execute_ext_callbacks(callbacks.afterExtensionManagerInit)
 
     @classmethod
     def register_blueprint_for_ext(cls, clazz, ext):
@@ -187,13 +191,49 @@ class ServiceManager:
                     )
 
     @classmethod
-    def add_devices_for_ext(cls, clazz, ext):
-        if hasattr(clazz, "devices"):
-            devices_modules = clazz.devices
-        else:
+    def register_devices_from_ext(cls, ext):
+        """extract the devices from the extension and appends all found one to
+        cryptoadvance.specter.devices
+        """
+        classes = cls.extract_thing_classes_from_extension("devices", Device, ext)
+        if not classes:
             return
+        from cryptoadvance.specter.devices import __all__ as all_devices
+
+        for device_class in classes:
+            all_devices.append(device_class)
+            logger.debug(f"  Loaded Device {device_class}")
+
+    @classmethod
+    def register_callbacks_from_ext(cls, ext):
+        """extract all callbacks from the extension and import them so that they are
+        discoverable as subclass of Callback.
+        """
+        # importing it is the main job here. If it's imported, it'll also be discovered
+        # as a subclass of Callback.
+        classes = cls.extract_thing_classes_from_extension(
+            "callbacks", callbacks.Callback, ext
+        )
+        for callback_class in classes:
+            logger.debug(f"  Loaded Callback {callback_class}")
+
+    @classmethod
+    def extract_thing_classes_from_extension(
+        cls, things: str, thing_class: type, ext
+    ) -> List[type]:
+        """If an extension has a definition like that:
+        class SomeExtension(Extension)
+            things = ["someNym.specterext.some_extensions.things"]
+        then this method will return a list of all the thing_class classes
+        which can be found in that module:
+        extract_thing_classes_from_extension("things",Thing, someExtension)
+        """
+        if hasattr(ext.__class__, things):
+            thing_modules: List[str] = getattr(ext.__class__, things)
+        else:
+            return []
         classes = []
-        for module in devices_modules:
+        for module in thing_modules:
             try:
                 classes.extend(
                     get_classlist_of_type_clazz_from_modulelist(Device, [module])
@@ -278,33 +318,9 @@ class ServiceManager:
         the callback_id needs to be passed and specify why the callback has been called.
         It needs to be one of the constants defined in cryptoadvance.specter.services.callbacks
         """
-        if callback_id not in dir(callbacks):
-            raise Exception(f"Non existing callback_id: {callback_id}")
-        # No debug statement here possible as this is called for every request and would flood the logs
-        # logger.debug(f"Executing callback {callback_id}")
-        return_values = {}
-        for ext in self.services.values():
-            if hasattr(ext, f"callback_{callback_id}"):
-                try:
-                    return_values[ext.id] = getattr(ext, f"callback_{callback_id}")(
-                        *args, **kwargs
-                    )
-                except Exception as e:
-                    # Development should catch all errors early!
-                    if app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"].endswith(
-                        "DevelopmentConfig"
-                    ):
-                        raise e
-                    logger.error(
-                        "Exception {e} while executing {callback_id} for extension {ext.id}"
-                    )
-                    logger.exception(e)
-            elif hasattr(ext, "callback"):
-                return_values[ext.id] = ext.callback(callback_id, *args, **kwargs)
-        # Filtering out all None return values
-        return_values = {k: v for k, v in return_values.items() if v is not None}
-        # logger.debug(f"return_values for callback {callback_id} {return_values}")
-        return return_values
+        return self.callback_executor.execute_ext_callbacks(
+            callback_id, *args, **kwargs
+        )
 
     @property
     def services(self) -> Dict[str, Service]:
@@ -395,6 +411,16 @@ class ServiceManager:
         self.specter.service_unencrypted_storage_manager.delete_all_service_data(user)
         logger.debug(f"Deleted unencrypted services")
 
+    def add_required_services_to_users(self, users, force_opt_out=False):
+        "Adds the mandatory and opt_out (only if no services activated for user) services to users"
+        for service in self.services.values():
+            for user in users:
+                if service.optionality == ServiceOptionality.mandatory or (
+                    service.optionality == ServiceOptionality.opt_out
+                    and ((service.id not in user.services) or force_opt_out)
+                ):
+                    user.add_service(service.id)
+
     @classmethod
     def get_service_x_dirs(cls, x):
         """returns a list of package-directories which each represents a specific service.
@@ -408,8 +434,7 @@ class ServiceManager:
         ]
         logger.info(f"Initial arr:")
         for element in arr:
-            logger.info(element)
-        # /home/kim/src/specter-desktop/.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/bitcoinreserve/templates
+            logger.debug(element)
         # /home/kim/src/specter-desktop/.buildenv/lib/python3.8/site-packages/cryptoadvance/specter/services/swan/templates
 
         # filter only directories
@@ -464,12 +489,13 @@ class ServiceManager:
             )
         )
         logger.info(f"After extending: {arr}")
+
         # Before we transform the arr into an array of strings, we iterate through all services to discover
         # the devices which might be specified in there
         devices_arr = []
         for clazz in arr:
             if hasattr(clazz, "devices"):
-                logger.debug("class {clazz} has devices: {clazz.devices}")
+                logger.debug(f"class {clazz.__name__} has devices: {clazz.devices}")
                 for device in clazz.devices:
                     try:
                         import_module(device)
@@ -477,12 +503,24 @@ class ServiceManager:
                     except ModuleNotFoundError as e:
                         pass
 
+        # Same for callbacks
+        callbacks_arr = []
+        for clazz in arr:
+            if hasattr(clazz, "callbacks"):
+                logger.debug(f"class {clazz.__name__} has callbacks: {clazz.callbacks}")
+                for device in clazz.callbacks:
+                    try:
+                        import_module(device)
+                        callbacks_arr.append(device)
+                    except ModuleNotFoundError as e:
+                        pass
+
         # Transform into array of strings
         arr = [clazz.__module__ for clazz in arr]
 
-        # Add the devices
         arr.extend(devices_arr)
-        logger.debug(f"After transforming + devices: {arr}")
+        arr.extend(callbacks_arr)
+        logger.debug(f"After transforming + devices + callbacks: {arr}")
 
         # Controller-Packagages from the services are not imported via the service but via the baseclass
         # Therefore hiddenimport don't find them. We have to do it here.

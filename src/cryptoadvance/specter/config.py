@@ -57,6 +57,7 @@ class BaseConfig(object):
     # The prefix for extensions which don't get access to the session cookie (if SPECTER_URL_PREFIX isn't compromised)
     ISOLATED_CLIENT_EXT_URL_PREFIX = "/ext"
 
+    HOST = os.getenv("HOST", "127.0.0.1")
     PORT = os.getenv("PORT", 25441)
     CONNECT_TOR = _get_bool_env_var(os.getenv("CONNECT_TOR", "False"))
     SPECTER_DATA_FOLDER = os.path.expanduser(
@@ -71,8 +72,11 @@ class BaseConfig(object):
     )
 
     # The Werkzeug Logs which are documenting each request are quite annoying with Cypress
-    # but by default, it's ok
-    ENABLE_WERZEUG_REQUEST_LOGGING = True
+    # but by default, we have a good replacement
+    ENABLE_WERZEUG_REQUEST_LOGGING = _get_bool_env_var(
+        "ENABLE_WERZEUG_REQUEST_LOGGING", "False"
+    )
+    ENABLE_OWN_REQUEST_LOGGING = _get_bool_env_var("ENABLE_OWN_REQUEST_LOGGING", "True")
 
     # CERT and KEY is for running self-signed-ssl-certs. Check cli_server for details
     CERT = os.getenv("CERT", None)
@@ -183,6 +187,7 @@ class BaseConfig(object):
         "cryptoadvance.specterext.swan.service",
         "cryptoadvance.specterext.liquidissuer.service",
         "cryptoadvance.specterext.devhelp.service",
+        "cryptoadvance.specterext.notifications.service",
         "cryptoadvance.specterext.exfund.service",
         "cryptoadvance.specterext.faucet.service",
         "cryptoadvance.specterext.electrum.service",

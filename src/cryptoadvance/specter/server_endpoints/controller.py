@@ -3,8 +3,10 @@ import traceback
 import logging
 from pathlib import Path
 from time import time
+from urllib.parse import urlparse, ParseResult
 
-from flask import g, redirect, render_template, request, url_for
+from flask import g, redirect, render_template, request, url_for, request
+from flask.wrappers import Response, Request
 from flask_babel import lazy_gettext as _
 from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import MethodNotAllowed, NotFound
@@ -212,9 +214,26 @@ def execute_service_manager_hook():
 
 
 @app.after_request
-def slow_request_detection_stop(response):
+def slow_request_detection_stop(response: Response):
     try:
         diff = time() - g.start
+        if (
+            not request.url.__contains__("static")
+            and app.config["ENABLE_OWN_REQUEST_LOGGING"]
+        ):
+            # This is supposed to replace the annoying ENABLE_WERZEUG_REQUEST_LOGGING
+            # but only for non static Requests which are indeed interesting
+            # Original looks like this:
+            # [2023-02-10 14:15:49,716] INFO in _internal: 127.0.0.1 - - [10/Feb/2023 14:15:49] "GET /ext/devhelp/static/devhelp/img/orange-wrench.png HTTP/1.1" 304 -
+            url: ParseResult = urlparse(request.url)
+            logger.info(
+                "{} {: <40} ({}) took {: >4} ms".format(
+                    request.method,
+                    url.path + url.params + url.query + url.fragment,
+                    response.status_code,
+                    int(diff * 1000),
+                )
+            )
     except Exception as e:
         app.logger.exception(e)
         return response

@@ -22,7 +22,8 @@ body {
     --cmap-border: #506072;
     --cmap-border-highlight: #4b8cd8;
     --cmap-border-darker: #405062;
-    --cmap-bg-address-is-mine: #306d30;
+    --cmap-bg-address-is-mine: #306d30;    
+    --cmap-bg-highlight: #4a90e2;
 
     margin: 0;
     padding: 0;
@@ -268,7 +269,7 @@ nav.side > div > .item {
 
 nav.side > a.item.active,
 nav.side > div > a.item.active {
-    border-left: 3px solid #4a90e2;
+    border-left: 3px solid var(--cmap-bg-highlight);
     background: rgba(0, 0, 0, 0.1);
     /*color: #fff;*/
 }

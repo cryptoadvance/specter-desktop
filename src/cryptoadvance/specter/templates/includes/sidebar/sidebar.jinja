@@ -100,7 +100,12 @@
                 {% if specter.wallet_manager.failed_load_wallets %}
                     <form action="{{ url_for('wallets_endpoint.failed_wallets') }}" method="POST">
                         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <div class="flex flex-col items-center justify-center p-4 bg-dark-600 rounded-lg" role="alert">
+                        {% if specter.node.alias == "spectrum_node" %}
+                            <div class="p-4 bg-dark-600 rounded-lg mt-2 mb-2" role="alert">
+                                {{ _('Wallets created with Bitcoin Core need to be recreated when using Spectrum. Click "Show Details" to do this.') }}
+                            </div>
+                        {% endif %}
+                        <div class="flex flex-col items-center justify-center p-4 bg-dark-600 rounded-lg mt-2" role="alert">
                             <img src="{{ url_for('static', filename='img/warning_sign.svg') }}" width="28px" height="28px">
                             <div class="mt-2 flex items-center">
                                 {{ _("Not all wallets loaded") }}

@@ -4,7 +4,7 @@ import os
 from cryptoadvance.specter.managers.node_manager import NodeManager
 from cryptoadvance.specter.services.service import (
     Service,
-    devstatus_beta,
+    devstatus_prod,
 )
 
 # A SpecterError can be raised and will be shown to the user as a red banner
@@ -31,7 +31,7 @@ class SpectrumService(Service):
     desc = "An electrum hidden behind a core API"
     has_blueprint = True
     blueprint_module = "cryptoadvance.specterext.spectrum.controller"
-    devstatus = devstatus_beta
+    devstatus = devstatus_prod
     isolated_client = False
 
     # TODO: As more Services are integrated, we'll want more robust categorization and sorting logic
@@ -160,6 +160,4 @@ class SpectrumService(Service):
             view_model.get_started_include = (
                 "spectrum/welcome/components/get_started.jinja"
             )
-        else:
-            return None
         return view_model

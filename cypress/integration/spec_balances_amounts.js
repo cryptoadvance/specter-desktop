@@ -12,7 +12,7 @@ describe('Test the rendering of balances and amounts', () => {
 
     it('Unconfirmed balance', () => {
         cy.addHotDevice('Satoshis hot keys','bitcoin')
-        cy.addWallet('Funding wallet', 'segwit', 'funded', 'btc', 'singlesig', 'Satoshis hot keys')
+        cy.addWallet('Funding wallet', 'segwit', 'funded', true, 'btc', 'singlesig', 'Satoshis hot keys')
         cy.selectWallet('Funding wallet')
         cy.get('#btn_send').click()
         cy.get('#recipient_0').find('#address').invoke('val', 'bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs') 
@@ -27,7 +27,7 @@ describe('Test the rendering of balances and amounts', () => {
         cy.get('#satoshis_hot_keys_hot_sign_btn').click()
         cy.get('#hot_enter_passphrase__submit').click()
         cy.get('#broadcast_local_btn').click()
-        cy.reload()
+        cy.visit("/")
         cy.selectWallet('Ghost wallet')
         cy.get('#unconfirmed_amount').then(($amount) => {
             expect(parseFloat($amount.text())).to.be.gt(0).and.to.be.lt(1);

@@ -1,7 +1,19 @@
 describe('Test adding different devices', () => {
+
     before(() => {
         Cypress.config('includeShadowDom', true)
     })
+
+    it('Validity of device name', () => {
+        cy.get('#toggle_devices_list').click()
+        cy.get('#btn_new_device').click()
+        cy.get('#trezor_device_card').click()
+        cy.get("#device_name").type("'invalid")
+        cy.get('#submit-keys').click()
+        cy.get('#device_name').invoke('prop', 'validity').its('patternMismatch').should('be.true')
+        cy.get("#device_name").clear().type("valid")
+        cy.get('#device_name').invoke('prop', 'validity').its('patternMismatch').should('be.false')
+    });
 
     it('Filter devices', () => {
         cy.get('#toggle_devices_list').click()
@@ -18,13 +30,13 @@ describe('Test adding different devices', () => {
         cy.get('#toggle_devices_list').click()
         cy.get('#btn_new_device').click()
         cy.get('#electrum_device_card').click()
-        cy.get('#device_name').type("Electron's Electrum Device")
+        cy.get('#device_name').type("New Electrum Device")
         // Open and close the explainer
         cy.get('#toggle-explainer').find('#drop-icon').click()
         cy.get('#toggle-explainer').find('#drop-icon').click()
         cy.get('#master_pub_key').type("vpub5VGXXixD2pHLFtcKtCF57e8mx2JW6fie8VydXijC8sRKAL4RshgjEmzbmV915NeVB9pd23DVYem6zWM7HXFLNwaffNVHowdD9SJWwESyQhp")
         cy.get('.small-card > .btn').click()
-        cy.contains("Electron's Electrum Device was added successfully!")
+        cy.contains("New Electrum Device was added successfully!")
         cy.get('[data-cy="new-device-added-screen-close-btn"]').click()
         cy.get('#forget_device').click()
     })

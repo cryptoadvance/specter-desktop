@@ -66,45 +66,45 @@
 			</form>
 		</div>
 
-		<div class="hidden" id="new_wallet_devices_popup">
+		<div class="hidden bg-dark-800 w-96 p-4" id="new_wallet_devices_popup">
 			{% set supports_export_to_device = [] %}
 			{% for device in wallet.devices if device.exportable_to_wallet %}
 				{% set supports_export_to_device = supports_export_to_device.append(device) %}
 			{% endfor %}
 			{% if supports_export_to_device != [] %}
-				<h1>{{ _("Export To Device") }}</h1>
-				<p data-style="max-width: 500px;">{{ _("Some of your devices require that you first import your multisig wallet data into the device before you can start verifying addresses and sending transactions.") }}</p>
-				<div class="note center">
-					{{ _("Import this wallet to a device by scanning its QR code or importing its data file.") }}
+				<div class="flex justify-between mb-2">
+						<h3 class="mb-0">{{ _("Export To Device") }}</h3>
+						<p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer">Close</p>
 				</div>
+				<p>{{ _("Some of your devices require that you first import your multisig wallet data into the device before you can start verifying addresses and sending transactions.") }}</p>
+				<p>{{ _("Import this wallet to a device by scanning its QR code or importing its data file.") }}</p>
 
 				{% for device in wallet.devices %}
 					{% if device.exportable_to_wallet %}
 						{% if device.wallet_export_type == 'file' %}
 							<a 
-							download="{{ wallet.name | ascii20 }}.txt"
-							href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}"
-							{% if device.device_type == 'coldcard' %}
-								onclick="showNotification(`{{ _("Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD") }}`, 0)"
-							{% endif %}
-							class="btn centered padded">
+								download="{{ wallet.name | ascii20 }}.txt"
+								href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}"
+								{% if device.device_type == 'coldcard' %}
+									onclick="showNotification(`{{ _("Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD") }}`, 0)"
+								{% endif %}
+								class="button bg-accent">
 								{{ _("Save") }} {{ device.name }} {{ _("file") }}
 							</a>
 						{% elif device.wallet_export_type == 'qr' %}
-							<button onclick="hidePageOverlay();showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">{{ _("Show") }} {{ device.name }} {{ _("QR Code") }}</button>
-							<div id="{{ device.alias }}_export_qr_code" data-style="display: none;">
-								<h1>{{ _("Scan this with your") }} {{ device.name }} "{{ _("device") }} </h1>
+							<button onclick="hidePageOverlay();showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="button bg-accent">{{ _("Show") }} {{ device.name }} {{ _("QR Code") }}</button>
+							<div id="{{ device.alias }}_export_qr_code" style="display: none;">
+								<h3>{{ _("Scan this with your") }} {{ device.name }} "{{ _("device") }} </h3>
 								<qr-code value="{{ device.export_wallet(wallet) }}" width="400" scalable></qr-code>
-								<br>
-								<button onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')" type="button" class="btn centered padded">{{ _("Back") }}</button>
+								<button onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')" type="button" class="button">{{ _("Back") }}</button>
 							</div>
 						{% endif %}
 					{% endif %}
 				{% endfor %}
-				<br>
+
 			{% endif %}
-			<p data-style="max-width: 500px;">{{ _("You can always do this later from the wallet Settings tab.") }}</p>
-			<button type="button" class="btn centered padded" onclick="hidePageOverlay()">{{ _("Finish") }}</button>
+			<p>{{ _("You can always do this later from the wallet Settings tab.") }}</p>
+			<button type="button" class="button" onclick="hidePageOverlay()">{{ _("Finish") }}</button>
 		</div>
 
 		<div class="hidden bg-dark-800 w-96 p-4" id="new_wallet_popup">
