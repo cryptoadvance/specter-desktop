@@ -1,0 +1,29 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://code.visualstudio.com/docs/editor/debugging#_launch-configurations
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Flask",
+            "type": "python",
+            "request": "launch",
+            "module": "flask",
+            "env": {
+                "FLASK_APP": "cryptoadvance.specter.server:create_and_init()",
+                "FLASK_ENV": "development",
+                "SPECTER_DATA_FOLDER": "~/.specter_empty",
+                "SPECTER_CONFIG": "DevelopmentConfig",
+                "FLASK_DEBUG": "1",
+                "PATH": "./.env/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            },
+            "args": [
+                "run",
+                "--no-debugger",
+                "--no-reload",
+                "--port=25441"
+            ],
+            "jinja": true
+        }
+    ]
+}

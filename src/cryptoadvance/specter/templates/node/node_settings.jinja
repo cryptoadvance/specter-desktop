@@ -146,7 +146,7 @@
 				</div>
 			{% endif %}
 		</div>
-		{% if specter.node_manager.nodes | length > 1 and node_alias %}
+		{% if specter.node_manager.nodes | length > 0 and node_alias %}
 			<button style="margin-bottom: 100px;" type="submit" name="action" value="forget" class="btn danger centered">{{ _("Forget node") }}</button>
 		{% endif %}
 	</form>

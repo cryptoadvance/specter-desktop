@@ -1,4 +1,3 @@
-from .device_types import DeviceTypes
 from .coldcard import ColdCard
 from .trezor import Trezor
 from .ledger import Ledger

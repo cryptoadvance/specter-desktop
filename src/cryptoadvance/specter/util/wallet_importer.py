@@ -50,8 +50,8 @@ class WalletImporter:
         try:
             self.descriptor = DescriptorCls.from_string(recv_descriptor)
             self.check_descriptor()
-        except Exception as e:
-            raise SpecterError(f"Invalid wallet descriptor: {e}")
+        except ValueError as e:
+            raise SpecterError(f"{e}: {recv_descriptor}")
         if self.wallet_name in specter.wallet_manager.wallets_names:
             raise SpecterError(f"Wallet with the same name already exists")
         (
@@ -242,7 +242,7 @@ class WalletImporter:
             )
         except Exception as e:
             logger.exception(e)
-            raise SpecterError(f"Failed to create wallet: {e}")
+            raise SpecterError(f"Failed to create wallet: {e} (check logs for details)")
         logger.info(f"Created Wallet {self.wallet}")
         self.wallet.keypoolrefill(0, self.wallet.IMPORT_KEYPOOL, change=False)
         self.wallet.keypoolrefill(0, self.wallet.IMPORT_KEYPOOL, change=True)
@@ -273,7 +273,7 @@ class WalletImporter:
             self.wallet.rpc.rescanblockchain(startblock, no_wait=True)
             logger.info("Rescanning Blockchain ...")
         except Exception as e:
-            logger.error("Exception while rescanning blockchain: %r" % e)
+            logger.exception("Exception while rescanning blockchain: %r" % e, e)
             if potential_errors:
                 potential_errors = SpecterError(
                     str(potential_errors)
@@ -333,7 +333,7 @@ class WalletImporter:
                     wallet_data["x1/"]["xpub"]
                 )
             else:
-                raise Exception('"xpub" not found in "x1/" in Electrum backup json')
+                raise SpecterError('"xpub" not found in "x1/" in Electrum backup json')
 
             required_sigs = int(wallet_data.get("wallet_type").split("of")[0])
             recv_descriptor = "{}(sortedmulti({},{}))".format(
@@ -482,7 +482,7 @@ class WalletImporter:
                     wallet_data["keystore"]["xpub"], is_multisig=False
                 )
             else:
-                raise Exception(
+                raise SpecterError(
                     '"xpub" not found in "keystore" in Electrum backup json'
                 )
             recv_descriptor = "{}({})".format(
@@ -516,6 +516,13 @@ class WalletImporter:
 
             wallet_name = wallet_data.get("label", "Imported Wallet")
             recv_descriptor = wallet_data.get("descriptor", None)
+
+        if wallet_name is None:
+            raise SpecterError(
+                f"Couldn't find 'name' in wallet json (alias: {wallet_data.get('alias','also not existing')})."
+            )
+        if recv_descriptor is None:
+            raise SpecterError("Couldn't find 'recv_descriptor' in wallet json.")
 
         return (wallet_name, recv_descriptor, cosigners_types)
 

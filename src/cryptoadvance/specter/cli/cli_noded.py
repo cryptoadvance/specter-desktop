@@ -33,15 +33,6 @@ logger = logging.getLogger(__name__)
 @click.command()
 @click.option("--quiet/--no-quiet", default=False, help="Output as little as possible.")
 @click.option(
-    "--nodocker",
-    default=False,
-    is_flag=True,
-    help="Use without docker. (By default docker is used.)",
-)
-@click.option(
-    "--docker-tag", "docker_tag", default="latest", help="Use a specific docker-tag"
-)
-@click.option(
     "--data-dir",
     help="Specify a (maybe not yet existing) datadir. Works only with --nodocker. (Default is /tmp/bitcoind_plain_datadir)",
 )
@@ -90,8 +81,6 @@ logger = logging.getLogger(__name__)
 )
 def bitcoind(
     quiet,
-    nodocker,
-    docker_tag,
     data_dir,
     port,
     log_stdout,
@@ -109,8 +98,6 @@ def bitcoind(
     noded(
         "bitcoin",
         quiet,
-        nodocker,
-        docker_tag,
         data_dir,
         port,
         log_stdout,
@@ -194,8 +181,6 @@ def elementsd(
     noded(
         "elements",
         quiet,
-        True,  # nodocker
-        None,  # docker_tag
         data_dir,
         port,
         log_stdout,
@@ -211,8 +196,6 @@ def elementsd(
 def noded(
     node_impl,
     quiet,
-    nodocker,
-    docker_tag,
     data_dir,
     port,
     log_stdout,
@@ -246,9 +229,6 @@ def noded(
     data_dir = compute_data_dir_and_set_config_obj(node_impl, data_dir, config_obj)
 
     if reset:
-        if not nodocker:
-            echo("ERROR: --reset only works in conjunction with --nodocker currently")
-            return
         did_something = kill_node_process(node_impl, echo)
         did_something = (
             purge_node_data_dir(node_impl, config_obj, echo) or did_something
@@ -257,27 +237,16 @@ def noded(
             echo("Nothing to do!")
         return
     mining_every_x_seconds = float(mining_period)
-    if nodocker:
-        echo(f"Creating plain {node_impl}d")
-        if node_impl == "bitcoin":
-            my_node = BitcoindPlainController(
-                bitcoind_path=find_node_executable("bitcoin"), rpcport=port
-            )
-        elif node_impl == "elements":
-            my_node = ElementsPlainController(
-                elementsd_path=find_node_executable("elements"), rpcport=port
-            )
-        Path(data_dir).mkdir(parents=True, exist_ok=True)
-    else:
-        echo("Creating container")
-        from ..process_controller.bitcoind_docker_controller import (
-            BitcoindDockerController,
+    echo(f"Creating plain {node_impl}d")
+    if node_impl == "bitcoin":
+        my_node = BitcoindPlainController(
+            bitcoind_path=find_node_executable("bitcoin"), rpcport=port
         )
-
-        if node_impl == "bitcoin":
-            my_node = BitcoindDockerController(docker_tag=docker_tag)
-        else:
-            raise Exception("There is no Elementsd-Bitcoin-Controller yet!")
+    elif node_impl == "elements":
+        my_node = ElementsPlainController(
+            elementsd_path=find_node_executable("elements"), rpcport=port
+        )
+    Path(data_dir).mkdir(parents=True, exist_ok=True)
     try:
         echo(f"Starting {node_impl}d")
         if node_impl == "bitcoin":
@@ -294,34 +263,12 @@ def noded(
                 datadir=data_dir,
                 log_stdout=log_stdout,
             )
-    except docker.errors.ImageNotFound:
-        echo(f"Image with tag {docker_tag} does not exist!")
-        echo(
-            f"Try to download first with docker pull registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:{docker_tag}"
-        )
-        sys.exit(1)
     except Exception as e:
         if str(e).startswith("There is already a node running!"):
             echo(f"{e} please reset via:")
             echo(f"python3 -m cryptoadvance.specter {node_impl}d --reset")
         else:
             raise e
-    if not nodocker:
-        tags_of_image = [
-            image.split(":")[-1] for image in my_node.btcd_container.image.tags
-        ]
-        if docker_tag not in tags_of_image:
-            echo(
-                "The running docker container is not \
-                                the tag you requested!"
-            )
-            echo(
-                "please stop first with docker stop {}".format(
-                    my_node.btcd_container.id
-                )
-            )
-            sys.exit(1)
-        echo(f"containerImage: {my_node.btcd_container.image.tags} ")
     echo(f"           url: {my_node.rpcconn.render_url()}")
     echo(f"user, password: { my_node.rpcconn.rpcuser }, secret")
     echo(f"    host, port: localhost, {my_node.rpcconn.rpcport}")

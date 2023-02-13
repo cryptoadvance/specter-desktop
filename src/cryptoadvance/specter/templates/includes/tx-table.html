@@ -776,6 +776,11 @@
         */
         attributeChangedCallback(attrName, oldValue, newValue) {
             if (attrName != "selected-coins") {
+                if (this.getAttribute('type') == "txlist") {
+                    this.amountHeader.innerText="Amount \u0394"
+                } else {
+                    this.amountHeader.innerText = "Amount"
+                }
                 if (this.getAttribute('blockhash') == 'true' && this.getAttribute('type') == "txlist" && this.getAttribute('wallet')) {
                         this.blockhashHeader.classList.remove('hidden');
                         this.blockhashSummary.classList.remove('hidden');
@@ -911,32 +916,23 @@
             this.emptyRow.classList.remove('hidden');
             this.emptyRow.classList.add('empty-row');
             this.emptyRowCell.innerText = '{{ _("Fetching transactions ...") }}';
-            try {
-                let callId = this.callId;
-                const response = await fetch(
-                    url,
-                    {
-                        method: 'POST',
-                        body: formData
-                    }
-                );
-                if (callId != this.callId) {
-                    return;
+            let callId = this.callId;
+            let jsonResponse = await send_request(url, 'POST', `{{ csrf_token() }}`, formData);
+            if (callId != this.callId) {
+                return;
+            }
+            let showBlockhash = !this.blockhashHeader.classList.contains('hidden');
+            if ("txlist" in jsonResponse) {
+                this.render(jsonResponse, showBlockhash)
+                return
+            };
+            if ('error' in jsonResponse) {
+                if (jsonResponse['error'] == "Using merkle proofs is not supported with Spectrum.") {
+                    this.emptyRowCell.innerText = '{{ _("No transactions fetched. Consider disabling the merkle proofs option in the settings.") }}';
+                } 
+                else {
+                    this.emptyRowCell.innerText = '{{ _("No transactions fetched ... ") }}';
                 }
-                if(response.status != 200){
-                    showError(await response.text());
-                    return;
-                }
-                const jsonResponse = await response.json();
-                let showBlockhash = !this.blockhashHeader.classList.contains('hidden');
-                if ("txlist" in jsonResponse) {
-                    this.render(jsonResponse, showBlockhash)
-                    return
-                };
-                showError(`{{ _("Failed to fetch transactions list.") }}`)
-            } catch(e) {
-                console.log("Caught error: ", e);
-                showError(`{{ _("Failed to fetch transactions list.") }}: ${e}`);
             }
         }
         

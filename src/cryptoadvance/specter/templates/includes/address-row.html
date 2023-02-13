@@ -12,10 +12,13 @@
         .address-row:hover {
             background-color: var(--cmap-bg-lightest);
         }
+        td {
+            vertical-align: middle !important;
+        }
     </style>
     <tr class="address-row">
         <td class="index"></td>
-        <td class="address">
+        <td title="See address details" class="address">
             <span class="explorer-link"></span>
         </td>
         <td class="label optional"></td>
@@ -44,7 +47,6 @@
             var style = document.getElementById('address-row').content;
             var clone = style.cloneNode(true);
             this.el = clone.querySelector(".address-row");
-
             this.index = clone.querySelector(".index");
             this.address = clone.querySelector(".address .explorer-link");
             this.label = clone.querySelector(".label");

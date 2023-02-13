@@ -1,4 +1,3 @@
-from . import DeviceTypes
 from .hwi_device import HWIDevice
 from .hwi.jade import JadeClient
 from .hwi.jade import enumerate as jade_enumerate
@@ -6,13 +5,15 @@ from ..helpers import is_liquid
 
 
 class Jade(HWIDevice):
-    device_type = DeviceTypes.JADE
+    device_type = "jade"
     name = "Jade"
     icon = "img/devices/jade_icon.svg"
 
     qr_code_support = True
     supported_qr_code_format = "crypto-psbt"
+    qr_code_support_verify = True
     sd_card_support = False
+    supports_qr_message_signing = True
     supports_hwi_toggle_passphrase = False
     supports_hwi_multisig_display_address = True
     liquid_support = True

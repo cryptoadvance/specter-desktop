@@ -873,7 +873,7 @@ def enumerate(password: str = "") -> List[Dict[str, Any]]:
         if verinfo is not None:
             results.append(_get_device_entry("jade_simulator", SIMULATOR_PATH))
 
-    except Exception as e:
+    except ConnectionRefusedError as e:
         # If we get any sort of error do not add the simulator
         logger.debug(f"Failed to connect to Jade simulator at {SIMULATOR_PATH}")
         logger.debug(e)

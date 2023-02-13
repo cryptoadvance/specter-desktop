@@ -1,0 +1,110 @@
+{% extends "spectrum/components/spectrum_tab.jinja" %}
+
+{% block title %}Settings{% endblock %}
+{% set tab = 'settings_get' %}
+{% block content %}
+      <div class="card">
+        <h1>{{ _("Configure Spectrum") }}</h1>
+        <div class="note">
+            {{ _("- Here you can choose from a list of Electrum servers or configure the connection to your own server.") }}<br/>
+            {{ _("- Connecting to a third-party without using Tor leaks private information. Be aware of that.") }}<br/>
+        </div>
+        <form action="{{ url_for(service.get_blueprint_name() + '.settings_post') }}" method="POST" role="form">
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/> 
+            <div style="margin-top: 20px">Show Menu Item:</div>
+            <select name="show_menu">
+                <option value="yes" {% if show_menu == 'yes' %}selected{% endif %}>Yes</option>
+                <option value="no" {% if show_menu == 'no'  %}selected{% endif %}>No</option>
+            </select>
+            <div style="margin-top: 20px;">
+                {{ _("Electrum Server:") }} 
+                <label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" id="elec_option_list" name="option_mode" value="list" >{{ _("list") }}</label>
+                <label><input type="radio" class="inline" style="margin: 0 10px 0 20px"  id="elec_option_manual" name="option_mode" value="manual" >{{ _("manual") }}</label>
+            </div>
+            <div id = "elec_manual_container" style="display: none">
+                <div style="margin-top: 20px">
+                    Host:<br><input id="host-input" type="text" name="host" type="text" value="{{ host }}" placeholder="127.0.0.1">
+                </div>
+                <div style="margin-top: 20px; margin-bottom: 10px">
+                    Port:<br><input id="port-input" type="text"  name="port" type="text" value="{{ port }}" placeholder="50000">
+                </div>
+                <label style="font-size: 1em;">{{ _("Use ssl:") }}&nbsp;</label>
+                <label class="switch">
+                    <input id="ssl-input" type="checkbox" name="ssl" style="margin: auto;" value="on" {% if ssl %} checked {% endif %}>
+                    <span id="ssl-slider" class="slider"></span>
+                </label>
+            </div>
+            <div id ="elec_list_container" style="display: none; margin-top: 20px;">
+                {% if elec_chosen_option in elec_options %}
+                    Currently selected:
+                {% else %}
+                    Select server: 
+                {% endif %}
+                <select id="server-list" name="elec_option">
+                    <option selected style='display: none'></option>
+                    {% for electrum_option in elec_options %}
+                        <option value="{{ electrum_option }}" {% if elec_chosen_option == electrum_option %}selected{% endif %}>{{ electrum_option }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="row" style="margin-top: 25px">
+                <button type="submit" class="btn" name="action" value="save">{{ _("Save") }}</button>
+            </div>
+            {% if node_is_running %}
+                <div class="row" style="margin-top: 25px">
+                    <button type="submit" class="btn danger centered" name="action" value="delete">{{ _("Delete Node") }}</button>
+                </div>
+            {% endif %}
+        </form>
+    </div>
+    <br/>
+    <br/>
+    <br/>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    this.elecOptionList = document.getElementById("elec_option_list")
+    this.elecOptionManual = document.getElementById("elec_option_manual")
+
+    this.elecManualContainer = document.getElementById("elec_manual_container")
+    this.elecListContainer = document.getElementById("elec_list_container")
+
+    let hostInput = document.getElementById('host-input')
+    let portInput = document.getElementById('port-input')
+    let sslInput = document.getElementById('ssl-input')
+
+    function showElecOption(option) {
+        if (option == 'list') {
+            this.elecOptionList.checked = true
+            this.elecManualContainer.style.display ='none'
+            this.elecListContainer.style.display = 'block'
+        } else {
+            this.elecOptionManual.checked = true
+            this.elecManualContainer.style.display ='block'
+            this.elecListContainer.style.display = 'none'
+        }
+    }
+    {% if elec_chosen_option == "manual" %}
+        showElecOption("manual")
+    {% else %}
+        showElecOption("list")
+    {% endif %}
+
+    // Click event handler for manual configuration
+    elec_option_manual =  document.getElementById("elec_option_manual")
+    elec_option_manual.addEventListener('click', (event) => {
+        this.showElecOption("manual")
+        // Clear out the input fields, otherwise it is using the values from the server from the list
+        hostInput.value = ""
+        portInput.value = ""
+        sslInput.checked = false
+    });
+    
+    // Click event handler for configuration from list
+    this.elec_option_list =  document.getElementById("elec_option_list")
+    this.elec_option_list.addEventListener('click', (event) => {
+        this.showElecOption("list")
+    });
+  </script>
+{% endblock %}

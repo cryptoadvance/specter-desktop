@@ -17,7 +17,9 @@ from flask import current_app as app
 from flask import url_for
 from flask.blueprints import Blueprint
 
-from ...services.service import Service
+from cryptoadvance.specter.util.specter_migrator import SpecterMigration
+
+from ...services.service import Service, ServiceOptionality
 from ...services import callbacks, ExtensionException
 from ...util.reflection import (
     _get_module_from_class,
@@ -393,6 +395,16 @@ class ServiceManager:
         self.specter.service_unencrypted_storage_manager.delete_all_service_data(user)
         logger.debug(f"Deleted unencrypted services")
 
+    def add_required_services_to_users(self, users, force_opt_out=False):
+        "Adds the mandatory and opt_out (only if no services activated for user) services to users"
+        for service in self.services.values():
+            for user in users:
+                if service.optionality == ServiceOptionality.mandatory or (
+                    service.optionality == ServiceOptionality.opt_out
+                    and ((service.id not in user.services) or force_opt_out)
+                ):
+                    user.add_service(service.id)
+
     @classmethod
     def get_service_x_dirs(cls, x):
         """returns a list of package-directories which each represents a specific service.
@@ -450,10 +462,11 @@ class ServiceManager:
 
     @classmethod
     def get_service_packages(cls):
-        """returns a list of strings containing the service-classes (+ controller +config-classes +devices)
+        """returns a list of strings containing the service-classes (+ controller +config-classes +devices +migrations)
         This is used for hiddenimports in pyinstaller
         """
         arr = get_subclasses_for_clazz(Service)
+        arr.extend(get_subclasses_for_clazz(SpecterMigration))
         logger.info(f"initial arr: {arr}")
         arr.extend(
             get_classlist_of_type_clazz_from_modulelist(
@@ -509,6 +522,7 @@ class ServiceManager:
                 arr.append(config_package)
             except ModuleNotFoundError as e:
                 pass
+        arr = list(dict.fromkeys(arr))
         return arr
 
     @classmethod

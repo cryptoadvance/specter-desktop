@@ -9,6 +9,7 @@
       "spec_fees.js",
       "spec_rescan.js",
       "spec_qr_signing.js",
+      "spec_labeling.js",
       "spec_balances_amounts.js",
       "spec_wallet_send.js",
       "spec_wallet_utxo.js",

@@ -9,7 +9,7 @@ from io import BytesIO
 from embit.psbt import read_string
 
 
-class LTxItem(TxItem):
+class LTxItem(WalletAwareTxItem):
     TransactionCls = LTransaction
     columns = [
         "txid",  # str, txid in hex
@@ -75,9 +75,11 @@ class LTxItem(TxItem):
                     datas.append(extra)
                 values[i] = value
                 assets[i] = asset
-            except Exception as e:
-                logger.warn(e)  # TODO: remove, it's ok
-                pass
+            except RuntimeError as e:
+                if str(e).startswith("Failed to rewind the proof"):
+                    logger.warn(f"this can probably be ignored: {e}")
+                else:
+                    raise e
 
         # to calculate blinding seed
         tx = PSET(b)
@@ -119,7 +121,7 @@ class LTxItem(TxItem):
                         assets[i] = asset
                         values[i] = value
                     except Exception as e:
-                        logger.warn(f"Failed at unblinding output {i}: {e}")
+                        logger.exception(f"Failed at unblinding output {i}: {e}", e)
                 else:
                     logger.warn(f"Failed at unblinding: {e}")
 
@@ -145,6 +147,27 @@ class LTxItem(TxItem):
         weight = non_witness_size * 4 + witness_size
         vsize = math.ceil(weight / 4)
         return vsize
+
+    # Three properties which are defined in WalletAwareTxItem which we can't calculate here but which need to
+    # return something as the getter is called in WalletAwareTxItem`#s constructor
+    # This is definitely not a good way to fix this.
+    # ToDo: Do it properly if we have more time for Liquid
+
+    @property
+    def category(self):
+        return None
+
+    @property
+    def address(self):
+        return None
+
+    @property
+    def flow_amount(self):
+        return None
+
+    @property
+    def ismine(self):
+        return None
 
     def __dict__(self):
         return {

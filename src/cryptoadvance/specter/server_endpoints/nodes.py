@@ -121,22 +121,10 @@ def node_settings(node_alias):
         elif action == "forget":
             if not node_alias:
                 flash(_("Failed to deleted node. Node isn't saved"), "error")
-            elif len(app.specter.node_manager.nodes) > 1:
+            else:
                 app.specter.node_manager.delete_node(node, app.specter)
                 flash(_("Node deleted successfully"))
-                return redirect(
-                    url_for(
-                        "nodes_endpoint.node_settings",
-                        node_alias=app.specter.node.alias,
-                    )
-                )
-            else:
-                flash(
-                    _(
-                        "Failed to delete node. Specter must have at least one node configured"
-                    ),
-                    "error",
-                )
+                return redirect(url_for("nodes_endpoint.node_settings"))
         elif action == "test":
             # If this is failing, the test_rpc-method needs improvement
             # Don't wrap this into a try/except otherwise the feedback
@@ -327,6 +315,7 @@ def internal_node_settings(node_alias):
                     )
                 )
             except Exception as e:
+                logger.exception(e)
                 flash(_("Failed to remove Bitcoin Core, error: {}").format(e), "error")
         elif action == "upgrade_bitcoind":
             if node.version != app.config["INTERNAL_BITCOIND_VERSION"]:
@@ -335,6 +324,7 @@ def internal_node_settings(node_alias):
                         app.specter, app.config["INTERNAL_BITCOIND_VERSION"]
                     )
                 except Exception as e:
+                    logger.exception(e)
                     flash(
                         _("Failed to upgrade Bitcoin Core version, error: {}").format(
                             e
@@ -370,5 +360,7 @@ def internal_node_logs(node_alias):
 @login_required
 def switch_node():
     node_alias = request.form["node_alias"]
+    node_name = app.specter.node_manager.get_name_from_alias(node_alias)
     app.specter.update_active_node(node_alias)
-    return redirect(url_for("nodes_endpoint.node_settings", node_alias=node_alias))
+    flash(_(f"Switched to use {node_name} as node."))
+    return redirect(url_for("index"))

@@ -3,12 +3,11 @@ from embit import bip39
 from embit.liquid.slip77 import master_blinding_from_seed
 
 from ..helpers import is_liquid
-from . import DeviceTypes
 from .bitcoin_core import BitcoinCore
 
 
 class ElementsCore(BitcoinCore):
-    device_type = DeviceTypes.ELEMENTSCORE
+    device_type = "elementscore"
     name = "Elements Core (hot wallet)"
     icon = "img/devices/elementscore_icon.svg"
 

@@ -16,6 +16,8 @@ import click
 import requests
 from jinja2 import BaseLoader, Environment, FileSystemLoader, TemplateNotFound
 
+from cryptoadvance.specter.util.version import VersionChecker
+
 from ..server import create_app, init_app
 from ..specter_error import SpecterError
 from ..util.common import camelcase2snake_case, snake_case2camelcase
@@ -48,7 +50,11 @@ class ExtGen:
         self.devicename = devicename
         self.author = author
         self.author_email = email
-        self.version = "1.8.1"  # relevant if tmpl-sources specify a dependency (requirements.txt) #ToDo improve
+        vc = VersionChecker()
+        version = vc._get_current_version()
+        if version == "custom":
+            version = vc._get_latest_version_from_github()
+        self.version = version  # relevant if tmpl-sources specify a dependency (requirements.txt) #ToDo improve
         self.branch = branch
         self.tmpl_fs_source = tmpl_fs_source
 
@@ -107,6 +113,7 @@ class ExtGen:
         self.render(f"{package_path}/templates/dummy/index.jinja")
         if self.devicename:
             self.render(f"{package_path}/devices/devicename.py")
+            self.render(f"{package_path}/devices/__init__.py")
             self.create_binary_file(f"{package_path}/static/dummy/img/device_icon.svg")
         if not self.isolated_client:
             self.render(f"{package_path}/static/dummy/css/styles.css")
@@ -120,6 +127,7 @@ class ExtGen:
 
         self.render(f"pytest.ini", env=self.sd_env)
         self.render(f"tests/conftest.py", env=self.sd_env)
+        self.render(f"tests/conftest_visibility.py", env=self.sd_env)
         self.render(f"tests/fix_ghost_machine.py", env=self.sd_env)
         self.render(f"tests/fix_devices_and_wallets.py", env=self.sd_env)
         self.render(f"tests/fix_testnet.py", env=self.sd_env)

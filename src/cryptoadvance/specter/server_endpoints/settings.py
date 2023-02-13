@@ -14,6 +14,7 @@ from pathlib import Path
 import cryptography
 import pgpy
 import requests
+from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from flask import Blueprint, Flask
 from flask import current_app as app
 from flask import jsonify, redirect, render_template, request, send_file, url_for
@@ -29,7 +30,7 @@ from ..helpers import (
 from ..persistence import write_devices, write_wallet
 from ..server_endpoints import flash
 from ..services.service import callbacks
-from ..specter_error import handle_exception
+from ..specter_error import SpecterError, handle_exception
 from ..user import UserSecretException
 from ..util.sha256sum import sha256sum
 from ..util.shell import get_last_lines_from_file
@@ -149,73 +150,58 @@ def general():
             app.specter.device_manager.update()
 
             rescanning = False
+            logger.info(f"Importing {len(restore_wallets)} wallets ...")
+            counter = {
+                "success": 0,
+                "specific_error": 0,
+                "unspecific_error": 0,
+                "rescan_error": 0,
+            }
             for wallet in restore_wallets:
-                try:
-                    app.specter.wallet_manager.rpc.createwallet(
-                        os.path.join(
-                            app.specter.wallet_manager.rpc_path, wallet["alias"]
-                        ),
-                        True,
-                    )
-                except Exception as e:
-                    # if wallet already exists in Bitcoin Core
-                    # continue with the existing one
-                    if "already exists" not in str(e):
-                        flash(
-                            _("Failed to import wallet {}, error: {}").format(
-                                wallet["name"], e
-                            ),
-                            "error",
-                        )
-                        handle_exception(e)
-                        continue
-                    logger.debug(
-                        f"Wallet {wallet['alias']} already exists, skipping creation"
-                    )
-                write_wallet(wallet)
-                app.specter.wallet_manager.update(use_threading=False)
 
                 try:
-                    wallet_obj = app.specter.wallet_manager.get_by_alias(
-                        wallet["alias"]
+                    logger.info(f"Importing wallet {wallet['name']}")
+                    wallet_importer = WalletImporter(json.dumps(wallet), app.specter)
+                    wallet_importer.create_wallet(app.specter.wallet_manager)
+                    wallet_importer.rescan_as_needed(app.specter)
+                    counter["success"] += 1
+                except SpecterError as se:
+                    error_type = (
+                        "rescan_error" if "rescan" in str(se) else "specific_error"
                     )
-                    wallet_obj.keypoolrefill(0, wallet_obj.IMPORT_KEYPOOL, change=False)
-                    wallet_obj.keypoolrefill(0, wallet_obj.IMPORT_KEYPOOL, change=True)
-                    wallet_obj.import_labels(wallet.get("labels", {}))
-                    try:
-                        wallet_obj.rpc.rescanblockchain(
-                            wallet["blockheight"]
-                            if "blockheight" in wallet
-                            else get_startblock_by_chain(app.specter),
-                            no_wait=True,
-                        )
-                        app.logger.info("Rescanning Blockchain ...")
-                        rescanning = True
-                    except Exception as e:
-                        app.logger.error(
-                            "Exception while rescanning blockchain for wallet {}: {}".format(
-                                wallet["alias"], e
-                            )
-                        )
-                        flash(
-                            _("Failed to perform rescan for wallet: {}").format(e),
-                            "error",
-                        )
-                    wallet_obj.getdata()
+                    flash(f"Wallet '{wallet.get('name')}': {se} (skipped)", "error")
+                    counter[error_type] += 1
                 except Exception as e:
                     flash(
-                        _("Failed to import wallet {}").format(wallet["name"]), "error"
+                        f"Error while importing wallet {wallet['name']}, check logs for details! (skipped)",
+                        "error",
                     )
-                    handle_exception(e)
-            flash(_("Specter data was successfully loaded from backup"), "info")
+                    logger.exception(
+                        f"Error while importing wallet {wallet['name']}: {e}"
+                    )
+                    counter["unspecific_error"] += 1
+
+            counter["errors_sum"] = (
+                counter["rescan_error"]
+                + counter["specific_error"]
+                + counter["unspecific_error"]
+            )
+            if counter["success"] > 0:
+                message = f"{counter['success']} wallets successfully restored. "
+
+            else:
+                message = f"Sorry, this doesn't went that well. "
+            if counter["errors_sum"] > 0:
+                message += "however, we had " if counter["success"] > 0 else "We had "
+                message += f"""<br>
+                Successful imports: {counter["success"]}<br>
+                Specific errors:    {counter["specific_error"]}<br>
+                Unspecific errors:  {counter["unspecific_error"]} (create an issue about it on github)<br>
+                Rescan issues:      {counter["rescan_error"]}<br>
+                """
             if rescanning:
-                flash(
-                    _(
-                        "Wallets are rescanning for transactions history.\n\
-This may take a few hours to complete."
-                    ),
-                    "info",
-                )
+                message += "Wallets are rescanning for transactions history. This may take a few hours to complete."
+            flash(message, "info")
 
     return render_template(
         "settings/general_settings.jinja",
@@ -326,7 +312,7 @@ def tor():
                 flash(_("Specter stopped Tor successfully"))
             except Exception as e:
                 flash(_("Failed to stop Tor, error: {}").format(e), "error")
-                logger.error(f"Failed to start Tor, error: {e}")
+                logger.exception(f"Failed to start Tor, error: {e}", e)
         elif action == "uninstalltor":
             logger.info("Uninstalling Tor...")
             try:
@@ -337,7 +323,7 @@ def tor():
                 flash(_("Tor uninstalled successfully"))
             except Exception as e:
                 flash(_("Failed to uninstall Tor, error: {}").format(e), "error")
-                logger.error(f"Failed to uninstall Tor, error: {e}")
+                logger.exception(f"Failed to uninstall Tor, error: {e}", e)
         elif action == "test_tor":
             logger.info("Testing the Tor connection...")
             try:
@@ -372,7 +358,9 @@ def tor():
                     _("Failed to make test request over Tor.\nError: {}").format(e),
                     "error",
                 )
-                logger.error(f"Failed to make test request over Tor.\nError: {e}")
+                logger.exception(
+                    f"Failed to make test request over Tor.\nError: {e}", e
+                )
                 if tor_type == "builtin":
                     logger.error("Tor-Logs:")
                     app.specter.tor_daemon.stop_tor_daemon()
@@ -666,6 +654,7 @@ def set_asset_label():
     try:
         app.specter.update_asset_label(asset, label)
     except Exception as e:
+        logger.exception(e)
         return str(e), 500
     return {"success": True}
 
@@ -690,6 +679,7 @@ def get_asset(asset):
             return {"error": "asset lookup by label failed"}, 404
         return {"asset": asset, "label": app.specter.asset_label(asset)}
     except Exception as e:
+        logger.exception(e)
         return {"error": str(e)}, 500
 
 

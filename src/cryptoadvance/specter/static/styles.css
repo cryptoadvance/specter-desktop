@@ -17,6 +17,7 @@ html, body{
     --cmap-border-highlight:#4B8CD8;
     --cmap-border-darker: #405062;
     --cmap-bg-address-is-mine:#306d30;    
+    --cmap-bg-highlight: #4a90e2;
 
     margin: 0;
     padding: 0;
@@ -222,7 +223,7 @@ nav.side > .item, nav.side > div > .item{
     /*font-size: 0.85em;*/
 }
 nav.side > a.item.active, nav.side > div > a.item.active{
-    border-left: 3px solid #4A90E2;
+    border-left: 3px solid var(--cmap-bg-highlight);
     background: rgba(0,0,0,0.1);
     /*color: #fff;*/
 }
@@ -277,25 +278,25 @@ a.item:hover{
     opacity: 1;
 }
 /* disconnected node */
-svg.core .main{
+svg.core {
     fill: var(--network-color, #79869B);
 }
-svg.core.test .main{
+svg.core.test {
     fill: var(--test-color);
 }
-svg.core.testnet .main{
+svg.core.testnet {
     fill: var(--test-color);
 }
-svg.core.main .main{
+svg.core.main {
     fill: var(--main-color);
 }
-svg.core.mainnet .main{
+svg.core.mainnet {
     fill: var(--main-color);
 }
-svg.core.regtest .main{
+svg.core.regtest {
     fill: var(--regtest-color);
 }
-svg.core.signet .main{
+svg.core.signet {
     fill: var(--signet-color);
 }
 small, .small{
@@ -739,7 +740,6 @@ table{
 }
 td, th{
     padding: 20px 10px;
-    border-bottom: 1px solid var(--cmap-bg-lightest);
 }
 tr, thead{
     background: var(--cmap-bg-lighter);
@@ -751,9 +751,6 @@ th{
 }
 .xpub{
     max-width: 300px;
-}
-.tx{
-    max-width: 200px;
 }
 
 /* Scroll functionality along x axis
@@ -1004,6 +1001,10 @@ table tr:hover .btn.hovering{
 
 .svg-white {
     filter: invert(100%) sepia(0%) saturate(1%) hue-rotate(304deg) brightness(102%) contrast(101%);
+ }
+
+ .svg-gray {
+    filter: invert(75%) sepia(0%) saturate(1%) hue-rotate(304deg) brightness(102%) contrast(101%);
  }
 
 /************** Mobile styles ********************************/
@@ -1278,31 +1279,38 @@ input:checked + .slider:before {
     transform: translateX(26px);
 }
 
-/************** Styles for recipient-box ********************************/
+
+
+
+
+
+/*****************************/
+/* Recipient Box  
+/*****************************/
 .recipient_wrapper{
     width: 100%;
     border-radius: 3px;
     box-shadow: 0px 10px 15px rgba(0,0,0,0.1);
-  }
+}
 .recipient_wrapper_item{
     border-radius: 5px;
     border: 1.5px solid var(--default-color);
     padding: 5px;
     margin-bottom: 5px;
-  }
-  .recipient_wrapper_inner_box{
+}
+.recipient_wrapper_inner_box{
     padding: 5px;
     margin-top: 5px;
-  }
+}
 .recipient_button{
-      background: var(--cmap-border);
-      padding-left: 2px;
-      padding-right: 2px;
-      margin-left: 2px;
-      margin-right: 2px; 
-      border-radius: 3px;
-      height: 22px;
-      border: none;    
+    background: var(--cmap-border);
+    padding-left: 2px;
+    padding-right: 2px;
+    margin-left: 2px;
+    margin-right: 2px; 
+    border-radius: 3px;
+    height: 22px;
+    border: none;    
     }
 .recipient_button:hover {
     background: var(--cmap-border-darker);

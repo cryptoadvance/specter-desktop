@@ -3,6 +3,7 @@ The goal of this module is to slowly migrate from json-like representation of PS
 to a normal PSBT class that does not require RPC calls and can do more things.
 to_dict and from_dict methods are maintained for backward-compatibility
 """
+import logging
 from cryptoadvance.specter.key import Key
 from embit.psbt import PSBT, InputScope, OutputScope, DerivationPath
 from embit.transaction import Transaction, TransactionOutput, TransactionInput
@@ -12,6 +13,8 @@ from embit.descriptor import Descriptor
 from math import ceil
 import time
 from typing import Union, Tuple, List
+
+logger = logging.getLogger(__name__)
 
 
 class AbstractTxContext:
@@ -120,7 +123,12 @@ class SpecterScope(AbstractTxContext):
                 return "OP_RETURN " + self.scope.script_pubkey.data.hex()
             else:
                 return self.scope.script_pubkey.address(self.network)
-        except:
+        except AttributeError as e:  # 'NoneType' object has no attribute 'data'
+            if type(self.scope) != InputScope:  # known issue in this case
+                logger.exception()
+            return None
+        except TypeError:
+            # remove this and you get in trouble with tests/test_util_psbt.py
             return None
 
     @property
@@ -131,6 +139,15 @@ class SpecterScope(AbstractTxContext):
     @property
     def float_amount(self) -> float:
         return round(self.sat_amount * 1e-8, 8)
+
+    def __repr__(self) -> str:
+        if self.is_receiving:
+            addr_type = "r"
+        elif self.is_change:
+            addr_type = "c"
+        else:
+            addr_type = "u"  # unknown
+        return f"{self.__class__.__name__}(float_amount={self.float_amount} mine={self.is_mine} adr={self.address} r/c={addr_type})"
 
     def to_dict(self) -> dict:
         addr = self.address
@@ -184,6 +201,11 @@ class SpecterInputScope(SpecterScope):
 
     @property
     def sat_amount(self) -> int:
+        if self.scope.utxo is None:
+            # If utxo is not there, then the wallet-api from Core was not able to provide
+            # the underlying utxo (as it's not part of the wallet). Therefore not mine
+            # Therefore float_amount is 0
+            return 0
         return self.scope.utxo.value
 
     @property
@@ -243,7 +265,7 @@ class SpecterPSBT(AbstractTxContext):
         network: dict,
         raw: Union[None, str] = None,
         devices: List[Tuple[Key, str]] = [],  # list of tuples: (Key, device_alias)
-        **kwargs
+        **kwargs,
     ):
         """
         kwargs can contain:
@@ -252,7 +274,7 @@ class SpecterPSBT(AbstractTxContext):
         """
         if isinstance(psbt, str):
             psbt = self.PSBTCls.from_string(psbt)
-        self.psbt = psbt
+        self.psbt: PSBT = psbt
         self._descriptor = descriptor
         self._network = network
         self.devices = devices
