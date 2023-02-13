@@ -2150,6 +2150,14 @@ input[type="number"]::-webkit-outer-spin-button,
   opacity: 1;
 }
 
+.opacity-50 {
+  opacity: 0.5;
+}
+
+.opacity-80 {
+  opacity: 0.8;
+}
+
 .shadow {
   --tw-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --tw-shadow-colored: 0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);
@@ -2277,6 +2285,10 @@ input[type="number"]::-webkit-outer-spin-button,
 .hover\:text-dark-50:hover {
   --tw-text-opacity: 1;
   color: rgb(231 231 232 / var(--tw-text-opacity));
+}
+
+.hover\:opacity-100:hover {
+  opacity: 1;
 }
 
 .group:hover .group-hover\:ml-3 {

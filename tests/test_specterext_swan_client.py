@@ -7,7 +7,6 @@ import pytest
 import mock
 from mock import Mock, patch
 from cryptoadvance.specterext.swan.client import (
-    SwanApiException,
     SwanApiRefreshTokenException,
     SwanClient,
 )

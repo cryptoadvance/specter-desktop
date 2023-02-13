@@ -9,3 +9,4 @@ Some important one is the `after_serverpy_init_app` which passes a `Scheduler` c
 
 
 
+In the case of middleware, you can pass one object which will in turn passed to all extensions which registered that callback. Have a look at the `adjust_view_model` callback which is explained in detail in the frontend-section.

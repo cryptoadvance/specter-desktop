@@ -4,19 +4,15 @@ describe('Test adding different devices', () => {
         Cypress.config('includeShadowDom', true)
     })
 
-    it('Should be a valid device name', () => {
+    it('Validity of device name', () => {
         cy.get('#toggle_devices_list').click()
         cy.get('#btn_new_device').click()
-        cy.get('#bitcoincore_device_card').click()
-        cy.get('#submit-mnemonic').click()
-        cy.get("#device_name").type("'invalid");
-        cy.get('#submit-keys').click();
-        cy.contains('Upload Keys')
-        cy.get("#device_name").clear().type("valid");
-        cy.get('#submit-keys').click();    
-        cy.contains('valid was added successfully!');
-        cy.get('[data-cy="new-device-added-screen-close-btn"]').click()
-        cy.get('#forget_device').click()
+        cy.get('#trezor_device_card').click()
+        cy.get("#device_name").type("'invalid")
+        cy.get('#submit-keys').click()
+        cy.get('#device_name').invoke('prop', 'validity').its('patternMismatch').should('be.true')
+        cy.get("#device_name").clear().type("valid")
+        cy.get('#device_name').invoke('prop', 'validity').its('patternMismatch').should('be.false')
     });
 
     it('Filter devices', () => {

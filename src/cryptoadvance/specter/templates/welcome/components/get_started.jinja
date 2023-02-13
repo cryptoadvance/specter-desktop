@@ -1,7 +1,26 @@
-<a href="{{url_for('setup_endpoint.' + specter.setup_status.stage)}}">
-    {% if specter.setup_status.stage == "start" %}
-        {{ _('Get started!') }}
-    {% else %}
-        {{ _('Continue setup') }}
-    {% endif %}
-</a>
+<h2 class="mt-8 mb-2">{{ _("👇 Select your connection to get started") }}</h2>
+<div class="flex justify-end mb-1">
+    <a class="text-dark-200 group py-1 px-3 font-medium hover:bg-dark-800 rounded-lg flex justify-between items-center hover:text-dark-50" href="https://github.com/cryptoadvance/specter-desktop/releases/tag/v1.14.5" target="_blank" title="Spectrum Guide">
+        <div class="space-x-2 flex items-center">
+            <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" >
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M10.0032 16.8815C9.51088 16.8749 9.02025 16.8228 8.53755 16.7259C8.30961 16.6869 8.0759 16.7475 7.89555 16.8922C6.97295 17.5699 5.88972 17.9956 4.75255 18.1274C4.56535 18.147 4.39768 18.0112 4.37806 17.824C4.36966 17.7439 4.38989 17.6635 4.43514 17.5969H4.43514C4.87465 17.0495 5.19023 16.4134 5.36014 15.7323C5.39441 15.5464 5.32173 15.3568 5.17189 15.2415C3.51322 14.0093 2.52592 12.0726 2.50317 10.0065C2.50317 6.21425 5.86105 3.1315 10.0032 3.1315C14.1453 3.1315 17.5032 6.21422 17.5032 10.0065C17.5032 13.7988 14.1454 16.8815 10.0032 16.8815H10.0032ZM10.0032 14.3815C10.5209 14.3815 10.9407 13.9618 10.9407 13.444C10.9407 12.9262 10.5209 12.5065 10.0032 12.5065C9.48541 12.5065 9.06567 12.9262 9.06567 13.444C9.06567 13.9618 9.48541 14.3815 10.0032 14.3815ZM10.0032 5.6315C8.62242 5.6315 7.50317 6.61088 7.50317 7.819V7.81901C7.50066 8.0582 7.53095 8.29661 7.5932 8.52757C7.63134 8.66325 7.75523 8.75688 7.89617 8.75654H8.5308C8.70263 8.75658 8.84196 8.61732 8.842 8.44549C8.84201 8.41048 8.83611 8.37571 8.82455 8.34266C8.76863 8.17382 8.74117 7.99686 8.7433 7.81901C8.7433 7.30122 9.34039 6.88151 9.94449 6.88151C10.5486 6.88151 11.1359 7.30119 11.1359 7.81901C11.1359 9.37579 9.37799 9.1801 9.37799 11.2565C9.37799 11.4291 9.5179 11.569 9.69049 11.569H10.3936C10.5662 11.569 10.7061 11.4291 10.7061 11.2565C10.7061 9.74613 12.503 9.82426 12.503 7.81901C12.5032 6.61087 11.384 5.6315 10.0032 5.63153L10.0032 5.6315Z" />
+            </svg>
+            <span>{{ _("How can I use this?") }}</span>
+        </div>
+        <div class="ml-2 transition duration-100 ease-out group-hover:opacity-100 opacity-0">
+            <svg class="fill-current w-4 h-4" version="1.1" viewBox="0 0 64 64"><path d="M51.9981,26.9756l5.78282e-08,-5.78559e-11c-1.10457,0.0011051 -2.00089,-0.893429 -2.002,-1.998c-3.39838e-08,-3.39675e-05 -6.71022e-08,-6.7935e-05 -9.93553e-08,-0.000101902v-8.1411l-16.624,16.5775l1.16223e-07,-1.15486e-07c-0.779384,0.774441 -2.03901,0.770434 -2.81345,-0.00894979c-0.774441,-0.779384 -0.770434,-2.03901 0.00894979,-2.81345l16.6424,-16.5953h-8.232l-8.73397e-08,-7.10543e-15c-1.10352,-4.82364e-08 -1.9981,-0.89458 -1.9981,-1.9981c4.82364e-08,-1.10352 0.89458,-1.9981 1.9981,-1.9981h13.02l1.5855e-08,-1.58664e-11c1.10457,-0.00110506 2.00089,0.893429 2.002,1.998c6.38039e-10,6.37761e-07 1.27507e-09,1.27481e-06 1.91251e-09,1.91257e-06v12.9795l6.71771e-08,-7.21156e-05c-0.00100901,1.10457 -0.897257,1.99918 -2.00183,1.99817c-6.01627e-07,-5.4958e-10 -1.20339e-06,-1.09956e-09 -1.80502e-06,-1.64968e-09Zm-23.9981,-4.9824h-12l-1.15444e-07,1.38321e-10c-1.10426,0.00132314 -1.99901,0.896345 -2,2.0006v24.0062l-4.14599e-08,-5.27927e-05c0.000852687,1.1043 0.895646,1.99941 1.99995,2.00065h24.0001l-2.84669e-08,3.83622e-11c1.10419,-0.00148802 1.99884,-0.896413 2,-2.0006v-12l2.13163e-14,3.01992e-07c-1.66785e-07,-1.10457 0.89543,-2 2,-2c1.10457,-1.66785e-07 2,0.89543 2,2c0,0 0,0 0,0v12l9.87819e-08,-0.000107092c-0.00302619,3.31277 -2.68712,5.9979 -5.99989,6.00221h-24.0001l-7.20361e-08,-9.35074e-11c-3.31275,-0.00429953 -5.99686,-2.68935 -6,-6.0021v-24.0062l-9.89574e-08,0.000107275c0.00302629,-3.31274 2.68716,-5.99781 5.99989,-6.00201h12.0001l1.12438e-07,7.94934e-10c1.10493,0.00781187 1.99432,0.909866 1.98651,2.01479c-0.00773387,1.0939 -0.892608,1.97877 -1.98651,1.98651Z" fill-rule="evenodd"/></svg>
+        </div>
+    </a>
+</div>
+<div class="mb-2 grid grid-cols-2 gap-5">
+    <div class="main-description-box p-5 bg-dark-800 flex flex-col items-center border-2 border-dark-700 rounded-lg">
+        <h2 class="text-center">{{ _("Connect to your own Bitcoin Core node") }}</h2>
+        <p class="mb-12 text-center flex grow">{{ _("The classic Specter setup for total privacy and self-sovereignty.") }}</p>
+        <a href="{{ url_for('nodes_endpoint.node_settings')}}" class="mb-0 button bg-accent text-white w-full" data-cy="core-connection-btn">{{ _('Bitcoin Core Connection') }}</a>
+    </div>
+    <div class="main-description-box p-5 bg-dark-800 flex flex-col items-center border-2 border-dark-700 rounded-lg opacity-20">
+        <h2 class="text-center">{{ _("Using an Electrum server") }}</h2>
+        <p class="mb-12 text-center flex grow">{{ _("This is the easiest way to get started since you can connect to a third-party server. However, it exposes your financial activity. You can also choose your own server.") }}</p>
+        <a href="#" class="mb-0 button bg-accent text-white w-full" data-cy="spectrum-connection-btn" disabled>{{ _('Spectrum Connection') }}</a>
+    </div>
+</div>
