@@ -258,7 +258,6 @@ def test_BitcoinRpc_timeout(rpc, caplog):
 @pytest.fixture
 def rpc(bitcoin_regtest):
     brt = bitcoin_regtest  # stupid long name
-    BitcoinRPC.default_timeout = 0.001
     rpc = BitcoinRPC(
         brt.rpcconn.rpcuser,
         brt.rpcconn.rpcpassword,
