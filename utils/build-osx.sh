@@ -18,7 +18,7 @@ function create_virtualenv_for_pyinstaller {
     # we do:
     virtualenv --python=/usr/local/bin/python3 .buildenv
     source .buildenv/bin/activate
-    pip3 install -e "[.test]"
+    pip3 install -e ".[test]"
 }
 
 

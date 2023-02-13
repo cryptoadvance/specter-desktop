@@ -56,7 +56,7 @@ check:
  script:
    - pip3 install -r requirements.txt
    - pip3 install -e .
-   - pip3 install -e "[.test]"
+   - pip3 install -e ".[test]"
    - python3 setup.py install # compiles babel stuff as well (might make pip install obsolete)
    - py.test --cov-report term --cov cryptoadvance
 
@@ -66,7 +66,7 @@ check:
   script:
     # start the server in the background
     - pip3 install -e .
-    - pip3 install -e "[.test]"
+    - pip3 install -e ".[test]"
     - python3 setup.py install # compiles babel stuff as well (might make pip install obsolete)
     - npm i
     - ./utils/test-cypress.sh --docker --debug run
@@ -84,7 +84,7 @@ release_pip:
     - tags
   script:
     - pip3 install -e .
-    - pip3 install -e "[.test]"
+    - pip3 install -e ".[test]"
     - pip3 install .
     # verifying the version number follows vx.y.z (e.g. "v1.2.3")
     - python3 -m build
@@ -120,7 +120,7 @@ release_binary_windows:
     - pip install virtualenv
     - virtualenv --python=python3 .env
     - .\.env\Scripts\activate
-    - pip3 install -e "[.test]" 
+    - pip3 install -e ".[test]" 
     
   script:
     # This script won't execute if the script before that fails
@@ -161,7 +161,7 @@ release_electron_linux_windows:
     # Only difference to default befor_script: (ToDo fix this)
     - python3 -m virtualenv --python=python3 .env
     - source .env/bin/activate
-    - pip3 install -e "[.test]"
+    - pip3 install -e ".[test]"
   script:
     - echo "Releasing for ${CI_PROJECT_ROOT_NAMESPACE}"
     - export CI_PROJECT_ROOT_NAMESPACE # needed in the build-script to download the right windows-binary
@@ -211,7 +211,7 @@ release_signatures:
     - pip3 install --upgrade virtualenv
     - virtualenv --python=python3 .env
     - source .env/bin/activate
-    - pip3 install -e "[.test]"
+    - pip3 install -e ".[test]"
     - ./utils/artifact_signer.sh init # prepare .gnupg
   script:
     - python3 -m utils.release-helper download          # downloads the job-artifacts from gitlab

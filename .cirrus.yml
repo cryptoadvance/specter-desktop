@@ -48,7 +48,7 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
     #populate_script: 
     - virtualenv --python=python .env 
     - source ./.env/bin/activate
-    - pip3 install -r requirements.txt --require-hashes && pip3 install -e "[.test]"
+    - pip3 install -r requirements.txt --require-hashes && pip3 install -e ".[test]"
   install_script: 
     - source ./.env/bin/activate
     - pip3 install -e .

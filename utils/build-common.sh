@@ -13,7 +13,7 @@ function create_virtualenv_for_pyinstaller {
     fi
     virtualenv --python=python3 .buildenv
     source .buildenv/bin/activate
-    pip3 install -e "[.test]"
+    pip3 install -e ".[test]"
 }
 
 function build_pypi_pckgs_and_install {
