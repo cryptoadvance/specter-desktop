@@ -744,6 +744,7 @@ select {
    */
 
 .button {
+  z-index: 10;
   margin-bottom: 0.75rem;
   display: flex;
   height: 2.75rem;
@@ -771,6 +772,10 @@ select {
 
 .button:hover {
   opacity: 0.8;
+}
+
+.tooltip:hover .tooltip__box {
+  z-index: 40;
 }
 
 .button img {
