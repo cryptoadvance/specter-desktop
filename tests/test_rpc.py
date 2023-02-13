@@ -227,6 +227,7 @@ def test_BitcoinRpc_methodNotExisting(rpc):
 def test_BitcoinRpc_walletNotExisting(rpc):
     # Errorhandling:
     rpc = rpc.wallet("SomeWallet")
+    rpc.timeout = 0.1
     try:
         rpc.getwalletinfo()
     except RpcError as rpce:
@@ -237,7 +238,6 @@ def test_BitcoinRpc_walletNotExisting(rpc):
 
 def test_BitcoinRpc_timeout(rpc, caplog):
     try:
-        BitcoinRPC.default_timeout = 0.001
         with pytest.raises(SpecterError) as se:
             rpc.createwallet("some_test_wallet_name_392")
         assert "Timeout after 0.001" in str(se.value)
