@@ -12,7 +12,7 @@ echo "    --> Activating virtualenv"
 call .\.buildenv\Scripts\activate
 
 echo "    --> Installing test-requirement"
-pip3 install -r test_requirements.txt
+pip3 install -e "[.test]"
 
 echo "    --> Setting version in setup.py"
 python .\utils\release-helper.py set_setup_py_version  %1%

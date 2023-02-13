@@ -44,11 +44,11 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
 
   pip_script:
     #folder: /tmp/cirrus-ci-build/.env
-    #fingerprint_script: echo muh && cat requirements.txt && cat test_requirements.txt
+    #fingerprint_script: echo muh && cat requirements.txt
     #populate_script: 
     - virtualenv --python=python .env 
     - source ./.env/bin/activate
-    - pip3 install -r requirements.txt --require-hashes && pip3 install -r test_requirements.txt
+    - pip3 install -r requirements.txt --require-hashes && pip3 install -e "[.test]"
   install_script: 
     - source ./.env/bin/activate
     - pip3 install -e .

@@ -11,7 +11,7 @@ pip3 install -r requirements.txt --require-hashes
 pip3 install -e . # this does not compile the babel translation-files
 
 
-pip3 install -r test_requirements.txt
+pip3 install -e "[.test]"
 ./tests/install_noded.sh --bitcoin binary
 ./tests/install_noded.sh --elements binary
 

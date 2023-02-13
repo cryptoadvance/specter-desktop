@@ -146,7 +146,7 @@ If you're not interested in elements, you can skip the liquid specific tests as 
 
 Set up the dependencies:
 ```sh
-pip3 install -r test_requirements.txt
+pip3 install -e "[.test]"
 pip3 install -e .
 ```
   
