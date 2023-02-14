@@ -26,12 +26,9 @@ function build_pypi_pckgs_and_install {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         SML_ADD="\"\""
     fi
-    sed -i $SML_ADD "s|version=\".*|version=\"$version\",|" setup.py
-    cat setup.py
-    python3 setup.py sdist bdist_wheel
-    git checkout setup.py
-    pypi_comp_version=$(echo $version | sed 's/^v//' | sed 's/-pre/rc/' )
-    pip3 install ./dist/cryptoadvance.specter-${pypi_comp_version}-py3-none-any.whl
+    pip3 install build==0.10.0
+    python3 -m build
+    pip3 install ./dist/cryptoadvance.specter-*.whl
 }
 
 function specify_app_name {
