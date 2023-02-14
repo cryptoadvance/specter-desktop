@@ -86,7 +86,7 @@ release_pip:
     - pip3 install -e .
     - pip3 install -e ".[test]"
     - pip3 install .
-    - pip3 install build==0.10.0
+    - pip3 install build==0.10.0 twine
     - python3 -m build
     - ls -l dist
     # twine reads the password from the env-var TWINE_PASSWORD
