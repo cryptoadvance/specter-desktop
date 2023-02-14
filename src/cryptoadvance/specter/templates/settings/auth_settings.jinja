@@ -1,7 +1,7 @@
 {% extends "base.jinja" %}
 
 {% block main %}
-	<form action="?" method="POST">
+	<form action="{{ url_for('settings_endpoint.auth') }}" method="POST">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="next" value="{{ next }}">
 
