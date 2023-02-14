@@ -30,7 +30,7 @@ class CustomResponse(Response):
 
 
 def test_get_rpcconfig0(empty_data_folder):
-    c = _get_rpcconfig(empty_data_folder)
+    c = get_rpcconfig(empty_data_folder)
     assert c["bitcoin.conf"]["default"] == {}
     assert c["bitcoin.conf"]["main"] == {}
     assert c["bitcoin.conf"]["regtest"] == {}
@@ -38,7 +38,7 @@ def test_get_rpcconfig0(empty_data_folder):
 
 
 def test_get_rpcconfig1():
-    c = _get_rpcconfig("./tests/misc_testdata/rpc_autodetection/example1")
+    c = get_rpcconfig("./tests/misc_testdata/rpc_autodetection/example1")
     # Looks like this:
     # regtest=1
     # rpcconnect=bitcoin
@@ -61,7 +61,7 @@ def test_get_rpcconfig1():
 
 
 def test_get_rpcconfig2(empty_data_folder):
-    c = _get_rpcconfig("./tests/misc_testdata/rpc_autodetection/example2")
+    c = get_rpcconfig("./tests/misc_testdata/rpc_autodetection/example2")
     # maxmempool=700
     # server=1
     # prune=700
