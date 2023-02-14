@@ -9,3 +9,8 @@ recursive-include src/cryptoadvance/specter/services/*/static *
 recursive-include src/cryptoadvance/specter/translations/*/LC_MESSAGES *.mo
 recursive-include src/cryptoadvance/specter/translations/*/LC_MESSAGES *.po
 include requirements.txt
+
+exclude .gitattributes .gitignore pyinstaller .pre-commit.config.yaml 
+prune pyinstaller/bitcoind 
+prune pyinstaller/torbrowser 
+prune .github 

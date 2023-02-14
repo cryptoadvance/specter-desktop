@@ -33,15 +33,12 @@ for req in install_reqs:
     reqs.append(str(req).rstrip(" \\"))
 
 setup(
-    packages=find_namespace_packages("src", include=["cryptoadvance.*"]),
-    package_dir={"": "src"},
     package_data={
         "": [
             "translations/*/LC_MESSAGES/messages.mo",
         ]
     },
     # take METADATA.in into account, include that stuff as well (static/templates)
-    include_package_data=True,
     install_requires=reqs,
     cmdclass={
         "install": InstallWithBabelCompile,
@@ -51,8 +48,4 @@ setup(
         "init_catalog": babel.init_catalog,
         "update_catalog": babel.update_catalog,
     },
-    entry_points="""
-        [console_scripts]
-        specter=cryptoadvance.specter.cli:entry_point
-    """,
 )

@@ -34,6 +34,8 @@ classifiers =[
     'Framework :: Flask',
 ]
 
+[project.scripts] 
+specter="cryptoadvance.specter.cli:entry_point"
 
 [tool.setuptools_scm]
 write_to = "src/cryptoadvance/specter/_version.py"
@@ -53,6 +55,17 @@ markers = [
 filterwarnings = [
     "ignore::DeprecationWarning:bitbox02[.*]"
 ]
+
+[tool.setuptools]
+#include-package-data = false
+package-dir = {'' = 'src'}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["cryptoadvance.*"]
+
+[tool.setuptools.exclude-package-data]
+mypkg = ["pyinstaller"]
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.in"]}
