@@ -29,13 +29,16 @@ class CustomResponse(Response):
         self.encoding = None
 
 
-def test_get_rpcconfig(empty_data_folder):
+def test_get_rpcconfig0(empty_data_folder):
     c = get_rpcconfig(empty_data_folder)
     assert c["bitcoin.conf"]["default"] == {}
     assert c["bitcoin.conf"]["main"] == {}
     assert c["bitcoin.conf"]["regtest"] == {}
     assert c["bitcoin.conf"]["test"] == {}
-    c = get_rpcconfig("./tests/misc_testdata")
+
+
+def test_get_rpcconfig1():
+    c = get_rpcconfig("./tests/misc_testdata/rpc_autodetection/example1")
     # Looks like this:
     # regtest=1
     # rpcconnect=bitcoin
@@ -57,8 +60,41 @@ def test_get_rpcconfig(empty_data_folder):
     }
 
 
-def test_detect_rpc_confs_via_datadir(empty_data_folder):
-    c = _detect_rpc_confs_via_datadir(datadir="./tests/misc_testdata")
+def test_get_rpcconfig2(empty_data_folder):
+    c = get_rpcconfig("./tests/misc_testdata/rpc_autodetection/example2")
+    # maxmempool=700
+    # server=1
+    # prune=700
+    # [main]
+    # [test]
+    # [regtest]
+    # prune=0
+    # zmqpubrawblock=tcp://127.0.0.1:29000
+    # zmqpubrawtx=tcp://127.0.0.1:29000
+    # zmqpubhashtx=tcp://127.0.0.1:29000
+    # zmqpubhashblock=tcp://127.0.0.1:29000
+    assert c["bitcoin.conf"] == {
+        "default": {
+            "maxmempool": "700",
+            "server": "1",
+            "prune": "700",
+        },
+        "main": {},
+        "regtest": {
+            "prune": "0",
+            "zmqpubrawblock": "tcp://127.0.0.1:29000",
+            "zmqpubrawtx": "tcp://127.0.0.1:29000",
+            "zmqpubhashtx": "tcp://127.0.0.1:29000",
+            "zmqpubhashblock": "tcp://127.0.0.1:29000",
+        },
+        "test": {},
+    }
+
+
+def test_detect_rpc_confs_via_datadir1(empty_data_folder):
+    c = _detect_rpc_confs_via_datadir(
+        datadir="./tests/misc_testdata/rpc_autodetection/example1"
+    )
     # Looks like this:
     # regtest=1
     # rpcconnect=bitcoin
@@ -70,6 +106,25 @@ def test_detect_rpc_confs_via_datadir(empty_data_folder):
     assert c == [
         {"host": "bitcoin", "password": "CHANGEME", "port": 18443, "user": "bitcoin"}
     ]
+
+
+def test_detect_rpc_confs_via_datadir2(caplog, empty_data_folder):
+    caplog.set_level(logging.DEBUG)
+    c = _detect_rpc_confs_via_datadir(
+        datadir="./tests/misc_testdata/rpc_autodetection/example2"
+    )
+    # maxmempool=700
+    # server=1
+    # prune=700
+    # [main]
+    # [test]
+    # [regtest]
+    # prune=0
+    # zmqpubrawblock=tcp://127.0.0.1:29000
+    # zmqpubrawtx=tcp://127.0.0.1:29000
+    # zmqpubhashtx=tcp://127.0.0.1:29000
+    # zmqpubhashblock=tcp://127.0.0.1:29000
+    assert c == []
 
 
 def test_RpcError_response(caplog):
@@ -172,6 +227,7 @@ def test_BitcoinRpc_methodNotExisting(rpc):
 def test_BitcoinRpc_walletNotExisting(rpc):
     # Errorhandling:
     rpc = rpc.wallet("SomeWallet")
+    rpc.timeout = 0.1
     try:
         rpc.getwalletinfo()
     except RpcError as rpce:
@@ -181,8 +237,8 @@ def test_BitcoinRpc_walletNotExisting(rpc):
 
 
 def test_BitcoinRpc_timeout(rpc, caplog):
+    rpc.timeout = 0.001
     try:
-        BitcoinRPC.default_timeout = 0.001
         with pytest.raises(SpecterError) as se:
             rpc.createwallet("some_test_wallet_name_392")
         assert "Timeout after 0.001" in str(se.value)
@@ -203,7 +259,6 @@ def test_BitcoinRpc_timeout(rpc, caplog):
 @pytest.fixture
 def rpc(bitcoin_regtest):
     brt = bitcoin_regtest  # stupid long name
-    BitcoinRPC.default_timeout = 0.001
     rpc = BitcoinRPC(
         brt.rpcconn.rpcuser,
         brt.rpcconn.rpcpassword,
