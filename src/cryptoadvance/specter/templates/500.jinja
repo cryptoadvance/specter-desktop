@@ -1,30 +1,32 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='img/icon.png') }}"/>
-    <title>{{ _("Specter Desktop") }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-    <div style="display: none;"><!--<style>-->
-        a{
-            color: #fff;
-        }
-    </div><!--</style>-->
-</head>
-<body>
-    <main>
-        <br><br><br>
-        <div class="card" data-style="width:90%; max-width: 800px;">
-            <h1>{{ _("Server error!") }}</h1>
-            {{ _("Exception") }}: <b>{{ error }}</b><br><br>
-            <div><br>
-                <a class="btn" href="{{ url_for('welcome_endpoint.index') }}">{{ _("Back to the main page") }}</a>
-            <br></div>
-            {{ _("Details") }}:
-            <pre><code>{{ traceback }}</code></pre>
-            <br>
-            <div>{{ _('Please let us know! Create an ') }}<a href="https://github.com/cryptoadvance/specter-desktop/issues" target="_blank">{{ _("issue") }}</a>{{ _(" or ping us on ") }}<a href="https://t.me/spectersupport" target="_blank">{{ _("Telegram") }}</a>{{ _(" to fix it.") }}</div>
-        </div>
-    </main>
-</body>
+    <head>
+        <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='img/icon.png') }}"/>
+        <title>{{ _("Specter Desktop") }}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='typography.css') }}">
+    </head>
+    <body class="bg-dark-900 text-white">
+        <main class="flex flex-col items-center">
+            <div class="max-w-[700px]">
+                <h1 class="mt-20">{{ _("Server error") }}</h1>
+                <div class="mt-5">
+                    <h3>{{ _("Exception") }}</h3>
+                    <b>{{ error }}</b>
+                </div>
+                <div class="mt-3">
+                    <a class="button" href="{{ url_for('welcome_endpoint.index') }}">{{ _("Back to the main page") }}</a>
+                </div>
+
+                <div class="mt-8">
+                    <h3>{{ _("Details") }}</h3>
+                    <pre class="max-w-[700px] overflow-scroll bg-dark-700 p-4 rounded-lg"><code>{{ traceback }}</code></pre>
+                </div>
+                <p class="mt-3">
+                    {{ _('Please let us know! Create an ') }}<a href="https://github.com/cryptoadvance/specter-desktop/issues" target="_blank">{{ _("issue") }}</a>{{ _(" or ping us on ") }}<a href="https://t.me/spectersupport" target="_blank">{{ _("Telegram") }}</a>{{ _(" to fix it.") }}
+                </p>
+            </div>
+        </main>
+    </body>
 </html>
