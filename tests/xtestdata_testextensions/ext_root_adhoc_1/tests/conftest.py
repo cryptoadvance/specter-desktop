@@ -14,9 +14,6 @@ from cryptoadvance.specter.managers.user_manager import UserManager
 from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
 )
-from cryptoadvance.specter.process_controller.bitcoind_docker_controller import (
-    BitcoindDockerController,
-)
 from cryptoadvance.specter.process_controller.elementsd_controller import (
     ElementsPlainController,
 )
@@ -61,7 +58,6 @@ def pytest_addoption(parser):
     see pytest_generate_tests(metafunc) on how to check that
     Also used to register the SIGUSR2 (12) as decribed in conftest.py
     """
-    parser.addoption("--docker", action="store_true", help="run bitcoind in docker")
     parser.addoption(
         "--bitcoind-version",
         action="store",
@@ -86,39 +82,34 @@ def pytest_addoption(parser):
 def pytest_generate_tests(metafunc):
     # ToDo: use custom compiled version of bitcoind
     # E.g. test again bitcoind version [currentRelease] + master-branch
-    if "docker" in metafunc.fixturenames:
-        if metafunc.config.getoption("docker"):
-            # That's a list because we could do both (see above) but currently that doesn't make sense in that context
-            metafunc.parametrize("docker", [True], scope="session")
-        else:
-            metafunc.parametrize("docker", [False], scope="session")
+
+    # docker support is removed but keep this as an example on how to vary tests
+
+    # if "docker" in metafunc.fixturenames:
+    #     if metafunc.config.getoption("docker"):
+    #         # That's a list because we could do both (see above) but currently that doesn't make sense in that context
+    #         metafunc.parametrize("docker", [True], scope="session")
+    #     else:
+    #         metafunc.parametrize("docker", [False], scope="session")
+    pass
 
 
-def instantiate_bitcoind_controller(docker, request, rpcport=18543, extra_args=[]):
+def instantiate_bitcoind_controller(request, rpcport=18543, extra_args=[]):
     # logging.getLogger().setLevel(logging.DEBUG)
     requested_version = request.config.getoption("--bitcoind-version")
     log_stdout = str2bool(request.config.getoption("--bitcoind-log-stdout"))
-    if docker:
-        from cryptoadvance.specter.process_controller.bitcoind_docker_controller import (
-            BitcoindDockerController,
-        )
-
-        bitcoind_controller = BitcoindDockerController(
-            rpcport=rpcport, docker_tag=requested_version
-        )
+    if os.path.isfile("tests/bitcoin/src/bitcoind"):
+        bitcoind_controller = BitcoindPlainController(
+            bitcoind_path="tests/bitcoin/src/bitcoind", rpcport=rpcport
+        )  # always prefer the self-compiled bitcoind if existing
+    elif os.path.isfile("tests/bitcoin/bin/bitcoind"):
+        bitcoind_controller = BitcoindPlainController(
+            bitcoind_path="tests/bitcoin/bin/bitcoind", rpcport=rpcport
+        )  # next take the self-installed binary if existing
     else:
-        if os.path.isfile("tests/bitcoin/src/bitcoind"):
-            bitcoind_controller = BitcoindPlainController(
-                bitcoind_path="tests/bitcoin/src/bitcoind", rpcport=rpcport
-            )  # always prefer the self-compiled bitcoind if existing
-        elif os.path.isfile("tests/bitcoin/bin/bitcoind"):
-            bitcoind_controller = BitcoindPlainController(
-                bitcoind_path="tests/bitcoin/bin/bitcoind", rpcport=rpcport
-            )  # next take the self-installed binary if existing
-        else:
-            bitcoind_controller = BitcoindPlainController(
-                rpcport=rpcport
-            )  # Alternatively take the one on the path for now
+        bitcoind_controller = BitcoindPlainController(
+            rpcport=rpcport
+        )  # Alternatively take the one on the path for now
     bitcoind_controller.start_bitcoind(
         cleanup_at_exit=True,
         cleanup_hard=True,
@@ -178,8 +169,8 @@ def bitcoind_path():
 
 
 @pytest.fixture(scope="session")
-def bitcoin_regtest(docker, request):
-    bitcoind_regtest = instantiate_bitcoind_controller(docker, request, extra_args=None)
+def bitcoin_regtest(request):
+    bitcoind_regtest = instantiate_bitcoind_controller(request, extra_args=None)
     try:
         assert bitcoind_regtest.get_rpc().test_connection()
         assert not bitcoind_regtest.datadir is None
@@ -455,7 +446,9 @@ def specter_regtest_configured(bitcoin_regtest, devices_filled_data_folder):
             "method": "rpcpasswordaspin",
         },
     }
-    specter = Specter(data_folder=devices_filled_data_folder, config=config)
+    specter = Specter(
+        data_folder=devices_filled_data_folder, config=config, checker_threads=False
+    )
     assert specter.chain == "regtest"
     # Create a User
     someuser = specter.user_manager.add_user(
@@ -529,7 +522,7 @@ def app(specter_regtest_configured) -> SpecterFlask:
 
 @pytest.fixture
 def app_no_node(empty_data_folder) -> SpecterFlask:
-    specter = Specter(data_folder=empty_data_folder)
+    specter = Specter(data_folder=empty_data_folder, checker_threads=False)
     app = create_app(config="cryptoadvance.specter.config.TestConfig")
     app.app_context().push()
     app.config["TESTING"] = True

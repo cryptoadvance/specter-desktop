@@ -3,12 +3,6 @@ describe('Test plugins', () => {
         Cypress.config('includeShadowDom', true)
     })
 
-    // Keeps the session cookie alive, Cypress by default clears all cookies before each test
-    beforeEach(() => {
-        cy.viewport(1200,660)
-        cy.visit('/')
-    })
-    
     it('Associate an address with a service', () => {
         // choose address
         cy.selectWallet("Ghost wallet")
@@ -35,7 +29,7 @@ describe('Test plugins', () => {
         // This flow only works if we don't keep the session alive! So, no Cypress.Cookies.preserveOnce('session') in beforeEach().
         cy.get('#password').type("mySecretPassword")
         cy.get('#login-btn').click()
-        cy.get('[href="/settings/"] > .svg-white').click()
+        cy.get('[data-cy="settings-btn"]').click()
         cy.get('[href="/settings/auth"]').click()
         cy.get('select').select("none")
         cy.get('#submit-btn').click()

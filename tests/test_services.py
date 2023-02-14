@@ -20,7 +20,7 @@ from cryptoadvance.specter.services.service_encrypted_storage import (
     ServiceEncryptedStorageError,
     ServiceEncryptedStorageManager,
 )
-from cryptoadvance.specter.managers.service_manager import ServiceManager
+from cryptoadvance.specter.managers.service_manager import ExtensionManager
 from cryptoadvance.specter.user import User, hash_password
 
 
@@ -41,13 +41,13 @@ class FakeService(Service):
 
 
 # @patch("cryptoadvance.specter.services.service_manager.app")
-# def test_ServiceManager_loads_services(empty_data_folder, app):
+# def test_ExtensionManager_loads_services(empty_data_folder, app):
 #     # app.config = MagicMock()
 #     # app.config.get.return_value = "prod"
 #     specter_mock = MagicMock()
 #     specter_mock.data_folder.return_value = empty_data_folder
 
-#     service_manager = ServiceManager(specter=specter_mock, devstatus_threshold="alpha")
+#     service_manager = ExtensionManager(specter=specter_mock, devstatus_threshold="alpha")
 #     services = service_manager.services
 #     assert "swan" in services
 
@@ -372,7 +372,7 @@ def test_both_Storages_in_parallel(empty_data_folder, user1, user2):
     }
 
 
-class TestService(Service):
+class MyTestService(Service):
     id = "test_service"
 
     @classmethod
@@ -385,7 +385,7 @@ class TestService(Service):
 def test_Service_reserve_address(empty_data_folder, caplog):
     wallet_mock = MagicMock()
 
-    TestService.reserve_address(wallet_mock, "a", "someLabel")
+    MyTestService.reserve_address(wallet_mock, "a", "someLabel")
     assert wallet_mock.associate_address_with_service.assert_called_once
 
 
@@ -393,7 +393,7 @@ def test_reserve_addresses_with_mocks(empty_data_folder, caplog):
     caplog.set_level(logging.DEBUG)
     specter_mock = MagicMock()
     specter_mock.data_folder = empty_data_folder
-    s = TestService(True, specter_mock)
+    s = MyTestService(True, specter_mock)
 
     wallet_mock = MagicMock()
     # We assume that we haven't yet reserved any addresses:
@@ -417,29 +417,30 @@ def test_reserve_addresses_with_mocks(empty_data_folder, caplog):
     assert addresses == ["a", "b"]
 
 
-def test_reserve_addresses_with_an_actual_wallet(wallet):
+def test_reserve_addresses_with_an_actual_wallet(trezor_wallet_acc6):
+    wallet = trezor_wallet_acc6
     specter_mock = MagicMock()
-    test_service = TestService(True, specter_mock)
+    test_service = MyTestService(True, specter_mock)
     # Reserve first address
     test_service.reserve_address(
-        wallet, "bcrt1qcatuhg0gll3h7py4cmn53rjjn9xlsqfwj3zcej", "reserved_for_john_nash"
+        wallet, "bcrt1qqvqdt5nsjhzrxcvhyz3m29f8qwyd4lrcpmtzy9", "reserved_for_john_nash"
     )
     first_address_address_obj = wallet.get_address_obj(
-        "bcrt1qcatuhg0gll3h7py4cmn53rjjn9xlsqfwj3zcej"
+        "bcrt1qqvqdt5nsjhzrxcvhyz3m29f8qwyd4lrcpmtzy9"
     )
     # Check that labeling works
     assert first_address_address_obj["label"] == "reserved_for_john_nash"
     # Simulating that the address has been used (for the definition of "usage" see the check_unused() method in wallet.py)
-    wallet._addresses.set_used(["bcrt1qcatuhg0gll3h7py4cmn53rjjn9xlsqfwj3zcej"])
+    wallet._addresses.set_used(["bcrt1qqvqdt5nsjhzrxcvhyz3m29f8qwyd4lrcpmtzy9"])
     wallet.getnewaddress()
     assert wallet.address_index == 1
     assert first_address_address_obj["used"] == True
     # Check that the correct addresses are reserved, should be #2, #4, #6 - since #0 has been used and there is a gap of one address in between
     addresses = test_service.reserve_addresses(wallet, "satoshi_dice", 3)
     assert addresses == [
-        "bcrt1qxak08ykhf7r4js9yncysy5p05xp0fwxhamewc8",
-        "bcrt1q2zv9963acq3g7a62mdjgj60rr3hgmyykaccca7",
-        "bcrt1qpys58dndrn9sxnk0z7ngm6wsxskpvs9jsjq7q6",
+        "bcrt1qyqta5muj054x43cmk8rv43up84kefz9ej3y27n",
+        "bcrt1qcswaeygm5w0y7xysqkn4uy9d6u0x6yxtlyntn6",
+        "bcrt1qwjz0ez6g763cfty6pf984247yngfs75h2n6ccz",
     ]
     address_obj_list = wallet.get_associated_addresses("test_service")
     # Reserving 3 addresses results in an empty list since we already have 3 unused addresses (the first one was used) reserved

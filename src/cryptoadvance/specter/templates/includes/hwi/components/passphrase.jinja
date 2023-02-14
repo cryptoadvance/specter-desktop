@@ -1,31 +1,20 @@
-<div id="hwi_passphrase" class="hidden">
-    <h2>{{ _("Enter Passphrase") }}</h2>
-    <div class="flex-center flex-column">
-        <br/>
-        <div>
-            <input name="passphrase" type="password" id="hwi_passphrase_passphrase" />
-        </div>
-        <br/>
-        <br/>
-        <div id="hwi_passphrase_container">
-        </div>
+<div id="hwi_passphrase" class="hidden bg-dark-800 p-4 w-64 h-64">
+    <div class="flex flex-col items-center">
+        <h2>{{ _("Enter Passphrase") }}</h2>
+        <input class="mt-4" name="passphrase" type="password" id="passphrase-input" />
+        <button class="button text-base w-36 mt-16" id="passphrase-submit-btn">Submit</button>
     </div>
 </div>
 
 <script type="text/javascript">
     async function enterPassphrase(device){
-        let el = document.getElementById("hwi_passphrase_container");
-        el.innerHTML = "";
-        let inp = document.getElementById("hwi_passphrase_passphrase");
-        let submit = document.createElement('button');
-        submit.classList.add('btn');
-        submit.innerHTML = `{{ _("Submit") }}`;
+        let inp = document.getElementById("passphrase-input");
+        let submit = document.getElementById('passphrase-submit-btn');
         let result = null;
         submit.addEventListener('click', e=>{
             result = inp.value;
             inp.value = "";
         })
-        el.appendChild(submit);
         showPageOverlay('hwi_passphrase');
         while(result == null){
             await wait(100);

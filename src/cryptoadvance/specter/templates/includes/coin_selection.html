@@ -1,11 +1,9 @@
 <template id="coin-selection">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-    </style>
-    <span class="toggle_coinselection" style="cursor: pointer; margin-bottom: 5px; display: block">{{ _("Coin selection") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
-    <div class="coinselection_div" style="margin: auto; max-width: 90%; display: none;">
+	  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+    <span class="toggle_coinselection mt-3 cursor-pointer" data-cy="coin-selection-toggle">{{ _("Coin selection") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
+    <div class="coinselection_div hidden">
         <div class="errorMessagesDiv">
-            <message-box type="error" style="display: none;"></message-box>
+            <message-box type="error" class="hidden"></message-box>
         </div>
         <tx-table
             class="txtable"
@@ -111,7 +109,7 @@
         }
 
         isCoinSelectionActive() {
-            return this.coinselectionDiv.style.display !== 'none';
+            return !this.coinselectionDiv.classList.contains('hidden');
         }
 
         getSpendableAmount(unit) {
@@ -161,13 +159,13 @@
         }
     
         toggleCoinselection() {
-            if (this.coinselectionDiv.style.display === 'block') {
-                this.coinselectionDiv.style.display = 'none';
-                this.toggler.innerHTML = `{{ _("Coin selection") }} &#9654;`;
+            if (!this.coinselectionDiv.classList.contains('hidden')) {
+                this.coinselectionDiv.classList.add('hidden')
+                this.toggler.innerHTML = `{{ _("Coin selection") }} &#9654;`
                 this.removeSelection()
             } else {
-                this.coinselectionDiv.style.display = 'block';
-                this.toggler.innerHTML = `{{ _("Coin selection") }} &#9660;`;
+                this.coinselectionDiv.classList.remove('hidden')
+                this.toggler.innerHTML = `{{ _("Coin selection") }} &#9660;`
             }
         }
 

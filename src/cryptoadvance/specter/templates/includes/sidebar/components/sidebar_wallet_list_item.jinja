@@ -7,29 +7,40 @@
     - loading: Boolean indicating if the wallet is loaded in Specter already or not.
  #}
 {% macro sidebar_wallet_list_item(wallet, wallet_alias, chain, loading=false) -%}
-    <a id="{{wallet.alias}}-sidebar-list-item" href="{{ url_for('wallets_endpoint.wallet', wallet_alias=wallet.alias) }}" class="item {% if wallet_alias == wallet.alias %}active{% endif %}" style="{%if loading%}display: none;{%endif%}">
-        <img src="{{ url_for('static', filename='img/' + ('two-keys' if wallet.is_multisig else 'key') + '.svg') }}" class="svg-white" style="width: 45px; margin-left: 5px;">
-        <div class="grow">
-            {{ wallet.name }}<br>
-            <span class="note" style="font-size: 0.75em;">{% if wallet.is_multisig %}{{ wallet.sigs_required }} out of {{ wallet.keys_count }} {{ _("Multisig") }}{% else %}{{ _("Single Key") }}{% endif %}</span>
-            {% if wallet.rescan_progress %}
-                <span id="{{ wallet.alias }}_sidebar_rescan_progress_container" style="display: contents;">
-                <br>
-                <span class="note" style="font-size: 0.7em;">{{ _("Rescanning blockchain") }}: <span id="{{ wallet.alias }}_sidebar_wallet_rescan_percents">{{ "%.2f"|format(wallet.rescan_progress * 100) }}</span>%</span>
-                </span>
+    <a class="flex hover:bg-dark-800 {% if wallet_alias == wallet.alias %} bg-dark-800 {% endif %} rounded-xl -mx-3 relative px-3 h-12 items-center my-1" id="{{wallet.alias}}-sidebar-list-item" href="{{ url_for('wallets_endpoint.wallet', wallet_alias=wallet.alias) }}" class="item {% if wallet_alias == wallet.alias %}active{% endif %}" data-cy="wallet-sidebar-btn-{{wallet.name}}">
+        <div class="bg-dark-700 rounded-full h-9 w-9 flex items-center justify-center mr-2">
+            <!-- <img class="w-8 h-8" src="{{ url_for('static', filename='img/' + ('two-keys' if wallet.is_multisig else 'key') + '.svg') }}" class="svg-white" data-style="width: 45px; margin-left: 5px;"> -->
+            {% if wallet.is_multisig %}
+                <svg class="mt-[-1px] w-6 h-6 text-white fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M15.3154 16.8815H4.69043C3.82749 16.8815 3.12793 16.1819 3.12793 15.319V12.9214V12.9211C3.12793 12.6449 3.14624 12.3689 3.18274 12.0951L4.19721 4.48747C4.30071 3.71119 4.9629 3.13144 5.74605 3.13147H14.2601C15.0432 3.13148 15.7053 3.71121 15.8088 4.48747L16.8232 12.0953V12.0953C16.8598 12.3691 16.8781 12.6451 16.8781 12.9213V15.319V15.319C16.8781 16.1819 16.1785 16.8815 15.3156 16.8815C15.3155 16.8815 15.3155 16.8815 15.3155 16.8815L15.3154 16.8815ZM15.5696 12.1527L14.5696 4.65267C14.5489 4.49743 14.4165 4.3815 14.2599 4.38148H5.74599C5.5894 4.38151 5.45701 4.49744 5.4363 4.65267L4.4363 12.1527C4.41349 12.3237 4.53368 12.4809 4.70475 12.5037C4.71844 12.5056 4.73224 12.5065 4.74605 12.5065H6.96543C7.09994 12.5065 7.21937 12.5926 7.2619 12.7202L7.74446 14.1678C7.78699 14.2954 7.90642 14.3815 8.04093 14.3815H11.9654C12.0999 14.3815 12.2194 14.2954 12.2619 14.1678L12.7445 12.7202C12.787 12.5926 12.9064 12.5065 13.0409 12.5065H15.2602C15.4328 12.5064 15.5726 12.3664 15.5725 12.1938C15.5725 12.1801 15.5716 12.1663 15.5698 12.1527H15.5696Z"/>
+                </svg>
+            {% endif %}
+            {% if not wallet.is_multisig %}
+                <svg class="mt-[-1px] w-6 h-6 text-white fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M15.3154 16.8815H4.69043C3.82749 16.8815 3.12793 16.1819 3.12793 15.319V12.9214V12.9211C3.12793 12.6449 3.14624 12.3689 3.18274 12.0951L4.19721 4.48747C4.30071 3.71119 4.9629 3.13144 5.74605 3.13147H14.2601C15.0432 3.13148 15.7053 3.71121 15.8088 4.48747L16.8232 12.0953V12.0953C16.8598 12.3691 16.8781 12.6451 16.8781 12.9213V15.319V15.319C16.8781 16.1819 16.1785 16.8815 15.3156 16.8815C15.3155 16.8815 15.3155 16.8815 15.3155 16.8815L15.3154 16.8815ZM15.5696 12.1527L14.5696 4.65267C14.5489 4.49743 14.4165 4.3815 14.2599 4.38148H5.74599C5.5894 4.38151 5.45701 4.49744 5.4363 4.65267L4.4363 12.1527C4.41349 12.3237 4.53368 12.4809 4.70475 12.5037C4.71844 12.5056 4.73224 12.5065 4.74605 12.5065H6.96543C7.09994 12.5065 7.21937 12.5926 7.2619 12.7202L7.74446 14.1678C7.78699 14.2954 7.90642 14.3815 8.04093 14.3815H11.9654C12.0999 14.3815 12.2194 14.2954 12.2619 14.1678L12.7445 12.7202C12.787 12.5926 12.9064 12.5065 13.0409 12.5065H15.2602C15.4328 12.5064 15.5726 12.3664 15.5725 12.1938C15.5725 12.1801 15.5716 12.1663 15.5698 12.1527H15.5696Z"/>
+                </svg>
             {% endif %}
         </div>
+        <div class="flex flex-col justify-between space-y-1">
+            <div class="text-lg leading-none">{{ wallet.name }}</div>
+            <span class="text-sm text-dark-300 leading-none" data-style="font-size: 0.75em;">{% if wallet.is_multisig %}{{ wallet.sigs_required }} out of {{ wallet.keys_count }} {{ _("Multisig") }}{% else %}{{ _("Single Key") }}{% endif %}</span>
+            <!-- {% if wallet.rescan_progress %} -->
+            <!--     <span id="{{ wallet.alias }}_sidebar_rescan_progress_container" style="display: contents;"><span>{{ _("Rescanning blockchain") }}: <span id="{{ wallet.alias }}_sidebar_wallet_rescan_percents">{{ "%.2f"|format(wallet.rescan_progress * 100) }}</span>%</span></span> -->
+            <!-- {% endif %} -->
+        </div>
     </a>
-    <a class="item" style="{%if not loading%}display: none;{%endif%}" id="{{wallet.alias}}-sidebar-loading-placeholder">
+
+    <a class="{%if not loading%}hidden{%endif%}" data-style="{%if not loading%}display: none;{%endif%}" id="{{wallet.alias}}-sidebar-loading-placeholder">
         <img height="38px" class="spinning" spinning src="{{ url_for('static', filename='img/refresh.svg') }}" />
         <div class="grow">
             {{ wallet.name }}<br>
-            <span class="note" style="font-size: 0.75em;">{{ _("Loading wallet...") }}</span>
+            <span class="note" data-style="font-size: 0.75em;">{{ _("Loading wallet...") }}</span>
         </div>
     </a>
+
     {% if wallet.rescan_progress %}
         <div class="rescan_progress {{ chain }}">
-            <div id="{{ wallet.alias }}_rescan_progress" style="width: {{ wallet.rescan_progress * 100 }}%"></div>
+            <div id="{{ wallet.alias }}_rescan_progress" data-style="width: {{ wallet.rescan_progress * 100 }}%"></div>
         </div>
         <script>
             (function(){

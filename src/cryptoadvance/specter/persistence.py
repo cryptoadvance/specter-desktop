@@ -52,6 +52,8 @@ class PersistentObject:
         """
         self_json = {}
         self_json["python_class"] = self.fqcn
+        if hasattr(self, "fullpath"):
+            self_json["fullpath"] = self.fullpath
         return self_json
 
     @property
@@ -99,8 +101,8 @@ def read_json_file(path):
 
         # if failed - try reading from the backup
         except Exception as e:
-            logger.error(
-                f"Exception {e} while reading file {path}. Reading from backup"
+            logger.exception(
+                f"Exception {e} while reading file {path}. Reading from backup", e
             )
             # if no backup exists - raise
             if not os.path.isfile(bkp):
@@ -147,11 +149,11 @@ def _write_json_file(content, path, lock=None):
 
         # if not - move back backup
         except Exception as e:
+            logger.exception(e)
             # remove damaged file
             if os.path.isfile(path):
                 os.remove(path)
             shutil.copyfile(bkp, path)
-            logger.exception(e)
             raise SpecterError(
                 f"Error:{path} could not be saved. The old version has been restored. Check the logs for details. This is probably a bug."
             )

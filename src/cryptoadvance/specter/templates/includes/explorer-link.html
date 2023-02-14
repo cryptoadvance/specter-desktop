@@ -1,5 +1,7 @@
 <template id="explorer-link">
-    <style>
+	  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+
+    <div style="display: none;"><!--<style>-->
         .explorer-link {
             color: inherit;
             text-decoration: none;
@@ -9,7 +11,7 @@
             text-decoration: underline !important;
             cursor: pointer;
         }
-    </style>
+    </div><!--</style>-->
     {% if specter.explorer %}
         <a class="explorer-link" target="_blank"></a>
     {% else %}

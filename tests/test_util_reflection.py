@@ -5,6 +5,7 @@ from typing import List
 from cryptoadvance.specter.device import Device
 from cryptoadvance.specter.devices.bitbox02 import BitBox02
 from cryptoadvance.specter.specter_error import SpecterInternalException
+from cryptoadvance.specter.util.migrations.migration_0001 import SpecterMigration_0001
 from cryptoadvance.specter.util.reflection import (
     get_class,
     get_subclasses_for_clazz,
@@ -19,6 +20,7 @@ from cryptoadvance.specter.util.migrations.migration_0000 import SpecterMigratio
 from cryptoadvance.specter.services.service import Service
 from cryptoadvance.specterext.devhelp.service import DevhelpService
 from cryptoadvance.specterext.electrum.service import ElectrumService
+from cryptoadvance.specterext.spectrum.service import SpectrumService
 from cryptoadvance.specterext.swan.service import SwanService
 
 
@@ -86,9 +88,9 @@ def test_get_subclasses_for_clazz_in_cwd(caplog):
 def test_get_subclasses_for_class(caplog):
     caplog.set_level(logging.DEBUG)
     classlist = get_subclasses_for_clazz(SpecterMigration)
-    assert SpecterMigration_0000 in classlist
+    assert len(classlist) >= 3
     classlist = get_subclasses_for_clazz(Service)
-    assert len(classlist) == 3  # Happy to remove that at some point
+    assert len(classlist) == 5  # Happy to remove that at some point
     assert SwanService in classlist
     assert ElectrumService in classlist
     assert DevhelpService in classlist

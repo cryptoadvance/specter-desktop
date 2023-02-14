@@ -4,12 +4,12 @@ import logging
 import pathlib
 from flask_babel import lazy_gettext as _
 
-from cryptoadvance.specter.devices.bitcoin_core import BitcoinCoreWatchOnly
+from cryptoadvance.specter.devices.bitcoin_core import BitcoinCore, BitcoinCoreWatchOnly
 
 from ..helpers import alias, load_jsons
 from ..rpc import get_default_datadir
 
-from ..devices import __all__ as device_classes
+from ..devices import __all__ as all_device_classes
 from ..devices.generic import GenericDevice  # default device type
 from ..persistence import write_device, delete_file, delete_folder
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def get_device_class(device_type):
     """Look up device class by its type"""
-    for cls in device_classes:
+    for cls in all_device_classes:
         if device_type == cls.device_type:
             return cls
     return GenericDevice
@@ -100,33 +100,40 @@ class DeviceManager:
 
     @property
     def supported_devices(self):
-        return device_classes
+        return all_device_classes
 
     def supported_devices_for_chain(self, specter):
         """Devices which you can create via the UI. BitcoinCoreWatchonly is not among them
         and if we have no node, hot-wallets neither. Liquid support is limited as well.
         """
         if not specter.chain:
-            devices = [
+            device_classes = [
                 device_class
-                for device_class in device_classes
+                for device_class in all_device_classes
                 if device_class.device_type not in ["bitcoincore", "elementscore"]
             ]
         elif specter.is_liquid:
-            devices = [
+            device_classes = [
                 device_class
-                for device_class in device_classes
+                for device_class in all_device_classes
                 if device_class.liquid_support
             ]
         else:
-            devices = [
+            device_classes = [
                 device_class
-                for device_class in device_classes
+                for device_class in all_device_classes
                 if device_class.bitcoin_core_support
             ]
-        if BitcoinCoreWatchOnly in devices:
-            devices.remove(BitcoinCoreWatchOnly)
-        return devices
+        if BitcoinCoreWatchOnly in device_classes:
+            device_classes.remove(BitcoinCoreWatchOnly)
+
+        # The node might not like to have certain devices
+        new_device_classes = []
+        for device_class in device_classes:
+            if specter.node.is_device_supported(device_class):
+                new_device_classes.append(device_class)
+        device_classes = new_device_classes
+        return device_classes
 
     def delete(self, specter):
         """Deletes all the devices"""

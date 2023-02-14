@@ -10,14 +10,14 @@
 {% include 'includes/hwi/components/wallet.jinja' %}
 
 
-<div id="hwi_progress" class="hidden" style="width: 270px;">
+<div id="hwi_progress" class="hidden bg-dark-800 p-4 w-72">
     <h1 id="hwi_progress_title">{{ _("Processing...") }}</h1>
     <div class="flex-center" id="hwi_progress_text">{{ _("Keep your wallet connected.") }}</div><br>
-    <p id="bitbox02-pairing-code" style="margin: auto;"></p>
+    <p id="bitbox02-pairing-code" data-style="margin: auto;"></p>
     <img src="{{ url_for('static', filename='img/loader_boxes.svg') }}">
-    <div class="flex-center hidden" id="hwi_progress_note" style="cursor: pointer;">
+    <div class="flex-center hidden" id="hwi_progress_note" data-style="cursor: pointer;">
         {{ _("If your device does not show up, close any other wallet software that may be connected to your device and ensure the Specter USB settings are correctly configured.") }}<br><br>
-        <a href="{{ url_for('settings_endpoint.hwi') }}" style="color: #fff; text-decoration: underline; cursor: pointer;">
+        <a href="{{ url_for('settings_endpoint.hwi') }}" data-style="color: #fff; text-decoration: underline; cursor: pointer;">
             {{ _("View USB settings") }}
         </a>
     </div>

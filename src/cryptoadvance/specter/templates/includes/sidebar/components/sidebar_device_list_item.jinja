@@ -5,11 +5,13 @@
     - device_alias: Active device alias.
  #}
 {% macro sidebar_device_list_item(device, device_alias) -%}
-    <a href="{{ url_for('devices_endpoint.device', device_alias=device.alias) }}" class="item {% if device_alias == device.alias %}active{% endif %}" id="device_list_item_{{ device.ref4name }}">
-        <img src="{{ url_for(device.blueprint(), filename=device.icon) }}" width="22px">
-        <div>
-            {{ device.name }}<br>
-            <span class="note" style="font-size: 0.75em;">{{ device.keys | length}} {{ _("keys") }}</span>
+    <a class="flex hover:bg-dark-800 {% if device_alias == device.alias %}bg-dark-800{% endif %} rounded-xl -mx-3 px-3 h-12 items-center space-x-2 my-1" href="{{ url_for('devices_endpoint.device', device_alias=device.alias) }}" class="item {% if device_alias == device.alias %}active{% endif %}" id="device_list_item_{{ device.ref4name }}" data-cy="device-sidebar-btn-{{ device.ref4name }}">
+        <div class="bg-dark-700 rounded-full h-9 w-9 flex items-center justify-center">
+            <img class="w-5 h-5" src="{{ url_for(device.blueprint(), filename=device.icon) }}">
+        </div>
+        <div class="flex flex-col justify-between space-y-1">
+            <div class="text-lg leading-none">{{ device.name }}</div>
+            <span class="text-sm text-dark-300 leading-none" data-style="font-size: 0.75em;">{{ device.keys | length}} {{ _("keys") }}</span>
         </div>
     </a>
 {%- endmacro %}

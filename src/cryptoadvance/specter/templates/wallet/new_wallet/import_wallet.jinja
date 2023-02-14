@@ -1,57 +1,70 @@
 {% extends "base.jinja" %}
+
 {% block main %}
-	<form action="./" method="POST" class="center">
+	<form action="./" method="POST" class="flex flex-col">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="wallet_data" value='{{ wallet_data }}'>
+
 		<h1>Import Wallet</h1>
-		<span style="font-size: 1.3em;">Wallet name:</span> &nbsp;<input type="text" name="wallet_name" class="inline" value="{{ wallet_name }}" placeholder="Name your wallet">
-		<br>
+
+		<h3 class="mt-8">Information</h3>
+		<div class="floating-wrapper">
+			<input class="floating-input peer" type="text" name="wallet_name" value="{{ wallet_name }}" placeholder=" ">
+			<label class="floating-label" for="wallet_name">Wallet name:</span> 
+		</div>
+
 		{% if wallet_type == 'multisig' %}
-			<div class="center"> 
-				<p style="font-size: 1.2em;">{{ sigs_required }} out of {{ sigs_total }} multisig<p>
-			</div>
-			<br>
-			<h1>Devices associated with this wallet:</h1>
+			<p class="center"> 
+				<p>{{ sigs_required }} out of {{ sigs_total }} multisig<p>
+			</p>
+
+			<h3 class="mt-8">Devices associated with this wallet</h3>
 		{% else %}
-			<h1>The device associated with this wallet:</h1>
+			<h3 class="mt-8">Device associated with this wallet</h3>
 		{% endif %}
+
 		{% if cosigners|length > 0 %}
-			<div class="row overflow">
+			<div class="grid grid-cols-3 gap-3">
 				{% for cosigner in cosigners %}
 					<input type="hidden" name="cosigner_{{ loop.index0 }}" value="{{ cosigner.alias }}">
-					<a href="{{ url_for('devices_endpoint.device', device_alias=cosigner.alias) }}" style="text-decoration: none;" target="_blank">
-						<div class="small-card radio">
+					<a href="{{ url_for('devices_endpoint.device', device_alias=cosigner.alias) }}" target="_blank">
+						<div class="selection">
+							<p></p>
 							<img src="{{ url_for('static', filename=cosigner.icon) }}" width="18px">
-							{{ cosigner.name }}
+							<p>{{ cosigner.name }}</p>
 						</div>
 					</a>
 				{% endfor %}
 			</div>
 		{% endif %}
+
 		{% if unknown_cosigners|length > 0 %}
-			<br>
-			<h1>Unknown cosigners devices:</h1>
+			<h3 class="mt-8">Unknown cosigner devices</h3>
 			<p>These devices will be added automatically to your list of devices. Click on a device to add information about it.</p>
-			<div class="row overflow">
+
+			<div class="grid grid-cols-3 gap-3">
 				{% for (unknown_cosigner, label) in unknown_cosigners %}
-					<div class="small-card radio" onclick="showPageOverlay('unknown_cosigner_{{ loop.index0 }}_details')">
-						<img src="{{ url_for('static', filename=unknown_cosigners_types[loop.index0] ~ '_icon.svg') }}" width="18px">
+					<div class="selection" onclick="showPageOverlay('unknown_cosigner_{{ loop.index0 }}_details')">
+						<p></p>
 						<input id="unknown_cosigner_{{ loop.index0 }}_name_input" type="hidden" name="unknown_cosigner_{{ loop.index0 }}_name" value="{% if label %}{{ label }}{% else %}{{ wallet_name }}{%if sigs_total > 1%} Cosigner {{ loop.index }}{%endif%}{% endif %}">
 						<input type="hidden" name="unknown_cosigner_{{ loop.index0 }}_type" value="{{ unknown_cosigners_types[loop.index0] }}">
-						<span id="unknown_cosigner_{{ loop.index0 }}_name">{% if label %}{{ label }}{% else %}{{ wallet_name }}{%if sigs_total > 1%} Cosigner {{ loop.index }}{%endif%}{% endif %}</span>
+						<img src="{{ url_for('static', filename='img/devices/' ~ unknown_cosigners_types[loop.index0] ~ '_icon.svg') }}" width="18px">
+						<p id="unknown_cosigner_{{ loop.index0 }}_name">{% if label %}{{ label }}{% else %}{{ wallet_name }}{%if sigs_total > 1%} Cosigner {{ loop.index }}{%endif%}{% endif %}</p>
 					</div>
+
 					<div id="unknown_cosigner_{{ loop.index0 }}_details" class="hidden">
 						<h2>Cosigner name</h2><br>
 						<input onchange="document.getElementById('unknown_cosigner_{{ loop.index0 }}_name').innerText=this.value;document.getElementById('unknown_cosigner_{{ loop.index0 }}_name_input').value=this.value;" type="text" value="{% if label %}{{ label }}{% else %}{{ wallet_name }} Cosigner {{ loop.index }}{% endif %}" placeholder="The cosigner device name">
 						<br><br>
 						<h2>Cosigner Key</h2>
-<pre style="white-space: -moz-pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word;">{{ unknown_cosigner }}</pre><br>
+						<pre data-style="white-space: -moz-pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word;">{{ unknown_cosigner }}</pre><br>
 						<input type="button" class="btn" value="Done" onclick="hidePageOverlay()">
 					</div>
 				{% endfor %}
 			</div>
+
 		{% endif %}
 		<input type="hidden" name="createwallet" value="true">
-		<button type="submit" name="action" value="importwallet" class="btn centered">Import Wallet</button>
+		<button type="submit" name="action" value="importwallet" class="mt-8 button self-end bg-accent">Import Wallet</button>
 	</form>
 {% endblock %}

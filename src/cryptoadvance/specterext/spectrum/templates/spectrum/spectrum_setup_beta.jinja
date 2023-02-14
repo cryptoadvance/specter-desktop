@@ -1,0 +1,27 @@
+{% extends "base.jinja" %}
+{% block main %}
+<div>
+    <h1>{{ _("Spectrum - Connecting Specter to Electrum") }}</h1><br>
+    <div>
+        {% if core_node_exists %}
+            <p>{{ _("With the beta version of Spectrum, it's not supported to use a Bitcoin Core connection alongside a Spectrum connection. Your connection was not saved! Delete the Bitcoin Core connection and try again.") }}</p>
+        {% endif %}
+    </div>
+    <div>
+        {% if core_node_exists %}
+            <a class="button mt-8" id="back-button">{{ _("Back to Spectrum settings") }}</a>
+        {% else %}
+            <a class="button bg-accent mt-8" href="{{ url_for('welcome_endpoint.index') }}" >{{ _("Let's go!") }}</a>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    let backButton = document.getElementById('back-button');
+    backButton.setAttribute('href', document.referrer); // Just to have the link preview and open in a new tab functionality, probably not needed here
+    backButton.addEventListener('click', () => {
+        history.back();
+        return false;
+    })
+</script>
+{% endblock %}

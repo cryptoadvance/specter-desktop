@@ -6,13 +6,12 @@
 {% macro editable_title(title) -%}
     <form action="./" method="POST">
         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-        <input type="text" autocomplete="off" spellcheck="false" id="newtitle" name="newtitle" value="{{ title }}" style="font-size: 1.5em; text-align: center; display: none;" />
-        <div class="row center">
-            <button type="submit" class="btn update" id="save" name="action" value="rename" style="display: none; width: 49.2%; margin: 3px;">{{ _("Update") }}</button>
-            <button type="button" class="btn cancel" id="cancel" onclick="toggleEdit()" style="display: none; width: 49.2%; margin: 3px;">{{ _("Cancel") }}</button>
-            <button type="button" class="btn edit" id="edit" onclick="toggleEdit()">{{ _("Edit Name") }}</button>
+        <input class="mb-2" pattern="^[^']+" title="Do not use single quotes" type="text" autocomplete="off" spellcheck="false" id="newtitle" name="newtitle" value="{{ title }}" style="display: none;" />
+        <div class="flex">
+            <button type="submit" class="btn" id="save" name="action" value="rename" style="display: none;">{{ _("Update") }}</button>
+            <button type="button" class="btn" id="cancel" onclick="toggleEdit()" style="display: none;">{{ _("Cancel") }}</button>
+            <button type="button" class="btn" id="edit" onclick="toggleEdit()">{{ _("Edit Name") }}</button>
         </div>
-        <br>
     </form>
 
     <script>

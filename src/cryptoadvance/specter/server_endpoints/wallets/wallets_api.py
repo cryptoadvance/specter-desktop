@@ -9,6 +9,7 @@ from datetime import datetime
 from io import StringIO
 from math import isnan
 from numbers import Number
+from typing import List
 
 import requests
 from embit.descriptor.checksum import add_checksum
@@ -20,12 +21,14 @@ from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
 
+from cryptoadvance.specter.txlist import WalletAwareTxItem
+
 from ...commands.psbt_creator import PsbtCreator
 from ...helpers import bcur2base64
 from ...rpc import RpcError
 from ...server_endpoints import flash
 from ...server_endpoints.filters import assetlabel
-from ...specter_error import SpecterError, handle_exception
+from ...specter_error import SpecterError, SpecterInternalException, handle_exception
 from ...util.base43 import b43_decode
 from ...util.descriptor import Descriptor
 from ...util.fee_estimation import FeeEstimationResultEncoder, get_fees
@@ -114,7 +117,7 @@ def fees_old(blocks):
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/combine/", methods=["POST"])
 @login_required
 def combine(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     # only post requests
     # FIXME: ugly...
     txid = request.form.get("txid")
@@ -172,7 +175,7 @@ def combine(wallet_alias):
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/broadcast/", methods=["POST"])
 @login_required
 def broadcast(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     tx = request.form.get("tx")
     res = wallet.rpc.testmempoolaccept([tx])[0]
     if res["allowed"]:
@@ -193,7 +196,7 @@ def broadcast(wallet_alias):
 )
 @login_required
 def broadcast_blockexplorer(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     tx = request.form.get("tx")
     explorer = request.form.get("explorer")
     use_tor = request.form.get("use_tor", "true") == "true"
@@ -325,10 +328,12 @@ def decoderawtx(wallet_alias):
                 success=True,
                 tx=tx,
                 rawtx=rawtx,
-                walletName=wallet.name,
+                wallet_name=wallet.name,
             )
     except Exception as e:
-        app.logger.warning("Failed to fetch transaction data. Exception: {}".format(e))
+        app.logger.exception(
+            "Failed to fetch transaction data. Exception: {}".format(e), e
+        )
 
     return jsonify(success=False)
 
@@ -340,7 +345,7 @@ def decoderawtx(wallet_alias):
 @app.csrf.exempt
 def rescan_progress(wallet_alias):
     try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
         wallet.get_info()
         return jsonify(
             active=wallet.rescan_progress is not None,
@@ -354,7 +359,7 @@ def rescan_progress(wallet_alias):
 @login_required
 def get_label(wallet_alias):
     try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
         address = request.form.get("address", "")
         label = wallet.getlabel(address)
         return jsonify(
@@ -373,7 +378,7 @@ def get_label(wallet_alias):
 @login_required
 def set_label(wallet_alias):
 
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     address = request.form["address"]
     label = request.form["label"].rstrip()
     wallet.setlabel(address, label)
@@ -384,7 +389,7 @@ def set_label(wallet_alias):
 @login_required
 @app.csrf.exempt
 def txlist(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     idx = int(request.form.get("idx", 0))
     limit = int(request.form.get("limit", 100))
     search = request.form.get("search", None)
@@ -398,16 +403,17 @@ def txlist(wallet_alias):
         current_blockheight=app.specter.info["blocks"],
         service_id=service_id,
     )
-    return process_txlist(
+    txlist, page_count = process_txlist(
         txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
     )
+    return {"txlist": json.dumps(txlist), "pageCount": page_count}
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/utxo_list", methods=["POST"])
 @login_required
 @app.csrf.exempt
 def utxo_list(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     idx = int(request.form.get("idx", 0))
     limit = int(request.form.get("limit", 100))
     search = request.form.get("search", None)
@@ -417,9 +423,10 @@ def utxo_list(wallet_alias):
     for tx in txlist:
         if not tx.get("label", None):
             tx["label"] = wallet.getlabel(tx["address"])
-    return process_txlist(
+    txlist, page_count = process_txlist(
         txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
     )
+    return {"txlist": json.dumps(txlist), "pageCount": page_count}
 
 
 @wallets_endpoint_api.route("/wallets_overview/txlist", methods=["POST"])
@@ -439,10 +446,10 @@ def wallets_overview_txlist():
         current_blockheight=app.specter.info.get("blocks"),
         service_id=service_id,
     )
-
-    return process_txlist(
+    txlist, page_count = process_txlist(
         txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
     )
+    return {"txlist": json.dumps(txlist), "pageCount": page_count}
 
 
 @wallets_endpoint_api.route("/wallets_overview/utxo_list", methods=["POST"])
@@ -456,15 +463,16 @@ def wallets_overview_utxo_list():
     sortdir = request.form.get("sortdir", "asc")
     fetch_transactions = request.form.get("fetch_transactions", False)
     txlist = app.specter.wallet_manager.full_utxo()
-    return process_txlist(
+    txlist, page_count = process_txlist(
         txlist, idx=idx, limit=limit, search=search, sortby=sortby, sortdir=sortdir
     )
+    return {"txlist": json.dumps(txlist), "pageCount": page_count}
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/pending_psbt_list", methods=["GET"])
 @login_required
 def pending_psbt_list(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     pending_psbts = wallet.pending_psbts_dict()
     return jsonify(pending_psbts=pending_psbts)
 
@@ -508,43 +516,61 @@ def addresses_list(wallet_alias):
 @login_required
 @app.csrf.exempt
 def addressinfo(wallet_alias):
-    try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-        address = request.form.get("address", "")
-        if address:
-            descriptor = wallet.get_descriptor(
-                address=address, keep_xpubs=False, to_string=True, with_checksum=True
-            )
-            xpubs_descriptor = wallet.get_descriptor(
-                address=address, keep_xpubs=True, to_string=True, with_checksum=True
-            )
-            # The last two regex groups are optional since Electrum's derivation path is shorter
-            derivation_path_pattern = (
-                r"(\/[0-9h]+)(\/[0-9h]+)(\/[0-9h]+)(\/[0-9h]+)?(\/[0-9h]+)?"
-            )
-            # Only "descriptor" gives full derivation path, looks usually like this:
-            # wpkh([8c24a510/84h/1h/0h/0/0]0331edcb16cfd ... e02552539d984)#35zjhlhm
-            match = re.search(derivation_path_pattern, descriptor)
-            if not match:
-                logger.debug(
-                    f"Derivation path of this descriptor {descriptor} could not be parsed. Sth. wrong with the regex pattern which was {derivation_path_pattern}?"
-                )
-            logger.debug(f"This is the derivation path match: {match.group()}")
-            derivation_path = "m" + match.group()
-            address_info = wallet.get_address_info(address=address)
-            return {
-                "success": True,
-                "address": address,
-                "descriptor": descriptor,
-                "xpubs_descriptor": xpubs_descriptor,
-                "derivation_path": derivation_path,
-                "walletName": wallet.name,
-                "isMine": address_info and not address_info.is_external,
-                **address_info,  # address_info is an instance of Address(dict)
-            }
-    except Exception as e:
-        handle_exception(e)
-    return jsonify(success=False)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    address = request.form.get("address", "")
+    if not address:
+        return jsonify(success=False)
+
+    descriptor = wallet.get_descriptor(
+        address=address, keep_xpubs=False, to_string=True, with_checksum=True
+    )
+
+    xpubs_descriptor = wallet.get_descriptor(
+        address=address, keep_xpubs=True, to_string=True, with_checksum=True
+    )
+    if (not descriptor) or (not xpubs_descriptor):
+        logger.debug(
+            f"No descriptor or xpubs_descriptor was found for address {address} in wallet {wallet.name}"
+        )
+        return jsonify(success=False)
+
+    address_info = wallet.get_address_info(address=address)
+
+    # The last two regex groups are optional since Electrum's derivation path is shorter
+    derivation_path_pattern = (
+        r"(\/[0-9h]+)(\/[0-9h]+)(\/[0-9h]+)(\/[0-9h]+)?(\/[0-9h]+)?"
+    )
+    # Only "descriptor" gives full derivation path, looks usually like this:
+    # wpkh([8c24a510/84h/1h/0h/0/0]0331edcb16cfd ... e02552539d984)#35zjhlhm
+    match = re.search(derivation_path_pattern, descriptor)
+    if match:
+        logger.debug(f"This is the derivation path match: {match.group()}")
+    else:
+        logger.debug(
+            f"Derivation path of this descriptor {descriptor} could not be parsed. Sth. wrong with the regex pattern which was {derivation_path_pattern}?"
+        )
+        # only partial information can be returned, because no match/derivation_path could be found
+        return {
+            "success": False,
+            "address": address,
+            "descriptor": descriptor,
+            "xpubs_descriptor": xpubs_descriptor,
+            "wallet_name": wallet.name,
+            "is_mine": address_info and not address_info.is_external,
+            **address_info,  # address_info is an instance of Address(dict)
+        }
+
+    derivation_path = "m" + match.group()
+    return {
+        "success": True,
+        "address": address,
+        "descriptor": descriptor,
+        "xpubs_descriptor": xpubs_descriptor,
+        "derivation_path": derivation_path,
+        "wallet_name": wallet.name,
+        "is_mine": address_info and not address_info.is_external,
+        **address_info,  # address_info is an instance of Address(dict)
+    }
 
 
 ################## Wallet CSV export data endpoints #######################
@@ -563,7 +589,7 @@ def addresses_list_csv(wallet_alias):
                                      type (address_type param)"""
 
     try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
 
         sortby = request.args.get("sortby", "index")
         sortdir = request.args.get("sortdir", "asc")
@@ -614,16 +640,14 @@ def addresses_list_csv(wallet_alias):
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/transactions.csv")
 @login_required
 def tx_history_csv(wallet_alias):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     validate_merkle_proofs = app.specter.config.get("validate_merkle_proofs", False)
     txlist = wallet.txlist(validate_merkle_proofs=validate_merkle_proofs)
     search = request.args.get("search", None)
     sortby = request.args.get("sortby", "time")
     sortdir = request.args.get("sortdir", "desc")
-    txlist = json.loads(
-        process_txlist(
-            txlist, idx=0, limit=0, search=search, sortby=sortby, sortdir=sortdir
-        )["txlist"]
+    txlist, _ = process_txlist(
+        txlist, idx=0, limit=0, search=search, sortby=sortby, sortdir=sortdir
     )
     includePricesHistory = request.args.get("exportPrices", "false") == "true"
 
@@ -644,29 +668,23 @@ def tx_history_csv(wallet_alias):
 @login_required
 def utxo_csv(wallet_alias):
     try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
         includePricesHistory = request.args.get("exportPrices", "false") == "true"
         search = request.args.get("search", None)
         sortby = request.args.get("sortby", "time")
         sortdir = request.args.get("sortdir", "desc")
-        txlist = json.loads(
-            process_txlist(
-                wallet.full_utxo,
-                idx=0,
-                limit=0,
-                search=search,
-                sortby=sortby,
-                sortdir=sortdir,
-            )["txlist"]
+        txlist, _ = process_txlist(
+            wallet.full_utxo,
+            idx=0,
+            limit=0,
+            search=search,
+            sortby=sortby,
+            sortdir=sortdir,
         )
         # stream the response as the data is generated
         response = Response(
             stream_with_context(
-                txlist_to_csv(
-                    wallet,
-                    txlist,
-                    includePricesHistory,
-                )
+                txlist_to_csv(wallet, txlist, includePricesHistory, amount_logic="utxo")
             ),
             mimetype="text/csv",
         )
@@ -683,56 +701,55 @@ def utxo_csv(wallet_alias):
 )
 @login_required
 def is_address_mine(wallet_alias, address):
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
 
     # filter out invalid input
-    if (not address) or not isinstance(address, str):
-        return jsonify(False)
+    # and Segwit addresses are always between 14 and 74 characters long.
+    if (not address) or (not isinstance(address, str)) or len(address) < 14:
+        return jsonify(
+            {
+                "is_mine": False,
+                "wallet_name": wallet.name if wallet else None,
+            }
+        )
 
-    # Segwit addresses are always between 14 and 74 characters long.
-    if len(address) < 14:
-        return jsonify(False)
+    return jsonify(
+        {
+            "is_mine": wallet.is_address_mine(address),
+            "wallet_name": wallet.name if wallet else None,
+        }
+    )
 
-    return jsonify(wallet.is_address_mine(address))
 
-
-@wallets_endpoint_api.route("/wallet/<wallet_alias>/send/estimatefee", methods=["POST"])
+@wallets_endpoint_api.route("/wallet/<wallet_alias>/estimate_fee", methods=["POST"])
 @login_required
 def estimate_fee(wallet_alias):
-    """Returns a json-representation of a psbt which did not get persisted. Kind of a draft-run."""
-    wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
-    # update balances in the wallet
-    wallet.update_balance()
-    # update utxo list for coin selection
-    wallet.check_utxo()
-    if request.form.get("estimate_fee") != "true":
-        # Very critical as this form-value will prevent persisting the PSBT
-        return jsonify(
-            success=False,
-            error="Your Form did not specify estimate_fee = false. This call is not allowed",
-        )
+    """Returns the fee value from a created PSBT in dictionary form. The PSBT doesn't get persisted"""
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    # Assumes CSV input of recipients is still supported, can be simplified if this feature is removed
+    ui_option = request.form.get("ui_option", "ui")
+    request_form = request.form
+    recipients_txt = request.form["recipients"]
+    recipients_amount_unit = request.form.get("amount_unit_text")
     psbt_creator = PsbtCreator(
         app.specter,
         wallet,
-        request.form.get("ui_option", "ui"),
-        request_form=request.form,
-        recipients_txt=request.form["recipients"],
-        recipients_amount_unit=request.form.get("amount_unit_text"),
+        ui_option,
+        request_form,
+        recipients_txt,
+        recipients_amount_unit,
     )
-    try:
-        # Won't get persisted
-        psbt = psbt_creator.create_psbt(wallet)
-        return jsonify(success=True, psbt=psbt)
-    except SpecterError as se:
-        app.logger.error(se)
-        return jsonify(success=False, error=str(se))
+    psbt = psbt_creator.create_psbt(wallet)
+    fee = psbt["fee"]
+    response = {"fee": fee}
+    return jsonify(response)
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/asset_balances")
 @login_required
 def asset_balances(wallet_alias):
     try:
-        wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+        wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
         if app.specter.is_testnet:
             label = "tBTC"
         elif app.specter.is_liquid:
@@ -777,10 +794,8 @@ def wallet_overview_txs_csv():
         search = request.args.get("search", None)
         sortby = request.args.get("sortby", "time")
         sortdir = request.args.get("sortdir", "desc")
-        txlist = json.loads(
-            process_txlist(
-                txlist, idx=0, limit=0, search=search, sortby=sortby, sortdir=sortdir
-            )["txlist"]
+        txlist, _ = process_txlist(
+            txlist, idx=0, limit=0, search=search, sortby=sortby, sortdir=sortdir
         )
         includePricesHistory = request.args.get("exportPrices", "false") == "true"
         # stream the response as the data is generated
@@ -807,15 +822,15 @@ def wallet_overview_utxo_csv():
         search = request.args.get("search", None)
         sortby = request.args.get("sortby", "time")
         sortdir = request.args.get("sortdir", "desc")
-        txlist = json.loads(
-            process_txlist(
-                txlist, idx=0, limit=0, search=search, sortby=sortby, sortdir=sortdir
-            )["txlist"]
+        txlist, _ = process_txlist(
+            txlist, idx=0, limit=0, search=search, sortby=sortby, sortdir=sortdir
         )
         includePricesHistory = request.args.get("exportPrices", "false") == "true"
         # stream the response as the data is generated
         response = Response(
-            stream_with_context(txlist_to_csv(None, txlist, includePricesHistory)),
+            stream_with_context(
+                txlist_to_csv(None, txlist, includePricesHistory, amount_logic="utxo")
+            ),
             mimetype="text/csv",
         )
         # add a filename
@@ -831,19 +846,22 @@ def wallet_overview_utxo_csv():
 ################## Helpers #######################
 
 # Transactions list to user-friendly CSV format
-def txlist_to_csv(wallet: Wallet, _txlist, includePricesHistory=False):
+def txlist_to_csv(
+    wallet: Wallet, _txlist, includePricesHistory=False, amount_logic="flow"
+):
     """transforms a txlist into a csv-stream. This function is not returning but yielding. As such it needs to be called
     via wrapping it in stream_with_context
     see https://flask.palletsprojects.com/en/1.1.x/patterns/streaming/#streaming-with-context for details
     """
-    txlist = []
+    txlist: List[WalletAwareTxItem] = []
     for tx in _txlist:
+
         if isinstance(tx["address"], list):
             tx_copy = tx.copy()
             # No idea how this could be?!
             for i in range(0, len(tx["address"])):
                 tx_copy["address"] = tx["address"][i]
-                tx_copy["amount"] = tx["amount"][i]
+                tx_copy["amount"] = tx["flow_amount"][i]
                 txlist.append(tx_copy.copy())
         else:
             txlist.append(tx.copy())
@@ -871,20 +889,21 @@ def txlist_to_csv(wallet: Wallet, _txlist, includePricesHistory=False):
         lazy_gettext("Timestamp"),
     )
     if not wallet:
-        row = (_("Wallet"),) + row
+        row = ("Wallet",) + row
     w.writerow(row)
     yield data.getvalue()
     data.seek(0)
     data.truncate(0)
 
     # write each log item
-    _wallet = wallet
+    _wallet: Wallet = wallet
     for tx in txlist:
         if not wallet:
             wallet_alias = tx.get("wallet_alias", None)
             try:
                 _wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
             except Exception as e:
+                logger.exception(e)
                 continue
         label = _wallet.getlabel(tx["address"])
         if label == tx["address"]:
@@ -895,9 +914,13 @@ def txlist_to_csv(wallet: Wallet, _txlist, includePricesHistory=False):
                 tx["blockheight"] = tx_raw["blockheight"]
             else:
                 tx["blockheight"] = "Unconfirmed"
-        if app.specter.unit == "sat":
-            value = float(tx["amount"])
-            tx["amount"] = round(value * 1e8)
+        # For txs, the relevant amount is flow_amount
+        if amount_logic == "flow":
+            tx["amount"] = tx.flow_amount
+        elif amount_logic == "utxo":
+            tx["amount"] = tx.utxo_amount
+        else:
+            raise SpecterInternalException(f"Unknown amount_logic: {amount_logic}")
         amount_price = "not supported"
         rate = "not supported"
         if tx.get("blocktime"):
@@ -911,7 +934,7 @@ def txlist_to_csv(wallet: Wallet, _txlist, includePricesHistory=False):
                 rate = float(rate)
                 if app.specter.unit == "sat":
                     rate = rate / 1e8
-                amount_price = float(tx["amount"]) * rate
+                amount_price = float(tx["flow_amount"]) * rate
                 amount_price = round(amount_price * 100) / 100
                 if app.specter.unit == "sat":
                     rate = round(1 / rate)
@@ -924,7 +947,7 @@ def txlist_to_csv(wallet: Wallet, _txlist, includePricesHistory=False):
             time.strftime("%Y-%m-%d", time.localtime(timestamp)),
             label,
             tx["category"],
-            round(tx["amount"], (0 if app.specter.unit == "sat" else 8)),
+            round(tx.get("amount", 9999), (0 if app.specter.unit == "sat" else 8)),
             amount_price,
             rate,
             tx["txid"],
@@ -982,7 +1005,7 @@ def addresses_list_to_csv(wallet: Wallet):
             if address_info.used:
                 for tx in wallet.full_utxo:
                     if tx.get("address", "") == address:
-                        balance_on_address += tx.get("amount", 0)
+                        balance_on_address += tx.flow_amount
         row += (balance_on_address,)
 
         w.writerow(row)
@@ -1035,7 +1058,9 @@ def wallet_addresses_list_to_csv(addresses_list):
 
 
 def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="asc"):
-    """Prepares the txlist for the ui filtering it with the search-criterias and sorting it"""
+    """Prepares the txlist for the ui filtering it with the search-criterias and sorting it
+    returns a tuple of the txlist and the pagecount
+    """
     if search:
         search_lower = search.lower()
         txlist = [
@@ -1105,7 +1130,7 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
                     ]
                 else:
                     tx["assetlabel"] = app.specter.asset_label(tx["asset"])
-    return {"txlist": json.dumps(txlist), "pageCount": page_count}
+    return txlist, page_count
 
 
 def process_addresses_list(

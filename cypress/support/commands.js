@@ -31,7 +31,7 @@ Cypress.Commands.add("addDevice", (name, device_type, mnemonic) => {
         if ($body.text().includes(name)) {
           cy.get('#toggle_devices_list').click()
           cy.contains(name).click()
-          cy.get('#forget_device').click()
+          return
         } 
         cy.get('#side-content').click()
         if (!cy.get('#btn_new_device').isVisible) {
@@ -62,24 +62,18 @@ Cypress.Commands.add("addHotDevice", (name, node_type) => {
   // node_type is either elements or bitcoin
   cy.get('body').then(($body) => {
       if ($body.text().includes(name)) {
-        cy.deleteDevice(name)
-        // We might get an error here, if the device is used in a wallet
-        // We assume therefore that this is ok (see below)
+        return
       } 
       cy.get('#side-content').click()
       if (!cy.get('#btn_new_device').isVisible) {
         cy.get('#toggle_devices_list').click()
       }
       cy.get('#btn_new_device').click( {force: true} )
-      cy.contains('Select Your Device Type')
       cy.get(`#${node_type}core_device_card`).click()
       cy.get('#submit-mnemonic').click()
       cy.get('#device_name').type(name)
       cy.get('#submit-keys').click()
-      cy.get('#toggle_devices_list').click()
-      // It's a bit hackish as if the device already exists, we'll get an error
-      // but continue flaslessly nevertheless
-      cy.get('#devices_list > .item > div',  { timeout: 8000 }).contains(name)
+      cy.get('[data-cy="new-device-added-screen-close-btn"]').click()
     })
 })
 
@@ -97,11 +91,16 @@ Cypress.Commands.add("deleteDevice", (name) => {
       })
 })
 
-Cypress.Commands.add("changeDeviceType", (nameDevice, newType) => { 
+Cypress.Commands.add("changeDeviceType", (deviceName, newType) => { 
     cy.get('body').then(($body) => {
-        if ($body.text().includes(nameDevice)) {
-          cy.get('#toggle_devices_list').click()
-          cy.contains(nameDevice).click()
+        if ($body.text().includes(deviceName)) {
+          cy.get('#toggle_devices_list').then(($devicesList) => {
+            if ($devicesList.text() == 'Devices ▸') {
+              cy.get('#toggle_devices_list').click()
+            }
+          })
+          let refDeviceName = deviceName.toLowerCase().replace(/ /g,"_");
+          cy.get(`[data-cy='device-sidebar-btn-${refDeviceName}']`).click()
           cy.get('#device_type').select(newType)
           cy.get('#settype').click()
         } 
@@ -117,10 +116,7 @@ Cypress.Commands.add("addHotWallet", (wallet_name, device_name, node_type, walle
   }
   cy.get('body').then(($body) => {
       if ($body.text().includes(wallet_name)) {
-        cy.contains(wallet_name).click()
-        cy.get('#btn_settings' ).click( {force: true})
-        cy.get('#advanced_settings_tab_btn').click()
-        cy.get('#delete_wallet').click()
+        return
       }
       cy.get('#side-content').click()
       cy.get('#btn_new_wallet').click()
@@ -132,11 +128,7 @@ Cypress.Commands.add("addHotWallet", (wallet_name, device_name, node_type, walle
         cy.get(':nth-child(1) > #type_nested_segwit_btn').click()
       }
       // Create Wallet button:
-      cy.get('#keysform > .centered').click()
-      cy.get('body').contains("New wallet was created successfully!")
-      // // Download PDF
-      // // unfortunately this results in weird effects in cypress run
-      // //cy.get('#pdf-wallet-download > img').click()
+      cy.get('[data-cy="create-wallet-btn"]').click()
       cy.get('#btn_continue').click()
 
       //Get some funds
@@ -145,24 +137,25 @@ Cypress.Commands.add("addHotWallet", (wallet_name, device_name, node_type, walle
     })
 })
 
-Cypress.Commands.add("addWallet", (walletName, walletType, funded, nodeType, keyType, deviceNameOne, deviceNameTwo, deviceNameThree) => { 
+Cypress.Commands.add("addWallet", (walletName, walletType, funded, closeOverlay, nodeType, keyType, deviceNameOne, deviceNameTwo, deviceNameThree) => { 
   if (walletType == null) {
     walletType = "segwit"
+  }
+  if (closeOverlay == null) {
+    closeOverlay = true
   }
   if (deviceNameOne == null) {
     deviceNameOne = "DIY ghost"
   }
   cy.get('body').then(($body) => {
+      var walletAlias = walletName.toLowerCase().replace(/ /g,"_")
       if ($body.text().includes(walletName)) {
-        cy.contains(walletName).click()
-        cy.get('#btn_settings' ).click( {force: true})
-        cy.get('#advanced_settings_tab_btn').click()
-        cy.get('#delete_wallet').click()
+        return
       }
       cy.get('#side-content').click()
       cy.get('#btn_new_wallet').click()
       if (keyType == 'singlesig') {
-        cy.get('[href="./simple/"]').click()
+        cy.get('[data-cy="singlesig-wallet-btn"]').click()
         var device_button = "#"+deviceNameOne.toLowerCase().replace(/ /g,"_")
         cy.get(device_button).click()
         cy.get('#wallet_name').type(walletName)
@@ -175,7 +168,7 @@ Cypress.Commands.add("addWallet", (walletName, walletType, funded, nodeType, key
       }
       // Makes a 2 out 3 multisig
       else if (keyType == "multisig") {
-        cy.get('[href="./multisig/"]').click()
+        cy.get('[data-cy="multisig-wallet-btn"]').click()
         var deviceButtonOne = "#"+deviceNameOne.toLowerCase().replace(/ /g,"_")
         cy.get(deviceButtonOne).click()
         var deviceButtonTwo = "#"+deviceNameTwo.toLowerCase().replace(/ /g,"_")
@@ -187,35 +180,43 @@ Cypress.Commands.add("addWallet", (walletName, walletType, funded, nodeType, key
         if (walletType == "nested_segwit") {
           cy.get('#type_nested_segwit_btn').click()
         }
-        cy.get(':nth-child(9) > .inline').clear()
-        cy.get(':nth-child(9) > .inline').type(2)
+        cy.get('[data-cy="number-of-required-signatures-in-multisig"]').clear()
+        cy.get('[data-cy="number-of-required-signatures-in-multisig"]').type(2)
       }
-      cy.get('#keysform > .centered').click()
-      cy.get('body').contains("New wallet was created successfully!")
-      cy.get('#page_overlay_popup_cancel_button').click()
+      cy.get('[data-cy="create-wallet-btn"]').click()
+      cy.get('[data-cy="new-wallet-added-headline"]')
+      if (closeOverlay) {
+        cy.get('[data-cy="new-wallet-added-overlay-close-btn"]').click()
+      }
       if (funded) {
         cy.mine2wallet(nodeType)
       }  
     })
 })
 
-Cypress.Commands.add("deleteWallet", (name) => { 
+Cypress.Commands.add("deleteWallet", (walletName) => { 
   cy.get('body').then(($body) => {
-    if ($body.text().includes(name)) {
-        cy.contains(name).click()
+    if ($body.text().includes(walletName)) {
+        cy.get(`[data-cy='wallet-sidebar-btn-${walletName}']`).click()
         cy.get('#btn_settings').click( {force: true} )
         cy.get('#advanced_settings_tab_btn').click()
         cy.get('#delete_wallet').click()
-        // That does not seem to delete the wallet-file in elements, though
-        // So let's do that as well
-        cy.task("delete:elements-hotwallet")
     } 
   })
 })
 
-Cypress.Commands.add("selectWallet", (name) => { 
+Cypress.Commands.add("selectWallet", (walletName) => { 
   cy.get('body').then(($body) => {
-    cy.contains(name).click( {force: true} ) 
+    if ($body.text().includes(walletName)) {
+        cy.get('#toggle_wallets_list').then(($walletsList) => {
+          // Only toggle the wallets list if it is not already toggled
+          if ($walletsList.text() == 'Wallets ▸') {
+            cy.get('#toggle_wallets_list').click()
+          }
+          cy.get(`[data-cy='wallet-sidebar-btn-${walletName}']`).click()
+      })
+      
+    }
   })
 })
 
@@ -254,4 +255,19 @@ Cypress.Commands.add("createPsbt", (address, label="a_label", amount=0.01) => {
   //cy.get('#send_max_0').click()
   cy.get('#recipient_0').find('#amount', { includeShadowDom: true }).type(amount, { force: true })
   cy.get('#create_psbt_btn').click()
+})
+
+Cypress.Commands.add("connect", () => { 
+  cy.get('#node-switch-icon').click()
+  cy.get('[data-cy="new-connection-btn"]').click()
+  cy.get('#name').type('Bitcoin Core')
+  cy.get('#username').clear()
+  cy.get('#username').type('bitcoin')
+  cy.get('#password').clear()
+  cy.get('#password').type('secret')
+  cy.get('#host').clear()
+  cy.get('#host').type('http://localhost')
+  cy.get('#port').clear()
+  cy.get('#port').type(15443)
+  cy.get('[data-cy="connect-btn"]').click()
 })

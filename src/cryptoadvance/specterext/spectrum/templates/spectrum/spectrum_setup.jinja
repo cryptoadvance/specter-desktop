@@ -1,0 +1,59 @@
+{% extends "base.jinja" %}
+
+{% block main %}
+<div>
+    <h1>{{ _("Spectrum - Connecting Specter to Electrum") }}</h1><br>
+    <div>
+        {% if host_type == "list" %}
+            {% if success %}
+                <!-- <img class="feedback-icon" src="{{ url_for('static', filename='img/party.png') }}"/><br> -->
+                {# TODO: Adding the exact name of the server? #}
+                {% if changed_host %} <p>{{ _("You switched the Electrum server successfully:") }}</p> {% endif %}
+                <p>{{ _("Specter is connected via Spectrum to a public Electrum server!") }}</p>
+            {% else %}
+                <!-- <img  class="feedback-icon" src="{{ url_for('static', filename='img/failed.svg') }}"/><br> -->
+                {% if changed_host and node_is_running_before_request %}
+                    <p>{{ _("Cannot connect to the public Electrum server. You changed the settings from a working connection to a server that is not responding. 
+                        Consider switching back to the one you had chosen before.") }}</p>
+                {% else %}
+                    <p>{{ _("Cannot connect to the public Electrum server.") }}</p>
+                {% endif %}
+            {% endif %}
+        {% else %}
+            {% if success %}
+                <!-- <img class="feedback-icon" src="{{ url_for('static', filename='img/party.png') }}"/><br> -->
+                {% if changed_host %} <p>{{ _("You switched the Electrum server successfully:") }}</p> {% endif %}
+                <p>{{ _("Specter is connected via Spectrum to a manually configured Electrum server!") }}</p>
+            {% else %}
+                <!-- <img class="feedback-icon" src="{{ url_for('static', filename='img/failed.svg') }}"/><br> -->
+                {% if changed_host and node_is_running_before_request %}
+                    <p>{{ _("Cannot connect to the manually configured Electrum server. You changed the settings from a working connection to a server that is not responding. 
+                    Consider switching back to the one you had chosen before.") }}</p>
+                {% elif not changed_host and check_port_and_ssl %}
+                    <p>{{ _("Cannot connect to the manually configured Electrum server. Double-check that the port and SSL settings are correct.") }}</p>
+                {% elif changed_host and check_port_and_ssl %}
+                    <p>{{ _("Cannot connect to the manually configured Electrum server. Double-check all the configuration settings.") }}</p>
+                {% else %}
+                    <p>{{ _("Cannot connect to the manually configured Electrum server.") }}</p>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+    </div>
+    <div class="button-container">
+        {% if success %}
+            <a class="button bg-accent mt-8" href="{{ url_for('welcome_endpoint.index') }}" >{{ _("Let's go!") }}</a>
+        {% else %}
+            <a class="button mt-8" id="back-button">{{ _("Back to Spectrum settings") }}</a>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    let backButton = document.getElementById('back-button');
+    backButton.setAttribute('href', document.referrer); // Just to have the link preview and open in a new tab functionality, probably not needed here
+    backButton.addEventListener('click', () => {
+        history.back();
+        return false;
+    })
+</script>
+{% endblock %}

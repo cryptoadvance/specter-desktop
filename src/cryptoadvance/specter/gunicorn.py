@@ -1,5 +1,6 @@
 import multiprocessing
-from cryptoadvance.specter.server import init_app, create_app, create_and_init
+
+from cryptoadvance.specter.server import create_and_init, create_app, init_app
 
 from gunicorn.app.wsgiapp import WSGIApplication
 

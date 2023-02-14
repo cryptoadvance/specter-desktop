@@ -1,167 +1,150 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
 {% set tab = 'receive' %}
+
 {% block content %}
-	<style>
-		.update, .cancel, .edit {
-			margin-left: auto;
-			margin-right: auto;
-			width: 300px;
-			margin-top: 5px;
-		}
-
-		.edit {
-			float: none !important;
-		}
-
-		.label {
-			text-align: center;
-			font-size: 1.5em;
-		}
-
-		#address {
-			font-weight: bolder;
-			margin: 0px auto;
-			font-size: 16px;
-		}
-
-		#address:hover {
-			text-decoration: underline;
-		}
-	</style>
-
 	{% include "includes/hwi/hwi.jinja" %}
-	<br>
-	<div class="center card" style="width: 610px; padding-top: 25px;">
-		<form action="./" method="POST">
-			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-			<address-label data-address="{{ wallet.address }}" data-label="{{ wallet.getlabel(wallet.address) }}" data-wallet="{{ wallet_alias }}" date-size="title"></address-label>
-		</form>
-		{% if specter.is_liquid  and wallet.address != wallet.unconfidential_address %}
-		<nav class="row">
-			<button type="button" id="confidential_btn" class="btn radio left checked" onclick="toggle_confidential(true)"> {{ _("Confidential") }} </button>
-			<button type="button" id="unconfidential_btn" class="btn radio right" onclick="toggle_confidential(false)"> {{ _("Unconfidential") }} </button>
-		</nav>
-		{% endif %}
-		<div class="warning" style="font-weight: lighter; background: #0003; color: #ddd; display: inline-block; margin:5% auto 5%; border: 1px solid #777; padding: 20px; max-width: 100%;">
-			<p title="Click to copy" id="address" class="padded" style="word-break: break-all;" onclick="copyText(this.textContent, '{{ _("Copied Address:") }} ' + this.textContent);">{{ wallet.address }}</p>
-			{{ _("(click to copy)") }}
-			<br><br>
-			<qr-code id="address_qr" style="margin: auto;" value="{{'bitcoin:' + wallet.address }}" width="256"></qr-code><br>
-		</div>
-		<br>
-		<form action="./" method="POST">
-			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-			<button type="submit" name="action" value="newaddress" class="btn centered" style="margin-bottom: 15px">{{ _("Get new address") }}</button>
-			{% set supports_qr_code_verify = [] %}
-			{% for device in wallet.devices if device.qr_code_support_verify %}
-				{% set supports_qr_code_verify = supports_qr_code_verify.append(device) %}
-			{% endfor %}
-			{% if supports_qr_code_verify != [] %}
-				<div id="verify_address_qr_code" class="hidden">
-					<h1>{{ _("Scan to Verify Address on Your Device") }}</h1><br>
-					<div id="verify_address_qr_code_container"></div><br>
-					<p>
-							{{ _("Specter can verify this address if you scan it.")}}<br>{{ _("It has an address index included in the QR code.") }}
-					</p><br>
-				</div>
-				<button onclick="verifyQRCode('{{ wallet.address }}', '{{ wallet.address_index | string }}')" type="button" class="btn centered padded">{{ _("Verify address via QR code") }}</button>
-			{% endif %}
-			{% set supports_hwi = [] %}
-			{% set supports_hwi_multisig_display_address = [] %}
-			{% for device in wallet.devices if device.supports_hwi_multisig_display_address %}
-				{% set supports_hwi_multisig_display_address = supports_hwi_multisig_display_address.append(device) %}
-			{% endfor %}
-			{% for device in wallet.devices if device.hwi_support %}
-				{% set supports_hwi = supports_hwi.append(device) %}
-			{% endfor %}
-			{% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
-				{% set address = wallet.address %}
-				{% set descriptor = wallet.get_descriptor(address=address, keep_xpubs=False, to_string=True, with_checksum=True) %}
-				{% set xpubs_descriptor = wallet.get_descriptor(address=address, keep_xpubs=True, to_string=True, with_checksum=True) %}
-				<button type="button" onclick='displayAddressOnDevice(`{{ address }}`, `{{ descriptor }}`, `{{ xpubs_descriptor }}`)' class="btn centered optional">{{ _("Display address on device") }}</button><br>
-				{% if wallet.is_multisig %}
-					<p class="note center optional">{{ _("Multsig address on device display is only available for BitBox02, ColdCard, KeepKey, Specter, and Trezor devices.") }}</p>
-				{% endif %}
-			{% endif %}
-		</form>
-	</div>
-	<br class="bottom-space">
-	<br class="bottom-space">
-	<div class="hidden" id="new_wallet_devices_popup">
-		{% set supports_export_to_device = [] %}
-		{% for device in wallet.devices if device.exportable_to_wallet %}
-			{% set supports_export_to_device = supports_export_to_device.append(device) %}
-		{% endfor %}
-		{% if supports_export_to_device != [] %}
-			<h1>{{ _("Export To Device") }}</h1>
-			<p style="max-width: 500px;">{{ _("Some of your devices require that you first import your multisig wallet data into the device before you can start verifying addresses and sending transactions.") }}</p>
-			<div class="note center">
-				{{ _("Import this wallet to a device by scanning its QR code or importing its data file.") }}
-			</div>
 
-			{% for device in wallet.devices %}
-				{% if device.exportable_to_wallet %}
-					{% if device.wallet_export_type == 'file' %}
-						<a 
-						download="{{ wallet.name | ascii20 }}.txt"
-						href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}"
-						{% if device.device_type == 'coldcard' %}
-							onclick="showNotification(`{{ _("Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD") }}`, 0)"
-						{% endif %}
-						class="btn centered padded">
-							{{ _("Save") }} {{ device.name }} {{ _("file") }}
-						</a>
-					{% elif device.wallet_export_type == 'qr' %}
-						<button onclick="hidePageOverlay();showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">{{ _("Show") }} {{ device.name }} {{ _("QR Code") }}</button>
-						<div id="{{ device.alias }}_export_qr_code" style="display: none;">
-							<h1>{{ _("Scan this with your") }} {{ device.name }} "{{ _("device") }} </h1>
-							<qr-code value="{{ device.export_wallet(wallet) }}" width="400" scalable></qr-code>
-							<br>
-							<button onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')" type="button" class="btn centered padded">{{ _("Back") }}</button>
-						</div>
+	<div class="flex flex-col items-center">
+		<div class="flex flex-col items-center mt-5 bg-dark-800 border-2 rounded-lg border-dark-700 p-5 mb-5 w-full space-y-5">
+			<form action="./" method="POST">
+				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+				<address-label editable="false" data-address="{{ wallet.address }}" data-label="{{ wallet.getlabel(wallet.address) }}" data-wallet="{{ wallet_alias }}" date-size="title"></address-label>
+			</form>
+
+			{% if specter.is_liquid  and wallet.address != wallet.unconfidential_address %}
+				<nav class="row">
+					<button type="button" id="confidential_btn" class="btn radio left checked" onclick="toggle_confidential(true)"> {{ _("Confidential") }} </button>
+					<button type="button" id="unconfidential_btn" class="btn radio right" onclick="toggle_confidential(false)"> {{ _("Unconfidential") }} </button>
+				</nav>
+			{% endif %}
+
+			<div class="flex flex-col items-center">
+				<qr-code class="flex flex-col items-center" id="address_qr" data-style="margin: auto;" value="{{'bitcoin:' + wallet.address }}" width="256"></qr-code>
+
+				<div title="Click to copy" id="address" class="padded text-lg mt-5" onclick="copyText(this.textContent, '{{ _("Copied Address:") }} ' + this.textContent);">{{ wallet.address }}</div>
+
+				<div onclick="copyText('{{ wallet.address }}', 'Copied Address: ' + '{{ wallet.address }}');" class="cursor-pointer mt-5 button text-white bg-accent mb-0">Copy Address</div>
+			</div>
+		</div>
+
+		<div>
+			<form action="./" method="POST">
+				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+				<button type="submit" name="action" value="newaddress" class="button">{{ _("Get new address") }}</button>
+
+				{% set supports_qr_code_verify = [] %}
+				{% for device in wallet.devices if device.qr_code_support_verify %}
+					{% set supports_qr_code_verify = supports_qr_code_verify.append(device) %}
+				{% endfor %}
+				{% if supports_qr_code_verify != [] %}
+					<div id="verify_address_qr_code" class="hidden">
+						<h1>{{ _("Scan to Verify Address on Your Device") }}</h1><br>
+						<div id="verify_address_qr_code_container"></div><br>
+						<p>
+								{{ _("Specter can verify this address if you scan it.")}}<br>{{ _("It has an address index included in the QR code.") }}
+						</p><br>
+					</div>
+					<button onclick="verifyQRCode('{{ wallet.address }}', '{{ wallet.address_index | string }}')" type="button" class="btn centered padded">{{ _("Verify address via QR code") }}</button>
+				{% endif %}
+				{% set supports_hwi = [] %}
+				{% set supports_hwi_multisig_display_address = [] %}
+				{% for device in wallet.devices if device.supports_hwi_multisig_display_address %}
+					{% set supports_hwi_multisig_display_address = supports_hwi_multisig_display_address.append(device) %}
+				{% endfor %}
+				{% for device in wallet.devices if device.hwi_support %}
+					{% set supports_hwi = supports_hwi.append(device) %}
+				{% endfor %}
+				{% if supports_hwi != [] and (supports_hwi_multisig_display_address != [] or not wallet.is_multisig) %}
+					{% set address = wallet.address %}
+					{% set descriptor = wallet.get_descriptor(address=address, keep_xpubs=False, to_string=True, with_checksum=True) %}
+					{% set xpubs_descriptor = wallet.get_descriptor(address=address, keep_xpubs=True, to_string=True, with_checksum=True) %}
+					<button type="button" onclick='displayAddressOnDevice(`{{ address }}`, `{{ descriptor }}`, `{{ xpubs_descriptor }}`)' class="button">{{ _("Display address on device") }}</button>
+					{% if wallet.is_multisig %}
+						<p class="note center optional">{{ _("Multsig address on device display is only available for BitBox02, ColdCard, KeepKey, Specter, and Trezor devices.") }}</p>
 					{% endif %}
 				{% endif %}
-			{% endfor %}
-			<br>
-		{% endif %}
-		<p style="max-width: 500px;">{{ _("You can always do this later from the wallet Settings tab.") }}</p>
-		<button type="button" class="btn centered padded" onclick="hidePageOverlay()">{{ _("Finish") }}</button>
-	</div>
-	<div class="hidden" id="new_wallet_popup">
-		<h1>{{ _("New wallet was created successfully!") }}</h1>
-		<button id="pdf-wallet-download" class="btn centered action" type="button">
-			<img src="{{ url_for('static', filename='img/file.svg') }}" style="width: 30px; margin-right: 2px;" class="svg-white">
-			{{ _("Save Backup PDF") }}
-		</button>
-		{% include 'wallet/components/wallet_pdf.jinja' %}
-		<br>
-		<span id="advanced_pdf_export_toggle" style="cursor: pointer;" onclick="togglePDFExportAdvanced()">{{ _("Advanced") }} &#9654;</span>
-		<br>
-		<br>
-		<div style="margin: 0 auto;" class="center hidden" id="advanced_pdf_export_container">
-			<label style="font-size: 1em;"">{{ _("Use SLIP-132:") }}&nbsp;</label>
-			<label class="switch">
-				<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()">
-				<span class="slider"></span>
-			</label><br><br>
+			</form>
 		</div>
-		<p class="note center" style="margin-top: 5px; max-width: 90%;">{{ _("To format master keys on the PDF backup document.") }}</p>
-		<p style="max-width: 500px;">
-		{{ _("It is recommended that you print and save this wallet backup file with each of your devices.") }}
-		</p>
-		<p style="max-width: 500px;" class="note">
-		{{ _("This backup includes all the information you'd need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core itself.") }}<br>
-		<p>
-		<p style="max-width: 500px;" class="note">
-		{{ _("It is recommended that you keep this file private, as it contains all the information needed to track all of the wallet balance and transactions history.") }}
-		<p>
-		<p style="max-width: 500px;">{{ _("You can always download this file later from the wallet Settings tab.") }}</p>
-		{% if wallet.is_multisig and supports_export_to_device != [] %}
-			<button type="button" class="btn centered padded" onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')">{{ _("Continue") }}</button>
-		{% else %}
-			<button type="button" class="btn centered padded" onclick="hidePageOverlay()" id="btn_continue">{{ _("Continue") }}</button>
-		{% endif %}
+
+		<div class="hidden bg-dark-800 w-96 p-4" id="new_wallet_devices_popup">
+			{% set supports_export_to_device = [] %}
+			{% for device in wallet.devices if device.exportable_to_wallet %}
+				{% set supports_export_to_device = supports_export_to_device.append(device) %}
+			{% endfor %}
+			{% if supports_export_to_device != [] %}
+				<div class="flex justify-between mb-2">
+						<h3 class="mb-0">{{ _("Export To Device") }}</h3>
+						<p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer">Close</p>
+				</div>
+				<p>{{ _("Some of your devices require that you first import your multisig wallet data into the device before you can start verifying addresses and sending transactions.") }}</p>
+				<p>{{ _("Import this wallet to a device by scanning its QR code or importing its data file.") }}</p>
+
+				{% for device in wallet.devices %}
+					{% if device.exportable_to_wallet %}
+						{% if device.wallet_export_type == 'file' %}
+							<a 
+								download="{{ wallet.name | ascii20 }}.txt"
+								href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}"
+								{% if device.device_type == 'coldcard' %}
+									onclick="showNotification(`{{ _("Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD") }}`, 0)"
+								{% endif %}
+								class="button bg-accent">
+								{{ _("Save") }} {{ device.name }} {{ _("file") }}
+							</a>
+						{% elif device.wallet_export_type == 'qr' %}
+							<button onclick="hidePageOverlay();showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="button bg-accent">{{ _("Show") }} {{ device.name }} {{ _("QR Code") }}</button>
+							<div id="{{ device.alias }}_export_qr_code" style="display: none;">
+								<h3>{{ _("Scan this with your") }} {{ device.name }} "{{ _("device") }} </h3>
+								<qr-code value="{{ device.export_wallet(wallet) }}" width="400" scalable></qr-code>
+								<button onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')" type="button" class="button">{{ _("Back") }}</button>
+							</div>
+						{% endif %}
+					{% endif %}
+				{% endfor %}
+
+			{% endif %}
+			<p>{{ _("You can always do this later from the wallet Settings tab.") }}</p>
+			<button type="button" class="button" onclick="hidePageOverlay()">{{ _("Finish") }}</button>
+		</div>
+
+		<div class="hidden bg-dark-800 w-96 p-4" id="new_wallet_popup">
+			<div class="flex justify-between mb-3">
+				<h3 class="mb-0" data-cy="new-wallet-added-headline">{{ _("Wallet Added") }}</h3>
+				<p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer" data-cy="new-wallet-added-overlay-close-btn">Close</p>
+			</div>
+
+			{% include 'wallet/components/wallet_pdf.jinja' %}
+
+			<p>
+				{{ _("It's recommended that you print and save this wallet backup file with each of your devices.") }}
+				{{ _("It includes everything you need to restore your wallet in Specter or other compatible wallets including Bitcoin Core itself.") }}<br>
+			<p>
+			<p>
+				{{ _("Keep this file private as it contains all the information needed to track your transaction history.") }}
+			<p>
+
+			<span class="mt-2 mb-3 block" id="advanced_pdf_export_toggle" onclick="togglePDFExportAdvanced()">{{ _("Advanced") }} &#9654;</span>
+
+			<div class="hidden mb-5" id="advanced_pdf_export_container">
+				<label class="flex items-center">
+					<input type="checkbox" id="use_slip_132_pdf" data-style="margin: auto;" onchange="toggleKeyDisplay()">
+					{{ _("Use SLIP-132") }}
+				</label>
+			</div>
+
+			<button id="pdf-wallet-download" class="button bg-accent text-white" type="button">
+				<img src="{{ url_for('static', filename='img/file.svg') }}">
+				{{ _("Save Backup PDF") }}
+			</button>
+
+			{% if wallet.is_multisig and supports_export_to_device != [] %}
+				<button type="button" class="button mb-0" onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')">{{ _("Continue") }}</button>
+			{% else %}
+				<button type="button" class="button mb-0" onclick="hidePageOverlay()" id="btn_continue">{{ _("Skip") }}</button>
+			{% endif %}
+		</div>
 	</div>
+
 	<script>
 		function verifyQRCode(address, idx) {
 			document.getElementById('verify_address_qr_code_container').innerHTML = `<qr-code value="bitcoin:${address}?index=${idx}" width="256" scalable></qr-code>`;

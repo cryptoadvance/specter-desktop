@@ -3,10 +3,10 @@
 {% block content %}
 	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
 	{{ send_nav('send_pending', wallet_alias) }}
-		<h1 class="padded">{{ _("Transactions Awaiting Signing:") }}</h1>
+		<h3>{{ _("Transactions Awaiting Signing/Broadcasting") }}</h3>
+		<p>{{ _("Here you can manage PSBTs (Partially Signed Bitcoin Transactions) you have created but did not finish signing or did not broadcast to the network.") }}</p>
 		<div class="table-holder">
 			{% from 'wallet/send/pending/components/pending_psbt_table.jinja' import pending_psbt_table %}
 			{{ pending_psbt_table(pending_psbts, wallet_alias, wallet, specter) }}
-		</div><br>
-		<span class="center note padded" style="margin-top: 12px;">{{ _("Here you can manage PSBTs (Partially Signed Bitcoin Transactions) you have created but did not finish signing or did not broadcast to the network.") }}</span>
+		</div>
 {% endblock %}

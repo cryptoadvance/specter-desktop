@@ -1,14 +1,7 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
 {% set tab = 'send' %}
+
 {% block content %}
-
-	<style> 
-		#calculated_tx_fee_label:hover {
-			text-decoration: underline;
-			cursor: pointer;
-		}
-	</style>
-
 	{% include "includes/qr-scanner.html" %}
 	{% include "includes/recipient-box.html" %}
 
@@ -20,90 +13,125 @@
 		</ul>
 	</message-box>
 
-	<form action="{{ url_for('wallets_endpoint.send_new',wallet_alias=wallet_alias) }}" id="send-form" method="POST" style="width: 100%;">
+	<form action="{{ url_for('wallets_endpoint.send_new',wallet_alias=wallet_alias) }}" id="send-form" method="POST" data-style="width: 100%;">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="rbf_tx_id" value="{{ rbf_tx_id }}"/>
 		<input type="hidden" name="recipient_dicts"  id="recipient_dicts" value=""/>  
-		<h1 class="padded">{{ _("Create Transaction") }}</h1>
-		<div style="display: flex; justify-content: center; margin-bottom: 15px">
-			<div>{{ _("Available funds:") }} {{wallet.amount_available | btcunitamount}}
-				{% if specter.unit == 'sat' %}
-					sats
-				{% else %}
-					{% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
-				{% endif %}<br>
-				{% if specter.price_check %}
-					<span class="note">{{ wallet.amount_available | altunit }}</span>
-				{% endif %}
-				{% if specter.is_liquid and wallet.balance.get("assets", {}) %}
-				<span>
-					<br>{{ _("Assets:") }}<br>
-					{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
-						{% set balance = wallet.balance.get("assets",{}).get(asset, {}) %}
-						<span style="margin: 0 10px;">
-							{{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcamount }}
-							<asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}"></asset-label>
-						</span>
-					{% endfor %}
-				</span>
-				{% endif %}
-			</div>
-			{% if wallet.amount_locked_unsigned  > 0 or wallet.amount_frozen > 0 %}
-			<div>
-				<tool-tip width="150px">
-				    <h4 slot="title">{{ _("Why is this less than my total balance?") }}</h4>
-				    <span slot="paragraph">
-						{{ _(' Frozen outputs and outputs locked in unsigned transactions are not available here.  
-						To make more funds available, click on the "Unsigned" tab and delete not required transactions or unfreeze UTXO under "Transactions".') }}
-				    </span>
-				</tool-tip>
-	        </div>
-	        {% endif %}
-	    </div>
-		<div class="card" style="margin: auto;">			
-			<div id="recipients" {% if ui_option != 'ui' %}class="hidden"{% else %} class="recipient_wrapper" {% endif %}></div>
-			<img src="{{ url_for('static', filename='img/add-person.svg') }}" id="add-recipient" title="Add a recipient" class="recipient_button recipient_add" style="float:right" onclick="addRecipient('', '', 'btc', '')">
-			<div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>
-			{{ _("Unit:") }} 
-			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_text" value="sat" onchange="toggleTextUnit(this)" {% if specter.unit == 'sat' %}checked{% endif %}>sat</label>
-			<label><input type="radio" class="inline" style="margin: 0 5px;" name="amount_unit_text" value="btc" onchange="toggleTextUnit(this)" {% if specter.unit != 'sat' %}checked{% endif %}>BTC</label><br>
 
-			<textarea id="recipients-txt" name="recipients" placeholder="{{ _('Enter recipient address, amount') }}" style="margin-top: 5px; font-size: 0.95em;" onblur="validateForm()">{{ recipients_txt }}</textarea>
-				<p class="note" style="line-height: 2; background-color: #16202d; padding: 10px; border-radius: 7px;">
+		<h3>{{ _("Create Transaction") }}</h3>
+
+		<div class="flex">
+			<p>
+				{{ _("Available funds:") }} {{wallet.amount_available | btcunitamount}}
+				{% if specter.unit == 'sat' %}sats{% else %}{% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC{% endif %}
+
+				{% if specter.price_check %}
+					<span>{{ wallet.amount_available | altunit }}</span>
+				{% endif %}
+
+				{% if specter.is_liquid and wallet.balance.get("assets", {}) %}
+					<span>
+						{{ _("Assets:") }}
+						{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
+							{% set balance = wallet.balance.get("assets",{}).get(asset, {}) %}
+							<span data-style="margin: 0 10px;">
+								{{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcamount }}
+								<asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}"></asset-label>
+							</span>
+						{% endfor %}
+					</span>
+				{% endif %}
+			</p>
+
+			{% if wallet.amount_locked_unsigned  > 0 or wallet.amount_frozen > 0 %}
+				<div>
+					<tool-tip width="150px">
+							<h4 slot="title">{{ _("Why is this less than my total balance?") }}</h4>
+							<span slot="paragraph">
+							{{ _(' Frozen outputs and outputs locked in unsigned transactions are not available here.  
+							To make more funds available, click on the "Unsigned" tab and delete not required transactions or unfreeze UTXO under "Transactions".') }}
+							</span>
+					</tool-tip>
+				</div>
+			{% endif %}
+		</div>
+
+		<div class="flex flex-col">			
+			<div id="recipients" class="mt-3 rounded-t-xl overflow-hidden {% if ui_option != 'ui' %}hidden{% else %} recipient_wrapper" {% endif %}></div>
+			<div class="px-4 py-3 cursor-pointer hover:bg-dark-700 rounded-b-xl bg-dark-600 text-white mb-2" id="add-recipient" title="Add a recipient" class="recipient_button recipient_add" onclick="addRecipient('', '', 'btc', '')">+ Add Recipient</div>
+
+			<div id="recipients-txt-container" {% if ui_option == 'ui' %}class="hidden"{% endif %}>
+				<div class="flex justify-between my-2">
+					<span class="text-base">Unit Selection</span>
+					<div class="space-x-4 flex items-center">
+						<label class="checkbox-wrapper-inline">
+							<input type="radio" name="amount_unit_text" value="sat" onchange="toggleTextUnit(this)" {% if specter.unit == 'sat' %}checked{% endif %} data-cy="csv-editor-sats-checkbox">
+							<span>sat</span>
+						</label>
+						<label class="checkbox-wrapper-inline">
+							<input type="radio" name="amount_unit_text" value="btc" onchange="toggleTextUnit(this)" {% if specter.unit != 'sat' %}checked{% endif %} data-cy="csv-editor-btc-checkbox">
+							<span>BTC</span>
+						</label>
+					</div>
+				</div>
+
+				<textarea id="recipients-txt" name="recipients" placeholder="{{ _('Enter recipient address, amount') }}" onblur="validateForm()" data-cy="csv-editor-textarea">{{ recipients_txt }}</textarea>
+				<p class="note" data-style="line-height: 2; background-color: #16202d; padding: 10px; border-radius: 7px;">
 					{{ _("Enter each recipient address, amount as a new line:") }}<br>
 					&lt;{{ _("ADDRESS") }}1&gt;, &lt;{{ _("AMOUNT") }}1&gt;<br>
 					&lt;{{ _("ADDRESS") }}2&gt;, &lt;{{ _("AMOUNT") }}2&gt;<br>
 					&lt;{{ _("ADDRESS") }}3&gt;, &lt;{{ _("AMOUNT") }}3&gt;<br>
 				</p>
 			</div>
-			<p><span id="calculated_tx_fee_label" class="note" style="margin-top: 17px;" onclick="calculateEstimatedFee()">{{ _("Calculate estimated fee") }}</span><span class="note" id="calculated_tx_fee"></span><p>
-			<span id="toggle_advanced" style="cursor: pointer;">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
-			<br>
-			<div id="advanced_settings" style="margin: auto; max-width: 90%; display: {% if show_advanced_settings %}block{% else %}none{% endif %};">
-				<div>{{ _("Transaction editor:") }} 
-					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="ui_option" value="ui" onclick="toggleSendUIType(this)" {% if ui_option == 'ui' %}checked{% endif %} id="ui-radio-btn">UI</label>
-					<label><input type="radio" class="inline" style="margin: 0 10px 0 20px;" name="ui_option" value="text" onclick="toggleSendUIType(this);" {% if ui_option != 'ui' %}checked{% endif %}>text</label>
-				</div><br>
+
+			<div class="my-3 flex">
+				<button type="button" class="btn cursor-pointer" id="calculated_tx_fee_label" onclick="showEstimatedFee()" data-cy="show-estimated-fee-btn">{{ _("Show Estimated Fee") }}</button>
+				<div class="text-white bg-dark-800 rounded-full py-1 px-2 hidden" id="estimated-fee-box" data-cy="estimated-fee-box"></div>
+				<button type="button" class="btn cursor-pointer hidden" id="close-estimated-fee-box-btn" onclick="closeFeeBox()" data-cy="close-fee-box-btn">&times;</div>
+			</div>
+
+			<span class="cursor-pointer mt-3" id="toggle_advanced">{{ _("Advanced") }} {% if show_advanced_settings %}&#9660;{% else %}&#9654;{% endif %}</span>
+
+			<div id="advanced_settings" class="{% if not show_advanced_settings %}hidden{% endif %}">
+				<h3 class="mt-5">{{ _("Transaction editor") }}</h3>
+				<p class="mb-3">Select CSV to batch import several outputs for your transaction.</p>
+				<div class="grid grid-cols-2 gap-3">
+					<label class="checkbox-wrapper">
+						<input type="radio" class="checkbox-input peer" name="ui_option" value="ui" onclick="toggleSendUIType(this)" {% if ui_option == 'ui' %}checked{% endif %} id="ui-radio-btn">
+						<span class="checkbox-label">Interface</span>
+					</label>
+					<label class="checkbox-wrapper">
+						<input type="radio" class="peer checkbox-input" name="ui_option" value="text" onclick="toggleSendUIType(this);" {% if ui_option != 'ui' %}checked{% endif %} data-cy="csv-editor-checkbox">
+						<span>CSV</span>
+					</label>
+				</div>
+
+				<h3 class="mt-5">{{ _("Fee Selection") }}</h3>
 				{% include "includes/fee-selection.html" %}
 				<fee-selection id="fee-selection-component"></fee-selection>
-				<br>
-				<br>
-				<br>
-				<div class="row break-row-mobile" id="vertical-space-for-subtract-fees-from-amount-checkbox" style="margin-top: 0px;"></div>
+
+				<div class="row break-row-mobile" id="vertical-space-for-subtract-fees-from-amount-checkbox" data-style="margin-top: 0px;"></div>
 			</div>
+
 			{% include "includes/tx-row.html" %}
 			{% include "includes/tx-data.html" %}
 			{% include "includes/explorer-link.html" %}
 			{% include "includes/tx-table.html" %}
 			{% include "includes/coin_selection.html" %}
-			<coin-selection  
-				id="coinselection-webcomponent"
-				wallet-alias="{{wallet.alias}}"
-				spendable-amount='{{ wallet.full_available_balance | btcamount }}'
-				is-liquid="{{specter.is_liquid}}"
-				selected-coins="{{ selected_coins }}">
-			</coin-selection>
-			<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="btn centered" style="margin-top: 20px;">{{ _('Create ')}}<span class="optional">&nbsp;{{ _('unsigned')}}&nbsp;</span>{{ _('transaction') }}</button>
+
+			<div class="mt-3">
+				<coin-selection  
+					id="coinselection-webcomponent"
+					wallet-alias="{{wallet.alias}}"
+					spendable-amount='{{ wallet.full_available_balance | btcamount }}'
+					is-liquid="{{specter.is_liquid}}"
+					selected-coins="{{ selected_coins }}">
+				</coin-selection>
+			</div>
+
+			<div class="flex justify-end mt-8">
+				<button onclick="validateForm(true)" type="button" name="action" value="createpsbt" id="create_psbt_btn" class="button bg-accent text-white">{{ _('Create ')}}<span class="optional">&nbsp;{{ _('Unsigned')}}&nbsp;</span>{{ _('Transaction') }}</button>
+			</div>
 		</div>
 	</form>
 {% endblock %}
@@ -245,6 +273,7 @@
 			newRecipient.amount = amount;
 			newRecipient.unit = amount_unit;
 			newRecipient.label = label;
+			newRecipient.classList = "group"
 			newRecipient.addEventListener('remove', (event) => {
 				removeRecipient(newRecipient.recipientId);
 			})
@@ -258,9 +287,6 @@
 				setMaxAmount(newRecipient.recipientId);
 			})
 
-				
-
-
 			recipients.appendChild(newRecipient);
 
 			// This adds the id's to the subtract_from_recipient_id_select
@@ -270,7 +296,6 @@
 			opt.value = recipientId;
 			opt.innerHTML = newRecipient.title;
 			subtractFromRecipientIdSelect.appendChild(opt);		
-
 
 			// Make the remove button visible again for all recipient components
 			setVisibilityRemoveRecipientButton();
@@ -394,7 +419,7 @@
 		// Form validation
 		function validateAmount(unit, amount, recipientId, allowZero=false) {
 			if (isNaN(amount)) {
-				showError(`{{ _("Amount entered is invalid!") }}`, 5000);
+				showError(`{{ _("Amount entered is invalid.") }}`, 5000);
 				return false;
 			}
 			if (recipientId) {				
@@ -571,39 +596,42 @@
 			}
 		}
 
-		async function calculateEstimatedFee() {
-			document.getElementById('calculated_tx_fee').innerText = ``;
-			if (await validateForm(true) !== true) {
+		const feeBox = document.getElementById('estimated-fee-box')
+		const closeFeeBoxBtn = document.getElementById('close-estimated-fee-box-btn')
+
+		async function showEstimatedFee() {	
+			if (!validateForm(true)) {
 				return;
 			}
-			try {				
-				var formData = new FormData(document.getElementById('send-form'));
-				let url="{{ url_for('wallets_endpoint_api.estimate_fee', wallet_alias=wallet.alias) }}"
-				formData.append("estimate_fee", true)
-			
-				let result = await send_request(url, 'POST', "{{ csrf_token() }}", formData);
-				console.log(result);
-				if (result.success) {
-					let psbt = result.psbt;
-					let fees = parseInt(psbt.fee * 1e8)
-					document.getElementById('calculated_tx_fee').innerText = `: ${fees} sats`;
-					if('{{ specter.price_check }}' == 'True'){
-						let altRate = parseFloat('{{ specter.alt_rate }}');
-						let altSymbol = '{{ specter.alt_symbol }}';
-						let altAmount = parseFloat((altRate * fees / 1e8).toFixed(2))
-						if (!isNaN(altAmount) && (altSymbol && altRate)) {
-							document.getElementById('calculated_tx_fee').innerText = `: ${fees} sats (${altAmount}${altSymbol})`;
-						}
+			const url = `{{ url_for("wallets_endpoint_api.estimate_fee", wallet_alias=wallet.alias) }}`	
+			const formData = new FormData(document.getElementById('send-form'));
+			formData.append("estimate_fee", true)
+			const response = await send_request(url, 'POST', "{{ csrf_token() }}", formData);
+			const fee = response.fee
+			if (fee) {
+				feeBox.classList.remove('hidden')
+				closeFeeBoxBtn.classList.remove('hidden')
+				let feeInSats = parseInt(response.fee * 1e8)
+				if ('{{ specter.price_check }}' == 'True') {
+					let altRate = parseFloat('{{ specter.alt_rate }}');
+					let altSymbol = '{{ specter.alt_symbol }}';
+					let altAmount = parseFloat((altRate * fee).toFixed(2))
+					if (!isNaN(altAmount) && (altSymbol && altRate)) {
+						feeBox.innerText = `${feeInSats} sats (${altAmount}${altSymbol})`;
 					}
-					return fees;
-				} else {
-					document.getElementById('calculated_tx_fee').innerText = `: ${result.error}`;
 				}
-			} catch (e) {
-				console.log(e);
-				document.getElementById('calculated_tx_fee').innerText = `: {{ _("Failed to calculate transaction fees.") }}`;
+				else {
+					feeBox.innerText = `${feeInSats} sats`
+				}
 			}
-			return -1;
+			else {
+				feeBox.innerText = "Fee estimate didn't work"
+			}
+		}
+
+		function closeFeeBox() {
+			feeBox.classList.add('hidden')
+			closeFeeBoxBtn.classList.add('hidden')
 		}
 
 		document.addEventListener("DOMContentLoaded", function() {

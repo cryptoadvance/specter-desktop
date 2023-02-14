@@ -2,6 +2,7 @@ import logging
 import os
 import shutil
 import signal
+from http.client import HTTPConnection
 from pathlib import Path
 
 import click

@@ -25,8 +25,14 @@ devstatus_beta = "beta"
 devstatus_prod = "prod"
 
 
-class Service:
-    """A base class for Services"""
+class ServiceOptionality:
+    mandatory = "mandatory"  # mandatory is not used yet by any service. Before it can be used it has to be clarified what happens in delete_services_with_encrypted_storage of mandatory services
+    opt_in = "opt_in"
+    opt_out = "opt_out"
+
+
+class Extension:
+    """A base class for Extensions"""
 
     # These should be overrided in implementation classes
     id = None
@@ -36,8 +42,10 @@ class Service:
     desc = None  # TODO: rename to "description" to be explicit
     has_blueprint = True  # the default
     # If the blueprint gets a "/ext" prefix (isolated_client = True), the login cookie won't work for all specter core functionality
-    isolated_client = True
+    isolated_client = False
     devstatus = devstatus_alpha
+    optionality = ServiceOptionality.opt_in
+    visible_in_sidebar = True
     encrypt_data = False
 
     def __init__(self, active, specter):
@@ -238,3 +246,11 @@ class Service:
         return render_template("myext/inject_in_basejinja_body_bottom.jinja")
         """
         pass
+
+
+class Service(Extension):
+    """Deprecated! You should derive from Extension!
+    This is only here for backwards compatibility and will be removed after some time
+    """
+
+    pass

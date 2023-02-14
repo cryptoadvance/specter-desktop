@@ -1,7 +1,7 @@
 <!--
   Custom QR code component.
   You can use it as a normal html tag, for example:
-  <qr-code value="data-to-encode" style="margin-top:20px;" width="400"></qr-code>
+  <qr-code value="data-to-encode" data-style="margin-top:20px;" width="400"></qr-code>
 
   If the QR code data is larger than 300 bytes it will enable "click to animate" feature.
   If the QR code data is larger than 2300 bytes it will switch to animated-only mode.
@@ -13,7 +13,10 @@
   - `on` - animate by default even if QR code size is reasonably small, can be stopped on click.
   - `off` - don't animate by default even if QR code is too large, can be animated on click.
 -->
+
 <template id="qr-code">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+
   <style>
     .qr-holder{
       display: flex;
@@ -25,9 +28,6 @@
       background: #fff;
       padding: 20px;
       margin: auto;
-    }
-    .note{
-      font-size: 0.7em;
     }
     .copy{
       display: none;
@@ -153,11 +153,11 @@
       background: var(--cmap-blue);
     }
   </style>
-  <div class="qr-holder">
-    <a class="copy"><img src="{{ url_for('static', filename='img/copy.svg') }}" style="width: 26px; height: 26px;"></a>
+  <div class="flex flex-col items-center space-y-3 bg-white p-5 rounded-lg pt-3">
+    <a class="copy hidden"><img src="{{ url_for('static', filename='img/copy.svg') }}" style="width: 26px; height: 26px;"></a>
     <div class="qr-code"></div>
-    <div class="note">Click to animate</div>
-    <div class="range" style="margin-top: 10px; margin-bottom: -5px;">
+    <div class="text-black cursor-pointer note">Click to animate</div>
+    <div class="range hidden" style="margin-top: 10px; margin-bottom: -5px;">
       <span class="minus-size" style="cursor: pointer;">&nbsp;&nbsp;-&nbsp;&nbsp;</span><input type="range" class="size-slider"><span class="plus-size" style="cursor: pointer;">&nbsp;&nbsp;+&nbsp;&nbsp;</span>
     </div>
   </div>

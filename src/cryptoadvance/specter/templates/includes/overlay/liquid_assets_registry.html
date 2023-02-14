@@ -3,9 +3,9 @@
     <table>
         <thead>
             <tr>
-                <th style="text-align: center;">{{ _("Asset label") }}</th>
-                <th style="text-align: center;">{{ _("Asset ID") }}</th>
-                <th style="text-align: center;">{{ _("Action") }}</th>
+                <th data-style="text-align: center;">{{ _("Asset label") }}</th>
+                <th data-style="text-align: center;">{{ _("Asset ID") }}</th>
+                <th data-style="text-align: center;">{{ _("Action") }}</th>
             </tr>
         </thead>
         <tbody id="liquid-assets-list">
@@ -17,7 +17,7 @@
                     <td>{{asset}}</td>
                     <td>
                         {% if (asset | assetlabel) != 'LBTC' and (asset | assetlabel) != 'tLBTC' and asset not in specter.wallet_manager.joined_balance().get("assets", {}).keys() %}
-                            <button style="display: inline-block;" type="button" class="btn danger" onclick="removeAsset('{{asset}}')">{{ _("Remove") }}</button>
+                            <button data-style="display: inline-block;" type="button" class="btn danger" onclick="removeAsset('{{asset}}')">{{ _("Remove") }}</button>
                         {% endif %}
                     </td>
                 </tr>
@@ -28,7 +28,7 @@
                     <input type="text" id="new_asset_id" placeholder="{{ _('New asset ID') }}"/>
                 </td>
                 <td>
-                    <button style="display: inline-block;" type="button" class="btn" onclick="addAssetLabel()">{{ _("Add asset") }}</button>
+                    <button data-style="display: inline-block;" type="button" class="btn" onclick="addAssetLabel()">{{ _("Add asset") }}</button>
                 </td>
             </tr>
         </tbody>
@@ -79,7 +79,7 @@
             newAssetRow.innerHTML = `
             <td><asset-label data-asset="${assetIDField.value}" data-label="${assetLabelField.value}" edit-mode="enabled"></asset-label></td>
             <td>${assetIDField.value}</td>
-            <td><button style="display: inline-block;" type="button" class="btn danger" onclick="removeAsset('${assetIDField.value}')">{{ _("Remove") }}</button></td>
+            <td><button data-style="display: inline-block;" type="button" class="btn danger" onclick="removeAsset('${assetIDField.value}')">{{ _("Remove") }}</button></td>
             `;
             newAssetRow.id = `${assetIDField.value}-asset-registry-row`;
             assetsList.insertBefore(newAssetRow, assetsList.childNodes[assetsList.childNodes.length - 3]);

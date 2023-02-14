@@ -2,28 +2,28 @@ import json
 import logging
 import os
 import time
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
+from cryptoadvance.specter.devices.bitcoin_core import BitcoinCore
+from cryptoadvance.specter.devices.generic import GenericDevice
 from cryptoadvance.specter.helpers import is_testnet
 from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
 )
 from cryptoadvance.specter.util.mnemonic import generate_mnemonic
 from cryptoadvance.specter.key import Key
-from cryptoadvance.specter.devices import DeviceTypes
 from cryptoadvance.specter.managers.wallet_manager import WalletManager
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.util.descriptor import AddChecksum, Descriptor
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
-from conftest import instantiate_bitcoind_controller
 
 logger = logging.getLogger(__name__)
 
 
+@patch("cryptoadvance.specter.util.wallet_importer.flash", print)
 @pytest.mark.slow
 def test_WalletManager(
-    docker,
     request,
     devices_filled_data_folder,
     device_manager,
@@ -32,7 +32,6 @@ def test_WalletManager(
     node_with_empty_datadir,
 ):
     wm = WalletManager(
-        200100,
         devices_filled_data_folder,
         bitcoin_regtest.get_rpc(),
         "regtest",
@@ -119,7 +118,6 @@ def test_WalletManager(
 @pytest.mark.bottleneck
 @pytest.mark.threading
 def test_WalletManager_2_nodes(
-    docker,
     request,
     devices_filled_data_folder,
     device_manager,
@@ -129,7 +127,6 @@ def test_WalletManager_2_nodes(
 ):
     caplog.set_level(logging.INFO)
     wm = WalletManager(
-        200100,
         devices_filled_data_folder,
         bitcoin_regtest.get_rpc(),
         "regtest",
@@ -146,27 +143,30 @@ def test_WalletManager_2_nodes(
     assert wm.chain == "regtest"
     assert wm.working_folder.endswith("regtest")
     assert wm.rpc.port == 18543
-    # Change the rpc - this only works with a different chain!
-    wm.update(rpc=bitcoin_regtest2.get_rpc(), chain="regtest2")
+    # Change the rpc - this works differently with a different chain!
+    # If we use something different that regtest, unfortunately a liquid address gets
+    # generated.
+    # So we don't test that scanrio here of different chains. We test the scenario with the same chain.
+    # but different node
+    wm.update(rpc=bitcoin_regtest2.get_rpc(), chain="regtest")
     # A WalletManager uses the chain as an index
     assert list(wm.rpcs.keys()) == [
         "regtest",
-        "regtest2",
     ]  # wm.rpcs looks like this: {'regtest': <BitcoinRpc http://localhost:18543>, 'regtest2': <BitcoinRpc http://localhost:18544>}
     assert wm.rpc.port == 18544
-    assert wm.wallets_names == []
-    assert wm.chain == "regtest2"
-    assert wm.working_folder.endswith("regtest2")
+    assert wm.wallets_names == ["a_test_wallet"]
+    assert wm.chain == "regtest"
+    assert wm.working_folder.endswith("test")
     second_wallet = wm.create_wallet(
         "a_regtest2_test_wallet", 1, "wpkh", [device.keys[5]], [device]
     )
     # Note: "regtest2" is recognised by the get_network() from embit as Liquid, that is why there is an error in the logs saying the Bitcoin address is not valid since a Liquid address is derived.
-    assert wm.wallets_names == ["a_regtest2_test_wallet"]
+    assert len(wm.wallets_names) == 2
+    assert wm.wallets_names == ["a_regtest2_test_wallet", "a_test_wallet"]
 
 
 def test_WalletManager_check_duplicate_keys(empty_data_folder):
     wm = WalletManager(
-        200100,
         empty_data_folder,
         MagicMock(),  # needs rpc
         "regtest",
@@ -233,7 +233,6 @@ def test_wallet_sortedmulti(
     bitcoin_regtest, devices_filled_data_folder, device_manager
 ):
     wm = WalletManager(
-        200100,
         devices_filled_data_folder,
         bitcoin_regtest.get_rpc(),
         "regtest",
@@ -287,7 +286,6 @@ def test_wallet_sortedmulti(
 
 def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_manager):
     wm = WalletManager(
-        200100,
         devices_filled_data_folder,
         bitcoin_regtest.get_rpc(),
         "regtest",
@@ -346,7 +344,6 @@ def test_wallet_change_addresses(
     bitcoin_regtest, devices_filled_data_folder, device_manager
 ):
     wm = WalletManager(
-        200100,
         devices_filled_data_folder,
         bitcoin_regtest.get_rpc(),
         "regtest",
@@ -356,14 +353,14 @@ def test_wallet_change_addresses(
     device = device_manager.get_by_alias("specter")
     key = Key.from_json(
         {
-            "derivation": "m/48h/1h/0h/2h",
-            "original": "Vpub5n9kKePTPPGtw3RddeJWJe29epEyBBcoHbbPi5HhpoG2kTVsSCUzsad33RJUt3LktEUUPPofcZczuudnwR7ZgkAkT6N2K2Z7wdyjYrVAkXM",
+            "derivation": "m/84h/1h/0h",
+            "original": "vpub5ZSem3mLXiSJzgDX6pJb2N9L6sJ8m6ejaksLPLSuB53LBzCi2mMsBg19eEUSDkHtyYp75GATjLgt5p3S43WjaVCXAWU9q9H5GhkwJBrMiAb",
             "fingerprint": "08686ac6",
-            "type": "wsh",
-            "xpub": "tpubDFHpKypXq4kwUrqLotPs6fCic5bFqTRGMBaTi9s5YwwGymE8FLGwB2kDXALxqvNwFxB1dLWYBmmeFVjmUSdt2AsaQuPmkyPLBKRZW8BGCiL",
+            "type": "wpkh",
+            "xpub": "tpubDDUotcvrYMUiy4ncDirveTfhmvggdj8nxcW5JgHpGzYz3UVscJY5aEzFvgUPk4YyajadBnsTBmE2YZmAtJC14Q21xncJgVaHQ7UdqMRVRbU",
         }
     )
-    wallet = wm.create_wallet("a_second_test_wallet", 1, "wpkh", [key], [device])
+    wallet: wallet = wm.create_wallet("a_third_test_wallet", 1, "wpkh", [key], [device])
 
     address = wallet.address
     change_address = wallet.change_address
@@ -496,7 +493,7 @@ def test_singlesig_wallet_backup_and_restore(caplog, specter_regtest_configured,
     ) = descriptor.parse_signers(device_manager.devices, cosigners_types)
 
     assert len(cosigners_types) == 0
-    assert unknown_cosigners_types[0] == DeviceTypes.GENERICDEVICE
+    assert unknown_cosigners_types[0] == GenericDevice.device_type
 
     # Re-create the device
     new_device = device_manager.add_device(
@@ -546,7 +543,7 @@ def test_multisig_wallet_backup_and_restore(
 
     # Create a pair of hot wallet signers
     hot_wallet_1_device = device_manager.add_device(
-        name="hot_key_1", device_type=DeviceTypes.BITCOINCORE, keys=[]
+        name="hot_key_1", device_type=BitcoinCore.device_type, keys=[]
     )
     hot_wallet_1_device.setup_device(file_password=None, wallet_manager=wallet_manager)
     hot_wallet_1_device.add_hot_wallet_keys(
@@ -560,7 +557,7 @@ def test_multisig_wallet_backup_and_restore(
         keys_purposes=[],
     )
     hot_wallet_2_device = device_manager.add_device(
-        name="hot_key_2", device_type=DeviceTypes.BITCOINCORE, keys=[]
+        name="hot_key_2", device_type=BitcoinCore.device_type, keys=[]
     )
     hot_wallet_2_device.setup_device(file_password=None, wallet_manager=wallet_manager)
     hot_wallet_2_device.add_hot_wallet_keys(
@@ -622,10 +619,10 @@ def test_multisig_wallet_backup_and_restore(
     assert cosigners_types[0]["type"] == device_type
 
     assert cosigners_types[1]["label"] == "hot_key_1"
-    assert cosigners_types[1]["type"] == DeviceTypes.BITCOINCORE
+    assert cosigners_types[1]["type"] == BitcoinCore.device_type
 
     assert cosigners_types[2]["label"] == "hot_key_2"
-    assert cosigners_types[2]["type"] == DeviceTypes.BITCOINCORE
+    assert cosigners_types[2]["type"] == BitcoinCore.device_type
 
     # Re-create the Trezor device
     new_device = device_manager.add_device(
@@ -682,7 +679,7 @@ def test_multisig_wallet_backup_and_restore(
 
     # Now we don't know any of the cosigners' types
     assert len(cosigners_types) == 0
-    assert unknown_cosigners_types[0] == DeviceTypes.GENERICDEVICE
+    assert unknown_cosigners_types[0] == GenericDevice.device_type
 
     # Re-create all three devices
     for i, (unknown_cosigner_key, label) in enumerate(unknown_cosigners):

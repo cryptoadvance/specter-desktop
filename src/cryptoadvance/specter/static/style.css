@@ -1,0 +1,244 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+* {
+  font-family: "Social";
+  font-style: normal;
+  font-variant: normal;
+  text-transform: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+ *
+ * ScrollBars
+ *
+ */
+
+*::-webkit-scrollbar,
+*::-webkit-scrollbar-track-piece,
+*::-webkit-scrollbar-corner {
+  @apply !bg-transparent !w-2; 
+}
+
+*::-webkit-scrollbar-thumb {
+  @apply !bg-dark-600 rounded-xl;
+}
+
+@layer base {
+  /*
+   *
+   * General HTML Tags
+   *
+   */
+
+  h1 {
+    @apply text-4xl font-medium mb-2;
+  }
+
+  h2 {
+    @apply text-2xl font-medium mb-2;
+  }
+
+  h3 {
+    @apply text-xl font-medium mb-2;
+  }
+
+  p {
+    @apply text-lg my-1 max-w-prose text-dark-100;
+  }
+  
+  a {
+    @apply !no-underline;
+  }
+
+  p a {
+    @apply text-link hover:opacity-80;
+  }
+
+  table {
+    @apply bg-dark-800 min-w-full;
+  }
+
+  tbody {
+  }
+
+  tr {
+    @apply border-b border-dark-700;
+  }
+
+  tbody tr {
+    @apply last:border-b-0;
+  }
+
+  td,
+  th {
+    @apply px-3 py-1.5 text-white whitespace-nowrap text-left border-r border-dark-700 last:border-r-0; /* first:pl-4 last:pr-4 */
+  }
+
+  .table-key {
+    @apply overflow-scroll w-80;
+  }
+
+  th {
+    @apply text-dark-200 font-normal break-keep;
+  }
+
+  ol {
+    @apply list-decimal list-inside text-lg mb-8;
+  }
+
+  ol li {
+    @apply my-2;
+  }
+
+  /*
+   *
+   *
+   * Form
+   *
+   *
+   */
+
+  form h3 {
+    @apply text-xl font-normal;
+  }
+
+  form section {
+    @apply mt-8 mb-4;
+  }
+
+  input[type="text"],
+  input[type="url"],
+  input[type="password"],
+  input[type="number"],
+  textarea {
+    @apply bg-dark-800 border-2 border-dark-700 rounded-lg px-2 outline-none h-12 w-full focus:border-accent duration-200 ease-out;
+  }
+
+  textarea {
+    @apply pt-2 min-h-[80px];
+  }
+
+  input[type="checkbox"] {
+    @apply w-4 h-4 mr-2;
+  }
+
+  .floating-wrapper {
+    @apply relative;
+  }
+
+  .floating-input {
+    @apply placeholder-shown:pt-0 pt-4;
+  }
+
+  .floating-label {
+    @apply cursor-text absolute duration-200 transform -translate-y-1.5 opacity-50 scale-75 top-2 left-1 px-2 z-10 origin-[0] peer-focus:px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 pointer-events-none select-none;
+  }
+
+  .floating-info {
+    @apply absolute right-3 top-2;
+  }
+
+  .checkbox-wrapper-inline {
+    @apply flex items-center relative space-x-1 cursor-pointer;
+  }
+
+  .checkbox-wrapper {
+    @apply flex items-center relative h-12 px-3 border-2 rounded-lg space-x-2 cursor-pointer border-dark-700 bg-dark-800;
+  }
+
+  .checkbox-input {
+    @apply w-4 h-4 disabled:opacity-20;
+  }
+
+  .checkbox-label {
+    @apply font-medium peer-disabled:opacity-20;
+  }
+
+  select {
+    @apply bg-dark-800 border-2 border-dark-700 rounded-lg px-2 outline-none h-12 w-full;
+  }
+
+  /*
+   *
+   * Button
+   *
+   */
+
+  .button {
+    @apply h-11 rounded-xl text-lg flex items-center space-x-2 justify-center bg-dark-600 hover:opacity-80 px-10 cursor-pointer w-[calc(688px/2)] mb-3 z-10;
+  }
+
+  .tooltip:hover .tooltip__box {
+    @apply z-40;
+  }
+
+  .button img {
+    @apply w-7 h-7;
+  }
+
+  /* Smaller button, that also has darker background color as of now, naming should be changed!*/
+  .btn {
+    @apply py-[2px] px-3 rounded-full bg-dark-800 border-dark-800 border-2 hover:border-dark-700 mr-1 ml-[-2px] break-keep;
+  }
+
+  /*
+   *
+   * Selection Items
+   *
+   */
+
+  .selection {
+    @apply aspect-square rounded-lg bg-dark-800 border-dark-700 border-2 flex flex-col justify-between pb-2 items-center hover:bg-dark-700 cursor-pointer;
+  }
+
+  .selection p {
+    @apply text-white text-base text-center m-0;
+  }
+
+  .selection img {
+    @apply h-[40%] w-[40%] mb-4;
+  }
+
+  .selection-button {
+    @apply rounded-lg w-full h-10 bg-dark-800 border-2 border-dark-700 text-center block text-lg py-1 hover:bg-dark-700;
+  }
+
+  .animate-spin-slow {
+    animation: spin 1.5s linear infinite;
+  }
+
+}
+
+@layer components {
+
+  select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+    background-repeat: no-repeat;
+    background-position: top 9px right 12px;
+    padding-right: 32px;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"] {
+    -webkit-appearance: none;
+    margin: 0;
+    -moz-appearance: textfield !important;
+  }
+
+  .table-holder {
+    margin: 20px calc((100vw - 1080px) / -2) 0;
+    max-width: calc((100vw - 300px - 80px));
+  }
+
+  .table-holder::-webkit-scrollbar,
+  .table-key::-webkit-scrollbar {
+    display: none;
+  }
+}

@@ -1,153 +1,137 @@
 {% extends "base.jinja" %}
+
 {% block main %}
     {% include "includes/hwi/hwi.jinja" %}
     {% include "includes/qr-scanner.html" %}
-    <style>
-        td {
-            text-align: left;
-        }
-        .xpubs-table{
-            overflow-x: auto;
-        }
 
-        @media screen and (max-width:720px) {
-            #device_setup_wizard th, #device_setup_wizard td { 
-                display: block;
-                width: 100%;
-            }
-            #device_setup_wizard td:empty, #device_setup_wizard th:empty {
-                display: none;
-                margin: auto;
-            }
-            #device_setup_wizard th, #device_setup_wizard td, #device_setup_wizard td > input {
-                text-align: center;
-                width: 100%;
-                margin: auto;
-            }
-            #device_setup_wizard .xpub {
-                padding: 10px;
-            }
-            #device_setup_wizard #edit-xpubs-table-btn {
-                margin: auto;
-            }
-        }
-        .xpubs_edit {
-            visibility: hidden;
-        }
-    </style>
-    <form id="form" action="{{ url_for('devices_endpoint.new_device_keys', device_type=device_class.device_type) }}" method="POST" style="width: 100%;" onsubmit="showPacman();">
-        <div class="card center auto-width">
-            {% if existing_device %}
-                <input type="hidden" name="existing_device" value="{{ existing_device.alias }}">
+    <form id="form" class="flex flex-col" action="{{ url_for('devices_endpoint.new_device_keys', device_type=device_class.device_type) }}" method="POST" onsubmit="showPacman();">
+        {% if existing_device %}
+            <input type="hidden" name="existing_device" value="{{ existing_device.alias }}">
+        {% endif %}
+
+        <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        {% if device_class.hot_wallet %}
+            <input type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
+            <input type="hidden" name="passphrase" value="{{ passphrase }}"/>
+            <input type="hidden" name="file_password" value="{{ file_password }}"/>
+            <input type="hidden" name="range_start" value="{{ range_start }}"/>
+            <input type="hidden" name="range_end" value="{{ range_end }}"/>
+        {% endif %}
+
+        <div>
+            <h1>{{ _("Upload Keys") }}</h1>
+
+            {% if not existing_device %}
+                <h3 class="mt-8">Information</h3>
+                <div class="floating-wrapper mb-1">
+                    <input type="text" pattern="^[^']+" title="Do not use single quotes" name="device_name" placeholder=" " class="floating-input peer" id="device_name" required/>
+                    <label class="floating-label">Device Name</label>
+                </div>
             {% endif %}
-            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-            {% if device_class.hot_wallet %}
-                <input type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
-                <input type="hidden" name="passphrase" value="{{ passphrase }}"/>
-                <input type="hidden" name="file_password" value="{{ file_password }}"/>
-                <input type="hidden" name="range_start" value="{{ range_start }}"/>
-                <input type="hidden" name="range_end" value="{{ range_end }}"/>
-            {% endif %}
-            <div>
-                <h1 style="font-size: 1.8em;">{{ _("Upload Keys") }}</h1>
-                {% if not existing_device %}
-                    <h2 style="max-width: 500px; margin: auto;">{{ _("Name your Device: ") }}<input type="text" name="device_name" placeholder="My device" id="device_name" required/></h2>
-                    <br>
-                {% endif %}
-                <div id="coldcard-instructions" {%if device_class.device_type != 'coldcard' %}class="hidden"{% endif %}>
-                    <p>
-                    {{ _("Connect your ColdCard to the computer via USB and unlock it or upload a wallet export file from micro SD card.") }}<br>
-                    </p>
-                    <span class="note">
-                    {{ _("To export the wallet data file from the ColdCard, insert your micro SD card into the device, then:") }}<br>
-                    {{ _("To get the single sig xpubs, go to: Advanced &rarr; MicroSD Card &rarr; Export Wallet &rarr; Generic JSON. When asked for account, select account number (default is 0) and confirm the export.") }}<br>
-                    {{ _("To get the multisig xpubs, go to: Settings &rarr; Multisig Wallets &rarr; Export XPUB and confirm the export.") }}
-                    </span>
-                </div>
-                <div id="specter-instructions" {%if device_class.device_type != 'specter' %}class="hidden"{% endif %}>
-                    <p>
-                    {{ _("Connect your Specter-DIY to the computer via USB and unlock it or scan the wallet master public key.") }}<br>
-                    </p>
-                    <span class="note">
-                    {{ _("To get the master public key QR code to scan, click on: Master public keys, then select each key type you'd like to import and scan the displayed QR code for each into Specter.") }}
-                    </span>
-                </div>
-                <div id="cobo-instructions" {%if device_class.device_type != 'cobo' %}class="hidden"{% endif %}>
-                    <p>
-                    {{ _("Scan your Cobo Vault master public key or upload a wallet export file.") }}<br>
-                    </p>
-                    <span class="note">
-                    {{ _("To get the master public keys QR codes to scan:") }}<br><br>
-                    {{ _("For single sig, click on: Setting &rarr; Watch-Only Wallet &rarr; Generic Wallet, Click the top right 3 dots (...) &rarr; Wallet Info &rarr; Toggle Address Type, then select the wallet address type you would like to use for your wallet.") }}<br><br>
-                    {{ _("For multisig, click on: Multisig Wallet &rarr; Click the top right 3 dots (...) &rarr; Show/Export XPUB, then select the wallet address type you would like to use for your wallet.") }}<br>
-                    {{ _("Cobo Vault will then display the QR code which you should scan into Specter.") }}<br><br>
-                    {{ _("To import with SD card, click on \"touch here to export the file with microSD\" on the same screen as the QR code.") }}
-                    </span>
-                </div>
-                <div id="passport-instructions" {%if device_class.device_type != 'passport' %}class="hidden"{% endif %}>
-                    <p>
-                    {{ _("Pair your Passport to Specter using QR codes or a microSD card.") }}<br>
-                    </p>
-                    <span class="note">
-                    {{ _("To pair your Passport with Specter, navigate to Pair Wallet –> Specter and follow the instructions on your Passport.")}}<br>
-                    {{ _("If your webcam is having difficulty scanning QR codes on Passport’s screen, we recommend using a microSD.") }}
-                    </span>
-                </div>
-                <div id="hwi-only-instructions" {%if device_class.device_type in ['bitcoincore', 'bitcoincore_watchonly', 'cobo', 'coldcard', 'electrum', 'other', 'specter']%}class="hidden"{% endif %}>
-                    <p>
+            
+            <div id="coldcard-instructions" class="{%if device_class.device_type != 'coldcard' %}hidden{% endif %}">
+                <p>{{ _("Connect your ColdCard to the computer via USB and unlock it or upload a wallet export file from micro SD card.") }}</p>
+
+                <ol>
+                    <li>{{ _("To export the wallet data file from the ColdCard, insert your micro SD card into the device, then:") }}</li>
+                    <li>{{ _("To get the single sig xpubs, go to: Advanced &rarr; MicroSD Card &rarr; Export Wallet &rarr; Generic JSON. When asked for account, select account number (default is 0) and confirm the export.") }}</li>
+                    <li>{{ _("To get the multisig xpubs, go to: Settings &rarr; Multisig Wallets &rarr; Export XPUB and confirm the export.") }}</li>
+                </ol>
+            </div>
+
+            <div id="specter-instructions" class="{%if device_class.device_type != 'specter' %}hidden{% endif %}">
+                <p>{{ _("Connect your Specter-DIY to the computer via USB and unlock it or scan the wallet master public key.") }}</p>
+
+                <ol>
+                    <li>{{ _("To get the master public key QR code to scan, click on: Master public keys, then select each key type you'd like to import and scan the displayed QR code for each into Specter.") }}</li>
+                </ol>
+            </div>
+
+            <div id="cobo-instructions" class="{%if device_class.device_type != 'cobo' %}hidden{% endif %}">
+                <p>{{ _("Scan your Cobo Vault master public key or upload a wallet export file.") }}</p>
+
+                <ol>
+                    <li>{{ _("To get the master public keys QR codes to scan:") }}</li>
+                    <li>{{ _("For single sig, click on: Setting &rarr; Watch-Only Wallet &rarr; Generic Wallet, Click the top right 3 dots (...) &rarr; Wallet Info &rarr; Toggle Address Type, then select the wallet address type you would like to use for your wallet.") }}</li>
+                    <li>{{ _("For multisig, click on: Multisig Wallet &rarr; Click the top right 3 dots (...) &rarr; Show/Export XPUB, then select the wallet address type you would like to use for your wallet.") }}</li>
+                    <li>{{ _("Cobo Vault will then display the QR code which you should scan into Specter.") }}</li>
+                    <li>{{ _("To import with SD card, click on \"touch here to export the file with microSD\" on the same screen as the QR code.") }}</li>
+                </ol>
+            </div>
+
+            <div id="passport-instructions" class="{%if device_class.device_type != 'passport' %}hidden{% endif %}">
+                <p>{{ _("Pair your Passport to Specter using QR codes or a microSD card.") }}</p>
+
+                <ol>
+                    <li>{{ _("To pair your Passport with Specter, navigate to Pair Wallet –> Specter and follow the instructions on your Passport.")}}</li>
+                    <li>{{ _("If your webcam is having difficulty scanning QR codes on Passport’s screen, we recommend using a microSD.") }}</li>
+                </ol>
+            </div>
+
+            <div id="hwi-only-instructions" class="{%if device_class.device_type in ['bitcoincore', 'bitcoincore_watchonly', 'cobo', 'coldcard', 'electrum', 'other', 'specter']%}hidden{% endif %}">
+                <p>
                     {{ _("Connect your hardware device to the computer via USB.") }}
                     {% if device_class.device_type == 'ledger' %}
-                    <br>{{ _("Open the Bitcoin app on your Ledger.") }}
+                        {{ _("Open the Bitcoin app on your Ledger.") }}
                     {% endif %}
-                    </p>
+                </p>
+            </div>
+
+            <h3 class="mt-8">Keys</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>{{ _("Purpose") }}</th>
+                        <th>{{ _("Derivation") }}</th>
+                        <th class="table-key">{{ _("XPUB") }}</th>
+                        <th><button type="button" class="btn" data-style="width: 60px;" id="edit-xpubs-table-btn" onclick="editXpubsTable(this)">{{ _("Edit") }}</button></th>
+                    </tr>
+                </thead>
+
+                <tbody id="xpubs_table">
+
+                </tbody>
+
+                <input id="xpubs-table-rows-count" name="xpubs_rows_count" type="hidden"/>
+            </table>
+
+            <div class="grid grid-cols-2 gap-x-5 my-5">
+                <div id="connect-hwi" class="button text-base {% if not device_class.hwi_support %}opacity-20 pointer-events-none{% endif %}">
+                    <img src="{{ url_for('static', filename='img/usb.svg') }}">
+                    {{ _("Get via USB") }}
                 </div>
-                <br>
-                <div class="xpubs-table">
-                    <table>
-                        <thead>
-                        <tr>
-                            <th></th><th>{{ _("Purpose") }}</th><th>{{ _("Derivation") }}</th><th>XPUB</th><th><button type="button" class="btn" style="width: 60px;" id="edit-xpubs-table-btn" onclick="editXpubsTable(this)">{{ _("Edit") }}</button></th>
-                        </tr>
-                        </thead>
-                        <tbody id="xpubs_table">
-                        </tbody>
-                        <input id="xpubs-table-rows-count" name="xpubs_rows_count" type="hidden"/>
-                    </table>
-                </div>
-                <br>
-                <div class="row overflow">
-                    <div id="connect-hwi" style="max-width: 250px; width: 250px; margin: 10px;" class="btn {% if not device_class.hwi_support %}hidden{% endif %}">
-                        <img src="{{ url_for('static', filename='img/usb.svg') }}" style="width: 26px; margin-right: 2px;" class="svg-white">
-                        {{ _("Get via USB") }}
+
+                <label id="connect-sdcard" class="{% if not device_class.sd_card_support %}opacity-20 pointer-events-none{% endif %}">
+                    <input type="file" id="file" multiple class="hidden"/>
+                    <div class="button text-base">
+                        <img src="{{ url_for('static', filename='img/sd-card.svg') }}">
+                        {{ _("Upload from SD") }}
                     </div>
-                    <label id="connect-sdcard" {% if not device_class.sd_card_support %}class="hidden"{% endif %}>
-                        <input type="file" id="file" class="inputfile" multiple/>
-                        <div class="btn" style="max-width: 250px; width: 250px; margin: 10px;">
-                            <img src="{{ url_for('static', filename='img/sd-card.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
-                            {{ _("Upload from SD Card") }}
-                        </div>
-                    </label>
-                    <qr-scanner id="xpub-scan" {% if not device_class.qr_code_support %}class="hidden"{% endif %}>
-                        <a slot="button" href="#"  class="btn" style="max-width: 250px; width: 250px; margin: 10px;">
-                            <img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white">
-                            {{ _("Scan QR code") }}
-                        </a>
-                    </qr-scanner>
-                    <button {% if device_class.device_type not in ['electrum', 'other'] %}class="hidden"{% endif %} type="button" onclick="showPageOverlay('paste-xpub-popup')" class="btn centered" id="xpub-paste" style="max-width: 250px; width: 250px; margin: 10px;">
-                        <img src="{{ url_for('static', filename='img/copy.svg') }}" style="width: 22px; margin: 0px;" class="svg-white">
-                        {{ _("Paste xpub") }}
-                    </button>
-                    <div class="hidden" id="paste-xpub-popup">
-                        <h1>{{ _("Paste xpub") }}</h1>
-                        <input type="text" id="paste-xpub-text" placeholder="Paste your xpub here">
-                        <br><br>
-                        <button type="button" onclick="addXpubs(document.getElementById('paste-xpub-text').value);hidePageOverlay();document.getElementById('paste-xpub-text').value='';" class="btn centered">{{ _("Add xpub") }}</button>
-                    </div>
+                </label>
+
+                <qr-scanner id="xpub-scan" class="{% if not device_class.qr_code_support %}opacity-20 pointer-events-none{% endif %}">
+                    <a slot="button" href="#" class="button">
+                        <img src="{{ url_for('static', filename='img/qr-code.svg') }}">
+                        {{ _("Scan QR code") }}
+                    </a>
+                </qr-scanner>
+
+                <button id="xpub-paste" class="button text-base {% if device_class.device_type not in ['electrum', 'other'] %}opacity-20 pointer-events-none{% endif %}" type="button" onclick="showPageOverlay('paste-xpub-popup')" class="btn centered">
+                    <img src="{{ url_for('static', filename='img/copy.svg') }}">
+                    {{ _("Paste xpub") }}
+                </button>
+
+                <div id="paste-xpub-popup" class="hidden">
+                    <h1>{{ _("Paste xpub") }}</h1>
+                    <input type="text" id="paste-xpub-text" placeholder="Paste your xpub here">
+                    <br><br>
+                    <button type="button" onclick="addXpubs(document.getElementById('paste-xpub-text').value);hidePageOverlay();document.getElementById('paste-xpub-text').value='';">{{ _("Add xpub") }}</button>
                 </div>
             </div>
         </div>
-        <button type="submit" id="submit-keys" class="btn centered action" style="width: 140px; max-width: 140px; margin: auto;">{{ _("Continue") }}</button>
-        <br><br>
+
+        <button class="button w-[calc(680px/2)] bg-accent text-white self-end" type="submit" id="submit-keys">{{ _("Continue") }}</button>
     </form>
 {% endblock %}
 
@@ -161,7 +145,7 @@
             for (let existingRow of xpubsTable.children) {
                 let existingRowDerivation = document.getElementById(existingRow.id + '-derivation')
                 if (existingRowDerivation && existingRowDerivation.innerHTML == derivation) {
-                    document.getElementById(existingRow.id + '-xpub').innerHTML = xpub;
+                    document.getElementById(existingRow.id + '-xpub').childNodes[0].innerHTML = xpub;
                     document.getElementById(existingRow.id + '-xpub-hidden').value = xpub;
                     if (purpose != 'Custom' && document.getElementById(existingRow.id + '-purpose').value == 'Custom') {
                         document.getElementById(existingRow.id + '-purpose').value = purpose;
@@ -173,13 +157,12 @@
             let xpubsTableRowsInput = document.getElementById('xpubs-table-rows-count')
             xpubsTableRowsInput.value = xpubsTableRows;
             let xpubRowHTML = `
-                <td></td>
-                <td><input id="xpubs-table-row-${xpubsTableRows}-purpose" name="xpubs-table-row-${xpubsTableRows}-purpose" type="text" value="${purpose}" placeholder="{{ _("XPUB purpose") }}" style="width: 90%; min-width: 100px;"></td>
-                <td id="xpubs-table-row-${xpubsTableRows}-derivation" style="min-width: 0px;">${derivation}</td>
+                <td><input id="xpubs-table-row-${xpubsTableRows}-purpose" name="xpubs-table-row-${xpubsTableRows}-purpose" type="text" value="${purpose}" placeholder="{{ _("XPUB purpose") }}" data-style="width: 90%; min-width: 100px;"></td>
+                <td id="xpubs-table-row-${xpubsTableRows}-derivation" data-style="min-width: 0px;">${derivation}</td>
                 <input id="xpubs-table-row-${xpubsTableRows}-derivation-hidden" name="xpubs-table-row-${xpubsTableRows}-derivation-hidden" type="hidden" value="${derivation}">
-                <td id="xpubs-table-row-${xpubsTableRows}-xpub" class="xpub scroll" style="overflow: auto;">${xpub}</td>
+                <td id="xpubs-table-row-${xpubsTableRows}-xpub" class="xpub scroll" data-style="overflow: auto;"><div class="table-key">${xpub}</div></td>
                 <input id="xpubs-table-row-${xpubsTableRows}-xpub-hidden" name="xpubs-table-row-${xpubsTableRows}-xpub-hidden" type="hidden" value="${xpub}">
-                <td><button type="button" class="btn xpubs_edit" style="width: 60px;" onclick="document.getElementById('xpubs-table-row-${xpubsTableRows}').remove()">Remove</button></td>
+                <td><button type="button" class="btn xpubs_edit" data-style="width: 60px;" onclick="document.getElementById('xpubs-table-row-${xpubsTableRows}').remove()">Remove</button></td>
             `
             let xpubRow = document.createElement('tr');
             xpubRow.id = `xpubs-table-row-${xpubsTableRows}`;
@@ -215,10 +198,8 @@
 			let xpubsTable = document.getElementById('xpubs_table');
             xpubsTable.innerHTML = '';
             let xpubAddAccountRowHTML =  `
-                <td></td>
-                <td></td>
-                <td><input id="account_number_xpubs" value="0" min="0" type="number" step="1" style="width: 150px;" placeholder="{{ _("Account #") }}"></td>
-                <td><button type="button" class="btn" style="width: 150px;" onclick="addAccountXpubs()">{{ _("Add account") }}</button></td>
+                <td><input id="account_number_xpubs" value="0" min="0" type="number" step="1" data-style="width: 150px;" placeholder="{{ _("Account #") }}"></td>
+                <td><button type="button" class="btn" data-style="width: 150px;" onclick="addAccountXpubs()">{{ _("Add account") }}</button></td>
                 <td></td>
             `
             let xpubAddAccountRow = document.createElement('tr');
@@ -228,11 +209,10 @@
             xpubsTable.appendChild(xpubAddAccountRow);
 
             let xpubAddCustomRowHTML =  `
-                <td></td>
                 <td><input id="new_xpub_purpose" type="text" placeholder="{{ _("XPUB purpose") }}"></td>
                 <td><input id="new_xpub_derivation" type="text" placeholder="m/..."></td>
                 <td></td>
-                <td><button type="button" class="btn" style="width: 60px;" onclick="addCustomDerivation()">{{ _("Add") }}</button></td>
+                <td><button type="button" class="btn" data-style="width: 60px;" onclick="addCustomDerivation()">{{ _("Add") }}</button></td>
             `
             let xpubAddCustomRow = document.createElement('tr');
             xpubAddCustomRow.id = `edit_custom_der`;
@@ -241,10 +221,8 @@
             xpubsTable.appendChild(xpubAddCustomRow);
 
             let xpubAddRowHTML = `
-                <td></td>
-                <td></td>
-                <td><button type="button" class="btn" style="width: 150px;" onclick="document.getElementById('edit_add_account').style.display='table-row';">{{ _("Add account") }}</button></td>
-                <td><button type="button" class="btn" style="width: 150px;" onclick="document.getElementById('edit_custom_der').style.display='table-row';">{{ _("Add custom derivation") }}</button></td>
+                <td><button type="button" class="btn" data-style="width: 150px;" onclick="document.getElementById('edit_add_account').style.display='table-row';">{{ _("Add account") }}</button></td>
+                <td><button type="button" class="btn" data-style="width: 150px;" onclick="document.getElementById('edit_custom_der').style.display='table-row';">{{ _("Add custom derivation") }}</button></td>
                 <td></td>
             `
             let xpubAddRow = document.createElement('tr');
@@ -347,7 +325,7 @@
             let xpubsTable = document.getElementById('xpubs_table');
             
             for (let xpubRow of [].slice.call(xpubsTable.children, 0, xpubsTable.children.length - 3)) {
-                if (document.getElementById(xpubRow.id + '-xpub').innerHTML != '-') {
+                if (document.getElementById(xpubRow.id + '-xpub').childNodes[0].innerHTML != '-') {
                     continue
                 }
 

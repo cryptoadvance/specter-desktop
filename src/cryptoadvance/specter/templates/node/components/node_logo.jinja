@@ -1,0 +1,7 @@
+{% if node.node_type == "ELM" %}
+    {# Liquid Logo #}
+    <img src="{{ url_for('static', filename='img/liquid-logo.svg') }}" width="28px" height="28px"/>
+{% else %}
+    {# Bitcoin Logo #}
+    <img src="{{ url_for('static', filename='img/bitcoin-logo.svg') }}" width="28px" height="28px"/>
+{% endif %}

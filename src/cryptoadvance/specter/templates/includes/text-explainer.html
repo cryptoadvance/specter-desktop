@@ -18,41 +18,25 @@
 -->
 
 <template id="text-explainer">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-        #toggle-explainer {
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+    <link
+        rel="stylesheet"
+        type="text/css"
+        href="{{ url_for('static', filename='output.css') }}"
+    />
 
-        #explainer-body {
-            background: var(--cmap-bg-lighter);
-            padding: 10px;
-            border-radius: 5px;
-            border: 1.5px solid var(--cmap-border);
-            margin-top: 10px;
-        }
-
-        slot[name=content]::slotted(*) {
-            width: 100%;
-            display: flex;
-            flex-direction: column; 
-            align-items: center;
-        }
-    </style>
-
-    <div id="toggle-explainer">
-        <span>&#128218;</span>
-        <slot name="title"></slot>
-        <span id="drop-icon">&#9654;</span>
+    <div id="toggle-explainer" class="flex items-center select-none">
+        <div
+            class="text-sm cursor-pointer text-center align-middle leading-4 h-4 w-4 mr-2 inline-block"
+            id="drop-icon"
+        >
+            &#9654;
+        </div>
+        <slot class="text-base" name="title"></slot>
     </div>
-    
-    <div id="explainer-body" class="hidden">
+
+    <div id="explainer-body" class="hidden ml-6">
         <slot name="content"></slot>
     </div>
-    
 </template>
 
 <script type="text/javascript">
@@ -60,8 +44,8 @@
         constructor() {
             super();
             // Create a shadow root
-            let shadow = this.attachShadow({mode: 'open'});
-            let template = document.getElementById('text-explainer');
+            let shadow = this.attachShadow({ mode: "open" });
+            let template = document.getElementById("text-explainer");
             let clone = template.content.cloneNode(true);
 
             this.toggleExplainer = clone.querySelector("#toggle-explainer");
@@ -73,16 +57,16 @@
 
         connectedCallback() {
             this.toggleExplainer.onclick = () => {
-                if (this.explainerBody.classList.contains('hidden')) {
+                if (this.explainerBody.classList.contains("hidden")) {
                     this.explainerBody.classList.remove("hidden");
-                    this.dropIcon.innerHTML = '&#9660;';
+                    this.dropIcon.innerHTML = "&#9660;";
                 } else {
                     this.explainerBody.classList.add("hidden");
-                    this.dropIcon.innerHTML = '&#9654;';
+                    this.dropIcon.innerHTML = "&#9654;";
                 }
-			}
+            };
         }
     }
 
-    customElements.define('text-explainer', TextExplainerElement);
+    customElements.define("text-explainer", TextExplainerElement);
 </script>

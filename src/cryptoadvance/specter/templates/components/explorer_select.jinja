@@ -1,10 +1,19 @@
-<select name="explorer" id="explorer" onchange="updateExplorer()">
-    {% for explorer in config['EXPLORERS_LIST'] %}
-        <option value="{{explorer}}" {% if specter.explorer_id == explorer %}selected{% endif%}>{{config['EXPLORERS_LIST'][explorer].name}}</option>
-    {% endfor %}
-</select>
-<br>
-<input type="text" name="custom_explorer" id="custom-explorer" value="{{ specter.explorer }}" class="hidden" placeholder="Block explorer url" style="margin-top: 15px;"/>
+<div class="space-y-3">
+    <div class="floating-wrapper">
+        <select class="floating-input" name="explorer" id="explorer" onchange="updateExplorer()">
+            {% for explorer in config['EXPLORERS_LIST'] %}
+                <option value="{{explorer}}" {% if specter.explorer_id == explorer %}selected{% endif%}>{{config['EXPLORERS_LIST'][explorer].name}}</option>
+            {% endfor %}
+        </select>
+        <label for="explorer" class="floating-label">Block Explorer ({{specter.chain}})</label>
+    </div>
+
+    <div id="custom-explorer" class="floating-wrapper hidden">
+        <input class="floating-input peer" placeholder=" " type="text" name="custom_explorer" value="{{ specter.explorer }}"/>
+        <label for="custom_explorer" class="floating-label">Block Explorer URL</label>
+    </div>
+</div>
+
 <script>
     function updateExplorer() {
         if (document.getElementById('explorer').value == "CUSTOM") {

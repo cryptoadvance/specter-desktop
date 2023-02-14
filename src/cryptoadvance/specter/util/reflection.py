@@ -1,6 +1,6 @@
 import logging
 from importlib import import_module
-from inspect import isclass
+import inspect
 import os
 from pathlib import Path
 import pkgutil
@@ -106,7 +106,7 @@ def get_classlist_of_type_clazz_from_modulelist(clazz, modulelist):
         logger.debug(f"Imported {fq_module_name}")
         for attribute_name in dir(module):
             attribute = getattr(module, attribute_name)
-            if isclass(attribute):
+            if inspect.isclass(attribute):
                 if (
                     issubclass(attribute, clazz)
                     # This works for 1 level inheritance within one module
@@ -123,7 +123,6 @@ def get_classlist_of_type_clazz_from_modulelist(clazz, modulelist):
 def get_subclasses_for_clazz_in_cwd(clazz, cwd=".") -> List[type]:
     """Returns all subclasses of class clazz located in the CWD if the cwd
     is not a specter-desktop dev-env-kind-of-dir or contains any .py-file
-    So
     """
     package_dirs = []
     # security first! No dynamic loading in app-images
@@ -158,8 +157,10 @@ def get_subclasses_for_clazz_in_cwd(clazz, cwd=".") -> List[type]:
     return get_subclasses_for_clazz(clazz, package_dirs)
 
 
-def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
-    """Returns all subclasses of class clazz located in the CWD
+def get_subclasses_for_clazz(
+    clazz, package_dirs: List[str] = None, package: str = None
+):
+    """Returns all subclasses of class clazz searching in specific directories
     potentially add additional_packagedirs which is usefull for
     calculating pyinstaller hiddenimports
     """
@@ -175,7 +176,7 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
         # skip known redherrings
         if module_name in ["callbacks"]:
             continue
-        logger.debug(
+        logger.info(
             f"Iterating on importer={importer} , module_name={module_name} is_pkg={is_pkg}"
         )
         if clazz.__name__ == "Service":
@@ -222,21 +223,13 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
                 f"cryptoadvance.specter.util.migrations.{module_name}"
             )
         else:
-            try:
-                module = import_module(
-                    f"{module_name}.{camelcase2snake_case(clazz.__name__)}"
-                )
-                logger.debug(
-                    f"Imported {module_name}.{camelcase2snake_case(clazz.__name__)}"
-                )
-            except ModuleNotFoundError as e:
-                logger.debug(
-                    f"No Service Impl found in {module_name}.service. Skipping!"
-                )
-                continue
+            # Hopefully all the classes we're searching for are imported otherwise not much get
+            # found
+            return get_subclasses(clazz)
+
         for attribute_name in dir(module):
             attribute = getattr(module, attribute_name)
-            if isclass(attribute):
+            if inspect.isclass(attribute):
                 if (
                     issubclass(attribute, clazz)
                     and not attribute.__name__ == clazz.__name__
@@ -244,3 +237,17 @@ def get_subclasses_for_clazz(clazz, package_dirs: List[str] = None):
                     class_list.append(attribute)
                     logger.info(f"  Found class {attribute.__name__}")
     return class_list
+
+
+def get_subclasses(cls):
+    """Naive implementation of searching for subclasses. This will only return classes which has been
+    imported. If you also want to find classes which are not imported, you need to provide package-directories
+    or well known places as for specific classes as implemented in get_subclasses_for_clazz
+    Returns all subclasses of a specific call including sususub...classes
+    """
+    subclasses = []
+    for subclass in cls.__subclasses__():
+        # if not subclass.__module__.startswith("test_"):
+        subclasses.append(subclass)
+        subclasses.extend(get_subclasses(subclass))
+    return subclasses

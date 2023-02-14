@@ -3,16 +3,19 @@ import json
 import logging
 import random
 import re
+from cryptoadvance.specter.device import Device
 
-from cryptoadvance.specter.devices.device_types import DeviceTypes
 from flask import Blueprint, Flask
 from flask import current_app as app
 from flask import jsonify, redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from mnemonic import Mnemonic
+from cryptoadvance.specter.devices.elements_core import ElementsCore
+from cryptoadvance.specter.managers.node_manager import NodeManager
+from cryptoadvance.specter.node import Node
 
-from ..devices.bitcoin_core import BitcoinCore
+from ..devices.bitcoin_core import BitcoinCore, BitcoinCoreWatchOnly
 from ..helpers import is_testnet
 from ..key import Key
 from ..managers.device_manager import get_device_class
@@ -92,15 +95,15 @@ def new_device_keys(device_type):
             keys.append(Key.parse_xpub(request.form["master_pub_key"]))
         if not keys and not err:
             if device_type in [
-                DeviceTypes.BITCOINCORE,
-                DeviceTypes.ELEMENTSCORE,
-                DeviceTypes.BITCOINCORE_WATCHONLY,
+                BitcoinCore.device_type,
+                ElementsCore.device_type,
+                BitcoinCoreWatchOnly.device_type,
             ]:
                 if not paths:
                     err = _("No paths were specified, please provide at least one.")
                 if err is None:
                     if existing_device:
-                        if device_type == DeviceTypes.BITCOINCORE_WATCHONLY:
+                        if device_type == BitcoinCoreWatchOnly.device_type:
                             device.setup_device(
                                 file_password, app.specter.wallet_manager
                             )
@@ -278,6 +281,7 @@ def device_blinding_key(device_alias):
                 + ("?newdevice=true" if new_device else "")
             )
         except Exception as e:
+            logger.exception(e)
             flash(
                 _("Invalid master blinding key! It should be in WIF or hex format."),
                 "error",
@@ -403,7 +407,7 @@ def new_device_manual():
 def device(device_alias):
     err = None
     try:
-        device = app.specter.device_manager.get_by_alias(device_alias)
+        device: Device = app.specter.device_manager.get_by_alias(device_alias)
     except:
         return render_template(
             "base.jinja", error=_("Device not found"), specter=app.specter, rand=rand
@@ -434,7 +438,7 @@ def device(device_alias):
                     bitcoin_datadir=app.specter.bitcoin_datadir,
                     chain=app.specter.chain,
                 )
-                return redirect("")
+                return redirect(url_for("welcome_endpoint.index"))
         elif action == "delete_key":
             key = Key.from_json({"original": request.form["key"]})
             wallets_with_key = [w for w in wallets if key in w.keys]
@@ -489,7 +493,16 @@ def device(device_alias):
                 )
         elif action == "settype":
             device_type = request.form["device_type"]
-            device.set_type(device_type)
+            if app.specter.node_manager.active_node.is_device_supported(
+                Device.get_device_class_by_device_type_string(device_type)
+            ):
+                device.set_type(device_type)
+            # Should actually not be possible to end up here (UI doesn't let you select this) but just in case
+            else:
+                flash(
+                    f"The device type {Device.get_device_class_by_device_type_string(device_type).name} is not supported by your connection.",
+                    "error",
+                )
     device = copy.deepcopy(device)
 
     def sort_accounts(k):

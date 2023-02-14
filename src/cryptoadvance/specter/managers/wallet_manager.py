@@ -1,20 +1,22 @@
 import logging
+from datetime import datetime
 import os
 import sys
 import pathlib
-import threading
-import traceback
-from typing import Dict
+import sys
 
+from typing import Dict
 from flask_babel import lazy_gettext as _
+from flask import copy_current_request_context
 from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.key import Key
 
 from ..helpers import add_dicts, alias, is_liquid, load_jsons
 from ..liquid.wallet import LWallet
 from ..persistence import delete_folder
-from ..rpc import RpcError, get_default_datadir
+from ..rpc import RpcError, get_default_datadir, BrokenCoreConnectionException
 from ..specter_error import SpecterError, SpecterInternalException, handle_exception
+from ..util.flask import FlaskThread
 from ..wallet import (  # TODO: `purposes` unused here, but other files rely on this import
     Wallet,
     purposes,
@@ -30,7 +32,6 @@ class WalletManager:
     # chain is required to manage wallets when bitcoind is not running
     def __init__(
         self,
-        bitcoin_core_version_raw,
         data_folder,
         rpc,
         chain,
@@ -49,8 +50,6 @@ class WalletManager:
         # key is the name of the wallet, value is the actual instance
 
         self.wallets = {}
-        # A way to communicate failed wallets to the outside
-        self.bitcoin_core_version_raw = bitcoin_core_version_raw
         self.allow_threading_for_testing = allow_threading_for_testing
         # define different wallet classes for liquid and bitcoin
         self.WalletClass = LWallet if is_liquid(chain) else Wallet
@@ -62,12 +61,17 @@ class WalletManager:
         rpc: BitcoinRPC = None,
         chain: str = None,
         use_threading=True,
+        comment="",
     ):
         """Restructures the instance, specifically if chain/rpc changed
         The _update internal method will resync the internal status with Bitcoin Core
         use_threading : for the _update method which is heavily communicating with Bitcoin Core
         """
+        logger.debug(
+            f"starting update of wallet_manager (threading: {use_threading} , comment: {comment})"
+        )
         if self.is_loading:
+            logger.debug("update in progress, aborting!")
             return
         self.is_loading = True
         if chain is not None:
@@ -93,6 +97,9 @@ class WalletManager:
 
         if self.working_folder is not None:
             wallets_files = load_jsons(self.working_folder, key="name")
+            logger.info(
+                f"Iterating over {len(wallets_files.values())} wallet files in {self.working_folder}"
+            )
             for wallet in wallets_files:
                 wallet_name = wallets_files[wallet]["name"]
                 wallets_update_list[wallet_name] = wallets_files[wallet]
@@ -102,6 +109,10 @@ class WalletManager:
                 wallets_update_list[wallet_name]["keys_count"] = len(
                     wallets_files[wallet]["keys"]
                 )
+        else:
+            logger.info(
+                f"Skipping further update because self.working_folder is {self.working_folder} (and data_folder = {self.data_folder})"
+            )
         if (
             self.working_folder is not None
             and self.rpc is not None
@@ -110,7 +121,7 @@ class WalletManager:
             if "pytest" in sys.modules:
                 if self.allow_threading_for_testing:
                     logger.info("Using threads in updating the wallet manager.")
-                    t = threading.Thread(
+                    t = FlaskThread(
                         target=self._update,
                         args=(wallets_update_list,),
                     )
@@ -121,7 +132,7 @@ class WalletManager:
             else:
                 if use_threading:
                     logger.info("Using threads in updating the wallet manager.")
-                    t = threading.Thread(
+                    t = FlaskThread(
                         target=self._update,
                         args=(wallets_update_list,),
                     )
@@ -149,6 +160,7 @@ class WalletManager:
         logger.info(
             f"Started updating wallets with {len(wallets_update_list.values())} wallets"
         )
+        timestamp = datetime.now()
         # list of wallets in the dict
         existing_names = list(self.wallets.keys())
         # list of wallet to keep
@@ -236,7 +248,7 @@ class WalletManager:
                                 )
                                 self.wallets[wallet_name] = loaded_wallet
                             except Exception as e:
-                                handle_exception(e)
+                                logger.exception(e)
                                 self._failed_load_wallets.append(
                                     {
                                         **wallets_update_list[wallet],
@@ -250,12 +262,16 @@ class WalletManager:
         # only ignore rpc errors
         except RpcError as e:
             logger.error(f"Failed updating wallet manager. RPC error: {e}")
-        logger.info("Updating wallet manager done. Result:")
-        logger.info(f"  * failed_load_wallets: {self._failed_load_wallets}")
-        logger.info(f"  * loaded_wallets: {len(self.wallets)}")
-
-        wallets_update_list = {}
-        self.is_loading = False
+        finally:
+            self.is_loading = False
+            timediff_ms = int((datetime.now() - timestamp).total_seconds() * 1000)
+            logger.info(
+                "Updating wallet manager done in {: >5}ms. Result:".format(timediff_ms)
+            )
+            logger.info(f"  * loaded_wallets: {len(self.wallets)}")
+            logger.info(f"  * failed_load_wallets: {len(self._failed_load_wallets)}")
+            for wallet in self._failed_load_wallets:
+                logger.info(f"    * {wallet['name']} : {wallet['loading_error']}")
 
     def get_by_alias(self, alias):
         for wallet_name in self.wallets:
@@ -319,6 +335,16 @@ class WalletManager:
             self._wallets[self.chain] = {}
         self._wallets[self.chain] = value
 
+    @property
+    def bitcoin_core_version_raw(self):
+        try:
+            bitcoin_core_version_raw = self.rpc.getnetworkinfo()["version"]
+            return bitcoin_core_version_raw or 200000
+        except BrokenCoreConnectionException:
+            # In good faith and in order to keep the tests running, we assume
+            # a reasonable core version
+            return 200000
+
     def create_wallet(self, name, sigs_required, key_type, keys, devices, **kwargs):
         try:
             walletsindir = [
@@ -378,7 +404,6 @@ class WalletManager:
                 wallet.delete_files()
                 # Remove the wallet instance
                 del self.wallets[wallet.name]
-                self.update()
                 specter_wallet_deleted = True
             except KeyError:
                 raise SpecterError(

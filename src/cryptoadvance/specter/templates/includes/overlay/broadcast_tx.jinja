@@ -1,14 +1,17 @@
-<div id="tx_broadcast" class="hidden">
-    <h1>{{ _("Transaction is Ready to Broadcast") }}</h1>
-    <div class="flex-center flex-column">
-        <button id="broadcast_local_btn" class="btn flex-item" style="width: 190px;">{{ _("Send transaction") }}</button>
-        <button type="button" id="broadcast_block_explorer_btn" class="btn flex-item {% if specter.chain == 'regtest' %}hidden{% endif %}" style="width: 190px;">{{ _("Send via block explorer") }}</button>
-        <button type="button" id="broadcast_blockstream_btn" class="btn flex-item hidden" style="width: 190px;">{{ _("Send via blockstream.info") }}</button>
-        <button type="button" id="broadcast_mempool_btn" class="btn flex-item hidden" style="width: 190px;">{{ _("Send via mempool.space") }}</button>
-        <button type="button" id="broadcast_blockstream_tor_btn" class="btn flex-item hidden" style="width: 190px;">{{ _("Send via blockstream.info") }}<br>{{ _("over Tor hidden service") }}</button>
-        <button type="button" id="broadcast_mempool_tor_btn" class="btn flex-item hidden" style="width: 190px;">{{ _("Send via mempool.space") }}<br>{{ _("over Tor hidden service") }}</button>
-        <button type="button" id="broadcast_options_btn" class="btn flex-item hidden" style="width: 190px;">{{ _("Back to options") }}</button>
-        <button id="save_psbt_btn" class="btn flex-item" style="width: 190px;">{{ _("Save as pending") }}</button>
-        <button id="copy_final_tx_btn" class="btn flex-item" style="width: 190px;">{{ _("Copy raw transaction") }}</button>
+<div id="tx_broadcast" class="hidden p-4 rounded-lg bg-dark-800">
+    <div class="flex justify-between mb-2">
+        <h3 class="mb-0">{{ _("Broadcast Transaction") }}</h3>
+        <p class="m-0 ml-4 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer">Close</p>
+    </div>
+    <div class="mt-3">
+        <button type="button" id="broadcast_block_explorer_btn" class="button bg-accent {% if specter.chain == 'regtest' %}hidden{% endif %}">{{ _("Send via block explorer") }}</button>
+        <button type="button" id="broadcast_blockstream_btn" class="button bg-accent hidden">{{ _("Send via blockstream.info") }}</button>
+        <button type="button" id="broadcast_blockstream_tor_btn" class="button bg-accent hidden">{{ _("Send via blockstream.info") }}({{ _("via Tor") }})</button>
+        <button type="button" id="broadcast_mempool_btn" class="button bg-accent hidden">{{ _("Send via mempool.space") }}</button>
+        <button type="button" id="broadcast_mempool_tor_btn" class="button bg-accent hidden">{{ _("Send via mempool.space") }}({{ _("via Tor") }})</button>
+        <button type="button" id="broadcast_options_btn" class="button mb-0 hidden">{{ _("Back to options") }}</button>
+        <button type="button" id="save_psbt_btn" class="button">{{ _("Save as pending") }}</button>
+        <button type="button" id="copy_final_tx_btn" class="button">{{ _("Copy raw transaction") }}</button>
+        <button type="button" id="broadcast_local_btn" class="button bg-accent mb-0">{{ _("Send transaction") }}</button>
     </div>
 </div>

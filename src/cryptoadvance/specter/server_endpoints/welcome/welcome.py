@@ -12,7 +12,7 @@ from ...helpers import notify_upgrade
 from ...managers.wallet_manager import purposes
 from ...server_endpoints import flash
 from ...services.callbacks import adjust_view_model
-from ...specter_error import SpecterError
+from ...specter_error import SpecterError, SpecterInternalException
 from .welcome_vm import WelcomeVm
 
 logger = logging.getLogger(__name__)
@@ -53,16 +53,11 @@ def about():
     # that's why we need so many lines for just expressing:
     # "Here is a ViewModel, adjust it if you want"
     # We need to change that method to enable "middleware"
-    welcome_vm_dict = app.specter.service_manager.execute_ext_callbacks(
+    welcome_vm = app.specter.service_manager.execute_ext_callbacks(
         adjust_view_model, WelcomeVm()
     )
-    if len(welcome_vm_dict.values()) > 1:
-        raise SpecterError("Seems that we have more than one Welcome Extension")
-    if len(welcome_vm_dict.values()) == 1:
-        welcome_vm = list(welcome_vm_dict.values())[0]
-    else:
-        welcome_vm = WelcomeVm()
     if welcome_vm.about_redirect != None:
+        logger.info(f"redirecting to {welcome_vm.about_redirect}")
         return redirect(welcome_vm.about_redirect)
 
     if request.method == "POST":

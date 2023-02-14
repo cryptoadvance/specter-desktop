@@ -19,6 +19,8 @@
   `e.detail.result` is null if scan was cancelled, a string with data otherwise.
 -->
 <template id="qr-scanner">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+
   <style>
     #popup{
       position:fixed;
@@ -33,6 +35,8 @@
       align-content: center;
       justify-content: center;
       align-items: center;
+      overflow: hidden;
+      border-radius: 12px;
     }
     #qr-progress{
       font-size: 30px;
@@ -44,6 +48,8 @@
     #qr-video{
       width: 80%;
       height: 80%;
+      border-radius: 12px;
+      overflow: hidden;
     }
     :host,slot{
       padding: 0;
@@ -54,7 +60,7 @@
     <video muted playsinline id="qr-video" class="video"></video>
     <div id="qr-progress"></div>
   </div>
-  <slot id="trigger" name="button"><button>Open scanner</button></slot>
+  <slot id="trigger" name="button"><button class="button">Open scanner</button></slot>
 </template>
 
 <script type="module">

@@ -111,20 +111,16 @@ class NodeController:
         rpcuser="bitcoin",
         rpcpassword="secret",
     ):
-        try:
-            self.rpcconn = Btcd_conn(
-                node_impl=node_impl,
-                rpcuser=rpcuser,
-                rpcpassword=rpcpassword,
-                rpcport=rpcport,
-            )
-            self.network = network
-            self.node_impl = node_impl
-            # reasonable default
-            self.cleanup_hard = False
-        except Exception as e:
-            logger.exception(f"Failed to instantiate BitcoindController. Error: {e}")
-            raise e
+        self.rpcconn = Btcd_conn(
+            node_impl=node_impl,
+            rpcuser=rpcuser,
+            rpcpassword=rpcpassword,
+            rpcport=rpcport,
+        )
+        self.network = network
+        self.node_impl = node_impl
+        # reasonable default
+        self.cleanup_hard = False
 
     def start_node(
         self,
@@ -267,10 +263,11 @@ class NodeController:
             rpc.generatetoaddress(102, default_address)
             btc_balance = default_rpc.getbalance()
 
-        default_rpc.sendtoaddress(address, amount)
+        result = default_rpc.sendtoaddress(address, amount)
         if confirm_payment:
             # confirm it
             rpc.generatetoaddress(1, default_address)
+        return result
 
     @staticmethod
     def check_node(rpcconn, raise_exception=False):

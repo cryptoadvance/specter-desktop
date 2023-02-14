@@ -15,22 +15,24 @@ from sys import exit
 from urllib.parse import urlparse
 
 import requests
-from requests.exceptions import ConnectionError
-from stem.control import Controller
-from urllib3.exceptions import NewConnectionError
-
-from cryptoadvance.specter.devices.device_types import DeviceTypes
+from cryptoadvance.specter.devices.bitcoin_core import BitcoinCore, BitcoinCoreWatchOnly
 from cryptoadvance.specter.services.service_encrypted_storage import (
     ServiceEncryptedStorageManager,
     ServiceUnencryptedStorageManager,
 )
+from requests.exceptions import ConnectionError
+from stem import SocketError
+from stem.control import Controller
+from urllib3.exceptions import NewConnectionError
 
-from .helpers import clean_psbt, deep_update, is_liquid, get_asset_label
+from .helpers import clean_psbt, deep_update, get_asset_label, is_liquid
 from .internal_node import InternalNode
 from .liquid.rpc import LiquidRPC
 from .managers.config_manager import ConfigManager
+from .managers.device_manager import DeviceManager
 from .managers.node_manager import NodeManager
 from .managers.otp_manager import OtpManager
+from .managers.service_manager import ExtensionManager
 from .managers.user_manager import UserManager
 from .managers.wallet_manager import WalletManager
 from .node import Node
@@ -41,16 +43,17 @@ from .rpc import (
     RpcError,
     get_default_datadir,
 )
-from .managers.service_manager import ServiceManager
+from .managers.service_manager import ExtensionManager
 from .services.service import devstatus_alpha, devstatus_beta, devstatus_prod
+from .services import callbacks
 from .specter_error import ExtProcTimeoutException, SpecterError
 from .tor_daemon import TorDaemonController
 from .user import User
 from .util.checker import Checker
-from .util.version import VersionChecker
 from .util.price_providers import update_price
 from .util.setup_states import SETUP_STATES
 from .util.tor import get_tor_daemon_suffix
+from .util.version import VersionChecker
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +85,7 @@ class Specter:
         if not os.path.isdir(data_folder):
             os.makedirs(data_folder)
 
+        self.call_functions_at_cleanup_on_exit = []
         self.data_folder = data_folder
         self._config = config
         self._internal_bitcoind_version = internal_bitcoind_version
@@ -110,7 +114,9 @@ class Specter:
         # Migrating from Specter 1.3.1 and lower (prior to the node manager)
         self.migrate_old_node_format()
 
-        logger.info("Instantiate NodeManager")
+        logger.info(
+            f"Instantiate NodeManager with node alias: {self.active_node_alias}."
+        )
         self.node_manager = NodeManager(
             proxy_url=self.proxy_url,
             only_tor=self.only_tor,
@@ -118,7 +124,20 @@ class Specter:
             bitcoind_path=self.bitcoind_path,
             internal_bitcoind_version=self._internal_bitcoind_version,
             data_folder=os.path.join(self.data_folder, "nodes"),
+            service_manager=self.service_manager
+            if hasattr(self, "service_manager")
+            else None,
         )
+        try:
+            logger.debug(
+                f"This is the active node in the node manager: {self.node_manager.active_node}"
+            )
+        except SpecterError as e:
+            if str(e).endswith("does not exist!"):
+                if len(self.node_manager.nodes) > 0:
+                    self.update_active_node(next(iter(self.nodes.values())).alias)
+            else:
+                raise e
 
         self.torbrowser_path = os.path.join(
             self.data_folder, f"tor-binaries/tor{get_tor_daemon_suffix()}"
@@ -147,7 +166,7 @@ class Specter:
             if os.path.isfile(self.torbrowser_path):
                 self.tor_daemon.start_tor_daemon()
         except Exception as e:
-            logger.error(e)
+            logger.exception(e)
 
         self.update_tor_controller()
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
@@ -175,6 +194,7 @@ class Specter:
             signal.signal(signal.SIGINT, self.cleanup_on_exit)
             # This is for kill $pid --> SIGTERM
             signal.signal(signal.SIGTERM, self.cleanup_on_exit)
+        # a list of functions that are called at cleanup_on_exit taking in each signum, frame
 
     def cleanup_on_exit(self, signum=0, frame=0):
         if self._tor_daemon:
@@ -184,6 +204,9 @@ class Specter:
         for node in self.node_manager.nodes.values():
             if not node.external_node:
                 node.stop()
+
+        for f in self.call_functions_at_cleanup_on_exit:
+            f(signum, frame)
 
         logger.info("Closing Specter after cleanup")
         # For some reason we need to explicitely exit here. Otherwise it will hang
@@ -217,18 +240,13 @@ class Specter:
             user = self.user_manager.get_user(user)
             user.check()
         else:
+            u: User
             for u in self.user_manager.users:
                 u.check()
 
     @property
     def node(self) -> Node:
-        try:
-            return self.node_manager.active_node
-        except SpecterError as e:
-            logger.error("SpecterError while accessing active_node")
-            logger.exception(e)
-            self.update_active_node(list(self.node_manager.nodes.values())[0].alias)
-            return self.node_manager.active_node
+        return self.node_manager.active_node
 
     @property
     def default_node(self):
@@ -299,8 +317,10 @@ class Specter:
     # mark
     def update_active_node(self, node_alias):
         """update the current active node to use"""
+        self.node_manager.switch_node(
+            node_alias
+        )  # If the node alias doesn't exist, this throws an exception preventing incorrectly updating the config.
         self.config_manager.update_active_node(node_alias)
-        self.node_manager.switch_node(node_alias)
         self.check()
 
     def update_setup_status(self, software_name, stage):
@@ -401,7 +421,7 @@ class Specter:
             self._tor_controller.authenticate(
                 password=self.config.get("torrc_password", "")
             )
-        except Exception as e:
+        except SocketError as e:
             logger.warning(f"Failed to connect to Tor control port. Error: {e}")
             self._tor_controller = None
 
@@ -548,7 +568,7 @@ class Specter:
 
     @property
     def active_node_alias(self):
-        return self.user_config.get("active_node_alias", "default")
+        return self.user_config.get("active_node_alias", None)
 
     @property
     def explorer(self):
@@ -636,31 +656,31 @@ class Specter:
         return self.user_config.get("alt_symbol", "BTC")
 
     @property
-    def admin(self):
+    def admin(self) -> User:
         for u in self.user_manager.users:
             if u.is_admin:
                 return u
 
     @property
-    def user(self):
+    def user(self) -> User:
         return self.user_manager.user
 
     @property
-    def config_manager(self):
+    def config_manager(self) -> ConfigManager:
         if not hasattr(self, "_config_manager"):
             self._config_manager = ConfigManager(self.data_folder)
         return self._config_manager
 
     @property
-    def device_manager(self):
+    def device_manager(self) -> DeviceManager:
         return self.user.device_manager
 
     @property
-    def wallet_manager(self):
+    def wallet_manager(self) -> WalletManager:
         return self.user.wallet_manager
 
     @property
-    def otp_manager(self):
+    def otp_manager(self) -> OtpManager:
         if not hasattr(self, "_otp_manager"):
             self._otp_manager = OtpManager(self.data_folder)
         return self._otp_manager
@@ -712,8 +732,8 @@ class Specter:
                     data.compress_type = zipfile.ZIP_DEFLATED
                     device = device.json
                     # Exporting the bitcoincore hot wallet as watchonly
-                    if device["type"] == DeviceTypes.BITCOINCORE:
-                        device["type"] = DeviceTypes.BITCOINCORE_WATCHONLY
+                    if device["type"] == BitcoinCore.device_type:
+                        device["type"] = BitcoinCoreWatchOnly.device_type
                     zf.writestr(
                         "devices/{}.json".format(device["alias"]), json.dumps(device)
                     )
@@ -728,7 +748,7 @@ class Specter:
         old_internal_rpc = self.config.get("internal_node", None)
         if old_internal_rpc and os.path.isfile(self.bitcoind_path):
             internal_node = InternalNode(
-                "Specter Bitcoin",
+                "Specter Bitcoin internal",
                 "specter_bitcoin",
                 old_internal_rpc.get("autodetect", False),
                 old_internal_rpc.get("datadir", get_default_datadir()),
@@ -738,7 +758,7 @@ class Specter:
                 old_internal_rpc.get("host", "localhost"),
                 old_internal_rpc.get("protocol", "http"),
                 os.path.join(
-                    os.path.join(self.data_folder, "nodes"), "specter_bitcoin.json"
+                    os.path.join(self.data_folder, "nodes"), "bitcoin_core.json"
                 ),
                 self,
                 self.bitcoind_path,
@@ -759,7 +779,7 @@ class Specter:
         if old_rpc:
             node = Node(
                 "Bitcoin Core",
-                "default",
+                "bitcoin_core",
                 old_rpc.get("autodetect", True),
                 old_rpc.get("datadir", get_default_datadir()),
                 old_rpc.get("user", ""),
@@ -767,16 +787,21 @@ class Specter:
                 old_rpc.get("port", None),
                 old_rpc.get("host", "localhost"),
                 old_rpc.get("protocol", "http"),
-                os.path.join(os.path.join(self.data_folder, "nodes"), "default.json"),
+                os.path.join(
+                    os.path.join(self.data_folder, "nodes"), "bitcoin_core.json"
+                ),
                 "BTC",
                 self,
             )
             logger.info(f"persisting {node} in migrate_old_node_format")
             write_node(
                 node,
-                os.path.join(os.path.join(self.data_folder, "nodes"), "default.json"),
+                os.path.join(
+                    os.path.join(self.data_folder, "nodes"), "bitcoin_core.json"
+                ),
             )
             del self.config["rpc"]
+            self.config_manager.update_active_node("bitcoin_core")
         self._save()
 
 

@@ -1,0 +1,15 @@
+<h2 class="mt-8 mb-2">{{ _("👇 Select your connection to get started") }}</h2>
+
+<div class="mb-8 grid grid-cols-2 gap-5">
+    <div class="main-description-box p-5 bg-dark-800 flex flex-col items-center border-2 border-dark-700 rounded-lg">
+        <h2 class="text-center">{{ _("Using an Electrum server") }}</h2>
+        <p class="mb-12 text-center flex grow">{{ _("This is the easiest way to get started since you can connect to a third-party server. However, it exposes your financial activity. You can also choose your own server.") }}</p>
+        <a href="{{url_for('spectrum_endpoint.index')}}" class="mb-0 button bg-accent text-white w-full" data-cy="spectrum-connection-btn">{{ _('Spectrum Connection') }}</a>
+    </div>
+
+    <div class="main-description-box p-5 bg-dark-800 flex flex-col items-center border-2 border-dark-700 rounded-lg">
+        <h2 class="text-center">{{ _("Connect to your own Bitcoin Core node") }}</h2>
+        <p class="mb-12 text-center flex grow">{{ _("The classic Specter setup for total privacy and self-sovereignty.") }}</p>
+        <a href="{{ url_for('nodes_endpoint.node_settings')}}" class="mb-0 button bg-accent text-white w-full" data-cy="core-connection-btn">{{ _('Bitcoin Core Connection') }}</a>
+    </div>
+</div>

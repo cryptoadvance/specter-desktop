@@ -18,17 +18,19 @@
 		{% include "includes/tx-data.html" %}
 		{% include "includes/explorer-link.html" %}
 		{% include "includes/tx-table.html" %}
+
 		<tx-table
-		{% if specter.price_check and (specter.alt_rate and specter.alt_symbol) %}
-			price="{{ specter.alt_rate }}"
-			symbol="{{ specter.alt_symbol }}"
-		{% endif %}
-		btc-unit="{{ specter.unit }}"
-		blockhash="{{ specter.config.validate_merkle_proofs | lower }}"
-		type="{{ tx_list_type }}"
-		hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
-		wallet="{{ wallet.alias }}">
+			{% if specter.price_check and (specter.alt_rate and specter.alt_symbol) %}
+				price="{{ specter.alt_rate }}"
+				symbol="{{ specter.alt_symbol }}"
+			{% endif %}
+			btc-unit="{{ specter.unit }}"
+			blockhash="{{ specter.config.validate_merkle_proofs | lower }}"
+			type="{{ tx_list_type }}"
+			hide-sensitive-info="{{ specter.hide_sensitive_info | lower }}"
+			wallet="{{ wallet.alias }}">
 		</tx-table>
+
 	</div>
 {% endblock %}
 

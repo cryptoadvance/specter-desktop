@@ -1,14 +1,13 @@
-<div style="display: inline;">
-    <span>{{ _("Device Type:") }}</span>
-    <br>
-    <fieldset style="border:none; padding: 0px; margin: 0px;"> 
-        <select name="device_type" id="device_type">
-            <option value="" selected>{{ _("Select type") }}</option>
-            {% for cls in specter.device_manager.supported_devices %}
-                {% if cls.device_type != "bitcoincore" or (device and device.device_type != "bitcoincore_watchonly") %}
-                    <option value="{{cls.device_type}}">{{cls.name}}</option>
-                {% endif %}
-            {% endfor %}
-        </select>
-    </fieldset>
-</div>
+<fieldset class="floating-wrapper grow"> 
+    <select class="floating-input peer" name="device_type" id="device_type">
+        <option value="" selected>{{ _("Select type") }}</option>
+        {% for cls in specter.device_manager.supported_devices %}
+            {% if specter.node_manager.active_node.is_device_supported(cls) and cls.device_type != 'elementscore' %}
+                <option value="{{cls.device_type}}">{{ cls.name }}</option>
+            {% else %}
+                <option value="{{cls.device_type}}" disabled>{{ cls.name }}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+    <label class="floating-label">{{ _("Device Type") }}</label>
+</fieldset>

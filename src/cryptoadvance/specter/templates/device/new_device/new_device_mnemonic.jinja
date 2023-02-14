@@ -2,73 +2,51 @@
 {% block main %}
     {% include "includes/hwi/hwi.jinja" %}
     {% include "includes/qr-scanner.html" %}
-    <style>
-        td {
-            text-align: left;
-        }
 
-        @media screen and (max-width:720px) {
-            #device_setup_wizard th, #device_setup_wizard td { 
-                display: block;
-                width: 100%;
-            }
-            #device_setup_wizard td:empty, #device_setup_wizard th:empty {
-                display: none;
-                margin: auto;
-            }
-            #device_setup_wizard th, #device_setup_wizard td, #device_setup_wizard td > input {
-                text-align: center;
-                width: 100%;
-                margin: auto;
-            }
-            #device_setup_wizard .xpub {
-                padding: 10px;
-            }
-            #device_setup_wizard #edit-xpubs-table-btn {
-                margin: auto;
-            }
-        }
-        .xpubs_edit {
-            visibility: hidden;
-        }
-    </style>
-    <form id="form" action="{{ url_for('devices_endpoint.new_device_mnemonic', device_type=device_type) }}" method="POST" style="width: 100%;" onsubmit="if (checkAdvancedValidState()) { showPacman(); } else { event.preventDefault(); }">
+    <form class="flex flex-col" id="form" action="{{ url_for('devices_endpoint.new_device_mnemonic', device_type=device_type) }}" method="POST" onsubmit="if (checkAdvancedValidState()) { showPacman(); } else { event.preventDefault(); }">
         <div class="card center auto-width">
-            <h1 style="font-size: 2em;">{{ _("Add") }} {% if existing_device %}{{ _("Keys") }}{% else %}{{ _("Device") }}{% endif %}</h1><br>
+            <h1 data-style="font-size: 2em;">{{ _("Add") }} {% if existing_device %}{{ _("Keys") }}{% else %}{{ _("Device") }}{% endif %}</h1>
+
             {% if existing_device %}
                 <input type="hidden" name="existing_device" value="{{ existing_device.alias }}">
             {% endif %}
+
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+
             <div>
-                <div id="hot-wallet" style="max-width: 700px; margin: auto;">
-                    <br>
-                    <p class="note" style="border-radius: 5px; padding: 20px; background: rgba(0,0,0,0.1); color: #ccc;">
-                        <span style="display: inline-block;font-weight: bold; margin-bottom: 8px;">⚠️ A note on hot wallets:</span><br>
-                        {{ _('This will create a ')}}<a style="color: #ddd;" href="https://en.bitcoin.it/wiki/Hot_wallet" target="_blank">{{ _('hot wallet')}}</a>{{ _(' on your Bitcoin Core node.')}}<br>
+                <div id="hot-wallet">
+                    <p class="note" data-style="border-radius: 5px; padding: 20px; background: rgba(0,0,0,0.1); color: #ccc;">
+                        {{ _('This will create a ')}}<a data-style="color: #ddd;" href="https://en.bitcoin.it/wiki/Hot_wallet" target="_blank">{{ _('hot wallet')}}</a>{{ _(' on your Bitcoin Core node.')}}
                         {{ _("Hot wallets are considered less secure and are not recommended for use with significant amounts. Use with caution and beware the potential risks.") }}
                     </p>
-                    <p>{{ _("Enter your mnemonic here") }}{% if not existing_device %} {{ _("or use the randomly generated one") }}{% endif %}:</p>
-                    {% if not existing_device %}<p><b>{{ _("Make sure to backup these words!") }}</b></p>{% endif %}
+                    <p>
+                        {{ _("Enter your mnemonic here") }}{% if not existing_device %} {{ _("or use the randomly generated one") }}{% endif %}.
+                        {% if not existing_device %}<b>{{ _("Make sure to backup these words!") }}</b>{% endif %}
+                    </p>
+
                     {% set wordslist = mnemonic.split(' ') %}
                     {% if not existing_device %}
-                    <nav class="row">
-                        <button type="button" id="generate_mnemonic_btn" class="btn radio left checked" onclick="setMnemonicView('generate')"> {{ _("Generate") }} </button>
-                        <button type="button" id="import_mnemonic_btn" class="btn radio right" onclick="setMnemonicView('import')"> {{ _("Import") }} </button>
-                    </nav>
+                        <nav class="mt-10">
+                            <button type="button" id="generate_mnemonic_btn" class="btn radio left checked" onclick="setMnemonicView('generate')"> {{ _("Generate") }} </button>
+                            <button type="button" id="import_mnemonic_btn" class="btn radio right" onclick="setMnemonicView('import')"> {{ _("Import") }} </button>
+                        </nav>
                     {% endif %}
+
                     <input id="mnemonic_value" type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
-                    <textarea id="import_mnemonic" class="hidden" id="txt" placeholder='{{ _("Enter your mnemonic here (English, Spanish and Italian are supported)") }}'></textarea>
+
+                    <textarea id="import_mnemonic" class="my-3 hidden" id="txt" placeholder='{{ _("Enter your mnemonic here (English, Spanish and Italian are supported)") }}'></textarea>
+
                     <div id="generated_mnemonic" {% if existing_device %}class="hidden"{% endif %}>
-                        <div id="generated_mnemonic_row" class="row center break-row-mobile" style="max-height: 30px;">
-                            <fieldset style="border:none; display: inline;"> 
+                        <div id="generated_mnemonic_row" class="my-3" data-style="max-height: 30px;">
+                            <fieldset data-style="border:none; display: inline;"> 
                                 <select name="strength" id="strength">
                                     <option value="128">12 words</option>
                                     <option value="256">24 words</option>
                                 </select>
                             </fieldset>
-                            <button type="button" class="btn" style="max-width: 200px; margin-top: 9px;" onclick="generateMnemonic()">{{ _("Generate New Mnemonic") }}</button>
                         </div>
-                        <br>
+
+
                         <table id="mnemonic_table">
                             {% for i in range(wordslist|length // 4) %}
                                 <tr>
@@ -79,13 +57,12 @@
                                 </tr>
                             {% endfor %}
                         </table>
+
+                        <button type="button" class="selection-button my-3" onclick="generateMnemonic()">{{ _("Generate New Mnemonic") }}</button>
                     </div>
                 </div>
-				<br>
-                <span id="toggle-advanced" style="cursor: pointer;" onclick="toggleAdvanced()">{{ _("Advanced") }} &#9654;</span>
-				<br>
-				<br>
-                <div id="advanced-settings" class="hidden" style="width: 400px; margin: auto;">
+                <span id="toggle-advanced" data-style="cursor: pointer;" onclick="toggleAdvanced()">{{ _("Advanced") }} &#9654;</span>
+                <div id="advanced-settings" class="hidden" data-style="width: 400px; margin: auto;">
                     <label>{{ _("Encrypt Wallet File:") }} </label>
                     <input type="password" name="file_password" id="file_password" class="inline" placeholder="password">
                     <br>
@@ -93,15 +70,14 @@
                     <label>{{ _("BIP39 passphrase (optional):") }} </label>
                     <input type="password" name="passphrase" id="passphrase" class="inline" placeholder="passphrase">
                     <br>
-                    <p style="margin-bottom: 10px;">{{ _("Addresses range to import:") }} </p>
+                    <p data-style="margin-bottom: 10px;">{{ _("Addresses range to import:") }} </p>
                     {{ _("From:") }} <input type="number" name="range_start" id="range_start" class="inline" placeholder="start" value=0 step=1 min=0 max=100000>
                     {{ _("to:") }} <input type="number" name="range_end" id="range_end" class="inline" placeholder="start" value=1000 step=1 min=0 max=100000>
-                    <br>
                 </div>
             </div>
         </div>
-        <button type="submit" id="submit-mnemonic" class="btn centered action" style="width: 140px; max-width: 140px; margin: auto;">{{ _("Continue") }}</button>
-        <br><br>
+
+        <button type="submit" id="submit-mnemonic" class="self-end button mt-10 bg-accent text-white" data-style="width: 140px; max-width: 140px; margin: auto;">{{ _("Continue") }}</button>
     </form>
 {% endblock %}
 

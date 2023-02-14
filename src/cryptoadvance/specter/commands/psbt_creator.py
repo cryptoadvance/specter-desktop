@@ -4,6 +4,8 @@ import logging
 from math import isnan
 
 import requests
+from cryptoadvance.specter.util.psbt import SpecterPSBT
+from cryptoadvance.specter.wallet import Wallet
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.util.common import str2bool
 
@@ -14,7 +16,10 @@ logger = logging.getLogger(__name__)
 
 
 class PsbtCreator:
-    """A class to create PSBTs easily out of stuff coming from the frontend"""
+    """A class to create PSBTs easily out of stuff coming from the frontend
+    For an overview of the overall workflow, checkout e.g.
+    https://github.com/bitcoin/bitcoin/blob/master/doc/psbt.md
+    """
 
     def __init__(
         self,
@@ -108,11 +113,14 @@ class PsbtCreator:
                 additional_data,
             )
 
-    def create_psbt(self, wallet):
+    def create_psbt(self, wallet: Wallet) -> dict:
         """creates the PSBT via the wallet and modifies it for if substract is true
         If there was a "estimate_fee" in the request_form, the PSBT will not get persisted
         """
-        self.psbt = wallet.createpsbt(self.addresses, self.amounts, **self.kwargs)
+        self.psbt_as_object: SpecterPSBT = wallet.createpsbt(
+            self.addresses, self.amounts, **self.kwargs
+        )
+        self.psbt = self.psbt_as_object.to_dict()
         if self.psbt is None:
             raise SpecterError(
                 "Probably you don't have enough funds, or something else..."
@@ -274,7 +282,9 @@ class PsbtCreator:
         """calculates the needed kwargs fow wallet.createpsbt() out of a request_form"""
         # Who pays the fees?
         subtract = str2bool(request_form.get("subtract", False))
-        subtract_from = int(request_form.get("subtract_from", 0))
+        subtract_from = request_form.get("subtract_from", 0)
+        # subtract_from is an empty string in the form request if "Subtract fees from amount" is not checked in the UI
+        subtract_from = int(subtract_from) if subtract_from else 0
         fee_option = request_form.get("fee_option")
         fee_rate = None
         if fee_option:

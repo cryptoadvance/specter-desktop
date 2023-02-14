@@ -1,68 +1,76 @@
 {% extends "base.jinja" %}
 {% block main %}
-	<form action="./" method="POST" onsubmit="return isValidForm()">
+	<form class="flex flex-col" action="./" method="POST" onsubmit="return isValidForm()">
+
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+
 		{% if wallet_type == 'multisig' %}
-			<h1 style="margin: 20px;">{{ _("Pick the devices you want in your multisig quorum") }}</h1>
+			<h1 data-style="margin: 20px;">{{ _("Pick the devices you want in your multisig quorum") }}</h1>
 		{% else %}
-			<h1 style="margin: 20px;">{{ _("Pick the device you want to use") }}</h1>
+			<h1 data-style="margin: 20px;">{{ _("Pick the device you want to use") }}</h1>
 		{% endif %}
-		<div class="row overflow">
+
+		{% if wallet_type == 'multisig' %}
+			<p>{{ _("We use sorted multisig (BIP-67), so ")}}<b>{{ _("order is NOT important.") }}</b> {{ _('Please read the ')}}<a data-style="color: #fff" href="https://specter-desktop-docs.netlify.app/multisig-guide/" target="_blank">{{ _("multisig guide")}}</a>.</p>
+		{% endif %}
+
+		<div class="grid grid-cols-3 gap-5 my-10">
 			{% for device_name in specter.device_manager.devices_names %}
 				{% set device = specter.device_manager.devices[device_name] %}
-				<label style="position: relative;">
-					<input type="{{ 'checkbox' if wallet_type == 'multisig' else 'radio' }}" {% if wallet_type == 'simple' %} onchange="document.getElementById('submit-device').click()" {% endif %} name="devices" value="{{ device.alias }}" class="hidden" chain="{{specter.chain}}" {% if not device.has_key_types(wallet_type, specter.chain) %}disabled{% endif %}>
-					<div class="small-card radio" id="{{device.alias}}">
-						<img src="{{ url_for('static', filename=device.icon) }}" width="18px">
-						{{ device_name }}
+				<label data-style="position: relative;">
+					<input class="peer hidden" type="{{ 'checkbox' if wallet_type == 'multisig' else 'radio' }}" {% if wallet_type == 'simple' %} onchange="document.getElementById('submit-device').click()" {% endif %} name="devices" value="{{ device.alias }}" chain="{{specter.chain}}" {% if not device.has_key_types(wallet_type, specter.chain) or (not specter.node.is_device_supported(device)) %}disabled{% endif %}>
+					<div class="selection peer-checked:bg-dark-700 peer-checked:border-accent" id="{{device.alias}}">
+						<p>&nbsp;</p>
+						<img src="{{ url_for(device.blueprint(), filename=device.icon) }}" width="18px">
+						<p class="flex items-center">
+							<span>{{ device_name }}</span>
+							{% if not device.has_key_types(wallet_type, specter.chain) or not specter.node.is_device_supported(device) %}
+								<tool-tip width="150px" image="note">
+										<span slot="paragraph">
+											{% if not device.has_key_types(wallet_type, specter.chain) %}
+												{{ _("The device cannot be selected:") }} {{device.no_key_found_reason(wallet_type, specter.chain)}}
+											{% endif %}
+											{% if not specter.node.is_device_supported(device) %}
+													{{ _("The node you are using does not support this device.") }} <br>
+											{% endif %}
+										</span>
+								</tool-tip>
+							{% endif %}
+						</p>
 					</div>
-					{% if not device.has_key_types(wallet_type, specter.chain) %}
-						<tool-tip width="150px" image="note" style="position: absolute; top: 30px; left: 25px;">
-						    <span slot="paragraph">
-						    	{{ _("The device cannot be selected:") }} <br>
-						        {{device.no_key_found_reason(wallet_type, specter.chain)}}
-						    </span>
-						</tool-tip>
-					{% endif %}
 				</label>
 			{% endfor %}
-			<a href="{{ url_for('devices_endpoint.new_device_type') }}" style="text-decoration: none; color: #fff;">
-				<div class="small-card radio">
-					<img src="{{ url_for('static', filename='img/plus.svg') }}" style="transform: scale(1.5);" class="svg-white">
-					{{ _("Add new device") }}
+			<a href="{{ url_for('devices_endpoint.new_device_type') }}" data-style="text-decoration: none; color: #fff;">
+				<div class="selection">
+					<p>&nbsp;</p>
+					<img class="text-white fill-current" src="{{ url_for('static', filename='img/plus.svg') }}" data-style="transform: scale(1.5);" class="svg-white">
+					<p>{{ _("Add new device") }}</p>
 				</div>
 			</a>
 		</div>
-		<button id="submit-device" type="submit" name="action" value="device" class="btn centered">{{ _("Continue") }}</button>
-		<br>
-		<div class="note">
-			<center>
-				{% if wallet_type == 'multisig' %}
-					{{ _("We use sorted multisig (BIP-67), so ")}}<b>{{ _("order is NOT important.") }}</b><br>
-					<br>
-					{{ _('Please read the ')}}<a style="color: #fff" href="https://specter-desktop-docs.netlify.app/multisig-guide/" target="_blank">{{ _("multisig guide")}}</a>.<br>
-					<br>
-				{% endif %}
-			</center>
-		</div>
+
+		<button id="submit-device" type="submit" name="action" value="device" class="button self-end w-[calc(680px/2)] bg-accent text-white">{{ _("Continue") }}</button>
+
 	</form>
 {% endblock %}
+
 {% block scripts %}
 	<script>
-	function isValidForm() {
-		if ('{{wallet_type}}' == 'multisig') {
-			let checkedCount = 0;
-			for (let device of document.getElementsByName('devices')) {
-				if (device.checked) {
-					checkedCount++;
+		function isValidForm() {
+			if ('{{wallet_type}}' == 'multisig') {
+				let checkedCount = 0;
+				console.log(document.getElementsByName("devices"))
+				for (let device of document.getElementsByName('devices')) {
+					if (device.checked) {
+						checkedCount++;
+					}
+				}
+				if (checkedCount < 2) {
+					showNotification(`{{ _("Please select at least 2 devices for your multisig") }}`);
+					return false;
 				}
 			}
-			if (checkedCount < 2) {
-				showNotification(`{{ _("Please select at least 2 devices for your multisig") }}`);
-				return false;
-			}
+			return true;
 		}
-		return true;
-	}
 	</script>
 {% endblock %}

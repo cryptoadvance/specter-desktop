@@ -3,49 +3,17 @@
 	{% include "includes/overlay/key_export_qr.jinja" %}
 	{% include "includes/hwi/hwi.jinja" %}
 	{% include "includes/qr-scanner.html" %}
-	<style>
-		#keys-table td {
-			padding: 5px 20px;
-		}
-		#keys-table th {
-			padding: 20px 20px;
-		}
-		.signature {
-			background-color: var(--cmap-bg-lightest);
-        	word-break: break-all;
-        	margin-top: 5px;
-        	margin: 1px;
-        	border-radius: 10px;
-        	border: 2px solid hsl(217, 10%, 80%);
-        	padding: 10px 10px 10px 10px;
-        	cursor: pointer;
-		}
-		.signature:hover {
-			border: 2px solid var(--main-color);
-		}
-		.btn {
-			margin-bottom: 5px;
-		}
-		tr:hover {
-			background: rgba(255,255,255,0.03);
-		}
-	</style>
+
 	<h1 id="title">{{ device.name }}</h1>
+
 	{% from 'components/editable_title.jinja' import editable_title %}
 	{{ editable_title(device.name) }}
-	<form action="./" method="POST" style="margin-bottom: 15px;">
-		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-		<div class="row" style="text-align: center; line-height: 2;">
-			{% include "device/components/device_type.jinja" %}
-		</div>
-		<button type="submit" class="btn hidden" id="settype" name="action" value="settype" style="margin: auto; margin-top: 10px; align-self:center;">{{ _("Update") }}</button>
-	</form>
-	<br>
-	<div class="table-holder">
+
+	<div class="table-holder my-10">
 		<table id="keys-table">
 			<thead>
 				<tr>
-					<th>{{ _("Network") }}</th><th>{{ _("Purpose") }}</th><th class="optional">{{ _("Derivation") }}</th><th class="mobile-only">{{ _("Export") }}</th><th class="optional"></th><th class="optional">{{ _("Key") }}</th><th class="optional">{{ _("Actions") }}</th>
+					<th>{{ _("Network") }}</th><th>{{ _("Purpose") }}</th><th class="optional">{{ _("Derivation") }}</th><th class="mobile-only">{{ _("Export") }}</th><th class="optional table-key">{{ _("Key") }}</th><th class="optional">{{ _("Actions") }}</th>
 				</tr>
 			</thead>
 			<input type="hidden" id="key_selected" value="0" />
@@ -60,22 +28,24 @@
 						{% if specter.hide_sensitive_info %}
 							<td></td>
 						{% else %}
-							<td width="15" onclick="showPageOverlay('key_export_qr');document.getElementById('key_selected').value='{{loop.index0}}';toggleKeyDisplay();" title="{{ _('Show key QR code') }}" style="cursor: pointer;">
-								<img style="margin-top: 5px; width: 40px;" src="{{ url_for('static', filename='img/qr-code.svg') }}" class="svg-white"/>
+							<td width="15" onclick="showPageOverlay('key_export_qr');document.getElementById('key_selected').value='{{loop.index0}}';toggleKeyDisplay();" title="{{ _('Show key QR code') }}">
+								<img src="{{ url_for('static', filename='img/qr-code.svg') }}"/>
 							</td>
 						{% endif %}
 						<td class="xpub scroll optional">
-							{% if specter.hide_sensitive_info %}
-								<span class="explorer-link">##################################################</span>
-							{% else %}
-								<span class="explorer-link" onclick="copyText('{{ key }}', 'Copied key: {{ key }}')">{{ key }}</span>
-							{% endif %}
+							<div class="table-key">
+								{% if specter.hide_sensitive_info %}
+									<span class="explorer-link">##################################################</span>
+								{% else %}
+									<span class="explorer-link" onclick="copyText('{{ key }}', 'Copied key: {{ key }}')">{{ key }}</span>
+								{% endif %}
+							</div>
 						</td>
 						<td width="80px" class="optional">
 							<form action="./" method="POST">
 								<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 								<input type="hidden" name="key" value="{{ key.original }}">
-								<button type="submit" name="action" value="delete_key" class="btn danger hovering">{{ _("Delete") }}</button>
+								<button type="submit" name="action" value="delete_key" class="btn bg-dark-600 w-20">{{ _("Delete") }}</button>
 							</form>
 						</td>
 					</tr>
@@ -83,92 +53,113 @@
 			</tbody>
 		</table>
 	</div>
-	<div style="line-height: 1; margin-top: 30px;">
+
+	<div>
+		<form action="./" method="POST">
+			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+			<div class="flex mb-5 w-[344px]">
+				{% include "device/components/device_type.jinja" %}
+			</div>
+			<button type="submit" class="button text-white bg-accent mt-3 hidden" id="settype" name="action" value="settype">{{ _("Update") }}</button>
+		</form>
+
 		<form action="./" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 			{% if device.device_type != "bitcoincore_watchonly"%}
-				<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">{{ _("Add more keys") }}</button>
+				<button class="button" id="add_keys" type="submit" name="action" value="add_keys">{{ _("Add more keys") }}</button>
 			{% else %}
-				<button id="add_keys" type="submit" name="action" value="add_keys" class="btn centered">{{ _("Convert to hot wallet") }}</button>
+				<button class="button"  id="add_keys" type="submit" name="action" value="add_keys">{{ _("Convert to hot wallet") }}</button>
 			{% endif %}
 		</form>
 
 		{% if device.hwi_support or device.supports_qr_message_signing %}
-		<button type="button" class="btn centered" onclick="showPageOverlay('message-signing')">{{ _("Sign message") }}</button>
-		<div id="message-signing" class="hidden" style="text-align: left; max-width: 350px;">
+		<button class="button" type="button" onclick="showPageOverlay('message-signing')">{{ _("Sign message") }}</button>
+		<div id="message-signing" class="hidden" >
 			{% if origin %}
 				{{ _("Address") }}:<input type="text" id="signing-address" type="text" value="" placeholder="bc1q ..."><br><br>
 			{% endif %}
 			{{ _("Derivation path") }}:<input type="text" id="messageDerivationPath" type="text" value="" placeholder="e.g. m/84h/0h/0h/0/0"><br><br>
 			{{ _("Message") }}:<br>
-			<textarea id="message" placeholder="Enter the message you would like to sign" style="font-size: 0.95em; margin-bottom: 15px;"></textarea>
+			<textarea id="message" placeholder="Enter the message you would like to sign"></textarea>
 			<span id="signature-label" class="hidden">{{ _("Message signature") }}:</span>
 			<p id="signature" title='{{ _("Copy signature") }}' class="hidden" onclick="copyText(this.innerText, '{{ _("Copied message signature") }}')">
 			</p>
 			{% if device.hwi_support %}
-				<button id="{{ device.alias }}_usb_sign_msg_btn" type="button" class="btn centered" onclick="signMessageOnDevice();">{{ _("Sign message via USB") }}</button>
+				<button class="button" id="{{ device.alias }}_usb_sign_msg_btn" type="button" onclick="signMessageOnDevice();">{{ _("Sign message via USB") }}</button>
 			{% endif %}
 			{% if device.supports_qr_message_signing %}
 				{% include "includes/overlay/qr_code_sign_message.jinja" %}
-            	<button id="{{ device.alias }}_qr_sign_msg_btn" class="btn centered" style="margin-top: 10px;">{{ _("Sign message via QR code") }}</button>
+            	<button class="button" id="{{ device.alias }}_qr_sign_msg_btn">{{ _("Sign message via QR code") }}</button>
 			{% endif %}
 		</div>
 		{% endif %}
+
 		{% if specter.is_liquid %}
 			<br>
-			<a class="btn centered" href="{{ url_for('devices_endpoint.device_blinding_key', device_alias=device.alias) }}">{{ _("Update master blinding key") }}</a>
+			<a class="button" href="{{ url_for('devices_endpoint.device_blinding_key', device_alias=device.alias) }}">{{ _("Update master blinding key") }}</a>
 		{% endif %}
+
 		{% if device.supports_hwi_toggle_passphrase %}
-			<button type="button" class="btn centered" onclick="togglePassphrase('{{ device.device_type }}')">{{ _("Toggle device passphrase") }}</button>
+			<button class="button" type="button" onclick="togglePassphrase('{{ device.device_type }}')">{{ _("Toggle device passphrase") }}</button>
 			<br>
 		{% endif %}
 		<form action="./" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-			<button type="submit" name="action" value="forget" class="btn danger centered" id="forget_device">{{ _("Forget the device") }}</button>
+			<button class="button" type="submit" name="action" value="forget" id="forget_device">{{ _("Forget the device") }}</button>
 		</form>
 	</div>
-	<br>
+
 	{% if wallets %}
-		<h1>{{ _("Wallets Using This Device") }}</h1>
-		<div class="row overflow">
+	<div class="mt-20">
+		<h2>{{ _("Wallets Using This Device") }}</h2>
+		<div class="grid grid-cols-4 gap-5">
 			{% for wallet in wallets %}
-				<a href="{{ url_for('wallets_endpoint.wallet', wallet_alias=wallet.alias) }}" style="text-decoration: none;">
-					<div class="small-card radio">
-						<img src="{{ url_for('static', filename='img/' + ('two-keys' if wallet.is_multisig else 'key') + '.svg') }}" class="svg-white" style="width: 120px;">
-						{{ wallet.name }}
+				<a href="{{ url_for('wallets_endpoint.wallet', wallet_alias=wallet.alias) }}" >
+					<div class="selection">
+						<p> </p>
+						<img src="{{ url_for('static', filename='img/' + ('two-keys' if wallet.is_multisig else 'key') + '.svg') }}">
+						<p>{{ wallet.name }}</p>
 					</div>
 				</a>
 			{% endfor %}
 		</div>
+	</div>
 	{% endif %}
-	<div class="hidden" id="new_device_popup">
-		<h1>{{ _("New device was added successfully!") }}</h1>
-		<div class="row overflow">
-			<a href="{{ url_for('devices_endpoint.new_device_type') }}" style="text-decoration: none;">
-				<div class="small-card radio">
-					<img src="{{ url_for('static', filename='img/plus.svg') }}" class="svg-white" style="transform: scale(1.5);">
-					{{ _("Add another device") }}
-				</div>
-			</a>
-			<form action="{{ url_for('wallets_endpoint.new_wallet', wallet_type='simple') }}" method="POST">
+
+	<div class="hidden bg-dark-900 p-4 pb-6" id="new_device_popup">
+    <div class="flex justify-between mb-5">
+        <h3 class="mb-0">{{ _("Device Added") }}</h3>
+        <p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer" data-cy="new-device-added-screen-close-btn">Close</p>
+    </div>
+		<div class="grid grid-cols-2 gap-3">
+			<form class="text-[0px]" action="{{ url_for('wallets_endpoint.new_wallet', wallet_type='simple') }}" method="POST">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 				<input type="hidden" name="device" value="{{ device.alias }}" />
 				<input type="hidden" name="action" value="preselected_device" />
-				<button type="submit" style="background: none; color: inherit; border: none; padding: 0; font: inherit; cursor: pointer; outline: inherit;">
-					<div class="small-card radio">
-						<img src="{{ url_for('static', filename='img/key.svg') }}" class="svg-white" style="width: 120px;">
-						{{ _("Create single key wallet") }}
+				<button type="submit">
+					<div class="selection">
+						<p></p>
+						<img src="{{ url_for('static', filename='img/key.svg') }}">
+						<p>{{ _("Create single key wallet") }}</p>
 					</div>
 				</button>
 			</form>
 			{% if specter.device_manager.devices | length > 1 %}
-				<a href="{{ url_for('wallets_endpoint.new_wallet', wallet_type='multisig') }}" style="text-decoration: none;">
-					<div class="small-card radio">
-						<img src="{{ url_for('static', filename='img/two-keys.svg') }}" class="svg-white" style="width: 120px;">
-						{{ _("Create multisignature wallet") }}
+				<a href="{{ url_for('wallets_endpoint.new_wallet', wallet_type='multisig') }}">
+					<div class="selection">
+						<p></p>
+						<img src="{{ url_for('static', filename='img/two-keys.svg') }}">
+						<p>{{ _("Create multisignature wallet") }}</p>
 					</div>
 				</a>
 			{% endif %}
+			<a href="{{ url_for('devices_endpoint.new_device_type') }}">
+				<div class="selection">
+					<p></p>
+					<img src="{{ url_for('static', filename='img/plus.svg') }}">
+					<p>{{ _("Add another device") }}</p>
+				</div>
+			</a>
 		</div>
 	</div>
 {% endblock %}
@@ -206,14 +197,14 @@
 
 			// Event listener for sign message via QR code-button 
 			{% if device.supports_qr_message_signing %}
-			document.getElementById("{{ device.alias }}_qr_sign_msg_btn").addEventListener("click", e => {
-                    e.preventDefault();
-                    hidePageOverlay();
-                    // This makes qr_code_sign_message.jinja visible
-                    showPageOverlay('{{ device.alias }}_sign_msg_qr');
-                    // This set the qr-code web component in qr_code_sign_message.jinja
-                    QRcodeSetter();
-                });
+				document.getElementById("{{ device.alias }}_qr_sign_msg_btn").addEventListener("click", e => {
+						e.preventDefault();
+						hidePageOverlay();
+						// This makes qr_code_sign_message.jinja visible
+						showPageOverlay('{{ device.alias }}_sign_msg_qr');
+						// This set the qr-code web component in qr_code_sign_message.jinja
+						QRcodeSetter();
+				});
 			{% endif %}
 		});
 

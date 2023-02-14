@@ -1,23 +1,25 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
 {% set tab = 'send' %}
+
 {% block content %}
 	{% include "includes/qr-scanner.html" %}
 	{% include "includes/file-uploader.html" %}
 	{% include "includes/dnd-textarea.html" %}
 	{% from 'wallet/send/components/send_nav.jinja' import send_nav %}
+	
 	{{ send_nav('import_psbt', wallet_alias) }}
-		<h1 class="padded">{{ _("Import transaction") }}</h1>
-		<span class="center note padded" style="margin-bottom: 10px; font-size:1em">{{ _("PSBT (base64) or serialized transaction (hex)") }}</span>
+		<h3>{{ _("Import transaction") }}</h3>
+		<p>{{ _("PSBT (base64) or serialized transaction (hex)") }}</p>
+
 		<form action="{{ url_for('wallets_endpoint.import_psbt',wallet_alias=wallet_alias) }}" method="POST">
 			<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-			<div class="card">
-				<div class="row">
-					<dnd-textarea name="rawpsbt" id="rawpsbt" placeholder="{{ _('You can paste a PSBT or transaction and drag & drop a file here.') }}"></dnd-textarea>
-				</div>
-				<div class="row break-row-mobile">
-					<qr-scanner id="psbt-scan" style="width:50%">
-						<a slot="button" href="#" class="btn" style="margin: 8px;">
-							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" style="width: 26px; margin: 0px;" class="svg-white"> {{ _("Scan") }}
+			<div class="flex flex-col">
+				<dnd-textarea class="mt-3" name="rawpsbt" id="rawpsbt" placeholder="{{ _('You can paste a PSBT or transaction and drag & drop a file here.') }}"></dnd-textarea>
+				<div class="flex space-x-3 mt-1">
+					<qr-scanner id="psbt-scan" class="button">
+						<a slot="button" href="#" class="flex items-center justify-center">
+							<img src="{{ url_for('static', filename='img/qr-code.svg') }}" >
+							{{ _("Scan QR Code") }}
 							<tool-tip width="150px">
 								<h4 slot="title">{{ _('Using an airgapped device with QR codes') }}</h4>
 								<span slot="paragraph">{{ _('PSBT should be base64 encoded, raw transaction can be signed or unsigned and should be in hex.') }}
@@ -25,7 +27,8 @@
 							</tool-tip>
 						</a>
 					</qr-scanner>
-					<file-uploader id="psbt-uploader" image_src="{{ url_for('static', filename='img/file.svg') }}" button_width="250px">
+
+					<file-uploader id="psbt-uploader" class="button justify-center" image_src="{{ url_for('static', filename='img/file.svg') }}">
 						<span slot="description">Choose file</span>
 						<tool-tip width="150px" slot="tool-tip"> 
 							<h4 slot="title">{{ _('Using a file') }}</h4>
@@ -33,7 +36,7 @@
 						</tool-tip>
 					</file-uploader>
 				</div>
-				<button type="submit" name="action" value="importpsbt" class="btn centered" style="margin-top: 20px;">{{ _("Import transaction") }}</button>
+				<button type="submit" name="action" value="importpsbt" class="self-end button bg-accent text-white">{{ _("Import transaction") }}</button>
 			</div>
 		</form>
 {% endblock %}

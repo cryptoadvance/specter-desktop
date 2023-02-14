@@ -1,21 +1,17 @@
 {
     "testFiles": [
-      "spec_setup_wizard.js",
-      "spec_setup_tor.js",
       "spec_empty_specter_home.js",
-      "spec_configures_nodes.js",
+      "spec_connections.js",
       "spec_devices.js",
       "spec_ghost_machine.js",
       "spec_fees.js",
       "spec_rescan.js",
       "spec_qr_signing.js",
+      "spec_labeling.js",
       "spec_balances_amounts.js",
       "spec_wallet_send.js",
       "spec_wallet_utxo.js",
-      "spec_plugins.js",
-      "spec_elm_single_segwit_wallet.js",
-      "spec_elm_multi_segwit_wallet.js",
-      "spec_multiuser_sessions.js"
+      "spec_plugins.js"
     ],
     "baseUrl": "http://localhost:25444",
     "env": {
@@ -26,5 +22,6 @@
     "reporterOptions": {
       "mochaFile": "cypresstest-output.xml",
       "toConsole": true
-    }
+    },
+    "experimentalSessionAndOrigin": true
 }

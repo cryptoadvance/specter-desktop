@@ -15,13 +15,12 @@ from ..util.base58 import decode_base58, encode_base58_checksum
 from ..util.descriptor import AddChecksum
 from ..util.xpub import convert_xpub_prefix, get_xpub_fingerprint
 from ..util.mnemonic import mnemonic_to_root
-from . import DeviceTypes
 
 logger = logging.getLogger(__name__)
 
 
 class BitcoinCore(Device):
-    device_type = DeviceTypes.BITCOINCORE
+    device_type = "bitcoincore"
     name = "Bitcoin Core (hot wallet)"
     icon = "img/devices/bitcoincore_icon.svg"
 
@@ -171,11 +170,11 @@ class BitcoinCore(Device):
                         xpub, keys_purposes[i] if len(keys_purposes) > i else ""
                     )
                 )
-            except Exception:
+            except Exception as e:
                 # TODO: This should never occur, but just in case,
                 # we must make sure to catch it properly so it
                 # doesn't crash the app no matter what.
-                raise Exception("Failed to parse this xpub:\n" + "\n".join(xpub))
+                raise Exception("Failed to parse this xpub:\n" + "\n".join(xpub), e)
         self.add_keys(keys)
 
     def _load_wallet(self, wallet_manager):
@@ -204,6 +203,7 @@ class BitcoinCore(Device):
             return "unlocked_until" in info
         except Exception as e:
             logger.warning("Cannot fetch hot wallet info")
+            logger.exception(e)
         # Assuming encrypted by default
         return True
 
@@ -270,7 +270,7 @@ class BitcoinCoreWatchOnly(BitcoinCore):
     It can be converted back to a device of Type BitcoinCore by providing the 12 words again.
     """
 
-    device_type = DeviceTypes.BITCOINCORE_WATCHONLY
+    device_type = "bitcoincore_watchonly"
     name = "Bitcoin Core (watch only)"
     hot_wallet = False
 
@@ -305,6 +305,6 @@ class BitcoinCoreWatchOnly(BitcoinCore):
         )
 
         # Change type (also triggers write to file)
-        self.set_type(DeviceTypes.BITCOINCORE)
+        self.set_type(BitcoinCore.device_type)
         # After update this device will be available as a BitcoinCore (hot) instance
-        self.manager.update()
+        self.manager.update(comment="via BitcoinCoreWatchOnly")
