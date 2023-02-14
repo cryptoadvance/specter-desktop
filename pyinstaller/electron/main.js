@@ -226,7 +226,7 @@ app.whenReady().then(() => {
   }
 })
 
-function initMainWindow(specterURL) {
+function initMainWindow() {
   mainWindow = new BrowserWindow({
     width: parseInt(dimensions.width * 0.8),
     height: parseInt(dimensions.height * 0.8),
@@ -329,8 +329,7 @@ function updatingLoaderMsg(msg) {
 }
 
 function hasSuccessfullyStarted(logs) {
-  return logs.toString().includes('  * Running on http')
-  //return logs.toString().includes('Serving Flask app "cryptoadvance.specter.server"')
+  return logs.toString().includes('Configuration')
 }
 
 function startSpecterd(specterdPath) {
