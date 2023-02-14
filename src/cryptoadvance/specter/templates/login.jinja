@@ -10,11 +10,11 @@
             {% if specter.config['auth']['method'] == 'usernamepassword' %}
                 <input id="username" class="form-control" placeholder="{{ _('Username') }}" name="username" type="text" value=""><br><br>
             {% endif %}
-            <input id="password" class="form-control" placeholder="{{ _('Password') }}" name="password" type="password" value="">
+            <input id="password" class="form-control" placeholder="{{ _('Password') }}" name="password" type="password" value="" data-cy="admin-password">
             <input type="hidden" name="next" value="{{ data.next }}">
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="row">
-                <button type="submit" id="login-btn" class="button text-white bg-accent">{{ _("Login") }}</button>
+                <button type="submit" id="login-btn" class="button text-white bg-accent" data-cy="login-btn">{{ _("Login") }}</button>
             </div>
         </form>
     </div>

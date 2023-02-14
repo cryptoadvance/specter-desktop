@@ -12,7 +12,7 @@
 		<div class="mt-8 space-y-3">
 			{% if method == "none" or current_user.is_admin %}
 				<div class="floating-wrapper">
-					<select name="method" class="floating-input" onchange="toggleUsernamePassword(this)">
+					<select name="method" class="floating-input" onchange="toggleUsernamePassword(this)" data-cy="authentication-selection">
 						<option value="none" {% if method=="none" %} selected="selected"{% endif %}>{{ _("None") }}</option>
 						<option value="passwordonly" {% if method=="passwordonly" %} selected="selected"{% endif %}>{{ _("Password Protection") }}</option>
 						<option value="usernamepassword" {% if method=="usernamepassword" %} selected="selected"{% endif %}>{{ _("Multiple Users") }}</option>
@@ -39,7 +39,7 @@
 
 			<div id="passwordonly" class="{% if method != 'passwordonly' %}hidden{% endif %}">
 				<div class="floating-wrapper">
-					<input class="floating-input peer"id="specter_password_only" type="password" name="specter_password_only" placeholder=" ">
+					<input class="floating-input peer"id="specter_password_only" type="password" name="specter_password_only" placeholder=" " data-cy="admin-password-input">
 					<label class="floating-label"for="specter_password_only">{{ _("Specter Password") }}</label>
 				</div>
 
@@ -108,7 +108,7 @@
 		</div>
 
 		<div class="mt-8">
-			<button type="submit" id="submit-btn" class="button bg-accent text-white" name="action" value="save">{{ _("Save") }}</button>
+			<button type="submit" id="submit-btn" class="button bg-accent text-white" name="action" value="save" data-cy="save-auth-settings-btn">{{ _("Save") }}</button>
 		</div>
 	</form>
 {% endblock %}
