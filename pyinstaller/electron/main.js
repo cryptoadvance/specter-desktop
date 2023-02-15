@@ -208,7 +208,7 @@ app.whenReady().then(() => {
         
         startSpecterd(specterdPath)
       } else if (appSettings.specterdVersion != "") {
-        updatingLoaderMsg('Specterd version could not be validated.<br>Retrying fetching specterd...<br>This might take a minute...')
+        updatingLoaderMsg('Specterd version could not be validated. Retrying fetching specterd...')
         updateSpecterdStatus('Fetching Specter binary...')
         downloadSpecterd(specterdPath)
       } else {
@@ -256,7 +256,7 @@ function initMainWindow(specterURL) {
 }
 
 function downloadSpecterd(specterdPath) {
-  updatingLoaderMsg(`Fetching the ${appName} binary...<br>This might take a minute...`)
+  updatingLoaderMsg(`Fetching the ${appName} binary.<br>This might take a minute...`)
   updateSpecterdStatus(`Fetching ${appName} binary...`)
   logger.info("Using version " + appSettings.specterdVersion);
   logger.info("Using platformName " + platformName);
