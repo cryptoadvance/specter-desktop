@@ -11,7 +11,6 @@ cache:
   - key: 
       files: 
         - ./requirements.txt
-        - ./test_requirements.txt
       prefix: "$CI_JOB_NAME"
     paths:
       - .cache/pip
@@ -57,7 +56,7 @@ check:
  script:
    - pip3 install -r requirements.txt
    - pip3 install -e .
-   - pip3 install -r test_requirements.txt
+   - pip3 install -e ".[test]"
    - python3 setup.py install # compiles babel stuff as well (might make pip install obsolete)
    - py.test --cov-report term --cov cryptoadvance
 
@@ -67,7 +66,7 @@ check:
   script:
     # start the server in the background
     - pip3 install -e .
-    - pip3 install -r test_requirements.txt
+    - pip3 install -e ".[test]"
     - python3 setup.py install # compiles babel stuff as well (might make pip install obsolete)
     - npm i
     - ./utils/test-cypress.sh --docker --debug run
@@ -84,16 +83,11 @@ release_pip:
   only: 
     - tags
   script:
-    - pip3 install setuptools wheel twine
-    - pip3 install -r test_requirements.txt
-    - python3 setup.py install
-    # verifying the version number follows vx.y.z (e.g. "v1.2.3")
-    - if ! [[ $CI_COMMIT_TAG =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-pre(0|[1-9][0-9]*))? ]]; then exit 1; fi
-    # set version number in setup.py
-    - echo Releasing $CI_COMMIT_TAG
-    - sed -i "s/version=\".*/version=\"$CI_COMMIT_TAG\",/" setup.py
-    - cat setup.py
-    - python3 setup.py sdist bdist_wheel
+    - pip3 install -e .
+    - pip3 install -e ".[test]"
+    - pip3 install .
+    - pip3 install build==0.10.0 twine
+    - python3 -m build
     - ls -l dist
     # twine reads the password from the env-var TWINE_PASSWORD
     # Either testing it or doing the real thing depending on which gitlab-project we're running:
@@ -126,17 +120,7 @@ release_binary_windows:
     - pip install virtualenv
     - virtualenv --python=python3 .env
     - .\.env\Scripts\activate
-    - pip install -r test_requirements.txt || echo "why the heck does this fail with:"
-    # Collecting distlib<1,>=0.3.6
-    #  Downloading distlib-0.3.6-py2.py3-none-any.whl (468 kB)
-    #  ------------------------------------- 468.5/468.5 kB 30.6 MB/s eta 0:00:00
-    # ERROR: To modify pip, please run the following command:
-    # C:\gitlab-runner\builds\xPkLDUk2\0\k9ert\specter-desktop\.env\Scripts\python.exe -m pip install -r test_requirements.txt
-    # Uploading artifacts for failed job
-
-    # That error message above doesn't even help a bit
-    # However it seems that if you do that yet another time, it doesn't fail!
-    - pip install -r test_requirements.txt -vv
+    - pip3 install -e ".[test]" 
     
   script:
     # This script won't execute if the script before that fails
@@ -167,7 +151,7 @@ release_electron_linux_windows:
   stage: releasing
   only: 
     - tags
-  dependencies:
+  needs:
     - release_binary_windows
   before_script:
     - python3 -V  # Print out python version for debugging
@@ -177,7 +161,7 @@ release_electron_linux_windows:
     # Only difference to default befor_script: (ToDo fix this)
     - python3 -m virtualenv --python=python3 .env
     - source .env/bin/activate
-    - pip3 install -r test_requirements.txt
+    - pip3 install -e ".[test]"
   script:
     - echo "Releasing for ${CI_PROJECT_ROOT_NAMESPACE}"
     - export CI_PROJECT_ROOT_NAMESPACE # needed in the build-script to download the right windows-binary
@@ -227,7 +211,7 @@ release_signatures:
     - pip3 install --upgrade virtualenv
     - virtualenv --python=python3 .env
     - source .env/bin/activate
-    - pip3 install -r test_requirements.txt
+    - pip3 install -e ".[test]"
     - ./utils/artifact_signer.sh init # prepare .gnupg
   script:
     - python3 -m utils.release-helper download          # downloads the job-artifacts from gitlab
