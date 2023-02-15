@@ -168,7 +168,7 @@ function createWindow (specterURL) {
 app.whenReady().then(() => {
   // Start the tray icon
   logger.info("Framework Ready! Starting tray Icon ...");
-  tray = new Tray(path.join(__dirname, 'assets/icon.png'))
+  tray = new Tray(path.join(__dirname, '/assets/bitcoin-logo.svg'))
   trayMenu = [
     { label: 'Launching Specter...', enabled: false },
     { label: 'Show Specter Desktop',  click() { mainWindow.show() }},
