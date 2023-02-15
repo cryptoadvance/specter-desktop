@@ -131,7 +131,7 @@ def instantiate_bitcoind_controller(
     running_version = bitcoind_controller.version()
     requested_version = request.config.getoption("--bitcoind-version")
     assert running_version == requested_version, (
-        "Please make sure that the Bitcoind-version (%s) matches with the version in pytest.ini (%s)"
+        "Please make sure that the Bitcoind-version (%s) matches with the version in pyproject.toml (%s)"
         % (running_version, requested_version)
     )
     return bitcoind_controller
@@ -157,7 +157,7 @@ def instantiate_elementsd_controller(request, rpcport=18643, extra_args=[]):
     running_version = elementsd_controller.version()
     requested_version = request.config.getoption("--elementsd-version")
     assert running_version == requested_version, (
-        "Please make sure that the elementsd-version (%s) matches with the version in pytest.ini (%s)"
+        "Please make sure that the elementsd-version (%s) matches with the version in pyproject.toml (%s)"
         % (running_version, requested_version)
     )
     return elementsd_controller

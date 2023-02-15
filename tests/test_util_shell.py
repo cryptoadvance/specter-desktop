@@ -26,4 +26,4 @@ def test_last_lines(caplog):
 def test_grep():
     from cryptoadvance.specter.util.shell import grep
 
-    assert grep("./setup.py", 'name="cryptoadvance.specter",')
+    assert grep("./pyproject.toml", 'name = "cryptoadvance.specter"')
