@@ -85,7 +85,7 @@ function calc_pytestinit_nodeimpl_version {
     if cat ../pyproject.toml | grep -q "${node_impl}d-version" ; then
         # in this case, we use the expected version from the test also as the tag to be checked out
         # i admit that this is REALLY ugly. Happy for any recommendations to do that more easy
-        PINNED=$(cat ../pyproject.toml | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep ${node_impl} |  cut -d' ' -f2)
+        PINNED=$(cat ../pyproject.toml | grep "addopts = " | grep -oP "${node_impl}d-version \K\S+" | cut -d'"' -f1)
        
         if [ "$node_impl" = "elements" ]; then
             # in the case of elements, the tags have a "elements-" prefix
