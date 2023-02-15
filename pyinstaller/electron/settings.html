@@ -1,4 +1,4 @@
-<html class="bg-dark-900 flex flex-col items-center text-white">
+<html class="bg-dark-900 text-white">
     <link
         rel="stylesheet"
         type="text/css"
@@ -10,203 +10,107 @@
         href="../../src/cryptoadvance/specter/static/output.css"
     />
 
-    <body class="!max-w-[700px]">
-        <div class="!max-w-[700px]">
-            <h1 class="mt-20">Preferences</h1>
+    <body class="flex flex-col items-center">
+        <div class="max-w-[700px] w-[700px]">
+            <h1 class="mt-10">Preferences</h1>
             <form action="">
                 <div>
-                    <h3>Do you want to connect to a remote Specter?</h3>
+                    <h3 class="mt-8">Do you want to connect to a remote Specter?</h3>
+
                     <div class="space-y-3">
-                        <div class="grid grid-cols-2 gap-3">
-                            <label for="mode-specterd" class="checkbox-wrapper">
-                                <input
-                                    type="radio"
-                                    class="checkbox-input"
-                                    name="mode"
-                                    id="mode-specterd"
-                                    value="specterd"
-                                    onclick="toggleHWIBridgeView(false)"
-                                    checked
-                                />
-                                <span class="checkbox-label">No, run Specter locally</span>
-                            </label>
-                            <label for="hwibridge-mode-active" class="checkbox-wrapper">
-                                <input
-                                    type="radio"
-                                    class="checkbox-input"
-                                    id="hwibridge-mode-active"
-                                    name="mode"
-                                    value="hwibridge"
-                                    onclick="toggleHWIBridgeView(true);"
-                                />
-                                <span class="checkbox-label">Yes, I run Specter remotely</span>
-                            </label>
-                        </div>
+												<div class="grid grid-cols-2 gap-3">
+													<label class="checkbox-wrapper" for="specterd-mode-active">
+														<input type="radio" class="checkbox-input" id="specterd-mode-active" name="mode" value="specterd" onclick="toggleHWIBridgeView(false)" checked>
+														<span class="checkbox-label">No, run Specter locally</span>
+													</label>
+
+													<label class="checkbox-wrapper" for="hwibridge-mode-active">
+														<input type="radio" class="checkbox-input" id="hwibridge-mode-active" name="mode" value="hwibridge" onclick="toggleHWIBridgeView(true);">
+														<span class="checkbox-label">Yes, I run Specter remotely</span>
+													</label>
+												</div>
+
                         <div id="hwibridge-mode-settings" class="space-y-3 hidden">
-                            <div class="floating-wrapper">
-                                <input
-                                    id="specter-url"
-                                    type="url"
-                                    placeholder=" "
-                                    class="peer floating-input"
-                                />
-                                <label for="specter-url" class="floating-label">Remote Specter URL (http://)</label>
-                            </div>
-                            <label for="basic-auth-checkbox" class="checkbox-wrapper-inline">
-                                <input
-                                    type="checkbox"
-                                    id="basic-auth-checkbox"
-                                    onchange="toggleBasicAuth(this.checked)"
-                                    class="checkbox-input"
-                                />
-                                <span class="checkbox-label">HTTP Basic authentication</span>
+														<div class="floating-wrapper" for="specter-url">
+																<input id="specter-url" class="floating-input peer" type="url" placeholder=" " />
+																<label class="floating-label">Remote Specter URL</label>
+														</div>
+
+                            <label class="checkbox-wrapper-inline" for="basic-auth-checkbox">
+                                <input type="checkbox" class="checkbox-input" id="basic-auth-checkbox" onchange="toggleBasicAuth(this.checked)">
+																<span class="checkbox-label">HTTP Basic Authentication</label>
                             </label>
-                            <div class="floating-wrapper hidden" id="basic-auth-user">
-                                <input
-                                    type="text"
-                                    class="floating-input peer"
-                                    placeholder=" "
-                                />
-                                <label class="floating-label">Username</label>
-                            </div>
-                            <div class="floating-wrapper hidden" id="basic-auth-pass">
-                                <input
-                                    type="password"
-                                    class="floating-input peer"
-                                    placeholder=" "
-                                />
-                                <label class="floating-label">Password<label>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="floating-wrapper hidden" id="basic-auth-user">
+                                    <input type="text" class="floating-input peer" placeholder=" " />
+                                    <label class="floating-label">Username</label>
+                                </div>
+
+                                <div class="floating-wrapper hidden" id="basic-auth-pass" >
+                                    <input type="password" class="floating-input peer" placeholder=" " />
+                                    <label class="floating-label">Password</label>
+                                </div>
                             </div>
 
-                            <label for="tor-checkbox" class="checkbox-wrapper">
-                                <input
-                                    type="checkbox"
-                                    id="tor-checkbox"
-                                    onchange="toggleTorProxy(this.checked)"
-                                    class="checkbox-input"
-                                />
+                            <label for="tor-checkbox" class="checkbox-wrapper-inline">
+                                <!-- <img style="width: 25px; margin-right: 7px; vertical-align: bottom;" src="assets/tor.svg"/> -->
+                                <input class="checkbox-input" type="checkbox" id="tor-checkbox" onchange="toggleTorProxy(this.checked)">
                                 <span class="checkbox-label">Connect over Tor</span>
                             </label>
-                            <div class="floating-wrapper hidden" id="proxy-url">
-                                <input
-                                    type="url"
-                                    class="floating-input peer"
-                                    placeholder=" "
-                                />
-                                <label class="floating-label">Proxy URL</span>
+
+                            <div class="floating-wrapper hidden" id="proxy-url" >
+                                <input id="proxy-url" type="url" class="floating-input peer" placeholder=" " />
+                                <label class="floating-label">Proxy URL</label>
                             </div>
                         </div>
                     </div>
-                    <span
-                        id="toggle_advanced"
-                        style="cursor: pointer"
-                        onclick="toggleAdvanced()"
-                        class="my-3 block"
-                        >Advanced &#9654;
-                    </span>
+
+                    <span id="toggle_advanced" class="block mt-5 mb-3 cursor-pointer" onclick="toggleAdvanced()">Advanced &#9654;</span>
+
                     <div id="advanced_settings" class="hidden">
                         <h3>Specter daemon configurations</h3>
                         <div class="space-y-3">
                             <div class="floating-wrapper">
-                                <input
-                                    id="specterd-version"
-                                    type="text"
-                                    placeholder=" "
-                                    class="floating-input peer"
-                                />
-                                <label class="floating-label" for="specterd-version">Specterd Version</label>
-                                <!-- <img -->
-                                <!--     onclick="this.style.display = 'none'; document.getElementById('specterd-version').disabled=false; document.getElementById('download-github-version').style.display='block'" -->
-                                <!--     class="floating-info w-6 cursor-pointer" -->
-                                <!--     title="Edit version" -->
-                                <!--     src="assets/edit_icon.svg" -->
-                                <!-- /> -->
+                                <input class="floating-input peer" id="specterd-version" disabled type="text" placeholder=" " />
+                                <label class="floating-label">Specterd Version</label>
+                                <img class="floating-info w-6 cursor-pointer mt-1" onclick="this.style.display = 'none'; document.getElementById('specterd-version').disabled=false; document.getElementById('download-github-version').style.display='block'" title="Edit version" src="assets/edit_icon.svg"/>
                             </div>
 
                             <label for="download-github-version-checkbox" id="download-github-version" class="hidden checkbox-wrapper-inline">
-                                <input
-                                    class="checkbox-input"
-                                    type="checkbox"
-                                    id="download-github-version-checkbox"
-                                />
+                                <input class="checkbox-input" type="checkbox" id="download-github-version-checkbox">
                                 <span class="checkbox-label">Re-download from GitHub</span>
                             </label>
 
                             <div class="floating-wrapper">
-                                <input
-                                    id="specterd-hash"
-                                    type="text"
-                                    placeholder=" "
-                                    class="floating-input peer"
-                                />
-                                <label for="specterd-hash" class="floating-label">Specterd File Hash</label>
-                                <!-- <img -->
-                                <!--     onclick="this.style.display = 'none'; document.getElementById('specterd-hash').disabled=false" -->
-                                <!--     class"floating-info w-6 cursor-pointer" -->
-                                <!--     title="Edit specterd hash" -->
-                                <!--     src="assets/edit_icon.svg" -->
-                                <!-- /> -->
+                                <input class="floating-input peer" id="specterd-hash" disabled type="text" placeholder=" " />
+                                <label class="floating-label">Specterd File Hash</label>
+                                <img class="floating-info w-6 cursor-pointer mt-1" onclick="this.style.display = 'none'; document.getElementById('specterd-hash').disabled=false" title="Edit specterd hash" src="assets/edit_icon.svg"/>
                             </div>
 
                             <div class="floating-wrapper">
-                                <input
-                                    id="specterd-cli-args"
-                                    type="text"
-                                    placeholder=" "
-                                    class="floating-input peer"
-                                />
-                                <label class="floating-label">Specterd CLI args (example: --tor --port=25441) </label>
+                                <input id="specterd-cli-args" class="floating-input peer" type="text" placeholder=" " />
+                                <label class="floating-label">Specterd CLI args (example: --tor --port=25441)</label>
                             </div>
 
-                            <div class="mt-8">
-                                <h3>Use a custom specterd file</h3>
-                                <input
-                                    type="file"
-                                    id="specterd-file"
-                                    class="inputfile"
-                                    hidden
-                                />
-                                <label
-                                    for="specterd-file"
-                                    class="button"
-                                    >Choose file</label
-                                >
+                            <div>
+                                <h3 class="mt-8">Use a custom specterd file</h3>
+                                <input type="file" id="specterd-file" hidden class="inputfile"/>
+                                <label for="specterd-file" class="button">Choose file</label>
                             </div>
 
+                            <p class="note mt-5">You can download the specterd file from the github releases page: <a style="color: white;" target="_blank" href="https://github.com/cryptoadvance/specter-desktop/releases">https://github.com/cryptoadvance/specter-desktop/releases</a></p>
                         </div>
-                        <p class="mt-8">
-                            You can download the specterd file from the
-                            github releases page:
-                            <a
-                                style="color: white"
-                                target="_blank"
-                                href="https://github.com/cryptoadvance/specter-desktop/releases"
-                            >
-                                https://github.com/cryptoadvance/specter-desktop/releases
-                            </a>
-                        </p>
                     </div>
                 </div>
-                <div class="mt-8 grid grid-cols-2 gap-3">
-                    <button
-                        type="button"
-                        id="cancel-btn"
-                        class="button"
-                        onclick="window.close()"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="button"
-                        id="save-btn"
-                        class="button bg-accent"
-                        onclick="signalSavePreferences()"
-                    >
-                        Save
-                    </button>
+
+                <div class="grid grid-cols-2 gap-3 mt-8">
+                    <button type="button" id="cancel-btn" class="button" onclick="window.close()">Cancel</button>
+                    <button type="button" id="save-btn" class="button bg-accent" onclick="signalSavePreferences()">Save</button>
                 </div>
             </form>
         </div>
+
         <script>
             const fs = require("fs");
             const path = require("path");
