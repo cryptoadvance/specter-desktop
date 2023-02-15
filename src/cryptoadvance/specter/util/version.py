@@ -219,23 +219,28 @@ def _parse_version(version: str) -> dict:
     but ignores the stuff behind the postfix (which is good enough for our use cases)
     see also: https://github.com/pypa/setuptools_scm/#default-versioning-scheme
     """
-    if version[0] == "v":
-        version = version[1:]
-    version = version.replace("rc", "-pre")
-    version_ar = version.split(".")
-    if len(version_ar) == 5 or len(version_ar) == 4:
-        version_ar = version_ar[0:3]
-    if len(version_ar) != 3:
-        raise SpecterError(
-            f"version {version} does not have 3 separated digits but {len(version_ar)}"
-        )
-    postfix = ""
-    if "-" in version_ar[2]:
-        postfix = version_ar[2].split("-")[1]
-        version_ar[2] = version_ar[2].split("-")[0]
-    return {
-        "major": int(version_ar[0]),
-        "minor": int(version_ar[1]),
-        "patch": int(version_ar[2]),
-        "postfix": postfix,
-    }
+    try:
+
+        if version[0] == "v":
+            version = version[1:]
+        version = version.replace("rc", "-pre")
+        version_ar = version.split(".")
+        if len(version_ar) == 5 or len(version_ar) == 4:
+            version_ar = version_ar[0:3]
+        if len(version_ar) != 3:
+            raise SpecterError(
+                f"version {version} does not have 3 separated digits but {len(version_ar)}"
+            )
+        postfix = ""
+        if "-" in version_ar[2]:
+            postfix = version_ar[2].split("-")[1]
+            version_ar[2] = version_ar[2].split("-")[0]
+        return {
+            "major": int(version_ar[0]),
+            "minor": int(version_ar[1]),
+            "patch": int(version_ar[2]),
+            "postfix": postfix,
+        }
+    except Exception as e:
+        logger.error(f"{str(e)} parsing version {version} ")
+        raise e
