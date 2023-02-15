@@ -59,6 +59,9 @@ test_task:
     - source ./.env/bin/activate
     - echo $PATH
     #- pip3 install -e .
+    # needed so that setuptools_scm has a t least one tag to guess the version properly 
+    # and the tests/test_util_version.py doesn't fail
+    - git fetch origin refs/tags/v1.0.0 
     - pytest --cov=cryptoadvance --junitxml=./testresults.xml
   always:
     junit_artifacts:
