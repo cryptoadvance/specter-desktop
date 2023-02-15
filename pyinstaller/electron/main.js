@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, Menu, Tray, screen, shell, dialog, ipcMain } = require('electron')
+const { app, nativeImage, BrowserWindow, Menu, Tray, screen, shell, dialog, ipcMain } = require('electron')
 
 const path = require('path')
 const fs = require('fs')
@@ -42,13 +42,17 @@ const winstonOptions = {
 }
 const logger = createLogger(winstonOptions)
 
-
 let appSettings = getAppSettings()
 
 let dimensions = { widIth: 1500, height: 1000 };
 
 const contextMenu = require('electron-context-menu');
 const { options } = require('request')
+
+const image = nativeImage.createFromPath(
+  app.getAppPath() + "/assets/icon.png"
+);
+app.dock.setIcon(image);
 
 contextMenu({
 	menu: (actions) => [
@@ -168,7 +172,10 @@ function createWindow (specterURL) {
 app.whenReady().then(() => {
   // Start the tray icon
   logger.info("Framework Ready! Starting tray Icon ...");
-  tray = new Tray(path.join(__dirname, '/assets/bitcoin-logo.svg'))
+
+  const icon = nativeImage.createFromPath(path.join(__dirname, 'assets/icon.png'))
+  tray = new Tray(icon)
+
   trayMenu = [
     { label: 'Launching Specter...', enabled: false },
     { label: 'Show Specter Desktop',  click() { mainWindow.show() }},
@@ -230,7 +237,7 @@ function initMainWindow() {
   mainWindow = new BrowserWindow({
     width: parseInt(dimensions.width * 0.8),
     height: parseInt(dimensions.height * 0.8),
-    icon: path.join(__dirname, '/assets/bitcoin-logo.svg'),
+    icon: path.join(__dirname, 'assets/icon.png'),
     webPreferences
   })
   
