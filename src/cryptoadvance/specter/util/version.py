@@ -213,13 +213,22 @@ def compare(version1: str, version2: str) -> int:
 
 
 def _parse_version(version: str) -> dict:
-    """Parses version-strings like v1.5.6-pre5 and returns a dict"""
+    """Parses version-strings like v1.5.6-pre5 and returns a dict
+    This also parses something like:
+    2.0.0rc20.dev0+ga99ede2a.d20230215
+    but ignores the stuff behind the postfix (which is good enough for our use cases)
+    see also: https://github.com/pypa/setuptools_scm/#default-versioning-scheme
+    """
     if version[0] == "v":
         version = version[1:]
     version = version.replace("rc", "-pre")
     version_ar = version.split(".")
+    if len(version_ar) == 5 or len(version_ar) == 4:
+        version_ar = version_ar[0:3]
     if len(version_ar) != 3:
-        raise SpecterError(f"version {version} does not have 3 separated digits")
+        raise SpecterError(
+            f"version {version} does not have 3 separated digits but {len(version_ar)}"
+        )
     postfix = ""
     if "-" in version_ar[2]:
         postfix = version_ar[2].split("-")[1]

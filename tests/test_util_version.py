@@ -97,6 +97,12 @@ def test_parse_version():
         "patch": 5,
         "postfix": "pre12",
     }
+    assert _parse_version("2.0.0rc20.dev0+ga99ede2a.d20230215") == {
+        "major": 2,
+        "minor": 0,
+        "patch": 0,
+        "postfix": "pre20",
+    }
 
 
 def test_compare():
