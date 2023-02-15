@@ -9,7 +9,7 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
   bitcoind_installation_cache:
     folder: ./tests/bitcoin
     fingerprint_script: 
-      - cat pytest.ini | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep bitcoin |  cut -d' ' -f2 
+      - cat pyproject.toml | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep bitcoin |  cut -d' ' -f2 
       - cat tests/bitcoin_gitrev_pinned 2> /dev/null || true
       - cat /etc/os-release | grep VERSION
       - cat ./tests/install_noded.sh
@@ -18,7 +18,7 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
   elementsd_installation_cache:
     folder: ./tests/elements
     fingerprint_script: 
-      - cat pytest.ini | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep elements |  cut -d' ' -f2 
+      - cat pyproject.toml | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep elements |  cut -d' ' -f2 
       - cat tests/elements_gitrev_pinned 2> /dev/null || true
       - cat /etc/os-release | grep VERSION
       - cat ./tests/install_noded.sh

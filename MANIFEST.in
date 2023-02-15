@@ -10,6 +10,11 @@ recursive-include src/cryptoadvance/specter/translations/*/LC_MESSAGES *.mo
 recursive-include src/cryptoadvance/specter/translations/*/LC_MESSAGES *.po
 include requirements.txt
 
+# just by using using `setuptools_scm` it modifies the way files are added to the sdist. 
+# This was a cause of major headache in order to avoid large binaries e.g. in 
+# `pyinstaller/bitcoind` to not be added. See also this 
+# [chapter](https://github.com/pypa/setuptools_scm/#file-finders-hook-makes-most-of-manifestin-unnecessary)
+# ... which might make the above not necessary but the below very needed:
 exclude .gitattributes .gitignore pyinstaller .pre-commit.config.yaml 
 prune pyinstaller/bitcoind 
 prune pyinstaller/torbrowser 
