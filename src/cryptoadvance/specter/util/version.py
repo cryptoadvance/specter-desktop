@@ -219,6 +219,19 @@ def _parse_version(version: str) -> dict:
     but ignores the stuff behind the postfix (which is good enough for our use cases)
     see also: https://github.com/pypa/setuptools_scm/#default-versioning-scheme
     """
+    if version.startswith("0.1.dev"):
+        # setuptools_scm creates weird versions if you're somewhere where no tags are available
+        # on the .git
+        # This is the case in testing-scenarios. I couldn't figure out how to convince
+        # setuptools_scm to at least return 0.0.1dev or something like that.
+        # Anyway, let's return something, it's not relevant anyway.
+        # And the alternative would be yet another dependency like e.g. packaging
+        return {
+            "major": 0,
+            "minor": 1,
+            "patch": 0,
+            "postfix": "",
+        }
     try:
 
         if version[0] == "v":
