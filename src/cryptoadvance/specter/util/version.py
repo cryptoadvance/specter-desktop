@@ -219,7 +219,7 @@ def _parse_version(version: str) -> dict:
     but ignores the stuff behind the postfix (which is good enough for our use cases)
     see also: https://github.com/pypa/setuptools_scm/#default-versioning-scheme
     """
-    if version.startswith("0.1.dev"):
+    if version.startswith("0.1.dev") or version.startswith("v0.1.dev"):
         # setuptools_scm creates weird versions if you're somewhere where no tags are available
         # on the .git
         # This is the case in testing-scenarios. I couldn't figure out how to convince
