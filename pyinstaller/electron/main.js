@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { app, nativeImage, BrowserWindow, Menu, Tray, screen, shell, dialog, ipcMain } = require('electron')
+const { app, nativeTheme, nativeImage, BrowserWindow, Menu, Tray, screen, shell, dialog, ipcMain } = require('electron')
 
 const path = require('path')
 const fs = require('fs')
@@ -181,7 +181,21 @@ app.whenReady().then(() => {
   logger.info("Framework ready! Starting tray icon ...");
   
   if (isMac) {
-    const resizedTrayIcon = icon.resize({ width: 23, height: 23 });
+    if (nativeTheme.shouldUseDarkColors) {
+      console.log('The macOS is using the dark mode');
+
+      trayIcon = nativeImage.createFromPath(
+        app.getAppPath() + "/assets/menu_icon_dark.png"
+      );
+    } else {
+      console.log('The macOS is not using the dark mode');
+
+      trayIcon = nativeImage.createFromPath(
+        app.getAppPath() + "/assets/menu_icon_light.png"
+      );
+    }
+
+    const resizedTrayIcon = trayIcon.resize({ width: 22, height: 22 });
     tray = new Tray(resizedTrayIcon);
   }
   else {
