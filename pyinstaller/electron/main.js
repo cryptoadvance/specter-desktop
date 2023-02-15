@@ -168,7 +168,7 @@ function createWindow (specterURL) {
 app.whenReady().then(() => {
   // Start the tray icon
   logger.info("Framework Ready! Starting tray Icon ...");
-  tray = new Tray(path.join(__dirname, 'assets/icon.png'))
+  tray = new Tray(path.join(__dirname, '/assets/bitcoin-logo.svg'))
   trayMenu = [
     { label: 'Launching Specter...', enabled: false },
     { label: 'Show Specter Desktop',  click() { mainWindow.show() }},
@@ -226,11 +226,11 @@ app.whenReady().then(() => {
   }
 })
 
-function initMainWindow(specterURL) {
+function initMainWindow() {
   mainWindow = new BrowserWindow({
     width: parseInt(dimensions.width * 0.8),
     height: parseInt(dimensions.height * 0.8),
-    icon: path.join(__dirname, '/assets/icon.png'),
+    icon: path.join(__dirname, '/assets/bitcoin-logo.svg'),
     webPreferences
   })
   
@@ -329,8 +329,7 @@ function updatingLoaderMsg(msg) {
 }
 
 function hasSuccessfullyStarted(logs) {
-  return logs.toString().includes('  * Running on http')
-  //return logs.toString().includes('Serving Flask app "cryptoadvance.specter.server"')
+  return logs.toString().includes('Serving Flask app')
 }
 
 function startSpecterd(specterdPath) {
