@@ -18,6 +18,24 @@ describe('Completely empty specter-home', () => {
     cy.get('#btn_plugins').click()
     cy.contains("Plugins in Production")
   })
+
+  it('Setup password protection', () => {
+    cy.get('[data-cy="settings-btn"]').click()
+    cy.contains('Authentication').click()
+    cy.get('[data-cy="authentication-selection"]').select('Password Protection')
+    cy.get('[data-cy="admin-password-input"]').type('satoshi')
+    cy.get('[data-cy="save-auth-settings-btn"]').click()
+    cy.contains('Admin password successfully updated')
+  })
+
+  it('Login with password and deactivate password protection again', () => {
+    cy.get('[data-cy="admin-password"]').type('satoshi')
+    cy.get('[data-cy="login-btn"]').click()
+    cy.get('[data-cy="settings-btn"]').click()
+    cy.contains('Authentication').click()
+    cy.get('[data-cy="authentication-selection"]').select('None')
+    cy.get('[data-cy="save-auth-settings-btn"]').click()
+  })
 })
 
 
