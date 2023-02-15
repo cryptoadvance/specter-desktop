@@ -39,7 +39,6 @@ specter="cryptoadvance.specter.cli:entry_point"
 
 [tool.setuptools_scm]
 write_to = "src/cryptoadvance/specter/_version.py"
-version_scheme = "python-simplified-semver"
 
 [tool.pytest.ini_options]
 norecursedirs = "tests/bitcoin* tests/elements* tests/xtestdata_testextensions"
