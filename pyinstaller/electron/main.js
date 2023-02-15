@@ -230,7 +230,7 @@ function initMainWindow() {
   mainWindow = new BrowserWindow({
     width: parseInt(dimensions.width * 0.8),
     height: parseInt(dimensions.height * 0.8),
-    icon: path.join(__dirname, '/assets/icon.png'),
+    icon: path.join(__dirname, '/assets/bitcoin-logo.svg'),
     webPreferences
   })
   
@@ -329,7 +329,7 @@ function updatingLoaderMsg(msg) {
 }
 
 function hasSuccessfullyStarted(logs) {
-  return logs.toString().includes('Configuration')
+  return logs.toString().includes('Serving Flask app')
 }
 
 function startSpecterd(specterdPath) {
