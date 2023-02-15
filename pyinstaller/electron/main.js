@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, Menu, Tray, screen, shell, dialog, ipcMain } = require('electron')
+const { app, BrowserWindow, Menu, Tray, screen, shell, dialog, ipcMain, nativeImage } = require('electron')
 
 const path = require('path')
 const fs = require('fs')
@@ -18,6 +18,9 @@ const downloadloc = require('./downloadloc')
 const getDownloadLocation = downloadloc.getDownloadLocation
 const appName = downloadloc.appName()
 const appNameLower = appName.toLowerCase()
+
+// Helper
+const isMac = process.platform === 'darwin'
 
 // Logging
 const {transports, format, createLogger } = require('winston')
@@ -167,15 +170,22 @@ function createWindow (specterURL) {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Start the tray icon
-  logger.info("Framework Ready! Starting tray Icon ...");
-  tray = new Tray(path.join(__dirname, '/assets/bitcoin-logo.svg'))
+  logger.info("Framework ready! Setting up tray icon ...");
+  if (isMac) {
+    const image = nativeImage.createFromPath(path.join(__dirname, 'assets/icon.png'));
+    const resizedTrayImage = image.resize({ width: 16, height: 16 });
+    tray = new Tray(resizedTrayImage);
+  }
+  else {
+    tray = new Tray(path.join(__dirname, 'assets/icon.png'))
+  }
   trayMenu = [
     { label: 'Launching Specter...', enabled: false },
     { label: 'Show Specter Desktop',  click() { mainWindow.show() }},
     { label: 'Preferences',  click() { openPreferences() }},
     { label: 'Quit',  click() { quitSpecterd(); app.quit() } },
   ]
-  tray.setToolTip('This is my application.')
+  tray.setToolTip('Specter')
   tray.setContextMenu(Menu.buildFromTemplate(trayMenu))
 
   dimensions = screen.getPrimaryDisplay().size;
@@ -230,7 +240,7 @@ function initMainWindow() {
   mainWindow = new BrowserWindow({
     width: parseInt(dimensions.width * 0.8),
     height: parseInt(dimensions.height * 0.8),
-    icon: path.join(__dirname, '/assets/bitcoin-logo.svg'),
+    icon: path.join(__dirname, '/assets/icon.png'),
     webPreferences
   })
   
