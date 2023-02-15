@@ -19,6 +19,9 @@ const getDownloadLocation = downloadloc.getDownloadLocation
 const appName = downloadloc.appName()
 const appNameLower = appName.toLowerCase()
 
+// Helper
+const isMac = process.platform === 'darwin'
+
 // Logging
 const {transports, format, createLogger } = require('winston')
 const combinedLog = new transports.File({ filename: helpers.specterAppLogPath });
@@ -49,10 +52,14 @@ let dimensions = { widIth: 1500, height: 1000 };
 const contextMenu = require('electron-context-menu');
 const { options } = require('request')
 
-const image = nativeImage.createFromPath(
+const icon = nativeImage.createFromPath(
   app.getAppPath() + "/assets/icon.png"
 );
-app.dock.setIcon(image);
+
+// Set the dock icon (MacOS only)
+if (isMac) {
+  app.dock.setIcon(icon)
+}
 
 contextMenu({
 	menu: (actions) => [
@@ -171,18 +178,23 @@ function createWindow (specterURL) {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Start the tray icon
-  logger.info("Framework Ready! Starting tray Icon ...");
-
-  const icon = nativeImage.createFromPath(path.join(__dirname, 'assets/icon.png'))
-  tray = new Tray(icon)
+  logger.info("Framework ready! Starting tray icon ...");
+  
+  if (isMac) {
+    const resizedTrayIcon = icon.resize({ width: 23, height: 23 });
+    tray = new Tray(resizedTrayIcon);
+  }
+  else {
+    tray = new Tray(icon)
+  }
 
   trayMenu = [
-    { label: 'Launching Specter...', enabled: false },
-    { label: 'Show Specter Desktop',  click() { mainWindow.show() }},
+    { label: 'Launching Specter ...', enabled: false },
+    { label: 'Show Specter',  click() { mainWindow.show() }},
     { label: 'Preferences',  click() { openPreferences() }},
     { label: 'Quit',  click() { quitSpecterd(); app.quit() } },
   ]
-  tray.setToolTip('This is my application.')
+  tray.setToolTip('Specter')
   tray.setContextMenu(Menu.buildFromTemplate(trayMenu))
 
   dimensions = screen.getPrimaryDisplay().size;
@@ -345,7 +357,7 @@ function startSpecterd(specterdPath) {
   }
   let appSettings = getAppSettings()
   let hwiBridgeMode = appSettings.mode == 'hwibridge'
-  updatingLoaderMsg('Launching Specter Desktop...')
+  updatingLoaderMsg('Launching Specter ...')
   updateSpecterdStatus('Launching Specter...')
   let specterdArgs = ["server"]
   specterdArgs.push("--no-filelog")
@@ -550,7 +562,7 @@ function openErrorLog() {
 }
 
 function showError(error) {
-  updatingLoaderMsg('Specter Desktop encounter an error:<br>' + error.toString())
+  updatingLoaderMsg('Specter encounter an error:<br>' + error.toString())
 }
 
 process.on('unhandledRejection', error => {
