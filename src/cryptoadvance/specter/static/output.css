@@ -425,11 +425,6 @@ video {
    *
    */
 
-html {
-  max-height: 100%;
-  overflow: hidden;
-}
-
 h1 {
   margin-bottom: 0.5rem;
   font-size: 2.25rem;
@@ -1416,12 +1411,12 @@ input[type="number"]::-webkit-outer-spin-button,
   height: 16rem;
 }
 
-.max-h-\[40px\] {
-  max-height: 40px;
-}
-
 .max-h-screen {
   max-height: 100vh;
+}
+
+.max-h-\[40px\] {
+  max-height: 40px;
 }
 
 .min-h-\[64px\] {

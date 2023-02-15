@@ -35,6 +35,7 @@ tests/bitcoin*
 tests/elements*
 token.sh
 src/cryptoadvance/specter/translations/**/messages.mo
+src/cryptoadvance/specter/_version.py
 tests/elements
 signing_dir
 site

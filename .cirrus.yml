@@ -9,7 +9,7 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
   bitcoind_installation_cache:
     folder: ./tests/bitcoin
     fingerprint_script: 
-      - cat pytest.ini | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep bitcoin |  cut -d' ' -f2 
+      - cat pyproject.toml | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep bitcoin |  cut -d' ' -f2 
       - cat tests/bitcoin_gitrev_pinned 2> /dev/null || true
       - cat /etc/os-release | grep VERSION
       - cat ./tests/install_noded.sh
@@ -18,7 +18,7 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
   elementsd_installation_cache:
     folder: ./tests/elements
     fingerprint_script: 
-      - cat pytest.ini | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep elements |  cut -d' ' -f2 
+      - cat pyproject.toml | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep elements |  cut -d' ' -f2 
       - cat tests/elements_gitrev_pinned 2> /dev/null || true
       - cat /etc/os-release | grep VERSION
       - cat ./tests/install_noded.sh
@@ -44,11 +44,11 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
 
   pip_script:
     #folder: /tmp/cirrus-ci-build/.env
-    #fingerprint_script: echo muh && cat requirements.txt && cat test_requirements.txt
+    #fingerprint_script: echo muh && cat requirements.txt
     #populate_script: 
     - virtualenv --python=python .env 
     - source ./.env/bin/activate
-    - pip3 install -r requirements.txt --require-hashes && pip3 install -r test_requirements.txt
+    - pip3 install -r requirements.txt --require-hashes && pip3 install -e ".[test]"
   install_script: 
     - source ./.env/bin/activate
     - pip3 install -e .
@@ -58,7 +58,9 @@ test_task:
   test_script: 
     - source ./.env/bin/activate
     - echo $PATH
-    #- pip3 install -e .
+    # needed so that setuptools_scm has a t least one tag to guess the version properly 
+    # and the tests/test_util_version.py doesn't fail
+    - git fetch origin refs/tags/v1.0.0 
     - pytest --cov=cryptoadvance --junitxml=./testresults.xml
   always:
     junit_artifacts:
