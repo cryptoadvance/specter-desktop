@@ -321,10 +321,6 @@ idna==3.4 \
     --hash=sha256:814f528e8dead7d329833b91c5faa87d60bf71824cd12a7530b5526063d02cb4 \
     --hash=sha256:90b77e79eaa3eba6de819a0c442c0b4ceefc341a7a2ab77d7562bf49f425c5c2
     # via requests
-importlib_metadata==4.8.1 \
-    --hash=sha256:b618b6d2d5ffa2f16add5697cf57a46c76a56229b0ed1c438322e4e95645bd15 \
-    --hash=sha256:f284b3e11256ad1e5d03ab86bb2ccd6f5339688ff17a4d797a0fe7df326f23b1
-    # via -r requirements.in
 itsdangerous==2.1.2 \
     --hash=sha256:2c2349112351b88699d8d4b6b075022c0808887cb7ad10069318a8b0bc88db44 \
     --hash=sha256:5dbbc68b317e5e42f327f9021763545dc3fc3bfe22e6deb96aaf1fc38874156a
@@ -686,9 +682,9 @@ specterext-exfund==0.1.7 \
 specterext-faucet==0.1.2 \
     --hash=sha256:86db78a6c41688152cfeec14efafd6d06c97e6edd9735461ee897495f90cb2e8
     # via -r requirements.in
-specterext-stacktrack==0.3.0 \
-    --hash=sha256:14f96f1f552f57ba017b8bc642f07343edbb1abafe09e03bbaae179d78d7ce23 \
-    --hash=sha256:9e2946185730aab377951e83a27d8791a34e0f031e44f15991212b6b85722ca0
+specterext-stacktrack==0.2.1 \
+    --hash=sha256:28729d1a981d8c061902b3d26baefc723d286aecea4d203ed729d1c89a9de267 \
+    --hash=sha256:34a5e9da8a3cb7a4c8b7bc4e0a417a043150e608a7261e56d84fbfba9af15b8a
     # via -r requirements.in
 sqlalchemy==1.4.42 \
     --hash=sha256:04f2598c70ea4a29b12d429a80fad3a5202d56dce19dd4916cc46a965a5ca2e9 \
@@ -775,10 +771,6 @@ wtforms==3.0.1 \
     --hash=sha256:6b351bbb12dd58af57ffef05bc78425d08d1914e0fd68ee14143b7ade023c5bc \
     --hash=sha256:837f2f0e0ca79481b92884962b914eba4e72b7a2daaf1f939c890ed0124b834b
     # via flask-wtf
-zipp==3.10.0 \
-    --hash=sha256:4fcb6f278987a6605757302a6e40e896257570d11c51628968ccb2a47e80c6c1 \
-    --hash=sha256:7a7262fd930bd3e36c50b9a64897aec3fafff3dfdeec9623ae22b40e93f99bb8
-    # via importlib-metadata
 
 # WARNING: The following packages were not pinned, but pip requires them to be
 # pinned when the requirements file includes hashes. Consider using the --allow-unsafe flag.
