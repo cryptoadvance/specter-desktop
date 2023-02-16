@@ -3,7 +3,7 @@
   "description": "Specter Desktop Electron application",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "cp ../../src/cryptoadvance/specter/static/output.css ../../src/cryptoadvance/specter/static/typography.css . &&  electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder --publish=never",
     "postinstall": "electron-builder install-app-deps"
