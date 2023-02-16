@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, Menu, Tray, screen, shell, dialog, ipcMain } = require('electron')
+const { app, nativeTheme, nativeImage, BrowserWindow, Menu, Tray, screen, shell, dialog, ipcMain } = require('electron')
 
 const path = require('path')
 const fs = require('fs')
@@ -18,6 +18,9 @@ const downloadloc = require('./downloadloc')
 const getDownloadLocation = downloadloc.getDownloadLocation
 const appName = downloadloc.appName()
 const appNameLower = appName.toLowerCase()
+
+// Helper
+const isMac = process.platform === 'darwin'
 
 // Logging
 const {transports, format, createLogger } = require('winston')
@@ -42,13 +45,21 @@ const winstonOptions = {
 }
 const logger = createLogger(winstonOptions)
 
-
 let appSettings = getAppSettings()
 
 let dimensions = { widIth: 1500, height: 1000 };
 
 const contextMenu = require('electron-context-menu');
 const { options } = require('request')
+
+const icon = nativeImage.createFromPath(
+  app.getAppPath() + "/assets/icon.png"
+);
+
+// Set the dock icon (MacOS only)
+if (isMac) {
+  app.dock.setIcon(icon)
+}
 
 contextMenu({
 	menu: (actions) => [
@@ -166,16 +177,45 @@ function createWindow (specterURL) {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-  // Start the tray icon
-  logger.info("Framework Ready! Starting tray Icon ...");
-  tray = new Tray(path.join(__dirname, 'assets/icon.png'))
+  // Create the tray icon
+  logger.info("Framework ready! Starting tray icon ...");
+  if (isMac) {
+    const trayIconPath = nativeTheme.shouldUseDarkColors
+      ? "/assets/menu_icon_dark.png"
+      : "/assets/menu_icon_light.png";
+    const createTrayIcon = (trayIconPath) => {
+      let trayIcon = nativeImage.createFromPath(
+        app.getAppPath() + trayIconPath
+      );
+      // Resize
+      trayIcon = trayIcon.resize({ width: 22, height: 22 });
+      return trayIcon
+    }
+    const trayIcon = createTrayIcon(trayIconPath)
+    tray = new Tray(trayIcon);
+
+    // Change the tray icon if appearance is changed in Mac settings 
+    const updateTrayIcon = () => {
+      logger.info('Updating tray icon ...')
+      const trayIconPath = nativeTheme.shouldUseDarkColors
+        ? "/assets/menu_icon_dark.png"
+        : "/assets/menu_icon_light.png";
+      const newTrayIcon = createTrayIcon(trayIconPath)
+      tray.setImage(newTrayIcon);
+    }
+    nativeTheme.on('updated', updateTrayIcon)
+  }
+  else {
+    tray = new Tray(icon)
+  }
+
   trayMenu = [
-    { label: 'Launching Specter...', enabled: false },
-    { label: 'Show Specter Desktop',  click() { mainWindow.show() }},
+    { label: 'Launching Specter ...', enabled: false },
+    { label: 'Show Specter',  click() { mainWindow.show() }},
     { label: 'Preferences',  click() { openPreferences() }},
     { label: 'Quit',  click() { quitSpecterd(); app.quit() } },
   ]
-  tray.setToolTip('This is my application.')
+  tray.setToolTip('Specter')
   tray.setContextMenu(Menu.buildFromTemplate(trayMenu))
 
   dimensions = screen.getPrimaryDisplay().size;
@@ -226,11 +266,11 @@ app.whenReady().then(() => {
   }
 })
 
-function initMainWindow(specterURL) {
+function initMainWindow() {
   mainWindow = new BrowserWindow({
     width: parseInt(dimensions.width * 0.8),
     height: parseInt(dimensions.height * 0.8),
-    icon: path.join(__dirname, '/assets/icon.png'),
+    icon: path.join(__dirname, 'assets/icon.png'),
     webPreferences
   })
   
@@ -329,8 +369,7 @@ function updatingLoaderMsg(msg) {
 }
 
 function hasSuccessfullyStarted(logs) {
-  return logs.toString().includes('  * Running on http')
-  //return logs.toString().includes('Serving Flask app "cryptoadvance.specter.server"')
+  return logs.toString().includes('Serving Flask app')
 }
 
 function startSpecterd(specterdPath) {
@@ -339,7 +378,7 @@ function startSpecterd(specterdPath) {
   }
   let appSettings = getAppSettings()
   let hwiBridgeMode = appSettings.mode == 'hwibridge'
-  updatingLoaderMsg('Launching Specter Desktop...')
+  updatingLoaderMsg('Launching Specter ...')
   updateSpecterdStatus('Launching Specter...')
   let specterdArgs = ["server"]
   specterdArgs.push("--no-filelog")
@@ -544,7 +583,7 @@ function openErrorLog() {
 }
 
 function showError(error) {
-  updatingLoaderMsg('Specter Desktop encounter an error:<br>' + error.toString())
+  updatingLoaderMsg('Specter encounter an error:<br>' + error.toString())
 }
 
 process.on('unhandledRejection', error => {

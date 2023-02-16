@@ -6,7 +6,7 @@ docker push registry.gitlab.com/cryptoadvance/specter-desktop/python-bitcoind:v2
 ```
 Here the version is v23.0 but that's just an example. This folder just explains how the image is created. Which image is USED is specified:
 
-* In the case of tests in pytest.ini in the addopts-line (MIGHT be different in different branches)
+* In the case of tests in pyproject.toml in the addopts-line (MIGHT be different in different branches)
 * in the case of running 
 
 ```

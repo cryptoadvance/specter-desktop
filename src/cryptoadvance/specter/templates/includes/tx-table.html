@@ -301,30 +301,34 @@
                     </th>
                 </tr>
             </thead>
-            <tr id="feedback-row" class="hidden">
-                <td id="feedback-row-content">
-                    <div id="rescan-hint" class="hidden">
-                        <p>{{_('Is this not a fresh wallet? Did you expect transactions here? Then click') }} &#128071; {{_('to find them') }}</p>
-                        <a id="go-to-rescan-btn" href="{{ url_for('wallets_endpoint.settings', wallet_alias=wallet_alias, rescan_blockchain=True) }}" class="go-to-rescan-btn btn">Go to blockchain rescan</a>
-                    </div>
-                </td>
-            </tr>
-            <tr id="empty-row" class="hidden">
-                <td id="empty-row-cell" colspan="9"></td>
-            </tr>
-            <tr class="summary-row hidden">
-                <td class="column-callbackaction"></td>
-                <td class="column-category" ></td>
-                <td class="column-txid summary-tx-count"></td>
-                <td class="column-label optional"></td>
-                <td class="column-amount summary-amount"></td>
-                <td class="column-time optional"></td>
-                <td class="column-confirmations"> </td>
-                <td class="column-blockhash optional hidden blockhash-summary"></td>
-                <td class="column-action"></td>
-            </tr>
           <tbody class="tx-tbody">
           </tbody>
+        </table>
+        <table class="tx-table">
+            <thead id=""table-header>
+                <tr id="feedback-row" class="hidden">
+                    <td id="feedback-row-content">
+                        <div id="rescan-hint" class="hidden">
+                            <p>{{_('Is this not a fresh wallet? Did you expect transactions here? Then click') }} &#128071; {{_('to find them') }}</p>
+                            <a id="go-to-rescan-btn" href="{{ url_for('wallets_endpoint.settings', wallet_alias=wallet_alias, rescan_blockchain=True) }}" class="go-to-rescan-btn btn">Go to blockchain rescan</a>
+                        </div>
+                    </td>
+                </tr>
+                <tr id="empty-row" class="hidden">
+                    <td id="empty-row-cell" colspan="9"></td>
+                </tr>
+                <tr class="summary-row hidden">
+                    <td class="column-callbackaction"></td>
+                    <td class="column-category" ></td>
+                    <td class="column-txid summary-tx-count"></td>
+                    <td class="column-label optional"></td>
+                    <td class="column-amount summary-amount"></td>
+                    <td class="column-time optional"></td>
+                    <td class="column-confirmations"> </td>
+                    <td class="column-blockhash optional hidden blockhash-summary"></td>
+                    <td class="column-action"></td>
+                </tr>
+            </thead>
         </table>
         <div class="mt-3">
             <div id="pagination-container" class="flex items-center mx-4 space-x-2">
