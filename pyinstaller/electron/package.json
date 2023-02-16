@@ -1,5 +1,5 @@
 {
-  "name": "specter-desktop",
+  "name": "Specter",
   "description": "Specter Desktop Electron application",
   "main": "main.js",
   "scripts": {

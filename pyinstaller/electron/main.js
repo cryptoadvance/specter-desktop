@@ -355,12 +355,19 @@ function updateSpecterdStatus(status) {
   tray.setContextMenu(Menu.buildFromTemplate(trayMenu))
 }
 
-function updatingLoaderMsg(msg) {
+function updatingLoaderMsg(msg, showSpinner=false) {
   if (mainWindow) {
     let code = `
     var launchText = document.getElementById('launch-text');
     if (launchText) {
       launchText.innerHTML = '${msg}';
+    }
+    var spinnerElement = document.getElementById('spinner');
+    if (${showSpinner} === true) {
+      spinnerElement.classList.remove('hidden')
+    }
+    else {
+      spinnerElement.classList.add('hidden')
     }
     `;
     mainWindow.webContents.executeJavaScript(code);
@@ -368,8 +375,16 @@ function updatingLoaderMsg(msg) {
   logger.info("Updated LoaderMsg: "+msg)
 }
 
-function hasSuccessfullyStarted(logs) {
-  return logs.toString().includes('Serving Flask app')
+function hasSuccessfullyStarted(logs, specterdStarted) {
+  const timeout = 180000 // 3 minutes
+  const now = Date.now()
+  const timeElapsed = now - specterdStarted
+  if (timeElapsed > timeout) {
+    return false
+  }
+  if (logs.toString().includes('Serving Flask app')) {
+    return true;
+  }
 }
 
 function startSpecterd(specterdPath) {
@@ -378,7 +393,7 @@ function startSpecterd(specterdPath) {
   }
   let appSettings = getAppSettings()
   let hwiBridgeMode = appSettings.mode == 'hwibridge'
-  updatingLoaderMsg('Launching Specter ...')
+  updatingLoaderMsg('Launching Specter ...', showSpinner=true)
   updateSpecterdStatus('Launching Specter...')
   let specterdArgs = ["server"]
   specterdArgs.push("--no-filelog")
@@ -402,36 +417,37 @@ function startSpecterd(specterdPath) {
   options.env['LANG'] = 'en_US.utf-8'
   options.env['SPECTER_LOGFORMAT'] = 'SPECTERD: %(levelname)s in %(module)s: %(message)s'
   specterdProcess = spawn(specterdPath, specterdArgs, options);
-  var procStdout = ""
-  var procStderr = ""
+  const specterdStarted = Date.now()
+  // There doesn't seem to be another more straightforward way to check whether specterd is running: https://github.com/nodejs/help/issues/1191
   specterdProcess.stdout.on('data', (data) => {
-    procStdout += data
     logger.info("stdout-"+data.toString())
-    if(hasSuccessfullyStarted(data)) {
-      logger.info(`App seem to to run ...`);
+    // Use standard output from specterd to determine whether it is up and running
+    // Setting a timeout to avoid waiting for specterd endlessly
+    if(hasSuccessfullyStarted(data, specterdStarted)) {
+      logger.info(`Specter server seems to run ...`);
       if (mainWindow) {
-        logger.info(`... creating window ...`);
+        logger.info('... creating Electron window for it.')
         createWindow(appSettings.specterURL)
-        
       }
+    }
+    else {
+      logger.error('Startup timeout for specterd exceeded')
+      showError('Specter does not seem to start. Check the logs in the menu for more details.')
+      updateSpecterdStatus('Specter does not start')
     }
   });
   specterdProcess.stderr.on('data', (data) => {
-    procStderr += data
     logger.info("stderr-"+data.toString())
-    if(hasSuccessfullyStarted(data)) {
-      logger.info(`App seem to to run ...`);
-      if (mainWindow) {
-        logger.info(`... creating window ...`);
-        createWindow(appSettings.specterURL)
-        
-      }
-    }
   });
 
   specterdProcess.on('exit', (code) => {
     logger.error(`specterd exited with code ${code}`);
-    showError(`specterd exited with code ${code}. Check the logs in the menu!`)
+    showError(`Specter exited with exit code ${code}. Check the logs in the menu for more details.`)
+  });
+
+  specterdProcess.on('error', (err) => {
+    logger.error(`Error starting Specter server: ${err}`);
+    showError(`Specter failed to start, due to ${err.message}. Check the logs in the menu for more details.`)
   });
 
   app.on('activate', function () {
@@ -583,7 +599,7 @@ function openErrorLog() {
 }
 
 function showError(error) {
-  updatingLoaderMsg('Specter encounter an error:<br>' + error.toString())
+  updatingLoaderMsg('Specter encountered an error:<br>' + error.toString())
 }
 
 process.on('unhandledRejection', error => {
