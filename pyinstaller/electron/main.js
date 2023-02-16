@@ -177,26 +177,33 @@ function createWindow (specterURL) {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-  // Start the tray icon
+  // Create the tray icon
   logger.info("Framework ready! Starting tray icon ...");
-  
   if (isMac) {
-    if (nativeTheme.shouldUseDarkColors) {
-      console.log('The macOS is using the dark mode');
-
-      trayIcon = nativeImage.createFromPath(
-        app.getAppPath() + "/assets/menu_icon_dark.png"
+    const trayIconPath = nativeTheme.shouldUseDarkColors
+      ? "/assets/menu_icon_dark.png"
+      : "/assets/menu_icon_light.png";
+    const createTrayIcon = (trayIconPath) => {
+      let trayIcon = nativeImage.createFromPath(
+        app.getAppPath() + trayIconPath
       );
-    } else {
-      console.log('The macOS is not using the dark mode');
-
-      trayIcon = nativeImage.createFromPath(
-        app.getAppPath() + "/assets/menu_icon_light.png"
-      );
+      // Resize
+      trayIcon = trayIcon.resize({ width: 22, height: 22 });
+      return trayIcon
     }
+    const trayIcon = createTrayIcon(trayIconPath)
+    tray = new Tray(trayIcon);
 
-    const resizedTrayIcon = trayIcon.resize({ width: 22, height: 22 });
-    tray = new Tray(resizedTrayIcon);
+    // Change the tray icon if appearance is changed in Mac settings 
+    const updateTrayIcon = () => {
+      logger.info('Updating tray icon ...')
+      const trayIconPath = nativeTheme.shouldUseDarkColors
+        ? "/assets/menu_icon_dark.png"
+        : "/assets/menu_icon_light.png";
+      const newTrayIcon = createTrayIcon(trayIconPath)
+      tray.setImage(newTrayIcon);
+    }
+    nativeTheme.on('updated', updateTrayIcon)
   }
   else {
     tray = new Tray(icon)
