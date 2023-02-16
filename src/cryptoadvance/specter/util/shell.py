@@ -69,5 +69,5 @@ def grep(file_location, search_line):
     with open(file_location, "r") as the_file:
         for line in the_file.readlines():
             if line.strip().__contains__(search_line):
-                return True
-    return False
+                return True, line
+    return False, None
