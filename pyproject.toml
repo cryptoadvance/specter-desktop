@@ -18,7 +18,11 @@ authors = [
 ]
 description = "A GUI for Bitcoin Core & Electrum optimised to work with airgapped hardware wallets"
 
-urls = { Homepage = "https://github.com/cryptoadvance/spectrum" }
+urls = { 
+    Homepage = "https://github.com/cryptoadvance/specter-desktop"
+    Documentation = "https://docs.specter.solutions/desktop/"
+    Changes = "https://docs.specter.solutions/desktop/release-notes/"
+}
 readme = "README.md"
 license = {file = "LICENSE"}
 

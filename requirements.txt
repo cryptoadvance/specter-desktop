@@ -171,9 +171,9 @@ flask==2.1.1 \
 flask-apscheduler==1.12.4 \
     --hash=sha256:681dae34dc6cc9403ce674795e53abd0bff540472129cfd3d3c93e0e1d502da8
     # via -r requirements.in
-flask-babel==3.0.1 \
-    --hash=sha256:ceb8c82039954a6b29da33ec5deb84878b78069d1ea628b21cac3f8233e9189c \
-    --hash=sha256:d408cace25514bea8b92e898fd7e55877fbac79b71bc230e266ff515408eba38
+flask-babel==2.0.0 \
+    --hash=sha256:e6820a052a8d344e178cdd36dd4bb8aea09b4bda3d5f9fa9f008df2c7f2f5468 \
+    --hash=sha256:f9faf45cdb2e1a32ea2ec14403587d4295108f35017a7821a2b1acb8cfd9257d
     # via -r requirements.in
 flask-cors==3.0.10 \
     --hash=sha256:74efc975af1194fc7891ff5cd85b0f7478be4f7f59fe158102e91abb72bb4438 \
