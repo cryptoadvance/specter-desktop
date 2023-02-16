@@ -42,8 +42,15 @@ class CallbackExecutor:
                     *args, **kwargs
                 )
                 # logger.debug(f"returned {return_values[ext.id]}")
+
                 if callback.return_style == "middleware":
-                    args = [return_values[ext.id]]
+                    if return_values[ext.id] == None:
+                        logger.error(
+                            f"Extension {ext.id} did not respect middleware contract for {callback.id}. Returned None! Skipping!"
+                        )
+                    else:
+                        args = [return_values[ext.id]]
+
         # Filtering out all None return values
         return_values = {k: v for k, v in return_values.items() if v is not None}
         # logger.debug(f"return_values for callback {callback.id} {return_values}")
