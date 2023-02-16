@@ -248,11 +248,11 @@ app.whenReady().then(() => {
         
         startSpecterd(specterdPath)
       } else if (appSettings.specterdVersion != "") {
-        updatingLoaderMsg('Specterd version could not be validated. Retrying fetching specterd...', true)
-        updateSpecterdStatus('Fetching Specter binary...', true)
+        updatingLoaderMsg('Specterd version could not be validated. Retrying fetching specterd...')
+        updateSpecterdStatus('Fetching Specter binary...')
         downloadSpecterd(specterdPath)
       } else {
-        updatingLoaderMsg('Specterd file could not be validated and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...', false)
+        updatingLoaderMsg('Specterd file could not be validated and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...')
         updateSpecterdStatus('Failed to locate specterd...')
       }
     })
@@ -260,7 +260,7 @@ app.whenReady().then(() => {
     if (appSettings.specterdVersion) {
       downloadSpecterd(specterdPath)
     } else {
-      updatingLoaderMsg('Specterd was not found and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...', false)
+      updatingLoaderMsg('Specterd was not found and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...')
       updateSpecterdStatus('Failed to locate specterd...')
     }
   }
@@ -291,12 +291,12 @@ function initMainWindow() {
 
   mainWindow.webContents.on("did-fail-load", function() {
     mainWindow.loadURL(`file://${__dirname}/splash.html`);
-    updatingLoaderMsg(`Failed to load: ${appSettings.specterURL}<br>Please make sure the URL is entered correctly in the Preferences and try again...`, false)
+    updatingLoaderMsg(`Failed to load: ${appSettings.specterURL}<br>Please make sure the URL is entered correctly in the Preferences and try again...`)
   });
 }
 
 function downloadSpecterd(specterdPath) {
-  updatingLoaderMsg(`Fetching the ${appName} binary.<br>This might take a minute...`, true)
+  updatingLoaderMsg(`Fetching the ${appName} binary.<br>This might take a minute...`)
   updateSpecterdStatus(`Fetching ${appName} binary...`)
   logger.info("Using version " + appSettings.specterdVersion);
   logger.info("Using platformName " + platformName);
@@ -305,12 +305,12 @@ function downloadSpecterd(specterdPath) {
   logger.info("Downloading from "+download_location);
   download(download_location, specterdPath + '.zip', function(errored) {
     if (errored == true) {
-      updatingLoaderMsg(`Fetching ${appNameLower} binary from the server failed, could not reach the server or the file could not have been found.`, false)
+      updatingLoaderMsg(`Fetching ${appNameLower} binary from the server failed, could not reach the server or the file could not have been found.`)
       updateSpecterdStatus(`Fetching ${appNameLower}d failed...`)
       return
     }
 
-    updatingLoaderMsg('Unpacking files...', true)
+    updatingLoaderMsg('Unpacking files...')
     logger.info("Extracting "+specterdPath);
 
     extract(specterdPath + '.zip', { dir: specterdPath + '-dir' }).then(function () {
@@ -329,14 +329,14 @@ function downloadSpecterd(specterdPath) {
       var newPath = specterdPath + (platformName == 'win64' ? '.exe' : '')
 
       fs.renameSync(oldPath, newPath)
-      updatingLoaderMsg('Cleaning up...', true)
+      updatingLoaderMsg('Cleaning up...')
       fs.unlinkSync(specterdPath + '.zip')
       fs.rmdirSync(specterdPath + '-dir', { recursive: true });
       getFileHash(specterdPath + (platformName == 'win64' ? '.exe' : ''), function(specterdHash) {
         if (appSettings.specterdHash.toLowerCase() === specterdHash || appSettings.specterdHash == "") {
           startSpecterd(specterdPath)
         } else {
-          updatingLoaderMsg('Specterd version could not be validated.', false)
+          updatingLoaderMsg('Specterd version could not be validated.')
           logger.error(`hash of downloaded file: ${specterdHash}`)
           logger.error(`Expected hash: ${appSettings.specterdHash}`)
           updateSpecterdStatus('Failed to launch specterd...')
@@ -355,15 +355,13 @@ function updateSpecterdStatus(status) {
   tray.setContextMenu(Menu.buildFromTemplate(trayMenu))
 }
 
-function updatingLoaderMsg(msg, spinner=true) {
+function updatingLoaderMsg(msg) {
   if (mainWindow) {
     let code = `
     var launchText = document.getElementById('launch-text');
     if (launchText) {
       launchText.innerHTML = '${msg}';
     }
-    var spinner = document.getElementById('spinner');
-    spinner.style.display="${spinner ? 'block':'none'}"
     `;
     mainWindow.webContents.executeJavaScript(code);
   } 
@@ -380,7 +378,7 @@ function startSpecterd(specterdPath) {
   }
   let appSettings = getAppSettings()
   let hwiBridgeMode = appSettings.mode == 'hwibridge'
-  updatingLoaderMsg('Launching Specter ...', true)
+  updatingLoaderMsg('Launching Specter ...')
   updateSpecterdStatus('Launching Specter...')
   let specterdArgs = ["server"]
   specterdArgs.push("--no-filelog")
@@ -585,7 +583,7 @@ function openErrorLog() {
 }
 
 function showError(error) {
-  updatingLoaderMsg('Specter encounter an error:<br>' + error.toString(), false)
+  updatingLoaderMsg('Specter encounter an error:<br>' + error.toString())
 }
 
 process.on('unhandledRejection', error => {
