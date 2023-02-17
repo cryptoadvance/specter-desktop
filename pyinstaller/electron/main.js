@@ -25,6 +25,7 @@ ipcMain.handle("showMessageBoxSync", (e, message, buttons) => {
 
 // Helper
 const isMac = process.platform === 'darwin'
+const isDev = process.env.NODE_ENV !== "production"
 
 // Logging
 const {transports, format, createLogger } = require('winston')
@@ -49,6 +50,11 @@ const winstonOptions = {
 }
 const logger = createLogger(winstonOptions)
 
+if (isDev) {
+  logger.info('Running the Electron app in dev mode.')
+}
+
+logger.info(process.env)
 let appSettings = getAppSettings()
 
 let dimensions = { widIth: 1500, height: 1000 };
@@ -56,13 +62,12 @@ let dimensions = { widIth: 1500, height: 1000 };
 const contextMenu = require('electron-context-menu');
 const { options } = require('request')
 
-const icon = nativeImage.createFromPath(
-  app.getAppPath() + "/assets/icon.png"
-);
-
-// Set the dock icon (MacOS only)
-if (isMac) {
-  app.dock.setIcon(icon)
+// Set the dock icon (MacOS and for development only)
+if (isMac && isDev) {
+  const dockIcon = nativeImage.createFromPath(
+    app.getAppPath() + "/assets-dev/dock_icon_macos.png"
+  );
+  app.dock.setIcon(dockIcon)
 }
 
 contextMenu({
@@ -171,8 +176,6 @@ function createWindow (specterURL) {
   }
 
   mainWindow.loadURL(specterURL + '?mode=remote')
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
 }
 
 // This method will be called when Electron has finished
@@ -208,7 +211,10 @@ app.whenReady().then(() => {
     nativeTheme.on('updated', updateTrayIcon)
   }
   else {
-    tray = new Tray(icon)
+    const trayIcon = nativeImage.createFromPath(
+      app.getAppPath() + "/assets/menu_icon.png"
+    );
+    tray = new Tray(trayIcon)
   }
 
   trayMenu = [
@@ -269,10 +275,13 @@ app.whenReady().then(() => {
 })
 
 function initMainWindow() {
+  // In production we use the icons from the build folder
+  // Note: On MacOS setting an icon here as no effect
+  const iconPath = isDev ? path.join(__dirname, 'assets-dev/app_icon.png') : ""
   mainWindow = new BrowserWindow({
     width: parseInt(dimensions.width * 0.8),
     height: parseInt(dimensions.height * 0.8),
-    icon: path.join(__dirname, 'assets/icon.png'),
+    icon: iconPath,
     webPreferences
   })
   
