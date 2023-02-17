@@ -6,7 +6,7 @@
   "scripts": {
     "start": "cp -R ../../src/cryptoadvance/specter/static/fonts ../../src/cryptoadvance/specter/static/output.css ../../src/cryptoadvance/specter/static/typography.css . &&  electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder --publish=never",
+    "dist": "export NODE_ENV=production && electron-builder --publish=never",
     "postinstall": "electron-builder install-app-deps"
   },
   "repository": "https://github.com/cryptoadvance/specter-desktop",
