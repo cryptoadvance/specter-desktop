@@ -1,10 +1,10 @@
 {
-  "name": "specter-desktop",
+  "name": "Specter",
   "description": "Specter Desktop Electron application",
   "version": "v0.0.0",
   "main": "main.js",
   "scripts": {
-    "start": "cp ../../src/cryptoadvance/specter/static/output.css ../../src/cryptoadvance/specter/static/typography.css . &&  electron .",
+    "start": "cp -R ../../src/cryptoadvance/specter/static/fonts ../../src/cryptoadvance/specter/static/output.css ../../src/cryptoadvance/specter/static/typography.css . &&  electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder --publish=never",
     "postinstall": "electron-builder install-app-deps"
