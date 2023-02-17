@@ -19,6 +19,10 @@ const getDownloadLocation = downloadloc.getDownloadLocation
 const appName = downloadloc.appName()
 const appNameLower = appName.toLowerCase()
 
+ipcMain.handle("showMessageBoxSync", (e, message, buttons) => {
+    dialog.showMessageBoxSync(mainWindow, { message, buttons });
+});
+
 // Helper
 const isMac = process.platform === 'darwin'
 const isDev = process.env.NODE_ENV !== "production"
