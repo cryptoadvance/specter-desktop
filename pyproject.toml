@@ -18,7 +18,10 @@ authors = [
 ]
 description = "A GUI for Bitcoin Core & Electrum optimised to work with airgapped hardware wallets"
 
-urls = { Homepage = "https://github.com/cryptoadvance/spectrum" }
+urls.Homepage = "https://github.com/cryptoadvance/specter-desktop"
+urls.Documentation = "https://docs.specter.solutions/desktop/"
+urls.Changes = "https://docs.specter.solutions/desktop/release-notes/"
+
 readme = "README.md"
 license = {file = "LICENSE"}
 
@@ -74,12 +77,11 @@ dependencies = {file = ["requirements.in"]}
 test = [
     "black==22.3.0",
     "pre-commit==2.13.0",
-    "pip-tools==5.5.0",
+    "pip-tools==6.12.2",
     "pytest==7.1.2",
     "PySocks==1.7.1",
     "pytest-cov==2.10.1",
     "mock==4.0.2",
-    "babel==2.10.3",
     "python-gitlab==2.10.1",
     # requirements for stuff in ./utils
     "requests==2.26.0",
