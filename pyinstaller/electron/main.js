@@ -176,10 +176,6 @@ function createWindow (specterURL) {
   }
 
   mainWindow.loadURL(specterURL + '?mode=remote')
-  // Open the DevTools in dev and make the window larger
-  if (isDev) {
-    mainWindow.setSize(1350, 800)
-  }
 }
 
 // This method will be called when Electron has finished
