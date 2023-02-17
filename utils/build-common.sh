@@ -106,7 +106,7 @@ function building_electron_app {
     cd pyinstaller/electron
     echo "    --> building electron-app"
     echo "    --> Copying over resources"
-    cp ../../src/cryptoadvance/specter/static/output.css ../../src/cryptoadvance/specter/static/typography.css . 
+    cp -R ../../src/cryptoadvance/specter/static/fonts ../../src/cryptoadvance/specter/static/output.css ../../src/cryptoadvance/specter/static/typography.css . 
     npm i
     npm run dist ${platform}
     cd ../..
