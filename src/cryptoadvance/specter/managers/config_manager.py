@@ -54,7 +54,7 @@ class ConfigManager(GenericDataManager):
             "hwi_bridge_url": "/hwi/api/",
             # unique id that will be used in wallets path in Bitcoin Core
             # empty by default for backward-compatibility
-            "uid": random.randint(0, 256**8).to_bytes(8, "big").hex(),
+            "uid": "",
             "unit": "btc",
             "price_check": False,
             "alt_rate": 1,
@@ -92,14 +92,14 @@ class ConfigManager(GenericDataManager):
                 file_config = read_json_file(self.data_file)
                 migrate_config(file_config)
                 deep_update(self.data, file_config)
+                logger.info(f"Config loaded from file {self.data_file}")
             # otherwise - create one and assign unique id
-        else:
-            # unique id of specter
-            if self.data["uid"] == "":
-                self.config["uid"] = (
-                    random.randint(0, 256**8).to_bytes(8, "big").hex()
-                )
-            self._save()
+
+        # unique id of specter
+        if self.data["uid"] == "":
+            self.data["uid"] = random.randint(0, 256**8).to_bytes(8, "big").hex()
+            logger.info(f"No uid found in config. Created uid {self.data['uid']}")
+        self._save()
 
         # config from constructor overrides file config
         deep_update(self.data, self.arg_config)
