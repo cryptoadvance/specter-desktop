@@ -237,6 +237,7 @@ def tor():
     only_tor = app.specter.only_tor
     tor_control_port = app.specter.tor_control_port
     tor_type = app.specter.tor_type
+    tor_builtin_possible = getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")
     if request.method == "POST":
         action = request.form["action"]
         tor_type = request.form["tor_type"]
@@ -372,6 +373,7 @@ def tor():
     return render_template(
         "settings/tor_settings.jinja",
         tor_type=tor_type,
+        tor_builtin_possible=tor_builtin_possible,
         proxy_url=proxy_url,
         only_tor=only_tor,
         tor_control_port=tor_control_port,

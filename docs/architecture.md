@@ -42,3 +42,12 @@ The documentation here is incomplete but will better over time.
 Here is a diagram of all the classes from the embit library. No properties/attributes or methods are in there, yet.
 
 [![](https://mermaid.ink/img/pako:eNqFk19rgzAQwL-K5Ln9ArKnYtnGNiqzbDDycsZrDcREkstGcX73xT9tLejqSzx_Py935NIwYQpkMRMKnEskHC1UXBfSoiBpdPT6znUUnm2VS9qAw-jhd70ewhc8TWCIBvaU3ILrX5k8aiBvcZ6KUhtrgzSXNfW5kmJhy9TKbyBc2jfBnod-UqByVkmzzT4Tph5Lu4QDfda1p2W883TLZ5IvtGxlTbPoU5JG52bZ3oJ20B_QPd5Xfk8a6udjsn4UokdlclAT6UPiT3N22qnatbdMsxIs_oMypCllK1ahrUAWYSqb7jNnVGKFnMXhtcADeEWccd0G1ddFOPdtIclYFh9AOVwx8GSykxYsJuvxLI3DfbFq0F_GXGPsk7yN16Fb2j-RrgZR?type=png)](https://mermaid-js.github.io/mermaid-live-editor/edit#pako:eNqFk19rgzAQwL-K5Ln9ArKnYtnGNiqzbDDycsZrDcREkstGcX73xT9tLejqSzx_Py935NIwYQpkMRMKnEskHC1UXBfSoiBpdPT6znUUnm2VS9qAw-jhd70ewhc8TWCIBvaU3ILrX5k8aiBvcZ6KUhtrgzSXNfW5kmJhy9TKbyBc2jfBnod-UqByVkmzzT4Tph5Lu4QDfda1p2W883TLZ5IvtGxlTbPoU5JG52bZ3oJ20B_QPd5Xfk8a6udjsn4UokdlclAT6UPiT3N22qnatbdMsxIs_oMypCllK1ahrUAWYSqb7jNnVGKFnMXhtcADeEWccd0G1ddFOPdtIclYFh9AOVwx8GSykxYsJuvxLI3DfbFq0F_GXGPsk7yN16Fb2j-RrgZR)
+
+## About Tor
+
+Tor in general means two things: 
+* Using the Tor network for outgoing connection to confuse outgoing traffic
+* Use Tor to create a tor-hidden-service which often enough is also used as a kind of poo-man's firewall and to avoid the details of a port-forwarding setup
+
+Tor support is possible either via a custom installation or via the built in. The type of the installation is stored in `specter.tor_type` which is redirecting to the `config_manager` which by default returns `builtin`. Another valid value is `custom` and initially we have `none`.
+Other important tor-details are the check whether the tor_deamon_is_running (`specter.is_tor_dameon_running()`) and whether the torbrowser is installed (`os.path.isfile(app.specter.torbrowser_path)`).

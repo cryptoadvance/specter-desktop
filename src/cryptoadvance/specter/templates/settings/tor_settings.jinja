@@ -14,6 +14,15 @@
 		<p class="mb-5">{{ _("Enable Tor to anonymise your data connections.") }}</p>
 
 		<label for="tor_type_builtin" class="flex bg-dark-800 p-4 mb-5 border-2 border-dark-700 rounded-xl align-start hover:bg-dark-700 cursor-pointer">
+			<input class="mr-4 h-8" id="tor_type_none" type="radio" name="tor_type" value="none" data-style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="toggletor_type('none')" {% if tor_type == 'none' %} checked {% endif %}/>
+			<div>
+			<h3>None</h3>
+			<p>{{ _("No tor setup yet.") }}</p>
+			</div>
+		</label>
+
+		{% if tor_type == 'builtin' or tor_builtin_possible %}
+		<label for="tor_type_builtin" class="flex bg-dark-800 p-4 mb-5 border-2 border-dark-700 rounded-xl align-start hover:bg-dark-700 cursor-pointer">
 			<input class="mr-4 h-8" id="tor_type_builtin" type="radio" name="tor_type" value="builtin" data-style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="toggletor_type('builtin')" {% if tor_type == 'builtin' %} checked {% endif %}/>
 			<div>
 				<h3>Built in</h3>
@@ -36,8 +45,8 @@
 				<a href="{{ url_for('setup_endpoint.tor_from_settings' ) }}" class="button mt-4 mb-2 text-white bg-accent" id="setup-tor-button">{{ _("Set Up") }}</a>
 				{% endif %}
 			</div>
-
 		</label>
+		{% endif %}
 
 		<label id="custom-tor-label" for="tor_type_custom" class="flex bg-dark-800 p-4 mb-5 border-2 border-dark-700 rounded-xl align-start hover:bg-dark-700 cursor-pointer">
 			<input class="mr-4 h-8" id="tor_type_custom" type="radio" name="tor_type" value="custom" onchange="toggletor_type('custom')" {% if tor_type == 'custom' %} checked {% endif %}/>
