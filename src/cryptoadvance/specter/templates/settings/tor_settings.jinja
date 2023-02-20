@@ -13,11 +13,11 @@
 		<!-- <img data-style="width: 25px; margin-right: 7px; vertical-align: middle;" src="{{ url_for('static', filename='img/tor.svg') }}"/><span data-style="vertical-align: bottom; margin-right: 10px;"> -->
 		<p class="mb-5">{{ _("Enable Tor to anonymise your data connections.") }}</p>
 
-		<label for="tor_type_builtin" class="flex bg-dark-800 p-4 mb-5 border-2 border-dark-700 rounded-xl align-start hover:bg-dark-700 cursor-pointer">
+		<label for="tor_type_none" class="flex bg-dark-800 p-4 mb-5 border-2 border-dark-700 rounded-xl align-start hover:bg-dark-700 cursor-pointer">
 			<input class="mr-4 h-8" id="tor_type_none" type="radio" name="tor_type" value="none" data-style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="toggletor_type('none')" {% if tor_type == 'none' %} checked {% endif %}/>
 			<div>
-			<h3>None</h3>
-			<p>{{ _("No tor setup yet.") }}</p>
+			<h3>Disabled</h3>
+			<p>{{ _("No Tor setup yet") }}</p>
 			</div>
 		</label>
 
@@ -26,7 +26,7 @@
 			<input class="mr-4 h-8" id="tor_type_builtin" type="radio" name="tor_type" value="builtin" data-style="width: 20px; min-width: 20px; margin-top: 20px;" onchange="toggletor_type('builtin')" {% if tor_type == 'builtin' %} checked {% endif %}/>
 			<div>
 				<h3>Built in</h3>
-				<p>{{ _("Quick and automatic setup.") }}</p>
+				<p>{{ _("Quick and automatic setup") }}</p>
 				{% if torbrowser_installed %}
 					{% if torbrowser_running %}
 						<span data-style="display: inline; float: right;margin-top: 10px; margin-right: 10px;">
