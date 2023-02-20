@@ -450,14 +450,9 @@ class Specter:
 
     @property
     def tor_controller(self):
-        if self._tor_controller:
+        if getattr(self, "_tor_controller"):
             return self._tor_controller
-        self.update_tor_controller()
-        if self._tor_controller:
-            return self._tor_controller
-        raise SpecterError(
-            "Failed to connect to the Tor daemon. Make sure ControlPort is properly configured."
-        )
+        return None
 
     # mark
     def update_hwi_bridge_url(self, url, user):
