@@ -47,7 +47,7 @@ Here is a diagram of all the classes from the embit library. No properties/attri
 
 Tor in general means two things: 
 * Using the Tor network for outgoing connection to confuse outgoing traffic
-* Use Tor to create a tor-hidden-service which often enough is also used as a kind of poo-man's firewall and to avoid the details of a port-forwarding setup
+* Use Tor to create a tor-hidden-service which often enough is also used as a kind of "poor man's firewall" and to avoid the details of a port-forwarding setup
 
 Tor support is possible either via a custom installation or via the built in. The type of the installation is stored in `specter.tor_type` which is redirecting to the `config_manager` which by default returns `builtin`. Another valid value is `custom` and initially we have `none`.
 Other important tor-details are the check whether the tor_deamon_is_running (`specter.is_tor_dameon_running()`) and whether the torbrowser is installed (`os.path.isfile(app.specter.torbrowser_path)`).
