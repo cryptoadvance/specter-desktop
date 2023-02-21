@@ -425,11 +425,6 @@ video {
    *
    */
 
-html {
-  max-height: 100%;
-  overflow: hidden;
-}
-
 h1 {
   margin-bottom: 0.5rem;
   font-size: 2.25rem;
@@ -744,6 +739,7 @@ select {
    */
 
 .button {
+  z-index: 10;
   margin-bottom: 0.75rem;
   display: flex;
   height: 2.75rem;
@@ -771,6 +767,10 @@ select {
 
 .button:hover {
   opacity: 0.8;
+}
+
+.tooltip:hover .tooltip__box {
+  z-index: 40;
 }
 
 .button img {
@@ -1411,12 +1411,12 @@ input[type="number"]::-webkit-outer-spin-button,
   height: 16rem;
 }
 
-.max-h-\[40px\] {
-  max-height: 40px;
-}
-
 .max-h-screen {
   max-height: 100vh;
+}
+
+.max-h-\[40px\] {
+  max-height: 40px;
 }
 
 .min-h-\[64px\] {

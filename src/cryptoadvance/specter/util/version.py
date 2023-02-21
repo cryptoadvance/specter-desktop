@@ -10,7 +10,6 @@ from urllib.error import HTTPError
 import requests
 from requests.exceptions import ConnectionError
 from urllib3.exceptions import NewConnectionError
-import importlib_metadata
 
 from cryptoadvance.specter.specter_error import SpecterError
 
@@ -59,18 +58,6 @@ class VersionChecker:
                 f"version checked, install_type {self.installation_type} curr: {self.current} latest: {self.latest} ==> upgrade: {self.upgrade}"
             )
             time.sleep(dt)
-
-    def _get_current_version(self):
-        current = "unknown"
-        if self.installation_type == "app":
-            current = VersionChecker._version_txt_content()
-        else:
-            current = importlib_metadata.version(self.name)
-            if current == None:
-                current = "custom"
-        if current == "vx.y.z-get-replaced-by-release-script":
-            current = "custom"
-        return current
 
     def _get_binary_version(self):
         """
@@ -172,12 +159,15 @@ class VersionChecker:
         return latest
 
     @classmethod
-    def _version_txt_content(cls):
-        version_file = "version.txt"
-        if getattr(sys, "frozen", False):
-            version_file = os.path.join(sys._MEIPASS, "version.txt")
-        with open(version_file) as f:
-            return f.read().strip()
+    def _get_current_version(self):
+        """Returns the version found in cryptoadvance.specter._version or "unknown"
+        if that doesn't exist
+        """
+        try:
+            from cryptoadvance.specter._version import version
+        except ModuleNotFoundError:
+            return "unknown"
+        return "v" + version
 
 
 def compare(version1: str, version2: str) -> int:
@@ -223,20 +213,47 @@ def compare(version1: str, version2: str) -> int:
 
 
 def _parse_version(version: str) -> dict:
-    """Parses version-strings like v1.5.6-pre5 and returns a dict"""
-    if version[0] == "v":
-        version = version[1:]
-    version = version.replace("rc", "-pre")
-    version_ar = version.split(".")
-    if len(version_ar) != 3:
-        raise SpecterError(f"version {version} does not have 3 separated digits")
-    postfix = ""
-    if "-" in version_ar[2]:
-        postfix = version_ar[2].split("-")[1]
-        version_ar[2] = version_ar[2].split("-")[0]
-    return {
-        "major": int(version_ar[0]),
-        "minor": int(version_ar[1]),
-        "patch": int(version_ar[2]),
-        "postfix": postfix,
-    }
+    """Parses version-strings like v1.5.6-pre5 and returns a dict
+    This also parses something like:
+    2.0.0rc20.dev0+ga99ede2a.d20230215
+    but ignores the stuff behind the postfix (which is good enough for our use cases)
+    see also: https://github.com/pypa/setuptools_scm/#default-versioning-scheme
+    """
+    if version.startswith("0.1.dev") or version.startswith("v0.1.dev"):
+        # setuptools_scm creates weird versions if you're somewhere where no tags are available
+        # on the .git
+        # This is the case in testing-scenarios. I couldn't figure out how to convince
+        # setuptools_scm to at least return 0.0.1dev or something like that.
+        # Anyway, let's return something, it's not relevant anyway.
+        # And the alternative would be yet another dependency like e.g. packaging
+        return {
+            "major": 0,
+            "minor": 1,
+            "patch": 0,
+            "postfix": "",
+        }
+    try:
+
+        if version[0] == "v":
+            version = version[1:]
+        version = version.replace("rc", "-pre")
+        version_ar = version.split(".")
+        if len(version_ar) == 5 or len(version_ar) == 4:
+            version_ar = version_ar[0:3]
+        if len(version_ar) != 3:
+            raise SpecterError(
+                f"version {version} does not have 3 separated digits but {len(version_ar)}"
+            )
+        postfix = ""
+        if "-" in version_ar[2]:
+            postfix = version_ar[2].split("-")[1]
+            version_ar[2] = version_ar[2].split("-")[0]
+        return {
+            "major": int(version_ar[0]),
+            "minor": int(version_ar[1]),
+            "patch": int(version_ar[2]),
+            "postfix": postfix,
+        }
+    except Exception as e:
+        logger.error(f"{str(e)} parsing version {version} ")
+        raise e

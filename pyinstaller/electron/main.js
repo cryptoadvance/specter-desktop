@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, Menu, Tray, screen, shell, dialog, ipcMain } = require('electron')
+const { app, nativeTheme, nativeImage, BrowserWindow, Menu, Tray, screen, shell, dialog, ipcMain } = require('electron')
 
 const path = require('path')
 const fs = require('fs')
@@ -18,6 +18,14 @@ const downloadloc = require('./downloadloc')
 const getDownloadLocation = downloadloc.getDownloadLocation
 const appName = downloadloc.appName()
 const appNameLower = appName.toLowerCase()
+
+ipcMain.handle("showMessageBoxSync", (e, message, buttons) => {
+    dialog.showMessageBoxSync(mainWindow, { message, buttons });
+});
+
+// Helper
+const isMac = process.platform === 'darwin'
+const isDev = process.env.NODE_ENV !== "production"
 
 // Logging
 const {transports, format, createLogger } = require('winston')
@@ -42,13 +50,25 @@ const winstonOptions = {
 }
 const logger = createLogger(winstonOptions)
 
+if (isDev) {
+  logger.info('Running the Electron app in dev mode.')
+}
 
+logger.info(process.env)
 let appSettings = getAppSettings()
 
 let dimensions = { widIth: 1500, height: 1000 };
 
 const contextMenu = require('electron-context-menu');
 const { options } = require('request')
+
+// Set the dock icon (MacOS and for development only)
+if (isMac && isDev) {
+  const dockIcon = nativeImage.createFromPath(
+    app.getAppPath() + "/assets-dev/dock_icon_macos.png"
+  );
+  app.dock.setIcon(dockIcon)
+}
 
 contextMenu({
 	menu: (actions) => [
@@ -155,27 +175,55 @@ function createWindow (specterURL) {
     mainWindow.webContents.session.setProxy({ proxyRules: appSettings.proxyURL });
   }
 
-  updateSpecterdStatus('Specter is running...')
-
   mainWindow.loadURL(specterURL + '?mode=remote')
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
 }
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-  // Start the tray icon
-  logger.info("Framework Ready! Starting tray Icon ...");
-  tray = new Tray(path.join(__dirname, 'assets/icon.png'))
+  // Create the tray icon
+  logger.info("Framework ready! Starting tray icon ...");
+  if (isMac) {
+    const trayIconPath = nativeTheme.shouldUseDarkColors
+      ? "/assets/menu_icon_dark.png"
+      : "/assets/menu_icon_light.png";
+    const createTrayIcon = (trayIconPath) => {
+      let trayIcon = nativeImage.createFromPath(
+        app.getAppPath() + trayIconPath
+      );
+      // Resize
+      trayIcon = trayIcon.resize({ width: 22, height: 22 });
+      return trayIcon
+    }
+    const trayIcon = createTrayIcon(trayIconPath)
+    tray = new Tray(trayIcon);
+
+    // Change the tray icon if appearance is changed in Mac settings 
+    const updateTrayIcon = () => {
+      logger.info('Updating tray icon ...')
+      const trayIconPath = nativeTheme.shouldUseDarkColors
+        ? "/assets/menu_icon_dark.png"
+        : "/assets/menu_icon_light.png";
+      const newTrayIcon = createTrayIcon(trayIconPath)
+      tray.setImage(newTrayIcon);
+    }
+    nativeTheme.on('updated', updateTrayIcon)
+  }
+  else {
+    const trayIcon = nativeImage.createFromPath(
+      app.getAppPath() + "/assets/menu_icon.png"
+    );
+    tray = new Tray(trayIcon)
+  }
+
   trayMenu = [
-    { label: 'Launching Specter...', enabled: false },
-    { label: 'Show Specter Desktop',  click() { mainWindow.show() }},
+    { label: 'Launching Specter ...', enabled: false },
+    { label: 'Show Specter',  click() { mainWindow.show() }},
     { label: 'Preferences',  click() { openPreferences() }},
     { label: 'Quit',  click() { quitSpecterd(); app.quit() } },
   ]
-  tray.setToolTip('This is my application.')
+  tray.setToolTip('Specter')
   tray.setContextMenu(Menu.buildFromTemplate(trayMenu))
 
   dimensions = screen.getPrimaryDisplay().size;
@@ -208,7 +256,7 @@ app.whenReady().then(() => {
         
         startSpecterd(specterdPath)
       } else if (appSettings.specterdVersion != "") {
-        updatingLoaderMsg('Specterd version could not be validated.<br>Retrying fetching specterd...<br>This might take a minute...')
+        updatingLoaderMsg('Specterd version could not be validated. Retrying fetching specterd...')
         updateSpecterdStatus('Fetching Specter binary...')
         downloadSpecterd(specterdPath)
       } else {
@@ -226,11 +274,14 @@ app.whenReady().then(() => {
   }
 })
 
-function initMainWindow(specterURL) {
+function initMainWindow() {
+  // In production we use the icons from the build folder
+  // Note: On MacOS setting an icon here as no effect
+  const iconPath = isDev ? path.join(__dirname, 'assets-dev/app_icon.png') : ""
   mainWindow = new BrowserWindow({
     width: parseInt(dimensions.width * 0.8),
     height: parseInt(dimensions.height * 0.8),
-    icon: path.join(__dirname, '/assets/icon.png'),
+    icon: iconPath,
     webPreferences
   })
   
@@ -256,7 +307,7 @@ function initMainWindow(specterURL) {
 }
 
 function downloadSpecterd(specterdPath) {
-  updatingLoaderMsg(`Fetching the ${appName} binary...<br>This might take a minute...`)
+  updatingLoaderMsg(`Fetching the ${appName} binary.<br>This might take a minute...`)
   updateSpecterdStatus(`Fetching ${appName} binary...`)
   logger.info("Using version " + appSettings.specterdVersion);
   logger.info("Using platformName " + platformName);
@@ -315,12 +366,21 @@ function updateSpecterdStatus(status) {
   tray.setContextMenu(Menu.buildFromTemplate(trayMenu))
 }
 
-function updatingLoaderMsg(msg) {
+function updatingLoaderMsg(msg, showSpinner=false) {
   if (mainWindow) {
     let code = `
     var launchText = document.getElementById('launch-text');
     if (launchText) {
       launchText.innerHTML = '${msg}';
+    }
+    var spinnerElement = document.getElementById('spinner');
+    if (spinnerElement) {
+      if (${showSpinner} === true) {
+        spinnerElement.classList.remove('hidden')
+      }
+      else {
+        spinnerElement.classList.add('hidden')
+      }
     }
     `;
     mainWindow.webContents.executeJavaScript(code);
@@ -328,9 +388,21 @@ function updatingLoaderMsg(msg) {
   logger.info("Updated LoaderMsg: "+msg)
 }
 
-function hasSuccessfullyStarted(logs) {
-  return logs.toString().includes('  * Running on http')
-  //return logs.toString().includes('Serving Flask app "cryptoadvance.specter.server"')
+function checkSpecterd(logs, specterdStarted) {
+  // There doesn't seem to be another more straightforward way to check whether specterd is running: https://github.com/nodejs/help/issues/1191
+  // Setting a timeout to avoid waiting for specterd endlessly
+  const timeout = 180000 // 3 minutes
+  const now = Date.now()
+  const timeElapsed = now - specterdStarted
+  if (timeElapsed > timeout) {
+    return "timeout"
+  }
+  if (logs.toString().includes('Serving Flask app')) {
+    return 'running';
+  }
+  else {
+    return 'not running'
+  }
 }
 
 function startSpecterd(specterdPath) {
@@ -339,8 +411,8 @@ function startSpecterd(specterdPath) {
   }
   let appSettings = getAppSettings()
   let hwiBridgeMode = appSettings.mode == 'hwibridge'
-  updatingLoaderMsg('Launching Specter Desktop...')
-  updateSpecterdStatus('Launching Specter...')
+  updatingLoaderMsg('Launching Specter ...', showSpinner=true)
+  updateSpecterdStatus('Launching Specter ...')
   let specterdArgs = ["server"]
   specterdArgs.push("--no-filelog")
   if (hwiBridgeMode) specterdArgs.push('--hwibridge')
@@ -363,36 +435,69 @@ function startSpecterd(specterdPath) {
   options.env['LANG'] = 'en_US.utf-8'
   options.env['SPECTER_LOGFORMAT'] = 'SPECTERD: %(levelname)s in %(module)s: %(message)s'
   specterdProcess = spawn(specterdPath, specterdArgs, options);
-  var procStdout = ""
-  var procStderr = ""
+  const specterdStarted = Date.now()
+  
+  // We are checking for both, stdout and stderr, to be on the save side.
+  let specterIsRunning = false
   specterdProcess.stdout.on('data', (data) => {
-    procStdout += data
     logger.info("stdout-"+data.toString())
-    if(hasSuccessfullyStarted(data)) {
-      logger.info(`App seem to to run ...`);
-      if (mainWindow) {
-        logger.info(`... creating window ...`);
-        createWindow(appSettings.specterURL)
-        
+    let serverdStatus = checkSpecterd(data, specterdStarted)
+    // We don't want to check the logs forever, just until specterd is up and running
+    if (!specterIsRunning) {
+      if(serverdStatus === 'running') {
+        logger.info(`Specter server seems to run ...`);
+        updateSpecterdStatus('Specter is running')
+        specterIsRunning = true
+        if (mainWindow) {
+          logger.info('... creating Electron window for it.')
+          createWindow(appSettings.specterURL)
+        }
+      }
+      else if(serverdStatus === 'timeout')  {
+        showError('Specter does not seem to start. Check the logs in the menu for more details.')
+        updateSpecterdStatus('Specter does not start')
+        logger.error('Startup timeout for specterd exceeded')
+      }
+      else {
+        updatingLoaderMsg('Still waiting for Specter to start ...')
+        updateSpecterdStatus('Specter is starting')
       }
     }
   });
+
   specterdProcess.stderr.on('data', (data) => {
-    procStderr += data
     logger.info("stderr-"+data.toString())
-    if(hasSuccessfullyStarted(data)) {
-      logger.info(`App seem to to run ...`);
-      if (mainWindow) {
-        logger.info(`... creating window ...`);
-        createWindow(appSettings.specterURL)
-        
+    let serverdStatus = checkSpecterd(data, specterdStarted)
+    if (!specterIsRunning) {
+      if(serverdStatus === 'running') {
+        logger.info(`Specter server seems to run ...`);
+        updateSpecterdStatus('Specter is running')
+        specterIsRunning = true
+        if (mainWindow) {
+          logger.info('... creating Electron window for it.')
+          createWindow(appSettings.specterURL)
+        }
+      }
+      else if(serverdStatus === 'timeout')  {
+        showError('Specter does not seem to start. Check the logs in the menu for more details.')
+        updateSpecterdStatus('Specter does not start')
+        logger.error('Startup timeout for specterd exceeded')
+      }
+      else {
+        updatingLoaderMsg('Still waiting for Specter to start ...')
+        updateSpecterdStatus('Specter is starting')
       }
     }
   });
 
   specterdProcess.on('exit', (code) => {
     logger.error(`specterd exited with code ${code}`);
-    showError(`specterd exited with code ${code}. Check the logs in the menu!`)
+    showError(`Specter exited with exit code ${code}. Check the logs in the menu for more details.`)
+  });
+
+  specterdProcess.on('error', (err) => {
+    logger.error(`Error starting Specter server: ${err}`);
+    showError(`Specter failed to start, due to ${err.message}. Check the logs in the menu for more details.`)
   });
 
   app.on('activate', function () {
@@ -544,7 +649,7 @@ function openErrorLog() {
 }
 
 function showError(error) {
-  updatingLoaderMsg('Specter Desktop encounter an error:<br>' + error.toString())
+  updatingLoaderMsg('Specter encountered an error:<br>' + error.toString())
 }
 
 process.on('unhandledRejection', error => {

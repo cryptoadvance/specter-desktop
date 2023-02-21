@@ -1,0 +1,88 @@
+[build-system]
+requires = [
+    "setuptools<=65.7.0", 
+    "setuptools_scm[toml]>=6.2", 
+    "babel",
+    "build==0.10.0",
+    "wheel",
+    "twine"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cryptoadvance.specter"
+
+authors = [
+  { name="Stepan Snigirev"},
+  { name="k9ert"},
+]
+description = "A GUI for Bitcoin Core & Electrum optimised to work with airgapped hardware wallets"
+
+urls.Homepage = "https://github.com/cryptoadvance/specter-desktop"
+urls.Documentation = "https://docs.specter.solutions/desktop/"
+urls.Changes = "https://docs.specter.solutions/desktop/release-notes/"
+
+readme = "README.md"
+license = {file = "LICENSE"}
+
+
+requires-python = ">=3.7,<4.0"
+
+dynamic = ["dependencies", "version"]
+
+classifiers =[
+    'Programming Language :: Python :: 3',
+    'License :: OSI Approved :: MIT License',
+    'Operating System :: OS Independent',
+    'Framework :: Flask',
+]
+
+[project.scripts] 
+specter="cryptoadvance.specter.cli:entry_point"
+
+[tool.setuptools_scm]
+write_to = "src/cryptoadvance/specter/_version.py"
+
+[tool.pytest.ini_options]
+norecursedirs = "tests/bitcoin* tests/elements* tests/xtestdata_testextensions"
+
+log_format = "[%(levelname)8s] %(message)s %(name)s (%(filename)s:%(lineno)s)"
+addopts = "--bitcoind-version v22.0.0 --elementsd-version v0.21.0.2"
+markers = [
+    "slow: mark test as slow.",
+    "elm: mark test as elementsd dependent",
+    "bottleneck: mark a test as so ressource intensive that it can create a bottleneck where the test just fails due to a lack of ressources",
+    "threading: test needs threading to work"
+]
+
+filterwarnings = [
+    "ignore::DeprecationWarning:bitbox02[.*]"
+]
+
+[tool.setuptools]
+#include-package-data = false
+package-dir = {'' = 'src'}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["cryptoadvance.*"]
+
+[tool.setuptools.exclude-package-data]
+mypkg = ["pyinstaller"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.in"]}
+
+[project.optional-dependencies]
+test = [
+    "black==22.3.0",
+    "pre-commit==2.13.0",
+    "pip-tools==6.12.2",
+    "pytest==7.1.2",
+    "PySocks==1.7.1",
+    "pytest-cov==2.10.1",
+    "mock==4.0.2",
+    "python-gitlab==2.10.1",
+    # requirements for stuff in ./utils
+    "requests==2.26.0",
+]

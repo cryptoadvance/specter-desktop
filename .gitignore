@@ -24,6 +24,10 @@ pyinstaller/electron/version-data.json
 pyinstaller/electron/downloadloc.js
 pyinstaller/electron/node_modules
 pyinstaller/electron/dist
+pyinstaller/electron/fonts
+pyinstaller/electron/typography.css
+pyinstaller/electron/output.css
+
 .DS_Store
 .coverage
 cypress/videos
@@ -35,9 +39,12 @@ tests/bitcoin*
 tests/elements*
 token.sh
 src/cryptoadvance/specter/translations/**/messages.mo
+src/cryptoadvance/specter/_version.py
 tests/elements
 signing_dir
 site
 docs/README.md
 cypresstest-output.xml
 cypress/downloads
+pyinstaller/electron/output.css
+pyinstaller/electron/typography.css

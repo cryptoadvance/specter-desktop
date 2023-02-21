@@ -1,4 +1,13 @@
 <div class="bg-dark-800 flex flex-col">
+    {% if specter.info.get("initialblockdownload") == True %}
+        {% set verificationprogress = specter.info.get("verificationprogress") * 100 %}
+        <div class="flex flex-col p-4 mt-3 mb-4">
+            <p>{{ _("Spectrum is still syncing")}}<p>
+            <div class="w-full bg-dark-700 rounded-lg">
+                <div class="bg-dark-600 text-xs text-white text-center p-2 leading-none {% if verificationprogress < 100 %} rounded-l-md {% else %} rounded-md {% endif %}" style="width: {{ verificationprogress | round | int }}%">{{ verificationprogress | round | int }}%</div>
+            </div>
+        </div>
+    {% endif %}
     {% if specter.chain %}
         <table>
             <tr> <td data-style="text-align: left;">{{ _("Network") }}:</td> <td data-style="text-align: right;" id="node-info-specter-chain">{{specter.chain}}</td> </tr>

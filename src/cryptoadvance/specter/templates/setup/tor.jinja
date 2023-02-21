@@ -1,14 +1,19 @@
 {% extends "setup/setup_page.jinja" %}
 
 {% block setup %}
-    <h1><img src="{{ url_for('static', filename='img/ghost_3d.png') }}" data-style="width: 60px;"/> <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" data-style="width: 60px;" class="svg-white"/>&nbsp;<img data-style="width: 60px;" src="{{ url_for('static', filename='img/tor.svg') }}"/><br>
-    <br>{{ _("Setup Tor daemon") }}</h1>
-    <br><br>
-    <div class="row">
+    <h1>{{ _("Setup Tor daemon") }}</h1>
+
+    <div class="flex">
+        <img src="{{ url_for('static', filename='img/ghost_3d.png') }}" style="width: 32px;"/> 
+        <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" style="width: 32px;" class="svg-white"/>
+        <img style="width: 32px;" src="{{ url_for('static', filename='img/tor.svg') }}"/>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 mt-8">
         {% if nextURL == 'setup_endpoint.node_type'%}
-            <a href="{{ url_for('setup_endpoint.node_type') }}" class="btn wizard-btn">{{ _("Skip") }}</a>
+            <a href="{{ url_for('setup_endpoint.node_type') }}" class="button">{{ _("Skip") }}</a>
         {% endif %}
-        <button type="button" class="btn wizard-btn action" id="setup-tor-button" onclick="setupTorDaemon()">{{ _("Setup Tor") }}</button>
+        <button type="button" class="button bg-accent" id="setup-tor-button" onclick="setupTorDaemon()">{{ _("Setup Tor") }}</button>
     </div>
 {% endblock %}
 
