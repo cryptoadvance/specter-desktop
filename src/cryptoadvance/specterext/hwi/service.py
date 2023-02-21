@@ -1,7 +1,7 @@
 import logging
 
 from cryptoadvance.specter.services.service import (
-    Service,
+    Extension,
     devstatus_alpha,
     devstatus_prod,
     devstatus_beta,
@@ -16,7 +16,7 @@ from flask_apscheduler import APScheduler
 logger = logging.getLogger(__name__)
 
 
-class HwiService(Service):
+class HwiService(Extension):
     id = "hwi"
     name = "Hwi Service"
     icon = "hwi/img/ghost.png"

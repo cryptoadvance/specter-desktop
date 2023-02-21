@@ -1,11 +1,19 @@
-import json, os, random, requests
-from flask import Blueprint, Flask, jsonify, url_for, redirect, render_template, request
-from .server_endpoints import flash
-from flask import current_app as app
-from flask_cors import CORS
-from ..specterext.hwi.hwi_rpc import HWIBridge
-from .helpers import deep_update, hwi_get_config, save_hwi_bridge_config
+import json
 import logging
+import os
+import random
+
+import requests
+from flask import Blueprint, Flask
+from flask import current_app as app
+from flask import jsonify, redirect, render_template, request, url_for
+from flask_cors import CORS
+from .helpers import hwi_get_config, save_hwi_bridge_config
+
+from cryptoadvance.specter.helpers import deep_update
+from cryptoadvance.specter.server_endpoints import flash
+
+from .hwi_rpc import HWIBridge
 
 logger = logging.getLogger(__name__)
 

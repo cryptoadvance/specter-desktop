@@ -14,22 +14,17 @@ from hwilib.devices.trezorlib.transport import get_transport
 from hwilib.psbt import PSBT
 from usb1 import USBError
 
-from ...specter.devices import __all__ as device_classes
-from ...specter.devices.hwi.jade import JadeClient
-from ...specter.devices.hwi.specter_diy import SpecterClient
-from ...specter.helpers import (
-    deep_update,
-    hwi_get_config,
-    is_liquid,
-    is_testnet,
-    locked,
-    save_hwi_bridge_config,
-)
+from cryptoadvance.specter.devices import __all__ as device_classes
+from cryptoadvance.specter.devices.hwi.jade import JadeClient
+from cryptoadvance.specter.devices.hwi.specter_diy import SpecterClient
+from cryptoadvance.specter.helpers import deep_update, is_liquid, is_testnet, locked
 
 # deprecated, use embit.descriptor.checksum.add_checksum
-from ...specter.util.descriptor import AddChecksum
-from ...specter.util.json_rpc import JSONRPC
-from ...specter.util.xpub import convert_xpub_prefix
+from cryptoadvance.specter.util.descriptor import AddChecksum
+from cryptoadvance.specter.util.json_rpc import JSONRPC
+from cryptoadvance.specter.util.xpub import convert_xpub_prefix
+
+from .helpers import hwi_get_config, save_hwi_bridge_config
 
 logger = logging.getLogger(__name__)
 
