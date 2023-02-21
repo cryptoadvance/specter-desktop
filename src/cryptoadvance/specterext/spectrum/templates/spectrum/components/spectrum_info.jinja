@@ -1,10 +1,9 @@
 <div class="bg-dark-800 flex flex-col">
     {% if specter.info.get("initialblockdownload") == True %}
-        {% set verificationprogress = specter.info.get("verificationprogress") * 100 %}
-        <div class="flex flex-col p-4 mt-3 mb-4">
-            <p>{{ _("Spectrum is still syncing")}}<p>
-            <div class="w-full bg-dark-700 rounded-lg">
-                <div class="bg-dark-600 text-xs text-white text-center p-2 leading-none {% if verificationprogress < 100 %} rounded-l-md {% else %} rounded-md {% endif %}" style="width: {{ verificationprogress | round | int }}%">{{ verificationprogress | round | int }}%</div>
+        <div class="flex flex-col p-4">
+            <p id="progress-description">{{ _("Spectrum is syncing")}}<p>
+            <div id="progress-bar-container" class="w-full bg-dark-700 rounded-lg">
+                <div id="progress-bar" class="bg-dark-600 text-xs text-white text-center p-2 leading-none rounded-lg">Please wait a few minutes</div>
             </div>
         </div>
     {% endif %}
@@ -30,47 +29,32 @@
                 </div>
             {% endif %}
         </div>
-        <script>
-            let totalUserBalance = parseFloat(parseFloat("{{ specter.wallet_manager.wallets.values() | sum(attribute='fullbalance') }}").toFixed(8));
-            async function fetchTotalSupply() {
-                document.getElementById('total_supply').innerText = `{{ _("Calculating ... (this might take a few minutes)") }}`;
-                try {
-                    const response = await fetch(
-                        "{{ url_for('wallets_endpoint_api.txout_set_info') }}",
-                        {
-                            method: 'GET'
-                        }
-                    ).catch((err) => {
-                        showError(err)
-                        return
-                    });
-                    let result = await response.json();
-                    console.log(result)
-                    if (result.error) {
-                        showError(result.error)
-                        return
-                    }
-                    if (totalUserBalance==0) {
-                        document.getElementById('total_supply').innerText = "Your wallet holds 0 BTC. Get off zero!"
-                        return
-                    }
-                    let totalSupply = result.total_amount
-                    console.log(typeof(totalSupply))
-                    console.log(typeof(totalUserBalance))
-
-                    let userBalanceFromTotal = ((totalUserBalance/totalSupply) * 100).toFixed(1)
-                    console.log(userBalanceFromTotal)
-                    document.getElementById('total_supply').innerHTML = `
-                    {{ _("Total supply: ") }} ${result.total_amount} BTC<br>
-                    {{ _("Your wallets hold: ") }} ${totalUserBalance} BTC<br> 
-                    {{ _("which is ") }} ${userBalanceFromTotal} % of the total supply
-                    `;
-                } catch(e) {
-                    console.log('Caught error:', e);
-                    showError(e)
-                    return { success: false, error: e };
-                }
-            }
-        </script>
     {% endif %}
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        {% if node.is_running and specter.info.get("initialblockdownload") == True %}
+            updateProgressBar()
+        {% endif %}
+    })
+
+    const progressBar = document.getElementById('progress-bar')
+    const progressBarContainer = document.getElementById('progress-bar-container')
+    const progressDescription = document.getElementById('progress-description')
+
+    async function updateProgressBar() {
+		let url = `{{ url_for('nodes_endpoint.get_sync_progress') }}`;
+		const response = await send_request(url, 'GET', "{{ csrf_token() }}");
+        let syncProgress = response.syncProgress;
+        if (syncProgress === 100) {
+            progressBarContainer.classList.add('hidden') 
+            progressDescription.innerText = "Spectrum is fully synced now."
+        }
+        else {
+            progressBar.style.width = `${syncProgress}%`;
+            progressBar.textContent = `${Math.round(syncProgress)}%`;
+            setTimeout(updateProgressBar, 10000);
+        } 
+	}
+</script>
