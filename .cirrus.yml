@@ -100,6 +100,8 @@ cypress_test_task:
 extension_test_task:
   << : *PREP_STUFF_TEMPLATE
   test_script:
+    - git config --global user.name "CI CD"
+    - git config --global user.email "cicd@example.com"
     - source ./.env/bin/activate
     - echo $PATH
     - cd /tmp
