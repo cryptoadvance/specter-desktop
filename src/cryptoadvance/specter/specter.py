@@ -22,6 +22,7 @@ from cryptoadvance.specter.services.service_encrypted_storage import (
 )
 from requests.exceptions import ConnectionError
 from stem import SocketError
+from stem.connection import AuthenticationFailure
 from stem.control import Controller
 from urllib3.exceptions import NewConnectionError
 
@@ -162,13 +163,14 @@ class Specter:
         # also loads and checks wallets for all users
         try:
             self.check(check_all=True)
-
-            if os.path.isfile(self.torbrowser_path):
-                self.tor_daemon.start_tor_daemon()
         except Exception as e:
             logger.exception(e)
 
-        self.update_tor_controller()
+        if self.tor_type == "builtin" and os.path.isfile(self.torbrowser_path):
+            self.tor_daemon.start_tor_daemon()
+        if self.tor_type != "none":
+            self.update_tor_controller()
+
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
         if self._checker_threads:
             self.checker.start()
@@ -424,6 +426,9 @@ class Specter:
         except SocketError as e:
             logger.warning(f"Failed to connect to Tor control port. Error: {e}")
             self._tor_controller = None
+        except AuthenticationFailure as e:
+            logger.warning(f"Failed to authenticate for Tor. Error: {e}")
+            self._tor_controller = None
 
     @property
     def tor_daemon(self):
@@ -445,14 +450,9 @@ class Specter:
 
     @property
     def tor_controller(self):
-        if self._tor_controller:
+        if getattr(self, "_tor_controller"):
             return self._tor_controller
-        self.update_tor_controller()
-        if self._tor_controller:
-            return self._tor_controller
-        raise SpecterError(
-            "Failed to connect to the Tor daemon. Make sure ControlPort is properly configured."
-        )
+        return None
 
     # mark
     def update_hwi_bridge_url(self, url, user):
@@ -613,7 +613,7 @@ class Specter:
 
     @property
     def tor_type(self):
-        return self.user_config.get("tor_type", "builtin")
+        return self.user_config.get("tor_type", "none")
 
     @property
     def proxy_url(self):
