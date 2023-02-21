@@ -18,16 +18,7 @@
             <tr> <td data-style="text-align: left;">{{ _("Node uptime") }}:</td> <td data-style="text-align: right;">~ {{(specter.info['uptime'] / 60 // 60) | int }} {{ _("Hours") }}</td> </tr>
         </table>
 
-        <div class="px-3 pb-4">
-            <p class="text-center text-sm m-4" id="total_supply"></p>
-            <div onclick="fetchTotalSupply()" class="button mb-3">
-                {{ _("Run the numbers") }}
-                <tool-tip>
-                    <span slot="paragraph">
-                        {{ _("Calculate the total Bitcoin supply.") }}
-                    </span>
-                </tool-tip>
-            </div>
+        <div class="px-3 pb-4 mt-2">
             {% if current_user.is_admin %}
                 <div class="button mb-0">
                     <a id="active-node-settings-btn" href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) }}">
