@@ -245,7 +245,7 @@
 {% endif %}
 
 <script>
-    if (localStorage.wallets === 'true') {
+    if (localStorage.wallets === 'true' || localStorage.wallets === undefined) {
         document.getElementById('wallets_list').classList.remove('hidden')
         document.getElementById('toggle_wallets_list').innerHTML = 'Wallets ▾';
     } else {
@@ -253,7 +253,7 @@
         document.getElementById('toggle_wallets_list').innerHTML = 'Wallets ▸';
     }
 
-    if (localStorage.devices === 'true') {
+    if (localStorage.devices === 'true' || localStorage.devices === undefined) {
         document.getElementById('devices_list').classList.remove('hidden')
         document.getElementById('toggle_devices_list').innerHTML = 'Devices ▾';
     } else {
