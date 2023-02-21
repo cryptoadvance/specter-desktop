@@ -323,6 +323,21 @@ function sub_open {
   $(npm bin)/cypress open
 }
 
+function sub_exec {
+  # Only executing the cypress tests without taking care of starting/stopping
+  # specter or any service
+  
+  # let's assume the default baseUrl
+  export CYPRESS_BASE_URL=http://localhost:25441
+  spec_file=$1
+
+  if [ -f ./cypress/integration/${spec_file} ]; then
+    $(npm bin)/cypress run --spec ./cypress/integration/${spec_file}
+  else 
+    $(npm bin)/cypress run
+  fi
+}
+
 function sub_run {
   spec_file=$1
   if [ -f ./cypress/integration/${spec_file} ]; then

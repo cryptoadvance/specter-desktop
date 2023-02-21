@@ -188,6 +188,7 @@ class BaseConfig(object):
         "cryptoadvance.specterext.liquidissuer.service",
         "cryptoadvance.specterext.devhelp.service",
         "cryptoadvance.specterext.notifications.service",
+        "cryptoadvance.specterext.hwi.service",
         "cryptoadvance.specterext.exfund.service",
         "cryptoadvance.specterext.faucet.service",
         "cryptoadvance.specterext.electrum.service",
