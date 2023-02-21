@@ -3,7 +3,7 @@ from flask import Blueprint, Flask, jsonify, url_for, redirect, render_template,
 from .server_endpoints import flash
 from flask import current_app as app
 from flask_cors import CORS
-from .hwi_rpc import HWIBridge
+from ..specterext.hwi.hwi_rpc import HWIBridge
 from .helpers import deep_update, hwi_get_config, save_hwi_bridge_config
 import logging
 

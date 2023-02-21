@@ -14,10 +14,10 @@ from hwilib.devices.trezorlib.transport import get_transport
 from hwilib.psbt import PSBT
 from usb1 import USBError
 
-from .devices import __all__ as device_classes
-from .devices.hwi.jade import JadeClient
-from .devices.hwi.specter_diy import SpecterClient
-from .helpers import (
+from ...specter.devices import __all__ as device_classes
+from ...specter.devices.hwi.jade import JadeClient
+from ...specter.devices.hwi.specter_diy import SpecterClient
+from ...specter.helpers import (
     deep_update,
     hwi_get_config,
     is_liquid,
@@ -27,9 +27,9 @@ from .helpers import (
 )
 
 # deprecated, use embit.descriptor.checksum.add_checksum
-from .util.descriptor import AddChecksum
-from .util.json_rpc import JSONRPC
-from .util.xpub import convert_xpub_prefix
+from ...specter.util.descriptor import AddChecksum
+from ...specter.util.json_rpc import JSONRPC
+from ...specter.util.xpub import convert_xpub_prefix
 
 logger = logging.getLogger(__name__)
 

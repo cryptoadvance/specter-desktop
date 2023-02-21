@@ -12,7 +12,7 @@
 import logging
 import io
 import pytest
-from cryptoadvance.specter.hwi_rpc import HWIBridge
+from cryptoadvance.specterext.hwi.hwi_rpc import HWIBridge
 from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.util.descriptor import Descriptor
 
