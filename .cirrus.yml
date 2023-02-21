@@ -96,3 +96,16 @@ cypress_test_task:
       path: "./cypress/screenshots/**"
     cypress_videos_artifacts:
       path: "./cypress/videos/**"
+  
+extension_test_task:
+  << : *PREP_STUFF_TEMPLATE
+  test_script:
+    - source ./.env/bin/activate
+    - echo $PATH
+    - cd /tmp
+    - mkdir testextension && cd testextension
+    - python3 -m cryptoadvance.specter ext gen --ext-id cicdtest --org cryptoadvance --no-isolated-client --devicename cicddevice
+    - pip3 install -e .
+    - python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug &
+    - cat ~/.specter/specter.log | grep "Service CicdtestService activated (alpha)"
+    - curl -I 127.0.0.1:25441 
