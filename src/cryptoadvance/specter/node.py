@@ -216,13 +216,10 @@ class AbstractNode(NonExistingNode):
             return True
 
     def check_blockheight(self):
-        """check_blockheight is a method which is probably deprecated.
-        It should return True if there are new blocks available since check_info has been called
+        """Should return True if there are new blocks available since check_info has been called
         (which updates the cached _info[] dict)
         """
-        raise NotImplemented(
-            "A Node Implementation need to implement the check_blockheight method"
-        )
+        return self.info.get("blocks") != self.rpc.getblockcount()
 
     def is_device_supported(self, device_class_or_device_instance):
         """Lets the node deactivate specific devices. The parameter could be a device or a device_type
@@ -633,14 +630,6 @@ class Node(AbstractNode):
         # so app.specter.check() doesn't work
         self._info["utxorescan"] = None
         self.utxorescanwallet = None
-
-    def check_blockheight(self):
-        if not self.rpc:
-            # if the rpc interface cannot be found, then specter should check the rpc interface.
-            # Checking the rpc interface with self.node.update_rpc() in specter.check() is done
-            # if we return True here
-            return True
-        return self.info.get("blocks") != self.rpc.getblockcount()
 
     def is_liquid(self):
         return is_liquid(self.chain)
