@@ -1,8 +1,8 @@
 <div id="no-tx-hint" class="hidden">
     {% if specter.info.get("initialblockdownload") %}
-      <p>{{_('Is this not a fresh wallet? Did you expect transactions here? Then click') }} &#128071; {{_('to find them') }}</p>
-        <a id="go-to-rescan-btn" href="{{ url_for('wallets_endpoint.settings', wallet_alias=wallet_alias, rescan_blockchain=True) }}" class="btn">Go to blockchain rescan</a>
+        {{_('Wait for your Bitcoin Core node to be fully synced. Check the progess by clicking on the connection.') }}
     {% else %}
-        {{_('No transactions yet') }}
+        {{_('Is this not a fresh wallet? Did you expect transactions here? Then click') }} &#128071; 
+        {{_('to find them') }}<a id="go-to-rescan-btn" href="{{ url_for('wallets_endpoint.settings', wallet_alias=wallet_alias, rescan_blockchain=True) }}" class="btn">Go to blockchain rescan</a>
     {% endif %}
 </div>

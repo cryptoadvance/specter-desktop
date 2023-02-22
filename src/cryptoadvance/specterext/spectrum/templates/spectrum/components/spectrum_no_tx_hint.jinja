@@ -1,6 +1,5 @@
 <div id="no-tx-hint" class="hidden">
     {% if specter.info.get("initialblockdownload") %}
-        {{_('Is this not a fresh wallet? Did you expect transactions here?') }} <br>
         {{_('Wait for Spectrum to be fully synced. Check the progess by clicking on the connection.') }}
     {% else %}
         {{_('No transactions yet') }}
