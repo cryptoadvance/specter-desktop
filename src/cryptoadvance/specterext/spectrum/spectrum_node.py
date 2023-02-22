@@ -225,6 +225,10 @@ class SpectrumNode(AbstractNode):
     def node_connection_template(self):
         return "spectrum/components/spectrum_node_connection.jinja"
 
+    def no_tx_hint(self):
+        """Returns the path to a template with some basic html and and a hint text to be used in the Transactions tab if there are no transactions"""
+        return "spectrum/components/spectrum_no_tx_hint.jinja"
+
     @property
     def taproot_support(self):
         return False
