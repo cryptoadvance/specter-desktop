@@ -1535,6 +1535,10 @@ input[type="number"]::-webkit-outer-spin-button,
   max-width: 65ch;
 }
 
+.max-w-\[1100px\] {
+  max-width: 1100px;
+}
+
 .flex-shrink-0 {
   flex-shrink: 0;
 }
@@ -1736,6 +1740,14 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .whitespace-nowrap {
   white-space: nowrap;
+}
+
+.whitespace-pre-wrap {
+  white-space: pre-wrap;
+}
+
+.break-words {
+  overflow-wrap: break-word;
 }
 
 .break-all {
