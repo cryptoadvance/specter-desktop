@@ -121,14 +121,6 @@ class SpectrumNode(AbstractNode):
             # If there is no Spectrum object, there can't be a (socket) connection
             return False
 
-    def check_blockheight(self):
-        """This naive implementation always returns True: Claiming that new blocks have arrived, we're forcing
-        the caller to always recalculate everything.
-        That's possible because calling those rpc-calls on spectrum's side is cheap.
-        It might not be cheap on Specter's side but that's for Specter to optimize!
-        """
-        return True
-
     @property
     def spectrum(self):
         """Returns None if the Spectrum node has no Spectrum object"""
