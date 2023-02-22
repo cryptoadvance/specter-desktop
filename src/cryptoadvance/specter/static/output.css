@@ -2137,6 +2137,10 @@ input[type="number"]::-webkit-outer-spin-button,
   text-decoration-line: underline;
 }
 
+.no-underline {
+  text-decoration-line: none;
+}
+
 .opacity-0 {
   opacity: 0;
 }
@@ -2280,6 +2284,10 @@ input[type="number"]::-webkit-outer-spin-button,
 .hover\:text-white:hover {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
+}
+
+.hover\:underline:hover {
+  text-decoration-line: underline;
 }
 
 .group:hover .group-hover\:ml-3 {
