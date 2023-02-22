@@ -1,4 +1,4 @@
-<div id="no-tx-hint" class="hidden">
+<div id="no-tx-hint" class="hidden" data-cy="no-tx-hint">
     {% if specter.info.get("initialblockdownload") %}
         {{_('Wait for your Bitcoin Core node to be fully synced. Check the progess by clicking on the connection.') }}
     {% else %}
