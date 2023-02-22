@@ -48,7 +48,7 @@
             document.getElementById('connected-icon').classList.add('hidden')
             // Show message only once per session
             if (showCoreSyncMsg === true) {
-                showNotification(`{{ _("Spectrum is syncing. Check the progress by clicking on the connection.") }}`)
+                showNotification(`{{ _("Your Bitcoin node is syncing. Check the progress by clicking on the connection.") }}`)
             }
             sessionStorage.setItem('showCoreSyncMsg', false);
             setTimeout(checkSyncStatus, 5*60000);
