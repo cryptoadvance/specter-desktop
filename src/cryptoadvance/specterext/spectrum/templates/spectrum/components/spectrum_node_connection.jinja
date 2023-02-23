@@ -27,7 +27,6 @@
         {% endif %}
     })
 
-    let showSpectrumSyncMsg = sessionStorage.getItem('showSyncMsg') || true
     async function checkSyncStatus() {
 		let url = `{{ url_for('nodes_endpoint.check_sync_status') }}`;
 		const response = await send_request(url, 'GET', "{{ csrf_token() }}");
@@ -41,11 +40,6 @@
             document.getElementById('unfinished-ibd-indicator').classList.remove('hidden')
             document.getElementById('unfinished-ibd-indicator').classList.add('animate-spin')
             document.getElementById('connected-icon').classList.add('hidden')
-            // Show message only once per session
-            if (showSpectrumSyncMsg === true) {
-                showNotification(`{{ _("Spectrum is syncing. Check the progress by clicking on the connection.") }}`)
-            }
-            sessionStorage.setItem('showSpectrumSyncMsg', false);
             setTimeout(checkSyncStatus, 30000);
         }   
 	}
