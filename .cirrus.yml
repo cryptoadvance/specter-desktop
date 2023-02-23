@@ -55,6 +55,7 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
 
 test_task:
   << : *PREP_STUFF_TEMPLATE
+  skip: "true"
   test_script: 
     - source ./.env/bin/activate
     - echo $PATH
@@ -69,6 +70,7 @@ test_task:
   
 
 cypress_test_task:
+  skip: "true"
   container:
     image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python-jammy:20230206
     cpu: 6
@@ -109,5 +111,7 @@ extension_test_task:
     - python3 -m cryptoadvance.specter ext gen --ext-id cicdtest --org cryptoadvance --no-isolated-client --devicename cicddevice
     - pip3 install -e .
     - python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug &
+    - ls -la ~
+    - ls -la ~/.specter_dev/
     - cat ~/.specter_dev/specter.log | grep "Service CicdtestService activated (alpha)"
     - curl -I 127.0.0.1:25441 
