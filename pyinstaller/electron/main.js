@@ -280,6 +280,7 @@ function initMainWindow() {
   const iconPath = isDev ? path.join(__dirname, 'assets-dev/app_icon.png') : ""
   mainWindow = new BrowserWindow({
     width: parseInt(dimensions.width * 0.8),
+    minWidth: 1120,
     height: parseInt(dimensions.height * 0.8),
     icon: iconPath,
     webPreferences
