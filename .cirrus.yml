@@ -110,7 +110,7 @@ extension_test_task:
     - mkdir testextension && cd testextension
     - python3 -m cryptoadvance.specter ext gen --ext-id cicdtest --org cryptoadvance --no-isolated-client --devicename cicddevice
     - pip3 install -e .
-    - python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug &
+    - python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
     - ls -la ~
     - ls -la ~/.specter_dev/
     - cat ~/.specter_dev/specter.log | grep "Service CicdtestService activated (alpha)"
