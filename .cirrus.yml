@@ -112,5 +112,5 @@ extension_test_task:
     - pip3 install -e .
     - ls -la /root || true
     - ls -la /root/.specter_dev/ || true
-    - python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug  2> specter.log
+    - python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug  2> specter.log &
     - cat specter.log | grep "Service CicdtestService activated (alpha)"
