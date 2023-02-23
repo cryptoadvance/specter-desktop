@@ -205,7 +205,7 @@ class ExtGen:
         else:
             fq_fname = Path(self.base_path, file_name)
             if not fq_fname.is_file():
-                with open(fq_fname, "w") as file:
+                with open(fq_fname, "w", encoding='utf-8') as file:
                     file.write(rendered_text)
                     print(f"    --> Created {fq_fname}")
 

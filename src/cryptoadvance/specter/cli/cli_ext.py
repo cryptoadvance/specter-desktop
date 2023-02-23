@@ -37,6 +37,7 @@ def ext():
 @ext.command()
 @click.option("--org", "org", default=None, help="Use a specific organsiation")
 @click.option("--ext-id", "ext_id", default=None, help="Use a specific extension id")
+@click.option("--encrypted-userdata", "encrypted_userdata",default=None, help="Use encrypted data")
 @click.option(
     "--isolated-client/--no-isolated-client",
     default=None,
@@ -53,7 +54,7 @@ def ext():
     default=False,
     help="Output content on stdout instead of creating files",
 )
-def gen(org, ext_id, isolated_client, devicename, tmpl_fs_source, dryrun):
+def gen(org, ext_id, encrypted_userdata, isolated_client, devicename, tmpl_fs_source, dryrun):
     # fmt: off
     """Will generate a new extension in a more or less empty directory.
     \b
@@ -107,6 +108,15 @@ def gen(org, ext_id, isolated_client, devicename, tmpl_fs_source, dryrun):
             "Enter the prefix:",
             type=str,
         )
+    if encrypted_userdata == None:
+        print(
+            """
+            """
+        )
+        encrypted_userdata = click.prompt(
+            "Enter the encrypted:",    
+            type=str,
+        )
     if isolated_client == None:
         print(
             """
@@ -149,6 +159,7 @@ def gen(org, ext_id, isolated_client, devicename, tmpl_fs_source, dryrun):
         ".",
         org,
         ext_id,
+        encrypted_userdata,
         isolated_client,
         devicename,
         author,
