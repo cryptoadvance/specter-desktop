@@ -1,0 +1,7 @@
+<div id="no-tx-hint" class="hidden">
+    {% if specter.info.get("initialblockdownload") %}
+        {{_('Wait for Spectrum to be fully synced. Check the progess by clicking on the connection.') }}
+    {% else %}
+        {{_('No transactions yet') }}
+    {% endif %}
+</div>
