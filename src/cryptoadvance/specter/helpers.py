@@ -176,7 +176,7 @@ def set_loglevel(app, loglevel_string):
         % loglevel_string
     )
     loglevels = {"WARN": logging.WARN, "INFO": logging.INFO, "DEBUG": logging.DEBUG}
-    logging.getLogger().setLevel(loglevels[loglevel_string])
+    logging.getLogger("cryptoadvance").setLevel(loglevels[loglevel_string])
     logger.warning("Loglevel-Test: This is a warn-message!")
     logger.info("Loglevel-Test: This is an info-message!")
     logger.debug("Loglevel-Test: This is an debug-message!")

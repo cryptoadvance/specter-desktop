@@ -16,7 +16,6 @@ describe('Test the UI related to a blockchain rescan', () => {
     it('Check that there is no button for a used wallet', () => {
         // Only works if the ghost wallet was created with funded option
         cy.selectWallet('Ghost wallet')
-        cy.get('#rescan-hint > p').should('not.be.visible')
-        cy.get('#rescan-hint > .btn').should('not.be.visible')
+        cy.get('[data-cy="no-tx-hint"]').should('not.be.visible')
     })
 })

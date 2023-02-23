@@ -32,7 +32,7 @@
         {% endif %}
     })
 
-    let count = 0
+    let showCoreSyncMsg = sessionStorage.getItem('showCoreSyncMsg') || true
     async function checkSyncStatus() {
 		let url = `{{ url_for('nodes_endpoint.check_sync_status') }}`;
 		const response = await send_request(url, 'GET', "{{ csrf_token() }}");
@@ -43,16 +43,14 @@
             document.getElementById('connected-icon').classList.remove('hidden')
         }
         else {
-            console.log('IBD is not finished yet.')
             document.getElementById('unfinished-ibd-indicator').classList.remove('hidden')
             document.getElementById('unfinished-ibd-indicator').classList.add('animate-spin')
             document.getElementById('connected-icon').classList.add('hidden')
-            console.log(count)
-            // Show message only once
-            if (count === 0 ) {
-                showNotification(`{{ _("Your Bitcoin node is syncing. Check the progress by clicking on the name of the node.") }}`)
+            // Show message only once per session
+            if (showCoreSyncMsg === true) {
+                showNotification(`{{ _("Your Bitcoin node is syncing. Check the progress by clicking on the connection.") }}`)
             }
-            count++
+            sessionStorage.setItem('showCoreSyncMsg', false);
             setTimeout(checkSyncStatus, 5*60000);
         }   
 	}

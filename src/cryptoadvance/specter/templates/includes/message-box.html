@@ -6,7 +6,7 @@
 <template id="messagebox">
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
 
-  <div class="shadow-md rounded-xl p-4 mr-4 mb-4 bg-dark-700" id="main">
+  <div class="shadow-md rounded-xl px-4 py-3 mr-4 mb-3 bg-dark-500" id="main">
     <slot class="text-white" id="error-text">Error: Something bad happened!</slot>
     <a class="ml-4 text-white cursor-pointer" id="cancel-icon">&#x2715;</a>
   </div>
