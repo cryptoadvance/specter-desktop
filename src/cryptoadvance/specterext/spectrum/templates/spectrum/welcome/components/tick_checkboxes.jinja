@@ -1,4 +1,4 @@
-<h2 class="mt-8 mb-2">{{ _('Getting Started with Bitcoin Core') }}</h2>
+<h2 class="mt-8 mb-2">{{ _('Getting Started with Spectrum') }}</h2>
 
 <table class="mb-10">
     <tbody>
@@ -7,7 +7,7 @@
                 <img class="h-6 w-6" src="{{ url_for('static', filename='img/checkbox-' + ('un' if not specter.chain else '') + 'tick.svg') }}">
             </td>
             <td>
-                <a href="{{ url_for('nodes_endpoint.node_settings')}}">
+                <a href="{{ url_for('spectrum_endpoint.index') }}">
                     <p>{{ _("Connect to the Bitcoin network") }}</p>
                 </a>
             </td>
@@ -85,18 +85,5 @@
             </td>
             <td></td>
         </tr>
-        {% if specter.chain == 'main' %}
-        <tr>
-            <td class="w-12">
-                <img class="h-6 w-6" src="{{ url_for('static', filename='img/ghost_3d.png')}}">
-            </td>
-            <td>
-                <a href="{{ url_for('welcome_endpoint.get_whitepaper') }}">
-                    <p>{{ _("Download the bitcoin whitepaper from the timechain") }}</p>
-                </a>
-            </td>
-            <td></td>
-        </tr>
-        {% endif %}
     </tbody>
 </table>
