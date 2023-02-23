@@ -450,7 +450,7 @@ class Specter:
 
     @property
     def tor_controller(self):
-        if getattr(self, "_tor_controller"):
+        if hasattr(self, "_tor_controller"):
             return self._tor_controller
         return None
 

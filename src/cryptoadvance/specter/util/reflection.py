@@ -135,10 +135,11 @@ def get_subclasses_for_clazz_in_cwd(clazz, cwd=".") -> List[type]:
         # we don't need to depend on toml-parsing libs, that should be ok.
         try:
             found, line = grep("./pyproject.toml", 'name = "cryptoadvance.specter"')
-            if not found:
+            if found:
                 return []
-            line = line.replace(" ", "").replace("'", "").replace('"', "")
-            if line != "name=cryptoadvance.specter":
+            if line:
+                line = line.replace(" ", "").replace("'", "").replace('"', "")
+            if line == "name=cryptoadvance.specter":
                 return []
         except FileNotFoundError:
             pass

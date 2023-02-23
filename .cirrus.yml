@@ -55,6 +55,7 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
 
 test_task:
   << : *PREP_STUFF_TEMPLATE
+  skip: "false"
   test_script: 
     - source ./.env/bin/activate
     - echo $PATH
@@ -69,6 +70,7 @@ test_task:
   
 
 cypress_test_task:
+  skip: "false"
   container:
     image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python-jammy:20230206
     cpu: 6
@@ -96,3 +98,22 @@ cypress_test_task:
       path: "./cypress/screenshots/**"
     cypress_videos_artifacts:
       path: "./cypress/videos/**"
+  
+extension_smoketest_task:
+  << : *PREP_STUFF_TEMPLATE
+  test_script:
+    - git config --global user.name "CI CD"
+    - git config --global user.email "cicd@example.com"
+    - source ./.env/bin/activate
+    - echo $PATH
+    - mkdir tmp && cd tmp
+    - mkdir testextension && cd testextension
+    - pwd
+    - python3 -m cryptoadvance.specter ext gen --ext-id cicdtest --org cryptoadvance --no-isolated-client --devicename cicddevice
+    - pip3 install -e .
+    - python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug  2> specter.log &
+    - sleep 15
+    - cat specter.log | grep "Service CicdtestService activated (alpha)"
+    - apt-get -y install curl
+    - curl http://127.0.0.1:25441/svc/cicdtest/ | grep "CicdtestService 4thewin."
+    
