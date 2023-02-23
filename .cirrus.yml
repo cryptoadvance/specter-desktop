@@ -112,6 +112,7 @@ extension_test_task:
     - python3 -m cryptoadvance.specter ext gen --ext-id cicdtest --org cryptoadvance --no-isolated-client --devicename cicddevice
     - pip3 install -e .
     - python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug  2> specter.log &
+    - sleep 15
     - ls -la /root || true
     - ls -la /root/.specter_dev/ || true
     - cat specter.log
