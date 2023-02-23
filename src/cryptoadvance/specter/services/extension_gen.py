@@ -101,6 +101,7 @@ class ExtGen:
         self.generate_preppub()
 
     def generate_basics(self):
+        self.render("README.md", version=self.version)
         self.render("requirements.txt", version=self.version)
         self.render(".gitignore")
         package_path = f"src/dummyorg/specterext/dummy"
