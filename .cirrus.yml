@@ -113,6 +113,6 @@ extension_test_task:
     - pip3 install -e .
     - python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug  2> specter.log &
     - sleep 15
-    - cat ~/.specter_dev/specter.log | grep "Service CicdtestService activated (alpha)"
+    - cat specter.log | grep "Service CicdtestService activated (alpha)"
     - echo "sleeping for another 4 mins"
     - sleep 240
