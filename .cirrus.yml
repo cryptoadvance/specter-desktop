@@ -114,6 +114,6 @@ extension_test_task:
     - python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug  2> specter.log &
     - sleep 15
     - cat specter.log | grep "Service CicdtestService activated (alpha)"
-    - apt-get install curl
+    - apt-get -y install curl
     - curl http://127.0.0.1/svc/cicdtest/ | grep "CicdtestService 4thewin."
     
