@@ -672,6 +672,10 @@ class Node(AbstractNode):
             logger.debug(f"Could not find any wallet file at: {path}")
         return wallet_file_removed
 
+    def no_tx_hint(self):
+        """Returns the path to a template with some basic html and and a hint text to be used in the Transactions tab if there are no transactions"""
+        return "node/components/no_tx_hint.jinja"
+
     @property
     def is_running(self):
         if self._network_info["version"] == 999999:
