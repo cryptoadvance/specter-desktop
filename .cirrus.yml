@@ -106,11 +106,12 @@ extension_test_task:
     - git config --global user.email "cicd@example.com"
     - source ./.env/bin/activate
     - echo $PATH
-    - cd /tmp
+    - mkdir tmp && cd tmp
     - mkdir testextension && cd testextension
+    - pwd
     - python3 -m cryptoadvance.specter ext gen --ext-id cicdtest --org cryptoadvance --no-isolated-client --devicename cicddevice
     - pip3 install -e .
+    - python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug  2> specter.log &
     - ls -la /root || true
     - ls -la /root/.specter_dev/ || true
-    - python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug  2> specter.log &
     - cat specter.log
