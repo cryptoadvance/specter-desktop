@@ -65,7 +65,7 @@ if (isMac && isDev) {
 }
 
 let appSettings = getAppSettings()
-let dimensions = { widIth: 1500, height: 1000 };
+let dimensions = { width: 1500, height: 1000 };
 
 // Modify the context menu
 const contextMenu = require('electron-context-menu');
