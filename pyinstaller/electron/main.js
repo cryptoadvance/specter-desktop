@@ -125,11 +125,14 @@ const download = (uri, filename, callback) => {
             parent: mainWindow
           },
           style: {
+            detail: {
+              'margin-bottom': '12px'
+            },
             bar: {
-              'background-color': '#9F9FA1'
+              'background-color': '#fff'
             },
             value: {
-              'background-color': '#14151A'
+              'background-color': '#000'
             }
           }
         })
