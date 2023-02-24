@@ -19,7 +19,8 @@ python .\utils\release-helper.py set_setup_py_version  %1%
 
 
 echo "    --> Building pypi package"
-python setup.py sdist bdist_wheel
+pip3 install build==0.10.0
+python -m build
 
 echo "    --> Installing pypi package"
 python .\utils\release-helper.py install_wheel %1%
