@@ -3,6 +3,7 @@ import pgpy
 from pathlib import Path
 from .sha256sum import sha256sum
 from .file_download import download_file
+from .tor import get_tor_daemon_suffix
 
 logger = logging.getLogger(__name__)
 
@@ -18,16 +19,20 @@ def copytree(src, dst, symlinks=False, ignore=None):
 
 
 def setup_tor_thread(specter=None):
+    """This will extracted the tor-binary out of the tar.xz packaged with specterd and copy
+    it over to the ~/.specter/tor-binaries folder
+    Then it will create a torrc file and start the tor-demon
+    """
     try:
         specter.update_setup_status("torbrowser", "STARTING_SETUP")
         TOR_OS_SUFFIX = {
-            "Windows": "tor-win64-0.4.5.7.zip",
+            "Windows": "tor-win64-0.4.8.0.tar.xz",
             "Linux": "tor-linux64-0.4.8.0.tar.xz",
             "Darwin": "tor-osx64-0.4.8.0.tar.xz",
         }
 
         packed_name = (
-            os.path.join(sys._MEIPASS, f"torbrowser/{TOR_OS_SUFFIX[platform.system()]}")
+            os.path.join(sys._MEIPASS, f"tor/{TOR_OS_SUFFIX[platform.system()]}")
             if getattr(sys, "frozen", False)
             else Path(__file__).parent
             / f"../../../../pyinstaller/tor/{TOR_OS_SUFFIX[platform.system()]}"
@@ -35,43 +40,15 @@ def setup_tor_thread(specter=None):
         logger.info(f"packed tor binary: {packed_name}")
 
         os.makedirs(os.path.join(specter.data_folder, "tor-binaries"), exist_ok=True)
-        if TOR_OS_SUFFIX[platform.system()].endswith(".dmg"):
-            result = subprocess.run(
-                [f'hdiutil attach "{packed_name}"'], shell=True, capture_output=True
+        with tarfile.open(packed_name) as tar:
+            file_name = f"tor{get_tor_daemon_suffix()}"
+            destination_file = os.path.join(
+                os.path.join(specter.data_folder, "tor-binaries"), file_name
             )
-            if result.stderr == b"hdiutil: attach failed - no mountable file systems\n":
-                os.remove(packed_name)
-                return
-            torbrowser_source_path = os.path.join(
-                "/Volumes", "Tor Browser", "Tor Browser.app", "Contents", "MacOS", "Tor"
-            )
-            copytree(
-                src=torbrowser_source_path,
-                dst=os.path.join(specter.data_folder, "tor-binaries"),
-            )
-            disk_image_path = "/Volumes/Tor\ Browser"
-            subprocess.run([f"hdiutil detach {disk_image_path}"], shell=True)
-        elif TOR_OS_SUFFIX[platform.system()].endswith(".zip"):
-            with zipfile.ZipFile(packed_name) as zip_file:
-                for file in zip_file.filelist:
-                    if file.filename.endswith("dll") or file.filename.endswith("exe"):
-                        destination_exe = os.path.join(
-                            os.path.join(specter.data_folder, "tor-binaries"),
-                            file.filename.split("/")[-1],
-                        )
-                        with zip_file.open(file.filename) as zf, open(
-                            destination_exe, "wb"
-                        ) as f:
-                            shutil.copyfileobj(zf, f)
-        elif TOR_OS_SUFFIX[platform.system()].endswith(".tar.xz"):
-            with tarfile.open(packed_name) as tar:
-                file_name = "tor"
-                destination_file = os.path.join(
-                    os.path.join(specter.data_folder, "tor-binaries"), file_name
-                )
-                extracted_file = tar.extractfile(file_name)
-                with open(destination_file, "wb") as f:
-                    shutil.copyfileobj(extracted_file, f)
+            extracted_file = tar.extractfile(file_name)
+            with open(destination_file, "wb") as f:
+                shutil.copyfileobj(extracted_file, f)
+                if not file_name.endswith(".exe"):
                     st = os.stat(destination_file)
                     os.chmod(destination_file, st.st_mode | stat.S_IEXEC)
 
