@@ -22,7 +22,7 @@ def setup_tor_thread(specter=None):
         specter.update_setup_status("torbrowser", "STARTING_SETUP")
         TOR_OS_SUFFIX = {
             "Windows": "tor-win64-0.4.5.7.zip",
-            "Linux": "tor-browser-linux64-10.0.15_en-US.tar.xz",
+            "Linux": "tor-linux64-0.4.8.0.tar.xz",
             "Darwin": "TorBrowser-10.0.15-osx64_en-US.dmg",
         }
 
@@ -30,8 +30,9 @@ def setup_tor_thread(specter=None):
             os.path.join(sys._MEIPASS, f"torbrowser/{TOR_OS_SUFFIX[platform.system()]}")
             if getattr(sys, "frozen", False)
             else Path(__file__).parent
-            / f"../../../../pyinstaller/torbrowser/{TOR_OS_SUFFIX[platform.system()]}"
+            / f"../../../../pyinstaller/tor/{TOR_OS_SUFFIX[platform.system()]}"
         )
+        logger.info(f"packed tor binary: {packed_name}")
 
         os.makedirs(os.path.join(specter.data_folder, "tor-binaries"), exist_ok=True)
         if TOR_OS_SUFFIX[platform.system()].endswith(".dmg"):
@@ -64,23 +65,15 @@ def setup_tor_thread(specter=None):
                             shutil.copyfileobj(zf, f)
         elif TOR_OS_SUFFIX[platform.system()].endswith(".tar.xz"):
             with tarfile.open(packed_name) as tar:
-                tor_files = [
-                    "libcrypto.so.1.1",
-                    "libevent-2.1.so.7",
-                    "libssl.so.1.1",
-                    "tor",
-                ]
-                for tor_file in tor_files:
-                    file_name = "tor-browser_en-US/Browser/TorBrowser/Tor/" + tor_file
-                    destination_file = os.path.join(
-                        os.path.join(specter.data_folder, "tor-binaries"), tor_file
-                    )
-                    extracted_file = tar.extractfile(file_name)
-                    with open(destination_file, "wb") as f:
-                        shutil.copyfileobj(extracted_file, f)
-                        if tor_file == "tor":
-                            st = os.stat(destination_file)
-                            os.chmod(destination_file, st.st_mode | stat.S_IEXEC)
+                file_name = "tor"
+                destination_file = os.path.join(
+                    os.path.join(specter.data_folder, "tor-binaries"), file_name
+                )
+                extracted_file = tar.extractfile(file_name)
+                with open(destination_file, "wb") as f:
+                    shutil.copyfileobj(extracted_file, f)
+                    st = os.stat(destination_file)
+                    os.chmod(destination_file, st.st_mode | stat.S_IEXEC)
 
         if "torrc_password" not in specter.config:
             specter.generate_torrc_password()
@@ -94,5 +87,5 @@ def setup_tor_thread(specter=None):
         specter.update_tor_controller()
         specter.reset_setup("torbrowser")
     except Exception as e:
-        logger.exception(f"Failed to install Tor. Error: {e}", e)
+        logger.exception(f"Failed to install Tor.")
         specter.update_setup_error("torbrowser", str(e))
