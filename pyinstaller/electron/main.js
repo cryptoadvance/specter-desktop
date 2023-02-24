@@ -4,8 +4,10 @@ const { app, nativeTheme, nativeImage, BrowserWindow, Menu, Tray, screen, shell,
 const path = require('path')
 const fs = require('fs')
 const request = require('request')
+const https = require('https')
 const extract = require('extract-zip')
 const defaultMenu = require('electron-default-menu');
+const ProgressBar = require('electron-progressbar')
 const { spawn, exec } = require('child_process');
 
 const helpers = require('./helpers')
@@ -54,14 +56,6 @@ if (isDev) {
   logger.info('Running the Electron app in dev mode.')
 }
 
-logger.info(process.env)
-let appSettings = getAppSettings()
-
-let dimensions = { widIth: 1500, height: 1000 };
-
-const contextMenu = require('electron-context-menu');
-const { options } = require('request')
-
 // Set the dock icon (MacOS and for development only)
 if (isMac && isDev) {
   const dockIcon = nativeImage.createFromPath(
@@ -70,6 +64,11 @@ if (isMac && isDev) {
   app.dock.setIcon(dockIcon)
 }
 
+let appSettings = getAppSettings()
+let dimensions = { width: 1500, height: 1000 };
+
+// Modify the context menu
+const contextMenu = require('electron-context-menu');
 contextMenu({
 	menu: (actions) => [
 		{
@@ -91,16 +90,102 @@ contextMenu({
 	]
 });
 
+// The standard quit item cannot be replaced / modified and it is not triggering the
+// before-quit event on MacOS if a child window is open
+const dockMenuWithforceQuit = Menu.buildFromTemplate([
+  {
+    label: 'Force Quit during download',
+    click: () => {
+      // If the progress bar exists, close it
+      if (progressBar) {
+        progressBar.close();
+      }
+      // Quit the app
+      app.quit();
+    }
+  }
+]);
+
+// Download function with progress bar 
+let progressBar
 const download = (uri, filename, callback) => {
-    request.head(uri, (err, res, body) => {
-        logger.info('content-type:', res.headers['content-type'])
-        logger.info('content-length:', res.headers['content-length'])
-        if (res.statusCode != 404) {
-          request(uri).pipe(fs.createWriteStream(filename)).on('close', callback)
-        } else {
-          callback(true)
+  // HEAD request first
+  request.head(uri, (err, res, body) => {
+      if (res.statusCode != 404) {
+        let receivedBytes = 0
+        const totalBytes = res.headers['content-length']
+        logger.info(`Total size to download: ${totalBytes}`)
+        progressBar = new ProgressBar({
+          indeterminate: false,
+          abortOnError: true,
+          text: 'Downloading the Specter binary from GitHub',
+          detail: 'This can take several minutes depending on your Internet connection. Specter will start once the download is finished.',
+          maxValue: totalBytes,
+          browserWindow: {
+            parent: mainWindow
+          },
+          style: {
+            detail: {
+              'margin-bottom': '12px'
+            },
+            bar: {
+              'background-color': '#fff'
+            },
+            value: {
+              'background-color': '#000'
+            }
+          }
+        })
+
+        // Add Force Quit item during download for MacOS dock
+        if (isMac) {
+          app.dock.setMenu(dockMenuWithforceQuit);
         }
-    })
+
+        progressBar.on('completed', () => {
+          progressBar.close()
+          // Remove the Force Quit dock item again for Mac
+          if (isMac) {
+            const updatedDockMenu = Menu.buildFromTemplate(
+              dockMenuWithforceQuit.items.filter(item => item.label !== 'Force Quit during download')
+            );
+            app.dock.setMenu(updatedDockMenu);
+          }
+        });
+
+        progressBar.on('aborted', () => {
+          logger.info('Download was aborted before it could finish.')
+          progressBar = null
+        });
+
+        // Loggin the download progress
+        let lastLogTime = 0;
+        const logInterval = 5000; // log every 5 seconds
+        progressBar.on('progress', () => {
+          const currentTime = Date.now();
+          if (currentTime - lastLogTime >= logInterval) {
+            lastLogTime = currentTime;
+            logger.info(`Download status: ${(receivedBytes/totalBytes * 100).toFixed(0)}%`);
+          }
+        });
+
+        // GET request 
+        request(uri)
+          .on('data', (chunk) => {
+            receivedBytes += chunk.length
+            if (progressBar) {
+              progressBar.value = receivedBytes
+            }
+          })
+          .pipe(fs.createWriteStream(filename))
+          .on('close', callback)
+      }
+      // If the download link was not found, call callback (updatingLoaderMsg with error feedback) 
+      else {
+        logger.info(`Error while trying to download specterd: ${err}`)
+        callback(true)
+      }
+  })
 }
 
 let specterdProcess
@@ -253,11 +338,9 @@ app.whenReady().then(() => {
   if (fs.existsSync(specterdPath + (platformName == 'win64' ? '.exe' : ''))) {
     getFileHash(specterdPath + (platformName == 'win64' ? '.exe' : ''), function (specterdHash) {
       if (appSettings.specterdHash.toLowerCase() == specterdHash || appSettings.specterdHash == "") {
-        
         startSpecterd(specterdPath)
       } else if (appSettings.specterdVersion != "") {
-        updatingLoaderMsg('Specterd version could not be validated. Retrying fetching specterd...')
-        updateSpecterdStatus('Fetching Specter binary...')
+        updatingLoaderMsg('Specterd version could not be validated. Trying again to download the Specter binary ...')
         downloadSpecterd(specterdPath)
       } else {
         updatingLoaderMsg('Specterd file could not be validated and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...')
@@ -308,21 +391,20 @@ function initMainWindow() {
 }
 
 function downloadSpecterd(specterdPath) {
-  updatingLoaderMsg(`Fetching the ${appName} binary.<br>This might take a minute...`)
-  updateSpecterdStatus(`Fetching ${appName} binary...`)
+  updatingLoaderMsg(`Starting download`)
+  updateSpecterdStatus(`Downloading the ${appName} binary...`)
+  // Some logging
   logger.info("Using version " + appSettings.specterdVersion);
   logger.info("Using platformName " + platformName);
-  
   download_location = getDownloadLocation(appSettings.specterdVersion, platformName)
   logger.info("Downloading from "+download_location);
   download(download_location, specterdPath + '.zip', function(errored) {
     if (errored == true) {
-      updatingLoaderMsg(`Fetching ${appNameLower} binary from the server failed, could not reach the server or the file could not have been found.`)
-      updateSpecterdStatus(`Fetching ${appNameLower}d failed...`)
+      updatingLoaderMsg(`Downloading the ${appNameLower} binary from GitHub failed, could not reach the server or the file wasn't found.`)
+      updateSpecterdStatus(`Downloading ${appNameLower}d failed...`)
       return
     }
-
-    updatingLoaderMsg('Unpacking files...')
+    updatingLoaderMsg('Download completed. Unpacking files...')
     logger.info("Extracting "+specterdPath);
 
     extract(specterdPath + '.zip', { dir: specterdPath + '-dir' }).then(function () {
@@ -341,7 +423,6 @@ function downloadSpecterd(specterdPath) {
       var newPath = specterdPath + (platformName == 'win64' ? '.exe' : '')
 
       fs.renameSync(oldPath, newPath)
-      updatingLoaderMsg('Cleaning up...')
       fs.unlinkSync(specterdPath + '.zip')
       fs.rmdirSync(specterdPath + '-dir', { recursive: true });
       getFileHash(specterdPath + (platformName == 'win64' ? '.exe' : ''), function(specterdHash) {
@@ -352,10 +433,6 @@ function downloadSpecterd(specterdPath) {
           logger.error(`hash of downloaded file: ${specterdHash}`)
           logger.error(`Expected hash: ${appSettings.specterdHash}`)
           updateSpecterdStatus('Failed to launch specterd...')
-
-          // app.quit()
-          // TODO: This should never happen unless the specterd file was swapped on GitHub.
-          // Think of what would be the appropriate way to handle this...
         }
       })
     })
@@ -520,17 +597,21 @@ app.on('window-all-closed', function(){
   }
 });
 
-app.on('before-quit', () => {
+app.on('before-quit', (event) => {
   if (!quitted) {
+    logger.info('Quitting ...')
     quitted = true
     quitSpecterd()
-  
     if (mainWindow && !mainWindow.isDestroyed()) {
+      if (progressBar) {
+          progressBar.destroy()
+          progressBar = null
+        }
        mainWindow.destroy()
        mainWindow = null
        prefWindow = null
        tray = null
-    } 
+    }
   }
 })
 
