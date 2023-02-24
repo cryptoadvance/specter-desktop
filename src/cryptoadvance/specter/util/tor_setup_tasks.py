@@ -23,7 +23,7 @@ def setup_tor_thread(specter=None):
         TOR_OS_SUFFIX = {
             "Windows": "tor-win64-0.4.5.7.zip",
             "Linux": "tor-linux64-0.4.8.0.tar.xz",
-            "Darwin": "TorBrowser-10.0.15-osx64_en-US.dmg",
+            "Darwin": "tor-osx64-0.4.8.0.tar.xz",
         }
 
         packed_name = (
