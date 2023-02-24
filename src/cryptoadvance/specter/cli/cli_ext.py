@@ -37,7 +37,8 @@ def ext():
 @ext.command()
 @click.option("--org", "org", default=None, help="Use a specific organsiation")
 @click.option("--ext-id", "ext_id", default=None, help="Use a specific extension id")
-@click.option("--encrypted-userdata", "encrypted_userdata",default=None, help="Use encrypted data")
+@click.option("--encrypted-userdata/--unencrypted-userdata",default=None, help="Whether the user data should be encryted or not")
+@click.option("--version", "custom_version", default=None, help="Use a specific specter version")
 @click.option(
     "--isolated-client/--no-isolated-client",
     default=None,
@@ -56,7 +57,7 @@ def ext():
     default=False,
     help="Output content on stdout instead of creating files",
 )
-def gen(org, ext_id, encrypted_userdata, isolated_client, devicename, tmpl_fs_source, dryrun):
+def gen(org, ext_id, encrypted_userdata, custom_version, isolated_client, devicename, tmpl_fs_source, dryrun):
     # fmt: off
     """Will generate a new extension in a more or less empty directory.
     \b
@@ -113,11 +114,22 @@ def gen(org, ext_id, encrypted_userdata, isolated_client, devicename, tmpl_fs_so
     if encrypted_userdata == None:
         print(
             """
+             Your data is currently unencrypted
             """
         )
         encrypted_userdata = click.prompt(
-            "Enter the encrypted:",    
-            type=str,
+            "Should the data be encrypted (y/n)?",    
+            type=bool,
+        )
+    if custom_version == None:
+        print(
+            """
+            The extension generation uses the latest version of specter. 
+            """
+        )
+        custom_version = click.prompt(
+            "Enter specific specter version (click enter to choose the latest one):",    
+            type=bool,
         )
     if isolated_client == None:
         print(
@@ -162,6 +174,7 @@ def gen(org, ext_id, encrypted_userdata, isolated_client, devicename, tmpl_fs_so
         org,
         ext_id,
         encrypted_userdata,
+        custom_version,
         isolated_client,
         devicename,
         author,

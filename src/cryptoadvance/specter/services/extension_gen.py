@@ -35,6 +35,8 @@ class ExtGen:
         base_path,
         ext_org,
         ext_id,
+        encrypted_userdata,
+        custom_version,
         isolated_client,
         devicename,
         author,
@@ -46,6 +48,8 @@ class ExtGen:
         self.base_path = base_path
         self.org = ext_org
         self.id = ext_id
+        self.encrypted_userdata = encrypted_userdata
+        self.custom_version = custom_version
         self.isolated_client = isolated_client
         self.devicename = devicename
         self.author = author
