@@ -933,31 +933,23 @@ def settings_deletewallet(wallet_alias):
     # deleted is a tuple: (specter_wallet_deleted, core_wallet_file_deleted)
     if deleted == (True, True):
         flash(_("Wallet in Specter and wallet file on node deleted successfully."))
+        return redirect(url_for("index"))
     elif deleted == (True, False):
         flash(
             _(
                 "Wallet in Specter deleted successfully but wallet file on node could not be removed automatically."
             )
         )
+        return redirect(url_for("index"))
     elif deleted == (False, True):
         flash(
             _("Deletion of wallet in Specter failed, but wallet on node was removed."),
             "error",
         )
+        return redirect(url_for("index"))
     else:
         flash(_("Deletion of wallet failed."), "error")
-        return redirect(url_for("index"))
-    scroll_to_rescan_blockchain = request.args.get("rescan_blockchain")
-    return render_template(
-        "wallet/settings/wallet_settings.jinja",
-        purposes=purposes,
-        wallet_alias=wallet_alias,
-        wallet=wallet,
-        specter=app.specter,
-        rand=rand,
-        error=error,
-        scroll_to_rescan_blockchain=scroll_to_rescan_blockchain,
-    )
+        return redirect(request.referrer or "/")
 
 
 @wallets_endpoint.route("/wallet/<wallet_alias>/settings/clearcache", methods=["POST"])

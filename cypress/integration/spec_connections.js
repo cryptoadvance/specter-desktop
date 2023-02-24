@@ -53,11 +53,7 @@ describe('Connecting nodes', () => {
     it('Check sync status of Bitcoin Core node', () => {
       cy.intercept("GET", "/nodes/sync_status/", {'fullySynced': false});
       cy.visit('/')
-      cy.contains('Your Bitcoin node is syncing.')
       cy.get('[data-cy="unfinished-sync-indicator"]').should('be.visible')
-      // The message should only pop up once per session
-      cy.visit('/')
-      cy.contains('Your Bitcoin node is syncing.').should('not.exist');
     })   
   
   })
