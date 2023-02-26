@@ -72,6 +72,37 @@ class VersionChecker:
             current = "custom"
         return current
 
+    def _check_if_version_is_available(self, custom_version):
+        """
+        checks if version requested is available or not.
+        """
+        try:
+            if self.specter:
+                requests_session = self.specter.requests_session(force_tor=False)
+            else:
+                requests_session = requests.Session()
+
+            releases = (
+                requests_session.get(f"https://pypi.org/pypi/{self.name}/json")
+                .json()["releases"]
+                .keys()
+            )
+            releases = list(releases)
+            if custom_version not in releases:
+                return False
+            else:
+                return True
+        except (
+            HTTPError,
+            ConnectionError,
+            ConnectionRefusedError,
+            NewConnectionError,
+        ) as e:
+            logger.error(f"{e} while checking for the available version")
+        except Exception as e:
+            logger.exception(e)
+        return False
+
     def _get_binary_version(self):
         """
         Get binary version: current, latest.
