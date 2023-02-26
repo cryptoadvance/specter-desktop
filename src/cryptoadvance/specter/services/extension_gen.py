@@ -56,7 +56,12 @@ class ExtGen:
         self.author_email = email
         vc = VersionChecker()
         version = vc._get_current_version()
-        if version == "custom":
+        if self.custom_version != "":
+            if vc._check_if_version_is_available(custom_version) == True:
+                version = custom_version
+            else:
+                version = vc._get_latest_version_from_github()
+        else:
             version = vc._get_latest_version_from_github()
         self.version = version  # relevant if tmpl-sources specify a dependency (requirements.txt) #ToDo improve
         self.branch = branch
