@@ -6,9 +6,7 @@ import subprocess
 
 
 def test_tor_setup_task(caplog, empty_data_folder):
-    """This test should work with Linux and MacOS. But it's only tested on
-    CICD with Linux
-    """
+    """This test works on Linux and MacOS. But, it's only CI-tested on Linux"""
     caplog.set_level(logging.DEBUG)
     spectrum_mock = mock.MagicMock()
     spectrum_mock.data_folder = empty_data_folder
