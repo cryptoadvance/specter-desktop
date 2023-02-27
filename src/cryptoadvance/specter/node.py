@@ -65,6 +65,12 @@ class NonExistingNode(PersistentObject):
     def rpc(self):
         return None
 
+    @property
+    def network_parameters(self):
+        if self.is_running:
+            return get_network(self.chain)
+        return get_network("main")
+
     def check_blockheight(self):
         """check_blockheight is a method which is probably deprecated.
         It should return True if there are new blocks available since check_info has been called
@@ -198,10 +204,6 @@ class AbstractNode(NonExistingNode):
             return 99999
 
     # ... and more derived properties which already calculate stuff based on those information
-
-    @property
-    def network_parameters(self):
-        return get_network(self.chain)
 
     @property
     def is_testnet(self):
