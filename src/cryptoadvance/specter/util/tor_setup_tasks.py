@@ -19,9 +19,9 @@ def copytree(src, dst, symlinks=False, ignore=None):
 
 
 def setup_tor_thread(specter=None):
-    """This will extract the Tor binary from the tar balls packaged with specterd and copy
+    """This will extracted the tor-binary out of the tar.xz packaged with specterd and copy
     it over to the ~/.specter/tor-binaries folder
-    Also creates a torrc file and starts the Tor daemon
+    Then it will create a torrc file and start the tor-demon
     """
     try:
         specter.update_setup_status("torbrowser", "STARTING_SETUP")

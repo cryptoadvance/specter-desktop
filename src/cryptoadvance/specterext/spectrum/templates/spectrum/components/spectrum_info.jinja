@@ -34,7 +34,7 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-        {% if node.is_running and specter.info.get("initialblockdownload") == True %}
+        {% if node.is_running and specter.node.rpc.getblockchaininfo().get("initialblockdownload") == True %}
             updateProgressBar()
         {% endif %}
     })
