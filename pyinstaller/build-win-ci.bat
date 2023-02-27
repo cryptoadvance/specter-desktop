@@ -19,7 +19,8 @@ python .\utils\release-helper.py set_setup_py_version  %1%
 
 
 echo "    --> Building pypi package"
-python setup.py sdist bdist_wheel
+pip3 install build==0.10.0
+python -m build
 
 echo "    --> Installing pypi package"
 python .\utils\release-helper.py install_wheel %1%
@@ -36,8 +37,11 @@ rmdir /s /q .\dist\
 rmdir /s /q .\build\
 rmdir /s /q .\release\
 rmdir /s /q .\electron\dist\
+
+echo "    --> Creating the pyinstaller binary"
 pyinstaller.exe specterd.spec
 
 mkdir release
 
+echo "    --> Creating the release-package"
 powershell Compress-Archive -Path dist\specterd.exe release\specterd-%1%-win64.zip
