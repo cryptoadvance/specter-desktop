@@ -569,6 +569,8 @@ def check_sync_status():
 @nodes_endpoint.route("sync_progress/", methods=["GET"])
 @login_required
 def get_sync_progress():
-    sync_progress = node.rpc.getblockchaininfo()["verificationprogress"] * 100
+    sync_progress = (
+        app.specter.node.rpc.getblockchaininfo()["verificationprogress"] * 100
+    )
     response = {"syncProgress": sync_progress}
     return jsonify(response)
