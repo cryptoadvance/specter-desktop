@@ -67,8 +67,6 @@ class NonExistingNode(PersistentObject):
 
     @property
     def network_parameters(self):
-        if self.is_running:
-            return get_network(self.chain)
         return get_network("main")
 
     def check_blockheight(self):
@@ -216,6 +214,12 @@ class AbstractNode(NonExistingNode):
             return False
         else:
             return True
+
+    @property
+    def network_parameters(self):
+        if self.is_running:
+            return get_network(self.chain)
+        return get_network("main")
 
     def check_blockheight(self):
         """Should return True if there are new blocks available since check_info has been called
