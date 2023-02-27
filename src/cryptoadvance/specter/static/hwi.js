@@ -43,9 +43,9 @@ class HWIBridge {
         }
         return data.result;
     }
-    async enumerate(passphrase="", useTimeout){
+    async enumerate(passphrase, useTimeout){
         return await this.fetch("enumerate", { 
-            passphrase
+            passphrase: passphrase
         }, (useTimeout ? 60000 : 0));
     }
     async detectDevice(type, rescan=true){
