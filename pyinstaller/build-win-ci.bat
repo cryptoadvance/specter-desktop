@@ -37,8 +37,11 @@ rmdir /s /q .\dist\
 rmdir /s /q .\build\
 rmdir /s /q .\release\
 rmdir /s /q .\electron\dist\
+
+echo "    --> Creating the pyinstaller binary"
 pyinstaller.exe specterd.spec
 
 mkdir release
 
+echo "    --> Creating the release-package"
 powershell Compress-Archive -Path dist\specterd.exe release\specterd-%1%-win64.zip
