@@ -34,7 +34,7 @@ describe('Test QR code signing flow', () => {
     it('No message signing with Electrum', () => {
         cy.get('body').then(($body) => {
             if (!$body.text().includes("Electrum Device")) {
-                cy.get('#toggle_devices_list').click()
+                cy.get('#devices_toggle').click()
                 cy.get('#btn_new_device').click()
                 cy.get('#electrum_device_card').click()
                 cy.get('#device_name').type("Electrum Device")
