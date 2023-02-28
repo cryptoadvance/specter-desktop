@@ -6,9 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_tor_daemon_suffix():
-    if platform.system() == "Darwin":
-        return ".real"
-    elif platform.system() == "Windows":
+    if platform.system() == "Windows":
         return ".exe"
     return ""
 
