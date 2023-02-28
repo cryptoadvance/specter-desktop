@@ -29,7 +29,7 @@ module.exports = (on, config) => {
     elm_conn = JSON.parse(elm_conn_file);
   }
   else {
-    elm_conn = {}
+    elm_conn = ''
   }
 
   on('task', {
@@ -88,6 +88,16 @@ module.exports = (on, config) => {
     }
   })
 
-
+  on("task", {
+    isElementsRunning: () => {
+      const elm_conn_file_path = "elmd-conn.json";
+      if (fs.existsSync(elm_conn_file_path)) {
+        return true;
+      } 
+      else {
+        return false;
+      }
+    },
+  });
 
 }

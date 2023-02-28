@@ -73,6 +73,7 @@ Subcommands:
 
 generic-options:
     --debug             Run as much stuff in debug as we can
+    --with-elements     In addition to bitcoind, also start elementsd
 EOF
 }
 

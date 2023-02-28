@@ -271,3 +271,7 @@ Cypress.Commands.add("connect", () => {
   cy.get('#port').type(15443)
   cy.get('[data-cy="connect-btn"]').click()
 })
+
+Cypress.Commands.add("isElementsRunning", () => {
+  return cy.task("isElementsRunning");
+});
