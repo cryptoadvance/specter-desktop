@@ -1567,6 +1567,11 @@ input[type="number"]::-webkit-outer-spin-button,
   flex-grow: 3;
 }
 
+.rotate-90 {
+  --tw-rotate: 90deg;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
 .transform {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
@@ -2262,6 +2267,11 @@ input[type="number"]::-webkit-outer-spin-button,
   border-radius: 0.75rem;
   --tw-bg-opacity: 1 !important;
   background-color: rgb(44 45 49 / var(--tw-bg-opacity)) !important;
+}
+
+.hover\:rotate-90:hover {
+  --tw-rotate: 90deg;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
 .hover\:border-dark-800:hover {

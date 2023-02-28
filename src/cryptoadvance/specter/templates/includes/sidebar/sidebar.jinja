@@ -65,10 +65,17 @@
             {% endif %}
         </div>
 
-        <div class="overflow-scroll p-3 flex flex-col grow">
-            <div class="mx-3 flex items-center justify-between {% if not specter.chain %}opacity-40 pointer-events-none{% endif %}">
-                <span id="toggle_wallets_list">{{ _("Wallets") }}</span>
-                <img class="rounded-full bg-dark-700 w-4 h-4 animate-spin {% if not specter.wallet_manager.is_loading or not specter.chain %} hidden {% endif %}" id="wallets-loading-indicator" data-style="vertical-align: sub;" src="{{ url_for('static', filename='img/refresh.svg') }}"/>
+        <div class="overflow-scroll font-medium p-3 flex flex-col grow">
+            <div id="wallets_toggle" class="cursor-pointer text-dark-200 group py-1 px-3 font-medium hover:bg-dark-800 rounded-lg flex justify-between items-center hover:text-dark-50">
+                <div class="flex items-center justify-between {% if not specter.chain %}opacity-40 pointer-events-none{% endif %}">
+                    <div class="space-x-2 flex items-center">
+                        <svg id="wallets_caret" class="rotate-90 transition-all fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M14.6742 9.15634C15.2917 9.54929 15.2917 10.4507 14.6742 10.8437L6.53688 16.022C5.87115 16.4456 5 15.9674 5 15.1783L5 4.82167C5 4.03258 5.87115 3.55437 6.53688 3.97801L14.6742 9.15634Z" fill="currentColor"/>
+                        </svg>
+                        <span>{{ _("Wallets") }}</span>
+                    </div>
+                    <img class="rounded-full bg-dark-700 w-4 h-4 animate-spin {% if not specter.wallet_manager.is_loading or not specter.chain %} hidden {% endif %}" id="wallets-loading-indicator" data-style="vertical-align: sub;" src="{{ url_for('static', filename='img/refresh.svg') }}"/>
+                </div>
             </div>
 
             <div class="mx-3 mt-3 hidden" id="reload-wallets-list-btn">
@@ -152,8 +159,13 @@
                 {{ sidebar_btn(url_for('wallets_endpoint.new_wallet_type'), _('Add wallet'), 'btn_new_wallet', icon=false) }}
             </div>
 
-            <div class="mx-3 mt-8">
-                <span id="toggle_devices_list">{{ _("Devices") }}</span>
+            <div id="devices_toggle" class="mt-8 cursor-pointer text-dark-200 group py-1 px-3 font-medium hover:bg-dark-800 rounded-lg flex justify-between items-center hover:text-dark-50">
+                <div class="space-x-2 flex items-center">
+                    <svg id="devices_caret" class="rotate-90 transition-all fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14.6742 9.15634C15.2917 9.54929 15.2917 10.4507 14.6742 10.8437L6.53688 16.022C5.87115 16.4456 5 15.9674 5 15.1783L5 4.82167C5 4.03258 5.87115 3.55437 6.53688 3.97801L14.6742 9.15634Z" fill="currentColor"/>
+                    </svg>
+                    <span>{{ _("Devices") }}</span>
+                </div>
             </div>
 
             {% from 'includes/sidebar/components/sidebar_device_list_item.jinja' import sidebar_device_list_item %}
@@ -167,8 +179,13 @@
                 {{ sidebar_btn(url_for('devices_endpoint.new_device_type'), _('Add device'),'btn_new_device', icon=false) }}
             </div>
 
-            <div class="mx-3 mt-8">
-                <span class="" id="toggle_services_list" data-style="cursor: pointer;">Plugins</span>
+            <div id="services_toggle" class="mt-8 cursor-pointer text-dark-200 group py-1 px-3 font-medium hover:bg-dark-800 rounded-lg flex justify-between items-center hover:text-dark-50">
+                <div class="space-x-2 flex items-center">
+                    <svg id="services_caret" class="rotate-90 transition-all fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14.6742 9.15634C15.2917 9.54929 15.2917 10.4507 14.6742 10.8437L6.53688 16.022C5.87115 16.4456 5 15.9674 5 15.1783L5 4.82167C5 4.03258 5.87115 3.55437 6.53688 3.97801L14.6742 9.15634Z" fill="currentColor"/>
+                    </svg>
+                    <span>{{ _("Services") }}</span>
+                </div>
             </div>
 
             {% include "includes/sidebar/components/sidebar_services_list.jinja" %}
@@ -238,37 +255,54 @@
 {% endif %}
 
 <script>
-    /*
-        if (localStorage.wallets === 'true' || localStorage.wallets === undefined) {
-            document.getElementById('wallets_list').classList.remove('hidden')
-            document.getElementById('toggle_wallets_list').innerHTML = 'Wallets ▾';
-        } else {
-            document.getElementById('wallets_list').classList.add('hidden')
-            document.getElementById('toggle_wallets_list').innerHTML = 'Wallets ▸';
-        }
+    let wallets_toggle = document.getElementById('wallets_toggle');
+    let wallets_caret = document.getElementById('wallets_caret');
+    let wallets_list = document.getElementById('wallets_list');
 
-        if (localStorage.devices === 'true' || localStorage.devices === undefined) {
-            document.getElementById('devices_list').classList.remove('hidden')
-            document.getElementById('toggle_devices_list').innerHTML = 'Devices ▾';
-        } else {
-            document.getElementById('devices_list').classList.add('hidden')
-            document.getElementById('toggle_devices_list').innerHTML = 'Devices ▸';
-        }
+    let devices_toggle = document.getElementById('devices_toggle');
+    let devices_caret = document.getElementById('devices_caret');
+    let devices_list = document.getElementById('devices_list');
 
-        function toggleList(type, display_text) {
-            let titleButton = document.getElementById('toggle_' + type + '_list');
-            let list = document.getElementById(type + '_list');
-            if (!list.classList || list.classList.contains('hidden')) {
-                document.getElementById(type + '_list').classList.remove('hidden')
-                localStorage[type] = true;
-                titleButton.innerHTML = display_text + ' ▾';
-            } else {
-                document.getElementById(type + '_list').classList.add('hidden')
-                localStorage[type] = false;
-                titleButton.innerHTML = display_text + ' ▸';
-            }
+    let services_toggle = document.getElementById('services_toggle');
+    let services_caret = document.getElementById('services_caret');
+    let services_list = document.getElementById('services_list');
+
+    if (localStorage.getItem('wallets_hidden') === 'true') {
+        wallets_caret.classList.remove('rotate-90')
+        wallets_list.classList.add('hidden')
+    }
+
+    if (localStorage.getItem('devices_hidden') === 'true') {
+        devices_caret.classList.remove('rotate-90')
+        devices_list.classList.add('hidden')
+    }
+
+    if (localStorage.getItem('services_hidden') === 'true') {
+        services_caret.classList.remove('rotate-90')
+        services_list.classList.add('hidden')
+    }
+
+    function toggleList(type) {
+        let toggle = document.getElementById(type + '_toggle');
+        let caret = document.getElementById(type + '_caret');
+        let list = document.getElementById(type + '_list');
+
+        if (list.classList.contains('hidden')) {
+            // The list is hidden
+            localStorage.removeItem(type + '_hidden')
+
+            // Make it visible
+            list.classList.remove('hidden')
+            caret.classList.add('rotate-90')
+        } else {
+            // The list is visible
+            localStorage.setItem(type + '_hidden', true)
+
+            // Make it hidden
+            list.classList.add('hidden')
+            caret.classList.remove('rotate-90')
         }
-    */
+    }
 
     async function updateWalletsLoadingData() {
         try {
@@ -300,31 +334,24 @@
     }
 
     document.addEventListener("DOMContentLoaded", function(){
-        /* 
-            if ('{{ specter.device_manager.devices_names | length }}' == '0') {
-                document.getElementById('toggle_devices_list').innerHTML = `{{ _("Devices") }}`;
-            } else {
-                document.getElementById('toggle_devices_list').addEventListener('click', (event) => {
-                    toggleList('devices', '{{ _("Devices") }}');
-                });
-            }
+        /*
+         * Set event listeners
+         */
 
-            if ('{{ specter.wallet_manager.wallets_names | length }}' == '0') {
-                document.getElementById('toggle_wallets_list').innerHTML = `{{ _("Wallets") }}`;
-            } else {
-                document.getElementById('toggle_wallets_list').addEventListener('click', (event) => {
-                    toggleList('wallets', '{{ _("Wallets") }}');
-                });
-            }
+        if ('{{ specter.wallet_manager.wallets_names | length }}' == '0') {}
+        wallets_toggle.addEventListener('click', (event) => {
+            toggleList('wallets');
+        });
 
-            if ('{{ specter.service_manager.service_names | length }}' == '0') {
-                document.getElementById('toggle_services_list').innerHTML = 'Plugins';
-            } else {
-                document.getElementById('toggle_services_list').addEventListener('click', (event) => {
-                    toggleList('services');
-                });
-            }
-        */
+        if ('{{ specter.device_manager.devices_names | length }}' == '0') {}
+        devices_toggle.addEventListener('click', (event) => {
+            toggleList('devices');
+        });
+
+        if ('{{ specter.service_manager.service_names | length }}' == '0') {}
+        services_toggle.addEventListener('click', (event) => {
+            toggleList('services');
+        });
 
         {% if specter.wallet_manager.is_loading %}
             updateWalletsLoadingData();
