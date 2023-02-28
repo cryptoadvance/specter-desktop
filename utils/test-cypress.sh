@@ -18,6 +18,16 @@ if [ -z "$VIRTUAL_ENV" ]; then
   source ./.env/bin/activate
 fi
 
+# Only start elements if --with-elements flag is set
+start_elementsd=false
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --with-elementsd) start_elementsd=true;;
+        *) break;;
+    esac
+    shift
+done
+
 function check_consistency {
   if ! npm version 2> /dev/null 1>&2 ; then
     echo "npm is not on the PATH. Please install node and bring it on the PATH."
@@ -176,7 +186,9 @@ function start_bitcoind {
 }
 
 function start_elementsd {
-  start_node --elements $*
+  if [ $start_elementsd = true ]; then
+    start_node --elements $*
+  fi
 }
 
 function stop_bitcoind {
