@@ -68,10 +68,6 @@ We plan to add support for other hardware wallets as they come up. If you are in
 ## Help wanted: Do you like Specter?
 Please help us to push forward, fix bugs, refine FAQs and please help each other in the support channel.
 As a small team on a tiny budget we are working hard to make Specter better every day – for Bitcoin, for you and for us.
-We are quite overwhelmed with the response, the guides and shout-outs. Thank you!
-Stepan, Ben, Kim, all the fellow Specter-Builders & Moritz
-
-[Donations are welcome](https://donate.specter.solutions/apps/3k77BAT6zshCGNd3i7gw9WKwXQy1/pos)
 
 ## How to run
 

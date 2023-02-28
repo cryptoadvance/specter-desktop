@@ -273,7 +273,7 @@ class WalletImporter:
             self.wallet.rpc.rescanblockchain(startblock, no_wait=True)
             logger.info("Rescanning Blockchain ...")
         except Exception as e:
-            logger.exception("Exception while rescanning blockchain: %r" % e, e)
+            logger.exception("Exception while rescanning blockchain")
             if potential_errors:
                 potential_errors = SpecterError(
                     str(potential_errors)

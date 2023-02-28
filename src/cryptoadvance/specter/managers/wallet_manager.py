@@ -355,6 +355,7 @@ class WalletManager:
         self._check_duplicate_keys(keys)
         wallet_alias = alias(name)
         i = 2
+        # Ensure unique wallet alias
         while (
             os.path.isfile(os.path.join(self.working_folder, "%s.json" % wallet_alias))
             or os.path.join(self.rpc_path, wallet_alias) in walletsindir

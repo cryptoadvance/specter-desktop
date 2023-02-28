@@ -17,5 +17,5 @@ include requirements.txt
 # ... which might make the above not necessary but the below very needed:
 exclude .gitattributes .gitignore pyinstaller .pre-commit.config.yaml 
 prune pyinstaller/bitcoind 
-prune pyinstaller/torbrowser 
+prune pyinstaller/tor
 prune .github 

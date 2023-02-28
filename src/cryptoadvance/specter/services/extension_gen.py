@@ -101,8 +101,10 @@ class ExtGen:
         self.generate_preppub()
 
     def generate_basics(self):
+        self.render("README.md", version=self.version)
         self.render("requirements.txt", version=self.version)
         self.render(".gitignore")
+        self.render(f"pytest.ini")
         package_path = f"src/dummyorg/specterext/dummy"
         self.render(f"{package_path}/service.py")
         self.render(f"{package_path}/controller.py")
@@ -125,7 +127,6 @@ class ExtGen:
             self.render(f"{package_path}/templates/dummy/components/dummy_menu.jinja")
             self.render(f"{package_path}/templates/dummy/components/dummy_tab.jinja")
 
-        self.render(f"pytest.ini", env=self.sd_env)
         self.render(f"tests/conftest.py", env=self.sd_env)
         self.render(f"tests/conftest_visibility.py", env=self.sd_env)
         self.render(f"tests/fix_ghost_machine.py", env=self.sd_env)

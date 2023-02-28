@@ -302,14 +302,20 @@ class Wallet:
             # Use descriptor wallet
             try:
                 rpc.createwallet(
-                    os.path.join(rpc_path, alias), True, True, "", False, True
+                    os.path.join(rpc_path, alias),
+                    True,
+                    True,
+                    "",
+                    False,
+                    True,
+                    timeout=20,
                 )
                 created = True
             except Exception as e:
                 logger.exception(e)
         # if we failed to create or didn't try - create without descriptors
         if not created:
-            rpc.createwallet(os.path.join(rpc_path, alias), True)
+            rpc.createwallet(os.path.join(rpc_path, alias), True, timeout=20)
             use_descriptors = False
 
         wallet_rpc = rpc.wallet(os.path.join(rpc_path, alias))

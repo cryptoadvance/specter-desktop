@@ -42,8 +42,6 @@ END_COMMENT
 ### Prerequisites
 # brew install gmp # to prevent module 'embit.util' has no attribute 'ctypes_secp256k1'
 # npm install --global create-dmg
-# Download Tor browser:
-# wget -P torbrowser https://archive.torproject.org/tor-package-archive/torbrowser/10.0.15/TorBrowser-10.0.15-osx64_en-US.dmg
 
 ### Trouble shooting 
 # Currently, only MacOS Catalina is supported to build the dmg-file
