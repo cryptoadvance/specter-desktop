@@ -155,7 +155,7 @@ const download = (uri, filename, callback) => {
 
         progressBar.on('aborted', () => {
           logger.info('Download was aborted before it could finish.')
-          progressBar = null
+          
         });
 
         // Loggin the download progress
@@ -325,6 +325,7 @@ app.whenReady().then(() => {
     logger.info("Creating specterd-binaries folder");
     fs.mkdirSync(specterdDirPath, { recursive: true });
   }
+
   let versionData
   // Download specterd, run sha256sum on it and then set your own versionData in dev, should look this:
   // {
@@ -337,7 +338,7 @@ app.whenReady().then(() => {
   else {
     versionData = require('./version-data.json')
   }
-  
+
   if (!appSettings.versionInitialized || appSettings.versionInitialized != versionData.version) {
     logger.info(`Updating ${appSettingsPath} : ${JSON.stringify(appSettings)}`);
     appSettings.specterdVersion = versionData.version
@@ -608,6 +609,7 @@ app.on('window-all-closed', function(){
   }
 });
 
+// Cleanup before quitting (helps prevent memory leaks)
 app.on('before-quit', (event) => {
   if (!quitted) {
     logger.info('Quitting ...')
@@ -615,7 +617,10 @@ app.on('before-quit', (event) => {
     quitSpecterd()
     if (mainWindow && !mainWindow.isDestroyed()) {
       if (progressBar) {
-          progressBar.destroy()
+          // You can only destroy the progress bar if it hadn't been closed before
+          if (progressBar.browserWindow) {
+            progressBar.destroy()
+          }
           progressBar = null
         }
        mainWindow.destroy()
