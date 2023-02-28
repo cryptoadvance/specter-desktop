@@ -18,16 +18,6 @@ if [ -z "$VIRTUAL_ENV" ]; then
   source ./.env/bin/activate
 fi
 
-# Only start elements if --with-elements flag is set
-start_elementsd=false
-while [[ "$#" -gt 0 ]]; do
-    case $1 in
-        --with-elementsd) start_elementsd=true;;
-        *) break;;
-    esac
-    shift
-done
-
 function check_consistency {
   if ! npm version 2> /dev/null 1>&2 ; then
     echo "npm is not on the PATH. Please install node and bring it on the PATH."
@@ -409,6 +399,9 @@ function parse_and_execute() {
     exit 0
   fi 
 
+  # Don't start elementsd unless --with-elements is set
+  # Usage: ./utils/test-cypress.sh --with-elements run
+  start_elementsd=false
   while [[ $# -gt 0 ]]
   do
   arg="$1"
@@ -424,6 +417,10 @@ function parse_and_execute() {
       ;;
     --elm-log-stdout)
       ELMLOGSTDOUT=true
+      shift
+      ;;
+    --with-elements)
+      start_elementsd=true
       shift
       ;;
     *)
