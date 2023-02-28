@@ -325,8 +325,19 @@ app.whenReady().then(() => {
     logger.info("Creating specterd-binaries folder");
     fs.mkdirSync(specterdDirPath, { recursive: true });
   }
-
-  let versionData = require('./version-data.json')
+  let versionData
+  // Download specterd, run sha256sum on it and then set your own versionData in dev, should look this:
+  // {
+  //   "version": "v2.0.0-pre32",
+  //   "sha256": "aa049abf3e75199bad26fbded08ee5911ad48e325b42c43ec195136bd0736785"
+  // }
+  if (isDev) {
+    versionData = require('./version-data-dev.json')
+  }
+  else {
+    versionData = require('./version-data.json')
+  }
+  
   if (!appSettings.versionInitialized || appSettings.versionInitialized != versionData.version) {
     logger.info(`Updating ${appSettingsPath} : ${JSON.stringify(appSettings)}`);
     appSettings.specterdVersion = versionData.version
