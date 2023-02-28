@@ -67,9 +67,7 @@ class NonExistingNode(PersistentObject):
 
     @property
     def network_parameters(self):
-        ''' Is needed for creating devices/xpubs as they ask which network to use.
-        So this is a convenient thing especially for prod
-        '''
+        """Needed for the derivation path in xpubs when adding a device."""
         return get_network("main")
 
     def check_blockheight(self):
@@ -220,9 +218,7 @@ class AbstractNode(NonExistingNode):
 
     @property
     def network_parameters(self):
-        '''
-        helpful if the cache is not filled. Not good for regtest but let's optimize for prod.
-        '''
+        """Uses an RPC call since AbstractNode has no cache"""
         if self.is_running:
             return get_network(self.chain)
         return get_network("main")
