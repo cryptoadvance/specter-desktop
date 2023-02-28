@@ -67,6 +67,9 @@ class NonExistingNode(PersistentObject):
 
     @property
     def network_parameters(self):
+        ''' Is needed for creating devices/xpubs as they ask which network to use.
+        So this is a convenient thing especially for prod
+        '''
         return get_network("main")
 
     def check_blockheight(self):
