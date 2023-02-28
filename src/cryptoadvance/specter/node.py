@@ -220,6 +220,9 @@ class AbstractNode(NonExistingNode):
 
     @property
     def network_parameters(self):
+        '''
+        helpful if the cache is not filled. Not good for regtest but let's optimize for prod.
+        '''
         if self.is_running:
             return get_network(self.chain)
         return get_network("main")
