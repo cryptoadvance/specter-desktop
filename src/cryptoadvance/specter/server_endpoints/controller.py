@@ -108,7 +108,10 @@ def server_notFound_error(e):
     app.logger.error(error_msg)
     if request.headers.get("Accept") == "application/json":
         return {"error": error_msg}
-    return render_template("500.jinja", error=e), 404
+    return (
+        render_template("500.jinja", error=e, version=app.specter.version.current),
+        404,
+    )
 
 
 @app.errorhandler(Exception)
@@ -120,7 +123,12 @@ def server_error(e):
     app.logger.error(trace)
     if request.headers.get("Accept") == "application/json":
         return {"error": error_msg}
-    return render_template("500.jinja", error=e, traceback=trace), 500
+    return (
+        render_template(
+            "500.jinja", error=e, traceback=trace, version=app.specter.version.current
+        ),
+        500,
+    )
 
 
 @app.errorhandler(BrokenCoreConnectionException)

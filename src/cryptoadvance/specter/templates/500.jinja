@@ -21,7 +21,10 @@
 
                 <div class="mt-8">
                     <h3>{{ _("Details") }}</h3>
-                    <pre class="max-w-[1100px] break-all whitespace-pre-wrap bg-dark-700 p-4 rounded-lg"><code>{{ traceback }}</code></pre>
+<pre class="max-w-[1100px] break-all whitespace-pre-wrap bg-dark-700 p-4 rounded-lg">
+<code>version: {{ version }}
+{{ traceback }}</code>
+</pre>
                 </div>
                 <p class="mt-3">
                     {{ _('Please let us know! Create an ') }}<a href="https://github.com/cryptoadvance/specter-desktop/issues" target="_blank">{{ _("issue") }}</a>{{ _(" or ping us on ") }}<a href="https://t.me/spectersupport" target="_blank">{{ _("Telegram") }}</a>{{ _(" to fix it.") }}
