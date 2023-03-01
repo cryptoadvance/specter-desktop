@@ -308,11 +308,11 @@ def test_check_utxo_and_amounts(funded_hot_wallet_1: Wallet):
 
 @pytest.mark.slow
 def test_multiple_outputs_in_one_tx(
-    unfunded_ghost_machine_wallet: Wallet,
+    funded_ghost_machine_wallet: Wallet,
     funded_hot_wallet_1: Wallet,
     hot_wallet_device_1,
 ):
-    receiving_wallet = unfunded_ghost_machine_wallet
+    receiving_wallet = funded_ghost_machine_wallet
     spending_wallet = funded_hot_wallet_1
     # Ghost machine addresses (high address index)
     address_list = [
@@ -331,10 +331,11 @@ def test_multiple_outputs_in_one_tx(
     # Check the full utxo list of the receiving wallet
     receiving_wallet.check_utxo()
     full_utxo = receiving_wallet.full_utxo
-    assert len(full_utxo) == 3
+    assert len(full_utxo) == 4  # The wallet already has one UTXO from being funded
     assert full_utxo[0]["amount"] == 1
     assert full_utxo[1]["amount"] == 2
     assert full_utxo[2]["amount"] == 3
+    assert full_utxo[3]["amount"] == 20  # The funding UTXO
 
     # Confirming doesn't change anything since check_utxo() calls listunspent with 0 blocks as minconf argument
     random_address = "bcrt1q7mlxxdna2e2ufzgalgp5zhtnndl7qddlxjy5eg"  # Does not belong to the ghost machine wallet
@@ -342,7 +343,8 @@ def test_multiple_outputs_in_one_tx(
         1, random_address
     )  # We don't need the confirmation,
     receiving_wallet.check_utxo()
-    assert len(full_utxo) == 3
+    assert len(full_utxo) == 4
     assert full_utxo[0]["amount"] == 1
     assert full_utxo[1]["amount"] == 2
     assert full_utxo[2]["amount"] == 3
+    assert full_utxo[3]["amount"] == 20
