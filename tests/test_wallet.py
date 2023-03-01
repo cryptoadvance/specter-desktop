@@ -320,14 +320,29 @@ def test_multiple_outputs_in_one_tx(
         "bcrt1qm2hl7qqaz7ap9279vphdrxey97005wx7rm7k7n",
         "bcrt1qd5prsvv2kktulyc4a4gj0y6frszmux0wkzafxu",
     ]
+
+    # Create a PSBT with those three addresses, convert it to a transaction and send this transaction
     psbt = spending_wallet.createpsbt(address_list, [1, 2, 3], False, 0, 1)
     signed_psbt = hot_wallet_device_1.sign_psbt(psbt.to_string(), spending_wallet)
     transaction = spending_wallet.rpc.finalizepsbt(signed_psbt["psbt"])
     transaction_hex = transaction["hex"]
     spending_wallet.rpc.sendrawtransaction(transaction_hex)
-    # Confirm the transaction
-    random_address = "bcrt1q7mlxxdna2e2ufzgalgp5zhtnndl7qddlxjy5eg"  # Does not belong to the ghost machine wallet
-    spending_wallet.rpc.generatetoaddress(1, random_address)
-    # Check whether the receiving wallet has 3 (and not just 1) UTXOs
+
+    # Check the full utxo list of the receiving wallet
     receiving_wallet.check_utxo()
-    assert len(receiving_wallet.full_utxo) == 3
+    full_utxo = receiving_wallet.full_utxo
+    assert len(full_utxo) == 3
+    assert full_utxo[0]["amount"] == 1
+    assert full_utxo[1]["amount"] == 2
+    assert full_utxo[2]["amount"] == 3
+
+    # Confirming doesn't change anything since check_utxo() calls listunspent with 0 blocks as minconf argument
+    random_address = "bcrt1q7mlxxdna2e2ufzgalgp5zhtnndl7qddlxjy5eg"  # Does not belong to the ghost machine wallet
+    spending_wallet.rpc.generatetoaddress(
+        1, random_address
+    )  # We don't need the confirmation,
+    receiving_wallet.check_utxo()
+    assert len(full_utxo) == 3
+    assert full_utxo[0]["amount"] == 1
+    assert full_utxo[1]["amount"] == 2
+    assert full_utxo[2]["amount"] == 3
