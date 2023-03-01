@@ -177,7 +177,7 @@ function start_bitcoind {
 }
 
 function start_elementsd {
-  if [ $start_elementsd = true ]; then
+  if [ $USE_ELEMENTSD = true ]; then
     start_node --elements $*
   fi
 }
@@ -401,7 +401,7 @@ function parse_and_execute() {
 
   # Don't start elementsd unless --with-elements is set
   # Usage: ./utils/test-cypress.sh --with-elements run
-  start_elementsd=false
+  USE_ELEMENTSD=false
   while [[ $# -gt 0 ]]
   do
   arg="$1"
@@ -420,7 +420,7 @@ function parse_and_execute() {
       shift
       ;;
     --with-elements)
-      start_elementsd=true
+      USE_ELEMENTSD=true
       shift
       ;;
     *)
