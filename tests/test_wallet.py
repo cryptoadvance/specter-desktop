@@ -304,3 +304,30 @@ def test_check_utxo_and_amounts(funded_hot_wallet_1: Wallet):
     assert wallet.amount_locked_unsigned == selected_coins_amount_sum
     wallet.delete_pending_psbt(psbt.to_dict()["tx"]["txid"])
     assert wallet.amount_locked_unsigned == 0
+
+
+@pytest.mark.slow
+def test_multiple_outputs_in_one_tx(
+    unfunded_ghost_machine_wallet: Wallet,
+    funded_hot_wallet_1: Wallet,
+    hot_wallet_device_1,
+):
+    receiving_wallet = unfunded_ghost_machine_wallet
+    spending_wallet = funded_hot_wallet_1
+    # Ghost machine addresses (high address index)
+    address_list = [
+        "bcrt1qfhxsdnrquh63g7u9f25mmucsavsszz6hqym2rs",
+        "bcrt1qm2hl7qqaz7ap9279vphdrxey97005wx7rm7k7n",
+        "bcrt1qd5prsvv2kktulyc4a4gj0y6frszmux0wkzafxu",
+    ]
+    psbt = spending_wallet.createpsbt(address_list, [1, 2, 3], False, 0, 1)
+    signed_psbt = hot_wallet_device_1.sign_psbt(psbt.to_string(), spending_wallet)
+    transaction = spending_wallet.rpc.finalizepsbt(signed_psbt["psbt"])
+    transaction_hex = transaction["hex"]
+    spending_wallet.rpc.sendrawtransaction(transaction_hex)
+    # Confirm the transaction
+    random_address = "bcrt1q7mlxxdna2e2ufzgalgp5zhtnndl7qddlxjy5eg"  # Does not belong to the ghost machine wallet
+    spending_wallet.rpc.generatetoaddress(1, random_address)
+    # Check whether the receiving wallet has 3 (and not just 1) UTXOs
+    receiving_wallet.check_utxo()
+    assert len(receiving_wallet.full_utxo) == 3

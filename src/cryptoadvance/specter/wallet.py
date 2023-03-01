@@ -961,8 +961,8 @@ class Wallet:
     @property
     def full_utxo(self) -> List[WalletAwareTxItem]:
         """Lazy getter for the current full_utxo-set. Full means locked and not locked utxo. The result
-        us a List of WalletAwareTxItem. Check check_utxo for more details
-        Call check_utxo() to update it with recent data from core
+        is a list of WalletAwareTxItem. Call check_utxo() to update it with recent data from Bitcoin Core.
+        For more details, see check_utxo().
         """
         if hasattr(self, "_full_utxo"):
             return self._full_utxo
