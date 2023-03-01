@@ -9,7 +9,7 @@ const extract = require('extract-zip')
 const defaultMenu = require('electron-default-menu');
 const ProgressBar = require('electron-progressbar')
 const { spawn, exec } = require('child_process');
-const { getFileHash, getAppSettings, appSettingsPath, specterdDirPath, specterAppLogPath, versionData, isDev, isMac } = require('./helpers')
+const { getFileHash, getAppSettings, appSettingsPath, specterdDirPath, specterAppLogPath, versionData, isDev, devFolder, isMac } = require('./helpers')
 const downloadloc = require('./downloadloc')
 const getDownloadLocation = downloadloc.getDownloadLocation
 const appName = downloadloc.appName()
@@ -17,7 +17,7 @@ const appNameLower = appName.toLowerCase()
 
 // Quit again if there is no version-data in dev
 if (isDev && versionData === undefined) {
-  console.log('You need to create a version-data.json in your specter_dev folder. Quitting ...')
+  console.log(`You need to create a version-data.json in your dev folder (${devFolder}) to run the app. Check helpers.js for the format. Quitting ...`)
   app.quit()
   return
 }

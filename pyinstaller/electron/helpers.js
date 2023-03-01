@@ -1,4 +1,5 @@
 const fs = require('fs')
+const os = require('os')
 const path = require('path')
 const crypto = require('crypto')
 const readLastLines = require('read-last-lines');
@@ -6,8 +7,9 @@ const downloadloc = require('./downloadloc');
 const appName = downloadloc.appName()
 const appNameLower = appName.toLowerCase()
 const isDev = process.env.NODE_ENV === "development"
-const devFolder = path.resolve(require('os').homedir(), `.${appNameLower}_dev`)
-const prodFolder = path.resolve(require('os').homedir(), `.${appNameLower}`)
+const unresolvedDevFolder = process.env.SPECTER_DATA_FOLDER || "~/.specter_dev"
+const devFolder = unresolvedDevFolder.replace(/^~/, os.homedir());
+const prodFolder = path.resolve(os.homedir(), `.${appNameLower}`)
 const isMac = process.platform === 'darwin'
 
 let appSettingsPath
@@ -118,5 +120,6 @@ module.exports = {
     specterAppLogPath: specterAppLogPath,
     versionData,
     isDev: isDev,
+    devFolder,
     isMac, isMac
 }
