@@ -14,6 +14,7 @@
             <tr> <td data-style="text-align: left;">{{ _("Host") }}:</td> <td data-style="text-align: right;" id="node-info-specter-chain">{{specter.node.host}}</td> </tr>
             <tr> <td data-style="text-align: left;">{{ _("Port") }}:</td> <td data-style="text-align: right;" id="node-info-specter-chain">{{specter.node.port}}</td> </tr>
             <tr> <td data-style="text-align: left;">{{ _("SSL") }}:</td> <td data-style="text-align: right;" id="node-info-specter-chain">{{specter.node.ssl}}</td> </tr>
+            <tr> <td data-style="text-align: left;">{{ _("Tor") }}:</td> <td data-style="text-align: right;" id="node-info-specter-chain">{{specter.node.uses_tor}}</td> </tr>
             <tr> <td data-style="text-align: left;">{{ _("Node uptime") }}:</td> <td data-style="text-align: right;">~ {{(specter.info['uptime'] / 60 // 60) | int }} {{ _("Hours") }}</td> </tr>
         </table>
 
