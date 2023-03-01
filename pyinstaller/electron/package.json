@@ -1,11 +1,12 @@
 {
-  "name": "specter-desktop",
+  "name": "Specter",
   "description": "Specter Desktop Electron application",
+  "version": "v0.0.0",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "cp -R ../../src/cryptoadvance/specter/static/fonts ../../src/cryptoadvance/specter/static/output.css ../../src/cryptoadvance/specter/static/typography.css . &&  electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder --publish=never",
+    "dist": "export NODE_ENV=production && electron-builder --publish=never",
     "postinstall": "electron-builder install-app-deps"
   },
   "repository": "https://github.com/cryptoadvance/specter-desktop",
@@ -30,20 +31,23 @@
       "identity": "Kim Neunert (FWV59JHV83)",
       "entitlements": "./build/entitlements.mac.plist",
       "entitlementsInherit": "./build/entitlements.mac.plist",
-      "hardenedRuntime": true
+      "hardenedRuntime": true,
+      "icon": "./icons/icon.icns"
     },
     "win": {
-      "icon": "../icons/icon.ico"
+      "icon": "./icons/icon.ico"
     },
     "linux": {
       "target": [
         "AppImage"
-      ]
+      ],
+      "icon": "./icons/icon.png"
     }
   },
   "dependencies": {
     "electron-context-menu": "^2.3.0",
     "electron-default-menu": "^1.0.2",
+    "electron-progressbar": "^2.0.1",
     "extract-zip": "^2.0.1",
     "read-last-lines": "^1.8.0",
     "request": "^2.88.2",

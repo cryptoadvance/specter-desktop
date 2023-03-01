@@ -2,12 +2,12 @@
     <link
         rel="stylesheet"
         type="text/css"
-        href="../../src/cryptoadvance/specter/static/typography.css"
+        href="./typography.css"
     />
     <link
         rel="stylesheet"
         type="text/css"
-        href="../../src/cryptoadvance/specter/static/output.css"
+        href="./output.css"
     />
 
     <body class="flex flex-col items-center">
@@ -114,7 +114,6 @@
         <script>
             const fs = require("fs");
             const path = require("path");
-            const { dialog } = require("electron").remote;
             const { ipcRenderer } = require("electron");
             const helpers = require("./helpers");
             const getFileHash = helpers.getFileHash;
@@ -229,11 +228,7 @@
                 appSettings.specterdCLIArgs =
                     document.getElementById("specterd-cli-args").value;
                 fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings));
-                dialog.showMessageBoxSync({
-                    message:
-                        "Specter settings were saved successfully!\nPlease reopen the app to activate the changes.",
-                    buttons: ["Continue"],
-                });
+                ipcRenderer.invoke("showMessageBoxSync", "Specter settings were saved successfully!\nPlease reopen the app to activate the changes.", ["Continue"]);
                 ipcRenderer.send("request-mainprocess-action", {
                     message: "quit-app",
                 });

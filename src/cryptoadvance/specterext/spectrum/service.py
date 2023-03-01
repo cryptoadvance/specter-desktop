@@ -160,4 +160,8 @@ class SpectrumService(Service):
             view_model.get_started_include = (
                 "spectrum/welcome/components/get_started.jinja"
             )
+            if self.is_spectrum_node_available:
+                view_model.tick_checkboxes_include = (
+                    "spectrum/welcome/components/tick_checkboxes.jinja"
+                )
         return view_model

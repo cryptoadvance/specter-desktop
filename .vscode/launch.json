@@ -12,10 +12,9 @@
             "env": {
                 "FLASK_APP": "cryptoadvance.specter.server:create_and_init()",
                 "FLASK_ENV": "development",
-                "SPECTER_DATA_FOLDER": "~/.specter_empty",
+                // "SPECTER_DATA_FOLDER": "~/.specter_empty",
                 "SPECTER_CONFIG": "DevelopmentConfig",
                 "FLASK_DEBUG": "1",
-                "PATH": "./.env/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
             },
             "args": [
                 "run",

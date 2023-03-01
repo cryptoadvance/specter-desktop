@@ -563,3 +563,12 @@ def check_sync_status():
     else:
         response = {"fullySynced": True}
     return jsonify(response)
+
+
+# Currently only used for Spectrum
+@nodes_endpoint.route("sync_progress/", methods=["GET"])
+@login_required
+def get_sync_progress():
+    sync_progress = app.specter.info.get("verificationprogress") * 100
+    response = {"syncProgress": sync_progress}
+    return jsonify(response)

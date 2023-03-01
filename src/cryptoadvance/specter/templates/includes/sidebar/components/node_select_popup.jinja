@@ -1,5 +1,5 @@
 <div class="w-72 hidden flex flex-col bg-dark-800/70 backdrop-blur rounded-xl border-2 border-dark-700" id="node_select_popup">
-    {% for node_alias in specter.node_manager.nodes if node_alias != "default" %}
+    {% for node_alias in specter.node_manager.nodes %}
         {% set node = specter.node_manager.get_by_alias(node_alias) %}
         {% set selected_node = node_alias == specter.node.alias %}
         {% set running = node.is_running %}

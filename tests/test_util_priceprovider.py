@@ -49,7 +49,10 @@ def test_failsafe_request_get(empty_data_folder):
 
     with pytest.raises(SpecterError) as se:
         failsafe_request_get(requests_session, "https://httpbin.org/status/404")
-    assert f"HttpError 404 for https://httpbin.org/status/404" in str(se.value)
+    # Also allow for Gateway Timeout (504 error), mainly for the CI
+    assert f"HttpError 404 for https://httpbin.org/status/404" in str(
+        se.value
+    ) or f"HttpError 504 for https://httpbin.org/status/404" in str(se.value)
 
     json = failsafe_request_get(requests_session, "https://httpbin.org/json")
     assert json["slideshow"]

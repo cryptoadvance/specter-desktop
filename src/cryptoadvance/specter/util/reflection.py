@@ -131,9 +131,15 @@ def get_subclasses_for_clazz_in_cwd(clazz, cwd=".") -> List[type]:
 
     # if not testing but in a folder which looks like specter-desktop/src --> No dynamic extensions
     if "PYTEST_CURRENT_TEST" not in os.environ:
-        # Hmm, need a better way to detect a specter-desktop-sourcedir
+        # Hmm, a bit hackish but if the pyproject.toml specifies cryptoadvance.specter as a name and
+        # we don't need to depend on toml-parsing libs, that should be ok.
         try:
-            if grep("./setup.py", 'name="cryptoadvance.specter",'):
+            found, line = grep("./pyproject.toml", 'name = "cryptoadvance.specter"')
+            if found:
+                return []
+            if line:
+                line = line.replace(" ", "").replace("'", "").replace('"', "")
+            if line == "name=cryptoadvance.specter":
                 return []
         except FileNotFoundError:
             pass
@@ -141,6 +147,7 @@ def get_subclasses_for_clazz_in_cwd(clazz, cwd=".") -> List[type]:
     # Depending on the style we either add "." or "./src" to the searchpath
 
     extension_style = detect_extension_style_in_cwd()
+    # raise Exception(extension_style)
     if extension_style == "adhoc":
         package_dirs.append(Path("."))
     elif extension_style == "publish-ready":
@@ -151,7 +158,13 @@ def get_subclasses_for_clazz_in_cwd(clazz, cwd=".") -> List[type]:
             logger.info("We're in testing mode. Adding CWD to searchpath")
             package_dirs.append(Path("./src"))
         else:
-            raise Exception(f"This should not happen")
+            raise Exception(
+                f"""
+                We checked before that we're not in the specter-desktop home 
+                directory but now the extension-style is 'specter-desktop' ?!
+                This should not happen!
+            """
+            )
     logger.info(f"Detected Extension-style: {extension_style}")
     logger.info(f"We'll search in those package_dirs {package_dirs}")
     return get_subclasses_for_clazz(clazz, package_dirs)
