@@ -2,6 +2,7 @@
 {% set amount_total = specter.wallet_manager.wallets.values() | sum(attribute='amount_total') %}
 {% set amount_confirmed = specter.wallet_manager.wallets.values() | sum(attribute='amount_confirmed') %}
 {% set amount_unconfirmed = specter.wallet_manager.wallets.values() | sum(attribute='amount_unconfirmed') %}
+{% set amount_frozen = specter.wallet_manager.wallets.values() | sum(attribute='amount_frozen') %}
 {% set amount_immature = specter.wallet_manager.wallets.values() | sum(attribute='amount_immature') %}
 {% set balance = specter.wallet_manager.joined_balance() %}
 {% set rescan_progress = specter.wallet_manager.wallets.values() | average_of_attribute(attribute='rescan_progress')   %}
@@ -10,6 +11,7 @@
     amount_total, 
     amount_confirmed,
     amount_unconfirmed, 
+    amount_frozen,
     amount_immature, 
     balance, 
     rescan_progress, 
