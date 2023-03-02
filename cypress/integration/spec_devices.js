@@ -5,7 +5,7 @@ describe('Test adding different devices', () => {
     })
 
     it('Validity of device name', () => {
-        cy.get('#toggle_devices_list').click()
+        cy.get('#devices_toggle').click()
         cy.get('#btn_new_device').click()
         cy.get('#trezor_device_card').click()
         cy.get("#device_name").type("'invalid")
@@ -16,7 +16,7 @@ describe('Test adding different devices', () => {
     });
 
     it('Filter devices', () => {
-        cy.get('#toggle_devices_list').click()
+        cy.get('#devices_toggle').click()
         cy.get('#btn_new_device').click()
         cy.contains('Select your signing device')
         cy.get('#device-type-searchbar').type("Specter")
@@ -27,7 +27,7 @@ describe('Test adding different devices', () => {
     })
 
     it('Electrum device', () => {
-        cy.get('#toggle_devices_list').click()
+        cy.get('#devices_toggle').click()
         cy.get('#btn_new_device').click()
         cy.get('#electrum_device_card').click()
         cy.get('#device_name').type("New Electrum Device")
