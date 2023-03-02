@@ -98,7 +98,7 @@
                     addressInfoHTML += `<tr><td>{{ _("Service") }}:</td><td><img class="service-icon" src='{{ext_url_prefix}}/${this.serviceId}/static/${services[this.serviceId].icon}'>${services[this.serviceId].name}</td></tr>`;
                 } else {
                     let associateServiceUrl = `{{ url_for('services_endpoint.associate_addr', wallet_alias='WALLET_ALIAS', address='ADDRESS') }}`.replace('WALLET_ALIAS', this.wallet).replace('ADDRESS', jsonResponse.address);
-                    addressInfoHTML += `<tr><td>{{ _("Service") }}:</td><td><button type="button" id="btn" class="btn" onclick="location.href='${associateServiceUrl}';">&#128229;&nbsp;{{ _("Associate with a service") }}</button></td></tr>`;
+                    addressInfoHTML += `<tr><td>{{ _("Service") }}:</td><td><button type="button" id="associate-btn" class="btn" onclick="location.href='${associateServiceUrl}';" data-cy="associate-address-with-service-btn">&#128229;&nbsp;{{ _("Associate with a service") }}</button></td></tr>`;
                 };
 
                 // Message signing feature restricted to singlesig wallets using a Specter DIY
