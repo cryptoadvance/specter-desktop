@@ -1176,7 +1176,7 @@
             data-txid="${txid}"
             data-tx-wallet="${wallet}">
             </tx-data>`;
-            showPageOverlay('tx-popup');
+            showPageOverlay('tx-popup', null, 'start');
         } else {
             copyText(txid, `{{ _("Copied transaction") }}: ${ txid }`);
         }

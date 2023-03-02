@@ -122,11 +122,16 @@
                     {{ _("Paste xpub") }}
                 </button>
 
-                <div id="paste-xpub-popup" class="hidden">
-                    <h1>{{ _("Paste xpub") }}</h1>
-                    <input type="text" id="paste-xpub-text" placeholder="Paste your xpub here">
-                    <br><br>
-                    <button type="button" onclick="addXpubs(document.getElementById('paste-xpub-text').value);hidePageOverlay();document.getElementById('paste-xpub-text').value='';">{{ _("Add xpub") }}</button>
+                <div id="paste-xpub-popup" class="hidden bg-dark-800 p-4 w-96">
+                    <div class="flex justify-between mb-2">
+                        <h3 class="mb-0">{{ _("Paste xpub") }}</h3>
+                        <p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer">Close</p>
+                    </div>
+                    <div class="floating-wrapper mb-3 mt-1">
+                        <input class="floating-input peer" type="text" id="paste-xpub-text" placeholder=" ">
+                        <label class="floating-label" for="paste-xpub-text">xpub</label>
+                    </div>
+                    <button class="button bg-accent mr-0 mb-1 w-full" type="button" onclick="addXpubs(document.getElementById('paste-xpub-text').value);hidePageOverlay();document.getElementById('paste-xpub-text').value='';">{{ _("Add xpub") }}</button>
                 </div>
             </div>
         </div>
