@@ -14,9 +14,8 @@ describe('Test QR code signing flow', () => {
         cy.get('#messageDerivationPath').should('have.value', 'm/84h/1h/0h/0/0')
         cy.get('#message').type('The DIY is the best signing device.')
         cy.get('#diy_ghost_qr_sign_msg_btn').click()
-        cy.get('#diy_ghost_sign_msg_qr > h2').contains('Scan this QR code')
-        // To close the overlay (no cancel button here yet)
-        cy.get('#page_overlay_popup').click()
+        cy.get('[data-cy="scan-qr-code-for-msg-signing-overlay-headline"]').contains('Scan this QR code')
+        cy.get('[data-cy="scan-qr-code-for-msg-signing-overlay-close-btn"]').click()
     })
 
     it('No QR message signing button for a Trezor', () => {

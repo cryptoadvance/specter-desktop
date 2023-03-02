@@ -2,8 +2,8 @@
     <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 
     <div class="flex justify-between mb-2 space-x-5">
-        <h3 class="mb-0">{{ _("Scan this QR code with your") }} {{device.name}}</h3>
-        <p class="m-0 ml-5 inline-block cursor-pointer" onclick="hidePageOverlay()">Close</p>
+        <h3 class="mb-0" data-cy="scan-qr-code-for-msg-signing-overlay-headline">{{ _("Scan this QR code with your") }} {{device.name}}</h3>
+        <p class="m-0 ml-5 inline-block cursor-pointer" onclick="hidePageOverlay()" data-cy="scan-qr-code-for-msg-signing-overlay-close-btn">Close</p>
     </div>
 
     <div class="row" data-style="min-height: 400px; margin-top:20px">
