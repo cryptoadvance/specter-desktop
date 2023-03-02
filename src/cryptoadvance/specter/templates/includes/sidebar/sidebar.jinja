@@ -117,6 +117,7 @@
                         {% for wallet in specter.wallet_manager.failed_load_wallets %}
                             <div class="bg-dark-800 p-4 rounded-lg ">
                                 <h1>{{ _("Wallet Name") }}: {{wallet.name}}</h1>
+                                <h5>{{ _("Wallet alias") }}: {{wallet.alias}}</h5>
                                 <h2>{{ _("Error Details") }}:</h2>
                                 <p data-style="color: red">{{wallet.loading_error}}</p>
                                 <form class="mt-3" action="{{ url_for('wallets_endpoint.failed_wallets') }}" method="POST" class="row center">
