@@ -15,7 +15,7 @@ describe('Test QR code signing flow', () => {
         cy.get('#message').type('The DIY is the best signing device.')
         cy.get('#diy_ghost_qr_sign_msg_btn').click()
         cy.get('#diy_ghost_sign_msg_qr > h2').contains('Scan this QR code')
-        // To close the overlay (no cancel button here)
+        // To close the overlay (no cancel button here yet)
         cy.get('#page_overlay_popup').click()
     })
 
@@ -27,7 +27,7 @@ describe('Test QR code signing flow', () => {
         // Only USB signing available for a Trezor device
         cy.contains('Sign message via USB').should('be.visible')
         cy.contains('Sign message via QR code').should('not.exist')
-        cy.get('#page_overlay_popup').click()
+        cy.get('[data-cy="close-msg-signing-overlay-btn"]').click()
         cy.changeDeviceType("DIY ghost", "specter")
     })
     
