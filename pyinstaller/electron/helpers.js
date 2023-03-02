@@ -1,26 +1,61 @@
 const fs = require('fs')
+const os = require('os')
 const path = require('path')
 const crypto = require('crypto')
 const readLastLines = require('read-last-lines');
 const downloadloc = require('./downloadloc');
-const { loggers } = require('winston');
 const appName = downloadloc.appName()
 const appNameLower = appName.toLowerCase()
+const isDev = process.env.NODE_ENV === "development"
+const unresolvedDevFolder = process.env.SPECTER_DATA_FOLDER || "~/.specter_dev"
+const devFolder = unresolvedDevFolder.replace(/^~/, os.homedir());
+const prodFolder = path.resolve(os.homedir(), `.${appNameLower}`)
+const isMac = process.platform === 'darwin'
 
+let appSettingsPath
+let specterdDirPath
+let specterAppLogPath
 let versionData
-try {
+
+// Use different version-data.jsons
+
+// Should look like this: 
+// {
+//   "version": "v2.0.0-pre32",
+//   "sha256": "aa049abf3e75199bad26fbded08ee5911ad48e325b42c43ec195136bd0736785"
+// }
+
+if (isDev) {
+  let versionDataPath = `${devFolder}/version-data.json`
+  try {
+    versionData = require(versionDataPath)
+  }
+  catch {
+  }
+}
+else {
+  try {
     versionData = require('./version-data.json')
-    console.log(versionData)
-} catch (e) {
-    console.log('Could not find default version data configurations...'+e)
+    } 
+  catch (e) {
+    console.log('Could not find default version data configurations: '+e)
     versionData = {
         "version": "",
         "sha256": ""
     }
+  }
 }
-const appSettingsPath = path.resolve(require('os').homedir(), `.${appNameLower}/app_settings.json`)
-const specterdDirPath = path.resolve(require('os').homedir(), `.${appNameLower}/specterd-binaries`)
-const specterAppLogPath = path.resolve(require('os').homedir(), `.${appNameLower}/specterApp.log`)
+
+if (isDev) {
+  appSettingsPath = `${devFolder}/app_settings.json`
+  specterdDirPath = `${devFolder}/specterd-binaries` 
+  specterAppLogPath = `${devFolder}/specterApp.log`
+}
+else {
+  appSettingsPath = `${prodFolder}/app_settings.json`
+  specterdDirPath = `${prodFolder}/specterd-binaries` 
+  specterAppLogPath = `${prodFolder}/specterApp.log`
+}
 
 function getFileHash(filename, callback) {
   let shasum = crypto.createHash('sha256')
@@ -45,8 +80,8 @@ function getAppSettings() {
       basicAuthPass: '',
       tor: false,
       proxyURL: "socks5://127.0.0.1:9050",
-      specterdVersion: versionData.version,
-      specterdHash: versionData.sha256,
+      specterdVersion: (versionData && versionData.version !== undefined) ? versionData.version : 'unknown',
+      specterdHash: (versionData && versionData.sha256 !== undefined) ? versionData.sha256 : 'unknown',
       specterdCLIArgs: "",
       versionInitialized: false
     }
@@ -82,5 +117,9 @@ module.exports = {
     getAppSettings: getAppSettings,
     specterdDirPath: specterdDirPath,
     getSpecterAppLogs: getSpecterAppLogs,
-    specterAppLogPath: specterAppLogPath
+    specterAppLogPath: specterAppLogPath,
+    versionData,
+    isDev: isDev,
+    devFolder,
+    isMac, isMac
 }

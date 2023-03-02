@@ -14,9 +14,8 @@ describe('Test QR code signing flow', () => {
         cy.get('#messageDerivationPath').should('have.value', 'm/84h/1h/0h/0/0')
         cy.get('#message').type('The DIY is the best signing device.')
         cy.get('#diy_ghost_qr_sign_msg_btn').click()
-        cy.get('#diy_ghost_sign_msg_qr > h2').contains('Scan this QR code')
-        // To close the overlay (no cancel button here)
-        cy.get('#page_overlay_popup').click()
+        cy.get('[data-cy="scan-qr-code-for-msg-signing-overlay-headline"]').contains('Scan this QR code')
+        cy.get('[data-cy="scan-qr-code-for-msg-signing-overlay-close-btn"]').click()
     })
 
     it('No QR message signing button for a Trezor', () => {
@@ -27,14 +26,14 @@ describe('Test QR code signing flow', () => {
         // Only USB signing available for a Trezor device
         cy.contains('Sign message via USB').should('be.visible')
         cy.contains('Sign message via QR code').should('not.exist')
-        cy.get('#page_overlay_popup').click()
+        cy.get('[data-cy="close-msg-signing-overlay-btn"]').click()
         cy.changeDeviceType("DIY ghost", "specter")
     })
     
     it('No message signing with Electrum', () => {
         cy.get('body').then(($body) => {
             if (!$body.text().includes("Electrum Device")) {
-                cy.get('#toggle_devices_list').click()
+                cy.get('#devices_toggle').click()
                 cy.get('#btn_new_device').click()
                 cy.get('#electrum_device_card').click()
                 cy.get('#device_name').type("Electrum Device")

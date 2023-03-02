@@ -44,7 +44,7 @@
 								{{ _("Specter can verify this address if you scan it.")}}<br>{{ _("It has an address index included in the QR code.") }}
 						</p><br>
 					</div>
-					<button onclick="verifyQRCode('{{ wallet.address }}', '{{ wallet.address_index | string }}')" type="button" class="btn centered padded">{{ _("Verify address via QR code") }}</button>
+					<button onclick="verifyQRCode('{{ wallet.address }}', '{{ wallet.address_index | string }}')" type="button" class="button">{{ _("Verify address via QR code") }}</button>
 				{% endif %}
 				{% set supports_hwi = [] %}
 				{% set supports_hwi_multisig_display_address = [] %}

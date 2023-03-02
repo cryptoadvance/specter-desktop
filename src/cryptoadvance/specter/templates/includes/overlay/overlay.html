@@ -1,5 +1,5 @@
 <div class="hidden z-30 absolute w-screen h-screen" id="page_overlay">
-    <div class="w-screen overflow-auto h-screen bg-black/40 flex flex-col relative justify-start items-center py-5" id="page_overlay_popup">
+    <div class="w-screen overflow-auto h-screen bg-black/40 flex flex-col relative justify-center items-center py-5" id="page_overlay_popup">
         <div class="box-shadow-xl transition-all absolute max-w-[700px] overflow-hidden rounded-xl text-white" id="page_overlay_popup_content"></div>
     </div>
 </div>
@@ -27,7 +27,7 @@
         document.getElementById('pacman').style.display='flex';
     }
 
-    function showPageOverlay(container_id, position) {
+    function showPageOverlay(container_id, position, location) {
         // Transfer the content to the popup overlay div
         document.getElementById("page_overlay_popup_content").appendChild(document.getElementById(container_id));
 
@@ -45,6 +45,10 @@
             contentContainer.style.top = position.top || "auto";
             contentContainer.style.right = position.right || "auto";
             contentContainer.style.bottom = position.bottom || "auto";
+        }
+
+        if (location) {
+            overlayPopup.style.justifyContent = location
         }
 
         // Show the content
