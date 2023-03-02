@@ -42,9 +42,11 @@ def test_WalletManager(
     device = device_manager.get_by_alias("trezor")
     assert device != None
     # Lets's create a wallet with the WalletManager
-    wm.create_wallet("a_test_wallet", 1, "wpkh", [device.keys[5]], [device])
+    wm.create_wallet(
+        "wallet_for_wallet_manager_test", 1, "wpkh", [device.keys[5]], [device]
+    )
     # The wallet-name gets its filename and therefore its alias
-    wallet = wm.wallets["a_test_wallet"]
+    wallet = wm.wallets["wallet_for_wallet_manager_test"]
     assert wallet != None
     assert wallet.balance["trusted"] == 0
     assert wallet.balance["untrusted_pending"] == 0
@@ -76,12 +78,18 @@ def test_WalletManager(
     multisig_wallet.update_balance()
     assert multisig_wallet.amount_total == 4
     # The WalletManager also has a `wallets_names` property, returning a sorted list of the names of all wallets
-    assert wm.wallets_names == ["a_multisig_test_wallet", "a_test_wallet"]
+    assert wm.wallets_names == [
+        "a_multisig_test_wallet",
+        "wallet_for_wallet_manager_test",
+    ]
 
     # You can rename a wallet using the wallet manager using `rename_wallet`, passing the wallet object and the new name to assign to it
     wm.rename_wallet(multisig_wallet, "new_name_test_wallet")
     assert multisig_wallet.name == "new_name_test_wallet"
-    assert wm.wallets_names == ["a_test_wallet", "new_name_test_wallet"]
+    assert wm.wallets_names == [
+        "new_name_test_wallet",
+        "wallet_for_wallet_manager_test",
+    ]
 
     # You can also delete a wallet by passing it to the wallet manager's `delete_wallet` method
     # It will delete the json and attempt to remove it from Bitcoin Core
@@ -100,7 +108,7 @@ def test_WalletManager(
     ):
         wm.delete_wallet(wallet, node)
     # Check that the wallet wasn't deleted in Specter because of the RpcError
-    assert wm.wallets_names == ["a_test_wallet"]
+    assert wm.wallets_names == ["wallet_for_wallet_manager_test"]
     # The following deletion should not remove the wallet file on the node
     assert node_with_empty_datadir.datadir == ""
     wm.rpc.loadwallet(wallet_rpc_path)  # we need to load the wallet again
@@ -109,7 +117,8 @@ def test_WalletManager(
     # The wallet in Specter was already deleted, so trying to delete it again should raise a SpecterError
     wm.rpc.loadwallet(wallet_rpc_path)  # we need to load the wallet again
     with pytest.raises(
-        SpecterError, match="The wallet a_test_wallet has already been deleted."
+        SpecterError,
+        match="The wallet wallet_for_wallet_manager_test has already been deleted.",
     ):
         assert wm.delete_wallet(wallet)
 
@@ -137,9 +146,9 @@ def test_WalletManager_2_nodes(
     device = device_manager.get_by_alias("trezor")
     assert device != None
     first_wallet = wm.create_wallet(
-        "a_test_wallet", 1, "wpkh", [device.keys[5]], [device]
+        "wallet_for_test_with_two_nodes", 1, "wpkh", [device.keys[5]], [device]
     )
-    assert wm.wallets_names == ["a_test_wallet"]
+    assert wm.wallets_names == ["wallet_for_test_with_two_nodes"]
     assert wm.chain == "regtest"
     assert wm.working_folder.endswith("regtest")
     assert wm.rpc.port == 18543
@@ -154,7 +163,7 @@ def test_WalletManager_2_nodes(
         "regtest",
     ]  # wm.rpcs looks like this: {'regtest': <BitcoinRpc http://localhost:18543>, 'regtest2': <BitcoinRpc http://localhost:18544>}
     assert wm.rpc.port == 18544
-    assert wm.wallets_names == ["a_test_wallet"]
+    assert wm.wallets_names == ["wallet_for_test_with_two_nodes"]
     assert wm.chain == "regtest"
     assert wm.working_folder.endswith("test")
     second_wallet = wm.create_wallet(
@@ -162,7 +171,10 @@ def test_WalletManager_2_nodes(
     )
     # Note: "regtest2" is recognised by the get_network() from embit as Liquid, that is why there is an error in the logs saying the Bitcoin address is not valid since a Liquid address is derived.
     assert len(wm.wallets_names) == 2
-    assert wm.wallets_names == ["a_regtest2_test_wallet", "a_test_wallet"]
+    assert wm.wallets_names == [
+        "a_regtest2_test_wallet",
+        "wallet_for_test_with_two_nodes",
+    ]
 
 
 def test_WalletManager_check_duplicate_keys(empty_data_folder):
@@ -243,7 +255,7 @@ def test_wallet_sortedmulti(
     for i in range(2):
         if i == 0:
             multisig_wallet = wm.create_wallet(
-                "a_multisig_test_wallet",
+                "multisig_wallet_for_sortedmulti_test",
                 1,
                 "wsh",
                 [device.keys[7], second_device.keys[0]],
@@ -251,7 +263,7 @@ def test_wallet_sortedmulti(
             )
         else:
             multisig_wallet = wm.create_wallet(
-                "a_multisig_test_wallet",
+                "another_multisig_wallet_for_sortedmulti_test",
                 1,
                 "wsh",
                 [second_device.keys[0], device.keys[7]],
