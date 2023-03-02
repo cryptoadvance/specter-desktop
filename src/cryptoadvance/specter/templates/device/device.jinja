@@ -74,23 +74,38 @@
 
 		{% if device.hwi_support or device.supports_qr_message_signing %}
 		<button class="button" type="button" onclick="showPageOverlay('message-signing')">{{ _("Sign message") }}</button>
-		<div id="message-signing" class="hidden" >
+
+		<div id="message-signing" class="hidden p-4 bg-dark-800">
+			<div class="flex justify-between mb-3">
+					<h3 class="mb-0">{{ _("Message Signing") }}</h3>
+					<p class="m-0 cursor-pointer" onclick="hidePageOverlay()" class="cursor-pointer">Close</p>
+			</div>
 			{% if origin %}
-				{{ _("Address") }}:<input type="text" id="signing-address" type="text" value="" placeholder="bc1q ..."><br><br>
+				<div class="floating-wrapper">
+					<input class="floating-input peer" type="text" id="signing-address" type="text" value="" placeholder=" ">
+					<label for="signing-address" class="floating-label">Address</label>
+				</div>
 			{% endif %}
-			{{ _("Derivation path") }}:<input type="text" id="messageDerivationPath" type="text" value="" placeholder="e.g. m/84h/0h/0h/0/0"><br><br>
-			{{ _("Message") }}:<br>
-			<textarea id="message" placeholder="Enter the message you would like to sign"></textarea>
+
+			<div class="floating-wrapper">
+				<input class="floating-input peer" type="text" id="messageDerivationPath" type="text" value="" placeholder=" ">
+				<label class="floating-label">{{ _("Derivation path (e.g. m/84h/0h/0h/0/0)") }}</label>
+			</div>
+
+			<textarea class="my-3" id="message" placeholder="Enter the message you would like to sign"></textarea>
+
 			<span id="signature-label" class="hidden">{{ _("Message signature") }}:</span>
-			<p id="signature" title='{{ _("Copy signature") }}' class="hidden" onclick="copyText(this.innerText, '{{ _("Copied message signature") }}')">
-			</p>
+			<p id="signature" title='{{ _("Copy signature") }}' class="hidden" onclick="copyText(this.innerText, '{{ _("Copied message signature") }}')"></p>
+
 			{% if device.hwi_support %}
-				<button class="button" id="{{ device.alias }}_usb_sign_msg_btn" type="button" onclick="signMessageOnDevice();">{{ _("Sign message via USB") }}</button>
+				<button class="button mb-0 bg-accent" id="{{ device.alias }}_usb_sign_msg_btn" type="button" onclick="signMessageOnDevice();">{{ _("Sign message via USB") }}</button>
 			{% endif %}
+
 			{% if device.supports_qr_message_signing %}
 				{% include "includes/overlay/qr_code_sign_message.jinja" %}
-            	<button class="button" id="{{ device.alias }}_qr_sign_msg_btn">{{ _("Sign message via QR code") }}</button>
+				<button class="button mb-0 mt-3 bg-accent" id="{{ device.alias }}_qr_sign_msg_btn">{{ _("Sign message via QR code") }}</button>
 			{% endif %}
+
 		</div>
 		{% endif %}
 
