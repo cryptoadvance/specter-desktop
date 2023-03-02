@@ -1,15 +1,19 @@
-
-<form id="{{ device.alias }}_sign_msg_qr" class="flex-center flex-column hidden">
+<form id="{{ device.alias }}_sign_msg_qr" class="flex-center flex-column hidden p-4 bg-dark-800">
     <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-    <h2>{{ _("Scan this QR code with your") }} {{device.name}}</h2>
+
+    <div class="flex justify-between mb-2 space-x-5">
+        <h3 class="mb-0">{{ _("Scan this QR code with your") }} {{device.name}}</h3>
+        <p class="m-0 ml-5 inline-block cursor-pointer" onclick="hidePageOverlay()">Close</p>
+    </div>
+
     <div class="row" data-style="min-height: 400px; margin-top:20px">
         <span id="compressed_msg" data-style="margin: auto;">
             <qr-code id="msg-qr-code" animate="auto" data-style="margin-top:20px;" width="300"></qr-code>
         </span>
     </div>
     <qr-scanner id="{{ device.alias }}_qr_scan_btn">
-        <a slot="button" class="btn flex-item" data-style="width: 350px; margin: 15px auto; font-size: 1em;">
-            &#128247; {{ _("Click here to scan signature") }}
+        <a slot="button" class="button bg-accent mb-0 mt-3 w-full">
+            {{ _("Click here to scan signature") }}
         </a>
     </qr-scanner>
 
