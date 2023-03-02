@@ -5,7 +5,7 @@ import sys
 import pathlib
 import sys
 
-from typing import Dict
+from typing import Dict, List
 from flask_babel import lazy_gettext as _
 from flask import copy_current_request_context
 from cryptoadvance.specter.rpc import BitcoinRPC
@@ -298,8 +298,12 @@ class WalletManager:
         return working_folder
 
     @property
-    def wallets_names(self):
+    def wallets_names(self) -> List:
         return sorted(self.wallets.keys())
+
+    @property
+    def wallets_aliases(self) -> List:
+        return [wallet.alias for wallet in self.wallets.values()]
 
     @property
     def rpc(self):
