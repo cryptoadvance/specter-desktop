@@ -116,10 +116,11 @@ def to_ascii20(name: str) -> str:
 def alias(name):
     """
     Create a filesystem-friendly alias from a string.
+    Leading and trailing whitespaces are removed.
     Replaces space(s) and hyphen(s) with one underscore.
     Keeps only alphanumeric chars and returns in lowercase.
     """
-    name = name.replace(" ", "_").replace("-", "_")
+    name = name.strip().replace(" ", "_").replace("-", "_")
     while "__" in name:
         name = name.replace("__", "_")
     return "".join(x for x in name if x.isalnum() or x == "_").lower()
