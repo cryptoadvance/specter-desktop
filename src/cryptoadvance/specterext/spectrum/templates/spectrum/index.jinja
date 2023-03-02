@@ -44,7 +44,6 @@
         </div>
         <div id ="elec_list_container" class="floating-wrapper">
             <select id="server-list" name="elec_option" class="floating-input peer">
-                <option selected style='display: none'></option>
                 {% for electrum_option in elec_options %}
                     <option value="{{ electrum_option }}" {% if elec_chosen_option == electrum_option %}selected{% endif %}>{{ electrum_option }}</option>
                 {% endfor %}
