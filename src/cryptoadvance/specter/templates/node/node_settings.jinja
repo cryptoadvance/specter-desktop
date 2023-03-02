@@ -58,7 +58,7 @@
 
 						<div class="grid grid-cols-2 gap-3 mb-3">
 							<div class="floating-wrapper">
-								<input class="floating-input peer" type="text" id="host" name="host" type="text" {% if node.host %} value="{{ node.protocol }}://{{ node.host }}" {% else %} placeholder="" {% endif %}>
+								<input class="floating-input peer" type="text" id="host" name="host" type="text" {% if node.host %} value="{{ node.protocol }}://{{ node.host }}" {% else %} placeholder=" " {% endif %}>
 								<label class="floating-label" for="host">Host</label>
 							</div>
 							<div class="floating-wrapper">

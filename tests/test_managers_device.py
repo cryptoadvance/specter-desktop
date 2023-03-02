@@ -138,7 +138,7 @@ def test_device_wallets(
     assert device.wallets(wm)[0].alias == wallet.alias
     second_device = device_manager.get_by_alias("specter")
     multisig_wallet = wm.create_wallet(
-        "a_multisig_test_wallet",
+        "multisig_wallet_for_device_test",
         1,
         "wsh",
         [device.keys[7], second_device.keys[0]],

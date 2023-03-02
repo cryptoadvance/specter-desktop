@@ -1,0 +1,63 @@
+{% extends "spectrum/components/spectrum_tab.jinja" %}
+{% block title %}{% endblock %}
+{% set tab = 'index' %}
+{% block content %}
+    <div>
+        <h1>{{ _("Wallet Management") }}</h1>
+        <div class="note">
+            {{ _("Other than core, Spectrum lets you delete wallets. The limitation of core has been") }}<br/>
+            {{ _("surprising effects about wallet naming. This could have lead to inconsitencies which are") }}<br/>
+            {{ _("difficult to solve.") }}<br/>
+            {{ _("Here, you can delete wallets if you really need to. Use it with care!") }}<br/>
+        </div>
+        <div class="table-holder">
+        <table class="space-y-3 max-w-[700px] m-auto min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th scope="col" class="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Version</th>
+                <th scope="col" class="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
+                <th scope="col" class="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Un. Bl.</th>
+                <th scope="col" class="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Imm. Bl.</th>
+                <th scope="col" class="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tx #</th>
+                <th scope="col" class="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keyp</th>
+                <th scope="col" class="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keyp Int</th>
+                <th scope="col" class="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pay Tx Fee</th>
+                <th scope="col" class="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-gray-200">
+              {% for wallet_name, wallet in wallets_dict.items() %}
+              <tr>
+                <td class="py-4 ">{{ wallet['walletname'] }}</td>
+                <td class="py-4 ">{{ wallet['walletversion'] }}</td>
+                <td class="py-4 ">{{ wallet['balance'] }}</td>
+                <td class="py-4 ">{{ wallet['uconfirmed_balance'] }}</td>
+                <td class="py-4 ">{{ wallet['immature_balance'] }}</td>
+                <td class="py-4 ">{{ wallet['txcount'] }}</td>
+                <td class="py-4 ">{{ wallet['keypoolsize'] }}</td>
+                <td class="py-4 ">{{ wallet['keypoolsize_hd_internal'] }}</td>
+                <td class="py-4 ">{{ wallet['paytxfee'] }}</td>
+                <td class="py-4 ">
+                    <form action="{{ url_for('spectrum_endpoint.wallets_post')}}" method="POST">
+                        <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="wallet_name" value="{{ wallet['walletname'] }}"/>
+                        <button type="submit" name="action" value="delete" class="button">
+                            <img src="/static/img/cross_thick.svg" class="w-5">
+                            <tool-tip id="tooltip-wallet-deletion">
+                              <h4 slot="title">{{ _("Wallet deletion") }}</h4>
+                              <span slot="paragraph">
+                                {{ _("Clicking here would delete the Wallet but only on the Spectrum, not in Specter.") }}
+                              </span>
+                            </tool-tip>
+                        </button>
+                    </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        <br/>
+    </div>
+{% endblock %}

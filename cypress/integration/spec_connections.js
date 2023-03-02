@@ -46,7 +46,6 @@ describe('Connecting nodes', () => {
         } 
         else {
           cy.log('Test was skipped: Elementsd was not started by the test script.')
-          Cypress.runner.stop()
         }
       })
     })

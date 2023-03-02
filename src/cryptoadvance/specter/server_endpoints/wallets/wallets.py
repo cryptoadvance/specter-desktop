@@ -11,7 +11,7 @@ from flask_babel import lazy_gettext as _
 from flask_login import login_required
 
 from ...commands.psbt_creator import PsbtCreator
-from ...helpers import bcur2base64, get_devices_with_keys_by_type, get_txid
+from ...helpers import bcur2base64, get_devices_with_keys_by_type, get_txid, alias
 from ...key import Key
 from ...managers.wallet_manager import purposes
 from ...persistence import delete_file
@@ -231,13 +231,6 @@ def new_wallet(wallet_type):
                     ).format(device.name)
                     break
 
-            name = wallet_type.title()
-            wallet_name = name
-            i = 2
-            while wallet_name in app.specter.wallet_manager.wallets_names:
-                wallet_name = "%s %d" % (name, i)
-                i += 1
-
             return render_template(
                 "wallet/new_wallet/new_wallet_keys.jinja",
                 cosigners=devices,
@@ -253,8 +246,8 @@ def new_wallet(wallet_type):
             address_type = request.form["type"]
             sigs_total = int(request.form.get("sigs_total", 1))
             sigs_required = int(request.form.get("sigs_required", 1))
-            if wallet_name in app.specter.wallet_manager.wallets_names:
-                err = _("Wallet already exists")
+            if alias(wallet_name) in app.specter.wallet_manager.wallets_aliases:
+                err = _("Wallet name already exists. Choose a different name!")
             if err:
                 devices = [
                     app.specter.device_manager.get_by_alias(
@@ -805,8 +798,10 @@ def settings(wallet_alias):
                 flash(_("Wallet name cannot be empty"), "error")
             elif wallet_name == wallet.name:
                 pass
-            elif wallet_name in app.specter.wallet_manager.wallets_names:
-                flash(_("Wallet already exists"), "error")
+            elif alias(wallet_name) in app.specter.wallet_manager.wallets_aliases:
+                flash(
+                    _("Wallet name already exists. Choose a different name!"), "error"
+                )
             else:
                 app.specter.wallet_manager.rename_wallet(wallet, wallet_name)
                 flash("Wallet successfully renamed!")
