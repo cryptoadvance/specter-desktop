@@ -112,12 +112,16 @@ def to_ascii20(name: str) -> str:
     return "".join([c for c in name if ord(c) < 127])[:20]
 
 
+# TODO: Rename this function to sth. like create_unique_id
 def alias(name):
     """
     Create a filesystem-friendly alias from a string.
-    Replaces space with _ and keeps only alphanumeric chars.
+    Replaces space(s) and hyphen(s) with one underscore.
+    Keeps only alphanumeric chars and returns in lowercase.
     """
-    name = name.replace(" ", "_")
+    name = name.replace(" ", "_").replace("-", "_")
+    while "__" in name:
+        name = name.replace("__", "_")
     return "".join(x for x in name if x.isalnum() or x == "_").lower()
 
 
