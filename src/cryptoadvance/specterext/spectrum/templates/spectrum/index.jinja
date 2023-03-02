@@ -57,7 +57,6 @@
         </select>
         <div class="lg:flex gap-2 mt-10 justify-end pt-8">
             {% if node_is_available %}
-                <a class="button" href="{{ url_for('spectrum_endpoint.wallets_get')}}">Manage</a>    
                 <button type="submit" class="button" name="action" value="delete">{{ _("Delete") }}</button>
             {% endif %}
             <button type="submit" class="button bg-accent text-white" name="action" value="connect">{{ _("Connect") }}</button>

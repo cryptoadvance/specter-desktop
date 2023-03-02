@@ -150,6 +150,15 @@
 					</div>
 				</text-explainer>
 
+				<text-explainer class="p-3">
+					<span slot="title" class="cursor-pointer">{{ _("Support Tools") }} </span>
+					<div slot="content" class="mb-8">
+						<a href="{{url_for('spectrum_endpoint.wallets_get') }}">
+							Wallet Management
+						</a>
+					</div>
+				</text-explainer>
+
 				<div class="mt-8">
 					<button type="submit" class="button bg-accent text-white" name="action" value="save">{{ _("Save") }}</button>
 				</div>
