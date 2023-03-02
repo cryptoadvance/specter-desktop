@@ -119,9 +119,9 @@ cryptoadvance-liquidissuer==0.2.4 \
     --hash=sha256:5a2c531801854c5a4a46daf184877e22f731cdb42d2cfb840785bda7371ba6fb \
     --hash=sha256:9e468f3e35ecc566b3f74a2263677cf26632548abb194521dba15ad37acd1e9b
     # via -r requirements.in
-cryptoadvance.spectrum==0.5.0 \
-    --hash=sha256:1d17d7e6a54478cac7d935b61f50bb5ea383a96b2fd88f2e9fcdac3233a84bd1 \
-    --hash=sha256:6f6ae02a23ea4f69f7a567ee7b4d3683c9d1ad2d8f93e6c4c85f2de34d66332d
+cryptoadvance.spectrum==0.6.0 \
+    --hash=sha256:3656b2e0abf64ac78347993caa75982e1a1dff2c58099609a391e2d63e781015 \
+    --hash=sha256:db2de32b2719b1490314b2486bdebd21a3939bfe9994ab5001a2faa372e4670a
     # via -r requirements.in
 cryptography==3.4.7 \
     --hash=sha256:0f1212a66329c80d68aeeb39b8a16d54ef57071bf22ff4e521657b27372e327d \
@@ -634,7 +634,9 @@ pysocks==1.7.1 \
     --hash=sha256:08e69f092cc6dbe92a0fdd16eeb9b9ffbc13cadfe5ca4c7bd92ffb078b293299 \
     --hash=sha256:2725bd0a9925919b9b51739eea5f9e2bae91e83288108a9ad338b2e3a4435ee5 \
     --hash=sha256:3f8804571ebe159c380ac6de37643bb4685970655d3bba243530d6558b799aa0
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   cryptoadvance.spectrum
 python-dateutil==2.8.2 \
     --hash=sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86 \
     --hash=sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9

@@ -33,5 +33,5 @@ psycopg2-binary==2.9.5
 cryptoadvance-liquidissuer==0.2.4
 specterext-exfund==0.1.7
 specterext-faucet==0.1.2
-cryptoadvance.spectrum==0.5.0
+cryptoadvance.spectrum==0.6.0
 specterext-stacktrack==0.3.0
