@@ -21,7 +21,7 @@ flask_wtf==0.15.1
 pgpy==0.5.4
 cbor==1.0.0
 mnemonic==0.20
-cryptography==3.4.7
+cryptography==39.0.1
 Flask-APScheduler==1.12.4
 gunicorn==20.1.0
 simple-websocket==0.8.1
