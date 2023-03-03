@@ -61,6 +61,9 @@ class SpectrumNode(AbstractNode):
                 self._ssl,
                 datadir=datadir,
                 app=app,
+                proxy_url=app.specter.proxy_url
+                if app.specter.tor_type != "none"
+                else None,
             )
             logger.debug(f"{self.name} is instantiating its BridgeRPC.")
             self.bridge = BridgeRPC(self.spectrum, app=app)
@@ -167,6 +170,12 @@ class SpectrumNode(AbstractNode):
         if self.spectrum:
             return self.spectrum.ssl
         return self._ssl
+
+    @property
+    def uses_tor(self):
+        if self.spectrum:
+            return self.spectrum.uses_tor
+        return False
 
     @property
     def rpc(self):

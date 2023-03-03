@@ -14,6 +14,7 @@
                 <tr> <td>{{ _("Blocks count") }}</td> <td class="text-right">{{specter.info['blocks']}}</td> </tr>
                 <tr> <td>{{ _("Host") }}</td> <td class="text-right" id="node-info-specter-chain">{{specter.node.host}}</td> </tr>
                 <tr> <td>{{ _("Port") }}</td> <td class="text-right" id="node-info-specter-chain">{{specter.node.port}}</td> </tr>
+                <tr> <td>{{ _("Tor") }}:</td> <td class="text-right" id="node-info-specter-chain">{{specter.node.uses_tor}}</td> </tr>
                 <tr> <td>{{ _("SSL") }}</td> <td class="text-right" id="node-info-specter-chain">{{specter.node.ssl}}</td> </tr>
                 <tr> <td>{{ _("Node uptime") }}</td> <td class="text-right">~ {{(specter.info['uptime'] / 60 // 60) | int }} {{ _("Hours") }}</td> </tr>
             </table>
