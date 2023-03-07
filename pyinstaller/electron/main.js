@@ -490,16 +490,15 @@ function startSpecterd(specterdPath) {
   specterdArgs.push("--no-filelog")
   if (hwiBridgeMode) specterdArgs.push('--hwibridge')
   if (appSettings.specterdCLIArgs != '') {
-    if (specterdArgs == null) {
-      specterdArgs = []
-    }
+    // User has inputed cli arguments in the UI
     let specterdExtraArgs = appSettings.specterdCLIArgs.split(' ')
-    specterdExtraArgs.forEach((arg, index) => specterdExtraArgs[index] = arg.trim())
-    specterdArgs = specterdArgs.concat(specterdExtraArgs)
+    specterdExtraArgs.forEach((arg) => {
+      // Ensures that whitespaces are not used as cli arguments
+      if (arg != '') {
+        specterdArgs.push(arg)
+      }
+    })
   }
-
-
-  logger.info(`Starting specterd ${specterdPath} ${specterdArgs}`);
   // locale fix (copying from nodejs-env + adding locales)
   const options = {
     env: { ...process.env}
