@@ -22,11 +22,11 @@
     - [Connect Specter to Bitcoin Core](#connect-specter-to-bitcoin-core)
   - [Tips and tricks (detailed instructions)](#tips-and-tricks-detailed-instructions)
   - [Errors, doubts.. Read our FAQ!](#errors-doubts-read-our-faq)
-  - [A few screenshots](#a-few-screenshots)
-    - [Adding a new device](#adding-a-new-device)
-    - [Creating a new wallet](#creating-a-new-wallet)
+  - [Setting up Specter Desktop](#setting-up-specter-desktop)
+    - [Select how to connect to Bitcoin network](#select-how-to-connect-to-bitcoin-network)
+    - [Add a new device](#add-a-new-device)
+    - [Create a new wallet](#create-a-new-wallet)
     - [Wallet interface](#wallet-interface)
-    - [Configuration](#configuration)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
