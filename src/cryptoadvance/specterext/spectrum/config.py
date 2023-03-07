@@ -36,6 +36,10 @@ class BaseConfig(object):
     # The one which is chosen at startup
     ELECTRUM_DEFAULT_OPTION = "electrum.emzy.de"
 
+    SUPPRESS_JSONRPC_LOGGING = _get_bool_env_var(
+        "SUPPRESS_JSONRPC_LOGGING", default="false"
+    )
+
 
 # Level 1: How does persistence work?
 # Convention: BlaConfig
@@ -79,7 +83,9 @@ class TestConfig(NigiriLocalElectrumLiteConfig):
 
 
 class DevelopmentConfig(EmzyElectrumLiteConfig):
-    pass
+    SUPPRESS_JSONRPC_LOGGING = _get_bool_env_var(
+        "SUPPRESS_JSONRPC_LOGGING", default="true"
+    )
 
 
 class Development2Config(EmzyElectrumLiteConfig):
@@ -89,6 +95,5 @@ class Development2Config(EmzyElectrumLiteConfig):
 
 
 class ProductionConfig(EmzyElectrumLiteConfig):
-    """Not sure whether we're production ready, though"""
 
     pass
