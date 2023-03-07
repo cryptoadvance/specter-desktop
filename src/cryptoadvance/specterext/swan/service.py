@@ -11,7 +11,12 @@ from cryptoadvance.specter.specter_error import SpecterError
 
 from cryptoadvance.specter.user import User
 
-from cryptoadvance.specter.services.service import Service, devstatus_prod
+from cryptoadvance.specter.services.service import (
+    Service,
+    devstatus_alpha,
+    devstatus_beta,
+    devstatus_prod,
+)
 from cryptoadvance.specter.addresslist import Address
 from cryptoadvance.specter.wallet import Wallet
 from urllib.parse import urlparse
@@ -28,7 +33,7 @@ class SwanService(Service):
     has_blueprint = True
     blueprint_module = "cryptoadvance.specterext.swan.controller"
     isolated_client = False
-    devstatus = devstatus_prod
+    devstatus = devstatus_alpha
     encrypt_data = True
 
     # TODO: As more Services are integrated, we'll want more robust categorization and sorting logic
