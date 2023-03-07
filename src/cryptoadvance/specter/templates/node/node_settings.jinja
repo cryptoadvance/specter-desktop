@@ -116,7 +116,10 @@
 				{% if node_alias %}
 					<button type="submit" name="action" value="delete" class="button">{{ _("Delete") }}</button>
 				{% endif %}
-				<button type="submit" class="button bg-accent text-white" name="action" value="connect" data-cy="connect-btn">{{ _("Connect") }}</button>
+				<button id="connect-btn" type="submit" class="button bg-accent text-white" name="action" value="connect" data-cy="connect-btn">
+					<span id="connect-text">{{ _("Connect") }}</span>
+                	<img class="hidden rounded-full w-4 h-4 animate-spin" id="connecting-indicator" src="{{ url_for('static', filename='img/refresh.svg') }}"/>
+				</button>
 			</div>
 
 			{% if failed_test %}
@@ -233,6 +236,14 @@
 			connectionNameElement.style.display = 'none';
 		}
     }
+
+	const connectBtn = document.getElementById('connect-btn')
+    const connectText = document.getElementById('connect-text');
+    const connectingIndicator = document.getElementById('connecting-indicator')
+    connectBtn.addEventListener('click', () => {
+        connectText.classList.add('hidden')
+        connectingIndicator.classList.remove('hidden')
+    })
 
 </script>
 {% endblock %}
