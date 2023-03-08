@@ -1,0 +1,39 @@
+{% extends "graphql/components/graphql_tab.jinja" %}
+{% block title %}Settings{% endblock %}
+{% set tab = 'settings_get' %}
+{% block content %}
+    <br/>
+
+    <div class="card">
+        <h1>{{ _("Configure your extension") }}</h1>
+        <br>
+
+        <div class="note">
+            {{ _("- This might be the place to configure the GraphQL Extension") }}<br/>
+            {{ _("- Maybe deactivating it at all?") }}<br/>
+        </div>
+        <br/>
+
+        <form action="{{ url_for(service.get_blueprint_name() + '.settings_post') }}" method="POST" role="form">
+            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
+            
+            <div>Show Menu Item:</div>
+            <select name="show_menu">
+                <option value="yes"   {% if show_menu == 'yes' %}selected{% endif %}>Yes</option>
+                <option value="no"    {% if show_menu == 'no'  %}selected{% endif %}>No</option>
+            </select>
+            <br/>
+            <br/>
+            
+            <div class="row">
+                <button type="submit" class="btn">{{ _("Save") }}</button>
+            </div>
+
+        </form>
+    </div>
+    <br/>
+    <br/>
+    <br/>
+
+
+{% endblock %}
