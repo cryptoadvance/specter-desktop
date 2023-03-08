@@ -176,9 +176,6 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
 
     specter.initialize()
 
-    # HWI
-    specter.hwi = HWIBridge()
-
     login_manager = LoginManager()
     login_manager.session_protection = app.config.get("SESSION_PROTECTION", "strong")
     login_manager.init_app(app)  # Enable Login
@@ -204,16 +201,15 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     # Executing callback specter_added_to_flask_app
     app.logger.info("Executing callback specter_added_to_flask_app ...")
     specter.service_manager.execute_ext_callbacks(specter_added_to_flask_app)
+    app.logger.info("Initializing Controller ...")
     if specter.config["auth"].get("method") == "none":
         app.logger.info("Login disabled")
         app.config["LOGIN_DISABLED"] = True
     else:
         app.logger.info("Login enabled")
         app.config["LOGIN_DISABLED"] = False
-    app.logger.info("Initializing Controller ...")
-    app.register_blueprint(hwi_server, url_prefix="/hwi")
-    csrf.exempt(hwi_server)
-    if not hwibridge:
+
+    if app.config.get("OPERATIONAL_MODE", "specter") == "specter":
         with app.app_context():
             from cryptoadvance.specter.server_endpoints import controller
             from cryptoadvance.specter.services import controller as serviceController
@@ -239,11 +235,6 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
                 logger.info("Reloading controllers")
                 importlib.reload(controller)
                 importlib.reload(serviceController)
-    else:
-
-        @app.route("/", methods=["GET"])
-        def index():
-            return redirect(url_for("hwi_server.hwi_bridge_settings"))
 
     if app.config["SPECTER_API_ACTIVE"]:
         app.logger.info("Initializing REST ...")

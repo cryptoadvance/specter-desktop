@@ -1,6 +1,7 @@
 import logging
 
 from flask import current_app as app
+from flask import redirect, url_for
 from flask_apscheduler import APScheduler
 
 from cryptoadvance.specter.services.service import (
@@ -67,6 +68,13 @@ class HwiService(Extension):
         app.specter.hwi = HWIBridge()
         app.register_blueprint(hwi_server, url_prefix="/hwi")
         app.csrf.exempt(hwi_server)
+        if (
+            app.config.get("OPERATIONAL_MODE", "specter") == "hwibridge"
+        ):  # default is specter -> do not activate
+
+            @app.route("/", methods=["GET"])
+            def index():
+                return redirect(url_for("hwi_server.hwi_bridge_settings"))
 
     @classmethod
     def get_associated_wallet(cls) -> Wallet:
