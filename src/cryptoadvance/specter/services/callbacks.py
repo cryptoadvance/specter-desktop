@@ -19,6 +19,9 @@
 
 class Callback:
     return_style = "collect"
+    # This will cause the extension_executor to logger.debug about the call
+    # This might mostly be annoying but good for one-off callbacks
+    debug = False
 
 
 class afterExtensionManagerInit(Callback):
@@ -27,6 +30,7 @@ class afterExtensionManagerInit(Callback):
     """
 
     id = "afterExtensionManagerInit"
+    debug = True
 
 
 class after_serverpy_init_app(Callback):
@@ -37,6 +41,7 @@ class after_serverpy_init_app(Callback):
     """
 
     id = "after_serverpy_init_app"
+    debug = True
 
 
 class add_settingstabs(Callback):
@@ -91,6 +96,7 @@ class specter_added_to_flask_app(Callback):
     """
 
     id = "specter_added_to_flask_app"
+    debug = True
 
 
 class flash(Callback):
@@ -105,6 +111,7 @@ class cleanup_on_exit(Callback):
     """
 
     id = "cleanup_on_exit"
+    debug = True
 
 
 # ToDo: Think about this callback as it's specific to the notification-extension
