@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html class="bg-dark-900 overflow-hidden max-h-screen">
 	<head>
-		<title>{{ _("Specter Desktop") }}</title>
+		<title>{{ _("Specter") }}</title>
 
-		<link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='img/icon.png') }}"/>
+		<!-- Light mode favicon by default -->
+		<link id="favicon" rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='img/favicon-light-mode.png') }}"/>
+		<script type="text/javascript" src="{{ url_for('static', filename='favicon.js') }}"></script>
 
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta name="format-detection" content="telephone=no">
@@ -86,7 +88,7 @@
 						{% endif %}
 					{% endwith %}
 					{% if error %}
-						<message-box type="error">{{ _("ERROR:") }} {{error | safe }}</message-box>
+						<message-box type="error">{{error | safe }}</message-box>
 					{% endif %}
 				</div>
 

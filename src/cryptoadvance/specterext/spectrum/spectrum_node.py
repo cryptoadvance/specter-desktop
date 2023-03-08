@@ -61,6 +61,9 @@ class SpectrumNode(AbstractNode):
                 self._ssl,
                 datadir=datadir,
                 app=app,
+                proxy_url=app.specter.proxy_url
+                if app.specter.tor_type != "none"
+                else None,
             )
             logger.debug(f"{self.name} is instantiating its BridgeRPC.")
             self.bridge = BridgeRPC(self.spectrum, app=app)
@@ -121,14 +124,6 @@ class SpectrumNode(AbstractNode):
             # If there is no Spectrum object, there can't be a (socket) connection
             return False
 
-    def check_blockheight(self):
-        """This naive implementation always returns True: Claiming that new blocks have arrived, we're forcing
-        the caller to always recalculate everything.
-        That's possible because calling those rpc-calls on spectrum's side is cheap.
-        It might not be cheap on Specter's side but that's for Specter to optimize!
-        """
-        return True
-
     @property
     def spectrum(self):
         """Returns None if the Spectrum node has no Spectrum object"""
@@ -175,6 +170,12 @@ class SpectrumNode(AbstractNode):
         if self.spectrum:
             return self.spectrum.ssl
         return self._ssl
+
+    @property
+    def uses_tor(self):
+        if self.spectrum:
+            return self.spectrum.uses_tor
+        return False
 
     @property
     def rpc(self):
@@ -224,6 +225,10 @@ class SpectrumNode(AbstractNode):
 
     def node_connection_template(self):
         return "spectrum/components/spectrum_node_connection.jinja"
+
+    def no_tx_hint(self):
+        """Returns the path to a template with some basic html and and a hint text to be used in the Transactions tab if there are no transactions"""
+        return "spectrum/components/spectrum_no_tx_hint.jinja"
 
     @property
     def taproot_support(self):

@@ -47,6 +47,9 @@
             document.getElementById("txt").value = result;
         });
 
+        // This is needed to access the scanner object from outside of the module
+        window.scanner = scanner
+
         document.getElementById("scanme").addEventListener("click", function(){
             try{
                 scanner.start();
@@ -83,4 +86,18 @@
 			});
 		}
 	});
+
+	function onCancelOverlay() {
+        if (window.scanner) {
+            document.getElementById("popup").style.display = 'none';
+            window.scanner.stop();
+        }
+	}
+
+    // Deletes the global scanner property again if there is a reload
+    window.addEventListener('unload', () => {
+        if (window.scanner) {
+            delete window.scanner
+        }
+    })
 </script>

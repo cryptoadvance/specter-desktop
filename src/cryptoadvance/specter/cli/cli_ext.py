@@ -42,9 +42,7 @@ def ext():
     default=None,
     help="Whether the extension should be isolated on the client",
 )
-@click.option(
-    "--devicename", "devicename", default=None, help="Use a specific organsiation"
-)
+@click.option("--devicename", "devicename", default=None, help="Implement a device")
 @click.option(
     "--tmpl-fs-source",
     "tmpl_fs_source",

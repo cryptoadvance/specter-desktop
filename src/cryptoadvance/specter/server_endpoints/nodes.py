@@ -558,8 +558,19 @@ def rename_node():
 @nodes_endpoint.route("sync_status/", methods=["GET"])
 @login_required
 def check_sync_status():
-    if app.specter.info.get("initialblockdownload") == True:
+    if app.specter.node.rpc.getblockchaininfo()["initialblockdownload"] == True:
         response = {"fullySynced": False}
     else:
         response = {"fullySynced": True}
+    return jsonify(response)
+
+
+# Currently only used for Spectrum
+@nodes_endpoint.route("sync_progress/", methods=["GET"])
+@login_required
+def get_sync_progress():
+    sync_progress = (
+        app.specter.node.rpc.getblockchaininfo()["verificationprogress"] * 100
+    )
+    response = {"syncProgress": sync_progress}
     return jsonify(response)

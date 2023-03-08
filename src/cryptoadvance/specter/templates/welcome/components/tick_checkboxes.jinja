@@ -1,4 +1,4 @@
-<h2 class="mt-8 mb-2">{{ _('Getting Started') }}</h2>
+<h2 class="mt-8 mb-2">{{ _('Getting Started with Bitcoin Core') }}</h2>
 
 <table class="mb-10">
     <tbody>
@@ -7,8 +7,8 @@
                 <img class="h-6 w-6" src="{{ url_for('static', filename='img/checkbox-' + ('un' if not specter.chain else '') + 'tick.svg') }}">
             </td>
             <td>
-                <a href="{{ url_for('setup_endpoint.node_type') }}">
-                    <p>{{ _("Connect to the bitcoin network") }}</p>
+                <a href="{{ url_for('nodes_endpoint.node_settings')}}">
+                    <p>{{ _("Connect to the Bitcoin network") }}</p>
                 </a>
             </td>
             <td>

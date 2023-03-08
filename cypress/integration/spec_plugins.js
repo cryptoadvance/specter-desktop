@@ -9,7 +9,7 @@ describe('Test plugins', () => {
         cy.get('main').contains('Addresses').click()
          // Click on the first address
         cy.contains('td', '#0').siblings().contains('bcrt').click()
-        cy.get('#associate-btn').click()
+        cy.get('[data-cy="associate-address-with-service-btn"]').click()
         cy.contains("Service integration requires an authentication method that includes a password")
         // OK, let's set a password
         cy.get('select').select("passwordonly")

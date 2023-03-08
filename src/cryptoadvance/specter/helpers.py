@@ -112,12 +112,17 @@ def to_ascii20(name: str) -> str:
     return "".join([c for c in name if ord(c) < 127])[:20]
 
 
+# TODO: Rename this function to sth. like create_unique_id
 def alias(name):
     """
     Create a filesystem-friendly alias from a string.
-    Replaces space with _ and keeps only alphanumeric chars.
+    Leading and trailing whitespaces are removed.
+    Replaces space(s) and hyphen(s) with one underscore.
+    Keeps only alphanumeric chars and returns in lowercase.
     """
-    name = name.replace(" ", "_")
+    name = name.strip().replace(" ", "_").replace("-", "_")
+    while "__" in name:
+        name = name.replace("__", "_")
     return "".join(x for x in name if x.isalnum() or x == "_").lower()
 
 
@@ -176,7 +181,7 @@ def set_loglevel(app, loglevel_string):
         % loglevel_string
     )
     loglevels = {"WARN": logging.WARN, "INFO": logging.INFO, "DEBUG": logging.DEBUG}
-    logging.getLogger().setLevel(loglevels[loglevel_string])
+    logging.getLogger("cryptoadvance").setLevel(loglevels[loglevel_string])
     logger.warning("Loglevel-Test: This is a warn-message!")
     logger.info("Loglevel-Test: This is an info-message!")
     logger.debug("Loglevel-Test: This is an debug-message!")

@@ -28,22 +28,28 @@ describe('Connecting nodes', () => {
     })
   
     it('Connect with Liquid node', () => {
-      cy.get('#node-switch-icon').click()
-      cy.get('[data-cy="new-connection-btn"]').click()
-      cy.get('#name').clear()
-      cy.get('#name').type("Liquid")
-      cy.get('#username').clear()
-      cy.get('#username').type('liquid')
-      cy.get('#password').clear()
-      cy.get('#password').type('secret')
-      cy.get('#host').clear()
-      cy.get('#host').type('http://localhost')
-      cy.get('#port').clear()
-      cy.get('#port').type(8040)
-      cy.get('[data-cy="connect-btn"]').click()
+      cy.isElementsRunning().then((isRunning) => {
+        if (isRunning) {
+          cy.get('#node-switch-icon').click()
+          cy.get('[data-cy="new-connection-btn"]').click()
+          cy.get('#name').clear()
+          cy.get('#name').type("Liquid")
+          cy.get('#username').clear()
+          cy.get('#username').type('liquid')
+          cy.get('#password').clear()
+          cy.get('#password').type('secret')
+          cy.get('#host').clear()
+          cy.get('#host').type('http://localhost')
+          cy.get('#port').clear()
+          cy.get('#port').type(8040)
+          cy.get('[data-cy="connect-btn"]').click()
+        } 
+        else {
+          cy.log('Test was skipped: Elementsd was not started by the test script.')
+        }
+      })
     })
 
-    // TODO: For testing the deletion we could delete the Liquid connection here if we don't run the Liquid tests
     it('Select Bitcoin Core connection', () => {
       cy.get('#node-switch-icon').click()
       cy.contains('Bitcoin Core').click()
@@ -53,7 +59,6 @@ describe('Connecting nodes', () => {
     it('Check sync status of Bitcoin Core node', () => {
       cy.intercept("GET", "/nodes/sync_status/", {'fullySynced': false});
       cy.visit('/')
-      cy.contains('Your Bitcoin node is syncing.')
       cy.get('[data-cy="unfinished-sync-indicator"]').should('be.visible')
     })   
   

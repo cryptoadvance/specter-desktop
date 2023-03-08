@@ -55,8 +55,8 @@ class BridgeRPC(BitcoinRPC):
         raise SpecterError("Using merkle proofs is not supported with Spectrum.")
 
     def rescanblockchain(self, *args, **kwargs):
-        """Not implemented."""
-        raise SpecterError("No rescan of the blockchain with Spectrum.")
+        """Not implemented as it's not needed. In order to keep compatibility, we're simply passing"""
+        pass
 
     def multi(self, calls: list, **kwargs):
         """Makes batch request to Core"""

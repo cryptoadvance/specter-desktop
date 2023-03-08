@@ -1,19 +1,6 @@
 <template id="tx-data">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
 
-    <!-- <div style="display: none;"><!--<style>-1->-->
-    <!--     .tx-data-table td {-->
-    <!--         text-align: left;-->
-    <!--     }-->
-    <!--     .tx_info {-->
-    <!--         padding: 1em;-->
-    <!--         border: 1px solid #506072;-->
-    <!--         border-radius: 4px;-->
-    <!--         text-align: center;-->
-    <!--         margin-bottom: 2em;-->
-    <!--     }-->
-    <!-- </div><!--</style>-1->-->
-
     <div class="tx-data bg-dark-800 rounded-xl p-4">
         <div class="flex justify-between mb-2">
             <h3 class="mb-0">{{ _("Transaction Details") }}</h3>
@@ -105,7 +92,7 @@
                 rawtxHTML += `
                 <table class="tx-data-table -mx-4 mt-8">
                 <tbody>
-                <tr><td><span class="optional">{{ _("Transaction id") }}:</span><span class="mobile-only">TxID:</span></td><td data-style="word-break: break-all;"><explorer-link data-type="tx" data-value="${this.txid}"></explorer-link></td></tr>
+                <tr><td><span class="optional">{{ _("Transaction ID") }}:</span></td><td data-style="word-break: break-all;"><explorer-link data-type="tx" data-value="${this.txid}"></explorer-link></td></tr>
                 <tr><td>From wallet:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
                 <tr><td>Size:</td><td>${rawtx.vsize} vbytes <span class="note">(${rawtx.size} bytes)</span></td></tr>
                 `;

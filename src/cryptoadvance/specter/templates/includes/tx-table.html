@@ -157,26 +157,11 @@
             display: flex;
             justify-content: center;
         }
-        .rescan-hint {
+        .no-tx-hint {
             display: flex;
             flex-direction: column;
             align-items: center;
             font-size: 1.1em;
-        }
-        .go-to-rescan-btn {
-            max-width: 175px;
-            margin: 0 0 5px 0;
-            border: 1px solid var(--cmap-border);
-            border-radius: 0.5em;
-            background-color: var(--cmap-border);
-            padding: 0.8em;
-            text-align: center;
-            font-weight: 250;
-        }
-        .go-to-rescan-btn:hover {
-            background-color: var(--cmap-border);
-            border: 1px solid var(--main-color);
-            text-decoration: none;
         }
         .empty-row {
             display: table-row;
@@ -308,10 +293,7 @@
             <thead id=""table-header>
                 <tr id="feedback-row" class="hidden">
                     <td id="feedback-row-content">
-                        <div id="rescan-hint" class="hidden">
-                            <p>{{_('Is this not a fresh wallet? Did you expect transactions here? Then click') }} &#128071; {{_('to find them') }}</p>
-                            <a id="go-to-rescan-btn" href="{{ url_for('wallets_endpoint.settings', wallet_alias=wallet_alias, rescan_blockchain=True) }}" class="go-to-rescan-btn btn">Go to blockchain rescan</a>
-                        </div>
+                        {% include specter.node.no_tx_hint() %}
                     </td>
                 </tr>
                 <tr id="empty-row" class="hidden">
@@ -372,7 +354,7 @@
             // Feedback row
             this.feedbackRow = clone.getElementById('feedback-row');
             this.feedbackRowContent = clone.getElementById('feedback-row-content')
-            this.rescanHint = clone.getElementById('rescan-hint')
+            this.noTxHint = clone.getElementById('no-tx-hint')
 
             // Empty row
             this.emptyRow = clone.getElementById('empty-row')
@@ -932,15 +914,15 @@
                     this.tableHeader.classList.add('hidden');
                     this.feedbackRow.classList.add('feedback-row');
                     this.feedbackRow.classList.remove('hidden');
-                    this.rescanHint.classList.remove('hidden')
-                    this.rescanHint.classList.add('rescan-hint')
+                    this.noTxHint.classList.remove('hidden')
+                    this.noTxHint.classList.add('no-tx-hint')
                     this.pageCount = 1;
                 } else {
                     this.tableHeader.classList.remove('hidden');
                     this.feedbackRow.classList.remove('feedback-row');
                     this.feedbackRow.classList.add('hidden');
-                    this.rescanHint.classList.remove('rescan-hint')
-                    this.rescanHint.classList.add('hidden');
+                    this.noTxHint.classList.remove('no-tx-hint')
+                    this.noTxHint.classList.add('hidden');
                 }
 
                 // If index is greater than the pages count fetch again for the last page
@@ -1194,7 +1176,7 @@
             data-txid="${txid}"
             data-tx-wallet="${wallet}">
             </tx-data>`;
-            showPageOverlay('tx-popup');
+            showPageOverlay('tx-popup', null, 'start');
         } else {
             copyText(txid, `{{ _("Copied transaction") }}: ${ txid }`);
         }

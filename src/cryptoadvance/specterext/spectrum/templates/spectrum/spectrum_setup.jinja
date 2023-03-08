@@ -2,7 +2,7 @@
 
 {% block main %}
 <div>
-    <h1>{{ _("Spectrum - Connecting Specter to Electrum") }}</h1><br>
+    <h1>{{ _("Connect with Electrum") }}</h1>
     <div>
         {% if host_type == "list" %}
             {% if success %}
@@ -50,10 +50,12 @@
 
 <script>
     let backButton = document.getElementById('back-button');
-    backButton.setAttribute('href', document.referrer); // Just to have the link preview and open in a new tab functionality, probably not needed here
-    backButton.addEventListener('click', () => {
-        history.back();
-        return false;
-    })
+    if (backButton) {
+        backButton.setAttribute('href', document.referrer); // Just to have the link preview and open in a new tab functionality, probably not needed here
+        backButton.addEventListener('click', () => {
+            history.back();
+            return false;
+        })
+    }
 </script>
 {% endblock %}
