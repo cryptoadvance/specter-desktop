@@ -22,7 +22,7 @@ from flask.blueprints import Blueprint
 
 from cryptoadvance.specter.util.specter_migrator import SpecterMigration
 
-from ...services.service import Service, ServiceOptionality
+from ...services.service import Extension, ServiceOptionality
 from ...services import callbacks, ExtensionException
 from ...util.reflection import (
     _get_module_from_class,
@@ -37,15 +37,15 @@ logger = logging.getLogger(__name__)
 
 
 class ExtensionManager:
-    """Loads support for all Services it auto-discovers."""
+    """Loads support for all Extensions it auto-discovers."""
 
     def __init__(self, specter, devstatus_threshold):
         self.specter = specter
         specter.ext = {}
         self.devstatus_threshold = devstatus_threshold
 
-        # Each Service class is stored here, keyed on its Service.id str
-        self._services: Dict[str, Service] = {}
+        # Each Extension class is stored here, keyed on its Extension.id str
+        self._services: Dict[str, Extension] = {}
         logger.info("----> starting service discovery Static")
         # How do we discover services? Two configs are relevant:
         # * SERVICES_LOAD_FROM_CWD (boolean, CWD is current working directory)
@@ -54,12 +54,12 @@ class ExtensionManager:
         # in the corresponding (Production)Config
         logger.debug(f"EXTENSION_LIST = {app.config.get('EXTENSION_LIST')}")
         class_list = get_classlist_of_type_clazz_from_modulelist(
-            Service, app.config.get("EXTENSION_LIST", [])
+            Extension, app.config.get("EXTENSION_LIST", [])
         )
 
         if app.config.get("SERVICES_LOAD_FROM_CWD", False):
             logger.info("----> starting service discovery dynamic")
-            class_list.extend(get_subclasses_for_clazz_in_cwd(Service))
+            class_list.extend(get_subclasses_for_clazz_in_cwd(Extension))
         else:
             logger.info("----> skipping service discovery dynamic")
         logger.info("----> starting service loading")
@@ -67,7 +67,9 @@ class ExtensionManager:
         for clazz in class_list:
             compare_map = {"alpha": 1, "beta": 2, "prod": 3}
             if compare_map[self.devstatus_threshold] <= compare_map[clazz.devstatus]:
-                logger.info(f"Loading Service {clazz.__name__} from {clazz.__module__}")
+                logger.info(
+                    f"Loading Extension {clazz.__name__} from {clazz.__module__}"
+                )
                 # First configure the service
                 self.configure_service_for_module(clazz)
                 # Now activate it
@@ -79,10 +81,10 @@ class ExtensionManager:
                 # maybe register the blueprint
                 self.register_blueprint_for_ext(clazz, self._services[clazz.id])
                 self.register_devices_from_ext(self._services[clazz.id])
-                logger.info(f"Service {clazz.__name__} activated ({clazz.devstatus})")
+                logger.info(f"Extension {clazz.__name__} activated ({clazz.devstatus})")
             else:
                 logger.info(
-                    f"Service {clazz.__name__} not activated due to devstatus ( {self.devstatus_threshold} > {clazz.devstatus} )"
+                    f"Extension {clazz.__name__} not activated due to devstatus ( {self.devstatus_threshold} > {clazz.devstatus} )"
                 )
         logger.info("----> finished service processing")
         self.callback_executor = CallbackExecutor(self.services)
@@ -144,7 +146,7 @@ class ExtensionManager:
                     f"""
                     There was an issue finding a controller module:
                     {e}
-                    That module was specified in the Service class of service {clazz.id}
+                    That module was specified in the Extension class of service {clazz.id}
                     check that specification in {clazz.__module__}
                 """
                 )
@@ -270,7 +272,7 @@ class ExtensionManager:
                 module = import_module(f"{org}.specterext.{clazz.id}.config")
             except ModuleNotFoundError:
                 logger.warning(
-                    f"  Service {clazz.id} does not have a service Configuration! Skipping!"
+                    f"  Extension {clazz.id} does not have a service Configuration! Skipping!"
                 )
                 return
         main_config_clazz_name = app.config.get("SPECTER_CONFIGURATION_CLASS_FULLNAME")
@@ -298,12 +300,12 @@ class ExtensionManager:
                     return
             config_candidate_class = config_candidate_class.__bases__[0]
         logger.warning(
-            f"Could not find a configuration for Service {module}. Skipping configuration."
+            f"Could not find a configuration for Extension {module}. Skipping configuration."
         )
 
     @classmethod
     def import_config(cls, clazz):
-        logger.info(f"  Loading Service-specific configuration from {clazz}")
+        logger.info(f"  Loading Extension-specific configuration from {clazz}")
         for key in dir(clazz):
             if key.isupper():
                 if app.config.get(key):
@@ -323,7 +325,7 @@ class ExtensionManager:
         )
 
     @property
-    def services(self) -> Dict[str, Service]:
+    def services(self) -> Dict[str, Extension]:
         return self._services or {}
 
     @property
@@ -362,7 +364,7 @@ class ExtensionManager:
             )
             ext.active = ext.id in service_names_active
 
-    def get_service(self, plugin_id: str) -> Service:
+    def get_service(self, plugin_id: str) -> Extension:
         """get an extension-instance by ID. Raises an ExtensionException if it doesn't find it."""
         if plugin_id not in self._services:
             raise ExtensionException(f"No such plugin: '{plugin_id}'")
@@ -430,7 +432,7 @@ class ExtensionManager:
 
         arr = [
             Path(Path(_get_module_from_class(clazz).__file__).parent, x)
-            for clazz in get_subclasses_for_clazz(Service)
+            for clazz in get_subclasses_for_clazz(Extension)
         ]
         logger.info(f"Initial arr:")
         for element in arr:
@@ -480,12 +482,12 @@ class ExtensionManager:
         """returns a list of strings containing the service-classes (+ controller +config-classes +devices +migrations)
         This is used for hiddenimports in pyinstaller
         """
-        arr = get_subclasses_for_clazz(Service)
+        arr = get_subclasses_for_clazz(Extension)
         arr.extend(get_subclasses_for_clazz(SpecterMigration))
         logger.info(f"initial arr: {arr}")
         arr.extend(
             get_classlist_of_type_clazz_from_modulelist(
-                Service, ProductionConfig.EXTENSION_LIST
+                Extension, ProductionConfig.EXTENSION_LIST
             )
         )
         logger.info(f"After extending: {arr}")
