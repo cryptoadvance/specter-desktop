@@ -61,7 +61,7 @@ def get_package_dir_for_subclasses_of(clazz):
                 "migrations",
             ).resolve()
         )
-    elif clazz.__name__ == "Service":
+    elif clazz.__name__ == "Service" or clazz.__name__ == "Extension":
         # here, we'd like to know the Path of the namespace module cryptoadvance.specterext
         # but that fails because you cannot import namespace-modules.
         # So we take a module that we know exists and take its parent.
@@ -77,7 +77,7 @@ def get_package_dir_for_subclasses_of(clazz):
                 import_module("cryptoadvance.specter.devices").__file__
             ).parent.resolve()
         )
-    raise SpecterError("Unknown Class: {clazz}")
+    raise SpecterError(f"Unknown Class: {clazz}")
 
 
 # --------------- static discovery ------------------------------

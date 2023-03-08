@@ -533,6 +533,13 @@ class ExtensionManager:
                 arr.append(controller_package)
             except ImportError:
                 pass
+            except TypeError as e:
+                if str(e).startswith(
+                    "the 'package' argument is required to perform a relative import for"
+                ):
+                    pass
+                else:
+                    raise e
             except AttributeError:
                 # something like:
                 # AttributeError: type object 'BitcoinReserveService' has no attribute 'blueprint'
@@ -550,6 +557,13 @@ class ExtensionManager:
                 arr.append(config_package)
             except ModuleNotFoundError as e:
                 pass
+            except TypeError as e:
+                if str(e).startswith(
+                    "the 'package' argument is required to perform a relative import for"
+                ):
+                    pass
+                else:
+                    raise e
         arr = list(dict.fromkeys(arr))
         return arr
 
