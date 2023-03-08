@@ -1,17 +1,22 @@
 import logging
 
+from flask import current_app as app
+from flask_apscheduler import APScheduler
+
 from cryptoadvance.specter.services.service import (
     Extension,
+    Service,
     devstatus_alpha,
-    devstatus_prod,
     devstatus_beta,
+    devstatus_prod,
 )
 
 # A SpecterError can be raised and will be shown to the user as a red banner
 from cryptoadvance.specter.specter_error import SpecterError
-from flask import current_app as app
 from cryptoadvance.specter.wallet import Wallet
-from flask_apscheduler import APScheduler
+from cryptoadvance.specterext.hwi.hwi_rpc import HWIBridge
+
+from .hwi_server import hwi_server
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +61,12 @@ class HwiService(Extension):
 
     # There might be other callbacks you're interested in. Check the callbacks.py in the specter-desktop source.
     # if you are, create a method here which is "callback_" + callback_id
+
+    def callback_specter_added_to_flask_app(self):
+        # HWI
+        app.specter.hwi = HWIBridge()
+        app.register_blueprint(hwi_server, url_prefix="/hwi")
+        app.csrf.exempt(hwi_server)
 
     @classmethod
     def get_associated_wallet(cls) -> Wallet:
