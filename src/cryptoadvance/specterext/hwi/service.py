@@ -41,30 +41,7 @@ class HwiService(Extension):
     # Those will end up as keys in a json-file
     SPECTER_WALLET_ALIAS = "wallet"
 
-    def callback_after_serverpy_init_app(self, scheduler: APScheduler):
-        def every5seconds(hello, world="world"):
-            with scheduler.app.app_context():
-                print(f"Called {hello} {world} every5seconds")
-
-        # Here you can schedule regular jobs. triggers can be one of "interval", "date" or "cron"
-        # Examples:
-        # interval: https://apscheduler.readthedocs.io/en/3.x/modules/triggers/interval.html
-        # scheduler.add_job("every5seconds4", every5seconds, trigger='interval', seconds=5, args=["hello"])
-
-        # Date: https://apscheduler.readthedocs.io/en/3.x/modules/triggers/date.html
-        # scheduler.add_job("MyId", my_job, trigger='date', run_date=date(2009, 11, 6), args=['text'])
-
-        # cron: https://apscheduler.readthedocs.io/en/3.x/modules/triggers/cron.html
-        # sched.add_job("anotherID", job_function, trigger='cron', day_of_week='mon-fri', hour=5, minute=30, end_date='2014-05-30')
-
-        # Maybe you should store the scheduler for later use:
-        self.scheduler = scheduler
-
-    # There might be other callbacks you're interested in. Check the callbacks.py in the specter-desktop source.
-    # if you are, create a method here which is "callback_" + callback_id
-
     def callback_specter_added_to_flask_app(self):
-        # HWI
         app.specter.hwi = HWIBridge()
         app.register_blueprint(hwi_server, url_prefix="/hwi")
         app.csrf.exempt(hwi_server)
