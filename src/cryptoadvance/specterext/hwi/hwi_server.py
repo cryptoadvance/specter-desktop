@@ -13,7 +13,7 @@ from .helpers import hwi_get_config, save_hwi_bridge_config
 from cryptoadvance.specter.helpers import deep_update
 from cryptoadvance.specter.server_endpoints import flash
 
-from .hwi_rpc import HWIBridge
+from .hwi_rpc_hwilib import HWILibBridge
 
 logger = logging.getLogger(__name__)
 

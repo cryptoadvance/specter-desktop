@@ -12,23 +12,23 @@
 import logging
 import io
 import pytest
-from cryptoadvance.specterext.hwi.hwi_rpc import HWIBridge
+from cryptoadvance.specterext.hwi.hwi_rpc_hwilib import HWILibBridge
 from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.util.descriptor import Descriptor
 
 
-@pytest.mark.skip()
+@pytest.mark.manual
 def test_trezor(caplog, monkeypatch):
     """In order to get this test working, you have to run it with "-s":
     pytest tests/test_hwi_rpc.py::test_enumerate_trezor  -vv -s
     """
     caplog.set_level(logging.DEBUG)
 
-    hwi = HWIBridge()
+    hwi = HWILibBridge()
     # bla = hwi.detect_device()
 
     res = hwi.enumerate(passphrase="")[0]
-    print(res)
+    print(f"type(result) = {type(res)}")
     # seems to be normal
     assert res["type"] == "trezor"
     assert res["model"] == "trezor_1"
@@ -42,6 +42,7 @@ def test_trezor(caplog, monkeypatch):
         assert res["success"] == True
         # monkeypatch.setattr('sys.stdin', io.StringIO('my input'))
         pin = input("Enter pin: ")
+        print(f"pin entered: {pin}")
 
         res = hwi.send_pin(pin, device_type="trezor", passphrase="")
         assert res["success"] == True
@@ -66,7 +67,7 @@ def test_trezor(caplog, monkeypatch):
 def test_jade(caplog):
     caplog.set_level(logging.DEBUG)
 
-    hwi = HWIBridge()
+    hwi = HWILibBridge()
     # bla = hwi.detect_device()
 
     res = hwi.enumerate(passphrase="")[0]

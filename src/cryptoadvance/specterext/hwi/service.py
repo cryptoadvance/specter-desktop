@@ -15,7 +15,7 @@ from cryptoadvance.specter.services.service import (
 # A SpecterError can be raised and will be shown to the user as a red banner
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.wallet import Wallet
-from cryptoadvance.specterext.hwi.hwi_rpc import HWIBridge
+from cryptoadvance.specterext.hwi.hwi_rpc_hwilib import HWILibBridge
 
 from .hwi_server import hwi_server
 
@@ -42,7 +42,7 @@ class HwiService(Extension):
     SPECTER_WALLET_ALIAS = "wallet"
 
     def callback_specter_added_to_flask_app(self):
-        app.specter.hwi = HWIBridge()
+        app.specter.hwi = HWILibBridge()
         app.register_blueprint(hwi_server, url_prefix="/hwi")
         app.csrf.exempt(hwi_server)
         if (

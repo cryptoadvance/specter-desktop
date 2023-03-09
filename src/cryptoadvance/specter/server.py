@@ -20,7 +20,6 @@ from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.wrappers import Response
 
-from cryptoadvance.specterext.hwi.hwi_rpc import HWIBridge
 from cryptoadvance.specter.liquid.rpc import LiquidRPC
 from cryptoadvance.specter.managers.service_manager import ExtensionManager
 from cryptoadvance.specter.rpc import BitcoinRPC
