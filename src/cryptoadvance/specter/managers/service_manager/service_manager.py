@@ -59,7 +59,10 @@ class ExtensionManager:
 
         if app.config.get("SERVICES_LOAD_FROM_CWD", False):
             logger.info("----> starting service discovery dynamic")
-            class_list.extend(get_subclasses_for_clazz_in_cwd(Extension))
+            dynamic_loaded_classes = get_subclasses_for_clazz_in_cwd(Extension)
+            for clazz in dynamic_loaded_classes:
+                logger.info(f"    Found {clazz.__name__}")
+            class_list.extend(dynamic_loaded_classes)
         else:
             logger.info("----> skipping service discovery dynamic")
         logger.info("----> starting service loading")

@@ -1,6 +1,9 @@
+import code
 import logging
 from flask import current_app as app
 from flask import render_template
+import signal
+import traceback
 from cryptoadvance.specter.services.service import Service, devstatus_alpha
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.wallet import Wallet
@@ -32,6 +35,21 @@ class DevhelpService(Service):
 
     # ServiceEncryptedStorage field names for Swan
     SPECTER_WALLET_ALIAS = "wallet"
+
+    def callback_after_serverpy_init_app(self, scheduler):
+        def debug(sig, frame):
+            """Interrupt running process, and provide a python prompt for
+            interactive debugging."""
+            d = {"_frame": frame}  # Allow access to frame object.
+            d.update(frame.f_globals)  # Unless shadowed by global
+            d.update(frame.f_locals)
+
+            i = code.InteractiveConsole(d)
+            message = "Signal received : entering python shell.\nTraceback:\n"
+            message += "".join(traceback.format_stack(frame))
+            i.interact(message)
+
+        # signal.signal(signal.SIGUSR2, debug)  # Register handler
 
     @classmethod
     def get_associated_wallet(cls) -> Wallet:
