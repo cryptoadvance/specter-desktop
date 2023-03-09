@@ -725,11 +725,7 @@ class Node(AbstractNode):
     @property
     def taproot_support(self):
         try:
-            # currently only master branch supports tr() descriptors
-            # TODO: replace to 220000
-            return (self.bitcoin_core_version_raw >= 219900) and (
-                self.info.get("softforks", {}).get("taproot", {}).get("active", False)
-            )
+            return self.bitcoin_core_version_raw >= 220000
         except Exception as e:
             logger.exception(e)
             return False

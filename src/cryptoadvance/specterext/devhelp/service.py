@@ -1,6 +1,9 @@
+import code
 import logging
 from flask import current_app as app
 from flask import render_template
+import signal
+import traceback
 from cryptoadvance.specter.services.service import Service, devstatus_alpha
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.wallet import Wallet

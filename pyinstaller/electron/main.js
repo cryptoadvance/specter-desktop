@@ -301,7 +301,7 @@ app.whenReady().then(() => {
   trayMenu = [
     { label: 'Launching Specter ...', enabled: false },
     { label: 'Show Specter',  click() { mainWindow.show() }},
-    { label: 'Preferences',  click() { openPreferences() }},
+    { label: 'Settings',  click() { openPreferences() }},
     { label: 'Quit',  click() { quitSpecterd(); app.quit() } },
   ]
   tray.setToolTip('Specter')
@@ -381,7 +381,7 @@ function initMainWindow() {
 
   mainWindow.webContents.on("did-fail-load", function() {
     mainWindow.loadURL(`file://${__dirname}/splash.html`);
-    updatingLoaderMsg(`Failed to load: ${appSettings.specterURL}<br>Please make sure the URL is entered correctly in the Preferences and try again...`)
+    updatingLoaderMsg(`Failed to load: ${appSettings.specterURL}<br>Please make sure the URL is entered correctly in the settings and try again...`)
   });
 }
 
@@ -490,16 +490,15 @@ function startSpecterd(specterdPath) {
   specterdArgs.push("--no-filelog")
   if (hwiBridgeMode) specterdArgs.push('--hwibridge')
   if (appSettings.specterdCLIArgs != '') {
-    if (specterdArgs == null) {
-      specterdArgs = []
-    }
+    // User has inputed cli arguments in the UI
     let specterdExtraArgs = appSettings.specterdCLIArgs.split(' ')
-    specterdExtraArgs.forEach((arg, index) => specterdExtraArgs[index] = arg.trim())
-    specterdArgs = specterdArgs.concat(specterdExtraArgs)
+    specterdExtraArgs.forEach((arg) => {
+      // Ensures that whitespaces are not used as cli arguments
+      if (arg != '') {
+        specterdArgs.push(arg)
+      }
+    })
   }
-
-
-  logger.info(`Starting specterd ${specterdPath} ${specterdArgs}`);
   // locale fix (copying from nodejs-env + adding locales)
   const options = {
     env: { ...process.env}
@@ -657,7 +656,7 @@ function setMainMenu() {
   if (platformName == 'osx') {
     menu[0].submenu.splice(1, 0,
       {
-        label: 'Preferences',
+        label: 'Settings...', // This is a naming convention on MacOS. If you use just "Preferences", it gets translated to "Settings..." on MacOS.
         click: openPreferences,
         accelerator: "CmdOrCtrl+,"
       }
@@ -666,7 +665,7 @@ function setMainMenu() {
       {
         label: 'Specter Logs',
         click: openErrorLog,
-        accelerator: "CmdOrCtrl+,"
+        accelerator: "CmdOrCtrl+L"
       }
     );
   } else {
@@ -674,14 +673,14 @@ function setMainMenu() {
         label: 'Specter',
         submenu: [
         {
-          label: 'Preferences',
+          label: 'Settings',
           click: openPreferences,
           accelerator: "CmdOrCtrl+,"
         },
         {
           label: 'Specter Logs',
           click: openErrorLog,
-          accelerator: "CmdOrCtrl+,"
+          accelerator: "CmdOrCtrl+L"
         }
         ]
       } 
