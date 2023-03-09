@@ -103,6 +103,9 @@ def test_ServiceManager_get_service_packages(caplog):
     assert len([package for package in packages if package.startswith("cryptoadvance.specterext.faucet.")])         == 3
 
     # service, controller, config
+    assert len([package for package in packages if package.startswith("cryptoadvance.specterext.hwi.")])            == 3
+
+    # service, controller, config
     assert len([package for package in packages if package.startswith("cryptoadvance.specterext.liquidissuer.")])   == 3
 
     # service, controller, config
@@ -122,7 +125,7 @@ def test_ServiceManager_get_service_packages(caplog):
     for package in sorted(packages):
         print(package)
 
-    assert len(packages) == 31
+    assert len(packages) == 34
 
 
 def test_ServiceManager_make_path_relative(caplog):

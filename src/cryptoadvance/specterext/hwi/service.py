@@ -31,7 +31,7 @@ class HwiService(Extension):
     has_blueprint = True
     blueprint_module = "cryptoadvance.specterext.hwi.controller"
 
-    devstatus = devstatus_alpha
+    devstatus = devstatus_beta
     isolated_client = False
 
     # TODO: As more Services are integrated, we'll want more robust categorization and sorting logic

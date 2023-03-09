@@ -65,7 +65,9 @@ class ExtensionManager:
             class_list.extend(dynamic_loaded_classes)
         else:
             logger.info("----> skipping service discovery dynamic")
-        logger.info("----> starting service loading")
+        logger.info(
+            f"----> starting service loading (threshold {self.devstatus_threshold})"
+        )
         class_list = set(class_list)  # remove duplicates (shouldn't happen but  ...)
         for clazz in class_list:
             compare_map = {"alpha": 1, "beta": 2, "prod": 3}
