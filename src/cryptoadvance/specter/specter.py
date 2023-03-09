@@ -236,6 +236,9 @@ class Specter:
             period = 600
         if hasattr(self, "checker") and self.checker.period != period:
             self.checker.period = period
+            logger.info(
+                f"Changing checker frequency: Every {period} seconds due to (rpc is None: {self.rpc is None} or initialblockdownload: { self.node.info.get('initialblockdownload', True) } ) "
+            )
 
         if not check_all:
             # find proper user

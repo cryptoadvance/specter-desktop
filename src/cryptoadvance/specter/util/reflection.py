@@ -114,7 +114,7 @@ def get_classlist_of_type_clazz_from_modulelist(clazz, modulelist):
                 ):
                     # Unfortunately the superclass gets imported if you inherit from it and counts as an attribute as well
                     if str(attribute.__module__).startswith(fq_module_name):
-                        logger.debug(f"Adding {attribute} to {class_list}")
+                        # logger.debug(f"Adding {attribute.__name__} to {[_clazz.__name__ for _clazz in class_list]}")
                         class_list.append(attribute)
                         logger.info(f"  Found class {attribute.__name__}")
     return class_list
@@ -192,7 +192,7 @@ def get_subclasses_for_clazz(
         logger.info(
             f"Iterating on importer={importer} , module_name={module_name} is_pkg={is_pkg}"
         )
-        if clazz.__name__ == "Service":
+        if clazz.__name__ == "Service" or clazz.__name__ == "Extension":
             # Ignore the stuff lying around in cryptoadvance/specter/services
             if importer.path.endswith(
                 os.path.sep.join(["cryptoadvance", "specter", "services"])
@@ -247,9 +247,11 @@ def get_subclasses_for_clazz(
                 if (
                     issubclass(attribute, clazz)
                     and not attribute.__name__ == clazz.__name__
+                    and not attribute.__name__
+                    == "Service"  # exception as this is a legacy class deriving from Extension
                 ):
                     class_list.append(attribute)
-                    logger.info(f"  Found class {attribute.__name__}")
+                    logger.debug(f"  Found class {attribute.__name__}")
     return class_list
 
 

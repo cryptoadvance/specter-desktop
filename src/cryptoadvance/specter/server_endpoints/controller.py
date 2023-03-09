@@ -234,8 +234,8 @@ def slow_request_detection_stop(response: Response):
             # Original looks like this:
             # [2023-02-10 14:15:49,716] INFO in _internal: 127.0.0.1 - - [10/Feb/2023 14:15:49] "GET /ext/devhelp/static/devhelp/img/orange-wrench.png HTTP/1.1" 304 -
             url: ParseResult = urlparse(request.url)
-            logger.info(
-                "{} {: <40} ({}) took {: >4} ms".format(
+            logger.info(  # commas for being able to split up more easily afterwards
+                "{}, {: <40}, {}, took, {: >4}, ms".format(
                     request.method,
                     url.path + url.params + url.query + url.fragment,
                     response.status_code,

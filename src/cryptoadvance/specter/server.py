@@ -318,8 +318,12 @@ def setup_logging(debug=False, tracerpc=False, tracerequests=False):
         logging.getLogger("cryptoadvance.specter.rpc").setLevel(logging.INFO)
 
     if debug:
-        # No need for timestamps while developing
-        formatter = logging.Formatter("[%(levelname)7s] in %(module)15s: %(message)s")
+        # No need for timestamps while developing (but sourcing from env-var)
+        formatter = logging.Formatter(
+            os.getenv(
+                "SPECTER_LOGFORMAT", "[%(levelname)7s] in %(module)15s: %(message)s"
+            )
+        )
         logging.getLogger("cryptoadvance").setLevel(logging.DEBUG)
         # but not that chatty connectionpool
         logging.getLogger("urllib3.connectionpool").setLevel(logging.INFO)

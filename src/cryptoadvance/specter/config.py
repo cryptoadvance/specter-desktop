@@ -251,6 +251,8 @@ class TestConfig(BaseConfig):
     BITCOIN_RPC_TIMEOUT = 60
     LIQUID_RPC_TIMEOUT = 60
 
+    SERVICES_DEVSTATUS_THRESHOLD = "beta"
+
 
 class CypressTestConfig(TestConfig):
     SPECTER_URL_PREFIX = ""

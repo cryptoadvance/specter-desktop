@@ -59,7 +59,10 @@ class ExtensionManager:
 
         if app.config.get("SERVICES_LOAD_FROM_CWD", False):
             logger.info("----> starting service discovery dynamic")
-            class_list.extend(get_subclasses_for_clazz_in_cwd(Extension))
+            dynamic_loaded_classes = get_subclasses_for_clazz_in_cwd(Extension)
+            for clazz in dynamic_loaded_classes:
+                logger.info(f"    Found {clazz.__name__}")
+            class_list.extend(dynamic_loaded_classes)
         else:
             logger.info("----> skipping service discovery dynamic")
         logger.info("----> starting service loading")
@@ -483,14 +486,17 @@ class ExtensionManager:
         This is used for hiddenimports in pyinstaller
         """
         arr = get_subclasses_for_clazz(Extension)
-        arr.extend(get_subclasses_for_clazz(SpecterMigration))
-        logger.info(f"initial arr: {arr}")
+        logger.debug(f"Found {len(arr)} Extensions")
         arr.extend(
             get_classlist_of_type_clazz_from_modulelist(
                 Extension, ProductionConfig.EXTENSION_LIST
             )
         )
-        logger.info(f"After extending: {arr}")
+        arr = list(set(arr))
+        logger.info(f"Found {len(arr)} Extensions + Extensions = {arr}")
+
+        arr.extend(get_subclasses_for_clazz(SpecterMigration))
+        logger.info(f"Found {len(arr)} Extensions + Extensions + SpecterMigration")
 
         # Before we transform the arr into an array of strings, we iterate through all services to discover
         # the devices which might be specified in there
@@ -504,6 +510,7 @@ class ExtensionManager:
                         devices_arr.append(device)
                     except ModuleNotFoundError as e:
                         pass
+        logger.info(f"Found {len(devices_arr)} Devices")
 
         # Same for callbacks
         callbacks_arr = []
@@ -516,13 +523,16 @@ class ExtensionManager:
                         callbacks_arr.append(device)
                     except ModuleNotFoundError as e:
                         pass
+        logger.info(f"Found {len(callbacks_arr)} Callbacks")
 
         # Transform into array of strings
         arr = [clazz.__module__ for clazz in arr]
 
         arr.extend(devices_arr)
         arr.extend(callbacks_arr)
-        logger.debug(f"After transforming + devices + callbacks: {arr}")
+        logger.info(
+            f"Found {len(arr)} Extensions + SpecterMigration + Extensions + Devices + Callbacks"
+        )
 
         # Controller-Packagages from the services are not imported via the service but via the baseclass
         # Therefore hiddenimport don't find them. We have to do it here.
@@ -552,6 +562,10 @@ class ExtensionManager:
                 # RuntimeError: Working outside of application context.
                 # shows that the package is existing
                 arr.append(controller_package)
+        logger.info(
+            f"Found {len(arr)} Extensions + SpecterMigration + Extensions + Devices + Callbacks + Controller"
+        )
+
         config_arr = [".".join(package.split(".")[:-1]) + ".config" for package in arr]
         for config_package in config_arr:
             try:
@@ -567,6 +581,9 @@ class ExtensionManager:
                 else:
                     raise e
         arr = list(dict.fromkeys(arr))
+        logger.info(
+            f"Found {len(arr)} Extensions + SpecterMigration + Extensions + Devices + Callbacks + Controller + Configs"
+        )
         return arr
 
     @classmethod
