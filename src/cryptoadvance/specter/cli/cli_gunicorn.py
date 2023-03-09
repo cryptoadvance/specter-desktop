@@ -1,13 +1,5 @@
 import logging
-import multiprocessing
 import os
-import signal
-import sys
-import time
-from os import path, name
-from socket import gethostname
-from urllib.parse import urlparse
-
 import click
 
 try:
@@ -18,14 +10,6 @@ except ModuleNotFoundError as e:
         pass
     else:
         raise e
-from cryptoadvance.specter.server import create_app, init_app
-from cryptoadvance.specter.server import create_and_init
-from OpenSSL import SSL, crypto
-from stem.control import Controller
-
-from ..server import create_app, init_app
-from ..specter_error import SpecterError
-from ..util.tor import start_hidden_service, stop_hidden_services
 
 logger = logging.getLogger(__name__)
 
