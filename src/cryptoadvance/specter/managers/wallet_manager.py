@@ -67,7 +67,7 @@ class WalletManager:
         The _update internal method will resync the internal status with Bitcoin Core
         use_threading : for the _update method which is heavily communicating with Bitcoin Core
         """
-        logger.debug(
+        logger.info(
             f"starting update of wallet_manager (threading: {use_threading} , comment: {comment})"
         )
         if self.is_loading:
@@ -97,9 +97,6 @@ class WalletManager:
 
         if self.working_folder is not None:
             wallets_files = load_jsons(self.working_folder, key="name")
-            logger.info(
-                f"Iterating over {len(wallets_files.values())} wallet files in {self.working_folder}"
-            )
             for wallet in wallets_files:
                 wallet_name = wallets_files[wallet]["name"]
                 wallets_update_list[wallet_name] = wallets_files[wallet]
@@ -120,18 +117,15 @@ class WalletManager:
         ):
             if "pytest" in sys.modules:
                 if self.allow_threading_for_testing:
-                    logger.info("Using threads in updating the wallet manager.")
                     t = FlaskThread(
                         target=self._update,
                         args=(wallets_update_list,),
                     )
                     t.start()
                 else:
-                    logger.info("Not using threads in updating the wallet manager.")
                     self._update(wallets_update_list)
             else:
                 if use_threading:
-                    logger.info("Using threads in updating the wallet manager.")
                     t = FlaskThread(
                         target=self._update,
                         args=(wallets_update_list,),
@@ -139,7 +133,6 @@ class WalletManager:
 
                     t.start()
                 else:
-                    logger.info("Not using threads in updating the wallet manager.")
                     self._update(wallets_update_list)
         else:
             self.is_loading = False
@@ -157,9 +150,6 @@ class WalletManager:
         * the unloaded wallets are loaded in Bitcoin Core
         * and, on the Specter side, the wallet objects of those unloaded wallets are reinitialised
         """
-        logger.info(
-            f"Started updating wallets with {len(wallets_update_list.values())} wallets"
-        )
         timestamp = datetime.now()
         # list of wallets in the dict
         existing_names = list(self.wallets.keys())
@@ -172,11 +162,9 @@ class WalletManager:
 
                     wallet_alias = wallets_update_list[wallet]["alias"]
                     wallet_name = wallets_update_list[wallet]["name"]
-                    logger.info(f"Updating wallet {wallet_name}")
                     # wallet from json not yet loaded in Bitcoin Core?!
                     if os.path.join(self.rpc_path, wallet_alias) not in loaded_wallets:
                         try:
-                            logger.debug(f"Loading {wallet_name} to Bitcoin Core")
                             self.rpc.loadwallet(
                                 os.path.join(self.rpc_path, wallet_alias)
                             )
@@ -217,9 +205,6 @@ class WalletManager:
                             #     % wallets_update_list[wallet]["alias"]
                             # )
                         except RpcError as e:
-                            logger.warning(
-                                f"Couldn't load wallet {wallet_alias} into Bitcoin Core. Silently ignored! RPC error: {e}"
-                            )
                             self._failed_load_wallets.append(
                                 {
                                     **wallets_update_list[wallet],
@@ -227,9 +212,6 @@ class WalletManager:
                                 }
                             )
                         except Exception as e:
-                            logger.warning(
-                                f"Couldn't load wallet {wallet_alias}. Silently ignored! Wallet error: {e}"
-                            )
                             logger.exception(e)
                             self._failed_load_wallets.append(
                                 {

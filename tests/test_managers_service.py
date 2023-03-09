@@ -74,7 +74,6 @@ def test_ServiceManager_get_service_packages(caplog):
     assert "cryptoadvance.specterext.electrum.service" in packages
     assert "cryptoadvance.specterext.electrum.devices.electrum" in packages
     assert "cryptoadvance.specterext.swan.service" in packages
-    assert "cryptoadvance.specterext.electrum.service" in packages
     assert "cryptoadvance.specterext.electrum.devices.electrum" in packages
     assert "cryptoadvance.specterext.devhelp.service" in packages
     assert "cryptoadvance.specterext.liquidissuer.service" in packages
@@ -86,6 +85,123 @@ def test_ServiceManager_get_service_packages(caplog):
     # This needs to be adjusted with each new extension
     # We don't need to assert every single package but we also ensure with that, that we don't
     # loose anything on the way of changing something in the service_manager
+
+    # 3 migration classes
+    assert (
+        len(
+            [
+                package
+                for package in packages
+                if package.startswith("cryptoadvance.specter.util.migrations.")
+            ]
+        )
+        == 3
+    )
+    # service, controller, config, device
+    assert (
+        len(
+            [
+                package
+                for package in packages
+                if package.startswith("cryptoadvance.specterext.devhelp.")
+            ]
+        )
+        == 4
+    )
+    # service, controller, device
+    assert (
+        len(
+            [
+                package
+                for package in packages
+                if package.startswith("cryptoadvance.specterext.electrum.")
+            ]
+        )
+        == 3
+    )
+    # service, controller, config
+    assert (
+        len(
+            [
+                package
+                for package in packages
+                if package.startswith("cryptoadvance.specterext.exfund.")
+            ]
+        )
+        == 3
+    )
+    # service, controller, config
+    assert (
+        len(
+            [
+                package
+                for package in packages
+                if package.startswith("cryptoadvance.specterext.faucet.")
+            ]
+        )
+        == 3
+    )
+    # service, controller, config
+    assert (
+        len(
+            [
+                package
+                for package in packages
+                if package.startswith("cryptoadvance.specterext.liquidissuer.")
+            ]
+        )
+        == 3
+    )
+    # service, controller, config
+    assert (
+        len(
+            [
+                package
+                for package in packages
+                if package.startswith("cryptoadvance.specterext.notifications.")
+            ]
+        )
+        == 3
+    )
+    # service, controller, config
+    assert (
+        len(
+            [
+                package
+                for package in packages
+                if package.startswith("cryptoadvance.specterext.spectrum.")
+            ]
+        )
+        == 3
+    )
+    # service, controller, config
+    assert (
+        len(
+            [
+                package
+                for package in packages
+                if package.startswith("cryptoadvance.specterext.stacktrack.")
+            ]
+        )
+        == 3
+    )
+
+    # service, controller, config
+    assert (
+        len(
+            [
+                package
+                for package in packages
+                if package.startswith("cryptoadvance.specterext.swan.")
+            ]
+        )
+        == 3
+    )
+
+    # Sum it up: 31
+    for package in sorted(packages):
+        print(package)
+
     assert len(packages) == 31
 
 
