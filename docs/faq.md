@@ -215,7 +215,7 @@ Currently Raspiblitz (https://github.com/rootzoll/raspiblitz), has explicit supp
 ### *Can I use Tor?*
 
 Yes there is Tor support. People are using Tor in two ways: 
-* Increase privacy by routing external calls through Tor
+* To increase privacy by routing external calls through Tor
 * Use Tor hidden services to get access from the outside
 
 So in Version 1, we have supported both. In Version 2, running Specter as a hidden service is currently not supported and we'll might never support it. If you want that, please use a Node-service like raspiblitz which will make Specter available as hidden service via Tor by default.
