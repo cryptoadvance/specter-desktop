@@ -8,10 +8,9 @@ from socket import gethostname
 from urllib.parse import urlparse
 
 import click
-from OpenSSL import SSL, crypto
-from stem.control import Controller
+from OpenSSL import crypto
 
-from ..server import create_app, init_app, setup_logging, setup_debug_logging
+from ..server import create_app, init_app, setup_debug_logging
 from ..specter_error import SpecterError
 from ..util.tor import start_hidden_service, stop_hidden_services
 
