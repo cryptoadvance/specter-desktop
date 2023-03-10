@@ -218,7 +218,7 @@ Yes there is Tor support. People are using Tor in two ways:
 * To increase privacy by routing external calls through Tor
 * Use Tor hidden services to get access from the outside
 
-So in Version 1, we have supported both. In Version 2, running Specter as a hidden service is currently not supported and we'll might never support it. If you want that, please use a Node-service like raspiblitz which will make Specter available as hidden service via Tor by default.
+In Specter version 1.0, we have supported both. In version 2.0, running Specter as a hidden service is currently not supported and we'll might never support it. If you want that, please use a node in the box-project like Raspiblitz which will make Specter available as a Tor hidden service by default.
 With that being said, beware that it's not practical yet to sign transactions via Tor:
 
  - Specter-DIY needs the camera which is not available in the Tor-browser (yet)
