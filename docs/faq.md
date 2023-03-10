@@ -141,7 +141,7 @@ XPUB is a canonical representation that is supported by Bitcoin Core, whereas ZP
 
 ### *Does Specter have coin control?*
 
-Yes, Specter supports coin control. Go to "Send". Open the "Advanced" features - and down at the right you have "Select coins manually" bottom. You can also choose UTXOs in the list and use them for creating a transaction.
+Yes, Specter supports coin control. Go to "Send". Below "Advanced", you can find "Coin selection", click on this. You can then choose UTXOs in the list manually and use them for creating a transaction.
 
 ## USAGE
 
