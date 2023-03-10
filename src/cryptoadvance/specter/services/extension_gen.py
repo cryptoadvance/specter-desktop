@@ -35,6 +35,8 @@ class ExtGen:
         base_path,
         ext_org,
         ext_id,
+        encrypted_userdata,
+        tag,
         isolated_client,
         devicename,
         author,
@@ -46,13 +48,20 @@ class ExtGen:
         self.base_path = base_path
         self.org = ext_org
         self.id = ext_id
+        self.encrypted_userdata = encrypted_userdata
+        self.tag = tag
         self.isolated_client = isolated_client
         self.devicename = devicename
         self.author = author
         self.author_email = email
         vc = VersionChecker()
         version = vc._get_current_version()
-        if version == "custom":
+        if self.tag != "":
+            if vc._check_if_version_is_available(tag):
+                version = tag
+            else:
+                version = vc._get_latest_version_from_github()
+        else:
             version = vc._get_latest_version_from_github()
         self.version = version  # relevant if tmpl-sources specify a dependency (requirements.txt) #ToDo improve
         self.branch = branch

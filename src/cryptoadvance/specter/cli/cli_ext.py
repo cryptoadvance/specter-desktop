@@ -19,6 +19,7 @@ from ..util.common import snake_case2camelcase
 from ..util.reflection_fs import search_dirs_in_path
 from ..util.shell import run_shell
 from ..util.tor import start_hidden_service, stop_hidden_services
+from cryptoadvance.specter._version import version
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +39,14 @@ def ext():
 @click.option("--org", "org", default=None, help="Use a specific organsiation")
 @click.option("--ext-id", "ext_id", default=None, help="Use a specific extension id")
 @click.option(
+    "--encrypted-userdata/--unencrypted-userdata",
+    default=None,
+    help="Whether the user data should be encryted or not",
+)
+@click.option(
+    "--version", "tag", default=None, help="Use a specific specter version"
+)
+@click.option(
     "--isolated-client/--no-isolated-client",
     default=None,
     help="Whether the extension should be isolated on the client",
@@ -53,7 +62,16 @@ def ext():
     default=False,
     help="Output content on stdout instead of creating files",
 )
-def gen(org, ext_id, isolated_client, devicename, tmpl_fs_source, dryrun):
+def gen(
+    org,
+    ext_id,
+    encrypted_userdata,
+    tag,
+    isolated_client,
+    devicename,
+    tmpl_fs_source,
+    dryrun,
+):
     # fmt: off
     """Will generate a new extension in a more or less empty directory.
     \b
@@ -107,6 +125,26 @@ def gen(org, ext_id, isolated_client, devicename, tmpl_fs_source, dryrun):
             "Enter the prefix:",
             type=str,
         )
+    if encrypted_userdata == None:
+        print(
+            """
+             Your data is currently unencrypted
+            """
+        )
+        encrypted_userdata = click.prompt(
+            "Should the data be encrypted (y/n)?",
+            type=bool,
+        )
+    if tag == None:
+        print(
+            """
+            The extension generation uses the ${version} version of specter. 
+            """
+        )
+        tag = click.prompt(
+            "Enter specific specter version (click enter to choose the latest one):",
+            type=str,
+        )
     if isolated_client == None:
         print(
             """
@@ -149,6 +187,8 @@ def gen(org, ext_id, isolated_client, devicename, tmpl_fs_source, dryrun):
         ".",
         org,
         ext_id,
+        encrypted_userdata,
+        tag,
         isolated_client,
         devicename,
         author,
