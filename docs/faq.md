@@ -454,7 +454,7 @@ When CoinJoin servers and hardware wallets support proof of ownership: https://g
 
 ## VIDEOS
 
-Unfortunately, we currently only have videos for Version 1. Version 2 videos are missing. Ping us if you've found any.
+Unfortunately, we currently only have videos for version 1.0. Version 2.0 videos are missing. Ping us, if you find any.
 ### **1** [Getting started with Specter-DIY and Specter-Desktop](https://twitter.com/CryptoAdvance/status/1235151027348926464)
 ![video](https://www.youtube.com/embed/eF4cgK_L6T4)
 
