@@ -404,7 +404,7 @@ Apart from that, your old wallet might have used non-standard derivation pathes 
 ### *How to delete a wallet using a remote full node?*
 
 You can't delete the wallet if you are using remote Bitcoin Core node - there is no RPC call to do it remotely. So, deleting wallet works only on the same computer. 
-You can also just delete the wallet manually. It's a folder in `~/.bitcoin` directory and in `~/.specter` as well. If you use Spectrum/Electrum as a backend, there is currently no way to delete it. But we're working on that.
+You can just delete the wallet manually. It's in a folder in the Bitcoin directory. Deleting the wallet in the Specter UI always deletes it from your Specter folder. If you use Spectrum as a backend, there is currently nothing in the UI to delete the wallet in the local database. But, we're working on that.
 
 ### *Trying to connect specter-desktop to my remote Bitcoin Core node on my LAN few times but no success. `bitcoin.conf` has the `server=1` option, should there be something else since I get this error `Process finished with code -1Error message: Failed to connect` message?*
 
