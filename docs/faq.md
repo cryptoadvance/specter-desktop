@@ -183,7 +183,7 @@ For some devices it makes sense to import keys, for example for another passphra
 
 ### *What do I need to do in order to create a multisig wallet?*
 
-XPUBs are needed (from HWW's, laptop with Electrum desktop wallet, Specter-DIY, etc.) in order to create a multisig setup, but don't worry it's in watch-only mode! First you need to “add devices” that store keys for the wallet. After creating the devices, you have to create the type of wallet you want (2-of-2, 3-of-5, etc.) and select the corresponding devices/keys - you need at least two devices setup in order to create a multisig wallet.
+XPUBs are needed (from HWW's, laptop with Electrum desktop wallet, Specter-DIY, etc.) in order to create a multisig setup, but don't worry it's in watch-only mode! First you need to “add devices” that store keys for the wallet. After creating the devices, you have to create the type of wallet you want (2-of-2, 3-of-5, etc.) and select the corresponding devices/keys - you need at least two devices to create a multisig wallet.
 
 ### *Is my understanding correct that specter-desktop does not hold any keys and you need to create a multisig wallet in order to sign transactions and send funds?*
 
