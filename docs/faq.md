@@ -119,7 +119,7 @@ No you don't have to worry unless you plan to run specter as a public service on
 
 ### *I'm not sure I want the Bitcoin-Core wallet functionality to be used, is that mandatory? If so, is it considered secure?*
 
-If you use your own node and Bitcoin Core, You don't need private keys in Bitcoin Core, but you need wallets to be enabled `disablewallet=0` in your `bitcoin.conf` file. 
+If you use your own Bitcoin Core node, you don't need any private keys in Bitcoin Core, but you need wallets to be enabled (`disablewallet=0`) in your `bitcoin.conf` file. 
 
 ### How many addresses does an HD wallet have, and are they all the same?
 
