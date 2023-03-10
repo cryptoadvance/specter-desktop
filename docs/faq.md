@@ -256,7 +256,7 @@ The labeld which you set within Specter will only reappear if you restore a Spec
 
 ### *To recover a multisig that was built on specter (eg: 2 of 3 with ColdCard), is having the seeds of all 3 signing wallets sufficient or do we need to backup more info?*
 
-Having seeds is enough, but in case you lose one of the seeds it is also **mandatory** that you also backup your XPUBs. You can go to the wallet settings and export it as json file, this file has all the information needed to find your funds. "Export to wallet" software should give you one json file with all information needed for the recovery of your watch only wallet later on. 
+Having seeds is enough, but in case you lose one of the seeds it is also **mandatory** that you also backup your XPUBs. You can go to the wallet settings and export it as json file, this file has all the **public** key information needed. "Export to wallet" software should give you one json file with all information needed for the recovery of your watch only wallet later on. 
 
 ## SPECTER-DIY
 
