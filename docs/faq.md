@@ -210,7 +210,7 @@ All major once! Checkout the list when you add a new device.
 
 Absolutely, as well as any other DIY bitcoin full, or pruned, node!
 
-Currently Raspiblitz (https://github.com/rootzoll/raspiblitz), has explicit support and you can automatically install it as bonus-software. Also [umbrel](https://getumbrel.com/) has it in the app-store. Mynode has it on Mynode [premium](https://mynodebtc.com/products/premium). Start9 has it [as well](https://start9labs.medium.com/new-service-specter-ba89f50f27c5). There are differences mainly on update-policy and update-frequency.
+Currently Raspiblitz (https://github.com/rootzoll/raspiblitz), has explicit support and you can automatically install it as bonus-software. Also [umbrel](https://getumbrel.com/) has it in the app store. Mynode has it on Mynode [premium](https://mynodebtc.com/products/premium). Start9 has it [as well](https://start9labs.medium.com/new-service-specter-ba89f50f27c5). There are differences mainly on update policy and frequency.
 
 ### *Can I use Tor?*
 
