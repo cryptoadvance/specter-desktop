@@ -3,6 +3,8 @@ import logging
 from cryptoadvance.specter.helpers import locked
 from cryptoadvance.specter.util.shell import run_shell
 from cryptoadvance.specter.util.xpub import convert_xpub_prefix
+from embit import bip32
+from embit import networks
 
 from .hwi_rpc import AbstractHWIBridge, hwilock
 
@@ -168,7 +170,28 @@ class HWIBinaryBridge(AbstractHWIBridge):
         passphrase="",
         chain="",
     ):
-        pass
+        client = HwiBinaryClient(
+            self, self.hwi_path, device_type=device_type, device_path=path
+        )
+        der = bip32.parse_path(derivation)
+        client.chain = "test" if len(der) > 2 and der[1] == 0x80000001 else "main"
+        network = networks.NETWORKS[client.chain]
+        master_fpr = client.get_master_fingerprint()
+        try:
+            xpub = client.get_pubkey_at_path(derivation)
+            logger.debug(f"xpub: {xpub}")
+            slip132_prefix = bip32.detect_version(
+                derivation, default="xpub", network=network
+            )
+            xpub = convert_xpub_prefix(xpub, slip132_prefix)
+            if derivation == "m":
+                return "[{}]{}\n".format(master_fpr, xpub)
+            return "[{}/{}]{}\n".format(master_fpr, derivation.split("m/")[1], xpub)
+        except Exception as e:
+            logger.warning(
+                f"Failed to import Nested Segwit singlesig mainnet key. Error: {e}"
+            )
+            logger.exception(e)
 
     @locked(hwilock)
     def display_address(
@@ -221,7 +244,9 @@ class HWIBinaryBridge(AbstractHWIBridge):
 
     def _extract_xpubs_from_client(self, client, account=0):
         """Same than HwiBridge._extract_xpubs_from_client but needs to do that without
-        the hwilib dependencies
+        the hwilib dependencies. A bit sad to duplicate the code here but felt difficult
+        and cumbersome to avoid at some point (see HwiBinaryClient)
+        to avoid.
         """
         try:
             xpubs = ""

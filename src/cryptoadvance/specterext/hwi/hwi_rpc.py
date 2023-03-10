@@ -31,6 +31,29 @@ hwilock = threading.Lock()
 
 
 class AbstractHWIBridge(JSONRPC):
+    def __init__(self):
+        self.exposed_rpc = {
+            "enumerate": self.enumerate,
+            "detect_device": self.detect_device,
+            "toggle_passphrase": self.toggle_passphrase,
+            "prompt_pin": self.prompt_pin,
+            "send_pin": self.send_pin,
+            "extract_xpub": self.extract_xpub,
+            "extract_xpubs": self.extract_xpubs,
+            "display_address": self.display_address,
+            "sign_tx": self.sign_tx,
+            "sign_message": self.sign_message,
+            "extract_master_blinding_key": self.extract_master_blinding_key,
+            "bitbox02_pairing": self.bitbox02_pairing,
+        }
+        # Running enumerate after beginning an interaction with a specific device
+        # crashes python or make HWI misbehave. For now we just get all connected
+        # devices once per session and save them.
+        logger.info(
+            f"Initializing {self.__class__.__name__}..."
+        )  # to explain user why it takes so long
+        self.enumerate()
+
     def toggle_passphrase(self, device_type=None, path=None, passphrase="", chain=""):
         if device_type != "keepkey" and device_type != "trezor":
             raise Exception(
@@ -54,6 +77,10 @@ class AbstractHWIBridge(JSONRPC):
         else:
             if pin == "":
                 raise Exception("Must enter a non-empty PIN")
+
+    def bitbox02_pairing(self, chain=""):
+        config = hwi_get_config(app.specter)
+        return {"code": config.get("bitbox02_pairing_code", "")}
 
     def detect_device(
         self, device_type=None, path=None, fingerprint=None, rescan_devices=False

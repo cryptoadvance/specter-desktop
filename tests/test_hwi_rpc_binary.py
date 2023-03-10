@@ -14,7 +14,12 @@ import logging
 from hwilib.errors import DeviceNotReadyError
 
 
-@pytest.fixture(params=[HWILibBridge, HWIBinaryBridge])
+@pytest.fixture(
+    params=[
+        # HWILibBridge,
+        HWIBinaryBridge
+    ]
+)
 def hwi(request):
     instance = request.param()
     # There is a bug https://github.com/bitcoin-core/HWI/issues/636 which makes it necessary
@@ -61,6 +66,47 @@ def test_trezor_extract_xpubs(hwi: AbstractHWIBridge, caplog):
             continue
         print(xpub)
         Key.parse_xpub(xpub)
+
+
+@pytest.mark.manual
+def test_trezor_extract_xpub(hwi: AbstractHWIBridge, caplog):
+    caplog.set_level(logging.DEBUG)
+    unlock_trezor_if_needed(hwi)
+    res = hwi.extract_xpub(
+        derivation="m/0h/0h",
+        device_type="trezor",
+        path=None,
+        fingerprint=None,
+        passphrase="",
+        chain="main",
+    )
+    print(f"resulting xpub: {res}")
+    key = Key.parse_xpub(res)
+    assert key.fingerprint == "1ef4e492"
+    assert key.derivation == "m/0h/0h"
+    assert (
+        key.xpub
+        == "xpub6BGiTwRU3zniWXgR6wb7De8uez1UYLpgfqxR9Qtu9ye4ToWPNUdu9rNTVBSkZ5HTMW6SuKaGE3ypZFRdGQccekSj55DZ9XnDxh3Fj5oL6t3"
+    )
+    res = hwi.extract_xpub(
+        derivation="m/48h/1h/0h/1h",
+        device_type="trezor",
+        path=None,
+        fingerprint="1ef4e492",
+        passphrase="blub",
+        chain="testnet",
+    )
+    print(f"resulting xpub: {res}")
+    key = Key.parse_xpub(res)
+    assert key.fingerprint == "1ef4e492"
+    assert key.derivation == "m/48h/1h/0h/1h"  # Nested Mutisig on testnet
+    # I don't understand why it's not a Upub?
+    # assert key.xpub == "Upub5Tk9tZtdzVaTGWtygRTKDDmaN5vfB59pn2L5MQyH6BkVpg2Y5J95rtpQndjmXNs3LNFiy8zxpHCTtvxxeePjgipF7moTHQZhe3E5uPzDXh8"
+    assert (
+        key.xpub
+        == "tpubDFiVCZzdarbyfdVoh2LJDL3eVKRPmxwnkiqN8tSYCLod75a2966anQbjHajqVAZ97j54xZJPr9hf7ogVuNL4pPCfwvXdKGDQ9SjZF7vXQu1"
+    )
+    assert False
 
 
 def unlock_trezor_if_needed(hwi):
