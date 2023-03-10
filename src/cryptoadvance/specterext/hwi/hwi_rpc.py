@@ -78,6 +78,19 @@ class AbstractHWIBridge(JSONRPC):
             if pin == "":
                 raise Exception("Must enter a non-empty PIN")
 
+    def display_address(
+        self,
+        descriptor="",
+        xpubs_descriptor="",
+        device_type=None,
+        path=None,
+        fingerprint=None,
+        passphrase="",
+        chain="",
+    ):
+        if descriptor == "" and xpubs_descriptor == "":
+            raise Exception("Descriptor must not be empty")
+
     def bitbox02_pairing(self, chain=""):
         config = hwi_get_config(app.specter)
         return {"code": config.get("bitbox02_pairing_code", "")}

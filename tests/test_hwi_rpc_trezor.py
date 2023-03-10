@@ -14,12 +14,12 @@ import logging
 from hwilib.errors import DeviceNotReadyError
 
 
-@pytest.fixture(
-    params=[
-        # HWILibBridge,
-        HWIBinaryBridge
-    ]
-)
+# fmt: off
+@pytest.fixture(params=[
+    HWILibBridge, 
+    HWIBinaryBridge
+])
+# fmt: on
 def hwi(request):
     instance = request.param()
     # There is a bug https://github.com/bitcoin-core/HWI/issues/636 which makes it necessary
@@ -109,7 +109,41 @@ def test_trezor_extract_xpub(hwi: AbstractHWIBridge, caplog):
     assert False
 
 
-def unlock_trezor_if_needed(hwi):
+@pytest.mark.manual
+def test_display_address(hwi: AbstractHWIBridge, caplog):
+    caplog.set_level(logging.DEBUG)
+    unlock_trezor_if_needed(hwi)
+    res = hwi.display_address(
+        descriptor="wpkh([1ef4e492/84h/0h/0h/0/21]03f214b890c320d6b5a2ceab8c64b47d047010cfddc87a8deddc15e9daadea6647)#fjhj5z6n",
+        xpubs_descriptor="wpkh([1ef4e492/84h/0h/0h]xpub6CcGh8BQPxr9zssX4eG8CiGzToU6Y9b3f2s2wNw65p9xtr8ySL6eYRVzAbfEVSX7ZPaPd3JMEXQ9LEBvAgAJSkNKYxG6L6X9DHnPWNQud4H/0/21)#pyqxsrsw",
+        device_type="trezor",
+        # path="webusb:003:1:1:4",
+        fingerprint=None,
+        passphrase="",
+        chain="main",
+    )
+    assert res == "bc1qdzf5acm0kcr0f729ges607x2naekrj4us02ame"
+
+
+@pytest.mark.manual
+def test_sign_tx(hwi: AbstractHWIBridge, caplog):
+    caplog.set_level(logging.DEBUG)
+    unlock_trezor_if_needed(hwi)
+    res = hwi.sign_tx(
+        psbt="cHNidP8BAHECAAAAAYaQGEXHo1QAsi3/33wjF6vpOdtpXnYNcboe16utv2oMAQAAAAD9////AlgbAAAAAAAAFgAUW46Yr/VeBEC0uVPtrkw40pXu8s2+BAAAAAAAABYAFPnD6cQqE8y5vu2hvu92LBAjw/zlAAAAAAABAHECAAAAAWAWfmUKjC3LWvcN17/3yI0LIQroEy2QQ7QU/qCjA2VmAQAAAAD9////Am8qAAAAAAAAFgAUY/pVYLnNWw+D4k6XZzg501MEg60sMAAAAAAAABYAFHmDzTVdXOnETp4iPTKJvfihitENAAAAAAEBHywwAAAAAAAAFgAUeYPNNV1c6cROniI9Mom9+KGK0Q0iBgLdqE8nZJHdvRTEdjCJe+32ypnai+6JK/GwEhBZjLNNeRge9OSSVAAAgAAAAIAAAACAAAAAAAsAAAAAACICAnr5/7MsgmM3d8JSSIt1CiziWsxCfteVIodmp6+q33jsGB705JJUAACAAAAAgAAAAIABAAAAAwAAAAA=",
+        device_type="trezor",
+        # path="webusb:003:1:1:4",
+        fingerprint=None,
+        passphrase="",
+        chain="main",
+    )
+    assert (
+        res
+        == "cHNidP8BAHECAAAAAYaQGEXHo1QAsi3/33wjF6vpOdtpXnYNcboe16utv2oMAQAAAAD9////AlgbAAAAAAAAFgAUW46Yr/VeBEC0uVPtrkw40pXu8s2+BAAAAAAAABYAFPnD6cQqE8y5vu2hvu92LBAjw/zlAAAAAAABAHECAAAAAWAWfmUKjC3LWvcN17/3yI0LIQroEy2QQ7QU/qCjA2VmAQAAAAD9////Am8qAAAAAAAAFgAUY/pVYLnNWw+D4k6XZzg501MEg60sMAAAAAAAABYAFHmDzTVdXOnETp4iPTKJvfihitENAAAAAAEBHywwAAAAAAAAFgAUeYPNNV1c6cROniI9Mom9+KGK0Q0iAgLdqE8nZJHdvRTEdjCJe+32ypnai+6JK/GwEhBZjLNNeUcwRAIgJeD6DuRVtkDho8AJiPtL4Vaem9AtnGJwdbRP6wtS6RACIAdcNo7GF0K+cd+qjDfUGB5OcRwmw021WojvM2xuvMtJASIGAt2oTydkkd29FMR2MIl77fbKmdqL7okr8bASEFmMs015GB705JJUAACAAAAAgAAAAIAAAAAACwAAAAAAIgICevn/syyCYzd3wlJIi3UKLOJazEJ+15Uih2anr6rfeOwYHvTkklQAAIAAAACAAAAAgAEAAAADAAAAAA=="
+    )
+
+
+def unlock_trezor_if_needed(hwi: AbstractHWIBridge, should_need_passphrase_sent=False):
     res = hwi.enumerate(passphrase="")[0]
     print(f"type(result) = {type(res)}")
     # seems to be normal
@@ -130,7 +164,11 @@ def unlock_trezor_if_needed(hwi):
         assert res["success"] == True
 
     else:
+        if res["needs_passphrase_sent"] != should_need_passphrase_sent:
+            hwi.toggle_passphrase(device_type="trezor")
+            res = hwi.enumerate(passphrase="")[0]
         # assert res["error"].startswith(
         #     "Could not open client or get fingerprint information: Passphrase needs to be specified before the fingerprint information can be retrieved"
         # )
+
         assert len(res.get("fingerprint", "")) == 8, f" {res}"

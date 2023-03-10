@@ -204,7 +204,30 @@ class HWIBinaryBridge(AbstractHWIBridge):
         passphrase="",
         chain="",
     ):
-        pass
+        super().display_address(
+            descriptor=descriptor,
+            xpubs_descriptor=xpubs_descriptor,
+            device_type=device_type,
+            path=path,
+            fingerprint=fingerprint,
+            passphrase=passphrase,
+            chain=chain,
+        )
+        cmd = [self.hwi_path]
+        if device_type:
+            cmd.extend(["--device-type", device_type])
+        if path is None:
+            path = [dev for dev in self.devices if dev["type"] == device_type][0][
+                "path"
+            ]
+        cmd.extend(["--device-path", path])
+        cmd.append("displayaddress")
+        cmd.extend(["--desc", descriptor])
+        res = run_shell(cmd)
+        if res["code"] != 0:
+            logger.error(f"Got an issue with this call: {cmd}")
+            raise Exception(res["err"])
+        return json.loads(res["out"])["address"]
 
     @locked(hwilock)
     def sign_tx(
@@ -216,7 +239,22 @@ class HWIBinaryBridge(AbstractHWIBridge):
         passphrase="",
         chain="",
     ):
-        pass
+        cmd = [self.hwi_path]
+        if device_type:
+            cmd.extend(["--device-type", device_type])
+        if path is None:
+            path = [dev for dev in self.devices if dev["type"] == device_type][0][
+                "path"
+            ]
+        cmd.extend(["--device-path", path])
+        cmd.append("signtx")
+        cmd.append(psbt)
+        res = run_shell(cmd)
+        if res["code"] != 0:
+            logger.error(f"Got an issue with this call: {cmd}")
+            raise Exception(res["err"])
+        assert json.loads(res["out"])["signed"]
+        return json.loads(res["out"])["psbt"]
 
     @locked(hwilock)
     def sign_message(
@@ -240,7 +278,9 @@ class HWIBinaryBridge(AbstractHWIBridge):
         passphrase="",
         chain="",
     ):
-        pass
+        raise NotImplementedError(
+            "extract_master_blinding_key is not implemented by HWIBinaryBridge"
+        )
 
     def _extract_xpubs_from_client(self, client, account=0):
         """Same than HwiBridge._extract_xpubs_from_client but needs to do that without
