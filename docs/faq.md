@@ -187,7 +187,7 @@ XPUBs are needed (from HWW's, laptop with Electrum desktop wallet, Specter-DIY, 
 
 ### *Is my understanding correct that specter-desktop does not hold any keys and you need to create a multisig wallet in order to sign transactions and send funds?*
 
-Yes, especially if you use spectrum/electrum as a backend. However, if you use Core as a backend, there is a hotwallet-feature which we mainly use for testing/development and troubleshooting.
+Yes, especially if you use Spectrum. However, if you use Core as backend, there is a hot wallet-feature which we mainly use for testing/development and trouble shooting.
 
 ### *How would one sign with Electrum? Do I need to create multisig wallet in Electrum first or can I create it with specter-desktop?*
 
