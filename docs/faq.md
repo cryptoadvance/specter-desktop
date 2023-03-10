@@ -111,7 +111,7 @@ Whereas, [Specter-DIY](https://docs.specter.solutions/diy/) is a do-it-yourself 
 
 ### *Is a full node necessary for using Specter-desktop?*
 
-No, a Bitcoin node is no longer needed. It's encouraged that you use your own Node (or your own electrum-server) but you can also use an external electrum-server in the public internet. Since Version 2 we have two proposals to use easily. As this was too cumbersome to use. we no longer provide an internal node since version 2. Use an external electrum instead.
+No, with Specter 2.0, a Bitcoin node is no longer needed. It's encouraged that you use your own Bitcoin Core node or your own Electrum server but you can also use a public Electrum server. Since version 2.0 we no longer support a Bitcoin Core node managed by the Specter app. You could use the external Electrum option instead or manage the Bitcoin Core node yourself.
 
 ### *I get this message: "This is a development server. Do not use it in a production deployment.". Should i worry?
 
