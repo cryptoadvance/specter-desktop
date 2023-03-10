@@ -100,7 +100,7 @@ In Bitcoin Cold storage we can use multisig setups and different hardware wallet
 
 It is watch-only (private keys are protected by HWW) and compatible with multisig in Electrum, so even if something breaks you always have a fallback option while we fix the bug. So go for it :)
 
-We try to use default descriptors and derivation paths exactly for this reason - to be compatible with other wallets. Would be nice to keep it this way, but at a certain point we will need to diverge - for example when we add miniscript support.
+We try to use default descriptors and derivation paths exactly for this reason: to be compatible with other wallets. Even if we add advanced features such as miniscript, you will always have Bitcoin Core to fall back to. 
 
 ### *What's the difference between Specter-desktop and Specter-DIY?* 
 
