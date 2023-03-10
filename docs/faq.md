@@ -125,7 +125,7 @@ If you use your own Bitcoin Core node, you don't need any private keys in Bitcoi
 
 By default the gap limit is 20, but you can go to the wallet settings and import as many addresses as you want. If you know the wallet is old you may want to try importing many addresses (~1000), and then rescanning.
 The order is the same, and the addresses are also the same as the address derivation process is deterministic for a wallet. Address index is a derivation index of the wallet, so the index and the address itself are connected.
-Be aware that the number of addresses is impacting the sync-time if you use electrum.
+Be aware that the number of addresses is impacting the sync-time.
 
 ### *If the Bitcoin Core instance we are connecting to already has a wallet, is it possible to load it via the UI if we know the name, and could we import a .dat file?*
 
