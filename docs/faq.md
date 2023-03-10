@@ -171,7 +171,7 @@ There are many ways how to run Specter:
 
 Also you can run it via a platform-specific binary, pip-installation or via a Docker-container. It depends on your needs, and can be customized accordingly.
 
-Specter-desktop makes many requests to Bitcoin Core RPC (or Spectrum), so it works better from the same machine where Core is running, but remote is also possible. With that being said, by default Bitcoin Core RPC is connecting over HTTP, so everything including your RPC login and password are flying around as plaintext. You can use HTTPS and a [self-signed certificate](https://docs.specter.solutions/desktop/self-signed-certificates/) to fix that.
+Specter makes many requests to the Bitcoin Core RPC interface (or Spectrum), so it works better from the same machine where Core is running, but remote is also possible. With that being said, by default requests to the Bitcoin Core RPC are via HTTP, so everything including your RPC login and password are flying around as plaintext. You can use HTTPS and a [self-signed certificate](https://docs.specter.solutions/desktop/self-signed-certificates/) to fix that.
 
 If you use hardware wallets and they are usb-connected to specter-desktop then you need to use the hwibridge in the remote cases. However if your HWW is air-gapped (ColdCard, specter-diy, cobo) - then you can use remote web interface.
 
