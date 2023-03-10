@@ -292,7 +292,7 @@ We will make a pull request to HWI when we think it's safe enough. In particular
 
 ### *Do you have a physical security design?*
 
-No security at the moment, but it also doesn't store the private key. Working on integration of secure element similar to the ColdCard's (mikroe secure chip).
+There is physical security, if you use the smart cards, which is a similar setup to Coldcard's usage of secure elements (to store secrets).
 
 ### *Is there a simulator I can try the Specter-DIY with?*
 
