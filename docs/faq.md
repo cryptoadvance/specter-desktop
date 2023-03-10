@@ -276,7 +276,7 @@ Waveshare QR scanner is recommended as it has a good quality/price ratio.
 
 ### *Is specter-DIY safe to use?*
 
-It has been used by many people in production in multi- and singlesig setups. Use it on your own risk and there is no warranty you can break. Don't trust, verify!
+It has been used by many people in production in multi- and singlesig setups. But, keep in mind: "Don't trust, verify!"
 
 ### *I'm wondering what if someone takes the device? How does Specter-DIY approach this scenario?*
 
