@@ -107,7 +107,7 @@ We try to use default descriptors and derivation paths exactly for this reason: 
 Specter-desktop is a watch-only GUI software wallet running on Bitcoin Core or Electrum using its wallet and full node functionality.
 Bitcoin Core tracks addresses, UTXO (unspent transaction outputs) and composes PSBT (partially-signed bitcoin transactions).
 
-Whereas, [Specter-DIY](https://docs.specter.solutions/diy/) is a do-it-yourself hardware wallet from off the shelf components, that signs and broadcasts transactions using QR codes that forgets your private keys when powered off.
+Whereas, [Specter-DIY](https://docs.specter.solutions/diy/) is a do-it-yourself hardware wallet from off the shelf-components, that signs transactions (mainly) using QR codes. You can configure it to forget your private keys when powering off or to store them (even on secure elements of smart cards). 
 
 ### *Is a full node necessary for using Specter-desktop?*
 
