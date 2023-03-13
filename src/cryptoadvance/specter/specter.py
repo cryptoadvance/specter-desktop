@@ -402,8 +402,7 @@ class Specter:
     # mark
     def update_tor_control_port(self, tor_control_port, user):
         """set the control port of the tor daemon"""
-        if self.config_manager.update_tor_control_port:
-            self.update_tor_controller()
+        self.config_manager.update_tor_control_port(tor_control_port, user)
 
     # mark
     def generate_torrc_password(self, overwrite=False):
