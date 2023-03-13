@@ -17,7 +17,7 @@ from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.wallet import Wallet
 from cryptoadvance.specterext.hwi.hwi_rpc_binary import HWIBinaryBridge
 
-
+from .binary_downloader import BinaryDownloader
 from .hwi_server import hwi_server
 
 logger = logging.getLogger(__name__)
@@ -52,7 +52,12 @@ class HwiService(Extension):
             app.specter.hwi = HWILibBridge()
         elif app.config["HWI_RPC_IMPL"] == "bin":
             logger.info("Using HWI Binary")
-            app.specter.hwi = HWIBinaryBridge()
+            downloader = BinaryDownloader.from_github_repo(
+                app.specter,
+                hash=app.config["HWI_BIN_HASH"],
+                version=app.config["HWI_BIN_VERSION"],
+            )
+            app.specter.hwi = HWIBinaryBridge(downloader.get_executable)
 
         app.register_blueprint(hwi_server, url_prefix="/hwi")
         app.csrf.exempt(hwi_server)

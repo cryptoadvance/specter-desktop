@@ -16,8 +16,14 @@ class HWIBinaryBridge(AbstractHWIBridge):
     of HWI
     """
 
-    hwi_path = "/home/kim/.specter_dev/binaries/hwi"
-    device_pathes = {}
+    def __init__(self, get_executable):
+        self.get_executable = get_executable
+        self.device_pathes = {}
+        super().__init__()
+
+    @property
+    def hwi_path(self):
+        return self.get_executable()
 
     def run_hwi(self, cmd):
         if True:

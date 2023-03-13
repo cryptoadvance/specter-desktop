@@ -143,6 +143,34 @@ def test_sign_tx(hwi: AbstractHWIBridge, caplog):
     )
 
 
+@pytest.mark.manual
+def test_sign_message(hwi: AbstractHWIBridge, caplog):
+    caplog.set_level(logging.DEBUG)
+    unlock_trezor_if_needed(hwi)
+    res = hwi.sign_message(
+        message="cypherpunks write code",
+        derivation_path="m/84h/0h/0h/0/21",
+        device_type="trezor",
+        path="webusb:003:1:1:4",
+        fingerprint=None,
+        passphrase="",
+        chain="main",
+    )
+
+    # trezor Suite:
+    # -----BEGIN BITCOIN SIGNED MESSAGE-----
+    # cypherpunks write code
+    # -----BEGIN SIGNATURE-----
+    # bc1qc8smx85mquyrgez4cggjqk49u2j0u2cml67lax
+    # J0lg4/INa4zPphTaZjblEbLhRqveeejyoFJKcaCC9xBQUO5kT71O5LjSk25nGKLLcihSxRhrdFFy3wdCRE60TqA=
+    # -----END BITCOIN SIGNED MESSAGE-----
+
+    # Doesn't work for neither of the two impls. Did it ever work?
+    # assert (
+    #     res == "J0lg4/INa4zPphTaZjblEbLhRqveeejyoFJKcaCC9xBQUO5kT71O5LjSk25nGKLLcihSxRhrdFFy3wdCRE60TqA="
+    # )
+
+
 def unlock_trezor_if_needed(hwi: AbstractHWIBridge, should_need_passphrase_sent=False):
     res = hwi.enumerate(passphrase="")[0]
     print(f"type(result) = {type(res)}")

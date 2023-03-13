@@ -52,7 +52,11 @@ class AbstractHWIBridge(JSONRPC):
         logger.info(
             f"Initializing {self.__class__.__name__}..."
         )  # to explain user why it takes so long
-        self.enumerate()
+        try:
+            self.enumerate()
+        except Exception as e:
+            # We won't fail because of this
+            logger.exception(e)
 
     def toggle_passphrase(self, device_type=None, path=None, passphrase="", chain=""):
         if device_type != "keepkey" and device_type != "trezor":
