@@ -19,9 +19,9 @@ def copytree(src, dst, symlinks=False, ignore=None):
 
 
 def setup_tor_thread(specter=None):
-    """This will extracted the tor-binary out of the tar.xz packaged with specterd and copy
+    """This will extract the Tor binary out of the tar.xz packaged with specterd and copy
     it over to the ~/.specter/tor-binaries folder
-    Then it will create a torrc file and start the tor-demon
+    It will then create a torrc file and start the Tor daemon
     """
     try:
         specter.update_setup_status("torbrowser", "STARTING_SETUP")
@@ -59,9 +59,7 @@ def setup_tor_thread(specter=None):
             file.write(
                 f"\nHashedControlPassword {specter.tor_daemon.get_hashed_password(specter.config['torrc_password'])}"
             )
-
         specter.tor_daemon.start_tor_daemon()
-        specter.update_tor_controller()
         specter.reset_setup("torbrowser")
     except Exception as e:
         logger.exception(f"Failed to install Tor.")

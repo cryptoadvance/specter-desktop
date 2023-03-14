@@ -248,6 +248,14 @@ def tor():
         hidden_service = request.form.get("hidden_service") == "on"
 
         if action == "save":
+            # Remove the built-in Tor setup if the user has it and is checking the "Disabled" radio button
+            if tor_type == "disabled" and app.specter.tor_type == "builtin":
+                if app.specter.is_tor_dameon_running():
+                    app.specter.tor_daemon.stop_tor_daemon()
+                shutil.rmtree(os.path.join(app.specter.data_folder, "tor-binaries"))
+                os.remove(os.path.join(app.specter.data_folder, "torrc"))
+                flash("Tor disabled. Built-in Tor setup uninstalled")
+
             logger.info("Updating Tor settings...")
             app.specter.update_tor_type(tor_type, current_user)
 
@@ -310,11 +318,11 @@ def tor():
             logger.info("Stopping Tor...")
             try:
                 app.specter.tor_daemon.stop_tor_daemon()
-                time.sleep(1)
+                time.sleep(2)
                 flash(_("Specter stopped Tor successfully"))
             except Exception as e:
                 flash(_("Failed to stop Tor, error: {}").format(e), "error")
-                logger.exception(f"Failed to start Tor, error: {e}", e)
+                logger.exception(f"Failed to stop Tor, error: {e}", e)
         elif action == "uninstalltor":
             logger.info("Uninstalling Tor...")
             try:
@@ -322,6 +330,8 @@ def tor():
                     app.specter.tor_daemon.stop_tor_daemon()
                 shutil.rmtree(os.path.join(app.specter.data_folder, "tor-binaries"))
                 os.remove(os.path.join(app.specter.data_folder, "torrc"))
+                tor_type = "disabled"
+                app.specter.update_tor_type(tor_type, current_user)
                 flash(_("Tor uninstalled successfully"))
             except Exception as e:
                 flash(_("Failed to uninstall Tor, error: {}").format(e), "error")
@@ -385,6 +395,20 @@ def tor():
         current_version=current_version,
         rand=rand,
     )
+
+
+@settings_endpoint.route("/update_tor_type", methods=["POST"])
+@login_required
+def update_tor_type():
+    tor_type = request.form["torType"]
+    logger.info(f"This is the tor type from the AJAX call: {tor_type}")
+    logger.info(f"This is the tor type currently in Specter: {app.specter.tor_type}")
+    app.specter.update_tor_type(tor_type, current_user)
+    logger.info(
+        f"This is the tor type after updating in Specter: {app.specter.tor_type}"
+    )
+    response = {"torTypeChanged": True, "error": None}
+    return jsonify(response)
 
 
 @settings_endpoint.route("/auth", methods=["GET", "POST"])

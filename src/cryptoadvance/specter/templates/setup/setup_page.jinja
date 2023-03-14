@@ -1,34 +1,8 @@
 {% extends "base.jinja" %}
 {% block main %}
-    <div style="display: none;"><!--<style>-->
-        .wizard-btn {
-            width: 200px;
-            min-width: 200px;
-            max-width: 200px;
-            height: 36px;
-            margin: auto;
-        }
-        .helper-btn {
-            text-decoration: underline;
-            margin: 10px 50px;
-        }
-    </div><!--</style>-->
-    <div class="card center">
-        {% block setup %}
-        {% endblock %}
-    </div>
-    <br><br>
-    <div class="row">
-        <form method="POST" action="{{ url_for('welcome_endpoint.about') }}">
-            <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button type="submit" name="action" value="cancelsetup" class="btn hidden danger" id="reset-setup-process" data-style="max-height: 36px;" onclick="">{{ _("Cancel process") }}</button>
-        </form>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button type="button" class="btn hidden action" id="show-progress-details" data-style="max-height: 36px;" onclick="showPageOverlay('progress-details');">{{ _("View Progress") }}</button>
-    </div>
-    <h1 id="progress-details" class="hidden" data-style="margin: auto;"></h1>
-    
+    {% block setup %}
+    {% endblock %}
 {% endblock %}
-
 
 {% block scripts %}
     <script>
@@ -88,10 +62,7 @@
                     let progress = parseFloat(result.stage_progress);
                     if (progress == -1) {
                         window.location.href = nextURL;
-                    }
-                    document.getElementById('progress-details').innerHTML = `${stage}<br>`;
-                    if (progress > 0 && progress < 100) {
-                        document.getElementById('progress-details').innerHTML += `<br><br><b data-style="font-size:0.8em;">{{ _("Download Progress:") }}" ${progress}%</b>`;
+                        localStorage.setItem("builtinTor", true)
                     }
                     setTimeout(fetchProgress, 1000);
                 } catch(e) {
@@ -99,12 +70,6 @@
                     return { success: false, error: e };
                 }
             }
-            document.getElementById('progress-details').classList.remove('hidden');
-            document.getElementById('show-progress-details').classList.remove('hidden');
-            document.getElementById('reset-setup-process').classList.remove('hidden');
-            showPageOverlay('progress-details');
-            document.getElementById('progress-details').innerHTML = `{{ _("Starting up...") }}`;
-            
             setTimeout(fetchProgress, 1000);
         }
     </script>
