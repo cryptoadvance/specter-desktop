@@ -401,12 +401,7 @@ def tor():
 @login_required
 def update_tor_type():
     tor_type = request.form["torType"]
-    logger.info(f"This is the tor type from the AJAX call: {tor_type}")
-    logger.info(f"This is the tor type currently in Specter: {app.specter.tor_type}")
     app.specter.update_tor_type(tor_type, current_user)
-    logger.info(
-        f"This is the tor type after updating in Specter: {app.specter.tor_type}"
-    )
     response = {"torTypeChanged": True, "error": None}
     return jsonify(response)
 
