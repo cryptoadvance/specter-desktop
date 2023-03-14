@@ -141,7 +141,7 @@ class BinaryDownloader:
                 verified, actual_hash, expected_hash = verify_hash(
                     downloaded_file, self.expected_hash
                 )
-                if verified:
+                if not verified:
                     self.status = "failed_verification"
                     raise SpecterInternalException(
                         f"Hash verification failed ({actual_hash} != {expected_hash}) "
@@ -160,4 +160,5 @@ def verify_hash(the_file, expected_hash):
     hasher = hashlib.sha256()
     with open(the_file, "rb") as f:
         hasher.update(f.read())
-    return hasher.hexdigest() == expected_hash, hasher.hexdigest(), expected_hash
+    verified = hasher.hexdigest() == expected_hash
+    return verified, hasher.hexdigest(), expected_hash

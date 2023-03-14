@@ -1,5 +1,6 @@
 import logging
 import time
+import os
 
 import requests
 from mock import MagicMock
@@ -25,4 +26,5 @@ def test_BinaryDownloader(empty_data_folder, caplog):
         if not downloader._download_thread.is_alive():
             break
         time.sleep(0.5)
-    assert False
+    assert downloader.status == "ready"
+    assert os.path.isfile(downloader.get_executable())
