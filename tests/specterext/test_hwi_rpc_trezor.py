@@ -14,20 +14,6 @@ import logging
 from hwilib.errors import DeviceNotReadyError
 
 
-# fmt: off
-@pytest.fixture(params=[
-    HWILibBridge, 
-    HWIBinaryBridge
-])
-# fmt: on
-def hwi(request):
-    instance = request.param()
-    # There is a bug https://github.com/bitcoin-core/HWI/issues/636 which makes it necessary
-    # to pass the device-path for certain commands
-    # instance.path = instance.enumerate()["path"]
-    return instance
-
-
 @pytest.mark.manual
 def test_trezor_enumerate(hwi: AbstractHWIBridge, caplog):
     caplog.set_level(logging.DEBUG)
@@ -102,11 +88,11 @@ def test_trezor_extract_xpub(hwi: AbstractHWIBridge, caplog):
     assert key.derivation == "m/48h/1h/0h/1h"  # Nested Mutisig on testnet
     # I don't understand why it's not a Upub?
     # assert key.xpub == "Upub5Tk9tZtdzVaTGWtygRTKDDmaN5vfB59pn2L5MQyH6BkVpg2Y5J95rtpQndjmXNs3LNFiy8zxpHCTtvxxeePjgipF7moTHQZhe3E5uPzDXh8"
+    # but that seem to be an issue with the Key implementation rather then with trezor.
     assert (
         key.xpub
         == "tpubDFiVCZzdarbyfdVoh2LJDL3eVKRPmxwnkiqN8tSYCLod75a2966anQbjHajqVAZ97j54xZJPr9hf7ogVuNL4pPCfwvXdKGDQ9SjZF7vXQu1"
     )
-    assert False
 
 
 @pytest.mark.manual

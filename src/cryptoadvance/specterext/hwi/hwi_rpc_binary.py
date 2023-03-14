@@ -1,8 +1,12 @@
 import json
+from json.decoder import JSONDecodeError
 import logging
 from cryptoadvance.specter.helpers import locked
+from cryptoadvance.specter.key import Key
+from cryptoadvance.specter.specter_error import SpecterInternalException
 from cryptoadvance.specter.util.shell import run_shell
 from cryptoadvance.specter.util.xpub import convert_xpub_prefix
+from cryptoadvance.specter.util.derivation_pathes import is_testnet
 from embit import bip32
 from embit import networks
 
@@ -28,7 +32,24 @@ class HWIBinaryBridge(AbstractHWIBridge):
     def run_hwi(self, cmd):
         if True:
             logger.debug(f"cmd: {cmd}")
-        return run_shell(cmd)
+        res = run_shell(cmd)
+        if res["code"] != 0:
+            logger.error(f"Got an issue with this call: {cmd}")
+            logger.error(f"{' '.join(cmd)}")
+            raise Exception(res["err"])
+        try:
+            result_parsed = json.loads(res["out"])
+            if isinstance(result_parsed, list):
+                return result_parsed
+        except JSONDecodeError as e:
+            raise SpecterInternalException(
+                f"Could not parse {res['out']} for command {' '.join(cmd)}"
+            )
+        if result_parsed.get("error"):
+            raise SpecterInternalException(
+                f"Could not get result for command {' '.join(cmd)} because: \n {result_parsed['error']}"
+            )
+        return result_parsed
 
     def device_path(self, device_type):
         if not self.device_pathes["device_type"]:
@@ -49,11 +70,7 @@ class HWIBinaryBridge(AbstractHWIBridge):
         """
         devices = []
 
-        result = self.run_hwi([self.hwi_path, "enumerate"])
-        if result["code"] != 0:
-            raise Exception(result["err"])
-        logger.debug(result["out"])
-        devs = json.loads(result["out"])
+        devs = self.run_hwi([self.hwi_path, "enumerate"])
         # extracting fingerprint info
         for dev in devs:
             # we can't get fingerprint if device is locked
@@ -93,12 +110,7 @@ class HWIBinaryBridge(AbstractHWIBridge):
         if path:
             cmd.extend(["--device-path", path])
         cmd.append("togglepassphrase")
-        res = run_shell(cmd)
-        if res["code"] != 0:
-            logger.error(f"Got an issue with this call: {cmd}")
-            logger.error(f"{' '.join(cmd)}")
-            raise Exception(res["err"])
-        return json.loads(res["out"])
+        return self.run_hwi(cmd)
 
     @locked(hwilock)
     def prompt_pin(self, device_type=None, path=None, passphrase="", chain=""):
@@ -111,12 +123,7 @@ class HWIBinaryBridge(AbstractHWIBridge):
         if path:
             cmd.extend(["--device-path", path])
         cmd.append("promptpin")
-        res = run_shell(cmd)
-        if res["code"] != 0:
-            logger.error(f"Got an issue with this call: {cmd}")
-            logger.error(f"{' '.join(cmd)}")
-            raise Exception(res["err"])
-        return json.loads(res["out"])
+        return self.run_hwi(cmd)
 
     @locked(hwilock)
     def send_pin(self, pin="", device_type=None, path=None, passphrase="", chain=""):
@@ -137,11 +144,7 @@ class HWIBinaryBridge(AbstractHWIBridge):
         cmd.extend(["--device-path", path])
         cmd.append("sendpin")
         cmd.append(pin)
-        res = run_shell(cmd)
-        if res["code"] != 0:
-            logger.error(f"Got an issue with this call: {cmd}")
-            raise Exception(res["err"])
-        return json.loads(res["out"])
+        return self.run_hwi(cmd)
 
     @locked(hwilock)
     def extract_xpubs(
@@ -229,11 +232,7 @@ class HWIBinaryBridge(AbstractHWIBridge):
         cmd.extend(["--device-path", path])
         cmd.append("displayaddress")
         cmd.extend(["--desc", descriptor])
-        res = run_shell(cmd)
-        if res["code"] != 0:
-            logger.error(f"Got an issue with this call: {cmd}")
-            raise Exception(res["err"])
-        return json.loads(res["out"])["address"]
+        return self.run_hwi(cmd)
 
     @locked(hwilock)
     def sign_tx(
@@ -255,12 +254,9 @@ class HWIBinaryBridge(AbstractHWIBridge):
         cmd.extend(["--device-path", path])
         cmd.append("signtx")
         cmd.append(psbt)
-        res = run_shell(cmd)
-        if res["code"] != 0:
-            logger.error(f"Got an issue with this call: {cmd}")
-            raise Exception(res["err"])
-        assert json.loads(res["out"])["signed"]
-        return json.loads(res["out"])["psbt"]
+        res = self.run_hwi(cmd)
+        assert res["signed"]
+        return res["psbt"]
 
     @locked(hwilock)
     def sign_message(
@@ -436,14 +432,22 @@ class HwiBinaryClient:
         if self.device_path:
             cmd.extend(["--device-path", self.device_path])
 
+        # at least the bitbox02 needs a "--chain test" for testnet derivation pathes.
+        # we need to figure out whether we're on a testnet derivation path
+
+        if is_testnet(derivation_path):
+            cmd.extend(["--chain", "test"])
+
         cmd.append("getxpub")
         cmd.append(derivation_path)
 
-        res = run_shell(cmd)
-        if res["code"] != 0:
-            logger.error(f"Got an issue with this call: {cmd}")
-            raise Exception(res["err"])
-        return json.loads(res["out"])["xpub"]
+        res = self.hwi.run_hwi(cmd)
+        if res.get("xpub"):
+            return res["xpub"]
+        else:
+            raise SpecterInternalException(
+                f"Device failed to provide xpub at path {derivation_path}: {res}"
+            )
 
     def get_master_fingerprint(self):
         devices = self.hwi._enumerate(passphrase=self.passphrase, chain=self.chain)
