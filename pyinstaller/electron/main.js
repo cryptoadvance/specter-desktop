@@ -364,10 +364,11 @@ function initMainWindow() {
     webPreferences
   })
   
-  mainWindow.webContents.on('new-window', function(e, url) {
-    e.preventDefault();
-    shell.openExternal(url);
-  });
+  // Ensures that any links with target="_blank" or window.open() will be opened in the user's default browser instead of within the app
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url)
+    return { action: 'deny' }
+  })
 
   mainWindow.on('close', function (event) {
       if(platformName == 'win64') {

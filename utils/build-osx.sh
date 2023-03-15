@@ -13,10 +13,10 @@ function create_virtualenv_for_pyinstaller {
         echo "    --> Deleting .buildenv"
         rm -rf .buildenv
     fi
-    # linux:
-    # virtualenv --python=python3 .buildenv
-    # we do:
-    virtualenv --python=/usr/local/bin/python3 .buildenv
+    # This currently assumes to be run with: Python 3.10.4
+    # Important: pyinstaller needs a Python binary with shared library files
+    # With pyenv, for example, you get this like so: env PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.10.4
+    virtualenv .buildenv
     source .buildenv/bin/activate
     pip3 install -e ".[test]"
 }
