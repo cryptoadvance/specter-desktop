@@ -1,4 +1,4 @@
-{% extends "spectrum/base.jinja" %}
+{% extends "spectrum/components/spectrum_tab.jinja" %}
 
 {% block main %}
     <h1>{{ _("Connect with Electrum") }}</h1>
@@ -44,7 +44,6 @@
         </div>
         <div id ="elec_list_container" class="floating-wrapper">
             <select id="server-list" name="elec_option" class="floating-input peer">
-                <option selected style='display: none'></option>
                 {% for electrum_option in elec_options %}
                     <option value="{{ electrum_option }}" {% if elec_chosen_option == electrum_option %}selected{% endif %}>{{ electrum_option }}</option>
                 {% endfor %}
@@ -59,7 +58,10 @@
             {% if node_is_available %}
                 <button type="submit" class="button" name="action" value="delete">{{ _("Delete") }}</button>
             {% endif %}
-            <button type="submit" class="button bg-accent text-white" name="action" value="connect">{{ _("Connect") }}</button>
+            <button id="connect-btn" type="submit" class="button bg-accent text-white" name="action" value="connect">
+                <span id="connect-text">{{ _("Connect") }}</span>
+                <img class="hidden rounded-full w-4 h-4 animate-spin" id="connecting-indicator" src="{{ url_for('static', filename='img/refresh.svg') }}"/>
+            </button>
         </div>
     </form>
 {% endblock %}
@@ -108,5 +110,14 @@
     this.elec_option_list.addEventListener('click', (event) => {
         this.showElecOption("list")
     });
+
+    const connectBtn = document.getElementById('connect-btn')
+    const connectText = document.getElementById('connect-text');
+    const connectingIndicator = document.getElementById('connecting-indicator')
+    connectBtn.addEventListener('click', () => {
+        connectText.classList.add('hidden')
+        connectingIndicator.classList.remove('hidden')
+    })
+
   </script>
 {% endblock %}

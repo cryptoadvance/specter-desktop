@@ -8,14 +8,17 @@
         </div>
     {% endif %}
     {% if specter.chain %}
-        <table>
-            <tr> <td data-style="text-align: left;">{{ _("Network") }}:</td> <td data-style="text-align: right;" id="node-info-specter-chain">{{specter.chain}}</td> </tr>
-            <tr> <td data-style="text-align: left;">{{ _("Blocks count") }}:</td> <td data-style="text-align: right;">{{specter.info['blocks']}}</td> </tr>
-            <tr> <td data-style="text-align: left;">{{ _("Host") }}:</td> <td data-style="text-align: right;" id="node-info-specter-chain">{{specter.node.host}}</td> </tr>
-            <tr> <td data-style="text-align: left;">{{ _("Port") }}:</td> <td data-style="text-align: right;" id="node-info-specter-chain">{{specter.node.port}}</td> </tr>
-            <tr> <td data-style="text-align: left;">{{ _("SSL") }}:</td> <td data-style="text-align: right;" id="node-info-specter-chain">{{specter.node.ssl}}</td> </tr>
-            <tr> <td data-style="text-align: left;">{{ _("Node uptime") }}:</td> <td data-style="text-align: right;">~ {{(specter.info['uptime'] / 60 // 60) | int }} {{ _("Hours") }}</td> </tr>
-        </table>
+        <div class="m-3 mb-1">
+            <table>
+                <tr> <td>{{ _("Network") }}</td> <td class="text-right" id="node-info-specter-chain">{{specter.chain}}</td> </tr>
+                <tr> <td>{{ _("Blocks count") }}</td> <td class="text-right">{{specter.info['blocks']}}</td> </tr>
+                <tr> <td>{{ _("Host") }}</td> <td class="text-right" id="node-info-specter-chain">{{specter.node.host}}</td> </tr>
+                <tr> <td>{{ _("Port") }}</td> <td class="text-right" id="node-info-specter-chain">{{specter.node.port}}</td> </tr>
+                <tr> <td>{{ _("Tor") }}:</td> <td class="text-right" id="node-info-specter-chain">{{specter.node.uses_tor}}</td> </tr>
+                <tr> <td>{{ _("SSL") }}</td> <td class="text-right" id="node-info-specter-chain">{{specter.node.ssl}}</td> </tr>
+                <tr> <td>{{ _("Node uptime") }}</td> <td class="text-right">~ {{(specter.info['uptime'] / 60 // 60) | int }} {{ _("Hours") }}</td> </tr>
+            </table>
+        </div>
 
         <div class="px-3 pb-4 mt-2">
             {% if current_user.is_admin %}

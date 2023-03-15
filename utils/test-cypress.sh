@@ -63,6 +63,7 @@ Subcommands:
 
 generic-options:
     --debug             Run as much stuff in debug as we can
+    --with-elements     In addition to bitcoind, also start elementsd
 EOF
 }
 
@@ -176,7 +177,9 @@ function start_bitcoind {
 }
 
 function start_elementsd {
-  start_node --elements $*
+  if [ $USE_ELEMENTSD = true ]; then
+    start_node --elements $*
+  fi
 }
 
 function stop_bitcoind {
@@ -396,6 +399,9 @@ function parse_and_execute() {
     exit 0
   fi 
 
+  # Don't start elementsd unless --with-elements is set
+  # Usage: ./utils/test-cypress.sh --with-elements run
+  USE_ELEMENTSD=false
   while [[ $# -gt 0 ]]
   do
   arg="$1"
@@ -411,6 +417,10 @@ function parse_and_execute() {
       ;;
     --elm-log-stdout)
       ELMLOGSTDOUT=true
+      shift
+      ;;
+    --with-elements)
+      USE_ELEMENTSD=true
       shift
       ;;
     *)

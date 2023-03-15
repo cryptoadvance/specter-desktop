@@ -22,11 +22,11 @@
     - [Connect Specter to Bitcoin Core](#connect-specter-to-bitcoin-core)
   - [Tips and tricks (detailed instructions)](#tips-and-tricks-detailed-instructions)
   - [Errors, doubts.. Read our FAQ!](#errors-doubts-read-our-faq)
-  - [A few screenshots](#a-few-screenshots)
-    - [Adding a new device](#adding-a-new-device)
-    - [Creating a new wallet](#creating-a-new-wallet)
+  - [Setting up Specter Desktop](#setting-up-specter-desktop)
+    - [Select how to connect to Bitcoin network](#select-how-to-connect-to-bitcoin-network)
+    - [Add a new device](#add-a-new-device)
+    - [Create a new wallet](#create-a-new-wallet)
     - [Wallet interface](#wallet-interface)
-    - [Configuration](#configuration)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -50,17 +50,21 @@ If something doesn't work open an issue here or ask a question in our [Telegram 
 
 Bitcoin Core has a very powerful command line interface and a wonderful daemon. Using PSBT and [HWI](https://github.com/bitcoin-core/HWI) it can also work with hardware wallets, but at the moment it is too linux-way. The same applies to multisignature setups. 
 
-The goal of this project is to make a convenient and user-friendly GUI around Bitcoin Core with a focus on multisignature setup with hardware wallets and airgapped devices.
+The goal of this project is to make a convenient and user-friendly User Interface around Bitcoin Core with a focus on multisignature setup with airgapped signing devices (aka hardware wallets).
 
 At the moment Specter-Desktop is working with all major hardware wallets including:
+- SeedSigner
+- Specter DIY (optionally airgapped, using QR codes)
+- Blockstream Jade
+- ColdCard (optionally airgapped, using an SD card)
+- BitBox02
+- Passport
+- Electrum (optionally airgapped, if running Electrum on an airgapped computer/phone)
+- Keystone (airgapped, using QR codes)
 - Trezor
 - Ledger
 - KeepKey
-- BitBox02
-- ColdCard (optionally airgapped, using an SD card)
-- Electrum (optionally airgapped, if running Electrum on an airgapped computer/ phone)
-- Specter DIY (optionally airgapped, using QR codes)
-- Cobo (airgapped, using QR codes)
+
 
 We also support using the Bitcoin Core as a hot wallet, by importing or generating a random BIP39 mnemonic, but this feature is experimental and we do not recommend using it at this stage.
 We plan to add support for other hardware wallets as they come up. If you are interested in using Specter with a hardware wallet currently unsupported, let us know by opening an issue here or asking in our [Telegram group](https://t.me/spectersupport).
@@ -147,28 +151,50 @@ Have a look at [development.md](docs/development.md) for further information abo
 
 If you're stuck while installing/configuring Specter or you're looking for more informations about the project, read our [FAQ](docs/faq.md)!
 
-## A few screenshots
+## Setting up Specter Desktop
 
-### Adding a new device
+### Select how to connect to Bitcoin network
 
-![](./docs/images/README/devices.png)
+![image](https://user-images.githubusercontent.com/47259243/223425374-a3e68ac7-2bdb-48fe-a53b-59f235c59bd1.png)
 
-![](./docs/images/README/device_keys.png)
+Electrum server or...
+![image](https://user-images.githubusercontent.com/47259243/223426046-dd225f00-ba18-45cb-871a-40efd7eefc1e.png)
 
-### Creating a new wallet
+...via Bitcoin Core node.
+![image](https://user-images.githubusercontent.com/47259243/223426366-c3ba758a-34c4-4ce1-8aae-cf0cc335a892.png)
 
-![](./docs/images/README/wallets.png)
 
-![](./docs/images/README/new_multisig.png)
+### Add a new device
+
+Select signing device
+![image](https://user-images.githubusercontent.com/47259243/223428531-2f3a04d4-177d-4626-8108-b66234892541.png)
+
+Upload public keys
+![image](https://user-images.githubusercontent.com/47259243/223427859-c06faec5-78ab-4592-9ba6-4018978280cc.png)
+
+
+### Create a new wallet
+
+Select the type of wallet
+![image](https://user-images.githubusercontent.com/47259243/223429703-7bf1bb38-f8c2-4103-a681-8cfd02301a23.png)
+
+Pick the device you want to use
+![image](https://user-images.githubusercontent.com/47259243/223429929-4a0acd0a-7d9d-4b29-a7b0-5f52cf262f21.png)
+
+Configure the wallet
+![image](https://user-images.githubusercontent.com/47259243/223433687-199fd383-6948-4799-bac3-e1f3c0d766de.png)
+
 
 ### Wallet interface
 
-![](./docs/images/README/transactions.png)
+Transactions & UTXOs
+![image](https://user-images.githubusercontent.com/47259243/223434020-cc88c8f5-200d-4acb-967c-3fdf3e8a8776.png)
 
-![](./docs/images/README/receive.png)
+Receive & Change Addresses
+![image](https://user-images.githubusercontent.com/47259243/223434274-5480dd02-4104-43b2-8f0e-28623f3464a9.png)
 
-![](./docs/images/README/send.png)
+Send 
+![image](https://user-images.githubusercontent.com/47259243/223434554-562802dc-467d-4d7e-bc83-1cd56c3239d2.png)
 
-### Configuration
-
-![](./docs/images/README/bitcoin-rpc.png)
+Settings -> Important for multi-signature wallets. Export printable PDF backup.
+![image](https://user-images.githubusercontent.com/47259243/223435735-73a440c2-e2e0-4fb7-b755-54e265a4e34c.png)

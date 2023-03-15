@@ -29,13 +29,13 @@ import 'cypress-wait-until';
 Cypress.Commands.add("addDevice", (name, device_type, mnemonic) => { 
     cy.get('body').then(($body) => {
         if ($body.text().includes(name)) {
-          cy.get('#toggle_devices_list').click()
+          cy.get('#devices_toggle').click()
           cy.contains(name).click()
           return
         } 
         cy.get('#side-content').click()
         if (!cy.get('#btn_new_device').isVisible) {
-          cy.get('#toggle_devices_list').click()
+          cy.get('#devices_toggle').click()
         }
         cy.get('#btn_new_device').click()
         cy.contains('Manual configuration').click()
@@ -66,7 +66,7 @@ Cypress.Commands.add("addHotDevice", (name, node_type) => {
       } 
       cy.get('#side-content').click()
       if (!cy.get('#btn_new_device').isVisible) {
-        cy.get('#toggle_devices_list').click()
+        cy.get('#devices_toggle').click()
       }
       cy.get('#btn_new_device').click( {force: true} )
       cy.get(`#${node_type}core_device_card`).click()
@@ -80,7 +80,7 @@ Cypress.Commands.add("addHotDevice", (name, node_type) => {
 Cypress.Commands.add("deleteDevice", (name) => { 
     cy.get('body').then(($body) => {
         if ($body.text().includes(name)) {
-          cy.get('#toggle_devices_list').click()
+          cy.get('#devices_toggle').click()
           cy.contains(name).click( {force: true} )
           cy.get('#forget_device').click()
           cy.reload()
@@ -94,9 +94,9 @@ Cypress.Commands.add("deleteDevice", (name) => {
 Cypress.Commands.add("changeDeviceType", (deviceName, newType) => { 
     cy.get('body').then(($body) => {
         if ($body.text().includes(deviceName)) {
-          cy.get('#toggle_devices_list').then(($devicesList) => {
+          cy.get('#devices_toggle').then(($devicesList) => {
             if ($devicesList.text() == 'Devices ▸') {
-              cy.get('#toggle_devices_list').click()
+              cy.get('#devices_toggle').click()
             }
           })
           let refDeviceName = deviceName.toLowerCase().replace(/ /g,"_");
@@ -208,10 +208,10 @@ Cypress.Commands.add("deleteWallet", (walletName) => {
 Cypress.Commands.add("selectWallet", (walletName) => { 
   cy.get('body').then(($body) => {
     if ($body.text().includes(walletName)) {
-        cy.get('#toggle_wallets_list').then(($walletsList) => {
+        cy.get('#wallets_toggle').then(($walletsList) => {
           // Only toggle the wallets list if it is not already toggled
           if ($walletsList.text() == 'Wallets ▸') {
-            cy.get('#toggle_wallets_list').click()
+            cy.get('#wallets_toggle').click()
           }
           cy.get(`[data-cy='wallet-sidebar-btn-${walletName}']`).click()
       })
@@ -271,3 +271,7 @@ Cypress.Commands.add("connect", () => {
   cy.get('#port').type(15443)
   cy.get('[data-cy="connect-btn"]').click()
 })
+
+Cypress.Commands.add("isElementsRunning", () => {
+  return cy.task("isElementsRunning");
+});

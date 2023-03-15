@@ -227,8 +227,7 @@ if [ "$app_name" == "specter" ]; then
     sha256sum * > SHA256SUMS-macos
     python3 ../utils/github.py upload SHA256SUMS-macos
     # The GPG comman below has a timeout. If that's reached, the script will interrupt. So let's make some noise
-    say "Du darfst nun das binary signieren. Hoerst Du mich? Du darfst jetzt nun das binary signieren!"
-    say "Nochmal, Du darfst nun das binary signieren. Hoerst Du mich? Du darfst jetzt nun das binary signieren!"
+    say "Hello?! Your overlord is speaking! You're now allowed to sign the binary!"
     echo "Just in case you missed the timeout, those three last commands are missing:"
     echo "cd release"
     echo "gpg --detach-sign --armor SHA256SUMS-macos"

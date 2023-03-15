@@ -9,34 +9,30 @@ const extract = require('extract-zip')
 const defaultMenu = require('electron-default-menu');
 const ProgressBar = require('electron-progressbar')
 const { spawn, exec } = require('child_process');
-
-const helpers = require('./helpers')
-const getFileHash = helpers.getFileHash
-const getAppSettings = helpers.getAppSettings
-const appSettingsPath = helpers.appSettingsPath
-const specterdDirPath = helpers.specterdDirPath
-
+const { getFileHash, getAppSettings, appSettingsPath, specterdDirPath, specterAppLogPath, versionData, isDev, devFolder, isMac } = require('./helpers')
 const downloadloc = require('./downloadloc')
 const getDownloadLocation = downloadloc.getDownloadLocation
 const appName = downloadloc.appName()
 const appNameLower = appName.toLowerCase()
 
+// Quit again if there is no version-data in dev
+if (isDev && versionData === undefined) {
+  console.log(`You need to create a version-data.json in your dev folder (${devFolder}) to run the app. Check helpers.js for the format. Quitting ...`)
+  app.quit()
+  return
+}
+
 ipcMain.handle("showMessageBoxSync", (e, message, buttons) => {
     dialog.showMessageBoxSync(mainWindow, { message, buttons });
 });
 
-// Helper
-const isMac = process.platform === 'darwin'
-const isDev = process.env.NODE_ENV !== "production"
-
 // Logging
 const {transports, format, createLogger } = require('winston')
-const combinedLog = new transports.File({ filename: helpers.specterAppLogPath });
+const combinedLog = new transports.File({ filename: specterAppLogPath });
 const winstonOptions = {
     exitOnError: false,
     format: format.combine(
       format.timestamp(),
-      // format.timestamp({format:'MM/DD/YYYY hh:mm:ss.SSS'}),
       format.json(),
       format.printf(info => {
         return `${info.timestamp} [${info.level}] : ${info.message}`;
@@ -305,7 +301,7 @@ app.whenReady().then(() => {
   trayMenu = [
     { label: 'Launching Specter ...', enabled: false },
     { label: 'Show Specter',  click() { mainWindow.show() }},
-    { label: 'Preferences',  click() { openPreferences() }},
+    { label: 'Settings',  click() { openPreferences() }},
     { label: 'Quit',  click() { quitSpecterd(); app.quit() } },
   ]
   tray.setToolTip('Specter')
@@ -324,19 +320,6 @@ app.whenReady().then(() => {
   if (!fs.existsSync(specterdDirPath)){
     logger.info("Creating specterd-binaries folder");
     fs.mkdirSync(specterdDirPath, { recursive: true });
-  }
-
-  let versionData
-  // Download specterd, run sha256sum on it and then set your own versionData in dev, should look this:
-  // {
-  //   "version": "v2.0.0-pre32",
-  //   "sha256": "aa049abf3e75199bad26fbded08ee5911ad48e325b42c43ec195136bd0736785"
-  // }
-  if (isDev) {
-    versionData = require('./version-data-dev.json')
-  }
-  else {
-    versionData = require('./version-data.json')
   }
 
   if (!appSettings.versionInitialized || appSettings.versionInitialized != versionData.version) {
@@ -381,10 +364,11 @@ function initMainWindow() {
     webPreferences
   })
   
-  mainWindow.webContents.on('new-window', function(e, url) {
-    e.preventDefault();
-    shell.openExternal(url);
-  });
+  // Ensures that any links with target="_blank" or window.open() will be opened in the user's default browser instead of within the app
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url)
+    return { action: 'deny' }
+  })
 
   mainWindow.on('close', function (event) {
       if(platformName == 'win64') {
@@ -398,7 +382,7 @@ function initMainWindow() {
 
   mainWindow.webContents.on("did-fail-load", function() {
     mainWindow.loadURL(`file://${__dirname}/splash.html`);
-    updatingLoaderMsg(`Failed to load: ${appSettings.specterURL}<br>Please make sure the URL is entered correctly in the Preferences and try again...`)
+    updatingLoaderMsg(`Failed to load: ${appSettings.specterURL}<br>Please make sure the URL is entered correctly in the settings and try again...`)
   });
 }
 
@@ -507,16 +491,15 @@ function startSpecterd(specterdPath) {
   specterdArgs.push("--no-filelog")
   if (hwiBridgeMode) specterdArgs.push('--hwibridge')
   if (appSettings.specterdCLIArgs != '') {
-    if (specterdArgs == null) {
-      specterdArgs = []
-    }
+    // User has inputed cli arguments in the UI
     let specterdExtraArgs = appSettings.specterdCLIArgs.split(' ')
-    specterdExtraArgs.forEach((arg, index) => specterdExtraArgs[index] = arg.trim())
-    specterdArgs = specterdArgs.concat(specterdExtraArgs)
+    specterdExtraArgs.forEach((arg) => {
+      // Ensures that whitespaces are not used as cli arguments
+      if (arg != '') {
+        specterdArgs.push(arg)
+      }
+    })
   }
-
-
-  logger.info(`Starting specterd ${specterdPath} ${specterdArgs}`);
   // locale fix (copying from nodejs-env + adding locales)
   const options = {
     env: { ...process.env}
@@ -674,7 +657,7 @@ function setMainMenu() {
   if (platformName == 'osx') {
     menu[0].submenu.splice(1, 0,
       {
-        label: 'Preferences',
+        label: 'Settings...', // This is a naming convention on MacOS. If you use just "Preferences", it gets translated to "Settings..." on MacOS.
         click: openPreferences,
         accelerator: "CmdOrCtrl+,"
       }
@@ -683,7 +666,7 @@ function setMainMenu() {
       {
         label: 'Specter Logs',
         click: openErrorLog,
-        accelerator: "CmdOrCtrl+,"
+        accelerator: "CmdOrCtrl+L"
       }
     );
   } else {
@@ -691,14 +674,14 @@ function setMainMenu() {
         label: 'Specter',
         submenu: [
         {
-          label: 'Preferences',
+          label: 'Settings',
           click: openPreferences,
           accelerator: "CmdOrCtrl+,"
         },
         {
           label: 'Specter Logs',
           click: openErrorLog,
-          accelerator: "CmdOrCtrl+,"
+          accelerator: "CmdOrCtrl+L"
         }
         ]
       } 

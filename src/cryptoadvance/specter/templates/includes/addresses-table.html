@@ -503,7 +503,7 @@
                 data-label="${addressData.label}"
                 data-address-wallet="${wallet}"
             />`;
-            showPageOverlay('address-popup');
+            showPageOverlay('address-popup', null, 'start');
         } else {
             copyText(address, `{{ _("Copied address") }}: ${ address }`);
         }

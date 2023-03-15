@@ -19,27 +19,6 @@
             height: 24px;
             vertical-align: middle;
         }
-        .service-btn, .signing-btn  {
-            background: var(--cmap-border);
-            border: 1px solid transparent;
-            border-radius: 4px;
-            padding: 8px 15px 8px 10px;
-            color: #fff;
-            font-size: 1em;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            min-height: 33px;
-        }
-        .signing-btn {
-            max-width: 315px;
-        }
-        .service-btn:hover, .signing-btn:hover {
-            border: 1px solid var(--main-color);
-            background: var(--cmap-border);
-        }
     </style>
     <div class="address-data bg-dark-800 rounded-xl p-4">
         <div class="flex justify-between mb-2">
@@ -119,7 +98,7 @@
                     addressInfoHTML += `<tr><td>{{ _("Service") }}:</td><td><img class="service-icon" src='{{ext_url_prefix}}/${this.serviceId}/static/${services[this.serviceId].icon}'>${services[this.serviceId].name}</td></tr>`;
                 } else {
                     let associateServiceUrl = `{{ url_for('services_endpoint.associate_addr', wallet_alias='WALLET_ALIAS', address='ADDRESS') }}`.replace('WALLET_ALIAS', this.wallet).replace('ADDRESS', jsonResponse.address);
-                    addressInfoHTML += `<tr><td>{{ _("Service") }}:</td><td><button type="button" id="associate-btn" class="service-btn" onclick="location.href='${associateServiceUrl}';">&#128229;&nbsp;{{ _("Associate with a service") }}</button></td></tr>`;
+                    addressInfoHTML += `<tr><td>{{ _("Service") }}:</td><td><button type="button" id="associate-btn" class="btn" onclick="location.href='${associateServiceUrl}';" data-cy="associate-address-with-service-btn">&#128229;&nbsp;{{ _("Associate with a service") }}</button></td></tr>`;
                 };
 
                 // Message signing feature restricted to singlesig wallets using a Specter DIY
@@ -127,7 +106,7 @@
                 {% if wallet.is_singlesig and device.hwi_support or wallet.is_singlesig and device.supports_qr_message_signing %}
                 let redirectUrl = `{{ url_for('devices_endpoint.device', device_alias=device.alias, origin='wallet', address='ADDRESS', derivation_path='DERIVATION_PATH') }}`.replace('ADDRESS', address).replace('DERIVATION_PATH', derivation_path);
                 addressInfoHTML += `<tr><td>{{ _("Message signing") }}:</td><td>
-                    <button type="button" id="msg-signing-btn" class="signing-btn" onclick="location.href='${redirectUrl}';">
+                    <button type="button" id="msg-signing-btn" class="btn" onclick="location.href='${redirectUrl}';">
                         <div style="word-wrap: anywhere">&#128396;&nbsp;{{ _("Sign a message with your") }} {{ device.name }} {{ _("device") }}</div>
                     </button></td></tr>`;
                 {% endif %}

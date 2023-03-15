@@ -166,3 +166,27 @@ def index_post():
         )
 
     raise Exception(f"Unknown action: {action}")
+
+
+@spectrum_endpoint.route("/wallets", methods=["GET"])
+@login_required
+def wallets_get():
+    wallets = ext().spectrum_node.get_rpc().listwallets()
+    wallets_dict = {}
+    for wallet_name in wallets:
+        rpc = ext().spectrum_node.get_rpc().wallet(wallet_name)
+        wallets_dict[wallet_name] = rpc.getwalletinfo()
+    return render_template(
+        "spectrum/spectrum_wallets.jinja", wallets=wallets, wallets_dict=wallets_dict
+    )
+
+
+@spectrum_endpoint.route("/wallets", methods=["POST"])
+@login_required
+def wallets_post():
+    wallet_name = request.form["wallet_name"]
+    # Does not work yet
+    # ext().spectrum_node.get_rpc().wallet()delete_wallet()
+    logger.info("Would delete wallet if it would yet be possible!")
+    flash("Deletion not yet implemented!")
+    return redirect(url_for(f"{ SpectrumService.get_blueprint_name()}.wallets_get"))
