@@ -847,9 +847,13 @@ class Wallet:
             #       {'txid': '1211aaba2b261e1bf06a3d46d5ac8837cee4669980ddfa7e1e73b2a7cd593f23', 'vout': 0},
             #       {'txid': '7cdc6c668b665c47de5823caca41c194f2d70815420c564aa4fa5786d4c0693f', 'vout': 0}
             # ]
-            locked_utxo_list = [tx["txid"] for tx in locked_utxo]
+
+            # an easy searchable list:
+            locked_utxo_list = [f"{tx['txid']}:{tx['vout']}" for tx in locked_utxo]
             utxo = self.rpc.listunspent(0)
-            utxo.extend(locked_utxo)
+            utxo.extend(
+                locked_utxo
+            )  # It's a bit of a unequal list as the locked_utxo does not contain much
 
             txlist = self._transactions.get_transactions()
             txlist_dict = {_tx["txid"]: _tx for _tx in txlist}
@@ -903,7 +907,7 @@ class Wallet:
                     tx_copy = tx.copy()
                     # Adding vout, locked and amount to the copy
                     tx_copy["vout"] = utxo_vout
-                    if tx.txid in locked_utxo_list:
+                    if f"{tx.txid}:{utxo_vout}" in locked_utxo_list:
                         tx_copy["locked"] = True
                     else:
                         tx_copy["locked"] = False
@@ -915,7 +919,14 @@ class Wallet:
                                 utxo_item["txid"] == utxo_txid
                                 and utxo_item["vout"] == utxo_vout
                             ):
-                                tx_copy["amount"] = utxo_item["amount"]
+                                if utxo_item.get("amount"):
+                                    amount = utxo_item.get("amount")
+                                else:
+                                    # in the case of locked amounts, the stupid listlockunspent call does not contain reasonable utxo-data
+                                    amount = self.rpc.gettransaction(tx_copy["txid"])[
+                                        "details"
+                                    ][utxo_item["vout"]]["amount"]
+                                tx_copy["amount"] = amount
                                 break
 
                     # Append the copy to the _full_utxo list
