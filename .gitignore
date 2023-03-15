@@ -48,5 +48,4 @@ cypresstest-output.xml
 cypress/downloads
 pyinstaller/electron/output.css
 pyinstaller/electron/typography.css
-tests/fix_hwi.py
-tests/binaries/hwi-2.2.1
+tests/binaries/*

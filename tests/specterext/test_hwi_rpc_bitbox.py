@@ -70,8 +70,8 @@ def test_bitbox_extract_xpub(hwi: AbstractHWIBridge, caplog):
         derivation="m/48h/1h/0h/1h",
         device_type="bitbox02",
         path=None,
-        fingerprint="1ef4e492",
-        passphrase="blub",
+        fingerprint="cd273ae3",
+        passphrase="",
         chain="testnet",
     )
     print(f"resulting xpub: {res}")
@@ -92,7 +92,7 @@ def test_display_address(hwi: AbstractHWIBridge, caplog):
     caplog.set_level(logging.DEBUG)
     unlock_bitbox_if_needed(hwi)
     res = hwi.display_address(
-        descriptor="wpkh([1ef4e492/84h/0h/0h/0/21]03f214b890c320d6b5a2ceab8c64b47d047010cfddc87a8deddc15e9daadea6647)#fjhj5z6n",
+        descriptor="wpkh([cd273ae3/48h/1h/0h/1h/21]03f214b890c320d6b5a2ceab8c64b47d047010cfddc87a8deddc15e9daadea6647)#460g65nf",
         xpubs_descriptor="wpkh([1ef4e492/84h/0h/0h]xpub6CcGh8BQPxr9zssX4eG8CiGzToU6Y9b3f2s2wNw65p9xtr8ySL6eYRVzAbfEVSX7ZPaPd3JMEXQ9LEBvAgAJSkNKYxG6L6X9DHnPWNQud4H/0/21)#pyqxsrsw",
         device_type="bitbox02",
         # path="webusb:003:1:1:4",
