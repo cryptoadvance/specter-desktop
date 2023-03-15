@@ -76,9 +76,7 @@ class TorDaemonController:
             # Note: This pid here is usually not the same as the pid given by the OS to the Tor process
             process = psutil.Process(self.tor_daemon_proc.pid)
             logger.debug(f"Is the built-in Tor daemon running? {process.is_running()}")
-            if process.is_running():
-                return True
-            return False
+            return process.is_running()
         except psutil.NoSuchProcess:
             return False
 
@@ -99,7 +97,8 @@ class TorDaemonController:
         if not self.is_running():
             return
         if self.tor_daemon_proc:
-            # This double approach ensures that the Tor child process is terminated on all levels (within Specter and on the OS level)
+            # This double approach ensures that the Tor child process is terminated on all levels (within Specter and on the OS level).
+            # This seems to be unnecessary for Linux, but it is necessary for MacOS and Windows.
             if platform.system() == "Windows":
                 subprocess.run("Taskkill /IM tor.exe /F")
             else:

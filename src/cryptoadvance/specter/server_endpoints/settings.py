@@ -402,7 +402,7 @@ def tor():
 def update_tor_type():
     tor_type = request.form["torType"]
     app.specter.update_tor_type(tor_type, current_user)
-    response = {"torTypeChanged": True, "error": None}
+    response = {"torTypeChanged": True}
     return jsonify(response)
 
 
