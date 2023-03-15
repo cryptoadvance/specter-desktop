@@ -37,7 +37,10 @@ class CallbackExecutor:
         return_values = {}
         for ext in self.services_sorted:
             if hasattr(ext, f"callback_{callback.id}"):
-                # logger.debug(f"About to execute on ext {ext.id} callback_{callback.id}")
+                if callback.debug:
+                    logger.debug(
+                        f"About to execute on ext {ext.id} callback_{callback.id}"
+                    )
                 return_values[ext.id] = getattr(ext, f"callback_{callback.id}")(
                     *args, **kwargs
                 )
