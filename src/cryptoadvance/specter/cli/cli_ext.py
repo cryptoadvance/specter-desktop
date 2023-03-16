@@ -43,9 +43,7 @@ def ext():
     default=None,
     help="Whether the user data should be encryted or not",
 )
-@click.option(
-    "--version", "tag", default=None, help="Use a specific specter version"
-)
+@click.option("--version", "tag", default=None, help="Use a specific specter version")
 @click.option(
     "--isolated-client/--no-isolated-client",
     default=None,
