@@ -185,7 +185,7 @@ class ConfigManager(GenericDataManager):
 
     def update_tor_type(self, tor_type, user):
         """update the Tor type to use"""
-        if self.data.get("tor_type", "builtin") != tor_type:
+        if self.data.get("tor_type") != tor_type:
             self.data["tor_type"] = tor_type
             self._save()
 
