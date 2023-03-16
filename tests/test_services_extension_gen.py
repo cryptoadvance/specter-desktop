@@ -16,6 +16,8 @@ def test_ExtGen(caplog):
             "testorg",
             "testext",
             False,
+            "v2.0.0",
+            False,
             False,
             "Some Author",
             "some@mail",
