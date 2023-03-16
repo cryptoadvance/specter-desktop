@@ -836,7 +836,7 @@ class Wallet:
         a List[WalletAwareTxItem] enriched with utxo specific data:
         * item["locked"] if the item is locked in Core
         * item["vout"] to enable its use in coinselection
-        * item["amount"] is the utxo_amount
+        * item["amount"] is the amount of the utxo
         """
         _full_utxo = []
         try:
@@ -879,7 +879,7 @@ class Wallet:
             # having the txid:vout as key
             utxo_dict = {f"{tx['txid']}:{tx['vout']}": tx for tx in utxos}
 
-            # Merge both dicts, are a bit unequal as the locked_utxo does not contain much
+            # Merge both dicts, both are a bit unequal as the locked_utxo does not contain values
             all_utxo_dict = {**utxo_dict, **locked_utxo_dict}
 
             # Example of all_utxo_dict:
@@ -903,17 +903,15 @@ class Wallet:
             #     },
             #     '379e4e18e7c78b94b318...d7f651bc:0': {}
 
-            # So values of locked utxos are empty! We'll fill if necessary!
-
             # Iterating over utxo_dict to create a list of WalletAwareTxItems.
-            # A "Template" of the WalletAwareTxItem will get sourced from the
+            # A "template" of the WalletAwareTxItem will get sourced from the
             # txlist:
             txlist = self._transactions.get_transactions()
             txlist_dict = {_tx["txid"]: _tx for _tx in txlist}
 
-            for utxotxid_utxovout, utxo in all_utxo_dict.items():
-                utxo_txid = utxotxid_utxovout.split(":")[0]
-                utxo_vout = int(utxotxid_utxovout.split(":")[1])
+            for txid_vout, utxo in all_utxo_dict.items():
+                utxo_txid = txid_vout.split(":")[0]
+                utxo_vout = int(txid_vout.split(":")[1])
 
                 try:
                     tx: WalletAwareTxItem = txlist_dict[utxo_txid]
@@ -929,10 +927,10 @@ class Wallet:
 
                 # Adding vout, locked to the copy
                 tx_copy["vout"] = utxo_vout
-                tx_copy["locked"] = f"{tx.txid}:{utxo_vout}" in locked_utxo_dict.keys()
+                tx_copy["locked"] = txid_vout in locked_utxo_dict.keys()
 
                 # Adding the more complicated stuff address and amount
-                if utxo.get("amount"):
+                if utxo != {}:  # an unlocked one with values!
                     tx_copy["amount"] = utxo.get("amount")
                     tx_copy["address"] = utxo["address"]
                 else:
@@ -1672,9 +1670,10 @@ class Wallet:
         """Only frozen outputs, no outputs locked in unsigned PSBTS"""
         amount = 0
         frozen_txid = [utxo.split(":")[0] for utxo in self.frozen_utxo]
+        utxo: WalletAwareTxItem
         for utxo in self.locked_utxo:
             if utxo["txid"] in frozen_txid:
-                amount += utxo.utxo_amount
+                amount += utxo["amount"]
         return amount
 
     @property
@@ -2101,7 +2100,7 @@ class Wallet:
             for utxo in [
                 utxo for utxo in self._full_utxo if utxo["address"] == addr.address
             ]:
-                addr_amount = addr_amount + utxo.utxo_amount
+                addr_amount = addr_amount + utxo["amount"]
                 addr_utxo = addr_utxo + 1
 
             if service_id and (

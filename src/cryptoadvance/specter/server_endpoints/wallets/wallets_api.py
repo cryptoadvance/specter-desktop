@@ -917,10 +917,6 @@ def txlist_to_csv(
         # For txs, the relevant amount is flow_amount
         if amount_logic == "flow":
             tx["amount"] = tx.flow_amount
-        elif amount_logic == "utxo":
-            tx["amount"] = tx.utxo_amount
-        else:
-            raise SpecterInternalException(f"Unknown amount_logic: {amount_logic}")
         amount_price = "not supported"
         rate = "not supported"
         if tx.get("blocktime"):

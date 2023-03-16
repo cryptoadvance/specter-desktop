@@ -373,8 +373,10 @@ class WalletAwareTxItem(TxItem):
 
     @property
     def utxo_amount(self) -> float:
-        """In the UTXO-view, you want to know how much the UTXOs from that TX are worth.
-        So you return the sum of the wallet-specific outputs
+        """
+        This is probably deprecated. It returns the sum of all the utxos
+        from the tx. But where is something like this needed?
+        In the UTXO-view, you have to split that up in the different utxos
         """
         if self.get("utxo_amount"):
             return self["utxo_amount"]
