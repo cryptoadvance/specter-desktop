@@ -1,5 +1,6 @@
 import os, time, requests, platform, tarfile, zipfile, sys, subprocess, shutil, stat, zipfile, logging
 import pgpy
+from flask_login import current_user
 from pathlib import Path
 from .sha256sum import sha256sum
 from .file_download import download_file
@@ -61,6 +62,7 @@ def setup_tor_thread(specter=None):
             )
         specter.tor_daemon.start_tor_daemon()
         specter.reset_setup("torbrowser")
+        specter.update_tor_type("builtin", current_user)
     except Exception as e:
         logger.exception(f"Failed to install Tor.")
         specter.update_setup_error("torbrowser", str(e))

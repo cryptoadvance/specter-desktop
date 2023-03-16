@@ -61,8 +61,8 @@
                     let stage = result.stage;
                     let progress = parseFloat(result.stage_progress);
                     if (progress == -1) {
+                        localStorage.setItem("torSetupCompleted", true)
                         window.location.href = nextURL;
-                        localStorage.setItem("builtinTor", true)
                     }
                     setTimeout(fetchProgress, 1000);
                 } catch(e) {

@@ -1674,10 +1674,6 @@ input[type="number"]::-webkit-outer-spin-button,
   gap: 0.5rem;
 }
 
-.gap-1 {
-  gap: 0.25rem;
-}
-
 .gap-x-5 {
   -moz-column-gap: 1.25rem;
        column-gap: 1.25rem;
@@ -1872,16 +1868,6 @@ input[type="number"]::-webkit-outer-spin-button,
 .border-link {
   --tw-border-opacity: 1;
   border-color: rgb(41 151 255 / var(--tw-border-opacity));
-}
-
-.border-dark-800 {
-  --tw-border-opacity: 1;
-  border-color: rgb(20 21 26 / var(--tw-border-opacity));
-}
-
-.border-red-800 {
-  --tw-border-opacity: 1;
-  border-color: rgb(153 27 27 / var(--tw-border-opacity));
 }
 
 .bg-dark-900 {
@@ -2192,6 +2178,11 @@ input[type="number"]::-webkit-outer-spin-button,
   color: rgb(207 207 208 / var(--tw-text-opacity));
 }
 
+.text-accent {
+  --tw-text-opacity: 1;
+  color: rgb(46 92 255 / var(--tw-text-opacity));
+}
+
 .text-link {
   --tw-text-opacity: 1;
   color: rgb(41 151 255 / var(--tw-text-opacity));
@@ -2205,11 +2196,6 @@ input[type="number"]::-webkit-outer-spin-button,
 .text-gray-500 {
   --tw-text-opacity: 1;
   color: rgb(107 114 128 / var(--tw-text-opacity));
-}
-
-.text-accent {
-  --tw-text-opacity: 1;
-  color: rgb(46 92 255 / var(--tw-text-opacity));
 }
 
 .underline {
@@ -2335,24 +2321,14 @@ input[type="number"]::-webkit-outer-spin-button,
   background-color: rgb(44 45 49 / var(--tw-bg-opacity)) !important;
 }
 
-.hover\:border-dark-800:hover {
-  --tw-border-opacity: 1;
-  border-color: rgb(20 21 26 / var(--tw-border-opacity));
-}
-
 .hover\:border-dark-600:hover {
   --tw-border-opacity: 1;
   border-color: rgb(44 45 49 / var(--tw-border-opacity));
 }
 
-.hover\:border-red-800:hover {
+.hover\:border-dark-800:hover {
   --tw-border-opacity: 1;
-  border-color: rgb(153 27 27 / var(--tw-border-opacity));
-}
-
-.hover\:border-dark-500:hover {
-  --tw-border-opacity: 1;
-  border-color: rgb(63 64 68 / var(--tw-border-opacity));
+  border-color: rgb(20 21 26 / var(--tw-border-opacity));
 }
 
 .hover\:bg-dark-700:hover {
@@ -2360,19 +2336,14 @@ input[type="number"]::-webkit-outer-spin-button,
   background-color: rgb(27 28 33 / var(--tw-bg-opacity));
 }
 
-.hover\:bg-dark-600:hover {
+.hover\:bg-dark-800:hover {
   --tw-bg-opacity: 1;
-  background-color: rgb(44 45 49 / var(--tw-bg-opacity));
+  background-color: rgb(20 21 26 / var(--tw-bg-opacity));
 }
 
 .hover\:bg-dark-500:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(63 64 68 / var(--tw-bg-opacity));
-}
-
-.hover\:bg-dark-800:hover {
-  --tw-bg-opacity: 1;
-  background-color: rgb(20 21 26 / var(--tw-bg-opacity));
 }
 
 .hover\:text-white:hover {
@@ -2387,10 +2358,6 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .hover\:underline:hover {
   text-decoration-line: underline;
-}
-
-.hover\:opacity-80:hover {
-  opacity: 0.8;
 }
 
 .group:hover .group-hover\:ml-3 {
