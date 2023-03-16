@@ -39,7 +39,7 @@ def ext():
 @click.option("--org", "org", default=None, help="Use a specific organsiation")
 @click.option("--ext-id", "ext_id", default=None, help="Use a specific extension id")
 @click.option(
-    "--encrypted-userdata/--unencrypted-userdata",
+    "--encrypted-userdata/--no-encrypted-userdata",
     default=None,
     help="Whether the user data should be encryted or not",
 )
