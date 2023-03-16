@@ -92,15 +92,15 @@ def test_display_address(hwi: AbstractHWIBridge, caplog):
     caplog.set_level(logging.DEBUG)
     unlock_bitbox_if_needed(hwi)
     res = hwi.display_address(
-        descriptor="wpkh([cd273ae3/48h/1h/0h/1h/21]03f214b890c320d6b5a2ceab8c64b47d047010cfddc87a8deddc15e9daadea6647)#460g65nf",
-        xpubs_descriptor="wpkh([1ef4e492/84h/0h/0h]xpub6CcGh8BQPxr9zssX4eG8CiGzToU6Y9b3f2s2wNw65p9xtr8ySL6eYRVzAbfEVSX7ZPaPd3JMEXQ9LEBvAgAJSkNKYxG6L6X9DHnPWNQud4H/0/21)#pyqxsrsw",
+        descriptor="wpkh([cd273ae3/84h/0h/0h/0/14]03854607c89e2cc0af6a348ac3084c655267545a71926d9ffc291d72a0bac2d34b)#6lgn77hx",
+        xpubs_descriptor="wpkh([cd273ae3/84h/0h/0h]xpub6CBoEYQErJLQ3HUu6Svnm5QCd1LxptPxDaTwDuB7QAunM5if2WU6cdvK7bh2V2Lw62LCJPPNLxXnVbUM7yDiUnjCNZ6qXN9L5VFLHEeTBES/0/14)#vfl3htjv",
         device_type="bitbox02",
         # path="webusb:003:1:1:4",
         fingerprint=None,
         passphrase="",
         chain="main",
     )
-    assert res == "bc1qdzf5acm0kcr0f729ges607x2naekrj4us02ame"
+    assert res == "bc1q0pcxq4mkuch3lxl7acffda2vwwy0824uc839zv"
 
 
 @pytest.mark.manual
@@ -153,3 +153,8 @@ def unlock_bitbox_if_needed(hwi: AbstractHWIBridge, should_need_passphrase_sent=
     # )
 
     assert len(res.get("fingerprint", "")) == 8, f" {res}"
+
+
+@pytest.mark.manual
+def test_misc(rootkey_keen_join, rootkey_ghost_machine, rootkey_hold_accident):
+    pass

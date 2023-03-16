@@ -206,7 +206,7 @@ class HWIBinaryBridge(AbstractHWIBridge):
     def display_address(
         self,
         descriptor="",
-        xpubs_descriptor="",
+        xpubs_descriptor=None,
         device_type=None,
         path=None,
         fingerprint=None,
@@ -231,8 +231,10 @@ class HWIBinaryBridge(AbstractHWIBridge):
             ]
         cmd.extend(["--device-path", path])
         cmd.append("displayaddress")
-        cmd.extend(["--desc", descriptor])
-        return self.run_hwi(cmd)
+        cmd.extend(
+            ["--desc", xpubs_descriptor if xpubs_descriptor is not None else descriptor]
+        )
+        return self.run_hwi(cmd)["address"]
 
     @locked(hwilock)
     def sign_tx(
