@@ -848,16 +848,11 @@ class Wallet:
             #       {'txid': '7cdc6c668b665c47de5823caca41c194f2d70815420c564aa4fa5786d4c0693f', 'vout': 0}
             # ]
 
-            # an easy searchable list:
-            locked_utxo_list = [f"{tx['txid']}:{tx['vout']}" for tx in locked_utxo]
-            utxo = self.rpc.listunspent(0)
-            utxo.extend(
-                locked_utxo
-            )  # It's a bit of a unequal list as the locked_utxo does not contain much
+            # an easy searchable dict for locked_utxos
+            # having the txid:vout as key
+            locked_utxo_dict = {f"{tx['txid']}:{tx['vout']}": {} for tx in locked_utxo}
 
-            txlist = self._transactions.get_transactions()
-            txlist_dict = {_tx["txid"]: _tx for _tx in txlist}
-
+            utxos = self.rpc.listunspent(0)
             # Example of utxo
             # [
             #     {
@@ -880,57 +875,79 @@ class Wallet:
             #     }
             # ]
 
-            # Example of utxo_dict:
+            # an easy searchable dict for utxos
+            # having the txid:vout as key
+            utxo_dict = {f"{tx['txid']}:{tx['vout']}": tx for tx in utxos}
+
+            # Merge both dicts, are a bit unequal as the locked_utxo does not contain much
+            all_utxo_dict = {**utxo_dict, **locked_utxo_dict}
+
+            # Example of all_utxo_dict:
             # {
-            # '94725a76db75ea9c955da3c5b2c56f4ef3a9865b68218f79b3a6bed96a8c051c': [1, 2],
-            # 'c185f6fc5cde81c2338d809c6d7e77e789630faee1aae6f2d7defe9215405b3b': [0],
-            # 'b27b4e849568024881a9a81618bdab8da40bde9ea468f582f2c1861ddf125caf': [1]
-            # }
+            #     '6cd09e135bd1d0a612ac...b2fbc41c:1': {
+            #         'txid': '6cd09e135bd1d0a612ac...93b2fbc41c',
+            #         'vout': 1,
+            #         'amount': 0.00477239,
+            #         'spendable': True,
+            #         'solvable': True,
+            #         'safe': True,
+            #         'confirmations': 8740,
+            #         'address': 'bc1q9a7k8l6j095escu3...nauqt7d0hv',
+            #         'scriptPubKey': '00202f7d63ff52796998...fd11009f78',
+            #         ...
+            #     },
+            #     '9221f5d5ab240ccc37cb...cc96b7ec:0': {
+            #         'txid': '9221f5d5ab240ccc37cb...8ecc96b7ec',
+            #         'vout': 0,
+            #         '...
+            #     },
+            #     '379e4e18e7c78b94b318...d7f651bc:0': {}
 
-            utxo_dict = {}
-            for _utxo in utxo:
-                if _utxo["txid"] not in utxo_dict:
-                    utxo_dict[_utxo["txid"]] = [_utxo["vout"]]
-                else:
-                    utxo_dict[_utxo["txid"]].append(_utxo["vout"])
+            # So values of locked utxos are empty! We'll fill if necessary!
 
-            # Iterating over utxo_dict to create a list of WalletAwareTxItems
-            for utxo_txid, utxo_vouts in utxo_dict.items():
-                for utxo_vout in utxo_vouts:
-                    # maybe the txlist is outdated and it's a new utxo?!
-                    if utxo_txid not in txlist_dict.keys():
-                        self.fetch_transactions()  # ToDo: make this much slimmer!
-                        txlist = self._transactions.get_transactions()
-                        txlist_dict = {_tx["txid"]: _tx for _tx in txlist}
+            # Iterating over utxo_dict to create a list of WalletAwareTxItems.
+            # A "Template" of the WalletAwareTxItem will get sourced from the
+            # txlist:
+            txlist = self._transactions.get_transactions()
+            txlist_dict = {_tx["txid"]: _tx for _tx in txlist}
+
+            for utxotxid_utxovout, utxo in all_utxo_dict.items():
+                utxo_txid = utxotxid_utxovout.split(":")[0]
+                utxo_vout = int(utxotxid_utxovout.split(":")[1])
+
+                try:
                     tx: WalletAwareTxItem = txlist_dict[utxo_txid]
-                    # Create a copy of the tx item for each vout
-                    tx_copy = tx.copy()
-                    # Adding vout, locked and amount to the copy
-                    tx_copy["vout"] = utxo_vout
-                    if f"{tx.txid}:{utxo_vout}" in locked_utxo_list:
-                        tx_copy["locked"] = True
-                    else:
-                        tx_copy["locked"] = False
-                    if len(utxo_vouts) < 2:
-                        tx_copy["amount"] = tx.utxo_amount
-                    else:
-                        for utxo_item in utxo:
-                            if (
-                                utxo_item["txid"] == utxo_txid
-                                and utxo_item["vout"] == utxo_vout
-                            ):
-                                if utxo_item.get("amount"):
-                                    amount = utxo_item.get("amount")
-                                else:
-                                    # in the case of locked amounts, the stupid listlockunspent call does not contain reasonable utxo-data
-                                    amount = self.rpc.gettransaction(tx_copy["txid"])[
-                                        "details"
-                                    ][utxo_item["vout"]]["amount"]
-                                tx_copy["amount"] = amount
-                                break
+                except KeyError:
+                    # maybe the txlist is outdated and it's a new utxo?!
+                    self.fetch_transactions()  # ToDo: make this much slimmer!
+                    txlist = self._transactions.get_transactions()
+                    txlist_dict = {_tx["txid"]: _tx for _tx in txlist}
+                    tx: WalletAwareTxItem = txlist_dict[utxo_txid]
 
-                    # Append the copy to the _full_utxo list
-                    _full_utxo.append(tx_copy)
+                # Create a copy of the tx item for each vout
+                tx_copy = tx.copy()
+
+                # Adding vout, locked to the copy
+                tx_copy["vout"] = utxo_vout
+                tx_copy["locked"] = f"{tx.txid}:{utxo_vout}" in locked_utxo_dict.keys()
+
+                # Adding the more complicated stuff address and amount
+                if utxo.get("amount"):
+                    tx_copy["amount"] = utxo.get("amount")
+                    tx_copy["address"] = utxo["address"]
+                else:
+                    tx_from_core = self.rpc.gettransaction(tx_copy["txid"])
+                    # in the case of locked amounts, the stupid listlockunspent call does not contain reasonable utxo-data
+                    searched_vout = [
+                        _tx
+                        for _tx in tx_from_core["details"]
+                        if _tx["vout"] == utxo_vout
+                    ][0]
+                    tx_copy["amount"] = searched_vout["amount"]
+                    tx_copy["address"] = searched_vout["address"]
+
+                # Append the copy to the _full_utxo list
+                _full_utxo.append(tx_copy)
 
             # Finally sorting:
             self._full_utxo = sorted(
