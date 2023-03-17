@@ -1,10 +1,12 @@
-<div class="card" data-style="margin: auto;padding: 5px 10px 15px; width: 90%;">
-    <div class="row">
-        <img src="{{ url_for('static', filename='img/warning_sign.svg') }}" data-style="width: 20px;"/>
-        <p data-style="color: #FF9A00; font-size: 1.1em; margin-left: 10px;">{{ _('Using Specter from a remote machine?') }}</p>
-    </div>
-    <p data-style="margin-left: 30px; margin-top: -10px; margin-right: 20px; text-align: left;">{{ _('If you run Specter on a remote machine, like Umbrel or a myNode, you need to update settings to connect hardware wallets via USB.') }}</p>
-    <a href="{{ url_for('settings_endpoint.hwi') }}" data-style="color: #fff; text-decoration: underline; cursor: pointer;">
-        <h4>{{ _("Update your settings") }}</h4>
-    </a>
+<div class="flex-col p-4 mt-6 mb-4 bg-dark-600 rounded-lg">
+    <p class="text-white mb-4">
+        Does Specter run on a remote machine (Umbrel, myNode etc.) and you try to use a USB signing device on your local machine?
+        If so, you need to: <br>
+        - Download the Specter app
+        <a class="text-lg" href="https://specter.solutions/downloads/" target="_blank" title="Download Specter app" alt="Specter app download link">here</a><br>
+        - Start the app and adjust the "Remote Specter URL" in the app settings. <br>
+        - Adjust the USB settings here (click the button) <br>
+        After that, you can continue to use Specter here but you need to open the Specter app if you want to use the USB signing device.
+    </p>
+    <a href="{{ url_for('settings_endpoint.hwi') }}" class="btn bg-accent border-accent hover:border-accent hover:opacity-80">{{ _("Update settings") }}</a>
 </div>
