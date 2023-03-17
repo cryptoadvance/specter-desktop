@@ -1,6 +1,12 @@
 {% extends "swan/components/base.jinja" %}
 {% block main %}
         <h1>{{ _("Enable Swan Integration") }}</h1>
+        <div id="instructions" class="flex p-4 mt-6 mb-4 bg-dark-600 rounded-lg">
+            <p class="text-white">
+                Linking of your account currently only works reliably if you are already signed into your Swan acccount. 
+                If you haven't already, login <a class="text-lg" href="{{ sign_in_url }}" target="_blank" title="Sign into Swan" alt="Swan sign in link">here</a>.
+            </p>
+        </div>
         <a class="button bg-accent mt-8" id="step_one" onclick="pollSuccess(); window.open('{{ flow_url }}', '_blank');">
             {{ _("Link your account") }}                   
         </a>
@@ -19,13 +25,6 @@
             {{ _("Click to sign into your Swan account and authorize Specter integration.") }}<br/>
             {{ _("(will open in a new browser tab)") }} <br>
         </div> #}
-
-        <div id="instructions" class="flex p-4 mt-6 mb-4 bg-dark-600 rounded-lg">
-            <p class="text-white">
-                Linking of your account currently only works reliably if you are already signed into your Swan acccount. 
-                If you haven't already, login <a class="text-lg" href="{{ sign_in_url }}" target="_blank" title="Sign into Swan" alt="Swan sign in link">here</a>.
-            </p>
-        </div>
 {% endblock %}
 
 
