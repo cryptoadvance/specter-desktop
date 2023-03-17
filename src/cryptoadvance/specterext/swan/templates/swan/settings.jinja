@@ -6,6 +6,7 @@
         <div class="flex p-4 mt-3 mb-4 bg-dark-600 rounded-lg">
             {{ _("- Specter initially sends {} unused addresses to Swan").format(num_reserved_addrs) }}{{ _(" and it will send more as needed.") }}<br/> 
             {{ _("- Your wallet in Specter will show them pre-labeled as \"reserved\" for Swan.") }}<br/>
+            {% if not associated_wallet %} {{ _("- If you save a withdrawal plan here, you will get an e-mail from Swan to confirm it.") }} {% endif %} 
         </div>
         <form action="{{ url_for(service.get_blueprint_name() + '.update_autowithdrawal') }}" method="POST" role="form">
             <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>

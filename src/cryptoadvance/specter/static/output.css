@@ -1674,6 +1674,10 @@ input[type="number"]::-webkit-outer-spin-button,
   gap: 0.5rem;
 }
 
+.gap-1 {
+  gap: 0.25rem;
+}
+
 .gap-x-5 {
   -moz-column-gap: 1.25rem;
        column-gap: 1.25rem;
