@@ -148,10 +148,10 @@ def oauth2_start():
     if specter_used_hostname not in app.config["SWAN_ALLOWED_SPECTER_HOSTNAMES"]:
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.index"))
     flow_url = SwanService.client().get_oauth2_start_url(specter_used_hostname)
+    sign_in_url = app.config["SWAN_FRONTEND_URL"]
 
     return render_template(
-        "swan/oauth2_start.jinja",
-        flow_url=flow_url,
+        "swan/oauth2_start.jinja", flow_url=flow_url, sign_in_url=sign_in_url
     )
 
 
