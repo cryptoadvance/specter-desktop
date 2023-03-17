@@ -418,7 +418,7 @@ class SwanService(Service):
     @classmethod
     def update(cls):
         """
-        Periodic or at-login call to check our Swan address status and send more when
+        At-login call to check our Swan address status and send more when
         needed.
         * Check for autowithdrawals paid to addrs reserved for Swan.
         * Add more pending autowithdrawal addrs if we're under the threshold.

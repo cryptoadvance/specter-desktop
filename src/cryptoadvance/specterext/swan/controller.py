@@ -121,7 +121,7 @@ def update_autowithdrawal():
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
     except SwanApiException as e:
         logger.exception(e)
-        flash(_("Error communicating with Swan API"))
+        flash(_("Error communicating with Swan API"), "error")
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.settings"))
 
 
