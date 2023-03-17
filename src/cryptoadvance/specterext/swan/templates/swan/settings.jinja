@@ -26,7 +26,14 @@
                 </select>
                 <label for="autowithdrawal-threshold" class="floating-label">Auto-withdrawal threshold</label>
             </div>
-            <button type="submit" class="mt-4 button bg-accent">{{ _("Save Auto-withdrawal") }}</button>
+            {% if associated_wallet %}
+                <button type="submit" class="mt-4 button bg-accent">{{ _("Update Auto-withdrawal") }}</button>
+            {% else %}
+                <p class="mt-4">
+                    {{ _("No Auto-withdrawal plan saved yet") }}<br>
+                </p>
+                <button type="submit" class="mt-4 button bg-accent">{{ _("Save Auto-withdrawal") }}</button>
+            {% endif %}
         </form>
     <div class="flex p-4 mt-16 mb-4 bg-dark-600 rounded-lg">
         {{ _("- Halts auto-withdrawals to your Specter wallet from your Swan account") }}<br>
