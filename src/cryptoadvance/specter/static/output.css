@@ -1231,16 +1231,16 @@ input[type="number"]::-webkit-outer-spin-button,
   margin-top: 2.5rem;
 }
 
-.mr-1 {
-  margin-right: 0.25rem;
-}
-
 .mb-8 {
   margin-bottom: 2rem;
 }
 
 .-mt-\[2px\] {
   margin-top: -2px;
+}
+
+.mr-1 {
+  margin-right: 0.25rem;
 }
 
 .ml-4 {
@@ -1293,10 +1293,6 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .mb-12 {
   margin-bottom: 3rem;
-}
-
-.mt-6 {
-  margin-top: 1.5rem;
 }
 
 .mb-10 {
@@ -1598,6 +1594,10 @@ input[type="number"]::-webkit-outer-spin-button,
   cursor: pointer;
 }
 
+.cursor-auto {
+  cursor: auto;
+}
+
 .select-none {
   -webkit-user-select: none;
      -moz-user-select: none;
@@ -1672,10 +1672,6 @@ input[type="number"]::-webkit-outer-spin-button,
 
 .gap-2 {
   gap: 0.5rem;
-}
-
-.gap-1 {
-  gap: 0.25rem;
 }
 
 .gap-x-5 {
@@ -1872,11 +1868,6 @@ input[type="number"]::-webkit-outer-spin-button,
 .border-link {
   --tw-border-opacity: 1;
   border-color: rgb(41 151 255 / var(--tw-border-opacity));
-}
-
-.border-accent {
-  --tw-border-opacity: 1;
-  border-color: rgb(46 92 255 / var(--tw-border-opacity));
 }
 
 .bg-dark-900 {
@@ -2187,6 +2178,11 @@ input[type="number"]::-webkit-outer-spin-button,
   color: rgb(207 207 208 / var(--tw-text-opacity));
 }
 
+.text-accent {
+  --tw-text-opacity: 1;
+  color: rgb(46 92 255 / var(--tw-text-opacity));
+}
+
 .text-link {
   --tw-text-opacity: 1;
   color: rgb(41 151 255 / var(--tw-text-opacity));
@@ -2200,11 +2196,6 @@ input[type="number"]::-webkit-outer-spin-button,
 .text-gray-500 {
   --tw-text-opacity: 1;
   color: rgb(107 114 128 / var(--tw-text-opacity));
-}
-
-.text-accent {
-  --tw-text-opacity: 1;
-  color: rgb(46 92 255 / var(--tw-text-opacity));
 }
 
 .underline {
@@ -2330,19 +2321,14 @@ input[type="number"]::-webkit-outer-spin-button,
   background-color: rgb(44 45 49 / var(--tw-bg-opacity)) !important;
 }
 
-.hover\:border-dark-800:hover {
-  --tw-border-opacity: 1;
-  border-color: rgb(20 21 26 / var(--tw-border-opacity));
-}
-
-.hover\:border-accent:hover {
-  --tw-border-opacity: 1;
-  border-color: rgb(46 92 255 / var(--tw-border-opacity));
-}
-
 .hover\:border-dark-600:hover {
   --tw-border-opacity: 1;
   border-color: rgb(44 45 49 / var(--tw-border-opacity));
+}
+
+.hover\:border-dark-800:hover {
+  --tw-border-opacity: 1;
+  border-color: rgb(20 21 26 / var(--tw-border-opacity));
 }
 
 .hover\:bg-dark-700:hover {
