@@ -10,10 +10,10 @@
         <a class="button bg-accent mt-8" id="step_one" onclick="pollSuccess(); window.open('{{ flow_url }}', '_blank');">
             {{ _("Link your account") }}                   
         </a>
-        <div class="hidden" id="step_two">
-            {{ _("Complete Swan link...")}}<br/>
+        <p class="hidden" id="step_two">
+            {{ _("Complete Swan link to proceed.")}}<br/>
             {{ _("If linking is complete, click ") }} <a href=''> {{ _("here") }} </a>
-        </div>
+        </p>
 
         <!-- Empty href will result in keeping on that page if the auth flow didn't succeeded yet -->
         <!-- If suceeded, the polling call will redirect to the settings page -->
