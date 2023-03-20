@@ -33,7 +33,7 @@ class SwanService(Service):
     has_blueprint = True
     blueprint_module = "cryptoadvance.specterext.swan.controller"
     isolated_client = False
-    devstatus = devstatus_beta
+    devstatus = devstatus_prod
     encrypt_data = True
 
     # TODO: As more Services are integrated, we'll want more robust categorization and sorting logic
