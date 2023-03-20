@@ -506,6 +506,7 @@ function startSpecterd(specterdPath) {
   options.env['LC_ALL']='en_US.utf-8'
   options.env['LANG'] = 'en_US.utf-8'
   options.env['SPECTER_LOGFORMAT'] = 'SPECTERD: %(levelname)s in %(module)s: %(message)s'
+  options.env['HWI_RPC_IMPL'] = "lib"
   specterdProcess = spawn(specterdPath, specterdArgs, options);
   const specterdStarted = Date.now()
   
