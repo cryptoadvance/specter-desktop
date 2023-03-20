@@ -222,7 +222,7 @@ def general():
 @login_required
 def tor():
     """
-    controls the tor related settings
+    Controls the Tor related settings
     GET for displaying the page, POST for updates
     param action might be "save", "test_tor" or "toggle_hidden_service"
     param proxy_url the Tor deamon url, usually something like socks5h://localhost:9050
@@ -235,6 +235,7 @@ def tor():
     current_version = notify_upgrade(app, flash)
     proxy_url = app.specter.proxy_url
     only_tor = app.specter.only_tor
+    unselectOnlyTor = False
     tor_control_port = app.specter.tor_control_port
     tor_type = app.specter.tor_type
     # This is true if the Python interpreter has been bundled with the application into a single executable, so basically it is true for the apps but not for pip-installations
@@ -248,17 +249,64 @@ def tor():
         hidden_service = request.form.get("hidden_service") == "on"
 
         if action == "save":
-            logger.info("Updating Tor settings...")
-            app.specter.update_tor_type(tor_type, current_user)
+            # Remove the built-in Tor setup if the user has it and is checking the "Disabled" radio button
+            if tor_type == "disabled" and app.specter.tor_type == "builtin":
+                if app.specter.is_tor_dameon_running():
+                    app.specter.tor_daemon.stop_tor_daemon()
+                shutil.rmtree(os.path.join(app.specter.data_folder, "tor-binaries"))
+                os.remove(os.path.join(app.specter.data_folder, "torrc"))
+                flash("Tor disabled. Built-in Tor setup uninstalled")
+                # Also reset Tor only mode if it was used
+                if app.specter.only_tor:
+                    unselectOnlyTor = True
+                    app.specter.update_only_tor(False, current_user)
+            # Reset Tor only mode if it was used if user chooses the disable option
+            if tor_type == "disabled" and app.specter.tor_type == "custom":
+                if app.specter.only_tor:
+                    unselectOnlyTor = True
+                    app.specter.update_only_tor(False, current_user)
 
             if tor_type == "custom":
-                app.specter.update_proxy_url(proxy_url, current_user)
-                app.specter.update_tor_control_port(tor_control_port, current_user)
+                # Only save the custom setup if we can connect
+                try:
+                    requests_session = requests.Session()
+                    requests_session.proxies["http"] = proxy_url
+                    requests_session.proxies["https"] = proxy_url
+                    res = requests_session.get(
+                        "http://2gzyxa5ihm7nsggfxnu52rck2vv4rvmdlkiu3zzui5du4xyclen53wid.onion/",  # Tor Project onion v3 website
+                        timeout=30,
+                    )
+                    if res.status_code == 200:
+                        app.specter.update_proxy_url(proxy_url, current_user)
+                        app.specter.update_tor_control_port(
+                            tor_control_port, current_user
+                        )
+                        flash(_("Custom Tor setup is working and saved!"), "info")
+                except Exception:
+                    flash(
+                        _("Custom Tor setup is not working and couldn't be saved!"),
+                        "error",
+                    )
+                    return redirect(request.referrer or "/")
             else:
                 proxy_url = "socks5h://localhost:9050"
                 tor_control_port = ""
 
-            app.specter.update_only_tor(only_tor, current_user)
+            logger.info("Updating Tor settings...")
+            app.specter.update_tor_type(tor_type, current_user)
+
+            # Updates "only_tor" to True only if tor_type is not "disabled"; setting to False without check for existing Tor config
+            if only_tor == True:
+                if tor_type == "disabled":
+                    flash(
+                        "You can't enforce to use Tor with Tor being disabled.", "error"
+                    )
+                    unselectOnlyTor = True
+                else:
+                    app.specter.update_only_tor(only_tor, current_user)
+            else:
+                app.specter.update_only_tor(only_tor, current_user)
+
             if hidden_service != app.specter.config["tor_status"]:
                 if not app.config["DEBUG"]:
                     if app.specter.config["auth"].get("method", "none") == "none":
@@ -302,19 +350,25 @@ def tor():
             logger.info("Starting Tor...")
             try:
                 app.specter.tor_daemon.start_tor_daemon()
+                if only_tor:
+                    app.specter.update_only_tor(True, current_user)
                 flash(_("Specter has started Tor"))
             except Exception as e:
                 flash(_("Failed to start Tor, error: {}").format(e), "error")
                 logger.error(f"Failed to start Tor, error: {e}")
+
         elif action == "stoptor":
             logger.info("Stopping Tor...")
             try:
                 app.specter.tor_daemon.stop_tor_daemon()
-                time.sleep(1)
+                time.sleep(2)
+                if app.specter.only_tor:
+                    unselectOnlyTor = True
+                    app.specter.update_only_tor(False, current_user)
                 flash(_("Specter stopped Tor successfully"))
             except Exception as e:
                 flash(_("Failed to stop Tor, error: {}").format(e), "error")
-                logger.exception(f"Failed to start Tor, error: {e}", e)
+                logger.exception(f"Failed to stop Tor, error: {e}", e)
         elif action == "uninstalltor":
             logger.info("Uninstalling Tor...")
             try:
@@ -322,6 +376,8 @@ def tor():
                     app.specter.tor_daemon.stop_tor_daemon()
                 shutil.rmtree(os.path.join(app.specter.data_folder, "tor-binaries"))
                 os.remove(os.path.join(app.specter.data_folder, "torrc"))
+                tor_type = "disabled"
+                app.specter.update_tor_type(tor_type, current_user)
                 flash(_("Tor uninstalled successfully"))
             except Exception as e:
                 flash(_("Failed to uninstall Tor, error: {}").format(e), "error")
@@ -377,6 +433,7 @@ def tor():
         tor_builtin_possible=tor_builtin_possible,
         proxy_url=proxy_url,
         only_tor=only_tor,
+        unselectOnlyTor=unselectOnlyTor,
         tor_control_port=tor_control_port,
         tor_service_id=app.tor_service_id,
         torbrowser_installed=os.path.isfile(app.specter.torbrowser_path),

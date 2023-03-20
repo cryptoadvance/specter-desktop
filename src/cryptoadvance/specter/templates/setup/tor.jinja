@@ -2,13 +2,11 @@
 
 {% block setup %}
     <h1>{{ _("Setup Tor daemon") }}</h1>
-
-    <div class="flex">
-        <img src="{{ url_for('static', filename='img/ghost_3d.png') }}" style="width: 32px;"/> 
+    <div class="flex mt-5">
+        <img src="{{ url_for('static', filename='img/favicon-dark-mode.png') }}" style="width: 32px;"/> 
         <img src="{{ url_for('static', filename='img/arrow-right.svg') }}" style="width: 32px;" class="svg-white"/>
         <img style="width: 32px;" src="{{ url_for('static', filename='img/tor.svg') }}"/>
     </div>
-
     <div class="grid grid-cols-2 gap-3 mt-8">
         {% if nextURL == 'setup_endpoint.node_type'%}
             <a href="{{ url_for('setup_endpoint.node_type') }}" class="button">{{ _("Skip") }}</a>
@@ -37,8 +35,8 @@
                 }
                 const jsonResponse = await response.json();
                 if ("success" in jsonResponse) {
-                    showNotification(jsonResponse.success);
                     document.getElementById('setup-tor-button').classList.add('hidden');
+                    showPacman()
                     startProgressCheck('torbrowser', "{{ url_for(nextURL) }}");
                     return;
                 } if (jsonResponse.error == "Tor is already installed") {
@@ -46,7 +44,7 @@
                 }
                 showError(jsonResponse.error, 4000);
             }  catch(e) {
-                showError(`{{ _("Failed to download Tor daemon...") }}`);
+                showError(`{{ _("Failed to install Tor daemon...") }}`);
                 showError(e);
             }
         }
