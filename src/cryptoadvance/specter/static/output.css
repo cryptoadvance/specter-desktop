@@ -2360,6 +2360,10 @@ input[type="number"]::-webkit-outer-spin-button,
   text-decoration-line: underline;
 }
 
+.hover\:opacity-80:hover {
+  opacity: 0.8;
+}
+
 .group:hover .group-hover\:ml-3 {
   margin-left: 0.75rem;
 }
