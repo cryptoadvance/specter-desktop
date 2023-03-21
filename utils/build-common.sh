@@ -55,7 +55,11 @@ function install_build_requirements {
 
     echo "    --> Installing pyinstaller build-requirements"
     cd pyinstaller
+    echo "        requirements.txt ... "
     pip3 install -r requirements.txt --require-hashes > /dev/null
+    # A hack in order to have hwi with a too old typing_extensions
+    echo "        requirements_additional.txt ... "
+    pip3 install -r requirements_additional.txt --require-hashes > /dev/null
 
     cd ..
 }
