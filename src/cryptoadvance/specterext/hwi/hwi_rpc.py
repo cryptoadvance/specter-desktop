@@ -11,8 +11,6 @@ from flask import current_app as app
 from usb1 import USBError
 
 from cryptoadvance.specter.devices import __all__ as device_classes
-from cryptoadvance.specter.devices.hwi.jade import JadeClient
-from cryptoadvance.specter.devices.hwi.specter_diy import SpecterClient
 from cryptoadvance.specter.helpers import deep_update, is_liquid, is_testnet, locked
 
 # deprecated, use embit.descriptor.checksum.add_checksum

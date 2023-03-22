@@ -11,12 +11,20 @@ from flask import current_app as app
 from hwilib.common import Chain
 from hwilib.devices.bitbox02 import Bitbox02Client
 from hwilib.devices.trezorlib.transport import get_transport
+from hwilib.devices.keepkey import KeepkeyClient
+from hwilib.devices.trezor import TrezorClient
 from hwilib.psbt import PSBT
 from usb1 import USBError
 
 from cryptoadvance.specter.devices import __all__ as device_classes
-from cryptoadvance.specter.devices.hwi.jade import JadeClient
-from cryptoadvance.specter.devices.hwi.specter_diy import SpecterClient
+from cryptoadvance.specter.devices import (
+    Jade,
+    Keepkey,
+    Specter,
+    Trezor,
+)  # The ones with dedicated hwi-clients
+from .clients.jade import JadeClient
+from .clients.specter_diy import SpecterClient
 from cryptoadvance.specter.helpers import deep_update, is_liquid, is_testnet, locked
 
 # deprecated, use embit.descriptor.checksum.add_checksum
@@ -366,7 +374,17 @@ class HWILibBridge(AbstractHWIBridge):
             )
         devcls = get_device_class(device["type"])
         if devcls:
-            client = devcls.get_client(device["path"], passphrase)
+            client_map = {
+                Jade: JadeClient,
+                Keepkey: KeepkeyClient,
+                Specter: SpecterClient,
+                Trezor: TrezorClient,
+            }
+            try:
+                client = client_map.get[devcls](device["path"], passphrase)
+            except KeyError:
+                client = hwi_commands.get_client(device["path"], passphrase)
+
         if not client:
             raise Exception(
                 "The device was identified but could not be reached.  Please check it is properly connected and try again"

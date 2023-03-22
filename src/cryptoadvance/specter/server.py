@@ -27,7 +27,6 @@ from cryptoadvance.specter.services import callbacks
 from cryptoadvance.specter.util.reflection import get_template_static_folder
 
 from .htmlsafebabel import HTMLSafeBabel
-from ..specterext.hwi.hwi_server import hwi_server
 from .services.callbacks import after_serverpy_init_app, specter_added_to_flask_app
 from .specter import Specter
 from .util.specter_migrator import SpecterMigrator

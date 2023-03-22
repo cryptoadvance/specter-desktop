@@ -1,6 +1,5 @@
 import hashlib
 from .sd_card_device import SDCardDevice
-from .hwi.specter_diy import enumerate as specter_enumerate, SpecterClient
 from ..helpers import to_ascii20
 from embit import bip32
 from embit.psbt import PSBT, DerivationPath
@@ -69,7 +68,7 @@ class Specter(SDCardDevice):
     qr_code_support_verify = True
     wallet_export_type = "qr"
     supports_qr_message_signing = True
-    supports_hwi_multisig_display_address = True
+    supports_hwi_multisig_display_address = False
     liquid_support = True
     taproot_support = True
 
@@ -153,10 +152,6 @@ class Specter(SDCardDevice):
     @classmethod
     def enumerate(cls, *args, **kwargs):
         return specter_enumerate(*args, **kwargs)
-
-    @classmethod
-    def get_client(cls, *args, **kwargs):
-        return SpecterClient(*args, **kwargs)
 
 
 def get_wallet_qr_descriptor(wallet):

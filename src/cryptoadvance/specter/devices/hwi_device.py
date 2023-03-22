@@ -1,5 +1,4 @@
 from ..device import Device
-import hwilib.commands as hwi_commands
 import importlib
 
 
@@ -15,7 +14,3 @@ class HWIDevice(Device):
     def enumerate(cls, *args, **kwargs):
         mod = importlib.import_module(f"hwilib.devices.{cls.device_type}")
         return mod.enumerate(*args, **kwargs)
-
-    @classmethod
-    def get_client(cls, *args, **kwargs):
-        return hwi_commands.get_client(cls.device_type, *args, **kwargs)
