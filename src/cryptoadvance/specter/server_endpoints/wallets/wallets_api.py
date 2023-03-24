@@ -21,7 +21,7 @@ from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
 
-from cryptoadvance.specter.txlist import WalletAwareTxItem
+from cryptoadvance.specter.wallet.txlist import WalletAwareTxItem
 
 from ...commands.psbt_creator import PsbtCreator
 from ...helpers import bcur2base64

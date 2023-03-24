@@ -18,7 +18,7 @@ from cryptoadvance.specter.services.service import (
     devstatus_beta,
     devstatus_prod,
 )
-from cryptoadvance.specter.addresslist import Address
+from cryptoadvance.specter.wallet import Address
 from cryptoadvance.specter.wallet import Wallet
 from urllib.parse import urlparse
 

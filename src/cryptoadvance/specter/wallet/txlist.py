@@ -11,20 +11,20 @@ from embit import bip32
 from embit.liquid.networks import get_network
 from embit.transaction import Transaction
 
-from .helpers import get_address_from_dict
-from .persistence import delete_file, read_csv, write_csv
-from .specter_error import SpecterError, SpecterInternalException
+from ..helpers import get_address_from_dict
+from ..persistence import delete_file, read_csv, write_csv
+from ..specter_error import SpecterError, SpecterInternalException
 from embit.descriptor import Descriptor
 from embit.liquid.descriptor import LDescriptor
-from .util.common import str2bool
-from .util.psbt import (
+from ..util.common import str2bool
+from ..util.psbt import (
     AbstractTxContext,
     SpecterInputScope,
     SpecterOutputScope,
     SpecterPSBT,
     SpecterTx,
 )
-from .util.tx import decoderawtransaction
+from ..util.tx import decoderawtransaction
 from threading import RLock
 
 logger = logging.getLogger(__name__)

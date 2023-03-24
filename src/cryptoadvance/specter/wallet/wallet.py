@@ -1,10 +1,16 @@
-import json, logging, os, re, csv
-import requests
+import csv
+import json
+import logging
+import os
+import re
 import threading
 import time
-
 from collections import OrderedDict
 from csv import Error
+from io import StringIO
+from typing import Dict, List
+
+import requests
 from embit import bip32
 from embit.descriptor import Descriptor
 from embit.descriptor.checksum import add_checksum
@@ -12,23 +18,23 @@ from embit.ec import PublicKey
 from embit.liquid.networks import get_network
 from embit.psbt import DerivationPath
 from embit.transaction import Transaction
-from io import StringIO
-from typing import Dict, List
 
 from cryptoadvance.specter.commands.utxo_scanner import UtxoScanner
 from cryptoadvance.specter.rpc import RpcError
 
-from ..addresslist import Address, AddressList
 from ..device import Device
-from ..key import Key
-from ..util.merkleblock import is_valid_merkle_proof
 from ..helpers import get_address_from_dict
-from ..persistence import write_json_file, delete_file, delete_folder
+from ..key import Key
+from ..persistence import delete_file, delete_folder, write_json_file
 from ..specter_error import SpecterError, handle_exception
-from ..txlist import TxItem, TxList, WalletAwareTxItem
+from ..util.merkleblock import is_valid_merkle_proof
 from ..util.psbt import SpecterPSBT
 from ..util.tx import decoderawtransaction
 from ..util.xpub import get_xpub_fingerprint
+from .tx_fetcher import TxFetcher
+from .txlist import TxItem, TxList, WalletAwareTxItem
+from .abstract_wallet import AbstractWallet
+from .addresslist import AddressList, Address
 
 logger = logging.getLogger(__name__)
 LISTTRANSACTIONS_BATCH_SIZE = 1000
@@ -57,7 +63,7 @@ addrtypes = {
 }
 
 
-class Wallet:
+class Wallet(AbstractWallet):
     # if the wallet is old we import 300 addresses
     IMPORT_KEYPOOL = 300
     # a gap of 20 addresses is what many wallets do (not used with descriptor wallets)
@@ -404,8 +410,6 @@ class Wallet:
         3. calls self.delete_spent_pending_psbts
         Most of that code could probably encapsulated in the TxList class.
         """
-        from .tx_fetcher import TxFetcher
-
         TxFetcher.fetch_transactions(self)
 
     def import_address_labels(self, address_labels):
@@ -1544,11 +1548,17 @@ class Wallet:
         return round(self.balance["trusted"] + self.balance["untrusted_pending"], 8)
 
     @property
-    def addresses(self):
+    def relevant_addresses(self):
+        """Not used much (only in tests?!)
+        Returns a list of addresses from index 0 until self.address_index + 1
+        """
         return [self.get_address(idx) for idx in range(0, self.address_index + 1)]
 
     @property
-    def change_addresses(self):
+    def relevant_change_addresses(self):
+        """Not used much (only in tests?!)
+        Returns a list of change-addresses from index 0 until self.change_index + 1
+        """
         return [
             self.get_address(idx, change=True)
             for idx in range(0, self.change_index + 1)

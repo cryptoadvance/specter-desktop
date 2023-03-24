@@ -8,12 +8,12 @@ from embit.liquid.descriptor import LDescriptor
 from embit.liquid.pset import PSET
 from embit.liquid.transaction import LTransaction
 
-from ..addresslist import Address
 from ..specter_error import SpecterError
 from ..wallet import *
 from .addresslist import LAddressList
 from .txlist import LTxList
 from .util.pset import SpecterPSET
+from .addresslist import Address
 
 
 class LWallet(Wallet):

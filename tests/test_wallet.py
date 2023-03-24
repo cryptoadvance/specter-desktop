@@ -5,7 +5,7 @@ from typing import List
 import pytest, logging
 from cryptoadvance.specter.util.psbt import SpecterPSBT
 from cryptoadvance.specter.commands.psbt_creator import PsbtCreator
-from cryptoadvance.specter.txlist import WalletAwareTxItem
+from cryptoadvance.specter.wallet.txlist import WalletAwareTxItem
 from cryptoadvance.specter.device import Device
 
 from cryptoadvance.specter.specter import Specter
