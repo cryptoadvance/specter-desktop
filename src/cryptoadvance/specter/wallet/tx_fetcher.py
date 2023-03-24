@@ -231,6 +231,7 @@ class TxFetcher:
             for r in addresses_info_multi
             if r["result"].get("ismine", False)
         ]
+        logger.info(f"Those addresses got used recently: {addresses_info}")
         return addresses_info
 
     def calculate_max_used_from_addresses(self, addresses_info):
