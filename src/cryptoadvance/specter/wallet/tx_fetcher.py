@@ -1,5 +1,5 @@
 import logging
-from ..wallet import Wallet
+from .wallet import Wallet
 
 logger = logging.getLogger(__name__)
 

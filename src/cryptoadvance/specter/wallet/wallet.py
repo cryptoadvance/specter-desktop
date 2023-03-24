@@ -18,17 +18,17 @@ from typing import Dict, List
 from cryptoadvance.specter.commands.utxo_scanner import UtxoScanner
 from cryptoadvance.specter.rpc import RpcError
 
-from .addresslist import Address, AddressList
-from .device import Device
-from .key import Key
-from .util.merkleblock import is_valid_merkle_proof
-from .helpers import get_address_from_dict
-from .persistence import write_json_file, delete_file, delete_folder
-from .specter_error import SpecterError, handle_exception
-from .txlist import TxItem, TxList, WalletAwareTxItem
-from .util.psbt import SpecterPSBT
-from .util.tx import decoderawtransaction
-from .util.xpub import get_xpub_fingerprint
+from ..addresslist import Address, AddressList
+from ..device import Device
+from ..key import Key
+from ..util.merkleblock import is_valid_merkle_proof
+from ..helpers import get_address_from_dict
+from ..persistence import write_json_file, delete_file, delete_folder
+from ..specter_error import SpecterError, handle_exception
+from ..txlist import TxItem, TxList, WalletAwareTxItem
+from ..util.psbt import SpecterPSBT
+from ..util.tx import decoderawtransaction
+from ..util.xpub import get_xpub_fingerprint
 
 logger = logging.getLogger(__name__)
 LISTTRANSACTIONS_BATCH_SIZE = 1000
@@ -404,7 +404,7 @@ class Wallet:
         3. calls self.delete_spent_pending_psbts
         Most of that code could probably encapsulated in the TxList class.
         """
-        from .util.tx_fetcher import TxFetcher
+        from .tx_fetcher import TxFetcher
 
         TxFetcher.fetch_transactions(self)
 
