@@ -408,16 +408,6 @@ class Wallet:
 
         TxFetcher.fetch_transactions(self)
 
-        # only delete with confirmed txs
-        self.delete_spent_pending_psbts(
-            [
-                tx["hex"]
-                for tx in txs.values()
-                if tx.get("confirmations", 0) > 0 or tx.get("blockheight")
-            ]
-        )
-        self._transactions.add(txs)
-
     def import_address_labels(self, address_labels):
         """
         Imports address_labels given in the formats:
