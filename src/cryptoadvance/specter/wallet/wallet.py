@@ -501,7 +501,7 @@ class Wallet(AbstractWallet):
             while self.rpc.getreceivedbyaddress(addr, 0) != 0:
                 addr = self.getnewaddress()
         except Exception as e:
-            logger.exception(f"Failed to check for address reuse: {e}", e)
+            logger.exception(f"Failed to check for address reuse: {e}")
 
     def check_addresses(self):
         """Checking the gap limit is still ok"""
@@ -1851,8 +1851,7 @@ class Wallet(AbstractWallet):
                     inp.non_witness_utxo = self.TxCls.from_string(res["hex"])
                 except Exception as e:
                     logger.exception(
-                        f"Can't find previous transaction in the wallet. Signing might not be possible for certain devices... Txid: {txid}, Exception: {e}",
-                        e,
+                        f"Can't find previous transaction in the wallet. Signing might not be possible for certain devices... Txid: {txid}, Exception: {e}"
                     )
         else:
             # remove non_witness_utxo if we don't want them

@@ -188,7 +188,7 @@ class TxFetcher:
                 txid
                 for txid in self.wallet._transactions
                 if self.wallet._transactions[txid].category == "selftransfer"
-                and not self._transactions[txid].get("blockhash", None)
+                and not self.wallet._transactions[txid].get("blockhash", None)
             ]
             unconfirmed_selftransfers_txs = []
             if unconfirmed_selftransfers:
