@@ -129,6 +129,7 @@ def test_txlist(
 
     assert wallet.address_index == 15
     assert wallet._addresses.max_used_index(change=False) == 14
+    # -1 is a magic value which is returned if no change addresses has been used
     assert wallet._addresses.max_used_index(change=True) == -1
 
     number_of_additional_txs = 200

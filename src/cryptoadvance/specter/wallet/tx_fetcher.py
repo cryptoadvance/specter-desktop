@@ -119,9 +119,8 @@ class TxFetcher:
         return False
 
     def interesting_txs(self):
-        """returns a dict of interesting transactions where txid is the key and
-        the result of gettransaction(txid) as the value
-        Called with arr which is
+        """returns an array of interesting transactions (see is_interesting_tx() ) where txid is
+        the key and the result is whatever listtransactions is retuirning as values
         """
         idx = 0
         arr = []
@@ -147,7 +146,10 @@ class TxFetcher:
         return arr
 
     def transform_to_dict_with_txid_as_key(self, arr):
-        """gets a"""
+        """gets an array of tx-dicts where and transoforms it
+        to a dict with txid as keys and the corresponding result
+        of gettransaction as value.
+        """
         # Start with an dict with txids as keys and None as values:
         txs = dict.fromkeys([a["txid"] for a in arr])
         txids = list(txs.keys())
