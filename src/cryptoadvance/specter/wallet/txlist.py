@@ -429,6 +429,7 @@ class WalletAwareTxItem(TxItem):
         all_outs = [out.to_dict() for out in self.psbt.outputs]
         my_outs = [out for out in all_outs if out["is_mine"]]
         my_receiving = [out for out in my_outs if not out["change"]]
+        my_change = [out for out in my_outs if out["change"]]
         external = [out for out in all_outs if out not in my_outs]
         # decide what addresses to show
         if self.category in ["generate", "receive", "selftransfer"]:
@@ -439,7 +440,7 @@ class WalletAwareTxItem(TxItem):
             outs = external or all_outs
         else:
             # not sure what's the best here
-            outs = my_receiving or my_outs or external or all_outs
+            outs = my_receiving or my_change or my_outs or external or all_outs
         addresses = [out.get("address", "Unknown") for out in outs]
         self["address"] = addresses[0]
         return self["address"]
