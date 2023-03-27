@@ -329,7 +329,7 @@ def test_wallet_labeling(bitcoin_regtest, devices_filled_data_folder, device_man
     wallet.setlabel(third_address, "")
     bitcoin_regtest.testcoin_faucet(third_address, amount=0.4)
 
-    assert sorted(wallet.addresses) == sorted(
+    assert sorted(wallet.relevant_addresses) == sorted(
         [first_address, second_address, third_address]
     )
 
@@ -376,8 +376,8 @@ def test_wallet_change_addresses(
 
     address = wallet.address
     change_address = wallet.change_address
-    assert wallet.addresses == [address]
-    assert wallet.change_addresses == [change_address]
+    assert wallet.relevant_addresses == [address]
+    assert wallet.relevant_change_addresses == [change_address]
     bitcoin_regtest.testcoin_faucet(change_address, amount=0.1)
     wallet.update_balance()
     assert wallet.amount_total == 0.1

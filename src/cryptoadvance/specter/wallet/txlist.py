@@ -11,20 +11,20 @@ from embit import bip32
 from embit.liquid.networks import get_network
 from embit.transaction import Transaction
 
-from .helpers import get_address_from_dict
-from .persistence import delete_file, read_csv, write_csv
-from .specter_error import SpecterError, SpecterInternalException
+from ..helpers import get_address_from_dict
+from ..persistence import delete_file, read_csv, write_csv
+from ..specter_error import SpecterError, SpecterInternalException
 from embit.descriptor import Descriptor
 from embit.liquid.descriptor import LDescriptor
-from .util.common import str2bool
-from .util.psbt import (
+from ..util.common import str2bool
+from ..util.psbt import (
     AbstractTxContext,
     SpecterInputScope,
     SpecterOutputScope,
     SpecterPSBT,
     SpecterTx,
 )
-from .util.tx import decoderawtransaction
+from ..util.tx import decoderawtransaction
 from threading import RLock
 
 logger = logging.getLogger(__name__)
@@ -429,6 +429,7 @@ class WalletAwareTxItem(TxItem):
         all_outs = [out.to_dict() for out in self.psbt.outputs]
         my_outs = [out for out in all_outs if out["is_mine"]]
         my_receiving = [out for out in my_outs if not out["change"]]
+        my_change = [out for out in my_outs if out["change"]]
         external = [out for out in all_outs if out not in my_outs]
         # decide what addresses to show
         if self.category in ["generate", "receive", "selftransfer"]:
@@ -439,7 +440,7 @@ class WalletAwareTxItem(TxItem):
             outs = external or all_outs
         else:
             # not sure what's the best here
-            outs = my_receiving or my_outs or external or all_outs
+            outs = my_receiving or my_change or my_outs or external or all_outs
         addresses = [out.get("address", "Unknown") for out in outs]
         self["address"] = addresses[0]
         return self["address"]

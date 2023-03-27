@@ -1,10 +1,16 @@
-import json, logging, os, re, csv
-import requests
+import csv
+import json
+import logging
+import os
+import re
 import threading
 import time
-
 from collections import OrderedDict
 from csv import Error
+from io import StringIO
+from typing import Dict, List
+
+import requests
 from embit import bip32
 from embit.descriptor import Descriptor
 from embit.descriptor.checksum import add_checksum
@@ -12,23 +18,23 @@ from embit.ec import PublicKey
 from embit.liquid.networks import get_network
 from embit.psbt import DerivationPath
 from embit.transaction import Transaction
-from io import StringIO
-from typing import Dict, List
 
 from cryptoadvance.specter.commands.utxo_scanner import UtxoScanner
 from cryptoadvance.specter.rpc import RpcError
 
-from .addresslist import Address, AddressList
-from .device import Device
-from .key import Key
-from .util.merkleblock import is_valid_merkle_proof
-from .helpers import get_address_from_dict
-from .persistence import write_json_file, delete_file, delete_folder
-from .specter_error import SpecterError, handle_exception
+from ..device import Device
+from ..helpers import get_address_from_dict
+from ..key import Key
+from ..persistence import delete_file, delete_folder, write_json_file
+from ..specter_error import SpecterError, handle_exception
+from ..util.merkleblock import is_valid_merkle_proof
+from ..util.psbt import SpecterPSBT
+from ..util.tx import decoderawtransaction
+from ..util.xpub import get_xpub_fingerprint
+from .tx_fetcher import TxFetcher
 from .txlist import TxItem, TxList, WalletAwareTxItem
-from .util.psbt import SpecterPSBT
-from .util.tx import decoderawtransaction
-from .util.xpub import get_xpub_fingerprint
+from .abstract_wallet import AbstractWallet
+from .addresslist import AddressList, Address
 
 logger = logging.getLogger(__name__)
 LISTTRANSACTIONS_BATCH_SIZE = 1000
@@ -57,7 +63,7 @@ addrtypes = {
 }
 
 
-class Wallet:
+class Wallet(AbstractWallet):
     # if the wallet is old we import 300 addresses
     IMPORT_KEYPOOL = 300
     # a gap of 20 addresses is what many wallets do (not used with descriptor wallets)
@@ -404,176 +410,7 @@ class Wallet:
         3. calls self.delete_spent_pending_psbts
         Most of that code could probably encapsulated in the TxList class.
         """
-        arr = []
-        idx = 0
-        # unconfirmed_selftransfers needed since Bitcoin Core does not properly list `selftransfer` txs in `listtransactions` command
-        # Until v0.21, it listed there consolidations to a receive address, but not change address
-        # Since v0.21, it does not list there consolidations at all
-        # Therefore we need to check here if a transaction might got confirmed
-        # NOTE: This might be a problem in case of re-org...
-        # More details: https://github.com/cryptoadvance/specter-desktop/issues/996
-        unconfirmed_selftransfers = [
-            txid
-            for txid in self._transactions
-            if self._transactions[txid].category == "selftransfer"
-            and not self._transactions[txid].get("blockhash", None)
-        ]
-        unconfirmed_selftransfers_txs = []
-        if unconfirmed_selftransfers:
-            unconfirmed_selftransfers_txs = self.rpc.multi(
-                [("gettransaction", txid) for txid in unconfirmed_selftransfers]
-            )
-        arr = [tx["result"] for tx in unconfirmed_selftransfers_txs if tx.get("result")]
-        while True:
-            txlist = self.rpc.listtransactions(
-                "*",
-                LISTTRANSACTIONS_BATCH_SIZE,  # count
-                LISTTRANSACTIONS_BATCH_SIZE * idx,  # skip
-                True,
-            )
-            # list of transactions that we don't know about,
-            # or that it has a different blockhash (reorg / confirmed)
-            # or doesn't have an address(?)
-            # or has wallet conflicts
-            res = [
-                tx
-                for tx in txlist
-                # we don't know about tx
-                if tx["txid"] not in self._transactions
-                # we don't know addresses
-                or not self._transactions[tx["txid"]].get("address", None)
-                # blockhash is different (reorg / unconfirmed)
-                or self._transactions[tx["txid"]].get("blockhash", None)
-                != tx.get("blockhash", None)
-                # we have conflicts
-                or self._transactions[tx["txid"]].get("conflicts", [])
-                != tx.get("walletconflicts", [])
-            ]
-            arr.extend(res)
-            idx += 1
-            # stop if we reached known transactions
-            # not sure if Core <20 returns last batch or empty array at the end
-            if (
-                len(res) < LISTTRANSACTIONS_BATCH_SIZE
-                or len(arr) < LISTTRANSACTIONS_BATCH_SIZE * idx
-            ):
-                break
-        txs = dict.fromkeys([a["txid"] for a in arr])
-        txids = list(txs.keys())
-        # get all raw transactions
-        res = self.rpc.multi([("gettransaction", txid) for txid in txids])
-        for i, r in enumerate(res):
-            txid = txids[i]
-            # check if we already added it
-            if txs.get(txid, None) is not None:
-                continue
-            txs[txid] = r["result"]
-        # This is a fix for Bitcoin Core versions < v0.20
-        # These do not return the blockheight as part of the `gettransaction` command
-        # So here we check if this property is lacking and if so
-        # query the current block height and manually calculate it.
-        ##################### Remove from here after dropping Core v0.19 support #####################
-        check_blockheight = False
-        for tx in txs.values():
-            if tx and tx.get("confirmations", 0) > 0 and "blockheight" not in tx:
-                check_blockheight = True
-                break
-        if check_blockheight:
-            current_blockheight = self.rpc.getblockcount()
-            for tx in txs.values():
-                if tx.get("confirmations", 0) > 0:
-                    tx["blockheight"] = current_blockheight - tx["confirmations"] + 1
-        ##################### Remove until here after dropping Core v0.19 support #####################
-        if self.use_descriptors:
-            # Get all used addresses that belong to the wallet
-            addresses_info_multi = self.rpc.multi(
-                [
-                    ("getaddressinfo", address)
-                    for address in [
-                        tx["details"][0].get("address")
-                        for tx in txs.values()
-                        if tx
-                        and tx.get("details")
-                        and (
-                            tx.get("details")[0].get("category") != "send"
-                            and tx["details"][0].get("address") not in self._addresses
-                        )
-                    ]
-                    if address
-                ]
-            )
-            addresses_info = [
-                r["result"]
-                for r in addresses_info_multi
-                if r["result"].get("ismine", False)
-            ]
-
-            # Gets max index used receiving and change addresses
-            max_used_receiving = self._addresses.max_used_index(change=False)
-            max_used_change = self._addresses.max_used_index(change=True)
-
-            for address in addresses_info:
-                desc = self.DescriptorCls.from_string(address["desc"])
-                indexes = [
-                    {
-                        "idx": k.origin.derivation[-1],
-                        "change": k.origin.derivation[-2],
-                    }
-                    for k in desc.keys
-                ]
-                for idx in indexes:
-                    if int(idx["change"]) == 0:
-                        max_used_receiving = max(max_used_receiving, int(idx["idx"]))
-                    elif int(idx["change"]) == 1:
-                        max_used_change = max(max_used_change, int(idx["idx"]))
-
-            # If max receiving address bigger than current max receiving index minus the gap limit - self._addresses.max_index(change=False)
-            if max_used_receiving + self.GAP_LIMIT > self._addresses.max_index(
-                change=False
-            ):
-                # Add receiving addresses until the new max address plus the GAP_LIMIT
-                addresses = [
-                    dict(
-                        address=self.get_address(
-                            idx, change=False, check_keypool=False
-                        ),
-                        index=idx,
-                        change=False,
-                    )
-                    for idx in range(
-                        self._addresses.max_index(change=False),
-                        max_used_receiving + self.GAP_LIMIT,
-                    )
-                ]
-                self._addresses.add(addresses, check_rpc=False)
-
-            # If max change address bigger than current max change index minus the gap limit  - self._addresses.max_index(change=True)
-            if max_used_change + self.GAP_LIMIT > self._addresses.max_index(
-                change=True
-            ):
-                # Add change addresses until the new max address plus the GAP_LIMIT
-                change_addresses = [
-                    dict(
-                        address=self.get_address(idx, change=True, check_keypool=False),
-                        index=idx,
-                        change=True,
-                    )
-                    for idx in range(
-                        self._addresses.max_index(change=True),
-                        max_used_change + self.GAP_LIMIT,
-                    )
-                ]
-                self._addresses.add(change_addresses, check_rpc=False)
-
-        # only delete with confirmed txs
-        self.delete_spent_pending_psbts(
-            [
-                tx["hex"]
-                for tx in txs.values()
-                if tx.get("confirmations", 0) > 0 or tx.get("blockheight")
-            ]
-        )
-        self._transactions.add(txs)
+        TxFetcher.fetch_transactions(self)
 
     def import_address_labels(self, address_labels):
         """
@@ -664,7 +501,7 @@ class Wallet:
             while self.rpc.getreceivedbyaddress(addr, 0) != 0:
                 addr = self.getnewaddress()
         except Exception as e:
-            logger.exception(f"Failed to check for address reuse: {e}", e)
+            logger.exception(f"Failed to check for address reuse: {e}")
 
     def check_addresses(self):
         """Checking the gap limit is still ok"""
@@ -1711,11 +1548,17 @@ class Wallet:
         return round(self.balance["trusted"] + self.balance["untrusted_pending"], 8)
 
     @property
-    def addresses(self):
+    def relevant_addresses(self):
+        """Not used much (only in tests?!)
+        Returns a list of addresses from index 0 until self.address_index + 1
+        """
         return [self.get_address(idx) for idx in range(0, self.address_index + 1)]
 
     @property
-    def change_addresses(self):
+    def relevant_change_addresses(self):
+        """Not used much (only in tests?!)
+        Returns a list of change-addresses from index 0 until self.change_index + 1
+        """
         return [
             self.get_address(idx, change=True)
             for idx in range(0, self.change_index + 1)
@@ -2008,8 +1851,7 @@ class Wallet:
                     inp.non_witness_utxo = self.TxCls.from_string(res["hex"])
                 except Exception as e:
                     logger.exception(
-                        f"Can't find previous transaction in the wallet. Signing might not be possible for certain devices... Txid: {txid}, Exception: {e}",
-                        e,
+                        f"Can't find previous transaction in the wallet. Signing might not be possible for certain devices... Txid: {txid}, Exception: {e}"
                     )
         else:
             # remove non_witness_utxo if we don't want them

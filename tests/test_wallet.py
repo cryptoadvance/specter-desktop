@@ -5,7 +5,7 @@ from typing import List
 import pytest, logging
 from cryptoadvance.specter.util.psbt import SpecterPSBT
 from cryptoadvance.specter.commands.psbt_creator import PsbtCreator
-from cryptoadvance.specter.txlist import WalletAwareTxItem
+from cryptoadvance.specter.wallet.txlist import WalletAwareTxItem
 from cryptoadvance.specter.device import Device
 
 from cryptoadvance.specter.specter import Specter
@@ -53,8 +53,6 @@ def send_helper(specter_regtest_configured: Specter, wallet: Wallet, device: Dev
     signed_psbt = specter_regtest_configured.device_manager.get_by_alias(
         device.alias
     ).sign_psbt(b64psbt, wallet, "")
-    print()
-    print(f"signed_psbt: {signed_psbt}")
 
     if signed_psbt["complete"]:
         raw = wallet.rpc.finalizepsbt(signed_psbt["psbt"])
@@ -73,7 +71,7 @@ def test_txlist(
     (Always search for failures first before checking errors)
         so this should speed up the fixing process although it's a duplication.
     """
-    caplog.set_level(logging.ERROR)
+    caplog.set_level(logging.DEBUG)
     logging.getLogger("urllib3.connectionpool").setLevel(logging.INFO)
     wallet = create_hot_segwit_wallet(
         specter_regtest_configured,
@@ -128,6 +126,27 @@ def test_txlist(
     assert len(wallet.txlist()) == 14
     # two of them are unconfirmed
     assert len([tx for tx in wallet.txlist() if tx["confirmations"] == 0]) == 2
+
+    assert wallet.address_index == 15
+    assert wallet._addresses.max_used_index(change=False) == 14
+    # -1 is a magic value which is returned if no change addresses has been used
+    assert wallet._addresses.max_used_index(change=True) == -1
+
+    number_of_additional_txs = 200
+    for i in range(0, number_of_additional_txs):
+        bitcoin_regtest.testcoin_faucet(
+            wallet.getnewaddress(),
+            amount=2.5,
+            confirm_payment=False,
+        )
+    wallet.fetch_transactions()
+
+    assert wallet.address_index == 15 + number_of_additional_txs
+    assert (
+        wallet._addresses.max_used_index(change=False)
+        == 14 + number_of_additional_txs + 1
+    )
+    assert wallet._addresses.max_used_index(change=True) == -1
 
 
 @pytest.mark.slow

@@ -21,7 +21,7 @@ from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
 
-from cryptoadvance.specter.txlist import WalletAwareTxItem
+from cryptoadvance.specter.wallet.txlist import WalletAwareTxItem
 
 from ...commands.psbt_creator import PsbtCreator
 from ...helpers import bcur2base64
@@ -1075,8 +1075,8 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
             )
             or (
                 any(search in str(amount) for amount in tx["amount"])
-                if isinstance(tx["amount"], list)
-                else search in str(tx["amount"])
+                if isinstance(tx["flow_amount"], list)
+                else search in str(tx["flow_amount"])
             )
             or search in str(tx["confirmations"])
             or search in str(tx["time"])
