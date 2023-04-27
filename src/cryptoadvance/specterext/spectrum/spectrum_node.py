@@ -54,7 +54,7 @@ class SpectrumNode(AbstractNode):
                 f"Cannot start Spectrum without host ({self._host}), port ({self._port}) or ssl ({self._ssl})"
             )
         try:
-            logger.debug(f"Spectrum node is creating a Spectrum instance. tor_type: {app.specter.tor_type}")
+            logger.debug(f"Spectrum node is creating a Spectrum instance.")
             self.spectrum = Spectrum(
                 self._host,
                 self._port,
@@ -62,7 +62,7 @@ class SpectrumNode(AbstractNode):
                 datadir=datadir,
                 app=app,
                 proxy_url=app.specter.proxy_url
-                if app.specter.tor_type != "none" and app.specter.tor_type != "disabled" 
+                if app.specter.tor_type != "none" and app.specter.tor_type != "disabled"
                 else None,
             )
             logger.debug(f"{self.name} is instantiating its BridgeRPC.")
