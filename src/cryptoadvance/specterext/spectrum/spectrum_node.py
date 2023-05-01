@@ -62,7 +62,7 @@ class SpectrumNode(AbstractNode):
                 datadir=datadir,
                 app=app,
                 proxy_url=app.specter.proxy_url
-                if app.specter.tor_type != "none"
+                if app.specter.tor_type != "none" and app.specter.tor_type != "disabled"
                 else None,
             )
             logger.debug(f"{self.name} is instantiating its BridgeRPC.")
