@@ -163,9 +163,9 @@ embit==0.6.1 \
     # via
     #   -r requirements.in
     #   cryptoadvance-spectrum
-flask==2.1.1 \
-    --hash=sha256:8a4cf32d904cf5621db9f0c9fbcd7efabf3003f22a04e4d0ce790c7137ec5264 \
-    --hash=sha256:a8c9bd3e558ec99646d177a9739c41df1ded0629480b4c8d2975412f3c9519c8
+flask==2.2.5 \
+    --hash=sha256:58107ed83443e86067e41eff4631b058178191a355886f8e479e347fa1285fdf \
+    --hash=sha256:edee9b0a7ff26621bd5a8c10ff484ae28737a2410d99b0bb9a6850c7fb977aa0
     # via
     #   -r requirements.in
     #   cryptoadvance-spectrum
