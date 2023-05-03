@@ -11,25 +11,29 @@ from flask import current_app as app
 from hwilib.common import Chain
 from hwilib.devices.bitbox02 import Bitbox02Client
 from hwilib.devices.trezorlib.transport import get_transport
+from hwilib.devices.keepkey import KeepkeyClient
+from hwilib.devices.trezor import TrezorClient
 from hwilib.psbt import PSBT
 from usb1 import USBError
 
-from .devices import __all__ as device_classes
-from .devices.hwi.jade import JadeClient
-from .devices.hwi.specter_diy import SpecterClient
-from .helpers import (
-    deep_update,
-    hwi_get_config,
-    is_liquid,
-    is_testnet,
-    locked,
-    save_hwi_bridge_config,
-)
+from cryptoadvance.specter.devices import __all__ as device_classes
+from cryptoadvance.specter.devices import (
+    Jade,
+    Keepkey,
+    Specter,
+    Trezor,
+)  # The ones with dedicated hwi-clients
+from .clients.jade import JadeClient
+from .clients.specter_diy import SpecterClient
+from cryptoadvance.specter.helpers import deep_update, is_liquid, is_testnet, locked
 
 # deprecated, use embit.descriptor.checksum.add_checksum
-from .util.descriptor import AddChecksum
-from .util.json_rpc import JSONRPC
-from .util.xpub import convert_xpub_prefix
+from cryptoadvance.specter.util.descriptor import AddChecksum
+from cryptoadvance.specter.util.json_rpc import JSONRPC
+from cryptoadvance.specter.util.xpub import convert_xpub_prefix
+
+from .helpers import hwi_get_config, save_hwi_bridge_config
+from .hwi_rpc import AbstractHWIBridge
 
 logger = logging.getLogger(__name__)
 
@@ -59,36 +63,18 @@ def get_device_class(device_type):
             return cls
 
 
-class HWIBridge(JSONRPC):
+class HWILibBridge(AbstractHWIBridge):
     """
     A class that represents HWI JSON-RPC methods.
 
     All methods of this class are callable over JSON-RPC, except _underscored.
     """
 
-    def __init__(self):
-        self.exposed_rpc = {
-            "enumerate": self.enumerate,
-            "detect_device": self.detect_device,
-            "toggle_passphrase": self.toggle_passphrase,
-            "prompt_pin": self.prompt_pin,
-            "send_pin": self.send_pin,
-            "extract_xpub": self.extract_xpub,
-            "extract_xpubs": self.extract_xpubs,
-            "display_address": self.display_address,
-            "sign_tx": self.sign_tx,
-            "sign_message": self.sign_message,
-            "extract_master_blinding_key": self.extract_master_blinding_key,
-            "bitbox02_pairing": self.bitbox02_pairing,
-        }
-        # Running enumerate after beginning an interaction with a specific device
-        # crashes python or make HWI misbehave. For now we just get all connected
-        # devices once per session and save them.
-        logger.info("Initializing HWI...")  # to explain user why it takes so long
-        self.enumerate()
-
     @locked(hwilock)
     def enumerate(self, passphrase="", chain=""):
+        return self._enumerate(passphrase=passphrase, chain=chain)
+
+    def _enumerate(self, passphrase="", chain=""):
         """
         Returns a list of all connected devices (dicts).
         Standard HWI enumerate() command + Specter.
@@ -137,83 +123,52 @@ class HWIBridge(JSONRPC):
         self.devices = devices
         return self.devices
 
-    def detect_device(
-        self, device_type=None, path=None, fingerprint=None, rescan_devices=False
-    ):
-        """
-        Returns a hardware wallet details
-        with specific fingerprint/ path/ type
-        or None if not connected.
-        If found multiple devices return only one.
-        """
-        if rescan_devices:
-            self.enumerate()
-        res = []
-
-        if device_type is not None:
-            res = [
-                dev
-                for dev in self.devices
-                if dev["type"].lower() == device_type.lower()
-            ]
-        if fingerprint is not None:
-            res = [
-                dev
-                for dev in self.devices
-                if dev["fingerprint"].lower() == fingerprint.lower()
-            ]
-        if path is not None:
-            res = [dev for dev in self.devices if dev["path"] == path]
-        if len(res) > 0:
-            return res[0]
-
     @locked(hwilock)
     def toggle_passphrase(self, device_type=None, path=None, passphrase="", chain=""):
-        if device_type == "keepkey" or device_type == "trezor":
-            with self._get_client(
-                device_type=device_type, path=path, passphrase=passphrase, chain=chain
-            ) as client:
-                return hwi_commands.toggle_passphrase(client)
-        else:
-            raise Exception(
-                "Invalid HWI device type %s, toggle_passphrase is only supported for Trezor and Keepkey devices"
-                % device_type
-            )
+        super().toggle_passphrase(
+            device_type=device_type, path=path, passphrase=passphrase, chain=chain
+        )
+        with self._get_client(
+            device_type=device_type, path=path, passphrase=passphrase, chain=chain
+        ) as client:
+            return hwi_commands.toggle_passphrase(client)
 
     @locked(hwilock)
     def prompt_pin(self, device_type=None, path=None, passphrase="", chain=""):
-        if device_type == "keepkey" or device_type == "trezor":
-            # The device will randomize its pin entry matrix on the device
-            #   but the corresponding digits in the receiving UI always map
-            #   to:
-            #       7 8 9
-            #       4 5 6
-            #       1 2 3
-            with self._get_client(
-                device_type=device_type, path=path, passphrase=passphrase, chain=chain
-            ) as client:
-                return hwi_commands.prompt_pin(client)
-        else:
-            raise Exception(
-                "Invalid HWI device type %s, prompt_pin is only supported for Trezor and Keepkey devices"
-                % device_type
-            )
+        super().prompt_pin(
+            device_type=device_type, path=path, passphrase=passphrase, chain=chain
+        )
+        # The device will randomize its pin entry matrix on the device
+        #   but the corresponding digits in the receiving UI always map
+        #   to:
+        #       7 8 9
+        #       4 5 6
+        #       1 2 3
+        with self._get_client(
+            device_type=device_type, path=path, passphrase=passphrase, chain=chain
+        ) as client:
+            return hwi_commands.prompt_pin(client)
 
     @locked(hwilock)
     def send_pin(self, pin="", device_type=None, path=None, passphrase="", chain=""):
-        if device_type == "keepkey" or device_type == "trezor":
-            if pin == "":
-                raise Exception("Must enter a non-empty PIN")
-            with self._get_client(
-                device_type=device_type, path=path, passphrase=passphrase, chain=chain
-            ) as client:
-                logger.debug(f"client is : {client}")
-                return hwi_commands.send_pin(client, pin)
-        else:
-            raise Exception(
-                "Invalid HWI device type %s, send_pin is only supported for Trezor and Keepkey devices"
-                % device_type
-            )
+        super().send_pin(
+            pin=pin,
+            device_type=device_type,
+            path=path,
+            passphrase=passphrase,
+            chain=chain,
+        )
+        if path == None:
+            path = [dev for dev in self.devices if dev["type"] == device_type][0][
+                "path"
+            ]
+        if pin == "":
+            raise Exception("Must enter a non-empty PIN")
+        with self._get_client(
+            device_type=device_type, path=path, passphrase=passphrase, chain=chain
+        ) as client:
+            logger.debug(f"client is : {client}")
+            return hwi_commands.send_pin(client, pin)
 
     @locked(hwilock)
     def extract_xpubs(
@@ -396,10 +351,6 @@ class HWIBridge(JSONRPC):
                 )
                 logger.exception(e)
 
-    def bitbox02_pairing(self, chain=""):
-        config = hwi_get_config(app.specter)
-        return {"code": config.get("bitbox02_pairing_code", "")}
-
     ######################## HWI Utils ########################
     @contextmanager
     def _get_client(
@@ -423,7 +374,17 @@ class HWIBridge(JSONRPC):
             )
         devcls = get_device_class(device["type"])
         if devcls:
-            client = devcls.get_client(device["path"], passphrase)
+            client_map = {
+                Jade: JadeClient,
+                Keepkey: KeepkeyClient,
+                Specter: SpecterClient,
+                Trezor: TrezorClient,
+            }
+            try:
+                client = client_map.get[devcls](device["path"], passphrase)
+            except KeyError:
+                client = hwi_commands.get_client(device["path"], passphrase)
+
         if not client:
             raise Exception(
                 "The device was identified but could not be reached.  Please check it is properly connected and try again"

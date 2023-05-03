@@ -33,6 +33,9 @@ DEFAULT_CONFIG = "cryptoadvance.specter.config.DevelopmentConfig"
 
 
 class BaseConfig(object):
+    # if this is anything else than "specter", the default controllers will not get registered
+    # This can e.g. be set in the specter_added_to_flask_app callback as e.g. the hwi extension does it
+    OPERATIONAL_MODE = "specter"
     # You got redirected here if you hit "/". This doesn't work anymore (at least for "/") if you modify APP_URL_PREFIX
     ROOT_URL_REDIRECT = "/spc"
 
@@ -188,6 +191,7 @@ class BaseConfig(object):
         "cryptoadvance.specterext.liquidissuer.service",
         "cryptoadvance.specterext.devhelp.service",
         "cryptoadvance.specterext.notifications.service",
+        "cryptoadvance.specterext.hwi.service",
         "cryptoadvance.specterext.exfund.service",
         "cryptoadvance.specterext.faucet.service",
         "cryptoadvance.specterext.electrum.service",

@@ -42,6 +42,7 @@ pytest_plugins = [
     "fix_keys_and_seeds",
     "fix_devices_and_wallets",
     "fix_testnet",
+    "fix_hwi",
 ]
 
 # This is from https://stackoverflow.com/questions/132058/showing-the-stack-trace-from-a-running-python-application

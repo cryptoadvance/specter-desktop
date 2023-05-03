@@ -1,0 +1,8 @@
+{% extends "hwi/base.jinja" %}
+{% block main %}
+    <img src="{{ url_for(service.id +'_endpoint' + '.static', filename=service.logo) }}" width="300"/>    
+    {% from 'hwi/components/hwi_menu.jinja' import hwi_menu with context %}
+    {{ hwi_menu(tab) }}
+    {% block content %}
+    {% endblock %}
+{% endblock %}

@@ -58,6 +58,11 @@ def cli():
     help="Start the hwi-bridge to use your HWWs with a remote specter.",
 )
 @click.option(
+    "--nohwi",
+    is_flag=True,
+    help="Do not load any HWI functionality.",
+)
+@click.option(
     "--devstatus-threshold",
     type=click.Choice(["alpha", "beta", "prod"], case_sensitive=False),
     default=None,
@@ -83,6 +88,7 @@ def server(
     filelog,
     tor,
     hwibridge,
+    nohwi,
     devstatus_threshold,
     specter_data_folder,
     config,
@@ -112,6 +118,18 @@ def server(
 
     if port:
         app.config["PORT"] = int(port)
+
+    if hwibridge:
+        assert not nohwi
+        app.config["OPERATIONAL_MODE"] = "hwibridge"
+    elif nohwi:
+        assert not hwibridge
+        # Removing the hwi-extension entirely
+        app.config["EXTENSION_LIST"] = [
+            ext
+            for ext in app.config.get("EXTENSION_LIST")
+            if ext != "cryptoadvance.specterext.hwi.service"
+        ]
 
     # devstatus_threshold
     if devstatus_threshold is not None:

@@ -1,6 +1,4 @@
 from .hwi_device import HWIDevice
-from .hwi.jade import JadeClient
-from .hwi.jade import enumerate as jade_enumerate
 from ..helpers import is_liquid
 
 
@@ -17,14 +15,6 @@ class Jade(HWIDevice):
     supports_hwi_toggle_passphrase = False
     supports_hwi_multisig_display_address = True
     liquid_support = True
-
-    @classmethod
-    def get_client(cls, *args, **kwargs):
-        return JadeClient(*args, **kwargs)
-
-    @classmethod
-    def enumerate(cls, *args, **kwargs):
-        return jade_enumerate(*args, **kwargs)
 
     def has_key_types(self, wallet_type, network="main"):
         if wallet_type == "multisig" and is_liquid(network):

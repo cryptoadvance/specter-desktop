@@ -47,12 +47,13 @@ write_to = "src/cryptoadvance/specter/_version.py"
 norecursedirs = "tests/bitcoin* tests/elements* tests/xtestdata_testextensions"
 
 log_format = "[%(levelname)8s] %(message)s %(name)s (%(filename)s:%(lineno)s)"
-addopts = "--bitcoind-version v22.0.0 --elementsd-version v0.21.0.2"
+addopts = "--bitcoind-version v22.0.0 --elementsd-version v0.21.0.2 -m 'not manual' "
 markers = [
     "slow: mark test as slow.",
     "elm: mark test as elementsd dependent",
     "bottleneck: mark a test as so ressource intensive that it can create a bottleneck where the test just fails due to a lack of ressources",
-    "threading: test needs threading to work"
+    "threading: test needs threading to work",
+    "manual: tests which will only suceed manual for some reason"
 ]
 
 filterwarnings = [

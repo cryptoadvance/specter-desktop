@@ -1,5 +1,4 @@
 from .hwi_device import HWIDevice
-from hwilib.devices.trezor import TrezorClient
 
 
 class Trezor(HWIDevice):
@@ -9,7 +8,3 @@ class Trezor(HWIDevice):
     supports_hwi_toggle_passphrase = True
     supports_hwi_multisig_display_address = True
     taproot_support = True
-
-    @classmethod
-    def get_client(cls, *args, **kwargs):
-        return TrezorClient(*args, **kwargs)

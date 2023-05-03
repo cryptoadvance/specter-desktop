@@ -14,17 +14,49 @@ def mnemonic_ghost_machine():
 
 
 @pytest.fixture
+def seed_ghost_machine(mnemonic_ghost_machine):
+    seed = mnemonic_to_seed(mnemonic_ghost_machine)
+    print(f"Ghost Machine seed: {hexlify(seed)}")
+    return mnemonic_to_seed(mnemonic_ghost_machine)
+
+
+@pytest.fixture
+def rootkey_ghost_machine(seed_ghost_machine):
+    rootkey = HDKey.from_seed(seed_ghost_machine)
+    print(f"Ghost Machine rootkey: {rootkey.to_base58()}")
+
+    print(f"Ghost Machine rootkey fp: {hexlify(rootkey.my_fingerprint)}")  # dcbf0caf
+    return rootkey
+
+
+# -------------------------------------------------------------------------------------------------
+@pytest.fixture
 def mnemonic_keen_join():
     return 11 * "keen " + "join"
 
 
 @pytest.fixture
+def seed_keen_join(mnemonic_keen_join):
+    seed = mnemonic_to_seed(mnemonic_keen_join)
+    print(f"Hold Accident seed: {hexlify(seed)}")
+    return mnemonic_to_seed(mnemonic_keen_join)
+
+
+@pytest.fixture
+def rootkey_keen_join(seed_keen_join):
+    rootkey = HDKey.from_seed(seed_keen_join)
+    print(f"Keen Join rootkey: {rootkey.to_base58()}")
+    # xprv9s21ZrQH143K45uYUg7zhHku3bik5a2nw8XcanYCUGHn7RE1Bhkr53RWcjAQVFDTmruDceNDAGbc7yYsZCGveKMDrPr18hMsMcvYTGJ4Mae
+    print(f"Keen Join rootkey fp: {hexlify(rootkey.my_fingerprint)}")
+    return rootkey
+
+
+# -------------------------------------------------------------------------------------------------
+
+
+@pytest.fixture
 def mnemonic_hold_accident():
     return 11 * "hold " + "accident"
-
-
-# The following is a formal creation of all major bitcoin artifacts from the
-# hold accident mnemonic
 
 
 @pytest.fixture

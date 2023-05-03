@@ -4,3 +4,4 @@ macholib
 pywin32-ctypes
 babel==2.10.1
 pytz==2022.1
+hwi==2.1.1

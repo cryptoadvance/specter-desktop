@@ -199,9 +199,10 @@ def get_subclasses_for_clazz(
             ):
                 continue
             try:
+                logger.info(f"Trying to import {module_name}.service")
                 module = import_module(f"{module_name}.service")
                 logger.debug(f"  Imported {module_name}.service")
-            except ModuleNotFoundError as e:
+            except (ModuleNotFoundError, ImportError) as e:
                 try:
                     # Another style is orgname.specterext.extensionid, for that we have to guess the orgname:
                     orgname = str(importer.path).split(os.path.sep)[-2]

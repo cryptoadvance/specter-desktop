@@ -5,7 +5,7 @@ from mock import patch
 
 def test_GithubUrlLoader():
     gh_url_loader: ExtGen = GithubUrlLoader()
-    assert gh_url_loader.get_source(None, "/Readme.md")
+    assert gh_url_loader.get_source(None, "/README.md")
 
 
 def test_ExtGen(caplog):
