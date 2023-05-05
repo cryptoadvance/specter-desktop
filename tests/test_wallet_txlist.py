@@ -13,7 +13,7 @@ from cryptoadvance.specter.process_controller.bitcoind_controller import (
     BitcoindPlainController,
 )
 from cryptoadvance.specter.rpc import BitcoinRPC
-from cryptoadvance.specter.txlist import TxItem, TxList, WalletAwareTxItem
+from cryptoadvance.specter.wallet.txlist import TxItem, TxList, WalletAwareTxItem
 from cryptoadvance.specter.util.psbt import (
     SpecterInputScope,
     SpecterOutputScope,

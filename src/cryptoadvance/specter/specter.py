@@ -168,7 +168,7 @@ class Specter:
 
         if self.tor_type == "builtin" and os.path.isfile(self.torbrowser_path):
             self.tor_daemon.start_tor_daemon()
-        if self.tor_type != "none":
+        if self.tor_type != "disabled":
             self.update_tor_controller()
 
         self.checker = Checker(lambda: self.check(check_all=True), desc="health")
@@ -402,13 +402,13 @@ class Specter:
     # mark
     def update_tor_control_port(self, tor_control_port, user):
         """set the control port of the tor daemon"""
-        if self.config_manager.update_tor_control_port:
-            self.update_tor_controller()
+        self.config_manager.update_tor_control_port(tor_control_port, user)
 
     # mark
     def generate_torrc_password(self, overwrite=False):
         self.config_manager.generate_torrc_password(overwrite)
 
+    # This is only used for the custom Tor setup, the built-in setup uses TorDaemonController
     def update_tor_controller(self):
         if "torrc_password" not in self.config:
             # Will be missing if the user did not go through the built-in Tor setup
@@ -614,7 +614,7 @@ class Specter:
 
     @property
     def tor_type(self):
-        return self.user_config.get("tor_type", "none")
+        return self.user_config.get("tor_type", "disabled")
 
     @property
     def proxy_url(self):

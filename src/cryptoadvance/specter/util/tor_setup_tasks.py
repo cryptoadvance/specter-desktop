@@ -1,5 +1,6 @@
 import os, time, requests, platform, tarfile, zipfile, sys, subprocess, shutil, stat, zipfile, logging
 import pgpy
+from flask_login import current_user
 from pathlib import Path
 from .sha256sum import sha256sum
 from .file_download import download_file
@@ -19,9 +20,9 @@ def copytree(src, dst, symlinks=False, ignore=None):
 
 
 def setup_tor_thread(specter=None):
-    """This will extracted the tor-binary out of the tar.xz packaged with specterd and copy
+    """This will extract the Tor binary out of the tar.xz packaged with specterd and copy
     it over to the ~/.specter/tor-binaries folder
-    Then it will create a torrc file and start the tor-demon
+    It will then create a torrc file and start the Tor daemon
     """
     try:
         specter.update_setup_status("torbrowser", "STARTING_SETUP")
@@ -59,10 +60,9 @@ def setup_tor_thread(specter=None):
             file.write(
                 f"\nHashedControlPassword {specter.tor_daemon.get_hashed_password(specter.config['torrc_password'])}"
             )
-
         specter.tor_daemon.start_tor_daemon()
-        specter.update_tor_controller()
         specter.reset_setup("torbrowser")
+        specter.update_tor_type("builtin", current_user)
     except Exception as e:
         logger.exception(f"Failed to install Tor.")
         specter.update_setup_error("torbrowser", str(e))

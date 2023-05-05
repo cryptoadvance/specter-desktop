@@ -1,5 +1,18 @@
 # Release Notes
 
+## v2.0.1 March 27, 2023
+- Bugfix: Keyerror in case of frozen utxos #2308 (k9ert)
+- Bugfix: method getaddressinfo not implemented #2313 (k9ert)
+- Bugfix: replace deprecated new-window with setWindowOpenHandler #2293 (Manolis Mandrapilias)
+- Bugfix/UIUX: Fix Tor configuration issues and improve UX of built-in Tor #2304 (Manolis Mandrapilias)
+- Chore: comments for macos build script #2228 (Manolis Mandrapilias)
+- Chore: Random improvements #2292 (k9ert)
+- Chore: Updating dependencies #2298 (k9ert)
+- Docs: update faq #2287 (k9ert)
+- Docs: Update Screenshots on Readme file #2286 (Moritz)
+- Feature: Enable Taproot support for Trezor #2295 (Manolis Mandrapilias)
+- Swan plugin: New design, improved UX and bug fixes #2309 (Manolis Mandrapilias)
+
 ## v1.14.5 January 17, 2023
 - Bugfix: autodetect from bitcoin.conf file with network set #2037 (kexkey)
 - Bugfix: change settings_restore implementation #2042 (k9ert)

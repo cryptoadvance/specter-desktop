@@ -8,6 +8,7 @@ from flask_babel import lazy_gettext as _
 from typing import List
 from cryptoadvance.specterext.swan.client import SwanClient
 from cryptoadvance.specter.specter_error import SpecterError
+from .client import SwanApiException
 
 from cryptoadvance.specter.user import User
 
@@ -17,7 +18,7 @@ from cryptoadvance.specter.services.service import (
     devstatus_beta,
     devstatus_prod,
 )
-from cryptoadvance.specter.addresslist import Address
+from cryptoadvance.specter.wallet import Address
 from cryptoadvance.specter.wallet import Wallet
 from urllib.parse import urlparse
 
@@ -33,7 +34,7 @@ class SwanService(Service):
     has_blueprint = True
     blueprint_module = "cryptoadvance.specterext.swan.controller"
     isolated_client = False
-    devstatus = devstatus_beta
+    devstatus = devstatus_prod
     encrypt_data = True
 
     # TODO: As more Services are integrated, we'll want more robust categorization and sorting logic
@@ -385,6 +386,8 @@ class SwanService(Service):
 
     @classmethod
     def remove_swan_integration(cls, user: User):
+        """Returns whether the Swan API could be called to delete the autowithdrawal addresses or not"""
+        api_call_success = True
         # Unreserve unused addresses in all wallets
         for wallet_name, wallet in user.wallet_manager.wallets.items():
             SwanService.unreserve_addresses(wallet=wallet)
@@ -401,15 +404,19 @@ class SwanService(Service):
                 cls.client().delete_autowithdrawal_addresses(
                     service_data[cls.SWAN_WALLET_ID]
                 )
-        except Exception as e:
+        except SwanApiException as e:
             # Note the exception but proceed with clearing local data
-            logger.exception(e)
+            logger.debug(e)
+            api_call_success = False
 
         # Wipe the on-disk encrypted service data (refresh_token, etc)
         SwanService.set_current_user_service_data({})
 
         # Remove Swan from User's list of active Services
         user.remove_service(SwanService.id)
+
+        # Return the status on the API call to Swan
+        return api_call_success
 
     """ ***********************************************************************
                                 Update hooks overrides
@@ -418,7 +425,7 @@ class SwanService(Service):
     @classmethod
     def update(cls):
         """
-        Periodic or at-login call to check our Swan address status and send more when
+        At-login call to check our Swan address status and send more when
         needed.
         * Check for autowithdrawals paid to addrs reserved for Swan.
         * Add more pending autowithdrawal addrs if we're under the threshold.

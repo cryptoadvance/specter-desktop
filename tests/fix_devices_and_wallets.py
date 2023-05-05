@@ -6,7 +6,8 @@ from cryptoadvance.specter.util.mnemonic import generate_mnemonic
 from cryptoadvance.specter.process_controller.node_controller import NodeController
 from cryptoadvance.specter.managers.wallet_manager import WalletManager
 from cryptoadvance.specter.specter import Specter
-from cryptoadvance.specter.wallet import Wallet, Device
+from cryptoadvance.specter.wallet import Wallet
+from cryptoadvance.specter.device import Device
 
 
 def create_hot_wallet_device(

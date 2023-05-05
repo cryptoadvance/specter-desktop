@@ -80,7 +80,7 @@ def login_method_rpcpasswordaspin():
     # This can be overridden via ENV_var.
 
     specter: Specter = app.specter
-    if specter.node and specter.node._get_rpc().test_connection():
+    if specter.node and specter.node.rpc and specter.node._get_rpc().test_connection():
         rpc = specter.node._get_rpc().clone()
     else:
         confs = _detect_rpc_confs_via_datadir(

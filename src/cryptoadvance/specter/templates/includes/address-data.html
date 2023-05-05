@@ -13,12 +13,6 @@
             white-space: pre-wrap;
             word-wrap: break-word;
         }
-        .service-icon {
-            margin-top: -5px;
-            margin-right: 0.5em;
-            height: 24px;
-            vertical-align: middle;
-        }
     </style>
     <div class="address-data bg-dark-800 rounded-xl p-4">
         <div class="flex justify-between mb-2">
@@ -84,7 +78,7 @@
                     <table class="address-data-table -mx-4 mt-8">
                     <tbody>
                     <tr><td>{{ _("Address") }}:</td><td class="cursor-pointer" title="Copy address" style="word-break: break-all;"><explorer-link data-type="address" data-value="${address}"></explorer-link></td></tr>
-                    <tr><td>{{ _("Label") }}:</td><td><address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}" data-label="${this.label}" data-service-id="${this.serviceId}"></address-label><br></td></tr>
+                    <tr><td>{{ _("Label") }}:</td><td class="flex items-center"><address-label data-copy-hidden="true" data-address="${address}" data-wallet="${this.wallet}" data-label="${this.label}" data-service-id="${this.serviceId}"></address-label><br></td></tr>
                     <tr><td>{{ _("From wallet") }}:</td><td><a href=${walletLink}>${walletName}<a></td></tr>
                     <tr><td>{{ _("Address index") }}:</td><td>${addressIndex}</td></tr>
                     <tr><td>{{ _("Is change address") }}:</td><td>${isChange ? '{{ _("Yes") }}' : '{{ _("No") }}'}</td></tr>
@@ -95,7 +89,7 @@
 
                 if ((typeof services !== 'undefined') && (this.serviceId in services)) {
                     // `services` obj made globally available in services-data.html
-                    addressInfoHTML += `<tr><td>{{ _("Service") }}:</td><td><img class="service-icon" src='{{ext_url_prefix}}/${this.serviceId}/static/${services[this.serviceId].icon}'>${services[this.serviceId].name}</td></tr>`;
+                    addressInfoHTML += `<tr><td>{{ _("Service") }}:</td><td class="flex items-center"><img class="h-4 align-middle my-[2px] mr-1"" src='{{ext_url_prefix}}/${this.serviceId}/static/${services[this.serviceId].icon}'>${services[this.serviceId].name}</td></tr>`;
                 } else {
                     let associateServiceUrl = `{{ url_for('services_endpoint.associate_addr', wallet_alias='WALLET_ALIAS', address='ADDRESS') }}`.replace('WALLET_ALIAS', this.wallet).replace('ADDRESS', jsonResponse.address);
                     addressInfoHTML += `<tr><td>{{ _("Service") }}:</td><td><button type="button" id="associate-btn" class="btn" onclick="location.href='${associateServiceUrl}';" data-cy="associate-address-with-service-btn">&#128229;&nbsp;{{ _("Associate with a service") }}</button></td></tr>`;

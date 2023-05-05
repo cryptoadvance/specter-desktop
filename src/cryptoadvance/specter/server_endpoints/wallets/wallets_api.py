@@ -21,7 +21,7 @@ from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
 
-from cryptoadvance.specter.txlist import WalletAwareTxItem
+from cryptoadvance.specter.wallet.txlist import WalletAwareTxItem
 
 from ...commands.psbt_creator import PsbtCreator
 from ...helpers import bcur2base64
@@ -917,10 +917,6 @@ def txlist_to_csv(
         # For txs, the relevant amount is flow_amount
         if amount_logic == "flow":
             tx["amount"] = tx.flow_amount
-        elif amount_logic == "utxo":
-            tx["amount"] = tx.utxo_amount
-        else:
-            raise SpecterInternalException(f"Unknown amount_logic: {amount_logic}")
         amount_price = "not supported"
         rate = "not supported"
         if tx.get("blocktime"):
@@ -1079,8 +1075,8 @@ def process_txlist(txlist, idx=0, limit=100, search=None, sortby=None, sortdir="
             )
             or (
                 any(search in str(amount) for amount in tx["amount"])
-                if isinstance(tx["amount"], list)
-                else search in str(tx["amount"])
+                if isinstance(tx["flow_amount"], list)
+                else search in str(tx["flow_amount"])
             )
             or search in str(tx["confirmations"])
             or search in str(tx["time"])

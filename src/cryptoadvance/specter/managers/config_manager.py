@@ -185,7 +185,7 @@ class ConfigManager(GenericDataManager):
 
     def update_tor_type(self, tor_type, user):
         """update the Tor type to use"""
-        if self.data.get("tor_type", "builtin") != tor_type:
+        if self.data.get("tor_type") != tor_type:
             self.data["tor_type"] = tor_type
             self._save()
 
@@ -205,7 +205,6 @@ class ConfigManager(GenericDataManager):
         if self.data["tor_control_port"] != tor_control_port:
             self.data["tor_control_port"] = tor_control_port
             self._save()
-            self.update_tor_controller()
 
     def generate_torrc_password(self, overwrite=False):
         if "torrc_password" not in self.data or overwrite:

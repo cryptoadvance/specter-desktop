@@ -18,7 +18,6 @@ from flask_login import current_user, login_required
 from cryptoadvance.specter.server_endpoints import flash
 from cryptoadvance.specter.services.controller import user_secret_decrypted_required
 from . import client as swan_client
-from .client import SwanApiException
 from .service import SwanService
 
 logger = logging.getLogger(__name__)
@@ -118,10 +117,11 @@ def update_autowithdrawal():
 
     try:
         SwanService.set_autowithdrawal_settings(wallet=wallet, btc_threshold=threshold)
+        flash("Withdrawal plan updated successfully")
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.withdrawals"))
     except SwanApiException as e:
         logger.exception(e)
-        flash(_("Error communicating with Swan API"))
+        flash(_("Error communicating with Swan API"), "error")
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.settings"))
 
 
@@ -148,10 +148,10 @@ def oauth2_start():
     if specter_used_hostname not in app.config["SWAN_ALLOWED_SPECTER_HOSTNAMES"]:
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.index"))
     flow_url = SwanService.client().get_oauth2_start_url(specter_used_hostname)
+    sign_in_url = app.config["SWAN_FRONTEND_URL"]
 
     return render_template(
-        "swan/oauth2_start.jinja",
-        flow_url=flow_url,
+        "swan/oauth2_start.jinja", flow_url=flow_url, sign_in_url=sign_in_url
     )
 
 
@@ -250,7 +250,13 @@ def oauth2_success():
 @login_required
 @refreshtoken_required
 def oauth2_delete_token():
-    SwanService.remove_swan_integration(current_user)
-
-    url = url_for(f"{SwanService.get_blueprint_name()}.index")
-    return redirect(url_for(f"{SwanService.get_blueprint_name()}.index"))
+    api_call_success = SwanService.remove_swan_integration(current_user)
+    if api_call_success:
+        flash("Swan integration removed successfully")
+        return redirect(url_for(f"{SwanService.get_blueprint_name()}.index"))
+    else:
+        return render_template(
+            "swan/api_error.jinja",
+            swan_frontend_url=app.config["SWAN_FRONTEND_URL"],
+            api_call_success=api_call_success,
+        )
