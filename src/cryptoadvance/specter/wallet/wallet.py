@@ -1,10 +1,16 @@
-import json, logging, os, re, csv
-import requests
+import csv
+import json
+import logging
+import os
+import re
 import threading
 import time
-
 from collections import OrderedDict
 from csv import Error
+from io import StringIO
+from typing import Dict, List
+
+import requests
 from embit import bip32
 from embit.descriptor import Descriptor
 from embit.descriptor.checksum import add_checksum
@@ -12,23 +18,23 @@ from embit.ec import PublicKey
 from embit.liquid.networks import get_network
 from embit.psbt import DerivationPath
 from embit.transaction import Transaction
-from io import StringIO
-from typing import Dict, List
 
 from cryptoadvance.specter.commands.utxo_scanner import UtxoScanner
 from cryptoadvance.specter.rpc import RpcError
 
-from .addresslist import Address, AddressList
-from .device import Device
-from .key import Key
-from .util.merkleblock import is_valid_merkle_proof
-from .helpers import get_address_from_dict
-from .persistence import write_json_file, delete_file, delete_folder
-from .specter_error import SpecterError, handle_exception
+from ..device import Device
+from ..helpers import get_address_from_dict
+from ..key import Key
+from ..persistence import delete_file, delete_folder, write_json_file
+from ..specter_error import SpecterError, handle_exception
+from ..util.merkleblock import is_valid_merkle_proof
+from ..util.psbt import SpecterPSBT
+from ..util.tx import decoderawtransaction
+from ..util.xpub import get_xpub_fingerprint
+from .tx_fetcher import TxFetcher
 from .txlist import TxItem, TxList, WalletAwareTxItem
-from .util.psbt import SpecterPSBT
-from .util.tx import decoderawtransaction
-from .util.xpub import get_xpub_fingerprint
+from .abstract_wallet import AbstractWallet
+from .addresslist import AddressList, Address
 
 logger = logging.getLogger(__name__)
 LISTTRANSACTIONS_BATCH_SIZE = 1000
@@ -57,7 +63,7 @@ addrtypes = {
 }
 
 
-class Wallet:
+class Wallet(AbstractWallet):
     # if the wallet is old we import 300 addresses
     IMPORT_KEYPOOL = 300
     # a gap of 20 addresses is what many wallets do (not used with descriptor wallets)
@@ -404,176 +410,7 @@ class Wallet:
         3. calls self.delete_spent_pending_psbts
         Most of that code could probably encapsulated in the TxList class.
         """
-        arr = []
-        idx = 0
-        # unconfirmed_selftransfers needed since Bitcoin Core does not properly list `selftransfer` txs in `listtransactions` command
-        # Until v0.21, it listed there consolidations to a receive address, but not change address
-        # Since v0.21, it does not list there consolidations at all
-        # Therefore we need to check here if a transaction might got confirmed
-        # NOTE: This might be a problem in case of re-org...
-        # More details: https://github.com/cryptoadvance/specter-desktop/issues/996
-        unconfirmed_selftransfers = [
-            txid
-            for txid in self._transactions
-            if self._transactions[txid].category == "selftransfer"
-            and not self._transactions[txid].get("blockhash", None)
-        ]
-        unconfirmed_selftransfers_txs = []
-        if unconfirmed_selftransfers:
-            unconfirmed_selftransfers_txs = self.rpc.multi(
-                [("gettransaction", txid) for txid in unconfirmed_selftransfers]
-            )
-        arr = [tx["result"] for tx in unconfirmed_selftransfers_txs if tx.get("result")]
-        while True:
-            txlist = self.rpc.listtransactions(
-                "*",
-                LISTTRANSACTIONS_BATCH_SIZE,  # count
-                LISTTRANSACTIONS_BATCH_SIZE * idx,  # skip
-                True,
-            )
-            # list of transactions that we don't know about,
-            # or that it has a different blockhash (reorg / confirmed)
-            # or doesn't have an address(?)
-            # or has wallet conflicts
-            res = [
-                tx
-                for tx in txlist
-                # we don't know about tx
-                if tx["txid"] not in self._transactions
-                # we don't know addresses
-                or not self._transactions[tx["txid"]].get("address", None)
-                # blockhash is different (reorg / unconfirmed)
-                or self._transactions[tx["txid"]].get("blockhash", None)
-                != tx.get("blockhash", None)
-                # we have conflicts
-                or self._transactions[tx["txid"]].get("conflicts", [])
-                != tx.get("walletconflicts", [])
-            ]
-            arr.extend(res)
-            idx += 1
-            # stop if we reached known transactions
-            # not sure if Core <20 returns last batch or empty array at the end
-            if (
-                len(res) < LISTTRANSACTIONS_BATCH_SIZE
-                or len(arr) < LISTTRANSACTIONS_BATCH_SIZE * idx
-            ):
-                break
-        txs = dict.fromkeys([a["txid"] for a in arr])
-        txids = list(txs.keys())
-        # get all raw transactions
-        res = self.rpc.multi([("gettransaction", txid) for txid in txids])
-        for i, r in enumerate(res):
-            txid = txids[i]
-            # check if we already added it
-            if txs.get(txid, None) is not None:
-                continue
-            txs[txid] = r["result"]
-        # This is a fix for Bitcoin Core versions < v0.20
-        # These do not return the blockheight as part of the `gettransaction` command
-        # So here we check if this property is lacking and if so
-        # query the current block height and manually calculate it.
-        ##################### Remove from here after dropping Core v0.19 support #####################
-        check_blockheight = False
-        for tx in txs.values():
-            if tx and tx.get("confirmations", 0) > 0 and "blockheight" not in tx:
-                check_blockheight = True
-                break
-        if check_blockheight:
-            current_blockheight = self.rpc.getblockcount()
-            for tx in txs.values():
-                if tx.get("confirmations", 0) > 0:
-                    tx["blockheight"] = current_blockheight - tx["confirmations"] + 1
-        ##################### Remove until here after dropping Core v0.19 support #####################
-        if self.use_descriptors:
-            # Get all used addresses that belong to the wallet
-            addresses_info_multi = self.rpc.multi(
-                [
-                    ("getaddressinfo", address)
-                    for address in [
-                        tx["details"][0].get("address")
-                        for tx in txs.values()
-                        if tx
-                        and tx.get("details")
-                        and (
-                            tx.get("details")[0].get("category") != "send"
-                            and tx["details"][0].get("address") not in self._addresses
-                        )
-                    ]
-                    if address
-                ]
-            )
-            addresses_info = [
-                r["result"]
-                for r in addresses_info_multi
-                if r["result"].get("ismine", False)
-            ]
-
-            # Gets max index used receiving and change addresses
-            max_used_receiving = self._addresses.max_used_index(change=False)
-            max_used_change = self._addresses.max_used_index(change=True)
-
-            for address in addresses_info:
-                desc = self.DescriptorCls.from_string(address["desc"])
-                indexes = [
-                    {
-                        "idx": k.origin.derivation[-1],
-                        "change": k.origin.derivation[-2],
-                    }
-                    for k in desc.keys
-                ]
-                for idx in indexes:
-                    if int(idx["change"]) == 0:
-                        max_used_receiving = max(max_used_receiving, int(idx["idx"]))
-                    elif int(idx["change"]) == 1:
-                        max_used_change = max(max_used_change, int(idx["idx"]))
-
-            # If max receiving address bigger than current max receiving index minus the gap limit - self._addresses.max_index(change=False)
-            if max_used_receiving + self.GAP_LIMIT > self._addresses.max_index(
-                change=False
-            ):
-                # Add receiving addresses until the new max address plus the GAP_LIMIT
-                addresses = [
-                    dict(
-                        address=self.get_address(
-                            idx, change=False, check_keypool=False
-                        ),
-                        index=idx,
-                        change=False,
-                    )
-                    for idx in range(
-                        self._addresses.max_index(change=False),
-                        max_used_receiving + self.GAP_LIMIT,
-                    )
-                ]
-                self._addresses.add(addresses, check_rpc=False)
-
-            # If max change address bigger than current max change index minus the gap limit  - self._addresses.max_index(change=True)
-            if max_used_change + self.GAP_LIMIT > self._addresses.max_index(
-                change=True
-            ):
-                # Add change addresses until the new max address plus the GAP_LIMIT
-                change_addresses = [
-                    dict(
-                        address=self.get_address(idx, change=True, check_keypool=False),
-                        index=idx,
-                        change=True,
-                    )
-                    for idx in range(
-                        self._addresses.max_index(change=True),
-                        max_used_change + self.GAP_LIMIT,
-                    )
-                ]
-                self._addresses.add(change_addresses, check_rpc=False)
-
-        # only delete with confirmed txs
-        self.delete_spent_pending_psbts(
-            [
-                tx["hex"]
-                for tx in txs.values()
-                if tx.get("confirmations", 0) > 0 or tx.get("blockheight")
-            ]
-        )
-        self._transactions.add(txs)
+        TxFetcher.fetch_transactions(self)
 
     def import_address_labels(self, address_labels):
         """
@@ -664,7 +501,7 @@ class Wallet:
             while self.rpc.getreceivedbyaddress(addr, 0) != 0:
                 addr = self.getnewaddress()
         except Exception as e:
-            logger.exception(f"Failed to check for address reuse: {e}", e)
+            logger.exception(f"Failed to check for address reuse: {e}")
 
     def check_addresses(self):
         """Checking the gap limit is still ok"""
@@ -836,7 +673,7 @@ class Wallet:
         a List[WalletAwareTxItem] enriched with utxo specific data:
         * item["locked"] if the item is locked in Core
         * item["vout"] to enable its use in coinselection
-        * item["amount"] is the utxo_amount
+        * item["amount"] is the amount of the utxo
         """
         _full_utxo = []
         try:
@@ -847,13 +684,12 @@ class Wallet:
             #       {'txid': '1211aaba2b261e1bf06a3d46d5ac8837cee4669980ddfa7e1e73b2a7cd593f23', 'vout': 0},
             #       {'txid': '7cdc6c668b665c47de5823caca41c194f2d70815420c564aa4fa5786d4c0693f', 'vout': 0}
             # ]
-            locked_utxo_list = [tx["txid"] for tx in locked_utxo]
-            utxo = self.rpc.listunspent(0)
-            utxo.extend(locked_utxo)
 
-            txlist = self._transactions.get_transactions()
-            txlist_dict = {_tx["txid"]: _tx for _tx in txlist}
+            # an easy searchable dict for locked_utxos
+            # having the txid:vout as key
+            locked_utxo_dict = {f"{tx['txid']}:{tx['vout']}": {} for tx in locked_utxo}
 
+            utxos = self.rpc.listunspent(0)
             # Example of utxo
             # [
             #     {
@@ -876,50 +712,77 @@ class Wallet:
             #     }
             # ]
 
-            # Example of utxo_dict:
+            # an easy searchable dict for utxos
+            # having the txid:vout as key
+            utxo_dict = {f"{tx['txid']}:{tx['vout']}": tx for tx in utxos}
+
+            # Merge both dicts, both are a bit unequal as the locked_utxo does not contain values
+            all_utxo_dict = {**utxo_dict, **locked_utxo_dict}
+
+            # Example of all_utxo_dict:
             # {
-            # '94725a76db75ea9c955da3c5b2c56f4ef3a9865b68218f79b3a6bed96a8c051c': [1, 2],
-            # 'c185f6fc5cde81c2338d809c6d7e77e789630faee1aae6f2d7defe9215405b3b': [0],
-            # 'b27b4e849568024881a9a81618bdab8da40bde9ea468f582f2c1861ddf125caf': [1]
-            # }
+            #     '6cd09e135bd1d0a612ac...b2fbc41c:1': {
+            #         'txid': '6cd09e135bd1d0a612ac...93b2fbc41c',
+            #         'vout': 1,
+            #         'amount': 0.00477239,
+            #         'spendable': True,
+            #         'solvable': True,
+            #         'safe': True,
+            #         'confirmations': 8740,
+            #         'address': 'bc1q9a7k8l6j095escu3...nauqt7d0hv',
+            #         'scriptPubKey': '00202f7d63ff52796998...fd11009f78',
+            #         ...
+            #     },
+            #     '9221f5d5ab240ccc37cb...cc96b7ec:0': {
+            #         'txid': '9221f5d5ab240ccc37cb...8ecc96b7ec',
+            #         'vout': 0,
+            #         '...
+            #     },
+            #     '379e4e18e7c78b94b318...d7f651bc:0': {}
 
-            utxo_dict = {}
-            for _utxo in utxo:
-                if _utxo["txid"] not in utxo_dict:
-                    utxo_dict[_utxo["txid"]] = [_utxo["vout"]]
-                else:
-                    utxo_dict[_utxo["txid"]].append(_utxo["vout"])
+            # Iterating over utxo_dict to create a list of WalletAwareTxItems.
+            # A "template" of the WalletAwareTxItem will get sourced from the
+            # txlist:
+            txlist = self._transactions.get_transactions()
+            txlist_dict = {_tx["txid"]: _tx for _tx in txlist}
 
-            # Iterating over utxo_dict to create a list of WalletAwareTxItems
-            for utxo_txid, utxo_vouts in utxo_dict.items():
-                for utxo_vout in utxo_vouts:
-                    # maybe the txlist is outdated and it's a new utxo?!
-                    if utxo_txid not in txlist_dict.keys():
-                        self.fetch_transactions()  # ToDo: make this much slimmer!
-                        txlist = self._transactions.get_transactions()
-                        txlist_dict = {_tx["txid"]: _tx for _tx in txlist}
+            for txid_vout, utxo in all_utxo_dict.items():
+                utxo_txid = txid_vout.split(":")[0]
+                utxo_vout = int(txid_vout.split(":")[1])
+
+                try:
                     tx: WalletAwareTxItem = txlist_dict[utxo_txid]
-                    # Create a copy of the tx item for each vout
-                    tx_copy = tx.copy()
-                    # Adding vout, locked and amount to the copy
-                    tx_copy["vout"] = utxo_vout
-                    if tx.txid in locked_utxo_list:
-                        tx_copy["locked"] = True
-                    else:
-                        tx_copy["locked"] = False
-                    if len(utxo_vouts) < 2:
-                        tx_copy["amount"] = tx.utxo_amount
-                    else:
-                        for utxo_item in utxo:
-                            if (
-                                utxo_item["txid"] == utxo_txid
-                                and utxo_item["vout"] == utxo_vout
-                            ):
-                                tx_copy["amount"] = utxo_item["amount"]
-                                break
+                except KeyError:
+                    # maybe the txlist is outdated and it's a new utxo?!
+                    self.fetch_transactions()  # ToDo: make this much slimmer!
+                    txlist = self._transactions.get_transactions()
+                    txlist_dict = {_tx["txid"]: _tx for _tx in txlist}
+                    tx: WalletAwareTxItem = txlist_dict[utxo_txid]
 
-                    # Append the copy to the _full_utxo list
-                    _full_utxo.append(tx_copy)
+                # Create a copy of the tx item for each vout
+                tx_copy = tx.copy()
+
+                # Adding vout, locked to the copy
+                tx_copy["vout"] = utxo_vout
+                tx_copy["locked"] = txid_vout in locked_utxo_dict.keys()
+
+                # Adding the more complicated stuff address and amount
+                if utxo != {}:  # an unlocked one with values!
+                    tx_copy["amount"] = utxo.get("amount")
+                    tx_copy["address"] = utxo["address"]
+                else:
+                    tx_from_core = self.rpc.gettransaction(tx_copy["txid"])
+                    # in the case of locked amounts, the stupid listlockunspent call does not contain reasonable utxo-data
+                    searched_vout = [
+                        _tx
+                        for _tx in tx_from_core["details"]
+                        if _tx["vout"] == utxo_vout
+                    ][0]
+                    tx_copy["amount"] = searched_vout["amount"]
+                    tx_copy["address"] = searched_vout["address"]
+
+                # Append the copy to the _full_utxo list
+                _full_utxo.append(tx_copy)
 
             # Finally sorting:
             self._full_utxo = sorted(
@@ -1644,9 +1507,10 @@ class Wallet:
         """Only frozen outputs, no outputs locked in unsigned PSBTS"""
         amount = 0
         frozen_txid = [utxo.split(":")[0] for utxo in self.frozen_utxo]
+        utxo: WalletAwareTxItem
         for utxo in self.locked_utxo:
             if utxo["txid"] in frozen_txid:
-                amount += utxo.utxo_amount
+                amount += utxo["amount"]
         return amount
 
     @property
@@ -1684,11 +1548,17 @@ class Wallet:
         return round(self.balance["trusted"] + self.balance["untrusted_pending"], 8)
 
     @property
-    def addresses(self):
+    def relevant_addresses(self):
+        """Not used much (only in tests?!)
+        Returns a list of addresses from index 0 until self.address_index + 1
+        """
         return [self.get_address(idx) for idx in range(0, self.address_index + 1)]
 
     @property
-    def change_addresses(self):
+    def relevant_change_addresses(self):
+        """Not used much (only in tests?!)
+        Returns a list of change-addresses from index 0 until self.change_index + 1
+        """
         return [
             self.get_address(idx, change=True)
             for idx in range(0, self.change_index + 1)
@@ -1981,8 +1851,7 @@ class Wallet:
                     inp.non_witness_utxo = self.TxCls.from_string(res["hex"])
                 except Exception as e:
                     logger.exception(
-                        f"Can't find previous transaction in the wallet. Signing might not be possible for certain devices... Txid: {txid}, Exception: {e}",
-                        e,
+                        f"Can't find previous transaction in the wallet. Signing might not be possible for certain devices... Txid: {txid}, Exception: {e}"
                     )
         else:
             # remove non_witness_utxo if we don't want them
@@ -2073,7 +1942,7 @@ class Wallet:
             for utxo in [
                 utxo for utxo in self._full_utxo if utxo["address"] == addr.address
             ]:
-                addr_amount = addr_amount + utxo.utxo_amount
+                addr_amount = addr_amount + utxo["amount"]
                 addr_utxo = addr_utxo + 1
 
             if service_id and (

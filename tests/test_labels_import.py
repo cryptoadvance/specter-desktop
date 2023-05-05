@@ -19,7 +19,7 @@ def test_import_address_labels(
     txid = utxos[0]["txid"]
     logger.debug(f"this is the txid: {txid}.")
     test_address = utxos[0]["address"]
-    logger.debug(f"these are the addresses: {wallet.addresses}.")
+    logger.debug(f"these are the relevant_addresses: {wallet.relevant_addresses}.")
     logger.debug(f"these are the _addresses: {wallet._addresses}.")
     assert wallet._addresses[test_address]["label"] is None
     number_of_addresses = len(wallet._addresses)

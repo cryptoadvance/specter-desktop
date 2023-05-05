@@ -22,7 +22,7 @@ describe('Test plugins', () => {
         cy.get('main').contains('Addresses').click()
         cy.contains('td', '#0').siblings().contains('bcrt').click()
         cy.get('#associate-btn').click()
-        cy.contains("Associating an address with a service will")
+        cy.contains("Associate Address with Service")
     })
 
     it('Deactivate password protection', () => {

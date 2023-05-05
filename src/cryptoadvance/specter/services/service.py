@@ -13,7 +13,6 @@ from typing import List
 from .service_encrypted_storage import ServiceEncryptedStorageManager
 from .service_annotations_storage import ServiceAnnotationsStorage
 
-from cryptoadvance.specter.addresslist import Address
 from cryptoadvance.specter.services import callbacks
 
 

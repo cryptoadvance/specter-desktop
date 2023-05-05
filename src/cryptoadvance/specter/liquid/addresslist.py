@@ -1,4 +1,4 @@
-from ..addresslist import *
+from ..wallet.addresslist import *
 from embit.liquid.addresses import addr_decode, to_unconfidential
 
 

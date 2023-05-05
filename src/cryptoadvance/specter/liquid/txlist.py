@@ -1,4 +1,4 @@
-from ..txlist import *
+from ..wallet.txlist import *
 from embit.liquid.transaction import LTransaction, TxOutWitness, unblind
 from embit.liquid.pset import PSET
 from embit.liquid import slip77

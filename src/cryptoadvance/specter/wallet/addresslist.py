@@ -2,7 +2,7 @@
 Manages the list of addresses for the wallet, including labels and derivation paths
 """
 import os
-from .persistence import write_csv, read_csv
+from ..persistence import write_csv, read_csv
 import logging
 
 logger = logging.getLogger(__name__)
