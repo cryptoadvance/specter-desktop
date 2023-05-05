@@ -42,7 +42,6 @@ class ExtGen:
         author,
         email,
         dry_run=False,
-        branch="master",
         tmpl_fs_source=None,
     ):
         self.base_path = base_path
@@ -57,14 +56,13 @@ class ExtGen:
         vc = VersionChecker()
         version = vc._get_current_version()
         if self.tag != "":
-            if vc._check_if_version_is_available(tag):
+            if GithubUrlLoader()._check_if_version_is_available(self.tag):
                 version = tag
             else:
                 version = vc._get_latest_version_from_github()
         else:
             version = vc._get_latest_version_from_github()
         self.version = version  # relevant if tmpl-sources specify a dependency (requirements.txt) #ToDo improve
-        self.branch = branch
         self.tmpl_fs_source = tmpl_fs_source
 
         self.dry_run = dry_run
@@ -72,7 +70,7 @@ class ExtGen:
 
     def create_envs(self):
         if self.tmpl_fs_source == None:
-            loader = GithubUrlLoader(branch=self.branch)
+            loader = GithubUrlLoader(tag=self.tag)
         else:
             loader = FileSystemLoader(self.tmpl_fs_source)
         self.jinja_env = Environment(
@@ -93,7 +91,7 @@ class ExtGen:
         self.sd_env = Environment(
             loader=GithubUrlLoader(
                 base_url="https://raw.githubusercontent.com/cryptoadvance/specter-desktop/",
-                branch=self.branch,
+                tag=self.tag,
             )
         )
 
@@ -226,18 +224,33 @@ class GithubUrlLoader(BaseLoader):
 
     dummy_base_url = "https://raw.githubusercontent.com/cryptoadvance/specterext-dummy"
 
-    def __init__(self, base_url=None, branch=None):
+    def __init__(self, base_url=None, tag=None):
         if base_url == None:
             base_url = self.dummy_base_url
-        if branch == None:
-            branch = "master"
-        self.base_url = base_url + "/" + branch
+        if tag == None:
+            tag = "master"
+        self.base_url = base_url + "/" + tag
 
     def url_for_template(self, template):
         if template[0] == "/":
             template = template[1:]
         url = self.base_url + "/" + template
         return url
+
+    def _check_if_version_is_available(self, tag_name):
+        repo_name = "cryptoadvance/specterext-dummy"
+        url = f"https://api.github.com/repos/{repo_name}/tags"
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            tags = [tag["name"] for tag in response.json()]
+
+            if tag_name in tags:
+                return True
+            else:
+                return False
+        else:
+            return False
 
     def get_source(self, environment, template):
         url = self.url_for_template(template)
