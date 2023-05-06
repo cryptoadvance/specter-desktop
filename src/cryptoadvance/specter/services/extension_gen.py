@@ -55,13 +55,13 @@ class ExtGen:
         self.author_email = email
         vc = VersionChecker()
         version = vc._get_current_version()
-        if self.tag != "":
-            if GithubUrlLoader()._check_if_version_is_available(self.tag):
-                version = tag
-            else:
-                version = vc._get_latest_version_from_github()
+        if self.tag != "" and GithubUrlLoader()._check_if_version_is_available(
+            self.tag
+        ):
+            version = tag
         else:
             version = vc._get_latest_version_from_github()
+            self.tag = "master"
         self.version = version  # relevant if tmpl-sources specify a dependency (requirements.txt) #ToDo improve
         self.tmpl_fs_source = tmpl_fs_source
 
