@@ -109,7 +109,7 @@ extension_smoketest_task:
     - mkdir tmp && cd tmp
     - mkdir testextension && cd testextension
     - pwd
-    - python3 -m cryptoadvance.specter ext gen --ext-id cicdtest --org cryptoadvance --no-isolated-client --no-encrypted-userdata --devicename cicddevice
+    - python3 -m cryptoadvance.specter ext gen --ext-id cicdtest --org cryptoadvance --no-isolated-client --no-encrypted-userdata --devicename cicddevice --version master
     - pip3 install -e .
     - python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug  2> specter.log &
     - sleep 15
