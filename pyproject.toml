@@ -84,5 +84,5 @@ test = [
     "mock==4.0.2",
     "python-gitlab==2.10.1",
     # requirements for stuff in ./utils
-    "requests==2.26.0",
+    "requests==2.31.0",
 ]
