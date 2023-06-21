@@ -3,6 +3,7 @@ const { app, nativeTheme, nativeImage, BrowserWindow, Menu, Tray, screen, shell,
 
 const path = require('path')
 const fs = require('fs')
+const url = require('url')
 const request = require('request')
 const https = require('https')
 const extract = require('extract-zip')
@@ -57,6 +58,16 @@ const logger = createLogger(winstonOptions)
 
 if (isDev) {
   logger.info('Running the Electron app in dev mode.')
+}
+
+// Register "specter" protocol
+// This will launch the app for URLs like this: specter://?param1=open&param2=custody
+const isDefaultProtocolClient = app.isDefaultProtocolClient('specter')
+logger.info('isDefaultProtocolClient:')
+logger.info(isDefaultProtocolClient)
+
+if (!isDefaultProtocolClient) {
+  app.setAsDefaultProtocolClient('specter')
 }
 
 // Set the dock icon (MacOS and for development only)
@@ -191,6 +202,7 @@ const download = (uri, filename, callback) => {
 
 let specterdProcess
 let mainWindow
+let appOpenedViaUrl = false
 let prefWindow
 let tray
 let trayMenu
@@ -259,8 +271,24 @@ function createWindow(specterURL) {
   if (appSettings.tor) {
     mainWindow.webContents.session.setProxy({ proxyRules: appSettings.proxyURL })
   }
-
-  mainWindow.loadURL(specterURL + '?mode=remote')
+  logger.info('Loading the home url for the main window now.')
+  if (appOpenedViaUrl === false) {
+    // mainWindow.loadURL(specterURL + '?mode=remote')
+    mainWindow.loadURL(appSettings.specterURL + '/wallets/new_wallet/')
+    let overlayActive = false
+    logger.info('Clicking the button to get to the wallet import overlay ...')
+    let clickCode = `
+      const importWalletBtn = document.querySelector('.selection-button');
+      importWalletBtn.click()
+      const walletDataTextArea = document.getElementById('txt')
+      if (walletDataTextArea) {
+        walletDataTextArea.value = 'EMMA IN DA HOUSE'
+      }
+      const submitBtn = document.querySelector('button.w-full.mt-2.mb-0.mr-0.button.bg-accent.text-white[type="submit"][name="action"][value="importwallet"]');
+      submitBtn.click()
+      `
+    mainWindow.webContents.executeJavaScript(clickCode)
+  }
 }
 
 // This method will be called when Electron has finished
@@ -540,7 +568,8 @@ function startSpecterd(specterdPath) {
         updateSpecterdStatus('Specter is running')
         specterIsRunning = true
         if (mainWindow) {
-          logger.info('... creating Electron window for it.')
+          // logger.info('... creating Electron window for it.')
+          logger.info('Creating another main window now ...')
           createWindow(appSettings.specterURL)
         }
       } else if (serverdStatus === 'timeout') {
@@ -597,6 +626,55 @@ function startSpecterd(specterdPath) {
     updateSpecterdStatus('Specter stopped...')
     logger.info(`child process exited with code ${code}`)
   })
+}
+
+// Handling of Specter URLs
+app.on('open-url', (_, data) => {
+  // Parse the URL to extract the query parameters
+  const urlObj = url.parse(data, true)
+
+  const query = urlObj.query
+  logger.info('The query object ...')
+  logger.info(JSON.stringify(query))
+  // Access the query parameters as key-value pairs
+  const param1 = query['param1']
+  const param2 = query['param2']
+  // Do something with the query parameters
+
+  if (param1 === 'open' && param2 === 'custody') {
+    logger.info('Running in the url if condition...')
+    if (!app.isReady()) {
+      logger.info('App is not ready yet. Waiting for it before opening wallet import window.')
+      // If the app is not ready, wait for it to be ready
+      app.whenReady().then(() => {
+        openMainWindowForWalletImport()
+      })
+    } else {
+      openMainWindowForWalletImport()
+    }
+  }
+})
+
+// Create and initialize the window
+function openMainWindowForWalletImport() {
+  if (!mainWindow) {
+    logger.info('No main window yet, initiating it to load /wallets/new_wallet/ url')
+    initMainWindow()
+  }
+  appOpenedViaUrl = true
+  updatingLoaderMsg('Redirecting to wallet import of', (showSpinner = true))
+  mainWindow.loadURL(appSettings.specterURL + '/wallets/new_wallet/')
+  if (mainWindow) {
+    let code = `
+    const button = document.querySelector('.selection-button')
+    button.click()
+    var txt = document.getElementById("txt")
+    if (launchText) {
+      launchText.value = 'EMMA IN DA HOUSE;
+    }
+    `
+    mainWindow.webContents.executeJavaScript(code)
+  }
 }
 
 app.on('window-all-closed', function () {
