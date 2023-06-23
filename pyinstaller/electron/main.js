@@ -631,6 +631,15 @@ app.on('open-url', (_, url) => {
     logger.info('Automatic wallet import identified in the URL, setting automaticWalletImport to true.')
     automaticWalletImport = true
     walletDataFromUrl = data
+    // Directly import if the app and specterd is already running
+    if (specterIsRunning) {
+      logger.info('Performing automatic wallet import ...')
+      mainWindow.loadURL(`file://${__dirname}/splash.html`)
+      updatingLoaderMsg('Importing your wallet. This will only work with a node connection.', (showSpinner = true))
+      setTimeout(() => {
+        importWallet(walletDataFromUrl)
+      }, 3000)
+    }
   }
 })
 
