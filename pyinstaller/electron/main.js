@@ -552,7 +552,7 @@ function startSpecterd(specterdPath) {
         if (mainWindow) {
           if (automaticWalletImport === true) {
             logger.info('Performing automatic wallet import ...')
-            updatingLoaderMsg('Importing your wallet. This will only work with a node connection.', (showSpinner = true))
+            updatingLoaderMsg('Launching wallet importer. This will only work with a node connection.', (showSpinner = true))
             setTimeout(() => {
               importWallet(walletDataFromUrl)
             }, 3000)
@@ -635,7 +635,7 @@ app.on('open-url', (_, url) => {
     if (specterIsRunning) {
       logger.info('Performing automatic wallet import ...')
       mainWindow.loadURL(`file://${__dirname}/splash.html`)
-      updatingLoaderMsg('Importing your wallet. This will only work with a node connection.', (showSpinner = true))
+      updatingLoaderMsg('Launching wallet importer. This will only work with a node connection.', (showSpinner = true))
       setTimeout(() => {
         importWallet(walletDataFromUrl)
       }, 3000)
