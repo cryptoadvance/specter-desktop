@@ -232,14 +232,28 @@ class WalletImporter:
             ):
                 kwargs["blinding_key"] = self.descriptor.blinding_key.key
 
-            self.wallet = wallet_manager.create_wallet(
-                name=self.wallet_name,
-                sigs_required=self.sigs_required,
-                key_type=self.address_type,
-                keys=self.keys,
-                devices=self.cosigners,
-                **kwargs,
-            )
+            # Keep multi descriptor
+            # For multi() descriptors is_sorted returns False
+            if not self.descriptor.is_sorted:
+                self.wallet = wallet_manager.create_wallet(
+                    name=self.wallet_name,
+                    sigs_required=self.sigs_required,
+                    key_type=self.address_type,
+                    keys=self.keys,
+                    devices=self.cosigners,
+                    keep_multi=True,
+                    **kwargs,
+                )
+            else: 
+                self.wallet = wallet_manager.create_wallet(
+                    name=self.wallet_name,
+                    sigs_required=self.sigs_required,
+                    key_type=self.address_type,
+                    keys=self.keys,
+                    devices=self.cosigners,
+                    keep_multi=False,
+                    **kwargs,
+                )
         except Exception as e:
             logger.exception(e)
             raise SpecterError(f"Failed to create wallet: {e} (check logs for details)")

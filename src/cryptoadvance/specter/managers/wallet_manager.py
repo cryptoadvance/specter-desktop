@@ -331,7 +331,7 @@ class WalletManager:
             # a reasonable core version
             return 200000
 
-    def create_wallet(self, name, sigs_required, key_type, keys, devices, **kwargs):
+    def create_wallet(self, name, sigs_required, key_type, keys, devices, keep_multi=False, **kwargs):
         try:
             walletsindir = [
                 wallet["name"] for wallet in self.rpc.listwalletdir()["wallets"]
@@ -353,6 +353,7 @@ class WalletManager:
             key_type,
             keys,
             devices,
+            keep_multi,
             self.bitcoin_core_version_raw,
             **kwargs,
         )

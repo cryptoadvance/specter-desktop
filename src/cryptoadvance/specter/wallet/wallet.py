@@ -99,6 +99,7 @@ class Wallet(AbstractWallet):
         manager,
         old_format_detected=False,
         last_block=None,
+        keep_multi=False,
     ):
         """creates a wallet. Very inconvenient to call as it has a lot of mandatory Parameters.
             You better use either the Wallet.from_json() or the WalletManager.create_wallet() method.
@@ -127,6 +128,8 @@ class Wallet(AbstractWallet):
         if not isinstance(descriptor, str):
             descriptor = str(descriptor)
         self.descriptor = self.DescriptorCls.from_string(descriptor)
+        logger.debug(f"This is the passed descriptor to the wallet: {descriptor}")
+        logger.debug(f"This is the descriptor of the wallet: {self.descriptor}")
         if self.descriptor.num_branches != 2:
             raise SpecterError(
                 f"Descriptor has {self.descriptor.num_branches} branches, but we need 2."
@@ -156,6 +159,8 @@ class Wallet(AbstractWallet):
         self.frozen_utxo = frozen_utxo
         self.fullpath = fullpath
         self.last_block = last_block
+        self.keep_multi = keep_multi
+        logger.info(f"keep_multi: {keep_multi}")
 
         addr_path = self.fullpath.replace(".json", "_addr.csv")
         self._addresses = self.AddressListCls(addr_path, self.rpc)
@@ -226,7 +231,7 @@ class Wallet(AbstractWallet):
         return get_network(self.chain)
 
     @classmethod
-    def construct_descriptor(cls, sigs_required, key_type, keys, devices) -> Descriptor:
+    def construct_descriptor(cls, sigs_required, key_type, keys, devices, keep_multi) -> Descriptor:
         """
         Creates a wallet descriptor from arguments.
         We need to pass `devices` for Liquid wallet, here it's not used.
@@ -239,7 +244,10 @@ class Wallet(AbstractWallet):
 
         # we start by constructing a base argument for descriptor wrappers
         if is_multisig:
-            desc = f"sortedmulti({sigs_required},{desc_keys})"
+            if keep_multi:
+                desc = f"multi({sigs_required},{desc_keys})"
+            else:
+                desc = f"sortedmulti({sigs_required},{desc_keys})"
         else:
             desc = desc_keys
 
@@ -252,6 +260,7 @@ class Wallet(AbstractWallet):
 
     @classmethod
     def merge_descriptors(cls, recv_descriptor: str, change_descriptor=None) -> str:
+        logger.debug('Running merge_descriptors ...')
         """Parses string with descriptors (change is optional) and creates a combined one"""
         if change_descriptor is None and "/0/*" not in recv_descriptor:
             raise SpecterError("Receive descriptor has strange derivation path")
@@ -285,13 +294,14 @@ class Wallet(AbstractWallet):
         key_type,
         keys,
         devices,
+        keep_multi,
         core_version=None,
         **kwargs,
     ):
         """Creates a wallet. If core_version is not specified - gets it from rpc"""
         # we pass unknown kwargs here for inherited classes (see LWallet - there is a blinding key arg)
         descriptor = cls.construct_descriptor(
-            sigs_required, key_type, keys, devices, **kwargs
+            sigs_required, key_type, keys, devices, keep_multi, **kwargs
         )
 
         # get Core version if we don't know it
@@ -378,6 +388,7 @@ class Wallet(AbstractWallet):
             os.path.join(working_folder, "%s.json" % alias),
             device_manager,
             wallet_manager,
+            keep_multi=keep_multi,
         )
 
     def fetch_labels(self):
@@ -549,7 +560,7 @@ class Wallet(AbstractWallet):
         self.last_block = last_block
 
     @staticmethod
-    def parse_old_format(wallet_dict, device_manager):
+    def parse_old_format(wallet_dict, device_manager, keep_multi):
         old_format_detected = False
         new_dict = {}
         new_dict.update(wallet_dict)
@@ -567,6 +578,7 @@ class Wallet(AbstractWallet):
         if (
             len(new_dict["keys"]) > 1
             and "sortedmulti" not in new_dict["recv_descriptor"]
+            and keep_multi == False
         ):
             new_dict["recv_descriptor"] = add_checksum(
                 new_dict["recv_descriptor"]
@@ -577,6 +589,7 @@ class Wallet(AbstractWallet):
         if (
             len(new_dict["keys"]) > 1
             and "sortedmulti" not in new_dict["change_descriptor"]
+            and keep_multi == False
         ):
             new_dict["change_descriptor"] = add_checksum(
                 new_dict["change_descriptor"]
@@ -623,8 +636,9 @@ class Wallet(AbstractWallet):
         frozen_utxo = wallet_dict.get("frozen_utxo", [])
         fullpath = wallet_dict.get("fullpath", default_fullpath)
         last_block = wallet_dict.get("last_block", None)
+        keep_multi = wallet_dict.get("keep_multi", False)
 
-        wallet_dict = Wallet.parse_old_format(wallet_dict, device_manager)
+        wallet_dict = Wallet.parse_old_format(wallet_dict, device_manager, keep_multi)
 
         try:
             address_type = wallet_dict["address_type"]
@@ -662,6 +676,7 @@ class Wallet(AbstractWallet):
             manager,
             old_format_detected=wallet_dict["old_format_detected"],
             last_block=last_block,
+            keep_multi = keep_multi
         )
 
     def get_info(self):
@@ -867,6 +882,7 @@ class Wallet(AbstractWallet):
             "devices": [device.alias for device in self.devices],
             "sigs_required": self.sigs_required,
             "blockheight": self.blockheight,
+            "keep_multi": self.keep_multi
         }
         if for_export:
             o["labels"] = self.export_labels()
