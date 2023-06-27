@@ -128,8 +128,6 @@ class Wallet(AbstractWallet):
         if not isinstance(descriptor, str):
             descriptor = str(descriptor)
         self.descriptor = self.DescriptorCls.from_string(descriptor)
-        logger.debug(f"This is the passed descriptor to the wallet: {descriptor}")
-        logger.debug(f"This is the descriptor of the wallet: {self.descriptor}")
         if self.descriptor.num_branches != 2:
             raise SpecterError(
                 f"Descriptor has {self.descriptor.num_branches} branches, but we need 2."
@@ -262,7 +260,6 @@ class Wallet(AbstractWallet):
 
     @classmethod
     def merge_descriptors(cls, recv_descriptor: str, change_descriptor=None) -> str:
-        logger.debug("Running merge_descriptors ...")
         """Parses string with descriptors (change is optional) and creates a combined one"""
         if change_descriptor is None and "/0/*" not in recv_descriptor:
             raise SpecterError("Receive descriptor has strange derivation path")
