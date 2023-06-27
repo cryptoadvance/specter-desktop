@@ -159,7 +159,6 @@ class WalletManager:
             if wallets_update_list:
                 loaded_wallets = self.rpc.listwallets()
                 for wallet in wallets_update_list:
-
                     wallet_alias = wallets_update_list[wallet]["alias"]
                     wallet_name = wallets_update_list[wallet]["name"]
                     # wallet from json not yet loaded in Bitcoin Core?!
@@ -331,7 +330,9 @@ class WalletManager:
             # a reasonable core version
             return 200000
 
-    def create_wallet(self, name, sigs_required, key_type, keys, devices, keep_multi=False, **kwargs):
+    def create_wallet(
+        self, name, sigs_required, key_type, keys, devices, keep_multi=False, **kwargs
+    ):
         try:
             walletsindir = [
                 wallet["name"] for wallet in self.rpc.listwalletdir()["wallets"]

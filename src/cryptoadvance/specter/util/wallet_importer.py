@@ -68,10 +68,8 @@ class WalletImporter:
         self.wallet_type = "multisig" if self.descriptor.is_basic_multisig else "simple"
 
     def check_chain(self, node):
-
         cosigner: Device
         for cosigner in self.cosigners:
-
             key_chain_list = [key.is_testnet for key in cosigner.keys]
             logger.debug(key_chain_list)
             if node.is_testnet not in key_chain_list:
@@ -244,7 +242,7 @@ class WalletImporter:
                     keep_multi=True,
                     **kwargs,
                 )
-            else: 
+            else:
                 self.wallet = wallet_manager.create_wallet(
                     name=self.wallet_name,
                     sigs_required=self.sigs_required,

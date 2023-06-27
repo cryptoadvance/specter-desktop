@@ -231,7 +231,9 @@ class Wallet(AbstractWallet):
         return get_network(self.chain)
 
     @classmethod
-    def construct_descriptor(cls, sigs_required, key_type, keys, devices, keep_multi) -> Descriptor:
+    def construct_descriptor(
+        cls, sigs_required, key_type, keys, devices, keep_multi
+    ) -> Descriptor:
         """
         Creates a wallet descriptor from arguments.
         We need to pass `devices` for Liquid wallet, here it's not used.
@@ -260,7 +262,7 @@ class Wallet(AbstractWallet):
 
     @classmethod
     def merge_descriptors(cls, recv_descriptor: str, change_descriptor=None) -> str:
-        logger.debug('Running merge_descriptors ...')
+        logger.debug("Running merge_descriptors ...")
         """Parses string with descriptors (change is optional) and creates a combined one"""
         if change_descriptor is None and "/0/*" not in recv_descriptor:
             raise SpecterError("Receive descriptor has strange derivation path")
@@ -506,7 +508,8 @@ class Wallet(AbstractWallet):
 
     def check_unused(self):
         """Check current receive address is unused and get new if needed
-        Used means: the given address having a non-zero amount received in transactions with zero confirmations."""
+        Used means: the given address having a non-zero amount received in transactions with zero confirmations.
+        """
         addr = self.address
         try:
             while self.rpc.getreceivedbyaddress(addr, 0) != 0:
@@ -676,7 +679,7 @@ class Wallet(AbstractWallet):
             manager,
             old_format_detected=wallet_dict["old_format_detected"],
             last_block=last_block,
-            keep_multi = keep_multi
+            keep_multi=keep_multi,
         )
 
     def get_info(self):
@@ -882,7 +885,7 @@ class Wallet(AbstractWallet):
             "devices": [device.alias for device in self.devices],
             "sigs_required": self.sigs_required,
             "blockheight": self.blockheight,
-            "keep_multi": self.keep_multi
+            "keep_multi": self.keep_multi,
         }
         if for_export:
             o["labels"] = self.export_labels()
@@ -1060,7 +1063,6 @@ class Wallet(AbstractWallet):
         transactions = self._transactions.get_transactions()
         result = []
         for tx in transactions:
-
             if isinstance(tx["address"], str):
                 tx["label"] = self.getlabel(tx["address"])
                 addr_obj = self.get_address_obj(tx["address"])
