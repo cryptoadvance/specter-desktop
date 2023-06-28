@@ -495,3 +495,18 @@ def sort_descriptor(descriptor, index=None):
     sorted_desc = desc.derive(index, keep_xpubs=True)
     sorted_desc.sort_keys = False
     return sorted_desc.serialize()
+
+
+def convert_receive_descriptor_to_combined_descriptor(descriptor: str) -> str:
+    # Split the descriptor by commas
+    parts = descriptor.split(",")
+
+    # Iterate through the parts and replace '/0/*' with '/{0,1}/*' if it occurs after an xpub
+    for i in range(len(parts)):
+        if parts[i].startswith("[") and "/0/*" in parts[i]:
+            parts[i] = parts[i].replace("/0/*", "/{0,1}/*")
+
+    # Reconstruct the combined descriptor
+    combined_descriptor = ",".join(parts)
+
+    return combined_descriptor
