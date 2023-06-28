@@ -855,6 +855,10 @@ class Wallet(AbstractWallet):
         return len(self.keys) > 1
 
     @property
+    def uses_multi(self):
+        return self.descriptor.is_sorted == False
+
+    @property
     def is_singlesig(self):
         return len(self.keys) == 1
 
