@@ -501,6 +501,14 @@ def convert_receive_descriptor_to_combined_descriptor(descriptor: str) -> str:
     # Split the descriptor by commas
     parts = descriptor.split(",")
 
+    # Single sig descriptor
+    if len(parts) == 1:
+        single_sig_parts = descriptor.split("]")
+        single_sig_parts[1] = single_sig_parts[1].replace("/0/*", "/{0,1}/*")
+        combined_descriptor = "]".join(single_sig_parts)
+        return combined_descriptor
+
+    # Multisig descriptor
     # Iterate through the parts and replace '/0/*' with '/{0,1}/*' if it occurs after an xpub
     for i in range(len(parts)):
         if parts[i].startswith("[") and "/0/*" in parts[i]:
