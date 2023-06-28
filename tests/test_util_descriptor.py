@@ -1,6 +1,6 @@
 from cryptoadvance.specter.util.descriptor import *
 from embit import bip32, ec, networks, script
-from embit.descriptor import Descriptor
+from embit.descriptor import Descriptor as EmbitDescriptor
 from cryptoadvance.specter.util.xpub import hash160
 from cryptoadvance.specter.util.base58 import *
 import pytest
@@ -321,7 +321,7 @@ def test_convert_receive_descriptor_to_combined_descriptor():
     expected_combined_descriptor = "wsh(sortedmulti(2,[8c24a510/48h/1h/0h/2h]tpubDDzWqfZ5TH48383Byd9PFGxEP1Ws5NVXyYcHTmnHwmhJciowLeBDWNHcpLGocofanSyVHeiNqL4HZkXZfKM7NKm7gZZoPjmA9vTKPpwRSkx/{0,1}/*,[dcbf0caf/48h/1h/0h/2h]tpubDFd7VxopNeZg93uqR7CSvJLkw3UanF8rywdQTxhCPFt1P33eZkxJJ91XXEbY2Q4Suw3jyscRwGzjVyfgq97N7sRvPHQVxruHwsKvsvQizSk/{0,1}/*,[fa178389]tpubD6NzVbkrYhZ4Wfm713xkQWD1SrhLELhaPTgV57FqtvmCgATXFqhHZ656DVbywfVoESTPi4umKA43bxZMSoAqTdCR1tqpjJad392xALGBgnT/{0,1}/*))#50tdct52"
     assert combined_descriptor == expected_combined_descriptor
     # Check that the combined descriptor has two branches as an additional check
-    assert Descriptor.from_string(combined_descriptor).num_branches == 2
+    assert EmbitDescriptor.from_string(combined_descriptor).num_branches == 2
     # If you pass an already combined descriptor no modifications are done
     assert (
         convert_receive_descriptor_to_combined_descriptor(expected_combined_descriptor)
