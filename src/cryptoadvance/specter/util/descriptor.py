@@ -498,23 +498,7 @@ def sort_descriptor(descriptor, index=None):
 
 
 def convert_receive_descriptor_to_combined_descriptor(descriptor: str) -> str:
-    # Split the descriptor by commas
-    parts = descriptor.split(",")
-
-    # Single sig descriptor
-    if len(parts) == 1:
-        single_sig_parts = descriptor.split("]")
-        single_sig_parts[1] = single_sig_parts[1].replace("/0/*", "/{0,1}/*")
-        combined_descriptor = "]".join(single_sig_parts)
-        return combined_descriptor
-
-    # Multisig descriptor
-    # Iterate through the parts and replace '/0/*' with '/{0,1}/*' if it occurs after an xpub
-    for i in range(len(parts)):
-        if parts[i].startswith("[") and "/0/*" in parts[i]:
-            parts[i] = parts[i].replace("/0/*", "/{0,1}/*")
-
-    # Reconstruct the combined descriptor
-    combined_descriptor = ",".join(parts)
-
+    # Checksums don't make sense for those non-standard combined descriptors, so we just return with out checksums.
+    # Checksums are added for each branch whenever they are used as receiving or change descriptor, for example for Core or in the backup pdf
+    combined_descriptor = descriptor.split("#")[0].replace("/0/*", "/{0,1}/*")
     return combined_descriptor
