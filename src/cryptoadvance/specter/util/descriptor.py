@@ -498,7 +498,7 @@ def sort_descriptor(descriptor, index=None):
 
 
 def convert_receive_descriptor_to_combined_descriptor(descriptor: str) -> str:
-    # Checksums don't make sense for those non-standard combined descriptors, so we just return with out checksums.
-    # Checksums are added for each branch whenever they are used as receiving or change descriptor, for example for Core or in the backup pdf
+    # Checksums don't make sense for those non-standard combined descriptors, so we just return them without checksums.
+    # Checksums are added for each branch whenever they are used as receiving or change descriptors, for example for Core or in the backup pdf
     combined_descriptor = descriptor.split("#")[0].replace("/0/*", "/{0,1}/*")
     return combined_descriptor
