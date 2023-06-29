@@ -238,6 +238,7 @@ class WalletImporter:
                 key_type=self.address_type,
                 keys=self.keys,
                 devices=self.cosigners,
+                imported_descriptor=self.descriptor,
                 **kwargs,
             )
         except Exception as e:
