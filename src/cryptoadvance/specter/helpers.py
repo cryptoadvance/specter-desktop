@@ -346,5 +346,6 @@ def get_address_from_dict(data_dict):
         return addr
     raise RuntimeError(f"Missing address info in object {data_dict}")
 
+
 def is_relative_url(url):
-     return re.match(r"^\/[^\/\\]", url)
+    return re.match(r"^\/[^\/\\]", url)
