@@ -146,13 +146,13 @@ function macos_code_sign {
     # upload
     echo '        uploading ... '
 
-    output_json=$(xcrun notarytool submit dist/${specterimg_filename}.zip  --apple-id "kneunert@gmail.com" --keychain-profile "SpecterProfile" --password "@keychain:AC_PASSWORD" --output-format json --wait )
+    output_json=$(xcrun notarytool submit dist/${specterimg_filename}.zip  --apple-id "kneunert@gmail.com" --keychain-profile "SpecterProfile" --output-format json --wait )
 
     echo "Request ID: "
     # parsing the requestuuid which we'll need to track progress
     requestuuid=$(echo $output_json | jq -r '.id')
     status=$(echo $output_json | jq -r '.status')
-    if [ "$status" = "invalid" ]; then
+    if [ "$status" = "Invalid" ]; then
         mkdir -p signing_logs
         echo "issues with notarisation"
         xcrun notarytool log ${requestuuid} --keychain-profile SpecterProfile | tee ./signing_logs/${app_name}_${timestamp}_${requestuuid}.log
