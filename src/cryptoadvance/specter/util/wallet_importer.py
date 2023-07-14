@@ -38,7 +38,7 @@ class WalletImporter:
         if device_manager is None:
             device_manager = specter.device_manager
         try:
-            self.wallet_data = json.loads(wallet_json)
+            self.wallet_data = json.loads("".join(wallet_json.split()))
             (
                 self.wallet_name,
                 recv_descriptor,
