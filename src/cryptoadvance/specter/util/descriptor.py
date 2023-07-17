@@ -495,3 +495,10 @@ def sort_descriptor(descriptor, index=None):
     sorted_desc = desc.derive(index, keep_xpubs=True)
     sorted_desc.sort_keys = False
     return sorted_desc.serialize()
+
+
+def convert_receive_descriptor_to_combined_descriptor(descriptor: str) -> str:
+    # Checksums don't make sense for those non-standard combined descriptors, so we just return them without checksums.
+    # Checksums are added for each branch whenever they are used as receiving or change descriptors, for example for Core or in the backup pdf
+    combined_descriptor = descriptor.split("#")[0].replace("/0/*", "/{0,1}/*")
+    return combined_descriptor

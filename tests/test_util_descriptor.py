@@ -1,5 +1,6 @@
 from cryptoadvance.specter.util.descriptor import *
 from embit import bip32, ec, networks, script
+from embit.descriptor import Descriptor as EmbitDescriptor
 from cryptoadvance.specter.util.xpub import hash160
 from cryptoadvance.specter.util.base58 import *
 import pytest
@@ -310,3 +311,23 @@ def test_sort():
         sort_descriptor(descriptor, 1)
         == "sh(wsh(multi(2,tpubDFPtPArj4GzBBcuqDySkeQbKx4r6HwRgcPbbAjbjB5cxYRzJT6iFtiqzce4qQ9XFWZ83DZJ43WCJJsotdG75p7pw4SgUHZ2nkG4YxLQ414i/2,tpubDFH9dgzveyD8yHQb8VrpG8FYAuwcLMHMje2CCcbBo1FpaGzYVtJeYYxcYgRqSTta5utUFts8nPPHs9C2bqoxrey5jia6Dwf9mpwrPq7YvcJ/1,tpubDDzWqfZ5TH4819JtJT1MaJGh2FYnbn2KGoqkznXRFdNZAuKLD2CsYtQiV5rEVCUezzz9GaRkeHct5NSxVEG9KWUaRoeEtcafVHr2SVE5DRN/1)))#w5qd99tr"
     )
+
+
+def test_convert_receive_descriptor_to_combined_descriptor():
+    receive_descriptor = "wsh(sortedmulti(2,[8c24a510/48h/1h/0h/2h]tpubDDzWqfZ5TH48383Byd9PFGxEP1Ws5NVXyYcHTmnHwmhJciowLeBDWNHcpLGocofanSyVHeiNqL4HZkXZfKM7NKm7gZZoPjmA9vTKPpwRSkx/0/*,[dcbf0caf/48h/1h/0h/2h]tpubDFd7VxopNeZg93uqR7CSvJLkw3UanF8rywdQTxhCPFt1P33eZkxJJ91XXEbY2Q4Suw3jyscRwGzjVyfgq97N7sRvPHQVxruHwsKvsvQizSk/0/*,[fa178389]tpubD6NzVbkrYhZ4Wfm713xkQWD1SrhLELhaPTgV57FqtvmCgATXFqhHZ656DVbywfVoESTPi4umKA43bxZMSoAqTdCR1tqpjJad392xALGBgnT/0/*))#50tdct52"
+    expected_combined_descriptor = "wsh(sortedmulti(2,[8c24a510/48h/1h/0h/2h]tpubDDzWqfZ5TH48383Byd9PFGxEP1Ws5NVXyYcHTmnHwmhJciowLeBDWNHcpLGocofanSyVHeiNqL4HZkXZfKM7NKm7gZZoPjmA9vTKPpwRSkx/{0,1}/*,[dcbf0caf/48h/1h/0h/2h]tpubDFd7VxopNeZg93uqR7CSvJLkw3UanF8rywdQTxhCPFt1P33eZkxJJ91XXEbY2Q4Suw3jyscRwGzjVyfgq97N7sRvPHQVxruHwsKvsvQizSk/{0,1}/*,[fa178389]tpubD6NzVbkrYhZ4Wfm713xkQWD1SrhLELhaPTgV57FqtvmCgATXFqhHZ656DVbywfVoESTPi4umKA43bxZMSoAqTdCR1tqpjJad392xALGBgnT/{0,1}/*))"
+    combined_descriptor = convert_receive_descriptor_to_combined_descriptor(
+        receive_descriptor
+    )
+    assert combined_descriptor == expected_combined_descriptor
+    # Check that the combined descriptor has two branches as an additional check
+    assert EmbitDescriptor.from_string(combined_descriptor).num_branches == 2
+
+    # Check single sig descriptor
+    receive_descriptor_single_sig = "wpkh([1ef4e492/84h/1h/0h]tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc/0/*)#xp8lv5nr"
+    expected_combined_descriptor_single_sig = "wpkh([1ef4e492/84h/1h/0h]tpubDC5EUwdy9WWpzqMWKNhVmXdMgMbi4ywxkdysRdNr1MdM4SCfVLbNtsFvzY6WKSuzsaVAitj6FmP6TugPuNT6yKZDLsHrSwMd816TnqX7kuc/{0,1}/*)"
+    combined_descriptor_single_sig = convert_receive_descriptor_to_combined_descriptor(
+        receive_descriptor_single_sig
+    )
+    assert combined_descriptor_single_sig == expected_combined_descriptor_single_sig
+    assert EmbitDescriptor.from_string(combined_descriptor_single_sig).num_branches == 2

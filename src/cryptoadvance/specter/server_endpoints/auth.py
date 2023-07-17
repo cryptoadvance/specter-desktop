@@ -1,6 +1,7 @@
 import random
 import time
 
+
 from flask import Blueprint, Flask
 from flask import current_app as app
 from flask import jsonify, redirect, render_template, request, url_for
@@ -9,7 +10,7 @@ from flask_login import current_user, login_required, logout_user
 
 from cryptoadvance.specter.specter import Specter
 
-from ..helpers import alias
+from ..helpers import alias, is_relative_url
 from ..server_endpoints import flash
 from ..services import ExtensionException
 from ..user import User, hash_password, verify_password
@@ -235,7 +236,9 @@ def redirect_login(request):
     if app.specter.hide_sensitive_info:
         app.specter.update_hide_sensitive_info(False, current_user)
 
-    if request.form.get("next") and request.form.get("next") != "None":
+    if (
+        request.form.get("next") and request.form.get("next") != "None"
+    ) and is_relative_url(request.form["next"]):
         response = redirect(request.form["next"])
     else:
         response = redirect(url_for("index"))
