@@ -94,7 +94,7 @@
                 if (label) {
                     return label.replace(/\n/g, ' ') // Convert newline characters to spaces within labels
                 } else {
-                    return ''; // Remove other newline characters
+                    return ''; // Remove whitespace characters otherwise
                 }
             })
             txtTextarea.value = cleanedText
