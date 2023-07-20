@@ -90,7 +90,7 @@
             event.preventDefault()
             const clipboardData = event.clipboardData || window.clipboardData
             const pastedText = clipboardData.getData("text/plain")
-            const cleanedText = pastedText.replace(/("label":\s?"[^"]*")|\s/g, (_, label) => {
+            const cleanedText = pastedText.replace(/("label"\s?:\s?"[^"]*")|\s/g, (_, label) => {
                 if (label) {
                     return label.replace(/\n/g, ' ') // Convert newline characters to spaces within labels
                 } else {
