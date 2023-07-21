@@ -3,6 +3,7 @@ const { app, nativeTheme, nativeImage, BrowserWindow, Menu, Tray, screen, shell,
 
 const path = require('path')
 const fs = require('fs')
+const { URL } = require('node:url')
 const request = require('request')
 const https = require('https')
 const extract = require('extract-zip')
@@ -57,6 +58,15 @@ const logger = createLogger(winstonOptions)
 
 if (isDev) {
   logger.info('Running the Electron app in dev mode.')
+}
+
+// Register "specter" protocol. This feature is for Mac only as of now.
+// This will launch the app for URLs like this: specter://?action=importWallet&data=someData
+if (isMac) {
+  const isDefaultProtocolClient = app.isDefaultProtocolClient('specter')
+  if (!isDefaultProtocolClient) {
+    app.setAsDefaultProtocolClient('specter')
+  }
 }
 
 // Set the dock icon (MacOS and for development only)
@@ -190,6 +200,7 @@ const download = (uri, filename, callback) => {
 }
 
 let specterdProcess
+let automaticWalletImport = false
 let mainWindow
 let prefWindow
 let tray
@@ -259,7 +270,6 @@ function createWindow(specterURL) {
   if (appSettings.tor) {
     mainWindow.webContents.session.setProxy({ proxyRules: appSettings.proxyURL })
   }
-
   mainWindow.loadURL(specterURL + '?mode=remote')
 }
 
@@ -497,6 +507,7 @@ function checkSpecterd(logs, specterdStarted) {
   }
 }
 
+let specterIsRunning = false
 function startSpecterd(specterdPath) {
   if (platformName == 'win64') {
     specterdPath += '.exe'
@@ -529,7 +540,6 @@ function startSpecterd(specterdPath) {
   const specterdStarted = Date.now()
 
   // We are checking for both, stdout and stderr, to be on the save side.
-  let specterIsRunning = false
   specterdProcess.stdout.on('data', (data) => {
     logger.info('stdout-' + data.toString())
     let serverdStatus = checkSpecterd(data, specterdStarted)
@@ -540,8 +550,16 @@ function startSpecterd(specterdPath) {
         updateSpecterdStatus('Specter is running')
         specterIsRunning = true
         if (mainWindow) {
-          logger.info('... creating Electron window for it.')
-          createWindow(appSettings.specterURL)
+          if (automaticWalletImport === true) {
+            logger.info('Performing automatic wallet import ...')
+            updatingLoaderMsg('Launching wallet importer. This will only work with a node connection.', (showSpinner = true))
+            setTimeout(() => {
+              importWallet(walletDataFromUrl)
+            }, 3000)
+          } else {
+            logger.info('Normal startup of Specter.')
+            createWindow(appSettings.specterURL)
+          }
         }
       } else if (serverdStatus === 'timeout') {
         showError('Specter does not seem to start. Check the logs in the menu for more details.')
@@ -597,6 +615,54 @@ function startSpecterd(specterdPath) {
     updateSpecterdStatus('Specter stopped...')
     logger.info(`child process exited with code ${code}`)
   })
+}
+
+let walletDataFromUrl
+// Checking whether the app was opened via a Specter URL and determine whether to perform a specific startup action
+app.on('open-url', (_, url) => {
+  logger.info('The app was opened via URL, checking the URL to decide whether to do any automatic actions ...')
+  // Parse the URL to extract the query parameters
+  const specterUrl = new URL(url)
+  const searchParams = specterUrl.searchParams
+  // Get the query parameter values
+  const action = searchParams.get('action')
+  const data = searchParams.get('data')
+  if (action === 'importWallet' && data !== '') {
+    logger.info('Automatic wallet import identified in the URL, setting automaticWalletImport to true.')
+    automaticWalletImport = true
+    walletDataFromUrl = data
+    // Directly import if the app and specterd is already running
+    if (specterIsRunning) {
+      logger.info('Performing automatic wallet import ...')
+      mainWindow.loadURL(`file://${__dirname}/splash.html`)
+      updatingLoaderMsg('Launching wallet importer. This will only work with a node connection.', (showSpinner = true))
+      setTimeout(() => {
+        importWallet(walletDataFromUrl)
+      }, 3000)
+    }
+  }
+})
+
+// Automatically import the wallet json string, bring user to the final import wallet screen.
+// Only proceed with the import if the importFromWalletSoftwareBtn can be found. 
+// If it is not, users are redirected by specterd to the configure connection screen.
+function importWallet(walletData) {
+  mainWindow.loadURL(appSettings.specterURL + '/wallets/new_wallet/')
+  if (mainWindow) {
+    let code = `
+      const importFromWalletSoftwareBtn = document.getElementById('import-from-wallet-software-btn')
+      if (importFromWalletSoftwareBtn) {
+        importFromWalletSoftwareBtn.click()
+        const walletDataTextArea = document.getElementById('txt')
+        if (walletDataTextArea) {
+          walletDataTextArea.value =  \`${walletData}\`
+        }
+        const continueBtn = document.getElementById('continue-with-wallet-import-btn');
+        continueBtn.click()
+      }
+    `
+    mainWindow.webContents.executeJavaScript(code)
+  }
 }
 
 app.on('window-all-closed', function () {
