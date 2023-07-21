@@ -27,6 +27,7 @@ from ..helpers import get_address_from_dict
 from ..key import Key
 from ..persistence import delete_file, delete_folder, write_json_file
 from ..specter_error import SpecterError, handle_exception
+from ..util.descriptor import convert_receive_descriptor_to_combined_descriptor
 from ..util.merkleblock import is_valid_merkle_proof
 from ..util.psbt import SpecterPSBT
 from ..util.tx import decoderawtransaction
@@ -97,7 +98,6 @@ class Wallet(AbstractWallet):
         fullpath,
         device_manager,
         manager,
-        old_format_detected=False,
         last_block=None,
     ):
         """creates a wallet. Very inconvenient to call as it has a lot of mandatory Parameters.
@@ -173,11 +173,7 @@ class Wallet(AbstractWallet):
             self.change_index = 0
 
         self.update()
-        if (
-            old_format_detected
-            or self.last_block != last_block
-            or "" in [address, change_address]
-        ):
+        if self.last_block != last_block or "" in [address, change_address]:
             self.save_to_file()
 
     @property
@@ -285,14 +281,23 @@ class Wallet(AbstractWallet):
         key_type,
         keys,
         devices,
+        imported_descriptor=None,
         core_version=None,
         **kwargs,
     ):
         """Creates a wallet. If core_version is not specified - gets it from rpc"""
         # we pass unknown kwargs here for inherited classes (see LWallet - there is a blinding key arg)
-        descriptor = cls.construct_descriptor(
-            sigs_required, key_type, keys, devices, **kwargs
-        )
+        if not imported_descriptor:
+            descriptor: Descriptor = cls.construct_descriptor(
+                sigs_required, key_type, keys, devices, **kwargs
+            )
+        else:
+            # We need a combined descriptor here
+            descriptor: Descriptor = Descriptor.from_string(
+                convert_receive_descriptor_to_combined_descriptor(
+                    imported_descriptor.to_string()
+                )
+            )
 
         # get Core version if we don't know it
         if core_version is None:
@@ -548,63 +553,6 @@ class Wallet(AbstractWallet):
             self.save_to_file()
         self.last_block = last_block
 
-    @staticmethod
-    def parse_old_format(wallet_dict, device_manager):
-        old_format_detected = False
-        new_dict = {}
-        new_dict.update(wallet_dict)
-        if "key" in wallet_dict:
-            new_dict["keys"] = [wallet_dict["key"]]
-            del new_dict["key"]
-            old_format_detected = True
-        if "device" in wallet_dict:
-            new_dict["devices"] = [wallet_dict["device"]]
-            del new_dict["device"]
-            old_format_detected = True
-        devices = [
-            device_manager.get_by_alias(device) for device in new_dict["devices"]
-        ]
-        if (
-            len(new_dict["keys"]) > 1
-            and "sortedmulti" not in new_dict["recv_descriptor"]
-        ):
-            new_dict["recv_descriptor"] = add_checksum(
-                new_dict["recv_descriptor"]
-                .replace("multi", "sortedmulti")
-                .split("#")[0]
-            )
-            old_format_detected = True
-        if (
-            len(new_dict["keys"]) > 1
-            and "sortedmulti" not in new_dict["change_descriptor"]
-        ):
-            new_dict["change_descriptor"] = add_checksum(
-                new_dict["change_descriptor"]
-                .replace("multi", "sortedmulti")
-                .split("#")[0]
-            )
-            old_format_detected = True
-        if None in devices:
-            devices = [
-                (
-                    (device["name"] if isinstance(device, dict) else device)
-                    if (device["name"] if isinstance(device, dict) else device)
-                    in device_manager.devices
-                    else None
-                )
-                for device in new_dict["devices"]
-            ]
-            if None in devices:
-                logger.error("A device used by this wallet could not have been found!")
-                return
-            else:
-                new_dict["devices"] = [
-                    device_manager.devices[device].alias for device in devices
-                ]
-            old_format_detected = True
-        new_dict["old_format_detected"] = old_format_detected
-        return new_dict
-
     @classmethod
     def from_json(
         cls, wallet_dict, device_manager, manager, default_alias="", default_fullpath=""
@@ -623,8 +571,6 @@ class Wallet(AbstractWallet):
         frozen_utxo = wallet_dict.get("frozen_utxo", [])
         fullpath = wallet_dict.get("fullpath", default_fullpath)
         last_block = wallet_dict.get("last_block", None)
-
-        wallet_dict = Wallet.parse_old_format(wallet_dict, device_manager)
 
         try:
             address_type = wallet_dict["address_type"]
@@ -660,7 +606,6 @@ class Wallet(AbstractWallet):
             fullpath,
             device_manager,
             manager,
-            old_format_detected=wallet_dict["old_format_detected"],
             last_block=last_block,
         )
 
@@ -908,6 +853,10 @@ class Wallet(AbstractWallet):
     @property
     def is_multisig(self):
         return len(self.keys) > 1
+
+    @property
+    def uses_multi(self):
+        return self.descriptor.is_sorted == False
 
     @property
     def is_singlesig(self):

@@ -60,7 +60,7 @@
 					{% set xpubs_descriptor = wallet.get_descriptor(address=address, keep_xpubs=True, to_string=True, with_checksum=True) %}
 					<button type="button" onclick='displayAddressOnDevice(`{{ address }}`, `{{ descriptor }}`, `{{ xpubs_descriptor }}`)' class="button">{{ _("Display address on device") }}</button>
 					{% if wallet.is_multisig %}
-						<p class="note center optional">{{ _("Multsig address on device display is only available for BitBox02, ColdCard, KeepKey, Specter, and Trezor devices.") }}</p>
+						<p class="note center optional">{{ _("Multsig address on device display is only available for Specter DIY, Jade, ColdCard, BitBox02 and Trezor devices.") }}</p>
 					{% endif %}
 				{% endif %}
 			</form>
