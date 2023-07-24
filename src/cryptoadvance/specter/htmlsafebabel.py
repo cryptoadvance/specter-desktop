@@ -1,6 +1,7 @@
 from flask_babel import Babel, get_translations
 from jinja2.utils import markupsafe
 import html
+from flask import session, request
 
 
 class HTMLSafeBabel(Babel):
@@ -11,6 +12,24 @@ class HTMLSafeBabel(Babel):
     the gettext functions to explictly HTML escape the translated strings before
     they are used in a template.
     """
+
+    def supported_languages(self):
+        return self.config["LANGUAGES"]
+
+    def get_language_code(self):
+        """
+        Helper for Babel and other related language selection tasks.
+        """
+        if "language_code" in session:
+            # Explicit selection
+            return session["language_code"]
+        else:
+            # autodetect
+            return request.accept_languages.best_match(self.supported_languages.keys())
+
+    def set_language_code(self, language_code):
+        session["language_code"] = language_code
+        session["is_language_rtl"] = language_code in self.config["RTL_LANGUAGES"]
 
     def init_app(self, app, *args, **kwargs):
         super(HTMLSafeBabel, self).init_app(app, *args, **kwargs)

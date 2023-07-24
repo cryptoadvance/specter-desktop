@@ -264,11 +264,6 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
         )
     babel = HTMLSafeBabel(app)
 
-    @babel.localeselector
-    def get_language_code():
-        # Enables Babel to auto-detect current language
-        return app.get_language_code()
-
     @app.route("/set_language", methods=["POST"])
     def set_language_code():
         json_data = request.get_json()
