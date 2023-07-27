@@ -13,24 +13,6 @@ class HTMLSafeBabel(Babel):
     they are used in a template.
     """
 
-    def supported_languages(self):
-        return self.config["LANGUAGES"]
-
-    def get_language_code(self):
-        """
-        Helper for Babel and other related language selection tasks.
-        """
-        if "language_code" in session:
-            # Explicit selection
-            return session["language_code"]
-        else:
-            # autodetect
-            return request.accept_languages.best_match(self.supported_languages.keys())
-
-    def set_language_code(self, language_code):
-        session["language_code"] = language_code
-        session["is_language_rtl"] = language_code in self.config["RTL_LANGUAGES"]
-
     def init_app(self, app, *args, **kwargs):
         super(HTMLSafeBabel, self).init_app(app, *args, **kwargs)
         if self._configure_jinja:
