@@ -262,13 +262,12 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
         app.config["BABEL_TRANSLATION_DIRECTORIES"] = os.path.join(
             sys._MEIPASS, "translations"
         )
-    
-    
+
     def get_language_code():
         # Enables Babel to auto-detect current language
         return app.get_language_code()
 
-    babel = HTMLSafeBabel(app, locale_selector = get_language_code)
+    babel = HTMLSafeBabel(app, locale_selector=get_language_code)
 
     @app.route("/set_language", methods=["POST"])
     def set_language_code():
