@@ -916,7 +916,7 @@ def txlist_to_csv(
                 tx["blockheight"] = "Unconfirmed"
         # For txs, the relevant amount is flow_amount
         if amount_logic == "flow":
-            tx["amount"] = tx.flow_amount
+            tx["amount"] = tx["flow_amount"]
         amount_price = "not supported"
         rate = "not supported"
         if tx.get("blocktime"):
