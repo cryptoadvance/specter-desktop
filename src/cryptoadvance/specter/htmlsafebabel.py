@@ -1,6 +1,7 @@
 from flask_babel import Babel, get_translations
 from jinja2.utils import markupsafe
 import html
+from flask import session, request
 
 
 class HTMLSafeBabel(Babel):
