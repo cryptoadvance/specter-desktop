@@ -57,6 +57,7 @@ def test_get_rpcconfig1():
         "main": {"rpcport": "8332"},
         "regtest": {"rpcport": "18443"},
         "test": {"rpcport": "18332"},
+        "signet": {},
     }
 
 
@@ -88,6 +89,7 @@ def test_get_rpcconfig2(empty_data_folder):
             "zmqpubhashblock": "tcp://127.0.0.1:29000",
         },
         "test": {},
+        "signet": {},
     }
 
 
