@@ -6,6 +6,11 @@
     <true/>
     <key>com.apple.security.device.camera</key>
     <true/>
+    <!-- 
+      this has been introduced with #2344
+      However it needs MAC provisioning profiles to be set up
+      And those trigger a App Review by Apple which we
+      currently want to avoid. Maybe later.
     <key>CFBundleURLTypes</key>
       <array>
         <dict>
@@ -17,5 +22,6 @@
           </array>
         </dict>
       </array>
+    -->
   </dict>
 </plist>
