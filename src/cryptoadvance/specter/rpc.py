@@ -60,7 +60,13 @@ def get_rpcconfig(datadir=get_default_datadir()) -> dict:
     }
     """
     config = {
-        "bitcoin.conf": {"default": {}, "main": {}, "test": {}, "regtest": {}},
+        "bitcoin.conf": {
+            "default": {},
+            "main": {},
+            "test": {},
+            "regtest": {},
+            "signet": {},
+        },
         "cookies": {},
     }
     if not os.path.isdir(datadir):  # we don't know where to search for files
