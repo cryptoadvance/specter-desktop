@@ -3,6 +3,7 @@ from .hwi.jade import JadeClient
 from .hwi.jade import enumerate as jade_enumerate
 from ..helpers import is_liquid, to_ascii20
 from ..util import bcur
+from binascii import b2a_base64
 
 
 class Jade(HWIDevice):
@@ -47,38 +48,15 @@ class Jade(HWIDevice):
         return psbts
 
     def export_wallet(self, wallet):
-        if not wallet.is_multisig:
-            return None
-        # Cobo uses ColdCard's style
-        CC_TYPES = {"legacy": "BIP45", "p2sh-segwit": "P2WSH-P2SH", "bech32": "P2WSH"}
-        # try to find at least one derivation
-        # cc assume the same derivation for all keys :(
-        derivation = None
-        # find correct key
-        for k in wallet.keys:
-            if k in self.keys and k.derivation != "":
-                derivation = k.derivation.replace("h", "'")
-                break
-        if derivation is None:
-            return None
-        cc_file = """
-Name: {}
-Policy: {} of {}
-Derivation: {}
-Format: {}
-""".format(
-            to_ascii20(wallet.name),
-            wallet.sigs_required,
-            len(wallet.keys),
-            derivation,
-            CC_TYPES[wallet.address_type],
-        )
-        for k in wallet.keys:
-            # cc assumes fingerprint is known
-            fingerprint = k.fingerprint
-            if fingerprint == "":
-                fingerprint = get_xpub_fingerprint(k.xpub).hex()
-            cc_file += "{}: {}\n".format(fingerprint.upper(), k.xpub)
-        enc, hsh = bcur.bcur_encode(cc_file.encode())
-        cobo_qr = ("ur:bytes/%s/%s" % (hsh, enc)).upper()
-        return cobo_qr
+        test_string = """
+        Name: Jade Multi
+        Policy: 2 of 3
+        Derivation: m/48'/0'/0'/2'
+        Format: P2WSH
+        B237FE9D: xpub6E8C7BX4c7qfTsX7urnXggcAyFuhDmYLQhwRwZGLD9maUGWPinuc9k96ejhEQ1DCkSwbwymPxkFt5V1uRug3FweQmZomjkNAiokDaS7xkt5
+        249192D2: xpub6EbXynW6xjYR3crcztum6KzSWqDJoAJQoovwamwVnLaCSHA6syXKPnJo6U3bVeGdeEaXAeHsQTxhkLam9Dw2YfoAabtNm44XUWnnUZfHJRq
+        67F90FFC: xpub6EHuWWrYd8bp5FS1XAZsMPkmCqLSjpULmygWqAqWRCCjSWQwz6ntq5KnuQnL23No2Jo8qdp48PrL8SVyf14uBrynurgPxonvnX6R5pbit3w
+        """
+        jade_qr = b2a_base64(test_string.encode()).decode()
+        return f"ur-bytes:{jade_qr}"
+        return jade_qr
