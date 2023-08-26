@@ -81,6 +81,7 @@ class HWIBridge(JSONRPC):
             "extract_master_blinding_key": self.extract_master_blinding_key,
             "bitbox02_pairing": self.bitbox02_pairing,
         }
+        self.devices = []
 
     @locked(hwilock)
     def enumerate(self, passphrase="", chain=""):
