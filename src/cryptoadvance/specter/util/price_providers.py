@@ -168,14 +168,15 @@ def get_price_at(specter, timestamp="now"):
                 if timestamp == "now":
                     price = failsafe_request_get(
                         requests_session,
-                        "http://h6zwwkcivy2hjys6xpinlnz2f74dsmvltzsd4xb42vinhlcaoe7fdeqd.onion/now/{}/{}".format(
+                        "http://r5sru63gzyrnaayaua2ydo32f4hf6vd33bq6qmtktx3wjoib2cwi2gqd.onion/api/now/{}/{}".format(
                             currency, exchange
                         ),
                     )["close"]
                 else:
                     price = failsafe_request_get(
                         requests_session,
-                        "http://h6zwwkcivy2hjys6xpinlnz2f74dsmvltzsd4xb42vinhlcaoe7fdeqd.onion/hist/{}/{}/{}/{}".format(
+                        # TODO: Fix to use `start` and `end` query date time parameters instead of path parameters
+                        "http://r5sru63gzyrnaayaua2ydo32f4hf6vd33bq6qmtktx3wjoib2cwi2gqd.onion/api/history/{}/{}/{}/{}".format(
                             currency,
                             exchange,
                             timestamp * 1000,
