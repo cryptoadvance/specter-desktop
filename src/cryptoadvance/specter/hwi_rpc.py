@@ -81,7 +81,11 @@ class HWIBridge(JSONRPC):
             "extract_master_blinding_key": self.extract_master_blinding_key,
             "bitbox02_pairing": self.bitbox02_pairing,
         }
-        self.devices = []
+        # Running enumerate after beginning an interaction with a specific device
+        # crashes python or make HWI misbehave. For now we just get all connected
+        # devices once per session and save them.
+        logger.info("Initializing HWI...")  # to explain user why it takes so long
+        self.enumerate()
 
     @locked(hwilock)
     def enumerate(self, passphrase="", chain=""):
