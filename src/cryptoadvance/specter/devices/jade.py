@@ -67,12 +67,14 @@ Name: {}
 Policy: {} of {}
 Derivation: {}
 Format: {}
+Sorted: {}
 """.format(
             to_ascii20(wallet.name),
             wallet.sigs_required,
             len(wallet.keys),
             derivation,
             CC_TYPES[wallet.address_type],
+            not wallet.uses_multi,
         )
         for k in wallet.keys:
             # cc assumes fingerprint is known
