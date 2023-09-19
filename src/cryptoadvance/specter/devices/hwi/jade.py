@@ -556,10 +556,11 @@ class JadeClient(HardwareWalletClient):
             paths.append(parse_path(path))
 
         # sort origins, signers and paths according to origins (like in _get_multisig_name)
-        signer_origins, signers, paths = [
-            list(a) for a in zip(*sorted(zip(signer_origins, signers, paths)))
-        ]
-
+        # But, only sort if sorted_multi is used (and thus the order of xpubs is not relevant)
+        if multisig.is_sorted:
+            signer_origins, signers, paths = [
+                list(a) for a in zip(*sorted(zip(signer_origins, signers, paths)))
+            ]
         # Get a deterministic name for this multisig wallet
         script_variant = self._convertAddrType(addr_type, multisig=True)
         multisig_name = self._get_multisig_name(
@@ -572,7 +573,7 @@ class JadeClient(HardwareWalletClient):
             self._network(),
             multisig_name,
             script_variant,
-            True,  # always use sorted
+            multisig.is_sorted,
             multisig.thresh,
             signers,
         )
