@@ -169,7 +169,7 @@ def get_price_at(specter, timestamp="now"):
                     price = failsafe_request_get(
                         requests_session,
                         "http://r5sru63gzyrnaayaua2ydo32f4hf6vd33bq6qmtktx3wjoib2cwi2gqd.onion/api/now/{}/{}".format(
-                            currency, exchange
+                            currency.upper(), exchange
                         ),
                     )["close"]
                 else:
