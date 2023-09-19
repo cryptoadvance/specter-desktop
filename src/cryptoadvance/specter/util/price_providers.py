@@ -145,14 +145,8 @@ def get_price_at(specter, timestamp="now"):
                 else:
                     raise SpecterError("coindesk does not support historic prices")
             elif specter.price_provider.startswith("spotbit"):
-                print("MUH")
-                print("MUH" + specter.price_provider)
                 exchange = specter.price_provider.split("spotbit_")[1].split("_")[0]
-                print(
-                    "http://r5sru63gzyrnaayaua2ydo32f4hf6vd33bq6qmtktx3wjoib2cwi2gqd.onion/api/now/{}/{}".format(
-                        currency.upper(), exchange
-                    )
-                )
+
                 if timestamp == "now":
 
                     price = failsafe_request_get(
@@ -165,7 +159,8 @@ def get_price_at(specter, timestamp="now"):
                     price = failsafe_request_get(
                         requests_session,
                         # TODO: Fix to use `start` and `end` query date time parameters instead of path parameters
-                        "http://r5sru63gzyrnaayaua2ydo32f4hf6vd33bq6qmtktx3wjoib2cwi2gqd.onion/api/history/{}/{}/{}/{}".format(
+                        # Hope that works like this:
+                        "http://r5sru63gzyrnaayaua2ydo32f4hf6vd33bq6qmtktx3wjoib2cwi2gqd.onion/api/history/{}/{}?start={}&end={}".format(
                             currency,
                             exchange,
                             timestamp * 1000,
