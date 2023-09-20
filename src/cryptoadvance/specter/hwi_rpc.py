@@ -66,7 +66,7 @@ class HWIBridge(JSONRPC):
     All methods of this class are callable over JSON-RPC, except _underscored.
     """
 
-    def __init__(self):
+    def __init__(self, enforce_hwi_initialisation=False):
         self.exposed_rpc = {
             "enumerate": self.enumerate,
             "detect_device": self.detect_device,
@@ -81,11 +81,14 @@ class HWIBridge(JSONRPC):
             "extract_master_blinding_key": self.extract_master_blinding_key,
             "bitbox02_pairing": self.bitbox02_pairing,
         }
-        # Running enumerate after beginning an interaction with a specific device
-        # crashes python or make HWI misbehave. For now we just get all connected
-        # devices once per session and save them.
-        logger.info("Initializing HWI...")  # to explain user why it takes so long
-        self.enumerate()
+        if enforce_hwi_initialisation:
+            # Running enumerate after beginning an interaction with a specific device
+            # crashes python or make HWI misbehave. For now we just get all connected
+            # devices once per session and save them.
+            logger.info("Initializing HWI...")  # to explain user why it takes so long
+            self.enumerate()
+            logger.info("Finished initializing HWI!")
+        self.devices = []
 
     @locked(hwilock)
     def enumerate(self, passphrase="", chain=""):
