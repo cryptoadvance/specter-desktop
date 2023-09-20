@@ -1,13 +1,13 @@
 {% if wallet is defined %}
 
-<div id="hwi_display_address" class="flex-center flex-column hidden" data-style="overflow-wrap: break-word;">
+<div id="hwi_display_address" class="flex-center flex-column hidden p-4 bg-dark-800" data-style="overflow-wrap: break-word;">
     <h2>{{ _("Confirm Address") }}</h2><br>
     <div>
         {{ _("Please confirm address matches on your ")}}<span id="hwi_device_name">{{ _('device')}}</span><br><br>
         {{ _("Expected address") }}:<br><span id="expected_address"></span>
     </div>
-    <div class="flex-center">
-        <img src="{{ url_for('static', filename='img/loader_boxes.svg') }}"/>
+    <div class="flex justify-center mt-4 ">
+        <img src="{{ url_for('static', filename='img/loader_boxes.svg') }}" class="w-16 h-16"/>
     </div>
 </div>
 
