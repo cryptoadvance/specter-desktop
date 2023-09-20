@@ -15,85 +15,64 @@ OZ_TO_G = 28.3495231
 currency_mapping = {
     "usd": {
         "symbol": "$",
-        "support": [
-            "bitstamp",
-            "coindesk",
-            "spotbit_coinbase",
-            "spotbit_kraken",
-            "spotbit_bitfinex",
-            "spotbit_okcoin",
-            "spotbit_bitstamp",
-        ],
+        "support": ["bitstamp", "coindesk", "spotbit_bitstamp", "spotbit_gemini"],
     },
     "eur": {
         "symbol": "€",
         "support": [
             "bitstamp",
             "coindesk",
-            "spotbit_coinbase",
-            "spotbit_kraken",
-            "spotbit_bitfinex",
-            "spotbit_okcoin_eur",
             "spotbit_bitstamp",
+            "spotbit_gemini",
         ],
     },
     "gbp": {
         "symbol": "£",
-        "support": [
-            "bitstamp",
-            "coindesk",
-            "spotbit_coinbase",
-            "spotbit_kraken",
-            "spotbit_bitfinex",
-            "spotbit_bitstamp",
-        ],
+        "support": ["bitstamp", "coindesk", "spotbit_bitstamp", "spotbit_gemini"],
     },
     "chf": {
         "symbol": " Fr.",
-        "support": ["coindesk", "spotbit_coinbase", "spotbit_kraken"],
+        "support": ["coindesk"],
     },
     "aud": {
         "symbol": "$",
-        "support": ["coindesk", "spotbit_coinbase", "spotbit_kraken"],
+        "support": ["coindesk"],
     },
     "cad": {
         "symbol": "$",
-        "support": ["coindesk", "spotbit_coinbase", "spotbit_kraken"],
+        "support": ["coindesk"],
     },
-    "nzd": {"symbol": "$", "support": ["coindesk", "spotbit_coinbase"]},
-    "hkd": {"symbol": "$", "support": ["coindesk", "spotbit_coinbase"]},
+    "nzd": {"symbol": "$", "support": ["coindesk"]},
+    "hkd": {"symbol": "$", "support": ["coindesk"]},
     "jpy": {
         "symbol": "¥",
         "support": [
             "coindesk",
-            "spotbit_coinbase",
-            "spotbit_kraken",
-            "spotbit_bitfinex",
         ],
     },
-    "rub": {"symbol": "₽", "support": ["coindesk", "spotbit_coinbase"]},
-    "ils": {"symbol": "₪", "support": ["coindesk", "spotbit_coinbase"]},
-    "jod": {"symbol": "د.ا", "support": ["coindesk", "spotbit_coinbase"]},
-    "twd": {"symbol": "$", "support": ["coindesk", "spotbit_coinbase"]},
-    "brl": {"symbol": " BRL", "support": ["coindesk", "spotbit_coinbase"]},
+    "rub": {"symbol": "₽", "support": ["coindesk"]},
+    "ils": {"symbol": "₪", "support": ["coindesk"]},
+    "jod": {"symbol": "د.ا", "support": ["coindesk"]},
+    "twd": {"symbol": "$", "support": ["coindesk"]},
+    "brl": {"symbol": " BRL", "support": ["coindesk"]},
     "xau": {
         "symbol": " oz. ",
-        "support": ["coindesk", "spotbit_coinbase"],
+        "support": ["coindesk"],
         "weight_unit_convertible": True,
     },
     "xag": {
         "symbol": " oz. ",
-        "support": ["coindesk", "spotbit_coinbase"],
+        "support": ["coindesk"],
         "weight_unit_convertible": True,
     },
     "xpt": {
         "symbol": " oz. ",
-        "support": ["spotbit_coinbase"],
+        "support": [],
         "weight_unit_convertible": True,
     },
     "xpd": {
         "symbol": " oz. ",
-        "support": ["spotbit_coinbase"],
+        "support": [],
         "weight_unit_convertible": True,
     },
 }
@@ -106,6 +85,7 @@ def update_price(specter, current_user):
         specter.update_alt_symbol(symbol, current_user)
         return True
     except SpecterError as e:
+        handle_exception(e)
         logger.error(f"{e} while updating price")
     except Exception as e:
         handle_exception(e)
@@ -125,6 +105,7 @@ def get_price_at(specter, timestamp="now"):
     """returns a price and a currency-symbol at the timestamp"""
     try:
         if specter.price_check:
+
             requests_session = specter.requests_session(
                 force_tor=("spotbit" in specter.price_provider)
             )
@@ -137,7 +118,7 @@ def get_price_at(specter, timestamp="now"):
                 )
             except AttributeError:
                 raise SpecterError(f"Currency not supported: {currency}")
-
+            print("MUH" + specter.price_provider)
             if exchange not in currency_mapping[currency]["support"]:
                 raise SpecterError(
                     f"The currency {currency} is not supported on exchange {exchange}"
@@ -165,17 +146,21 @@ def get_price_at(specter, timestamp="now"):
                     raise SpecterError("coindesk does not support historic prices")
             elif specter.price_provider.startswith("spotbit"):
                 exchange = specter.price_provider.split("spotbit_")[1].split("_")[0]
+
                 if timestamp == "now":
+
                     price = failsafe_request_get(
                         requests_session,
-                        "http://h6zwwkcivy2hjys6xpinlnz2f74dsmvltzsd4xb42vinhlcaoe7fdeqd.onion/now/{}/{}".format(
-                            currency, exchange
+                        "http://r5sru63gzyrnaayaua2ydo32f4hf6vd33bq6qmtktx3wjoib2cwi2gqd.onion/api/now/{}/{}".format(
+                            currency.upper(), exchange
                         ),
                     )["close"]
                 else:
                     price = failsafe_request_get(
                         requests_session,
-                        "http://h6zwwkcivy2hjys6xpinlnz2f74dsmvltzsd4xb42vinhlcaoe7fdeqd.onion/hist/{}/{}/{}/{}".format(
+                        # TODO: Fix to use `start` and `end` query date time parameters instead of path parameters
+                        # Hope that works like this:
+                        "http://r5sru63gzyrnaayaua2ydo32f4hf6vd33bq6qmtktx3wjoib2cwi2gqd.onion/api/history/{}/{}?start={}&end={}".format(
                             currency,
                             exchange,
                             timestamp * 1000,
@@ -201,6 +186,10 @@ def _parse_exchange_currency(exchange_currency):
     # e.g. "spotbit_bitstamp_eur" or "bitstamp_eur"
     arr = exchange_currency.split("_")
     if len(arr) == 2:
+        if not arr[1] in currency_mapping.keys():
+            raise SpecterError(
+                f"{arr[1]} is not a valid currency. Received: {exchange_currency}"
+            )
         return arr[0], arr[1]
     elif len(arr) == 3:
         return f"{arr[0]}_{arr[1]}", arr[2]
