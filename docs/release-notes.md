@@ -1,5 +1,24 @@
 # Release Notes
 
+## v2.0.2 September 21, 2023
+- Bugfix: Add missing signet key #2368 (Manolis Mandrapilias)
+- Bugfix: Jade displaying wrong multisig addresses for descriptors using multi() #2366 (Manolis Mandrapilias)
+- Bugfix: JSON parsing issues when copy & pasting wallet data from PDF #2355 (Manolis Mandrapilias)
+- Bugfix: #2319 #2330 (k9ert)
+- Bugfix: fix specter.node has no _get_rpc() #2327 (k9ert)
+- Bugfix: Update spotbit api url and path #2372 (Benjamin B)
+- Chore(deps): Bump semver from 5.7.1 to 5.7.2 #2353 (dependabot[bot])
+- Chore(deps): Bump semver from 6.3.0 to 6.3.1 in /pyinstaller/electron #2352 (dependabot[bot])
+- Chore: Regex change to capture labels in wallet data imports better #2357 (Manolis Mandrapilias)
+- Chore: Use prettier for Electron app  #2347 (Manolis Mandrapilias)
+- Chore: Optional ENFORCE_HWI_INITIALISATION_AT_STARTUP #2383 (k9ert)
+- Chore: remove SpecterUri #2358 (k9ert)
+- Chore: updating flask_babel fixes #2218 #2359 (k9ert)
+- Feature: Enable import of a multisig wallet that uses a multi-descriptor #2349 (Manolis Mandrapilias)
+- Feature: Implement automatic wallet import via Specter URI for MacOS #2344 (Manolis Mandrapilias)
+- Security: Patched Fix Electron vulnerable to out-of-package code execution when launched with arbitrary cwd #2380 (Sergev ₱)
+- Security: Fix login open redirect due to next parameter manipulation #2350 (zealsham)
+
 ## v2.0.1 March 27, 2023
 - Bugfix: Keyerror in case of frozen utxos #2308 (k9ert)
 - Bugfix: method getaddressinfo not implemented #2313 (k9ert)
