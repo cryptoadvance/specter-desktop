@@ -58,6 +58,11 @@ def cli():
     help="Start the hwi-bridge to use your HWWs with a remote specter.",
 )
 @click.option(
+    "--enforcehwiinitialisation",
+    is_flag=True,
+    help="calls enumerate() which is known to cause issues with certain usb-devices plugged in at startup.",
+)
+@click.option(
     "--devstatus-threshold",
     type=click.Choice(["alpha", "beta", "prod"], case_sensitive=False),
     default=None,
@@ -83,6 +88,7 @@ def server(
     filelog,
     tor,
     hwibridge,
+    enforcehwiinitialisation,
     devstatus_threshold,
     specter_data_folder,
     config,
@@ -148,6 +154,8 @@ def server(
     kwargs = configure_ssl(kwargs, app.config, ssl)
 
     app.app_context().push()
+    if enforcehwiinitialisation:
+        app.config["ENFORCE_HWI_INITIALISATION_AT_STARTUP"] = True
     init_app(app, hwibridge=hwibridge)
 
     if filelog:
