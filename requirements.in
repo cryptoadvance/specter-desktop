@@ -28,9 +28,15 @@ protobuf==3.20.2
 PyJWT==2.4.0
 pytimeparse==1.1.8
 psycopg2-binary==2.9.5
+
 # Extensions
 cryptoadvance-liquidissuer==0.2.4
 specterext-exfund==0.1.7
 specterext-faucet==0.1.2
 cryptoadvance.spectrum==0.6.4
 specterext-stacktrack==0.3.0
+
+# workarounds
+
+# greenlet is needed but not inserted as transitive dependency for some reason
+greenlet==2.0.2 
