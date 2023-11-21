@@ -1,7 +1,7 @@
 certifi==2022.12.7
 chardet==3.0.4
 Click==8.1.1
-Flask==2.1.1
+Flask==2.2.5
 #Werkzeug==2.0.3 # need to pin because Flask doesn't work with newer ones
 Flask-Babel==3.1.0
 Flask-Cors==3.0.10
