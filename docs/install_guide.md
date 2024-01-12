@@ -1,10 +1,21 @@
-﻿# Installation Guide
+﻿# Installation Method Decision Guide
 
 This guide is crafted to address the complexities and confusion users often encounter while installing Specter, a crucial tool for enhancing Bitcoin operations. Recognizing the diversity in user expertise and system requirements, a structured approach to choosing the right installation method is essential. This guide aims to streamline the decision-making process, providing clarity and direction to both novice and advanced users in their journey to effectively utilize Specter.
 
 ## Specter Desktop Installation Methods and Their Pros and Cons
 
 Specter Desktop, a versatile Bitcoin wallet management application, offers multiple installation methods to accommodate various user preferences and technical skill levels. This guide outlines the available installation options, their advantages, and disadvantages to help you choose the one that best fits your needs.
+
+
+## OS-Specific Apps for Specter Desktop
+
+**Ease of Installation:** OS-specific apps offer a user-friendly approach to installing Specter, making the process accessible even for those with limited technical expertise.
+
+**Compatibility:** These apps are tailored to work seamlessly with the operating system, ensuring optimal performance and stability.
+
+**Convenience:** Setting up Specter on the same machine as the Bitcoin Core node enhances convenience, as it allows for easy integration and management within a single system.
+
+**Targeted Updates:** OS-specific applications can receive updates and features tailored to the needs and capabilities of the specific operating system.
 
 ## PIP Installation
 
@@ -166,16 +177,6 @@ When choosing an installation method for Specter, consider these heuristics:
 - Technical Expertise: Assess your technical skill level. Less technical users might prefer simpler methods like direct downloads, while more experienced users might opt for Docker or building from source.
 - Update Preferences: If staying up-to-date effortlessly is important, package managers typically make updating easier.
 
-## OS-Specific Apps for Specter Desktop
-
-**Ease of Installation:** OS-specific apps offer a user-friendly approach to installing Specter, making the process accessible even for those with limited technical expertise.
-
-**Compatibility:** These apps are tailored to work seamlessly with the operating system, ensuring optimal performance and stability.
-
-**Convenience:** Setting up Specter on the same machine as the Bitcoin Core node enhances convenience, as it allows for easy integration and management within a single system.
-
-**Targeted Updates:** OS-specific applications can receive updates and features tailored to the needs and capabilities of the specific operating system.
-
 ## Ideal Use Case:
 
 This method is ideal for users who prefer a straightforward, no-hassle installation process and plan to run Specter alongside their Bitcoin Core node on the same device. It's particularly suited for those who value ease of use and system integration.
@@ -213,6 +214,9 @@ Running Specter Desktop on different types of nodes has unique pros and cons tha
 
 Each option offers a balance of convenience, security, and functionality. Users should choose based on their technical expertise, security needs, and available resources.
 
+## Recent Updates
+**Enhanced Electrum Integration:** Since version 2.0.0, Specter Desktop has featured integration with Electrum servers, further enhancing connectivity and accessibility options for users. Ongoing improvements in this area are expected to streamline the experience even more.
+
 ## Future Developments of Specter Desktop
 
 Specter Desktop is evolving, with upcoming features and extensions that promise to enhance its functionality and user experience. Key future developments include:
@@ -220,8 +224,6 @@ Specter Desktop is evolving, with upcoming features and extensions that promise 
 1. **Extension Framework:** Specter Desktop will support extensions, allowing users to expand its capabilities without needing to alter the core code. This will enable a more customizable experience.
 
 2. **New Extensions:** Planned extensions include those for connecting Specter to Swan, issuing bonds on the Liquid sidechain, importing mining rewards history from Slush Pool, fund distribution via CSV with Exfund, and building a local price database with Spotbit.
-
-3. **Spectrum Integration:** Integration with Spectrum to connect to Electrum servers is an anticipated feature, enhancing Specter's connectivity and accessibility options.
 
 These upcoming developments showcase Specter's commitment to growth and adaptability, catering to an expanding range of user needs and preferences in Bitcoin wallet management.
 
