@@ -1,4 +1,4 @@
-﻿# Specter Desktop Installation Guide
+﻿# Installation Guide
 
 This guide is crafted to address the complexities and confusion users often encounter while installing Specter, a crucial tool for enhancing Bitcoin operations. Recognizing the diversity in user expertise and system requirements, a structured approach to choosing the right installation method is essential. This guide aims to streamline the decision-making process, providing clarity and direction to both novice and advanced users in their journey to effectively utilize Specter.
 
@@ -6,30 +6,30 @@ This guide is crafted to address the complexities and confusion users often enco
 
 Specter Desktop, a versatile Bitcoin wallet management application, offers multiple installation methods to accommodate various user preferences and technical skill levels. This guide outlines the available installation options, their advantages, and disadvantages to help you choose the one that best fits your needs.
 
-# PIP Installation
+## PIP Installation
 
-## Overview
+### Overview
 
 The PIP installation method is tailored for users who are comfortable within Python environments. It's an ideal choice for those who prefer a Python-centric approach to software installation and management.
 
-### Advantages:
+#### Advantages:
 
 - **Simplicity for Python Users:** Installation via PIP is straightforward, especially for those familiar with Python's package management.
 - **Direct Control:** Users have direct control over the installation process, including version management.
 - **Integration with Python Environment:** Seamlessly integrates with existing Python setups and workflows.
 
-### Disadvantages:
+#### Disadvantages:
 
 - **Python Knowledge Required:** Assumes familiarity with Python and its ecosystem, which might not suit all users.
 - **Manual Dependency Management:** Users might need to manage dependencies manually, depending on their Python environment.
 
-## Ideal Use Case:
+### Ideal Use Case:
 
 PIP installation is best suited for users who are already working within a Python environment and are comfortable managing Python packages. This method offers a quick and efficient way to integrate Specter Desktop into existing Python-based workflows or projects.
 
 This addition should enhance your guide, making it more comprehensive for users with a background in Python.
 
-# Running Specter Desktop Using Docker
+## Running Specter Desktop Using Docker
 
 Docker offers a robust and efficient way to install and run Specter Desktop. This method is especially beneficial for those already familiar with Docker environments. The key advantages of using Docker include:
 
@@ -43,7 +43,7 @@ Docker offers a robust and efficient way to install and run Specter Desktop. Thi
 
 By choosing Docker for installing Specter Desktop, users benefit from a streamlined, consistent, and secure installation experience, ideal for maintaining a robust Bitcoin operation environment across various platforms.
 
-# Integration with Node Implementations
+## Integration with Node Implementations
 
 Specter Desktop can be seamlessly integrated with various Bitcoin node implementations, providing a comprehensive and streamlined experience for users who are already operating these nodes. This integration is especially beneficial for those looking to manage their Bitcoin wallets in conjunction with their node's functionalities.
 
@@ -58,7 +58,7 @@ Specter Desktop can be seamlessly integrated with various Bitcoin node implement
 This approach is recommended for users who are already running these specific nodes, as it leverages the existing infrastructure to provide an integrated, efficient, and secure wallet management solution.
 
 
-# Using Package Managers (Homebrew for macOS and Linux)
+## Using Package Managers (Homebrew for macOS and Linux)
 
 **Advantages:**
 
@@ -71,7 +71,7 @@ This approach is recommended for users who are already running these specific no
 - Platform-Specific: This method is only available for macOS and Linux users, leaving out Windows users.
 - Limited Version Control: You might not have the latest version available through the package manager if the maintainers have not updated it yet.
 
-# Downloading Binaries from the Specter Release Page
+## Downloading Binaries from the Specter Release Page
 
 **Advantages:**
 
@@ -84,7 +84,7 @@ This approach is recommended for users who are already running these specific no
 - Manual Updates: You'll need to check for updates and download new versions manually, which may be less convenient.
 - Dependency Handling: Some dependencies might still need manual installation, depending on your system configuration.
 
-# Manual Build and Installation from Source Code (Advanced Users)
+## Manual Build and Installation from Source Code (Advanced Users)
 
 **Advantages:**
 
@@ -97,7 +97,7 @@ This approach is recommended for users who are already running these specific no
 - Time-Consuming: This method can be time-consuming, especially for users not experienced with building software from source.
 - Maintenance: You are responsible for keeping your installation up to date by fetching and compiling new source code.
 
-# Real-World Application Examples
+## Real-World Application Examples
 
 Here are real-world scenarios illustrating how different installation methods for Specter Desktop are chosen based on users' preferences and needs:
 
@@ -127,7 +127,7 @@ Here are real-world scenarios illustrating how different installation methods fo
 | Direct Download       | 3                           | 3                   | 3                      | 2                         |
 | Docker                | 3                           | 4                   | 4                      | 4                         |
 | Build from Source     | 1                           | 5                   | 5                      | 5                         |
-| PIP Installation       | 2                           | 3                   | 4                      | 3                         |
+| PIP Installation      | 2                           | 3                   | 4                      | 3                         |
 | Node Implementation   | 3                           | 4                   | 3                      | 3                         |
 
 - A score of 5 indicates the highest level of ease, customization, etc., while 1 indicates the lowest.
@@ -166,7 +166,7 @@ When choosing an installation method for Specter, consider these heuristics:
 - Technical Expertise: Assess your technical skill level. Less technical users might prefer simpler methods like direct downloads, while more experienced users might opt for Docker or building from source.
 - Update Preferences: If staying up-to-date effortlessly is important, package managers typically make updating easier.
 
-# OS-Specific Apps for Specter Desktop
+## OS-Specific Apps for Specter Desktop
 
 **Ease of Installation:** OS-specific apps offer a user-friendly approach to installing Specter, making the process accessible even for those with limited technical expertise.
 
@@ -182,7 +182,7 @@ This method is ideal for users who prefer a straightforward, no-hassle installat
 
 Adding this section to your guide will provide a complete overview of all the installation methods mentioned in the PDF presentation, making it more comprehensive and useful for your readers.
 
-# Access Methods for Specter Desktop
+## Access Methods for Specter Desktop
 
 Specter Desktop offers various access methods to cater to different user needs and security preferences. These methods include:
 
@@ -195,7 +195,7 @@ Specter Desktop offers various access methods to cater to different user needs a
 Each method has its unique advantages in terms of ease of use, security, and privacy. Users can choose the access method that best suits their operational environment and security requirements.
 
 
-# Node Options for Running Specter
+## Node Options for Running Specter
 
 Running Specter Desktop on different types of nodes has unique pros and cons that users should consider:
 
@@ -213,7 +213,7 @@ Running Specter Desktop on different types of nodes has unique pros and cons tha
 
 Each option offers a balance of convenience, security, and functionality. Users should choose based on their technical expertise, security needs, and available resources.
 
-# Future Developments of Specter Desktop
+## Future Developments of Specter Desktop
 
 Specter Desktop is evolving, with upcoming features and extensions that promise to enhance its functionality and user experience. Key future developments include:
 
