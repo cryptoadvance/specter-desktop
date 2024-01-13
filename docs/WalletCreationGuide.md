@@ -19,7 +19,7 @@ Specter wallets are designed to provide a user-friendly interface around Bitcoin
 ## Step-by-Step Guide for Single-Sig Wallets
 
 1. **Setup and Installation**
-   - Download and install the Specter Desktop app from the official GitHub release page.
+   - Download and install the Specter Desktop app from the official GitHub release page. [installation guide](docs/install_guide.md).
    - Ensure your system meets the necessary requirements (like Python version, Bitcoin Core version).
 
 2. **Running the App**
