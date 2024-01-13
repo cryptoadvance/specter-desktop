@@ -53,7 +53,7 @@ Welcome to the Device Creation Guide for Specter Hardware Wallets. In this compr
 9. **Keeping Pace with Changes:** 
    - The cryptocurrency landscape is dynamic, with new developments and standards emerging regularly. Staying informed about changes to derivation paths, wallet software updates, and security best practices is an ongoing challenge. Best practice here is to remain actively engaged with the cryptocurrency community, subscribe to updates from wallet providers, and continuously educate yourself.
 
-For those seeking a deeper understanding of derivation paths, we recommend exploring "Learn Me a Bitcoin." This website provides in-depth information on the topic, and you can integrate this knowledge into our guide for a more comprehensive grasp of derivation paths.
+For those seeking a deeper understanding of derivation paths, we recommend exploring "[Learn Me a Bitcoin](https://learnmeabitcoin.com/technical/derivation-paths)". This website provides in-depth information on the topic, and you can integrate this knowledge into our guide for a more comprehensive grasp of derivation paths.
 
 ## Troubleshooting
 
