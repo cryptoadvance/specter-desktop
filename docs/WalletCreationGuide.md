@@ -29,15 +29,19 @@ Specter wallets are designed to provide a user-friendly interface around Bitcoin
 
 3. **Creating a Wallet**
    - In Specter, navigate to the wallet creation section.
+   - Before proceeding, make sure to import your hardware or software wallet device (e.g., Ledger, BitBox, Electrum, ...) into Specter Desktop. Specter Desktop is not a hot wallet and works best in conjunction with hardware wallets for added security. See [installation guide](docs/DeviceCreationGuide.md) for more information about this important topic.
    - Choose the option for a single-signature wallet.
    - Follow the prompts to generate a new seed. This seed is crucial for accessing your funds and should be backed up securely.
    - Configure wallet settings as per your preference.
 
-4. **Backing Up the Wallet**
+
+5. **Backing Up the Wallet**
    - After creating the wallet, make sure to back up the seed securely.
    - Specter recommends storing seeds on steel for long-term durability against elements like fire and water.
+   - Storing seeds on steel plates is more crucial for Single-Signature (SingleSig) wallets because access to the seed alone grants full control over the funds. In Multi-Signature (MultiSig) wallets, the requirement for multiple keys to authorize transactions reduces the risk of a single seed compromise leading to complete loss of funds. However, it's still essential to securely store all seeds in a MultiSig wallet to ensure key availability in emergencies, especially for significant amounts of cryptocurrency.
 
-5. **Testing the Wallet**
+
+6. **Testing the Wallet**
    - It's advisable to test the wallet by sending a small amount of Bitcoin to it and then trying to access these funds using the wallet.
 
 ## Backup PDFs
