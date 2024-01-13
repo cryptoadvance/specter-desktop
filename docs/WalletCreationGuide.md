@@ -25,7 +25,7 @@ Specter wallets are designed to provide a user-friendly interface around Bitcoin
 2. **Running the App**
    - Start the Specter Desktop app.
    - It should automatically detect Bitcoin Core if it's using a default data folder.
-   - If not, set rpcuser and rpcpassword in the Bitcoin Core's bitcoin.conf file or directly in the Specter app settings.
+   - If not, set rpcuser and rpcpassword in the Bitcoin Core's bitcoin.conf file or directly in the Specter app settings. [Node Connecting Guide](docs/connect-your-node.md).
 
 3. **Creating a Wallet**
    - In Specter, navigate to the wallet creation section.
