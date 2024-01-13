@@ -134,27 +134,9 @@ Here are real-world scenarios illustrating how different installation methods fo
 - This matrix is a general guideline. Specifics can vary based on the package manager and the user's technical background.
 
 ## Installation Decision Tree
-**Start Here: Choosing Your Specter Desktop Installation Method**
-- Are you comfortable with technical details and customization?
-  - **Yes:**
-    - Do you require advanced customization and control?
-      - **Yes:** → Build from Source (Best for seasoned developers or enthusiasts seeking deep customization)
-      - **No:** 
-        - Are you familiar with Docker and containerization?
-          - **Yes:** → Install via Docker (Ideal for consistent, isolated environments)
-          - **No:** → Install via Direct Download (Suitable for users comfortable with basic technical steps)
-  - **No:**
-    - Do you prefer ease of use and simplicity?
-      - **Yes:** 
-        - Are you using macOS or Linux?
-          - **Yes:** → Use Package Manager like Homebrew (Simple and straightforward for these OS)
-          - **No:** → Direct Download from Specter Release Page (Easy for Windows users)
-      - **No:** → Use PIP (Python Package Manager) to install to any Os
+[![](https://mermaid.ink/img/pako:eNqFU21P2zAQ_isnf4Y_kEmbGBGi0gpoYZvQvA-HfW2s2neVY69jlP8-pxkspQ374kSX5-V8T-5RGbGkKqV5GXHdwm39TrPmJmFM33cnXFKkCs5bkc7xEu4kR2jWZBJFqKlbJVnDjLuE3mNywjCn1Ir98aIDp6fvYXsWCR4kg5GwkJjw3hNsXGohkWnZGfRgKaHzHSBbMLlLEtzvneSHLdw-o-oBpPl1ZbC5o24LZ_YnsiF7PhaZYlzJFi4wOO8wfisN1WJWFDUfFRmZfMzO24sooSkTMfQmYcrjsDYy-DvUrw6f4aOKiyWBWjbsBe2INEdz3VzHT47zr_8R-q6uSv59mm7hzIwTld9gGNY-ocluiOyf0z7gM3nCjm5wSW9ze9MvBTi70TxudqTcf0azKlJz5HLGY8he57iP5gOBkfilBLqPtHntMME5tNm76XCTHbQ8x2swHW4vORVMvzTqRAWKAZ0ti_moGUCr1FIgraryajGudFnYp4LDnKR5YKOqFDOdqLy2mKh2WGIMqlqg7-jpD4TRbS8?type=png)](https://mermaid-js.github.io/mermaid-live-editor/edit#pako:eNqFU21P2zAQ_isnf4Y_kEmbGBGi0gpoYZvQvA-HfW2s2neVY69jlP8-pxkspQ374kSX5-V8T-5RGbGkKqV5GXHdwm39TrPmJmFM33cnXFKkCs5bkc7xEu4kR2jWZBJFqKlbJVnDjLuE3mNywjCn1Ir98aIDp6fvYXsWCR4kg5GwkJjw3hNsXGohkWnZGfRgKaHzHSBbMLlLEtzvneSHLdw-o-oBpPl1ZbC5o24LZ_YnsiF7PhaZYlzJFi4wOO8wfisN1WJWFDUfFRmZfMzO24sooSkTMfQmYcrjsDYy-DvUrw6f4aOKiyWBWjbsBe2INEdz3VzHT47zr_8R-q6uSv59mm7hzIwTld9gGNY-ocluiOyf0z7gM3nCjm5wSW9ze9MvBTi70TxudqTcf0azKlJz5HLGY8he57iP5gOBkfilBLqPtHntMME5tNm76XCTHbQ8x2swHW4vORVMvzTqRAWKAZ0ti_moGUCr1FIgraryajGudFnYp4LDnKR5YKOqFDOdqLy2mKh2WGIMqlqg7-jpD4TRbS8)
 
-- Are you integrating with a specific Bitcoin node?
-  - **Yes:**
-    - → Choose Node-Specific Integration (Select based on the node you are operating, like Raspiblitz or Umbrel)
-  - **No:** → Refer back to technical comfort level and ease of use preferences
+
 
 ## Installation Method Considerations
 
