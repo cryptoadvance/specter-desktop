@@ -83,7 +83,9 @@ class BaseConfig(object):
     KEY = os.getenv("KEY", None)
 
     # It might be necessary to enforce the HWI initialisation
-    ENFORCE_HWI_INITIALISATION_AT_STARTUP = False
+    ENFORCE_HWI_INITIALISATION_AT_STARTUP = _get_bool_env_var(
+        "ENFORCE_HWI_INITIALISATION_AT_STARTUP", False
+    )
 
     # This will be used to search for a bitcoin.conf in order to enable the
     # auth method "RPC password as pin"
