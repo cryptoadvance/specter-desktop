@@ -77,7 +77,8 @@ As a small team on a tiny budget we are working hard to make Specter better ever
 
 ### Using the Specter Desktop app
 The easiest way to run Specter Desktop is by installing the Specter Desktop app, which you can find on the [GitHub release page](https://github.com/cryptoadvance/specter-desktop/releases).
-With this method, all you need to do is just download the right file for your operating system and install it like a normal desktop app (Debian buster is only [partially supported](https://github.com/cryptoadvance/specter-desktop/issues/769))
+With this method, all you need to do is just download the right file for your operating system and install it like a normal desktop app (Debian buster is only [partially supported](https://github.com/cryptoadvance/specter-desktop/issues/769)).
+But there are a bunch of other option which you can read up in the [installation guide](docs/install_guide.md).
 
 ### Installing Specter from Pip
 * Specter requires Python version 3.9 to 3.10.
