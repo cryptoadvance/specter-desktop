@@ -8,6 +8,7 @@ nav:
       - multisig-guide.md
     - User Guide:
       - faq.md
+      - install_guide.md
       - 'Using Tor': tor.md
       - 'Signing messages': sign-message.md
     - Operating Guide:
