@@ -83,8 +83,8 @@ John's wallet supports BIP 49, which is designed for SegWit compatibility in a P
 ##### Advantage
 By using BIP 49, John benefits from lower transaction fees compared to traditional addresses and improved transaction speed due to SegWit's efficiency in block space usage. This is particularly beneficial for a business with frequent transactions.
 
-## Example 3: BIP 84 (Native SegWit Bech32 Addresses)
-### Scenario: Maximizing Efficiency and Future-Proofing
+### Example 3: BIP 84 (Native SegWit Bech32 Addresses)
+#### Scenario: Maximizing Efficiency and Future-Proofing
 
 ##### Context
 Lisa is a tech-savvy investor who keeps up with the latest developments in cryptocurrency technology. She wants to use the most advanced and efficient method for managing her Bitcoin transactions.
