@@ -9,8 +9,8 @@ nav:
     - User Guide:
       - faq.md
       - install_guide.md
-      - WalletCreationGuide.md
       - DeviceCreationGuide.md
+      - WalletCreationGuide.md
       - 'Using Tor': tor.md
       - 'Signing messages': sign-message.md
     - Operating Guide:
