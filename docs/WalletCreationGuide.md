@@ -13,6 +13,8 @@ Specter wallets are designed to provide a user-friendly interface around Bitcoin
 
 ### Multi-Sig Wallets
 - More secure than single-sig, multisig wallets require two or more signing devices to authorize transactions.
+- A key feature is the quorum requirement, which specifies the number of signatures needed out of the total number of devices. For example, a common scenario is requiring 2 signatures from a total of 3 devices (2/3 quorum). This setup enhances security as it requires multiple parties or devices to agree on a transaction.
+- Multisig wallets are particularly effective against phishing and theft as compromising one seed or device is not enough to access the funds.
 - They offer better security, as one compromised seed doesn't result in immediate loss of funds.
 - However, they are more complex to set up and require multiple secure locations for seed backups.
 
@@ -23,8 +25,8 @@ Specter wallets are designed to provide a user-friendly interface around Bitcoin
 
 #### Multi-Sig Wallets Examples:
 
-- A group of friends setting up a multi-signature Specter wallet for a shared investment fund, where multiple devices are required to authorize transactions, enhancing security.
-- A cryptocurrency exchange using a multi-signature setup with several hardware wallets to protect customer funds against a single point of failure.
+- A group of friends setting up a multi-signature Specter wallet for a shared investment fund, where multiple devices are required to authorize transactions, enhancing security. For more detailed guidance on setting up such a wallet, refer to our [Multi-Sig Wallet Guide](docs/multisig-guide.md).
+- A cryptocurrency exchange using a multi-signature setup with several hardware wallets to protect customer funds against a single point of failure. Our [Multi-Sig Wallet Guide](docs/multisig-guide.md) offers comprehensive steps and best practices for implementing such a secure system.
 
 
 ## Step-by-Step Guide for Single-Sig Wallets
@@ -36,21 +38,20 @@ Specter wallets are designed to provide a user-friendly interface around Bitcoin
 2. **Running the App**
    - Start the Specter Desktop app.
    - It should automatically detect Bitcoin Core if it's using a default data folder.
-   - If not, set rpcuser and rpcpassword in the Bitcoin Core's bitcoin.conf file or directly in the Specter app settings. [Node Connecting Guide](docs/connect-your-node.md).
+   - If not, set rpcuser and rpcpassword in the Bitcoin Core's bitcoin.conf file and directly in the Specter app settings. [Node Connecting Guide](docs/connect-your-node.md).
 
 3. **Creating a Wallet**
    - In Specter, navigate to the wallet creation section.
-   - Before proceeding, make sure to import your hardware or software wallet device (e.g., Ledger, BitBox, Electrum, ...) into Specter Desktop. Specter Desktop is not a hot wallet and works best in conjunction with hardware wallets for added security. See [installation guide](docs/DeviceCreationGuide.md) for more information about this important topic.
-   - Choose the option for a single-signature wallet.
-   - Follow the prompts to generate a new seed. This seed is crucial for accessing your funds and should be backed up securely.
-   - Configure wallet settings as per your preference.
+   - **Important:** Before proceeding, ensure you have imported your hardware wallet device (e.g., Ledger, BitBox, Trezor) into Specter Desktop. Specter is specifically designed to enhance security by working with hardware wallets, providing an extra layer of protection compared to hot wallets. For detailed instructions on connecting your hardware wallet, refer to the [Device Creation Guide](docs/DeviceCreationGuide.md).
+   - Choose the option for a single-signature wallet if you are setting up a wallet with one device. For enhanced security, consider setting up a multi-signature wallet.
+   - If you are creating a single-signature wallet, follow the prompts to generate a new seed on your hardware wallet. Remember, this seed is crucial for accessing your funds and should be backed up securely and never entered on the computer.
 
-5. **Backing Up the Wallet**
-   - After creating the wallet, make sure to back up the seed securely.
-   - Specter recommends storing seeds on steel for long-term durability against elements like fire and water.
-   - Storing seeds on steel plates is more crucial for Single-Signature (SingleSig) wallets because access to the seed alone grants full control over the funds. In Multi-Signature (MultiSig) wallets, the requirement for multiple keys to authorize transactions reduces the risk of a single seed compromise leading to complete loss of funds. However, it's still essential to securely store all seeds in a MultiSig wallet to ensure key availability in emergencies, especially for significant amounts of cryptocurrency.
+4. **Backing Up the Wallet**
+   - After creating the wallet, it's crucial to back up the seed securely.
+   - For single-signature wallets, where the loss of the seed equates to the loss of funds, Specter strongly recommends storing seeds on steel. This method provides long-term durability against elements like fire and water, ensuring your backup remains intact in various scenarios.
+   - While still advisable for multi-signature setups, steel backups in multisig configurations are slightly less critical since the loss of a single seed doesn’t necessarily mean loss of funds, provided other signatures are available. However, it is still a best practice to secure each seed with the utmost care.
 
-6. **Testing the Wallet**
+5. **Testing the Wallet**
    - It's advisable to test the wallet by sending a small amount of Bitcoin to it and then trying to access these funds using the wallet.
 
 ## Backup PDFs
