@@ -112,6 +112,7 @@ John has been managing his Bitcoin assets using an older wallet setup. As the vo
 John's current wallet utilizes BIP 49, which enables SegWit compatibility through Pay to Script Hash (P2SH) addresses, identifiable by starting with '3'. His addresses follow the derivation path m/49'/0'/0'. Despite being aware of newer wallet technologies like those adhering to BIP 84, which offer even greater efficiencies by fully embracing native SegWit addresses (beginning with 'bc1'), John decides to stick with his current setup.
 ##### Advantage
 John's decision is influenced by his desire to maintain his current UTXO set. He is cautious about the transaction fees that would be incurred in transferring his entire balance to a new wallet structure. By sticking with BIP 49, John still benefits from reduced transaction fees and improved speeds compared to legacy addresses, but he acknowledges that his setup is not as efficient as it could be with BIP 84. His choice represents a compromise between optimizing transaction efficiency and minimizing the costs associated with a complete migration to a new wallet system.
+
 ### Example 3: BIP 84 (Native SegWit Bech32 Addresses)
 #### Scenario: Maximizing Efficiency and Exploring Testnets
 
