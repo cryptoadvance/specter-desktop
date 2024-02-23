@@ -13,10 +13,10 @@ Welcome to the Device Creation Guide for Specter Hardware Wallets. In this compr
 - **Use Case:** Alice opts for an SD-Card hardware wallet. Its small size and portability make it an ideal choice for her travels. She can easily carry it in her purse or securely store it in a safe. The SD-Card wallet allows her to access her digital assets on the go, without the need for an internet connection, reducing the risk of online threats. Moreover, she uses the SD-Card as a secure backup, storing a duplicate in a safe location.
 - **Supported Devices:**
   
-  - BitBox02  <img src="../src/cryptoadvance/specter/static/img/devices/bitbox02_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> A Swiss-made hardware wallet known for its security and simplicity. It and features both SD-Card and USB interfaces for enhanced flexibility. (Image: /src/cryptoadvance/specter/static/img/devices/bitbox02_icon.svg)
-  - Coldcard  <img src="../src/cryptoadvance/specter/static/img/devices/coldcard_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> A popular choice for a secure and dedicated Bitcoin hardware wallet. Known for its advanced security features and ability to work with PSBT (Partially Signed Bitcoin Transactions). (Image: /src/cryptoadvance/specter/static/img/devices/coldcard_icon.svg)
-  - Cobo  <img src="../src/cryptoadvance/specter/static/img/devices/cobo_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> Designed for durability and security, Cobo is a multi-cryptocurrency hardware wallet with SD-Card support for backup and recovery. (Image: /src/cryptoadvance/specter/static/img/devices/)
-  - Passport  <img src="../src/cryptoadvance/specter/static/img/devices/passport_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> This device emphasizes user-friendly design and privacy, offering air-gapped operation via QR codes and SD-Card backup. (Image: /src/cryptoadvance/specter/static/img/devices/)
+  - BitBox02  <img src="../src/cryptoadvance/specter/static/img/devices/bitbox02_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> A Swiss-made hardware wallet known for its security and simplicity. It and features both SD-Card and USB interfaces for enhanced flexibility.
+  - Coldcard  <img src="../src/cryptoadvance/specter/static/img/devices/coldcard_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> A popular choice for a secure and dedicated Bitcoin hardware wallet. Known for its advanced security features and ability to work with PSBT (Partially Signed Bitcoin Transactions).
+  - Cobo  <img src="../src/cryptoadvance/specter/static/img/devices/cobo_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> Designed for durability and security, Cobo is a multi-cryptocurrency hardware wallet with SD-Card support for backup and recovery. 
+  - Passport  <img src="../src/cryptoadvance/specter/static/img/devices/passport_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> This device emphasizes user-friendly design and privacy, offering air-gapped operation via QR codes and SD-Card backup.
 
 ### QR Code Wallets
 
@@ -78,7 +78,7 @@ These default settings cover the needs of most users, simplifying the wallet set
 
 2. **Compatibility:**
    - Using the wrong derivation path can lead to compatibility issues, making it challenging to access your funds. It's crucial to ensure that the path you choose is supported by your wallet software and the services you intend to use. Staying informed about updates and changes in the Bitcoin ecosystem is essential to avoid compatibility pitfalls.
-   - To assist with this, common derivation paths for different wallets can be found at [Wallets Recovery](https://walletsrecovery.org/). This resource can be useful for understanding the standard practices of various wallets and ensuring compatibility.
+   - To assist with this, [common derivation paths for different wallets can be found at Wallets Recovery](https://walletsrecovery.org/). This resource can be useful for understanding the standard practices of various wallets and ensuring compatibility.
    - Ensure that the path you choose is supported by your wallet software and the services you intend to use.
 
 3. **Security Risks:**
@@ -133,7 +133,7 @@ In each of these scenarios, the use of different derivation paths (BIP 44, BIP 4
 - **BIP 49** benefits users like John, who seek efficiency and reduced costs in their transactions. The SegWit compatibility in P2SH format helps in lowering transaction fees and improving confirmation speeds.
 - **BIP 84** is perfect for tech-savvy users like Lisa, who want to leverage the latest advancements in Bitcoin technology for optimal efficiency and future compatibility.
 
-For those seeking a deeper understanding of derivation paths, we recommend exploring "[Learn Me a Bitcoin](https://learnmeabitcoin.com/technical/derivation-paths)". This website provides in-depth information on the topic, and you can integrate this knowledge into our guide for a more comprehensive grasp of derivation paths.
+For those seeking a deeper understanding of derivation paths, we recommend exploring "[Learn Me a Bitcoin". This website provides in-depth information](https://learnmeabitcoin.com/technical/derivation-paths) on the topic, and you can integrate this knowledge into our guide for a more comprehensive grasp of derivation paths.
 
 ## Troubleshooting
 

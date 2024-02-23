@@ -25,24 +25,24 @@ Specter wallets are designed to provide a user-friendly interface around Bitcoin
 
 #### Multi-Sig Wallets Examples:
 
-- A group of friends setting up a multi-signature Specter wallet for a shared investment fund, where multiple devices are required to authorize transactions, enhancing security. For more detailed guidance on setting up such a wallet, [refer to our Multi-Sig Wallet Guide](docs/multisig-guide.md).
-- A Bitcoin exchange using a multi-signature setup with several hardware wallets to protect customer funds against a single point of failure. [Our Multi-Sig Wallet Guide offers](docs/multisig-guide.md) comprehensive steps and best practices for implementing such a secure system.
+- A group of friends setting up a multi-signature Specter wallet for a shared investment fund, where multiple devices are required to authorize transactions, enhancing security. For more detailed guidance on setting up such a wallet, [refer to our Multi-Sig Wallet Guide](multisig-guide.md).
+- A Bitcoin exchange using a multi-signature setup with several hardware wallets to protect customer funds against a single point of failure. [Our Multi-Sig Wallet Guide offers](multisig-guide.md) comprehensive steps and best practices for implementing such a secure system.
 
 
 ## Step-by-Step Guide for Single-Sig Wallets
 
 1. **Setup and Installation**
-   - Download and install the Specter Desktop app from the official GitHub release page. You can [find the installation guide here](docs/install_guide.md).
+   - Download and install the Specter Desktop app from the official GitHub release page. You can [find the installation guide here](install_guide.md).
    - Ensure your system meets the necessary requirements (like Python version, Bitcoin Core version).
 
 2. **Running the App**
    - Start the Specter Desktop app.
    - It should automatically detect Bitcoin Core if it's using a default data folder.
-   - If not, set rpcuser and rpcpassword in the Bitcoin Core's bitcoin.conf file and directly in the Specter app settings. You can [find the Node Connecting Guide here](docs/connect-your-node.md).
+   - If not, set rpcuser and rpcpassword in the Bitcoin Core's bitcoin.conf file and directly in the Specter app settings. You can [find the Node Connecting Guide here](connect-your-node.md).
 
 3. **Creating a Wallet**
    - In Specter, navigate to the wallet creation section.
-   - **Important:** Before proceeding, ensure you have imported your hardware wallet device (e.g., Ledger, BitBox, Trezor) into Specter Desktop. Specter is specifically designed to enhance security by working with hardware wallets, providing an extra layer of protection compared to hot wallets. For detailed instructions on connecting your hardware wallet, refer to the [Device Creation Guide](docs/DeviceCreationGuide.md).
+   - **Important:** Before proceeding, ensure you have imported your hardware wallet device (e.g., Ledger, BitBox, Trezor) into Specter Desktop. Specter is specifically designed to enhance security by working with hardware wallets, providing an extra layer of protection compared to hot wallets. For detailed instructions on connecting your hardware wallet, [refer to the Device Creation Guide](DeviceCreationGuide.md).
    - Choose the option for a single-signature wallet if you are setting up a wallet with one device. For enhanced security, consider setting up a multi-signature wallet.
    - When creating a single-signature wallet, Specter will interface with your hardware wallet. **Note:** If your hardware wallet is already initialized (which is the common scenario), Specter will use the existing seed from your device to manage the wallet. There is no need to generate a new seed within Specter. It is crucial to keep your seed secure and never enter it on the computer or share it with anyone.
    - **For New Hardware Wallet Users:**
