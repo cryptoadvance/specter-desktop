@@ -13,10 +13,10 @@ Welcome to the Device Creation Guide for Specter Hardware Wallets. In this compr
 - **Use Case:** Alice opts for an SD-Card hardware wallet. Its small size and portability make it an ideal choice for her travels. She can easily carry it in her purse or securely store it in a safe. The SD-Card wallet allows her to access her digital assets on the go, without the need for an internet connection, reducing the risk of online threats. Moreover, she uses the SD-Card as a secure backup, storing a duplicate in a safe location.
 - **Supported Devices:**
   
-  - BitBox02  <img src="/src/cryptoadvance/specter/static/img/devices/bitbox02_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> A Swiss-made hardware wallet known for its security and simplicity. It and features both SD-Card and USB interfaces for enhanced flexibility. (Image: /src/cryptoadvance/specter/static/img/devices/bitbox02_icon.svg)
-  - Coldcard  <img src="/src/cryptoadvance/specter/static/img/devices/coldcard_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> A popular choice for a secure and dedicated Bitcoin hardware wallet. Known for its advanced security features and ability to work with PSBT (Partially Signed Bitcoin Transactions). (Image: /src/cryptoadvance/specter/static/img/devices/coldcard_icon.svg)
-  - Cobo  <img src="/src/cryptoadvance/specter/static/img/devices/cobo_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> Designed for durability and security, Cobo is a multi-cryptocurrency hardware wallet with SD-Card support for backup and recovery. (Image: /src/cryptoadvance/specter/static/img/devices/)
-  - Passport  <img src="/src/cryptoadvance/specter/static/img/devices/passport_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> This device emphasizes user-friendly design and privacy, offering air-gapped operation via QR codes and SD-Card backup. (Image: /src/cryptoadvance/specter/static/img/devices/)
+  - BitBox02  <img src="../src/cryptoadvance/specter/static/img/devices/bitbox02_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> A Swiss-made hardware wallet known for its security and simplicity. It and features both SD-Card and USB interfaces for enhanced flexibility. (Image: /src/cryptoadvance/specter/static/img/devices/bitbox02_icon.svg)
+  - Coldcard  <img src="../src/cryptoadvance/specter/static/img/devices/coldcard_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> A popular choice for a secure and dedicated Bitcoin hardware wallet. Known for its advanced security features and ability to work with PSBT (Partially Signed Bitcoin Transactions). (Image: /src/cryptoadvance/specter/static/img/devices/coldcard_icon.svg)
+  - Cobo  <img src="../src/cryptoadvance/specter/static/img/devices/cobo_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> Designed for durability and security, Cobo is a multi-cryptocurrency hardware wallet with SD-Card support for backup and recovery. (Image: /src/cryptoadvance/specter/static/img/devices/)
+  - Passport  <img src="../src/cryptoadvance/specter/static/img/devices/passport_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> This device emphasizes user-friendly design and privacy, offering air-gapped operation via QR codes and SD-Card backup. (Image: /src/cryptoadvance/specter/static/img/devices/)
 
 ### QR Code Wallets
 
@@ -25,8 +25,8 @@ Welcome to the Device Creation Guide for Specter Hardware Wallets. In this compr
 - **Use Case:** Bob uses a QR Code wallet, which provides enhanced security through minimal direct connections. When making transactions, he simply scans the QR code displayed by his wallet. This method eliminates the need to connect to potentially insecure networks or devices, significantly reducing the risk of digital asset theft. The QR Code wallet’s ability to operate with minimal connectivity makes it an excellent choice for secure, hassle-free transactions in public settings.
 - **Supported Devices:**
   
-  - Jade  <img src="/src/cryptoadvance/specter/static/img/devices/jade_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> A budget-friendly hardware wallet with QR code functionality for secure and offline transactions.
-  - SeedSigner  <img src="/src/cryptoadvance/specter/static/img/devices/seedsigner_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> An open-source project that focuses on creating a secure, offline transaction signing device using QR codes.
+  - Jade  <img src="../src/cryptoadvance/specter/static/img/devices/jade_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> A budget-friendly hardware wallet with QR code functionality for secure and offline transactions.
+  - SeedSigner  <img src="../src/cryptoadvance/specter/static/img/devices/seedsigner_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> An open-source project that focuses on creating a secure, offline transaction signing device using QR codes.
 
 ### USB Wallets
 
@@ -36,11 +36,11 @@ Welcome to the Device Creation Guide for Specter Hardware Wallets. In this compr
 - **Use Case:** Carol chooses a USB wallet for its user-friendly interface and direct connectivity. The USB wallet's plug-and-play nature makes it simple to connect to her store's point-of-sale system or her personal computer. Its compatibility with various devices allows her to efficiently manage transactions without the need for specialized hardware. The USB wallet's intuitive interface makes it easy for Carol to navigate, making it an ideal choice for her everyday business transactions.
 - **Supported Devices:**
 
-  - BitBox02  <img src="/src/cryptoadvance/specter/static/img/devices/bitbox02_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> Swiss-made hardware wallet, offering a blend of security and simplicity.
-  - KeepKey  <img src="/src/cryptoadvance/specter/static/img/devices/keepkey_icon.svg" alt="Keystone Wallet" width="25" height="25"/> A user-friendly wallet with a large display, providing a secure environment for cryptocurrency storage and transactions.
-  - Ledger  <img src="/src/cryptoadvance/specter/static/img/devices/ledger_icon.svg" alt="Ledger Wallet" width="25" height="25"/> Known for its security and sleek design, Ledger wallets support a wide range of cryptocurrencies.
-  - Trezor  <img src="/src/cryptoadvance/specter/static/img/devices/trezor_icon.svg" alt="Trezor Wallet" width="25" height="25"/> One of the first hardware wallets in the market, renowned for its ease of use and robust security measures.
-  - Keystone <img src="/src/cryptoadvance/specter/static/img/devices/keystone_icon.svg" alt="Keystone Wallet" width="25" height="25"/> Formerly known as Cobo Vault, Keystone wallets offer a high-security solution with air-gapped QR code signing. 
+  - BitBox02  <img src="../src/cryptoadvance/specter/static/img/devices/bitbox02_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> Swiss-made hardware wallet, offering a blend of security and simplicity.
+  - KeepKey  <img src="../src/cryptoadvance/specter/static/img/devices/keepkey_icon.svg" alt="Keystone Wallet" width="25" height="25"/> A user-friendly wallet with a large display, providing a secure environment for cryptocurrency storage and transactions.
+  - Ledger  <img src="../src/cryptoadvance/specter/static/img/devices/ledger_icon.svg" alt="Ledger Wallet" width="25" height="25"/> Known for its security and sleek design, Ledger wallets support a wide range of cryptocurrencies.
+  - Trezor  <img src="../src/cryptoadvance/specter/static/img/devices/trezor_icon.svg" alt="Trezor Wallet" width="25" height="25"/> One of the first hardware wallets in the market, renowned for its ease of use and robust security measures.
+  - Keystone <img src="../src/cryptoadvance/specter/static/img/devices/keystone_icon.svg" alt="Keystone Wallet" width="25" height="25"/> Formerly known as Cobo Vault, Keystone wallets offer a high-security solution with air-gapped QR code signing. 
 
   
 ## Step-by-Step Guide for Device Creation in Specter
@@ -66,9 +66,8 @@ Electrum server or...
 Understanding derivation paths is fundamental to managing the security of your digital assets. In this section, we'll provide you with an overview of what derivation paths are and why they matter. We'll also introduce key paths like BIP 44 (for multi-account hierarchy), BIP 49 (for SegWit compatibility), and BIP 84 (for native SegWit addresses). Each of these paths caters to different Bitcoin address types and plays a crucial role in organizing and securing your cryptocurrencies, especially within hardware wallets.
 
 By default, Specter Wallets are set up with:
-
-  - BIP 44 for traditional multisig wallets.
-  - BIP 49 or BIP 84 for SegWit singlesig wallets.
+- BIP 44 for traditional multisig wallets.
+- BIP 49 or BIP 84 for SegWit singlesig wallets.
 
 These default settings cover the needs of most users, simplifying the wallet setup and usage process. However, understanding these paths can enhance your ability to tailor the wallet to your specific needs, especially if you have advanced security considerations.
 
@@ -78,13 +77,13 @@ These default settings cover the needs of most users, simplifying the wallet set
    - Derivation paths, especially when considering various Bitcoin address types like BIP 44, BIP 49, and BIP 84, can be intricate. The challenge lies in comprehending the nuances of each path and selecting the one that aligns with your specific use case. Best practice here is to educate yourself thoroughly and seek expert advice if needed.
 
 2. **Compatibility:**
-      - Using the wrong derivation path can lead to compatibility issues, making it challenging to access your funds. It's crucial to ensure that the path you choose is supported by your wallet software and the services you intend to use. Staying informed about updates and changes in the cryptocurrency ecosystem is essential to avoid compatibility pitfalls.
-      - To assist with this, common derivation paths for different wallets can be found at [Wallets Recovery](https://walletsrecovery.org/). This resource can be useful for understanding the standard practices of various wallets and ensuring compatibility.
-      - Ensure that the path you choose is supported by your wallet software and the services you intend to use.
+   - Using the wrong derivation path can lead to compatibility issues, making it challenging to access your funds. It's crucial to ensure that the path you choose is supported by your wallet software and the services you intend to use. Staying informed about updates and changes in the cryptocurrency ecosystem is essential to avoid compatibility pitfalls.
+   - To assist with this, common derivation paths for different wallets can be found at [Wallets Recovery](https://walletsrecovery.org/). This resource can be useful for understanding the standard practices of various wallets and ensuring compatibility.
+   - Ensure that the path you choose is supported by your wallet software and the services you intend to use.
 
 3. **Security Risks:**
-      - Incorrectly managed derivation paths can introduce security risks. For instance, sharing your master public key (xpub) derived from an account with a third party may expose all the addresses generated from it. Best practice involves limiting the exposure of sensitive information and adopting a "need-to-know" approach when sharing keys or information related to derivation paths.
-      - Limit the exposure of sensitive information and adopt a "need-to-know" approach when sharing keys or information related to derivation paths.
+   - Incorrectly managed derivation paths can introduce security risks. For instance, sharing your master public key (xpub) derived from an account with a third party may expose all the addresses generated from it. Best practice involves limiting the exposure of sensitive information and adopting a "need-to-know" approach when sharing keys or information related to derivation paths.
+   - Limit the exposure of sensitive information and adopt a "need-to-know" approach when sharing keys or information related to derivation paths.
 
 4. **Backup Strategies:**
    - Derivation paths affect how you back up your wallet. Implementing a robust backup strategy that includes the derivation path information is essential. Best practice is to maintain secure backups and periodically test your recovery process to ensure you can regain access to your digital assets if the need arises.
@@ -105,17 +104,14 @@ Emily opts to use the BIP 84 derivation path, which is designed for native SegWi
 By using two distinct accounts under the BIP 84 standard, Emily efficiently manages her assets, keeping her main funds secure and private while still participating in stacking services.
 
 ### Example 2: BIP 49 (SegWit Compatibility in P2SH)
-#### Scenario: Migrating to a More Efficient Wallet System
+#### Scenario: Balancing Efficiency with Cost in Wallet Management
 
 ##### Context
-John has been using an older Bitcoin wallet system. As his transactions grows, he's looking for more efficiency in his transactions, particularly in terms of speed and reduced fees. He's aware that newer wallet technologies (e.g specter) offer significant improvements and is considering migrating to a wallet that supports these advancements.
-
+John has been managing his Bitcoin assets using an older wallet setup. As the volume of his transactions increases, he's faced with the challenge of seeking more efficient transaction processing, both in terms of speed and reduced fees, without incurring significant costs in moving his funds.
 ##### Use Case
-John's wallet supports BIP 49, which is designed for SegWit compatibility in a Pay to Script Hash (P2SH) format. This means his wallet generates addresses that start with '3'. His derivation path looks like: `m/49'/0'/0'`.
-
+John's current wallet utilizes BIP 49, which enables SegWit compatibility through Pay to Script Hash (P2SH) addresses, identifiable by starting with '3'. His addresses follow the derivation path m/49'/0'/0'. Despite being aware of newer wallet technologies like those adhering to BIP 84, which offer even greater efficiencies by fully embracing native SegWit addresses (beginning with 'bc1'), John decides to stick with his current setup.
 ##### Advantage
-By using BIP 49, John benefits from lower transaction fees compared to traditional addresses and improved transaction speed due to SegWit's efficiency in block space usage.
-
+John's decision is influenced by his desire to maintain his current UTXO set. He is cautious about the transaction fees that would be incurred in transferring his entire balance to a new wallet structure. By sticking with BIP 49, John still benefits from reduced transaction fees and improved speeds compared to legacy addresses, but he acknowledges that his setup is not as efficient as it could be with BIP 84. His choice represents a compromise between optimizing transaction efficiency and minimizing the costs associated with a complete migration to a new wallet system.
 ### Example 3: BIP 84 (Native SegWit Bech32 Addresses)
 #### Scenario: Maximizing Efficiency and Exploring Testnets
 
