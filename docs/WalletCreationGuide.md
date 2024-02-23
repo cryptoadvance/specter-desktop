@@ -26,7 +26,7 @@ Specter wallets are designed to provide a user-friendly interface around Bitcoin
 #### Multi-Sig Wallets Examples:
 
 - A group of friends setting up a multi-signature Specter wallet for a shared investment fund, where multiple devices are required to authorize transactions, enhancing security. For more detailed guidance on setting up such a wallet, [refer to our Multi-Sig Wallet Guide](docs/multisig-guide.md).
-- A cryptocurrency exchange using a multi-signature setup with several hardware wallets to protect customer funds against a single point of failure. [Our Multi-Sig Wallet Guide offers](docs/multisig-guide.md) comprehensive steps and best practices for implementing such a secure system.
+- A Bitcoin exchange using a multi-signature setup with several hardware wallets to protect customer funds against a single point of failure. [Our Multi-Sig Wallet Guide offers](docs/multisig-guide.md) comprehensive steps and best practices for implementing such a secure system.
 
 
 ## Step-by-Step Guide for Single-Sig Wallets
