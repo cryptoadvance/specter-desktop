@@ -25,6 +25,7 @@ pyinstaller/electron/downloadloc.js
 pyinstaller/electron/node_modules
 pyinstaller/electron/package-lock.json
 pyinstaller/electron/dist
+pyinstaller/electron/signing_logs
 pyinstaller/electron/fonts
 pyinstaller/electron/typography.css
 pyinstaller/electron/output.css
