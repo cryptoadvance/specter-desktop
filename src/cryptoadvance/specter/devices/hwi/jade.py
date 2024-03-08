@@ -139,7 +139,7 @@ class JadeClient(HardwareWalletClient):
         path: str,
         password: Optional[str] = None,
         expert: bool = False,
-        chain: Chain = Chain.TEST,
+        chain: Chain = Chain.MAIN,
         timeout: Optional[int] = None,
     ) -> None:
         super(JadeClient, self).__init__(path, password, expert, chain)
