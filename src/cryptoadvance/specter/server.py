@@ -182,7 +182,7 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     specter.initialize()
 
     # HWI
-    specter.hwi = HWIBridge(app.config["ENFORCE_HWI_INITIALISATION_AT_STARTUP"])
+    specter.hwi = HWIBridge(app.config["SKIP_HWI_INITIALISATION_AT_STARTUP"])
 
     login_manager = LoginManager()
     login_manager.session_protection = app.config.get("SESSION_PROTECTION", "strong")
