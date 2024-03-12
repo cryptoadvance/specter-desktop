@@ -79,6 +79,7 @@ class HWIBridge(JSONRPC):
             "sign_tx": self.sign_tx,
             "sign_message": self.sign_message,
             "extract_master_blinding_key": self.extract_master_blinding_key,
+            "register_multisig": self.register_multisig,  # currently only Jade
             "bitbox02_pairing": self.bitbox02_pairing,
         }
         if skip_hwi_initialisation:
@@ -301,6 +302,34 @@ class HWIBridge(JSONRPC):
                 return status["address"]
             else:
                 raise Exception("Failed to validate address on device: Unknown Error")
+
+    @locked(hwilock)
+    def register_multisig(
+        self,
+        device_type=None,
+        path=None,
+        passphrase="",
+        fingerprint=None,
+        descriptor="",
+        chain="",
+    ):
+        if descriptor == "":
+            raise Exception("Descriptor must not be empty")
+
+        with self._get_client(
+            device_type=device_type,
+            fingerprint=fingerprint,
+            path=path,
+            passphrase=passphrase,
+            chain=chain,
+        ) as client:
+            try:
+                return client.register_multisig(descriptor)
+            except Exception as e:
+                logger.exception(e)
+                raise Exception(
+                    f"Failed to register multisig on the device. Error: {e}"
+                )
 
     @locked(hwilock)
     def sign_tx(

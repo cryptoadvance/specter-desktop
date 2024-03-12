@@ -40,6 +40,7 @@ from embit import hashes
 from embit.util import secp256k1
 from embit.liquid.finalizer import finalize_psbt
 from embit.liquid.transaction import write_commitment
+from embit.descriptor import Descriptor
 
 # The test emulator port
 SIMULATOR_PATH = "tcp:127.0.0.1:30121"
@@ -571,6 +572,57 @@ class JadeClient(HardwareWalletClient):
         )
 
         return str(address)
+
+    # Custom Specter method - register multisig on the Jade
+    @jade_exception
+    def register_multisig(self, descriptor: str) -> None:
+
+        descriptor = Descriptor.from_string(descriptor)
+        signer_origins = []
+        signers = []
+        paths = []
+        for key in descriptor.keys:
+            # Tuple to derive deterministic name for the registration
+            signer_origins.append((key.origin.fingerprint, key.origin.derivation))
+
+            #  We won't include the additional path in the multisig registration
+            signers.append(
+                {
+                    "fingerprint": key.fingerprint,
+                    "derivation": key.derivation,
+                    "xpub": key.key.to_string(),
+                    "path": [],
+                }
+            )
+
+        # Get a deterministic name for this multisig wallet (ignoring bip67 key sorting)
+        if descriptor.wsh and not descriptor.sh:
+            addr_type = AddressType.WIT
+        elif descriptor.wsh and descriptor.sh:
+            addr_type = AddressType.SH_WIT
+        elif descriptor.wsh.is_legacy:
+            addr_type = AddressType.LEGACY
+        else:
+            raise BadArgumentError(
+                "The script type of the descriptor does not match any standard type."
+            )
+
+        script_variant = self._convertAddrType(addr_type, multisig=True)
+        threshold = descriptor.miniscript.args[0].num  # hackish ...
+
+        multisig_name = self._get_multisig_name(
+            script_variant, threshold, signer_origins
+        )
+
+        # 're-registering' is a no-op
+        self.jade.register_multisig(
+            self._network(),
+            multisig_name,
+            script_variant,
+            descriptor.is_sorted,
+            threshold,
+            signers,
+        )
 
     # Setup a new device
     def setup_device(self, label: str = "", passphrase: str = "") -> bool:

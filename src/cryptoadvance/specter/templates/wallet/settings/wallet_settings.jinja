@@ -1,6 +1,7 @@
 {% extends "wallet/components/wallet_tab.jinja" %}
 {% include "includes/file-uploader.html" %}
 {% include "includes/dnd-textarea.html" %}
+{% include "includes/hwi/hwi.jinja" %}
 {% set tab = 'settings' %}
 
 {% block content %}
@@ -21,6 +22,21 @@
 	<div id="wallet_info_settings_tab">
 		{% if wallet.is_multisig %}
 			<h3>{{ _("Devices") }}</h3>
+        	{% if has_device_for_multisig_registration %}
+				<p>Register Multisig</p>
+				<div class="flex flex-col mt-1 mb-2">
+					{% for device in wallet.devices %}
+						{% if device.supports_multisig_registration %}
+							{% for wallet_key in wallet.keys %}
+								{% set matching_device_key = device.keys | selectattr("fingerprint", "eq", wallet_key.fingerprint) | first %}
+                   				{% if matching_device_key %}
+                        			<button class="button p-1" type="button" onclick="registerMultisigOnDevice('{{ matching_device_key.fingerprint }}');">Register on {{ device.name }}</button>
+                    			{% endif %}
+							{% endfor %}
+						{% endif %}
+					{% endfor %}
+				</div>
+			{% endif %}
 			<p>{{ wallet.sigs_required }} out of {{ wallet.keys|length }} multisig</p>
 		{% else %}
 			<h3>{{ _("Device") }}</h3>
@@ -357,6 +373,11 @@
 			let walletDataSpecterFormat = encodeURIComponent(`{{ wallet.to_json(for_export=True)|tojson }}`);
 			document.getElementById('export_specter_format').href = "data:text/json;charset=utf-8," + walletDataSpecterFormat;
 		});
+
+		const registerMultisigOnDevice = async (fingerprint) => {
+			const descriptor = '{{ wallet.descriptor }}'
+			await registerMultisig(descriptor, fingerprint)
+        }
 
 		function toggleKeysList() {
 			let titleButton = document.getElementById('toggle_keys_list');

@@ -49,7 +49,7 @@ class HWIBridge {
         return data.result;
     }
     async enumerate(passphrase="", useTimeout){
-        return await this.fetch("enumerate", { 
+        return await this.myFetch("enumerate", { 
             passphrase
         }, (useTimeout ? 60000 : 0));
     }
@@ -191,5 +191,15 @@ class HWIBridge {
             descriptor: descriptor,
             xpubs_descriptor: xpubs_descriptor,
         });
+    }
+
+    async registerMultisig(device, descriptor, fingerprint) {
+        return await this.myFetch('register_multisig', {
+            device_type: device.type,
+            path: device.path,
+            passphrase: device.passphrase,
+            fingerprint: device.fingerprint,
+            descriptor: descriptor,
+        })
     }
 }
