@@ -141,7 +141,7 @@ class JadeClient(HardwareWalletClient):
         password: Optional[str] = None,
         expert: bool = False,
         chain: Chain = Chain.MAIN,
-        unlock: bool = True,
+        skip_unlocking: bool = False,
         timeout: Optional[int] = None,
     ) -> None:
         super(JadeClient, self).__init__(path, password, expert, chain)
@@ -166,15 +166,15 @@ class JadeClient(HardwareWalletClient):
                 )
         else:
             if uninitialized:
+                if skip_unlocking:
+                    # We don't want to prompt to unlock the device right now
+                    return
                 if not HAS_NETWORKING:
                     # Wallet not initialised/unlocked nor do we have networking dependencies
                     # User must use 'Recovery Phrase Login' or 'QR Unlock' feature to access wallet
                     raise DeviceNotReadyError(
                         'Use "Recovery Phrase Login" or "QR PIN Unlock" feature on Jade hw to access wallet'
                     )
-                if not unlock:
-                    # We don't want to prompt to unlock the device right now
-                    return
 
             # Push some host entropy into jade
             self.jade.add_entropy(os.urandom(32))
@@ -717,7 +717,7 @@ def enumerate(
     password: Optional[str] = None,
     expert: bool = False,
     chain: Chain = Chain.MAIN,
-    unlock=True,
+    skip_unlocking=True,
 ) -> List[Dict[str, Any]]:
     results = []
 
@@ -731,9 +731,12 @@ def enumerate(
 
         client = None
         with handle_errors(common_err_msgs["enumerate"], d_data):
-            client = JadeClient(device_path, password, expert, chain, unlock, timeout=1)
-            # We don't get the fingerprint from a locked Jade
-            if client and unlock:
+            client = JadeClient(
+                device_path, password, expert, chain, skip_unlocking, timeout=1
+            )
+            # The Jade could already be unlocked upon startup (this is the only instance where unlock_required is False right now).
+            # But, we don't need the fingerpint then.
+            if client and not skip_unlocking:
                 d_data["fingerprint"] = client.get_master_fingerprint().hex()
         if client:
             client.close()

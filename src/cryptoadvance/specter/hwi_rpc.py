@@ -106,9 +106,11 @@ class HWIBridge(JSONRPC):
             try:
                 # Special handling of the Jade to unsure it is not prompting to unlock the device on startup
                 if devcls.__name__ == "Jade":
-                    unlock = not self.is_startup
+                    skip_unlocking = self.is_startup
                     client_chain = Chain.argparse(chain)  # This returns an enum member
-                    devs = devcls.enumerate(unlock=unlock, chain=client_chain)
+                    devs = devcls.enumerate(
+                        skip_unlocking=skip_unlocking, chain=client_chain
+                    )
                 else:
                     if passphrase:
                         devs = devcls.enumerate(passphrase)
@@ -449,7 +451,6 @@ class HWIBridge(JSONRPC):
                     password=passphrase,
                     expert=False,
                     chain=client_chain,
-                    unlock=True,
                 )
             else:
                 client = devcls.get_client(device["path"], passphrase)
