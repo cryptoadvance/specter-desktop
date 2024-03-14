@@ -9,7 +9,7 @@ class HWIBridge {
         this.chain = chain;
         this.in_progress = false;
     }
-    async myFetch(command, params={}, timeout=0){
+    async requestToHwiBridge(command, params={}, timeout=0){
         if(this.in_progress){
             throw "HWI is busy processing previous request.";
         }
@@ -49,13 +49,13 @@ class HWIBridge {
         return data.result;
     }
     async enumerate(passphrase="", useTimeout){
-        return await this.myFetch("enumerate", { 
+        return await this.requestToHwiBridge("enumerate", { 
             passphrase
         }, (useTimeout ? 60000 : 0));
     }
     async detectDevice(type, rescan=true){
         // TODO: fingerprint, path, type
-        return await this.myFetch("detect_device", 
+        return await this.requestToHwiBridge("detect_device", 
             { device_type: type, rescan_devices: rescan });
     }
 
@@ -64,7 +64,7 @@ class HWIBridge {
             Tells the server to send the 'togglepassphrase' command to the device.
             KeepKey and Trezor only.
         **/
-        return await this.myFetch('toggle_passphrase', {
+        return await this.requestToHwiBridge('toggle_passphrase', {
             device_type: device.type,
             path: device.path
         });
@@ -75,7 +75,7 @@ class HWIBridge {
             Asks the HWI server for a pairing code for BitBox02.
             Returns {"code": ""} with the code or an empty string if none found.
         **/
-        return await this.myFetch('bitbox02_pairing', {});
+        return await this.requestToHwiBridge('bitbox02_pairing', {});
     }
 
     async promptPin(device, passphrase="") {
@@ -86,7 +86,7 @@ class HWIBridge {
         if(!('passphrase' in device)){
             device.passphrase = passphrase;
         }
-        return await this.myFetch('prompt_pin', {
+        return await this.requestToHwiBridge('prompt_pin', {
             device_type: device.type,
             path: device.path,
             passphrase: device.passphrase,
@@ -101,7 +101,7 @@ class HWIBridge {
         if(!('passphrase' in device)){
             device.passphrase = passphrase;
         }
-        return await this.myFetch('send_pin', {
+        return await this.requestToHwiBridge('send_pin', {
             device_type: device.type,
             path: device.path,
             passphrase: device.passphrase,
@@ -116,7 +116,7 @@ class HWIBridge {
         if(!('passphrase' in device)){
             device.passphrase = passphrase;
         }
-        return await this.myFetch('sign_tx', {
+        return await this.requestToHwiBridge('sign_tx', {
             device_type: device.type,
             path: device.path,
             passphrase: device.passphrase,
@@ -131,7 +131,7 @@ class HWIBridge {
         if(!('passphrase' in device)){
             device.passphrase = passphrase;
         }
-        return await this.myFetch('sign_message', {
+        return await this.requestToHwiBridge('sign_message', {
             device_type: device.type,
             path: device.path,
             passphrase: device.passphrase,
@@ -144,7 +144,7 @@ class HWIBridge {
         if(!('passphrase' in device)){
             device.passphrase = passphrase;
         }
-        return await this.myFetch('extract_xpubs', {
+        return await this.requestToHwiBridge('extract_xpubs', {
             device_type: device.type,
             account: account,
             path: device.path,
@@ -158,7 +158,7 @@ class HWIBridge {
         if(!('passphrase' in device)){
             device.passphrase = passphrase;
         }
-        return await this.myFetch('extract_xpub', {
+        return await this.requestToHwiBridge('extract_xpub', {
             device_type: device.type,
             derivation: derivation,
             path: device.path,
@@ -171,7 +171,7 @@ class HWIBridge {
         if(!('passphrase' in device)){
             device.passphrase = passphrase;
         }
-        return await this.myFetch('extract_master_blinding_key', {
+        return await this.requestToHwiBridge('extract_master_blinding_key', {
             device_type: device.type,
             path: device.path,
             passphrase: device.passphrase,
@@ -184,7 +184,7 @@ class HWIBridge {
         if(!('passphrase' in device)){
             device.passphrase = passphrase;
         }
-        return await this.myFetch('display_address', {
+        return await this.requestToHwiBridge('display_address', {
             device_type: device.type,
             path: device.path,
             passphrase: device.passphrase,
@@ -194,7 +194,7 @@ class HWIBridge {
     }
 
     async registerMultisig(device, descriptor, fingerprint) {
-        return await this.myFetch('register_multisig', {
+        return await this.requestToHwiBridge('register_multisig', {
             device_type: device.type,
             path: device.path,
             passphrase: device.passphrase,
