@@ -32,16 +32,10 @@ function maybe_update {
     # Determine if we need to pull. From https://stackoverflow.com/a/3278427
     UPSTREAM=origin/master
     LOCAL=$(git describe --all | sed 's/heads\///' | sed 's/tags\///') # gives either a tag or "master" 
-    if cat ../../pyproject.toml | grep "addopts = --${node_impl}d-version" ; then
-        # in this case, we use the expected version from the test also as the tag to be checked out
-        # i admit that this is REALLY ugly. Happy for any recommendations to do that more easy
-        PINNED=$(cat ../../pyproject.toml | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep ${node_impl} |  cut -d' ' -f2)
-        if [ "$node_impl" = "elements" ]; then
-            # in the case of elements, the tags have a "elements-" prefix
-            PINNED=$(echo "$PINNED" | sed 's/v//' | sed 's/^/elements-/')
-        fi
-    fi
-    
+    cd ..
+    PINNED=$(calc_pytestinit_nodeimpl_version $node_impl)
+    cd bitcoin
+
     # the version in pyproject.toml is (also) used to check the version via getnetworkinfo()["subversion"]
     # However, this might not be a valid git rev. So we need another way to specify the git-rev used
     # as we want to be able to test against specific commits
