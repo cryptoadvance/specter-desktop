@@ -54,14 +54,6 @@ def get_language(mnemonic: str) -> str:
         supported_language_found = False
         language = Mnemonic.detect_language(mnemonic)
         words_as_list = mnemonic.split()
-        # If we get French as language we have to double check whether it is not really an English mnemonic because of overlaps in the wordlists
-        if language == "french":
-            count = 0
-            for word in words_as_list:
-                if word in WORDLIST:
-                    count += 1
-            if count == 12:
-                language = "english"
         for key, value in MNEMONIC_LANGUAGES.items():
             if value == language:
                 supported_language_found = True
