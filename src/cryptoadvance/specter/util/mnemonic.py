@@ -14,10 +14,14 @@ and embit (https://github.com/diybitcoinhardware/embit)"""
 MNEMONIC_LANGUAGES = {
     "en": "english",
     "es": "spanish",
-    # "fr": "french", # Not supported, for details see: https://github.com/trezor/python-mnemonic/issues/98)
+    "fr": "french",
     "it": "italian",
-    # "jp": "japanese",
-    # "ko": korean",
+    "jp": "japanese",
+    "cz": "czech",
+    "pt": "portuguese",
+    # "ko": "korean", requires special characters
+    # "ru": "russian", requires special characters
+    # "tr": "turkish", has a lot of overlapping words with other languages
     # "?": chinese_simplified",
     # "?": chinese_traditional",
 }
@@ -38,7 +42,7 @@ def generate_mnemonic(strength=256, language_code="en") -> str:
     "tomorrow question cook lend burden bone own junior stage square leaf father edge decrease pipe tired useful junior calm silver topple require rug clock"
 
     :param strength: 256 (default) will give you 24 words. 128 will result in 12 words
-    :param language_code: only "en", "es", and "it" are supported. If you use an unsupported one, it'll fallback to English.
+    :param language_code: "en", "es", "fr", "it", "jp", "cz" and "pt" are supported. If you use an unsupported one, it'll fallback to English.
     """
     mnemo = initialize_mnemonic(language_code)
     return mnemo.generate(strength=strength)
