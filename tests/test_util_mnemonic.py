@@ -1,5 +1,7 @@
 import pytest
 from cryptoadvance.specter.util.mnemonic import *
+from collections import Counter, defaultdict
+from itertools import combinations
 
 ghost_machine = (
     "ghost ghost ghost ghost ghost ghost ghost ghost ghost ghost ghost machine"
@@ -11,25 +13,35 @@ exulter_ivoire = "exulter exulter exulter exulter exulter exulter exulter exulte
 
 gravoso_mummia = "gravoso gravoso gravoso gravoso gravoso gravoso gravoso gravoso gravoso gravoso gravoso mummia"
 
+french = "cylindre corniche attentif boulon toboggan foudre bambin intrigue sélectif adverbe codifier neurone"
+
+japanese = "ちほう そざい そんみん まもる いりょう ねだん たんとう きくばり つみき たんのう けんい なおす"
+
+czech = "poryv troska mozol poledne louka levobok kuna lump korpus zvesela lyra kauce"
+
+portuguese = "assador borbulha sorteio enguia castelo fanfarra vertente duplo legista aferir vazio apito"
+
 
 def test_initialize_mnemonic(caplog):
-    mnemo_en = initialize_mnemonic("en")
-    assert isinstance(mnemo_en, Mnemonic)
-    assert mnemo_en.language == "english"
-    mnemo_es = initialize_mnemonic("es")
-    assert mnemo_es.language == "spanish"
+
+    for key in MNEMONIC_LANGUAGES:
+        mnemo = initialize_mnemonic(key)
+        assert isinstance(mnemo, Mnemonic)
+        assert mnemo.language == MNEMONIC_LANGUAGES[key]
+
     mnemo_undefined = initialize_mnemonic("gu")
     # Defaults to English if language code is undefined
     assert mnemo_undefined.language == "english"
-    mnemo_fr = initialize_mnemonic("fr")
-    # ... or if language is not supported
-    assert mnemo_fr.language == "english"
 
 
 def test_get_language():
     assert get_language(ghost_machine) == "english"
     assert get_language(ganso_madera) == "spanish"
     assert get_language(gravoso_mummia) == "italian"
+    assert get_language(french) == "french"
+    assert get_language(japanese) == "japanese"
+    assert get_language(czech) == "czech"
+    assert get_language(portuguese) == "portuguese"
     # This mnemonic created a problem on Cirrus, since "client" is part of the English and the French wordlists
     assert (
         get_language(
@@ -37,11 +49,7 @@ def test_get_language():
         )
         == "english"
     )
-    with pytest.raises(
-        SpecterError, match="The language French is not supported"
-    ) as se:
-        get_language(exulter_ivoire)
-    with pytest.raises(SpecterError, match="Language not detected") as se:
+    with pytest.raises(SpecterError, match="Language unrecognized for") as se:
         get_language(
             "muh ghost ghost ghost ghost ghost ghost ghost ghost ghost ghost machine"
         )
@@ -78,26 +86,41 @@ def test_mnemonic_to_root():
     )
 
 
+def count_multi_occurrence_languages(word_lists_dict):
+    # Create a Counter to store occurrences of words across different lists
+    word_counter = Counter()
+
+    # Create a defaultdict to store the lists in which each word occurs
+    word_lists_indices = defaultdict(list)
+
+    # Iterate over each language and its corresponding word list
+    for language, word_list in word_lists_dict.items():
+        # Update the counter with the words from the current list
+        word_counter.update(word_list)
+
+        # Update the word_lists_indices with the lists in which each word occurs
+        for word in set(word_list):
+            word_lists_indices[word].append(language)
+
+    # Filter words that occurred more than once across different lists
+    multi_occurrence_languages = Counter()
+    for word, count in word_counter.items():
+        if count > 1:
+            language_combinations = combinations(word_lists_indices[word], 2)
+            multi_occurrence_languages.update(language_combinations)
+
+    return multi_occurrence_languages
+
+
 # There is an overlap of 100 words between the English and the French wordlists
 # These are sanity checks that we don't have further overlaps
 def test_duplicates_in_wordlists():
-    mnemo_en = initialize_mnemonic("en")
-    mnemo_es = initialize_mnemonic("es")
-    mnemo_it = initialize_mnemonic("it")
-    mnemo_fr = initialize_mnemonic("fr")
 
-    wordlist_en = mnemo_en.wordlist
-    wordlist_es = mnemo_es.wordlist
-    wordlist_it = mnemo_it.wordlist
-    wordlist_fr = mnemo_fr.wordlist
+    word_lists_dict = dict()
+    for key in MNEMONIC_LANGUAGES:
+        mnemo = initialize_mnemonic(key)
+        word_lists_dict[key] = mnemo.wordlist
 
-    # EN-IT
-    assert len([word for word in wordlist_en if word in wordlist_it]) == 0
-    # EN-ES
-    assert len([word for word in wordlist_en if word in wordlist_es]) == 0
-    # ES-IT
-    assert len([word for word in wordlist_es if word in wordlist_it]) == 0
-    # ES-FR
-    assert len([word for word in wordlist_es if word in wordlist_fr]) == 0
-    # IT-FR
-    assert len([word for word in wordlist_it if word in wordlist_fr]) == 0
+    multi_occurrence_languages = count_multi_occurrence_languages(word_lists_dict)
+    # only EN-FR should be here
+    assert len(multi_occurrence_languages) == 1
