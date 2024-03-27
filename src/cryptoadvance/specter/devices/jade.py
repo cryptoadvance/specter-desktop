@@ -16,6 +16,7 @@ class Jade(HWIDevice):
     supports_qr_message_signing = True
     supports_hwi_toggle_passphrase = False
     supports_hwi_multisig_display_address = True
+    supports_multisig_registration = True
     liquid_support = True
 
     @classmethod
