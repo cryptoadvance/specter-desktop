@@ -9,15 +9,35 @@ cd ..
 
 # Overriding this function
 function create_virtualenv_for_pyinstaller {
-    if [ -d .buildenv ]; then
-        echo "    --> Deleting .buildenv"
-        rm -rf .buildenv
-    fi
     # This currently assumes to be run with: Python 3.10.4
     # Important: pyinstaller needs a Python binary with shared library files
     # With pyenv, for example, you get this like so: env PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.10.4
-    virtualenv .buildenv
-    source .buildenv/bin/activate
+    # Use pyenv if available
+    if command -v pyenv >/dev/null 2>&1; then
+        ### This is usually in .zshrc, putting it in .bashrc didn't work ###
+        ### 
+        export PYENV_ROOT="$HOME/.pyenv"
+        command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+        eval "$(pyenv init -)"
+        eval "$(pyenv virtualenv-init -)"
+        ### ------------------------------------------------------------ ###
+        PYTHON_VERSION=3.10.4
+        export PYENV_VERSION=$PYTHON_VERSION
+        echo "pyenv is available. Setting PYENV_VERSION to 3.10.4, using pyenv-virtualenv to create the buildenv..."
+        # echo "    --> Deleting .buildenv"
+        # pyenv uninstall -f .buildenv
+        # rm -rf "$HOME/.pyenv/versions/$PYTHON_VERSION/envs/.buildenv"
+        # pyenv virtualenv 3.10.4 .buildenv
+        pyenv activate .buildenv
+    else
+        echo "pyenv is not available. Using system Python version."
+        if [ -d .buildenv ]; then
+          echo "    --> Deleting .buildenv"
+          rm -rf .buildenv
+        fi
+        virtualenv .buildenv
+        source .buildenv/bin/activate
+    fi
     pip3 install -e ".[test]"
 }
 
@@ -41,6 +61,7 @@ END_COMMENT
 
 ### Prerequisites
 # brew install gmp # to prevent module 'embit.util' has no attribute 'ctypes_secp256k1'
+# brew install jq
 # npm install --global create-dmg
 
 ### Trouble shooting 
