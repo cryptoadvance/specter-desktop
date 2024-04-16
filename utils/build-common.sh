@@ -102,6 +102,13 @@ function make_hash_if_necessary {
 }
 
 function building_electron_app {
+    # https://www.electron.build/
+    # Prerequisites:
+    # * A developer Certificate (in the System keychain)
+    # * private and public key in the login-keychain
+    # * The cert needs to be referenced in pyinstaller/electron/package.json -> build.mac.identity
+
+
     platform="-- --${1}" # either linux or win (maxOS is empty)
     cd pyinstaller/electron
     echo "    --> building electron-app"
@@ -113,8 +120,18 @@ function building_electron_app {
 }
 
 function macos_code_sign {
+    # prerequisites for this:
+    # in short:
+    # * make sure you have a proper app-specific password on https://appleid.apple.com/account/manage
+    # * collect some information via scrun altool --list-providers -u "<yourAppleID>"
+    # * create profile via xcrun notarytool store-credentials --apple-id "<YourAppleID>" --password "app-specific-pw" --team-id "seeFromAbove"
+    # * Call the profile: SpecterProfile
+    # For details see:
+    # * https://www.youtube.com/watch?v=2xJcMzoi0EI
+    # * https://blog.dgunia.de/2022/09/01/switching-from-altool-to-notarytool/
+    # * https://scriptingosx.com/2021/07/notarize-a-command-line-tool-with-notarytool/
     # This creates a ZIP archive from the app package (using the ditto command).
-    # This ZIP archive is then used to upload the app to the Apple notarization service.
+    # This ZIP archive is then used to upload the app to the Apple notarization service via xcrun notarytool (formerly xcrun altool)
     # After the app has been uploaded to the Apple servers and notarized, the ZIP archive is not used again.
     # The function uses the xcrun stapler command to attach the notarization result to the app, and then exits.
 
@@ -124,46 +141,27 @@ function macos_code_sign {
     cd pyinstaller/electron
     echo '    --> Attempting to code sign...'
     echo '        executing: ditto -c -k --keepParent "dist/mac/${specterimg_filename}.app" dist/${specterimg_filename}.zip'
-    ditto -c -k --keepParent "dist/mac/${specterimg_filename}.app" dist/${specterimg_filename}.zip
+
+    ditto -c -k --keepParent "dist/${dist_mac_folder_name}/${specterimg_filename}.app" dist/${specterimg_filename}.zip
     # upload
     echo '        uploading ... '
-    echo '        executing: xcrun altool --notarize-app -t osx -f dist/${specterimg_filename}.zip --primary-bundle-id "solutions.specter.desktop" -u "${mail}" --password "@keychain:AC_PASSWORD" --output-format json'
-    output_json=$(xcrun altool --notarize-app -t osx -f dist/${specterimg_filename}.zip --primary-bundle-id "solutions.specter.desktop" -u "${mail}" --password "@keychain:AC_PASSWORD" --output-format json)
-    echo "JSON-Output:"
+
+    output_json=$(xcrun notarytool submit dist/${specterimg_filename}.zip  --apple-id "kneunert@gmail.com" --keychain-profile "SpecterProfile" --password "@keychain:AC_PASSWORD" --output-format json --wait )
+
+    echo "Request ID: "
     # parsing the requestuuid which we'll need to track progress
-    requestuuid=$(echo $output_json | jq -r '."notarization-upload".RequestUUID')
-    mkdir -p signing_logs
-    i=1
-    while [ $i -le 6 ] ; do
-        echo "        check result in minute $i ..."
-        sign_result_json=$(xcrun altool --notarization-info $requestuuid -u "${mail}" --password "@keychain:AC_PASSWORD" --output-format json)
-        timestamp=$(date +"%Y%m%d-%H%M")
-        # If it's not json-parseable
-        if ! echo "$sign_result_json" | jq .; then
-            echo $sign_result_json > ./signing_logs/${app_name}_${timestamp}_${requestuuid}.log
-            echo "ERROR: track-json not parseable."
-            echo "$sign_result_json"
-            exit 1   
-        fi
-        # if it's no longer in progress
-        status=$(echo "$sign_result_json" | jq -e -r '.["notarization-info"].Status')
-        if [ "$status" != "in progress" ]; then
-            echo "        Finished code sign with status $status"
-            echo $sign_result_json | jq . > ./signing_logs/${app_name}_${timestamp}_${requestuuid}.log
-            break
-        fi
-        i=$(( $i + 1 ))
-        sleep 60
-    done
-    if [ "$status" != "success" ]; then
-        echo "ERROR: status $status"
-        echo $(echo $sign_result_json | jq .)
-        echo
+    requestuuid=$(echo $output_json | jq -r '.id')
+    status=$(echo $output_json | jq -r '.status')
+    if [ "$status" = "invalid" ]; then
+        mkdir -p signing_logs
+        echo "issues with notarisation"
+        xcrun notarytool log ${requestuuid} --keychain-profile SpecterProfile | tee ./signing_logs/${app_name}_${timestamp}_${requestuuid}.log
         exit 1
     fi
+
     # The stapler somehow "staples" the result of the notarisation in to your app
     # see e.g. https://stackoverflow.com/questions/58817903/how-to-download-notarized-files-from-apple
-    xcrun stapler staple "dist/mac/${specterimg_filename}.app"
+    xcrun stapler staple "dist/${dist_mac_folder_name}/${specterimg_filename}.app"
     cd ../..
 }
 
