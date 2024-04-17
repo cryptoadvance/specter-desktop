@@ -66,7 +66,7 @@ class HWIBridge(JSONRPC):
     All methods of this class are callable over JSON-RPC, except _underscored.
     """
 
-    def __init__(self, enforce_hwi_initialisation=False):
+    def __init__(self, skip_hwi_initialisation=False):
         self.exposed_rpc = {
             "enumerate": self.enumerate,
             "detect_device": self.detect_device,
@@ -79,16 +79,20 @@ class HWIBridge(JSONRPC):
             "sign_tx": self.sign_tx,
             "sign_message": self.sign_message,
             "extract_master_blinding_key": self.extract_master_blinding_key,
+            "register_multisig": self.register_multisig,  # currently only Jade
             "bitbox02_pairing": self.bitbox02_pairing,
         }
-        if enforce_hwi_initialisation:
-            # Running enumerate after beginning an interaction with a specific device
-            # crashes python or make HWI misbehave. For now we just get all connected
-            # devices once per session and save them.
-            logger.info("Initializing HWI...")  # to explain user why it takes so long
-            self.enumerate()
-            logger.info("Finished initializing HWI!")
-        self.devices = []
+        if skip_hwi_initialisation:
+            self.is_startup = False
+            self.devices = []
+            return
+        # Running enumerate after beginning an interaction with a specific device
+        # crashes python or make HWI misbehave. For now we just get all connected
+        # devices once per session and save them.
+        logger.info("Initializing HWI...")
+        self.is_startup = True  # to explain user why it takes so long
+        self.enumerate()
+        logger.info("Finished initializing HWI!")
 
     @locked(hwilock)
     def enumerate(self, passphrase="", chain=""):
@@ -97,37 +101,21 @@ class HWIBridge(JSONRPC):
         Standard HWI enumerate() command + Specter.
         """
         devices = []
-        # going through all device classes
+        # Call device-specific enumerate (can come from hwi lib or from the Specter code base) for each Specter device class
         for devcls in hwi_classes:
             try:
-                # calling device-specific enumerate
-                if passphrase:
-                    devs = devcls.enumerate(passphrase)
-                # not sure if it will handle passphrase correctly
-                # so remove it if None
+                # Special handling of the Jade to unsure it is not prompting to unlock the device on startup
+                if devcls.__name__ == "Jade":
+                    skip_unlocking = self.is_startup
+                    client_chain = Chain.argparse(chain)  # This returns an enum member
+                    devs = devcls.enumerate(
+                        skip_unlocking=skip_unlocking, chain=client_chain
+                    )
                 else:
-                    devs = devcls.enumerate()
-                # extracting fingerprint info
-                for dev in devs:
-                    # we can't get fingerprint if device is locked
-                    if "needs_pin_sent" in dev and dev["needs_pin_sent"]:
-                        continue
-                    # we can't get fingerprint if passphrase is not provided
-                    if (
-                        "needs_passphrase_sent" in dev
-                        and dev["needs_passphrase_sent"]
-                        and not passphrase
-                    ):
-                        continue
-                    client = None
-                    try:
-                        client = devcls.get_client(dev["path"], passphrase)
-                        if isinstance(client, Bitbox02Client):
-                            client.set_noise_config(BitBox02NoiseConfig())
-                        dev["fingerprint"] = client.get_master_fingerprint().hex()
-                    finally:
-                        if client is not None:
-                            client.close()
+                    if passphrase:
+                        devs = devcls.enumerate(passphrase)
+                    else:
+                        devs = devcls.enumerate()
                 devices += devs
             except USBError as e:
                 logger.warning(
@@ -138,6 +126,7 @@ class HWIBridge(JSONRPC):
                 )
 
         self.devices = devices
+        self.is_startup = False
         return self.devices
 
     def detect_device(
@@ -317,6 +306,34 @@ class HWIBridge(JSONRPC):
                 raise Exception("Failed to validate address on device: Unknown Error")
 
     @locked(hwilock)
+    def register_multisig(
+        self,
+        device_type=None,
+        path=None,
+        passphrase="",
+        fingerprint=None,
+        descriptor="",
+        chain="",
+    ):
+        if descriptor == "":
+            raise Exception("Descriptor must not be empty")
+
+        with self._get_client(
+            device_type=device_type,
+            fingerprint=fingerprint,
+            path=path,
+            passphrase=passphrase,
+            chain=chain,
+        ) as client:
+            try:
+                return client.register_multisig(descriptor)
+            except Exception as e:
+                logger.exception(e)
+                raise Exception(
+                    f"Failed to register multisig on the device. Error: {e}"
+                )
+
+    @locked(hwilock)
     def sign_tx(
         self,
         psbt="",
@@ -426,22 +443,24 @@ class HWIBridge(JSONRPC):
             )
         devcls = get_device_class(device["type"])
         if devcls:
-            client = devcls.get_client(device["path"], passphrase)
+            # Jade needs the chain/network already here for the the auth_call
+            if devcls.__name__ == "Jade":
+                client_chain = Chain.argparse(chain)
+                client = devcls.get_client(
+                    path=device["path"],
+                    password=passphrase,
+                    expert=False,
+                    chain=client_chain,
+                )
+            else:
+                client = devcls.get_client(device["path"], passphrase)
         if not client:
             raise Exception(
                 "The device was identified but could not be reached.  Please check it is properly connected and try again"
             )
         try:
-            if is_liquid(chain):
-                client.chain = Chain.TEST if is_testnet(chain) else Chain.MAIN
-            else:
+            if type(client) is not JadeClient:
                 client.chain = Chain.argparse(chain)
-            # hack for Jade
-            if type(client) is JadeClient:
-                if is_liquid(chain):
-                    client.set_liquid_network(chain)
-                elif chain == "signet":
-                    client.chain = Chain.TEST
             yield client
         finally:
             client.close()

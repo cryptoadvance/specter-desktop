@@ -93,7 +93,7 @@
         let retryCounter = 0;
         try {
             try {
-                result = await hwi.enumerate(passphrase, deviceTypes == 'bitbox02');
+                result = await hwi.enumerate(passphrase, true);
             } catch (e) {
                 if (e.message !== 'Fetch is aborted' && e.message !== 'The user aborted a request.') {
                     throw e;
@@ -122,7 +122,7 @@
                 }
                 console.log("Retrying enumerate...");
                 try {
-                    result = await hwi.enumerate(passphrase, deviceTypes == 'bitbox02');
+                    result = await hwi.enumerate(passphrase, true);
                 } catch (e) {
                     if (e.message !== 'Fetch is aborted' && e.message !== 'The user aborted a request.') {
                         throw e;
