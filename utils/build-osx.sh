@@ -9,19 +9,22 @@ cd ..
 
 # Overriding this function
 function create_virtualenv_for_pyinstaller {
-    # This currently assumes to be run with: Python 3.10.4
+    # This currently assumes to be run with: Python 3.10.11
     # Important: pyinstaller needs a Python binary with shared library files
     # With pyenv, for example, you get this like so: env PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.10.4
     # Use pyenv if available
-    if command -v pyenv >/dev/null 2>&1; then
+    if /usr/bin/false; then
+    #if command -v pyenv >/dev/null 2>&1; then
         ### This is usually in .zshrc, putting it in .bashrc didn't work ###
         ### 
         export PYENV_ROOT="$HOME/.pyenv"
         command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
         eval "$(pyenv init -)"
+        ### this needs the pyenv-virtualenv plugin. If you don't have it:
+        ### git clone https://github.com/pyenv/pyenv-virtualenv.git $(pyenv root)/plugins/pyenv-virtualenv
         eval "$(pyenv virtualenv-init -)"
         ### ------------------------------------------------------------ ###
-        PYTHON_VERSION=3.10.4
+        PYTHON_VERSION=3.10.11
         export PYENV_VERSION=$PYTHON_VERSION
         echo "pyenv is available. Setting PYENV_VERSION to 3.10.4, using pyenv-virtualenv to create the buildenv..."
         # echo "    --> Deleting .buildenv"
