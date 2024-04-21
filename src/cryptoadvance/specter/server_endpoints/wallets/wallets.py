@@ -788,6 +788,13 @@ def addresses(wallet_alias):
 @login_required
 def settings(wallet_alias):
     wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+
+    # Check whether wallet has at least one device which supports multisig registrations (currently only Jade)
+    has_device_for_multisig_registration = any(
+        getattr(device, "supports_multisig_registration", False)
+        for device in wallet.devices
+    )
+
     if request.method == "POST":
         action = request.form["action"]
         # Would like to refactor this to another endpoint as well
@@ -812,6 +819,7 @@ def settings(wallet_alias):
         purposes=purposes,
         wallet_alias=wallet_alias,
         wallet=wallet,
+        has_device_for_multisig_registration=has_device_for_multisig_registration,
         specter=app.specter,
         rand=rand,
         scroll_to_rescan_blockchain=request.args.get("rescan_blockchain"),
