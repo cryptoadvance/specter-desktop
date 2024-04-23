@@ -6,16 +6,5 @@
     <true/>
     <key>com.apple.security.device.camera</key>
     <true/>
-    <key>CFBundleURLTypes</key>
-      <array>
-        <dict>
-          <key>CFBundleURLName</key>
-          <string>solutions.specter</string>
-          <key>CFBundleURLSchemes</key>
-          <array>
-            <string>specter</string>
-          </array>
-        </dict>
-      </array>
   </dict>
 </plist>

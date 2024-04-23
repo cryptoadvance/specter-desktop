@@ -11,7 +11,7 @@ function create_virtualenv_for_pyinstaller {
         echo "        But first Delete it ..."
         rm -rf .buildenv
     fi
-    virtualenv --python=python3 .buildenv
+    virtualenv --python=python3.10 .buildenv
     source .buildenv/bin/activate
     pip3 install -e ".[test]"
 }
