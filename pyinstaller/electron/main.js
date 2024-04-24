@@ -52,7 +52,7 @@ let dimensions = { width: 1500, height: 1000 }
 // Modify the context menu
 const contextMenu = require('electron-context-menu')
 const { startSpecterd } = require('./src/specterd.js')
-const { showError, initialize } = require('./src/uiHelpers.js')
+const { showError, initialize, updatingLoaderMsg } = require('./src/uiHelpers.js')
 contextMenu({
   menu: (actions) => [
     {
@@ -121,18 +121,6 @@ app.on('login', function (event, webContents, request, authInfo, callback) {
   // if we are prompted for auth again show the auth dialog
   trySavedAuth = false
 })
-
-function createWindow(specterURL) {
-  if (!mainWindow) {
-    initMainWindow()
-  }
-
-  // Create the browser window.
-  if (appSettings.tor) {
-    mainWindow.webContents.session.setProxy({ proxyRules: appSettings.proxyURL })
-  }
-  mainWindow.loadURL(specterURL + '?mode=remote')
-}
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

@@ -1,6 +1,6 @@
 const { app, BrowserWindow } = require('electron')
 const { appSettings, platformName } = require('./config')
-const { showError, updateSpecterdStatus, updatingLoaderMsg } = require('./uiHelpers')
+const { showError, updateSpecterdStatus, updatingLoaderMsg, createWindow } = require('./uiHelpers')
 const { logger } = require('./logging')
 const { spawn } = require('child_process')
 
@@ -26,8 +26,7 @@ function checkSpecterd(logs, specterdStarted) {
 }
 
 let specterIsRunning = false
-function startSpecterd(specterdPath) {
-  console.log('Muh')
+function startSpecterd(specterdPath, automaticWalletImport = false) {
   if (platformName == 'win64') {
     specterdPath += '.exe'
   }
@@ -54,56 +53,39 @@ function startSpecterd(specterdPath) {
   options.env['LC_ALL'] = 'en_US.utf-8'
   options.env['LANG'] = 'en_US.utf-8'
   options.env['SPECTER_LOGFORMAT'] = 'SPECTERD: %(levelname)s in %(module)s: %(message)s'
+  logger.info(`Starting specter: ${specterdPath} ${specterdArgs.join(' ')}`)
   specterdProcess = spawn(specterdPath, specterdArgs, options)
   const specterdStarted = Date.now()
 
   // We are checking for both, stdout and stderr, to be on the save side.
   specterdProcess.stdout.on('data', (data) => {
-    logger.info('stdout-' + data.toString())
-    let serverdStatus = checkSpecterd(data, specterdStarted)
-    // We don't want to check the logs forever, just until specterd is up and running
-    if (!specterIsRunning) {
-      if (serverdStatus === 'running') {
-        logger.info(`Specter server seems to run ...`)
-        updateSpecterdStatus('Specter is running')
-        specterIsRunning = true
-        if (mainWindow) {
-          if (automaticWalletImport === true) {
-            logger.info('Performing automatic wallet import ...')
-            updatingLoaderMsg(
-              'Launching wallet importer. This will only work with a node connection.',
-              mainWindow,
-              (showSpinner = true)
-            )
-            setTimeout(() => {
-              importWallet(walletDataFromUrl)
-            }, 3000)
-          } else {
-            logger.info('Normal startup of Specter.')
-            createWindow(appSettings.specterURL)
-          }
-        }
-      } else if (serverdStatus === 'timeout') {
-        showError('Specter does not seem to start. Check the logs in the menu for more details.')
-        updateSpecterdStatus('Specter does not start')
-        logger.error('Startup timeout for specterd exceeded')
-      } else {
-        updatingLoaderMsg('Still waiting for Specter to start ...')
-        updateSpecterdStatus('Specter is starting')
-      }
-    }
+    actOnNewLogLine(data.toString(), 'stdout')
   })
 
   specterdProcess.stderr.on('data', (data) => {
-    logger.info('stderr-' + data.toString())
-    let serverdStatus = checkSpecterd(data, specterdStarted)
+    actOnNewLogLine(data.toString(), 'stderr')
+  })
+
+  const actOnNewLogLine = (logLine, origin) => {
+    logger.info(`${origin}: ${logLine.replace(/(\r\n|\n|\r)/gm, '')}`)
+    const serverdStatus = checkSpecterd(logLine, specterdStarted)
     if (!specterIsRunning) {
       if (serverdStatus === 'running') {
         logger.info(`Specter server seems to run ...`)
         updateSpecterdStatus('Specter is running')
         specterIsRunning = true
-        if (mainWindow) {
-          logger.info('... creating Electron window for it.')
+        if (automaticWalletImport === true) {
+          logger.info('Performing automatic wallet import ...')
+          updatingLoaderMsg(
+            'Launching wallet importer. This will only work with a node connection.',
+            mainWindow,
+            (showSpinner = true)
+          )
+          setTimeout(() => {
+            importWallet(walletDataFromUrl)
+          }, 3000)
+        } else {
+          logger.info('Normal startup of Specter.')
           createWindow(appSettings.specterURL)
         }
       } else if (serverdStatus === 'timeout') {
@@ -115,7 +97,7 @@ function startSpecterd(specterdPath) {
         updateSpecterdStatus('Specter is starting')
       }
     }
-  })
+  }
 
   specterdProcess.on('exit', (code) => {
     logger.error(`specterd exited with code ${code}`)

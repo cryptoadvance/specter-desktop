@@ -1,5 +1,6 @@
 const { Menu } = require('electron')
 const { logger } = require('./logging')
+const { appSettings } = require('./config')
 
 let mainWindow
 let tray
@@ -18,11 +19,12 @@ function showError(error) {
 function updatingLoaderMsg(msg, showSpinner = false) {
   if (mainWindow) {
     // see preload.js where this is setup
-    logger.info('---------------------' + msg)
     mainWindow.webContents.send('update-loader-message', {
       msg,
       showSpinner,
     })
+  } else {
+    logger.error('mainWindow not initialized in updatingLoaderMsg')
   }
   logger.info('Updated LoaderMsg: ' + msg)
 }
@@ -32,9 +34,22 @@ function updateSpecterdStatus(status) {
   tray.setContextMenu(Menu.buildFromTemplate(trayMenu))
 }
 
+function createWindow(specterURL) {
+  if (!mainWindow) {
+    initMainWindow()
+  }
+
+  // Create the browser window.
+  if (appSettings.tor) {
+    mainWindow.webContents.session.setProxy({ proxyRules: appSettings.proxyURL })
+  }
+  mainWindow.loadURL(specterURL + '?mode=remote')
+}
+
 module.exports = {
   initialize,
   showError,
   updatingLoaderMsg,
   updateSpecterdStatus,
+  createWindow,
 }

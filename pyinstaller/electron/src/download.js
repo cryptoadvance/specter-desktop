@@ -28,7 +28,7 @@ const dockMenuWithforceQuit = Menu.buildFromTemplate([
 
 function downloadSpecterd(specterdPath, mainWindow, tray, trayMenu) {
   updatingLoaderMsg(`Starting download`)
-  updateSpecterdStatus(`Downloading the ${appName} binary...`, tray, trayMenu)
+  updateSpecterdStatus(`Downloading the ${appName} binary...`)
   // Some logging
   logger.info('Using version ' + appSettings.specterdVersion)
   logger.info('Using platformName ' + platformName)
@@ -37,13 +37,12 @@ function downloadSpecterd(specterdPath, mainWindow, tray, trayMenu) {
   download(download_location, specterdPath + '.zip', mainWindow, function (errored) {
     if (errored == true) {
       updatingLoaderMsg(
-        `Downloading the ${appNameLower} binary from GitHub failed, could not reach the server or the file wasn't found.`,
-        tray
+        `Downloading the ${appNameLower} binary from GitHub failed, could not reach the server or the file wasn't found.`
       )
-      updateSpecterdStatus(`Downloading ${appNameLower}d failed...`, tray, trayMenu)
+      updateSpecterdStatus(`Downloading ${appNameLower}d failed...`)
       return
     }
-    updatingLoaderMsg('Download completed. Unpacking files...', mainWindow)
+    updatingLoaderMsg('Download completed. Unpacking files...')
     logger.info('Extracting ' + specterdPath)
 
     extract(specterdPath + '.zip', { dir: specterdPath + '-dir' }).then(function () {
@@ -69,10 +68,10 @@ function downloadSpecterd(specterdPath, mainWindow, tray, trayMenu) {
           setMainWindow(mainWindow)
           startSpecterd(specterdPath)
         } else {
-          updatingLoaderMsg('Specterd version could not be validated.', mainWindow, false)
+          updatingLoaderMsg('Specterd version could not be validated.')
           logger.error(`hash of downloaded file: ${specterdHash}`)
           logger.error(`Expected hash: ${appSettings.specterdHash} from ${versionDataPath}`)
-          updateSpecterdStatus('Failed to launch specterd...', tray, trayMenu)
+          updateSpecterdStatus('Failed to launch specterd...')
         }
       })
     })
