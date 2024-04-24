@@ -7,8 +7,8 @@ const { appName, appSettings, platformName, appNameLower, versionData, versionDa
 const { isMac, getFileHash } = require('./helpers.js')
 const { logger } = require('./logging.js')
 const ProgressBar = require('electron-progressbar')
-const { setMainWindow } = require('./specterd.js')
-const { updateSpecterdStatus, updatingLoaderMsg } = require('./uiHelpers.js')
+const { updateSpecterdStatus, updatingLoaderMsg, createProgressBar } = require('./uiHelpers.js')
+const { startSpecterd } = require('./specterd.js')
 
 // The standard quit item cannot be replaced / modified and it is not triggering the
 // before-quit event on MacOS if a child window is open
@@ -26,7 +26,7 @@ const dockMenuWithforceQuit = Menu.buildFromTemplate([
   },
 ])
 
-function downloadSpecterd(specterdPath, mainWindow, tray, trayMenu) {
+function downloadSpecterd(specterdPath) {
   updatingLoaderMsg(`Starting download`)
   updateSpecterdStatus(`Downloading the ${appName} binary...`)
   // Some logging
@@ -34,7 +34,7 @@ function downloadSpecterd(specterdPath, mainWindow, tray, trayMenu) {
   logger.info('Using platformName ' + platformName)
   download_location = getDownloadLocation(appSettings.specterdVersion, platformName)
   logger.info('Downloading from ' + download_location)
-  download(download_location, specterdPath + '.zip', mainWindow, function (errored) {
+  download(download_location, specterdPath + '.zip', function (errored) {
     if (errored == true) {
       updatingLoaderMsg(
         `Downloading the ${appNameLower} binary from GitHub failed, could not reach the server or the file wasn't found.`
@@ -65,7 +65,6 @@ function downloadSpecterd(specterdPath, mainWindow, tray, trayMenu) {
       fs.rmdirSync(specterdPath + '-dir', { recursive: true })
       getFileHash(specterdPath + (platformName == 'win64' ? '.exe' : ''), function (specterdHash) {
         if (appSettings.specterdHash.toLowerCase() === specterdHash || appSettings.specterdHash == '') {
-          setMainWindow(mainWindow)
           startSpecterd(specterdPath)
         } else {
           updatingLoaderMsg('Specterd version could not be validated.')
@@ -79,35 +78,14 @@ function downloadSpecterd(specterdPath, mainWindow, tray, trayMenu) {
 }
 
 // Download function with progress bar
-const download = (uri, filename, mainWindow, callback) => {
+const download = (uri, filename, callback) => {
   // HEAD request first
   request.head(uri, (err, res, body) => {
     if (res.statusCode != 404) {
       let receivedBytes = 0
       const totalBytes = res.headers['content-length']
       logger.info(`Total size to download: ${totalBytes}`)
-      progressBar = new ProgressBar({
-        indeterminate: false,
-        abortOnError: true,
-        text: 'Downloading the Specter binary from GitHub',
-        detail:
-          'This can take several minutes depending on your Internet connection. Specter will start once the download is finished.',
-        maxValue: totalBytes,
-        browserWindow: {
-          parent: mainWindow,
-        },
-        style: {
-          detail: {
-            'margin-bottom': '12px',
-          },
-          bar: {
-            'background-color': '#fff',
-          },
-          value: {
-            'background-color': '#000',
-          },
-        },
-      })
+      const progressBar = createProgressBar(totalBytes)
       // Add Force Quit item during download for MacOS dock
       if (isMac) {
         app.dock.setMenu(dockMenuWithforceQuit)

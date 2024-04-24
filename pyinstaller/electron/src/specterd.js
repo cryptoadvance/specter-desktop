@@ -1,13 +1,16 @@
 const { app, BrowserWindow } = require('electron')
 const { appSettings, platformName } = require('./config')
-const { showError, updateSpecterdStatus, updatingLoaderMsg, createWindow } = require('./uiHelpers')
+const {
+  showError,
+  updateSpecterdStatus,
+  updatingLoaderMsg,
+  createWindow,
+  loadUrl,
+  executeJavaScript,
+} = require('./uiHelpers')
 const { logger } = require('./logging')
 const { spawn } = require('child_process')
-
-let mainWindow
-const setMainWindow = (myMainWindow) => {
-  mainWindow = myMainWindow
-}
+const { URL } = require('url')
 
 function checkSpecterd(logs, specterdStarted) {
   // There doesn't seem to be another more straightforward way to check whether specterd is running: https://github.com/nodejs/help/issues/1191
@@ -76,11 +79,7 @@ function startSpecterd(specterdPath, automaticWalletImport = false) {
         specterIsRunning = true
         if (automaticWalletImport === true) {
           logger.info('Performing automatic wallet import ...')
-          updatingLoaderMsg(
-            'Launching wallet importer. This will only work with a node connection.',
-            mainWindow,
-            (showSpinner = true)
-          )
+          updatingLoaderMsg('Launching wallet importer. This will only work with a node connection.', (showSpinner = true))
           setTimeout(() => {
             importWallet(walletDataFromUrl)
           }, 3000)
@@ -100,8 +99,10 @@ function startSpecterd(specterdPath, automaticWalletImport = false) {
   }
 
   specterdProcess.on('exit', (code) => {
-    logger.error(`specterd exited with code ${code}`)
-    showError(`Specter exited with exit code ${code}. Check the logs in the menu for more details.`)
+    if (code !== 0) {
+      logger.error(`specterd exited with code ${code}`)
+      showError(`Specter exited with exit code ${code}. Check the logs in the menu for more details.`)
+    }
   })
 
   specterdProcess.on('error', (err) => {
@@ -116,9 +117,24 @@ function startSpecterd(specterdPath, automaticWalletImport = false) {
   })
   // since these are streams, you can pipe them elsewhere
   specterdProcess.on('close', (code) => {
-    updateSpecterdStatus('Specter stopped...', tray, trayMenu)
+    updateSpecterdStatus('Specter stopped...')
     logger.info(`child process exited with code ${code}`)
   })
+}
+
+function quitSpecterd() {
+  if (specterdProcess) {
+    try {
+      if (platformName == 'win64') {
+        exec('taskkill /F /T /PID ' + specterdProcess.pid)
+        exec('taskkill /IM specterd.exe ')
+        process.kill(-specterdProcess.pid)
+      }
+      specterdProcess.kill('SIGINT')
+    } catch (e) {
+      logger.info('Specterd quit warning: ' + e)
+    }
+  }
 }
 
 let walletDataFromUrl
@@ -138,12 +154,8 @@ app.on('open-url', (_, url) => {
     // Directly import if the app and specterd is already running
     if (specterIsRunning) {
       logger.info('Performing automatic wallet import ...')
-      mainWindow.loadURL(`file://${__dirname}/splash.html`)
-      updatingLoaderMsg(
-        'Launching wallet importer. This will only work with a node connection.',
-        mainWindow,
-        (showSpinner = true)
-      )
+      loadURL(`file://${__dirname}/splash.html`)
+      updatingLoaderMsg('Launching wallet importer. This will only work with a node connection.', (showSpinner = true))
       setTimeout(() => {
         importWallet(walletDataFromUrl)
       }, 3000)
@@ -155,9 +167,8 @@ app.on('open-url', (_, url) => {
 // Only proceed with the import if the importFromWalletSoftwareBtn can be found.
 // If it is not, users are redirected by specterd to the configure connection screen.
 function importWallet(walletData) {
-  mainWindow.loadURL(appSettings.specterURL + '/wallets/new_wallet/')
-  if (mainWindow) {
-    let code = `
+  loadUrl(appSettings.specterURL + '/wallets/new_wallet/')
+  let code = `
         const importFromWalletSoftwareBtn = document.getElementById('import-from-wallet-software-btn')
         if (importFromWalletSoftwareBtn) {
             importFromWalletSoftwareBtn.click()
@@ -169,11 +180,10 @@ function importWallet(walletData) {
             continueBtn.click()
         }
         `
-    mainWindow.webContents.executeJavaScript(code)
-  }
+  executeJavaScript(code)
 }
 
 module.exports = {
-  setMainWindow,
   startSpecterd,
+  quitSpecterd,
 }

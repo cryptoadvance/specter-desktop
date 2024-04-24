@@ -1,19 +1,18 @@
 // Modules to control application life and create native browser window
-const { app, nativeTheme, nativeImage, BrowserWindow, Menu, Tray, screen, shell, dialog, ipcMain } = require('electron')
-
-const path = require('path')
 const fs = require('fs')
-const { URL } = require('node:url')
-const request = require('request')
-const https = require('https')
-const defaultMenu = require('electron-default-menu')
 const { spawn, exec } = require('child_process')
+const { app, nativeTheme, nativeImage, BrowserWindow, Menu, Tray, screen, shell, dialog, ipcMain } = require('electron')
+const defaultMenu = require('electron-default-menu')
+const contextMenu = require('electron-context-menu')
+
 const { appSettingsPath, specterdDirPath, appSettings, platformName, appNameLower } = require('./src/config.js')
-const { getFileHash, getAppSettings, versionData, isDev, devFolder, isMac } = require('./src/helpers.js')
-const logger = require('./src/logging.js').logger
+const { logger } = require('./src/logging.js')
 const downloadloc = require('./downloadloc')
 const { downloadSpecterd } = require('./src/download.js')
 const getDownloadLocation = downloadloc.getDownloadLocation
+const { startSpecterd, quitSpecterd } = require('./src/specterd.js')
+const { getFileHash, getAppSettings, versionData, isDev, devFolder, isMac } = require('./src/helpers.js')
+const { showError, updatingLoaderMsg, initMainWindow, loadUrl, initTray } = require('./src/uiHelpers.js')
 
 // Quit again if there is no version-data in dev
 if (isDev && versionData === undefined) {
@@ -50,9 +49,7 @@ if (isMac && isDev) {
 let dimensions = { width: 1500, height: 1000 }
 
 // Modify the context menu
-const contextMenu = require('electron-context-menu')
-const { startSpecterd } = require('./src/specterd.js')
-const { showError, initialize, updatingLoaderMsg } = require('./src/uiHelpers.js')
+
 contextMenu({
   menu: (actions) => [
     {
@@ -78,17 +75,9 @@ let specterdProcess
 let automaticWalletImport = false
 let mainWindow
 let prefWindow
-let tray
-let trayMenu
 
 // Flag the app was quitted
 let quitted = false
-
-let webPreferences = {
-  worldSafeExecuteJavaScript: true,
-  contextIsolation: true,
-  preload: path.join(__dirname, 'preload.js'),
-}
 
 app.commandLine.appendSwitch('ignore-certificate-errors')
 
@@ -128,65 +117,26 @@ app.on('login', function (event, webContents, request, authInfo, callback) {
 app.whenReady().then(() => {
   // Create the tray icon
   logger.info('Framework ready! Starting tray icon ...')
-  if (isMac) {
-    const trayIconPath = nativeTheme.shouldUseDarkColors ? '/assets/menu_icon_dark.png' : '/assets/menu_icon_light.png'
-    const createTrayIcon = (trayIconPath) => {
-      let trayIcon = nativeImage.createFromPath(app.getAppPath() + trayIconPath)
-      // Resize
-      trayIcon = trayIcon.resize({ width: 22, height: 22 })
-      return trayIcon
-    }
-    const trayIcon = createTrayIcon(trayIconPath)
-    tray = new Tray(trayIcon)
-
-    // Change the tray icon if appearance is changed in Mac settings
-    const updateTrayIcon = () => {
-      logger.info('Updating tray icon ...')
-      const trayIconPath = nativeTheme.shouldUseDarkColors ? '/assets/menu_icon_dark.png' : '/assets/menu_icon_light.png'
-      const newTrayIcon = createTrayIcon(trayIconPath)
-      tray.setImage(newTrayIcon)
-    }
-    nativeTheme.on('updated', updateTrayIcon)
-  } else {
-    const trayIcon = nativeImage.createFromPath(app.getAppPath() + '/assets/menu_icon.png')
-    tray = new Tray(trayIcon)
-  }
-
-  trayMenu = [
-    { label: 'Launching Specter ...', enabled: false },
-    {
-      label: 'Show Specter',
-      click() {
-        mainWindow.show()
-      },
-    },
-    {
-      label: 'Settings',
-      click() {
-        openPreferences()
-      },
-    },
-    {
-      label: 'Quit',
-      click() {
-        quitSpecterd()
-        app.quit()
-      },
-    },
-  ]
-  tray.setToolTip('Specter')
-  tray.setContextMenu(Menu.buildFromTemplate(trayMenu))
+  initTray(openPreferences, quitSpecterd)
 
   dimensions = screen.getPrimaryDisplay().size
 
   // create a new `splash`-Window
   logger.info('Framework Ready! Initializing Main-Window, populating Menu ...')
-  initMainWindow()
+  mainWindow = initMainWindow(dimensions)
+  mainWindow.on('close', function (event) {
+    if (platformName == 'win64') {
+      quitSpecterd()
+      app.quit()
+    } else {
+      event.preventDefault()
+      mainWindow.hide()
+    }
+  })
 
   setMainMenu()
-  initialize(mainWindow, tray, trayMenu)
 
-  mainWindow.loadURL(`file://${__dirname}/splash.html`)
+  loadUrl(`file://${__dirname}/splash.html`)
 
   if (!fs.existsSync(specterdDirPath)) {
     logger.info('Creating specterd-binaries folder:' + specterdDirPath)
@@ -207,7 +157,7 @@ app.whenReady().then(() => {
         startSpecterd(specterdPath)
       } else if (appSettings.specterdVersion != '') {
         updatingLoaderMsg('Specterd version could not be validated. Trying again to download the Specter binary ...')
-        downloadSpecterd(specterdPath, mainWindow, tray, trayMenu)
+        downloadSpecterd(specterdPath)
       } else {
         updatingLoaderMsg(
           'Specterd file could not be validated and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...'
@@ -217,7 +167,7 @@ app.whenReady().then(() => {
     })
   } else {
     if (appSettings.specterdVersion) {
-      downloadSpecterd(specterdPath, mainWindow, tray, trayMenu)
+      downloadSpecterd(specterdPath)
     } else {
       updatingLoaderMsg(
         'Specterd was not found and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...'
@@ -226,42 +176,6 @@ app.whenReady().then(() => {
     }
   }
 })
-
-function initMainWindow() {
-  // In production we use the icons from the build folder
-  // Note: On MacOS setting an icon here as no effect
-  const iconPath = isDev ? path.join(__dirname, 'assets-dev/app_icon.png') : ''
-  mainWindow = new BrowserWindow({
-    width: parseInt(dimensions.width * 0.8),
-    minWidth: 1120,
-    height: parseInt(dimensions.height * 0.8),
-    icon: iconPath,
-    webPreferences,
-  })
-
-  // Ensures that any links with target="_blank" or window.open() will be opened in the user's default browser instead of within the app
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url)
-    return { action: 'deny' }
-  })
-
-  mainWindow.on('close', function (event) {
-    if (platformName == 'win64') {
-      quitSpecterd()
-      app.quit()
-    } else {
-      event.preventDefault()
-      mainWindow.hide()
-    }
-  })
-
-  mainWindow.webContents.on('did-fail-load', function () {
-    mainWindow.loadURL(`file://${__dirname}/splash.html`)
-    updatingLoaderMsg(
-      `Failed to load: ${appSettings.specterURL}<br>Please make sure the URL is entered correctly in the settings and try again...</b>`
-    )
-  })
-}
 
 app.on('window-all-closed', function () {
   if (platformName == 'win64') {
@@ -312,21 +226,6 @@ ipcMain.on('request-mainprocess-action', (event, arg) => {
       break
   }
 })
-
-function quitSpecterd() {
-  if (specterdProcess) {
-    try {
-      if (platformName == 'win64') {
-        exec('taskkill /F /T /PID ' + specterdProcess.pid)
-        exec('taskkill /IM specterd.exe ')
-        process.kill(-specterdProcess.pid)
-      }
-      specterdProcess.kill('SIGINT')
-    } catch (e) {
-      logger.info('Specterd quit warning: ' + e)
-    }
-  }
-}
 
 function setMainMenu() {
   const menu = defaultMenu(app, shell)
@@ -408,11 +307,11 @@ function openErrorLog() {
 
 process.on('unhandledRejection', (error) => {
   showError(error)
-  logger.error(error.toString(), error.name)
+  logger.error(error.stack)
 })
 
 process.on('uncaughtException', (error) => {
-  showError(error, mainWindow)
+  showError(error)
   // I would love to rethrow the error here as this would create a stacktrace in the logs
   // but this will terminate the whole process even though i've set
   // exitOnError: false in the winstonOptions above.
