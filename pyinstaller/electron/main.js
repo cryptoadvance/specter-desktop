@@ -6,25 +6,14 @@ const fs = require('fs')
 const { URL } = require('node:url')
 const request = require('request')
 const https = require('https')
-const extract = require('extract-zip')
 const defaultMenu = require('electron-default-menu')
-const ProgressBar = require('electron-progressbar')
 const { spawn, exec } = require('child_process')
-const {
-  getFileHash,
-  getAppSettings,
-  appSettingsPath,
-  specterdDirPath,
-  specterAppLogPath,
-  versionData,
-  isDev,
-  devFolder,
-  isMac,
-} = require('./helpers')
+const { appSettingsPath, specterdDirPath, appSettings, platformName, appNameLower } = require('./src/config.js')
+const { getFileHash, getAppSettings, versionData, isDev, devFolder, isMac } = require('./src/helpers.js')
+const logger = require('./src/logging.js').logger
 const downloadloc = require('./downloadloc')
+const { downloadSpecterd } = require('./src/download.js')
 const getDownloadLocation = downloadloc.getDownloadLocation
-const appName = downloadloc.appName()
-const appNameLower = appName.toLowerCase()
 
 // Quit again if there is no version-data in dev
 if (isDev && versionData === undefined) {
@@ -38,23 +27,6 @@ if (isDev && versionData === undefined) {
 ipcMain.handle('showMessageBoxSync', (e, message, buttons) => {
   dialog.showMessageBoxSync(mainWindow, { message, buttons })
 })
-
-// Logging
-const { transports, format, createLogger } = require('winston')
-const combinedLog = new transports.File({ filename: specterAppLogPath })
-const winstonOptions = {
-  exitOnError: false,
-  format: format.combine(
-    format.timestamp(),
-    format.json(),
-    format.printf((info) => {
-      return `${info.timestamp} [${info.level}] : ${info.message}`
-    })
-  ),
-  transports: [new transports.Console({ json: false }), combinedLog],
-  exceptionHandlers: [combinedLog],
-}
-const logger = createLogger(winstonOptions)
 
 if (isDev) {
   logger.info('Running the Electron app in dev mode.')
@@ -75,11 +47,12 @@ if (isMac && isDev) {
   app.dock.setIcon(dockIcon)
 }
 
-let appSettings = getAppSettings()
 let dimensions = { width: 1500, height: 1000 }
 
 // Modify the context menu
 const contextMenu = require('electron-context-menu')
+const { startSpecterd } = require('./src/specterd.js')
+const { showError, initialize } = require('./src/uiHelpers.js')
 contextMenu({
   menu: (actions) => [
     {
@@ -101,104 +74,6 @@ contextMenu({
   ],
 })
 
-// The standard quit item cannot be replaced / modified and it is not triggering the
-// before-quit event on MacOS if a child window is open
-const dockMenuWithforceQuit = Menu.buildFromTemplate([
-  {
-    label: 'Force Quit during download',
-    click: () => {
-      // If the progress bar exists, close it
-      if (progressBar) {
-        progressBar.close()
-      }
-      // Quit the app
-      app.quit()
-    },
-  },
-])
-
-// Download function with progress bar
-let progressBar
-const download = (uri, filename, callback) => {
-  // HEAD request first
-  request.head(uri, (err, res, body) => {
-    if (res.statusCode != 404) {
-      let receivedBytes = 0
-      const totalBytes = res.headers['content-length']
-      logger.info(`Total size to download: ${totalBytes}`)
-      progressBar = new ProgressBar({
-        indeterminate: false,
-        abortOnError: true,
-        text: 'Downloading the Specter binary from GitHub',
-        detail:
-          'This can take several minutes depending on your Internet connection. Specter will start once the download is finished.',
-        maxValue: totalBytes,
-        browserWindow: {
-          parent: mainWindow,
-        },
-        style: {
-          detail: {
-            'margin-bottom': '12px',
-          },
-          bar: {
-            'background-color': '#fff',
-          },
-          value: {
-            'background-color': '#000',
-          },
-        },
-      })
-
-      // Add Force Quit item during download for MacOS dock
-      if (isMac) {
-        app.dock.setMenu(dockMenuWithforceQuit)
-      }
-
-      progressBar.on('completed', () => {
-        progressBar.close()
-        // Remove the Force Quit dock item again for Mac
-        if (isMac) {
-          const updatedDockMenu = Menu.buildFromTemplate(
-            dockMenuWithforceQuit.items.filter((item) => item.label !== 'Force Quit during download')
-          )
-          app.dock.setMenu(updatedDockMenu)
-        }
-      })
-
-      progressBar.on('aborted', () => {
-        logger.info('Download was aborted before it could finish.')
-      })
-
-      // Loggin the download progress
-      let lastLogTime = 0
-      const logInterval = 5000 // log every 5 seconds
-      progressBar.on('progress', () => {
-        const currentTime = Date.now()
-        if (currentTime - lastLogTime >= logInterval) {
-          lastLogTime = currentTime
-          logger.info(`Download status: ${((receivedBytes / totalBytes) * 100).toFixed(0)}%`)
-        }
-      })
-
-      // GET request
-      request(uri)
-        .on('data', (chunk) => {
-          receivedBytes += chunk.length
-          if (progressBar) {
-            progressBar.value = receivedBytes
-          }
-        })
-        .pipe(fs.createWriteStream(filename))
-        .on('close', callback)
-    }
-    // If the download link was not found, call callback (updatingLoaderMsg with error feedback)
-    else {
-      logger.info(`Error while trying to download specterd: ${err}`)
-      callback(true)
-    }
-  })
-}
-
 let specterdProcess
 let automaticWalletImport = false
 let mainWindow
@@ -217,20 +92,6 @@ let webPreferences = {
 
 app.commandLine.appendSwitch('ignore-certificate-errors')
 
-let platformName = ''
-switch (process.platform) {
-  case 'darwin':
-    platformName = 'osx'
-    break
-  case 'win32':
-    platformName = 'win64'
-    break
-  case 'linux':
-    platformName = 'x86_64-linux-gnu'
-    break
-  default:
-    throw `Unknown platformName ${platformName}`
-}
 logger.info('Using version ' + appSettings.specterdVersion)
 logger.info('Using platformName ' + platformName)
 
@@ -335,11 +196,12 @@ app.whenReady().then(() => {
   initMainWindow()
 
   setMainMenu()
+  initialize(mainWindow, tray, trayMenu)
 
   mainWindow.loadURL(`file://${__dirname}/splash.html`)
 
   if (!fs.existsSync(specterdDirPath)) {
-    logger.info('Creating specterd-binaries folder')
+    logger.info('Creating specterd-binaries folder:' + specterdDirPath)
     fs.mkdirSync(specterdDirPath, { recursive: true })
   }
 
@@ -357,7 +219,7 @@ app.whenReady().then(() => {
         startSpecterd(specterdPath)
       } else if (appSettings.specterdVersion != '') {
         updatingLoaderMsg('Specterd version could not be validated. Trying again to download the Specter binary ...')
-        downloadSpecterd(specterdPath)
+        downloadSpecterd(specterdPath, mainWindow, tray, trayMenu)
       } else {
         updatingLoaderMsg(
           'Specterd file could not be validated and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...'
@@ -367,7 +229,7 @@ app.whenReady().then(() => {
     })
   } else {
     if (appSettings.specterdVersion) {
-      downloadSpecterd(specterdPath)
+      downloadSpecterd(specterdPath, mainWindow, tray, trayMenu)
     } else {
       updatingLoaderMsg(
         'Specterd was not found and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...'
@@ -408,261 +270,9 @@ function initMainWindow() {
   mainWindow.webContents.on('did-fail-load', function () {
     mainWindow.loadURL(`file://${__dirname}/splash.html`)
     updatingLoaderMsg(
-      `Failed to load: ${appSettings.specterURL}<br>Please make sure the URL is entered correctly in the settings and try again...`
+      `Failed to load: ${appSettings.specterURL}<br>Please make sure the URL is entered correctly in the settings and try again...</b>`
     )
   })
-}
-
-function downloadSpecterd(specterdPath) {
-  updatingLoaderMsg(`Starting download`)
-  updateSpecterdStatus(`Downloading the ${appName} binary...`)
-  // Some logging
-  logger.info('Using version ' + appSettings.specterdVersion)
-  logger.info('Using platformName ' + platformName)
-  download_location = getDownloadLocation(appSettings.specterdVersion, platformName)
-  logger.info('Downloading from ' + download_location)
-  download(download_location, specterdPath + '.zip', function (errored) {
-    if (errored == true) {
-      updatingLoaderMsg(
-        `Downloading the ${appNameLower} binary from GitHub failed, could not reach the server or the file wasn't found.`
-      )
-      updateSpecterdStatus(`Downloading ${appNameLower}d failed...`)
-      return
-    }
-    updatingLoaderMsg('Download completed. Unpacking files...')
-    logger.info('Extracting ' + specterdPath)
-
-    extract(specterdPath + '.zip', { dir: specterdPath + '-dir' }).then(function () {
-      let extraPath = ''
-      switch (process.platform) {
-        case 'darwin':
-          extraPath = appNameLower + 'd'
-          break
-        case 'win32':
-          extraPath = appNameLower + 'd.exe'
-          break
-        case 'linux':
-          extraPath = appNameLower + 'd'
-      }
-      var oldPath = specterdPath + `-dir/${extraPath}`
-      var newPath = specterdPath + (platformName == 'win64' ? '.exe' : '')
-
-      fs.renameSync(oldPath, newPath)
-      fs.unlinkSync(specterdPath + '.zip')
-      fs.rmdirSync(specterdPath + '-dir', { recursive: true })
-      getFileHash(specterdPath + (platformName == 'win64' ? '.exe' : ''), function (specterdHash) {
-        if (appSettings.specterdHash.toLowerCase() === specterdHash || appSettings.specterdHash == '') {
-          startSpecterd(specterdPath)
-        } else {
-          updatingLoaderMsg('Specterd version could not be validated.')
-          logger.error(`hash of downloaded file: ${specterdHash}`)
-          logger.error(`Expected hash: ${appSettings.specterdHash}`)
-          updateSpecterdStatus('Failed to launch specterd...')
-        }
-      })
-    })
-  })
-}
-
-function updateSpecterdStatus(status) {
-  trayMenu[0] = { label: status, enabled: false }
-  tray.setContextMenu(Menu.buildFromTemplate(trayMenu))
-}
-
-function updatingLoaderMsg(msg, showSpinner = false) {
-  if (mainWindow) {
-    let code = `
-    var launchText = document.getElementById('launch-text');
-    if (launchText) {
-      launchText.innerHTML = '${msg}';
-    }
-    var spinnerElement = document.getElementById('spinner');
-    if (spinnerElement) {
-      if (${showSpinner} === true) {
-        spinnerElement.classList.remove('hidden')
-      }
-      else {
-        spinnerElement.classList.add('hidden')
-      }
-    }
-    `
-    mainWindow.webContents.executeJavaScript(code)
-  }
-  logger.info('Updated LoaderMsg: ' + msg)
-}
-
-function checkSpecterd(logs, specterdStarted) {
-  // There doesn't seem to be another more straightforward way to check whether specterd is running: https://github.com/nodejs/help/issues/1191
-  // Setting a timeout to avoid waiting for specterd endlessly
-  const timeout = 180000 // 3 minutes
-  const now = Date.now()
-  const timeElapsed = now - specterdStarted
-  if (timeElapsed > timeout) {
-    return 'timeout'
-  }
-  if (logs.toString().includes('Serving Flask app')) {
-    return 'running'
-  } else {
-    return 'not running'
-  }
-}
-
-let specterIsRunning = false
-function startSpecterd(specterdPath) {
-  if (platformName == 'win64') {
-    specterdPath += '.exe'
-  }
-  let appSettings = getAppSettings()
-  let hwiBridgeMode = appSettings.mode == 'hwibridge'
-  updatingLoaderMsg('Launching Specter ...', (showSpinner = true))
-  updateSpecterdStatus('Launching Specter ...')
-  let specterdArgs = ['server']
-  specterdArgs.push('--no-filelog')
-  if (hwiBridgeMode) specterdArgs.push('--hwibridge')
-  if (appSettings.specterdCLIArgs != '') {
-    // User has inputed cli arguments in the UI
-    let specterdExtraArgs = appSettings.specterdCLIArgs.split(' ')
-    specterdExtraArgs.forEach((arg) => {
-      // Ensures that whitespaces are not used as cli arguments
-      if (arg != '') {
-        specterdArgs.push(arg)
-      }
-    })
-  }
-  // locale fix (copying from nodejs-env + adding locales)
-  const options = {
-    env: { ...process.env },
-  }
-  options.env['LC_ALL'] = 'en_US.utf-8'
-  options.env['LANG'] = 'en_US.utf-8'
-  options.env['SPECTER_LOGFORMAT'] = 'SPECTERD: %(levelname)s in %(module)s: %(message)s'
-  specterdProcess = spawn(specterdPath, specterdArgs, options)
-  const specterdStarted = Date.now()
-
-  // We are checking for both, stdout and stderr, to be on the save side.
-  specterdProcess.stdout.on('data', (data) => {
-    logger.info('stdout-' + data.toString())
-    let serverdStatus = checkSpecterd(data, specterdStarted)
-    // We don't want to check the logs forever, just until specterd is up and running
-    if (!specterIsRunning) {
-      if (serverdStatus === 'running') {
-        logger.info(`Specter server seems to run ...`)
-        updateSpecterdStatus('Specter is running')
-        specterIsRunning = true
-        if (mainWindow) {
-          if (automaticWalletImport === true) {
-            logger.info('Performing automatic wallet import ...')
-            updatingLoaderMsg('Launching wallet importer. This will only work with a node connection.', (showSpinner = true))
-            setTimeout(() => {
-              importWallet(walletDataFromUrl)
-            }, 3000)
-          } else {
-            logger.info('Normal startup of Specter.')
-            createWindow(appSettings.specterURL)
-          }
-        }
-      } else if (serverdStatus === 'timeout') {
-        showError('Specter does not seem to start. Check the logs in the menu for more details.')
-        updateSpecterdStatus('Specter does not start')
-        logger.error('Startup timeout for specterd exceeded')
-      } else {
-        updatingLoaderMsg('Still waiting for Specter to start ...')
-        updateSpecterdStatus('Specter is starting')
-      }
-    }
-  })
-
-  specterdProcess.stderr.on('data', (data) => {
-    logger.info('stderr-' + data.toString())
-    let serverdStatus = checkSpecterd(data, specterdStarted)
-    if (!specterIsRunning) {
-      if (serverdStatus === 'running') {
-        logger.info(`Specter server seems to run ...`)
-        updateSpecterdStatus('Specter is running')
-        specterIsRunning = true
-        if (mainWindow) {
-          logger.info('... creating Electron window for it.')
-          createWindow(appSettings.specterURL)
-        }
-      } else if (serverdStatus === 'timeout') {
-        showError('Specter does not seem to start. Check the logs in the menu for more details.')
-        updateSpecterdStatus('Specter does not start')
-        logger.error('Startup timeout for specterd exceeded')
-      } else {
-        updatingLoaderMsg('Still waiting for Specter to start ...')
-        updateSpecterdStatus('Specter is starting')
-      }
-    }
-  })
-
-  specterdProcess.on('exit', (code) => {
-    logger.error(`specterd exited with code ${code}`)
-    showError(`Specter exited with exit code ${code}. Check the logs in the menu for more details.`)
-  })
-
-  specterdProcess.on('error', (err) => {
-    logger.error(`Error starting Specter server: ${err}`)
-    showError(`Specter failed to start, due to ${err.message}. Check the logs in the menu for more details.`)
-  })
-
-  app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow(appSettings.specterURL)
-  })
-  // since these are streams, you can pipe them elsewhere
-  specterdProcess.on('close', (code) => {
-    updateSpecterdStatus('Specter stopped...')
-    logger.info(`child process exited with code ${code}`)
-  })
-}
-
-let walletDataFromUrl
-// Checking whether the app was opened via a Specter URL and determine whether to perform a specific startup action
-app.on('open-url', (_, url) => {
-  logger.info('The app was opened via URL, checking the URL to decide whether to do any automatic actions ...')
-  // Parse the URL to extract the query parameters
-  const specterUrl = new URL(url)
-  const searchParams = specterUrl.searchParams
-  // Get the query parameter values
-  const action = searchParams.get('action')
-  const data = searchParams.get('data')
-  if (action === 'importWallet' && data !== '') {
-    logger.info('Automatic wallet import identified in the URL, setting automaticWalletImport to true.')
-    automaticWalletImport = true
-    walletDataFromUrl = data
-    // Directly import if the app and specterd is already running
-    if (specterIsRunning) {
-      logger.info('Performing automatic wallet import ...')
-      mainWindow.loadURL(`file://${__dirname}/splash.html`)
-      updatingLoaderMsg('Launching wallet importer. This will only work with a node connection.', (showSpinner = true))
-      setTimeout(() => {
-        importWallet(walletDataFromUrl)
-      }, 3000)
-    }
-  }
-})
-
-// Automatically import the wallet json string, bring user to the final import wallet screen.
-// Only proceed with the import if the importFromWalletSoftwareBtn can be found. 
-// If it is not, users are redirected by specterd to the configure connection screen.
-function importWallet(walletData) {
-  mainWindow.loadURL(appSettings.specterURL + '/wallets/new_wallet/')
-  if (mainWindow) {
-    let code = `
-      const importFromWalletSoftwareBtn = document.getElementById('import-from-wallet-software-btn')
-      if (importFromWalletSoftwareBtn) {
-        importFromWalletSoftwareBtn.click()
-        const walletDataTextArea = document.getElementById('txt')
-        if (walletDataTextArea) {
-          walletDataTextArea.value =  \`${walletData}\`
-        }
-        const continueBtn = document.getElementById('continue-with-wallet-import-btn');
-        continueBtn.click()
-      }
-    `
-    mainWindow.webContents.executeJavaScript(code)
-  }
 }
 
 app.on('window-all-closed', function () {
@@ -808,21 +418,17 @@ function openErrorLog() {
   createNewWindow('error_logs.html', width, height).show()
 }
 
-function showError(error) {
-  updatingLoaderMsg('Specter encountered an error:<br>' + error.toString())
-}
-
 process.on('unhandledRejection', (error) => {
   showError(error)
   logger.error(error.toString(), error.name)
 })
 
 process.on('uncaughtException', (error) => {
-  showError(error)
+  showError(error, mainWindow)
   // I would love to rethrow the error here as this would create a stacktrace in the logs
   // but this will terminate the whole process even though i've set
-  // exitOnError: false in the wistonOptions above.
+  // exitOnError: false in the winstonOptions above.
   // Unacceptable for the folks which can't use a commandline, clicking an icon
   //throw(error)
-  logger.error(error.toString())
+  logger.error(error.stack)
 })
