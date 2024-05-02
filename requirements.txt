@@ -155,9 +155,8 @@ cryptoadvance-liquidissuer==0.2.4 \
     --hash=sha256:5a2c531801854c5a4a46daf184877e22f731cdb42d2cfb840785bda7371ba6fb \
     --hash=sha256:9e468f3e35ecc566b3f74a2263677cf26632548abb194521dba15ad37acd1e9b
     # via -r requirements.in
-cryptoadvance-spectrum==0.6.4 \
-    --hash=sha256:226f89dfe96dac2fcd82f462706e118f017582df5565ff1924f27e4392bc6a0e \
-    --hash=sha256:fa6c877b3a5ba683ccde991f020fce2f3b06e0b8f5219a6fdc592658cacb1d3d
+cryptoadvance-spectrum==0.6.5 \
+    --hash=sha256:200bdfbf6cf3a1e25ff6f34ef861f978e9b08e24702278d4d14a024b8dea69a6
     # via -r requirements.in
 cryptography==39.0.1 \
     --hash=sha256:0f8da300b5c8af9f98111ffd512910bc792b4c77392a9523624680f7956a99d4 \
@@ -240,9 +239,9 @@ flask-sqlalchemy==2.5.1 \
     --hash=sha256:2bda44b43e7cacb15d4e05ff3cc1f8bc97936cc464623424102bfc2c35e95912 \
     --hash=sha256:f12c3d4cc5cc7fdcc148b9527ea05671718c3ea45d50c7e732cceb33f574b390
     # via cryptoadvance-spectrum
-flask-wtf==0.15.1 \
-    --hash=sha256:6ff7af73458f182180906a37a783e290bdc8a3817fe4ad17227563137ca285bf \
-    --hash=sha256:ff177185f891302dc253437fe63081e7a46a4e99aca61dfe086fb23e54fff2dc
+flask-wtf==1.2.1 \
+    --hash=sha256:8bb269eb9bb46b87e7c8233d7e7debdf1f8b74bf90cc1789988c29b37a97b695 \
+    --hash=sha256:fa6793f2fb7e812e0fe9743b282118e581fb1b6c45d414b8af05e659bd653287
     # via -r requirements.in
 greenlet==2.0.2 \
     --hash=sha256:03a8f4f3430c3b3ff8d10a2a86028c660355ab637cee9333d63d66b56f09d52a \
@@ -816,9 +815,9 @@ urllib3==1.26.14 \
     --hash=sha256:076907bf8fd355cde77728471316625a4d2f7e713c125f51953bb5b3eecf4f72 \
     --hash=sha256:75edcdc2f7d85b137124a6c3c9fc3933cdeaa12ecb9a6a959f22797a0feca7e1
     # via requests
-werkzeug==2.2.3 \
-    --hash=sha256:2e1ccc9417d4da358b9de6f174e3ac094391ea1d4fbef2d667865d819dfd0afe \
-    --hash=sha256:56433961bc1f12533306c624f3be5e744389ac61d722175d543e1751285da612
+werkzeug==2.2.2 \
+    --hash=sha256:7ea2d48322cc7c0f8b3a215ed73eabd7b5d75d0b50e31ab006286ccff9e00b8f \
+    --hash=sha256:f979ab81f58d7318e064e99c4506445d60135ac5cd2e177a2de0089bfd4c9bd5
     # via
     #   flask
     #   flask-login
@@ -832,6 +831,5 @@ wtforms==3.0.1 \
     # via flask-wtf
 
 # WARNING: The following packages were not pinned, but pip requires them to be
-# pinned when the requirements file includes hashes and the requirement is not
-# satisfied by a package already installed. Consider using the --allow-unsafe flag.
+# pinned when the requirements file includes hashes. Consider using the --allow-unsafe flag.
 # setuptools

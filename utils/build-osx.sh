@@ -9,15 +9,37 @@ cd ..
 
 # Overriding this function
 function create_virtualenv_for_pyinstaller {
-    if [ -d .buildenv ]; then
-        echo "    --> Deleting .buildenv"
-        rm -rf .buildenv
-    fi
-    # This currently assumes to be run with: Python 3.10.4
+    # This currently assumes to be run with: Python 3.10.11
     # Important: pyinstaller needs a Python binary with shared library files
     # With pyenv, for example, you get this like so: env PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.10.4
-    virtualenv .buildenv
-    source .buildenv/bin/activate
+    # Use pyenv if available
+    if command -v pyenv >/dev/null 2>&1; then
+        ### This is usually in .zshrc, putting it in .bashrc didn't work ###
+        ### 
+        export PYENV_ROOT="$HOME/.pyenv"
+        command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+        eval "$(pyenv init -)"
+        ### this needs the pyenv-virtualenv plugin. If you don't have it:
+        ### git clone https://github.com/pyenv/pyenv-virtualenv.git $(pyenv root)/plugins/pyenv-virtualenv
+        eval "$(pyenv virtualenv-init -)"
+        ### ------------------------------------------------------------ ###
+        PYTHON_VERSION=3.10.11
+        export PYENV_VERSION=$PYTHON_VERSION
+        echo "pyenv is available. Setting PYENV_VERSION to 3.10.4, using pyenv-virtualenv to create the buildenv..."
+        # echo "    --> Deleting .buildenv"
+        # pyenv uninstall -f .buildenv
+        # rm -rf "$HOME/.pyenv/versions/$PYTHON_VERSION/envs/.buildenv"
+        # pyenv virtualenv 3.10.4 .buildenv
+        pyenv activate .buildenv
+    else
+        echo "pyenv is not available. Using system Python version."
+        if [ -d .buildenv ]; then
+          echo "    --> Deleting .buildenv"
+          rm -rf .buildenv
+        fi
+        virtualenv .buildenv
+        source .buildenv/bin/activate
+    fi
     pip3 install -e ".[test]"
 }
 
@@ -41,17 +63,10 @@ END_COMMENT
 
 ### Prerequisites
 # brew install gmp # to prevent module 'embit.util' has no attribute 'ctypes_secp256k1'
+# brew install jq
 # npm install --global create-dmg
 
 ### Trouble shooting 
-# Currently, only MacOS Catalina is supported to build the dmg-file
-# Therefore we expect xcode 12.1 (according to google)
-# After installation of xcode: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-# otherwise you get xcrun: error: unable to find utility "altool", not a developer tool or in PATH
-# catalina might have a a too old version of bash. You need at least 4.0 or so
-# 3.2 is too low definitely
-# brew install bash
-
 # If you have the common issue "errSecInternalComponent" while signing the code:
 # https://medium.com/@ceyhunkeklik/how-to-fix-ios-application-code-signing-error-4818bd331327
 
@@ -66,6 +81,15 @@ We have:
 * sign will upload the electron-app to the Apple notary service and get it back notarized
 * upload will upload all the binary artifacts to the github-release-page. This includes the creation of the hash-files
   and the gnupg signing
+
+### Trouble shooting (Legacy)
+# Currently, only MacOS Catalina is supported to build the dmg-file
+# Therefore we expect xcode 12.1 (according to google)
+# After installation of xcode: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+# otherwise you get xcrun: error: unable to find utility "altool", not a developer tool or in PATH
+# catalina might have a a too old version of bash. You need at least 4.0 or so
+# 3.2 is too low definitely
+# brew install bash
 
 # Example-call:
 ./utils/build-osx.sh --debug --version v1.10.0-pre23 --appleid "Kim Neunert (FWV59JHV83)" --mail "kim@specter.solutions" make-hash specterd  electron sign upload
@@ -158,9 +182,6 @@ fi
 if [[ "$build_electron" = "True" ]]; then
   prepare_npm
   make_hash_if_necessary
-
-
-
   npm i
   if [[ "${appleid}" == '' ]]
   then
@@ -174,6 +195,10 @@ if [[ "$build_electron" = "True" ]]; then
 fi
 
 if [[ "$build_sign" = "True" ]]; then
+  dist_mac_folder_name=mac
+  if [ "$(uname -m)" = "arm64" ]; then 
+      dist_mac_folder_name=${dist_mac_folder_name}-arm64
+  fi
   if [[ "$appleid" != '' ]]
   then
     macos_code_sign
@@ -183,7 +208,7 @@ if [[ "$build_sign" = "True" ]]; then
   mkdir -p release
   rm -rf release/*
 
-  create-dmg pyinstaller/electron/dist/mac/${specterimg_filename}.app --identity="Developer ID Application: ${appleid}" dist
+  create-dmg pyinstaller/electron/dist/${dist_mac_folder_name}/${specterimg_filename}.app --identity="Developer ID Application: ${appleid}" dist
   # create-dmg doesn't create the prepending "v" to the version
   node_comp_version=$(python3 -c "print('$version'[1:])")
   mv "dist/${specterimg_filename} ${node_comp_version}.dmg" release/${specterimg_filename}-${version}.dmg
@@ -211,12 +236,12 @@ if [ "$app_name" == "specter" ]; then
   echo "sha256sum * > SHA256SUMS-macos"
   echo "python3 ../../utils/github.py upload SHA256SUMS-macos"
   echo "gpg --detach-sign --armor SHA256SUMS-macos"
-  echo "python3 ../../utils/github.py upload SHA256SUMS-macos.asc"
+  echo "python3 ../utils/github.py upload SHA256SUMS-macos.asc"
 
 
   if [[ "$upload" = "True" ]]; then
     echo "    --> This build got triggered for version $version"
-    . ../../specter_gh_upload.sh
+    . ../../specter_gh_upload.sh # A simple file looks like: export GH_BIN_UPLOAD_PW=...(GH token)
     export CI_COMMIT_TAG=$version
     if [[ -z "$CI_PROJECT_ROOT_NAMESPACE" ]]; then
       export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance

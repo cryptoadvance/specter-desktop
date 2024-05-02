@@ -20,8 +20,8 @@
   "author": "Specter",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^22.1.0",
-    "electron-builder": "^23.3.1"
+    "electron": "^22.3.12",
+    "electron-builder": "^23.6.0"
   },
   "build": {
     "productName": "Specter",
@@ -30,9 +30,9 @@
       "category": "public.app-category.utilities",
       "identity": "Kim Neunert (FWV59JHV83)",
       "entitlements": "./build/entitlements.mac.plist",
-      "entitlementsInherit": "./build/entitlements.mac.plist",
       "hardenedRuntime": true,
-      "icon": "./icons/icon.icns"
+      "icon": "./icons/icon.icns",
+      "provisioningProfile": "/Users/kim/Specter_Desktop_vanilla.provisionprofile"
     },
     "win": {
       "icon": "./icons/icon.ico"
@@ -45,9 +45,9 @@
     }
   },
   "dependencies": {
-    "electron-context-menu": "^2.3.0",
+    "electron-context-menu": "^2.5.2",
     "electron-default-menu": "^1.0.2",
-    "electron-progressbar": "^2.0.1",
+    "electron-progressbar": "^2.1.0",
     "extract-zip": "^2.0.1",
     "read-last-lines": "^1.8.0",
     "request": "^2.88.2",
