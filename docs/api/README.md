@@ -10,11 +10,13 @@ In order to make reasonable assumptions about how stable a specific endpoint is,
 
 The Specter API is using JWT tokens for Authentication. In order to use the API, you need to obtain such a token. Currently, obtaining a token is not possible via the UI but only via a special endpoint, which accepts BasicAuth (as the only endpoint).
 
+NB: The default user and password key-value pair for Specter Desktop is `admin:admin`.
+
 ## Curl:
 
 Create the token like this:
 ```bash
-curl -u admin:password --location --request POST 'http://127.0.0.1:25441/api/v1alpha/token' \
+curl -u user:password --location --request POST 'http://127.0.0.1:25441/api/v1alpha/token' \
 --header 'Content-Type: application/json' \
 -d '{
     "jwt_token_description": "A free description here to know for what the token is used",
@@ -35,7 +37,7 @@ As a result, you get a json like this:
 The token will only be shown once. However, apart from the token itself, you can still get the details of a specific token like this:
 
 ```bash
-curl -s -u admin:secret --location --request GET 'http://127.0.0.1:25441/api/v1alpha/token/4969e9fb-2097-41e7-af53-5e2082a3e4d3' | jq .
+curl -s -u user:password --location --request GET 'http://127.0.0.1:25441/api/v1alpha/token/4969e9fb-2097-41e7-af53-5e2082a3e4d3' | jq .
 ```
 
 ```json
@@ -81,7 +83,7 @@ Here is an example of using the API with python. We don't assume that you use Ba
 
 ```python
 import requests
-response = requests.get('http://127.0.0.1:25441/api/v1alpha/token/<token_id>', auth=('admin', 'secret'))
+response = requests.get('http://127.0.0.1:25441/api/v1alpha/token/<token_id>', auth=('user', 'password'))
 json.loads(response.text)
 ```
 
