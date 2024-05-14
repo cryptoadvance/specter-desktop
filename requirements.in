@@ -1,15 +1,14 @@
 certifi==2022.12.7
 chardet==3.0.4
 Click==8.1.1
-Flask==2.1.1
-Werkzeug==2.2.2 # need to pin because Flask doesn't work with newer ones
-Flask-Babel==2.0.0 # needs pin see https://github.com/cryptoadvance/specter-desktop/issues/2218
+Flask==2.2.5
+Flask-Babel==3.1.0
 Flask-Cors==3.0.10
-Flask-Login==0.6.2
-Flask-RESTful==0.3.9
-Flask-HTTPAuth==4.7.0
+Flask-Login==0.6.3
+Flask-RESTful==0.3.10
+Flask-HTTPAuth==4.8.0
 hwi==2.1.1
-python-dotenv==0.13.0
+python-dotenv==0.21.1
 requests==2.26.0
 pysocks==1.7.1
 six==1.16.0
@@ -17,9 +16,9 @@ stem==1.8.0
 embit==0.6.1
 psutil==5.9.0
 pyopenssl==23.0.0
-flask_wtf==0.15.1
+flask_wtf==1.2.1
 pgpy==0.6.0
-cbor==1.0.0
+cbor2==5.4.6
 mnemonic==0.20
 cryptography==39.0.1
 Flask-APScheduler==1.12.4
@@ -29,9 +28,15 @@ protobuf==3.20.2
 PyJWT==2.4.0
 pytimeparse==1.1.8
 psycopg2-binary==2.9.5
+
 # Extensions
 cryptoadvance-liquidissuer==0.2.4
 specterext-exfund==0.1.7
 specterext-faucet==0.1.2
-cryptoadvance.spectrum==0.6.4
+cryptoadvance.spectrum==0.6.5
 specterext-stacktrack==0.3.0
+
+# workarounds
+
+# greenlet is needed but not inserted as transitive dependency for some reason
+greenlet==2.0.2 

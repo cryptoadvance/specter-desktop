@@ -1734,18 +1734,24 @@ class Wallet(AbstractWallet):
             raise SpecterError(
                 "Fee difference is too small to relay the RBF transaction"
             )
-        # find change output
-        change_index = None
-        for i, out in enumerate(psbt.outputs):
-            if out.is_change:
-                change_index = i
-                break
-        if change_index is None:
-            raise SpecterError("Can't bump fee in a transaction without change outputs")
-        psbt.psbt.outputs[i].value -= round(fee_delta)
-        if psbt.psbt.outputs[i].value <= 0:
-            # if we went negative - just drop the change output
-            psbt.psbt.outputs.remove(psbt.psbt.outputs[i])
+        if len(psbt.outputs) == 1:
+            # On single-output transactions we just decrease the output value
+            psbt.psbt.outputs[0].value -= round(fee_delta)
+        else:
+            # find change output
+            change_index = None
+            for i, out in enumerate(psbt.outputs):
+                if out.is_change:
+                    change_index = i
+                    break
+            if change_index is None:
+                raise SpecterError(
+                    "Can't bump fee in a transaction without change outputs"
+                )
+            psbt.psbt.outputs[i].value -= round(fee_delta)
+            if psbt.psbt.outputs[i].value <= 0:
+                # if we went negative - just drop the change output
+                psbt.psbt.outputs.remove(psbt.psbt.outputs[i])
         self.save_pending_psbt(psbt)
         return psbt.to_dict()
 

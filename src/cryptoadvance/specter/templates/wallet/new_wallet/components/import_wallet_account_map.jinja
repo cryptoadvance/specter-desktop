@@ -12,7 +12,7 @@
         <textarea class="mt-3" id="txt" name="wallet_data" placeholder="Enter your wallet data here"></textarea>
 
         <div class="popup hidden rounded-md overflow-hidden" id="popup">
-          <video muted playsinline id="qr-video"></video>
+            <video muted playsinline id="qr-video"></video>
         </div>
 
         <div>
@@ -34,7 +34,7 @@
 
 
 <script type="module">
-	import QrScanner from "{{ url_for('static', filename='qr/qr-scanner.min.js') }}";
+    import QrScanner from "{{ url_for('static', filename='qr/qr-scanner.min.js') }}";
     document.addEventListener("DOMContentLoaded", function(){
         QrScanner.WORKER_PATH = "{{ url_for('static', filename='qr/qr-scanner-worker.min.js') }}";
 
@@ -68,31 +68,45 @@
 
 <script type="text/javascript">
 	document.addEventListener("DOMContentLoaded", function(){
-		var el = document.getElementById("file");
-		var txt = document.getElementById("txt");
+        var el = document.getElementById("file");
+        const txtTextarea = document.getElementById("txt");
 
-		if (el != null) {
-			el.addEventListener("change", (e) => {
-				files = e.currentTarget.files;
-				console.log(files);
+        if (el != null) {
+            el.addEventListener("change", (e) => {
+                files = e.currentTarget.files;
+                console.log(files);
 				for(let i=0; i<files.length; i++){
-					console.log(files[i].name);
-					let reader = new FileReader();
-					reader.onload = function(e) {
-            document.getElementById("txt").value = reader.result;						
-					}
-					reader.readAsText(files[i]);
-				}
-			});
-		}
-	});
+                    console.log(files[i].name);
+                    let reader = new FileReader();
+                    reader.onload = function (e) {
+                        txtTextarea.value = reader.result;
+                    }
+                    reader.readAsText(files[i]);
+                }
+            });
+        }
 
-	function onCancelOverlay() {
+        txtTextarea.addEventListener("paste", function (event) {
+            event.preventDefault()
+            const clipboardData = event.clipboardData || window.clipboardData
+            const pastedText = clipboardData.getData("text/plain")
+            const cleanedText = pastedText.replace(/("label"\s?:\s?"[^"]*")|\s/g, (_, label) => {
+                if (label) {
+                    return label.replace(/\n/g, ' ') // Convert newline characters to spaces within labels
+                } else {
+                    return ''; // Remove whitespace characters otherwise
+                }
+            })
+            txtTextarea.value = cleanedText
+        });
+    });
+
+    function onCancelOverlay() {
         if (window.scanner) {
             document.getElementById("popup").style.display = 'none';
             window.scanner.stop();
         }
-	}
+    }
 
     // Deletes the global scanner property again if there is a reload
     window.addEventListener('unload', () => {
