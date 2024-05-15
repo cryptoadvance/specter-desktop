@@ -16,6 +16,7 @@ from cryptoadvance.spectrum.spectrum import RPCError as SpectrumRpcError
 from cryptoadvance.specter.specter_error import BrokenCoreConnectionException
 
 from cryptoadvance.spectrum.spectrum import Spectrum
+from cryptoadvance.spectrum.spectrum_error import RPCError
 
 from flask import has_app_context
 
@@ -83,6 +84,11 @@ class BridgeRPC(BitcoinRPC):
 
         # Spectrum uses a DB and access to it needs an app-context. In order to keep that implementation
         # detail within spectrum, we're establishing a context as needed.
+        class MockResponse:
+            def __init__(self, status_code=None, text=None):
+                self.status_code = status_code
+                self.text = text
+
         try:
             if not has_app_context() and self._app is not None:
                 with self._app.app_context():
@@ -102,10 +108,11 @@ class BridgeRPC(BitcoinRPC):
             return result
 
         except ValueError as ve:
-            mock_response = object()
-            mock_response.status_code = 500
-            mock_response.text = ve
+            mock_response: MockResponse = MockResponse(500, ve)
             raise SpecterRpcError(f"Request error: {ve}", mock_response)
+        except RPCError as rpce:
+            mock_response: MockResponse = MockResponse(500, rpce.message)
+            raise SpecterRpcError(f"Request error: {rpce.message}", mock_response)
         except SpectrumRpcError as se:
             raise SpecterRpcError(
                 str(se), status_code=500, error_code=se.code, error_msg=se.message

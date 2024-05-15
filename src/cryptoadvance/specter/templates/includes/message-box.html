@@ -4,10 +4,23 @@
   <message-box type="error">error happened!!!</message-box>
 -->
 <template id="messagebox">
-	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}">
+  <style>
+    #error-text {
+      /* Additional styles for the slot to allow breaking long unbroken strings */
+      word-break: break-all; /* This is the key property for breaking long strings */
+      /* Other styles you might want to apply to #error-text */
+    }
+  </style>
+  <link
+    rel="stylesheet"
+    type="text/css"
+    href="{{ url_for('static', filename='output.css') }}"
+  />
 
   <div class="shadow-md rounded-xl px-4 py-3 mr-4 mb-3 bg-dark-500" id="main">
-    <slot class="text-white" id="error-text">Error: Something bad happened!</slot>
+    <slot class="text-white" id="error-text"
+      >Error: Something bad happened!</slot
+    >
     <a class="ml-4 text-white cursor-pointer" id="cancel-icon">&#x2715;</a>
   </div>
 </template>
@@ -21,8 +34,8 @@
       var style = document.getElementById("messagebox").content;
       var clone = style.cloneNode(true);
       this.main = clone.querySelector("#main");
-      this.text = clone.getElementById('error-text')
-      this.cancelIcon = clone.getElementById('cancel-icon')
+      this.text = clone.getElementById("error-text");
+      this.cancelIcon = clone.getElementById("cancel-icon");
       clone.querySelector("a").addEventListener("click", (e) => {
         this.close();
       });
@@ -46,21 +59,20 @@
       }, 200);
     }
     setType(type) {
-      if (type === 'error') {
+      if (type === "error") {
         this.main.classList.remove("bg-dark-700");
         this.text.classList.remove("text-white");
-        this.cancelIcon.classList.remove("text-white")
+        this.cancelIcon.classList.remove("text-white");
         this.main.classList.add("bg-red-100");
         this.text.classList.add("text-red-700");
-        this.cancelIcon.classList.add("text-red-700")
-      }
-      else if (type == 'warning') {
+        this.cancelIcon.classList.add("text-red-700");
+      } else if (type == "warning") {
         this.main.classList.remove("bg-dark-700");
         this.text.classList.remove("text-white");
-        this.cancelIcon.classList.remove("text-white")
+        this.cancelIcon.classList.remove("text-white");
         this.main.classList.add("bg-orange-100");
         this.text.classList.add("text-orange-700");
-        this.cancelIcon.classList.add("text-orange-700")
+        this.cancelIcon.classList.add("text-orange-700");
       }
     }
     connectedCallback() {
