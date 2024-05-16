@@ -137,9 +137,18 @@ _note: you may need to add `$HOME/.cargo/bin` to your path in `.env/bin/activate
 ## How to run the tests
 _TODO: Need more thorough tests!_
 
-In order to run the tests, you need bitcoind and elementsd binaries available. For Linux/Mac, there is some support for installing/compiling them. So you can:
+In order to run the tests, you need bitcoind and elementsd binaries available. For Linux/Mac, there is some support for installing/compiling them. 
+
+For bitcoind you can do:
+
 * `./tests/install_noded.sh --bitcoin binary` will install bitcoind in tests/bitcoin
+
+or:
+
 * `./tests/install_noded.sh --bitcoin compile` will compile bitcoind in tests/bitcoin
+
+For elementsd:
+
 * `./tests/install_noded.sh --elements compile` will compile elements in tests/elements
 
 If you're not interested in elements, you can skip the liquid specific tests as described below.
