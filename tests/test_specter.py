@@ -3,17 +3,17 @@ import logging
 from decimal import Decimal
 
 import pytest
-from cryptoadvance.specter.helpers import alias
+from cryptoadvance.specter.helpers import create_unique_id
 from cryptoadvance.specter.managers.wallet_manager import WalletManager
 from cryptoadvance.specter.specter import Specter
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.util.mnemonic import generate_mnemonic
 
 
-def test_alias():
-    assert alias("wurst 1") == "wurst_1"
-    assert alias("wurst_1") == "wurst_1"
-    assert alias("Wurst$ 1") == "wurst_1"
+def test_create_unique_id():
+    assert create_unique_id("wurst 1") == "wurst_1"
+    assert create_unique_id("wurst_1") == "wurst_1"
+    assert create_unique_id("Wurst$ 1") == "wurst_1"
 
 
 def test_specter(specter_regtest_configured, caplog):

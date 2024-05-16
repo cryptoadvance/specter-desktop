@@ -11,7 +11,7 @@ from flask import copy_current_request_context
 from cryptoadvance.specter.rpc import BitcoinRPC
 from cryptoadvance.specter.key import Key
 
-from ..helpers import add_dicts, alias, is_liquid, load_jsons
+from ..helpers import add_dicts, create_unique_id, is_liquid, load_jsons
 from ..liquid.wallet import LWallet
 from ..persistence import delete_folder
 from ..rpc import RpcError, get_default_datadir, BrokenCoreConnectionException
@@ -348,7 +348,7 @@ class WalletManager:
         except:
             walletsindir = []
         self._check_duplicate_keys(keys)
-        wallet_alias = alias(name)
+        wallet_alias = create_unique_id(name)
 
         w = self.WalletClass.create(
             self.rpc,

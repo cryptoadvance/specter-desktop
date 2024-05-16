@@ -7,7 +7,7 @@ import shutil
 from ..rpc import get_default_datadir, RPC_PORTS
 from ..specter_error import SpecterError, SpecterInternalException
 from ..persistence import PersistentObject, write_node, delete_file
-from ..helpers import alias, calc_fullpath, load_jsons
+from ..helpers import create_unique_id, calc_fullpath, load_jsons
 from ..node import Node, NonExistingNode
 from ..internal_node import InternalNode
 from ..services import callbacks
@@ -193,11 +193,11 @@ class NodeManager:
         This should only be used for an external node. Use add_internal_node for internal node
         and if you have defined your own node type, use save_node directly to save the node (and create it yourself)
         """
-        node_alias = alias(name)
+        node_alias = create_unique_id(name)
         fullpath = os.path.join(self.data_folder, "%s.json" % node_alias)
         i = 2
         while os.path.isfile(fullpath):
-            node_alias = alias("%s %d" % (name, i))
+            node_alias = create_unique_id("%s %d" % (name, i))
             fullpath = os.path.join(self.data_folder, "%s.json" % node_alias)
             i += 1
 
@@ -239,11 +239,11 @@ class NodeManager:
         This should only be used for internal nodes. Use add__External_node for external nodes
         and if you have defined your own node-type, use save_node directly. to save the node (and create it yourself)
         """
-        node_alias = alias(name)
+        node_alias = create_unique_id(name)
         fullpath = os.path.join(self.data_folder, "%s.json" % node_alias)
         i = 2
         while os.path.isfile(fullpath):
-            node_alias = alias("%s %d" % (name, i))
+            node_alias = create_unique_id("%s %d" % (name, i))
             fullpath = os.path.join(self.data_folder, "%s.json" % node_alias)
             i += 1
         if not datadir:
