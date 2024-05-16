@@ -80,9 +80,10 @@ def test_node_running_elements(caplog, request):
         prepare_elements_default_wallet(my_elementsd)
         random_address = "el1qqf6tv4n8qp55qc04v4xts5snd9v5uurkry4vskef6lmecahj6c42jt9lnj0432287rs67z9vzq2zvuer036s5mahptwxgyd8k"
         my_elementsd.testcoin_faucet(random_address, amount=25)
-        my_elementsd.stop_node()
     except Exception as e:
         if "Couldn't find executable elementsd" in str(e):
             pytest.skip(str(e))
         else:
             raise e
+    finally:
+        my_elementsd.stop_node()
