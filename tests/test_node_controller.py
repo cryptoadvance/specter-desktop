@@ -66,17 +66,10 @@ def test_node_running_elements(caplog, request):
     caplog.set_level(logging.DEBUG, logger="cryptoadvance.specter")
     requested_version = request.config.getoption("--elementsd-version")
     try:
-        try:
-            my_elementsd = ElementsPlainController(
-                elementsd_path=find_node_executable(node_impl="elements"),
-                rpcport=18123,  # Non-standardport to not interfer
-            )
-        except Exception as e:
-            if "Couldn't find executable elementsd" in str(e):
-                pytest.skip(str(e))
-            else:
-                raise e
-
+        my_elementsd = ElementsPlainController(
+            elementsd_path=find_node_executable(node_impl="elements"),
+            rpcport=18123,  # Non-standardport to not interfer
+        )
         rpcconn = my_elementsd.start_node(cleanup_at_exit=True, cleanup_hard=True)
         requested_version = request.config.getoption("--elementsd-version")
         assert my_elementsd.version() == requested_version
@@ -88,5 +81,10 @@ def test_node_running_elements(caplog, request):
         prepare_elements_default_wallet(my_elementsd)
         random_address = "el1qqf6tv4n8qp55qc04v4xts5snd9v5uurkry4vskef6lmecahj6c42jt9lnj0432287rs67z9vzq2zvuer036s5mahptwxgyd8k"
         my_elementsd.testcoin_faucet(random_address, amount=25)
+    except Exception as e:
+        if "Couldn't find executable elementsd" in str(e):
+            pytest.skip(str(e))
+        else:
+            raise e
     finally:
         my_elementsd.stop_node()
