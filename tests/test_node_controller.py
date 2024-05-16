@@ -57,6 +57,7 @@ def test_fetch_wallet_addresses_for_mining(caplog, wallets_filled_data_folder):
     assert "bcrt1q4h86vfanswhsle63hw2muv9h5a45cg2878uez5" in addresses
 
 
+@pytest.mark.elm
 @pytest.mark.slow
 def test_node_running_elements(caplog, request):
     # TODO: Refactor this to use conftest.instantiate_bitcoind_controller
