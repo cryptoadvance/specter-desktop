@@ -443,9 +443,9 @@ markupsafe==2.1.2 \
     #   jinja2
     #   werkzeug
     #   wtforms
-mnemonic==0.20 \
-    --hash=sha256:7c6fb5639d779388027a77944680aee4870f0fcd09b1e42a5525ee2ce4c625f6 \
-    --hash=sha256:acd2168872d0379e7a10873bb3e12bf6c91b35de758135c4fbd1015ef18fafc5
+mnemonic==0.21 \
+    --hash=sha256:1fe496356820984f45559b1540c80ff10de448368929b9c60a2b55744cc88acf \
+    --hash=sha256:72dc9de16ec5ef47287237b9b6943da11647a03fe7cf1f139fc3d7c4a7439288
     # via
     #   -r requirements.in
     #   hwi

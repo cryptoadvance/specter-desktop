@@ -14,10 +14,14 @@ and embit (https://github.com/diybitcoinhardware/embit)"""
 MNEMONIC_LANGUAGES = {
     "en": "english",
     "es": "spanish",
-    # "fr": "french", # Not supported, for details see: https://github.com/trezor/python-mnemonic/issues/98)
+    "fr": "french",
     "it": "italian",
-    # "jp": "japanese",
-    # "ko": korean",
+    "jp": "japanese",
+    "cz": "czech",
+    "pt": "portuguese",
+    # "ko": "korean", requires special characters
+    # "ru": "russian", requires special characters
+    # "tr": "turkish", has a lot of overlapping words with other languages
     # "?": chinese_simplified",
     # "?": chinese_traditional",
 }
@@ -38,7 +42,7 @@ def generate_mnemonic(strength=256, language_code="en") -> str:
     "tomorrow question cook lend burden bone own junior stage square leaf father edge decrease pipe tired useful junior calm silver topple require rug clock"
 
     :param strength: 256 (default) will give you 24 words. 128 will result in 12 words
-    :param language_code: only "en", "es", and "it" are supported. If you use an unsupported one, it'll fallback to English.
+    :param language_code: "en", "es", "fr", "it", "jp", "cz" and "pt" are supported. If you use an unsupported one, it'll fallback to English.
     """
     mnemo = initialize_mnemonic(language_code)
     return mnemo.generate(strength=strength)
@@ -50,14 +54,6 @@ def get_language(mnemonic: str) -> str:
         supported_language_found = False
         language = Mnemonic.detect_language(mnemonic)
         words_as_list = mnemonic.split()
-        # If we get French as language we have to double check whether it is not really an English mnemonic because of overlaps in the wordlists
-        if language == "french":
-            count = 0
-            for word in words_as_list:
-                if word in WORDLIST:
-                    count += 1
-            if count == 12:
-                language = "english"
         for key, value in MNEMONIC_LANGUAGES.items():
             if value == language:
                 supported_language_found = True
