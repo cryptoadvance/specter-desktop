@@ -8,7 +8,7 @@ const contextMenu = require('electron-context-menu')
 const { appSettingsPath, specterdDirPath, appSettings, platformName, appNameLower } = require('./src/config.js')
 const { logger } = require('./src/logging.js')
 const downloadloc = require('./downloadloc')
-const { downloadSpecterd } = require('./src/download.js')
+const { downloadSpecterd, destroyProgressbar } = require('./src/download.js')
 const getDownloadLocation = downloadloc.getDownloadLocation
 const { startSpecterd, quitSpecterd } = require('./src/specterd.js')
 const { getFileHash, getAppSettings, versionData, isDev, devFolder, isMac } = require('./src/helpers.js')
@@ -191,13 +191,7 @@ app.on('before-quit', (event) => {
     quitted = true
     quitSpecterd()
     if (mainWindow && !mainWindow.isDestroyed()) {
-      if (progressBar) {
-        // You can only destroy the progress bar if it hadn't been closed before
-        if (progressBar.browserWindow) {
-          progressBar.destroy()
-        }
-        progressBar = null
-      }
+      destroyProgressbar()
       mainWindow.destroy()
       mainWindow = null
       prefWindow = null
