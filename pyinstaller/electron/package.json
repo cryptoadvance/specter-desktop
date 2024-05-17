@@ -32,7 +32,16 @@
       "entitlements": "./build/entitlements.mac.plist",
       "hardenedRuntime": true,
       "icon": "./icons/icon.icns",
-      "provisioningProfile": "/Users/kim/Specter_Desktop_vanilla.provisionprofile"
+      "provisioningProfile": "/Users/kim/Specter_Desktop_vanilla.provisionprofile",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
     },
     "win": {
       "icon": "./icons/icon.ico"
