@@ -1,5 +1,23 @@
 # Release Notes
 
+## v2.0.3 May 17, 2024
+- Add support for more languages for mnemonics #2424 (Wim van der Ham)
+- Allow bumpfee on transactions with a single output #2433 (Leon Costa)
+- Docs: fix small typos and grammatical errors #2406 (JumbledUp)
+- Enforce hwi init #2386 (k9ert)
+- Fix Jade signing issues with Swan Vault #2421 (Manolis Mandrapilias)
+- Fix install_noded.sh #2422 (Wim van der Ham)
+- Fix node2 RPC port & add missing elm mark #2438 (roshii)
+- Fix testnet path when deleting wallet on node #2395 (Manolis Mandrapilias)
+- Kn/macos signing #2432 (k9ert)
+- New documentations #1885 #2409 (j0sh21)
+- Patched Fix Improperly Controlled Modification of Prototype Pollution in specter-desktop #2385 (Sergev ₱)
+- Update README.md #2435 (KYC)
+- adding release_notes for v2.0.2 #2384 (k9ert)
+- chore: upgrade dependencies #2399 (k9ert)
+- fix bad error-messaging #2437 (k9ert)
+- updating dependencies #2434 (k9ert)
+
 ## v2.0.2 September 21, 2023
 - Bugfix: Add missing signet key #2368 (Manolis Mandrapilias)
 - Bugfix: Jade displaying wrong multisig addresses for descriptors using multi() #2366 (Manolis Mandrapilias)
