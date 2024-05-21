@@ -111,6 +111,8 @@ release_binary_windows:
   stage: releasing
   only: 
     - tags
+  variables:
+    GIT_DEPTH: 0  # Disable shallow clone to get all Git history
   tags:
     - windows
   before_script:
