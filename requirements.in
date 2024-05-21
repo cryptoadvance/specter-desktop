@@ -28,6 +28,7 @@ protobuf==3.20.2
 PyJWT==2.4.0
 pytimeparse==1.1.8
 psycopg2-binary==2.9.5
+aioitertools==0.11.0
 
 # Extensions
 cryptoadvance-liquidissuer==0.2.4
