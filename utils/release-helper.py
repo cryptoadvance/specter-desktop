@@ -6,6 +6,7 @@ import subprocess
 import sys
 import zipfile
 from pathlib import Path
+from glob import glob
 
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
@@ -340,36 +341,24 @@ if __name__ == "__main__":
         # Used by build-win.ci.bat
         sha256sum(sys.argv[2:])
         exit(0)
-    if "set_setup_py_version" in sys.argv:
-        # Used by build-win.ci.bat
-        version = sys.argv[2]
-        print(f"setting version {version} in setup.py")
-        search_text = "vx.y.z-get-replaced-by-release-script"
-
-        # creating a variable and storing the text
-        # that we want to add
-        replace_text = version
-
-        # Opening our text file in read only
-        # mode using the open() function
-        with open(r"setup.py", "r") as file:
-            data = file.read()
-            data = data.replace(search_text, replace_text)
-        with open(r"setup.py", "w") as file:
-            file.write(data)
-        print("Done")
-        exit(0)
     if "install_wheel" in sys.argv:
-        # Used by build-win.ci.bat
-        version = sys.argv[2]
-        version = version.replace("v", "")
-        version = version.replace("-pre", "rc")
-        filename = f"cryptoadvance.specter-{version}-py3-none-any.whl"
-        cmd = f"pip3 install {Path('dist',filename)}"
-        res = os.system(cmd)
-        print(f"result of command: {cmd}")
-        print(res)
-        exit(res)
+        # List all .whl files in the 'dist' directory
+        wheel_files = glob(
+            str(Path("dist", "cryptoadvance.specter-*-py3-none-any.whl"))
+        )
+        print("found those wheel files: " + str(wheel_files))
+
+        # Loop through the wheel files and install them
+        for wheel_file in wheel_files:
+            cmd = f"pip3 install {wheel_file}"
+            res = os.system(cmd)
+            print(f"Result of command: {cmd}")
+            print(res)
+            # If the installation fails, exit with the error code
+            if res != 0:
+                exit(res)
+        # Exit with a success code if all installations were successful
+        exit(0)
 
     rh = ReleaseHelper()
     rh.init_gitlab()
