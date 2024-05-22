@@ -7,7 +7,7 @@ Flask-Cors==3.0.10
 Flask-Login==0.6.3
 Flask-RESTful==0.3.10
 Flask-HTTPAuth==4.8.0
-hwi==2.1.1
+hwi==2.2.1
 python-dotenv==0.21.1
 requests==2.26.0
 pysocks==1.7.1
@@ -24,7 +24,7 @@ cryptography==39.0.1
 Flask-APScheduler==1.12.4
 gunicorn==20.1.0
 simple-websocket==0.8.1
-protobuf==3.20.2
+protobuf==4.23.3
 PyJWT==2.4.0
 pytimeparse==1.1.8
 psycopg2-binary==2.9.5
