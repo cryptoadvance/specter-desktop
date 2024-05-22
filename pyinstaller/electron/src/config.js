@@ -104,6 +104,7 @@ module.exports = {
     specterAppLogPath,
     versionDataPath,
     versionData,
+    getAppSettings,
     isDev: isDev,
     devFolder,
 }

@@ -11,7 +11,8 @@ const downloadloc = require('./downloadloc')
 const { downloadSpecterd, destroyProgressbar } = require('./src/download.js')
 const getDownloadLocation = downloadloc.getDownloadLocation
 const { startSpecterd, quitSpecterd } = require('./src/specterd.js')
-const { getFileHash, getAppSettings, versionData, isDev, devFolder, isMac } = require('./src/helpers.js')
+const { getFileHash, versionData, isDev, devFolder, isMac } = require('./src/helpers.js')
+const { getAppSettings } = require('./src/config.js')
 const { showError, updatingLoaderMsg, initMainWindow, loadUrl, initTray } = require('./src/uiHelpers.js')
 
 // Quit again if there is no version-data in dev

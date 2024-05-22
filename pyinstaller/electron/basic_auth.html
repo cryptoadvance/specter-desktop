@@ -33,8 +33,9 @@
             const fs = require('fs')
             const { ipcRenderer } = require('electron')
             const helpers = require('./helpers')
-            const getAppSettings = helpers.getAppSettings
-            const appSettingsPath = helpers.appSettingsPath
+            const config = require('./config')
+            const getAppSettings = config.getAppSettings
+            const appSettingsPath = config.appSettingsPath
 
             function cancel() {
                 window.close();
