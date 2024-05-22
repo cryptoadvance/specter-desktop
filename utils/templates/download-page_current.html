@@ -1,0 +1,426 @@
+<html>
+
+  <style>
+   /*CURRENT SECTION*/
+   .current {
+     background-color: #293142;
+     border-radius: 5px;
+     padding: 55px 25px;
+     margin-bottom: 30px;
+     width: 80%;
+     position: relative;
+     left: 10%;
+   }
+   .current ul {
+       list-style-type: none;
+       margin-left: 0;
+       margin-bottom: 0;
+       display: flex;
+       align-items: center;
+       flex-direction: row;
+       justify-content: space-between;
+   }
+   .current ul li {
+       display: inline-block;
+       text-align: center;
+   }
+   .current ul li a.btn {
+     border-style: solid;
+     border: none;
+     color: #ffffff;
+     border-color: #289db8;
+     background-color: #289db8;
+     border-radius: 5px;
+     padding: 13px 40px;
+     font-family: inherit;
+     font-weight: 500;
+     font-size: 1rem;
+     line-height: 1;
+   }
+   .current ul li a.btn:hover {
+     background-color: #46B2CB;
+   }
+   .current ul li a .fab {
+     font-size: 60px;
+     margin-bottom: 30px;
+   }
+   .current ul li a .fab:hover {
+     color: #289db8;
+   }
+   .current .open-source {
+     margin-bottom: 0;
+     margin-top: 70px;
+     text-align: center;
+     font-size: 12px;
+     color: #ffffff;
+   }
+   .popup {
+    position: fixed;
+    top: 15vh;
+    left: 10vw;
+    z-index: 1;
+    width: 80vw;
+    height: 80vh;
+    min-height: 600px;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 300ms, opacity 300ms;
+  }
+  .popup_opened {
+    visibility: visible;
+    opacity: 1;
+  }
+  .popup__container {
+    background-color: #0b0f15;
+    text-align: left;
+    margin: auto;
+    position: relative;
+    overflow: scroll;
+    height: 100%;
+    padding: 40px;
+    border-radius: 5px;
+    border: 20px solid #0b0f15;
+    border-bottom: 40px solid #0b0f15;
+    box-shadow: 0px 0px 25px rgba(255,255,255,0.1);
+  }
+  .popup__container ul.verify-list {
+    display: block;
+  }
+  .popup__container ul.verify-list li {
+    text-align: left;
+    display: block;
+  }
+  .popup__container ul.verify-list li a {
+    color: #289db8;
+  }
+  .popup__container ul.verify-list li img {
+    width: 100%;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 5px;
+    margin: 10px 0;
+  }
+  .popup__container .code-display {
+    background-color: #293142;
+    padding: 10px 20px;
+    border-radius: 5px;
+    line-height: 30px;
+    margin: 10px;
+    font-size: 14px;
+    display: inline-block !important;
+  }
+  .close-button {
+    border: 0;
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    fill: #000;
+    padding: 0;
+    cursor: pointer;
+    display: block;
+    z-index: 10;
+    border-radius: 50%;
+  }
+  .close-button span {
+    display: block;
+    position: absolute;
+    width: 18px;
+    height: 3px;
+    border-radius: 4px;
+    background-color: #000;
+    transform: rotate(-45deg);
+    left: 6px;
+    top: 14px;
+  }
+  .close-button span.last {
+    transform: rotate(45deg);
+  }
+  .popup-button {
+    margin-top: 14px;
+    display: inline-block;
+    font-size: 12px;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .popup-button:hover {
+    color: #289db8;
+  }
+   @media only screen and (max-width: 790px) {
+     .current {
+       width: 100%;
+       left: 0;
+     }
+     .current ul {
+        display: block;
+     }
+     .current ul li {
+        display: block;
+        margin-bottom: 30px;
+     }
+     .popup__container {
+       padding: 40px 20px;
+     }
+   }
+
+   /*LIST SECTION*/
+   /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+   .collapsible.active {
+     background-color: #293142 !important;
+     border-radius: 5px 5px 0px 0px !important;
+   }
+   /* Style the collapsible content. Note: hidden by default */
+   .release-content {
+     padding: 30px 18px;
+     display: none;
+     overflow: hidden;
+     background-color: #293142;
+     border-radius: 0px 5px 5px 5px;
+   }
+   h2.releases {
+     font-size: 40px;
+   }
+   h3.release-title {
+       margin-top: 40px;
+       padding-top: 40px;
+       border-top: 1px solid rgba(255,255,255,0.3);
+       position: relative;
+       text-transform: none;
+       font-size: 30px;
+   }
+   h3.release-title .latest {
+       background-color: #10ac84;
+       color: #222222;
+       border: 1px solid #10ac84;
+       padding: 1px 7px;
+       border-radius: 20px;
+       font-size: 8px;
+       text-transform: uppercase;
+       bottom: 0;
+       right: 0;
+       position: relative;
+       bottom: 4px;
+       font-weight: 700;
+       display: inline-block;
+       letter-spacing: 1px;
+   }
+   .release-content h1, .release-content h2 {
+       font-size: 20px;
+       text-transform: none;
+   }
+   .release-content p, .release-content ul li {
+       font-size: 14px;
+   }
+   .assets li a {
+       margin-left: 15px;
+       font-size: 12px;
+   }
+   .assets li a .fas {
+       margin-right: 10px;
+       font-size: 12px;
+   }
+   .date {
+       color: rgb(40, 157, 184);
+       margin-bottom: 15px;
+       display: inline-block;
+       font-size: 12px;
+   }
+   .assets {
+       border: 1px solid rgba(255,255,255,0.3);
+       border-radius: 5px;
+       padding: 15px;
+       margin-bottom: 15px;
+   }
+   .assets h4 {
+       margin-bottom: 0;
+
+   }
+   .assets ul {
+       list-style-type: none;
+       margin-left: 0;
+       margin-bottom: 0;
+   }
+   .assets ul li {
+       line-height: 40px;
+       border-bottom: 1px solid rgba(255,255,255,0.3);
+   }
+   .assets ul li:last-child {
+       line-height: 40px;
+       border-bottom: 1px solid rgba(255,255,255,0);
+   }
+ </style>
+
+<div class="current">
+  <ul>
+      <li>
+          <a href="{{current.assets_by_os.macos.browser_download_url}}">
+              <i class="fab fa-apple"></i></a>
+          <br><br>
+          <a class="btn" href="{{current.assets_by_os.macos.browser_download_url}}">For OS X</a><br>
+          <div class="popup mac">
+            <button type="button" class="close-button">
+              <span></span>
+              <span class="last"></span>
+            </button>
+            <div class="popup__container">
+              <h3>Mac OS Signature Verification</h3>
+              <ul class="verify-list">
+                <li>1. Download Specter for macOS (`<a href="{{current.assets_by_os.macos.browser_download_url}}">{{current.assets_by_os.macos.name}}</a>`), the hashfile (`<a href="{{current.hashes.browser_download_url}}">SHA256SUMS</a>`) and the signatures file (`<a href="{{current.signatures.browser_download_url}}">SHA256SUMS.asc</a>`)</li>
+                <li>2. Download and import the PGP Public key of "Specter Signer" here <a href="http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x785a2269ee3a9736ac1a4f4c864b7cf9a811fef7">here.</a> The fingerprint for this key is 785A 2269 EE3A 9736 AC1A 4F4C 864B 7CF9 A811 FEF7.</li>
+                <li>2b. Download and import the PGP Public key of Kim Neunert (for v1.7.0): <a href="https://keybase.io/k9ert/pgp_keys.asc?fingerprint=ecc0b4abd74e716f5ade095228b358a8843b0109">https://keybase.io/k9ert/pgp_keys.asc</a></li>
+                <li>2c. For older releases, download and save the PGP public key of Ben Kaufman: <a href="https://benkaufman.info/ben-kaufman.asc">https://benkaufman.info/ben-kaufman.asc</a></li>
+                <li>3. Open the terminal app (you can search for it on the Launchpad)</li>
+                <li>4. Paste in the following lines (Note: The first 2 commands are needed only if it’s your first time doing this process):</li>
+                <li class="code-display">
+                  1. ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"<br>
+                  2. brew install gnupg<br>
+                  3. cd Downloads<br>
+                  4. gpg --import pgp_keys.asc<br>
+                  5. gpg --verify SHA256SUMS.asc<br>
+                </li>
+                <li>5. After the last command, you should see a few lines of output - make sure they contain “Good signature” and the key identity and fingerprint are correct.</li>
+                <li><img src="https://specter.solutions/wp-content/uploads/2021/10/good_sig.png" width="100%"></li>
+                <li>6. Verify the sha256 of the Specter software file is indeed in the signed hashes file by running:</li>
+                <li class="code-display">
+                  sha256sum -c SHA256SUMS --ignore-missing {{current.assets_by_os.macos.name}}<br>
+                </li>
+                <li>7. Make sure the output shows “OK” next to the file name, like this:</li>
+                <li><img src="https://specter.solutions/wp-content/uploads/2021/10/file_ok.png" width="100%"></li>
+             </ul>
+            </div>
+          </div>
+          <span class="popup-button mac"><i class="fas fa-info-circle"></i> Verify signature</span>
+      </li>
+      <li>
+          <a href="{{current.assets_by_os.win.browser_download_url}}">
+              <i class="fab fa-windows"></i></a>
+          <br><br>
+          <a class="btn" href="{{current.assets_by_os.win.browser_download_url}}">For Windows</a><br>
+          <div class="popup windows">
+            <button type="button" class="close-button">
+              <span></span>
+              <span class="last"></span>
+            </button>
+            <div class="popup__container">
+              <h3>Windows Signature Verification</h3>
+              <ul class="verify-list">
+                <li>1. Download Specter for Windows (`<a href="{{current.assets_by_os.win.browser_download_url}}">{{current.assets_by_os.win.name}}</a>`), the hashfile (`<a href="{{current.hashes.browser_download_url}}">SHA256SUMS</a>`) and the signatures file (`<a href="{{current.signatures.browser_download_url}}">SHA256SUMS.asc</a>`)</li>
+                <li>2. Download and import the PGP Public key of "Specter Signer" here <a href="http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x785a2269ee3a9736ac1a4f4c864b7cf9a811fef7">here.</a> The fingerprint for this key is 785A 2269 EE3A 9736 AC1A 4F4C 864B 7CF9 A811 FEF7.</li>
+                <li>2b. Download and import the PGP Public key of Kim Neunert (for v1.7.0): <a href="https://keybase.io/k9ert/pgp_keys.asc?fingerprint=ecc0b4abd74e716f5ade095228b358a8843b0109">https://keybase.io/k9ert/pgp_keys.asc</a></li>
+                <li>2c. For older releases, download and save the PGP public key of Ben Kaufman: <a href="https://benkaufman.info/ben-kaufman.asc">https://benkaufman.info/ben-kaufman.asc</a></li>
+                <li>3. Download and install <a href="https://files.gpg4win.org/gpg4win-3.1.15.exe">Gpg4Win</a> (you can get it directly here)</li>
+                <li>4. Wait for it to open up or open Kleopatra from the Windows search bar</li>
+                <li>5. Click “Import on the main screen and choose the pgp_keys.asc key you have downloaded in step 2</li>
+                <li>6. Click Decrypt/Verify on the upper bar and select the SHA256SUMS.asc file downloaded in step 1</li>
+                <li>7. Make sure verification passes successfully and returned the key you have imported as the signer of the file</li>
+                <li>8. Right click on the Windows button and choose PowerShell</li>
+                <li>9. In the PowerShell terminal, type:</li>
+                <li class="code-display">
+                  1. cd Downloads<br>
+                  2. Get-FileHash {{current.assets_by_os.win.name}}<br>
+                </li>
+                <li>10. Open the SHA256SUMS file</li>
+                <li>11. Verify the result of the hash from the PowerShell matches the hash that is aligned with the name of the file written inside SHA256SUMS</li>
+             </ul>
+            </div>
+          </div>
+          <span class="popup-button windows"><i class="fas fa-info-circle"></i> Verify signature</span>
+      </li>
+      <li>
+          <a href="{{current.assets_by_os.linux.browser_download_url}}">
+              <i class="fab fa-linux"></i></a>
+          <br><br>
+          <a class="btn" href="{{current.assets_by_os.linux.browser_download_url}}">For Linux</a><br>
+          <div class="popup linux">
+            <button type="button" class="close-button">
+              <span></span>
+              <span class="last"></span>
+            </button>
+            <div class="popup__container">
+              <h3>Linux Signature Verification</h3>
+              <ul class="verify-list">
+                <li>1. Download Specter for Linux (`<a href="{{current.assets_by_os.linux.browser_download_url}}">{{current.assets_by_os.linux.name}}</a>`), the hashfile (`<a href="{{current.hashes.browser_download_url}}">SHA256SUMS</a>`) and the signatures file (`<a href="{{current.signatures.browser_download_url}}">SHA256SUMS.asc</a>`)</li>
+                <li>2. Download and import the PGP Public key of "Specter Signer" here <a href="http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x785a2269ee3a9736ac1a4f4c864b7cf9a811fef7">here.</a> The fingerprint for this key is 785A 2269 EE3A 9736 AC1A 4F4C 864B 7CF9 A811 FEF7.</li>
+                <li>2b. Download and import the PGP Public key of Kim Neunert (for v1.7.0): <a href="https://keybase.io/k9ert/pgp_keys.asc?fingerprint=ecc0b4abd74e716f5ade095228b358a8843b0109">https://keybase.io/k9ert/pgp_keys.asc</a></li>
+                <li>2c. For older releases, download and save the PGP public key of Ben Kaufman: <a href="https://benkaufman.info/ben-kaufman.asc">https://benkaufman.info/ben-kaufman.asc</a></li>
+                <li>3. Open the terminal app (you can search for it on the Launchpad)</li>
+                <li>4. Paste in the following lines (Note: The first 2 commands are needed only if it’s your first time doing this process):</li>
+                <li class="code-display">
+                  1. sudo apt update<br>
+                  2. sudo apt-get install gnupg<br>
+                  3. cd Downloads<br>
+                  4. gpg --import pgp_keys.asc<br>
+                  5. gpg --verify SHA256SUMS.asc<br>
+                </li>
+                <li>5. After the last command, you should see a few lines of output - make sure they contain “Good signature” and the key identity and fingerprint are correct.</li>
+                <li><img src="https://specter.solutions/wp-content/uploads/2021/10/good_sig.png" width="100%"></li>
+                <li>6. Verify the sha256 of the Specter software file is indeed in the signed hashes file by running:</li>
+                <li class="code-display">
+                  sha256sum -c SHA256SUMS --ignore-missing<br>
+                </li>
+                <li>7. Make sure the output shows “OK” next to the file name, similiar to this (example from MacOS but you get the idea):</li>
+                <li><img src="https://specter.solutions/wp-content/uploads/2021/10/file_ok.png" width="100%"></li>
+             </ul>
+            </div>
+          </div>
+          <span class="popup-button linux"><i class="fas fa-info-circle"></i> Verify signature</span>
+      </li>
+  </ul>
+  <p class="open-source">
+    <a href="{{current.signatures.browser_download_url}}">Signatures</a><br>
+    View our Open Source project on <a href="https://github.com/cryptoadvance/specter-desktop" target="_blank">Github.</a></p>
+</div>
+
+<script>
+
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.display === "block") {
+      content.style.display = "none";
+    } else {
+      content.style.display = "block";
+    }
+  });
+}
+
+const callButtonMac = document.querySelector('.popup-button.mac');
+const popupMac = document.querySelector('.popup.mac');
+
+const callButtonLinux = document.querySelector('.popup-button.linux');
+const popupLinux = document.querySelector('.popup.linux');
+
+const callButtonWindows = document.querySelector('.popup-button.windows');
+const popupWindows = document.querySelector('.popup.windows');
+
+const closeButtonMac = popupMac.querySelector('.close-button');
+const closeButtonLinux = popupLinux.querySelector('.close-button');
+const closeButtonWindows = popupWindows.querySelector('.close-button');
+
+popupToggleMac = () => {
+  popupMac.classList.toggle('popup_opened');
+}
+
+callButtonMac.addEventListener('click', popupToggleMac);
+closeButtonMac.addEventListener('click', popupToggleMac);
+
+popupToggleLinux = () => {
+  popupLinux.classList.toggle('popup_opened');
+}
+
+callButtonLinux.addEventListener('click', popupToggleLinux);
+closeButtonLinux.addEventListener('click', popupToggleLinux);
+
+popupToggleWindows = () => {
+  popupWindows.classList.toggle('popup_opened');
+}
+
+callButtonWindows.addEventListener('click', popupToggleWindows);
+closeButtonWindows.addEventListener('click', popupToggleWindows);
+</script>
+
+</html>

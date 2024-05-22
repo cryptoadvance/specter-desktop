@@ -4,6 +4,7 @@ const { logger } = require('./logging')
 const { appSettings, isDev, platformName } = require('./config')
 const ProgressBar = require('electron-progressbar')
 const { isMac } = require('./helpers')
+const { shell } = require('electron')
 
 // Initialized with initMainWindow
 let mainWindow
