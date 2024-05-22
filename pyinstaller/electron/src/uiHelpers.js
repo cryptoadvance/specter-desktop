@@ -55,7 +55,7 @@ function createWindow(specterURL) {
 }
 
 let webPreferences = {
-  worldSafeExecuteJavaScript: true,
+  // worldSafeExecuteJavaScript: true, Removed in Electron 14
   contextIsolation: true,
   preload: path.join(__dirname, 'preload.js'),
 }

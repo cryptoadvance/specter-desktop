@@ -1,7 +1,7 @@
 // Modules to control application life and create native browser window
 const fs = require('fs')
 const { spawn, exec } = require('child_process')
-const { app, nativeTheme, nativeImage, BrowserWindow, Menu, Tray, screen, shell, dialog, ipcMain } = require('electron')
+const { app, nativeImage, BrowserWindow, Menu, screen, shell, dialog, ipcMain } = require('electron')
 const defaultMenu = require('electron-default-menu')
 const contextMenu = require('electron-context-menu')
 
@@ -9,7 +9,6 @@ const { appSettingsPath, specterdDirPath, appSettings, platformName, appNameLowe
 const { logger } = require('./src/logging.js')
 const downloadloc = require('./downloadloc')
 const { downloadSpecterd, destroyProgressbar } = require('./src/download.js')
-const getDownloadLocation = downloadloc.getDownloadLocation
 const { startSpecterd, quitSpecterd } = require('./src/specterd.js')
 const { getFileHash, versionData, isDev, devFolder, isMac } = require('./src/helpers.js')
 const { getAppSettings } = require('./src/config.js')
