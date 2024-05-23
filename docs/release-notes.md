@@ -1,5 +1,11 @@
 # Release Notes
 
+## v2.0.4 May 23, 2024
+- Bugfix: Build fixes for windows #2443 (k9ert)
+- Bugfix: Electron Bug Fixes (save settings, proper shutdown) #2441 (k9ert)
+- Chore: Electron App Dependencies #2444 (k9ert)
+
+
 ## v2.0.3 May 17, 2024
 - Add support for more languages for mnemonics #2424 (Wim van der Ham)
 - Allow bumpfee on transactions with a single output #2433 (Leon Costa)
