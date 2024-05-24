@@ -287,14 +287,14 @@ if [ "$app_name" == "specter" ]; then
   echo "export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance"
   echo "export CI_COMMIT_TAG=$version"
   echo "export GH_BIN_UPLOAD_PW=YourSecretHere"
-  echo "export PLATFORM=$(uname -m)"
-  echo "python3 ../utils/github.py upload ./release/specterd-${version}-osx.zip"
+  echo "export ARCH=$(node -e 'console.log(process.arch)')"
+  echo "python3 ../utils/github.py upload ./release/specterd-${version}-osx_\${ARCH}.zip"
   echo "python3 ../utils/github.py upload ./release/Specter-${version}.dmg"
   echo "cd release"
   echo "sha256sum * > SHA256SUMS-macos_\$PLATFORM"
-  echo "python3 ../../utils/github.py upload SHA256SUMS-macos_\$PLATFORM"
+  echo "python3 ../../utils/github.py upload SHA256SUMS-macos_\$ARCH"
   echo "gpg --detach-sign --armor SHA256SUMS-macos_\$PLATFORM"
-  echo "python3 ../../utils/github.py upload SHA256SUMS-macos_\$PLATFORM.asc"
+  echo "python3 ../../utils/github.py upload SHA256SUMS-macos_\$ARCH.asc"
 
 
   if [[ "$upload" = "True" ]]; then
@@ -304,7 +304,6 @@ if [ "$app_name" == "specter" ]; then
     if [[ -z "$CI_PROJECT_ROOT_NAMESPACE" ]]; then
       export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance
     fi
-    export PLATFORM=$(uname -m)
     export ARCH=$(node -e "console.log(process.arch)")
     if [[ -f ./release/specterd-${version}-osx_${ARCH}.zip ]]; then
       python3 ./utils/github.py upload ./release/specterd-${version}-osx_${ARCH}.zip
@@ -314,14 +313,14 @@ if [ "$app_name" == "specter" ]; then
     fi
     cd release
     sha256sum * > SHA256SUMS-macos_${ARCH}
-    python3 ../utils/github.py upload SHA256SUMS-macos
+    python3 ../utils/github.py upload SHA256SUMS-macos_${ARCH}
     # The GPG comman below has a timeout. If that's reached, the script will interrupt. So let's make some noise
     say "Hello?! Your overlord is speaking! You're now allowed to sign the binary!"
     echo "Just in case you missed the timeout, those three last commands are missing:"
     echo "cd release"
-    echo "gpg --detach-sign --armor SHA256SUMS-macos"
-    echo "python3 ../utils/github.py upload SHA256SUMS-macos.asc"
-    gpg --detach-sign --armor SHA256SUMS-macos__${ARCH}
+    echo "gpg --detach-sign --armor SHA256SUMS-macos_${ARCH}"
+    echo "python3 ../utils/github.py upload SHA256SUMS-macos_${ARCH}.asc"
+    gpg --detach-sign --armor SHA256SUMS-macos_${ARCH}
     python3 ../utils/github.py upload SHA256SUMS-macos_${ARCH}.asc
   fi
 fi
