@@ -32,16 +32,10 @@ function maybe_update {
     # Determine if we need to pull. From https://stackoverflow.com/a/3278427
     UPSTREAM=origin/master
     LOCAL=$(git describe --all | sed 's/heads\///' | sed 's/tags\///') # gives either a tag or "master" 
-    if cat ../../pyproject.toml | grep "addopts = --${node_impl}d-version" ; then
-        # in this case, we use the expected version from the test also as the tag to be checked out
-        # i admit that this is REALLY ugly. Happy for any recommendations to do that more easy
-        PINNED=$(cat ../../pyproject.toml | grep "addopts = " | cut -d'=' -f2 |  sed 's/--/+/g' | tr '+' '\n' | grep ${node_impl} |  cut -d' ' -f2)
-        if [ "$node_impl" = "elements" ]; then
-            # in the case of elements, the tags have a "elements-" prefix
-            PINNED=$(echo "$PINNED" | sed 's/v//' | sed 's/^/elements-/')
-        fi
-    fi
-    
+    cd ..
+    PINNED=$(calc_pytestinit_nodeimpl_version $node_impl)
+    cd bitcoin
+
     # the version in pyproject.toml is (also) used to check the version via getnetworkinfo()["subversion"]
     # However, this might not be a valid git rev. So we need another way to specify the git-rev used
     # as we want to be able to test against specific commits
@@ -85,7 +79,7 @@ function calc_pytestinit_nodeimpl_version {
     if cat ../pyproject.toml | grep -q "${node_impl}d-version" ; then
         # in this case, we use the expected version from the test also as the tag to be checked out
         # i admit that this is REALLY ugly. Happy for any recommendations to do that more easy
-        PINNED=$(cat ../pyproject.toml | grep "addopts = " | grep -oP "${node_impl}d-version \K\S+" | cut -d'"' -f1)
+        PINNED=$(cat ../pyproject.toml | grep "addopts = " | ${grep} -oP "${node_impl}d-version \K\S+" | cut -d'"' -f1)
        
         if [ "$node_impl" = "elements" ]; then
             # in the case of elements, the tags have a "elements-" prefix
@@ -182,7 +176,14 @@ function check_compile_prerequisites {
 
 function check_binary_prerequisites {
     if [ $(uname) = "Darwin" ]; then
-        echo "    --> No binary prerequisites checking for MacOS, GOOD LUCK!"
+        if brew list --versions grep &>/dev/null; then
+            grep=ggrep
+        else
+            echo "install grep via brew install grep"
+            exit 1
+        fi
+        echo "    --> No FURTHER binary prerequisites checking for MacOS, GOOD LUCK!"
+
     else
         REQUIRED_PKGS="wget"
         for REQUIRED_PKG in $REQUIRED_PKGS; do
@@ -194,6 +195,7 @@ function check_binary_prerequisites {
                 apt-get --yes install $REQUIRED_PKG 
             fi
         done
+        grep=grep
     fi
 }
 
@@ -212,7 +214,7 @@ function sub_compile {
     if [ $(uname) = "Darwin" ]; then
     	find tests/${node_impl}/src -maxdepth 1 -type f -perm +111 -exec ls -ld {} \;
     else
-	find tests/${node_impl}/src -maxdepth 1 -type f -executable -exec ls -ld {} \;
+	    find tests/${node_impl}/src -maxdepth 1 -type f -executable -exec ls -ld {} \;
     fi
     END=$(date +%s.%N)
     DIFF=$(echo "$END - $START" | bc)
@@ -251,6 +253,7 @@ function sub_binary {
             rm -rf ./"$node_impl"
         fi
     fi
+    rm "$node_impl"
     ln -s ./"$node_impl"-${version} "$node_impl"
     echo "    --> Listing binaries"
     if [ $(uname) = "Darwin" ]; then

@@ -82,8 +82,10 @@ class BaseConfig(object):
     CERT = os.getenv("CERT", None)
     KEY = os.getenv("KEY", None)
 
-    # It might be necessary to enforce the HWI initialisation
-    ENFORCE_HWI_INITIALISATION_AT_STARTUP = False
+    # It might be necessary / useful for testing to skip the HWI initialisation (i.e. calling enumerate on startup)
+    SKIP_HWI_INITIALISATION_AT_STARTUP = _get_bool_env_var(
+        "SKIP_HWI_INITIALISATION_AT_STARTUP", False
+    )
 
     # This will be used to search for a bitcoin.conf in order to enable the
     # auth method "RPC password as pin"

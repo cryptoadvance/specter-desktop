@@ -96,6 +96,36 @@
             }
         }
     }
+
+    async function registerMultisig(descriptor, fingerprint) {
+        const devices = await enumerate()
+        
+        if (!devices || devices.length === 0) {
+            return
+        }
+        
+        const device = await selectDevice(devices)
+        
+        if (!device) {
+            return
+        }
+
+        if (fingerprint && device.fingerprint != fingerprint) {
+            handleHWIError("Device fingerprints don't match. You have probably selected the wrong device.")
+            return
+        }
+
+        showHWIProgress("Registering multisig ...", `Confirm on your ${capitalize(device.type)}`)
+
+        try {
+            await hwi.registerMultisig(device, descriptor)
+        } catch (error) {
+            handleHWIError(error)
+            return
+        }
+        hidePageOverlay()
+        showNotification("Multisig registered successfully!", 3000);
+    }
 </script>
 
 {% endif %}

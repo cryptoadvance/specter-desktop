@@ -50,12 +50,17 @@ class SpecterFlask(Flask):
         """
         Helper for Babel and other related language selection tasks.
         """
-        if "language_code" in session:
-            # Explicit selection
-            return session["language_code"]
-        else:
-            # autodetect
-            return request.accept_languages.best_match(self.supported_languages.keys())
+        try:
+            if "language_code" in session:
+                # Explicit selection
+                return session["language_code"]
+            else:
+                # autodetect
+                return request.accept_languages.best_match(
+                    self.supported_languages.keys()
+                )
+        except:  # RuntimeError: Working outside of request context.
+            return "en"
 
     def set_language_code(self, language_code):
         session["language_code"] = language_code
@@ -177,7 +182,7 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     specter.initialize()
 
     # HWI
-    specter.hwi = HWIBridge(app.config["ENFORCE_HWI_INITIALISATION_AT_STARTUP"])
+    specter.hwi = HWIBridge(app.config["SKIP_HWI_INITIALISATION_AT_STARTUP"])
 
     login_manager = LoginManager()
     login_manager.session_protection = app.config.get("SESSION_PROTECTION", "strong")

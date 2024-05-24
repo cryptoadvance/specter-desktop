@@ -1,5 +1,48 @@
 # Release Notes
 
+## v2.0.4 May 23, 2024
+- Bugfix: Build fixes for windows #2443 (k9ert)
+- Bugfix: Electron Bug Fixes (save settings, proper shutdown) #2441 (k9ert)
+- Chore: Electron App Dependencies #2444 (k9ert)
+
+
+## v2.0.3 May 17, 2024
+- Add support for more languages for mnemonics #2424 (Wim van der Ham)
+- Allow bumpfee on transactions with a single output #2433 (Leon Costa)
+- Docs: fix small typos and grammatical errors #2406 (JumbledUp)
+- Enforce hwi init #2386 (k9ert)
+- Fix Jade signing issues with Swan Vault #2421 (Manolis Mandrapilias)
+- Fix install_noded.sh #2422 (Wim van der Ham)
+- Fix node2 RPC port & add missing elm mark #2438 (roshii)
+- Fix testnet path when deleting wallet on node #2395 (Manolis Mandrapilias)
+- Kn/macos signing #2432 (k9ert)
+- New documentations #1885 #2409 (j0sh21)
+- Patched Fix Improperly Controlled Modification of Prototype Pollution in specter-desktop #2385 (Sergev ₱)
+- Update README.md #2435 (KYC)
+- adding release_notes for v2.0.2 #2384 (k9ert)
+- chore: upgrade dependencies #2399 (k9ert)
+- fix bad error-messaging #2437 (k9ert)
+- updating dependencies #2434 (k9ert)
+
+## v2.0.2 September 21, 2023
+- Bugfix: Add missing signet key #2368 (Manolis Mandrapilias)
+- Bugfix: Jade displaying wrong multisig addresses for descriptors using multi() #2366 (Manolis Mandrapilias)
+- Bugfix: JSON parsing issues when copy & pasting wallet data from PDF #2355 (Manolis Mandrapilias)
+- Bugfix: #2319 #2330 (k9ert)
+- Bugfix: fix specter.node has no _get_rpc() #2327 (k9ert)
+- Bugfix: Update spotbit api url and path #2372 (Benjamin B)
+- Chore(deps): Bump semver from 5.7.1 to 5.7.2 #2353 (dependabot[bot])
+- Chore(deps): Bump semver from 6.3.0 to 6.3.1 in /pyinstaller/electron #2352 (dependabot[bot])
+- Chore: Regex change to capture labels in wallet data imports better #2357 (Manolis Mandrapilias)
+- Chore: Use prettier for Electron app  #2347 (Manolis Mandrapilias)
+- Chore: Optional ENFORCE_HWI_INITIALISATION_AT_STARTUP #2383 (k9ert)
+- Chore: remove SpecterUri #2358 (k9ert)
+- Chore: updating flask_babel fixes #2218 #2359 (k9ert)
+- Feature: Enable import of a multisig wallet that uses a multi-descriptor #2349 (Manolis Mandrapilias)
+- Feature: Implement automatic wallet import via Specter URI for MacOS #2344 (Manolis Mandrapilias)
+- Security: Patched Fix Electron vulnerable to out-of-package code execution when launched with arbitrary cwd #2380 (Sergev ₱)
+- Security: Fix login open redirect due to next parameter manipulation #2350 (zealsham)
+
 ## v2.0.1 March 27, 2023
 - Bugfix: Keyerror in case of frozen utxos #2308 (k9ert)
 - Bugfix: method getaddressinfo not implemented #2313 (k9ert)
