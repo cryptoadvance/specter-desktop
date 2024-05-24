@@ -248,8 +248,7 @@ if [[ "$build_sign" = "True" ]]; then
   if [ "$(uname -m)" = "arm64" ]; then 
       dist_mac_folder_name=${dist_mac_folder_name}-arm64
   fi
-  if [[ "$appleid" != '' ]]
-  then
+  if [[ "$appleid" != '' ]]; then
     macos_code_sign
     create-dmg pyinstaller/electron/dist/mac/${specterimg_filename}.app --identity="Developer ID Application: ${appleid}" dist
     # create-dmg doesn't create the prepending "v" to the version
