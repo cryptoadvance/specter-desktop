@@ -193,7 +193,6 @@ while [[ $# -gt 0 ]]
         build_package=True
         shift
         ;;
-        build_package
       upload)
         upload=True
         shift
