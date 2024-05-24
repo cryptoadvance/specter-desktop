@@ -1,6 +1,13 @@
 
+function orgName() {
+    return "k9ert"
+}
+
 function getDownloadLocation(version, platformname) {
-    return `https://github.com/cryptoadvance/specter-desktop/releases/download/${version}/specterd-${version}-${platformname}.zip`
+    if (platformname != "darwin") {
+        return `https://github.com/${orgName()}/specter-desktop/releases/download/${version}/specterd-${version}-${platformname}.zip`
+    }
+    return `https://github.com/${orgName()}/specter-desktop/releases/download/${version}/specterd-${version}-${platformname}_${process.arch}.zip`
 }
 
 function appName() {
