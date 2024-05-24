@@ -263,15 +263,15 @@ if [[ "$build_package" = "True" ]]; then
   echo "    --> Making the release-zip"
   mkdir -p release
   rm -rf release/*
-  export PLATFORM=$(uname -m)
+  export ARCH=$(node -e "console.log(process.arch)")
 
   cd pyinstaller/dist # ./pyinstaller/dist
   if [[ -f ${specterd_filename} ]]; then
-    zip ../../release/${specterd_filename}-${version}-osx_${PLATFORM}.zip ${specterd_filename}
+    zip ../../release/${specterd_filename}-${version}-osx_${ARCH}.zip ${specterd_filename}
   fi
   cd ../..
-  if [[ -f ./release/${specterd_filename}-${version}-osx_${PLATFORM}.zip ]]; then
-    sha256sum ./release/${specterd_filename}-${version}-osx_${PLATFORM}.zip
+  if [[ -f ./release/${specterd_filename}-${version}-osx_${ARCH}.zip ]]; then
+    sha256sum ./release/${specterd_filename}-${version}-osx_${ARCH}.zip
   fi
   if [[ -f ./release/${specterimg_filename}-${version}.dmg ]]; then
     sha256sum ./release/${specterimg_filename}-${version}.dmg
@@ -304,7 +304,7 @@ if [ "$app_name" == "specter" ]; then
     if [[ -z "$CI_PROJECT_ROOT_NAMESPACE" ]]; then
       export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance
     fi
-    export ARCH=$(node -e "console.log(process.arch)")
+    
     if [[ -f ./release/specterd-${version}-osx_${ARCH}.zip ]]; then
       python3 ./utils/github.py upload ./release/specterd-${version}-osx_${ARCH}.zip
     fi
