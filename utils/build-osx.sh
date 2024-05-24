@@ -257,6 +257,7 @@ if [[ "$build_sign" = "True" ]]; then
     echo "WARNING: Forgot to add the appleid ?!"
     exit 1
   fi
+fi
 
 if [[ "$build_package" = "True" ]]; then
   echo "    --> Making the release-zip"
