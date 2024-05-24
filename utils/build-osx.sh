@@ -158,9 +158,6 @@ fi
 if [[ "$build_electron" = "True" ]]; then
   prepare_npm
   make_hash_if_necessary
-
-
-
   npm i
   if [[ "${appleid}" == '' ]]
   then
@@ -168,32 +165,39 @@ if [[ "$build_electron" = "True" ]]; then
   else
       echo "`jq '.build.mac.identity="'"${appleid}"'"' package.json`" > package.json
   fi
-
   building_electron_app
-
 fi
 
 if [[ "$build_sign" = "True" ]]; then
   if [[ "$appleid" != '' ]]
   then
     macos_code_sign
+    create-dmg pyinstaller/electron/dist/mac/${specterimg_filename}.app --identity="Developer ID Application: ${appleid}" dist
+    # create-dmg doesn't create the prepending "v" to the version
+    node_comp_version=$(python3 -c "print('$version'[1:])")
+    mv "dist/${specterimg_filename} ${node_comp_version}.dmg" release/${specterimg_filename}-${version}.dmg
+  else
+    echo "WARNING: Forgot to add the appleid ?!"
+    exit 1
   fi
 
+if [[ "$build_package" = "True" ]]; then
   echo "    --> Making the release-zip"
   mkdir -p release
   rm -rf release/*
-
-  create-dmg pyinstaller/electron/dist/mac/${specterimg_filename}.app --identity="Developer ID Application: ${appleid}" dist
-  # create-dmg doesn't create the prepending "v" to the version
-  node_comp_version=$(python3 -c "print('$version'[1:])")
-  mv "dist/${specterimg_filename} ${node_comp_version}.dmg" release/${specterimg_filename}-${version}.dmg
+  export PLATFORM=$(uname -m)
 
   cd pyinstaller/dist # ./pyinstaller/dist
-  zip ../../release/${specterd_filename}-${version}-osx.zip ${specterd_filename}
+  if [[ -f ${specterd_filename} ]]; then
+    zip ../../release/${specterd_filename}-${version}-osx_${PLATFORM}.zip ${specterd_filename}
+  fi
   cd ../..
-
-  sha256sum ./release/${specterd_filename}-${version}-osx.zip
-  sha256sum ./release/${specterimg_filename}-${version}.dmg
+  if [[ -f ./release/${specterd_filename}-${version}-osx_${PLATFORM}.zip ]]; then
+    sha256sum ./release/${specterd_filename}-${version}-osx_${PLATFORM}.zip
+  fi
+  if [[ -f ./release/${specterimg_filename}-${version}.dmg ]]; then
+    sha256sum ./release/${specterimg_filename}-${version}.dmg
+  fi
 fi
 
 if [ "$app_name" == "specter" ]; then
@@ -205,13 +209,14 @@ if [ "$app_name" == "specter" ]; then
   echo "export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance"
   echo "export CI_COMMIT_TAG=$version"
   echo "export GH_BIN_UPLOAD_PW=YourSecretHere"
+  echo "export PLATFORM=$(uname -m)"
   echo "python3 ../utils/github.py upload ./release/specterd-${version}-osx.zip"
   echo "python3 ../utils/github.py upload ./release/Specter-${version}.dmg"
   echo "cd release"
-  echo "sha256sum * > SHA256SUMS-macos"
-  echo "python3 ../../utils/github.py upload SHA256SUMS-macos"
-  echo "gpg --detach-sign --armor SHA256SUMS-macos"
-  echo "python3 ../../utils/github.py upload SHA256SUMS-macos.asc"
+  echo "sha256sum * > SHA256SUMS-macos_\$PLATFORM"
+  echo "python3 ../../utils/github.py upload SHA256SUMS-macos_\$PLATFORM"
+  echo "gpg --detach-sign --armor SHA256SUMS-macos_\$PLATFORM"
+  echo "python3 ../../utils/github.py upload SHA256SUMS-macos_\$PLATFORM.asc"
 
 
   if [[ "$upload" = "True" ]]; then
@@ -221,8 +226,13 @@ if [ "$app_name" == "specter" ]; then
     if [[ -z "$CI_PROJECT_ROOT_NAMESPACE" ]]; then
       export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance
     fi
-    python3 ./utils/github.py upload ./release/specterd-${version}-osx.zip
-    python3 ./utils/github.py upload ./release/Specter-${version}.dmg
+    export PLATFORM=$(uname -m)
+    if [[ -f ./release/specterd-${version}-osx.zip ]]; then
+      python3 ./utils/github.py upload ./release/specterd-${version}-osx.zip
+    fi
+    if [[ -f ./release/Specter-${version}.dmg ]]; then
+      python3 ./utils/github.py upload ./release/Specter-${version}.dmg
+    fi
     cd release
     sha256sum * > SHA256SUMS-macos
     python3 ../utils/github.py upload SHA256SUMS-macos
