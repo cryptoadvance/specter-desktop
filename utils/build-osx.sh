@@ -305,14 +305,15 @@ if [ "$app_name" == "specter" ]; then
       export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance
     fi
     export PLATFORM=$(uname -m)
-    if [[ -f ./release/specterd-${version}-osx.zip ]]; then
-      python3 ./utils/github.py upload ./release/specterd-${version}-osx.zip
+    export ARCH=node -e "console.log(process.arch)"
+    if [[ -f ./release/specterd-${version}-osx_${ARCH}.zip ]]; then
+      python3 ./utils/github.py upload ./release/specterd-${version}-osx_${ARCH}.zip
     fi
     if [[ -f ./release/Specter-${version}.dmg ]]; then
       python3 ./utils/github.py upload ./release/Specter-${version}.dmg
     fi
     cd release
-    sha256sum * > SHA256SUMS-macos
+    sha256sum * > SHA256SUMS-macos_${ARCH}
     python3 ../utils/github.py upload SHA256SUMS-macos
     # The GPG comman below has a timeout. If that's reached, the script will interrupt. So let's make some noise
     say "Hello?! Your overlord is speaking! You're now allowed to sign the binary!"
@@ -320,8 +321,8 @@ if [ "$app_name" == "specter" ]; then
     echo "cd release"
     echo "gpg --detach-sign --armor SHA256SUMS-macos"
     echo "python3 ../utils/github.py upload SHA256SUMS-macos.asc"
-    gpg --detach-sign --armor SHA256SUMS-macos
-    python3 ../utils/github.py upload SHA256SUMS-macos.asc
+    gpg --detach-sign --armor SHA256SUMS-macos__${ARCH}
+    python3 ../utils/github.py upload SHA256SUMS-macos_${ARCH}.asc
   fi
 fi
 
