@@ -305,7 +305,7 @@ if [ "$app_name" == "specter" ]; then
       export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance
     fi
     export PLATFORM=$(uname -m)
-    export ARCH=node -e "console.log(process.arch)"
+    export ARCH=$(node -e "console.log(process.arch")
     if [[ -f ./release/specterd-${version}-osx_${ARCH}.zip ]]; then
       python3 ./utils/github.py upload ./release/specterd-${version}-osx_${ARCH}.zip
     fi
