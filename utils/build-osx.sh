@@ -13,7 +13,8 @@ function create_virtualenv_for_pyinstaller {
     # Important: pyinstaller needs a Python binary with shared library files
     # With pyenv, for example, you get this like so: env PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.10.4
     # Use pyenv if available
-    if command -v pyenv >/dev/null 2>&1; then
+    #if command -v pyenv >/dev/null 2>&1; then
+    if /bin/false ; then
         ### This is usually in .zshrc, putting it in .bashrc didn't work ###
         ### 
         export PYENV_ROOT="$HOME/.pyenv"
@@ -26,10 +27,10 @@ function create_virtualenv_for_pyinstaller {
         PYTHON_VERSION=3.10.11
         export PYENV_VERSION=$PYTHON_VERSION
         echo "pyenv is available. Setting PYENV_VERSION to 3.10.4, using pyenv-virtualenv to create the buildenv..."
-        # echo "    --> Deleting .buildenv"
-        # pyenv uninstall -f .buildenv
-        # rm -rf "$HOME/.pyenv/versions/$PYTHON_VERSION/envs/.buildenv"
-        # pyenv virtualenv 3.10.4 .buildenv
+        echo "    --> Deleting .buildenv"
+        pyenv uninstall -f .buildenv
+        rm -rf "$HOME/.pyenv/versions/$PYTHON_VERSION/envs/.buildenv"
+        pyenv virtualenv 3.10.4 .buildenv
         pyenv activate .buildenv
     else
         echo "pyenv is not available. Using system Python version."
@@ -41,6 +42,45 @@ function create_virtualenv_for_pyinstaller {
         source .buildenv/bin/activate
     fi
     pip3 install -e ".[test]"
+}
+
+# Overriding this function to deal with the x86 special case
+function make_hash_if_necessary {
+    cd pyinstaller/electron
+    echo "    --> calculate the hash of the binary for download"
+    specterd_plt_filename=../dist/${specterd_filename}
+    # early exit
+    if [[ "$make_hash" != 'True' ]]; then
+      node ./set-version $version
+      return 0
+    fi
+    # Making the hash only makes sense on a arm arch
+    if [[ "$ARCH" != "arm64" ]]; then
+      echo "ERROR: make-hash should be only called on an arm64 machine on a mac"
+      exit 1
+    fi
+
+    # We need to set-versions for two specterd, one arm and one intel. 
+    # arm64 one
+    node ./set-version $version ${specterd_plt_filename}
+    # Download and check the intel one
+    # this needs some env-vars to be set
+    PYTHONPATH=../.. python3 -m utils.release-helper downloadgithub
+    ret_code=$?
+    if [ $ret_code -ne 0 ]; then
+      echo "Downloading and verifying x64 specterd failed with exit code $ret_code"
+      exit $ret_code
+    fi
+    if [[ ! -f ../../signing_dir/specterd-${version}-osx_x64.zip ]]; then
+      echo "Downloading and verifying x64 specterd failed as the file does not seem to be there"
+      exit 1
+    fi
+    unzip ../../signing_dir/specterd-${version}-osx_x64.zip -d /tmp
+    node ./set-version $version /tmp/specterd x64
+    echo "        Hashes in version-data.json $(cat ./version-data.json | jq -r '.sha256')"
+    echo "        Hash of file     $(sha256sum ${specterd_plt_filename} )"
+    echo "        Hash of x64 file $(sha256sum /tmp/specterd )"
+    cd ../..
 }
 
 function macos_code_sign {
@@ -64,18 +104,19 @@ function macos_code_sign {
     # https://keith.github.io/xcode-man-pages/altool.1.html
     cd pyinstaller/electron
     echo '    --> Attempting to code sign...'
-    echo '        executing: ditto -c -k --keepParent "dist/mac/${specterimg_filename}.app" dist/${specterimg_filename}.zip'
+    echo "        executing: ditto -c -k --keepParent "dist/mac/${specterimg_filename}.app" dist/${specterimg_filename}.zip"
 
     ditto -c -k --keepParent "dist/${dist_mac_folder_name}/${specterimg_filename}.app" dist/${specterimg_filename}.zip
     # upload
-    echo '        uploading ... '
+    echo '        uploading for notarisation ... '
 
     output_json=$(xcrun notarytool submit dist/${specterimg_filename}.zip  --apple-id "kneunert@gmail.com" --keychain-profile "SpecterProfile" --output-format json --wait )
 
-    echo "Request ID: "
+    
     # parsing the requestuuid which we'll need to track progress
     requestuuid=$(echo $output_json | jq -r '.id')
     status=$(echo $output_json | jq -r '.status')
+    echo "Request ID: $requestuuid"
     if [ "$status" = "Invalid" ]; then
         mkdir -p signing_logs
         echo "issues with notarisation"
@@ -85,7 +126,9 @@ function macos_code_sign {
 
     # The stapler somehow "staples" the result of the notarisation in to your app
     # see e.g. https://stackoverflow.com/questions/58817903/how-to-download-notarized-files-from-apple
+    echo "    --> Staple the file dist/${dist_mac_folder_name}/${specterimg_filename}.app"
     xcrun stapler staple "dist/${dist_mac_folder_name}/${specterimg_filename}.app"
+    echo '        Successfully Stapled the file'
     cd ../..
 }
 
@@ -229,9 +272,12 @@ if [[ "$build_specterd" = "True" ]]; then
   building_app
 fi
 
+if [[ "$make_hash" = "True" ]]; then
+  make_hash_if_necessary
+fi
+
 if [[ "$build_electron" = "True" ]]; then
   prepare_npm
-  make_hash_if_necessary
   npm i
   if [[ "${appleid}" == '' ]]
   then
@@ -243,13 +289,13 @@ if [[ "$build_electron" = "True" ]]; then
 fi
 
 if [[ "$build_sign" = "True" ]]; then
-  dist_mac_folder_name=mac
-  if [ "$(uname -m)" = "arm64" ]; then 
-      dist_mac_folder_name=${dist_mac_folder_name}-arm64
-  fi
+  dist_mac_folder_name=mac-universal
+  # if [ "$(uname -m)" = "arm64" ]; then 
+  #     dist_mac_folder_name=${dist_mac_folder_name}-arm64
+  # fi
   if [[ "$appleid" != '' ]]; then
     macos_code_sign
-    create-dmg pyinstaller/electron/dist/mac/${specterimg_filename}.app --identity="Developer ID Application: ${appleid}" dist
+    create-dmg pyinstaller/electron/dist/${dist_mac_folder_name}/${specterimg_filename}.app --identity="Developer ID Application: ${appleid}" dist
     # create-dmg doesn't create the prepending "v" to the version
     node_comp_version=$(python3 -c "print('$version'[1:])")
     mv "dist/${specterimg_filename} ${node_comp_version}.dmg" release/${specterimg_filename}-${version}.dmg
@@ -263,7 +309,6 @@ if [[ "$build_package" = "True" ]]; then
   echo "    --> Making the release-zip"
   mkdir -p release
   rm -rf release/*
-  export ARCH=$(node -e "console.log(process.arch)")
 
   cd pyinstaller/dist # ./pyinstaller/dist
   if [[ -f ${specterd_filename} ]]; then
@@ -278,50 +323,50 @@ if [[ "$build_package" = "True" ]]; then
   fi
 fi
 
-if [ "$app_name" == "specter" ]; then
-  echo "    --> gpg-signing the hashes and uploading"
-  echo "--------------------------------------------------------------------------"
-  
-  echo "In order to upload these artifacts to github, we now do:"
-  echo "We're keeping that here in case something fails on the last mile"
-  echo "export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance"
-  echo "export CI_COMMIT_TAG=$version"
-  echo "export GH_BIN_UPLOAD_PW=YourSecretHere"
-  echo "export ARCH=$(node -e 'console.log(process.arch)')"
-  echo "python3 ../utils/github.py upload ./release/specterd-${version}-osx_\${ARCH}.zip"
-  echo "python3 ../utils/github.py upload ./release/Specter-${version}.dmg"
-  echo "cd release"
-  echo "sha256sum * > SHA256SUMS-macos_\$PLATFORM"
-  echo "python3 ../../utils/github.py upload SHA256SUMS-macos_\$ARCH"
-  echo "gpg --detach-sign --armor SHA256SUMS-macos_\$PLATFORM"
-  echo "python3 ../../utils/github.py upload SHA256SUMS-macos_\$ARCH.asc"
-
-
+if [ "$app_name" != "specter" ]; then
+  # "early" exit
   if [[ "$upload" = "True" ]]; then
-    echo "    --> This build got triggered for version $version"
-    . ../../specter_gh_upload.sh # A simple file looks like: export GH_BIN_UPLOAD_PW=...(GH token)
-    export CI_COMMIT_TAG=$version
-    if [[ -z "$CI_PROJECT_ROOT_NAMESPACE" ]]; then
-      export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance
-    fi
-    
-    if [[ -f ./release/specterd-${version}-osx_${ARCH}.zip ]]; then
-      python3 ./utils/github.py upload ./release/specterd-${version}-osx_${ARCH}.zip
-    fi
-    if [[ -f ./release/Specter-${version}.dmg ]]; then
-      python3 ./utils/github.py upload ./release/Specter-${version}.dmg
-    fi
-    cd release
-    sha256sum * > SHA256SUMS-macos_${ARCH}
-    python3 ../utils/github.py upload SHA256SUMS-macos_${ARCH}
-    # The GPG comman below has a timeout. If that's reached, the script will interrupt. So let's make some noise
-    say "Hello?! Your overlord is speaking! You're now allowed to sign the binary!"
-    echo "Just in case you missed the timeout, those three last commands are missing:"
-    echo "cd release"
-    echo "gpg --detach-sign --armor SHA256SUMS-macos_${ARCH}"
-    echo "python3 ../utils/github.py upload SHA256SUMS-macos_${ARCH}.asc"
-    gpg --detach-sign --armor SHA256SUMS-macos_${ARCH}
-    python3 ../utils/github.py upload SHA256SUMS-macos_${ARCH}.asc
+    echo "no upload for app_name $app_name"
+    exit 1
   fi
+  exit
+fi
+  
+if [[ "$upload" = "True" ]]; then
+  echo "    --> gpg-signing the hashes and uploading"
+  echo "        This build got triggered for version $version"
+  . ../../specter_gh_upload.sh # A simple file looks like: export GH_BIN_UPLOAD_PW=...(GH token)
+  export CI_COMMIT_TAG=$version
+  if [[ -z "$CI_PROJECT_ROOT_NAMESPACE" ]]; then
+    export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance
+  fi
+  
+  specterd_zip_fqfn=./release/specterd-${version}-osx_${ARCH}.zip
+  echo "        Checking for file $specterd_zip_fqfn"
+  if [[ -f $specterd_zip_fqfn ]]; then
+    python3 ./utils/github.py upload $specterd_zip_fqfn
+  else
+    echo "        WARNING: not uploading as it does not exist: $specterd_zip_fqfn"
+  fi
+  
+  specter_dmg_fqfn=./release/Specter-${version}.dmg
+  echo "        Checking for file $specter_dmg_fqfn"
+  if [[ -f $specter_dmg_fqfn ]]; then
+    python3 ./utils/github.py upload $specter_dmg_fqfn
+    else
+    echo "        WARNING: not uploading as it does not exist: $specter_dmg_fqfn"
+  fi
+
+  cd release
+  sha256sum * > SHA256SUMS-macos_${ARCH}
+  python3 ../utils/github.py upload SHA256SUMS-macos_${ARCH}
+  # The GPG comman below has a timeout. If that's reached, the script will interrupt. So let's make some noise
+  say "Hello?! Your overlord is speaking! You're now allowed to sign the binary!"
+  echo "Just in case you missed the timeout, those three last commands are missing:"
+  echo "cd release"
+  echo "gpg --detach-sign --armor SHA256SUMS-macos_${ARCH}"
+  echo "python3 ../utils/github.py upload SHA256SUMS-macos_${ARCH}.asc"
+  gpg --detach-sign --armor SHA256SUMS-macos_${ARCH}
+  python3 ../utils/github.py upload SHA256SUMS-macos_${ARCH}.asc
 fi
 

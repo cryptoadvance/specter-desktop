@@ -11,7 +11,8 @@ const versionDataFile = './version-data.json'
 
 async function setVersion() {
     const version = process.argv[2]
-    const file = process.argv[4]
+    const file = process.argv[3]
+    const arch = process.argv[4] || process.arch
 
     // Set version in package.json
     let package = require('./package.json')
@@ -19,7 +20,7 @@ async function setVersion() {
     fs.writeFileSync('./package.json', JSON.stringify(package, undefined, 2))
     
     // Set version in version-data.json
-    if (arch && file) {
+    if (version && file) {
         let versionData
         try {
            versionData = require(versionDataFile)
@@ -33,7 +34,7 @@ async function setVersion() {
         if (versionData.version != version) {
             throw new Error(`param version ${version} and version from versionData ${versionData.version} does not match`)
         }
-        versionData.sha256[process.arch] = (await createHashFromFile(file))
+        versionData.sha256[arch] = (await createHashFromFile(file))
     
         fs.writeFileSync(versionDataFile, JSON.stringify(versionData, undefined, 2))
         console.log(versionData)

@@ -44,10 +44,14 @@ function specify_app_name {
         specterimg_filename=${app_name^} # usually "Specter"
         pkg_filename=${app_name}
     fi
-
+    
+    export ARCH=$(node -e "console.log(process.arch)")
+    
     echo specterd_filename=${specterd_filename}
     echo specterimg_filename=${specterimg_filename}
     echo pkg_filename=${pkg_filename}
+    echo ARCH=$ARCH
+
 }
 
 
