@@ -146,7 +146,7 @@ app.whenReady().then(() => {
   if (!appSettings.versionInitialized || appSettings.versionInitialized != versionData.version) {
     logger.info(`Updating ${appSettingsPath} : ${JSON.stringify(appSettings)}`)
     appSettings.specterdVersion = versionData.version
-    appSettings.specterdHash = versionData.sha256
+    appSettings.specterdHash = versionData.sha256[process.arch]
     appSettings.versionInitialized = versionData.version
     fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings))
   }
