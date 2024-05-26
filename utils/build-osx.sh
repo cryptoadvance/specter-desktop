@@ -383,7 +383,7 @@ if [[ "$upload" = "True" ]]; then
 
   cd release
   # Maybe we have some SHA256SUMS files from other runs lying around. We don't want to shasum them
-  rm SHA256SUMS*
+  rm -f SHA256SUMS*
   sha256sum * > SHA256SUMS-macos_${ARCH}
   python3 ../utils/github.py upload SHA256SUMS-macos_${ARCH}
   # The GPG comman below has a timeout. If that's reached, the script will interrupt. So let's make some noise
