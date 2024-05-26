@@ -32,7 +32,10 @@ async function setVersion() {
     versionData.sha256[arch] = await createHashFromFile(file);
     // Write new version data to file
     fs.writeFileSync(versionDataFile, JSON.stringify(versionData, undefined, 2));
+    console.log("version-data.js: ")
+    console.log("----------------------------------------------------------")
     console.log(versionData);
+    console.log("----------------------------------------------------------")
   } else if (arch || file) {
     throw new Error("Declare both arch and file or none.");
   }

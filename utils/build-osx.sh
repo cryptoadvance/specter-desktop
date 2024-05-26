@@ -71,11 +71,13 @@ function make_hash_if_necessary {
       echo "Downloading and verifying x64 specterd failed with exit code $ret_code"
       exit $ret_code
     fi
-    if [[ ! -f ../../signing_dir/specterd-${version}-osx_x64.zip ]]; then
+    echo ".."
+    pwd
+    if [[ ! -f ./signing_dir/specterd-${version}-osx_x64.zip ]]; then
       echo "Downloading and verifying x64 specterd failed as the file does not seem to be there"
       exit 1
     fi
-    unzip ../../signing_dir/specterd-${version}-osx_x64.zip -d /tmp
+    unzip ./signing_dir/specterd-${version}-osx_x64.zip -d /tmp
     node ./set-version $version /tmp/specterd x64
     echo "        Hashes in version-data.json $(cat ./version-data.json | jq -r '.sha256')"
     echo "        Hash of file     $(sha256sum ${specterd_plt_filename} )"
@@ -315,11 +317,15 @@ if [[ "$build_package" = "True" ]]; then
     zip ../../release/${specterd_filename}-${version}-osx_${ARCH}.zip ${specterd_filename}
   fi
   cd ../..
-  if [[ -f ./release/${specterd_filename}-${version}-osx_${ARCH}.zip ]]; then
-    sha256sum ./release/${specterd_filename}-${version}-osx_${ARCH}.zip
+  file=./release/${specterd_filename}-${version}-osx_${ARCH}.zip
+  if [[ -f $file ]]; then
+    echo -n "    FYI sha256sum of $file : " 
+    sha256sum $file
   fi
-  if [[ -f ./release/${specterimg_filename}-${version}.dmg ]]; then
-    sha256sum ./release/${specterimg_filename}-${version}.dmg
+  file=./release/${specterimg_filename}-${version}.dmg
+  if [[ -f $file ]]; then
+    echo -n "    FYI sha256sum of $file : " 
+    sha256sum $file
   fi
 fi
 
@@ -358,6 +364,8 @@ if [[ "$upload" = "True" ]]; then
   fi
 
   cd release
+  # Maybe we have some SHA256SUMS files from other runs lying around. We don't want to shasum them
+  rm SHA256SUMS*
   sha256sum * > SHA256SUMS-macos_${ARCH}
   python3 ../utils/github.py upload SHA256SUMS-macos_${ARCH}
   # The GPG comman below has a timeout. If that's reached, the script will interrupt. So let's make some noise
