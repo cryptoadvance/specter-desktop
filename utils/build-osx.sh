@@ -77,6 +77,7 @@ function make_hash_if_necessary {
       echo "Downloading and verifying x64 specterd failed as the file does not seem to be there"
       exit 1
     fi
+    rm -f  /tmp/specterd
     unzip ./signing_dir/specterd-${version}-osx_x64.zip -d /tmp
     node ./set-version $version /tmp/specterd x64
     echo "        Hashes in version-data.json $(cat ./version-data.json | jq -r '.sha256')"
@@ -106,9 +107,10 @@ function macos_code_sign {
     # https://keith.github.io/xcode-man-pages/altool.1.html
     cd pyinstaller/electron
     echo '    --> Attempting to code sign...'
-    echo "        executing: ditto -c -k --keepParent "dist/mac/${specterimg_filename}.app" dist/${specterimg_filename}.zip"
+    specterimg_filename_fqfn=dist/${dist_mac_folder_name}/${specterimg_filename}.app
+    echo "        executing: ditto -c -k --keepParent "${specterimg_filename_fqfn}" dist/${specterimg_filename}.zip"
 
-    ditto -c -k --keepParent "dist/${dist_mac_folder_name}/${specterimg_filename}.app" dist/${specterimg_filename}.zip
+    ditto -c -k --keepParent "${specterimg_filename_fqfn}" dist/${specterimg_filename}.zip
     # upload
     echo '        uploading for notarisation ... '
 
@@ -296,16 +298,11 @@ if [[ "$build_electron" = "True" ]]; then
 fi
 
 if [[ "$build_sign" = "True" ]]; then
-  dist_mac_folder_name=mac-universal
   # if [ "$(uname -m)" = "arm64" ]; then 
   #     dist_mac_folder_name=${dist_mac_folder_name}-arm64
   # fi
   if [[ "$appleid" != '' ]]; then
     macos_code_sign
-    create-dmg pyinstaller/electron/dist/${dist_mac_folder_name}/${specterimg_filename}.app --identity="Developer ID Application: ${appleid}" dist
-    # create-dmg doesn't create the prepending "v" to the version
-    node_comp_version=$(python3 -c "print('$version'[1:])")
-    mv "dist/${specterimg_filename} ${node_comp_version}.dmg" release/${specterimg_filename}-${version}.dmg
   else
     echo "WARNING: Forgot to add the appleid ?!"
     exit 1
@@ -313,23 +310,39 @@ if [[ "$build_sign" = "True" ]]; then
 fi
 
 if [[ "$build_package" = "True" ]]; then
-  echo "    --> Making the release-zip"
+  echo "    --> Preparing the release"
   mkdir -p release
   rm -rf release/*
 
-  cd pyinstaller/dist # ./pyinstaller/dist
-  if [[ -f ${specterd_filename} ]]; then
-    zip ../../release/${specterd_filename}-${version}-osx_${ARCH}.zip ${specterd_filename}
+  # The specterd-zipfile from specterd
+  if [[ -f pyinstaller/dist/${specterd_filename} ]]; then
+    echo "    --> Making the release-zip for specterd"
+    zip ./release/${specterd_filename}-${version}-osx_${ARCH}.zip pyinstaller/dist/${specterd_filename}
   fi
-  cd ../..
+  
+  # The dmg image file from App
+  if [[ -d pyinstaller/electron/dist/${dist_mac_folder_name}/${specterimg_filename}.app ]]; then
+    rm -f pyinstaller/electron/dist/*.dmg
+    echo "    --> Creating dmg"
+    create-dmg pyinstaller/electron/dist/${dist_mac_folder_name}/${specterimg_filename}.app --identity="Developer ID Application: ${appleid}" pyinstaller/electron/dist
+    # create-dmg doesn't create the prepending "v" to the version
+    node_comp_version=$(python3 -c "print('$version'[1:])")
+    mv "pyinstaller/electron/dist/${specterimg_filename} ${node_comp_version}.dmg" dist/${specterimg_filename}-${version}.dmg
+    echo "    --> Copying img file dist/${specterimg_filename}-${version}.dmg"
+    cp dist/${specterimg_filename}-${version}.dmg release/${specterimg_filename}-${version}.dmg
+  else
+    echo "WARNING: Skipping packaging for electron App"
+    echo "No pyinstaller/electron/dist/${dist_mac_folder_name}/${specterimg_filename}.app has been found."
+  fi
+  
   file=./release/${specterd_filename}-${version}-osx_${ARCH}.zip
   if [[ -f $file ]]; then
-    echo -n "    FYI sha256sum of $file : " 
+    echo -n "    FYI : " 
     sha256sum $file
   fi
   file=./release/${specterimg_filename}-${version}.dmg
   if [[ -f $file ]]; then
-    echo -n "    FYI sha256sum of $file : " 
+    echo -n "    FIY : " 
     sha256sum $file
   fi
 fi
@@ -345,13 +358,13 @@ fi
   
 if [[ "$upload" = "True" ]]; then
   echo "    --> gpg-signing the hashes and uploading"
-  echo "        This build got triggered for version $version"
   . ../../specter_gh_upload.sh # A simple file looks like: export GH_BIN_UPLOAD_PW=...(GH token)
   export CI_COMMIT_TAG=$version
   if [[ -z "$CI_PROJECT_ROOT_NAMESPACE" ]]; then
-    export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance
+    export got triggered for version $version=cryptoadvance
   fi
-  
+  echo "        This build: version: $version gh-project: $CI_PROJECT_ROOT_NAMESPACE"
+
   specterd_zip_fqfn=./release/specterd-${version}-osx_${ARCH}.zip
   echo "        Checking for file $specterd_zip_fqfn"
   if [[ -f $specterd_zip_fqfn ]]; then
@@ -379,6 +392,7 @@ if [[ "$upload" = "True" ]]; then
   echo "cd release"
   echo "gpg --detach-sign --armor SHA256SUMS-macos_${ARCH}"
   echo "python3 ../utils/github.py upload SHA256SUMS-macos_${ARCH}.asc"
+
   gpg --detach-sign --armor SHA256SUMS-macos_${ARCH}
   python3 ../utils/github.py upload SHA256SUMS-macos_${ARCH}.asc
 fi
