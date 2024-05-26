@@ -65,14 +65,13 @@ function make_hash_if_necessary {
     node ./set-version $version ${specterd_plt_filename}
     # Download and check the intel one
     # this needs some env-vars to be set
+    rm -rf signing_dir/*
     PYTHONPATH=../.. python3 -m utils.release-helper downloadgithub
     ret_code=$?
     if [ $ret_code -ne 0 ]; then
       echo "Downloading and verifying x64 specterd failed with exit code $ret_code"
       exit $ret_code
     fi
-    echo ".."
-    pwd
     if [[ ! -f ./signing_dir/specterd-${version}-osx_x64.zip ]]; then
       echo "Downloading and verifying x64 specterd failed as the file does not seem to be there"
       exit 1

@@ -47,12 +47,14 @@ function specify_app_name {
     
     export ARCH=$(node -e "console.log(process.arch)")
     export dist_mac_folder_name=mac-universal
+    export CI_COMMIT_TAG=$version
 
     echo specterd_filename=${specterd_filename}
     echo specterimg_filename=${specterimg_filename}
     echo pkg_filename=${pkg_filename}
     echo ARCH=$ARCH
     echo dist_mac_folder_name=$dist_mac_folder_name
+    echo CI_COMMIT_TAG=$CI_COMMIT_TAG
 
 }
 
