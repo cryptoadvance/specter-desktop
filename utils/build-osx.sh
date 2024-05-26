@@ -218,6 +218,11 @@ while [[ $# -gt 0 ]]
         shift
         shift
         ;;
+      --gh-project)
+        export CI_PROJECT_ROOT_NAMESPACE=$2
+        shift
+        shift
+        ;;
       specterd)
         build_specterd=True
         shift
