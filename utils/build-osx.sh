@@ -317,7 +317,7 @@ if [[ "$build_package" = "True" ]]; then
   if [[ -f pyinstaller/dist/${specterd_filename} ]]; then
     echo "    --> Making the release-zip for specterd"
     pushd pyinstaller/dist # to not preserve folder structure
-    zip ./release/${specterd_filename}-${version}-osx_${ARCH}.zip ${specterd_filename}
+    zip ../../release/${specterd_filename}-${version}-osx_${ARCH}.zip ${specterd_filename}
     popd
   fi
   
