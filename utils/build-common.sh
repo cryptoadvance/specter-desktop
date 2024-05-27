@@ -31,8 +31,8 @@ function build_pypi_pckgs_and_install {
     pip3 install ./dist/cryptoadvance.specter-*.whl
 }
 
-function specify_app_name {
-    echo "    --> Specify app_name"
+function configure {
+    echo "    --> Configure some variables"
     if [ -z "$app_name" ]; then
     # activate virtualenv. This is e.g. not needed in CI
         app_name=specter
@@ -48,6 +48,7 @@ function specify_app_name {
     export ARCH=$(node -e "console.log(process.arch)")
     export dist_mac_folder_name=mac-universal
     export CI_COMMIT_TAG=$version
+    export CI_PROJECT_ROOT_NAMESPACE=$(node -e "const downloadloc = require('./pyinstaller/electron/downloadloc');console.log(downloadloc.orgName())")
 
     echo specterd_filename=${specterd_filename}
     echo specterimg_filename=${specterimg_filename}
@@ -55,6 +56,7 @@ function specify_app_name {
     echo ARCH=$ARCH
     echo dist_mac_folder_name=$dist_mac_folder_name
     echo CI_COMMIT_TAG=$CI_COMMIT_TAG
+    echo CI_PROJECT_ROOT_NAMESPACE=$CI_PROJECT_ROOT_NAMESPACE
 
 }
 

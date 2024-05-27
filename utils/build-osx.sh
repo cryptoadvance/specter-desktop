@@ -219,11 +219,6 @@ while [[ $# -gt 0 ]]
         shift
         shift
         ;;
-      --gh-project)
-        export CI_PROJECT_ROOT_NAMESPACE=$2
-        shift
-        shift
-        ;;
       specterd)
         build_specterd=True
         shift
@@ -270,7 +265,7 @@ echo "    --> This build got triggered for version $version"
 
 echo $version > pyinstaller/version.txt
 
-specify_app_name
+configure
 
 if [[ "$build_specterd" = "True" ]]; then
   create_virtualenv_for_pyinstaller

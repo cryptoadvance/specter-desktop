@@ -73,30 +73,59 @@ For details look at `.gitlab-ci.yml`
 
 ## MacOS
 
-Ideally, directly after the tag is created, start with the MacOS release. This has to be done manually, for now. There is a script for this:
+Ideally, directly after the tag is created, start with the MacOS release. As the binaries of x86/arm64 are not compatible with each other, we need to build on two MacOS architectures.This has to be done manually, for now. There is a script for this. Start with the build on x86:
+
+### MacOS x64 build
 
 ```bash
-./utils/build-osx.sh  --version v1.13.1 --appleid "Satoshi Nakamoto (appleid)" --mail "satoshi@gmx.com" make-hash specterd electron sign upload
+./utils/build-osx.sh  --version v2.0.5-pre4 --appleid "Satoshi Nakamoto (appleid)" --mail "satoshi@gmx.com" specterd package upload
 ```
 
-This script also runs `github.py upload `, so two more binares and the hash and signature files are uploaded to GitHub:
+This will create three artifacts on github:
+* specterd-v2.0.5-pre4-osx_x64.zip
+* SHA256SUMS-macos_x64
+* SHA256SUMS-macos_x64.asc
 
-- Specter-v1.13.1.dmg
-- specterd-v1.13.1-osx.zip
-- SHA256SUMS-macos
-- SHA256SUMS-macos.asc
+### MacOS arm64 build
+
+The electron application will get built on the arm architecture. As it needs to store the sha256 hash in the electron-app, the make-hash target
+will not only hash the specterd but also download the other specterd and hash it.
+
+```bash
+./utils/build-osx.sh  --version v2.0.5-pre4 --appleid "Satoshi Nakamoto (appleid)" --mail "satoshi@gmx.com" specterd make-hash electron sign package upload
+```
+
+This will create three artifacts on github:
+* Specter-v2.0.5-pre4.dmg
+* specterd-v2.0.5-pre4-osx_arm64.zip
+* SHA256SUMS-macos_arm64
+* SHA256SUMS-macos_arm64.asc
+
 
 ## GitLab - post releasing
 
 Back to GitLab, the final stage is "post releasing".
 
-In this stage, the invididual SHA256-hashes and signatures are combined into two final files:
+### release_signatures
+
+In this job, the individual SHA256-hashes and signatures are combined into two final files:
 
 - SHA256SUMS
 - SHA256SUMS.asc
 
 Everything, apart from the MacOS files, are pulled from the GitLab environment, the MacOS files from GitHub.
-Don't forget to delete the two MacOS files (`SHA256SUMS-macos` and `SHA256SUMS-macos.asc`) on the GitHub release page in the end.
+Don't forget to delete the four MacOS files (`SHA256SUMS-macos_arm64` and `SHA256SUMS-macos_arm64.asc` and the two corresponding `_x64` files) on the GitHub release page in the end.
+
+This is difficult to automate as sometimes the manual steps has not succeeded while generating the SHASUM-files. As a result, those hashes are not included. So you might want to run this again. And you can, just delete the two generated files - `SHA256SUMS` and `SHA256SUMS.asc` and run the job again.
+
+### release_docker
+
+There are docker images created by the awesome [Chiang Mai LN dev](https://github.com/lncm/docker-specter-desktop). So the task of this job is to trigger their build-system which is done via `utils/trigger_docker_build.sh`. A prerequisite of this is a token in order to authenticate. That token is from Aaron, one of the maintainers of that repo, and can be found in the gitlab variables section of the CI/CD configuration.
+
+### tag_specterext_dummy_repo
+
+Sometimes there are changes on the plugin architecture. In order to create a plugin, it's quite important to know which version of the plugin system should be used. Because of that, we simply assume that the master of the [specterext-dummy](https://github.com/cryptoadvance/specterext-dummy) repo is compatible with the current master which was just tagged with the new version.
+So this job will tag that repo with the same tag and the creation of a plugin will take the version into account.
 
 ## Trouble shooting
 
