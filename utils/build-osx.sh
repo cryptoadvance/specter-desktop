@@ -316,7 +316,9 @@ if [[ "$build_package" = "True" ]]; then
   # The specterd-zipfile from specterd
   if [[ -f pyinstaller/dist/${specterd_filename} ]]; then
     echo "    --> Making the release-zip for specterd"
+    pushd pyinstaller/dist # to not preserve folder structure
     zip ./release/${specterd_filename}-${version}-osx_${ARCH}.zip pyinstaller/dist/${specterd_filename}
+    popd
   fi
   
   # The dmg image file from App
