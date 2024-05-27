@@ -66,7 +66,7 @@ function make_hash_if_necessary {
     # Download and check the intel one
     # this needs some env-vars to be set
     rm -rf signing_dir/*
-    PYTHONPATH=../.. python3 -m utils.release-helper downloadgithub
+    PYTHONPATH=../.. python3 -m utils.release_helper downloadgithub
     ret_code=$?
     if [ $ret_code -ne 0 ]; then
       echo "Downloading and verifying x64 specterd failed with exit code $ret_code"
