@@ -290,3 +290,15 @@ tag_specterext_dummy_repo:
     - echo "Now tagging ... git@github.com:${CI_PROJECT_ROOT_NAMESPACE}/specterext-dummy.git"
     - ./utils/tag_specterext_dummy.sh
 
+
+# Tagging the current master-branch of https://github.com/cryptoadvance/specterext-dummy
+# with the same CI_COMMIT_TAG
+tag_specterext_dummy_repo:
+  stage: post_releasing
+  #only:
+  #  - tags
+  before_script:
+    - ./utils/prepare_for_git_write.sh
+  script:
+    - echo "Now tagging ... git@github.com:${CI_PROJECT_ROOT_NAMESPACE}/specterext-dummy.git"
+    - ./utils/tag_specterext_dummy.sh
