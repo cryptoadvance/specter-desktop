@@ -46,6 +46,12 @@ Update your master branch after the release notes PR ([example](https://github.c
 git tag v1.13.1 && git push upstream v1.13.1
 ```
 
+if you have a proper setup of github- AND gitlab forks (and the remote `origin` on git pointing to your github fork), you can push that tag to origin and this is useful to test the procedures. See "CI/CD-dev-env setup" in [continuous-integration](./continuous-integration.md).
+
+```bash
+git tag v1.13.1 && git push origin v1.13.1
+```
+
 ## GitLab - releasing stage
 
 Creating a tag triggers the release process of the GitLab runners.
@@ -80,6 +86,8 @@ Ideally, directly after the tag is created, start with the MacOS release. As the
 ```bash
 ./utils/build-osx.sh  --version v2.0.5-pre4 specterd package upload
 ```
+
+You can also test this procedure without messing the original project via changing the `orgName` to your `orgName` in `pyinstaller/electron/downloadloc.js`.
 
 This will create three artifacts on github:
 * specterd-v2.0.5-pre4-osx_x64.zip
