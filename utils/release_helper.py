@@ -308,7 +308,7 @@ class ReleaseHelper:
                 "CI_PROJECT_ROOT_NAMESPACE"
             )
             logger.info(
-                f"Using project_root_namespace: {project_root_namespace} ( export CI_PROJECT_ROOT_NAMESPACE={project_root_namespace} )"
+                f"Using project_root_namespace: {self._ci_project_root_namespace} ( export CI_PROJECT_ROOT_NAMESPACE={self._ci_project_root_namespace} )"
             )
         else:
             self._ci_project_root_namespace = "cryptoadvance"

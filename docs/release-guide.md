@@ -78,7 +78,7 @@ Ideally, directly after the tag is created, start with the MacOS release. As the
 ### MacOS x64 build
 
 ```bash
-./utils/build-osx.sh  --version v2.0.5-pre4 --appleid "Satoshi Nakamoto (appleid)" --mail "satoshi@gmx.com" specterd package upload
+./utils/build-osx.sh  --version v2.0.5-pre4 specterd package upload
 ```
 
 This will create three artifacts on github:
@@ -95,7 +95,7 @@ will not only hash the specterd but also download the other specterd and hash it
 ./utils/build-osx.sh  --version v2.0.5-pre4 --appleid "Satoshi Nakamoto (appleid)" --mail "satoshi@gmx.com" specterd make-hash electron sign package upload
 ```
 
-This will create three artifacts on github:
+This will create four artifacts on github:
 * Specter-v2.0.5-pre4.dmg
 * specterd-v2.0.5-pre4-osx_arm64.zip
 * SHA256SUMS-macos_arm64

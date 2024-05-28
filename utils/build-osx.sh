@@ -54,11 +54,6 @@ function make_hash_if_necessary {
       node ./set-version $version
       return 0
     fi
-    # Making the hash only makes sense on a arm arch
-    if [[ "$ARCH" != "arm64" ]]; then
-      echo "ERROR: make-hash should be only called on an arm64 machine on a mac"
-      exit 1
-    fi
 
     # We need to set-versions for two specterd, one arm and one intel. 
     # arm64 one
@@ -276,10 +271,20 @@ if [[ "$build_specterd" = "True" ]]; then
 fi
 
 if [[ "$make_hash" = "True" ]]; then
+  # Making the hash only makes sense on a arm arch
+  if [[ "$ARCH" != "arm64" ]]; then
+    echo "ERROR: make-hash target should be only called on an arm64 machine on a mac"
+    exit 1
+  fi
   make_hash_if_necessary
 fi
 
 if [[ "$build_electron" = "True" ]]; then
+  # Making the hash only makes sense on a arm arch
+  if [[ "$ARCH" != "arm64" ]]; then
+    echo "ERROR: electron target should be only called on an arm64 machine on a mac"
+    exit 1
+  fi
   prepare_npm
   npm i
   if [[ "${appleid}" == '' ]]
@@ -357,7 +362,8 @@ if [[ "$upload" = "True" ]]; then
   . ../../specter_gh_upload.sh # A simple file looks like: export GH_BIN_UPLOAD_PW=...(GH token)
   export CI_COMMIT_TAG=$version
   if [[ -z "$CI_PROJECT_ROOT_NAMESPACE" ]]; then
-    export got triggered for version $version=cryptoadvance
+    echo "WARNING: Why is CI_PROJECT_ROOT_NAMESPACE not set? Setting to cryptoadvance"
+    export CI_PROJECT_ROOT_NAMESPACE=cryptoadvance
   fi
   echo "        This build: version: $version gh-project: $CI_PROJECT_ROOT_NAMESPACE"
 
