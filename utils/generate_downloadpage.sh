@@ -42,24 +42,7 @@ function prereq {
       echo " --> The 'markdown' package is already installed."
   fi
 
-  # Check if 'gh' is already installed
-  if command -v gh &> /dev/null; then
-      echo "GitHub CLI is already installed."
-  else
-      echo "GitHub CLI is not installed."
 
-      # Detect the platform (Linux or Darwin/macOS)
-      platform=$(uname -s)
-
-      case "$platform" in
-      Linux) install_gh_linux ;;
-      Darwin) install_gh_macos ;;
-      *)
-          echo "Unsupported platform: $platform"
-          exit 1
-          ;;
-      esac
-  fi
 }
 
 function clean {
@@ -244,7 +227,25 @@ if [[ "$generate" = "True" ]]; then
 fi
 
 if [[ "$change_github" = "True" ]]; then
-    update_github
+  # Check if 'gh' is already installed
+  if command -v gh &> /dev/null; then
+      echo "GitHub CLI is already installed."
+  else
+      echo "GitHub CLI is not installed."
+
+      # Detect the platform (Linux or Darwin/macOS)
+      platform=$(uname -s)
+
+      case "$platform" in
+      Linux) install_gh_linux ;;
+      Darwin) install_gh_macos ;;
+      *)
+          echo "Unsupported platform: $platform"
+          exit 1
+          ;;
+      esac
+  fi
+  update_github
 fi
 
 if [[ "$change_webpage" = "True" ]]; then
