@@ -88,6 +88,13 @@ function generate {
 }
 
 function update_github {
+    # Determine the platform and execute the appropriate function
+    platform="$(uname -s)"
+    case "${platform}" in
+      Linux*)     install_gh_linux;;
+      Darwin*)    install_gh_macos;;
+      *)          echo "Unsupported platform: ${platform}"; exit 1;;
+    esac
     if ! command -v gh &> /dev/null; then
         echo "WARNING: 'gh' binary not found or not executable. Please ensure it is installed and in your PATH."
         echo "You need now to manually replace the release-Notes. I'll list them here:"
@@ -101,13 +108,20 @@ function update_github {
 }
 
 function update_webpage {
+    if [[ $version =~ -pre[0-9]+$ ]]; then
+      if [[ "$org_name" = "swan-bitcoin" ]]; then
+        echo "The version has a pre-release suffix. Exiting..."
+        return 0
+      fi
+      echo "we have a pre-release but continuing for testing purposes anyway"
+    fi
     if ! [[ -d ../../specter-static ]]; then
-        echo "You don't have cloned the specter-static repo."
-        echo "doing that now"
-        git clone git@github.com:swan-bitcoin/specter-static.git
-        specter_static_folder=./specter-static
+      echo "You don't have cloned the specter-static repo."
+      echo "doing that now"
+      git clone git@github.com:swan-bitcoin/specter-static.git
+      specter_static_folder=./specter-static
     else
-        specter_static_folder=../../specter-static
+      specter_static_folder=../../specter-static
     fi
     target_file=${specter_static_folder}/specter-httrack-src/specter.solutions/downloads/index.html
 
@@ -118,8 +132,8 @@ function update_webpage {
 
     # Check if working directory is clean
     if git diff --quiet && git diff --staged --quiet; then
-        echo "Git working directory is clean. Exiting..."
-        exit 0
+      echo "Git working directory is clean. Exiting..."
+      exit 0
     fi
 
     # Add the file to the staging area
@@ -131,7 +145,7 @@ function update_webpage {
     # Push the commit
     #read -p "Push commit to remote? (y/n): " confirm
     #if [[ $confirm =~ ^[Yy]$ ]]; then
-        #git push
+    git push
     #else
     #    echo "Push aborted."
     #    exit 1
