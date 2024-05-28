@@ -66,7 +66,8 @@ check_version_exists() {
 }
 
 function generate {
-    python3 ./generate_downloadpage.py
+  mkdir -p build
+  python3 ./generate_downloadpage.py
 }
 
 function update_github {
