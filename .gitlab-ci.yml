@@ -290,6 +290,17 @@ tag_specterext_dummy_repo:
     - echo "Now tagging ... git@github.com:${CI_PROJECT_ROOT_NAMESPACE}/specterext-dummy.git"
     - ./utils/tag_specterext_dummy.sh
 
+# update github
+update_github:
+  stage: post_releasing
+  #only:
+  #  - tags
+  before_script:
+    # write access to git@github.com:swan-bitcoin/specter-static.git
+    - ./utils/prepare_for_git_write.sh $SSH_SPECTERSTATIC_DEPLOY_KEY
+  script:
+    - echo "Now tagging ... git@github.com:${CI_PROJECT_ROOT_NAMESPACE}/specterext-dummy.git"
+    - ./utils/generate_downloadpage.sh --org_name ${CI_PROJECT_ROOT_NAMESPACE:-k9ert} --version ${CI_COMMIT_TAG:-v0.0.0-pre3} generate  # default-value for testing
 
 # Tagging the current master-branch of https://github.com/cryptoadvance/specterext-dummy
 # with the same CI_COMMIT_TAG
@@ -298,7 +309,8 @@ tag_specterext_dummy_repo:
   #only:
   #  - tags
   before_script:
-    - ./utils/prepare_for_git_write.sh
+    # write access to git@github.com:cryptoadvance/specterext-dummy.git
+    - ./utils/prepare_for_git_write.sh $SSH_SPECTEREXT_DEPLOY_KEY
   script:
     - echo "Now tagging ... git@github.com:${CI_PROJECT_ROOT_NAMESPACE}/specterext-dummy.git"
     - ./utils/tag_specterext_dummy.sh

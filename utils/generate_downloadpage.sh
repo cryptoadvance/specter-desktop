@@ -79,7 +79,9 @@ check_version_exists() {
 }
 
 function generate {
+    pushd utils
     python3 ./generate_downloadpage.py
+    popd
 }
 
 function update_github {
@@ -97,49 +99,47 @@ function update_github {
 
 function update_webpage {
     if ! [[ -d ../../specter-static ]]; then
-    echo "You don't have cloned the specter-static repo."
-    echo "Go and clone it and then run this script again!"
-    exit 1
+        echo "You don't have cloned the specter-static repo."
+        echo "doing that now"
+        git clone git@github.com:swan-bitcoin/specter-static.git
+        specter_static_folder=./specter-static
+    else
+        specter_static_folder=../../specter-static
     fi
+    target_file=${specter_static_folder}/specter-httrack-src/specter.solutions/downloads/index.html
 
-    cp build/download-page.html ../../specter-static/specter-httrack-src/specter.solutions/downloads/index.html
+    cp build/download-page.html $target_file
 
     # Change to the Git working directory
-    cd ../../specter-static
+    cd $specter_static_folder
 
     # Check if working directory is clean
     if git diff --quiet && git diff --staged --quiet; then
-    echo "Git working directory is clean. Exiting..."
-    exit 0
+        echo "Git working directory is clean. Exiting..."
+        exit 0
     fi
 
     # Add the file to the staging area
     git add specter-httrack-src/specter.solutions/downloads/index.html
 
     # Commit the changes
-    read -p "Commit changes? (y/n): " confirm
-    if [[ $confirm =~ ^[Yy]$ ]]; then
-        git commit -m "Update specter.solutions/downloads/index.html"
-    else
-        echo "Commit aborted."
-        exit 1
-    fi
+    git commit -m "Update specter.solutions/downloads/index.html"
 
     # Push the commit
-    read -p "Push commit to remote? (y/n): " confirm
-    if [[ $confirm =~ ^[Yy]$ ]]; then
-        git push
-    else
-        echo "Push aborted."
-        exit 1
-    fi
+    #read -p "Push commit to remote? (y/n): " confirm
+    #if [[ $confirm =~ ^[Yy]$ ]]; then
+        #git push
+    #else
+    #    echo "Push aborted."
+    #    exit 1
+    #fi
 }
 
 function sub_help {
     cat << EOF
 
 # Example-call:
-./utils/generate_downloadpage.sh --debug --version v1.10.0-pre23 
+./utils/generate_downloadpage.sh --debug --version v1.10.0-pre23 generate
 EOF
 }
 
