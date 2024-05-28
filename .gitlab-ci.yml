@@ -253,12 +253,10 @@ tag_specterext_dummy_repo:
     - echo "Now tagging ... git@github.com:${CI_PROJECT_ROOT_NAMESPACE}/specterext-dummy.git"
     - ./utils/tag_specterext_dummy.sh
 
-
-# update github
 update_github:
   stage: post_releasing
-  #only:
-  #  - tags
+  only:
+    - tags
   before_script:
     # write access to git@github.com:swan-bitcoin/specter-static.git
     - source ./utils/prepare_for_git_write.sh "$SSH_SPECTERSTATIC_DEPLOY_KEY"
@@ -266,11 +264,10 @@ update_github:
     - echo "Now updating https://github.com:${CI_PROJECT_ROOT_NAMESPACE}/specter-desktop/releases/tag/${CI_COMMIT_TAG:-v2.0.4-pre8}"
     - ./utils/generate_downloadpage.sh --org_name ${CI_PROJECT_ROOT_NAMESPACE:-k9ert} --debug --version ${CI_COMMIT_TAG:-v2.0.4-pre8} generate github # default-value for testing
 
-# update github
 update_webpage:
   stage: post_releasing
-  #only:
-  #  - tags
+  only:
+    - tags
   before_script:
     # write access to git@github.com:swan-bitcoin/specter-static.git
     - source ./utils/prepare_for_git_write.sh "$SSH_SPECTERSTATIC_DEPLOY_KEY"
