@@ -197,6 +197,10 @@ while [[ $# -gt 0 ]]
   esac
 done
 
+if [[ "$org_name" = "cryptoadvance" ]]; then
+    org_name=swan-bitcoin # that's where the original specter-static is hosted
+fi
+
 if [[ -z "$version" ]]; then
     version=$(python3 << EOF
 import json
