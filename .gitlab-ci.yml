@@ -312,5 +312,9 @@ tag_specterext_dummy_repo:
     # write access to git@github.com:cryptoadvance/specterext-dummy.git
     - ./utils/prepare_for_git_write.sh "$SSH_SPECTEREXT_DEPLOY_KEY"
   script:
+    - ssh-add -l
     - echo "Now tagging ... git@github.com:${CI_PROJECT_ROOT_NAMESPACE}/specterext-dummy.git"
+    - ./utils/tag_specterext_dummy.sh
+    - echo "try again"
+    - ./utils/prepare_for_git_write.sh "$SSH_SPECTEREXT_DEPLOY_KEY"
     - ./utils/tag_specterext_dummy.sh
