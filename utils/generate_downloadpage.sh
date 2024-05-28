@@ -66,9 +66,7 @@ check_version_exists() {
 }
 
 function generate {
-    pushd utils
     python3 ./generate_downloadpage.py
-    popd
 }
 
 function update_github {
