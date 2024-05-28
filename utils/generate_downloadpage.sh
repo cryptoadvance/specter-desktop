@@ -26,6 +26,7 @@ install_gh_linux() {
 
 function prereq {
   if [[ ! -f ../.env/bin/activate ]]; then
+    pip3 install --upgrade virtualenv
     virtualenv --python=python3.10 ../.env
   fi
   source ../.env/bin/activate
