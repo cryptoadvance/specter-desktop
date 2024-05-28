@@ -3,7 +3,6 @@ set -e
 
 # We start in the directory where this script is located
 cd "$(dirname "${BASH_SOURCE[0]}")/."
-source ../.env/bin/activate
 
 # Function to install GitHub CLI on macOS
 install_gh_macos() {
@@ -26,36 +25,40 @@ install_gh_linux() {
 }
 
 function prereq {
+  if [[ ! -f ../.env/bin/activate ]]; then
+    virtualenv --python=python3.10 ../.env
+  fi
+  source ../.env/bin/activate
     # Check if the 'markdown' package is installed in the Python environment
     # 'set -e' does not cause the script to exit if a command in an 'if' statement fails
-    if ! python3 -c "import markdown" &> /dev/null; then
-        echo " --> The 'markdown' package is not installed. Installing prerequisites..."
-        # Change to parent directory, perform installation, and change back
-        pushd .. 
-        pip3 install -e ".[gendownloadpage]" 
-        popd
-    else
-        echo " --> The 'markdown' package is already installed."
-    fi
+  if ! python3 -c "import markdown" &> /dev/null; then
+      echo " --> The 'markdown' package is not installed. Installing prerequisites..."
+      # Change to parent directory, perform installation, and change back
+      pushd .. 
+      pip3 install -e ".[gendownloadpage]" 
+      popd
+  else
+      echo " --> The 'markdown' package is already installed."
+  fi
 
-    # Check if 'gh' is already installed
-    if command -v gh &> /dev/null; then
-        echo "GitHub CLI is already installed."
-    else
-        echo "GitHub CLI is not installed."
+  # Check if 'gh' is already installed
+  if command -v gh &> /dev/null; then
+      echo "GitHub CLI is already installed."
+  else
+      echo "GitHub CLI is not installed."
 
-        # Detect the platform (Linux or Darwin/macOS)
-        platform=$(uname -s)
+      # Detect the platform (Linux or Darwin/macOS)
+      platform=$(uname -s)
 
-        case "$platform" in
-        Linux) install_gh_linux ;;
-        Darwin) install_gh_macos ;;
-        *)
-            echo "Unsupported platform: $platform"
-            exit 1
-            ;;
-        esac
-    fi
+      case "$platform" in
+      Linux) install_gh_linux ;;
+      Darwin) install_gh_macos ;;
+      *)
+          echo "Unsupported platform: $platform"
+          exit 1
+          ;;
+      esac
+  fi
 }
 
 function clean {
@@ -221,7 +224,8 @@ echo "    --> using version $version"
 prereq
 
 if [[ "$generate" = "True" ]]; then
-    generate
+  
+  generate
 fi
 
 if [[ "$change_github" = "True" ]]; then

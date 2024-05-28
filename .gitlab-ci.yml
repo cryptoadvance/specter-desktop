@@ -247,48 +247,12 @@ tag_specterext_dummy_repo:
   only:
     - tags
   before_script:
-    ## Install ssh-agent if not already installed, it is required by Docker.
-    ## (change apt-get to yum if you use an RPM-based image)
-    ##
-    - 'which ssh-agent || ( apk update && apk add --no-cache bash git openssh )'
-    - docker info
-    
-    ##
-    ## Run ssh-agent (inside the build environment)
-    ##
-    - eval $(ssh-agent -s)
-
-    ##
-    ## Add the SSH key stored in SSH_PRIVATE_KEY variable to the agent store
-    ## We're using tr to fix line endings which makes ed25519 keys work
-    ## without extra base64 encoding.
-    ## https://gitlab.com/gitlab-examples/ssh-private-key/issues/1#note_48526556
-    ##
-    - echo "$SSH_SPECTEREXT_DEPLOY_KEY" | tr -d '\r' | ssh-add - > /dev/null
-
-    ##
-    ## Create the SSH directory and give it the right permissions
-    ##
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-
-    ##
-    ## Optionally, if you will be using any Git commands, set the user name and
-    ## and email.
-    ##
-    - git config --global user.email "specter@secretvalues"
-    - git config --global user.name "specter"
-    
-    ##
-    ## Assuming you created the SSH_KNOWN_HOSTS variable, uncomment the
-    ## following two lines.
-    ##
-    - echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
-
+    # write access to git@github.com:cryptoadvance/specterext-dummy.git
+    - source ./utils/prepare_for_git_write.sh "$SSH_SPECTEREXT_DEPLOY_KEY"
   script:
     - echo "Now tagging ... git@github.com:${CI_PROJECT_ROOT_NAMESPACE}/specterext-dummy.git"
     - ./utils/tag_specterext_dummy.sh
+
 
 # update github
 update_github:
@@ -300,18 +264,17 @@ update_github:
     - source ./utils/prepare_for_git_write.sh "$SSH_SPECTERSTATIC_DEPLOY_KEY"
   script:
     - echo "Now updating https://github.com:${CI_PROJECT_ROOT_NAMESPACE}/specterext-dummy.git"
-    - ./utils/generate_downloadpage.sh --org_name ${CI_PROJECT_ROOT_NAMESPACE:-k9ert} --version ${CI_COMMIT_TAG:-v0.0.0-pre3} generate  # default-value for testing
+    - ./utils/generate_downloadpage.sh --org_name ${CI_PROJECT_ROOT_NAMESPACE:-k9ert} --debug --version ${CI_COMMIT_TAG:-v0.0.0-pre3} generate github # default-value for testing
 
-# Tagging the current master-branch of https://github.com/cryptoadvance/specterext-dummy
-# with the same CI_COMMIT_TAG
-tag_specterext_dummy_repo:
+# update github
+update_webpage:
   stage: post_releasing
   #only:
   #  - tags
   before_script:
-    # write access to git@github.com:cryptoadvance/specterext-dummy.git
-    - source ./utils/prepare_for_git_write.sh "$SSH_SPECTEREXT_DEPLOY_KEY"
+    # write access to git@github.com:swan-bitcoin/specter-static.git
+    - source ./utils/prepare_for_git_write.sh "$SSH_SPECTERSTATIC_DEPLOY_KEY"
   script:
-    - ssh-add -l
-    - echo "Now tagging ... git@github.com:${CI_PROJECT_ROOT_NAMESPACE}/specterext-dummy.git"
-    - ./utils/tag_specterext_dummy.sh
+    - echo "Now updating https://github.com:${CI_PROJECT_ROOT_NAMESPACE}/specterext-dummy.git"
+    - ./utils/generate_downloadpage.sh --org_name ${CI_PROJECT_ROOT_NAMESPACE:-k9ert} --debug --version ${CI_COMMIT_TAG:-v0.0.0-pre3} generate webpage # default-value for testing
+
