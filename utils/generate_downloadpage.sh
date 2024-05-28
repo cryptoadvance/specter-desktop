@@ -244,6 +244,7 @@ if [[ "$change_github" = "True" ]]; then
           ;;
       esac
   fi
+  export GH_TOKEN=$GH_BIN_UPLOAD_PW
   update_github
 fi
 
