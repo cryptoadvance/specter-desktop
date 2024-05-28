@@ -8,7 +8,7 @@
 ## Install ssh-agent if not already installed, it is required by Docker.
 ## (change apt-get to yum if you use an RPM-based image)
 ##
-'which ssh-agent || ( apk update && apk add --no-cache bash git openssh )'
+which ssh-agent || ( apk update && apk add --no-cache bash git openssh )
 docker info
 
 ##
