@@ -1,5 +1,10 @@
 import logging
-from cryptoadvance.specter.helpers import deep_update, load_jsons, is_ip_private, alias
+from cryptoadvance.specter.helpers import (
+    deep_update,
+    load_jsons,
+    is_ip_private,
+    create_unique_id,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +85,7 @@ def test_is_ip_private(caplog):
         assert not is_ip_private(ip)
 
 
-def test_alias():
+def test_create_unique_id():
     the_same_unique_names = [
         "ghost wallet",
         "Ghost Wallet",
@@ -97,7 +102,9 @@ def test_alias():
         "Ghost Wallet?",
         "Ghost Wallet***",
     ]
-    assert all(alias(name) == "ghost_wallet" for name in the_same_unique_names)
+    assert all(
+        create_unique_id(name) == "ghost_wallet" for name in the_same_unique_names
+    )
     not_the_same_unique_names = [
         "ghost wallet",
         "ghost wallet 2",
@@ -106,4 +113,6 @@ def test_alias():
         "ghostwallet123",
         "my_ghos_wallet",
     ]
-    assert not all(alias(name) == "ghost_wallet" for name in not_the_same_unique_names)
+    assert not all(
+        create_unique_id(name) == "ghost_wallet" for name in not_the_same_unique_names
+    )
