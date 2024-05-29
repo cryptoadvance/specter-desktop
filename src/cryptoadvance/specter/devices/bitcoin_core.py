@@ -7,7 +7,7 @@ from io import BytesIO
 from embit import bip32, bip39, networks
 
 from ..device import Device
-from ..helpers import alias
+from ..helpers import create_unique_id
 from ..key import Key
 from ..rpc import get_default_datadir
 from ..specter_error import SpecterError
@@ -115,9 +115,11 @@ class BitcoinCore(Device):
             {
                 "desc": AddChecksum(
                     "{}({}{}/0/*)".format(
-                        "tr"
-                        if path.startswith("m/86h") and taproot_available
-                        else "wpkh",
+                        (
+                            "tr"
+                            if path.startswith("m/86h") and taproot_available
+                            else "wpkh"
+                        ),
                         xprv,
                         path.rstrip("/").replace("m", ""),
                     )
@@ -130,9 +132,11 @@ class BitcoinCore(Device):
             {
                 "desc": AddChecksum(
                     "{}({}{}/1/*)".format(
-                        "tr"
-                        if path.startswith("m/86h") and taproot_available
-                        else "wpkh",
+                        (
+                            "tr"
+                            if path.startswith("m/86h") and taproot_available
+                            else "wpkh"
+                        ),
                         xprv,
                         path.rstrip("/").replace("m", ""),
                     )

@@ -1,5 +1,5 @@
 import logging, pytest
-from cryptoadvance.specter.helpers import alias
+from cryptoadvance.specter.helpers import create_unique_id
 from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.process_controller.node_controller import NodeController
 from cryptoadvance.specter.rpc import BitcoinRPC

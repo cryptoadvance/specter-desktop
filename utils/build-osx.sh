@@ -12,11 +12,14 @@ function create_virtualenv_for_pyinstaller {
     # This currently assumes to be run with: Python 3.10.11
     # Important: pyinstaller needs a Python binary with shared library files
     # With pyenv, for example, you get this like so: env PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.10.4
-    # Use pyenv if available
-    #if command -v pyenv >/dev/null 2>&1; then
-    if /bin/false ; then
+    # Use pyenv if set as environment variable
+    if [ $USE_PYENV_FOR_SPECTER_BUILD = true ]; then
+        echo "Trying to use pyenv ..."
+        if ! command -v pyenv >/dev/null 2>&1; then
+          echo "Error: pyenv is not available. Please make sure pyenv is installed and configured properly." >&2
+          exit 1
+        fi
         ### This is usually in .zshrc, putting it in .bashrc didn't work ###
-        ### 
         export PYENV_ROOT="$HOME/.pyenv"
         command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
         eval "$(pyenv init -)"
@@ -26,11 +29,11 @@ function create_virtualenv_for_pyinstaller {
         ### ------------------------------------------------------------ ###
         PYTHON_VERSION=3.10.11
         export PYENV_VERSION=$PYTHON_VERSION
-        echo "pyenv is available. Setting PYENV_VERSION to 3.10.4, using pyenv-virtualenv to create the buildenv..."
+        echo "Setting PYENV_VERSION to 3.10.11, using pyenv-virtualenv to create the buildenv..."
         echo "    --> Deleting .buildenv"
         pyenv uninstall -f .buildenv
         rm -rf "$HOME/.pyenv/versions/$PYTHON_VERSION/envs/.buildenv"
-        pyenv virtualenv 3.10.4 .buildenv
+        pyenv virtualenv 3.10.11 .buildenv
         pyenv activate .buildenv
     else
         echo "pyenv is not available. Using system Python version."
