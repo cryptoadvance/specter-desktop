@@ -217,25 +217,26 @@ class ReleaseHelper:
 
     @property
     def gl(self):
-        # https://python-gitlab.readthedocs.io/en/stable/api-usage.html
-        import gitlab
+        """https://python-gitlab.readthedocs.io/en/stable/api-usage.html"""
+        if hasattr(self, "_gl"):
+            return self._gl
 
         if os.environ.get("GITLAB_PRIVATE_TOKEN"):
             logger.info("Using GITLAB_PRIVATE_TOKEN")
-            gl = gitlab.Gitlab(
+            self._gl = gitlab.Gitlab(
                 "http://gitlab.com",
                 private_token=os.environ.get("GITLAB_PRIVATE_TOKEN"),
             )
         elif os.environ.get("CI_JOB_TOKEN"):
             logger.info("Using CI_JOB_TOKEN")
-            self.gl = gitlab.Gitlab(
+            self._gl = gitlab.Gitlab(
                 "http://gitlab.com", job_token=os.environ["CI_JOB_TOKEN"]
             )
         else:
             raise Exception(
                 "Can't authenticate against Gitlab ( export GITLAB_PRIVATE_TOKEN )"
             )
-        return gl
+        return self._gl
 
     @property
     def gitlab_project(self):
@@ -277,7 +278,9 @@ class ReleaseHelper:
                 )
                 if project.name_with_namespace.startswith("cryptoadvance"):
                     self._ci_project_id = project.id
-            logger.warn("{self._ci_project_id} has been chosen as self._ci_project_id")
+            logger.warning(
+                f"{self._ci_project_id} has been chosen as self._ci_project_id"
+            )
         return self._ci_project_id
 
     @property
@@ -312,7 +315,7 @@ class ReleaseHelper:
             )
         else:
             self._ci_project_root_namespace = "cryptoadvance"
-            logger.warn(
+            logger.warning(
                 f"Using project_root_namespace: {self._ci_project_root_namespace} ( export CI_PROJECT_ROOT_NAMESPACE={self._ci_project_root_namespace} )"
             )
         return self._ci_project_root_namespace
