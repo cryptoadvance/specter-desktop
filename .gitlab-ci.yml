@@ -135,7 +135,7 @@ release_binary_windows:
     - .\pyinstaller\build-win-ci.bat $CI_COMMIT_TAG
     - python ./utils/github.py upload ./pyinstaller/release/specterd-$CI_COMMIT_TAG-win64.zip
     - cd ./pyinstaller/release
-    - python ..\..\utils\release-helper.py sha256sums specterd-$CI_COMMIT_TAG-win64.zip > SHA256SUMS-windows
+    - python ..\..\utils\release_helper.py sha256sums specterd-$CI_COMMIT_TAG-win64.zip > SHA256SUMS-windows
     - type SHA256SUMS-windows
     - echo $GPG_PASSPHRASE | c:\Program` Files` `(x86`)\GnuPg\bin\gpg --detach-sign --armor --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback SHA256SUMS-windows
   artifacts:
@@ -222,14 +222,14 @@ release_signatures:
     - pip3 install -e ".[test]"
     - ./utils/artifact_signer.sh init # prepare .gnupg
   script:
-    - python3 -m utils.release-helper download          # downloads the job-artifacts from gitlab
-    - python3 -m utils.release-helper downloadgithub    # downloads additional artifacts from github (if not there and is they have SHA256SUMS-something)
-    - python3 -m utils.release-helper checksigs         # checks the signatures of all SHA256SUMM*.asc files
-    - python3 -m utils.release-helper checkhashes       # checks all SHA256SUM* files (might modify files on the fly due to windows line endings)
-    - python3 -m utils.release-helper create            # creates a SHA256SUM
+    - python3 -m utils.release_helper download          # downloads the job-artifacts from gitlab
+    - python3 -m utils.release_helper downloadgithub    # downloads additional artifacts from github (if not there and is they have SHA256SUMS-something)
+    - python3 -m utils.release_helper checksigs         # checks the signatures of all SHA256SUMM*.asc files
+    - python3 -m utils.release_helper checkhashes       # checks all SHA256SUM* files (might modify files on the fly due to windows line endings)
+    - python3 -m utils.release_helper create            # creates a SHA256SUM
     - ./utils/artifact_signer.sh sign --artifact ./signing_dir/SHA256SUMS # Signs the SHA256SUM
-    - python3 -m utils.release-helper upload_shasums    # uploads SHA256SUMS to github
-    - python3 -m utils.release-helper upload_shasumssig # uploads SHA256SUMS.asc to github
+    - python3 -m utils.release_helper upload_shasums    # uploads SHA256SUMS to github
+    - python3 -m utils.release_helper upload_shasumssig # uploads SHA256SUMS.asc to github
 
 release_docker:
   stage: post_releasing
@@ -247,46 +247,31 @@ tag_specterext_dummy_repo:
   only:
     - tags
   before_script:
-    ## Install ssh-agent if not already installed, it is required by Docker.
-    ## (change apt-get to yum if you use an RPM-based image)
-    ##
-    - 'which ssh-agent || ( apk update && apk add --no-cache bash git openssh )'
-    - docker info
-    
-    ##
-    ## Run ssh-agent (inside the build environment)
-    ##
-    - eval $(ssh-agent -s)
-
-    ##
-    ## Add the SSH key stored in SSH_PRIVATE_KEY variable to the agent store
-    ## We're using tr to fix line endings which makes ed25519 keys work
-    ## without extra base64 encoding.
-    ## https://gitlab.com/gitlab-examples/ssh-private-key/issues/1#note_48526556
-    ##
-    - echo "$SSH_SPECTEREXT_DEPLOY_KEY" | tr -d '\r' | ssh-add - > /dev/null
-
-    ##
-    ## Create the SSH directory and give it the right permissions
-    ##
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-
-    ##
-    ## Optionally, if you will be using any Git commands, set the user name and
-    ## and email.
-    ##
-    - git config --global user.email "specter@secretvalues"
-    - git config --global user.name "specter"
-    
-    ##
-    ## Assuming you created the SSH_KNOWN_HOSTS variable, uncomment the
-    ## following two lines.
-    ##
-    - echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
-
+    # write access to git@github.com:cryptoadvance/specterext-dummy.git
+    - source ./utils/prepare_for_git_write.sh "$SSH_SPECTEREXT_DEPLOY_KEY"
   script:
     - echo "Now tagging ... git@github.com:${CI_PROJECT_ROOT_NAMESPACE}/specterext-dummy.git"
     - ./utils/tag_specterext_dummy.sh
+
+update_github:
+  stage: post_releasing
+  only:
+    - tags
+  before_script:
+    # write access to git@github.com:swan-bitcoin/specter-static.git
+    - source ./utils/prepare_for_git_write.sh "$SSH_SPECTERSTATIC_DEPLOY_KEY"
+  script:
+    - echo "Now updating https://github.com:${CI_PROJECT_ROOT_NAMESPACE}/specter-desktop/releases/tag/${CI_COMMIT_TAG:-v2.0.4-pre8}"
+    - ./utils/generate_downloadpage.sh --org_name ${CI_PROJECT_ROOT_NAMESPACE:-k9ert} --debug --version ${CI_COMMIT_TAG:-v2.0.4-pre8} generate github # default-value for testing
+
+update_webpage:
+  stage: post_releasing
+  only:
+    - tags
+  before_script:
+    # write access to git@github.com:swan-bitcoin/specter-static.git
+    - source ./utils/prepare_for_git_write.sh "$SSH_SPECTERSTATIC_DEPLOY_KEY"
+  script:
+    - echo "Now updating https://github.com:${CI_PROJECT_ROOT_NAMESPACE}/specter-static.git"
+    - ./utils/generate_downloadpage.sh --org_name ${CI_PROJECT_ROOT_NAMESPACE:-k9ert} --debug --version ${CI_COMMIT_TAG:-v2.0.4-pre8} generate webpage # default-value for testing
 

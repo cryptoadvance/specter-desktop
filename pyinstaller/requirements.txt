@@ -10,10 +10,6 @@ altgraph==0.17 \
     # via
     #   macholib
     #   pyinstaller
-babel==2.12.1 \
-    --hash=sha256:b4246fb7677d3b98f501a39d43396d3cafdc8eadb045f4a31be01863f655c610 \
-    --hash=sha256:cc2d99999cd01d44420ae725a21c9e3711b3aadc7976d6147f622d8581963455
-    # via -r requirements.in
 future==0.18.2 \
     --hash=sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d
     # via pefile
@@ -43,10 +39,6 @@ pyinstaller-hooks-contrib==2022.8 \
     --hash=sha256:c4210fc50282c9c6a918e485e0bfae9405592390508e3be9fde19acc2213da56 \
     --hash=sha256:e46f099934dd4577fb1ddcf37a99fa04027c92f8f5291c8802f326345988d001
     # via pyinstaller
-pytz==2022.1 \
-    --hash=sha256:1e760e2fe6a8163bc0b3d9a19c4f84342afa0a2affebfaa84b01b978a02ecaa7 \
-    --hash=sha256:e68985985296d9a66a881eb3193b0906246245294a881e7c8afe623866ac6a5c
-    # via -r requirements.in
 pywin32-ctypes==0.2.0 \
     --hash=sha256:24ffc3b341d457d48e8922352130cf2644024a4ff09762a2261fd34c36ee5942 \
     --hash=sha256:9dc2d991b3479cc2df15930958b674a48a227d5361d413827a4cfd0b5876fc98
