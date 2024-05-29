@@ -185,7 +185,7 @@ class ReleaseHelper:
                         (format: export CI_PIPELINE_ID=<pipeline_id>).
         CI_PROJECT_ROOT_NAMESPACE: The root namespace of the CI project
                                    (required for uploading to GitHub).
-        GH_BIN_UPLOAD_PW: Password or token for GitHub to authenticate uploads.
+        GH_BIN_UPLOAD_PW: gh_token or token for GitHub to authenticate uploads.
 
     Attributes:
         target_dir (str): The directory path where artifacts are to be managed.
@@ -193,7 +193,7 @@ class ReleaseHelper:
         pipeline_id (str): The CI pipeline ID for artifact management operations.
         pipeline (Pipeline): A pipeline object fetched from the CI server.
         github_project (str): The GitHub repository in which the release should be created or updated.
-        password (str): The password or token used to authenticate with GitHub.
+        gh_token (str): The password or token used to authenticate with GitHub.
 
     Methods:
         download_and_unpack_all_artifacts(): Downloads and unpacks artifacts from a CI pipeline.
@@ -269,7 +269,7 @@ class ReleaseHelper:
             return self._ci_project_id
         if os.environ.get("CI_PROJECT_ID"):
             self._ci_project_id = os.environ.get("CI_PROJECT_ID")
-            logger.info(f"Using ci_project_id: {self.ci_project_id} ")
+            logger.info(f"Using ci_project_id: {self._ci_project_id} ")
         else:
             logger.error("No Project given. choose one:")
             for project in self.gl.projects.list(search="specter-desktop"):
@@ -290,6 +290,19 @@ class ReleaseHelper:
         self._github_project = f"{self.ci_project_root_namespace}/specter-desktop"
         logger.info(f"Using github_project: {self._github_project}")
         return self._github_project
+
+    @property
+    def gh_token(self):
+        if hasattr(self, "_gh_token"):
+            return self._gh_token
+        if os.environ.get("GH_BIN_UPLOAD_PW"):
+            self._gh_token = os.environ.get("GH_BIN_UPLOAD_PW")
+            logger.info(f"Using gh_token: REDACTED")
+        else:
+            raise Exception(
+                "no Github token given ( export GH_BIN_UPLOAD_PW=v0.0.0.0-pre13 )"
+            )
+        return self._gh_token
 
     @property
     def ci_commit_tag(self):
@@ -454,28 +467,8 @@ class ReleaseHelper:
                     )
         logger.info("All files *.asc has valid signatures")
 
-    def calculate_publish_params(self):
-        if not "CI_PROJECT_ROOT_NAMESPACE" in os.environ:
-            logger.error("CI_PROJECT_ROOT_NAMESPACE not found")
-            exit(2)
-        else:
-            self.github_project = (
-                f"{os.environ['CI_PROJECT_ROOT_NAMESPACE']}/specter-desktop"
-            )
-        if not "CI_COMMIT_TAG" in os.environ:
-            logger.error("CI_COMMIT_TAG not found")
-            exit(2)
-        else:
-            tag = os.environ["CI_COMMIT_TAG"]
-        if not "GH_BIN_UPLOAD_PW" in os.environ:
-            logger.error("GH_BIN_UPLOAD_PW not found.")
-            exit(2)
-        else:
-            self.password = os.environ["GH_BIN_UPLOAD_PW"]
-
     def upload_sha256sum_file(self):
         artifact = os.path.join("signing_dir", "SHA256SUMS")
-        self.calculate_publish_params()
 
         if github.artifact_exists(
             self.github_project, self.ci_commit_tag, Path(artifact).name
@@ -489,12 +482,11 @@ class ReleaseHelper:
             self.ci_commit_tag,
             [artifact],
             "gitlab_upload_release_binaries",
-            self.password,
+            self.gh_token,
         )
 
     def upload_sha256sumsig_file(self):
         artifact = os.path.join("signing_dir", "SHA256SUMS.asc")
-        self.calculate_publish_params()
 
         if github.artifact_exists(
             self.github_project, self.ci_commit_tag, Path(artifact).name
@@ -508,7 +500,7 @@ class ReleaseHelper:
             self.ci_commit_tag,
             [artifact],
             "gitlab_upload_release_binaries",
-            self.password,
+            self.gh_token,
         )
 
 
