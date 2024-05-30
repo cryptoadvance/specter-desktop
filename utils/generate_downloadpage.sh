@@ -92,7 +92,7 @@ function update_github {
 
 function update_webpage {
     if [[ $version =~ -pre[0-9]+$ ]]; then
-      if [[ "$org_name" = "swan-bitcoin" ]]; then
+      if [[ "$static_repo_org_name" = "swan-bitcoin" ]]; then
         echo "The version has a pre-release suffix. Exiting..."
         return 0
       fi
@@ -101,7 +101,7 @@ function update_webpage {
     if ! [[ -d ../../specter-static ]]; then
       echo "You don't have cloned the specter-static repo."
       echo "doing that now"
-      git clone git@github.com:swan-bitcoin/specter-static.git
+      git clone git@github.com:${static_repo_org_name}/specter-static.git
       specter_static_folder=./specter-static
     else
       specter_static_folder=../../specter-static
@@ -198,7 +198,9 @@ while [[ $# -gt 0 ]]
 done
 
 if [[ "$org_name" = "cryptoadvance" ]]; then
-    org_name=swan-bitcoin # that's where the original specter-static is hosted
+  static_repo_org_name=swan-bitcoin # that's where the original specter-static is hosted
+else
+  static_repo_org_name=$org_name # test-repos are assumed to be hosted in the same org than the specter-desktop repo
 fi
 
 if [[ -z "$version" ]]; then
