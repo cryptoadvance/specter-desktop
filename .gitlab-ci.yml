@@ -8,8 +8,8 @@ variables:
 
 cache:
   # enable per-job and per-branch caching
-  - key: 
-      files: 
+  - key:
+      files:
         - ./requirements.txt
       prefix: "$CI_JOB_NAME"
     paths:
@@ -25,14 +25,14 @@ before_script:
   - docker info || echo "no docker-command found" # Print out docker version for debugging
   - echo CI_PROJECT_NAMESPACE = $CI_PROJECT_NAMESPACE
   - echo CI_PROJECT_ROOT_NAMESPACE = $CI_PROJECT_ROOT_NAMESPACE
-  - python -V  # Print out python version for debugging
+  - python -V # Print out python version for debugging
   - apt update
   - apt install -y libusb-1.0-0-dev libudev-dev # usb-support in hidapi
   # https://github.com/python-babel/babel/issues/990#issuecomment-1760326334
   - rm -f /etc/localtime
   - ln -s /usr/share/zoneinfo/Etc/UTC /etc/localtime
-# This doesn't get cached in gitlab but we don't need it anyway for now:
-#  - ./tests/install_noded.sh --debug --elements compile
+  # This doesn't get cached in gitlab but we don't need it anyway for now:
+  #  - ./tests/install_noded.sh --debug --elements compile
   - pip3 install --upgrade virtualenv
   - virtualenv --python=python3 .env
   - source .env/bin/activate
@@ -48,20 +48,20 @@ check:
 # So effectively, gitlab is currently only used for releasing.
 
 .test:
- stage: testing
- # We assume here that people who want to get code into the master-branch are
- # relying on PRs and people who are working on gitlab-forks are working
- # on CI which probably want fast feedback on the releasing-jobs 
- # and therefore skip the test-job
- # tem deactivated as it did not work as expected
- #only:
- #   - $CI_PROJECT_ROOT_NAMESPACE =~ "cryptoadvance" 
- script:
-   - pip3 install -r requirements.txt
-   - pip3 install -e .
-   - pip3 install -e ".[test]"
-   - python3 setup.py install # compiles babel stuff as well (might make pip install obsolete)
-   - py.test --cov-report term --cov cryptoadvance
+  stage: testing
+  # We assume here that people who want to get code into the master-branch are
+  # relying on PRs and people who are working on gitlab-forks are working
+  # on CI which probably want fast feedback on the releasing-jobs
+  # and therefore skip the test-job
+  # tem deactivated as it did not work as expected
+  #only:
+  #   - $CI_PROJECT_ROOT_NAMESPACE =~ "cryptoadvance"
+  script:
+    - pip3 install -r requirements.txt
+    - pip3 install -e .
+    - pip3 install -e ".[test]"
+    - python3 setup.py install # compiles babel stuff as well (might make pip install obsolete)
+    - py.test --cov-report term --cov cryptoadvance
 
 .test-cypress:
   image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python-jammy:v9.7.0
@@ -83,7 +83,7 @@ check:
 
 release_pip:
   stage: releasing
-  only: 
+  only:
     - tags
   script:
     - pip3 install -e .
@@ -112,10 +112,10 @@ release_pip:
 
 release_binary_windows:
   stage: releasing
-  only: 
+  only:
     - tags
   variables:
-    GIT_DEPTH: 0  # Disable shallow clone to get all Git history
+    GIT_DEPTH: 0 # Disable shallow clone to get all Git history
   tags:
     - windows
   before_script:
@@ -125,17 +125,17 @@ release_binary_windows:
     - pip install virtualenv
     - virtualenv --python=python3 .env
     - .\.env\Scripts\activate
-    - pip3 install -e ".[test]" 
-    
+    - pip3 install -e ".[test]"
+
   script:
     # This script won't execute if the script before that fails
     # No need to check the version-scheme again
 
-    - echo "Releasing for ${CI_PROJECT_ROOT_NAMESPACE}" 
+    - echo "Releasing for ${CI_PROJECT_ROOT_NAMESPACE}"
     - .\pyinstaller\build-win-ci.bat $CI_COMMIT_TAG
     - python ./utils/github.py upload ./pyinstaller/release/specterd-$CI_COMMIT_TAG-win64.zip
     - cd ./pyinstaller/release
-    - python ..\..\utils\release-helper.py sha256sums specterd-$CI_COMMIT_TAG-win64.zip > SHA256SUMS-windows
+    - python ..\..\utils\release_helper.py sha256sums specterd-$CI_COMMIT_TAG-win64.zip > SHA256SUMS-windows
     - type SHA256SUMS-windows
     - echo $GPG_PASSPHRASE | c:\Program` Files` `(x86`)\GnuPg\bin\gpg --detach-sign --armor --no-tty --batch --yes --passphrase-fd 0  --pinentry-mode loopback SHA256SUMS-windows
   artifacts:
@@ -145,21 +145,21 @@ release_binary_windows:
     expire_in: 1 day
   cache:
     key:
-        files:
-          - ./pyinstaller/electron/package-lock.json
-        prefix: $CI_JOB_NAME
+      files:
+        - ./pyinstaller/electron/package-lock.json
+      prefix: $CI_JOB_NAME
     paths:
       - ./pyinstaller/electron/node_modules
 
 release_electron_linux_windows:
   image: registry.gitlab.com/cryptoadvance/specter-desktop/electron-builder:latest
   stage: releasing
-  only: 
+  only:
     - tags
   needs:
     - release_binary_windows
   before_script:
-    - python3 -V  # Print out python version for debugging
+    - python3 -V # Print out python version for debugging
     - apt update
     - apt install -y unzip libusb-1.0-0-dev libudev-dev # usb-support in hidapi
     - pip3 install virtualenv
@@ -184,17 +184,17 @@ release_electron_linux_windows:
     - ./utils/artifact_signer.sh sign --artifact ./release/SHA256SUMS-win
     - ./utils/artifact_signer.sh sign --artifact ./release/SHA256SUMS-linux
     - python3 ./utils/github.py upload ./release/Specter-Setup-${CI_COMMIT_TAG}.exe
-    - python3 ./utils/github.py upload ./release/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip 
-    - python3 ./utils/github.py upload ./release/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz 
+    - python3 ./utils/github.py upload ./release/specterd-${CI_COMMIT_TAG}-x86_64-linux-gnu.zip
+    - python3 ./utils/github.py upload ./release/specter_desktop-${CI_COMMIT_TAG}-x86_64-linux-gnu.tar.gz
     #- python3 ../utils/github.py upload ./release/SHA256SUMS-linux
     #- python3 ../utils/github.py upload ./release/SHA256SUMS-linux.asc
     #- python3 ../utils/github.py upload ./release/SHA256SUMS-win
     #- python3 ../utils/github.py upload ./release/SHA256SUMS-win.asc
   cache:
     key:
-        files:
-          - ./pyinstaller/electron/package-lock.json
-        prefix: $CI_JOB_NAME
+      files:
+        - ./pyinstaller/electron/package-lock.json
+      prefix: $CI_JOB_NAME
     paths:
       - ./pyinstaller/electron/node_modules
 
@@ -212,28 +212,28 @@ release_electron_linux_windows:
 
 release_signatures:
   stage: post_releasing
-  only: 
+  only:
     - tags
   before_script:
-    - python -V  # Print out python version for debugging
+    - python -V # Print out python version for debugging
     - pip3 install --upgrade virtualenv
     - virtualenv --python=python3 .env
     - source .env/bin/activate
     - pip3 install -e ".[test]"
     - ./utils/artifact_signer.sh init # prepare .gnupg
   script:
-    - python3 -m utils.release-helper download          # downloads the job-artifacts from gitlab
-    - python3 -m utils.release-helper downloadgithub    # downloads additional artifacts from github (if not there and is they have SHA256SUMS-something)
-    - python3 -m utils.release-helper checksigs         # checks the signatures of all SHA256SUMM*.asc files
-    - python3 -m utils.release-helper checkhashes       # checks all SHA256SUM* files (might modify files on the fly due to windows line endings)
-    - python3 -m utils.release-helper create            # creates a SHA256SUM
+    - python3 -m utils.release_helper download # downloads the job-artifacts from gitlab
+    - python3 -m utils.release_helper downloadgithub # downloads additional artifacts from github (if not there and is they have SHA256SUMS-something)
+    - python3 -m utils.release_helper checksigs # checks the signatures of all SHA256SUMM*.asc files
+    - python3 -m utils.release_helper checkhashes # checks all SHA256SUM* files (might modify files on the fly due to windows line endings)
+    - python3 -m utils.release_helper create # creates a SHA256SUM
     - ./utils/artifact_signer.sh sign --artifact ./signing_dir/SHA256SUMS # Signs the SHA256SUM
-    - python3 -m utils.release-helper upload_shasums    # uploads SHA256SUMS to github
-    - python3 -m utils.release-helper upload_shasumssig # uploads SHA256SUMS.asc to github
+    - python3 -m utils.release_helper upload_shasums # uploads SHA256SUMS to github
+    - python3 -m utils.release_helper upload_shasumssig # uploads SHA256SUMS.asc to github
 
 release_docker:
   stage: post_releasing
-  only: 
+  only:
     - tags
   before_script:
     - echo "Triggering Docker Release"
@@ -247,46 +247,35 @@ tag_specterext_dummy_repo:
   only:
     - tags
   before_script:
-    ## Install ssh-agent if not already installed, it is required by Docker.
-    ## (change apt-get to yum if you use an RPM-based image)
-    ##
-    - 'which ssh-agent || ( apk update && apk add --no-cache bash git openssh )'
-    - docker info
-    
-    ##
-    ## Run ssh-agent (inside the build environment)
-    ##
-    - eval $(ssh-agent -s)
-
-    ##
-    ## Add the SSH key stored in SSH_PRIVATE_KEY variable to the agent store
-    ## We're using tr to fix line endings which makes ed25519 keys work
-    ## without extra base64 encoding.
-    ## https://gitlab.com/gitlab-examples/ssh-private-key/issues/1#note_48526556
-    ##
-    - echo "$SSH_SPECTEREXT_DEPLOY_KEY" | tr -d '\r' | ssh-add - > /dev/null
-
-    ##
-    ## Create the SSH directory and give it the right permissions
-    ##
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-
-    ##
-    ## Optionally, if you will be using any Git commands, set the user name and
-    ## and email.
-    ##
-    - git config --global user.email "specter@secretvalues"
-    - git config --global user.name "specter"
-    
-    ##
-    ## Assuming you created the SSH_KNOWN_HOSTS variable, uncomment the
-    ## following two lines.
-    ##
-    - echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
-
+    # write access to git@github.com:cryptoadvance/specterext-dummy.git
+    - source ./utils/prepare_for_git_write.sh "$SSH_SPECTEREXT_DEPLOY_KEY"
   script:
     - echo "Now tagging ... git@github.com:${CI_PROJECT_ROOT_NAMESPACE}/specterext-dummy.git"
     - ./utils/tag_specterext_dummy.sh
+
+update_github:
+  stage: post_releasing
+  only:
+    - tags
+  needs:
+    - release_signatures
+  before_script:
+    # write access to git@github.com:swan-bitcoin/specter-static.git
+    - source ./utils/prepare_for_git_write.sh "$SSH_SPECTERSTATIC_DEPLOY_KEY"
+  script:
+    - echo "Now updating https://github.com:${CI_PROJECT_ROOT_NAMESPACE}/specter-desktop/releases/tag/${CI_COMMIT_TAG:-v2.0.4-pre8}"
+    - ./utils/generate_downloadpage.sh --org_name ${CI_PROJECT_ROOT_NAMESPACE:-k9ert} --debug --version ${CI_COMMIT_TAG:-v2.0.4-pre8} generate github # default-value for testing
+
+update_webpage:
+  stage: post_releasing
+  only:
+    - tags
+  needs:
+    - release_signatures
+  before_script:
+    # write access to git@github.com:swan-bitcoin/specter-static.git
+    - source ./utils/prepare_for_git_write.sh "$SSH_SPECTERSTATIC_DEPLOY_KEY"
+  script:
+    - echo "Now updating https://github.com:${CI_PROJECT_ROOT_NAMESPACE}/specter-static.git"
+    - ./utils/generate_downloadpage.sh --org_name ${CI_PROJECT_ROOT_NAMESPACE:-k9ert} --debug --version ${CI_COMMIT_TAG:-v2.0.4-pre8} generate webpage # default-value for testing
 

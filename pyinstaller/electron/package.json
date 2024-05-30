@@ -1,7 +1,7 @@
 {
   "name": "Specter",
   "description": "Specter Desktop Electron application",
-  "version": "v0.0.0",
+  "version": "v2.0.4-pre9",
   "main": "main.js",
   "scripts": {
     "start": "export NODE_ENV=development && cp -R ../../src/cryptoadvance/specter/static/fonts ../../src/cryptoadvance/specter/static/output.css ../../src/cryptoadvance/specter/static/typography.css . &&  electron .",
@@ -20,8 +20,8 @@
   "author": "Specter",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^22.3.12",
-    "electron-builder": "^23.6.0"
+    "electron": "^30.0.6",
+    "electron-builder": "^24.13.3"
   },
   "build": {
     "productName": "Specter",
@@ -32,7 +32,15 @@
       "entitlements": "./build/entitlements.mac.plist",
       "hardenedRuntime": true,
       "icon": "./icons/icon.icns",
-      "provisioningProfile": "/Users/kim/Specter_Desktop_vanilla.provisionprofile"
+      "provisioningProfile": "/Users/kim/Specter_Desktop_vanilla.provisionprofile",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ]
     },
     "win": {
       "icon": "./icons/icon.ico"
@@ -45,12 +53,12 @@
     }
   },
   "dependencies": {
-    "electron-context-menu": "^2.5.2",
+    "electron-context-menu": "^3.6.1",
     "electron-default-menu": "^1.0.2",
-    "electron-progressbar": "^2.1.0",
+    "electron-progressbar": "^2.2.1",
     "extract-zip": "^2.0.1",
     "read-last-lines": "^1.8.0",
     "request": "^2.88.2",
-    "winston": "^3.3.3"
+    "winston": "^3.13.0"
   }
 }

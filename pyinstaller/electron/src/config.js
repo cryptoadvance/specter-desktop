@@ -44,7 +44,7 @@ function getAppSettings() {
     tor: false,
     proxyURL: "socks5://127.0.0.1:9050",
     specterdVersion: (versionData && versionData.version !== undefined) ? versionData.version : 'unknown',
-    specterdHash: (versionData && versionData.sha256 !== undefined) ? versionData.sha256 : 'unknown',
+    specterdHash: (versionData && versionData.sha256 !== undefined) ? versionData.sha256[process.arch] : 'unknown',
     specterdCLIArgs: "",
     versionInitialized: false
   }
@@ -104,6 +104,7 @@ module.exports = {
     specterAppLogPath,
     versionDataPath,
     versionData,
+    getAppSettings,
     isDev: isDev,
     devFolder,
 }

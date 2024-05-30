@@ -5,7 +5,7 @@ const crypto = require('crypto')
 const readLastLines = require('read-last-lines')
 const isMac = process.platform === 'darwin'
 
-const { versionData, appSettingsPath, specterAppLogPath } = require('./config.js')
+const { versionData, specterAppLogPath } = require('./config.js')
 const { logger } = require('./logging.js')
 
 // Use different version-data.jsons

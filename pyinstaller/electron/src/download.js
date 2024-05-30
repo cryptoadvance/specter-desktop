@@ -3,12 +3,14 @@ const fs = require('fs')
 const { app, Menu } = require('electron')
 const extract = require('extract-zip')
 const { getDownloadLocation } = require('../downloadloc.js')
-const { appName, appSettings, platformName, appNameLower, versionData, versionDataPath } = require('./config.js')
+const { appName, appSettings, platformName, appNameLower, versionDataPath } = require('./config.js')
 const { isMac, getFileHash } = require('./helpers.js')
 const { logger } = require('./logging.js')
 const ProgressBar = require('electron-progressbar')
 const { updateSpecterdStatus, updatingLoaderMsg, createProgressBar } = require('./uiHelpers.js')
 const { startSpecterd } = require('./specterd.js')
+
+let progressBar
 
 // The standard quit item cannot be replaced / modified and it is not triggering the
 // before-quit event on MacOS if a child window is open
@@ -85,7 +87,7 @@ const download = (uri, filename, callback) => {
       let receivedBytes = 0
       const totalBytes = res.headers['content-length']
       logger.info(`Total size to download: ${totalBytes}`)
-      const progressBar = createProgressBar(totalBytes)
+      progressBar = createProgressBar(totalBytes)
       // Add Force Quit item during download for MacOS dock
       if (isMac) {
         app.dock.setMenu(dockMenuWithforceQuit)
@@ -139,7 +141,18 @@ const download = (uri, filename, callback) => {
   })
 }
 
+const destroyProgressbar = () => {
+  if (progressBar) {
+    // You can only destroy the progress bar if it hadn't been closed before
+    if (progressBar.browserWindow) {
+      progressBar.destroy()
+    }
+    progressBar = null
+  }
+}
+
 module.exports = {
   downloadSpecterd: downloadSpecterd,
   download: download,
+  destroyProgressbar,
 }

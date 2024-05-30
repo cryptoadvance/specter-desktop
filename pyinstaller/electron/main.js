@@ -1,17 +1,17 @@
 // Modules to control application life and create native browser window
 const fs = require('fs')
 const { spawn, exec } = require('child_process')
-const { app, nativeTheme, nativeImage, BrowserWindow, Menu, Tray, screen, shell, dialog, ipcMain } = require('electron')
+const { app, nativeImage, BrowserWindow, Menu, screen, shell, dialog, ipcMain } = require('electron')
 const defaultMenu = require('electron-default-menu')
 const contextMenu = require('electron-context-menu')
 
 const { appSettingsPath, specterdDirPath, appSettings, platformName, appNameLower } = require('./src/config.js')
 const { logger } = require('./src/logging.js')
 const downloadloc = require('./downloadloc')
-const { downloadSpecterd } = require('./src/download.js')
-const getDownloadLocation = downloadloc.getDownloadLocation
+const { downloadSpecterd, destroyProgressbar } = require('./src/download.js')
 const { startSpecterd, quitSpecterd } = require('./src/specterd.js')
-const { getFileHash, getAppSettings, versionData, isDev, devFolder, isMac } = require('./src/helpers.js')
+const { getFileHash, versionData, isDev, devFolder, isMac } = require('./src/helpers.js')
+const { getAppSettings } = require('./src/config.js')
 const { showError, updatingLoaderMsg, initMainWindow, loadUrl, initTray } = require('./src/uiHelpers.js')
 
 // Quit again if there is no version-data in dev
@@ -146,7 +146,7 @@ app.whenReady().then(() => {
   if (!appSettings.versionInitialized || appSettings.versionInitialized != versionData.version) {
     logger.info(`Updating ${appSettingsPath} : ${JSON.stringify(appSettings)}`)
     appSettings.specterdVersion = versionData.version
-    appSettings.specterdHash = versionData.sha256
+    appSettings.specterdHash = versionData.sha256[process.arch]
     appSettings.versionInitialized = versionData.version
     fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings))
   }
@@ -191,13 +191,7 @@ app.on('before-quit', (event) => {
     quitted = true
     quitSpecterd()
     if (mainWindow && !mainWindow.isDestroyed()) {
-      if (progressBar) {
-        // You can only destroy the progress bar if it hadn't been closed before
-        if (progressBar.browserWindow) {
-          progressBar.destroy()
-        }
-        progressBar = null
-      }
+      destroyProgressbar()
       mainWindow.destroy()
       mainWindow = null
       prefWindow = null
