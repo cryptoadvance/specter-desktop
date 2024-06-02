@@ -93,8 +93,8 @@ class Key:
                     if path[-1] == "h":
                         path = path[:-1]
                     try:
-                        i = int(path)
-                    except:
+                        int(path)
+                    except ValueError:
                         raise Exception("Incorrect index")
                     derivation_path[0] = "m"
                     derivation = "/".join(derivation_path)
