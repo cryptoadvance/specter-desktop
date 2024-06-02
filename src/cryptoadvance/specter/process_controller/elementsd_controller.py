@@ -80,7 +80,7 @@ class ElementsPlainController(NodePlainController):
         if not run_docker:
             if not log_stdout:
                 btcd_cmd += " -noprinttoconsole"
-            if datadir == None:
+            if datadir is None:
                 datadir = tempfile.mkdtemp(prefix="bitcoind_datadir")
             btcd_cmd += ' -datadir="{}" '.format(datadir)
         print(f"extra_args={extra_args})")

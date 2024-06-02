@@ -48,7 +48,7 @@ class Btcd_conn:
 
     @property
     def ipaddress(self):
-        if self._ipaddress == None:
+        if self._ipaddress is None:
             raise Exception("ipadress is none")
         else:
             return self._ipaddress
@@ -73,7 +73,7 @@ class Btcd_conn:
         return rpc
 
     def render_url(self, password_mask=False):
-        if password_mask == True:
+        if password_mask is True:
             password = "xxxxxx"
         else:
             password = self.rpcpassword
@@ -226,7 +226,7 @@ class NodeController:
 
     def mine(self, address=None, block_count=1):
         """Does mining to the attached address with as many as block_count blocks"""
-        if address == None:
+        if address is None:
             if self.node_impl == "bitcoin":
                 address = "mruae2834buqxk77oaVpephnA5ZAxNNJ1r"
             else:
@@ -368,7 +368,7 @@ class NodeController:
         if not run_docker:
             if not log_stdout:
                 btcd_cmd += " -noprinttoconsole"
-            if datadir == None:
+            if datadir is None:
                 datadir = tempfile.mkdtemp(prefix="bitcoind_datadir")
             btcd_cmd += ' -datadir="{}" '.format(datadir)
         if extra_args:
@@ -412,7 +412,7 @@ class NodePlainController(NodeController):
         log_stdout=False,
         extra_args=[],
     ):
-        if datadir == None:
+        if datadir is None:
             datadir = tempfile.mkdtemp(
                 prefix=f"specter_{self.node_impl}_regtest_plain_datadir_"
             )
@@ -484,7 +484,7 @@ class NodePlainController(NodeController):
         if not hasattr(self, "datadir"):
             self.datadir = None
 
-        if cleanup_hard == None:
+        if cleanup_hard is None:
             cleanup_hard = self.cleanup_hard
         if not hasattr(self, "node_proc"):
             logger.info("node process was not running")
