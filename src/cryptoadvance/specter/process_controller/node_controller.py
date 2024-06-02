@@ -358,13 +358,10 @@ class NodeController:
         if network != "mainnet" and network != "main":
             btcd_cmd += " -{} ".format(network)
         btcd_cmd += " -fallbackfee=0.0002 "
-        btcd_cmd += " -port={} -rpcport={} -rpcbind=0.0.0.0 -rpcbind=0.0.0.0".format(
-            rpcconn.rpcport - 1, rpcconn.rpcport
-        )
+        btcd_cmd += " -port={} -rpcport={}".format(rpcconn.rpcport - 1, rpcconn.rpcport)
         btcd_cmd += " -rpcuser={} -rpcpassword={} ".format(
             rpcconn.rpcuser, rpcconn.rpcpassword
         )
-        btcd_cmd += " -rpcallowip=0.0.0.0/0 -rpcallowip=172.17.0.0/16 "
         if not run_docker:
             if not log_stdout:
                 btcd_cmd += " -noprinttoconsole"

@@ -70,13 +70,10 @@ class ElementsPlainController(NodePlainController):
         btcd_cmd += " -validatepegin=0 "
         btcd_cmd += " -txindex=1 "
         btcd_cmd += " -initialfreecoins=2100000000000000 "
-        btcd_cmd += " -port={} -rpcport={} -rpcbind=0.0.0.0".format(
-            rpcconn.rpcport + 1, rpcconn.rpcport
-        )
+        btcd_cmd += " -port={} -rpcport={}".format(rpcconn.rpcport + 1, rpcconn.rpcport)
         btcd_cmd += " -rpcuser={} -rpcpassword={} ".format(
             rpcconn.rpcuser, rpcconn.rpcpassword
         )
-        btcd_cmd += " -rpcallowip=0.0.0.0/0 -rpcallowip=172.17.0.0/16 "
         if not run_docker:
             if not log_stdout:
                 btcd_cmd += " -noprinttoconsole"
