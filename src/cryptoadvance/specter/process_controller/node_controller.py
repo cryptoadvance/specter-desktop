@@ -1,11 +1,11 @@
 """ Stuff to control a bitcoind-instance.
 """
+
 import atexit
 import json
 import logging
 import os
 import platform
-import re
 import shutil
 import signal
 import subprocess
