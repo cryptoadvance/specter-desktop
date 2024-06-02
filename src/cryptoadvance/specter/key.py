@@ -2,7 +2,7 @@ from collections import OrderedDict
 from binascii import hexlify
 from embit import base58
 from .util.xpub import get_xpub_fingerprint
-from embit.descriptor import Key as DescriptorKey
+
 
 purposes = OrderedDict(
     {
