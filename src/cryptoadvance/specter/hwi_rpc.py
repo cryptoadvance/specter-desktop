@@ -10,6 +10,7 @@ from embit.liquid import networks
 from flask import current_app as app
 from hwilib.common import Chain
 from hwilib.devices.bitbox02 import Bitbox02Client
+from hwilib.devices.bitbox02_lib.util import BitBoxAppNoiseConfig
 from hwilib.devices.trezorlib.transport import get_transport
 from hwilib.psbt import PSBT
 from usb1 import USBError
@@ -39,7 +40,7 @@ hwi_classes = [cls for cls in device_classes if cls.hwi_support]
 hwilock = threading.Lock()
 
 
-class BitBox02NoiseConfig(bitbox02.util.BitBoxAppNoiseConfig):
+class BitBox02NoiseConfig(BitBoxAppNoiseConfig):
     def show_pairing(self, code: str, device_response: Callable[[], bool]) -> bool:
         config = hwi_get_config(app.specter)
         config["bitbox02_pairing_code"] = code
