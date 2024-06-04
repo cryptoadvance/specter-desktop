@@ -20,9 +20,6 @@ babel==2.15.0 \
     --hash=sha256:08706bdad8d0a3413266ab61bd6c34d0c28d6e1e7badf40a2cebe67644e2e1fb \
     --hash=sha256:8daf0e265d05768bc6c7a314cf1321e9a123afc328cc635c18622a2f30a04413
     # via flask-babel
-cbor==1.0.0 \
-    --hash=sha256:13225a262ddf5615cbd9fd55a76a0d53069d18b07d2e9f19c39e6acb8609bbb6
-    # via hwi
 cbor2==5.4.6 \
     --hash=sha256:0b956f19e93ba3180c336282cd1b6665631f2d3a196a9c19b29a833bf979e7a4 \
     --hash=sha256:0bd12c54a48949d11f5ffc2fa27f5df1b4754111f5207453e5fae3512ebb3cab \
@@ -60,7 +57,9 @@ cbor2==5.4.6 \
     --hash=sha256:e5094562dfe3e5583202b93ef7ca5082c2ba5571accb2c4412d27b7d0ba8a563 \
     --hash=sha256:e73ca40dd3c7210ff776acff9869ddc9ff67bae7c425b58e5715dcf55275163f \
     --hash=sha256:ff95b33e5482313a74648ca3620c9328e9f30ecfa034df040b828e476597d352
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   hwi
 certifi==2024.6.2 \
     --hash=sha256:3cd43f1c6fa7dedc5899d69d3ad0398fd018ad1a17fba83ddaf78aa46c747516 \
     --hash=sha256:ddc6c8ce995e6987e7faf5e3f1b02b302836a0e5d98ece18392cb1a36c72ad56
@@ -375,9 +374,9 @@ hidapi==0.14.0 \
     --hash=sha256:fb4e94e45f6dddb20d59501187721e5d3b02e6cc8a59d261dd5cac739008582a \
     --hash=sha256:fc9ec2321bf3b0b4953910aa87c0c8ab5f93b1f113a9d3d4f18845ce54708d13
     # via hwi
-hwi==2.3.1 \
-    --hash=sha256:bc26b1f714f081e50c5def0ef77f2ee64bf05b86430333237e170c40478f44df \
-    --hash=sha256:da2b9d5078997779dcb89786f3b5e480c8230305ee198e03f3222b99196880a9
+hwi==2.4.0 \
+    --hash=sha256:3eaa7593f1ab360569eacdd9507dab75532bb58e8cd991d8ad72f5c4fcb67997 \
+    --hash=sha256:7cb7ef2a4db4bc434815374d9bad43c6425491f77828314a2d2898d3e86d3f04
     # via -r requirements.in
 idna==3.7 \
     --hash=sha256:028ff3aadf0609c1fd278d8ea3089299412a7a8b9bd005dd08b9f8285bcb5cfc \
