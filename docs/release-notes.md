@@ -1,12 +1,21 @@
 # Release Notes
 
+## v2.0.5 May 30, 2024
+
+- Feature: Macos intel architecture oficially supported #2446 (k9ert)
+- Chore: Refactoring the alias function #2439 (roshii)
+- Chore: fix org_name #2450 (k9ert)
+- Chore: release_helper lazy gl property #2448 (k9ert)
+- Chore: release helper #2449 (k9ert)
+
 ## v2.0.4 May 23, 2024
+
 - Bugfix: Build fixes for windows #2443 (k9ert)
 - Bugfix: Electron Bug Fixes (save settings, proper shutdown) #2441 (k9ert)
 - Chore: Electron App Dependencies #2444 (k9ert)
 
-
 ## v2.0.3 May 17, 2024
+
 - Add support for more languages for mnemonics #2424 (Wim van der Ham)
 - Allow bumpfee on transactions with a single output #2433 (Leon Costa)
 - Docs: fix small typos and grammatical errors #2406 (JumbledUp)
@@ -25,16 +34,17 @@
 - updating dependencies #2434 (k9ert)
 
 ## v2.0.2 September 21, 2023
+
 - Bugfix: Add missing signet key #2368 (Manolis Mandrapilias)
 - Bugfix: Jade displaying wrong multisig addresses for descriptors using multi() #2366 (Manolis Mandrapilias)
 - Bugfix: JSON parsing issues when copy & pasting wallet data from PDF #2355 (Manolis Mandrapilias)
 - Bugfix: #2319 #2330 (k9ert)
-- Bugfix: fix specter.node has no _get_rpc() #2327 (k9ert)
+- Bugfix: fix specter.node has no \_get_rpc() #2327 (k9ert)
 - Bugfix: Update spotbit api url and path #2372 (Benjamin B)
 - Chore(deps): Bump semver from 5.7.1 to 5.7.2 #2353 (dependabot[bot])
 - Chore(deps): Bump semver from 6.3.0 to 6.3.1 in /pyinstaller/electron #2352 (dependabot[bot])
 - Chore: Regex change to capture labels in wallet data imports better #2357 (Manolis Mandrapilias)
-- Chore: Use prettier for Electron app  #2347 (Manolis Mandrapilias)
+- Chore: Use prettier for Electron app #2347 (Manolis Mandrapilias)
 - Chore: Optional ENFORCE_HWI_INITIALISATION_AT_STARTUP #2383 (k9ert)
 - Chore: remove SpecterUri #2358 (k9ert)
 - Chore: updating flask_babel fixes #2218 #2359 (k9ert)
@@ -44,6 +54,7 @@
 - Security: Fix login open redirect due to next parameter manipulation #2350 (zealsham)
 
 ## v2.0.1 March 27, 2023
+
 - Bugfix: Keyerror in case of frozen utxos #2308 (k9ert)
 - Bugfix: method getaddressinfo not implemented #2313 (k9ert)
 - Bugfix: replace deprecated new-window with setWindowOpenHandler #2293 (Manolis Mandrapilias)
@@ -57,6 +68,7 @@
 - Swan plugin: New design, improved UX and bug fixes #2309 (Manolis Mandrapilias)
 
 ## v1.14.5 January 17, 2023
+
 - Bugfix: autodetect from bitcoin.conf file with network set #2037 (kexkey)
 - Bugfix: change settings_restore implementation #2042 (k9ert)
 - Bugfix: fixes #1997 for Docker builds as well as command line installs #2053 (Michael Henke)
@@ -75,6 +87,7 @@
 - Feature: delete spectrum node #2047 (k9ert)
 
 ## v1.14.2 December 21, 2022
+
 - UIUX: Address labeling revamp #1978 (OTK & Manolis Mandrapilias)
 - UIUX: Better node selection #1987 (Manolis Mandrapilias)
 - UIUX: Update Passport connection instructions #2010 (BitcoinQnA)
@@ -91,12 +104,14 @@
 - Docs: Corrected build instructions #1996 (relativisticelectron)
 
 ## v1.14.1 December 07, 2022
+
 - Bugfix: Adding migrations to the hidden imports #2007 (k9ert)
 - Bugfix: Bump Spectrum for better error_handling (k9ert)
 - Chore: better error_handling and tested #2005 (k9ert)
 - Docs: Release guide update #2004 (Manolis Mandrapilias)
 
 ## v1.14.0 December 07, 2022
+
 - Feature: Spectrum addition #1952 (k9ert)
 - Feature: Several things for Spectrum preparation #1913 (k9ert)
 - Feature: QR support for Jade #1964 (Manolis Mandrapilias)
@@ -128,7 +143,7 @@
 - Chore: Refactoring of wallet tests #1943 (Manolis Mandrapilias)
 - Chore: Remove arrows and clickable headers on transactions table (for now) #1973 (OTK)
 - Chore: Removing the Singleton #1914 (k9ert)
-- Chore: Tagging specterext-dummy  with every release #1944 (k9ert)
+- Chore: Tagging specterext-dummy with every release #1944 (k9ert)
 - Chore: Update protobuf #1933 (k9ert)
 - Chore: ext_wallettabs does not have to be set #1941 (Manolis Mandrapilias)
 - Docs: Adding sequence diagram for swan flow #1969 (Manolis Mandrapilias)
@@ -136,6 +151,7 @@
 - Docs: Update connect-your-node.md #1937 (cstizza)
 
 ## v1.13.1 October 17, 2022
+
 - Bugfix: Hover effect in balance display #1904 (Manolis Mandrapilias)
 - Bugfix: Remove black empty bar in tx-table after search #1912 (relativisticelectron)
 - Bugfix: upgrade hwi to 2.1.1 to fix #1840 #1909 (k9ert)
@@ -146,6 +162,7 @@
 - UIUX: Clearer unconfirmed transaction icons #1899 (relativisticelectron)
 
 ## v1.13.0 September 22, 2022
+
 - Feature: Improve Dev-Console #1850 (k9ert)
 - Feature: Menu extensions can extend menus #1648 (k9ert)
 - UIUX: Adding "Open Bitcoin app" verbiage to Ledger Upload Keys page #1868 (wombat6)
@@ -167,6 +184,7 @@
 - Chore: redirect flash call #1883 (k9ert)
 
 ## v1.12.0 August 26, 2022
+
 - Feature: add faucet and exfund extensions #1820 (Stepan Snigirev)
 - Feature: Dev tools - Adding full python access via javascript for developers #1842 (relativisticelectron)
 - UIUX: Complete overhaul of the tooltips used in Specter Desktop #1813 (Manolis Mandrapilias)
@@ -186,10 +204,12 @@
 - Docs: Supported Python versions #1847 (Willie Wheeler)
 
 ## v1.10.5 July 21, 2022
+
 - Bugfix: startup issues for MacOS App 1815 #1816 (relativisticelectron)
 - Feature: generate app_config.py in extgen #1801 (k9ert)
 
 ## v1.10.4 July 19, 2022
+
 - Bugfix: Better error-management for run the numbers #1790 (k9ert)
 - Bugfix: Consecutively uploading same file twice #1776 (relativisticelectron)
 - Bugfix: Fix the messed up translated html #1810 (relativisticelectron)
@@ -203,12 +223,13 @@
 - Docs: added necessary command to build instructions #1808 (relativisticelectron)
 - Docs: Mentioning Acronis as endless pacman cause #1767 (k9ert)
 - Feature: Add nix shell #1798 (hodlwave)
-- Feature: Extensions - Making more than one Blueprint possible  #1764 (k9ert)
+- Feature: Extensions - Making more than one Blueprint possible #1764 (k9ert)
 - Feature: Rescan button for empty wallet #1779 (yogendra sankhla)
 - UIUX: Improve the transactions view #1746 (Manolis Mandrapilias)
 - UIUX: tooltips fix #1806 (relativisticelectron)
 
 ## v1.10.3 June 22, 2022
+
 - Bugfix: Display address on device #1774 (Manolis Mandrapilias)
 - Bugfix: Longer Timeout for run_the_numbers #1769 (k9ert)
 - Bugfix: Rescan won't work for fullnodes without explorer #1771 (k9ert)
@@ -223,6 +244,7 @@
 - UIUX: Fixed html character codes for multisig guide & polishment of about page #1743 (Manolis Mandrapilias)
 
 ## v1.10.2 June 03, 2022
+
 - Feature: Basic auth in electron #1730 (djpnewton)
 - Feature: Multisig beginner guide #1731 (relativisticelectron)
 - Bugfix: Corrected build instructions and made virtuelenv name dynamic #1735 (relativisticelectron)
@@ -231,6 +253,7 @@
 - UIUX: fix typo in error_logs #1739 (Bufo)
 
 ## v1.10.0 May 27, 2022
+
 - Feature: adding has_service() method to user #1732 (Kim Neunert)
 - Feature: Choose file button for labels import #1682 (Manolis)
 - Feature: Customised front end for adding Electrum devices #1622 (relativisticelectron)
@@ -241,11 +264,11 @@
 - Bugfix: add proper uid to initial config fixes #1714 #1715 (Kim Neunert)
 - Bugfix: better error-handling and version checks #1691 (Kim Neunert)
 - Bugfix: wrong arguments for requests_session #1719 (Kim Neunert)
-- Chore: Adjusted releasing process and adding liquidissuer  #1716 (Kim Neunert)
+- Chore: Adjusted releasing process and adding liquidissuer #1716 (Kim Neunert)
 - Chore: Bump ejs from 3.1.5 to 3.1.7 in /pyinstaller/electron #1697 (dependabot[bot])
 - Chore: Change Specter compatibility to ">=3.7,<3.10" #1707 (relativisticelectron)
 - Chore: Docker #1696 (Aaron Dewes)
-- Chore: embit Upgrade to 0.4.13 (ripemd160 replacement)  #1702 (relativisticelectron)
+- Chore: embit Upgrade to 0.4.13 (ripemd160 replacement) #1702 (relativisticelectron)
 - Chore: install_noded.sh support for elements binary #1717 (relativisticelectron)
 - Chore: misc changes #1733 (Kim Neunert)
 - Chore: Non-standard ports for test-cypress.sh #1729 (Kim Neunert)
@@ -255,8 +278,8 @@
 - Chore: Introducing an issue template #1692 (Kim Neunert)
 - Docs: Added support for other distros (Arch/Fedora) #1713 (Ankur)
 
-
 ## v1.9.4 April 28, 2022
+
 - UIUX: Overhaul of UTXO list, handling of locked UTXOs and scrollbar added #1580 (Manolis)
 - Bugfix: i18n issue preventing historical proces to work in edge cases #1664 (Kim Neunert)
 - Feature: More languages supported for BIP39 mnemonic import #1660 (Kim Neunert/Manolis)
@@ -265,13 +288,15 @@
 - Chore: Bump electron from 11.5.0 to 13.6.9 #1647 (Kim Neunert)
 - Chore: Bump async from 3.2.0 to 3.2.3 #1674 (dependabot[bot])
 - Chore: Bump minimist from 1.2.5 to 1.2.6 in /pyinstaller/electron #1637 (dependabot[bot])
-- Chore: Updating cypress from 7.1.0 to 9.5.4  #1672 #1676 (Kim Neunert)
+- Chore: Updating cypress from 7.1.0 to 9.5.4 #1672 #1676 (Kim Neunert)
 - Chore: Upgrade flask (and others) from 1.1.4 to 2.1.1 #1666 (Kim Neunert)
 
 ## v1.9.2 April 04, 2022
+
 - Bugfix: Tzdata module missing on windows fixes #1653 #1654 (Kim Neunert)
 
 ## v1.9.1 April 02, 2022
+
 - Bugfix: opening non-installed extensions in new window #1650 (Kim Neunert)
 - Bugfix: price provider uses wrong user #1640 (Kim Neunert)
 - Bugfix: Restore editing of labels #1649 (Kim Neunert)
@@ -280,6 +305,7 @@
 - Chore: Update elements to 0.21.0.2 #1641 (Kim Neunert)
 
 ## v1.9.0 March 30, 2022
+
 - Feature: added better scrollbar for all table-style-lists #1598 (relativisticelectron)
 - Feature: CLI and a publishing model for extensions #1566 (Kim Neunert)
 - Feature: Import of raw transaction #1591 (relativisticelectron)
@@ -293,11 +319,11 @@
 - UIUX: Redesign the main page #1620 (cypherhoodlum)
 - UIUX: Renaming and static plugin list teasering + refactoring #1569 (Kim Neunert)
 - UIUX: Update icon for Passport signing device #1589 (BitcoinQnA)
-- Buffix: Electrum PSBT import fixes #1544  #1548 (relativisticelectron)
+- Buffix: Electrum PSBT import fixes #1544 #1548 (relativisticelectron)
 - Bugfix: App Icon for Gnome Doc #1158 #1592 (salderma)
 - Bugfix: Chore - update black to fix linter failure #1642 (Kim Neunert)
 - Bugfix: electrum single-sig wallet import #1573 (relativisticelectron)
-- Bugfix: Fixed missing vsize in tx.  This led to no available feerate for RBF #1585 (relativisticelectron)
+- Bugfix: Fixed missing vsize in tx. This led to no available feerate for RBF #1585 (relativisticelectron)
 - Bugfix: fixing the logging-system screwup #1578 (Kim Neunert)
 - Bugfix: logging error, caused by passing 2 arguments #1576 (relativisticelectron)
 - Bugfix: OAuth2_hostname #1579 (Kim Neunert)
@@ -305,7 +331,7 @@
 - Bugfix: refactor and fix css #1607 (Kim Neunert)
 - Bugfix: Release-process #1608 (Kim Neunert)
 - Bugfix: Reserving too many addresses at Swan, fix v2; Bugfix: admin change password #1563 (kdmukai)
-- Bugfix: TXs in csv and in the UI now get blocktime for time if confirmed fixes #1552  #1559 (Kim Neunert)
+- Bugfix: TXs in csv and in the UI now get blocktime for time if confirmed fixes #1552 #1559 (Kim Neunert)
 - Bugfix: upgrade pyinstaller #1556 (Kim Neunert)
 - Bugfix: versionChecker and downloadloc #1633 (Kim Neunert)
 - Chore: Build Script improvements #1612 (Kim Neunert)
@@ -320,11 +346,11 @@
 - Docs: Update docs/reverse-proxy.md #1587 (GoofyAF)
 - Docs: Update daemon.md #1586 (GoofyAF)
 
-
 ## v1.8.0 January 29, 2022
+
 - Feature: Add Jade multisig support #1520 (Stepan Snigirev)
 - Feature: add liquid-testnet support #1527 (Stepan Snigirev)
-- Feature: Allow descriptors with xpubs but without derivations (just wpkh(xpub) ) for wallet imports  #1519 (Stepan Snigirev)
+- Feature: Allow descriptors with xpubs but without derivations (just wpkh(xpub) ) for wallet imports #1519 (Stepan Snigirev)
 - Feature: search improvements #1497 (Kim Neunert)
 - Feature: Send dialog refactored and sped up #1454 (Kim Neunert)
 - Feature: Service integration - Swan #1517 (kdmukai)
@@ -354,6 +380,7 @@
 - Chore: Fix running bitcoind with docker #1523 (Kim Neunert)
 
 ## v1.7.2 November 30, 2021
+
 - Feature: Default blockchain rescan to first Taproot block for Taproot wallets #1479 (kdmukai)
 - Feature: Encrypted user data storage #1453 (kdmukai)
 - Feature: More options for address labels imports #1470 (Manolis)
@@ -369,6 +396,7 @@
 - Chore: Taproot test case #1482 (kdmukai)
 
 ## v1.7.1 November 05, 2021
+
 - Bugfix: Bitcoin Core as default for fee estimation, error handling improvements #1408 (Kim Neunert)
 - Bugfix: fix unknown version bug in pip-installs fixes #1442 #1450 (Kim Neunert)
 - Bugfix: no threading for update after creation of wallets #1457 (Kim Neunert)
@@ -377,6 +405,7 @@
 - Chore: Release signature process #1459 (Kim Neunert)
 
 ## v1.7.0 October 19, 2021
+
 - Feature: a framework for migrations and migrating single-node #1414 (Kim Neunert)
 - Feature: Auto privacy settings #1415 (kdmukai)
 - Feature: Better Error-management, logging for the APP and Macos builds improvements #1405 (Kim Neunert)
@@ -389,7 +418,7 @@
 - Bugfix: changing type of a device fixes #1400 #1257 #575 #1402 (Stepan Snigirev)
 - Bugfix: CI failure because of missing wget dependency #1375 (Kim Neunert)
 - Bugfix: fixes #1357 as pip3 installation of tar.gz-package was broken #1374 (Kim Neunert)
-- Bugfix: Refactor wallet class fixes #1394 #1367 #1241 #1101  #1411 (Stepan Snigirev)
+- Bugfix: Refactor wallet class fixes #1394 #1367 #1241 #1101 #1411 (Stepan Snigirev)
 - Bugfix: refactor WalletManager and Wallet, improved performance #1424 (Kim Neunert)
 - Bugfix: rollback embit to 0.4.5 #1379 (Kim Neunert)
 - Bugfix: Some liquid fixes #1401 (Stepan Snigirev)
@@ -410,6 +439,7 @@
 - Chore: update elements test_target to 0.21.0_rc2 #1409 (Kim Neunert)
 
 ## v1.6.0 August 27, 2021
+
 - Devices: Add Passport support #1343 (benk10)
 - Devices: Improved Liquid support for Specter-DIY #1358 (Stepan Snigirev)
 - Bugfix: Fix Liquid addresses UTXO count #1350 (benk10)
@@ -432,6 +462,7 @@
 - Chore: pytest for Electrum address label import #1363 (relativisticelectron)
 
 ## v1.5.1 August 10, 2021
+
 - Bugfix: Add newline char when writing bitcoin.conf setting #1325 (jeffthibault)
 - Bugfix: Fix specifying datadir for internal node #1315 (benk10)
 - Bugfix: Fix login issue for non-English mode #1321 (Kim Neunert)
@@ -439,7 +470,7 @@
 - Bugfix: Update rpc None error #1333 (Hani Mohammed)
 - Bugfix: Fix wallet PDF backup issues #1338 (benk10)
 - Feature: Electrum address label import #1314 (relativisticelectron)
-- Translation: Update Greek translation  #1317 (glowleaf)
+- Translation: Update Greek translation #1317 (glowleaf)
 - Translation: Update Hebrew translation #1308 (Sh0ham)
 - Translation: Update French translation #1309 (KST-Energy)
 - UIUX: Add RTL languages support #1276 (benk10)
@@ -449,6 +480,7 @@
 - Chore: Make Specter DIY simulator connection error message more descriptive #1337 (Tushar Singla)
 
 ## v1.5.0 July 16, 2021
+
 - Feature: Translation (Babel) integration and initial translations #1247 (kdmukai, 2a3dex, rafa1239, Volker Herminghaus, glowleaf, DirkVdk, mutatrum, Kryptoministern, PommbearBTC, Gummybear, sreshta suresh, KST-Energy, alltheseas, dudezoo, Sergei Tikhomirov, Bitpaint)
 - Feature: Api framework #1232 (Kim Neunert)
 - Bugfix: Delete raw transactions when wallet is deleted #1300 (Stepan Snigirev)
@@ -481,6 +513,7 @@
 - Liquid: TxList and AddressList classes for Liquid #1280 (Stepan Snigirev)
 
 ## v1.4.6 June 28, 2021
+
 - Feature: Add Keystone device #1237 (Stepan Snigirev)
 - Feature: Export device types and labels #1226 (kdmukai)
 - Feature: Liquid - asset support #1216 (Stepan Snigirev)
@@ -497,6 +530,7 @@
 - Chore: Refactor wallet creation to Wallet.create method #1242 (Stepan Snigirev)
 
 ## v1.4.5 June 16, 2021
+
 - Feature: Add Blockstream Jade support #1234 (benk10)
 - Feature: Add SeedSigner device #1225 (Stepan Snigirev)
 - Feature: Show Liquid icon on node manager #1224 (benk10)
@@ -506,21 +540,24 @@
 - Bugfix: "NameError: name 'protocol' is not defined" #1229 (DerM007)
 - Chore: Elements testing #1212 (Kim Neunert)
 
-
 ## v1.4.3 June 10, 2021
+
 - Bugfix: add some liquid fixes #1194 (Stepan Snigirev)
 - Feature: Fully unblind liquid transactions sent by Specter #1220 (Stepan Snigirev)
 
 ## v1.4.2 June 01, 2021
+
 - Bugfix: unconventional derivations fail regexes #1204 (Stepan Snigirev)
 - Chore: Simplify emptiness checks in txlist #1202 (Roman Zeyde)
 
 ## v1.4.1 May 30, 2021
+
 - Bugfix: a few typos #1201 (Roman Zeyde)
 - Bugfix: Set http as default network protocol if non specified #1199 (benk10)
 - Bugfix: Update Tor circuit every request #1200 (benk10)
 
 ## v1.4.0 May 28, 2021
+
 - Feature: Broadcast transactions over block explorer via Tor #1183 (benk10)
 - Feature: "Verify on device" with Coldcard sugggest using airgap instead of USB connection #1157 (Manolis)
 - Feature: Merge in Liquid branch (preparation for Liquid support) #1174 (benk10)
@@ -549,13 +586,14 @@
 - Chore: Upgrade internal bitcoind version to v0.21.1 #1173 (benk10)
 
 ## v1.3.1 April 26, 2021
-- Feature: Add unconfirmed tx fees data  #1085 (benk10)
+
+- Feature: Add unconfirmed tx fees data #1085 (benk10)
 - Feature: Use RPCAuth instead of username + password #1093 (benk10)
 - Feature: Return to/ cancel setup process #1091 (benk10)
 - UIUX: Show user-friendly error messages when session expires #1087 (benk10)
 - UIUX: Use Bitcoin icon set #1080 (benk10)
 - Docs: Update faq.md #1123 (Kim Neunert)
-- Docs: added build-instructions #1077 (Kim Neunert) 
+- Docs: added build-instructions #1077 (Kim Neunert)
 - Bugfix: BitBox02 timeout issue #1090 (benk10)
 - Bugfix: Fix crash if estimatesmartfee fails #1086 (benk10)
 - Bugfix: typo/exception #1102 (djpnewton)
@@ -576,6 +614,7 @@
 - Chore: Refactor setup wizard #1120 (benk10)
 
 ## v1.3.0 March 29, 2021
+
 - Bugfix: bump embit version, add secp binary #1031 (Stepan Snigirev)
 - Bugfix: consolidations issue #1034 (benk10)
 - Bugfix: Default bitcoind timeout to 60s for all platforms #1044 (kdmukai)
@@ -623,6 +662,7 @@
 - UIUX: Only tor quicksync warning #1054 (Kim Neunert)
 
 ## v1.2.0 February 20, 2021
+
 - Bugfix: a minor bug that always shows address as used #927 (jleo84)
 - Bugfix: cypress-tests #961 (Kim Neunert)
 - Bugfix: Fix key initial format in wallet info #925 (benk10)
@@ -639,15 +679,16 @@
 - UIUX: Preserve form status when creating a transaction #938 (djpnewton)
 
 ## v1.1.0 January 30, 2021
+
 - Bugfix: #784 URL encode to prevent breaking characters on RPC connection #866 (Maxi Dev)
-- Bugfix:  #829 - font size and horizontal alignment #900 (Patrick)
+- Bugfix: #829 - font size and horizontal alignment #900 (Patrick)
 - Bugfix: Check whether tx address contains list before enumerating it #855 (Ondrej Calda)
 - Bugfix: Fix #605 - Display UI notification after btc core connection test #912 (Patrick)
 - Bugfix: Fix key purpose labeling being overwritten #887 (benk10)
 - Bugfix: Fix no block height with Bitcoin Core v0.19 #859 (benk10)
 - Bugfix: Fix tx info showing wrong input address #865 (benk10)
 - Bugfix: ugly fix utxo blockexplorer rescan #897 (Stepan Snigirev)
-- Bugfix: Util testing  and small bugfix about multisig treshold  #698 (Manolis)
+- Bugfix: Util testing and small bugfix about multisig treshold #698 (Manolis)
 - Chore: Bump electron from 10.1.3 to 10.2.0 in /pyinstaller/electron #916 (dependabot[bot])
 - Devops: Added PyCharm IDE configuration + fixed DEVELOPMENT.md title level hierachy (incl. TOC) #892 (paeet)
 - devops: Fixed deprecation warnings #894 (Patrick)
@@ -668,7 +709,7 @@
 - Feature: Replace address list on receive tab with addresses tab #914 (benk10)
 - Feature: SLIP-132 switch for PDF backup key format #849 (Maxi Dev)
 - Feature: Support Cobo single key files #915 (benk10)
-- UIUX: Add target="_blank" for help links #911 (benk10)
+- UIUX: Add target="\_blank" for help links #911 (benk10)
 - UIUX: fixed typos in wallet_receive.jinja and wallet_settings.jinja #853 (Zach Zager)
 - UIUX: Fixes - TX table toolbar alignment, Network label alignment #899 (Patrick)
 - UIUX: Fix typo (puropse -> purpose) #898 (Stacie)
@@ -677,10 +718,11 @@
 - UIUX: Make `Add Keys` more obvious #884 (Franck Royer)
 
 ## v0.11.0-pre1 December 21, 2020
+
 - Feature: Tor settings and tor_only mode #765 (benk10)
 - Feature: adding automatic ssl-creation #789 (Kim Neunert)
-- Feature: Export CSV data functionality for all table-data with optional historical price data  #758 (benk10)
-- Feature: Refactor History Tab and Search in history  #760 (benk10)
+- Feature: Export CSV data functionality for all table-data with optional historical price data #758 (benk10)
+- Feature: Refactor History Tab and Search in history #760 (benk10)
 - Feature: Cypress Frontend-testing #712 (Kim Neunert)
 - docs: fixes #769 #773 (Kim Neunert)
 - Bugfix: Remove Notification instead of logging out #755 #791 (benk10)
@@ -690,6 +732,7 @@
 - UIUX: Switched Address to Label #720 #764 (figgyfigs)
 
 ## v0.10.2 December 5, 2020
+
 - HWI: Update udev rules for Specter DIY (#742) (@stepansnigirev)
 - HWI: Update communication with Specter DIY (#746) (@stepansnigirev)
 - Bugfix: Fix RBF for UTXO consolidation and wrong fee on import tx (#744) (@ben-kaufman)
@@ -699,7 +742,7 @@
 - Bugfix: Remove listwalletdir call from wallet manager checker (#734) (@stepansnigirev)
 - Bugfix: Fix Trezor and Keepkey multisig address verification (#733) (@stepansnigirev)
 - Bugfix: Show QR code address verification only for Specter-DIY (#714) (@ben-kaufman)
-- Bugfix: Fix typo with links (target="blank" => target="_blank")(#703) (@stepansnigirev)
+- Bugfix: Fix typo with links (target="blank" => target="\_blank")(#703) (@stepansnigirev)
 - Bugfix: Add .python-version to .gitignore (#699) (@Sjors)
 - Bugfix: Allow renaming admin account and a few bug fixes (#732) (@ben-kaufman)
 - Bugfix: Fix typo:manual configuration (#739)
@@ -716,6 +759,7 @@
 - Docs: Update FAQ on how to upgrade Specter Desktop (#702) (@k9ert)
 
 ## v0.10.0 November 21, 2020
+
 - HWI: Fix integration with Ledger running the latest Bitcoin app (1.5.1) (#650) (@ben-kaufman)
 - HWI: Fix BitBox02 integration (#652) (@ben-kaufman)
 - Bugfix: Fix spelling mistake (#589) (@danielnordh)
@@ -800,6 +844,7 @@
 - Docs: Update FAQ on Coin Control (@moritzwietersheim) (#563)
 
 ## v0.8.1 October 1, 2020
+
 - Bugfix: Fix displaying address on BitBox02 (#416) (@stepansnigirev)
 - Bugfix: Fix Specter not starting up if Ledger is connected and asleep (#416) (@stepansnigirev)
 - Bugfix: Fix wallet-create wizard ignoring passphrase on Trezor One and KeepKey (#420) (@ben-kaufman)
@@ -829,6 +874,7 @@
 - Docs: Add a note to the README about setting `server=1` for Bitcoin Core GUI (#459) (@Maple44)
 
 ## v0.8.0 September 19, 2020
+
 - Build: Refactor the desktop app to run Specter in a separate thread instead of from binaries (#370) (@stepansnigirev)
 - Devices: [BitBox02](https://shiftcrypto.ch/bitbox02/) single-sig support (#393, #402) (@ben-kaufman, @stepansnigirev)
 - Bugfix: Fix file uploading (#327) (@ben-kaufman)
@@ -874,17 +920,20 @@
 - Docs: Add Help Wanted section to the README (#357) (@moritzwietersheim)
 
 ## v0.7.2 August 28, 2020
+
 - Build: Add build scripts for building the release files (#319) (@stepansnigirev)
-- Bugfix: In the desktop app, open a remote https/ Tor Specter node in browser instead of Qtweb  (#320) (@stepansnigirev)
+- Bugfix: In the desktop app, open a remote https/ Tor Specter node in browser instead of Qtweb (#320) (@stepansnigirev)
 - Bugfix: Fix specterd not shutting down after closing desktop app with `cmd+q` (#320) (@stepansnigirev)
 - Bugfix: Fix send amount using sats units by default even when using BTC as wallet unit (#318) (@ben-kaufman)
 - Bugfix: Fix redirect error after login (#318) (@ben-kaufman)
 
 ## v0.7.1 August 26, 2020
+
 - Bugfix: Move docker dependency away from main code (#316) (@stepansnigirev)
 
 ## v0.7.0 August 26, 2020
-- Build: Create Specter Desktop app  (#273, #308) (@stepansnigirev, @ben-kaufman)
+
+- Build: Create Specter Desktop app (#273, #308) (@stepansnigirev, @ben-kaufman)
 - Bugfix: Fix importing PSBT functionality (#291) (@ben-kaufman)
 - Bugfix: Fix issue with using xpub with no derivation (`m` only) (#282) (@hodlwave)
 - Bugfix: Fix issue with uploading PSBT from SD card (#292) (@luclefleur)
@@ -904,6 +953,7 @@
 - Docs: Update README and screenshots (#309) (@ben-kaufman)
 
 ## v0.6.1 August 13, 2020
+
 - Devices: Add animated QR codes support for [Cobo Valut](https://cobo.com/hardware-wallet/cobo-vault) (#279) (@stepansnigirev)
 - Bugfix: Fix malformed JSON issue when exporting wallet to file in Chrome (#274) (@ben-kaufman)
 - Bugfix: Fix issue with importing wallet using a key with no origin derivation data (#274) (@ben-kaufman)
@@ -913,10 +963,11 @@
 - HWI: Trezor and KeepKey change address verification (#276) (@stepansnigirev)
 - UI: New export options for keys of devices (#275) (@ben-kaufman)
 - UI: Add toggle device passphrase option when adding a Trezor or KeepKey device (#278) (@ben-kaufman)
-- Refactoring: Restructure the device classes to improve modularity and flexibility (#276) (@stepansnigirev) 
-- Refactoring: Improve HWI detect device speed by enumerating only on the specific type needed (#280) (@stepansnigirev) 
+- Refactoring: Restructure the device classes to improve modularity and flexibility (#276) (@stepansnigirev)
+- Refactoring: Improve HWI detect device speed by enumerating only on the specific type needed (#280) (@stepansnigirev)
 
 ## v0.6.0 August 4, 2020
+
 - Build: Create `specterd` and `hwibridge` binaries (#258, #271) (@stepansnigirev)
 - Devices: [Cobo Valut](https://cobo.com/hardware-wallet/cobo-vault) multisig support (#268) (@stepansnigirev)
 - Bugfix: Fix issues and improve performance by removing local caching (#242) (@ben-kaufman)
@@ -948,6 +999,7 @@
 - Test: Fix test issues due to nondeterministic order of tests (#250) (@k9ert)
 
 ## v0.5.5 July 15, 2020
+
 - Devices: Support Electrum wallet as a device (#222) (@stepansnigirev)
 - Devices: Support Generic device (usable for any PSBT compatible device not directly supported in Specter) (#221) (@stepansnigirev)
 - Bugfix: Fix crash when creating a transaction from wallet with a device with type "Other" (#221) (@stepansnigirev)
@@ -964,6 +1016,7 @@
 - UI: Improved amount validation in new transaction screen (#221) (@stepansnigirev)
 
 ## v0.5.4 July 13, 2020
+
 - Devices: (⚠️ Experimental) Support Bitcoin Core hot wallets (#210) (@ben-kaufman)
 - Bugfix: Fix issues with Bitcoin Core calls timing out (#214) (@stepansnigirev)
 - Bugfix: Fix issues with non standard keys (#209) (@stepansnigirev)
@@ -972,6 +1025,7 @@
 - UI: Improve keys table (#218) (@stepansnigirev)
 
 ## v0.5.3 July 10, 2020
+
 - Bugfix: Fix potential crashes and issues due to multi-threading race conditions (#205) (@stepansnigirev)
 - Bugfix: Fix crash if current Specter version could not be obtained (#202) (@stepansnigirev)
 - Bugfix: Fix potential issue with wallets not being properly loaded (#197) (@ben-kaufman)
@@ -984,6 +1038,7 @@
 - UI: Indicate selected device on the sidebar (#206) (@stepansnigirev)
 
 ## v0.5.2 July 5, 2020
+
 - Devices: [Cobo Valut](https://cobo.com/hardware-wallet/cobo-vault) single-sig support (#189) (@stepansnigirev)
 - Devices: Support Specter-DIY [v1.2.0](https://github.com/cryptoadvance/specter-diy/releases/tag/v1.2.0) (#188) (@stepansnigirev)
 - Bugfix: Fix issue with wallets and devices not being loaded properly (#190) (@ben-kaufman)
@@ -993,9 +1048,11 @@
 - UI: Improve sidebar UI when Bitcoin Core is not connected or not configured (#184) (@stepansnigirev)
 
 ## v0.5.1 (v0.5.0 Hotfix) June 30, 2020
+
 - Bugfix: Fix issue with running Specter after installing from pip (@stepansnigirev)
 
 ## v0.5.0 June 30, 2020
+
 - Bugfix: Fix compatibility issue with latest Ledger and Trezor firmwares (addresses new BIP143 vulnerability), use HWI 1.1.2 (#178) (@stepansnigirev)
 - Bugfix: Don't update explorer if chain is unknown (#174) (@stepansnigirev)
 - Bugfix: Fix labels issue with Bitcoin Core v0.20.0 (#160) (@ben-kaufman)
@@ -1022,6 +1079,7 @@
 - Docs: README updates (#164) (@moritzwietersheim)
 
 ## v0.4.0 May 31, 2020
+
 - Mobile friendly UI (#112) (@stepansnigirev)
 - Showing transacation details while sending (#130) (@ben-kaufman)
 - Being able to copy transaction instead of sending via own node (#232) (@ben-kaufman)
@@ -1031,6 +1089,7 @@
 - A lot of refactorings (especially for template-logic) and tidyups. We also removed some dependencies (@ben-kaufman, @stepansnigirev)
 
 ## v0.3.0 May 11, 2020
+
 - QR-Code animations enable to pass more information in smaller chunks (#104) (@gorazdko)
 - Renaming and Deleting wallets (#108) (@ben-kaufman)
 - addresses and utxo-view for better overview of your funds (#95) (@ben-kaufman)
@@ -1041,22 +1100,27 @@
 - Windows support (#127) (@stepansnigirev)
 
 ## v0.2.0 Mar 27, 2020
+
 - label addresses to get remember where coins are coming from (#94) (@ben-kaufman)
 - Optional Authentication with RPC Password (#81) (@k9ert)
 - Support custom block explorer for all networks (@ben-kaufman)
 
 ## v0.1.2 Mar 6, 2020
+
 - bugfix-release (#84)
 
 ## v0.1.1 Feb 29, 2020
+
 - Support for compressed PSBT in QR-codes #80 (@stepansnigirev)
 - Use specter-diy to sign via USB (#77) (@stepansnigirev)
 
 ## v0.1.0 Feb 27, 2020
+
 - Rescan Blockchain to import older wallets easily (#73) (@stepansnigirev)
 - Command-line options for server: daemon, ssl-certs and tor
 
 ## v0.0.2 Feb 20, 2020
+
 - First PIP-Release available on [PyPi](https://pypi.org/project/cryptoadvance.specter/#history) (#69) (@k9ert)
 - HWI support enables a whole bunch of hardwarewallets to work with specter (#23) (@kdmukai)
 - Tor integration (#19) (@kdmukai)
@@ -1064,5 +1128,6 @@
 - https support (#64) (@stepansnigirev)
 
 ## v0.0.1-alpha Sep 28, 2019
+
 Specter Desktop has been started by @stepansnigirev since Aug 30, 2019.
 Thank you Stepan :-).
