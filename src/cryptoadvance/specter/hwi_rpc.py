@@ -3,7 +3,6 @@ import threading
 from contextlib import contextmanager
 from typing import Callable
 
-import bitbox02
 import hwilib.commands as hwi_commands
 from embit import bip32
 from embit.liquid import networks
