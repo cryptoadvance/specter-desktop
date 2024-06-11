@@ -16,10 +16,10 @@ stem==1.8.0
 embit==0.6.1
 psutil==5.9.0
 pyopenssl==23.0.0
-flask_wtf==0.15.1
+flask_wtf==1.2.1
 pgpy==0.6.0
-cbor==1.0.0
-mnemonic==0.20
+cbor2==5.4.6
+mnemonic==0.21
 cryptography==39.0.1
 Flask-APScheduler==1.12.4
 gunicorn==20.1.0
@@ -28,12 +28,13 @@ protobuf==3.20.2
 PyJWT==2.4.0
 pytimeparse==1.1.8
 psycopg2-binary==2.9.5
+aioitertools==0.11.0
 
 # Extensions
 cryptoadvance-liquidissuer==0.2.4
 specterext-exfund==0.1.7
 specterext-faucet==0.1.2
-cryptoadvance.spectrum==0.6.4
+cryptoadvance.spectrum==0.6.7
 specterext-stacktrack==0.3.0
 
 # workarounds

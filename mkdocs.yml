@@ -2,16 +2,18 @@ site_name: Specter Desktop Documentation
 site_url: https://docs.specter.solutions/desktop
 repo_url: https://github.com/cryptoadvance/specter-desktop/
 nav:
-    - Home:
-      - 'Introduction': README.md
+  - Home:
+      - "Introduction": README.md
       - release-notes.md
       - multisig-guide.md
-    - User Guide:
+  - User Guide:
       - faq.md
       - install_guide.md
-      - 'Using Tor': tor.md
-      - 'Signing messages': sign-message.md
-    - Operating Guide:
+      - DeviceCreationGuide.md
+      - WalletCreationGuide.md
+      - "Using Tor": tor.md
+      - "Signing messages": sign-message.md
+  - Operating Guide:
       - connect-your-node.md
       - daemon.md
       - performance.md
@@ -20,17 +22,17 @@ nav:
       - hwibridge.md
       - elements.md
       - windows.md
-      - 'Endless Pacman Troubleshooting': endless-pacman.md
-    - Development: 
-      - 'Contributing': contributing.md
-      - 'Developing': development.md
-      - 'Testing': test-new-releases.md
+      - "Endless Pacman Troubleshooting": endless-pacman.md
+  - Development:
+      - "Contributing": contributing.md
+      - "Developing": development.md
+      - "Testing": test-new-releases.md
       - build-instructions.md
-      - 'Continuous Integration': continuous-integration.md
+      - "Continuous Integration": continuous-integration.md
       - cypress-testing.md
-      - 'Architectural Notes': architecture.md
-      - 'Some Random Dev Thoughts': archblog.md
-    - API:
+      - "Architectural Notes": architecture.md
+      - "Some Random Dev Thoughts": archblog.md
+  - API:
       - api/README.md
       - api/ep_liveness.md
       - api/ep_readyness.md
@@ -38,7 +40,7 @@ nav:
       - api/ep_specter_fulltxlist.md
       - api/ep_wallets_psbt.md
       - api/ep_wallets_wallet.md
-    - Extension Development:
+  - Extension Development:
       - extensions/intro.md
       - extensions/frontend-aspects.md
       - extensions/service-configuration.md
@@ -46,8 +48,8 @@ nav:
       - extensions/callbacks.md
       - extensions/devices.md
       - extensions/nodes.md
-    
-theme: 
+
+theme:
   name: readthedocs
 markdown_extensions:
   - mdx_truly_sane_lists # pip3 install mdx_truly_sane_lists mkdocs-video
@@ -65,4 +67,3 @@ plugins:
       css_style:
         width: "100%"
         height: "22.172vw"
-

@@ -112,10 +112,9 @@ def to_ascii20(name: str) -> str:
     return "".join([c for c in name if ord(c) < 127])[:20]
 
 
-# TODO: Rename this function to sth. like create_unique_id
-def alias(name):
+def create_unique_id(name):
     """
-    Create a filesystem-friendly alias from a string.
+    Create a filesystem-friendly unique ID from a string.
     Leading and trailing whitespaces are removed.
     Replaces space(s) and hyphen(s) with one underscore.
     Keeps only alphanumeric chars and returns in lowercase.
@@ -128,12 +127,12 @@ def alias(name):
 
 def fullpath(data_folder, name):
     """Quick way to get a fullpath which usually"""
-    return os.path.join(data_folder, f"{alias(name)}.json")
+    return os.path.join(data_folder, f"{create_unique_id(name)}.json")
 
 
 def calc_fullpath(data_folder, name):
     """Get a fullpath for a Businessobject with a name quickly"""
-    return os.path.join(data_folder, f"{alias(name)}.json")
+    return os.path.join(data_folder, f"{create_unique_id(name)}.json")
 
 
 def deep_update(d, u):

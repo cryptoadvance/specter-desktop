@@ -162,7 +162,7 @@ def test_WalletManager_2_nodes(
     assert list(wm.rpcs.keys()) == [
         "regtest",
     ]  # wm.rpcs looks like this: {'regtest': <BitcoinRpc http://localhost:18543>, 'regtest2': <BitcoinRpc http://localhost:18544>}
-    assert wm.rpc.port == 18544
+    assert wm.rpc.port == 18545
     assert wm.wallets_names == ["wallet_for_test_with_two_nodes"]
     assert wm.chain == "regtest"
     assert wm.working_folder.endswith("test")
