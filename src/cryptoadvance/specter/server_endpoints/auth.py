@@ -10,7 +10,7 @@ from flask_login import current_user, login_required, logout_user
 
 from cryptoadvance.specter.specter import Specter
 
-from ..helpers import alias, is_relative_url
+from ..helpers import create_unique_id, is_relative_url
 from ..server_endpoints import flash
 from ..services import ExtensionException
 from ..user import User, hash_password, verify_password
@@ -161,11 +161,11 @@ def register():
             )
             return redirect("register?otp={}".format(otp))
         if app.specter.otp_manager.validate_new_user_otp(otp):
-            user_id = alias(username)
+            user_id = create_unique_id(username)
             i = 1
             while app.specter.user_manager.get_user(user_id):
                 i += 1
-                user_id = "{}{}".format(alias(username), i)
+                user_id = "{}{}".format(create_unique_id(username), i)
             if app.specter.user_manager.get_user_by_username(username):
                 flash(
                     _("Username is already taken, please choose another one"), "error"

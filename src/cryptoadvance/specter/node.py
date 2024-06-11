@@ -668,10 +668,12 @@ class Node(AbstractNode):
             )
         except RpcError:
             pass
-        if self.chain != "main":
-            path = os.path.join(datadir, f"{self.chain}/wallets", wallet_rpc_path)
-        else:
+        if self.chain == "test":
+            path = os.path.join(datadir, "testnet3/wallets", wallet_rpc_path)
+        elif self.chain == "main":
             path = os.path.join(datadir, wallet_rpc_path)
+        else:
+            path = os.path.join(datadir, f"{self.chain}/wallets", wallet_rpc_path)
         try:
             shutil.rmtree(path, ignore_errors=False)
             logger.debug(f"Removing wallet file at: {path}")

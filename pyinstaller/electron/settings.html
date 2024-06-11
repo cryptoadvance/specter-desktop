@@ -115,10 +115,11 @@
             const fs = require("fs");
             const path = require("path");
             const { ipcRenderer } = require("electron");
-            const helpers = require("./helpers");
+            const helpers = require("./src/helpers");
+            const config = require("./src/config");
             const getFileHash = helpers.getFileHash;
-            const getAppSettings = helpers.getAppSettings;
-            const appSettingsPath = helpers.appSettingsPath;
+            const getAppSettings = config.getAppSettings;
+            const appSettingsPath = config.appSettingsPath;
             const specterdDirPath = helpers.specterdDirPath;
 
             function toggleAdvanced() {
