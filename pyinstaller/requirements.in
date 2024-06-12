@@ -2,5 +2,3 @@ pyinstaller==5.2
 pefile==2022.5.30
 macholib
 pywin32-ctypes
-babel==2.10.1
-pytz==2022.1

@@ -58,6 +58,11 @@ def cli():
     help="Start the hwi-bridge to use your HWWs with a remote specter.",
 )
 @click.option(
+    "--skiphwiinitialisation",
+    is_flag=True,
+    help="Skips to call HWI's enumerate() on start-up",
+)
+@click.option(
     "--devstatus-threshold",
     type=click.Choice(["alpha", "beta", "prod"], case_sensitive=False),
     default=None,
@@ -83,6 +88,7 @@ def server(
     filelog,
     tor,
     hwibridge,
+    skiphwiinitialisation,
     devstatus_threshold,
     specter_data_folder,
     config,
@@ -148,6 +154,8 @@ def server(
     kwargs = configure_ssl(kwargs, app.config, ssl)
 
     app.app_context().push()
+    if skiphwiinitialisation:
+        app.config["SKIP_HWI_INITIALISATION_AT_STARTUP"] = True
     init_app(app, hwibridge=hwibridge)
 
     if filelog:

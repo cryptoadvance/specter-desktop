@@ -195,7 +195,7 @@ def bitcoin_regtest(request) -> BitcoindPlainController:
 def bitcoin_regtest2(request) -> BitcoindPlainController:
     """If a test needs two nodes ..."""
     bitcoind_regtest = instantiate_bitcoind_controller(
-        request, rpcport=18544, extra_args=None
+        request, rpcport=18545, extra_args=None
     )
     try:
         assert bitcoind_regtest.get_rpc().test_connection()

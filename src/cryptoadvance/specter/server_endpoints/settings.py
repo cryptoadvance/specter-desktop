@@ -751,6 +751,6 @@ def get_asset(asset):
 def backup_file():
     return send_file(
         app.specter.specter_backup_file(),
-        attachment_filename="specter-backup.zip",
+        download_name="specter-backup.zip",
         as_attachment=True,
     )

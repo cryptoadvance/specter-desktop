@@ -6,7 +6,7 @@ This document is a description on how to get started with elements/liquid. We'll
 After that, we'll explain how to connect your Specter Desktop to that node, create wallets and receive some coins (via sideshift.ai). Signing transactions is nowhere different than in any other Hotwallet.
 
 ## Elements Installation
-The Elements's instalaation is highly dependent to your system. Choose a fitting [artifact](https://github.com/ElementsProject/elements/releases) and install them. 
+The Elements installation process is highly dependent on your system. Choose a fitting [artifact](https://github.com/ElementsProject/elements/releases) and install it. 
 
 ## Liquid Node
 In order to validate Peg-Ins, you'll need RPC-access to your Bitcoin-Core node. I did this with a fullnode, it might also work with a pruned node (not tested, though).

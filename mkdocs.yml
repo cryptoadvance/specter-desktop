@@ -8,6 +8,9 @@ nav:
       - multisig-guide.md
     - User Guide:
       - faq.md
+      - install_guide.md
+      - DeviceCreationGuide.md
+      - WalletCreationGuide.md
       - 'Using Tor': tor.md
       - 'Signing messages': sign-message.md
     - Operating Guide:
