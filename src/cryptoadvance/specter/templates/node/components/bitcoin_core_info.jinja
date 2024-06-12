@@ -107,7 +107,7 @@
   {% endif %}
   <div class="px-3 pb-4">
     <p class="text-center text-sm m-4" id="total_supply"></p>
-    {% if verificationprogress >= 100 %}
+    {% if verificationprogress and verificationprogress >= 100 %}
     <div onclick="fetchTotalSupply()" class="button mb-3">
       {{ _("Run the numbers") }}
       <tool-tip>
@@ -151,7 +151,7 @@
       ).toFixed(8)
     );
     async function fetchTotalSupply() {
-      if (verificationprogress < 100) {
+      if (verificationprogress && verificationprogress < 100) {
         document.getElementById(
           "total_supply"
         ).innerText = `{{ _("Syncing in progress .... please wait till sync finishes") }}`;
