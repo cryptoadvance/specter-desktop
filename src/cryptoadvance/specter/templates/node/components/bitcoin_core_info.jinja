@@ -171,7 +171,6 @@
           return;
         });
         let result = await response.json();
-        console.log(result);
         if (result.error) {
           showError(result.error);
           return;
@@ -182,14 +181,11 @@
           return;
         }
         let totalSupply = result.total_amount;
-        console.log(typeof totalSupply);
-        console.log(typeof totalUserBalance);
 
         let userBalanceFromTotal = (
           (totalUserBalance / totalSupply) *
           100
         ).toFixed(1);
-        console.log(userBalanceFromTotal);
         document.getElementById("total_supply").innerHTML = `
                     {{ _("Total supply: ") }} ${result.total_amount} BTC<br>
                     {{ _("Your wallets hold: ") }} ${totalUserBalance} BTC<br> 
