@@ -16,10 +16,18 @@ apscheduler==3.10.4 \
     --hash=sha256:e6df071b27d9be898e486bc7940a7be50b4af2e9da7c08f0744a96d4bd4cef4a \
     --hash=sha256:fb91e8a768632a4756a585f79ec834e0e27aad5860bac7eaa523d9ccefd87661
     # via flask-apscheduler
+async-timeout==4.0.3 \
+    --hash=sha256:4640d96be84d82d02ed59ea2b7105a0f7b33abe8703703cd0ab0bf87c427522f \
+    --hash=sha256:7405140ff1230c310e51dc27b3145b9092d659ce68ff733fb0cefe3ee42be028
+    # via bleak
 babel==2.15.0 \
     --hash=sha256:08706bdad8d0a3413266ab61bd6c34d0c28d6e1e7badf40a2cebe67644e2e1fb \
     --hash=sha256:8daf0e265d05768bc6c7a314cf1321e9a123afc328cc635c18622a2f30a04413
     # via flask-babel
+bleak==0.22.2 \
+    --hash=sha256:09010c0f4bd843e7dcaa1652e1bfb2450ce690da08d4c6163f0723aaa986e9fe \
+    --hash=sha256:8395c9e096f28e0ba1f3e6a8619fa21c327c484f720b7af3ea578d04f498a458
+    # via -r requirements.in
 cbor2==5.4.6 \
     --hash=sha256:0b956f19e93ba3180c336282cd1b6665631f2d3a196a9c19b29a833bf979e7a4 \
     --hash=sha256:0bd12c54a48949d11f5ffc2fa27f5df1b4754111f5207453e5fae3512ebb3cab \
@@ -692,6 +700,48 @@ pyjwt==2.4.0 \
     --hash=sha256:72d1d253f32dbd4f5c88eaf1fdc62f3a19f676ccbadb9dbc5d07e951b2b26daf \
     --hash=sha256:d42908208c699b3b973cbeb01a969ba6a96c821eefb1c5bfe4c390c01d67abba
     # via -r requirements.in
+pyobjc-core==10.3.1 \
+    --hash=sha256:2581e8e68885bcb0e11ec619e81ef28e08ee3fac4de20d8cc83bc5af5bcf4a90 \
+    --hash=sha256:4c179c26ee2123d0aabffb9dbc60324b62b6f8614fb2c2328b09386ef59ef6d8 \
+    --hash=sha256:6ff5823d13d0a534cdc17fa4ad47cf5bee4846ce0fd27fc40012e12b46db571b \
+    --hash=sha256:899d3c84d2933d292c808f385dc881a140cf08632907845043a333a9d7c899f9 \
+    --hash=sha256:b204a80ccc070f9ab3f8af423a3a25a6fd787e228508d00c4c30f8ac538ba720 \
+    --hash=sha256:cb901fce65c9be420c40d8a6ee6fff5ff27c6945f44fd7191989b982baa66dea \
+    --hash=sha256:ea46d2cda17921e417085ac6286d43ae448113158afcf39e0abe484c58fb3d78 \
+    --hash=sha256:ea98d4c2ec39ca29e62e0327db21418696161fb138ee6278daf2acbedf7ce504
+    # via
+    #   bleak
+    #   pyobjc-framework-corebluetooth
+    #   pyobjc-framework-libdispatch
+pyobjc-framework-cocoa==10.3.1 \
+    --hash=sha256:11b4e0bad4bbb44a4edda128612f03cdeab38644bbf174de0c13129715497296 \
+    --hash=sha256:1cf20714daaa986b488fb62d69713049f635c9d41a60c8da97d835710445281a \
+    --hash=sha256:4cb4f8491ab4d9b59f5187e42383f819f7a46306a4fa25b84f126776305291d1 \
+    --hash=sha256:5f31021f4f8fdf873b57a97ee1f3c1620dbe285e0b4eaed73dd0005eb72fd773 \
+    --hash=sha256:6c5af24610ab639bd1f521ce4500484b40787f898f691b7a23da3339e6bc8b90 \
+    --hash=sha256:743d2a1ac08027fd09eab65814c79002a1d0421d7c0074ffd1217b6560889744 \
+    --hash=sha256:a7151186bb7805deea434fae9a4423335e6371d105f29e73cc2036c6779a9dbc \
+    --hash=sha256:de5e62e5ccf2871a94acf3bf79646b20ea893cc9db78afa8d1fe1b0d0f7cbdb0
+    # via
+    #   pyobjc-framework-corebluetooth
+    #   pyobjc-framework-libdispatch
+pyobjc-framework-corebluetooth==10.3.1 \
+    --hash=sha256:2f261a386aa6906f9d4601d35ff71a13315dbca1a0698bf1f1ecfe3971de4648 \
+    --hash=sha256:5211df0da2e8be511d9a54a48505dd7af0c4d04546fe2027dd723801d633c6ba \
+    --hash=sha256:b8becd4e406be289a2d423611d3ad40730532a1f6728effb2200e68c9c04c3e8 \
+    --hash=sha256:c89ee6fba0ed359c46b4908a7d01f88f133be025bd534cbbf4fb9c183e62fc97 \
+    --hash=sha256:dc5d326ab5541b8b68e7e920aa8363851e779cb8c33842f6cfeef4674cc62f94
+    # via bleak
+pyobjc-framework-libdispatch==10.3.1 \
+    --hash=sha256:0a7a19afef70c98b3b527fb2c9adb025444bcb50f65c8d7b949f1efb51bde577 \
+    --hash=sha256:109044cddecb3332cbb75f14819cd01b98aacfefe91204c776b491eccc58a112 \
+    --hash=sha256:3e0db3138aae333f0b87b42586bc016430a76638af169aab9cef6afee4e5f887 \
+    --hash=sha256:5543aea8acd53fb02bcf962b003a2a9c2bdacf28dc290c31a3d2de7543ef8392 \
+    --hash=sha256:8e8fb27ac86d48605eb2107ac408ed8de281751df81f5430fe66c8228d7626b8 \
+    --hash=sha256:a74e62314376dc2d34bc5d4a86cedaf5795786178ebccd0553c58e8fa73400a3 \
+    --hash=sha256:b209dbc9338cd87e053ede4d782b8c445bcc0b9a3d0365a6ffa1f9cd5143c301 \
+    --hash=sha256:f5c3475498cb32f54d75e21952670e4a32c8517fb2db2e90869f634edc942446
+    # via bleak
 pyopenssl==24.1.0 \
     --hash=sha256:17ed5be5936449c5418d1cd269a1a9e9081bc54c17aed272b45856a3d3dc86ad \
     --hash=sha256:cabed4bfaa5df9f1a16c0ef64a0cb65318b5cd077a7eda7d6970131ca2f41a6f
@@ -823,7 +873,9 @@ tenacity==8.3.0 \
 typing-extensions==4.11.0 \
     --hash=sha256:83f085bd5ca59c80295fc2a82ab5dac679cbe02b9f33f7d83af68e241bea51b0 \
     --hash=sha256:c1f94d72897edaf4ce775bb7558d5b79d8126906a14ea5ed1635921406c0387a
-    # via hwi
+    # via
+    #   bleak
+    #   hwi
 tzdata==2024.1 \
     --hash=sha256:2674120f8d891909751c38abcdfd386ac0a5a1127954fbc332af6b5ceae07efd \
     --hash=sha256:9068bc196136463f5245e51efda838afa15aaeca9903f49050dfa2679db4d252
