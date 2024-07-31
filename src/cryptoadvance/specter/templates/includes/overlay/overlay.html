@@ -1,3 +1,9 @@
+<style>
+  .blur-background {
+    filter: blur(5px);
+    transition: filter 0.3s ease;
+}
+</style>
 <div class="hidden z-30 absolute w-screen h-screen" id="page_overlay">
     <div class="w-screen overflow-auto h-screen bg-black/40 flex flex-col relative justify-center items-center py-5" id="page_overlay_popup">
         <div class="box-shadow-xl transition-all absolute max-w-[700px] overflow-hidden rounded-xl text-white" id="page_overlay_popup_content"></div>
@@ -35,6 +41,9 @@
         var overlay = document.getElementById("page_overlay");
         overlay.style.display = "flex";
 
+        // Blur the background
+        blurBackground(true);
+
         // Position and show the popup
         var overlayPopup = document.getElementById("page_overlay_popup");
         overlayPopup.style.display = "flex";
@@ -67,7 +76,7 @@
             holder.appendChild(document.getElementById(document.getElementById("page_overlay_popup_content").children[0].id));
 
             var overlay = document.getElementById("page_overlay");
-            overlay.style.display = "none"; 
+            overlay.style.display = "none";
 
             var overlayPopup = document.getElementById("page_overlay_popup");
             overlayPopup.style.display = "none";
@@ -78,10 +87,29 @@
             contentContainer.style.right = "auto";
             contentContainer.style.bottom = "auto";
             contentContainer.style.justifySelf = "center";
-
+            /*
             // A file using `overlay.html` should implement `onCancelOverlay` JS function to handle popup cancel logic
             onCancelOverlay();
+            */
+            // Remove blur from background
+            blurBackground(false);
+
+            // Trigger any custom logic for canceling the overlay
+            if (typeof onCancelOverlay === 'function') {
+                onCancelOverlay();
+            }
         }
+    }
+
+    function blurBackground(blur = true) {
+        const contentToBlur = document.querySelectorAll('body > *:not(#page_overlay):not(#page_overlay_popup)');
+        contentToBlur.forEach(element => {
+            if (blur) {
+                element.classList.add('blur-background');
+            } else {
+                element.classList.remove('blur-background');
+            }
+        });
     }
 
     function overlayIsActive(){
