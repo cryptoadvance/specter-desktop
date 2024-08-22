@@ -732,17 +732,10 @@ class Wallet(AbstractWallet):
                         # It may be related to https://github.com/bitcoin/bitcoin/issues/28555
                         # In this case we decode the raw transaction to get the data we want.
                         raw_transaction_hex = tx_from_core["hex"]
-                        raw_transaction = self.rpc.decoderawtransaction(
-                            raw_transaction_hex
-                        )
-                        searched_raw_vout = [
-                            _output
-                            for _output in raw_transaction["vout"]
-                            if _output["n"] == utxo_vout
-                        ][0]
-                        tx_copy["amount"] = searched_raw_vout["value"]
-                        script_pubkey = searched_raw_vout["scriptPubKey"]
-                        tx_copy["address"] = script_pubkey["address"]
+                        parsed_transaction = self.TxCls.from_string(raw_transaction_hex)
+                        out = parsed_transaction.vout[utxo_vout]
+                        tx_copy["amount"] = round(out.value * 1e-8, 8)
+                        tx_copy["address"] = out.script_pubkey.address(self.network)
 
                 # Append the copy to the _full_utxo list
                 _full_utxo.append(tx_copy)
