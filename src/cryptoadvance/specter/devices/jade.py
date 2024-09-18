@@ -1,7 +1,9 @@
 from .hwi_device import HWIDevice
 from .hwi.jade import JadeClient
 from .hwi.jade import enumerate as jade_enumerate
-from ..helpers import is_liquid
+from ..helpers import is_liquid, to_ascii20
+from ..util import bcur
+from binascii import b2a_base64
 
 
 class Jade(HWIDevice):
@@ -18,6 +20,8 @@ class Jade(HWIDevice):
     supports_hwi_multisig_display_address = True
     supports_multisig_registration = True
     liquid_support = True
+    exportable_to_wallet = True
+    wallet_export_type = "qr"
 
     @classmethod
     def get_client(cls, *args, **kwargs):
@@ -43,3 +47,41 @@ class Jade(HWIDevice):
         qr_psbt = wallet.fill_psbt(base64_psbt, non_witness=False, xpubs=False)
         psbts["qrcode"] = f"{self.supported_qr_code_format}:{qr_psbt}"
         return psbts
+
+    def export_wallet(self, wallet):
+        if not wallet.is_multisig:
+            return None
+        # Jade uses ColdCard's style
+        CC_TYPES = {"legacy": "BIP45", "p2sh-segwit": "P2WSH-P2SH", "bech32": "P2WSH"}
+        # try to find at least one derivation
+        # cc assume the same derivation for all keys :(
+        derivation = None
+        # find correct key
+        for k in wallet.keys:
+            if k in self.keys and k.derivation != "":
+                derivation = k.derivation.replace("h", "'")
+                break
+        if derivation is None:
+            return None
+        qr_string = """
+Name: {}
+Policy: {} of {}
+Derivation: {}
+Format: {}
+Sorted: {}
+""".format(
+            to_ascii20(wallet.name),
+            wallet.sigs_required,
+            len(wallet.keys),
+            derivation,
+            CC_TYPES[wallet.address_type],
+            not wallet.uses_multi,
+        )
+        for k in wallet.keys:
+            # cc assumes fingerprint is known
+            fingerprint = k.fingerprint
+            if fingerprint == "":
+                fingerprint = get_xpub_fingerprint(k.xpub).hex()
+            qr_string += "{}: {}\n".format(fingerprint.upper(), k.xpub)
+        qr_string = b2a_base64(qr_string.encode()).decode()
+        return f"ur-bytes:{qr_string}"
