@@ -702,6 +702,11 @@ class Wallet(AbstractWallet):
                     self.fetch_transactions()  # ToDo: make this much slimmer!
                     txlist = self._transactions.get_transactions()
                     txlist_dict = {_tx["txid"]: _tx for _tx in txlist}
+                    if utxo_txid not in txlist_dict:
+                        logger.warning(f"txid not found even after calling get_transactions: {utxo_txid}")
+                        self._transactions.gettransaction(utxo_txid, full=False)
+                        txlist = self._transactions.get_transactions()
+                        txlist_dict = {_tx["txid"]: _tx for _tx in txlist}
                     tx: WalletAwareTxItem = txlist_dict[utxo_txid]
 
                 # Create a copy of the tx item for each vout
