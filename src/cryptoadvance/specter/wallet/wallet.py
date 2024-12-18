@@ -718,13 +718,24 @@ class Wallet(AbstractWallet):
                 else:
                     tx_from_core = self.rpc.gettransaction(tx_copy["txid"])
                     # in the case of locked amounts, the stupid listlockunspent call does not contain reasonable utxo-data
-                    searched_vout = [
+                    searched_vouts = [
                         _tx
                         for _tx in tx_from_core["details"]
                         if _tx["vout"] == utxo_vout
-                    ][0]
-                    tx_copy["amount"] = searched_vout["amount"]
-                    tx_copy["address"] = searched_vout["address"]
+                    ]
+                    if len(searched_vouts) > 0:
+                        searched_vout = searched_vouts[0]
+                        tx_copy["amount"] = searched_vout["amount"]
+                        tx_copy["address"] = searched_vout["address"]
+                    else:
+                        # Sometimes gettransaction doesn't return the complete list of outputs.
+                        # It may be related to https://github.com/bitcoin/bitcoin/issues/28555
+                        # In this case we decode the raw transaction to get the data we want.
+                        raw_transaction_hex = tx_from_core["hex"]
+                        parsed_transaction = self.TxCls.from_string(raw_transaction_hex)
+                        out = parsed_transaction.vout[utxo_vout]
+                        tx_copy["amount"] = round(out.value * 1e-8, 8)
+                        tx_copy["address"] = out.script_pubkey.address(self.network)
 
                 # Append the copy to the _full_utxo list
                 _full_utxo.append(tx_copy)
