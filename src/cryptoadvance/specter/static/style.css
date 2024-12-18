@@ -20,7 +20,7 @@
 *::-webkit-scrollbar,
 *::-webkit-scrollbar-track-piece,
 *::-webkit-scrollbar-corner {
-  @apply !bg-transparent !w-2; 
+  @apply !bg-transparent !w-2;
 }
 
 *::-webkit-scrollbar-thumb {
@@ -49,7 +49,7 @@
   p {
     @apply text-lg my-1 max-w-prose text-dark-100;
   }
-  
+
   a {
     @apply !no-underline;
   }
