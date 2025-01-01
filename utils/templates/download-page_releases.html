@@ -1,0 +1,136 @@
+<html>
+
+  <style>
+
+   /*LIST SECTION*/
+   /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+   .collapsible.active {
+     background-color: #293142 !important;
+     border-radius: 5px 5px 0px 0px !important;
+   }
+   /* Style the collapsible content. Note: hidden by default */
+   .release-content {
+     padding: 30px 18px;
+     display: none;
+     overflow: hidden;
+     background-color: #293142;
+     border-radius: 0px 5px 5px 5px;
+   }
+   h2.releases {
+     font-size: 40px;
+   }
+   h3.release-title {
+       margin-top: 40px;
+       padding-top: 40px;
+       border-top: 1px solid rgba(255,255,255,0.3);
+       position: relative;
+       text-transform: none;
+       font-size: 30px;
+   }
+   h3.release-title .latest {
+       background-color: #10ac84;
+       color: #222222;
+       border: 1px solid #10ac84;
+       padding: 1px 7px;
+       border-radius: 20px;
+       font-size: 8px;
+       text-transform: uppercase;
+       bottom: 0;
+       right: 0;
+       position: relative;
+       bottom: 4px;
+       font-weight: 700;
+       display: inline-block;
+       letter-spacing: 1px;
+   }
+   .release-content h1, .release-content h2 {
+       font-size: 20px;
+       text-transform: none;
+   }
+   .release-content p, .release-content ul li {
+       font-size: 14px;
+   }
+   .assets li a {
+       margin-left: 15px;
+       font-size: 12px;
+   }
+   .assets li a .fas {
+       margin-right: 10px;
+       font-size: 12px;
+   }
+   .date {
+       color: rgb(40, 157, 184);
+       margin-bottom: 15px;
+       display: inline-block;
+       font-size: 12px;
+   }
+   .assets {
+       border: 1px solid rgba(255,255,255,0.3);
+       border-radius: 5px;
+       padding: 15px;
+       margin-bottom: 15px;
+   }
+   .assets h4 {
+       margin-bottom: 0;
+
+   }
+   .assets ul {
+       list-style-type: none;
+       margin-left: 0;
+       margin-bottom: 0;
+   }
+   .assets ul li {
+       line-height: 40px;
+       border-bottom: 1px solid rgba(255,255,255,0.3);
+   }
+   .assets ul li:last-child {
+       line-height: 40px;
+       border-bottom: 1px solid rgba(255,255,255,0);
+   }
+ </style>
+
+<h2 class="releases">Specter Releases:</h2>
+
+{% for release in data if not release["is_pre_release"]  %}
+
+<h3 class="release-title">
+    {{ release.name }}
+    {% if loop.index == 1 %}
+      <span class="latest">Latest</span>
+    {% endif %}
+</h3>
+<div class="date">Date: {{release.published_at.strftime('%Y-%m-%d')}}</div>
+<div class="assets"><h4>Assets:</h4><br>
+  <ul>
+    {% for asset in release.assets %}
+    <li><a href="{{asset.browser_download_url}}"><i aria-hidden="true" class="fas fa-download"></i> {{asset.name}}</a></li>
+    {% endfor %}
+  </ul>
+</div>
+<button type="button" class="collapsible">{{ release.name }} details</button>
+<div class="release-content">
+    {{ release.body | markdown}}
+</div>
+
+{% endfor %}
+
+<script>
+
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.display === "block") {
+      content.style.display = "none";
+    } else {
+      content.style.display = "block";
+    }
+  });
+}
+
+</script>
+
+</html>

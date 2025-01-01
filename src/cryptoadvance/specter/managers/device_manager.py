@@ -6,7 +6,7 @@ from flask_babel import lazy_gettext as _
 
 from cryptoadvance.specter.devices.bitcoin_core import BitcoinCore, BitcoinCoreWatchOnly
 
-from ..helpers import alias, load_jsons
+from ..helpers import create_unique_id, load_jsons
 from ..rpc import get_default_datadir
 
 from ..devices import __all__ as all_device_classes
@@ -59,11 +59,11 @@ class DeviceManager:
         return sorted(self.devices.keys())
 
     def add_device(self, name, device_type, keys):
-        device_alias = alias(name)
+        device_alias = create_unique_id(name)
         fullpath = os.path.join(self.data_folder, "%s.json" % device_alias)
         i = 2
         while os.path.isfile(fullpath):
-            device_alias = alias("%s %d" % (name, i))
+            device_alias = create_unique_id("%s %d" % (name, i))
             fullpath = os.path.join(self.data_folder, "%s.json" % device_alias)
             i += 1
         # remove duplicated keys if any exist
