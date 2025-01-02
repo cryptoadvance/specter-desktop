@@ -712,19 +712,33 @@ class Wallet(AbstractWallet):
                 tx_copy["locked"] = txid_vout in locked_utxo_dict.keys()
 
                 # Adding the more complicated stuff address and amount
-                if utxo != {}:  # an unlocked one with values!
+                if utxo != {}:  # an unlocked output
                     tx_copy["amount"] = utxo.get("amount")
                     tx_copy["address"] = utxo["address"]
-                else:
+                else:  # a locked output
+                    # In the case of locked outputs, the listlockunspent call does not contain reasonable UTXO data,
+                    # so we need to get the data from the original transaction.
                     tx_from_core = self.rpc.gettransaction(tx_copy["txid"])
-                    # in the case of locked amounts, the stupid listlockunspent call does not contain reasonable utxo-data
-                    searched_vout = [
-                        _tx
-                        for _tx in tx_from_core["details"]
-                        if _tx["vout"] == utxo_vout
-                    ][0]
-                    tx_copy["amount"] = searched_vout["amount"]
-                    tx_copy["address"] = searched_vout["address"]
+                    searched_vout = next(
+                        (
+                            _tx
+                            for _tx in tx_from_core["details"]
+                            if _tx["vout"] == utxo_vout
+                        ),
+                        None,
+                    )
+
+                    if searched_vout:
+                        tx_copy["amount"] = searched_vout["amount"]
+                        tx_copy["address"] = searched_vout["address"]
+                    else:
+                        # Sometimes gettransaction doesn't include all outputs (for example it does not include change outputs).
+                        # In this case, we get the raw transaction and decode it using embit to get the additional data we need.
+                        raw_transaction_hex = tx_from_core["hex"]
+                        parsed_transaction = self.TxCls.from_string(raw_transaction_hex)
+                        out = parsed_transaction.vout[utxo_vout]
+                        tx_copy["amount"] = round(out.value * 1e-8, 8)
+                        tx_copy["address"] = out.script_pubkey.address(self.network)
 
                 # Append the copy to the _full_utxo list
                 _full_utxo.append(tx_copy)
