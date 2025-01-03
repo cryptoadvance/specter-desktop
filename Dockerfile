@@ -9,7 +9,7 @@
 ARG USER=specter
 ARG DIR=/data/
 
-FROM python:3.10-slim-bullseye AS builder
+FROM python:3.12-slim-bookworm AS builder
 
 ARG VERSION
 ARG REPO
@@ -27,7 +27,7 @@ RUN pip3 install babel cryptography
 RUN pip3 install .
 
 
-FROM python:3.10-slim-bullseye as final
+FROM python:3.12-slim-bookworm as final
 
 ARG USER
 ARG DIR
