@@ -9,7 +9,7 @@
 ARG USER=specter
 ARG DIR=/data/
 
-FROM python:3.12-slim-bookworm AS builder
+FROM python:3.10-slim-bookworm AS builder
 
 ARG VERSION
 ARG REPO
@@ -31,7 +31,7 @@ COPY . .
 RUN pip3 install . --no-deps
 
 
-FROM python:3.12-slim-bookworm as final
+FROM python:3.10-slim-bookworm as final
 
 ARG USER
 ARG DIR
