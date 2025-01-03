@@ -20,11 +20,15 @@ WORKDIR /
 
 WORKDIR /specter-desktop
 
-COPY . .
+COPY requirements.txt .
 
 RUN pip3 install --upgrade pip
 RUN pip3 install babel cryptography
-RUN pip3 install .
+RUN pip3 install -r requirements.txt
+
+COPY . .
+
+RUN pip3 install . --no-deps
 
 
 FROM python:3.12-slim-bookworm as final
