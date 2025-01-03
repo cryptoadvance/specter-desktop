@@ -9,25 +9,29 @@
 ARG USER=specter
 ARG DIR=/data/
 
-FROM python:3.10-slim-bullseye AS builder
+FROM python:3.10-bookworm AS builder
 
 ARG VERSION
 ARG REPO
 
-RUN apt update && apt install -y git build-essential libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev rustc cargo libpq-dev
+RUN apt update && apt install -y git libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev rustc cargo libpq-dev
 
 WORKDIR /
 
 WORKDIR /specter-desktop
 
-COPY . .
+COPY requirements.txt .
 
 RUN pip3 install --upgrade pip
 RUN pip3 install babel cryptography
-RUN pip3 install .
+RUN pip3 install -r requirements.txt
+
+COPY . .
+
+RUN pip3 install . --no-deps
 
 
-FROM python:3.10-slim-bullseye as final
+FROM python:3.10-slim-bookworm as final
 
 ARG USER
 ARG DIR
