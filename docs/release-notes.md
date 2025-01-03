@@ -1,5 +1,17 @@
 # Release Notes
 
+## v2.1.0 January 03, 2025
+- Blur modal background #2481 (Manolis Mandrapilias)
+- Bugfix: Download backup zip broken #2456 (k9ert)
+- Bugfix: No run-the-numbers if not synced fixes #2305 #2457 (k9ert)
+- Expose internal node to localhost only #2455 (roshii)
+- Feature: Add wallet export to Jade via QR #2370 (Manolis Mandrapilias)
+- Feature: HWI upgrade to 2.4.x #2452 (k9ert)
+- Fix locked change output-bug #2485 (Manolis Mandrapilias)
+- Make Specter work with Bitcoin Core 28.0 #2480 (Manolis Mandrapilias)
+- Pin last used tailwindcss version and generate new output.css file #2483 (Manolis Mandrapilias)
+- Remove BLE code for Jade #2484 (Manolis Mandrapilias)
+
 ## v2.0.5 May 30, 2024
 
 - Feature: Macos intel architecture oficially supported #2446 (k9ert)
