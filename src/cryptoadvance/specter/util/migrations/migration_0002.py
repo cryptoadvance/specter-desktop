@@ -29,7 +29,7 @@ class SpecterMigration_0002(SpecterMigration):
     @property
     def description(self) -> str:
         return """Node-class migration:
-            We introduced the Spectrum Node on an extension. With that, we made the choice of 
+            We introduced the Fortiqui Wallet Node on an extension. With that, we made the choice of 
             the Node to be instantiated much more flexible. The node.json gets an attribute called
             python_class which is the fully qualified package name of the class the NodeManager
             should instantiate.

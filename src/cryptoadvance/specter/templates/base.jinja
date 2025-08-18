@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="bg-dark-900 overflow-hidden max-h-screen">
+<html class="overflow-hidden max-h-screen">
 	<head>
 		<title>{{ _("Specter") }}</title>
 
@@ -22,7 +22,7 @@
 		{% block head %}{% endblock %}
 	</head>
 
-	<body spellcheck="false">
+        <body class="bg-gradient-to-b from-blue-500 to-white" spellcheck="false">
 		{% include "services/inject_in_basejinja_body_top.jinja" %}
 
 		<div class="pageloader" id="pageloader"></div>
@@ -43,7 +43,7 @@
 
 		{% include "includes/tool-tip.html" %}
 
-		<div class="flex w-screen h-screen bg-dark-900">
+                <div class="flex w-screen h-screen bg-transparent">
 			<div>
 				{% block sidebar %}
 					{% include "includes/sidebar/sidebar.jinja" %}
@@ -53,7 +53,7 @@
 
 				<!-- Status Bar -->
 				{% if current_user.is_authenticated and not hwi_bridge %}
-					<div class="flex row p-3 bg-dark-900 border-b border-dark-700 h-16 min-h-[64px] justify-between items-center" id="status-bar" data-style="{% if session['is_language_rtl'] %}border-radius: 0 0 15px 0; left{% else %}border-radius: 0 0 15px 15px; right{% endif %}: 2.4%; position: absolute; color: #ddd; background-color: #323e50;">
+					<div class="flex row p-3 border-b border-dark-700 h-16 min-h-[64px] justify-between items-center" id="status-bar" data-style="{% if session['is_language_rtl'] %}border-radius: 0 0 15px 0; left{% else %}border-radius: 0 0 15px 15px; right{% endif %}: 2.4%; position: absolute; color: #ddd; background-color: #323e50;">
 						<div class="h-full w-32 my-2 rounded-lg">
 
 						</div>
@@ -93,7 +93,7 @@
 				</div>
 
 				<!-- Main Content -->
-				<main class="overflow-scroll w-full px-[calc((100%-700px)/2)] bg-dark-900 flex flex-col grow py-20 text-white">
+                                <main class="overflow-scroll w-full px-[calc((100%-700px)/2)] bg-transparent flex flex-col grow py-20 text-white">
 					{% block main %}
 						{% if error %}
 							<br><br>{{ _("Something went wrong:") }}<br><br>{{error}}

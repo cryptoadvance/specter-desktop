@@ -1,7 +1,7 @@
 <div class="bg-dark-800 flex flex-col">
     {% if specter.info.get("initialblockdownload") == True %}
         <div class="flex flex-col p-4">
-            <p id="progress-description">{{ _("Spectrum is syncing")}}<p>
+            <p id="progress-description">{{ _("Fortiqui Wallet is syncing")}}<p>
             <div id="progress-bar-container" class="w-full bg-dark-700 rounded-lg">
                 <div id="progress-bar" class="bg-dark-600 text-xs text-white text-center p-2 leading-none rounded-lg">Please wait a few minutes</div>
             </div>
@@ -52,7 +52,7 @@
         let syncProgress = response.syncProgress;
         if (syncProgress === 100) {
             progressBarContainer.classList.add('hidden') 
-            progressDescription.innerText = "Spectrum is fully synced now."
+            progressDescription.innerText = "Fortiqui Wallet is fully synced now."
         }
         else {
             progressBar.style.width = `${syncProgress}%`;

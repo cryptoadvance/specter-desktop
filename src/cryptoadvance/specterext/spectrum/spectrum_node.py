@@ -19,7 +19,7 @@ class SpectrumNode(AbstractNode):
 
     def __init__(
         self,
-        name="Spectrum Node",
+        name="Fortiqui Wallet Node",
         alias="spectrum_node",
         spectrum=None,
         bridge=None,
@@ -30,7 +30,7 @@ class SpectrumNode(AbstractNode):
     ):
         self._spectrum = spectrum
         self.bridge = bridge
-        self.name = "Spectrum Node"
+        self.name = "Fortiqui Wallet Node"
         self.alias = "spectrum_node"  # used for the file: nodes/spectrum_node.json
         self._host = host
         self._port = port
@@ -43,7 +43,7 @@ class SpectrumNode(AbstractNode):
 
     @property
     def datadir(self):
-        """Spectrum doesn't need or have a datadirectory but the deletion-process is demanding to have one
+        """Fortiqui Wallet doesn't need or have a datadirectory but the deletion-process is demanding to have one
         "" is a magic-value which prevents stupid things to happen until we have refactored that process
         """
         return ""
@@ -51,10 +51,10 @@ class SpectrumNode(AbstractNode):
     def start_spectrum(self, app, datadir):
         if self._host is None or self._port is None or self._ssl is None:
             raise BrokenCoreConnectionException(
-                f"Cannot start Spectrum without host ({self._host}), port ({self._port}) or ssl ({self._ssl})"
+                f"Cannot start Fortiqui Wallet without host ({self._host}), port ({self._port}) or ssl ({self._ssl})"
             )
         try:
-            logger.debug(f"Spectrum node is creating a Spectrum instance.")
+            logger.debug(f"Fortiqui Wallet node is creating a Spectrum instance.")
             self.spectrum = Spectrum(
                 self._host,
                 self._port,
@@ -79,7 +79,7 @@ class SpectrumNode(AbstractNode):
     def update_electrum(self, host, port, ssl, app, datadir):
         if host is None or port is None or ssl is None:
             raise BrokenCoreConnectionException(
-                f"Cannot start Spectrum without host ({host}), port ({port}) or ssl ({ssl})"
+                f"Cannot start Fortiqui Wallet without host ({host}), port ({port}) or ssl ({ssl})"
             )
         self._host = host
         self._port = port
@@ -126,7 +126,7 @@ class SpectrumNode(AbstractNode):
 
     @property
     def spectrum(self):
-        """Returns None if the Spectrum node has no Spectrum object"""
+        """Returns None if the Fortiqui Wallet node has no Spectrum object"""
         if self._spectrum:
             return self._spectrum
         else:
@@ -150,7 +150,7 @@ class SpectrumNode(AbstractNode):
         if self._bridge is not None:
             self._rpc = self._bridge
         else:
-            logger.debug(f"No BridgeRPC for Spectrum node, setting rpc to None ...")
+            logger.debug(f"No BridgeRPC for Fortiqui Wallet node, setting rpc to None ...")
             self._rpc = None
 
     @property
@@ -196,7 +196,7 @@ class SpectrumNode(AbstractNode):
         pass
 
     def is_device_supported(self, device_class_or_device_instance):
-        """Returns False if a device is not supported for Spectrum nodes, True otherwise.
+        """Returns False if a device is not supported for Fortiqui Wallet nodes, True otherwise.
         Currently, Bitcoin Core hot wallets are not supported"""
         # If a device class is passed as argument, take that, otherwise derive the class from the instance
         if device_class_or_device_instance.__class__ == type:

@@ -25,7 +25,7 @@ spectrum_node_alias = "spectrum_node"
 
 class SpectrumService(Service):
     id = "spectrum"
-    name = "Spectrum"
+    name = "Fortiqui Wallet"
     icon = "spectrum/img/logo.svg"
     logo = "spectrum/img/logo.svg"
     desc = "An electrum hidden behind a core API"

@@ -31,7 +31,7 @@
 		let url = `{{ url_for('nodes_endpoint.check_sync_status') }}`;
 		const response = await send_request(url, 'GET', "{{ csrf_token() }}");
 		if (response.fullySynced === true) {
-            console.log('Spectrum node is fully synced.')
+            console.log('Fortiqui Wallet node is fully synced.')
             document.getElementById('unfinished-ibd-indicator').classList.remove('animate-spin')
             document.getElementById("unfinished-ibd-indicator").classList.add('hidden')
             document.getElementById('connected-icon').classList.remove('hidden')

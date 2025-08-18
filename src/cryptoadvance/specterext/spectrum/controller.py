@@ -27,7 +27,7 @@ spectrum_endpoint = SpectrumService.blueprint
 @login_required
 def node_settings(node_alias=None):
     if node_alias is not None and node_alias != "spectrum_node":
-        raise SpecterError(f"Unknown Spectrum Node: {node_alias}")
+        raise SpecterError(f"Unknown Fortiqui Wallet Node: {node_alias}")
     return redirect(url_for("spectrum_endpoint.index"))
 
 
@@ -87,7 +87,7 @@ def index_post():
 
     if action == "delete":
         ext().disable_spectrum()
-        flash("Spectrum connection deleted")
+        flash("Fortiqui Wallet connection deleted")
         return redirect(url_for(f"{ SpectrumService.get_blueprint_name()}.index"))
 
     if action == "connect":

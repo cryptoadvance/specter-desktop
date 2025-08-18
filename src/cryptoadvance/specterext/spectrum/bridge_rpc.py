@@ -53,7 +53,7 @@ class BridgeRPC(BitcoinRPC):
 
     def gettxoutproof(self, *args, **kwargs):
         """Not implemented."""
-        raise SpecterError("Using merkle proofs is not supported with Spectrum.")
+        raise SpecterError("Using merkle proofs is not supported with Fortiqui Wallet.")
 
     def rescanblockchain(self, *args, **kwargs):
         """Not implemented as it's not needed. In order to keep compatibility, we're simply passing"""

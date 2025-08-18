@@ -839,7 +839,7 @@
                 return
             };
             if ('error' in jsonResponse) {
-                if (jsonResponse['error'] == "Using merkle proofs is not supported with Spectrum.") {
+                if (jsonResponse['error'] == "Using merkle proofs is not supported with Fortiqui Wallet.") {
                     this.emptyRowCell.innerText = '{{ _("No transactions fetched. Consider disabling the merkle proofs option in the settings.") }}';
                 }
                 else {

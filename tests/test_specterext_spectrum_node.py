@@ -26,7 +26,7 @@ def test_SpectrumNode(caplog):
 
     a_dict = {
         "python_class": "cryptoadvance.specterext.spectrum.spectrum_node.SpectrumNode",
-        "name": "Spectrum Node",
+        "name": "Fortiqui Wallet Node",
         "alias": "spectrum_node",
         "host": "kirsche.emzy.de",
         "port": 5002,
