@@ -23,7 +23,7 @@
         let useSlip132 = document.getElementById("use_slip_132_pdf").checked;
         let currentHeight = 15;
         doc.setFontSize(18);
-        doc.text('{{ _("Specter Backup File") }}', 105, currentHeight, {align: 'center'});
+        doc.text('{{ _("Fortiquo Backup File") }}', 105, currentHeight, {align: 'center'});
         currentHeight += 10;
         doc.setFontSize(14);
         doc.text('{{ _("(keep this information with each of your key backups)") }}', 105, currentHeight, {align: 'center'});
@@ -62,7 +62,7 @@
         currentHeight += 110;
 
         doc.setFontSize(16);
-        doc.text('{{ _("Scan this QR code with Specter-Desktop") }}', 105, currentHeight, {align: 'center'});
+        doc.text('{{ _("Scan this QR code with Fortiquo-Desktop") }}', 105, currentHeight, {align: 'center'});
         currentHeight += 7;
         doc.text('{{ _("or any other compatible wallet.") }}', 105, currentHeight, {align: 'center'});
         currentHeight += 11;
@@ -131,7 +131,7 @@
         currentHeight += 15;
 
         doc.setFontSize(16);
-        doc.text('{{ _("Specter Desktop Raw Data") }}', 105, currentHeight, {align: 'center'});
+        doc.text('{{ _("Fortiquo Desktop Raw Data") }}', 105, currentHeight, {align: 'center'});
         currentHeight += 10;
 
         doc.setFontSize(14)
@@ -184,7 +184,7 @@
             doc.addImage(qrCode, 'PNG', 5, currentHeight, 30, 30)
             doc.text({{ wallet.name | tojson | safe }}.replace(/(.{55})/g, "$1\n"), 105, currentHeight, {align: 'center'});
             doc.setFontSize(9);
-            doc.text('{{ _("Scan this QR code with Specter-Desktop") }}', 50, currentHeight + 6, {align: 'left'});
+            doc.text('{{ _("Scan this QR code with Fortiquo-Desktop") }}', 50, currentHeight + 6, {align: 'left'});
             doc.text("The addresses below start from index 1. ", 50, currentHeight + 12)
             doc.text("Feel free to use the checkbox as a proof", 50, currentHeight + 18)
             doc.text("to have verified the address via a hardware wallet.", 50, currentHeight +24)

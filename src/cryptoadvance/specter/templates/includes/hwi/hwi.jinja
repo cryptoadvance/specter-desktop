@@ -16,7 +16,7 @@
     <p id="bitbox02-pairing-code" data-style="margin: auto;"></p>
     <img src="{{ url_for('static', filename='img/loader_boxes.svg') }}">
     <div class="flex-center hidden" id="hwi_progress_note" data-style="cursor: pointer;">
-        {{ _("If your device does not show up, close any other wallet software that may be connected to your device and ensure the Specter USB settings are correctly configured.") }}<br><br>
+        {{ _("If your device does not show up, close any other wallet software that may be connected to your device and ensure the Fortiquo USB settings are correctly configured.") }}<br><br>
         <a href="{{ url_for('settings_endpoint.hwi') }}" data-style="color: #fff; text-decoration: underline; cursor: pointer;">
             {{ _("View USB settings") }}
         </a>
@@ -83,7 +83,7 @@
         // detect device
         if (devicePath == null) {
             if (deviceTypes == 'ledger') {
-             showHWIProgress(`{{ _("Detecting...") }}`, `{{ _("Plug in your Ledger. Make sure you have opened the Bitcoin app on your Ledger otherwise Specter can't detect the device.") }}`);
+             showHWIProgress(`{{ _("Detecting...") }}`, `{{ _("Plug in your Ledger. Make sure you have opened the Bitcoin app on your Ledger otherwise Fortiquo can't detect the device.") }}`);
             }
             else {
             showHWIProgress(`{{ _("Detecting...") }}`, `{{ _("Plug in your device") }}`);

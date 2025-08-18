@@ -41,7 +41,7 @@
 						<h1>{{ _("Scan to Verify Address on Your Device") }}</h1><br>
 						<div id="verify_address_qr_code_container"></div><br>
 						<p>
-								{{ _("Specter can verify this address if you scan it.")}}<br>{{ _("It has an address index included in the QR code.") }}
+								{{ _("Fortiquo can verify this address if you scan it.")}}<br>{{ _("It has an address index included in the QR code.") }}
 						</p><br>
 					</div>
 					<button onclick="verifyQRCode('{{ wallet.address }}', '{{ wallet.address_index | string }}')" type="button" class="button">{{ _("Verify address via QR code") }}</button>
@@ -60,7 +60,7 @@
 					{% set xpubs_descriptor = wallet.get_descriptor(address=address, keep_xpubs=True, to_string=True, with_checksum=True) %}
 					<button type="button" onclick='displayAddressOnDevice(`{{ address }}`, `{{ descriptor }}`, `{{ xpubs_descriptor }}`)' class="button">{{ _("Display address on device") }}</button>
 					{% if wallet.is_multisig %}
-						<p class="note center optional">{{ _("Multsig address on device display is only available for Specter DIY, Jade, ColdCard, BitBox02 and Trezor devices.") }}</p>
+						<p class="note center optional">{{ _("Multsig address on device display is only available for Fortiquo DIY, Jade, ColdCard, BitBox02 and Trezor devices.") }}</p>
 					{% endif %}
 				{% endif %}
 			</form>
@@ -117,7 +117,7 @@
 
 			<p>
 				{{ _("It's recommended that you print and save this wallet backup file with each of your devices.") }}
-				{{ _("It includes everything you need to restore your wallet in Specter or other compatible wallets including Bitcoin Core itself.") }}<br>
+				{{ _("It includes everything you need to restore your wallet in Fortiquo or other compatible wallets including Bitcoin Core itself.") }}<br>
 			<p>
 			<p>
 				{{ _("Keep this file private as it contains all the information needed to track your transaction history.") }}

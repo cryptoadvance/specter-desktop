@@ -141,7 +141,7 @@
      * Can be configured to show:
      *  - The receive addresses of a wallet (set attribute `type` to "receive" and `wallet` to the wallet's alias)
      *  - The change addresses of a wallet (set attribute `type` to "change" and `wallet` to the wallet's alias)
-     * It uses Specter's API to fetch addresses every time the user changes its parameters.
+     * It uses Fortiquo's API to fetch addresses every time the user changes its parameters.
      * These parameters are configured using components included in this table element:
      *  - Tabs for switching between Receive addresses (`type="receive"`) and Change addresses (`type="change"`)
      *  - Sorting addresses by any column (ascending or descending)
@@ -352,7 +352,7 @@
         }
 
         /**
-         * Fetches addresses list from the Specter API and loads the result into AddressRowElement
+         * Fetches addresses list from the Fortiquo API and loads the result into AddressRowElement
         */
         async fetchAddressesItems() {
             this.callId++;

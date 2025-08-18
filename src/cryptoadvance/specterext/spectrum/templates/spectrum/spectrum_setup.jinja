@@ -9,7 +9,7 @@
                 <!-- <img class="feedback-icon" src="{{ url_for('static', filename='img/party.png') }}"/><br> -->
                 {# TODO: Adding the exact name of the server? #}
                 {% if changed_host %} <p>{{ _("You switched the Electrum server successfully:") }}</p> {% endif %}
-                <p>{{ _("Specter is connected via Fortiqui Wallet to a public Electrum server!") }}</p>
+                <p>{{ _("Fortiquo is connected via Fortiqui Wallet to a public Electrum server!") }}</p>
             {% else %}
                 <!-- <img  class="feedback-icon" src="{{ url_for('static', filename='img/failed.svg') }}"/><br> -->
                 {% if changed_host and node_is_running_before_request %}
@@ -23,7 +23,7 @@
             {% if success %}
                 <!-- <img class="feedback-icon" src="{{ url_for('static', filename='img/party.png') }}"/><br> -->
                 {% if changed_host %} <p>{{ _("You switched the Electrum server successfully:") }}</p> {% endif %}
-                <p>{{ _("Specter is connected via Fortiqui Wallet to a manually configured Electrum server!") }}</p>
+                <p>{{ _("Fortiquo is connected via Fortiqui Wallet to a manually configured Electrum server!") }}</p>
             {% else %}
                 <!-- <img class="feedback-icon" src="{{ url_for('static', filename='img/failed.svg') }}"/><br> -->
                 {% if changed_host and node_is_running_before_request %}

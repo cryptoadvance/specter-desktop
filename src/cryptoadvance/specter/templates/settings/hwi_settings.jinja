@@ -8,21 +8,21 @@
 	{% include "includes/hwi/hwi.jinja" %}
 
 	<h3 class="mt-8">{{ _("Hardware Devices Bridge") }}</h3>
-	<p class="mb-5">{{ _("Allows Specter to communicate with your hardware devices over USB.") }}</p>
+	<p class="mb-5">{{ _("Allows Fortiquo to communicate with your hardware devices over USB.") }}</p>
 
 	<label class="flex bg-dark-800 p-4 mb-5 border-2 border-dark-700 rounded-xl align-start hover:bg-dark-700 cursor-pointer">
 		<input class="mr-4 h-8 peer" type="radio" name="hwibridge" value="local"  onchange="switchHWIBridgeConfView(this.value)" {% if specter.hwi_bridge_url == '/hwi/api/'%} checked {% endif %}/>
 		<div>
 			<h3>{{ _("Local USB connection") }}</h3>
-			<p>{{ _("Select this if Specter is installed on this computer") }}</p>
+			<p>{{ _("Select this if Fortiquo is installed on this computer") }}</p>
 		</div>
 	</label>
 
 	<label class="flex bg-dark-800 p-4 mb-5 border-2 border-dark-700 rounded-xl align-start hover:bg-dark-700 cursor-pointer">
 		<input class="mr-4 h-8" type="radio" name="hwibridge" value="remote" onchange="switchHWIBridgeConfView(this.value)" {% if specter.hwi_bridge_url == 'http://127.0.0.1:25441/hwi/api/' %} checked {% endif %}/>
 		<div>
-			<h3>{{ _("Remote Specter USB connection") }}</h3>
-			<p>{{ _("Select this if Specter is installed on a different machine") }}</p>
+			<h3>{{ _("Remote Fortiquo USB connection") }}</h3>
+			<p>{{ _("Select this if Fortiquo is installed on a different machine") }}</p>
 		</div>
 	</label>
 
@@ -55,10 +55,10 @@
 	</form>
 
 	<h3 class="mt-8">{{ _("Communication") }}</h3>
-	<p>{{ _("You might also need to allow Specter to communicate with the device bridge.") }}</p>
+	<p>{{ _("You might also need to allow Fortiquo to communicate with the device bridge.") }}</p>
 		<li>{{ _("Access the device bridge settings.") }} <a href='{{specter.hwi_bridge_url.replace("/hwi/api", "/hwi/settings")}}' target="_blank">Click here</a>.</li>
-		<li>{{ _("Add the domain") }} {{ url_for('index', _external=True) }} <span onclick="copyText('{{ url_for('index', _external=True) }}', '{{ _("Copied Specter URL") }}')">({{ _("copy") }}</span> {{ _("to the whitelist there.") }}<br>{{ _("Save the changes and close the window.") }}</li>
-		<li>{{ _("Connect your hardware wallet to your computer and test if Specter manage to reach it") }}
+		<li>{{ _("Add the domain") }} {{ url_for('index', _external=True) }} <span onclick="copyText('{{ url_for('index', _external=True) }}', '{{ _("Copied Fortiquo URL") }}')">({{ _("copy") }}</span> {{ _("to the whitelist there.") }}<br>{{ _("Save the changes and close the window.") }}</li>
+		<li>{{ _("Connect your hardware wallet to your computer and test if Fortiquo manage to reach it") }}
 		<button class="button mt-8" type="button" onclick="testHWIConnection()">{{ _("Test connection") }}</button></li>
 	</ol>
 

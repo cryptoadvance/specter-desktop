@@ -4,7 +4,7 @@
     - wallet: Wallet object of the item.
     - wallet_alias: Active wallet alias.
     - chain: Chain name specter is connected to. Options: 'main', 'test', 'regtest', 'signet'.
-    - loading: Boolean indicating if the wallet is loaded in Specter already or not.
+    - loading: Boolean indicating if the wallet is loaded in Fortiquo already or not.
  #}
 {% macro sidebar_wallet_list_item(wallet, wallet_alias, chain, loading=false) -%}
     <a class="flex hover:bg-dark-800 {% if wallet_alias == wallet.alias %} bg-dark-800 {% endif %} rounded-xl -mx-3 relative px-3 h-12 items-center my-1" id="{{wallet.alias}}-sidebar-list-item" href="{{ url_for('wallets_endpoint.wallet', wallet_alias=wallet.alias) }}" class="item {% if wallet_alias == wallet.alias %}active{% endif %}" data-cy="wallet-sidebar-btn-{{wallet.name}}">

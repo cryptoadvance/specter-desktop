@@ -4,7 +4,7 @@
     - pending_psbt: PSBT to show in this row.
     - wallet_alias: Active wallet alias.
     - wallet: Wallet object.
-    - specter: Specter object.
+    - specter: Fortiquo object.
  #}
 {% macro pending_psbt_item(pending_psbt, wallet_alias, wallet, specter) -%}
     {% from 'wallet/components/explorer_link.jinja' import explorer_link %}

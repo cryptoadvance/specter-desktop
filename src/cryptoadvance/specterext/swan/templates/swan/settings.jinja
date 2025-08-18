@@ -4,8 +4,8 @@
 {% block content %}
     <div class="flex-col">
         <div class="flex p-4 mt-3 mb-4 bg-dark-600 rounded-lg">
-            {{ _("- Specter initially sends {} unused addresses to Swan").format(num_reserved_addrs) }}{{ _(" and it will send more as needed.") }}<br/> 
-            {{ _("- Your wallet in Specter will show them pre-labeled as \"reserved\" for Swan.") }}<br/>
+            {{ _("- Fortiquo initially sends {} unused addresses to Swan").format(num_reserved_addrs) }}{{ _(" and it will send more as needed.") }}<br/> 
+            {{ _("- Your wallet in Fortiquo will show them pre-labeled as \"reserved\" for Swan.") }}<br/>
             {% if not associated_wallet %} {{ _("- If you save a withdrawal plan here, you will get an e-mail from Swan to confirm it.") }} {% endif %} 
         </div>
         <form action="{{ url_for(service.get_blueprint_name() + '.update_autowithdrawal') }}" method="POST" role="form">
@@ -37,8 +37,8 @@
             {% endif %}
         </form>
     <div class="flex p-4 mt-16 mb-4 bg-dark-600 rounded-lg">
-        {{ _("- Halts auto-withdrawals to your Specter wallet from your Swan account") }}<br>
-        {{ _("- Clears Swan data from Specter but does not delete the Specter wallet in your Swan account") }}<br>
+        {{ _("- Halts auto-withdrawals to your Fortiquo wallet from your Swan account") }}<br>
+        {{ _("- Clears Swan data from Fortiquo but does not delete the Fortiquo wallet in your Swan account") }}<br>
     </div>
     <form action="{{ url_for(service.get_blueprint_name() + '.oauth2_delete_token') }}" method="POST" role="form">
         <input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>

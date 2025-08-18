@@ -85,15 +85,15 @@
 									<span slot="title" class="text-lg">{{ _("Need help with the setup?") }} </span>
 									<div class="text-dark-100 max-w-prose" slot="content">
 										{% if datadir_accessable %}
-											You are running Bitcoin Core and Specter on the same machine,
+											You are running Bitcoin Core and Fortiquo on the same machine,
 											{% if bitcoin_conf_values %}
-												and you have created a bitcoin.conf file from which Specter automatically imports the necessary credentials. If you can't connect, perhaps sth. is missing. <br>
+												and you have created a bitcoin.conf file from which Fortiquo automatically imports the necessary credentials. If you can't connect, perhaps sth. is missing. <br>
 											{% else %}
 												but you haven't created a bitcoin.conf file yet or it is empty. Go to <code class="text-sm">{{ node.datadir }}</code> and create it. <br>
 											{% endif %}
 												 See below for the necessary lines in this file.
 										{% else %}
-											You are not running Bitcoin Core on the same machine as Specter.
+											You are not running Bitcoin Core on the same machine as Fortiquo.
 											Make sure you have created a bitcoin.conf file as below on the machine you are runnnig Bitcoin Core.
 											You need to enter the RPC credentials from this file here. You also need to enter the IP (within your LAN e.g. 172.16.0.20) or onion address (if you use Tor) of the remote machine in the host field. <br>
 										{% endif %}
@@ -161,7 +161,7 @@
 						<div class="col-span-4">
 							<p>
 								{{ _("The Bitcoin Core version you are using is too old.") }}
-								{{ _("Specter is working well with Bitcoin Core version 0.17. and higher. You need to upgrade.") }}
+								{{ _("Fortiquo is working well with Bitcoin Core version 0.17. and higher. You need to upgrade.") }}
 							</p>
 						</div>
 					{% endif %}

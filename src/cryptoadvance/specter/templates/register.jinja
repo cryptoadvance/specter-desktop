@@ -5,7 +5,7 @@
 
 {% block main %}
     <div class="card">
-        <h1>{{ _("Register to the Specter Node") }}</h1>
+        <h1>{{ _("Register to the Fortiquo Node") }}</h1>
         <form action="{{ url_for('auth_endpoint.register') }}" method="POST" role="form">
             {% if specter.config['auth']['method'] == 'usernamepassword' %}
                 <input class="form-control" placeholder='{{ _("Username") }}' name="username" type="text" value=""><br><br>

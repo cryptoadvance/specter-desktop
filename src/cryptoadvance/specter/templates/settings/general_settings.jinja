@@ -56,7 +56,7 @@
 			</p>
 			<div class="flex space-x-3 mt-5">
 				<a href="{{ url_for('settings_endpoint.backup_file') }}" class="button mb-0" data-style="max-width: 500px">
-					{{ _("Backup Specter (Zip File)") }}
+					{{ _("Backup Fortiquo (Zip File)") }}
 					<tool-tip width="200px">
 							<span slot="paragraph">
 								{{ _("Backups are recommended but keep your backup files private, as sharing them will result in privacy leaks.") }}
@@ -69,7 +69,7 @@
 					<input type="hidden" id="restorewallets" name="restorewallets"/>
 					<input type="hidden" id="restoredevices" name="restoredevices"/>
 					<label for="file" class="button mb-0">
-						{{ _("Load Specter backup") }}
+						{{ _("Load Fortiquo backup") }}
 						<tool-tip width="200px">
 								<span slot="paragraph">
 								{{ _("Please make sure to unzip the backup file first, then upload the extracted folder.") }}
@@ -83,7 +83,7 @@
 
 			<span id="filesloaded"></span>
 			<div class="row" data-style="margin-top: 5px;">
-				<button onsubmit="showPacman()" type="submit" class="btn hidden" name="action" value="restore" id="restore" data-style="margin-bottom: 5px;">{{ _("Load Specter backup") }}</button>
+				<button onsubmit="showPacman()" type="submit" class="btn hidden" name="action" value="restore" id="restore" data-style="margin-bottom: 5px;">{{ _("Load Fortiquo backup") }}</button>
 			</div>
 
 			<h3 class="mt-8">{{ _("Data Sources") }} </h3>
@@ -106,7 +106,7 @@
 					<span class="sr-only">Info</span>
 					<div>
 						<span class="font-medium">Info: </span> 
-						{{ _("Specter does not use the block explorer to collect any data. This setting is only to allow opening transactions and addresses in a block explorer directly from Specter. All data Specter uses comes directly from your own connected full node.") }}
+						{{ _("Fortiquo does not use the block explorer to collect any data. This setting is only to allow opening transactions and addresses in a block explorer directly from Fortiquo. All data Fortiquo uses comes directly from your own connected full node.") }}
 					</div>
 				</div>
 			</div>
@@ -124,7 +124,7 @@
 							<label class="floating-label" for="loglevel">{{ _("Logging Level") }}</label>
 							<tool-tip class="absolute right-10 top-2.5" width="200px">
 									<span slot="paragraph" class="break-all">
-										{{ _("The logging level determines the amount of output that is displayed in the terminal - if you run Specter from the terminal - and in the log file which can be found here:") }} {{ config.SPECTER_LOGFILE }}
+										{{ _("The logging level determines the amount of output that is displayed in the terminal - if you run Fortiquo from the terminal - and in the log file which can be found here:") }} {{ config.SPECTER_LOGFILE }}
 										{{ _("The debug option produces the most output, the warn option the least.") }}
 									</span>
 							</tool-tip>
@@ -141,7 +141,7 @@
 				<text-explainer>
 					<span slot="title" class="cursor-pointer">{{ _("What's this?") }} </span>
 					<div slot="content" class="mb-8">
-						{{ _("This option is intended for the usage of Specter Desktop with nodes that you don't fully trust (e.g. remote / cloud nodes).") }}
+						{{ _("This option is intended for the usage of Fortiquo Desktop with nodes that you don't fully trust (e.g. remote / cloud nodes).") }}
 						{{ _("If enabled, you will see block hashes in the transactions overview.") }}
 						{{ _("You can take those block hashes to double check whether they also exist in other locations (other nodes, block explorers, etc).") }}
 						{{ _("If so, you can be sure that the corresponding transaction was included in this block, since there is a relationship between the blockhash and the tx.") }}

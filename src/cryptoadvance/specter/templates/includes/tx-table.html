@@ -5,7 +5,7 @@
      - The UTXO list of a wallet (set attribute `type` to "utxo" and `wallet` to the wallet's alias)
      - The transaction history of all the user's wallets (set attribute `type` to "txlist" and `wallet` to null)
      - The UTXO list of all the user's wallets (set attribute `type` to "utxo" and `wallet` to null)
-    The uses Specter's API to fetch transactions every time the user changes its parameters.
+    The uses Fortiquo's API to fetch transactions every time the user changes its parameters.
     These parameters are configured using components included in this table element:
      - Tabs for switching between History (`type="txlist"`) and UTXO (`type="utxo"`) list types
      - If you set hide-switcher="true" those tabs are hidden
@@ -229,7 +229,7 @@
                     Un/Freeze UTXOs
                     <!-- <tool-tip width="200px" move-right="true"> -->
                     <!--     <span slot="paragraph"> -->
-                    <!--         {{ _("Freezing a UTXO will make Specter disallow spending it.") }}<br><br> -->
+                    <!--         {{ _("Freezing a UTXO will make Fortiquo disallow spending it.") }}<br><br> -->
                     <!--         {{ _("This is useful especially for dealing with a dust attack, where you don't want to accidentally spend the dust received.") }} -->
                     <!--     </span> -->
                     <!-- </tool-tip> -->
@@ -776,7 +776,7 @@
         }
 
         /**
-         * Fetches txlist from the Specter API and loads the result into TxRowElements
+         * Fetches txlist from the Fortiquo API and loads the result into TxRowElements
         */
         async fetchTxItems() {
             this.callId++;

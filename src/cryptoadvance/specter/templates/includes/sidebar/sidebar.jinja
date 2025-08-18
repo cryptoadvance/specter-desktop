@@ -139,7 +139,7 @@
                 <!-- {% elif not specter.setup_status.stage == "bitcoind_datadir" %} -->
                 <!--     <p class="warning" data-style="border: 1px solid #fff;"> -->
                 <!--     <img src="{{ url_for('static', filename='img/info_sign.svg') }}" data-style="width: 20px;"/> -->
-                <!--     <br>{{ _("Wallets are unavailable if Specter is not connected to Bitcoin Core!") }}<br> -->
+                <!--     <br>{{ _("Wallets are unavailable if Fortiquo is not connected to Bitcoin Core!") }}<br> -->
                 <!--     {% if current_user.is_admin %} -->
                 <!--     <a data-style="margin: 5px; transform: scale(0.9); font-size: 1em;" class="btn" href="{{ url_for('nodes_endpoint.node_settings', node_alias=specter.node.alias) }}"> -->
                 <!--         <img src="{{ url_for('static', filename='img/gear.svg') }}" data-style="width: 24px; margin: 0px;" class="svg-white">{{ _('Configure Node') }} -->
@@ -198,14 +198,14 @@
         </div>
 
         <div class="footer border-t border-dark-700 bg-dark-900 p-3">
-	        <!-- <span>{{ _("Specter Version:") }} <strong>{{ specter.version.current }}</strong></span> -->
+	        <!-- <span>{{ _("Fortiquo Version:") }} <strong>{{ specter.version.current }}</strong></span> -->
             <a class="flex items-center group" data-style="color: #fff; font-size: 1.1em; margin: 10px; text-align: center;" href="{{ url_for('welcome_endpoint.about') }}">
                 <div class="w-10 h-10 rounded-xl bg-dark-700 flex justify-center items-center">
                     <svg class="fill-current text-white h-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 46 52" fill="none">
                         <path fill-rule="evenodd" clip-rule="evenodd" d="M12.2826 12.2827C12.2826 5.49917 17.7664 -0.0103061 24.531 1.4476e-05C29.9681 0.00830974 33.8242 2.95307 35.966 7.96458C37.832 12.3307 38.6454 17.6084 38.9324 21.3988C38.9324 21.3988 45.9657 22.5023 45.9657 27.6361C45.9657 29.332 44.626 30.7068 42.9036 30.7068C40.2721 30.7068 38.8846 28.2599 38.8846 28.2599C38.6454 31.9543 37.4244 37.6848 35.8703 41.3582C34.5307 44.5248 32.0915 47.3645 28.6796 49.1418C26.3542 50.3531 23.7408 50.8704 22.9999 50.9939C22.2591 51.1173 18.3724 51.6177 16.3325 49.8826C15.5469 49.2144 15.6663 48.4937 15.7855 47.7744C15.8822 47.1908 15.9788 46.6081 15.5916 46.055C14.8997 45.0665 13.4148 44.9222 11.8174 44.767C10.0226 44.5926 8.08568 44.4044 6.97175 42.9895C6.07137 41.8459 5.94887 40.3208 5.84475 39.0245C5.77189 38.1174 5.70802 37.3222 5.39285 36.8481C4.94498 36.1744 4.09643 35.6711 3.20446 35.1419L3.20443 35.1419C1.6825 34.2391 0.0341797 33.2613 0.0341797 31.2346C0.0341797 29.7822 1.17691 29.8185 2.79603 29.87C4.76052 29.9324 7.42631 30.0171 9.60324 27.4922C9.77256 27.2658 9.02642 27.3565 8.10111 27.4691C7.45763 27.5473 6.72751 27.6361 6.15838 27.6361C4.46723 27.6361 3.14413 26.2613 3.14413 24.5654C3.14413 20.2494 8.61547 18.4241 13.0172 18.4241C13.0172 18.4241 12.2826 15.6893 12.2826 12.2827ZM33.1136 11.6727C33.2466 12.7556 32.696 13.7143 31.8838 13.8141C31.0716 13.9138 30.3054 13.1168 30.1724 12.0338C30.0394 10.9509 30.5901 9.99215 31.4023 9.89243C32.2145 9.7927 32.9807 10.5898 33.1136 11.6727ZM25.6929 14.2269C26.5051 14.1272 27.0557 13.1685 26.9227 12.0855C26.7897 11.0026 26.0235 10.2055 25.2113 10.3053C24.3991 10.405 23.8485 11.3637 23.9815 12.4467C24.1144 13.5296 24.8807 14.3266 25.6929 14.2269Z" />
                     </svg>
                 </div>
-                <div class="ml-2 group-hover:ml-3 transition-all ease-out duration-200">{{ _("About Specter") }}</div>
+                <div class="ml-2 group-hover:ml-3 transition-all ease-out duration-200">{{ _("About Fortiquo") }}</div>
             </a>
         </div>
     </nav>

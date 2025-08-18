@@ -138,19 +138,19 @@
 			{% endif %}
 			
 			<h3>{{ _("Export to wallet software") }}</h3>
-			<p>{{ _("Export this wallet to another Specter instance or other supported wallet softwares by scanning the QR code or importing the JSON file.") }}</p>
+			<p>{{ _("Export this wallet to another Fortiquo instance or other supported wallet softwares by scanning the QR code or importing the JSON file.") }}</p>
 			<button onclick="showPageOverlay('account_map_export', null, 'start')" type="button" class="button mt-3" data-cy="show-export-details-overlay-btn">{{ _("Go to export details") }}</button>
 
-			<h3 class="mt-8">{{ _("Specter wallet backup") }}</h3>
+			<h3 class="mt-8">{{ _("Fortiquo wallet backup") }}</h3>
 			<p>{{ _("Create a JSON file containing all wallet data including labels.") }}</p>
-			<a download="{{ wallet.name }}.json" class="button mt-3" id="export_specter_format">Download Specter JSON file</a>
+			<a download="{{ wallet.name }}.json" class="button mt-3" id="export_specter_format">Download Fortiquo JSON file</a>
 
 			<h3 class="mt-8">{{ _("Printable PDF backup") }}</h3>
 			<p>
 				{{ _("It is recommended that you print this backup and save it with each of your devices.") }}
 				<tool-tip width="180px">
 						<span slot="paragraph">
-							{{ _("This backup includes all the information you need to restore your wallet in Specter Desktop or other compatible wallets including Bitcoin Core.") }}
+							{{ _("This backup includes all the information you need to restore your wallet in Fortiquo Desktop or other compatible wallets including Bitcoin Core.") }}
 							{{ _("It is recommended that you keep this file private. It contains all the information to track your balance and associate transactions with your wallet.") }}
 						</span>
 				</tool-tip>
@@ -174,7 +174,7 @@
 					{{ _("PDF optimized for Uncle Jims: hand out addresses to receive funds for friends & family without hardware wallet.") }}
 					<tool-tip width="180px">
 							<span slot="paragraph">
-							{{ _('The PDF lists many singlesig addresses in QR code format, as well as the descriptor of the wallet as a QR code with which the wallet can be imported to Specter Desktop at any time.') }}
+							{{ _('The PDF lists many singlesig addresses in QR code format, as well as the descriptor of the wallet as a QR code with which the wallet can be imported to Fortiquo Desktop at any time.') }}
 							{{ _('There are checkboxes to keep track of which addresses were used already.') }}
 							{{ _('Can be folded into DIN-A5 to fit in a transparent sealing bag (together with the seed).') }}
 							</span>
@@ -190,7 +190,7 @@
 
 	<div class="hidden" id="wallet_advanced_settings_tab">
 		<div>
-			<h3>{{ _("Import address labels (Electrum or Specter)") }}</h3>
+			<h3>{{ _("Import address labels (Electrum or Fortiquo)") }}</h3>
 
 			<form action="./importaddresslabels" method="POST" class="padded" data-style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -198,7 +198,7 @@
 					<dnd-textarea 
 						name="address_labels_data" 
 						id="address_labels_data" 
-						placeholder="{{ _('You can paste and drag & drop here: ') }}{{ _('Electrum JSON file, Specter addresses CSV or Specter JSON file') }}"  
+						placeholder="{{ _('You can paste and drag & drop here: ') }}{{ _('Electrum JSON file, Fortiquo addresses CSV or Fortiquo JSON file') }}"  
 						textarea-style="margin-bottom: 10px;"
 					>
 					</dnd-textarea>
@@ -212,9 +212,9 @@
 								<span slot="paragraph">
 									{{ _('The expected format for Electrum contains:') }}<br>
 									{{ _('{"8a5e4...": "some tx id label", "bc1qj3...": "some address label"}') }}<br><br>
-									{{ _('The expected format for Specter JSON contains:') }}<br>
+									{{ _('The expected format for Fortiquo JSON contains:') }}<br>
 									{{ _('{"labels": {"some_label": ["bc1qj3..."], ...}') }}<br><br>
-									{{ _('The expected format for Specter CSV contains:') }}<br>
+									{{ _('The expected format for Fortiquo CSV contains:') }}<br>
 									{{ _('Address,Label') }}<br>
 									{{ _('bc1qj3...,some_label') }}<br> 
 								</span>
@@ -370,8 +370,8 @@
 		});
 
 		document.addEventListener("DOMContentLoaded", function(){
-			let walletDataSpecterFormat = encodeURIComponent(`{{ wallet.to_json(for_export=True)|tojson }}`);
-			document.getElementById('export_specter_format').href = "data:text/json;charset=utf-8," + walletDataSpecterFormat;
+			let walletDataFortiquoFormat = encodeURIComponent(`{{ wallet.to_json(for_export=True)|tojson }}`);
+			document.getElementById('export_specter_format').href = "data:text/json;charset=utf-8," + walletDataFortiquoFormat;
 		});
 
 		const registerMultisigOnDevice = async (fingerprint) => {

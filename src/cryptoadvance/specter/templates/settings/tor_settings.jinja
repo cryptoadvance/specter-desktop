@@ -79,7 +79,7 @@
 						<label id="tor-control-port-label" for="tor_control_port" class="floating-label">{{ _("Tor Control Port (Leave blank to use default)") }}</label>
 					</div>
 
-					<p> {{ _("Restart Specter for change of the control port to take effect.") }} </p>
+					<p> {{ _("Restart Fortiquo for change of the control port to take effect.") }} </p>
 
 					<button type="submit" class="button mt-3" name="action" value="test_tor">{{ _("Test connection") }}</button>
 				</div>
@@ -97,20 +97,20 @@
 						<tool-tip id="tooltips-tor">
 						    <h4 slot="title">{{ _("Tor hidden service") }}</h4>
 						    <span slot="paragraph">
-								{{ _("Running Specter behind a Tor hidden service allows you to acccess Specter over Tor from anywhere via a Tor supporting browser.") }}
+								{{ _("Running Fortiquo behind a Tor hidden service allows you to acccess Fortiquo over Tor from anywhere via a Tor supporting browser.") }}
 						    </span>
 						</tool-tip>
 					</div>
 				</label>
 
 				<p>
-					{{ _("Allows access to Specter from anywhere.") }}
+					{{ _("Allows access to Fortiquo from anywhere.") }}
 					{{ _('Requires authentication to be enabled.') }} <a href="{{ url_for('settings_endpoint.auth' ) }}">{{ _("Authentication settings") }}</a>
 				</p>
 
 				{% if tor_service_id %}
 					<p><b>
-						{{ _("Specter hidden service is running at:") }}
+						{{ _("Fortiquo hidden service is running at:") }}
 						<span title="Copy Tor address" data-style="word-break: break-word;" class="explorer-link" onclick="copyText('http:/\/{{ tor_service_id }}.onion', '{{ _("Copied Tor hidden service address:") }} {{ tor_service_id }}.onion')">
 						{{ tor_service_id }}.onion
 						</span>
@@ -124,7 +124,7 @@
 				<div id="tooltip-container" class="tooltip-little-grow tooltip-width">
 					<tool-tip id="tooltips-tor">
 							<span slot="paragraph">
-							{{ _("This ensures that Specter routes all external calls over Tor if Tor is enabled.") }}<br><br>
+							{{ _("This ensures that Fortiquo routes all external calls over Tor if Tor is enabled.") }}<br><br>
 							{{ _("Some functionality may stop working and this will have a significant performance impact especially since calls to your Bitcoin Core node will be routed through Tor, too.") }}
 							</span>
 					</tool-tip>
