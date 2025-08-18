@@ -817,15 +817,13 @@ select {
   border-radius: 0.5rem;
   border-width: 2px;
   --tw-border-opacity: 1;
-  border-color: rgb(27 28 33 / var(--tw-border-opacity));
-  --tw-bg-opacity: 1;
-  background-color: rgb(20 21 26 / var(--tw-bg-opacity));
+  border-color: rgb(59 130 246 / var(--tw-border-opacity));
+  background-image: linear-gradient(to bottom, #3b82f6, #ffffff);
   padding-bottom: 0.5rem;
 }
 
 .selection:hover {
-  --tw-bg-opacity: 1;
-  background-color: rgb(27 28 33 / var(--tw-bg-opacity));
+  background-image: linear-gradient(to bottom, #60a5fa, #ffffff);
 }
 
 .selection p {
@@ -834,7 +832,7 @@ select {
   font-size: 1rem;
   line-height: 1.5rem;
   --tw-text-opacity: 1;
-  color: rgb(255 255 255 / var(--tw-text-opacity));
+  color: rgb(0 0 0 / var(--tw-text-opacity));
 }
 
 .selection img {
@@ -850,19 +848,19 @@ select {
   border-radius: 0.5rem;
   border-width: 2px;
   --tw-border-opacity: 1;
-  border-color: rgb(27 28 33 / var(--tw-border-opacity));
-  --tw-bg-opacity: 1;
-  background-color: rgb(20 21 26 / var(--tw-bg-opacity));
+  border-color: rgb(59 130 246 / var(--tw-border-opacity));
+  background-image: linear-gradient(to bottom, #3b82f6, #ffffff);
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
   text-align: center;
   font-size: 1.125rem;
   line-height: 1.75rem;
+  --tw-text-opacity: 1;
+  color: rgb(0 0 0 / var(--tw-text-opacity));
 }
 
 .selection-button:hover {
-  --tw-bg-opacity: 1;
-  background-color: rgb(27 28 33 / var(--tw-bg-opacity));
+  background-image: linear-gradient(to bottom, #60a5fa, #ffffff);
 }
 
 .animate-spin-slow {
