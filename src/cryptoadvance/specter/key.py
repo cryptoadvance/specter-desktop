@@ -136,10 +136,10 @@ class Key:
 
         # warn user if imported key has derivation path different from xpub's depth
         depth = xpub_bytes[4]
-        if derivation != "" and depth != len(derivation_path):
+        if derivation and depth != (path_depth := len(derivation_path) - 1):
             raise Exception(
                     f"xpup has a depth of {depth} while derivation path "
-                    f"indicates the key is {len(derivation_path)} levels deep"
+                    f"indicates the key is {path_depth} levels deep"
                 )
 
         # infer fingerprint and derivation if depth == 0 or depth == 1
