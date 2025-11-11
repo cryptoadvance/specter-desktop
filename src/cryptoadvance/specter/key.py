@@ -1,10 +1,7 @@
-import logging
 from collections import OrderedDict
 from binascii import hexlify
 from embit import base58
 from .util.xpub import get_xpub_fingerprint
-
-logger = logging.getLogger(__name__)
 
 purposes = OrderedDict(
     {
@@ -140,10 +137,10 @@ class Key:
         # warn user if imported key has derivation path different from xpub's depth
         depth = xpub_bytes[4]
         if derivation != "" and depth != len(derivation_path):
-            logger.warning(
-                f"xpup has a depth of {depth} while derivation path "
-                f"indicates the key is {len(derivation_path)} levels deep"
-            )
+            raise Exception(
+                    f"xpup has a depth of {depth} while derivation path "
+                    f"indicates the key is {len(derivation_path)} levels deep"
+                )
 
         # infer fingerprint and derivation if depth == 0 or depth == 1
         xpub_bytes = base58.decode_check(xpub)
