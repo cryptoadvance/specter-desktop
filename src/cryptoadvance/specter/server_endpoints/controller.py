@@ -58,7 +58,7 @@ app.register_blueprint(setup_endpoint, url_prefix=f"{spc_prefix}/setup")
 app.register_blueprint(wallets_endpoint, url_prefix=f"{spc_prefix}/wallets")
 app.register_blueprint(wallets_endpoint_api, url_prefix=f"{spc_prefix}/wallets")
 
-rand = random.randint(0, 1e32)  # to force style refresh
+rand = random.randint(0, int(1e32))  # to force style refresh
 logger = logging.getLogger(__name__)
 
 ########## exception handlers ##############

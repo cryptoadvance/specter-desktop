@@ -38,7 +38,7 @@ from ..util.tor import start_hidden_service, stop_hidden_services
 
 logger = logging.getLogger(__name__)
 
-rand = random.randint(0, 1e32)  # to force style refresh
+rand = random.randint(0, int(1e32))  # to force style refresh
 
 # Setup endpoint blueprint
 settings_endpoint = Blueprint("settings_endpoint", __name__)
