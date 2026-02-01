@@ -23,8 +23,14 @@ src/cryptoadvance/specter/
 │   └── user_manager.py      # Auth + RBAC
 ├── rpc.py             # Bitcoin Core JSON-RPC client
 ├── persistence.py     # JSON file storage (no SQL)
-├── logic/             # Domain models (Device, Wallet, PSBTView, TxList)
-├── hwi/               # Hardware Wallet Interface bridge
+├── device.py          # Device domain model + HWI glue
+├── wallet/            # Wallet domain logic, descriptors, address/tx helpers
+├── util/
+│   └── psbt.py        # PSBT utilities (parse, analyze, finalize)
+├── devices/
+│   └── hwi/           # HWI-based hardware wallet drivers (Jade, KeepKey, DIY)
+├── hwi_rpc.py         # HWI JSON-RPC wrapper
+├── hwi_server.py      # HWI bridge subprocess (for GUI builds)
 ├── templates/         # Jinja2 HTML templates
 ├── static/            # CSS/JS/images
 └── services/          # Extension system (specterext namespace packages)
@@ -74,9 +80,9 @@ The project uses **three CI providers** for different purposes, plus private Git
 ### GitHub Actions (4 workflows)
 
 1. **Black Python Linter** (`.github/workflows/zblack.yml`) — Runs on every push and PR. Checks `./src` with Black 22.3.0. **Currently failing on `master`.**
-2. **TOC Generator** (`.github/workflows/toc.yml`) — Auto-generates table of contents for README.md, faq.md, development.md on push.
-3. **Docker Push** (`.github/workflows/docker-push.yml`) — Builds multi-arch Docker image (amd64 + arm64) on every push to any branch. Pushes to `ghcr.io/cryptoadvance/specter-desktop:<branch>`.
-4. **Docker Tag** (`.github/workflows/docker-tag.yml`) — Builds multi-arch Docker image on version tags (`v*.*.*`). Pushes to `ghcr.io/cryptoadvance/specter-desktop:<tag>`.
+2. **TOC Generator** (`.github/workflows/toc.yml`) — Auto-generates table of contents for README.md, docs/faq.md, docs/development.md on push.
+3. **Docker Push** (`.github/workflows/docker-push.yml`) — Builds multi-arch Docker image (amd64 + arm64) on every push to any branch. Pushes to `ghcr.io/<owner>/<repo>:<branch>` (upstream: `ghcr.io/cryptoadvance/specter-desktop:<branch>`).
+4. **Docker Tag** (`.github/workflows/docker-tag.yml`) — Builds multi-arch Docker image on version tags (`v*.*.*`). Pushes to `ghcr.io/<owner>/<repo>:<tag>` (upstream: `ghcr.io/cryptoadvance/specter-desktop:<tag>`).
 
 GitHub Actions use standard public runners (`ubuntu-latest` / `ubuntu-24.04`). No private runners needed.
 
@@ -271,9 +277,9 @@ Extensions live in `specterext` namespace packages. Each extension:
 | CLI entry | `src/cryptoadvance/specter/cli/` |
 | Config classes | `src/cryptoadvance/specter/config.py` |
 | RPC client | `src/cryptoadvance/specter/rpc.py` |
-| Wallet model | `src/cryptoadvance/specter/logic/wallet.py` |
-| Device model | `src/cryptoadvance/specter/logic/device.py` |
-| PSBT handling | `src/cryptoadvance/specter/logic/psbt.py` |
+| Wallet model | `src/cryptoadvance/specter/wallet/` |
+| Device model | `src/cryptoadvance/specter/device.py` |
+| PSBT handling | `src/cryptoadvance/specter/util/psbt.py` |
 | All managers | `src/cryptoadvance/specter/managers/` |
 | Templates | `src/cryptoadvance/specter/templates/` |
 | Tests | `tests/` |
