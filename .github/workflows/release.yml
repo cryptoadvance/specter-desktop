@@ -71,7 +71,7 @@ jobs:
           pip install -e ".[test]"
           pip install build==0.10.0
           python3 -m build
-          pip install ./dist/cryptoadvance.specter-*.whl
+          pip install ./dist/cryptoadvance_specter-*.whl
 
       - name: Install PyInstaller requirements
         run: |
@@ -126,7 +126,7 @@ jobs:
           pip install -e ".[test]"
           pip install build==0.10.0
           python -m build
-          pip install ./dist/cryptoadvance.specter-*.whl
+          pip install ./dist/cryptoadvance_specter-*.whl
 
       - name: Install PyInstaller requirements
         shell: bash
@@ -195,7 +195,7 @@ jobs:
           pip install -e ".[test]"
           pip install build==0.10.0
           python3 -m build
-          pip install ./dist/cryptoadvance.specter-*.whl
+          pip install ./dist/cryptoadvance_specter-*.whl
 
       - name: Install PyInstaller requirements
         run: |
@@ -223,7 +223,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: specterd-macos-${{ matrix.arch }}
-          path: release/specterd-*-osx_*.zip
+          path: release/specterd-*-osx*.zip
 
   # ─── 3. Build Electron desktop apps ───────────────────────────────
   build-electron-linux:
@@ -519,7 +519,7 @@ jobs:
           \) -exec cp {} release-files/ \;
 
           # Also include pip source distribution
-          find artifacts/pip-package -type f -name "cryptoadvance.specter-*.tar.gz" \
+          find artifacts/pip-package -type f -name "cryptoadvance_specter-*.tar.gz" \
             -exec cp {} release-files/ \; 2>/dev/null || true
 
           # Generate SHA256SUMS
@@ -571,7 +571,7 @@ jobs:
 
           ## PyPi Packages
 
-          If you're experienced Python user and/or developer, you might appreciate the [pypi-packages](https://pypi.org/project/cryptoadvance.specter/) which are also available on our github-release-page.
+          If you're experienced Python user and/or developer, you might appreciate the [pypi-packages](https://pypi.org/project/cryptoadvance-specter/) which are also available on our github-release-page.
 
           ## Signatures and hashes
 

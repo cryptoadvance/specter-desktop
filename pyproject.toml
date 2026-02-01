@@ -10,7 +10,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cryptoadvance.specter"
+name = "cryptoadvance_specter"
 
 authors = [
   { name="Stepan Snigirev"},
