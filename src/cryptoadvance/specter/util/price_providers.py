@@ -118,7 +118,6 @@ def get_price_at(specter, timestamp="now"):
                 )
             except AttributeError:
                 raise SpecterError(f"Currency not supported: {currency}")
-            print("MUH" + specter.price_provider)
             if exchange not in currency_mapping[currency]["support"]:
                 raise SpecterError(
                     f"The currency {currency} is not supported on exchange {exchange}"
