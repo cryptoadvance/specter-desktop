@@ -1,0 +1,637 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+
+permissions:
+  contents: write
+  id-token: write  # needed for PyPI trusted publishing
+
+env:
+  PYTHON_VERSION: '3.10'
+
+jobs:
+  # ─── 1. Build pip package ──────────────────────────────────────────
+  release-pip:
+    name: Build & publish pip package
+    runs-on: ubuntu-latest
+    environment: release  # for trusted PyPI publishing
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # setuptools_scm needs full history
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install build tools
+        run: pip install build==0.10.0
+
+      - name: Build package
+        run: python3 -m build
+
+      - name: Upload pip artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-package
+          path: dist/*
+
+      - name: Publish to PyPI
+        if: github.repository == 'cryptoadvance/specter-desktop'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        # Uses trusted publishing — no token needed if configured on PyPI
+        # Fallback: set TWINE_PASSWORD secret and use username __token__
+
+  # ─── 2. Build specterd binaries ────────────────────────────────────
+  build-specterd-linux:
+    name: Build specterd (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libusb-1.0-0-dev libudev-dev
+
+      - name: Create virtualenv and install
+        run: |
+          pip install virtualenv
+          virtualenv --python=python${{ env.PYTHON_VERSION }} .buildenv
+          source .buildenv/bin/activate
+          pip install -r requirements.txt --require-hashes
+          pip install -e ".[test]"
+          pip install build==0.10.0
+          python3 -m build
+          pip install ./dist/cryptoadvance_specter-*.whl
+
+      - name: Install PyInstaller requirements
+        run: |
+          source .buildenv/bin/activate
+          pip install -r pyinstaller/requirements.txt --require-hashes
+
+      - name: Build specterd
+        run: |
+          source .buildenv/bin/activate
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "$VERSION" > pyinstaller/version.txt
+          cd pyinstaller
+          pyinstaller specterd.spec
+          cd ..
+
+      - name: Package release
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          mkdir -p release
+          cd pyinstaller/dist
+          cp -r ../../udev ./udev
+          echo "Don't forget to set up udev rules! Check out udev folder for instructions." > README.md
+          zip -r ../../release/specterd-${VERSION}-x86_64-linux-gnu.zip specterd udev README.md
+          cd ../..
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: specterd-linux
+          path: release/specterd-*-linux-gnu.zip
+
+  build-specterd-windows:
+    name: Build specterd (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install and build
+        shell: bash
+        run: |
+          pip install virtualenv
+          virtualenv --python=python${{ env.PYTHON_VERSION }} .buildenv
+          source .buildenv/Scripts/activate
+          pip install colorama  # Windows-only transitive dep of click, not in requirements.txt
+          pip install -r requirements.txt --require-hashes
+          pip install -e ".[test]"
+          pip install build==0.10.0
+          python -m build
+          pip install ./dist/cryptoadvance_specter-*.whl
+
+      - name: Install PyInstaller requirements
+        shell: bash
+        run: |
+          source .buildenv/Scripts/activate
+          cd pyinstaller
+          pip install -r requirements.txt --require-hashes
+
+      - name: Build specterd
+        shell: bash
+        run: |
+          source .buildenv/Scripts/activate
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "$VERSION" > pyinstaller/version.txt
+          cd pyinstaller
+          pyinstaller specterd.spec
+          cd ..
+
+      - name: Package release
+        shell: bash
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          mkdir -p release
+          cd pyinstaller/dist
+          7z a ../../release/specterd-${VERSION}-win64.zip specterd.exe
+          cd ../..
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: specterd-windows
+          path: release/specterd-*-win64.zip
+
+  build-specterd-macos:
+    name: Build specterd (macOS ${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          # x64 builds require a paid macOS runner (macos-13 retired, macos-15-large is paid)
+          # Uncomment when org has paid plan:
+          # - runner: macos-15-large
+          #   arch: x64
+          #   arch_label: osx_x64
+          - runner: macos-14      # Apple Silicon (free tier)
+            arch: arm64
+            arch_label: osx
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install system dependencies
+        run: brew install libusb
+
+      - name: Install and build
+        run: |
+          pip install virtualenv
+          virtualenv --python=python${{ env.PYTHON_VERSION }} .buildenv
+          source .buildenv/bin/activate
+          pip install -r requirements.txt --require-hashes
+          pip install -e ".[test]"
+          pip install build==0.10.0
+          python3 -m build
+          pip install ./dist/cryptoadvance_specter-*.whl
+
+      - name: Install PyInstaller requirements
+        run: |
+          source .buildenv/bin/activate
+          pip install -r pyinstaller/requirements.txt --require-hashes
+
+      - name: Build specterd
+        run: |
+          source .buildenv/bin/activate
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "$VERSION" > pyinstaller/version.txt
+          cd pyinstaller
+          pyinstaller specterd.spec
+          cd ..
+
+      - name: Package release
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          mkdir -p release
+          cd pyinstaller/dist
+          zip -r ../../release/specterd-${VERSION}-${{ matrix.arch_label }}.zip specterd
+          cd ../..
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: specterd-macos-${{ matrix.arch }}
+          path: release/specterd-*-osx*.zip
+
+  # ─── 3. Build Electron desktop apps ───────────────────────────────
+  build-electron-linux:
+    name: Build Electron (Linux)
+    needs: build-specterd-linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libusb-1.0-0-dev libudev-dev
+
+      - name: Install Python packages
+        run: |
+          pip install virtualenv
+          virtualenv --python=python${{ env.PYTHON_VERSION }} .buildenv
+          source .buildenv/bin/activate
+          pip install -r requirements.txt --require-hashes
+          pip install -e ".[test]"
+          pip install -e .
+
+      - name: Download specterd artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: specterd-linux
+          path: ./release-artifacts
+
+      - name: Prepare Electron build
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          source .buildenv/bin/activate
+          mkdir -p pyinstaller/dist
+          cd release-artifacts
+          unzip specterd-${VERSION}-x86_64-linux-gnu.zip -d ../pyinstaller/dist/
+          cd ..
+          cd pyinstaller/electron
+          npm ci
+          node ./set-version $VERSION ../dist/specterd
+          cd ../..
+
+      - name: Build Electron app
+        run: |
+          cd pyinstaller/electron
+          cp -R ../../src/cryptoadvance/specter/static/fonts \
+                ../../src/cryptoadvance/specter/static/output.css \
+                ../../src/cryptoadvance/specter/static/typography.css .
+          npm run dist -- --linux
+          cd ../..
+
+      - name: Package release
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          mkdir -p release
+          cd pyinstaller/electron/dist
+          cp -r ../../../udev ./udev
+          echo "Don't forget to set up udev rules! Check out udev folder for instructions." > README.md
+          tar -czvf ../../../release/specter_desktop-${VERSION}-x86_64-linux-gnu.tar.gz Specter-* udev README.md
+          cd ../../..
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-linux
+          path: release/specter_desktop-*-linux-gnu.tar.gz
+
+  build-electron-windows:
+    name: Build Electron (Windows)
+    needs: build-specterd-windows
+    runs-on: ubuntu-latest
+    container:
+      image: electronuserland/builder:wine
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install system dependencies
+        run: |
+          apt-get update && apt-get install -y unzip
+
+      - name: Download specterd Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: specterd-windows
+          path: ./release-artifacts
+
+      - name: Prepare Electron build
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          mkdir -p pyinstaller/dist
+          cd release-artifacts
+          unzip specterd-${VERSION}-win64.zip -d ../pyinstaller/dist/
+          cd ..
+          cd pyinstaller/electron
+          npm ci
+          node ./set-version.js $VERSION ../dist/specterd.exe
+          cd ../..
+
+      - name: Build Electron app
+        env:
+          HOME: /tmp/electron-home
+        run: |
+          mkdir -p $HOME
+          cd pyinstaller/electron
+          cp -R ../../src/cryptoadvance/specter/static/fonts \
+                ../../src/cryptoadvance/specter/static/output.css \
+                ../../src/cryptoadvance/specter/static/typography.css .
+          npm run dist -- --win
+          cd ../..
+
+      - name: Package release
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          mkdir -p release
+          cp pyinstaller/electron/dist/Specter\ Setup\ *.exe release/Specter-Setup-${VERSION}.exe 2>/dev/null || \
+          cp pyinstaller/electron/dist/*.exe release/Specter-Setup-${VERSION}.exe
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-windows
+          path: release/Specter-Setup-*.exe
+
+  build-electron-macos:
+    name: Build Electron (macOS)
+    needs:
+      - build-specterd-macos
+    runs-on: macos-14  # Apple Silicon for universal builds
+    env:
+      HAVE_APPLE_CERT: ${{ secrets.APPLE_CERTIFICATE_BASE64 != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install system dependencies
+        run: brew install libusb
+
+      - name: Install Python packages
+        run: |
+          pip install virtualenv
+          virtualenv --python=python${{ env.PYTHON_VERSION }} .buildenv
+          source .buildenv/bin/activate
+          pip install -r requirements.txt --require-hashes
+          pip install -e ".[test]"
+          pip install -e .
+
+      - name: Download specterd macOS ARM64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: specterd-macos-arm64
+          path: ./release-artifacts
+
+      - name: Import code signing certificate
+        if: env.HAVE_APPLE_CERT == 'true'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          # Create temporary keychain
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # Import certificate
+          echo "$APPLE_CERTIFICATE" | base64 --decode > $RUNNER_TEMP/certificate.p12
+          security import $RUNNER_TEMP/certificate.p12 \
+            -P "$APPLE_CERTIFICATE_PASSWORD" \
+            -A -t cert -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+          # Import provisioning profile if available
+          if [ -n "${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}" ]; then
+            echo "${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > $RUNNER_TEMP/profile.provisionprofile
+            mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+            cp $RUNNER_TEMP/profile.provisionprofile ~/Library/MobileDevice/Provisioning\ Profiles/
+          fi
+
+      - name: Prepare Electron build
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          source .buildenv/bin/activate
+          mkdir -p pyinstaller/dist
+          cd release-artifacts
+          unzip specterd-${VERSION}-osx.zip -d ../pyinstaller/dist/
+          cd ..
+          cd pyinstaller/electron
+          npm ci
+          node ./set-version $VERSION ../dist/specterd
+          cd ../..
+
+      - name: Patch electron-builder config for CI
+        run: |
+          cd pyinstaller/electron
+          # Update package.json mac config for CI:
+          # - Remove hardcoded provisioning profile path
+          # - If no signing cert, remove identity to build unsigned
+          node -e "
+            const pkg = require('./package.json');
+            delete pkg.build.mac.provisioningProfile;
+            if (!process.env.APPLE_CERTIFICATE) {
+              pkg.build.mac.identity = null;  // build unsigned
+            }
+            require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
+          cd ../..
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+
+      - name: Build Electron app
+        run: |
+          cd pyinstaller/electron
+          cp -R ../../src/cryptoadvance/specter/static/fonts \
+                ../../src/cryptoadvance/specter/static/output.css \
+                ../../src/cryptoadvance/specter/static/typography.css .
+          npm run dist -- --mac
+          cd ../..
+        env:
+          # electron-builder reads these for notarization
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Package release
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          mkdir -p release
+          cp pyinstaller/electron/dist/Specter-*.dmg release/Specter-${VERSION}.dmg 2>/dev/null || true
+          # Fallback: if no DMG, package the .app
+          if [ ! -f release/Specter-${VERSION}.dmg ]; then
+            cd pyinstaller/electron/dist/mac-universal
+            zip -r ../../../../release/Specter-${VERSION}-macos.zip Specter.app
+            cd ../../../..
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-macos
+          path: release/Specter-*
+
+  # ─── 4. Create GitHub Release with all artifacts ───────────────────
+  create-release:
+    name: Create GitHub Release
+    needs:
+      - release-pip
+      - build-specterd-linux
+      - build-specterd-windows
+      - build-specterd-macos
+      - build-electron-linux
+      - build-electron-windows
+      - build-electron-macos
+    runs-on: ubuntu-latest
+    env:
+      HAVE_GPG_KEY: ${{ secrets.GPG_PRIVATE_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Collect release files and generate checksums
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          mkdir -p release-files
+
+          # Collect all release artifacts
+          find artifacts -type f \( \
+            -name "*.zip" -o -name "*.tar.gz" -o -name "*.exe" -o -name "*.dmg" \
+          \) -exec cp {} release-files/ \;
+
+          # Also include pip source distribution
+          find artifacts/pip-package -type f -name "cryptoadvance_specter-*.tar.gz" \
+            -exec cp {} release-files/ \; 2>/dev/null || true
+
+          # Generate SHA256SUMS
+          cd release-files
+          sha256sum * > SHA256SUMS
+          echo "=== SHA256SUMS ==="
+          cat SHA256SUMS
+          cd ..
+
+      - name: GPG sign checksums
+        if: env.HAVE_GPG_KEY == 'true'
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          cd release-files
+          echo "$GPG_PASSPHRASE" | gpg --batch --yes --passphrase-fd 0 \
+            --pinentry-mode loopback --detach-sign --armor SHA256SUMS
+          cd ..
+
+      - name: Generate release body
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          DL="https://github.com/cryptoadvance/specter-desktop/releases/download/${VERSION}"
+
+          cat > release-body.md << EOF
+          *Please create a full backup* before migrating or any major internal changes like switching to an electrum based installation. You can easily create a backup in Settings --> Backup Specter (zip file).
+
+          ## Artifacts
+
+          Specter is available in several forms: as a GUI application, as a binary that can be executed like a web app, and as a PyPI package. Additionally, Specter is available as a Docker image via the awesome [Chiang Mai LN devs](https://github.com/lncm/docker-specter-desktop).
+
+          Signed hashsum files are available for all binaries.
+
+          ## GUI Application
+
+          This is a GUI application with a windowed interface, which includes the Specter server.
+          Supported platforms: [Windows](${DL}/Specter-Setup-${VERSION}.exe), [MacOS](${DL}/Specter-${VERSION}.dmg), [Linux (x86_64)](${DL}/specter_desktop-${VERSION}-x86_64-linux-gnu.tar.gz)
+
+          **Note on Linux**: you need to set up udev rules (included in the archive). Check out the [readme](https://github.com/cryptoadvance/specter-desktop/blob/master/udev/README.md#usage).
+
+          **Note on macOS**: The current build supports only macOS Catalina (10.15) or higher. If you'd like to run Specter on an older macOS version, you can [install Specter from Pip](https://github.com/cryptoadvance/specter-desktop#installing-specter-from-pip).
+
+          ## specterd
+
+          Specterd is a command-line program that runs only the Specter server, behaving like a traditional web application.
+          Supported platforms: [Windows](${DL}/specterd-${VERSION}-win64.zip), [MacOS](${DL}/specterd-${VERSION}-osx.zip), [Linux (x86_64)](${DL}/specterd-${VERSION}-x86_64-linux-gnu.zip)
+
+          ## PyPi Packages
+
+          If you're experienced Python user and/or developer, you might appreciate the [pypi-packages](https://pypi.org/project/cryptoadvance-specter/) which are also available on our github-release-page.
+
+          ## Signatures and hashes
+
+          [SHA256SUMS](${DL}/SHA256SUMS) file contains sha256 hashes of all binary files and signed with "Specter Signer's" GPG key.
+          You can get the public key from [here](http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x785a2269ee3a9736ac1a4f4c864b7cf9a811fef7).
+          Fingerprint of the key is \`785A 2269 EE3A 9736 AC1A 4F4C 864B 7CF9 A811 FEF7\`
+          This key has been signed by @k9ert's key. For more information about Verifying signatures, see, e.g. [this video](https://www.youtube.com/watch?v=lYYsVkOplYc).
+
+          # Release notes
+
+          EOF
+
+          # Strip leading whitespace from heredoc
+          sed -i 's/^          //' release-body.md
+
+      - name: Generate release notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+
+          # Use GitHub API to auto-generate "What's Changed" from merged PRs
+          NOTES=$(gh api repos/${{ github.repository }}/releases/generate-notes \
+            -f tag_name="${VERSION}" \
+            --jq '.body') || true
+
+          if [ -n "$NOTES" ]; then
+            echo "$NOTES" >> release-body.md
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-files/*
+          body_path: release-body.md
+          draft: true  # Draft first, review before publishing
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  trigger-docker:
+    name: Trigger lncm Docker build
+    needs: create-release
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() && needs.create-release.result == 'success' }}
+    steps:
+      - name: Trigger lncm/docker-specter-desktop
+        env:
+          AARON_TOKEN: ${{ secrets.AARON_TRIGGER }}
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+
+          if [ -z "$AARON_TOKEN" ]; then
+            echo "AARON_TRIGGER secret not set, skipping Docker trigger"
+            exit 0
+          fi
+
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${AARON_TOKEN}" \
+            https://api.github.com/repos/lncm/docker-specter-desktop/actions/workflows/dispatch.yml/dispatches \
+            -d "{\"ref\":\"master\", \"inputs\": {\"tag\": \"${VERSION}\"}}"
+
+          echo "Triggered lncm/docker-specter-desktop build for ${VERSION}"
