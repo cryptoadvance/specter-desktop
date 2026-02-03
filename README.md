@@ -64,7 +64,7 @@ At the moment Specter-Desktop is working with all major hardware wallets includi
 - Trezor
 - Ledger
 - KeepKey
-
+- Keycard Shell
 
 We also support using the Bitcoin Core as a hot wallet, by importing or generating a random BIP39 mnemonic, but this feature is experimental and we do not recommend using it at this stage.
 We plan to add support for other hardware wallets as they come up. If you are interested in using Specter with a hardware wallet currently unsupported, let us know by opening an issue here or asking in our [Telegram group](https://t.me/spectersupport).

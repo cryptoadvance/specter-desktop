@@ -13,6 +13,7 @@ from .generic import GenericDevice
 from .bitcoin_core import BitcoinCore, BitcoinCoreWatchOnly
 from .elements_core import ElementsCore
 from .seedsigner import SeedSignerDevice
+from .keycardshell import KeycardShell
 
 # all device types
 __all__ = [
@@ -30,5 +31,6 @@ __all__ = [
     BitcoinCore,
     BitcoinCoreWatchOnly,
     ElementsCore,
+    KeycardShell,
     GenericDevice,
 ]
