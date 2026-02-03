@@ -2,7 +2,6 @@ from collections import OrderedDict
 from binascii import hexlify
 from embit import base58
 from .util.xpub import get_xpub_fingerprint
-from embit.descriptor import Key as DescriptorKey
 
 purposes = OrderedDict(
     {
@@ -93,8 +92,8 @@ class Key:
                     if path[-1] == "h":
                         path = path[:-1]
                     try:
-                        i = int(path)
-                    except:
+                        int(path)
+                    except ValueError:
                         raise Exception("Incorrect index")
                     derivation_path[0] = "m"
                     derivation = "/".join(derivation_path)
@@ -135,9 +134,16 @@ class Key:
                     elif derivation_path[4] == "2h":
                         key_type = "wsh"
 
+        # warn user if imported key has derivation path different from xpub's depth
+        depth = xpub_bytes[4]
+        if derivation and depth != (path_depth := len(derivation_path) - 1):
+            raise Exception(
+                    f"xpup has a depth of {depth} while derivation path "
+                    f"indicates the key is {path_depth} levels deep"
+                )
+
         # infer fingerprint and derivation if depth == 0 or depth == 1
         xpub_bytes = base58.decode_check(xpub)
-        depth = xpub_bytes[4]
         if depth == 0:
             fingerprint = hexlify(get_xpub_fingerprint(xpub)).decode()
             derivation = "m"
