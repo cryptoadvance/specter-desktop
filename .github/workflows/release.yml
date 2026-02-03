@@ -173,7 +173,7 @@ jobs:
           #   arch_label: osx_x64
           - runner: macos-14      # Apple Silicon (free tier)
             arch: arm64
-            arch_label: osx
+            arch_label: osx_arm64
     steps:
       - uses: actions/checkout@v4
         with:
