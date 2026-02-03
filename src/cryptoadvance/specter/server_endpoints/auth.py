@@ -92,7 +92,7 @@ def login_method_rpcpasswordaspin():
             flash(
                 "No RPC connection to Bitcoin Core found. Cannot Log you in.", "error"
             )
-            return redirect(url_for("login"))
+            return redirect(url_for("auth_endpoint.login"))
         conf = confs[0]
         rpc = BitcoinRPC(**conf)
 
@@ -101,7 +101,7 @@ def login_method_rpcpasswordaspin():
         flash(
             "It seems that there is no working RPC connection to Bitcoin Core. Cannot Log you in."
         )
-        return redirect(url_for("login"))
+        return redirect(url_for("auth_endpoint.login"))
     orig_password = rpc.password
     rpc.password = request.form["password"]
     if rpc.password == request.form["password"] and rpc.test_connection():

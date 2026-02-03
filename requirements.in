@@ -33,7 +33,7 @@ aioitertools==0.11.0
 cryptoadvance-liquidissuer==0.2.4
 specterext-exfund==0.1.7
 specterext-faucet==0.1.2
-cryptoadvance.spectrum==0.6.7
+cryptoadvance.spectrum==0.7.0
 specterext-stacktrack==0.3.0
 specterext-timelockrecovery==0.1.8
 
