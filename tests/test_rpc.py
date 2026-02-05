@@ -3,6 +3,7 @@ import logging
 import pytest
 import requests
 from requests import Response
+from unittest.mock import MagicMock
 from cryptoadvance.specter.rpc import (
     BitcoinRPC,
     RpcError,
@@ -260,44 +261,34 @@ def test_BitcoinRpc_timeout(rpc, caplog):
 
 def test_BitcoinRpc_malformed_response():
     """Test handling of malformed RPC responses"""
-    from unittest.mock import MagicMock
-    
     # Create a mock RPC instance
     rpc = BitcoinRPC("user", "pass", "127.0.0.1", 8332)
     
     # Test 1: Response is not a dict (e.g., a string)
     rpc.multi = MagicMock(return_value=["not a dict"])
-    try:
+    with pytest.raises(RpcError) as exc_info:
         rpc.getblockchaininfo()
-        assert False, "Should have raised RpcError"
-    except RpcError as e:
-        assert "Invalid response format" in str(e)
-        assert "expected dict" in str(e)
+    assert "Invalid response format" in str(exc_info.value)
+    assert "expected dict" in str(exc_info.value)
     
     # Test 2: Response dict has error but error is not a dict
     rpc.multi = MagicMock(return_value=[{"error": "plain string error"}])
-    try:
+    with pytest.raises(RpcError) as exc_info:
         rpc.getblockchaininfo()
-        assert False, "Should have raised RpcError"
-    except RpcError as e:
-        assert "plain string error" in str(e)
+    assert "plain string error" in str(exc_info.value)
     
     # Test 3: Response dict has error dict but missing 'message' key
     rpc.multi = MagicMock(return_value=[{"error": {"code": -1}}])
-    try:
+    with pytest.raises(RpcError) as exc_info:
         rpc.getblockchaininfo()
-        assert False, "Should have raised RpcError"
-    except RpcError as e:
-        # Should handle missing message gracefully
-        assert "getblockchaininfo" in str(e)
+    # Should handle missing message gracefully
+    assert "getblockchaininfo" in str(exc_info.value)
     
     # Test 4: Response dict missing both 'error' and 'result' keys
     rpc.multi = MagicMock(return_value=[{}])
-    try:
+    with pytest.raises(RpcError) as exc_info:
         rpc.getblockchaininfo()
-        assert False, "Should have raised RpcError"
-    except RpcError as e:
-        assert "missing 'result' field" in str(e)
+    assert "missing 'result' field" in str(exc_info.value)
     
     # Test 5: Valid response with error=None should work
     rpc.multi = MagicMock(return_value=[{"error": None, "result": {"blocks": 100}}])
