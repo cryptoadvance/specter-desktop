@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 hwi_server = Blueprint("hwi_server", __name__)
 CORS(hwi_server)
-rand = random.randint(0, int(1e32))  # to force style refresh
+rand = random.randint(0, 1e32)  # to force style refresh
 
 
 @hwi_server.route("/", methods=["GET"])
