@@ -258,6 +258,58 @@ def test_BitcoinRpc_timeout(rpc, caplog):
         BitcoinRPC.default_timeout = None
 
 
+def test_BitcoinRpc_malformed_response():
+    """Test handling of malformed RPC responses"""
+    from unittest.mock import MagicMock
+    
+    # Create a mock RPC instance
+    rpc = BitcoinRPC("user", "pass", "127.0.0.1", 8332)
+    
+    # Test 1: Response is not a dict (e.g., a string)
+    rpc.multi = MagicMock(return_value=["not a dict"])
+    try:
+        rpc.getblockchaininfo()
+        assert False, "Should have raised RpcError"
+    except RpcError as e:
+        assert "Invalid response format" in str(e)
+        assert "expected dict" in str(e)
+    
+    # Test 2: Response dict has error but error is not a dict
+    rpc.multi = MagicMock(return_value=[{"error": "plain string error"}])
+    try:
+        rpc.getblockchaininfo()
+        assert False, "Should have raised RpcError"
+    except RpcError as e:
+        assert "plain string error" in str(e)
+    
+    # Test 3: Response dict has error dict but missing 'message' key
+    rpc.multi = MagicMock(return_value=[{"error": {"code": -1}}])
+    try:
+        rpc.getblockchaininfo()
+        assert False, "Should have raised RpcError"
+    except RpcError as e:
+        # Should handle missing message gracefully
+        assert "getblockchaininfo" in str(e)
+    
+    # Test 4: Response dict missing both 'error' and 'result' keys
+    rpc.multi = MagicMock(return_value=[{}])
+    try:
+        rpc.getblockchaininfo()
+        assert False, "Should have raised RpcError"
+    except RpcError as e:
+        assert "missing 'result' field" in str(e)
+    
+    # Test 5: Valid response with error=None should work
+    rpc.multi = MagicMock(return_value=[{"error": None, "result": {"blocks": 100}}])
+    result = rpc.getblockchaininfo()
+    assert result == {"blocks": 100}
+    
+    # Test 6: Valid response without error key should work
+    rpc.multi = MagicMock(return_value=[{"result": {"blocks": 200}}])
+    result = rpc.getblockchaininfo()
+    assert result == {"blocks": 200}
+
+
 @pytest.fixture
 def rpc(bitcoin_regtest):
     brt = bitcoin_regtest  # stupid long name
