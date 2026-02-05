@@ -154,10 +154,11 @@ def test_validate_network_for_chain():
     # The error message should mention embit library needs updating
     assert "embit library" in error
     
-    # Test another unsupported chain
+    # Test another unsupported chain - should have same error format
     unknown_net = get_network("some_unknown_chain")
     is_valid, error = validate_network_for_chain("some_unknown_chain", unknown_net)
     assert not is_valid
     assert "some_unknown_chain" in error
     assert "not recognized" in error
+    assert "embit library" in error
 
