@@ -151,7 +151,8 @@ def test_validate_network_for_chain():
     assert not is_valid
     assert "testnet4" in error
     assert "not recognized" in error
-    assert "testnet4 support requires updating" in error or "embit" in error
+    # The error message should mention embit library needs updating
+    assert "embit library" in error
     
     # Test another unsupported chain
     unknown_net = get_network("some_unknown_chain")

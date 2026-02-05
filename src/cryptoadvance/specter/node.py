@@ -225,8 +225,12 @@ class AbstractNode(NonExistingNode):
             # Validate network parameters match the chain
             is_valid, error_msg = validate_network_for_chain(chain_value, network_params)
             if not is_valid:
-                logger.warning(f"Network validation failed: {error_msg}")
-                # For node, we log but don't raise - just return main as fallback
+                logger.warning(
+                    f"Unsupported chain '{chain_value}' detected. {error_msg} "
+                    "Wallet operations may fail with this chain configuration."
+                )
+                # Return safe fallback to prevent crashes during node info display
+                # Actual wallet operations will fail with clear error from Wallet.network
                 return get_network("main")
             return network_params
         return get_network("main")
@@ -555,9 +559,12 @@ class Node(AbstractNode):
                 network_params = get_network(chain_value)
                 is_valid, error_msg = validate_network_for_chain(chain_value, network_params)
                 if not is_valid:
-                    logger.warning(f"Network validation warning for chain '{chain_value}': {error_msg}")
-                    # Store error state but continue - wallet operations will fail with clear error
-                    self._network_parameters = get_network("main")  # Safe fallback
+                    logger.warning(
+                        f"Unsupported chain '{chain_value}' detected. {error_msg} "
+                        "Node info will display but wallet operations will fail."
+                    )
+                    # Use safe fallback for node display, but wallets will enforce validation
+                    self._network_parameters = get_network("main")
                 else:
                     self._network_parameters = network_params
                 self._is_running = True
