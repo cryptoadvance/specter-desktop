@@ -1,8 +1,11 @@
 from asyncio.streams import FlowControlMixin
+import json
 import random
+import re
 import time
 from typing import List
 import pytest, logging
+from embit.descriptor import Descriptor as EmbitDescriptor
 from cryptoadvance.specter.util.psbt import SpecterPSBT
 from cryptoadvance.specter.commands.psbt_creator import PsbtCreator
 from cryptoadvance.specter.wallet.txlist import WalletAwareTxItem
@@ -381,8 +384,6 @@ def test_account_map_combined_descriptor(funded_hot_wallet_1: Wallet):
     wallet = funded_hot_wallet_1
     
     # Parse the account_map JSON
-    import json
-    import re
     account_map_dict = json.loads(wallet.account_map)
     
     # Check that descriptor key exists
@@ -413,8 +414,7 @@ def test_account_map_combined_descriptor(funded_hot_wallet_1: Wallet):
     )
     
     # Verify the descriptor can be parsed and has 2 branches
-    from embit.descriptor import Descriptor
-    parsed_desc = Descriptor.from_string(descriptor_str)
+    parsed_desc = EmbitDescriptor.from_string(descriptor_str)
     assert parsed_desc.num_branches == 2, (
         f"Descriptor should have 2 branches (receive and change), "
         f"got {parsed_desc.num_branches}"
