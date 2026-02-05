@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 
 import requests
 from embit.descriptor import Descriptor
@@ -520,8 +521,9 @@ class WalletImporter:
             
             # Handle combined descriptors with <0;1> syntax (BIP 389 multipath)
             # Convert to receive-only descriptor for backward compatibility with import logic
+            # Only replace <0;1> in the final derivation path (before /*), not in key paths
             if recv_descriptor and "<0;1>" in recv_descriptor:
-                recv_descriptor = recv_descriptor.replace("<0;1>", "0")
+                recv_descriptor = re.sub(r'<0;1>(/\*)', r'0\1', recv_descriptor)
 
         if wallet_name is None:
             raise SpecterError(
