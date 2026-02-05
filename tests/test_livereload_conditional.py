@@ -34,20 +34,20 @@ def test_livereload_in_developmentconfig(empty_data_folder):
     # Create app with DevelopmentConfig and minimal specter instance
     specter = Specter(data_folder=empty_data_folder, checker_threads=False)
     app = create_app(config='DevelopmentConfig')
-    app.app_context().push()
     app.config["TESTING"] = True
     app.testing = True
     app.tor_service_id = None
     app.tor_enabled = False
-    init_app(app, specter=specter)
     
-    client = app.test_client()
-    
-    # Get the welcome page (which uses base.jinja)
-    result = client.get("/", follow_redirects=True)
-    assert result.status_code == 200
-    
-    # Verify that livereload.js script IS in the response
-    response_text = result.data.decode('utf-8')
-    assert '35729/livereload.js' in response_text, \
-        "livereload.js SHOULD be included in DevelopmentConfig"
+    with app.app_context():
+        init_app(app, specter=specter)
+        client = app.test_client()
+        
+        # Get the welcome page (which uses base.jinja)
+        result = client.get("/", follow_redirects=True)
+        assert result.status_code == 200
+        
+        # Verify that livereload.js script IS in the response
+        response_text = result.data.decode('utf-8')
+        assert '35729/livereload.js' in response_text, \
+            "livereload.js SHOULD be included in DevelopmentConfig"
