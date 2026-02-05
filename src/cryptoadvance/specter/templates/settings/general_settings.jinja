@@ -150,6 +150,7 @@
 					</div>
 				</text-explainer>
 
+				{% if "spectrum" in specter.service_manager.services %}
 				<text-explainer class="p-3">
 					<span slot="title" class="cursor-pointer">{{ _("Support Tools") }} </span>
 					<div slot="content" class="mt-3">
@@ -158,6 +159,7 @@
 						</a>
 					</div>
 				</text-explainer>
+				{% endif %}
 
 				<div class="mt-8">
 					<button type="submit" class="button bg-accent text-white" name="action" value="save">{{ _("Save") }}</button>
