@@ -367,3 +367,55 @@ def test_multiple_outputs_in_one_tx(
     assert full_utxo[1]["amount"] == 2
     assert full_utxo[2]["amount"] == 3
     assert full_utxo[3]["amount"] == 20
+
+
+@pytest.mark.slow
+def test_account_map_combined_descriptor(funded_hot_wallet_1: Wallet):
+    """
+    Test that account_map property returns a combined descriptor with <0;1> syntax
+    instead of just the receive descriptor with /0/*
+    
+    Issue: https://github.com/cryptoadvance/specter-desktop/issues/XXXX
+    When exporting wallets, only the receive descriptor /0/* was included,
+    but it should include both receive and change addresses using multipath descriptors.
+    """
+    wallet = funded_hot_wallet_1
+    
+    # Parse the account_map JSON
+    import json
+    account_map_dict = json.loads(wallet.account_map)
+    
+    # Check that descriptor key exists
+    assert "descriptor" in account_map_dict
+    descriptor_str = account_map_dict["descriptor"]
+    
+    # The descriptor should use BIP 389 multipath syntax <0;1>
+    # not just the receive path /0/*
+    assert "<0;1>" in descriptor_str, (
+        f"Expected descriptor with <0;1> multipath syntax, "
+        f"but got: {descriptor_str}"
+    )
+    
+    # Should not have single-branch /0/* or /1/* in the descriptor
+    # (unless it's part of the origin path which doesn't have * after it)
+    assert not descriptor_str.endswith("/0/*#"), (
+        f"Descriptor should not end with /0/* (receive only), "
+        f"got: {descriptor_str}"
+    )
+    assert not descriptor_str.endswith("/1/*#"), (
+        f"Descriptor should not end with /1/* (change only), "
+        f"got: {descriptor_str}"
+    )
+    
+    # Verify it has a checksum (format: descriptor#checksum)
+    assert "#" in descriptor_str, (
+        f"Descriptor should have a checksum, got: {descriptor_str}"
+    )
+    
+    # Verify the descriptor can be parsed and has 2 branches
+    from embit.descriptor import Descriptor
+    parsed_desc = Descriptor.from_string(descriptor_str)
+    assert parsed_desc.num_branches == 2, (
+        f"Descriptor should have 2 branches (receive and change), "
+        f"got {parsed_desc.num_branches}"
+    )
