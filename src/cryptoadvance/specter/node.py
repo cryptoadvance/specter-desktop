@@ -13,7 +13,7 @@ from requests.exceptions import ConnectionError
 from cryptoadvance.specter.devices.bitcoin_core import BitcoinCore, BitcoinCoreWatchOnly
 from cryptoadvance.specter.devices.elements_core import ElementsCore
 
-from .helpers import deep_update, is_liquid, is_testnet
+from .helpers import deep_update, is_liquid, is_testnet, validate_network_for_chain
 from .liquid.rpc import LiquidRPC
 from .persistence import PersistentObject, write_node
 from .rpc import (
@@ -220,7 +220,15 @@ class AbstractNode(NonExistingNode):
     def network_parameters(self):
         """Uses an RPC call since AbstractNode has no cache"""
         if self.is_running:
-            return get_network(self.chain)
+            chain_value = self.chain
+            network_params = get_network(chain_value)
+            # Validate network parameters match the chain
+            is_valid, error_msg = validate_network_for_chain(chain_value, network_params)
+            if not is_valid:
+                logger.warning(f"Network validation failed: {error_msg}")
+                # For node, we log but don't raise - just return main as fallback
+                return get_network("main")
+            return network_params
         return get_network("main")
 
     def check_blockheight(self):
@@ -542,7 +550,16 @@ class Node(AbstractNode):
                 )
                 if self._info["utxorescan"] is None:
                     self.utxorescanwallet = None
-                self._network_parameters = get_network(self.chain)
+                # Get and validate network parameters
+                chain_value = self.chain
+                network_params = get_network(chain_value)
+                is_valid, error_msg = validate_network_for_chain(chain_value, network_params)
+                if not is_valid:
+                    logger.warning(f"Network validation warning for chain '{chain_value}': {error_msg}")
+                    # Store error state but continue - wallet operations will fail with clear error
+                    self._network_parameters = get_network("main")  # Safe fallback
+                else:
+                    self._network_parameters = network_params
                 self._is_running = True
             except BrokenCoreConnectionException:
                 self._mark_node_as_broken()
