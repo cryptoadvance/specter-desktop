@@ -1,4 +1,3 @@
-from asyncio.streams import FlowControlMixin
 import json
 import random
 import re
@@ -399,11 +398,13 @@ def test_account_map_combined_descriptor(funded_hot_wallet_1: Wallet):
     
     # Should not have single-branch /0/* or /1/* in the descriptor
     # Check that it doesn't end with /0/* followed by checksum or /1/* followed by checksum
-    assert not re.search(r'/0/\*#[a-z0-9]+$', descriptor_str), (
+    # Note: Descriptor checksums use charset "qpzry9x8gf2tvdw0s3jn54khce6mua7l" (lowercase + digits only)
+    # but we include uppercase for future-proofing
+    assert not re.search(r'/0/\*#[a-zA-Z0-9]+$', descriptor_str), (
         f"Descriptor should not end with /0/* (receive only), "
         f"got: {descriptor_str}"
     )
-    assert not re.search(r'/1/\*#[a-z0-9]+$', descriptor_str), (
+    assert not re.search(r'/1/\*#[a-zA-Z0-9]+$', descriptor_str), (
         f"Descriptor should not end with /1/* (change only), "
         f"got: {descriptor_str}"
     )
