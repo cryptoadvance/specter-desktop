@@ -76,6 +76,36 @@ def test_get_classlist_from_importlist(caplog):
     assert BitBox02 in classlist
 
 
+def test_get_classlist_skips_missing_module(caplog):
+    """Missing extensions should be skipped with a warning, not crash the app.
+    Regression test for #2496."""
+    caplog.set_level(logging.WARNING)
+    modulelist = [
+        "cryptoadvance.specterext.swan.service",
+        "cryptoadvance.specterext.nonexistent_extension.service",
+        "cryptoadvance.specterext.devhelp.service",
+    ]
+    classlist = get_classlist_of_type_clazz_from_modulelist(Service, modulelist)
+    # Should load swan and devhelp, skip the missing one
+    assert SwanService in classlist
+    assert DevhelpService in classlist
+    assert len(classlist) == 2
+    # Should have logged a warning about the missing module
+    assert "Skipping extension" in caplog.text
+    assert "nonexistent_extension" in caplog.text
+
+
+def test_get_classlist_skips_missing_module_empty_list(caplog):
+    """If ALL modules are missing, should return empty list, not crash."""
+    caplog.set_level(logging.WARNING)
+    modulelist = [
+        "cryptoadvance.specterext.totally_fake.service",
+    ]
+    classlist = get_classlist_of_type_clazz_from_modulelist(Service, modulelist)
+    assert classlist == []
+    assert "Skipping extension" in caplog.text
+
+
 def test_get_subclasses_for_clazz_in_cwd(caplog):
     caplog.set_level(logging.DEBUG)
     classlist: List[type] = get_subclasses_for_clazz_in_cwd(
