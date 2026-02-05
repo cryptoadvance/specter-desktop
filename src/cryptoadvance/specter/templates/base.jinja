@@ -13,7 +13,9 @@
 		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='typography.css') }}?{{rand}}">
 		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='output.css') }}?{{rand}}">
 
+		{% if config.SPECTER_CONFIGURATION_CLASS_FULLNAME and 'DevelopmentConfig' in config.SPECTER_CONFIGURATION_CLASS_FULLNAME %}
 		<script>document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1"></' + 'script>')</script>
+		{% endif %}
 		<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
 
 		{% include "includes/helpers.jinja" %}
