@@ -375,7 +375,6 @@ def test_account_map_combined_descriptor(funded_hot_wallet_1: Wallet):
     Test that account_map property returns a combined descriptor with <0;1> syntax
     instead of just the receive descriptor with /0/*
     
-    Issue: https://github.com/cryptoadvance/specter-desktop/issues/XXXX
     When exporting wallets, only the receive descriptor /0/* was included,
     but it should include both receive and change addresses using multipath descriptors.
     """
@@ -383,6 +382,7 @@ def test_account_map_combined_descriptor(funded_hot_wallet_1: Wallet):
     
     # Parse the account_map JSON
     import json
+    import re
     account_map_dict = json.loads(wallet.account_map)
     
     # Check that descriptor key exists
@@ -397,12 +397,12 @@ def test_account_map_combined_descriptor(funded_hot_wallet_1: Wallet):
     )
     
     # Should not have single-branch /0/* or /1/* in the descriptor
-    # (unless it's part of the origin path which doesn't have * after it)
-    assert not descriptor_str.endswith("/0/*#"), (
+    # Check that it doesn't end with /0/* followed by checksum or /1/* followed by checksum
+    assert not re.search(r'/0/\*#[a-z0-9]+$', descriptor_str), (
         f"Descriptor should not end with /0/* (receive only), "
         f"got: {descriptor_str}"
     )
-    assert not descriptor_str.endswith("/1/*#"), (
+    assert not re.search(r'/1/\*#[a-z0-9]+$', descriptor_str), (
         f"Descriptor should not end with /1/* (change only), "
         f"got: {descriptor_str}"
     )
