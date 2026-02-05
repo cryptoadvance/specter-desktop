@@ -24,7 +24,7 @@ from ..server_endpoints import flash
 
 logger = logging.getLogger(__name__)
 
-rand = random.randint(0, 1e32)  # to force style refresh
+rand = random.randint(0, int(1e32))  # to force style refresh
 
 # Setup endpoint blueprint
 nodes_endpoint = Blueprint("nodes_endpoint", __name__)
