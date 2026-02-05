@@ -517,6 +517,11 @@ class WalletImporter:
 
             wallet_name = wallet_data.get("label", "Imported Wallet")
             recv_descriptor = wallet_data.get("descriptor", None)
+            
+            # Handle combined descriptors with <0;1> syntax (BIP 389 multipath)
+            # Convert to receive-only descriptor for backward compatibility with import logic
+            if recv_descriptor and "<0;1>" in recv_descriptor:
+                recv_descriptor = recv_descriptor.replace("<0;1>", "0")
 
         if wallet_name is None:
             raise SpecterError(
