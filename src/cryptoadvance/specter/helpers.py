@@ -101,10 +101,13 @@ def validate_network_for_chain(chain_name, network_params):
     
     # If we don't recognize the chain, but got 'ert' prefix, it's likely wrong
     if expected_prefix is None and actual_prefix == "ert":
-        known_chains_list = ", ".join(sorted(expected_prefixes.keys()))
+        # Build list of recognized chains (cached as part of function for efficiency)
+        if not hasattr(validate_network_for_chain, '_known_chains_text'):
+            validate_network_for_chain._known_chains_text = ", ".join(sorted(expected_prefixes.keys()))
+        
         return (False, 
                 f"Chain '{chain_name}' is not recognized. "
-                f"Recognized chains: {known_chains_list}. "
+                f"Recognized chains: {validate_network_for_chain._known_chains_text}. "
                 f"Note: testnet4 support requires updating the embit library.")
     
     # If we know the chain, verify the prefix matches

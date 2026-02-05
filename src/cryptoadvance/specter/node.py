@@ -230,9 +230,11 @@ class AbstractNode(NonExistingNode):
                     "Wallet operations may fail with this chain configuration."
                 )
                 # Return safe fallback to prevent crashes during node info display
+                # Use 'main' as it's the most stable/tested network in the codebase
                 # Actual wallet operations will fail with clear error from Wallet.network
                 return get_network("main")
             return network_params
+        # Default to 'main' when node is not running - safe, stable fallback
         return get_network("main")
 
     def check_blockheight(self):
