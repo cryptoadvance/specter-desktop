@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class FeeEstimationResult:
-    """A tiny object to pass the Fee Estimation Results around including a list of errors which might have occured"""
+    """A tiny object to pass the Fee Estimation Results around including a list of errors which might have occurred"""
 
     def __init__(self, result):
         self.result = result
