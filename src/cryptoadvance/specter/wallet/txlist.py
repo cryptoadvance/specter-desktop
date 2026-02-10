@@ -568,7 +568,7 @@ class TxList(dict, AbstractTxListContext):
         full=True will add a "hex" key
         decode=True will decode transaction similar to Core's decoderawtransaction
         """
-        # if we don't know blockheigth or transaction
+        # if we don't know blockheight or transaction
         # we invalidate which results in asking core
         if txid in self and self[txid]["blockheight"] == None:
             self.invalidate(txid)

@@ -16,8 +16,8 @@ class WebsocketServer:
     """
     A forever lived websockets server in a different thread.
     The server has 2 main functions:
-    1. Recieve messages from webbrowser websocket connections and call notification_manager.create_and_show
-    2. Recieve messages (notifications) from python websocket connection (broadcaster) and send them to the webbrowser websocket connections
+    1. Receive messages from webbrowser websocket connections and call notification_manager.create_and_show
+    2. Receive messages (notifications) from python websocket connection (broadcaster) and send them to the webbrowser websocket connections
     Each message must contain a user_token, which is checked against user_manager.user.websocket_token to make sure this is a legitimate user.
     Otherwise the user_token will not be found in user_manager.user.websocket_token and rejected.
     Before the python websocket connection is established, the set_as_broadcaster method should be called to inform self that this user_token will be a broadcaster
@@ -269,12 +269,12 @@ class WebsocketServer:
         if user_token in self.get_broadcaster_tokens():
             if self.verbose_debug:
                 logger.debug(
-                    f"message from user with broadcaster_token recieved. Sending to websockets"
+                    f"message from user with broadcaster_token received. Sending to websockets"
                 )
             self._send_to_websockets(message_dictionary, user_token)
         elif user:
             if self.verbose_debug:
-                logger.debug(f"message from user recieved. Creating Notification")
+                logger.debug(f"message from user received. Creating Notification")
             self._create_notification(message_dictionary, user)
         else:
             logger.warning(
