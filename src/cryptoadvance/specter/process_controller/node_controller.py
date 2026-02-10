@@ -49,7 +49,7 @@ class Btcd_conn:
     @property
     def ipaddress(self):
         if self._ipaddress is None:
-            raise Exception("ipadress is none")
+            raise Exception("ip_address is none")
         else:
             return self._ipaddress
 

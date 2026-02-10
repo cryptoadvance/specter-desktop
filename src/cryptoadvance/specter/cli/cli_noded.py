@@ -397,7 +397,7 @@ def endless_loop(
             break
         except Exception as e:
             logger.debug(
-                f"Caught {e.__module__}, Couldn't mine, assume SIGTERM occured => exiting!"
+                f"Caught {e.__module__}, Couldn't mine, assume SIGTERM occurred => exiting!"
             )
             break
     if prevent_mining_file.is_file():
