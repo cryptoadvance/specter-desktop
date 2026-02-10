@@ -949,8 +949,7 @@ class Wallet(AbstractWallet):
                     )
                 except Exception as e:
                     # UTXO was spent
-                    print(e)
-                    pass
+                    logger.debug("Failed to lock UTXO %s: %s", utxo, e)
                 logger.info(f"Freeze {utxo}")
                 self.frozen_utxo.append(utxo)
             utxo_list_done.append(utxo)
