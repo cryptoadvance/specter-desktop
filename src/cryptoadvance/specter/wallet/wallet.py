@@ -1147,7 +1147,7 @@ class Wallet(AbstractWallet):
         account_map_dict = {
             "label": self.name,
             "blockheight": self.blockheight,
-            "descriptor": self.recv_descriptor,
+            "descriptor": add_checksum(self.descriptor.to_string()),
             "devices": [{"type": d.device_type, "label": d.name} for d in self.devices],
         }
         return json.dumps(account_map_dict)

@@ -1,8 +1,10 @@
-from asyncio.streams import FlowControlMixin
+import json
 import random
+import re
 import time
 from typing import List
 import pytest, logging
+from embit.descriptor import Descriptor as EmbitDescriptor
 from cryptoadvance.specter.util.psbt import SpecterPSBT
 from cryptoadvance.specter.commands.psbt_creator import PsbtCreator
 from cryptoadvance.specter.wallet.txlist import WalletAwareTxItem
@@ -367,3 +369,54 @@ def test_multiple_outputs_in_one_tx(
     assert full_utxo[1]["amount"] == 2
     assert full_utxo[2]["amount"] == 3
     assert full_utxo[3]["amount"] == 20
+
+
+@pytest.mark.slow
+def test_account_map_combined_descriptor(funded_hot_wallet_1: Wallet):
+    """
+    Test that account_map property returns a combined descriptor with <0;1> syntax
+    instead of just the receive descriptor with /0/*
+    
+    When exporting wallets, only the receive descriptor /0/* was included,
+    but it should include both receive and change addresses using multipath descriptors.
+    """
+    wallet = funded_hot_wallet_1
+    
+    # Parse the account_map JSON
+    account_map_dict = json.loads(wallet.account_map)
+    
+    # Check that descriptor key exists
+    assert "descriptor" in account_map_dict
+    descriptor_str = account_map_dict["descriptor"]
+    
+    # The descriptor should use BIP 389 multipath syntax <0;1>
+    # not just the receive path /0/*
+    assert "<0;1>" in descriptor_str, (
+        f"Expected descriptor with <0;1> multipath syntax, "
+        f"but got: {descriptor_str}"
+    )
+    
+    # Should not have single-branch /0/* or /1/* in the descriptor
+    # Check that it doesn't end with /0/* followed by checksum or /1/* followed by checksum
+    # Note: Descriptor checksums use charset "qpzry9x8gf2tvdw0s3jn54khce6mua7l" (lowercase + digits only)
+    # but we include uppercase for future-proofing
+    assert not re.search(r'/0/\*#[a-zA-Z0-9]+$', descriptor_str), (
+        f"Descriptor should not end with /0/* (receive only), "
+        f"got: {descriptor_str}"
+    )
+    assert not re.search(r'/1/\*#[a-zA-Z0-9]+$', descriptor_str), (
+        f"Descriptor should not end with /1/* (change only), "
+        f"got: {descriptor_str}"
+    )
+    
+    # Verify it has a checksum (format: descriptor#checksum)
+    assert "#" in descriptor_str, (
+        f"Descriptor should have a checksum, got: {descriptor_str}"
+    )
+    
+    # Verify the descriptor can be parsed and has 2 branches
+    parsed_desc = EmbitDescriptor.from_string(descriptor_str)
+    assert parsed_desc.num_branches == 2, (
+        f"Descriptor should have 2 branches (receive and change), "
+        f"got {parsed_desc.num_branches}"
+    )
