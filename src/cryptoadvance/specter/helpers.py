@@ -68,6 +68,57 @@ def is_liquid(chain):
     return chain in ["liquidv1", "liquidtestnet", "elementsregtest", "elreg"]
 
 
+def validate_network_for_chain(chain_name, network_params):
+    """
+    Validates that network parameters match the expected chain.
+    
+    When embit's get_network() receives an unknown chain, it defaults to 
+    elementsregtest which has 'ert' bech32 prefix. This causes Bitcoin wallets
+    to generate Liquid addresses, breaking compatibility with Bitcoin Core.
+    
+    Args:
+        chain_name: The chain name from getblockchaininfo (e.g., 'test', 'testnet4')
+        network_params: The network dict returned by get_network()
+    
+    Returns:
+        tuple: (is_valid, error_message)
+    """
+    # Map chains to expected bech32 prefixes
+    expected_prefixes = {
+        "main": "bc",
+        "test": "tb",
+        "regtest": "bcrt",
+        "signet": "tb",
+        # Liquid chains
+        "liquidv1": "ex",
+        "liquidtestnet": "tex",
+        "elementsregtest": "ert",
+        "elreg": "ert",
+    }
+    
+    actual_prefix = network_params.get("bech32", "")
+    expected_prefix = expected_prefixes.get(chain_name)
+    
+    # If we don't recognize the chain, but got 'ert' prefix, it's likely wrong
+    if expected_prefix is None and actual_prefix == "ert":
+        # Build list of recognized chains (cached as part of function for efficiency)
+        if not hasattr(validate_network_for_chain, '_known_chains_text'):
+            validate_network_for_chain._known_chains_text = ", ".join(sorted(expected_prefixes.keys()))
+        
+        return (False, 
+                f"Chain '{chain_name}' is not recognized. "
+                f"Recognized chains: {validate_network_for_chain._known_chains_text}. "
+                f"Note: testnet4 support requires updating the embit library.")
+    
+    # If we know the chain, verify the prefix matches
+    if expected_prefix is not None and actual_prefix != expected_prefix:
+        return (False,
+                f"Network configuration mismatch for chain '{chain_name}': "
+                f"expected prefix '{expected_prefix}', got '{actual_prefix}'")
+    
+    return (True, None)
+
+
 def normalize_address(addr: str) -> str:
     """
     Normalized address to canonical form.

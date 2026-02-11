@@ -4,7 +4,9 @@ from cryptoadvance.specter.helpers import (
     load_jsons,
     is_ip_private,
     create_unique_id,
+    validate_network_for_chain,
 )
+from embit.liquid.networks import get_network
 
 logger = logging.getLogger(__name__)
 
@@ -116,3 +118,47 @@ def test_create_unique_id():
     assert not all(
         create_unique_id(name) == "ghost_wallet" for name in not_the_same_unique_names
     )
+
+
+def test_validate_network_for_chain():
+    """Test chain validation against network parameters"""
+    
+    # Test valid Bitcoin chains
+    main_net = get_network("main")
+    is_valid, error = validate_network_for_chain("main", main_net)
+    assert is_valid
+    assert error is None
+    
+    test_net = get_network("test")
+    is_valid, error = validate_network_for_chain("test", test_net)
+    assert is_valid
+    assert error is None
+    
+    regtest_net = get_network("regtest")
+    is_valid, error = validate_network_for_chain("regtest", regtest_net)
+    assert is_valid
+    assert error is None
+    
+    # Test valid Liquid chains
+    liquid_net = get_network("liquidv1")
+    is_valid, error = validate_network_for_chain("liquidv1", liquid_net)
+    assert is_valid
+    assert error is None
+    
+    # Test unsupported chain (testnet4) - embit returns elementsregtest by default
+    testnet4_net = get_network("testnet4")
+    is_valid, error = validate_network_for_chain("testnet4", testnet4_net)
+    assert not is_valid
+    assert "testnet4" in error
+    assert "not recognized" in error
+    # The error message should mention embit library needs updating
+    assert "embit library" in error
+    
+    # Test another unsupported chain - should have same error format
+    unknown_net = get_network("some_unknown_chain")
+    is_valid, error = validate_network_for_chain("some_unknown_chain", unknown_net)
+    assert not is_valid
+    assert "some_unknown_chain" in error
+    assert "not recognized" in error
+    assert "embit library" in error
+
