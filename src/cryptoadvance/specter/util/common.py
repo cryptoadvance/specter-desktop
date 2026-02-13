@@ -4,8 +4,6 @@ from datetime import datetime
 import json
 from flask_babel.speaklater import LazyString
 from typing import Union
-from distutils.util import strtobool
-
 logger = logging.getLogger(__name__)
 
 
@@ -15,7 +13,12 @@ def str2bool(my_str):
         return False
     elif isinstance(my_str, bool):
         return my_str
-    return bool(strtobool(my_str))
+    if my_str.lower() in ("y", "yes", "t", "true", "on", "1"):
+        return True
+    elif my_str.lower() in ("n", "no", "f", "false", "off", "0"):
+        return False
+    else:
+        raise ValueError(f"Invalid truth value {my_str!r}")
 
 
 def camelcase2snake_case(name):
