@@ -113,6 +113,24 @@ def create_app(config=None):
     logger.info(f"Configuration: {config}")
     app.config.from_object(config)
     logger.info(f"SPECTER_DATA_FOLDER: {app.config['SPECTER_DATA_FOLDER']}")
+
+    # Warn if someone is running with a default SECRET_KEY on a non-localhost address.
+    # This can happen if SPECTER_CONFIG isn't set and someone accidentally ships with DevelopmentConfig.
+    _insecure_defaults = ("development key", "test key")
+    if app.config.get("SECRET_KEY") in _insecure_defaults:
+        host = app.config.get("HOST", "127.0.0.1")
+        if host not in ("127.0.0.1", "localhost", "0.0.0.0"):
+            logger.warning(
+                "WARNING: SECRET_KEY is set to a known default value and HOST is '%s'. "
+                "This is insecure for anything other than local development. "
+                "Please use ProductionConfig or set a proper SECRET_KEY.",
+                host,
+            )
+        else:
+            logger.info(
+                "Running with a default SECRET_KEY. Fine for local dev, not for production."
+            )
+
     # Might be convenient to know later where it came from (see Service configuration)
     app.config["SPECTER_CONFIGURATION_CLASS_FULLNAME"] = config_name
     if not app.config.get("ENABLE_WERZEUG_REQUEST_LOGGING"):
