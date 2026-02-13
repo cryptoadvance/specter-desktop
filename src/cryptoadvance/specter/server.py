@@ -21,11 +21,6 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.wrappers import Response
 
 from cryptoadvance.specter.hwi_rpc import HWIBridge
-from cryptoadvance.specter.liquid.rpc import LiquidRPC
-from cryptoadvance.specter.managers.service_manager import ExtensionManager
-from cryptoadvance.specter.rpc import BitcoinRPC
-from cryptoadvance.specter.services import callbacks
-from cryptoadvance.specter.util.reflection import get_template_static_folder
 
 from .htmlsafebabel import HTMLSafeBabel
 from .hwi_server import hwi_server
