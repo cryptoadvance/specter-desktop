@@ -7,7 +7,3 @@ class KeycardShell(Keystone):
     exportable_to_wallet = False
     sd_card_support = False
     taproot_support = False
-
-    def export_wallet(self, wallet):
-        if not wallet.is_multisig:
-            return None
