@@ -429,7 +429,7 @@ jobs:
           source .buildenv/bin/activate
           mkdir -p pyinstaller/dist
           cd release-artifacts
-          unzip specterd-${VERSION}-osx.zip -d ../pyinstaller/dist/
+          unzip specterd-${VERSION}-osx_arm64.zip -d ../pyinstaller/dist/
           cd ..
           cd pyinstaller/electron
           npm ci
@@ -567,7 +567,7 @@ jobs:
           ## specterd
 
           Specterd is a command-line program that runs only the Specter server, behaving like a traditional web application.
-          Supported platforms: [Windows](${DL}/specterd-${VERSION}-win64.zip), [MacOS](${DL}/specterd-${VERSION}-osx.zip), [Linux (x86_64)](${DL}/specterd-${VERSION}-x86_64-linux-gnu.zip)
+          Supported platforms: [Windows](${DL}/specterd-${VERSION}-win64.zip), [MacOS](${DL}/specterd-${VERSION}-osx_arm64.zip), [Linux (x86_64)](${DL}/specterd-${VERSION}-x86_64-linux-gnu.zip)
 
           ## PyPi Packages
 
