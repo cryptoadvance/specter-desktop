@@ -31,7 +31,7 @@ from .wallets_vm import WalletsOverviewVm
 
 logger = logging.getLogger(__name__)
 
-rand = random.randint(0, 1e32)  # to force style refresh
+rand = random.randint(0, int(1e32))  # to force style refresh
 
 # Setup endpoint blueprint
 wallets_endpoint = Blueprint("wallets_endpoint", __name__)
