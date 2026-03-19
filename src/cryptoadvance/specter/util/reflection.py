@@ -83,9 +83,7 @@ def get_package_dir_for_subclasses_of(clazz):
 # --------------- static discovery ------------------------------
 
 
-def get_classlist_of_type_clazz_from_modulelist(
-    clazz, modulelist, skip_missing=False
-):
+def get_classlist_of_type_clazz_from_modulelist(clazz, modulelist, skip_missing=False):
     """A helper method converting a List of modules as described in config.py
     into a List of classes. In order to make that more util-like, you
     have to pass the the class you're searching for in the modules.
@@ -102,9 +100,12 @@ def get_classlist_of_type_clazz_from_modulelist(
             # Only skip if the missing module is the one we're trying to import
             # (i.e. it's not installed). If an installed module has a broken
             # internal import, re-raise so it fails loudly.
-            if skip_missing and e.name and (
-                fq_module_name == e.name
-                or fq_module_name.startswith(e.name + ".")
+            if (
+                skip_missing
+                and e.name
+                and (
+                    fq_module_name == e.name or fq_module_name.startswith(e.name + ".")
+                )
             ):
                 logger.warning(
                     f"Skipping module {fq_module_name}: not found ({e}). "
@@ -192,7 +193,7 @@ def get_subclasses_for_clazz(
     logger.info(
         f"Collecting subclasses of {clazz.__name__} in {' '.join([ str(dir) for dir in package_dirs]) }..."
     )
-    for (importer, module_name, is_pkg) in iter_modules(
+    for importer, module_name, is_pkg in iter_modules(
         [str(dir) for dir in package_dirs]
     ):  # import the module and iterate through its attributes
         # skip known redherrings
