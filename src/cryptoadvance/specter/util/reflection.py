@@ -83,21 +83,35 @@ def get_package_dir_for_subclasses_of(clazz):
 # --------------- static discovery ------------------------------
 
 
-def get_classlist_of_type_clazz_from_modulelist(clazz, modulelist):
+def get_classlist_of_type_clazz_from_modulelist(
+    clazz, modulelist, skip_missing=False
+):
     """A helper method converting a List of modules as described in config.py
     into a List of classes. In order to make that more util-like, you
-    have to pass the the class you're searching for in the modules
+    have to pass the the class you're searching for in the modules.
+
+    If skip_missing=True, modules that are not installed will be skipped
+    with a warning instead of raising an error. Modules that exist but
+    have broken internal imports will still raise.
     """
     class_list = []
     for fq_module_name in modulelist:
         try:
             module = import_module(fq_module_name)
         except ModuleNotFoundError as e:
-            logger.warning(
-                f"Skipping extension {fq_module_name}: module not found ({e}). "
-                f"Install it with: pip3 install <package-name>"
-            )
-            continue
+            # Only skip if the missing module is the one we're trying to import
+            # (i.e. it's not installed). If an installed module has a broken
+            # internal import, re-raise so it fails loudly.
+            if skip_missing and e.name and (
+                fq_module_name == e.name
+                or fq_module_name.startswith(e.name + ".")
+            ):
+                logger.warning(
+                    f"Skipping module {fq_module_name}: not found ({e}). "
+                    f"Install it with: pip3 install <package-name>"
+                )
+                continue
+            raise
         logger.debug(f"Imported {fq_module_name}")
         for attribute_name in dir(module):
             attribute = getattr(module, attribute_name)
