@@ -46,4 +46,7 @@ pywin32-ctypes==0.2.0 \
 
 # WARNING: The following packages were not pinned, but pip requires them to be
 # pinned when the requirements file includes hashes. Consider using the --allow-unsafe flag.
-# setuptools
+setuptools==68.2.2 \
+    --hash=sha256:b454a35605876da60632df1a60f736524eb73cc47bbc9f3f1ef1b644de74fd2a \
+    --hash=sha256:4ac1475276d2f1c48684874089fefcd83bd7162ddaafb81fac866ba0db282a87
+    # via -r requirements.in (pinned: 69+ removed pkg_resources, breaks PyInstaller)
