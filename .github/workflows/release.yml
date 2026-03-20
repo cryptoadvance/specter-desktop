@@ -542,18 +542,17 @@ jobs:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
           echo "$GPG_PRIVATE_KEY" | gpg --batch --import
-          # Set ultimate trust so GPG will use the key on a fresh runner
-          FPR=$(gpg --list-secret-keys --with-colons --with-fingerprint 2>/dev/null | awk -F: '/^fpr/{print $10; exit}')
-          echo "Fingerprint: $FPR"
-          echo "${FPR}:6:" | gpg --import-ownertrust
-          KEY_ID=$(gpg --list-secret-keys --keyid-format long --with-colons 2>/dev/null | awk -F: '/^sec/{print $5; exit}')
-          echo "Signing with key: $KEY_ID"
+          # Hardcoded fingerprint — must match the GPG_PRIVATE_KEY secret
+          # Specter Signer 2026 <noreply@specter.solutions> (expires 2031-03-19)
+          GPG_FINGERPRINT="9DC33CA830589DE3B3225C26EEF5756B2EA42349"
+          echo "${GPG_FINGERPRINT}:6:" | gpg --import-ownertrust
+          echo "Signing with: $GPG_FINGERPRINT"
           cd release-files
           if [ -n "$GPG_PASSPHRASE" ]; then
             echo "$GPG_PASSPHRASE" | gpg --batch --yes --passphrase-fd 0 \
-              --pinentry-mode loopback --default-key "$KEY_ID" --detach-sign --armor SHA256SUMS
+              --pinentry-mode loopback --default-key "$GPG_FINGERPRINT" --detach-sign --armor SHA256SUMS
           else
-            gpg --batch --yes --pinentry-mode loopback --default-key "$KEY_ID" --detach-sign --armor SHA256SUMS
+            gpg --batch --yes --pinentry-mode loopback --default-key "$GPG_FINGERPRINT" --detach-sign --armor SHA256SUMS
           fi
           cd ..
 
