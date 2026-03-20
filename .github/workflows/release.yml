@@ -575,9 +575,9 @@ jobs:
 
           ## Signatures and hashes
 
-          [SHA256SUMS](${DL}/SHA256SUMS) file contains sha256 hashes of all binary files and signed with "Specter Signer's" GPG key.
-          You can get the public key from [here](http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x785a2269ee3a9736ac1a4f4c864b7cf9a811fef7).
-          Fingerprint of the key is \`785A 2269 EE3A 9736 AC1A 4F4C 864B 7CF9 A811 FEF7\`
+          [SHA256SUMS](${DL}/SHA256SUMS) file contains sha256 hashes of all binary files and signed with "Specter Signer 2026" GPG key.
+          You can get the public key from [here](http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x9dc33ca830589de3b3225c26eef5756b2ea42349).
+          Fingerprint of the key is \`9DC3 3CA8 3058 9DE3 B322 5C26 EEF5 756B 2EA4 2349\`
           This key has been signed by @k9ert's key. For more information about Verifying signatures, see, e.g. [this video](https://www.youtube.com/watch?v=lYYsVkOplYc).
 
           # Release notes
