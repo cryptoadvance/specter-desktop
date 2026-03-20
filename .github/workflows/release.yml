@@ -536,9 +536,18 @@ jobs:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
           echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          # Set ultimate trust so GPG will use the key on a fresh runner
+          FPR=$(gpg --list-secret-keys --with-colons 2>/dev/null | grep '^fpr' | head -1 | cut -d: -f10)
+          echo "${FPR}:6:" | gpg --import-ownertrust
+          KEY_ID=$(gpg --list-secret-keys --keyid-format long --with-colons 2>/dev/null | grep '^sec' | head -1 | cut -d: -f5)
+          echo "Signing with key: $KEY_ID"
           cd release-files
-          echo "$GPG_PASSPHRASE" | gpg --batch --yes --passphrase-fd 0 \
-            --pinentry-mode loopback --detach-sign --armor SHA256SUMS
+          if [ -n "$GPG_PASSPHRASE" ]; then
+            echo "$GPG_PASSPHRASE" | gpg --batch --yes --passphrase-fd 0 \
+              --pinentry-mode loopback --default-key "$KEY_ID" --detach-sign --armor SHA256SUMS
+          else
+            gpg --batch --yes --pinentry-mode loopback --default-key "$KEY_ID" --detach-sign --armor SHA256SUMS
+          fi
           cd ..
 
       - name: Generate release body
