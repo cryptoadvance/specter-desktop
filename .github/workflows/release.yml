@@ -32,7 +32,13 @@ jobs:
         run: pip install build==0.10.0
 
       - name: Build package
-        run: python3 -m build
+        run: |
+          # Derive PEP 440 version from git tag (pre→rc mapping)
+          # Avoids setuptools_scm picking wrong tag when multiple tags share a commit
+          VERSION=${GITHUB_REF#refs/tags/v}
+          PEP_VERSION=$(echo "$VERSION" | sed 's/-pre/rc/')
+          echo "Building version: $PEP_VERSION"
+          SETUPTOOLS_SCM_PRETEND_VERSION=$PEP_VERSION python3 -m build
 
       - name: Upload pip artifacts
         uses: actions/upload-artifact@v4
