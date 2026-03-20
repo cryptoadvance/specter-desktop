@@ -567,7 +567,7 @@ jobs:
 
           ## Artifacts
 
-          Specter is available in several forms: as a GUI application, as a binary that can be executed like a web app, and as a PyPI package. Additionally, Specter is available as a Docker image via the awesome [Chiang Mai LN devs](https://github.com/lncm/docker-specter-desktop).
+          Specter is available in several forms: as a GUI application, as a binary that can be executed like a web app, as a PyPI package, and as a Docker image.
 
           Signed hashsum files are available for all binaries.
 
@@ -578,7 +578,12 @@ jobs:
 
           **Note on Linux**: you need to set up udev rules (included in the archive). Check out the [readme](https://github.com/cryptoadvance/specter-desktop/blob/master/udev/README.md#usage).
 
-          **Note on macOS**: The current build supports only macOS Catalina (10.15) or higher. If you'd like to run Specter on an older macOS version, you can [install Specter from Pip](https://github.com/cryptoadvance/specter-desktop#installing-specter-from-pip).
+          **Note on macOS**: The macOS application is currently **not code-signed or notarized** by Apple. After downloading the DMG and installing, macOS Gatekeeper will block the app. To fix this, run in Terminal:
+          \`\`\`
+          cd /Applications
+          xattr -cr "Specter.app"
+          \`\`\`
+          The current build supports macOS Catalina (10.15) or higher. If you'd like to run Specter on an older macOS version, you can [install Specter from Pip](https://github.com/cryptoadvance/specter-desktop#installing-specter-from-pip). See [#2530](https://github.com/cryptoadvance/specter-desktop/issues/2530) for details.
 
           ## specterd
 
@@ -588,6 +593,18 @@ jobs:
           ## PyPi Packages
 
           If you're experienced Python user and/or developer, you might appreciate the [pypi-packages](https://pypi.org/project/cryptoadvance-specter/) which are also available on our github-release-page.
+
+          ## Docker
+
+          Official Docker images are published to GitHub Container Registry:
+
+          \`\`\`
+          docker pull ghcr.io/cryptoadvance/specter-desktop:${VERSION}
+          \`\`\`
+
+          See all available tags at [ghcr.io/cryptoadvance/specter-desktop](https://github.com/cryptoadvance/specter-desktop/pkgs/container/specter-desktop).
+
+          For releases prior to v2.1.2, Docker images were provided by the [Chiang Mai LN devs](https://github.com/lncm/docker-specter-desktop).
 
           ## Signatures and hashes
 
