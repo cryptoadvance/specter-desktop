@@ -10,7 +10,7 @@
   "dependencies": {
     "gulp-livereload": "^4.0.2",
     "rimraf": "^3.0.2",
-    "wait-on": "^5.3.0"
+    "wait-on": "^9.0.3"
   },
   "devDependencies": {
     "cypress": "^9.7.0",
