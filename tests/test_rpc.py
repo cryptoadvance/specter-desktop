@@ -288,7 +288,7 @@ def test_BitcoinRpc_malformed_response():
     rpc.multi = MagicMock(return_value=[{}])
     with pytest.raises(RpcError) as exc_info:
         rpc.getblockchaininfo()
-    assert "missing 'result' field" in str(exc_info.value)
+    assert "missing 'result' key" in str(exc_info.value)
     
     # Test 5: Valid response with error=None should work
     rpc.multi = MagicMock(return_value=[{"error": None, "result": {"blocks": 100}}])
