@@ -26,8 +26,7 @@ from ..wallet import purposes
 
 logger = logging.getLogger(__name__)
 
-rand = random.randint(0, 1e32)  # to force style refresh
-logger = logging.getLogger(__name__)
+rand = random.randint(0, int(1e32))  # to force style refresh
 
 # Setup endpoint blueprint
 devices_endpoint = Blueprint("devices_endpoint", __name__)

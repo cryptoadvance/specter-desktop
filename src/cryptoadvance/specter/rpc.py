@@ -470,6 +470,10 @@ class BitcoinRPC:
                 "Server responded with error code %d: %s" % (r.status_code, r.text), r
             )
         r = r.json()
+        # Bitcoin Core should return a list for batch requests, but some
+        # implementations or proxies may return a single object instead.
+        if isinstance(r, dict):
+            r = [r]
         return r
 
     @classmethod
@@ -522,18 +526,17 @@ class BitcoinRPC:
             if error is not None:
                 # Safely extract error message
                 if isinstance(error, dict):
-                    error_message = error.get("message", str(error))
+                    error_msg = error.get("message", str(error))
                 else:
-                    error_message = str(error)
+                    error_msg = str(error)
                 raise RpcError(
-                    f"Request error for method {method}{args}: {error_message}",
+                    f"Request error for method {method}{args}: {error_msg}",
                     r,
                 )
             
-            # Safely get result
             if "result" not in r:
                 raise RpcError(
-                    f"Request error for method {method}{args}: Response missing 'result' field",
+                    f"Unexpected RPC response for method {method}{args}: missing 'result' key",
                     r,
                 )
             return r["result"]

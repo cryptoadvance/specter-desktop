@@ -32,7 +32,13 @@ jobs:
         run: pip install build==0.10.0
 
       - name: Build package
-        run: python3 -m build
+        run: |
+          # Derive PEP 440 version from git tag (pre→rc mapping)
+          # Avoids setuptools_scm picking wrong tag when multiple tags share a commit
+          VERSION=${GITHUB_REF#refs/tags/v}
+          PEP_VERSION=$(echo "$VERSION" | sed 's/-pre/rc/')
+          echo "Building version: $PEP_VERSION"
+          SETUPTOOLS_SCM_PRETEND_VERSION=$PEP_VERSION python3 -m build
 
       - name: Upload pip artifacts
         uses: actions/upload-artifact@v4
@@ -429,7 +435,7 @@ jobs:
           source .buildenv/bin/activate
           mkdir -p pyinstaller/dist
           cd release-artifacts
-          unzip specterd-${VERSION}-osx.zip -d ../pyinstaller/dist/
+          unzip specterd-${VERSION}-osx_arm64.zip -d ../pyinstaller/dist/
           cd ..
           cd pyinstaller/electron
           npm ci
@@ -536,9 +542,19 @@ jobs:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
           echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          # Set ultimate trust so GPG will use the key on a fresh runner
+          FPR=$(gpg --list-secret-keys --with-colons --with-fingerprint 2>/dev/null | awk -F: '/^fpr/{print $10; exit}')
+          echo "Fingerprint: $FPR"
+          echo "${FPR}:6:" | gpg --import-ownertrust
+          KEY_ID=$(gpg --list-secret-keys --keyid-format long --with-colons 2>/dev/null | awk -F: '/^sec/{print $5; exit}')
+          echo "Signing with key: $KEY_ID"
           cd release-files
-          echo "$GPG_PASSPHRASE" | gpg --batch --yes --passphrase-fd 0 \
-            --pinentry-mode loopback --detach-sign --armor SHA256SUMS
+          if [ -n "$GPG_PASSPHRASE" ]; then
+            echo "$GPG_PASSPHRASE" | gpg --batch --yes --passphrase-fd 0 \
+              --pinentry-mode loopback --default-key "$KEY_ID" --detach-sign --armor SHA256SUMS
+          else
+            gpg --batch --yes --pinentry-mode loopback --default-key "$KEY_ID" --detach-sign --armor SHA256SUMS
+          fi
           cd ..
 
       - name: Generate release body
@@ -551,7 +567,7 @@ jobs:
 
           ## Artifacts
 
-          Specter is available in several forms: as a GUI application, as a binary that can be executed like a web app, and as a PyPI package. Additionally, Specter is available as a Docker image via the awesome [Chiang Mai LN devs](https://github.com/lncm/docker-specter-desktop).
+          Specter is available in several forms: as a GUI application, as a binary that can be executed like a web app, as a PyPI package, and as a Docker image.
 
           Signed hashsum files are available for all binaries.
 
@@ -562,22 +578,39 @@ jobs:
 
           **Note on Linux**: you need to set up udev rules (included in the archive). Check out the [readme](https://github.com/cryptoadvance/specter-desktop/blob/master/udev/README.md#usage).
 
-          **Note on macOS**: The current build supports only macOS Catalina (10.15) or higher. If you'd like to run Specter on an older macOS version, you can [install Specter from Pip](https://github.com/cryptoadvance/specter-desktop#installing-specter-from-pip).
+          **Note on macOS**: The macOS application is currently **not code-signed or notarized** by Apple. After downloading the DMG and installing, macOS Gatekeeper will block the app. To fix this, run in Terminal:
+          \`\`\`
+          cd /Applications
+          xattr -cr "Specter.app"
+          \`\`\`
+          The current build supports macOS Catalina (10.15) or higher. If you'd like to run Specter on an older macOS version, you can [install Specter from Pip](https://github.com/cryptoadvance/specter-desktop#installing-specter-from-pip). See [#2530](https://github.com/cryptoadvance/specter-desktop/issues/2530) for details.
 
           ## specterd
 
           Specterd is a command-line program that runs only the Specter server, behaving like a traditional web application.
-          Supported platforms: [Windows](${DL}/specterd-${VERSION}-win64.zip), [MacOS](${DL}/specterd-${VERSION}-osx.zip), [Linux (x86_64)](${DL}/specterd-${VERSION}-x86_64-linux-gnu.zip)
+          Supported platforms: [Windows](${DL}/specterd-${VERSION}-win64.zip), [MacOS](${DL}/specterd-${VERSION}-osx_arm64.zip), [Linux (x86_64)](${DL}/specterd-${VERSION}-x86_64-linux-gnu.zip)
 
           ## PyPi Packages
 
           If you're experienced Python user and/or developer, you might appreciate the [pypi-packages](https://pypi.org/project/cryptoadvance-specter/) which are also available on our github-release-page.
 
+          ## Docker
+
+          Official Docker images are published to GitHub Container Registry:
+
+          \`\`\`
+          docker pull ghcr.io/cryptoadvance/specter-desktop:${VERSION}
+          \`\`\`
+
+          See all available tags at [ghcr.io/cryptoadvance/specter-desktop](https://github.com/cryptoadvance/specter-desktop/pkgs/container/specter-desktop).
+
+          For releases prior to v2.1.2, Docker images were provided by the [Chiang Mai LN devs](https://github.com/lncm/docker-specter-desktop).
+
           ## Signatures and hashes
 
-          [SHA256SUMS](${DL}/SHA256SUMS) file contains sha256 hashes of all binary files and signed with "Specter Signer's" GPG key.
-          You can get the public key from [here](http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x785a2269ee3a9736ac1a4f4c864b7cf9a811fef7).
-          Fingerprint of the key is \`785A 2269 EE3A 9736 AC1A 4F4C 864B 7CF9 A811 FEF7\`
+          [SHA256SUMS](${DL}/SHA256SUMS) file contains sha256 hashes of all binary files and signed with "Specter Signer 2026" GPG key.
+          You can get the public key from [here](http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x9dc33ca830589de3b3225c26eef5756b2ea42349).
+          Fingerprint of the key is \`9DC3 3CA8 3058 9DE3 B322 5C26 EEF5 756B 2EA4 2349\`
           This key has been signed by @k9ert's key. For more information about Verifying signatures, see, e.g. [this video](https://www.youtube.com/watch?v=lYYsVkOplYc).
 
           # Release notes
