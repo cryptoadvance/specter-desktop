@@ -277,7 +277,7 @@ class RpcError(Exception):
         except Exception:
             self.error_code = -99
             # Handle both Response objects and dicts
-            if hasattr(response, 'text'):
+            if hasattr(response, "text"):
                 response_text = response.text
             else:
                 response_text = str(response)
@@ -521,7 +521,7 @@ class BitcoinRPC:
                     response=None,
                     error_msg=f"Invalid response format: {r}",
                 )
-            
+
             error = r.get("error")
             if error is not None:
                 # Safely extract error message
@@ -533,7 +533,7 @@ class BitcoinRPC:
                     f"Request error for method {method}{args}: {error_msg}",
                     r,
                 )
-            
+
             if "result" not in r:
                 raise RpcError(
                     f"Unexpected RPC response for method {method}{args}: missing 'result' key",
