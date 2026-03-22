@@ -276,7 +276,12 @@ class RpcError(Exception):
             self.error_msg = error["error"]["message"]
         except Exception:
             self.error_code = -99
-            self.error_msg = str(self) + " - UNKNOWN API-ERROR:%s" % response.text
+            # Handle both Response objects and dicts
+            if hasattr(response, "text"):
+                response_text = response.text
+            else:
+                response_text = str(response)
+            self.error_msg = str(self) + " - UNKNOWN API-ERROR:%s" % response_text
 
 
 class BitcoinRPC:
@@ -509,8 +514,17 @@ class BitcoinRPC:
     def __getattr__(self, method):
         def fn(*args, **kwargs):
             r = self.multi([(method, *args)], **kwargs)[0]
+            # Safely check if response is a dict and has error field
+            if not isinstance(r, dict):
+                raise RpcError(
+                    f"Request error for method {method}{args}: Invalid response format (expected dict, got {type(r).__name__})",
+                    response=None,
+                    error_msg=f"Invalid response format: {r}",
+                )
+
             error = r.get("error")
             if error is not None:
+                # Safely extract error message
                 if isinstance(error, dict):
                     error_msg = error.get("message", str(error))
                 else:
@@ -519,6 +533,7 @@ class BitcoinRPC:
                     f"Request error for method {method}{args}: {error_msg}",
                     r,
                 )
+
             if "result" not in r:
                 raise RpcError(
                     f"Unexpected RPC response for method {method}{args}: missing 'result' key",
