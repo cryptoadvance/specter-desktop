@@ -561,9 +561,11 @@ class BitcoinRPC:
                     )
 
             if "result" not in r:
+                error_msg_text = f"Unexpected RPC response for method {method}{args}: missing 'result' key"
                 raise RpcError(
-                    f"Unexpected RPC response for method {method}{args}: missing 'result' key",
-                    r,
+                    error_msg_text,
+                    response=None,
+                    error_msg=error_msg_text,
                 )
             return r["result"]
 
