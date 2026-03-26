@@ -39,17 +39,33 @@ class JadeTCPImpl:
         self.tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.tcp_sock.settimeout(self.timeout)
 
-        url = self.device[len(self.PROTOCOL_PREFIX) :].split(":")
-        self.tcp_sock.connect((url[0], int(url[1])))
+        try:
+            url = self.device[len(self.PROTOCOL_PREFIX):].split(":")
+            if len(url) != 2:
+                raise ValueError(f"Invalid device format: {self.device}. Expected tcp:host:port")
+            host, port_str = url
+            port = int(port_str)
+            self.tcp_sock.connect((host, port))
+            self.tcp_sock.__enter__()
+            logger.info("Connected")
+        except (socket.timeout, socket.error, OSError, ValueError) as e:
+            logger.error(f"Failed to connect to Jade TCP: {e}")
+            if self.tcp_sock is not None:
+                try:
+                    self.tcp_sock.__exit__(None, None, None)
+                except Exception:
+                    pass
+                self.tcp_sock = None
+            raise
         assert self.tcp_sock is not None
-
-        self.tcp_sock.__enter__()
-        logger.info("Connected")
 
     def disconnect(self):
         assert self.tcp_sock is not None
-        self.tcp_sock.__exit__()
-
+        try:
+            self.tcp_sock.__exit__(None, None, None)
+        except Exception as e:
+            logger.error(f"Error during disconnect: {e}")
+        
         # Reset state
         self.tcp_sock = None
 
