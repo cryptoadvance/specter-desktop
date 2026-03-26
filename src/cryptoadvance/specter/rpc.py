@@ -532,15 +532,33 @@ class BitcoinRPC:
 
             error = r.get("error")
             if error is not None:
-                # Safely extract error message
+                # Safely extract error message and code
                 if isinstance(error, dict):
+                    error_code = error.get("code", -99)
                     error_msg = error.get("message", str(error))
+                    # If error has both code and message, pass the response dict
+                    # Otherwise, pass explicit error_msg/error_code to avoid overwriting
+                    if "code" in error and "message" in error:
+                        raise RpcError(
+                            f"Request error for method {method}{args}: {error_msg}",
+                            r,
+                        )
+                    else:
+                        raise RpcError(
+                            f"Request error for method {method}{args}: {error_msg}",
+                            response=None,
+                            error_code=error_code,
+                            error_msg=error_msg,
+                        )
                 else:
+                    # Error is not a dict (e.g., plain string)
                     error_msg = str(error)
-                raise RpcError(
-                    f"Request error for method {method}{args}: {error_msg}",
-                    r,
-                )
+                    raise RpcError(
+                        f"Request error for method {method}{args}: {error_msg}",
+                        response=None,
+                        error_code=-99,
+                        error_msg=error_msg,
+                    )
 
             if "result" not in r:
                 raise RpcError(

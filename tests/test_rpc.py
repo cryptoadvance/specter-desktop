@@ -270,12 +270,16 @@ def test_BitcoinRpc_malformed_response():
         rpc.getblockchaininfo()
     assert "Invalid response format" in str(exc_info.value)
     assert "expected dict" in str(exc_info.value)
+    assert "Invalid response format" in exc_info.value.error_msg
 
     # Test 2: Response dict has error but error is not a dict
     rpc.multi = MagicMock(return_value=[{"error": "plain string error"}])
     with pytest.raises(RpcError) as exc_info:
         rpc.getblockchaininfo()
     assert "plain string error" in str(exc_info.value)
+    # Ensure error_msg doesn't degrade to UNKNOWN API-ERROR
+    assert "plain string error" in exc_info.value.error_msg
+    assert "UNKNOWN API-ERROR" not in exc_info.value.error_msg
 
     # Test 3: Response dict has error dict but missing 'message' key
     rpc.multi = MagicMock(return_value=[{"error": {"code": -1}}])
@@ -283,12 +287,16 @@ def test_BitcoinRpc_malformed_response():
         rpc.getblockchaininfo()
     # Should handle missing message gracefully
     assert "getblockchaininfo" in str(exc_info.value)
+    # Ensure error_msg contains the error dict representation, not UNKNOWN API-ERROR
+    assert "UNKNOWN API-ERROR" not in exc_info.value.error_msg
+    assert exc_info.value.error_code == -1
 
     # Test 4: Response dict missing both 'error' and 'result' keys
     rpc.multi = MagicMock(return_value=[{}])
     with pytest.raises(RpcError) as exc_info:
         rpc.getblockchaininfo()
     assert "missing 'result' key" in str(exc_info.value)
+    assert "missing 'result' key" in exc_info.value.error_msg
 
     # Test 5: Valid response with error=None should work
     rpc.multi = MagicMock(return_value=[{"error": None, "result": {"blocks": 100}}])
