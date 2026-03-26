@@ -513,7 +513,15 @@ class BitcoinRPC:
 
     def __getattr__(self, method):
         def fn(*args, **kwargs):
-            r = self.multi([(method, *args)], **kwargs)[0]
+            responses = self.multi([(method, *args)], **kwargs)
+            # Ensure multi() returned a non-empty list before indexing
+            if not isinstance(responses, list) or not responses:
+                raise RpcError(
+                    f"Request error for method {method}{args}: Invalid batch response (expected non-empty list, got {type(responses).__name__})",
+                    response=responses,
+                    error_msg=f"Invalid batch response from multi(): {responses}",
+                )
+            r = responses[0]
             # Safely check if response is a dict and has error field
             if not isinstance(r, dict):
                 raise RpcError(
