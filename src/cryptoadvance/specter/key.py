@@ -138,9 +138,9 @@ class Key:
         depth = xpub_bytes[4]
         if derivation and depth != (path_depth := len(derivation_path) - 1):
             raise Exception(
-                    f"xpup has a depth of {depth} while derivation path "
-                    f"indicates the key is {path_depth} levels deep"
-                )
+                f"xpup has a depth of {depth} while derivation path "
+                f"indicates the key is {path_depth} levels deep"
+            )
 
         # infer fingerprint and derivation if depth == 0 or depth == 1
         xpub_bytes = base58.decode_check(xpub)
