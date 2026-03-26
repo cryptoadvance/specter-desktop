@@ -1,5 +1,6 @@
 from .keystone import Keystone
 
+
 class KeycardShell(Keystone):
     device_type = "keycardshell"
     name = "Keycard Shell"
