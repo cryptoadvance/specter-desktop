@@ -43,15 +43,16 @@ class JadeTCPImpl:
         self.tcp_sock.connect((url[0], int(url[1])))
         assert self.tcp_sock is not None
 
-        self.tcp_sock.__enter__()
         logger.info("Connected")
 
     def disconnect(self):
         assert self.tcp_sock is not None
-        self.tcp_sock.__exit__()
-
-        # Reset state
-        self.tcp_sock = None
+        try:
+            self.tcp_sock.close()
+        except Exception as e:
+            logger.warning("Error during disconnect: {}".format(str(e)))
+        finally:
+            self.tcp_sock = None
 
     def write(self, bytes_):
         assert self.tcp_sock is not None
