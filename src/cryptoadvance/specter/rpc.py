@@ -276,7 +276,12 @@ class RpcError(Exception):
             self.error_msg = error["error"]["message"]
         except Exception:
             self.error_code = -99
-            self.error_msg = str(self) + " - UNKNOWN API-ERROR:%s" % response.text
+            # Handle both Response objects and dicts
+            if hasattr(response, "text"):
+                response_text = response.text
+            else:
+                response_text = str(response)
+            self.error_msg = str(self) + " - UNKNOWN API-ERROR:%s" % response_text
 
 
 class BitcoinRPC:
@@ -508,21 +513,59 @@ class BitcoinRPC:
 
     def __getattr__(self, method):
         def fn(*args, **kwargs):
-            r = self.multi([(method, *args)], **kwargs)[0]
+            responses = self.multi([(method, *args)], **kwargs)
+            # Ensure multi() returned a non-empty list before indexing
+            if not isinstance(responses, list) or not responses:
+                raise RpcError(
+                    f"Request error for method {method}{args}: Invalid batch response (expected non-empty list, got {type(responses).__name__})",
+                    response=responses,
+                    error_msg=f"Invalid batch response from multi(): {responses}",
+                )
+            r = responses[0]
+            # Safely check if response is a dict and has error field
+            if not isinstance(r, dict):
+                raise RpcError(
+                    f"Request error for method {method}{args}: Invalid response format (expected dict, got {type(r).__name__})",
+                    response=None,
+                    error_msg=f"Invalid response format: {r}",
+                )
+
             error = r.get("error")
             if error is not None:
+                # Safely extract error message and code
                 if isinstance(error, dict):
+                    error_code = error.get("code", -99)
                     error_msg = error.get("message", str(error))
+                    # If error has both code and message, pass the response dict
+                    # Otherwise, pass explicit error_msg/error_code to avoid overwriting
+                    if "code" in error and "message" in error:
+                        raise RpcError(
+                            f"Request error for method {method}{args}: {error_msg}",
+                            r,
+                        )
+                    else:
+                        raise RpcError(
+                            f"Request error for method {method}{args}: {error_msg}",
+                            response=None,
+                            error_code=error_code,
+                            error_msg=error_msg,
+                        )
                 else:
+                    # Error is not a dict (e.g., plain string)
                     error_msg = str(error)
-                raise RpcError(
-                    f"Request error for method {method}{args}: {error_msg}",
-                    r,
-                )
+                    raise RpcError(
+                        f"Request error for method {method}{args}: {error_msg}",
+                        response=None,
+                        error_code=-99,
+                        error_msg=error_msg,
+                    )
+
             if "result" not in r:
+                error_msg_text = f"Unexpected RPC response for method {method}{args}: missing 'result' key"
                 raise RpcError(
-                    f"Unexpected RPC response for method {method}{args}: missing 'result' key",
-                    r,
+                    error_msg_text,
+                    response=None,
+                    error_msg=error_msg_text,
                 )
             return r["result"]
 
