@@ -198,6 +198,7 @@ class BaseConfig(object):
         "cryptoadvance.specterext.electrum.service",
         "cryptoadvance.specterext.spectrum.service",
         "cryptoadvance.specterext.stacktrack.service",
+        "oren-z0.specterext.timelockrecovery.service",
     ]
 
     # This is just a placeholder in order to be aware that you cannot set this
