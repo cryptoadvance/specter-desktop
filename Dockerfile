@@ -12,6 +12,8 @@ ARG DIR=/data/
 FROM python:3.10-bookworm AS builder
 
 ARG VERSION
+ARG SETUPTOOLS_SCM_PRETEND_VERSION
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}
 ARG REPO
 
 RUN apt update && apt install -y git libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev rustc cargo libpq-dev
