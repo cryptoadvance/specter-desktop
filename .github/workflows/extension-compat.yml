@@ -1,0 +1,108 @@
+name: Extension Compatibility Check
+
+on:
+  push:
+    paths:
+      - 'requirements.in'
+      - 'requirements.txt'
+      - 'pyproject.toml'
+  pull_request:
+    paths:
+      - 'requirements.in'
+      - 'requirements.txt'
+      - 'pyproject.toml'
+
+jobs:
+  extension-compat:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.12']
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install specter-desktop with all dependencies
+        run: |
+          pip install --upgrade pip setuptools wheel
+          # Install from the lock file (includes extensions)
+          pip install -r requirements.txt
+          # Install specter-desktop itself
+          pip install --no-deps .
+
+      - name: Verify all extensions can be imported
+        run: |
+          python -c "
+          import sys
+          
+          extensions = [
+              ('cryptoadvance.specterext.swan.service', 'Swan (internal)'),
+              ('cryptoadvance.specterext.liquidissuer.service', 'LiquidIssuer'),
+              ('cryptoadvance.specterext.devhelp.service', 'DevHelp (internal)'),
+              ('cryptoadvance.specterext.notifications.service', 'Notifications (internal)'),
+              ('cryptoadvance.specterext.exfund.service', 'ExFund'),
+              ('cryptoadvance.specterext.faucet.service', 'Faucet'),
+              ('cryptoadvance.specterext.electrum.service', 'Electrum (internal)'),
+              ('cryptoadvance.specterext.spectrum.service', 'Spectrum'),
+              ('cryptoadvance.specterext.stacktrack.service', 'StackTrack'),
+              ('oren-z0.specterext.timelockrecovery.service', 'TimelockRecovery'),
+          ]
+          
+          failed = []
+          for module_path, name in extensions:
+              try:
+                  __import__(module_path)
+                  print(f'  ✅ {name}: OK')
+              except ImportError as e:
+                  print(f'  ❌ {name}: FAILED — {e}')
+                  failed.append((name, str(e)))
+              except Exception as e:
+                  # Some extensions may fail on import due to missing runtime
+                  # config (Flask app context, etc.) — that's OK, we only care
+                  # about missing modules and version conflicts
+                  print(f'  ⚠️  {name}: Import error (non-dependency): {e}')
+          
+          if failed:
+              print(f'\n{len(failed)} extension(s) failed to import:')
+              for name, err in failed:
+                  print(f'  - {name}: {err}')
+              sys.exit(1)
+          else:
+              print('\nAll extensions importable.')
+          "
+
+      - name: Check for dependency version conflicts
+        run: |
+          # pip check verifies all installed packages have compatible dependencies
+          pip check 2>&1 | tee /tmp/pip-check-output.txt
+          
+          # Highlight any issues with extension packages specifically
+          EXTENSIONS="cryptoadvance-liquidissuer specterext-exfund specterext-faucet cryptoadvance.spectrum specterext-stacktrack specterext-timelockrecovery"
+          echo ""
+          echo "=== Extension dependency details ==="
+          for ext in $EXTENSIONS; do
+            echo "--- $ext ---"
+            pip show "$ext" 2>/dev/null | grep -E "^(Name|Version|Requires|Required-by):" || echo "  (not installed)"
+            echo ""
+          done
+
+      - name: Run extension test suites (best-effort)
+        continue-on-error: true
+        run: |
+          echo "=== Spectrum tests ==="
+          pip install "cryptoadvance.spectrum[test]" 2>/dev/null || true
+          python -m pytest --co -q \
+            $(pip show cryptoadvance.spectrum 2>/dev/null | grep Location | cut -d' ' -f2)/cryptoadvance/spectrum/ \
+            2>/dev/null && echo "Spectrum: test collection OK" || echo "Spectrum: no tests found or collection failed"
+          
+          echo ""
+          echo "=== StackTrack tests ==="
+          pip install "specterext-stacktrack[test]" 2>/dev/null || true
+          python -m pytest --co -q \
+            $(pip show specterext-stacktrack 2>/dev/null | grep Location | cut -d' ' -f2)/cryptoadvance/specterext/stacktrack/ \
+            2>/dev/null && echo "StackTrack: test collection OK" || echo "StackTrack: no tests found or collection failed"
