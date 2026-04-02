@@ -367,3 +367,65 @@ def test_multiple_outputs_in_one_tx(
     assert full_utxo[1]["amount"] == 2
     assert full_utxo[2]["amount"] == 3
     assert full_utxo[3]["amount"] == 20
+
+
+@pytest.mark.slow
+def test_amount_available_floating_point_precision(
+    bitcoin_regtest, unfunded_hot_wallet_1: Wallet
+):
+    """Regression: balance properties must round to satoshi precision.
+
+    Without rounding, IEEE 754 float subtraction can produce values like
+    0.09055627999... instead of 0.09055628, causing false "insufficient
+    funds" errors when sending exactly the available balance.
+    """
+    wallet = unfunded_hot_wallet_1
+    amounts = [0.09055628, 0.09317884, 0.14306287]
+
+    # Sanity: these amounts trigger IEEE 754 drift when subtracted
+    assert sum(amounts) - amounts[1] - amounts[2] != amounts[0]
+
+    for amt in amounts:
+        bitcoin_regtest.testcoin_faucet(wallet.getnewaddress(), amount=amt)
+    wallet.update()
+
+    assert wallet.amount_total == round(sum(amounts), 8)
+
+    # Freeze 2 UTXOs — their amounts will be subtracted from available
+    unspents = wallet.rpc.listunspent()
+    assert len(unspents) == 3
+    utxos_to_freeze = [
+        u for u in unspents if u["amount"] in (amounts[1], amounts[2])
+    ]
+    wallet.toggle_freeze_utxo(
+        [f"{u['txid']}:{u['vout']}" for u in utxos_to_freeze]
+    )
+    wallet.check_utxo()
+
+    assert wallet.amount_frozen == round(amounts[1] + amounts[2], 8)
+    assert wallet.amount_available == amounts[0]
+
+    # Create a PSBT locking 2 UTXOs instead of freezing
+    wallet.toggle_freeze_utxo(
+        [f"{u['txid']}:{u['vout']}" for u in utxos_to_freeze]
+    )
+    wallet.check_utxo()
+    assert wallet.amount_frozen == 0.0
+
+    selected_coins = [
+        {"txid": u["txid"], "vout": u["vout"]} for u in utxos_to_freeze
+    ]
+    random_address = "bcrt1q7mlxxdna2e2ufzgalgp5zhtnndl7qddlxjy5eg"
+    psbt = wallet.createpsbt(
+        [random_address],
+        [round(amounts[1] + amounts[2], 8)],
+        True,
+        0,
+        1,
+        selected_coins=selected_coins,
+    )
+
+    assert wallet.amount_locked_unsigned == round(amounts[1] + amounts[2], 8)
+    assert wallet.amount_available == amounts[0]
+
+    wallet.delete_pending_psbt(psbt.to_dict()["tx"]["txid"])
