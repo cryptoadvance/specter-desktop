@@ -1,0 +1,59 @@
+name: Test PyInstaller Build
+
+on:
+  pull_request:
+    paths:
+      - 'pyinstaller/**'
+      - '.github/workflows/test-pyinstaller.yml'
+
+jobs:
+  test-pyinstaller-build:
+    name: Test specterd PyInstaller build (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libusb-1.0-0-dev libudev-dev
+
+      - name: Create virtualenv and install
+        run: |
+          pip install virtualenv
+          virtualenv --python=python3.10 .buildenv
+          source .buildenv/bin/activate
+          pip install -r requirements.txt --require-hashes
+          pip install -e ".[test]"
+          pip install build==0.10.0
+          python3 -m build
+          pip install ./dist/cryptoadvance_specter-*.whl
+
+      - name: Install PyInstaller requirements
+        run: |
+          source .buildenv/bin/activate
+          pip install -r pyinstaller/requirements.txt
+
+      - name: Build specterd with PyInstaller
+        run: |
+          source .buildenv/bin/activate
+          echo "test-build" > pyinstaller/version.txt
+          cd pyinstaller
+          pyinstaller specterd.spec
+          cd ..
+
+      - name: Verify binary exists
+        run: |
+          ls -la pyinstaller/dist/specterd
+          file pyinstaller/dist/specterd
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: specterd-test-build
+          path: pyinstaller/dist/specterd
+          retention-days: 5
