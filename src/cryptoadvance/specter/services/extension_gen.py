@@ -232,8 +232,12 @@ class GithubUrlLoader(BaseLoader):
 
     def get_source(self, environment, template):
         url = self.url_for_template(template)
-        r = requests.get(url)
-        if r.status_code != 200:
+        for attempt in range(3):
+            r = requests.get(url)
+            if r.status_code == 200:
+                return r.text, url, None
+            if r.status_code == 429 and attempt < 2:
+                time.sleep(2 ** (attempt + 1))
+                continue
             raise TemplateNotFound(f"{url} results in {r.status_code}")
-        source = r.text
-        return source, url, None
+        raise TemplateNotFound(f"{url} results in {r.status_code}")
