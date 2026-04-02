@@ -139,7 +139,7 @@ jobs:
         run: |
           source .buildenv/Scripts/activate
           cd pyinstaller
-          pip install -r requirements.txt --require-hashes
+          pip install -r requirements.txt
 
       - name: Build specterd
         shell: bash
