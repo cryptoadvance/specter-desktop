@@ -6,11 +6,14 @@ on:
       - 'requirements.in'
       - 'requirements.txt'
       - 'pyproject.toml'
+      - '.github/workflows/extension-compat.yml'
   pull_request:
     paths:
       - 'requirements.in'
       - 'requirements.txt'
       - 'pyproject.toml'
+      - '.github/workflows/extension-compat.yml'
+  workflow_dispatch:
 
 jobs:
   extension-compat:
