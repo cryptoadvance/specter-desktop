@@ -18,17 +18,15 @@ on:
 jobs:
   extension-compat:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ['3.10', '3.12']
+    # NOTE: pinned to 3.10 because requirements.txt is compiled with 3.10
+    # and some deps (greenlet==2.0.2) don't build on 3.12+
     
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.10'
 
       - name: Install specter-desktop with all dependencies
         run: |
