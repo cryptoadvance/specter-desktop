@@ -82,7 +82,7 @@ jobs:
       - name: Install PyInstaller requirements
         run: |
           source .buildenv/bin/activate
-          pip install -r pyinstaller/requirements.txt --require-hashes
+          pip install -r pyinstaller/requirements.txt
 
       - name: Build specterd
         run: |
@@ -206,7 +206,7 @@ jobs:
       - name: Install PyInstaller requirements
         run: |
           source .buildenv/bin/activate
-          pip install -r pyinstaller/requirements.txt --require-hashes
+          pip install -r pyinstaller/requirements.txt
 
       - name: Build specterd
         run: |
