@@ -12,6 +12,7 @@ ARG DIR=/data/
 FROM python:3.10-bookworm AS builder
 
 ARG VERSION
+ARG SETUPTOOLS_SCM_PRETEND_VERSION=""
 ARG REPO
 
 RUN apt update && apt install -y git libusb-1.0-0-dev libudev-dev libffi-dev libssl-dev rustc cargo libpq-dev
@@ -28,7 +29,11 @@ RUN pip3 install -r requirements.txt
 
 COPY . .
 
-RUN pip3 install . --no-deps
+RUN if [ -n "$SETUPTOOLS_SCM_PRETEND_VERSION" ]; then \
+      SETUPTOOLS_SCM_PRETEND_VERSION=$SETUPTOOLS_SCM_PRETEND_VERSION pip3 install . --no-deps; \
+    else \
+      pip3 install . --no-deps; \
+    fi
 
 
 FROM python:3.10-slim-bookworm as final

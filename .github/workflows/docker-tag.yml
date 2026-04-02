@@ -36,7 +36,11 @@ jobs:
 
       - name: Run Docker buildx
         run: |
+          VERSION=${TAG#v}
+          PEP_VERSION=$(echo "$VERSION" | sed 's/-pre/rc/')
+          echo "Building with version: $PEP_VERSION"
           docker buildx build \
+          --build-arg SETUPTOOLS_SCM_PRETEND_VERSION="$PEP_VERSION" \
           --platform linux/amd64,linux/arm64 \
           --tag ghcr.io/$IMAGE_NAME:$TAG \
           --cache-from type=gha \
