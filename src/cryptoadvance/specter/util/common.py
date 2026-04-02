@@ -4,6 +4,7 @@ from datetime import datetime
 import json
 from flask_babel.speaklater import LazyString
 from typing import Union
+
 logger = logging.getLogger(__name__)
 
 
