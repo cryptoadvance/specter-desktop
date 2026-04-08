@@ -87,7 +87,12 @@ const download = (uri, filename, callback) => {
       logger.error(
         `Network error while trying to download specterd: ${err ? err.message : 'No response received (offline?)'}`
       )
-      callback(true)
+      try {
+        callback(true)
+      } catch (error) {
+        logger.error(error)
+        throw error
+      }
       return
     }
     if (res.statusCode != 404) {
