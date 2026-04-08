@@ -121,7 +121,11 @@ def get_walletdir(datadir, chain):
     [default] section, matching Bitcoin Core's own config resolution order.
     When set, walletdir is an absolute path and should be used directly as the
     wallet base path without joining it with datadir.
+
+    datadir is expanded (~ resolved) before use so callers can pass user-entered
+    paths without manually calling os.path.expanduser first.
     """
+    datadir = os.path.expanduser(datadir)
     config = get_rpcconfig(datadir)
     btc_conf = config.get("bitcoin.conf", {})
     return btc_conf.get(chain, {}).get("walletdir") or btc_conf.get(

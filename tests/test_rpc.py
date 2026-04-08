@@ -119,7 +119,27 @@ def test_get_walletdir_network_section_takes_precedence():
     assert get_walletdir(datadir, "test") == "/default/wallets"
 
 
+def test_get_walletdir_dot_notation_network_override(tmp_path):
+    """Dot-notation network walletdir overrides the default walletdir."""
+    bitcoin_conf = tmp_path / "bitcoin.conf"
+    bitcoin_conf.write_text(
+        "walletdir=/default/wallets\n"
+        "regtest.walletdir=/regtest/wallets\n"
+    )
+    assert get_walletdir(str(tmp_path), "regtest") == "/regtest/wallets"
+    assert get_walletdir(str(tmp_path), "main") == "/default/wallets"
+    assert get_walletdir(str(tmp_path), "test") == "/default/wallets"
 
+
+def test_get_walletdir_expands_tilde(tmp_path, monkeypatch):
+    """get_walletdir expands ~ in the datadir path so user-entered paths work."""
+    monkeypatch.setenv("HOME", str(tmp_path))
+    bitcoin_conf = tmp_path / "bitcoin.conf"
+    bitcoin_conf.write_text("walletdir=/custom/wallets\n")
+    assert get_walletdir("~", "main") == "/custom/wallets"
+
+
+def test_detect_rpc_confs_via_datadir1():
     c = _detect_rpc_confs_via_datadir(
         datadir="./tests/misc_testdata/rpc_autodetection/example1"
     )
