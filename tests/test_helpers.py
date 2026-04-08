@@ -116,3 +116,44 @@ def test_create_unique_id():
     assert not all(
         create_unique_id(name) == "ghost_wallet" for name in not_the_same_unique_names
     )
+
+
+def test_is_relative_url():
+    """Test is_relative_url() for open redirect prevention."""
+    from cryptoadvance.specter.helpers import is_relative_url
+
+    # Valid relative URLs - should pass
+    assert is_relative_url("/")
+    assert is_relative_url("/valid/path")
+    assert is_relative_url("/path?query=value")
+    assert is_relative_url("/path#anchor")
+    assert is_relative_url("/a/b/c/d/e")
+
+    # Invalid - protocol-relative URLs (should be rejected)
+    assert not is_relative_url("//evil.com")
+
+    # Invalid - percent-encoded bypass attempts
+    assert not is_relative_url("/%09/baidu.com")  # tab -> // bypass
+    assert not is_relative_url("/%09baidu.com")
+    assert not is_relative_url("/%5c%5cevil.com")  # backslash encoding
+    assert not is_relative_url("/%20/path")  # space
+
+    # Invalid - control characters
+    assert not is_relative_url("/\x00/path")
+    assert not is_relative_url("/\x1f/path")
+    assert not is_relative_url("/\x7f/path")  # DEL character
+
+    # Invalid - whitespace
+    assert not is_relative_url("/ path")
+    assert not is_relative_url("/path ")  # trailing
+    assert not is_relative_url(" /path")  # leading
+
+    # Invalid - backslashes
+    assert not is_relative_url("/\\path")
+    assert not is_relative_url("/path\\to\\file")
+
+    # Invalid - non-relative
+    assert not is_relative_url("")
+    assert not is_relative_url("https://evil.com")
+    # /https:// passes validation - it's a local server path, not external
+    assert is_relative_url("/https://evil.com")
