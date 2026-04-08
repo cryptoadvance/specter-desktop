@@ -128,9 +128,9 @@ def get_walletdir(datadir, chain):
     datadir = os.path.expanduser(datadir)
     config = get_rpcconfig(datadir)
     btc_conf = config.get("bitcoin.conf", {})
-    return btc_conf.get(chain, {}).get("walletdir") or btc_conf.get(
-        "default", {}
-    ).get("walletdir")
+    return btc_conf.get(chain, {}).get("walletdir") or btc_conf.get("default", {}).get(
+        "walletdir"
+    )
 
 
 def _detect_rpc_confs_via_datadir(config=None, datadir=get_default_datadir()):

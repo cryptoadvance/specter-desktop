@@ -254,6 +254,7 @@ class BitcoinCore(Device):
             wallet_manager.rpc.unloadwallet(wallet_rpc_path)
             # Try deleting wallet file
             if bitcoin_datadir:
+                bitcoin_datadir = os.path.expanduser(bitcoin_datadir)
                 # Check walletdir in bitcoin.conf; network-specific section takes precedence over default
                 walletdir = get_walletdir(bitcoin_datadir, chain)
                 if walletdir:

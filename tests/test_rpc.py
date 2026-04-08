@@ -123,8 +123,7 @@ def test_get_walletdir_dot_notation_network_override(tmp_path):
     """Dot-notation network walletdir overrides the default walletdir."""
     bitcoin_conf = tmp_path / "bitcoin.conf"
     bitcoin_conf.write_text(
-        "walletdir=/default/wallets\n"
-        "regtest.walletdir=/regtest/wallets\n"
+        "walletdir=/default/wallets\n" "regtest.walletdir=/regtest/wallets\n"
     )
     assert get_walletdir(str(tmp_path), "regtest") == "/regtest/wallets"
     assert get_walletdir(str(tmp_path), "main") == "/default/wallets"
