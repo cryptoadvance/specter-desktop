@@ -23,7 +23,7 @@ from cryptoadvance.specter.commands.utxo_scanner import UtxoScanner
 from cryptoadvance.specter.rpc import RpcError
 
 from ..device import Device
-from ..helpers import get_address_from_dict
+from ..helpers import get_address_from_dict, validate_network_for_chain
 from ..key import Key
 from ..persistence import delete_file, delete_folder, write_json_file
 from ..specter_error import SpecterError, handle_exception
@@ -219,7 +219,15 @@ class Wallet(AbstractWallet):
     @property
     def network(self) -> dict:
         """Dictionary with network constants"""
-        return get_network(self.chain)
+        chain_value = self.chain
+        network_params = get_network(chain_value)
+        
+        # Validate that the network params match the chain
+        is_valid, error_msg = validate_network_for_chain(chain_value, network_params)
+        if not is_valid:
+            raise SpecterError(error_msg)
+        
+        return network_params
 
     @classmethod
     def construct_descriptor(cls, sigs_required, key_type, keys, devices) -> Descriptor:
