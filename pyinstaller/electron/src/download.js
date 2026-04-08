@@ -83,6 +83,13 @@ function downloadSpecterd(specterdPath) {
 const download = (uri, filename, callback) => {
   // HEAD request first
   request.head(uri, (err, res, body) => {
+    if (err || !res) {
+      logger.error(
+        `Network error while trying to download specterd: ${err ? err.message : 'No response received (offline?)'}`
+      )
+      callback(true)
+      return
+    }
     if (res.statusCode != 404) {
       let receivedBytes = 0
       const totalBytes = res.headers['content-length']
