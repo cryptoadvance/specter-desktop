@@ -36,10 +36,11 @@ function downloadSpecterd(specterdPath) {
   logger.info('Using platformName ' + platformName)
   download_location = getDownloadLocation(appSettings.specterdVersion, platformName)
   logger.info('Downloading from ' + download_location)
-  download(download_location, specterdPath + '.zip', function (errored) {
+  download(download_location, specterdPath + '.zip', function (errored, errorMsg) {
     if (errored == true) {
       updatingLoaderMsg(
-        `Downloading the ${appNameLower} binary from GitHub failed, could not reach the server or the file wasn't found.`
+        errorMsg ||
+          `Downloading the ${appNameLower} binary from GitHub failed, could not reach the server or the file wasn't found.`
       )
       updateSpecterdStatus(`Downloading ${appNameLower}d failed...`)
       return
@@ -88,7 +89,10 @@ const download = (uri, filename, callback) => {
         `Network error while trying to download specterd: ${err ? err.message : 'No response received (offline?)'}`
       )
       try {
-        callback(true)
+        callback(
+          true,
+          `Downloading the ${appNameLower} binary from GitHub failed: no internet connection. Please check your network and try again.`
+        )
       } catch (error) {
         logger.error(error)
         throw error
