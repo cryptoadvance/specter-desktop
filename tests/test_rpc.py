@@ -137,7 +137,7 @@ def test_get_walletdir_expands_tilde(tmp_path, monkeypatch):
     bitcoin_conf.write_text("walletdir=/custom/wallets\n")
     assert get_walletdir("~", "main") == "/custom/wallets"
 
-
+def test_detect_rpc_confs_via_datadir1():
 def test_detect_rpc_confs_via_datadir1():
     c = _detect_rpc_confs_via_datadir(
         datadir="./tests/misc_testdata/rpc_autodetection/example1"
