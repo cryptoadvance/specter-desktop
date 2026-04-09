@@ -17,6 +17,7 @@ from embit.transaction import Transaction
 from embit.liquid.pset import PSET
 from embit.liquid.transaction import LTransaction
 from embit.liquid.networks import NETWORKS
+from urllib.parse import unquote
 from .persistence import read_json_file, write_json_file
 from .util.bcur import bcur_decode
 import threading
@@ -349,8 +350,6 @@ def get_address_from_dict(data_dict):
 def is_relative_url(url):
     # Decode percent-encoded characters so encoded control/whitespace cannot
     # bypass validation, e.g. /%09/baidu.com -> "/\t/baidu.com".
-    from urllib.parse import unquote
-
     normalized = unquote(url)
 
     if not normalized or not normalized.startswith("/"):
