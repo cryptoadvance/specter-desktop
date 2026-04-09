@@ -96,7 +96,7 @@ class NodeManager:
                     datadir=get_default_datadir(node_type="BTC"),
                     user=os.environ.get("BTC_RPC_USER"),
                     password=os.environ.get("BTC_RPC_PASSWORD", ""),
-                    port=os.environ.get("BTC_RPC_PORT", 8332),
+                    port=os.environ.get("BTC_RPC_PORT", "8332"),
                     host=os.environ.get("BTC_RPC_HOST", "localhost"),
                     protocol=os.environ.get("BTC_RPC_PROTOCOL", "http"),
                 )
