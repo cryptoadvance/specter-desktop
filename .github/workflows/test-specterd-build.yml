@@ -1,0 +1,61 @@
+name: Test specterd build
+
+on:
+  pull_request:
+    paths:
+      - 'pyinstaller/**'
+      - 'requirements.in'
+      - 'requirements.txt'
+      - 'src/**'
+      - 'setup.py'
+      - 'setup.cfg'
+      - 'pyproject.toml'
+      - '.github/workflows/test-specterd-build.yml'
+
+env:
+  PYTHON_VERSION: '3.10'
+
+jobs:
+  build-and-smoke-test:
+    name: Build & smoke-test specterd (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libusb-1.0-0-dev libudev-dev
+
+      - name: Create virtualenv and install
+        run: |
+          pip install virtualenv
+          virtualenv --python=python${{ env.PYTHON_VERSION }} .buildenv
+          source .buildenv/bin/activate
+          pip install -r requirements.txt --require-hashes
+          pip install -e ".[test]"
+          pip install build==0.10.0
+          python3 -m build
+          pip install ./dist/cryptoadvance_specter-*.whl
+
+      - name: Install PyInstaller requirements
+        run: |
+          source .buildenv/bin/activate
+          pip install -r pyinstaller/requirements.txt
+
+      - name: Build specterd
+        run: |
+          source .buildenv/bin/activate
+          echo "0.0.0-test" > pyinstaller/version.txt
+          cd pyinstaller
+          pyinstaller specterd.spec
+          cd ..
+
+      - name: Smoke test
+        run: |
+          ./pyinstaller/dist/specterd --help
+          ./pyinstaller/dist/specterd server --help
