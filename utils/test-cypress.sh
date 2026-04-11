@@ -39,7 +39,7 @@ function check_consistency {
       fi
     done <<< "$GREP_OUTPUT"
   fi
-  $(npm bin)/cypress verify
+  npx cypress verify
 }
 
 check_consistency
@@ -211,7 +211,7 @@ function start_specter {
   # Simulate slower machines with uncommenting this (-l 10 means using 10% cpu):
   #cpulimit -p $specter_pid -l 10 -b
   echo "--> Waiting for specter ..."
-  $(npm bin)/wait-on http://127.0.0.1:${PORT} && echo "--> Success"
+  npx wait-on http://127.0.0.1:${PORT} && echo "--> Success"
   
 }
 
@@ -323,7 +323,7 @@ function sub_open {
     start_elementsd --reset
     start_specter --reset
   fi
-  $(npm bin)/cypress open
+  npx cypress open
 }
 
 function sub_run {
@@ -334,14 +334,14 @@ function sub_run {
     start_elementsd
     start_specter
     # Run $spec_file and all of the others coming later!
-    #$(npm bin)/cypress run --spec $(./utils/calc_cypress_test_spec.py --run $spec_file)
+    #npx cypress run --spec $(./utils/calc_cypress_test_spec.py --run $spec_file)
     # Run $spec_file and only that spec-file!
-    $(npm bin)/cypress run --spec ./cypress/integration/${spec_file}
+    npx cypress run --spec ./cypress/integration/${spec_file}
   else 
     start_bitcoind --reset
     start_elementsd --reset
     start_specter --reset
-    $(npm bin)/cypress run
+    npx cypress run
   fi
 }
 
@@ -349,8 +349,8 @@ function sub_basics {
   start_bitcoind --reset
   start_elementsd --reset
   start_specter --reset
-  $(npm bin)/cypress run --spec $(./utils/cypress_basics.py) --config video=false
-  $(npm bin)/cypress open
+  npx cypress run --spec $(./utils/cypress_basics.py) --config video=false
+  npx cypress open
 }
 
 function sub_snapshot {
@@ -364,7 +364,7 @@ function sub_snapshot {
   start_bitcoind --reset
   start_elementsd --reset
   start_specter --reset
-  $(npm bin)/cypress run --spec $(./utils/calc_cypress_test_spec.py $spec_file)
+  npx cypress run --spec $(./utils/calc_cypress_test_spec.py $spec_file)
   echo "--> stopping specter"
   stop_specter
   echo "--> stopping bitcoind gracefully ... won't take long ..."

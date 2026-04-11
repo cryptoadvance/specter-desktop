@@ -33,5 +33,8 @@
   "bugs": {
     "url": "https://github.com/cryptoadvance/specter-desktop/issues"
   },
-  "homepage": "https://github.com/cryptoadvance/specter-desktop#readme"
+  "homepage": "https://github.com/cryptoadvance/specter-desktop#readme",
+  "engines": {
+    "node": ">=18"
+  }
 }
