@@ -34,6 +34,7 @@ function startSpecterd(specterdPath, automaticWalletImport = false) {
     specterdPath += '.exe'
   }
   let hwiBridgeMode = appSettings.mode == 'hwibridge'
+  let specterURL = hwiBridgeMode ? appSettings.specterURL : 'http://localhost:25441'
   updatingLoaderMsg('Launching Specter ...', (showSpinner = 'true'))
   updateSpecterdStatus('Launching Specter ...')
   let specterdArgs = ['server']
@@ -85,7 +86,7 @@ function startSpecterd(specterdPath, automaticWalletImport = false) {
           }, 3000)
         } else {
           logger.info('Normal startup of Specter.')
-          createWindow(appSettings.specterURL)
+          createWindow(specterURL)
         }
       } else if (serverdStatus === 'timeout') {
         showError('Specter does not seem to start. Check the logs in the menu for more details.')
@@ -113,7 +114,7 @@ function startSpecterd(specterdPath, automaticWalletImport = false) {
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow(appSettings.specterURL)
+    if (BrowserWindow.getAllWindows().length === 0) createWindow(specterURL)
   })
   // since these are streams, you can pipe them elsewhere
   specterdProcess.on('close', (code) => {
@@ -167,7 +168,7 @@ app.on('open-url', (_, url) => {
 // Only proceed with the import if the importFromWalletSoftwareBtn can be found.
 // If it is not, users are redirected by specterd to the configure connection screen.
 function importWallet(walletData) {
-  loadUrl(appSettings.specterURL + '/wallets/new_wallet/')
+  loadUrl(specterURL + '/wallets/new_wallet/')
   let code = `
         const importFromWalletSoftwareBtn = document.getElementById('import-from-wallet-software-btn')
         if (importFromWalletSoftwareBtn) {

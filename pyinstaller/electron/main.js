@@ -200,6 +200,10 @@ app.on('before-quit', (event) => {
   }
 })
 
+ipcMain.on('open-settings', () => {
+  openPreferences()
+})
+
 ipcMain.on('request-mainprocess-action', (event, arg) => {
   switch (arg.message) {
     case 'save-preferences':

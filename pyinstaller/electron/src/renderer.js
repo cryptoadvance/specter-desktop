@@ -19,8 +19,12 @@ window.addEventListener('DOMContentLoaded', () => {
     window.api.receive('update-loader-message', (data) => {
       const launchTextElement = document.getElementById('launch-text');
       if (launchTextElement) {
-          launchTextElement.textContent = data.msg;
+          launchTextElement.innerHTML = data.msg;
           updateSpinner(data.showSpinner);
+      }
+      const settingsBtn = document.getElementById('open-settings-btn');
+      if (settingsBtn) {
+          settingsBtn.classList.toggle('hidden', !!data.showSpinner);
       }
     });
   

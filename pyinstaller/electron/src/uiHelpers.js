@@ -80,9 +80,15 @@ function initMainWindow(dimensions) {
 
   mainWindow.webContents.on('did-fail-load', function () {
     mainWindow.loadURL(`file://${__dirname}/splash.html`)
-    updatingLoaderMsg(
-      `Failed to load: ${appSettings.specterURL}<br>Please make sure the URL is entered correctly in the settings and try again...</b>`
-    )
+    let msg
+    if (appSettings.mode === 'hwibridge') {
+      msg = `Failed to load remote Specter at: ${appSettings.specterURL}<br><br>` +
+        `You are running in <b>HWI Bridge mode</b>, which requires a remote Specter server.<br>` +
+        `If you want to run Specter locally instead, open <b>Settings</b> (${isMac ? 'Cmd' : 'Ctrl'}+, or via the tray icon) and switch to "Run Specter locally".`
+    } else {
+      msg = `Failed to load: ${appSettings.specterURL}<br>Please make sure the URL is entered correctly in the settings and try again...`
+    }
+    updatingLoaderMsg(msg)
   })
   return mainWindow
 }
