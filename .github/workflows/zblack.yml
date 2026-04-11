@@ -11,7 +11,7 @@ jobs:
         with:
           python-version: '3.12'  # Pin Python to avoid 3.14 incompatibility with Black 22.3.0
       # This version should match what you can find in .pre-commit-config.yaml
-      - uses: psf/black@22.3.0 # https://black.readthedocs.io/en/stable/integrations/github_actions.html
+      - uses: psf/black@26.3.0 # https://black.readthedocs.io/en/stable/integrations/github_actions.html
         with:
             options: "--check --verbose"
             src: "./src"
