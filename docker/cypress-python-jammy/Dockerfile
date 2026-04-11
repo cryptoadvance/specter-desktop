@@ -1,4 +1,4 @@
-FROM registry.gitlab.com/cryptoadvance/specter-desktop/cypress-base-ubuntu-jammy:20220908
+FROM ghcr.io/cryptoadvance/specter-desktop/cypress-base-ubuntu-jammy:20260411
 
 RUN apt-get update && apt-get install -y \
     python3-pip python3-virtualenv zip unzip file apt libusb-1.0-0-dev libudev-dev \
@@ -17,4 +17,4 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends 
 WORKDIR /test
 RUN rm -rf node_modules package-lock.json ~/.cache/Cypress
 RUN npm install --save-dev cypress@9.7.0
-RUN $(npm bin)/cypress verify
+RUN npx cypress verify

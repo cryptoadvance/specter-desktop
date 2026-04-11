@@ -72,7 +72,7 @@ test_task:
 cypress_test_task:
   skip: "false"
   container:
-    image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python-jammy:20230206
+    image: ghcr.io/cryptoadvance/specter-desktop/cypress-python-jammy:20260411
     cpu: 6
     memory: 6G
   pre_prep_script: 
