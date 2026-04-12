@@ -160,7 +160,9 @@ app.whenReady().then(() => {
         downloadSpecterd(specterdPath)
       } else {
         updatingLoaderMsg(
-          'Specterd file could not be validated and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...'
+          'Specterd file could not be validated and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...',
+          false,
+          { isHtml: true }
         )
         updateSpecterdStatus('Failed to locate specterd...')
       }
@@ -169,8 +171,13 @@ app.whenReady().then(() => {
     if (appSettings.specterdVersion) {
       downloadSpecterd(specterdPath)
     } else {
+      // NB: smoketest workflow (.github/workflows/electron-smoketest.yml) greps
+      // for the leading "Specterd was not found and no version is configured"
+      // substring to assert splash reached this branch. Keep both in sync.
       updatingLoaderMsg(
-        'Specterd was not found and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...'
+        'Specterd was not found and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...',
+        false,
+        { isHtml: true }
       )
       updateSpecterdStatus('Failed to locate specterd...')
     }
@@ -198,6 +205,15 @@ app.on('before-quit', (event) => {
       tray = null
     }
   }
+})
+
+ipcMain.on('open-settings', (event) => {
+  const senderUrl = event.senderFrame?.url || ''
+  if (!senderUrl.startsWith('file://') || !senderUrl.endsWith('/splash.html')) {
+    logger.warn(`Rejected open-settings IPC from untrusted sender: ${senderUrl}`)
+    return
+  }
+  openPreferences()
 })
 
 ipcMain.on('request-mainprocess-action', (event, arg) => {
