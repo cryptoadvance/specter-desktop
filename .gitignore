@@ -50,3 +50,10 @@ cypresstest-output.xml
 cypress/downloads
 pyinstaller/electron/output.css
 pyinstaller/electron/typography.css
+
+# BMad skill installation and generated artifacts — local only
+_bmad/
+_bmad-output/
+
+# Claude Code local workspace
+.claude/
