@@ -171,6 +171,9 @@ app.whenReady().then(() => {
     if (appSettings.specterdVersion) {
       downloadSpecterd(specterdPath)
     } else {
+      // NB: smoketest workflow (.github/workflows/electron-smoketest.yml) greps
+      // for the leading "Specterd was not found and no version is configured"
+      // substring to assert splash reached this branch. Keep both in sync.
       updatingLoaderMsg(
         'Specterd was not found and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...',
         false,
