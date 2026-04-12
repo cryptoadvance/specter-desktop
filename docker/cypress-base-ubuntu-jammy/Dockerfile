@@ -13,7 +13,8 @@ RUN apt-get update && \
 RUN npm install -g yarn@latest
 
 # install additional native dependencies build tools
-RUN apt-get install -y build-essential
+# apt-get update needed again after NodeSource setup script modified sources
+RUN apt-get update && apt-get install -y build-essential
 
 # install Git client
 RUN apt-get install -y git

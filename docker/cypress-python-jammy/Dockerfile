@@ -17,4 +17,4 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends 
 WORKDIR /test
 RUN rm -rf node_modules package-lock.json ~/.cache/Cypress
 RUN npm install --save-dev cypress@9.7.0
-RUN npx cypress verify
+RUN npx --no-install cypress verify
