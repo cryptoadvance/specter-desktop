@@ -3,8 +3,8 @@ A base-image used in cypress-python to use a newer ubuntu jammy rather than a bu
 Create it like this:
 
 ``` 
-docker build . -t registry.gitlab.com/cryptoadvance/specter-desktop/cypress-base-ubuntu-jammy:20220908
-docker push registry.gitlab.com/cryptoadvance/specter-desktop/cypress-base-ubuntu-jammy:20220908
+docker build . -t ghcr.io/cryptoadvance/specter-desktop/cypress-base-ubuntu-jammy:20260411
+docker push ghcr.io/cryptoadvance/specter-desktop/cypress-base-ubuntu-jammy:20260411
 ```
 
 used in cypress-python

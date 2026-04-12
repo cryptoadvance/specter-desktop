@@ -67,11 +67,17 @@ describe('Test the actions in UTXO list', () => {
         cy.get('tx-table').find('tx-row').eq(0).find('.select-tx-img').click( {position: 'top'} )
         cy.wait(100)
         cy.get('tx-table').find('.freeze-tx-btn').click()
-        cy.wait(200)
+        // freeze-tx-btn submits a form → full page nav. tx-table's render()
+        // awaits fetchWalletData() before attaching txRowSelected listeners,
+        // so on fast workers a click can land after tx-row creation but
+        // before the listener is live — select-tx-value toggles but the
+        // action box never reveals. Wait long enough for the async gap to close.
+        cy.wait(1000)
         // Select it
         cy.get('tx-table').find('tx-row').eq(0).find('.select-tx-img').click( {position: 'top'} );
         cy.get('tx-table').find('tx-row').eq(0).find('.select-tx-value').invoke('attr', 'value').should('eq', 'true') // Check that the click flow is (still) in order
-        cy.wait(200)
+        // Wait for the tx-table listener to process the selection and reveal the action box.
+        cy.get('tx-table').find('.selected-rows-action-box').should('not.have.class', 'hidden')
         cy.get('tx-table').find('.compose-tx-btn').click()
         // Switch to coin selection, check that the right amount of coins are preselected in the coin selection
         cy.get('.coinselect-hidden').should('have.length', 1);
