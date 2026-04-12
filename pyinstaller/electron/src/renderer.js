@@ -8,8 +8,6 @@
 // All of the Node.js APIs are available in the preload process.
 // It has the same sandbox as a Chrome extension.
 window.addEventListener('DOMContentLoaded', () => {
-
-  
     const updateSpinner = (show) => {
       const spinnerElement = document.getElementById('spinner');
       if (spinnerElement) {
@@ -19,14 +17,23 @@ window.addEventListener('DOMContentLoaded', () => {
     window.api.receive('update-loader-message', (data) => {
       const launchTextElement = document.getElementById('launch-text');
       if (launchTextElement) {
-          launchTextElement.innerHTML = data.msg;
+          if (data.isHtml) {
+              launchTextElement.innerHTML = data.msg;
+          } else {
+              launchTextElement.textContent = data.msg;
+          }
           updateSpinner(data.showSpinner);
       }
       const settingsBtn = document.getElementById('open-settings-btn');
       if (settingsBtn) {
-          settingsBtn.classList.toggle('hidden', !!data.showSpinner);
+          settingsBtn.classList.toggle('hidden', !data.showSettingsButton);
       }
     });
-  
 
-  })
+    const openSettingsBtn = document.getElementById('open-settings-btn');
+    if (openSettingsBtn) {
+        openSettingsBtn.addEventListener('click', () => {
+            window.api.send('open-settings');
+        });
+    }
+})

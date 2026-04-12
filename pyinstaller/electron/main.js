@@ -160,7 +160,9 @@ app.whenReady().then(() => {
         downloadSpecterd(specterdPath)
       } else {
         updatingLoaderMsg(
-          'Specterd file could not be validated and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...'
+          'Specterd file could not be validated and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...',
+          false,
+          { isHtml: true }
         )
         updateSpecterdStatus('Failed to locate specterd...')
       }
@@ -170,7 +172,9 @@ app.whenReady().then(() => {
       downloadSpecterd(specterdPath)
     } else {
       updatingLoaderMsg(
-        'Specterd was not found and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...'
+        'Specterd was not found and no version is configured in the settings<br>Please go to Preferences and set version to fetch or add an executable manually...',
+        false,
+        { isHtml: true }
       )
       updateSpecterdStatus('Failed to locate specterd...')
     }
@@ -200,7 +204,12 @@ app.on('before-quit', (event) => {
   }
 })
 
-ipcMain.on('open-settings', () => {
+ipcMain.on('open-settings', (event) => {
+  const senderUrl = event.senderFrame?.url || ''
+  if (!senderUrl.startsWith('file://') || !senderUrl.endsWith('/splash.html')) {
+    logger.warn(`Rejected open-settings IPC from untrusted sender: ${senderUrl}`)
+    return
+  }
   openPreferences()
 })
 

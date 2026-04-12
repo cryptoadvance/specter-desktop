@@ -20,16 +20,27 @@ const executeJavaScript = (code) => {
   mainWindow.webContents.executeJavaScript(code)
 }
 
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 function showError(error) {
   updatingLoaderMsg('Specter encountered an error:' + error.toString())
 }
 
-function updatingLoaderMsg(msg, showSpinner = false) {
+function updatingLoaderMsg(msg, showSpinner = false, { isHtml = false, showSettingsButton = false } = {}) {
   if (mainWindow) {
     // see preload.js where this is setup
     mainWindow.webContents.send('update-loader-message', {
       msg,
       showSpinner,
+      isHtml,
+      showSettingsButton,
     })
   } else {
     logger.error('mainWindow not initialized in updatingLoaderMsg')
@@ -78,17 +89,18 @@ function initMainWindow(dimensions) {
     return { action: 'deny' }
   })
 
-  mainWindow.webContents.on('did-fail-load', function () {
+  mainWindow.webContents.on('did-fail-load', function (event, errorCode, errorDescription, validatedURL) {
     mainWindow.loadURL(`file://${__dirname}/splash.html`)
+    const failedUrl = escapeHtml(validatedURL || appSettings.specterURL || '')
     let msg
     if (appSettings.mode === 'hwibridge') {
-      msg = `Failed to load remote Specter at: ${appSettings.specterURL}<br><br>` +
+      msg = `Failed to load remote Specter at: ${failedUrl}<br><br>` +
         `You are running in <b>HWI Bridge mode</b>, which requires a remote Specter server.<br>` +
         `If you want to run Specter locally instead, open <b>Settings</b> (${isMac ? 'Cmd' : 'Ctrl'}+, or via the tray icon) and switch to "Run Specter locally".`
     } else {
-      msg = `Failed to load: ${appSettings.specterURL}<br>Please make sure the URL is entered correctly in the settings and try again...`
+      msg = `Failed to load: ${failedUrl}<br>Please make sure the URL is entered correctly in the settings and try again...`
     }
-    updatingLoaderMsg(msg)
+    updatingLoaderMsg(msg, false, { isHtml: true, showSettingsButton: true })
   })
   return mainWindow
 }
