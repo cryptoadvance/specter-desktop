@@ -12,6 +12,12 @@ src/cryptoadvance/specter/translations/**/messages.mo
 # reinstalling. Gitignored (see .gitignore) so the main repo stays clean.
 _bmad/
 
+# Claude Code project skills + local settings — copy so new worktrees inherit them.
+# NOTE: .claude/worktrees/ is deliberately NOT included (that's where worktrees
+# themselves live; copying it would recurse).
+.claude/skills/
+.claude/settings.local.json
+
 # NOT included on purpose (too big and/or not portable; recreate per worktree):
 #   .env/                              — Python venv (402M, absolute paths in scripts)
 #   .buildenv/                         — second Python venv (329M)
