@@ -70,14 +70,16 @@ test_task:
   
 
 cypress_test_task:
-  # Route collaborator builds onto the paid compute-credit pool so we don't sit
-  # in the community queue and get cancelled. Forks still use community compute.
   use_compute_credits: $CIRRUS_USER_COLLABORATOR == 'true'
   skip: "false"
-  container:
-    image: ghcr.io/cryptoadvance/specter-desktop/cypress-python-jammy:20260411
-    cpu: 6
-    memory: 6G
+  persistent_worker:
+    labels:
+      os: linux
+    isolation:
+      container:
+        image: ghcr.io/cryptoadvance/specter-desktop/cypress-python-jammy:20260411
+        cpu: 6
+        memory: 6G
   pre_prep_script: 
     # The stupid old debian-package is not installing a proper binary but just the python-package
     - echo -e '#!/bin/bash\npython3 -m virtualenv "$@"' > /usr/local/bin/virtualenv
