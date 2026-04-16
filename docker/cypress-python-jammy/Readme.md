@@ -8,3 +8,5 @@ docker push ghcr.io/cryptoadvance/specter-desktop/cypress-python-jammy:20260411
 ```
 
 Search for `cypress-python` on where this is used in the project.
+
+When editing this Dockerfile, rebuild and push to `ghcr.io/cryptoadvance/specter-desktop/cypress-python-jammy` with a new tag, then update the digest pin in `.github/workflows/test.yml`.
