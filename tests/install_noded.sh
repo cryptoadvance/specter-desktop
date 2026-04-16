@@ -333,16 +333,33 @@ function gpg_verify_sums {
         unset GNUPGHOME
         return 0
     fi
+    # Bitcoin Core SHA256SUMS.asc carries signatures from many maintainers.
+    # gpg --verify exits non-zero when ANY signature's key is missing, even
+    # if others verify successfully.  We only import a subset of keys, so
+    # the raw exit code is unreliable.  Instead, use --status-fd to check
+    # for at least one GOODSIG from a key we trust.
+    local status_out
     if [ -n "$sigfile" ] && [ -f "$sigfile" ]; then
-        gpg --verify "$sigfile" "$sumsfile"
-        local rc=$?
+        status_out=$(gpg --status-fd 1 --verify "$sigfile" "$sumsfile" 2>/dev/null)
     else
         # Clearsigned (elements case): verify in-place.
-        gpg --verify "$sumsfile"
-        local rc=$?
+        status_out=$(gpg --status-fd 1 --verify "$sumsfile" 2>/dev/null)
     fi
+    local found_good=0
+    for fpr in "${keys[@]}"; do
+        if echo "$status_out" | grep -q "GOODSIG.*${fpr:(-16)}"; then
+            found_good=1
+            echo "    --> GPG: good signature from key ${fpr}"
+            break
+        fi
+    done
     unset GNUPGHOME
-    return $rc
+    if [ "$found_good" -eq 0 ]; then
+        echo "    --> WARNING: no GOODSIG from a trusted key found in GPG status output"
+        echo "    --> Status output: $status_out"
+        return 1
+    fi
+    return 0
 }
 
 # Verify a binary artifact (tarball) against the committed trust anchor.
