@@ -337,7 +337,13 @@ function gpg_verify_sums {
     # gpg --verify exits non-zero when ANY signature's key is missing, even
     # if others verify successfully.  We only import a subset of keys, so
     # the raw exit code is unreliable.  Instead, use --status-fd to check
-    # for at least one GOODSIG from a key we trust.
+    # for at least one VALIDSIG whose primary-key fingerprint we trust.
+    #
+    # VALIDSIG format (last field is always the primary key fingerprint,
+    # even when the signature was made by a subkey):
+    #   VALIDSIG <sign_fpr> <date> <ts> ... <primary_fpr>
+    # GOODSIG uses the signing subkey ID, which may differ from the primary
+    # fingerprint we pin — so VALIDSIG is the correct field to match.
     local status_out
     if [ -n "$sigfile" ] && [ -f "$sigfile" ]; then
         status_out=$(gpg --status-fd 1 --verify "$sigfile" "$sumsfile" 2>/dev/null)
@@ -347,15 +353,16 @@ function gpg_verify_sums {
     fi
     local found_good=0
     for fpr in "${keys[@]}"; do
-        if echo "$status_out" | grep -q "GOODSIG.*${fpr:(-16)}"; then
+        # Match VALIDSIG line whose last field (primary fingerprint) equals ours.
+        if echo "$status_out" | grep -q "VALIDSIG.*${fpr}"; then
             found_good=1
-            echo "    --> GPG: good signature from key ${fpr}"
+            echo "    --> GPG: valid signature traced to primary key ${fpr}"
             break
         fi
     done
     unset GNUPGHOME
     if [ "$found_good" -eq 0 ]; then
-        echo "    --> WARNING: no GOODSIG from a trusted key found in GPG status output"
+        echo "    --> WARNING: no VALIDSIG from a trusted primary key found in GPG status output"
         echo "    --> Status output: $status_out"
         return 1
     fi
