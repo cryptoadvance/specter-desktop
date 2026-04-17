@@ -34,7 +34,9 @@ jobs:
         with:
           path: |
             ./tests/bitcoin
+            ./tests/bitcoin-*
             ./tests/elements
+            ./tests/elements-*
           key: ${{ runner.os }}-${{ runner.arch }}-noded-${{ hashFiles('pyproject.toml', 'tests/elements_gitrev_pinned', 'tests/install_noded.sh', 'tests/bitcoin_SHA256SUMS', 'tests/elements_SHA256SUMS') }}-binary
           save-always: true
 
@@ -90,7 +92,9 @@ jobs:
         with:
           path: |
             ./tests/bitcoin
+            ./tests/bitcoin-*
             ./tests/elements
+            ./tests/elements-*
           key: ${{ runner.os }}-${{ runner.arch }}-noded-${{ hashFiles('pyproject.toml', 'tests/elements_gitrev_pinned', 'tests/install_noded.sh', 'tests/bitcoin_SHA256SUMS', 'tests/elements_SHA256SUMS') }}-binary
           save-always: true
 
@@ -103,6 +107,9 @@ jobs:
       - name: Install Python dependencies
         shell: bash
         run: |
+          # Container uid differs from checkout owner — trust the repo dir so
+          # setuptools-scm/vcs_versioning can run `git describe` during pip -e.
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           virtualenv --python=python .env
           source ./.env/bin/activate
           pip3 install -r requirements.txt --require-hashes
@@ -170,7 +177,9 @@ jobs:
         with:
           path: |
             ./tests/bitcoin
+            ./tests/bitcoin-*
             ./tests/elements
+            ./tests/elements-*
           key: ${{ runner.os }}-${{ runner.arch }}-noded-${{ hashFiles('pyproject.toml', 'tests/elements_gitrev_pinned', 'tests/install_noded.sh', 'tests/bitcoin_SHA256SUMS', 'tests/elements_SHA256SUMS') }}-binary
           save-always: true
 

@@ -419,6 +419,12 @@ function sub_binary {
     # cache (which covers ./tests/${node_impl}/) and re-verified on every
     # cache restore. This is the whole point of the hardened flow — see the
     # "save-always backdoor" rationale at the top of the file.
+    # Clean up a broken symlink from a partial cache restore (the workflow
+    # caches ./tests/${node_impl}-* as well, but be defensive).
+    if [[ -L "./${node_impl}" && ! -e "./${node_impl}" ]]; then
+        echo "    --> cleaning up dangling symlink ./${node_impl}"
+        rm -f "./${node_impl}"
+    fi
     mkdir -p "./${node_impl}"
     local cached_tarball="./${node_impl}/${binary_file}"
 
