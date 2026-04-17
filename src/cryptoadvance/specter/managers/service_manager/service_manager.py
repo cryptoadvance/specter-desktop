@@ -54,7 +54,7 @@ class ExtensionManager:
         # in the corresponding (Production)Config
         logger.debug(f"EXTENSION_LIST = {app.config.get('EXTENSION_LIST')}")
         class_list = get_classlist_of_type_clazz_from_modulelist(
-            Extension, app.config.get("EXTENSION_LIST", [])
+            Extension, app.config.get("EXTENSION_LIST", []), skip_missing=True
         )
 
         if app.config.get("SERVICES_LOAD_FROM_CWD", False):
@@ -489,7 +489,7 @@ class ExtensionManager:
         logger.debug(f"Found {len(arr)} Extensions")
         arr.extend(
             get_classlist_of_type_clazz_from_modulelist(
-                Extension, ProductionConfig.EXTENSION_LIST
+                Extension, ProductionConfig.EXTENSION_LIST, skip_missing=True
             )
         )
         arr = list(set(arr))

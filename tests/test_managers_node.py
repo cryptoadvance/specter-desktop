@@ -74,6 +74,52 @@ def test_node_manager_basics(
         nm.switch_node("node_with_a_different_port")
 
 
+def test_auto_create_btc_node_from_env(monkeypatch):
+    """Env vars BTC_RPC_* should auto-create a node on fresh install (empty nodes dir)."""
+    monkeypatch.setenv("BTC_RPC_USER", "testuser")
+    monkeypatch.setenv("BTC_RPC_PASSWORD", "testpass")
+    monkeypatch.setenv("BTC_RPC_PORT", "18443")
+    monkeypatch.setenv("BTC_RPC_HOST", "btcnode")
+    monkeypatch.setenv("BTC_RPC_PROTOCOL", "https")
+
+    with tempfile.TemporaryDirectory(
+        prefix="pytest_NodeManager_env_"
+    ) as data_folder:
+        nm = NodeManager(data_folder=data_folder)
+        # Node created
+        assert "bitcoin_core" in nm.nodes
+        node = nm.nodes["bitcoin_core"]
+        assert node.name == "Bitcoin Core"
+        assert node.user == "testuser"
+        assert node.password == "testpass"
+        assert node.port == "18443"
+        assert node.host == "btcnode"
+        assert node.protocol == "https"
+        # Active node set
+        assert nm._active_node == "bitcoin_core"
+        # JSON persisted
+        assert os.path.isfile(os.path.join(data_folder, "bitcoin_core.json"))
+
+        # Second load_from_disk should NOT duplicate (node already exists)
+        nm.load_from_disk(data_folder)
+        assert list(nm.nodes.keys()).count("bitcoin_core") == 1
+
+
+def test_no_auto_create_btc_node_without_env():
+    """Without BTC_RPC_USER, no node should be auto-created."""
+    # Ensure env var is not set (don't use monkeypatch.delenv in case it's absent)
+    old = os.environ.pop("BTC_RPC_USER", None)
+    try:
+        with tempfile.TemporaryDirectory(
+            prefix="pytest_NodeManager_noenv_"
+        ) as data_folder:
+            nm = NodeManager(data_folder=data_folder)
+            assert len(nm.nodes) == 0
+    finally:
+        if old is not None:
+            os.environ["BTC_RPC_USER"] = old
+
+
 @pytest.mark.elm
 def test_switch_nodes_across_chains(
     bitcoin_regtest: BitcoindPlainController, elements_elreg: ElementsPlainController

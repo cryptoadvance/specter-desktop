@@ -2,7 +2,7 @@ container:
 #  image: python:slim
 #  image: ubuntu:jammy
 #  image: python:3.10
-  image: registry.gitlab.com/cryptoadvance/specter-desktop/cirrus-jammy:20230206
+  image: ghcr.io/cryptoadvance/specter-desktop/cirrus-jammy:20260412
 
 # We assume here that we're having a proper python3 system including virtualenv and pip
 prep_stuff_template: &PREP_STUFF_TEMPLATE
@@ -70,11 +70,16 @@ test_task:
   
 
 cypress_test_task:
+  use_compute_credits: $CIRRUS_USER_COLLABORATOR == 'true'
   skip: "false"
-  container:
-    image: registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python-jammy:20230206
-    cpu: 6
-    memory: 6G
+  persistent_worker:
+    labels:
+      os: linux
+    isolation:
+      container:
+        image: ghcr.io/cryptoadvance/specter-desktop/cypress-python-jammy:20260411
+        cpu: 6
+        memory: 6G
   pre_prep_script: 
     # The stupid old debian-package is not installing a proper binary but just the python-package
     - echo -e '#!/bin/bash\npython3 -m virtualenv "$@"' > /usr/local/bin/virtualenv

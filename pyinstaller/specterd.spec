@@ -7,8 +7,6 @@ from embit import util as embit_util
 mnemonic_path = os.path.join(mnemonic.__path__[0], "wordlist")
 embit_libsecp_binary = embit_util.ctypes_secp256k1._find_library()
 
-block_cipher = None
-
 binaries = []
 if platform.system() == 'Windows':
     binaries = [("./windll/libusb-1.0.dll", ".")]
@@ -53,24 +51,19 @@ a = Analysis(['specterd.py'],
                     *packaged_software_datas,
              ],
              hiddenimports=[
-                'pkg_resources.py2_warn',
                 'cryptoadvance.specter.config',
                 'tzdata' # used by apscheduler and existing hook doesn't seem to be complete
              ],
              hookspath=['hooks/'],
              runtime_hooks=[],
              excludes=[],
-             win_no_prefer_redirects=False,
-             win_private_assemblies=False,
-             cipher=block_cipher,
              noarchive=False)
 
 if platform.system() == 'Linux':
     import hwilib
     a.datas += Tree('../udev', prefix='hwilib/udev')
 
-pyz = PYZ(a.pure, a.zipped_data,
-             cipher=block_cipher)
+pyz = PYZ(a.pure, a.zipped_data)
 name=os.getenv("specterd_filename","specterd")
 exe = EXE(pyz,
           a.scripts,

@@ -23,5 +23,9 @@
       "mochaFile": "cypresstest-output.xml",
       "toConsole": true
     },
-    "experimentalSessionAndOrigin": true
+    "experimentalSessionAndOrigin": true,
+    "retries": {
+        "runMode": 1,
+        "openMode": 0
+    }
 }

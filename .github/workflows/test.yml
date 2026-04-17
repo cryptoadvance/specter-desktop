@@ -1,0 +1,215 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libusb-1.0-0-dev libudev-dev python3-virtualenv
+
+      - name: Cache bitcoind and elementsd
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./tests/bitcoin
+            ./tests/bitcoin-*
+            ./tests/elements
+            ./tests/elements-*
+          key: ${{ runner.os }}-${{ runner.arch }}-noded-${{ hashFiles('pyproject.toml', 'tests/elements_gitrev_pinned', 'tests/install_noded.sh', 'tests/bitcoin_SHA256SUMS', 'tests/elements_SHA256SUMS') }}-binary
+          save-always: true
+
+      - name: Install bitcoind
+        run: ./tests/install_noded.sh --debug --bitcoin binary
+
+      - name: Install elementsd
+        run: ./tests/install_noded.sh --debug --elements binary
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt --require-hashes
+          pip install -e ".[test]"
+
+      - name: Fetch version tag
+        run: git fetch origin refs/tags/v1.0.0
+
+      - name: Run pytest
+        run: >
+          pytest
+          --cov=cryptoadvance
+          --cov-report=term
+          --junitxml=./testresults.xml
+          -p no:cacheprovider
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testresults
+          path: ./testresults.xml
+
+  cypress:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    container:
+      image: ghcr.io/cryptoadvance/specter-desktop/cypress-python-jammy@sha256:149f19f9534a3932972151d9f0084b386f8beef1b897ff739ad64a962af891dc
+      options: --shm-size=2g
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fix virtualenv shim
+        shell: bash
+        run: |
+          echo -e '#!/bin/bash\npython3 -m virtualenv "$@"' > /usr/local/bin/virtualenv
+          chmod +x /usr/local/bin/virtualenv
+          virtualenv --version
+
+      - name: Cache bitcoind and elementsd
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./tests/bitcoin
+            ./tests/bitcoin-*
+            ./tests/elements
+            ./tests/elements-*
+          key: ${{ runner.os }}-${{ runner.arch }}-noded-${{ hashFiles('pyproject.toml', 'tests/elements_gitrev_pinned', 'tests/install_noded.sh', 'tests/bitcoin_SHA256SUMS', 'tests/elements_SHA256SUMS') }}-binary
+          save-always: true
+
+      - name: Install bitcoind
+        run: ./tests/install_noded.sh --debug --bitcoin binary
+
+      - name: Install elementsd
+        run: ./tests/install_noded.sh --debug --elements binary
+
+      - name: Install Python dependencies
+        shell: bash
+        run: |
+          # Container uid differs from checkout owner — trust the repo dir so
+          # setuptools-scm/vcs_versioning can run `git describe` during pip -e.
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          virtualenv --python=python .env
+          source ./.env/bin/activate
+          pip3 install -r requirements.txt --require-hashes
+          pip3 install -e ".[test]"
+
+      - name: Cache npm modules
+        uses: actions/cache@v4
+        with:
+          path: ./node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+
+      - name: Install npm deps
+        run: npm ci
+
+      - name: Run Cypress
+        shell: bash
+        run: |
+          source ./.env/bin/activate
+          ./utils/test-cypress.sh --debug run
+
+      - name: Upload Cypress test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-results
+          path: cypresstest-output.xml
+
+      - name: Upload Cypress screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots/**
+          if-no-files-found: ignore
+
+      - name: Upload Cypress videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: cypress/videos/**
+          if-no-files-found: ignore
+
+  extension-smoketest:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libusb-1.0-0-dev libudev-dev python3-virtualenv
+
+      - name: Cache bitcoind and elementsd
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./tests/bitcoin
+            ./tests/bitcoin-*
+            ./tests/elements
+            ./tests/elements-*
+          key: ${{ runner.os }}-${{ runner.arch }}-noded-${{ hashFiles('pyproject.toml', 'tests/elements_gitrev_pinned', 'tests/install_noded.sh', 'tests/bitcoin_SHA256SUMS', 'tests/elements_SHA256SUMS') }}-binary
+          save-always: true
+
+      - name: Install bitcoind
+        run: ./tests/install_noded.sh --debug --bitcoin binary
+
+      - name: Install elementsd
+        run: ./tests/install_noded.sh --debug --elements binary
+
+      - name: Install Python dependencies
+        run: |
+          virtualenv --python=python .env
+          source ./.env/bin/activate
+          pip3 install -r requirements.txt --require-hashes
+          pip3 install -e ".[test]"
+
+      - name: Extension smoketest
+        run: |
+          git config --global user.name "CI CD"
+          git config --global user.email "cicd@example.com"
+          source ./.env/bin/activate
+          echo $PATH
+          mkdir tmp && cd tmp
+          mkdir testextension && cd testextension
+          pwd
+          python3 -m cryptoadvance.specter ext gen --ext-id cicdtest --org cryptoadvance --no-isolated-client --devicename cicddevice
+          pip3 install -e .
+          python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug  2> specter.log &
+          sleep 15
+          cat specter.log | grep "Found CicdtestService" # Discovery failed
+          cat specter.log | grep "Extension CicdtestService activated (alpha)"
+          sudo apt-get update && sudo apt-get -y install curl
+          curl http://127.0.0.1:25441/svc/cicdtest/ | grep "CicdtestService 4thewin."

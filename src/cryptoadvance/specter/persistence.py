@@ -143,7 +143,7 @@ def _write_json_file(content, path, lock=None):
             with open(path, "w") as f:
                 json.dump(content, f, indent=4)
 
-            # check if write was sucessful
+            # check if write was successful
             with open(path, "r") as f:
                 c = json.load(f)
 

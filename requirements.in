@@ -8,7 +8,7 @@ Flask-RESTful==0.3.10
 Flask-HTTPAuth==4.8.0
 hwi==2.4.0
 python-dotenv==0.21.1
-requests==2.26.0
+requests==2.31.0
 pysocks==1.7.1
 six==1.16.0
 stem==1.8.0
@@ -21,7 +21,7 @@ cbor2==5.4.6
 mnemonic==0.21
 cryptography==42.0.7
 Flask-APScheduler==1.12.4
-gunicorn==20.1.0
+gunicorn==23.0.0
 simple-websocket==0.8.1
 protobuf==4.23.3
 PyJWT==2.4.0
@@ -35,6 +35,7 @@ specterext-exfund==0.1.7
 specterext-faucet==0.1.2
 cryptoadvance.spectrum==0.7.0
 specterext-stacktrack==0.3.0
+specterext-timelockrecovery==0.2.1
 
 # workarounds
 

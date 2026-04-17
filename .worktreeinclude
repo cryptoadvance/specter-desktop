@@ -1,0 +1,27 @@
+# Copied into new worktrees created by `claude --worktree` / EnterWorktree.
+# Format: .gitignore syntax. Only gitignored files matching these patterns
+# are copied (never tracked files).
+
+# Generated version file — avoids re-running setuptools_scm in each worktree.
+src/cryptoadvance/specter/_version.py
+
+# Compiled translation catalogs — regenerating requires pybabel and is slow.
+src/cryptoadvance/specter/translations/**/messages.mo
+
+# BMad skill installation — copy so new worktrees have skills available without
+# reinstalling. Gitignored (see .gitignore) so the main repo stays clean.
+_bmad/
+
+# Claude Code project skills + local settings — copy so new worktrees inherit them.
+# NOTE: .claude/worktrees/ is deliberately NOT included (that's where worktrees
+# themselves live; copying it would recurse).
+.claude/skills/
+.claude/settings.local.json
+
+# NOT included on purpose (too big and/or not portable; recreate per worktree):
+#   .env/                              — Python venv (402M, absolute paths in scripts)
+#   .buildenv/                         — second Python venv (329M)
+#   pyinstaller/electron/node_modules/ — npm deps (483M, slow but portable;
+#                                        add if you run electron builds in worktrees)
+#   tests/bitcoin*, tests/elements*    — cached regtest node binaries; CI repopulates
+#   _bmad-output/                      — local BMad artifacts; regenerate per worktree

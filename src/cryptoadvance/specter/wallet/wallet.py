@@ -949,8 +949,7 @@ class Wallet(AbstractWallet):
                     )
                 except Exception as e:
                     # UTXO was spent
-                    print(e)
-                    pass
+                    logger.debug("Failed to lock UTXO %s: %s", utxo, e)
                 logger.info(f"Freeze {utxo}")
                 self.frozen_utxo.append(utxo)
             utxo_list_done.append(utxo)
@@ -1474,7 +1473,7 @@ class Wallet(AbstractWallet):
         for utxo in self.locked_utxo:
             if utxo["txid"] in frozen_txid:
                 amount += utxo["amount"]
-        return amount
+        return round(amount, 8)
 
     @property
     def amount_locked_unsigned(self):
@@ -1482,7 +1481,7 @@ class Wallet(AbstractWallet):
         amount = 0
         for psbt in self.pending_psbts.values():
             amount += sum([inp.float_amount for inp in psbt.inputs])
-        return amount
+        return round(amount, 8)
 
     @property
     def amount_immature(self):
@@ -1497,7 +1496,9 @@ class Wallet(AbstractWallet):
     @property
     def amount_available(self):
         """All outputs minus UTXO locked in unsigned transactions and frozen outputs"""
-        return self.amount_total - self.amount_locked_unsigned - self.amount_frozen
+        return round(
+            self.amount_total - self.amount_locked_unsigned - self.amount_frozen, 8
+        )
 
     @property
     def fullbalance(self):

@@ -1,0 +1,91 @@
+name: Electron smoketest
+
+on:
+  pull_request:
+    paths:
+      - 'pyinstaller/electron/**'
+      - '.github/workflows/electron-smoketest.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'pyinstaller/electron/**'
+      - '.github/workflows/electron-smoketest.yml'
+
+jobs:
+  smoketest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: pyinstaller/electron/package-lock.json
+
+      - name: Install xvfb and electron runtime libs
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            xvfb \
+            libgtk-3-0 \
+            libnss3 \
+            libasound2t64 \
+            libgbm1 \
+            libxss1 \
+            libxtst6
+
+      - name: Install electron deps
+        working-directory: pyinstaller/electron
+        run: npm ci
+
+      - name: Syntax check all electron JS
+        working-directory: pyinstaller/electron
+        run: |
+          for f in main.js src/*.js; do
+            echo "checking $f"
+            node --check "$f"
+          done
+
+      - name: Seed dev data folder
+        run: |
+          mkdir -p "$RUNNER_TEMP/specter_dev"
+          echo '{"version":"","sha256":{"x64":"","arm64":""}}' \
+            > "$RUNNER_TEMP/specter_dev/version-data.json"
+
+      - name: Boot electron, assert splash reaches no-specterd branch
+        working-directory: pyinstaller/electron
+        env:
+          NODE_ENV: development
+          SPECTER_DATA_FOLDER: ${{ runner.temp }}/specter_dev
+        run: |
+          set -u
+          xvfb-run --auto-servernum --server-args='-screen 0 1280x960x24' \
+            ./node_modules/.bin/electron . --no-sandbox > electron.log 2>&1 &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true; wait $PID 2>/dev/null || true' EXIT
+
+          # Expected log line emitted by uiHelpers.js:updatingLoaderMsg when
+          # main.js reaches the "specterd missing + no version" branch.
+          # If main.js changes this message, update both sides together.
+          EXPECTED="Specterd was not found and no version is configured"
+
+          for i in $(seq 1 30); do
+            if grep -qF "$EXPECTED" electron.log; then
+              echo "smoketest passed (splash reached no-specterd branch)"
+              exit 0
+            fi
+            if ! kill -0 $PID 2>/dev/null; then
+              echo "electron exited before reaching expected state"
+              echo "--- electron.log ---"
+              cat electron.log
+              exit 1
+            fi
+            sleep 1
+          done
+
+          echo "expected log line not seen within 30s"
+          echo "--- electron.log ---"
+          cat electron.log
+          exit 1

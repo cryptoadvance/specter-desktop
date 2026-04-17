@@ -1,0 +1,22 @@
+# Trusted reference: plaintext hashes extracted from the clearsigned
+# SHA256SUMS.asc published with elements-0.21.0.2.
+# Provenance:
+#   Source URL:     https://github.com/ElementsProject/elements/releases/download/elements-0.21.0.2/SHA256SUMS.asc
+#   Clearsigned:    yes (PGP-SIGNED-MESSAGE, Hash: SHA256)
+#   Verified on:    2026-04-15
+#   Verified by:    Good signature from Steven Roose <steven@stevenroose.org>
+#                     primary fingerprint  8CC974D9CFD034DCEED213B02A57E0A610D7F19C
+#                     signing subkey       DE10E82629A8CAD55B700B972F2A88D7F8D68E87
+#   Key sourced from: hkps://keyserver.ubuntu.com (search 0x2F2A88D7F8D68E87)
+# Do not edit the hash lines below — they are the on-disk trust anchor compared
+# against downloaded tarballs by tests/install_noded.sh::verify_binary.
+06de6cd39f00a8b5604f2baa6203c08358762b99560bec6ad90a65bc22fadf6f  elements-elements-0.21.0.2-aarch64-linux-gnu.tar.gz
+d263ed2182f55d0d08013f005f8db3d8d16c5f2a8e954b93f7938ceadd3798e0  elements-elements-0.21.0.2-arm-linux-gnueabihf.tar.gz
+bbeac447c8947cb6788cc5d3f8e8eade82d9d03b159992fa22f4a0198ebd8a60  elements-elements-0.21.0.2-osx64.tar.gz
+f7774aba06a4b4a3708be96774cd9e993fc58998f91a1a8cf9b692a9f888f89f  elements-elements-0.21.0.2-osx-unsigned.dmg
+9cdc53b1f81a8c2f3e4b04d80de04ca1cc182d018c0c4fef1aaaf6dcc87f5b42  elements-elements-0.21.0.2-osx-unsigned.tar.gz
+cf3e2d6fc0811a3dd1e1ace640a62319af35443c76a404caf4f26674197c8059  elements-elements-0.21.0.2-riscv64-linux-gnu.tar.gz
+a3ec010bd10e8b5947030e6b846069084056418a7a1e111c0d2634a65662e53e  elements-elements-0.21.0.2-win64-setup-unsigned.exe
+7a8f427be448eaa89f87c31cce705069c2d9528cf54fdd838c104f1257f800d4  elements-elements-0.21.0.2-win64.zip
+4863ee842d13bbb0255c2002ccc07f170b87717589a3493805944579a4af6745  elements-elements-0.21.0.2-win-unsigned.tar.gz
+3018116794429b77ce0dd7436c2906f8be4eb5d6163b8451c5ce7e7bedad152b  elements-elements-0.21.0.2-x86_64-linux-gnu.tar.gz

@@ -85,6 +85,22 @@ class NodeManager:
                 logger.error(f"Skipping node {node_alias} due to {e}")
 
         if not self.nodes:
+            if os.environ.get("BTC_RPC_USER"):
+                logger.info(
+                    "Creating an external Bitcoin Core node from BTC_RPC_* environment variables."
+                )
+                node = self.add_external_node(
+                    node_type="BTC",
+                    name="Bitcoin Core",
+                    autodetect=False,
+                    datadir=get_default_datadir(node_type="BTC"),
+                    user=os.environ.get("BTC_RPC_USER"),
+                    password=os.environ.get("BTC_RPC_PASSWORD", ""),
+                    port=os.environ.get("BTC_RPC_PORT", "8332"),
+                    host=os.environ.get("BTC_RPC_HOST", "localhost"),
+                    protocol=os.environ.get("BTC_RPC_PROTOCOL", "http"),
+                )
+                self._active_node = node.alias
             if os.environ.get("ELM_RPC_USER"):
                 logger.debug(
                     "Creating an external Elements node with the initial configuration."

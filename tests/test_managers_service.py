@@ -77,6 +77,7 @@ def test_ServiceManager_get_service_packages(caplog):
     assert "cryptoadvance.specterext.electrum.devices.electrum" in packages
     assert "cryptoadvance.specterext.devhelp.service" in packages
     assert "cryptoadvance.specterext.liquidissuer.service" in packages
+    assert "oren-z0.specterext.timelockrecovery.service" in packages
 
     assert "cryptoadvance.specter.util.migrations.migration_0000" in packages
     assert "cryptoadvance.specter.util.migrations.migration_0001" in packages
@@ -198,11 +199,23 @@ def test_ServiceManager_get_service_packages(caplog):
         == 3
     )
 
+    # service, controller, config
+    assert (
+        len(
+            [
+                package
+                for package in packages
+                if package.startswith("oren-z0.specterext.timelockrecovery.")
+            ]
+        )
+        == 3
+    )
+
     # Sum it up: 31
     for package in sorted(packages):
         print(package)
 
-    assert len(packages) == 31
+    assert len(packages) == 34
 
 
 def test_ServiceManager_make_path_relative(caplog):

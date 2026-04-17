@@ -38,7 +38,9 @@ node_modules
 btcd-conn.json
 elmd-conn.json
 tests/bitcoin*
+!tests/bitcoin_SHA256SUMS
 tests/elements*
+!tests/elements_SHA256SUMS
 token.sh
 src/cryptoadvance/specter/translations/**/messages.mo
 src/cryptoadvance/specter/_version.py
@@ -50,3 +52,10 @@ cypresstest-output.xml
 cypress/downloads
 pyinstaller/electron/output.css
 pyinstaller/electron/typography.css
+
+# BMad skill installation and generated artifacts — local only
+_bmad/
+_bmad-output/
+
+# Claude Code local workspace
+.claude/

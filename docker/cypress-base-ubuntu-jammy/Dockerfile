@@ -1,15 +1,20 @@
 FROM ubuntu:22.04
 
+# avoid any prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Node.js 18.x from NodeSource (Ubuntu apt ships 12.x which lacks optional chaining)
 RUN apt-get update && \
-  apt-get install -y apt-transport-https curl  nodejs npm
+  apt-get install -y apt-transport-https curl ca-certificates gnupg && \
+  curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+  apt-get install -y nodejs
 
-
-# Install latest NPM and Yarn
-RUN npm install -g npm@latest
+# Install latest Yarn
 RUN npm install -g yarn@latest
 
 # install additional native dependencies build tools
-RUN apt install -y build-essential
+# apt-get update needed again after NodeSource setup script modified sources
+RUN apt-get update && apt-get install -y build-essential
 
 # install Git client
 RUN apt-get install -y git
@@ -17,8 +22,6 @@ RUN apt-get install -y git
 # https://github.com/cypress-io/cypress/releases/tag/v3.8.0
 RUN apt-get install -y unzip
 
-# avoid any prompts
-ENV DEBIAN_FRONTEND noninteractive
 #install tzdata package
 RUN apt-get install -y tzdata
 # set your timezone
@@ -40,11 +43,11 @@ RUN apt-get install -y \
 
 # a few environment variables to make NPM installs easier
 # good colors for most applications
-ENV TERM xterm
+ENV TERM=xterm
 # avoid million NPM install messages
-ENV npm_config_loglevel warn
+ENV npm_config_loglevel=warn
 # allow installing when the main user is root
-ENV npm_config_unsafe_perm true
+ENV npm_config_unsafe_perm=true
 
 # versions of local tools
 RUN echo  " node version:    $(node -v) \n" \
