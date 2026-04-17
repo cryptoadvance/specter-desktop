@@ -106,7 +106,9 @@ Every job must set:
 
 ### 1. `test` (pytest)
 
-Cirrus today: `test_task` on `cirrus-jammy:20230206`, runs
+Cirrus today: `test_task` on
+`ghcr.io/cryptoadvance/specter-desktop/cirrus-jammy:20260412`
+(post-PR-#2602 baseline), runs
 `pytest --cov=cryptoadvance --junitxml=./testresults.xml` with cached
 bitcoind and elementsd.
 
@@ -129,9 +131,10 @@ GH Actions mapping:
 
 ### 2. `cypress`
 
-Cirrus today: `cypress_test_task` on `cypress-python-jammy:20230206`,
-Cirrus-requested `cpu: 6, memory: 6G`, runs
-`./utils/test-cypress.sh --debug run`.
+Cirrus today: `cypress_test_task` on
+`ghcr.io/cryptoadvance/specter-desktop/cypress-python-jammy:20260411`
+(post-PR-#2602 baseline), Cirrus-requested `cpu: 6, memory: 6G`,
+runs `./utils/test-cypress.sh --debug run`.
 
 GH Actions mapping:
 - `runs-on: ubuntu-22.04` (4 vCPU / 16 GB free). **Do not pre-escalate** to
@@ -183,9 +186,14 @@ GH Actions `actions/cache@v4` keyed on:
 
 ```
 ${{ runner.os }}-${{ runner.arch }}-noded-
-  ${{ hashFiles('pyproject.toml', 'tests/bitcoin_gitrev_pinned', 'tests/elements_gitrev_pinned', 'tests/install_noded.sh') }}-
+  ${{ hashFiles('pyproject.toml', 'tests/elements_gitrev_pinned', 'tests/install_noded.sh', 'tests/bitcoin_SHA256SUMS', 'tests/elements_SHA256SUMS') }}-
   binary
 ```
+
+`tests/bitcoin_gitrev_pinned` is not in the repo today (bitcoin version
+comes from `pyproject.toml`); the cache key hashes the committed
+SHA256SUMS trust anchors instead, so a version bump invalidates the
+cache through the trust-anchor files.
 
 `runner.arch` matters — future ARM runners must not poison x86 caches.
 
@@ -385,10 +393,19 @@ Runbook (must execute as part of PR #2 merge):
    `gh api repos/cryptoadvance/specter-desktop/branches/master/protection`.
 2. Record the Cirrus check names.
 3. Merge PR #2.
-4. Immediately update branch protection: remove Cirrus check names, add
-   the new GH Actions check names (`test`, `cypress`, `extension-smoketest`).
-5. Open a throwaway test PR to verify all three new checks are required
-   and gating.
+4. Immediately update branch protection: remove the Cirrus check names,
+   then add the exact GitHub Actions required-check contexts in the form
+   `<workflow name> / <job name>` as reported by the GitHub UI or API.
+   For this migration the workflow `name:` is `Tests` (see
+   `.github/workflows/test.yml`), so the three contexts to require are:
+   - `Tests / test`
+   - `Tests / cypress`
+   - `Tests / extension-smoketest`
+
+   Do NOT add bare `test` / `cypress` / `extension-smoketest` — those are
+   job ids, not emitted check contexts, and will silently fail to gate.
+5. Open a throwaway test PR and verify those exact three contexts are
+   marked required and are actually gating merge.
 6. Only then announce cutover complete.
 
 ## Secrets inventory
@@ -420,14 +437,16 @@ This is CI plumbing, not a release. Scope is narrow:
 builds. Cirrus runs all three tasks in parallel, so total build wall-clock
 ≈ longest task (cypress).
 
-| Task                      | n  | median | p95    | min    | max    | GHA ceiling (+25%) |
+| Task                      | n  | median | p95    | min    | max    | GHA ceiling (+20%) |
 |---------------------------|----|--------|--------|--------|--------|--------------------|
-| `test_task`               | 20 | 4m47s  | 5m35s  | 4m23s  | 5m37s  | **5m59s**          |
-| `cypress_test_task`       | 20 | 6m02s  | 6m55s  | 5m27s  | 8m15s  | **7m32s**          |
-| `extension_smoketest_task`| 20 | 2m10s  | 2m27s  | 1m55s  | 2m39s  | **2m43s**          |
+| `test_task`               | 20 | 4m47s  | 5m35s  | 4m23s  | 5m37s  | **5m44s**          |
+| `cypress_test_task`       | 20 | 6m02s  | 6m55s  | 5m27s  | 8m15s  | **7m14s**          |
+| `extension_smoketest_task`| 20 | 2m10s  | 2m27s  | 1m55s  | 2m39s  | **2m36s**          |
 
 - **Tolerance:** per-job wall-clock on GH Actions must not exceed the
-  "GHA ceiling" column (Cirrus median + 25%).
+  "GHA ceiling" column (Cirrus median + 20%). This threshold is used
+  uniformly by the Cypress measurement protocol and the acceptance gate
+  — one number, one decision.
 - **Action on breach:** investigate before cutover; do not ship PR #2 until
   resolved.
 
