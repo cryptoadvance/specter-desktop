@@ -59,7 +59,6 @@ jobs:
           --cov-report=term
           --junitxml=./testresults.xml
           -p no:cacheprovider
-          --reruns 0
 
       - name: Upload test results
         if: always()
@@ -80,6 +79,7 @@ jobs:
           fetch-depth: 0
 
       - name: Fix virtualenv shim
+        shell: bash
         run: |
           echo -e '#!/bin/bash\npython3 -m virtualenv "$@"' > /usr/local/bin/virtualenv
           chmod +x /usr/local/bin/virtualenv
@@ -101,6 +101,7 @@ jobs:
         run: ./tests/install_noded.sh --debug --elements binary
 
       - name: Install Python dependencies
+        shell: bash
         run: |
           virtualenv --python=python .env
           source ./.env/bin/activate
@@ -117,6 +118,7 @@ jobs:
         run: npm ci
 
       - name: Run Cypress
+        shell: bash
         run: |
           source ./.env/bin/activate
           ./utils/test-cypress.sh --debug run
