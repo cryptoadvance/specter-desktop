@@ -181,7 +181,11 @@ def test_addressinfo(caplog, client, funded_ghost_machine_wallet):
     assert res.data.decode().startswith(
         '{"error":"Request error for method getaddressinfo'
     )
-    assert res.data.decode().endswith('Invalid address format"}\n')
+    # Core 22 says "Invalid address format"; Core 24+ says "Invalid checksum".
+    assert (
+        'Invalid address format"}\n' in res.data.decode()
+        or 'Invalid checksum"}\n' in res.data.decode()
+    )
 
     # send post request with address, not belonging to wallet
     # this recreates an edge case, see https://github.com/cryptoadvance/specter-desktop/issues/2000
