@@ -70,8 +70,10 @@ Strict frontend-touching coverage (changes under `src/cryptoadvance/specter/stat
 | Field                | Value                                                      |
 |----------------------|------------------------------------------------------------|
 | Evidence captured at | 2026-04-19                                                 |
-| Latest master commit | `62ea0265` (2026-04-17 20:33 UTC)                          |
+| Cutover merged at    | `fdd1cd8f` (PR #2610, 2026-04-19 16:32 UTC)                |
+| Latest pre-cutover master commit | `62ea0265` (2026-04-17 20:33 UTC)              |
 | `test.yml` added at  | `a24df2eb` (2026-04-17 18:50 UTC)                          |
+| Required checks post-cutover | `test`, `cypress`, `extension-smoketest`, `black` — all pinned to `app_id:15368` (github-actions) |
 | Author               | @k9ert                                                     |
 
 ## Rollback contract
