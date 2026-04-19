@@ -60,5 +60,13 @@
     "read-last-lines": "^1.8.0",
     "request": "^2.88.2",
     "winston": "^3.13.0"
+  },
+  "overrides": {
+    "request": {
+      "form-data": "^2.5.4"
+    }
+  },
+  "resolutions": {
+    "**/request/form-data": "^2.5.4"
   }
 }
