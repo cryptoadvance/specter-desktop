@@ -347,7 +347,10 @@ def test_WalletAwareTxItem(bitcoin_regtest, parent_mock, empty_data_folder):
     print("\n\nOutgoing-Transaction (0.2 btc)")
     print("=========================================")
 
-    txid_outgoing_addr = "n4MN27Lk7Yh3pwfjCiAbRXtRVjs4Uk67fG"
+    # bech32 destination so Core keeps change as wpkh (Core 24+ matches change
+    # type to destination type; legacy destinations produce legacy change that
+    # the wpkh-only watch descriptor in this test does not recognise).
+    txid_outgoing_addr = "bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs"
     print(f"address = {txid_outgoing_addr}")
     txid_outgoing = wrpc.sendtoaddress(txid_outgoing_addr, 0.2)
     print(f"balance: {wrpc.getbalances()['mine']['trusted']}")
