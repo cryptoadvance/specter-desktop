@@ -9,12 +9,12 @@ Specter-Desktop runs all CI on **GitHub Actions**. Cirrus CI and GitLab CI were 
 | Lint (black)                   | `.github/workflows/zblack.yml`                  | PR, push                                     |
 | Tests (pytest + Cypress + extension smoketest) | `.github/workflows/test.yml`    | PR, push                                     |
 | Release                        | `.github/workflows/release.yml`                 | Tag push (`v*`)                              |
-| Electron smoketest             | `.github/workflows/electron-smoketest.yml`      | PR on `pyinstaller/electron/**`              |
-| Extension compatibility        | `.github/workflows/extension-compat.yml`        | PR                                           |
+| Electron smoketest             | `.github/workflows/electron-smoketest.yml`      | PR and push to master on `pyinstaller/electron/**` |
+| Extension compatibility        | `.github/workflows/extension-compat.yml`        | PR; push on `requirements.*` / `pyproject.toml`; `workflow_dispatch` |
 | Specterd build smoke           | `.github/workflows/test-specterd-build.yml`     | PR                                           |
-| Docker image push              | `.github/workflows/docker-push.yml`             | Push to master                               |
-| Docker image tag               | `.github/workflows/docker-tag.yml`              | Release published                            |
-| Docs table of contents         | `.github/workflows/toc.yml`                     | PR on `docs/**`                              |
+| Docker image push              | `.github/workflows/docker-push.yml`             | Push to any branch                           |
+| Docker image tag               | `.github/workflows/docker-tag.yml`              | Tag push (`v*`)                              |
+| Docs table of contents         | `.github/workflows/toc.yml`                     | Push                                         |
 
 ## Test workflow
 

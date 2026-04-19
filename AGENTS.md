@@ -76,9 +76,9 @@ python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
 | Tests | `test.yml` | PR, push | pytest + Cypress + extension smoketest (3 jobs) |
 | Release | `release.yml` | Tag push `v*` | pip + specterd + Electron for Linux/Win/macOS + GPG-sign `SHA256SUMS` |
 | Black Linter | `zblack.yml` | PR, push | `psf/black@26.3.0` action pinned to Black 22.3.0, python-3.12 |
-| TOC Generator | `toc.yml` | Push on `docs/**` | Auto-generates TOCs for `README.md`, `docs/faq.md`, `docs/development.md` |
-| Docker Push | `docker-push.yml` | Push to master | Multi-arch image → `ghcr.io/cryptoadvance/specter-desktop:<branch>` |
-| Docker Tag | `docker-tag.yml` | Release published | Multi-arch image → `ghcr.io/cryptoadvance/specter-desktop:<tag>` |
+| TOC Generator | `toc.yml` | Push | Auto-generates TOCs for `README.md`, `docs/faq.md`, `docs/development.md` |
+| Docker Push | `docker-push.yml` | Push to any branch | Multi-arch image → `ghcr.io/cryptoadvance/specter-desktop:<branch>` |
+| Docker Tag | `docker-tag.yml` | Tag push `v*` | Multi-arch image → `ghcr.io/cryptoadvance/specter-desktop:<tag>` |
 | Extension Compat | `extension-compat.yml` | PR touching `requirements.*`/`pyproject.toml` | Installs full lock, imports every bundled extension, runs `pip check` |
 | specterd Build Smoke | `test-specterd-build.yml` | PR touching `pyinstaller/`, `requirements*`, `src/**` | Builds specterd on Linux and runs `--help` |
 | Electron Smoke | `electron-smoketest.yml` | PR touching `pyinstaller/electron/**` | Smoke test Electron packaging |
