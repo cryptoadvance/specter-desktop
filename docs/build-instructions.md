@@ -6,13 +6,9 @@ This document addresses the build-system part. For the continuous-integration-pa
 
 ## pip-packages
 ```
-# in the case of a release, the version needs to be adapted:
-# sed -i "s/version=\".*/version=\"$CI_COMMIT_TAG\",/" setup.py
-
-python3 setup.py sdist bdist_wheel
-cryptoadvance.specter-vx.y.z-get-replaced-by-release-script.tar.gz
+python3 -m build
 ```
-This process is the same for all platforms. The result unfortunately is not stable in terms of identically sh256-hashes, though.
+Produces an sdist + wheel under `dist/`. The release pipeline sets `SETUPTOOLS_SCM_PRETEND_VERSION` from the git tag; locally, setuptools-scm derives the version from your working tree. The result is not stable in terms of identical sha256-hashes across machines.
 
 ## Electron
 The electron build is assuming a node-installation. So make sure you have `node` and `npm` available.
@@ -20,7 +16,7 @@ The electron build is assuming a node-installation. So make sure you have `node`
 The electron-app is built in a way that it's running the `specterd` (specter-demon) internally. It's not bundled with the electron-binary but downloaded with the first start (including sha256- and gpg-verification). 
 If someone does not want the download, he can manually choose a specterd-binary from the `preferences/Advanced` menu. Nevertheless the Electron-App is tied, at buildtime, to a specific specterd-binary via a sha256-version. This probably doesn't make so much sense if you build outside of a release but we need it anyway.
 
-So let's cover the build of the specterd-binary first. Below is a manual description of the build-process. There are acripts which are doing this but they are partially optimized for the CI-system. Check the `pyinstaller/build-*` scripts for details.
+So let's cover the build of the specterd-binary first. Below is a manual description of the build-process. The canonical CI build lives in `.github/workflows/release.yml` (`build-specterd-*` and `build-electron-*` jobs).
 
 First set the virtualenv:
 
@@ -30,11 +26,6 @@ source .buildenv/bin/activate
 ```
 
 ### specterd Linux and MacOS
-
-Below doesn't seem to work properly, at least on MacOS, better use the build script. For MacOS, that would be:
-```bash
-./utils/build-osx.sh --version 0.0.0-pre1 specterd
-```
 
 ```bash
 cd pyinstaller
@@ -98,7 +89,7 @@ node ./set-version v1.3.1-custom ../dist/specterd
 
 npm i
 # We assume here that no Apple-developer-ID is used to sign the binary.
-# Check `build-osx.sh` if you want to sign
+# For signed+notarized builds, see .github/workflows/release.yml (build-electron-macos).
 echo "`jq '.build.mac.identity=null' package.json`" > package.json
 
 # finally build
