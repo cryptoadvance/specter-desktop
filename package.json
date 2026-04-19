@@ -19,10 +19,12 @@
     "tailwindcss": "^3.2.4"
   },
   "overrides": {
-    "form-data@~2.3.2": "^2.5.4"
+    "@cypress/request": {
+      "form-data": "^2.5.4"
+    }
   },
   "resolutions": {
-    "**/request/form-data": "^2.5.4"
+    "**/@cypress/request/form-data": "^2.5.4"
   },
   "scripts": {
     "dev": "gulp",

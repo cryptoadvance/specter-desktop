@@ -62,7 +62,9 @@
     "winston": "^3.13.0"
   },
   "overrides": {
-    "form-data@~2.3.2": "^2.5.4"
+    "request": {
+      "form-data": "^2.5.4"
+    }
   },
   "resolutions": {
     "**/request/form-data": "^2.5.4"
