@@ -17,7 +17,7 @@ psutil==5.9.0
 pyopenssl==24.1.0
 flask_wtf==1.2.1
 pgpy==0.6.0
-cbor2==5.4.6
+cbor2==5.9.0
 mnemonic==0.21
 cryptography==42.0.7
 Flask-APScheduler==1.12.4
