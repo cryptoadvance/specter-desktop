@@ -267,6 +267,15 @@ jobs:
           name: specterd-linux
           path: ./release-artifacts
 
+      - name: Cache Electron binaries
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/electron
+            ~/.cache/electron-builder
+          key: electron-linux-${{ hashFiles('pyinstaller/electron/package-lock.json') }}
+          restore-keys: electron-linux-
+
       - name: Prepare Electron build
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
@@ -286,7 +295,17 @@ jobs:
           cp -R ../../src/cryptoadvance/specter/static/fonts \
                 ../../src/cryptoadvance/specter/static/output.css \
                 ../../src/cryptoadvance/specter/static/typography.css .
-          npm run dist -- --linux
+          # Retry: electron-builder downloads from github.com occasionally 502
+          # (see release run 24636274855).
+          attempt=0
+          until npm run dist -- --linux; do
+            attempt=$((attempt + 1))
+            if [ $attempt -ge 3 ]; then
+              echo "electron-builder failed after $attempt attempts"; exit 1
+            fi
+            echo "Attempt $attempt failed; retrying in $((attempt * 15))s..."
+            sleep $((attempt * 15))
+          done
           cd ../..
 
       - name: Package release
@@ -311,6 +330,10 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: electronuserland/builder:wine
+    env:
+      # Shared HOME so `npm ci` (electron postinstall) and electron-builder
+      # write to the same ~/.cache/electron path — kept cacheable across runs.
+      HOME: /tmp/electron-home
     steps:
       - uses: actions/checkout@v4
         with:
@@ -319,12 +342,22 @@ jobs:
       - name: Install system dependencies
         run: |
           apt-get update && apt-get install -y unzip
+          mkdir -p $HOME
 
       - name: Download specterd Windows artifact
         uses: actions/download-artifact@v4
         with:
           name: specterd-windows
           path: ./release-artifacts
+
+      - name: Cache Electron binaries
+        uses: actions/cache@v4
+        with:
+          path: |
+            /tmp/electron-home/.cache/electron
+            /tmp/electron-home/.cache/electron-builder
+          key: electron-win-${{ hashFiles('pyinstaller/electron/package-lock.json') }}
+          restore-keys: electron-win-
 
       - name: Prepare Electron build
         run: |
@@ -339,15 +372,22 @@ jobs:
           cd ../..
 
       - name: Build Electron app
-        env:
-          HOME: /tmp/electron-home
         run: |
-          mkdir -p $HOME
           cd pyinstaller/electron
           cp -R ../../src/cryptoadvance/specter/static/fonts \
                 ../../src/cryptoadvance/specter/static/output.css \
                 ../../src/cryptoadvance/specter/static/typography.css .
-          npm run dist -- --win
+          # Retry: electron-builder downloads from github.com occasionally 502
+          # (see release run 24636274855).
+          attempt=0
+          until npm run dist -- --win; do
+            attempt=$((attempt + 1))
+            if [ $attempt -ge 3 ]; then
+              echo "electron-builder failed after $attempt attempts"; exit 1
+            fi
+            echo "Attempt $attempt failed; retrying in $((attempt * 15))s..."
+            sleep $((attempt * 15))
+          done
           cd ../..
 
       - name: Package release
@@ -400,6 +440,15 @@ jobs:
         with:
           name: specterd-macos-arm64
           path: ./release-artifacts
+
+      - name: Cache Electron binaries
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/electron
+            ~/Library/Caches/electron-builder
+          key: electron-mac-${{ hashFiles('pyinstaller/electron/package-lock.json') }}
+          restore-keys: electron-mac-
 
       - name: Import code signing certificate
         if: env.HAVE_APPLE_CERT == 'true'
@@ -466,7 +515,17 @@ jobs:
           cp -R ../../src/cryptoadvance/specter/static/fonts \
                 ../../src/cryptoadvance/specter/static/output.css \
                 ../../src/cryptoadvance/specter/static/typography.css .
-          npm run dist -- --mac
+          # Retry: electron-builder downloads from github.com occasionally 502
+          # (see release run 24636274855).
+          attempt=0
+          until npm run dist -- --mac; do
+            attempt=$((attempt + 1))
+            if [ $attempt -ge 3 ]; then
+              echo "electron-builder failed after $attempt attempts"; exit 1
+            fi
+            echo "Attempt $attempt failed; retrying in $((attempt * 15))s..."
+            sleep $((attempt * 15))
+          done
           cd ../..
         env:
           # electron-builder reads these for notarization
