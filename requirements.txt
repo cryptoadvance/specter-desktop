@@ -184,9 +184,9 @@ cryptography==42.0.7 \
     #   noiseprotocol
     #   pgpy
     #   pyopenssl
-ecdsa==0.19.0 \
-    --hash=sha256:2cea9b88407fdac7bbeca0833b189e4c9c53f2ef1e1eaa29f6224dbc809b707a \
-    --hash=sha256:60eaad1199659900dd0af521ed462b793bbdf867432b3948e87416ae4caf6bf8
+ecdsa==0.19.2 \
+    --hash=sha256:62635b0ac1ca2e027f82122b5b81cb706edc38cd91c63dda28e4f3455a2bf930 \
+    --hash=sha256:840f5dc5e375c68f36c1a7a5b9caad28f95daa65185c9253c0c08dd952bb7399
     # via hwi
 embit==0.6.1 \
     --hash=sha256:16a84c6668dc9ffc907594457a46f7142cee379646bc009a5a9b77b0d2cb4e12
