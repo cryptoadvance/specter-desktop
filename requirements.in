@@ -2,7 +2,7 @@ certifi==2024.6.2
 Click==8.1.7
 Flask==2.2.5
 Flask-Babel==3.1.0
-Flask-Cors==3.0.10
+Flask-Cors==6.0.0
 Flask-Login==0.6.3
 Flask-RESTful==0.3.10
 Flask-HTTPAuth==4.8.0

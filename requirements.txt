@@ -263,9 +263,9 @@ flask-babel==3.1.0 \
     --hash=sha256:be015772c5d7f046f3b99c508dcf618636eb93d21b713b356db79f3e79f69f39 \
     --hash=sha256:deb3ee272d5adf97f5974ed09ab501243d63e7fb4a047501a00de4bd4aca4830
     # via -r requirements.in
-flask-cors==3.0.10 \
-    --hash=sha256:74efc975af1194fc7891ff5cd85b0f7478be4f7f59fe158102e91abb72bb4438 \
-    --hash=sha256:b60839393f3b84a0f3746f6cdca56c1ad7426aa738b70d6c61375857823181de
+flask-cors==6.0.0 \
+    --hash=sha256:4592c1570246bf7beee96b74bc0adbbfcb1b0318f6ba05c412e8909eceec3393 \
+    --hash=sha256:6332073356452343a8ccddbfec7befdc3fdd040141fe776ec9b94c262f058657
     # via -r requirements.in
 flask-httpauth==4.8.0 \
     --hash=sha256:66568a05bc73942c65f1e2201ae746295816dc009edd84b482c44c758d75097a \
@@ -812,7 +812,6 @@ six==1.16.0 \
     #   -r requirements.in
     #   apscheduler
     #   ecdsa
-    #   flask-cors
     #   flask-restful
     #   python-dateutil
 specterext-exfund==0.1.7 \
@@ -910,6 +909,7 @@ werkzeug==3.0.3 \
     --hash=sha256:fc9645dc43e03e4d630d23143a04a7f947a9a3b5727cd535fdfe155a17cc48c8
     # via
     #   flask
+    #   flask-cors
     #   flask-login
 wsproto==1.2.0 \
     --hash=sha256:ad565f26ecb92588a3e43bc3d96164de84cd9902482b130d0ddbaa9664a85065 \
