@@ -14,12 +14,12 @@ six==1.16.0
 stem==1.8.0
 embit==0.6.1
 psutil==5.9.0
-pyopenssl==24.1.0
+pyopenssl==26.0.0
 flask_wtf==1.2.1
 pgpy==0.6.0
 cbor2==5.9.0
 mnemonic==0.21
-cryptography==42.0.7
+cryptography==46.0.6
 Flask-APScheduler==1.12.4
 gunicorn==23.0.0
 simple-websocket==0.8.1
