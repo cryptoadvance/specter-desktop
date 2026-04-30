@@ -432,9 +432,9 @@ hidapi==0.14.0 \
     --hash=sha256:fb4e94e45f6dddb20d59501187721e5d3b02e6cc8a59d261dd5cac739008582a \
     --hash=sha256:fc9ec2321bf3b0b4953910aa87c0c8ab5f93b1f113a9d3d4f18845ce54708d13
     # via hwi
-hwi==2.4.0 \
-    --hash=sha256:3eaa7593f1ab360569eacdd9507dab75532bb58e8cd991d8ad72f5c4fcb67997 \
-    --hash=sha256:7cb7ef2a4db4bc434815374d9bad43c6425491f77828314a2d2898d3e86d3f04
+hwi==3.1.0 \
+    --hash=sha256:21ba92bb06e2f805e2806c686f2c50d02db6826a363b01e44052415755504d6f \
+    --hash=sha256:42e875cbb616a91638fb90679cad93edb5075bf375e92fc1709be9b2a3dfd59c
     # via -r requirements.in
 idna==3.7 \
     --hash=sha256:028ff3aadf0609c1fd278d8ea3089299412a7a8b9bd005dd08b9f8285bcb5cfc \
@@ -921,5 +921,6 @@ wtforms==3.1.2 \
     # via flask-wtf
 
 # WARNING: The following packages were not pinned, but pip requires them to be
-# pinned when the requirements file includes hashes. Consider using the --allow-unsafe flag.
+# pinned when the requirements file includes hashes and the requirement is not
+# satisfied by a package already installed. Consider using the --allow-unsafe flag.
 # setuptools

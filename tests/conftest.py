@@ -89,7 +89,22 @@ def pytest_addoption(parser):
         default="master",
         help="Version of elementsd (something which works with git checkout ...)",
     )
+    parser.addoption(
+        "--run-jade-hardware",
+        action="store_true",
+        default=False,
+        help="Run tests marked jade_hardware (real Jade attached + operator).",
+    )
     listen()
+
+
+def pytest_collection_modifyitems(config, items):
+    if config.getoption("--run-jade-hardware"):
+        return
+    skip = pytest.mark.skip(reason="opt-in via --run-jade-hardware")
+    for item in items:
+        if item.get_closest_marker("jade_hardware") is not None:
+            item.add_marker(skip)
 
 
 def pytest_generate_tests(metafunc):
