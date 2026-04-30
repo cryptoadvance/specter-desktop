@@ -103,7 +103,7 @@ def pytest_collection_modifyitems(config, items):
         return
     skip = pytest.mark.skip(reason="opt-in via --run-jade-hardware")
     for item in items:
-        if "jade_hardware" in item.keywords:
+        if item.get_closest_marker("jade_hardware") is not None:
             item.add_marker(skip)
 
 
