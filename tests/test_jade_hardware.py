@@ -63,7 +63,7 @@ def _prompt(msg: str) -> None:
 def test_jade_enumerate_via_specter():
     """Jade is detected by Specter's HWIBridge and reports a fingerprint."""
     _prompt("Connect and unlock the Jade.")
-    bridge = HWIBridge()
+    bridge = HWIBridge(skip_hwi_initialisation=True)
     jades = _enumerate_jade(bridge)
     assert jades, "no Jade detected — connect, unlock, and rerun"
     jade = jades[0]
@@ -75,7 +75,7 @@ def test_jade_enumerate_via_specter():
 def test_jade_extract_xpub_via_specter():
     """Specter can pull an xpub at a known derivation from Jade."""
     _prompt("Unlock the Jade. You may be asked to confirm the xpub export.")
-    bridge = HWIBridge()
+    bridge = HWIBridge(skip_hwi_initialisation=True)
     jades = _enumerate_jade(bridge)
     assert jades, "no Jade detected"
     fingerprint = jades[0].get("fingerprint")
@@ -119,7 +119,7 @@ def test_jade_sign_psbt_via_specter():
 
     psbt_b64 = PSBT_FIXTURE.read_text().strip()
 
-    bridge = HWIBridge()
+    bridge = HWIBridge(skip_hwi_initialisation=True)
     jades = _enumerate_jade(bridge, chain="test")
     assert jades, "no Jade detected"
     fingerprint = jades[0].get("fingerprint")
