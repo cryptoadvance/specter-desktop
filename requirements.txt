@@ -824,9 +824,9 @@ specterext-stacktrack==0.3.0 \
     --hash=sha256:14f96f1f552f57ba017b8bc642f07343edbb1abafe09e03bbaae179d78d7ce23 \
     --hash=sha256:9e2946185730aab377951e83a27d8791a34e0f031e44f15991212b6b85722ca0
     # via -r requirements.in
-specterext-timelockrecovery==0.2.1 \
-    --hash=sha256:2fc2a3eec045377b54926ff41dab9c5f5a6f46074150aec1ff67cb1456fef911 \
-    --hash=sha256:35e181971b5b69ca6706496169c4581f2fa20706c88ba24760e56e153ec51939
+specterext-timelockrecovery==0.2.3 \
+    --hash=sha256:a0b22c4e010061055da4ea6ea4e08bbc38d1f7c2ec58327970caa0ce987cba95 \
+    --hash=sha256:5df3deb6245a22d48f75bbb62fd87dc141a9f60407011ce9fbb0a7bcc40fe4cc
     # via -r requirements.in
 sqlalchemy==1.4.52 \
     --hash=sha256:1296f2cdd6db09b98ceb3c93025f0da4835303b8ac46c15c2136e27ee4d18d94 \
