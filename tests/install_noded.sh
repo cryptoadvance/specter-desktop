@@ -317,14 +317,18 @@ function gpg_verify_sums {
     fi
     local imported=0
     for fpr in "${keys[@]}"; do
-        # Try keys.openpgp.org first, then keyserver.ubuntu.com.
-        if curl -fsSL "https://keys.openpgp.org/vks/v1/by-fingerprint/${fpr}" 2>/dev/null \
-            | gpg --import 2>/dev/null; then
-            imported=$((imported + 1))
-            continue
-        fi
-        if curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x${fpr}&options=mr" 2>/dev/null \
-            | gpg --import 2>/dev/null; then
+        # Import from both sources. Some keyservers may return partial key
+        # material for old signatures (e.g. missing signing subkeys).
+        # Importing from both increases robustness while keeping the same
+        # pinned trust anchors for verification.
+        curl -fsSL "https://keys.openpgp.org/vks/v1/by-fingerprint/${fpr}" 2>/dev/null \
+            | gpg --import 2>/dev/null || true
+        curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x${fpr}&options=mr" 2>/dev/null \
+            | gpg --import 2>/dev/null || true
+
+        # Count this key as imported if it exists in the keyring after the
+        # multi-source import attempts.
+        if gpg --list-keys --with-colons "$fpr" 2>/dev/null | grep -q '^pub:'; then
             imported=$((imported + 1))
         fi
     done
