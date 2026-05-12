@@ -49,6 +49,15 @@ class JadeSerialImpl:
     def connect(self):
         assert self.ser is None
 
+                # Close any open serial ports to avoid 'resource busy' errors
+        for port_info in list_ports.comports():
+            try:
+                tmp_ser = serial.Serial(port_info.device)
+                if tmp_ser.is_open:
+                    tmp_ser.close()
+            except serial.SerialException:
+                pass
+
         logger.info("Connecting to {} at {}".format(self.device, self.baud))
         self.ser = serial.Serial(
             self.device, self.baud, timeout=self.timeout, write_timeout=self.timeout
