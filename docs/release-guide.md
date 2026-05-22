@@ -45,13 +45,9 @@ Update `docs/release-notes.md` via a normal PR before tagging. Use the GitHub AP
 
 ## GitHub pages download page
 
-`./utils/generate_downloadpage.sh` still generates the `specter-static` website's download page off `utils/templates/`. Clone `specter-static` alongside `specter-desktop` and run:
+The legacy `utils/generate_downloadpage*` tooling has been removed from this repository.
 
-```bash
-./utils/generate_downloadpage.sh
-```
-
-The script installs the markdown prerequisite, regenerates the GH-page and download page, asks whether to replace/update the GitHub release page for the latest version, and offers to commit/push the static-site changes.
+The release process now relies on GitHub Releases plus the static-site workflow maintained in `specter-static`. If the downloads page needs updates, perform them directly in `specter-static`.
 
 ## Troubleshooting
 

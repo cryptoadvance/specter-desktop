@@ -87,6 +87,3 @@ test = [
     "requests==2.31.0",
 ]
 
-gendownloadpage = [
-    "markdown==3.8.1"
-]
