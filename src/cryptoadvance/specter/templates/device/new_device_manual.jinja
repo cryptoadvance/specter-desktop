@@ -376,6 +376,8 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 									}
 								});
 								data += s;
+							} else if ("descriptor" in json) {
+								data += getXpubsFromDescriptor(json.descriptor);
 							} else if ("xfp" in json) {
 							// probably ColdCard multisig file
 								let s = "";
@@ -444,6 +446,14 @@ m/48h/{{ 0 if specter.info.chain == "main" else 1 }}h/0h/2h</textarea>
 					let str = `[${obj.xfp}/${path}]${obj.xpub}`;
 					addKeys(str);
 					setDeviceType('cobo');
+				}else if ("descriptor" in obj) {
+					let data = getXpubsFromDescriptor(obj.descriptor);
+					if (data) {
+						addKeys(data);
+						setDeviceType('specter');
+					} else {
+						showError(`{{ _("Unknown key format") }}`);
+					}
 				}else{
 					showError(`{{ _("Unknown key format") }}`);
 				}

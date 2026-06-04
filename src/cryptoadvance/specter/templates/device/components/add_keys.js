@@ -23,3 +23,15 @@ function setDeviceType(type) {
 		showNotification(`Device type changed to ${name}`);
 	}
 }
+
+function getXpubsFromDescriptor(descriptor) {
+	let data = "";
+	descriptor = descriptor.split("#")[0];
+	let matches = descriptor.matchAll(/\[([^\]]+)\]([A-Za-z0-9]+)/g);
+	for (let match of matches) {
+		if (/^[xyzuvt]pub/.test(match[2])) {
+			data += `[${match[1].replace(/'/g, 'h')}]${match[2]}\n`;
+		}
+	}
+	return data;
+}
