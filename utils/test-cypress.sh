@@ -240,7 +240,7 @@ function restore_snapshot {
   # Checking whether spec-files exists
   if ! [ -f ./cypress/integration/${spec_file} ]; then
     echo "Spec-file $spec_file does not exist, these are the options:"
-    cat cypress.json | jq -r ".testFiles[]" 
+    cat cypress-tests.json | jq -r ".testFiles[]" 
     exit 1
   fi
   snapshot_file=./cypress/fixtures/${spec_file}_btcdir.tar.gz
@@ -358,7 +358,7 @@ function sub_snapshot {
   # We'll create a snapshot BEFORE this spec-file has been tested:
   if [ ! -f ./cypress/integration/$spec_file ]; then
     echo "ERROR: Use one of these arguments:"
-    cat cypress.json | jq -r ".testFiles[]"
+    cat cypress-tests.json | jq -r ".testFiles[]"
     exit 2
   fi
   start_bitcoind --reset
