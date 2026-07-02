@@ -22,7 +22,6 @@ import './commands'
 // Set the view port for each test
 beforeEach(() => {
     cy.viewport('macbook-13')
-    cy.session('preserveSession', () => {}) // Keeps the session cookie alive, Cypress by default clears all cookies before each test
     cy.visit('/')
   })
   

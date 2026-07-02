@@ -21,6 +21,7 @@ module.exports = defineConfig({
     baseUrl: 'http://localhost:25444',
     specPattern,
     supportFile: 'cypress/support/index.js',
+    testIsolation: false,
     setupNodeEvents,
   },
   env: {
