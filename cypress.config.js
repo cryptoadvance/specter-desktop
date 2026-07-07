@@ -25,7 +25,7 @@ module.exports = defineConfig({
     setupNodeEvents,
   },
   env: {
-    broadcast_timeout: '8000',
+    broadcast_timeout: 8000,
   },
   includeShadowDom: false,
   reporter: 'junit',
