@@ -152,7 +152,7 @@ describe('Test the fee UI', () => {
         cy.intercept('POST', '/wallets/wallet/ghost_wallet/estimate_fee', {fee: 0.00005944})
         cy.get('[data-cy="show-estimated-fee-btn"]').click()
         cy.contains('You provided no address')
-        cy.get('#recipient_0').find('#address').invoke('val', "bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs")
+        cy.get('#recipient_0').find('#address').invoke('val', "bcrt1qvtdx75y4554ngrq6aff3xdqnvjhmct5wck95qs").trigger('input')
         cy.get('[data-cy="sats-checkbox"]').click()
         cy.get('#recipient_0').find('[data-cy="amount-input"]').type(50000, { force: true })
         cy.get('[data-cy="show-estimated-fee-btn"]').click()
