@@ -341,7 +341,11 @@ function sub_run {
     start_bitcoind --reset
     start_elementsd --reset
     start_specter --reset
-    npx cypress run
+    # Cypress 10+ normalizes specs discovered from config (often alphabetically),
+    # but this suite is intentionally stateful and depends on the order in
+    # cypress-tests.json. Pass an explicit --spec list so a full run keeps the
+    # legacy order from cypress.json/testFiles.
+    npx cypress run --spec "$(./utils/calc_cypress_test_spec.py --run spec_empty_specter_home.js)"
   fi
 }
 
