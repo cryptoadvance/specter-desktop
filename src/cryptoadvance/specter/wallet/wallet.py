@@ -354,6 +354,40 @@ class Wallet(AbstractWallet):
             res = wallet_rpc.importdescriptors(args)
         else:
             res = wallet_rpc.importmulti(args, {"rescan": False})
+            if not all([r["success"] for r in res]):
+                # Core refuses to shrink an existing keypool range on
+                # (re-)import: "new range must include current range".
+                # This can happen when re-creating a wallet under a name
+                # that Core already has a wider range recorded for (e.g.
+                # after a keypoolrefill). Parse the range Core is telling
+                # us about and retry once with a range wide enough to
+                # include it (see #2604).
+                widened_range = None
+                for r in res:
+                    if r["success"]:
+                        continue
+                    match = re.search(
+                        r"current range = \[(\d+),\s*(\d+)\]",
+                        r.get("error", {}).get("message", ""),
+                    )
+                    if not match:
+                        continue
+                    current_start, current_end = int(match.group(1)), int(
+                        match.group(2)
+                    )
+                    start = min(0, current_start)
+                    end = max(cls.GAP_LIMIT, current_end)
+                    if widened_range is None:
+                        widened_range = [start, end]
+                    else:
+                        widened_range = [
+                            min(widened_range[0], start),
+                            max(widened_range[1], end),
+                        ]
+                if widened_range is not None:
+                    for arg in args:
+                        arg["range"] = widened_range
+                    res = wallet_rpc.importmulti(args, {"rescan": False})
 
         if not all([r["success"] for r in res]):
             all_issues = " and ".join(
