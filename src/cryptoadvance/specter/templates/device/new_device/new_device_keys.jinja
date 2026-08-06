@@ -31,7 +31,7 @@
             {% endif %}
             
             <div id="coldcard-warning" class="warning {% if device_class.device_type != 'coldcard' %}hidden{% endif %}">
-                ⚠️ {{ _("Security notice:") }}
+                {{ _("Security notice:") }}
                 {{ _("Coinkite disclosed a firmware flaw that reduced generated-seed entropy on ColdCard Mk3 (firmware 4.0.1-5.0.3) and pre-fix Mk4/Q. If your seed was generated on-device without extra dice rolls, update firmware, generate a new seed and move your funds.") }}
                 <a href="https://blog.coinkite.com/coldcard-mk3-seed-generation-warning/" target="_blank" rel="noopener noreferrer">{{ _("Read Coinkite's advisory") }}</a>
             </div>
