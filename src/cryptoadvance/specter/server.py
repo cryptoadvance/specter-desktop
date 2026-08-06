@@ -230,7 +230,7 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
         app.config["LOGIN_DISABLED"] = False
     app.logger.info("Initializing Controller ...")
     app.register_blueprint(hwi_server, url_prefix="/hwi")
-    csrf.exempt(hwi_server)
+    csrf.exempt(app.view_functions["hwi_server.api"])
     if not hwibridge:
         with app.app_context():
             from cryptoadvance.specter.server_endpoints import controller

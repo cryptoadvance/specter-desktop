@@ -2,6 +2,7 @@ import json, os, random, requests
 from flask import Blueprint, Flask, jsonify, url_for, redirect, render_template, request
 from .server_endpoints import flash
 from flask import current_app as app
+from flask_login import current_user, login_required
 from flask_cors import CORS
 from .hwi_rpc import HWIBridge
 from .helpers import deep_update, hwi_get_config, save_hwi_bridge_config
@@ -101,7 +102,11 @@ def api():
 
 
 @hwi_server.route("/settings/", methods=["GET", "POST"])
+@login_required
 def hwi_bridge_settings():
+    if not current_user.is_admin:
+        flash("Only an admin is allowed to access this page", "error")
+        return redirect(url_for("index"))
     config = hwi_get_config(app.specter)
     if request.method == "POST":
         action = request.form["action"]
