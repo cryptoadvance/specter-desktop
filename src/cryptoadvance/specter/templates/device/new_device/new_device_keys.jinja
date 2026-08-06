@@ -32,6 +32,10 @@
             
             <div id="coldcard-instructions" class="{%if device_class.device_type != 'coldcard' %}hidden{% endif %}">
                 <p>{{ _("Connect your ColdCard to the computer via USB and unlock it or upload a wallet export file from micro SD card.") }}</p>
+                <p class="warning">
+                    {{ _("Coldcard firmware advisory: if this Coldcard generated its seed on affected firmware, update to fixed firmware, generate a new seed, and migrate funds before relying on it. Review Coinkite's advisory:") }}
+                    <a href="https://blog.coinkite.com/coldcard-mk3-seed-generation-warning/" target="_blank" rel="noopener noreferrer">https://blog.coinkite.com/coldcard-mk3-seed-generation-warning/</a>
+                </p>
 
                 <ol>
                     <li>{{ _("To export the wallet data file from the ColdCard, insert your micro SD card into the device, then:") }}</li>

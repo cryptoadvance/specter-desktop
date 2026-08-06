@@ -71,6 +71,9 @@
 								<tool-tip width="200px">
 											<h4 slot="title">{{ _("Using an airgapped ColdCard with MicroSD") }}</h4>
 											<span slot="paragraph">
+										{{ _("Coldcard firmware advisory: if your Coldcard generated its seed on affected firmware, update to fixed firmware, generate a new seed, and migrate funds before relying on it. Review Coinkite's advisory:") }}
+										<a href="https://blog.coinkite.com/coldcard-mk3-seed-generation-warning/" target="_blank" rel="noopener noreferrer">https://blog.coinkite.com/coldcard-mk3-seed-generation-warning/</a>
+										<br><br>
 										{{ _("Export extended public keys for single-key wallets to the SD card from") }}
 										<b>Advanced → MicroSD → Export Wallet → Generic JSON</b>
 										{{ _("To export multisignature pubkeys go to") }}
