@@ -179,7 +179,14 @@ def server(
         print(
             " * Running in HWI Bridge mode.\n"
             " * You can configure access to the API "
-            "at: %s://%s:%d/hwi/settings" % ("http", host, app.config["PORT"])
+            "at: %s://%s:%d%s%s/hwi/settings"
+            % (
+                "http",
+                host,
+                app.config["PORT"],
+                app.config["APP_URL_PREFIX"],
+                app.config["SPECTER_URL_PREFIX"],
+            )
         )
 
     # debug is false by default
