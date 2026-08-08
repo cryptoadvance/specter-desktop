@@ -64,4 +64,4 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Expose ports
 EXPOSE 25441 25442 25443 
 
-ENTRYPOINT ["/usr/local/bin/python3", "-m", "cryptoadvance.specter", "server", "--host", "0.0.0.0"]
+ENTRYPOINT ["/usr/local/bin/python3", "-m", "cryptoadvance.specter", "server"]

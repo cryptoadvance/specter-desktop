@@ -31,7 +31,6 @@ def cli():
 # set to 0.0.0.0 to make it available outside
 @click.option(
     "--host",
-    default="127.0.0.1",
     help="if you specify --host 0.0.0.0 then specter will be available in your local LAN.",
 )
 # for https:
@@ -119,6 +118,13 @@ def server(
     if port:
         app.config["PORT"] = int(port)
 
+    if host is None:
+        host = app.config["HOST"]
+        if not isinstance(host, str) or not host.strip():
+            raise click.ClickException(
+                "Configured HOST must be a non-empty hostname or IP address."
+            )
+
     # devstatus_threshold
     if devstatus_threshold is not None:
         app.config["SERVICES_DEVSTATUS_THRESHOLD"] = devstatus_threshold
@@ -167,6 +173,21 @@ def server(
         formatter = logging.Formatter(app.config["SPECTER_LOGFORMAT"])
         fh.setFormatter(formatter)
         logging.getLogger().addHandler(fh)
+
+    if (
+        not hwibridge
+        and not is_loopback_host(host)
+        and app.specter.config["auth"].get("method", "none") == "none"
+    ):
+        logger.warning(
+            " * ############################# Warning! #############################\n"
+            " * Specter is listening on non-loopback host %s with authentication disabled.\n"
+            " * Anyone who can reach port %s can access this Specter instance.\n"
+            " * Please enable authentication in Settings -> Authentication.\n"
+            " * ####################################################################",
+            host,
+            app.config["PORT"],
+        )
 
     toraddr_file = path.join(app.specter.data_folder, "onion.txt")
 
@@ -232,6 +253,18 @@ def server(
     if debug is None:
         debug = app.config["DEBUG"]
     run(debug=debug)
+
+
+def is_loopback_host(host):
+    """Return whether host identifies an IPv4/IPv6 loopback interface."""
+    if host.lower() == "localhost":
+        return True
+    try:
+        from ipaddress import ip_address
+
+        return ip_address(host).is_loopback
+    except ValueError:
+        return False
 
 
 def configure_ssl(kwargs, app_config, ssl):
