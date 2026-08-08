@@ -49,7 +49,7 @@
 
 					<p class="mt-3 mb-0 selection-button cursor-pointer" data-style="text-decoration: underline; cursor: pointer;" onclick="showPageOverlay('usb_import_account_number')">{{ _("Specify account number (advanced)") }}</p>
 
-					<div class="flex space-x-3 mt-3">
+					<div class="flex space-x-3 mt-3 relative z-20">
 						<qr-scanner id="xpub-scan">
 							<a slot="button" href="#" class="button mb-3">
 								<img src="{{ url_for('static', filename='img/qr-code.svg') }}" data-style="width: 26px; margin-right: 2px;" class="svg-white"> {{ _("Scan QR Code") }}
