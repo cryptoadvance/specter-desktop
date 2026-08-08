@@ -147,6 +147,8 @@ def is_specter_desktop_project(cwd=".") -> bool:
                 if name == "cryptoadvance-specter":
                     return True
     except FileNotFoundError:
+        # Expected for adhoc-style extension-projects: those have no
+        # pyproject.toml at all and are therefore not specter-desktop
         pass
     return False
 

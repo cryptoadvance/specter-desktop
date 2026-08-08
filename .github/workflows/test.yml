@@ -203,14 +203,21 @@ jobs:
         run: |
           source ./.env/bin/activate
           export SPECTER_DATA_FOLDER=$(mktemp -d)
-          python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug > specterd.log 2>&1 &
+          # --debug enables the werkzeug-reloader which forks a child-process, so
+          # start a new process-group we can kill as a whole further down
+          setsid python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug > specterd.log 2>&1 &
           specterd_pid=$!
           started=""
           for i in $(seq 1 30); do
             if curl -sf http://127.0.0.1:25441/ > /dev/null; then started="yes"; break; fi
             sleep 2
           done
-          kill $specterd_pid || true
+          kill -- -$specterd_pid || true
+          # the next step needs port 25441, so make sure it's free again
+          for i in $(seq 1 10); do
+            curl -sf http://127.0.0.1:25441/ > /dev/null || break
+            sleep 1
+          done
           cat specterd.log
           if [ -z "$started" ]; then echo "The dev-server did not come up!"; exit 1; fi
 

@@ -120,15 +120,17 @@ def test_get_classlist_raises_on_missing_module_by_default():
         get_classlist_of_type_clazz_from_modulelist(Service, modulelist)
 
 
+repo_root = Path(__file__).parent.parent
+xtestdata = repo_root / "tests" / "xtestdata_testextensions"
+
+
 def test_is_specter_desktop_project():
     """The specter-desktop project detects itself via the name in its own
     pyproject.toml. If that name changes (PEP 503 allows "." "-" and "_" to be
     used interchangeably), the dev-server dies on startup, see #2526."""
-    assert is_specter_desktop_project(".")
-    assert not is_specter_desktop_project(
-        "tests/xtestdata_testextensions/ext_root_fully_qualified_1"
-    )
-    assert not is_specter_desktop_project("tests/xtestdata_testextensions")
+    assert is_specter_desktop_project(repo_root)
+    assert not is_specter_desktop_project(xtestdata / "ext_root_fully_qualified_1")
+    assert not is_specter_desktop_project(xtestdata)
 
 
 def test_is_specter_desktop_project_pep503_names(tmp_path):
@@ -155,14 +157,12 @@ def test_get_subclasses_for_clazz_in_cwd_in_specter_desktop_project(monkeypatch)
     `python3 -m cryptoadvance.specter server --config DevelopmentConfig`"""
     # the production code takes a shortcut for tests, so pretend we're not testing
     monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
-    assert get_subclasses_for_clazz_in_cwd(Service, cwd=".") == []
+    assert get_subclasses_for_clazz_in_cwd(Service, cwd=repo_root) == []
 
 
 def test_get_subclasses_for_clazz_in_cwd(caplog):
     caplog.set_level(logging.DEBUG)
-    classlist: List[type] = get_subclasses_for_clazz_in_cwd(
-        Service, cwd="./tests/xtestdata_testextensions"
-    )
+    classlist: List[type] = get_subclasses_for_clazz_in_cwd(Service, cwd=xtestdata)
     # That folder is a container of extension-projects, not an extension-project
     # itself, so there is nothing importable in there
     assert classlist == []
