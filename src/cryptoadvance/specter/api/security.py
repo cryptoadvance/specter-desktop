@@ -40,11 +40,21 @@ def verify_token(jwt_token):
         return abort(401)
     try:
         payload = jwt.decode(jwt_token, app.config["SECRET_KEY"], algorithms=["HS256"])
-        username = payload["username"]
-        the_user = app.specter.user_manager.get_user_by_username(username)
-        if not the_user:
+        username = payload.get("username")
+        jwt_token_id = payload.get("jwt_token_id")
+        if (
+            not isinstance(username, str)
+            or not username
+            or not isinstance(jwt_token_id, str)
+            or not jwt_token_id
+        ):
             return abort(401)
-        g.user = app.specter.user_manager.get_user_by_username(username)
+        the_user = app.specter.user_manager.get_user_by_username(username)
+        if not the_user or not the_user.verify_jwt_token_id_and_jwt_token(
+            jwt_token_id, jwt_token
+        ):
+            return abort(401)
+        g.user = the_user
         logger.info({"payload": payload})
         logger.info(f"Rest-Request for user {username} PASSED JWT-test")
         return username
