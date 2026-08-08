@@ -141,6 +141,7 @@ class SwanClient:
             f"{self.api_url}/oidc/token",
             data=payload,
             headers=auth_header,
+            timeout=30,
         )
         resp = json.loads(response.text)
         """
@@ -186,13 +187,16 @@ class SwanClient:
         }
         try:
             if method == "GET":
-                response = requests.get(self.api_url + endpoint, headers=auth_header)
+                response = requests.get(
+                    self.api_url + endpoint, headers=auth_header, timeout=30
+                )
             elif method in ["POST", "PATCH", "PUT", "DELETE"]:
                 response = requests.request(
                     method=method,
                     url=self.api_url + endpoint,
                     headers=auth_header,
                     json=json_payload,
+                    timeout=30,
                 )
             if response.status_code != 200:
                 raise SwanApiException(f"{response.status_code}: {response.text}")
