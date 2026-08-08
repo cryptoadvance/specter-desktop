@@ -6,7 +6,10 @@ from unittest.mock import MagicMock
 import pytest
 import mock
 from mock import Mock, patch
+import requests
+
 from cryptoadvance.specterext.swan.client import (
+    SwanApiException,
     SwanApiRefreshTokenException,
     SwanClient,
 )
@@ -104,6 +107,65 @@ def test_expired_access_token():
         match="access_token is expired but we don't have a refresh_token",
     ):
         sc._get_access_token()
+
+
+def construct_client_with_valid_token():
+    """A client which won't need to fetch an access_token first"""
+    return SwanClient(
+        "a_hostname", "forever_valid_access_token", 5000000000, "a_refresh_token"
+    )
+
+
+def test_authenticated_request_get_timeout(app_no_node):
+    """A timeout must surface as SwanApiException, not as an UnboundLocalError"""
+    sc = construct_client_with_valid_token()
+    with app_no_node.app_context():
+        with mock.patch(
+            "requests.get", side_effect=requests.exceptions.Timeout("simulated timeout")
+        ):
+            with pytest.raises(SwanApiException) as exc_info:
+                sc.authenticated_request("/some/endpoint")
+        assert "simulated timeout" in str(exc_info.value)
+        assert isinstance(exc_info.value.__cause__, requests.exceptions.Timeout)
+
+
+def test_authenticated_request_post_timeout(app_no_node):
+    """Same for the methods going through requests.request"""
+    sc = construct_client_with_valid_token()
+    with app_no_node.app_context():
+        with mock.patch(
+            "requests.request",
+            side_effect=requests.exceptions.ConnectTimeout("simulated timeout"),
+        ):
+            with pytest.raises(SwanApiException) as exc_info:
+                sc.authenticated_request(
+                    "/some/endpoint", method="POST", json_payload={"muuh": "meeh"}
+                )
+        assert isinstance(exc_info.value.__cause__, requests.exceptions.ConnectTimeout)
+
+
+def test_authenticated_request_error_status_code(app_no_node):
+    sc = construct_client_with_valid_token()
+    fake_response = Mock()
+    fake_response.status_code = 500
+    fake_response.text = "Internal Server Error"
+    with app_no_node.app_context():
+        with mock.patch("requests.get", return_value=fake_response):
+            with pytest.raises(SwanApiException, match="500: Internal Server Error"):
+                sc.authenticated_request("/some/endpoint")
+
+
+def test_get_access_token_timeout(app_no_node):
+    """The token-endpoint is used before authenticated_request can even start"""
+    sc = SwanClient("a_hostname", "an_expired_access_token", 1000, "a_refresh_token")
+    with app_no_node.app_context():
+        with mock.patch(
+            "requests.post",
+            side_effect=requests.exceptions.Timeout("simulated timeout"),
+        ):
+            with pytest.raises(SwanApiException) as exc_info:
+                sc.authenticated_request("/some/endpoint")
+        assert isinstance(exc_info.value.__cause__, requests.exceptions.Timeout)
 
 
 @patch("requests.delete")
