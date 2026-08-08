@@ -59,3 +59,7 @@ _bmad-output/
 
 # Claude Code local workspace
 .claude/
+
+# Local agent workspaces
+/.agents/
+/.history/
