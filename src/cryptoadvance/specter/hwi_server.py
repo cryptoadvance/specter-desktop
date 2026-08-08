@@ -113,7 +113,9 @@ def api():
 @hwi_server_settings.route("/settings/", methods=["GET", "POST"])
 @login_required
 def hwi_bridge_settings():
-    if app.config.get("LOGIN_DISABLED") and not current_user.is_authenticated:
+    if app.config.get("LOGIN_DISABLED") and (
+        not current_user.is_authenticated or not current_user.is_admin
+    ):
         app.login("admin")
     if not current_user.is_admin:
         return "Forbidden", 403

@@ -132,6 +132,32 @@ def test_hwi_settings_require_authenticated_admin(tmp_path, hwibridge):
     assert nonadmin_client.get("/spc/hwi/settings/").status_code == 403
 
 
+def test_hwi_settings_force_admin_when_login_disabled(tmp_path):
+    app = make_scoped_app(tmp_path, hwibridge=True, auth_method="usernamepassword")
+    app.specter.user_manager.create_user(
+        user_id="nonadmin",
+        username="nonadmin",
+        plaintext_password="nonadmin",
+        config={},
+    )
+    client = app.test_client()
+    login_response = client.post(
+        "/spc/auth/login",
+        data={
+            "username": "nonadmin",
+            "password": "nonadmin",
+            "next": "/spc/hwi/settings/",
+        },
+    )
+    assert login_response.status_code == 302
+
+    app.specter.update_auth("none", 10, 1)
+    app.config["LOGIN_DISABLED"] = True
+    assert client.get("/spc/hwi/settings/").status_code == 200
+    with client.session_transaction(path="/spc/hwi/settings/") as session:
+        assert session["_user_id"] == "admin"
+
+
 @pytest.mark.parametrize("hwibridge", [False, True])
 def test_hwi_api_remains_csrf_exempt(tmp_path, hwibridge):
     app = make_scoped_app(tmp_path, hwibridge=hwibridge)
