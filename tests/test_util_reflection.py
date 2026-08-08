@@ -11,6 +11,7 @@ from cryptoadvance.specter.util.reflection import (
     get_subclasses_for_clazz,
     get_subclasses_for_clazz_in_cwd,
     get_classlist_of_type_clazz_from_modulelist,
+    is_specter_desktop_project,
     _get_module_from_class,
     get_package_dir_for_subclasses_of,
     search_dirs_in_path,
@@ -119,13 +120,53 @@ def test_get_classlist_raises_on_missing_module_by_default():
         get_classlist_of_type_clazz_from_modulelist(Service, modulelist)
 
 
+def test_is_specter_desktop_project():
+    """The specter-desktop project detects itself via the name in its own
+    pyproject.toml. If that name changes (PEP 503 allows "." "-" and "_" to be
+    used interchangeably), the dev-server dies on startup, see #2526."""
+    assert is_specter_desktop_project(".")
+    assert not is_specter_desktop_project(
+        "tests/xtestdata_testextensions/ext_root_fully_qualified_1"
+    )
+    assert not is_specter_desktop_project("tests/xtestdata_testextensions")
+
+
+def test_is_specter_desktop_project_pep503_names(tmp_path):
+    for name in [
+        "cryptoadvance.specter",
+        "cryptoadvance_specter",
+        "Cryptoadvance-Specter",
+    ]:
+        (tmp_path / "pyproject.toml").write_text(
+            f'[project]\nname = "{name}"\nversion = "1.2.3"\n'
+        )
+        assert is_specter_desktop_project(tmp_path), f"{name} should be detected"
+
+    (tmp_path / "pyproject.toml").write_text(
+        '[project]\nname = "boatacccorp.tretboot"\n'
+    )
+    assert not is_specter_desktop_project(tmp_path)
+
+
+def test_get_subclasses_for_clazz_in_cwd_in_specter_desktop_project(monkeypatch):
+    """No dynamic extension-discovery in the specter-desktop project itself.
+    Regression test: this used to raise "This should not happen!" when the
+    project got renamed to cryptoadvance_specter, breaking
+    `python3 -m cryptoadvance.specter server --config DevelopmentConfig`"""
+    # the production code takes a shortcut for tests, so pretend we're not testing
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    assert get_subclasses_for_clazz_in_cwd(Service, cwd=".") == []
+
+
 def test_get_subclasses_for_clazz_in_cwd(caplog):
     caplog.set_level(logging.DEBUG)
     classlist: List[type] = get_subclasses_for_clazz_in_cwd(
         Service, cwd="./tests/xtestdata_testextensions"
     )
-    # damn, this is difficult to test
-    # assert len(classlist) == 3
+    # That folder is a container of extension-projects, not an extension-project
+    # itself, so there is nothing importable in there
+    assert classlist == []
+    assert "Detected Extension-style: adhoc" in caplog.text
 
 
 def test_get_subclasses_for_class(caplog):

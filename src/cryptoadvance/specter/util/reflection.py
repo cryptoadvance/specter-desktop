@@ -5,11 +5,11 @@ import os
 from pathlib import Path
 import pkgutil
 from pkgutil import iter_modules
+import re
 import sys
 from typing import List
 from .common import camelcase2snake_case
 from ..specter_error import SpecterError, SpecterInternalException
-from .shell import grep
 
 from .reflection_fs import detect_extension_style_in_cwd, search_dirs_in_path
 
@@ -130,6 +130,27 @@ def get_classlist_of_type_clazz_from_modulelist(clazz, modulelist, skip_missing=
     return class_list
 
 
+def is_specter_desktop_project(cwd=".") -> bool:
+    """Whether cwd is the specter-desktop project itself rather than an
+    extension-project. Detected via the project-name in the pyproject.toml.
+    Hmm, a bit hackish but we don't want to depend on toml-parsing libs.
+    """
+    try:
+        with open(Path(cwd, "pyproject.toml")) as pyproject_file:
+            for line in pyproject_file:
+                line = line.strip().replace(" ", "").replace("'", "").replace('"', "")
+                if not line.startswith("name="):
+                    continue
+                # PEP 503: ".", "-" and "_" are equivalent in project-names, so
+                # "cryptoadvance.specter" and "cryptoadvance_specter" are the same
+                name = re.sub(r"[-_.]+", "-", line[len("name=") :]).lower()
+                if name == "cryptoadvance-specter":
+                    return True
+    except FileNotFoundError:
+        pass
+    return False
+
+
 def get_subclasses_for_clazz_in_cwd(clazz, cwd=".") -> List[type]:
     """Returns all subclasses of class clazz located in the CWD if the cwd
     is not a specter-desktop dev-env-kind-of-dir or contains any .py-file
@@ -140,37 +161,26 @@ def get_subclasses_for_clazz_in_cwd(clazz, cwd=".") -> List[type]:
         return []
 
     # if not testing but in a folder which looks like specter-desktop/src --> No dynamic extensions
-    if "PYTEST_CURRENT_TEST" not in os.environ:
-        # Hmm, a bit hackish but if the pyproject.toml specifies cryptoadvance.specter as a name and
-        # we don't need to depend on toml-parsing libs, that should be ok.
-        try:
-            found, line = grep("./pyproject.toml", 'name = "cryptoadvance.specter"')
-            if found:
-                return []
-            if line:
-                line = line.replace(" ", "").replace("'", "").replace('"', "")
-            if line == "name=cryptoadvance.specter":
-                return []
-        except FileNotFoundError:
-            pass
+    if "PYTEST_CURRENT_TEST" not in os.environ and is_specter_desktop_project(cwd):
+        return []
 
-    # Depending on the style we either add "." or "./src" to the searchpath
+    # Depending on the style we either add cwd or cwd/src to the searchpath
 
-    extension_style = detect_extension_style_in_cwd()
+    extension_style = detect_extension_style_in_cwd(cwd)
     # raise Exception(extension_style)
     if extension_style == "adhoc":
-        package_dirs.append(Path("."))
+        package_dirs.append(Path(cwd))
     elif extension_style == "publish-ready":
-        package_dirs.extend(search_dirs_in_path(Path("./src")))
+        package_dirs.extend(search_dirs_in_path(Path(cwd, "src")))
     elif extension_style == "specter-desktop":
         if "PYTEST_CURRENT_TEST" in os.environ:
             # I admit, ugly hack
             logger.info("We're in testing mode. Adding CWD to searchpath")
-            package_dirs.append(Path("./src"))
+            package_dirs.append(Path(cwd, "src"))
         else:
             raise Exception(
                 f"""
-                We checked before that we're not in the specter-desktop home 
+                We checked before that we're not in the specter-desktop home
                 directory but now the extension-style is 'specter-desktop' ?!
                 This should not happen!
             """
