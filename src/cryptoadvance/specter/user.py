@@ -463,10 +463,10 @@ class User(UserMixin):
 
     def verify_jwt_token_id_and_jwt_token(self, jwt_token_id, jwt_token):
         # Verifying the JWT token ID and JWT token
-        if jwt_token_id in self.jwt_tokens:
-            if self.jwt_tokens[jwt_token_id]["jwt_token"] == jwt_token:
-                return True
-        return False
+        if not isinstance(self.jwt_tokens, dict) or not isinstance(jwt_token_id, str):
+            return False
+        token_info = self.jwt_tokens.get(jwt_token_id)
+        return isinstance(token_info, dict) and token_info.get("jwt_token") == jwt_token
 
     def get_jwt_token(self, jwt_token_id):
         # Getting a JWT token from the hashmap by ID
