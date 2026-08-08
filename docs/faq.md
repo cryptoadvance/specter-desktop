@@ -31,6 +31,7 @@
   - [*Can this also work with external nodes like Casa, MyNode, and Raspilitz?*](#can-this-also-work-with-external-nodes-like-casa-mynode-and-raspilitz)
   - [*Can I use Tor?*](#can-i-use-tor)
   - [I forgot my password, how can I reset it?](#i-forgot-my-password-how-can-i-reset-it)
+  - [Does the Specter password encrypt my wallet data files?](#does-the-specter-password-encrypt-my-wallet-data-files)
 - [BACKING UP FUNDS](#backing-up-funds)
   - [*If something happens to the `~/.specter` folder, is it still possible to **restore** access to multisigs created there (assuming there is no backup of the `~/.specter` folder)?*](#if-something-happens-to-the-specter-folder-is-it-still-possible-to-restore-access-to-multisigs-created-there-assuming-there-is-no-backup-of-the-specter-folder)
   - [*To recover a multisig that was built on specter (eg: 2 of 3 with ColdCard), is having the seeds of all 3 signing wallets sufficient or do we need to backup more info?*](#to-recover-a-multisig-that-was-built-on-specter-eg-2-of-3-with-coldcard-is-having-the-seeds-of-all-3-signing-wallets-sufficient-or-do-we-need-to-backup-more-info)
@@ -240,6 +241,12 @@ Depending on "what's written in `somethingInHere`:
 * If it's `rpcpasswordaspin`, you can lookup the password in your `bitcoin.conf`-file in a line like `rpcpassword=YourPasswordHere`
 * If it's `usernamepassword`, you won't be able to recover the password but you can deactivate it by setting it to `none` and restart Specter.
 * If it's `none` (or you just set it to `none`) you can login without any password. So hurry up with setting it again within specter.
+
+### Does the Specter password encrypt my wallet data files?
+
+No. Specter authentication protects access to the app/session, but it does not encrypt the whole Specter data folder at rest. The data folder contains wallet metadata files such as xpubs, addresses, wallet names, labels, and transaction metadata that may be readable by anyone or any process with filesystem access to that folder.
+
+If this is in your threat model, use OS-level disk encryption (for example FileVault on macOS), make sure backups and sync tools that include the Specter data folder are encrypted and access-controlled, and consider running Specter from a data folder located on an encrypted volume/container via `--specter-data-folder`.
 
 ## BACKING UP FUNDS 
 
