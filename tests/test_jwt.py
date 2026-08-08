@@ -82,6 +82,99 @@ def test_token_endpoints(client, empty_data_folder, caplog):
     assert data["jwt_token_life"] == 360
 
     jwt_token_id = data["jwt_token_id"]
+    jwt_token = data["jwt_token"]
+
+    # API-created tokens remain registered after the user store is reloaded.
+    client.application.specter.user_manager.update()
+
+    # An active, registered token authenticates successfully. The missing wallet
+    # is rejected by authorization after authentication has completed.
+    token_headers = {"Authorization": "Bearer " + jwt_token}
+    response = client.get(
+        "/api/v1alpha/wallets/missing/psbt",
+        follow_redirects=True,
+        headers=token_headers,
+    )
+    assert response.status_code == 403
+
+    # A signed token must still be registered in the user's active token store.
+    unregistered_token = User.generate_jwt_token(
+        "someuser", User.generate_token_id(), "unregistered", 360
+    )
+    response = client.get(
+        "/api/v1alpha/wallets/missing/psbt",
+        follow_redirects=True,
+        headers={"Authorization": "Bearer " + unregistered_token},
+    )
+    assert response.status_code == 401
+
+    # Missing and non-string token identifiers fail closed.
+    expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=360)
+    invalid_payloads = [
+        {"username": "someuser", "exp": expiry},
+        {"username": "someuser", "jwt_token_id": ["invalid"], "exp": expiry},
+    ]
+    for invalid_payload in invalid_payloads:
+        invalid_token = jwt.encode(
+            invalid_payload,
+            client.application.config["SECRET_KEY"],
+            algorithm="HS256",
+        )
+        response = client.get(
+            "/api/v1alpha/wallets/missing/psbt",
+            follow_redirects=True,
+            headers={"Authorization": "Bearer " + invalid_token},
+        )
+        assert response.status_code == 401
+
+    # A different signed token cannot borrow an active token's identifier.
+    mismatched_token = User.generate_jwt_token(
+        "someuser", jwt_token_id, "mismatched", 360
+    )
+    response = client.get(
+        "/api/v1alpha/wallets/missing/psbt",
+        follow_redirects=True,
+        headers={"Authorization": "Bearer " + mismatched_token},
+    )
+    assert response.status_code == 401
+
+    # Malformed persisted records fail closed instead of raising an error.
+    user_details = client.application.specter.user_manager.get_user_by_username(
+        "someuser"
+    )
+    stored_token_info = user_details.jwt_tokens[jwt_token_id]
+    user_details.jwt_tokens[jwt_token_id] = {}
+    user_details.save_info()
+    client.application.specter.user_manager.update()
+    response = client.get(
+        "/api/v1alpha/wallets/missing/psbt",
+        follow_redirects=True,
+        headers=token_headers,
+    )
+    assert response.status_code == 401
+    user_details = client.application.specter.user_manager.get_user_by_username(
+        "someuser"
+    )
+    user_details.jwt_tokens[jwt_token_id] = stored_token_info
+    user_details.save_info()
+
+    # A malformed persisted token container also fails closed after reload.
+    stored_tokens = user_details.jwt_tokens
+    user_details.jwt_tokens = []
+    user_details.save_info()
+    client.application.specter.user_manager.update()
+    response = client.get(
+        "/api/v1alpha/wallets/missing/psbt",
+        follow_redirects=True,
+        headers=token_headers,
+    )
+    assert response.status_code == 401
+    user_details = client.application.specter.user_manager.get_user_by_username(
+        "someuser"
+    )
+    user_details.jwt_tokens = stored_tokens
+    user_details.save_info()
+    client.application.specter.user_manager.update()
 
     # testing GET request
     response = client.get("/api/v1alpha/token", follow_redirects=True, headers=headers)
@@ -132,6 +225,14 @@ def test_token_endpoints(client, empty_data_folder, caplog):
     assert response.status_code == 200
     data = json.loads(response.data)
     assert data["message"] == "Token deleted"
+
+    # Deletion immediately revokes the bearer token.
+    response = client.get(
+        "/api/v1alpha/wallets/missing/psbt",
+        follow_redirects=True,
+        headers=token_headers,
+    )
+    assert response.status_code == 401
 
     # retry accessing a deleted token
     response = client.get(
