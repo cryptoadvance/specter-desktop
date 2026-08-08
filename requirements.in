@@ -1,4 +1,4 @@
-certifi==2024.6.2
+certifi==2024.7.4
 Click==8.1.7
 Flask==2.2.5
 Flask-Babel==3.1.0
