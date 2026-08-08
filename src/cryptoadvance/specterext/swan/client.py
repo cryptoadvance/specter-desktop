@@ -137,13 +137,25 @@ class SwanClient:
             ).decode()
             auth_header["Authorization"] = f"Basic {auth_hash}"
 
-        response = requests.post(
-            f"{self.api_url}/oidc/token",
-            data=payload,
-            headers=auth_header,
-            timeout=30,
-        )
-        resp = json.loads(response.text)
+        try:
+            response = requests.post(
+                f"{self.api_url}/oidc/token",
+                data=payload,
+                headers=auth_header,
+                timeout=30,
+            )
+        except requests.exceptions.RequestException as e:
+            logger.exception(e)
+            raise SwanApiException(
+                f"Could not reach the Swan API ({self.api_url}/oidc/token): {e}"
+            ) from e
+        try:
+            resp = json.loads(response.text)
+        except ValueError as e:
+            logger.error(f"{response.status_code}: {response.text}")
+            raise SwanApiException(
+                f"Swan API returned no valid json ({response.status_code}): {response.text}"
+            ) from e
         """
             {
                 "access_token": "***************",
@@ -185,6 +197,8 @@ class SwanClient:
             "User-Agent": "Specter Desktop",
             "Authorization": f"Bearer {access_token}",
         }
+        request_context = f"endpoint: {self.api_url}{endpoint} | method: {method} | payload: {json.dumps(json_payload, indent=4)}"
+
         try:
             if method == "GET":
                 response = requests.get(
@@ -198,17 +212,28 @@ class SwanClient:
                     json=json_payload,
                     timeout=30,
                 )
-            if response.status_code != 200:
-                raise SwanApiException(f"{response.status_code}: {response.text}")
-            return response.json()
-        except Exception as e:
-            # TODO: tighten up expected Exceptions
+            else:
+                raise SwanApiException(f"Unsupported method: {method}")
+        except requests.exceptions.RequestException as e:
+            # Timeouts, connection errors, ... : no response to report about
             logger.exception(e)
-            logger.error(
-                f"endpoint: {self.api_url}{endpoint} | method: {method} | payload: {json.dumps(json_payload, indent=4)}"
-            )
+            logger.error(request_context)
+            raise SwanApiException(f"Could not reach the Swan API: {e}") from e
+
+        if response.status_code != 200:
+            logger.error(request_context)
             logger.error(f"{response.status_code}: {response.text}")
-            raise e
+            raise SwanApiException(f"{response.status_code}: {response.text}")
+
+        try:
+            return response.json()
+        except ValueError as e:
+            logger.exception(e)
+            logger.error(request_context)
+            logger.error(f"{response.status_code}: {response.text}")
+            raise SwanApiException(
+                f"Swan API returned no valid json ({response.status_code}): {response.text}"
+            ) from e
 
     def get_autowithdrawal_addresses(self, swan_wallet_id: str) -> dict:
         """
