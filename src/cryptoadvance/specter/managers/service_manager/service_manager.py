@@ -464,7 +464,7 @@ class ExtensionManager:
             site_package = Path(virtuelenv_path, *(Path(site_package).parts[-3:-1]))
             virtualenv_search_path = site_package
 
-        # ... and as the classes are in the .buildenv (see build-unix.sh) let's add ..
+        # ... and as the classes are in the .buildenv let's add ..
         arr = [Path(virtualenv_search_path, path) for path in arr]
 
         # Non internal-repo extensions sitting in org/specterext/... need to be added, too

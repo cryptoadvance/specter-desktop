@@ -152,7 +152,7 @@ class ExtGen:
             shutil.copy(sourcepath, targetpath)
             print(f"    --> Created {targetpath} (copied)")
         else:
-            r = requests.get(self.env.loader.url_for_template(sourcepath))
+            r = requests.get(self.env.loader.url_for_template(sourcepath), timeout=30)
             open(targetpath, "wb").write(r.content)
             print(f"    --> Created {targetpath} (via Github)")
 
@@ -233,7 +233,7 @@ class GithubUrlLoader(BaseLoader):
     def get_source(self, environment, template):
         url = self.url_for_template(template)
         for attempt in range(3):
-            r = requests.get(url)
+            r = requests.get(url, timeout=30)
             if r.status_code == 200:
                 return r.text, url, None
             if r.status_code == 429 and attempt < 2:

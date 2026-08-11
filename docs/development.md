@@ -14,6 +14,7 @@
     - [Set up virtualenv](#set-up-virtualenv)
       - [If `pip install` fails on `cryptography==3.4.x`](#if-pip-install-fails-on-cryptography34x)
   - [How to run the tests](#how-to-run-the-tests)
+    - [Hardware-attended Jade tests](#hardware-attended-jade-tests)
   - [Code-Style](#code-style)
   - [Developing on tests](#developing-on-tests)
     - [bitcoin-specific stuff](#bitcoin-specific-stuff)
@@ -208,6 +209,36 @@ Print the logging output live to the terminal:
 ```
 pytest --capture=no --log-cli-level=DEBUG
 ```
+
+### Hardware-attended Jade tests
+
+`tests/test_jade_hardware.py` exercises Specter's HWI integration end-to-end against a physical Blockstream Jade. It is gated by `--run-jade-hardware` and skipped by default, so GitHub Actions ignore it without any workflow change.
+
+Run with `-s` so operator prompts reach the terminal:
+```
+pytest --run-jade-hardware tests/test_jade_hardware.py -s
+```
+
+Three tests, increasing operator effort:
+
+| Test | What it does | Operator action |
+|---|---|---|
+| `test_jade_enumerate_via_specter` | `HWIBridge.enumerate()` finds the Jade and returns a fingerprint | Connect Jade, unlock |
+| `test_jade_extract_xpub_via_specter` | Pulls xpub at `m/84h/0h/0h` (mainnet) | Confirm xpub export on device |
+| `test_jade_sign_psbt_via_specter` | Signs a canned testnet PSBT through Specter's sign path | Boot Jade in Temporary Signer mode, scan SeedQR, confirm tx |
+
+The signing test uses the public **BIP-39 abandon vector** (`abandon abandon ... about`) so the PSBT fixture matches anyone's Jade once they load that seed. Setup procedure:
+
+1. Power-cycle the Jade so it shows the boot menu.
+2. Choose **Temporary Signer** -> **Scan SeedQR**.
+3. Display `tests/fixtures/jade_seedqr_abandon.png` (or `cat tests/fixtures/jade_seedqr_abandon.txt` for the ASCII version) and scan it with the Jade camera.
+4. When Jade asks for the network, select **TESTNET**.
+5. Press Enter at the test prompt.
+6. Confirm the transaction on the Jade screen when it pops up (~99,500 sats to a testnet bech32 output, ~99,500 change auto-validated, 1,000 fee).
+
+Temporary Signer state is held in RAM only and wiped on power-cycle/USB-unplug — your real seed is not affected. Expected master fingerprint for the abandon vector is `73c5da0a`; the test fails fast with a clear hint if the loaded seed is wrong.
+
+The fixture PSBT (`tests/fixtures/jade_hardware.psbt`) was generated with embit against m/84'/1'/0'/0/0 of the abandon vector, including a synthetic `non_witness_utxo` so Jade can verify the input amount per the SegWit fee-spoof mitigation.
 
 Get the log-output of bitcoind side by side with the test-output. For sure you will only see the logs if the test fails.
 ```

@@ -17,6 +17,17 @@ from cryptoadvance.specter.user import User
 logger = logging.getLogger(__name__)
 
 
+def create_registered_jwt_token(specter, username):
+    user = specter.user_manager.get_user_by_username(username)
+    jwt_token_id = User.generate_token_id()
+    jwt_token_life = 3600
+    jwt_token = User.generate_jwt_token(
+        username, jwt_token_id, "test token", jwt_token_life
+    )
+    user.add_jwt_token(jwt_token_id, jwt_token, "test token", jwt_token_life)
+    return jwt_token
+
+
 def almost_equal(a: Number, b: Number, precision: float = 0.01) -> bool:
     """
     Checks if a and b are not very different.
@@ -58,9 +69,7 @@ def test_rr_psbt_get(client, specter_regtest_configured, bitcoin_regtest, caplog
     # Admin but not authorized (admin is NOT allowed to read everything)
     headers = {
         "Authorization": "Bearer "
-        + User.generate_jwt_token(
-            "admin", "tokenid", "tokendescription", random.randrange(100, 200)
-        )
+        + create_registered_jwt_token(specter_regtest_configured, "admin")
     }
     result = client.get(
         "/api/v1alpha/wallets/a_simple_wallet/psbt",
@@ -76,9 +85,7 @@ def test_rr_psbt_get(client, specter_regtest_configured, bitcoin_regtest, caplog
     # Proper authorized (the wallet is owned by someuser)
     headers = {
         "Authorization": "Bearer "
-        + User.generate_jwt_token(
-            "someuser", "tokenid", "tokendescription", random.randrange(100, 200)
-        )
+        + create_registered_jwt_token(specter_regtest_configured, "someuser")
     }
     result = client.get(
         "/api/v1alpha/wallets/a_simple_wallet/psbt",
@@ -97,9 +104,7 @@ def test_rr_psbt_post(specter_regtest_configured, bitcoin_regtest, client, caplo
 
     headers = {
         "Authorization": "Bearer "
-        + User.generate_jwt_token(
-            "someuser", "tokenid", "tokendescription", random.randrange(100, 200)
-        ),
+        + create_registered_jwt_token(specter_regtest_configured, "someuser"),
         "Content-type": "application/json",
     }
 

@@ -196,6 +196,31 @@ jobs:
           pip3 install -r requirements.txt --require-hashes
           pip3 install -e ".[test]"
 
+      - name: Dev-server smoketest (from the repo-root)
+        # No job used to start the dev-server from the repo-root the way
+        # docs/development.md describes it. That's why #2526 (renaming the
+        # project to cryptoadvance_specter) could break it unnoticed.
+        run: |
+          source ./.env/bin/activate
+          export SPECTER_DATA_FOLDER=$(mktemp -d)
+          # --debug enables the werkzeug-reloader which forks a child-process, so
+          # start a new process-group we can kill as a whole further down
+          setsid python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug > specterd.log 2>&1 &
+          specterd_pid=$!
+          started=""
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:25441/ > /dev/null; then started="yes"; break; fi
+            sleep 2
+          done
+          kill -- -$specterd_pid || true
+          # the next step needs port 25441, so make sure it's free again
+          for i in $(seq 1 10); do
+            curl -sf http://127.0.0.1:25441/ > /dev/null || break
+            sleep 1
+          done
+          cat specterd.log
+          if [ -z "$started" ]; then echo "The dev-server did not come up!"; exit 1; fi
+
       - name: Extension smoketest
         run: |
           git config --global user.name "CI CD"

@@ -23,7 +23,7 @@ from werkzeug.wrappers import Response
 from cryptoadvance.specter.hwi_rpc import HWIBridge
 
 from .htmlsafebabel import HTMLSafeBabel
-from .hwi_server import hwi_server
+from .hwi_server import hwi_server, hwi_server_settings
 from .services.callbacks import after_serverpy_init_app, specter_added_to_flask_app
 from .specter import Specter
 from .util.specter_migrator import SpecterMigrator
@@ -229,8 +229,16 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
         app.logger.info("Login enabled")
         app.config["LOGIN_DISABLED"] = False
     app.logger.info("Initializing Controller ...")
+    hwi_settings_prefix = f"{app.config['SPECTER_URL_PREFIX']}/hwi"
+    app.register_blueprint(hwi_server_settings, url_prefix=hwi_settings_prefix)
     app.register_blueprint(hwi_server, url_prefix="/hwi")
-    csrf.exempt(hwi_server)
+    csrf.exempt(app.view_functions["hwi_server.api"])
+    if hwi_settings_prefix != "/hwi":
+        app.add_url_rule(
+            "/hwi/settings/",
+            "hwi_server.hwi_bridge_settings",
+            lambda: redirect(url_for("hwi_server_settings.hwi_bridge_settings")),
+        )
     if not hwibridge:
         with app.app_context():
             from cryptoadvance.specter.server_endpoints import controller
@@ -258,10 +266,17 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
                 importlib.reload(controller)
                 importlib.reload(serviceController)
     else:
+        with app.app_context():
+            from cryptoadvance.specter.server_endpoints.auth import auth_endpoint
+
+            app.register_blueprint(
+                auth_endpoint,
+                url_prefix=f"{app.config['SPECTER_URL_PREFIX']}/auth",
+            )
 
         @app.route("/", methods=["GET"])
         def index():
-            return redirect(url_for("hwi_server.hwi_bridge_settings"))
+            return redirect(url_for("hwi_server_settings.hwi_bridge_settings"))
 
     if app.config["SPECTER_API_ACTIVE"]:
         app.logger.info("Initializing REST ...")

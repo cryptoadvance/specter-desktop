@@ -20,8 +20,8 @@
   "author": "Specter",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^39.8.5",
-    "electron-builder": "^24.13.3"
+    "electron": "^39.8.10",
+    "electron-builder": "^26.8.1"
   },
   "build": {
     "productName": "Specter",
@@ -60,5 +60,13 @@
     "read-last-lines": "^1.8.0",
     "request": "^2.88.2",
     "winston": "^3.13.0"
+  },
+  "overrides": {
+    "request": {
+      "form-data": "^2.5.4"
+    }
+  },
+  "resolutions": {
+    "**/request/form-data": "^2.5.4"
   }
 }

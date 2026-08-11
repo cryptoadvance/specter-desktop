@@ -1,8 +1,8 @@
-# Trusted reference: verbatim plaintext of https://bitcoincore.org/bin/bitcoin-core-22.0/SHA256SUMS
+# Trusted reference: verbatim plaintext of https://bitcoincore.org/bin/bitcoin-core-27.2/SHA256SUMS
 # Provenance:
-#   Source URL:     https://bitcoincore.org/bin/bitcoin-core-22.0/SHA256SUMS
-#   Signature URL:  https://bitcoincore.org/bin/bitcoin-core-22.0/SHA256SUMS.asc
-#   Verified on:    2026-04-15
+#   Source URL:     https://bitcoincore.org/bin/bitcoin-core-27.2/SHA256SUMS
+#   Signature URL:  https://bitcoincore.org/bin/bitcoin-core-27.2/SHA256SUMS.asc
+#   Verified on:    2026-04-19
 #   Verified by:    Good signatures from:
 #     - fanquake  (primary fingerprint E777299FC265DD04793070EB944D35F9AC3DB76A,
 #                   signing subkey CFB16E21C950F67FA95E558F2EEB9F5CC09526C1)
@@ -10,26 +10,30 @@
 #   Builder keys sourced from: https://github.com/bitcoin-core/guix.sigs/tree/main/builder-keys
 # Do not edit the hash lines below — they are the on-disk trust anchor compared
 # against downloaded tarballs by tests/install_noded.sh::verify_binary.
-9547fa03574f8bde296f707c7d9f7d89827c75c5a28f84402578a4fa92a787ec  bitcoin-22.0-aarch64-linux-gnu-debug.tar.gz
-ac718fed08570a81b3587587872ad85a25173afa5f9fbbd0c03ba4d1714cfa3e  bitcoin-22.0-aarch64-linux-gnu.tar.gz
-80071e0ecd24edfec8a1972b495b9822c79a5d33c7123bff51688638aac97cab  bitcoin-22.0-arm-linux-gnueabihf-debug.tar.gz
-b8713c6c5f03f5258b54e9f436e2ed6d85449aa24c2c9972f91963d413e86311  bitcoin-22.0-arm-linux-gnueabihf.tar.gz
-8f70852feb39078e02182563517d17bdfc4a12904cf1bdabbae95594d9a1e473  bitcoin-22.0-codesignatures-22.0.tar.gz
-d0e9d089b57048b1555efa7cd5a63a7ed042482045f6f33402b1df425bf9613b  bitcoin-22.0.tar.gz
-bfc04a3c4e8b613bfd9359e54da6cc60f027860e9723f9a6bfd6f13873eb811f  bitcoin-22.0-powerpc64-linux-gnu-debug.tar.gz
-2cca5f99007d060aca9d8c7cbd035dfe2f040dd8200b210ce32cdf858479f70d  bitcoin-22.0-powerpc64-linux-gnu.tar.gz
-5f0bf1491bc8825ca1506f7cf586030f06bb17a563ccde92e8c75720022704e6  bitcoin-22.0-powerpc64le-linux-gnu-debug.tar.gz
-91b1e012975c5a363b5b5fcc81b5b7495e86ff703ec8262d4b9afcfec633c30d  bitcoin-22.0-powerpc64le-linux-gnu.tar.gz
-59b16e63aa935f50fd2813efe7f137187fcf0fff84e3205a9c6cb462a8bb160c  bitcoin-22.0-riscv64-linux-gnu-debug.tar.gz
-9cc3a62c469fe57e11485fdd32c916f10ce7a2899299855a2e479256ff49ff3c  bitcoin-22.0-riscv64-linux-gnu.tar.gz
-3b3e2680f7d9304c13bfebaf6445ada40d72324b4b3e0a07de9db807389a6c5b  bitcoin-22.0-osx-signed.dmg
-52449aa894a6ce5653315e1260d0ce87c1d9f490afe3c92b44285710804b11ae  bitcoin-22.0-osx-unsigned.dmg
-f51156774c24c0ac5cc30237fa08aa17ed04a180dfd72c3e7d20fdc3f45806dc  bitcoin-22.0-osx-unsigned.tar.gz
-2744d199c3343b2d94faffdfb2c94d75a630ba27301a70e47b0ad30a7e0155e9  bitcoin-22.0-osx64.tar.gz
-3a4f05657c048d3e9505bdb9c4fb3658e5e3d4233b0b93c1853e080620589765  bitcoin-22.0-x86_64-linux-gnu-debug.tar.gz
-59ebd25dd82a51638b7a6bb914586201e67db67b919b2a1ff08925a7936d1b16  bitcoin-22.0-x86_64-linux-gnu.tar.gz
-9169989d649937c0f9ebccd3ab088501328aa319fe9e91fc7ea8e8cf0fcccede  bitcoin-22.0-win64-setup.exe
-f890473d6d910d478f8ff08f9356d0305d19b46cf06e4fc3b5a49b0b684fd2a7  bitcoin-22.0-win-unsigned.tar.gz
-0a97ebc8ae44913e3ef9c5b1ddd2af3a4ffb0ba25b6ab1ee8173e40e60499402  bitcoin-22.0-win64-debug.zip
-ecc579d006230d6ffc5a5b7b53ce8c76477d37c1c7bad69694e9c2d69f00331d  bitcoin-22.0-win64-setup-unsigned.exe
-9485e4b52ed6cebfe474ab4d7d0c1be6d0bb879ba7246a8239326b2230a77eb1  bitcoin-22.0-win64.zip
+eb0c8518ad2e96d01208f589ecd827b5a951be6dfcac418d4b807842a6ebdf65  bitcoin-27.2-aarch64-linux-gnu-debug.tar.gz
+154c9b9e6e17136edc8f20fda5d252fb339e727e4a85ef49e7d8facb9085f2d3  bitcoin-27.2-aarch64-linux-gnu.tar.gz
+4a05d46dcb74d337f62b78b884df080534677897fd9e1a0ae41253547789cef8  bitcoin-27.2-arm-linux-gnueabihf-debug.tar.gz
+fb00da13525b52a4aad091c6521f94a79879e5ca0956c2302289301f71e6303c  bitcoin-27.2-arm-linux-gnueabihf.tar.gz
+3a4795d591c0e506e88ce227b17048d347be37611ba98837a71a16c3a5f908c6  bitcoin-27.2-arm64-apple-darwin.zip
+4e91003a95108f85e85f92c3af23aa6108175a1d0a0c60cb515c2d3daf8a20f4  bitcoin-27.2-arm64-apple-darwin-unsigned.tar.gz
+48800ea29baca2e27f1544fc0c4d4cd096a908291c1e681bd9daa632645bce06  bitcoin-27.2-arm64-apple-darwin-unsigned.zip
+8f2247f4786f3559d37189b58452c91623efc5fa6886c975fa9386f9ff3f1001  bitcoin-27.2-arm64-apple-darwin.tar.gz
+33b59d57b1a3f11ca9c7993891a359fdc19e62284be3235d3951053cbbe81a60  bitcoin-27.2-codesignatures-27.2.tar.gz
+5a8b0094b3c6bc7f63c7fd6e0ba2e733a3022f09c0064c96ccd6e331bd7b9f6a  bitcoin-27.2.tar.gz
+6a273a634a04123c48c4a4be9ddbeeba27d2acdbefecd1025cfca1f30b394759  bitcoin-27.2-powerpc64-linux-gnu-debug.tar.gz
+566ed37e33ce529c75d9d0c72ff3894d0d5a311bd5f21be2de7495937348e454  bitcoin-27.2-powerpc64-linux-gnu.tar.gz
+6f9824a833a0c9a2c11cabf302cf0b0f573471cf8a7f0f7ad8723db4094515d5  bitcoin-27.2-powerpc64le-linux-gnu-debug.tar.gz
+efb66cc2648b3968f7186c990640589bd6fd72d93879b0cc1ff2adef9cd377b9  bitcoin-27.2-powerpc64le-linux-gnu.tar.gz
+fdc90b4692a5aaf04f6626b71fe40368ec0bcf000d066b1efdab99318000a3a8  bitcoin-27.2-riscv64-linux-gnu-debug.tar.gz
+0c272ec7b7bb6bdee410fb177ceaab0df0373de5aed2228ab9fb4e6128ccc793  bitcoin-27.2-riscv64-linux-gnu.tar.gz
+d74feac2e7bbb7df84c8f67ca6216ef4f83eb7e9c2213a901896d7814bfafb90  bitcoin-27.2-x86_64-apple-darwin.zip
+cbac742ce80dac1b57d455680b3accb8f75c20e782169185ef519b3e0534d498  bitcoin-27.2-x86_64-apple-darwin-unsigned.tar.gz
+8630d96eba03ecb57066442947cc08d58367666f96d825c636015ff458f46c16  bitcoin-27.2-x86_64-apple-darwin-unsigned.zip
+6ebc56ca1397615d5a6df2b5cf6727b768e3dcac320c2d5c2f321dcaabc7efa2  bitcoin-27.2-x86_64-apple-darwin.tar.gz
+8eb4e52ab1b3a27640a2c1a00c526815ab8a740443f963f5e6dfc5fdb37bcc2c  bitcoin-27.2-x86_64-linux-gnu-debug.tar.gz
+acc223af46c178064c132b235392476f66d486453ddbd6bca6f1f8411547da78  bitcoin-27.2-x86_64-linux-gnu.tar.gz
+30e9a0e4b3e1e32aceb4773615c0a9ed54443b037ef541ea3be07508377cf128  bitcoin-27.2-win64-setup.exe
+723a70ca4c0f7d0cef028d6cf502f595e3684c9f30c6c3c6b88d05c26b638c35  bitcoin-27.2-win64-debug.zip
+5f779dbf911e75c4ca4a57b04f972a52006ed49de3519c640fef99a596b22e0e  bitcoin-27.2-win64-setup-unsigned.exe
+e92e8531f50915a74790689e6143d8d712b471233c38231f60bfa40ffb820bca  bitcoin-27.2-win64-unsigned.tar.gz
+82e18f768aa5962b3c002d7f5d6ec9338896804f48406af4b5054c927575dbdf  bitcoin-27.2-win64.zip

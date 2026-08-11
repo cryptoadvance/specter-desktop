@@ -65,13 +65,17 @@ class BitcoinCore(Device):
 
     def taproot_available(self, rpc):
         try:
-            # currently only master branch supports tr() descriptors
-            # TODO: replace to 220000
             core_version = rpc.getnetworkinfo().get("version", 0)
-            info = rpc.getblockchaininfo()
-            taproot_active = (core_version >= 219900) and (
-                info.get("softforks", {}).get("taproot", {}).get("active", False)
-            )
+            if core_version >= 240000:
+                # Core 24 moved softfork status from getblockchaininfo.softforks
+                # to the getdeploymentinfo RPC's deployments field.
+                deployments = rpc.getdeploymentinfo().get("deployments", {})
+                taproot_active = deployments.get("taproot", {}).get("active", False)
+            else:
+                softforks = rpc.getblockchaininfo().get("softforks", {})
+                taproot_active = (core_version >= 219900) and softforks.get(
+                    "taproot", {}
+                ).get("active", False)
             taproot_support = self.use_descriptors(rpc) and taproot_active
             self.taproot_support = taproot_support
             return taproot_support

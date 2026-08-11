@@ -1,7 +1,16 @@
 import json, os, random, requests
-from flask import Blueprint, Flask, jsonify, url_for, redirect, render_template, request
+from flask import (
+    Blueprint,
+    Flask,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 from .server_endpoints import flash
 from flask import current_app as app
+from flask_login import current_user, login_required
 from flask_cors import CORS
 from .hwi_rpc import HWIBridge
 from .helpers import deep_update, hwi_get_config, save_hwi_bridge_config
@@ -10,13 +19,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 hwi_server = Blueprint("hwi_server", __name__)
+hwi_server_settings = Blueprint("hwi_server_settings", __name__)
 CORS(hwi_server)
 rand = random.randint(0, int(1e32))  # to force style refresh
 
 
 @hwi_server.route("/", methods=["GET"])
 def index():
-    return redirect(url_for("hwi_server.hwi_bridge_settings"))
+    return redirect(url_for("hwi_server_settings.hwi_bridge_settings"))
 
 
 @hwi_server.route("/api/", methods=["POST"])
@@ -100,8 +110,15 @@ def api():
     return jsonify(app.specter.hwi.jsonrpc(data))
 
 
-@hwi_server.route("/settings/", methods=["GET", "POST"])
+@hwi_server_settings.route("/settings/", methods=["GET", "POST"])
+@login_required
 def hwi_bridge_settings():
+    if app.config.get("LOGIN_DISABLED") and (
+        not current_user.is_authenticated or not current_user.is_admin
+    ):
+        app.login("admin")
+    if not current_user.is_admin:
+        return "Forbidden", 403
     config = hwi_get_config(app.specter)
     if request.method == "POST":
         action = request.form["action"]

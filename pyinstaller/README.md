@@ -1,13 +1,6 @@
-# Build scripts
-
-Run `build-<your-os> <version_number>` file to build everything.
-
-For example, `build-osx.sh 1.2.3` will create `SpecterDesktop-1.2.3.dmg` and `specterd-1.2.3-osx.zip` in the `release` folder.
-
-If you're making a real release, you should append `"make hash"` at the end of your command calling the build script.
-This will update the file hash and version name the Specter Desktop app expects to download from GitHub.
-
 # Pyinstaller build
+
+Releases are built by `.github/workflows/release.yml` (triggered by a version tag). The notes below are for local / manual builds.
 
 Install requirements:
 
@@ -52,17 +45,9 @@ If this is the first time you go through this process, you'll need to first set 
 xcrun altool --store-password-in-keychain-item "AC_PASSWORD" -u "<your-apple-id>" -p "<the-generated-password>"
 ```
 
-After having these set up, you can use the automated script to sign by passing it 2 extra parameters: 
-- Your certificate name, which you can see on the Keychain app going to the sidebar -> `My Certificates` and copying the name of the certificate you've created in step 1.
-- Your Apple ID.
+Release builds sign and notarize via `.github/workflows/release.yml` (`build-electron-macos` job) using the `APPLE_CERTIFICATE_BASE64`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, and `APPLE_TEAM_ID` secrets. See `docs/release-guide.md` for the full secret inventory. For manual local signing, use `electron-builder` directly (`npm run dist -- --mac` in `pyinstaller/electron/`, with the identity configured in `package.json`).
 
-With these two, you can run the command like so:
-```bash
-./build-osx.sh <version_number> "<certificate_name>" "<apple_id>" "make-hash"
-```
-*Note: "make-hash" is optional and will automatically calculate hash of specterd generated for the macOS app. Should be used only for real release.*
-
-This should take 10 minutes, during which you should receive an email from Apple notifying whatever the notarization was successful.
+Notarization takes ~10 minutes, during which Apple emails notification of success/failure.
 If for some reason the notarization failed, you'll be able to get the reason by copying the `Request Identifier` (you should be able to find this in the email and in the logs).
 Then run the following command:
 ```bash

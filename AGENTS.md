@@ -67,44 +67,32 @@ python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
 
 ## CI/CD
 
-The project uses **GitHub Actions** for linting, testing, Docker images, and **the full release pipeline**, plus **Cirrus CI** for the heavyweight test suite (pytest + Cypress). GitLab CI is retained in `.gitlab-ci.yml` but effectively dead — the release flow was migrated to GitHub Actions.
+**GitHub Actions only.** Cirrus CI and GitLab CI were retired in 2026-Q2 — see `docs/ci-migration-evidence.md` for the cutover evidence and `docs/continuous-integration.md` for the active topology.
 
-### Overview
+### Workflows
 
-| Provider | Purpose | Config File | Trigger |
-|----------|---------|-------------|---------|
-| **GitHub Actions** | Lint, smoke-build, Docker images, **releases** (pip + specterd + Electron for Linux/Win/macOS) | `.github/workflows/` | Push, PR, tags |
-| **Cirrus CI** | Full test suite (pytest + Cypress + extension smoketest) | `.cirrus.yml` | PR |
-| **GitLab CI** | **Dead** — config retained; `check` job only waits on GH master status. Release jobs no longer run. | `.gitlab-ci.yml` | (vestigial) |
+| Workflow | File | Trigger | Purpose |
+|----------|------|---------|---------|
+| Tests | `test.yml` | PR, push | pytest + Cypress + extension smoketest (3 jobs) |
+| Release | `release.yml` | Tag push `v*` | pip + specterd + Electron for Linux/Win/macOS + GPG-sign `SHA256SUMS` |
+| Black Linter | `zblack.yml` | PR, push | `psf/black@26.3.0` action pinned to Black 22.3.0, python-3.12 |
+| TOC Generator | `toc.yml` | Push | Auto-generates TOCs for `README.md`, `docs/faq.md`, `docs/development.md` |
+| Docker Push | `docker-push.yml` | Push to any branch | Multi-arch image → `ghcr.io/cryptoadvance/specter-desktop:<branch>` |
+| Docker Tag | `docker-tag.yml` | Tag push `v*` | Multi-arch image → `ghcr.io/cryptoadvance/specter-desktop:<tag>` |
+| Extension Compat | `extension-compat.yml` | PR touching `requirements.*`/`pyproject.toml` | Installs full lock, imports every bundled extension, runs `pip check` |
+| specterd Build Smoke | `test-specterd-build.yml` | PR touching `pyinstaller/`, `requirements*`, `src/**` | Builds specterd on Linux and runs `--help` |
+| Electron Smoke | `electron-smoketest.yml` | PR touching `pyinstaller/electron/**` | Smoke test Electron packaging |
 
-### GitHub Actions (7 workflows)
+All workflows use public GitHub-hosted runners (`ubuntu-latest` / `ubuntu-22.04` / `windows-latest` / `macos-14`). **No private runners.**
 
-1. **Black Python Linter** (`zblack.yml`) — Runs on every push and PR. Uses `psf/black@26.3.0` action pinned to Black version `22.3.0`, on python-3.12 (pinned to avoid 3.14 incompatibility with Black 22.3.0). Checks `./src`.
-2. **TOC Generator** (`toc.yml`) — Auto-generates TOCs for `README.md`, `docs/faq.md`, `docs/development.md` on push.
-3. **Docker Push** (`docker-push.yml`) — Builds multi-arch (amd64 + arm64) image on every push. Pushes to `ghcr.io/<owner>/<repo>:<branch>` (upstream: `ghcr.io/cryptoadvance/specter-desktop:<branch>`).
-4. **Docker Tag** (`docker-tag.yml`) — Builds multi-arch image on version tags. Pushes to `ghcr.io/<owner>/<repo>:<tag>`.
-5. **Extension Compatibility Check** (`extension-compat.yml`) — On changes to `requirements.*` or `pyproject.toml`: installs the full lock file, imports every bundled extension (Swan, LiquidIssuer, DevHelp, Notifications, ExFund, Faucet, Electrum, Spectrum, StackTrack, TimelockRecovery), runs `pip check`, and best-effort runs extension test suites. Catches dep conflicts before they break downstream extensions.
-6. **Test specterd build** (`test-specterd-build.yml`) — PR smoke test on changes to `pyinstaller/`, `requirements*`, `src/**`, or packaging files. Builds specterd on Linux and runs `--help` smoke test.
-7. **Release** (`release.yml`) — **The release pipeline.** See next section.
+### Test workflow — `test.yml`
 
-All GitHub Actions use public runners (`ubuntu-latest` / `ubuntu-24.04` / `windows-latest` / `macos-14`). **No private runners.**
+Three jobs on `ubuntu-22.04`:
+1. **`test`** — pytest with `--cov=cryptoadvance`, 45-min timeout. Installs system deps inline; no custom image. Caches bitcoind/elementsd via `actions/cache@v4` keyed on `runner.os × runner.arch × hash(pyproject.toml, install_noded.sh, bitcoin_SHA256SUMS, elements_SHA256SUMS)` with `save-always: true`.
+2. **`cypress`** — `./utils/test-cypress.sh --debug run` inside `ghcr.io/cryptoadvance/specter-desktop/cypress-python-jammy@sha256:<digest>`, 30-min timeout, `--shm-size=2g`.
+3. **`extension-smoketest`** — byte-compatible port of the old Cirrus smoketest, 15-min timeout.
 
-### Cirrus CI (Testing)
-
-Cirrus CI runs the **full test suite** on PRs. Config: `.cirrus.yml`.
-
-**Three tasks:**
-1. **`test_task`** — Full pytest suite with bitcoind + elementsd in regtest mode. Uses cached binary downloads. Produces JUnit XML results.
-2. **`cypress_test_task`** — Frontend tests with Cypress. Requires 6 CPU, 6GB RAM. Produces screenshots and video artifacts.
-3. **`extension_smoketest_task`** — Generates a test extension, starts the server, verifies the extension loads and responds.
-
-**Docker images used:**
-- `registry.gitlab.com/cryptoadvance/specter-desktop/cirrus-jammy:20230206` (pytest)
-- `registry.gitlab.com/cryptoadvance/specter-desktop/cypress-python-jammy:20230206` (Cypress)
-
-Both images are pre-built and hosted on the GitLab container registry. They include Python, virtualenv, and other dependencies. The `docker/` directory in the repo contains Dockerfiles for building them.
-
-**Caching:** bitcoind and elementsd binaries are cached by Cirrus based on the version pinned in `pyproject.toml`. The `tests/install_noded.sh` script handles downloading or compiling them.
+`tests/install_noded.sh` GPG-verifies upstream `SHA256SUMS.asc` and checks tarball SHA256 against the committed trust anchors on every run (cold cache AND cache hit).
 
 ### Release pipeline — `.github/workflows/release.yml`
 
@@ -140,12 +128,12 @@ Triggers on tags matching `v[0-9]+.[0-9]+.[0-9]+` (and `-*` suffixes for pre-rel
 
 | Secret | Purpose | Required? |
 |----------|---------|---|
-| `APPLE_CERTIFICATE_BASE64` | Base64-encoded `.p12` Apple signing certificate | Optional — unsigned build if missing |
-| `APPLE_CERTIFICATE_PASSWORD` | Password for the `.p12` | With `APPLE_CERTIFICATE_BASE64` |
-| `APPLE_PROVISIONING_PROFILE_BASE64` | Base64-encoded provisioning profile | Optional |
-| PyPI trusted publisher | Configured on PyPI side, not a GH secret | Required for `release-pip` in upstream |
-
-Historical GitLab secrets (`GH_BIN_UPLOAD_PW`, `TWINE_PASSWORD`, `GPG_PASSPHRASE`, `SSH_SPECTEREXT_DEPLOY_KEY`, `SSH_SPECTERSTATIC_DEPLOY_KEY`) are **no longer used**. `.gitlab-ci.yml` still references them but the pipeline is dead.
+| `GPG_PRIVATE_KEY` + `GPG_PASSPHRASE` | Sign `SHA256SUMS` | Required for signed releases |
+| `APPLE_CERTIFICATE_BASE64` + `APPLE_CERTIFICATE_PASSWORD` | macOS signing cert | Optional — unsigned build if missing |
+| `APPLE_ID` + `APPLE_APP_SPECIFIC_PASSWORD` + `APPLE_TEAM_ID` | macOS notarization | Required with signing |
+| `APPLE_PROVISIONING_PROFILE_BASE64` | Provisioning profile | Optional |
+| `AARON_TRIGGER` | Trigger `lncm/docker-specter-desktop` build | Optional — skips Docker trigger if missing |
+| PyPI trusted publisher | Configured on PyPI side, not a GH secret | Required for `release-pip` upstream |
 
 ### Testing a release on a fork
 
@@ -153,12 +141,6 @@ Historical GitLab secrets (`GH_BIN_UPLOAD_PW`, `TWINE_PASSWORD`, `GPG_PASSPHRASE
 2. Push a tag matching `v*.*.*` or `v*.*.*-*` on your fork → `release.yml` fires automatically.
 3. The `release-pip` PyPI publish step is gated on `github.repository == 'cryptoadvance/specter-desktop'`, so forks build the pip package but don't publish.
 4. Unsigned macOS builds work out of the box; signing requires you to add your own Apple secrets.
-
-### Dead config
-
-- `.gitlab-ci.yml` — still in the repo but release jobs no longer run. Safe to remove in a cleanup pass.
-- `pyinstaller/build-win-ci.bat` — former GitLab Windows runner entry point; no longer invoked.
-- `utils/release.sh` / `utils/release_helper.py` / `utils/github.py` — may contain dead code paths now that GitLab isn't uploading artifacts. Audit before changes.
 
 ## Testing
 
@@ -217,10 +199,9 @@ Desktop builds use PyInstaller + Electron:
 
 1. **specterd** (daemon binary): `pyinstaller specterd.spec` from `pyinstaller/` dir
 2. **Electron app**: wraps specterd, downloads it on first launch with SHA256 + GPG verification
-3. Platform scripts: `utils/build-osx.sh`, `utils/build-unix.sh`, `pyinstaller/build-win-ci.bat`
-4. pip package: `python3 -m build`
+3. pip package: `python3 -m build`
 
-See `docs/build-instructions.md` for step-by-step manual build instructions.
+Release builds live in `.github/workflows/release.yml` (triggered by tag push). See `docs/release-guide.md` for the release workflow and `docs/build-instructions.md` for step-by-step manual builds.
 
 ## Dependencies
 
@@ -238,7 +219,7 @@ Extensions live in `specterext` namespace packages. Each extension:
 - Registers via entry points in setup.cfg
 - Can add UI pages, API endpoints, and background services
 - Generate a skeleton: `python3 -m cryptoadvance.specter ext gen --ext-id myext --org myorg`
-- CI smoke-tests extension generation in `extension_smoketest_task` (Cirrus)
+- CI smoke-tests extension generation in the `extension-smoketest` job (`test.yml`)
 - See `docs/extensions/` for the extension development guide
 
 ## Key Files for Navigation
@@ -255,14 +236,14 @@ Extensions live in `specterext` namespace packages. Each extension:
 | All managers | `src/cryptoadvance/specter/managers/` |
 | Templates | `src/cryptoadvance/specter/templates/` |
 | Tests | `tests/` |
-| CI config | `.github/workflows/`, `.cirrus.yml`, `.gitlab-ci.yml` |
+| CI config | `.github/workflows/` |
 | Build scripts | `pyinstaller/`, `utils/`, `electron/` |
 | CI Docker images | `docker/` |
 
 ## Current State (as of 2026-04)
 
 - **Last release:** v2.1.1 (2025-01-03) — no release on the new GH Actions pipeline yet; first tagged run will exercise it end-to-end.
-- **CI migration complete:** release pipeline moved from GitLab to `.github/workflows/release.yml`. `.gitlab-ci.yml` retained but dead.
+- **CI migration complete:** Cirrus CI and GitLab CI retired; all workflows now on GitHub Actions. See `docs/ci-migration-evidence.md`.
 - **macOS automation:** now covered on Apple Silicon free tier; x86_64 macOS gated on paid runner.
 - **Black linter:** reconfigured to pin python-3.12 + `psf/black@26.3.0` action + black version 22.3.0 (worked around 3.14 incompatibility). Verify green state in CI before assuming.
 - **Issue/PR backlog:** refreshed counts not captured here — use `gh issue list` / `gh pr list` for current state.
