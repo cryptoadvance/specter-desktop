@@ -79,7 +79,7 @@ test = [
     "black==26.3.1",
     "pre-commit==2.13.0",
     "pip-tools==6.13",
-    "pytest==7.1.2",
+    "pytest==9.0.3",
     "PySocks==1.7.1",
     "pytest-cov==2.10.1",
     "mock==4.0.2",
