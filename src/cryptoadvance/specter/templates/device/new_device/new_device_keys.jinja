@@ -30,6 +30,16 @@
                 </div>
             {% endif %}
             
+            <div id="coldcard-warning" class="flex p-4 mt-3 mb-4 bg-orange-100 text-orange-700 rounded-lg {% if device_class.device_type != 'coldcard' %}hidden{% endif %}" role="alert">
+                <img class="flex-shrink-0 w-6 h-6 mr-3" src="{{ url_for('static', filename='img/warning_sign.svg') }}" aria-hidden="true">
+                <span class="sr-only">{{ _("Security warning") }}</span>
+                <div>
+                    <span class="font-medium">{{ _("Security warning: ColdCard seed entropy advisory") }}</span><br>
+                    {{ _("Coinkite disclosed a firmware flaw that reduced generated-seed entropy on ColdCard Mk2/Mk3 (firmware 4.0.1-4.1.9) and Mk4/Mk5/Q before their fixed firmware. If your seed was generated on-device with fewer than 50 independent dice rolls, update firmware, generate a new seed and move your funds.") }}
+                    <a class="text-orange-700 underline" href="https://blog.coinkite.com/coldcard-mk3-seed-generation-warning/" target="_blank" rel="noopener noreferrer">{{ _("Read Coinkite's advisory") }}</a>
+                </div>
+            </div>
+
             <div id="coldcard-instructions" class="{%if device_class.device_type != 'coldcard' %}hidden{% endif %}">
                 <p>{{ _("Connect your ColdCard to the computer via USB and unlock it or upload a wallet export file from micro SD card.") }}</p>
 

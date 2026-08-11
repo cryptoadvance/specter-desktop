@@ -240,7 +240,7 @@ function restore_snapshot {
   # Checking whether spec-files exists
   if ! [ -f ./cypress/integration/${spec_file} ]; then
     echo "Spec-file $spec_file does not exist, these are the options:"
-    cat cypress.json | jq -r ".testFiles[]" 
+    cat cypress-tests.json | jq -r ".testFiles[]" 
     exit 1
   fi
   snapshot_file=./cypress/fixtures/${spec_file}_btcdir.tar.gz
@@ -341,7 +341,11 @@ function sub_run {
     start_bitcoind --reset
     start_elementsd --reset
     start_specter --reset
-    npx cypress run
+    # Cypress 10+ normalizes specs discovered from config (often alphabetically),
+    # but this suite is intentionally stateful and depends on the order in
+    # cypress-tests.json. Pass an explicit --spec list so a full run keeps the
+    # legacy order from cypress.json/testFiles.
+    npx cypress run --spec "$(./utils/calc_cypress_test_spec.py --run spec_empty_specter_home.js)"
   fi
 }
 
@@ -358,7 +362,7 @@ function sub_snapshot {
   # We'll create a snapshot BEFORE this spec-file has been tested:
   if [ ! -f ./cypress/integration/$spec_file ]; then
     echo "ERROR: Use one of these arguments:"
-    cat cypress.json | jq -r ".testFiles[]"
+    cat cypress-tests.json | jq -r ".testFiles[]"
     exit 2
   fi
   start_bitcoind --reset
