@@ -76,7 +76,7 @@ dependencies = {file = ["requirements.in"]}
 
 [project.optional-dependencies]
 test = [
-    "black==22.3.0",
+    "black==26.3.1",
     "pre-commit==2.13.0",
     "pip-tools==6.13",
     "pytest==7.1.2",
@@ -84,9 +84,9 @@ test = [
     "pytest-cov==2.10.1",
     "mock==4.0.2",
     # requirements for stuff in ./utils
-    "requests==2.31.0",
+    "requests==2.33.0",
 ]
 
 gendownloadpage = [
-    "markdown==3.3.7"
+    "markdown==3.8.1"
 ]
