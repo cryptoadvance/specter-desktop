@@ -29,8 +29,15 @@ describe('Completely empty specter-home', () => {
   })
 
   it('Login with password and deactivate password protection again', () => {
-    cy.get('[data-cy="admin-password"]').type('satoshi')
-    cy.get('[data-cy="login-btn"]').click()
+    cy.get('body').then(($body) => {
+      // Cypress 13 keeps browser context when testIsolation is disabled for this
+      // stateful suite. If the session cookie survived from the previous test,
+      // we are already logged in and can go straight to settings.
+      if ($body.find('[data-cy="admin-password"]').length) {
+        cy.get('[data-cy="admin-password"]').type('satoshi')
+        cy.get('[data-cy="login-btn"]').click()
+      }
+    })
     cy.get('[data-cy="settings-btn"]').click()
     cy.contains('Authentication').click()
     cy.get('[data-cy="authentication-selection"]').select('None')
