@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 @click.option("--delimiter", default=",", help="the delimiter")
 @click.argument("spec_file")
 def execute(debug, run, delimiter, spec_file):
-    with open("cypress.json") as json_file:
+    with open("cypress-tests.json") as json_file:
         data = json.load(json_file)
 
     spec_create_list = []
