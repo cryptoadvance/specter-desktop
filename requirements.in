@@ -5,7 +5,7 @@ Flask-Babel==3.1.0
 Flask-Cors==6.0.0
 Flask-Login==0.6.3
 Flask-RESTful==0.3.10
-Flask-HTTPAuth==4.8.0
+Flask-HTTPAuth==4.8.1
 hwi==3.1.0
 python-dotenv==1.2.2
 requests==2.33.0

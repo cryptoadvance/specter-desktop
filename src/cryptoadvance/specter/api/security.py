@@ -1,4 +1,5 @@
-""" Security Related things for the REST-API """
+"""Security Related things for the REST-API"""
+
 import logging, jwt
 from functools import wraps
 
@@ -12,6 +13,18 @@ from . import auth
 from flask import current_app as app
 
 logger = logging.getLogger(__name__)
+
+
+@auth.error_handler
+@token_auth.error_handler
+def auth_error(status):
+    """Return REST API authentication failures as JSON.
+
+    Flask-HTTPAuth 4.8.1 changed the default unauthorized response body to
+    plain text ("Unauthorized Access"). The REST API has historically returned
+    Flask-RESTful JSON error objects, and clients/tests rely on that shape.
+    """
+    return abort(status)
 
 
 @auth.verify_password
