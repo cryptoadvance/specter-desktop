@@ -65,21 +65,51 @@
     }
 
     var coldcardUsb = 0;
+    var coldcardNoticeAccepted = false;
+    var coldcardNoticeResolver = null;
+
+    function resolveColdcardNotice(accepted){
+        if(coldcardNoticeResolver){
+            let resolver = coldcardNoticeResolver;
+            coldcardNoticeResolver = null;
+            resolver(accepted);
+        }
+    }
+
     function coldCardNotice(){
         coldcardUsb = 1;
-        cancelOverlay();
+        coldcardNoticeAccepted = true;
+        hidePageOverlay();
+        resolveColdcardNotice(true);
     }
 
     function goToCoinkite(){
         parent.open("https://blog.coinkite.com/address-explorer/");
-        cancelOverlay();
+        coldcardNoticeAccepted = false;
+        hidePageOverlay();
+        resolveColdcardNotice(false);
+    }
+
+    async function confirmColdcardUsbNotice(){
+        if(coldcardUsb == 1){
+            return true;
+        }
+        coldcardNoticeAccepted = false;
+        return await new Promise((resolve) => {
+            coldcardNoticeResolver = resolve;
+            showPageOverlay('coldcard_warning');
+        });
     }
 
     async function enumerate(deviceTypes=null, devicePath=null, passphrase=''){
-        // special handling of coldcard 
+        // special handling of coldcard: ask before starting detection so the
+        // original enumerate/sign action can continue after consent.
         if (deviceTypes == 'coldcard' && coldcardUsb == 0) {
-             document.getElementById("page_overlay_popup_content").appendChild(document.getElementById("coldcard_warning"));
-                }
+            let acceptedColdcardUsb = await confirmColdcardUsbNotice();
+            if(!acceptedColdcardUsb){
+                return null;
+            }
+        }
         // detect device
         if (devicePath == null) {
             if (deviceTypes == 'ledger') {
@@ -225,6 +255,8 @@
 
     // TODO: remove, legacy
     function onCancelOverlay(){
-
+        if(coldcardNoticeResolver && !coldcardNoticeAccepted){
+            resolveColdcardNotice(false);
+        }
     }
 </script>
