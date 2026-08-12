@@ -267,9 +267,9 @@ flask-cors==6.0.0 \
     --hash=sha256:4592c1570246bf7beee96b74bc0adbbfcb1b0318f6ba05c412e8909eceec3393 \
     --hash=sha256:6332073356452343a8ccddbfec7befdc3fdd040141fe776ec9b94c262f058657
     # via -r requirements.in
-flask-httpauth==4.8.0 \
-    --hash=sha256:66568a05bc73942c65f1e2201ae746295816dc009edd84b482c44c758d75097a \
-    --hash=sha256:a58fedd09989b9975448eef04806b096a3964a7feeebc0a78831ff55685b62b0
+flask-httpauth==4.8.1 \
+    --hash=sha256:0080393d70e12327781f7509115175ec5e47209816489a620d4fd39e20cea2e8 \
+    --hash=sha256:88499b22f1353893743c3cd68f2ca561c4ad9ef75cd6bcc7f621161cd0e80744
     # via -r requirements.in
 flask-login==0.6.3 \
     --hash=sha256:5e23d14a607ef12806c699590b89d0f0e0d67baeec599d75947bf9c147330333 \
