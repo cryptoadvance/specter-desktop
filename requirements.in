@@ -1,14 +1,16 @@
 certifi==2024.7.4
 Click==8.1.7
 Flask==2.2.5
+# Flask 2.2.x test_client uses werkzeug.__version__, removed in Werkzeug 3.1.
+Werkzeug==3.0.6
 Flask-Babel==3.1.0
 Flask-Cors==6.0.0
 Flask-Login==0.6.3
 Flask-RESTful==0.3.10
-Flask-HTTPAuth==4.8.0
+Flask-HTTPAuth==4.8.1
 hwi==3.1.0
-python-dotenv==0.21.1
-requests==2.31.0
+python-dotenv==1.2.2
+requests==2.33.0
 pysocks==1.7.1
 six==1.16.0
 stem==1.8.0

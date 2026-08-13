@@ -52,7 +52,7 @@ jobs:
           pip install -e ".[test]"
 
       - name: Fetch version tag
-        run: git fetch origin refs/tags/v1.0.0
+        run: git fetch --no-tags https://github.com/cryptoadvance/specter-desktop.git refs/tags/v1.0.0:refs/tags/v1.0.0
 
       - name: Run pytest
         run: >
