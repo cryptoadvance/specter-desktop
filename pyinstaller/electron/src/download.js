@@ -43,14 +43,14 @@ function downloadSpecterd(specterdPath) {
   // Some logging
   logger.info('Using version ' + appSettings.specterdVersion)
   logger.info('Using platformName ' + platformName)
-  download_location = getDownloadLocation(
+  const downloadLocation = getDownloadLocation(
     appSettings.specterdVersion,
     platformName,
     process.arch,
     versionData.repository
   )
-  logger.info('Downloading from ' + download_location)
-  download(download_location, specterdPath + '.zip', function (errored, errorMsg) {
+  logger.info('Downloading from ' + downloadLocation)
+  download(downloadLocation, specterdPath + '.zip', function (errored, errorMsg) {
     if (errored == true) {
       updatingLoaderMsg(
         errorMsg ||

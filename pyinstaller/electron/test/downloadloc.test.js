@@ -20,4 +20,6 @@ test('keeps upstream as the compatibility default', () => {
 
 test('rejects malformed repository metadata', () => {
   assert.throws(() => repositoryName('https://example.com/attacker/repo'), /Invalid specterd download repository/)
+  assert.throws(() => repositoryName('../..'), /Invalid specterd download repository/)
+  assert.throws(() => repositoryName('cryptoadvance/..'), /Invalid specterd download repository/)
 })

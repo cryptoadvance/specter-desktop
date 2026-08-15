@@ -3,14 +3,12 @@ const DEFAULT_REPOSITORY = 'cryptoadvance/specter-desktop'
 const REPOSITORY_PATTERN = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/
 
 function repositoryName(repository = DEFAULT_REPOSITORY) {
-    if (!REPOSITORY_PATTERN.test(repository)) {
+    const segments = typeof repository === 'string' ? repository.split('/') : []
+    const traversal = segments.some((segment) => segment === '.' || segment === '..')
+    if (!REPOSITORY_PATTERN.test(repository) || traversal) {
         throw new Error(`Invalid specterd download repository: ${repository}`)
     }
     return repository
-}
-
-function orgName() {
-    return DEFAULT_REPOSITORY.split('/')[0]
 }
 
 function getDownloadLocation(version, platformname, arch = process.arch, repository = DEFAULT_REPOSITORY) {
@@ -26,8 +24,7 @@ function appName() {
 }
 
 module.exports = {
-    getDownloadLocation, 
+    getDownloadLocation,
     appName,
-    orgName,
     repositoryName,
 }

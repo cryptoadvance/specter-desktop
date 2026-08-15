@@ -53,9 +53,11 @@ a = Analysis(['specterd.py'],
              hiddenimports=[
                 'cryptoadvance.specter.config',
                 # setuptools imports jaraco.context, which imports the
-                # backports namespace package at runtime. PyInstaller's
-                # analysis can miss namespace-only packages, causing the
-                # frozen Linux specterd smoke test to fail at startup.
+                # backports namespace package at runtime. pyinstaller/
+                # requirements.txt pins backports.tarfile so it is installed;
+                # these entries are still needed because PyInstaller's analysis
+                # misses namespace-only packages and would otherwise leave it
+                # out of the bundle. Both halves are required.
                 'backports',
                 'backports.tarfile',
                 'tzdata' # used by apscheduler and existing hook doesn't seem to be complete

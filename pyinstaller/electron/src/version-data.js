@@ -14,23 +14,25 @@ function hashesMatch(expectedHash, actualHash) {
 }
 
 function synchronizeSpecterdSettings(appSettings, versionData, arch) {
-  const hash = getSpecterdHash(versionData, arch)
-  if (!hash) {
+  const releaseHash = getSpecterdHash(versionData, arch)
+  if (!releaseHash) {
     return { changed: false, hash: null }
   }
 
+  // Adopt the bundled release only when this release has not been initialized
+  // yet, or when the stored hash is unusable. A stored hash that is a valid
+  // SHA-256 but differs from the bundled one is a deliberate user choice
+  // (Preferences -> "Choose file") and has to survive restarts.
   const changed =
-    appSettings.specterdVersion !== versionData.version ||
-    appSettings.versionInitialized !== versionData.version ||
-    appSettings.specterdHash !== hash
+    appSettings.versionInitialized !== versionData.version || !isValidSha256(appSettings.specterdHash)
 
   if (changed) {
     appSettings.specterdVersion = versionData.version
-    appSettings.specterdHash = hash
+    appSettings.specterdHash = releaseHash
     appSettings.versionInitialized = versionData.version
   }
 
-  return { changed, hash }
+  return { changed, hash: appSettings.specterdHash.toLowerCase() }
 }
 
 function missingHashMessage(versionData, arch) {

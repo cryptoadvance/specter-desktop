@@ -655,7 +655,9 @@ jobs:
 
           # Generate SHA256SUMS
           cd release-files
-          sha256sum ./* > SHA256SUMS
+          # Keep the published entries bare (no "./" prefix) so SHA256SUMS
+          # stays byte-compatible with previous releases.
+          sha256sum -- * > SHA256SUMS
           echo "=== SHA256SUMS ==="
           cat SHA256SUMS
           cd ..

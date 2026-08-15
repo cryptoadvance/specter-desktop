@@ -154,7 +154,15 @@ app.whenReady().then(() => {
   }
 
   if (settingsUpdate.changed) {
-    logger.info(`Updating ${appSettingsPath} : ${JSON.stringify(appSettings)}`)
+    // Only log the fields we just touched: appSettings also carries
+    // basicAuthPass, which must not end up in the log file.
+    logger.info(
+      `Updating ${appSettingsPath} : ${JSON.stringify({
+        specterdVersion: appSettings.specterdVersion,
+        specterdHash: appSettings.specterdHash,
+        versionInitialized: appSettings.versionInitialized,
+      })}`
+    )
     fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings))
   }
   const specterdPath = specterdDirPath + '/' + appNameLower + 'd'

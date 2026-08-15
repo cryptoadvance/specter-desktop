@@ -54,6 +54,30 @@ test('refreshes stale launcher settings without disturbing unrelated user settin
   assert.equal(settings.versionInitialized, 'v2.1.11-pre1')
 })
 
+test('keeps a user-supplied specterd binary hash across restarts', () => {
+  const customHash = 'c'.repeat(64)
+  const settings = {
+    specterdHash: customHash,
+    specterdVersion: 'v2.1.11-pre1',
+    versionInitialized: 'v2.1.11-pre1',
+  }
+  const versionData = { version: 'v2.1.11-pre1', sha256: { x64: X64_HASH } }
+
+  assert.deepEqual(synchronizeSpecterdSettings(settings, versionData, 'x64'), {
+    changed: false,
+    hash: customHash,
+  })
+  assert.equal(settings.specterdHash, customHash)
+})
+
+test('repairs an unusable stored hash without waiting for the next release', () => {
+  const settings = { specterdHash: '', specterdVersion: 'v2.1.11-pre1', versionInitialized: 'v2.1.11-pre1' }
+  const versionData = { version: 'v2.1.11-pre1', sha256: { x64: X64_HASH } }
+
+  assert.deepEqual(synchronizeSpecterdSettings(settings, versionData, 'x64'), { changed: true, hash: X64_HASH })
+  assert.equal(settings.specterdHash, X64_HASH)
+})
+
 test('does not mutate settings when the release hash is missing', () => {
   const settings = { specterdHash: 'stale', specterdVersion: 'v2.1.10' }
   const original = { ...settings }
