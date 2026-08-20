@@ -31,7 +31,10 @@ class SpecterClient(HardwareWalletClient):
     that hardware wallet subclasses should implement.
     """
 
-    # timeout large enough to handle xpub derivations
+    # bounded timeout for non-interactive operations (e.g. fingerprint,
+    # used for device discovery/identification). xpub now requires an
+    # on-device user confirmation, so get_pubkey_at_path() does not use
+    # this - it waits indefinitely, like sign_tx() already does.
     TIMEOUT = 3
 
     def __init__(self, path: str, password: str = "", expert: bool = False) -> None:
@@ -87,8 +90,9 @@ class SpecterClient(HardwareWalletClient):
         :param bip32_path: The BIP 32 derivation path
         :return: The extended public key
         """
-        # this should be fast
-        xpub = self.query("xpub %s" % bip32_path, timeout=self.TIMEOUT)
+        # xpub now requires on-device user confirmation and may take
+        # arbitrarily long - wait indefinitely, same as sign_tx()
+        xpub = self.query("xpub %s" % bip32_path)
         hd = ExtendedKey.deserialize(xpub)
         # Specter returns xpub with a prefix
         # for a network currently selected on the device
