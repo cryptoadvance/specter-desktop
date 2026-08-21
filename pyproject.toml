@@ -86,7 +86,3 @@ test = [
     # requirements for stuff in ./utils
     "requests==2.33.0",
 ]
-
-gendownloadpage = [
-    "markdown==3.8.1"
-]

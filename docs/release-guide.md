@@ -43,15 +43,11 @@ PyPI publishing uses trusted publishing (OIDC) — no secret required.
 
 Update `docs/release-notes.md` via a normal PR before tagging. Use the GitHub API or `gh` to pull "What's Changed" between the previous tag and `master`, prepend a heading, and open a PR. The `create-release` workflow job also appends auto-generated notes to the release body.
 
-## GitHub pages download page
+## Website download page
 
-`./utils/generate_downloadpage.sh` still generates the `specter-static` website's download page off `utils/templates/`. Clone `specter-static` alongside `specter-desktop` and run:
+The public downloads page is maintained in [`cryptoadvance/specter-website`](https://github.com/cryptoadvance/specter-website), not generated from this repository. Its `/downloads` page fetches published releases from the GitHub Releases API and renders the latest stable assets plus signature-verification instructions.
 
-```bash
-./utils/generate_downloadpage.sh
-```
-
-The script installs the markdown prerequisite, regenerates the GH-page and download page, asks whether to replace/update the GitHub release page for the latest version, and offers to commit/push the static-site changes.
+If download-page text, links, or signer fingerprints need to change, update the React components in `specter-website` (for example `client/src/pages/downloads.tsx` and `client/src/components/downloads/`).
 
 ## Troubleshooting
 
