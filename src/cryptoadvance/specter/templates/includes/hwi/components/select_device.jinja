@@ -44,6 +44,14 @@
         }
         hidePageOverlay();
 
+        if(
+            selectedDevice.type == 'coldcard' &&
+            coldcardUsb == 0 &&
+            !(await confirmColdcardUsbNotice())
+        ){
+            return null;
+        }
+
         try{
             passphrase = await unlockDevice(selectedDevice, passphrase);
         }catch(error){
@@ -54,6 +62,12 @@
         showHWIProgress(`{{ _("Processing...") }}`, `{{ _("Keep your") }} ${capitalize(selectedDevice.type)} {{ _("connected") }}.`);
         // Get the device again as it is now unlocked and the fingerprint is available
         let rescanDevices = await enumerate(selectedDevice.type, selectedDevice.path, passphrase);
+        if (rescanDevices == null) {
+            if(overlayIsActive()){
+                hidePageOverlay();
+            }
+            return null;
+        }
         if (rescanDevices.length == 1) {
             selectedDevice = rescanDevices[0]
         }
