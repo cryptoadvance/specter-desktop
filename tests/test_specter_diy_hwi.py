@@ -11,13 +11,15 @@ device, no network required.
 """
 from unittest.mock import MagicMock
 
+from hwilib.common import Chain
+
 from cryptoadvance.specter.devices.hwi.specter_diy import SpecterClient
 
 
 def _client_with_mocked_transport():
     # ":" in the path selects the (non-connecting-on-init) simulator transport
     client = SpecterClient("127.0.0.1:9999")
-    client.chain = "main"
+    client.chain = Chain.MAIN
     client.dev.query = MagicMock(return_value="deadbeef")
     return client
 
