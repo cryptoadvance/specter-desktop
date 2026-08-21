@@ -94,6 +94,10 @@
         if(coldcardUsb == 1){
             return true;
         }
+        // Avoid overwriting the resolver for a warning that is already visible.
+        if(coldcardNoticeResolver != null){
+            return false;
+        }
         coldcardNoticeAccepted = false;
         return await new Promise((resolve) => {
             coldcardNoticeResolver = resolve;
@@ -104,7 +108,12 @@
     async function enumerate(deviceTypes=null, devicePath=null, passphrase=''){
         // special handling of coldcard: ask before starting detection so the
         // original enumerate/sign action can continue after consent.
-        if (deviceTypes == 'coldcard' && coldcardUsb == 0) {
+        let coldcardOnly = deviceTypes === 'coldcard' || (
+            Array.isArray(deviceTypes) &&
+            deviceTypes.length === 1 &&
+            deviceTypes[0] === 'coldcard'
+        );
+        if (coldcardOnly && coldcardUsb == 0) {
             let acceptedColdcardUsb = await confirmColdcardUsbNotice();
             if(!acceptedColdcardUsb){
                 return null;
