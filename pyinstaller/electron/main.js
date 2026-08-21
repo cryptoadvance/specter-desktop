@@ -12,7 +12,8 @@ const { downloadSpecterd, destroyProgressbar } = require('./src/download.js')
 const { startSpecterd, quitSpecterd } = require('./src/specterd.js')
 const { getFileHash, versionData, isDev, devFolder, isMac } = require('./src/helpers.js')
 const { getAppSettings } = require('./src/config.js')
-const { showError, updatingLoaderMsg, initMainWindow, loadUrl, initTray } = require('./src/uiHelpers.js')
+const { showError, updatingLoaderMsg, updateSpecterdStatus, initMainWindow, loadUrl, initTray } = require('./src/uiHelpers.js')
+const { hashesMatch, missingHashMessage, synchronizeSpecterdSettings } = require('./src/version-data.js')
 
 // Quit again if there is no version-data in dev
 if (isDev && versionData === undefined) {
@@ -136,24 +137,38 @@ app.whenReady().then(() => {
 
   setMainMenu()
 
-  loadUrl(`file://${__dirname}/splash.html`)
+  loadUrl(`file://${__dirname}/src/splash.html`)
 
   if (!fs.existsSync(specterdDirPath)) {
     logger.info('Creating specterd-binaries folder:' + specterdDirPath)
     fs.mkdirSync(specterdDirPath, { recursive: true })
   }
 
-  if (!appSettings.versionInitialized || appSettings.versionInitialized != versionData.version) {
-    logger.info(`Updating ${appSettingsPath} : ${JSON.stringify(appSettings)}`)
-    appSettings.specterdVersion = versionData.version
-    appSettings.specterdHash = versionData.sha256[process.arch]
-    appSettings.versionInitialized = versionData.version
+  const settingsUpdate = synchronizeSpecterdSettings(appSettings, versionData, process.arch)
+  if (!settingsUpdate.hash) {
+    const errorMessage = missingHashMessage(versionData, process.arch)
+    logger.error(errorMessage)
+    updatingLoaderMsg(errorMessage)
+    updateSpecterdStatus('Failed to validate this release...')
+    return
+  }
+
+  if (settingsUpdate.changed) {
+    // Only log the fields we just touched: appSettings also carries
+    // basicAuthPass, which must not end up in the log file.
+    logger.info(
+      `Updating ${appSettingsPath} : ${JSON.stringify({
+        specterdVersion: appSettings.specterdVersion,
+        specterdHash: appSettings.specterdHash,
+        versionInitialized: appSettings.versionInitialized,
+      })}`
+    )
     fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings))
   }
   const specterdPath = specterdDirPath + '/' + appNameLower + 'd'
   if (fs.existsSync(specterdPath + (platformName == 'win64' ? '.exe' : ''))) {
     getFileHash(specterdPath + (platformName == 'win64' ? '.exe' : ''), function (specterdHash) {
-      if (appSettings.specterdHash.toLowerCase() == specterdHash || appSettings.specterdHash == '') {
+      if (hashesMatch(appSettings.specterdHash, specterdHash)) {
         startSpecterd(specterdPath)
       } else if (appSettings.specterdVersion != '') {
         updatingLoaderMsg('Specterd version could not be validated. Trying again to download the Specter binary ...')

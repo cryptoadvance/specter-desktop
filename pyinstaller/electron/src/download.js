@@ -3,12 +3,13 @@ const fs = require('fs')
 const { app, Menu } = require('electron')
 const extract = require('extract-zip')
 const { getDownloadLocation } = require('../downloadloc.js')
-const { appName, appSettings, platformName, appNameLower, versionDataPath } = require('./config.js')
+const { appName, appSettings, platformName, appNameLower, versionData, versionDataPath } = require('./config.js')
 const { isMac, getFileHash } = require('./helpers.js')
 const { logger } = require('./logging.js')
 const ProgressBar = require('electron-progressbar')
 const { updateSpecterdStatus, updatingLoaderMsg, createProgressBar } = require('./uiHelpers.js')
 const { startSpecterd } = require('./specterd.js')
+const { hashesMatch, isValidSha256, missingHashMessage } = require('./version-data.js')
 
 let progressBar
 
@@ -29,14 +30,27 @@ const dockMenuWithforceQuit = Menu.buildFromTemplate([
 ])
 
 function downloadSpecterd(specterdPath) {
+  if (!isValidSha256(appSettings.specterdHash)) {
+    const errorMessage = missingHashMessage({ version: appSettings.specterdVersion }, process.arch)
+    logger.error(errorMessage)
+    updatingLoaderMsg(errorMessage)
+    updateSpecterdStatus('Failed to validate this release...')
+    return
+  }
+
   updatingLoaderMsg(`Starting download`)
   updateSpecterdStatus(`Downloading the ${appName} binary...`)
   // Some logging
   logger.info('Using version ' + appSettings.specterdVersion)
   logger.info('Using platformName ' + platformName)
-  download_location = getDownloadLocation(appSettings.specterdVersion, platformName)
-  logger.info('Downloading from ' + download_location)
-  download(download_location, specterdPath + '.zip', function (errored, errorMsg) {
+  const downloadLocation = getDownloadLocation(
+    appSettings.specterdVersion,
+    platformName,
+    process.arch,
+    versionData.repository
+  )
+  logger.info('Downloading from ' + downloadLocation)
+  download(downloadLocation, specterdPath + '.zip', function (errored, errorMsg) {
     if (errored == true) {
       updatingLoaderMsg(
         errorMsg ||
@@ -67,7 +81,7 @@ function downloadSpecterd(specterdPath) {
       fs.unlinkSync(specterdPath + '.zip')
       fs.rmdirSync(specterdPath + '-dir', { recursive: true })
       getFileHash(specterdPath + (platformName == 'win64' ? '.exe' : ''), function (specterdHash) {
-        if (appSettings.specterdHash.toLowerCase() === specterdHash || appSettings.specterdHash == '') {
+        if (hashesMatch(appSettings.specterdHash, specterdHash)) {
           startSpecterd(specterdPath)
         } else {
           updatingLoaderMsg('Specterd version could not be validated.')

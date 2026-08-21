@@ -1,6 +1,7 @@
 const os = require('os')
 const path = require('path')
 const fs = require('fs')
+const { getSpecterdHash } = require('./version-data')
 
 
 const downloadloc = require('../downloadloc');
@@ -44,7 +45,7 @@ function getAppSettings() {
     tor: false,
     proxyURL: "socks5://127.0.0.1:9050",
     specterdVersion: (versionData && versionData.version !== undefined) ? versionData.version : 'unknown',
-    specterdHash: (versionData && versionData.sha256 !== undefined) ? versionData.sha256[process.arch] : 'unknown',
+    specterdHash: getSpecterdHash(versionData, process.arch),
     specterdCLIArgs: "",
     versionInitialized: false
   }

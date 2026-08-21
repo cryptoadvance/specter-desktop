@@ -172,14 +172,14 @@ jobs:
     strategy:
       matrix:
         include:
-          # x64 builds require a paid macOS runner (macos-13 retired, macos-15-large is paid)
-          # Uncomment when org has paid plan:
-          # - runner: macos-15-large
-          #   arch: x64
-          #   arch_label: osx_x64
+          - runner: macos-15-intel
+            arch: x64
+            arch_label: osx_x64
+            file_arch: x86_64
           - runner: macos-14      # Apple Silicon (free tier)
             arch: arm64
             arch_label: osx_arm64
+            file_arch: arm64
     steps:
       - uses: actions/checkout@v4
         with:
@@ -216,6 +216,13 @@ jobs:
           cd pyinstaller
           pyinstaller specterd.spec
           cd ..
+
+      - name: Smoke test native specterd
+        run: |
+          FILE_OUTPUT=$(file pyinstaller/dist/specterd)
+          echo "$FILE_OUTPUT"
+          echo "$FILE_OUTPUT" | grep -q '${{ matrix.file_arch }}'
+          "pyinstaller/dist/specterd" --help
 
       - name: Package release
         run: |
@@ -441,6 +448,12 @@ jobs:
           name: specterd-macos-arm64
           path: ./release-artifacts
 
+      - name: Download specterd macOS x64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: specterd-macos-x64
+          path: ./release-artifacts
+
       - name: Cache Electron binaries
         uses: actions/cache@v4
         with:
@@ -482,13 +495,27 @@ jobs:
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
           source .buildenv/bin/activate
-          mkdir -p pyinstaller/dist
+          mkdir -p pyinstaller/dist/arm64 pyinstaller/dist/x64
           cd release-artifacts
-          unzip specterd-${VERSION}-osx_arm64.zip -d ../pyinstaller/dist/
+          unzip "specterd-${VERSION}-osx_arm64.zip" -d ../pyinstaller/dist/arm64
+          unzip "specterd-${VERSION}-osx_x64.zip" -d ../pyinstaller/dist/x64
           cd ..
           cd pyinstaller/electron
           npm ci
-          node ./set-version $VERSION ../dist/specterd
+          node ./set-version.js "$VERSION" ../dist/arm64/specterd arm64 "$GITHUB_REPOSITORY"
+          node ./set-version.js "$VERSION" ../dist/x64/specterd x64 "$GITHUB_REPOSITORY"
+          node -e "
+            const crypto = require('crypto');
+            const fs = require('fs');
+            const { isValidSha256 } = require('./src/version-data');
+            const data = require('./version-data.json');
+            for (const arch of ['arm64', 'x64']) {
+              if (!isValidSha256(data.sha256[arch])) throw new Error('Missing valid ' + arch + ' specterd hash');
+              const binary = fs.readFileSync('../dist/' + arch + '/specterd');
+              const actual = crypto.createHash('sha256').update(binary).digest('hex');
+              if (data.sha256[arch] !== actual) throw new Error('Incorrect ' + arch + ' specterd hash');
+            }
+          "
           cd ../..
 
       - name: Patch electron-builder config for CI
@@ -533,17 +560,44 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
+      - name: Smoke test universal Electron package
+        run: |
+          APP_PATH=pyinstaller/electron/dist/mac-universal/Specter.app
+          ELECTRON_BINARY="$APP_PATH/Contents/MacOS/Specter"
+          ASAR_PATH="$APP_PATH/Contents/Resources/app.asar"
+
+          ARCHS=$(lipo -archs "$ELECTRON_BINARY")
+          echo "Electron architectures: $ARCHS"
+          echo "$ARCHS" | grep -qw x86_64
+          echo "$ARCHS" | grep -qw arm64
+
+          ASAR_CONTENTS=$(pyinstaller/electron/node_modules/.bin/asar list "$ASAR_PATH")
+          echo "$ASAR_CONTENTS" | grep -qx '/src/splash.html'
+          echo "$ASAR_CONTENTS" | grep -qx '/version-data.json'
+          node -e "
+            const asar = require('./pyinstaller/electron/node_modules/@electron/asar');
+            const crypto = require('crypto');
+            const fs = require('fs');
+            const data = JSON.parse(asar.extractFile(process.argv[1], 'version-data.json').toString());
+            if (data.repository !== process.env.GITHUB_REPOSITORY) throw new Error('Incorrect packaged repository');
+            for (const arch of ['arm64', 'x64']) {
+              const binary = fs.readFileSync('pyinstaller/dist/' + arch + '/specterd');
+              const expected = crypto.createHash('sha256').update(binary).digest('hex');
+              if (data.sha256[arch] !== expected) throw new Error('Incorrect packaged ' + arch + ' specterd hash');
+            }
+          " "$ASAR_PATH"
+
       - name: Package release
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
           mkdir -p release
-          cp pyinstaller/electron/dist/Specter-*.dmg release/Specter-${VERSION}.dmg 2>/dev/null || true
-          # Fallback: if no DMG, package the .app
-          if [ ! -f release/Specter-${VERSION}.dmg ]; then
-            cd pyinstaller/electron/dist/mac-universal
-            zip -r ../../../../release/Specter-${VERSION}-macos.zip Specter.app
-            cd ../../../..
+          DMG_FILES=(pyinstaller/electron/dist/Specter-*.dmg)
+          if [ "${#DMG_FILES[@]}" -ne 1 ] || [ ! -f "${DMG_FILES[0]}" ]; then
+            echo "Expected exactly one universal DMG, found: ${DMG_FILES[*]}"
+            exit 1
           fi
+          cp "${DMG_FILES[0]}" "release/Specter-${VERSION}.dmg"
+          test -s "release/Specter-${VERSION}.dmg"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -587,9 +641,23 @@ jobs:
           find artifacts/pip-package -type f -name "cryptoadvance_specter-*.tar.gz" \
             -exec cp {} release-files/ \; 2>/dev/null || true
 
+          # A universal macOS release is incomplete without both native daemons
+          # and the DMG that carries their hashes.
+          for REQUIRED in \
+            "specterd-${VERSION}-osx_x64.zip" \
+            "specterd-${VERSION}-osx_arm64.zip" \
+            "Specter-${VERSION}.dmg"; do
+            if [ ! -s "release-files/${REQUIRED}" ]; then
+              echo "Missing required macOS release artifact: ${REQUIRED}"
+              exit 1
+            fi
+          done
+
           # Generate SHA256SUMS
           cd release-files
-          sha256sum * > SHA256SUMS
+          # Keep the published entries bare (no "./" prefix) so SHA256SUMS
+          # stays byte-compatible with previous releases.
+          sha256sum -- * > SHA256SUMS
           echo "=== SHA256SUMS ==="
           cat SHA256SUMS
           cd ..
@@ -619,7 +687,7 @@ jobs:
       - name: Generate release body
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
-          DL="https://github.com/cryptoadvance/specter-desktop/releases/download/${VERSION}"
+          DL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${VERSION}"
 
           cat > release-body.md << EOF
           *Please create a full backup* before migrating or any major internal changes like switching to an electrum based installation. You can easily create a backup in Settings --> Backup Specter (zip file).
@@ -647,7 +715,7 @@ jobs:
           ## specterd
 
           Specterd is a command-line program that runs only the Specter server, behaving like a traditional web application.
-          Supported platforms: [Windows](${DL}/specterd-${VERSION}-win64.zip), [MacOS](${DL}/specterd-${VERSION}-osx_arm64.zip), [Linux (x86_64)](${DL}/specterd-${VERSION}-x86_64-linux-gnu.zip)
+          Supported platforms: [Windows](${DL}/specterd-${VERSION}-win64.zip), [macOS (Apple Silicon)](${DL}/specterd-${VERSION}-osx_arm64.zip), [macOS (Intel)](${DL}/specterd-${VERSION}-osx_x64.zip), [Linux (x86_64)](${DL}/specterd-${VERSION}-x86_64-linux-gnu.zip)
 
           ## PyPi Packages
 
@@ -700,6 +768,7 @@ jobs:
           files: release-files/*
           body_path: release-body.md
           draft: true  # Draft first, review before publishing
+          prerelease: ${{ contains(github.ref_name, '-pre') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
