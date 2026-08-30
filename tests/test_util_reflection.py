@@ -77,6 +77,10 @@ def test_get_classlist_from_importlist(caplog):
     assert BitBox02 in classlist
 
 
+def test_bitbox02_supports_taproot():
+    assert BitBox02.taproot_support is True
+
+
 def test_get_classlist_skips_missing_module(caplog):
     """Missing modules should be skipped with a warning when skip_missing=True.
     Regression test for #2496."""
