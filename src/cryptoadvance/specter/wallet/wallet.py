@@ -25,7 +25,12 @@ from cryptoadvance.specter.rpc import RpcError
 from ..device import Device
 from ..helpers import get_address_from_dict
 from ..key import Key
-from ..persistence import delete_file, delete_folder, write_json_file
+from ..persistence import (
+    delete_file,
+    delete_folder,
+    storage_callback,
+    write_json_file_without_callback,
+)
 from ..specter_error import SpecterError, handle_exception
 from ..util.descriptor import convert_receive_descriptor_to_combined_descriptor
 from ..util.merkleblock import is_valid_merkle_proof
@@ -36,9 +41,21 @@ from .tx_fetcher import TxFetcher
 from .txlist import TxItem, TxList, WalletAwareTxItem
 from .abstract_wallet import AbstractWallet
 from .addresslist import AddressList, Address
+from .bip329 import (
+    BIP329_TYPES,
+    BIP329ImportResult,
+    normalize_outpoint,
+    parse_bip329_jsonl,
+    serialize_bip329_records,
+)
 
 logger = logging.getLogger(__name__)
 LISTTRANSACTIONS_BATCH_SIZE = 1000
+
+
+class FrozenStateConflictError(SpecterError):
+    """The requested frozen state would interfere with another lock owner."""
+
 
 purposes = OrderedDict(
     {
@@ -112,6 +129,10 @@ class Wallet(AbstractWallet):
         :param int change_index: the current index for self.change_address
 
         """
+        # Bitcoin Core exposes one owner-less lock set for both frozen coins and
+        # pending PSBT inputs. Serialize every mutation of either kind so their
+        # ownership markers cannot race each other.
+        self._utxo_state_lock = threading.RLock()
         self.name = name
         self.alias = alias
         self.description = description
@@ -451,32 +472,98 @@ class Wallet(AbstractWallet):
         """
         TxFetcher.fetch_transactions(self)
 
-    def import_address_labels(self, address_labels):
+    def import_address_labels(self, address_labels, return_report=False):
         """
         Imports address_labels given in the formats:
             - Specter JSON
             - Electrum JSON
             - Specter CSV
+            - BIP-329 JSON Lines
         Returns the number of imported address labels
         """
         if not address_labels:
             logger.warning(f"No argument was passed.")
             raise SpecterError("Looks like you didn't input any data. Try again!")
+
         try:
+            bip329_records, bip329_result = parse_bip329_jsonl(address_labels)
+        except ValueError as e:
+            raise SpecterError(str(e)) from e
+        if bip329_records is not None:
+            result = self.import_bip329_labels(bip329_records, bip329_result)
+            return result if return_report else result.imported_address_labels
+
+        try:
+            raw_dictionary = json.loads(address_labels)
+        except ValueError:  # If json.loads is not possible, try Specter CSV.
+            logger.debug("In the Specter CSV part.")
+            labeled_addresses = {}
+            try:
+                f = StringIO(
+                    address_labels
+                )  # Drag & drop / pasting of CSV results in one giant string
+                dialect = csv.Sniffer().sniff(
+                    address_labels
+                )  # Delimiter is not always the same
+                reader = csv.DictReader(f, delimiter=dialect.delimiter)
+                if reader.fieldnames is None:
+                    raise Error("CSV header is missing")
+                reader.fieldnames = [name.lower() for name in reader.fieldnames]
+                if not {"address", "label"}.issubset(reader.fieldnames):
+                    raise Error("CSV must contain Address and Label columns")
+                for row in reader:
+                    address = row.get("address")
+                    label = row.get("label")
+                    if not isinstance(address, str) or not isinstance(label, str):
+                        continue
+                    if not label.startswith(
+                        "Address #"
+                    ):  # Avoids importing addresses with standard "Address #X" description
+                        labeled_addresses[address] = label
+                logger.info(
+                    "Parsed %d address labels from Specter CSV",
+                    len(labeled_addresses),
+                )
+            except (Error, KeyError, TypeError, AttributeError) as e:
+                raise SpecterError(
+                    f"Labels import failed. Check the import info box for the expected formats. Error: {e}"
+                )
+        else:
+            if not isinstance(raw_dictionary, dict):
+                raise SpecterError("Labels import failed: expected a JSON object.")
             # Specter JSON
-            if "alias" in json.loads(
-                address_labels
-            ):  # Key that is only present in Specter JSON
+            if "alias" in raw_dictionary:  # Key that is only present in Specter JSON
                 logger.debug("In the Specter JSON part.")
-                raw_dictionary = json.loads(address_labels)
+                labels = raw_dictionary.get("labels")
+                if not isinstance(labels, dict):
+                    raise SpecterError(
+                        "Labels import failed: Specter JSON labels must be an object."
+                    )
                 labeled_addresses = {}
-                for label, address in raw_dictionary["labels"].items():
-                    labeled_addresses[address[0]] = label
-                logger.info(f"Specter JSON was converted to {labeled_addresses}.")
+                for label, addresses in labels.items():
+                    if (
+                        isinstance(label, str)
+                        and isinstance(addresses, list)
+                        and addresses
+                        and isinstance(addresses[0], str)
+                    ):
+                        # Preserve the legacy importer's first-address behavior.
+                        labeled_addresses[addresses[0]] = label
+                logger.info(
+                    "Parsed %d address labels from Specter JSON",
+                    len(labeled_addresses),
+                )
             # Electrum JSON
             else:
                 logger.debug("In the Electrum JSON part.")
-                labeled_addresses = json.loads(address_labels)
+                if not all(
+                    isinstance(ref, str) and isinstance(label, str)
+                    for ref, label in raw_dictionary.items()
+                ):
+                    raise SpecterError(
+                        "Labels import failed: Electrum labels must map strings to strings."
+                    )
+                labeled_addresses = raw_dictionary
                 # write tx_label to address_label in labels
                 for txitem in self._transactions.values():
                     if txitem["txid"] not in labeled_addresses:
@@ -492,30 +579,9 @@ class Wallet(AbstractWallet):
                         labeled_addresses[one_address] = labeled_addresses[
                             txitem["txid"]
                         ]
-                logger.info(f"Electrum JSON was converted to {labeled_addresses}.")
-        # Specter CSV
-        except ValueError:  # If json.loads is not possible it throws a ValueError
-            logger.debug("In the Specter CSV part.")
-            labeled_addresses = {}
-            logger.debug(address_labels)
-            try:
-                f = StringIO(
-                    address_labels
-                )  # Drag & drop / pasting of CSV results in one giant string
-                dialect = csv.Sniffer().sniff(
-                    address_labels
-                )  # Delimiter is not always the same
-                reader = csv.DictReader(f, delimiter=dialect.delimiter)
-                reader.fieldnames = [name.lower() for name in reader.fieldnames]
-                for row in reader:
-                    if not row["label"].startswith(
-                        "Address #"
-                    ):  # Avoids importing addresses with standard "Address #X" description
-                        labeled_addresses[row["address"]] = row["label"]
-                logger.info(f"Specter label CSV was converted to {labeled_addresses}.")
-            except (Error, KeyError) as e:
-                raise SpecterError(
-                    f"Labels import failed. Check the import info box for the expected formats. Error: {e}"
+                logger.info(
+                    "Parsed %d address labels from Electrum JSON",
+                    len(labeled_addresses),
                 )
         # Convert labeled_addresses to arr (for AddressList.set_labels)
         arr = [
@@ -523,9 +589,150 @@ class Wallet(AbstractWallet):
             for address, label in labeled_addresses.items()
             if address in self._addresses
         ]
-        logger.info(f"Array for set_labels is: {arr}")
+        logger.info("Applying %d address labels", len(arr))
         self._addresses.set_labels(arr)
+        if return_report:
+            return BIP329ImportResult(imported_address_labels=len(arr), is_bip329=False)
         return len(arr)
+
+    def import_bip329_labels(self, records, result=None):
+        """Apply representable BIP-329 metadata to the existing wallet model.
+
+        Address records map directly to Specter's address labels. Output labels
+        are reported but not collapsed into address labels because Specter
+        cannot represent their historical, per-output semantics losslessly.
+        Output ``spendable`` state maps to the existing frozen UTXO list, except
+        for inputs reserved by pending PSBTs or a Core lock without a matching
+        persisted Specter freeze marker.
+        """
+
+        if isinstance(records, str):
+            try:
+                records, result = parse_bip329_jsonl(records)
+            except ValueError as e:
+                raise SpecterError(str(e)) from e
+            if records is None:
+                raise SpecterError("The supplied data is not BIP-329 JSON Lines.")
+        result = result or BIP329ImportResult()
+
+        if any(record.get("type") == "output" for record in records):
+            # Spendable state and outpoint ownership must never be decided from
+            # the lazy full_utxo cache.
+            self.check_utxo()
+
+        known_utxos = {}
+        for utxo in self.full_utxo:
+            txid = utxo.get("txid")
+            vout = utxo.get("vout")
+            if not isinstance(txid, str) or not isinstance(vout, int):
+                continue
+            outpoint = normalize_outpoint(f"{txid}:{vout}")
+            if outpoint is None:
+                continue
+            known_utxos[outpoint] = utxo
+
+        addr_labels = {}
+        spendable_values = {}
+
+        for record in records:
+            record_type = record["type"]
+            ref = record["ref"]
+            if record_type not in BIP329_TYPES:
+                # BIP-329 explicitly requires unknown future types to be ignored.
+                result.ignored_records += 1
+                continue
+            if record_type == "addr":
+                if ref not in self._addresses:
+                    result.ignored_records += 1
+                    continue
+                label = record.get("label")
+                if label is None or (isinstance(label, str) and not label.strip()):
+                    result.ignored_records += 1
+                    continue
+                if not isinstance(label, str):
+                    result.malformed_records += 1
+                    continue
+                if "spendable" in record or (
+                    "origin" in record and not isinstance(record["origin"], str)
+                ):
+                    result.malformed_records += 1
+                    continue
+                addr_labels.setdefault(ref, []).append(label)
+                continue
+            if record_type != "output":
+                result.ignored_records += 1
+                continue
+
+            outpoint = normalize_outpoint(ref)
+            if outpoint is None:
+                result.malformed_records += 1
+                continue
+            if outpoint not in known_utxos:
+                result.ignored_records += 1
+                continue
+
+            label = record.get("label")
+            spendable = record.get("spendable")
+            if (
+                (label is not None and not isinstance(label, str))
+                or ("spendable" in record and not isinstance(spendable, bool))
+                or ("origin" in record and not isinstance(record["origin"], str))
+            ):
+                # Treat a malformed record atomically: a valid spendable field
+                # must not be applied when another supported field is invalid.
+                result.malformed_records += 1
+                continue
+
+            if isinstance(label, str) and label.strip():
+                result.unsupported_output_labels += 1
+            if isinstance(spendable, bool):
+                spendable_values.setdefault(outpoint, []).append(spendable)
+            elif not (isinstance(label, str) and label.strip()):
+                result.ignored_records += 1
+
+        planned_labels = {}
+        for address, labels in addr_labels.items():
+            if len(set(labels)) == 1:
+                planned_labels[address] = labels[0]
+            else:
+                result.conflicting_records += len(labels)
+
+        labels_to_apply = []
+        for address, label in sorted(planned_labels.items()):
+            if self._addresses[address].get("label") == label:
+                result.ignored_records += len(addr_labels[address])
+                continue
+            labels_to_apply.append({"address": address, "label": label})
+        if labels_to_apply:
+            self._addresses.set_labels(labels_to_apply)
+        result.imported_address_labels = len(labels_to_apply)
+
+        for outpoint, values in sorted(spendable_values.items()):
+            if len(set(values)) != 1:
+                result.conflicting_records += len(values)
+                continue
+            try:
+                updated = self.set_frozen_state(outpoint, not values[0])
+            except FrozenStateConflictError:
+                result.conflicting_records += len(values)
+            except SpecterError:
+                result.failed_records += len(values)
+            else:
+                result.updated_frozen_utxos += int(updated)
+
+        logger.info(
+            "Applied BIP-329 import: %d address labels, %d frozen-state updates, "
+            "%d ignored, %d unsupported output labels, %d malformed, "
+            "%d conflicting, %d failed records",
+            result.imported_address_labels,
+            result.updated_frozen_utxos,
+            result.ignored_records,
+            result.unsupported_output_labels,
+            result.malformed_records,
+            result.conflicting_records,
+            result.failed_records,
+        )
+        return result
 
     def update(self):
         self.getdata()
@@ -647,6 +854,12 @@ class Wallet(AbstractWallet):
         self.info = self.rpc.getwalletinfo()
         return self.info
 
+    def _get_locked_utxo_address_amount(self, tx_from_core, vout):
+        """Read the actual outpoint; accounting details can describe another output."""
+        parsed_transaction = self.TxCls.from_string(tx_from_core["hex"])
+        out = parsed_transaction.vout[vout]
+        return round(out.value * 1e-8, 8), out.script_pubkey.address(self.network)
+
     def check_utxo(self):
         """fetches the utxo-set from core and stores the result in self.__full_utxo which is
         a List[WalletAwareTxItem] enriched with utxo specific data:
@@ -654,6 +867,11 @@ class Wallet(AbstractWallet):
         * item["vout"] to enable its use in coinselection
         * item["amount"] is the amount of the utxo
         """
+        with self._utxo_state_lock:
+            self._check_utxo_locked()
+
+    def _check_utxo_locked(self):
+        """Refresh the UTXO cache while holding the wallet's UTXO-state lock."""
         _full_utxo = []
         try:
             # listunspent only lists not locked utxos
@@ -753,26 +971,10 @@ class Wallet(AbstractWallet):
                     # In the case of locked outputs, the listlockunspent call does not contain reasonable UTXO data,
                     # so we need to get the data from the original transaction.
                     tx_from_core = self.rpc.gettransaction(tx_copy["txid"])
-                    searched_vout = next(
-                        (
-                            _tx
-                            for _tx in tx_from_core["details"]
-                            if _tx["vout"] == utxo_vout
-                        ),
-                        None,
-                    )
-
-                    if searched_vout:
-                        tx_copy["amount"] = searched_vout["amount"]
-                        tx_copy["address"] = searched_vout["address"]
-                    else:
-                        # Sometimes gettransaction doesn't include all outputs (for example it does not include change outputs).
-                        # In this case, we get the raw transaction and decode it using embit to get the additional data we need.
-                        raw_transaction_hex = tx_from_core["hex"]
-                        parsed_transaction = self.TxCls.from_string(raw_transaction_hex)
-                        out = parsed_transaction.vout[utxo_vout]
-                        tx_copy["amount"] = round(out.value * 1e-8, 8)
-                        tx_copy["address"] = out.script_pubkey.address(self.network)
+                    (
+                        tx_copy["amount"],
+                        tx_copy["address"],
+                    ) = self._get_locked_utxo_address_amount(tx_from_core, utxo_vout)
 
                 # Append the copy to the _full_utxo list
                 _full_utxo.append(tx_copy)
@@ -870,12 +1072,23 @@ class Wallet(AbstractWallet):
         return o
 
     def pending_psbts_dict(self):
-        return {
-            psbtid: psbtobj.to_dict() for psbtid, psbtobj in self.pending_psbts.items()
-        }
+        with self._utxo_state_lock:
+            return {
+                psbtid: psbtobj.to_dict()
+                for psbtid, psbtobj in self.pending_psbts.items()
+            }
+
+    def _persist_wallet_file(self):
+        """Write and verify wallet JSON without post-persistence side effects."""
+        # Build the snapshot while holding the same lock as pending-PSBT and
+        # frozen-UTXO mutations. Otherwise an older snapshot could be written
+        # after a newer UTXO-ownership state has already been persisted.
+        with self._utxo_state_lock:
+            write_json_file_without_callback(self.to_json(), self.fullpath)
 
     def save_to_file(self):
-        write_json_file(self.to_json(), self.fullpath)
+        self._persist_wallet_file()
+        storage_callback(path=self.fullpath)
         self.update_balance()
 
     def delete_files(self):
@@ -925,89 +1138,245 @@ class Wallet(AbstractWallet):
         checks if pending psbts try to spent them,
         if so - unlocks other inputs and deletes these psbts.
         """
-        # check if we have pending psbts
-        if len(self.pending_psbts) == 0:
-            return
-        # make sure None didn't get here
-        txs = [tx for tx in txs if tx is not None]
-        # all inputs in transactions
-        inputs = sum([self.TxCls.from_string(hextx).vin for hextx in txs], [])
-        # all unique utxos spent in these transactions
-        utxos = set([(vin.txid, vin.vout) for vin in inputs])
-        # get psbt ids we need to delete
-        psbtids = []
-        for psbtid, psbt in self.pending_psbts.items():
-            psbtutxos = [(inp.txid, inp.vout) for inp in psbt.inputs]
-            for utxo in psbtutxos:
-                if utxo in utxos:
-                    psbtids.append(psbtid)
-                    break
-        if len(psbtids) > 0:
-            for psbtid in psbtids:
-                self.delete_pending_psbt(psbtid, save=False)
-            self.save_to_file()
-
-    def delete_pending_psbt(self, txid, save=True):
-        if txid and txid in self.pending_psbts:
-            try:
-                self.rpc.lockunspent(True, self.pending_psbts[txid].utxo_dict())
-            except RpcError as e:
-                # UTXO was probably spent
-                logger.warning(str(e))
-            del self.pending_psbts[txid]
-            if save:
+        with self._utxo_state_lock:
+            # check if we have pending psbts
+            if len(self.pending_psbts) == 0:
+                return
+            # make sure None didn't get here
+            txs = [tx for tx in txs if tx is not None]
+            # all inputs in transactions
+            inputs = sum([self.TxCls.from_string(hextx).vin for hextx in txs], [])
+            # all unique utxos spent in these transactions
+            utxos = set([(vin.txid, vin.vout) for vin in inputs])
+            # get psbt ids we need to delete
+            psbtids = []
+            for psbtid, psbt in self.pending_psbts.items():
+                psbtutxos = [(inp.txid, inp.vout) for inp in psbt.inputs]
+                for utxo in psbtutxos:
+                    if utxo in utxos:
+                        psbtids.append(psbtid)
+                        break
+            if len(psbtids) > 0:
+                for psbtid in psbtids:
+                    self.delete_pending_psbt(psbtid, save=False)
                 self.save_to_file()
 
-    def toggle_freeze_utxo(self, utxo_list):
-        # utxo = ["txid:vout", "txid:vout"]
-        utxo_list_done = []  # Preventing Duplicates server-side
-        for utxo in utxo_list:
-            if utxo in utxo_list_done:
-                continue
-            if utxo in self.frozen_utxo:
-                try:
-                    self.rpc.lockunspent(
-                        True,
-                        [{"txid": utxo.split(":")[0], "vout": int(utxo.split(":")[1])}],
+    def delete_pending_psbt(self, txid, save=True):
+        with self._utxo_state_lock:
+            if txid and txid in self.pending_psbts:
+                # A Core lock has no owner. Do not unlock an input that remains
+                # protected by a Specter freeze or another pending PSBT.
+                protected_outpoints = {
+                    normalized
+                    for normalized in (
+                        normalize_outpoint(ref) for ref in self.frozen_utxo
                     )
-                except Exception as e:
-                    # UTXO was spent ?!
-                    logger.exception(e)
-                logger.info(f"Unfreeze {utxo}")
-                self.frozen_utxo.remove(utxo)
-            else:
-                try:
-                    self.rpc.lockunspent(
-                        False,
-                        [{"txid": utxo.split(":")[0], "vout": int(utxo.split(":")[1])}],
-                    )
-                except Exception as e:
-                    # UTXO was spent
-                    logger.debug("Failed to lock UTXO %s: %s", utxo, e)
-                logger.info(f"Freeze {utxo}")
-                self.frozen_utxo.append(utxo)
-            utxo_list_done.append(utxo)
+                    if normalized is not None
+                }
+                for other_txid, other_psbt in self.pending_psbts.items():
+                    if other_txid == txid:
+                        continue
+                    for utxo in other_psbt.utxo_dict():
+                        normalized = normalize_outpoint(
+                            f"{utxo.get('txid')}:{utxo.get('vout')}"
+                        )
+                        if normalized is not None:
+                            protected_outpoints.add(normalized)
 
-        self.save_to_file()
+                unlock_utxos = []
+                for utxo in self.pending_psbts[txid].utxo_dict():
+                    normalized = normalize_outpoint(
+                        f"{utxo.get('txid')}:{utxo.get('vout')}"
+                    )
+                    if normalized not in protected_outpoints:
+                        unlock_utxos.append(utxo)
+                if unlock_utxos:
+                    try:
+                        self.rpc.lockunspent(True, unlock_utxos)
+                    except RpcError as e:
+                        # UTXO was probably spent
+                        logger.warning(str(e))
+                del self.pending_psbts[txid]
+                if save:
+                    self.save_to_file()
+
+    def set_frozen_state(self, outpoint, frozen):
+        """Set one UTXO's frozen state without knowingly adopting another lock.
+
+        Bitcoin Core's in-memory lock and Specter's persisted ``frozen_utxo``
+        entry are reconciled idempotently. Specter's local state is changed
+        only after any required ``lockunspent`` operation succeeds.
+
+        Returns ``True`` when either state needed updating and ``False`` when
+        both were already aligned. Raises ``FrozenStateConflictError`` for a
+        pending-PSBT lock or a Core lock without a persisted Specter ownership
+        marker, and ``SpecterError`` for RPC errors.
+        """
+
+        with self._utxo_state_lock:
+            return self._set_frozen_state(outpoint, frozen)
+
+    def _set_frozen_state(self, outpoint, frozen):
+        """Apply one frozen-state transaction while holding the wallet lock."""
+
+        outpoint = normalize_outpoint(outpoint)
+        if outpoint is None or not isinstance(frozen, bool):
+            raise SpecterError("Invalid frozen UTXO state request")
+
+        pending_psbt_outpoints = set()
+        try:
+            for psbt in self.pending_psbts.values():
+                for utxo in psbt.utxo_dict():
+                    pending_outpoint = normalize_outpoint(
+                        f"{utxo.get('txid')}:{utxo.get('vout')}"
+                    )
+                    if pending_outpoint is not None:
+                        pending_psbt_outpoints.add(pending_outpoint)
+        except Exception as e:
+            raise FrozenStateConflictError(
+                "Could not safely determine pending PSBT inputs"
+            ) from e
+
+        if outpoint in pending_psbt_outpoints:
+            raise FrozenStateConflictError(
+                "Cannot change frozen state for a pending PSBT input"
+            )
+
+        try:
+            core_locked = {
+                normalized
+                for normalized in (
+                    normalize_outpoint(f"{utxo.get('txid')}:{utxo.get('vout')}")
+                    for utxo in self.rpc.listlockunspent()
+                )
+                if normalized is not None
+            }
+        except Exception as e:
+            raise SpecterError(
+                "Failed to read frozen UTXO state from Bitcoin Core"
+            ) from e
+
+        local_entries = [
+            ref for ref in self.frozen_utxo if normalize_outpoint(ref) == outpoint
+        ]
+        original_frozen_utxo = list(self.frozen_utxo)
+        locally_frozen = bool(local_entries)
+        locked_in_core = outpoint in core_locked
+        if locked_in_core and not locally_frozen:
+            raise FrozenStateConflictError(
+                "Cannot change a Bitcoin Core lock not owned by Specter"
+            )
+
+        core_changed = False
+        if frozen != locked_in_core:
+            txid, vout = outpoint.split(":")
+            try:
+                success = self.rpc.lockunspent(
+                    not frozen,
+                    [{"txid": txid, "vout": int(vout)}],
+                )
+            except Exception as e:
+                raise SpecterError(
+                    "Failed to update frozen UTXO state in Bitcoin Core"
+                ) from e
+            if success is not True:
+                raise SpecterError("Bitcoin Core did not update the frozen UTXO state")
+            core_changed = True
+
+        local_changed = frozen != locally_frozen
+        if local_changed:
+            if frozen:
+                self.frozen_utxo.append(outpoint)
+            else:
+                self.frozen_utxo = [
+                    ref
+                    for ref in self.frozen_utxo
+                    if normalize_outpoint(ref) != outpoint
+                ]
+            try:
+                self._persist_wallet_file()
+            except Exception as e:
+                # The wallet JSON did not commit. Restore RAM and the previous
+                # persisted snapshot, then compensate any successful Core RPC.
+                self.frozen_utxo = original_frozen_utxo
+                try:
+                    self._persist_wallet_file()
+                except Exception:
+                    logger.critical(
+                        "Failed to roll back persisted frozen UTXO state; "
+                        "manual wallet state verification is required"
+                    )
+                if core_changed:
+                    try:
+                        rollback_succeeded = self.rpc.lockunspent(
+                            not locked_in_core,
+                            [{"txid": txid, "vout": int(vout)}],
+                        )
+                    except Exception:
+                        rollback_succeeded = False
+                    if rollback_succeeded is not True:
+                        logger.critical(
+                            "Failed to roll back Bitcoin Core frozen UTXO state; "
+                            "manual wallet lock verification is required"
+                        )
+                raise SpecterError("Failed to persist frozen UTXO state") from e
+
+            # The wallet state is committed. These post-commit side effects
+            # must not make the import appear to have failed or roll back the
+            # now-consistent Core, RAM, and persisted state.
+            try:
+                storage_callback(path=self.fullpath)
+            except Exception:
+                logger.error(
+                    "Frozen UTXO state was committed, but a post-persistence "
+                    "callback failed"
+                )
+            try:
+                self.update_balance()
+            except Exception:
+                logger.error(
+                    "Frozen UTXO state was committed, but the post-commit "
+                    "balance refresh failed"
+                )
+
+        return core_changed or local_changed
+
+    def toggle_freeze_utxo(self, utxo_list):
+        with self._utxo_state_lock:
+            seen = set()
+            for ref in utxo_list:
+                outpoint = normalize_outpoint(ref)
+                if outpoint is None:
+                    raise SpecterError("Invalid frozen UTXO state request")
+                if outpoint in seen:
+                    continue
+                seen.add(outpoint)
+                locally_frozen = any(
+                    normalize_outpoint(frozen_ref) == outpoint
+                    for frozen_ref in self.frozen_utxo
+                )
+                self.set_frozen_state(outpoint, not locally_frozen)
 
     def update_pending_psbt(self, psbt, txid, raw):
-        if txid not in self.pending_psbts:
-            raise SpecterError("Can't find pending PSBT with this txid")
+        with self._utxo_state_lock:
+            if txid not in self.pending_psbts:
+                raise SpecterError("Can't find pending PSBT with this txid")
 
-        cur_psbt = self.pending_psbts[txid]
-        cur_psbt.update(psbt, raw)
-        self.save_to_file()
-        return cur_psbt.to_dict()
+            cur_psbt = self.pending_psbts[txid]
+            cur_psbt.update(psbt, raw)
+            self.save_to_file()
+            return cur_psbt.to_dict()
 
     def save_pending_psbt(self, psbt):
-        self.pending_psbts[psbt.txid] = psbt
-        try:
-            self.rpc.lockunspent(False, psbt.utxo_dict())
-        except:
-            logger.debug(
-                "Failed to lock UTXO for transaction, might be fine if the transaction is an RBF."
-            )
-        self.save_to_file()
+        with self._utxo_state_lock:
+            self.pending_psbts[psbt.txid] = psbt
+            try:
+                self.rpc.lockunspent(False, psbt.utxo_dict())
+            except:
+                logger.debug(
+                    "Failed to lock UTXO for transaction, might be fine if the transaction is an RBF."
+                )
+            self.save_to_file()
 
     def txlist(
         self,
@@ -1132,6 +1501,56 @@ class Wallet(AbstractWallet):
 
     def export_labels(self):
         return self._addresses.get_labels()
+
+    def export_bip329_labels(self):
+        """Export address labels and current UTXO metadata as BIP-329 JSONL.
+
+        Output labels are derived from raw stored address labels. Display-only
+        fallbacks such as ``Address #4`` and ``Change #8`` are never exported.
+        """
+        with self._utxo_state_lock:
+            return self._export_bip329_labels_locked()
+
+    def _export_bip329_labels_locked(self):
+        """Refresh and serialize one consistent wallet UTXO-state snapshot."""
+        # full_utxo is a lazy cache. Refresh it so the interoperability export
+        # reflects the wallet's current outputs and Core lock state.
+        self.check_utxo()
+
+        records = []
+        for address, address_obj in sorted(self._addresses.items()):
+            label = address_obj.get("label")
+            if label:
+                records.append({"type": "addr", "ref": address, "label": label})
+
+        frozen = {
+            outpoint
+            for outpoint in (normalize_outpoint(ref) for ref in self.frozen_utxo)
+            if outpoint is not None
+        }
+        output_records = []
+        for utxo in self.full_utxo:
+            txid = utxo.get("txid")
+            vout = utxo.get("vout")
+            address = utxo.get("address")
+            if not isinstance(txid, str) or not isinstance(vout, int):
+                continue
+            outpoint = normalize_outpoint(f"{txid}:{vout}")
+            if outpoint is None:
+                continue
+            address_obj = self._addresses.get(address)
+            label = address_obj.get("label") if address_obj is not None else None
+            if not label and outpoint not in frozen:
+                continue
+            record = {"type": "output", "ref": outpoint}
+            if label:
+                record["label"] = label
+            if outpoint in frozen:
+                record["spendable"] = False
+            output_records.append(record)
+
+        records.extend(sorted(output_records, key=lambda item: item["ref"]))
+        return serialize_bip329_records(records)
 
     def import_labels(self, labels):
         # format:
