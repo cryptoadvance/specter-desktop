@@ -113,6 +113,26 @@ def get_rpcconfig(datadir=get_default_datadir()) -> dict:
     return config
 
 
+def get_walletdir(datadir, chain):
+    """Returns the walletdir for the given chain as configured in bitcoin.conf,
+    or None if not set.
+
+    The network-specific section (e.g. [regtest]) takes precedence over the
+    [default] section, matching Bitcoin Core's own config resolution order.
+    When set, walletdir is an absolute path and should be used directly as the
+    wallet base path without joining it with datadir.
+
+    datadir is expanded (~ resolved) before use so callers can pass user-entered
+    paths without manually calling os.path.expanduser first.
+    """
+    datadir = os.path.expanduser(datadir)
+    config = get_rpcconfig(datadir)
+    btc_conf = config.get("bitcoin.conf", {})
+    return btc_conf.get(chain, {}).get("walletdir") or btc_conf.get("default", {}).get(
+        "walletdir"
+    )
+
+
 def _detect_rpc_confs_via_datadir(config=None, datadir=get_default_datadir()):
     """returns the bitcoin.conf configuration for the network
     specified in bitcoin.conf with testnet=1, regtest=1, etc. as

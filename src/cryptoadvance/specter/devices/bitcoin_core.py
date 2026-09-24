@@ -9,7 +9,7 @@ from embit import bip32, bip39, networks
 from ..device import Device
 from ..helpers import create_unique_id
 from ..key import Key
-from ..rpc import get_default_datadir
+from ..rpc import get_default_datadir, get_walletdir
 from ..specter_error import SpecterError
 from ..util.base58 import decode_base58, encode_base58_checksum
 from ..util.descriptor import AddChecksum
@@ -258,16 +258,24 @@ class BitcoinCore(Device):
             wallet_manager.rpc.unloadwallet(wallet_rpc_path)
             # Try deleting wallet file
             if bitcoin_datadir:
-                if chain != "main":
-                    bitcoin_datadir = os.path.join(bitcoin_datadir, chain)
-                candidates = [
-                    os.path.join(bitcoin_datadir, wallet_rpc_path),
-                    os.path.join(bitcoin_datadir, "wallets", wallet_rpc_path),
-                ]
-                for path in candidates:
+                bitcoin_datadir = os.path.expanduser(bitcoin_datadir)
+                # Check walletdir in bitcoin.conf; network-specific section takes precedence over default
+                walletdir = get_walletdir(bitcoin_datadir, chain)
+                if walletdir:
+                    path = os.path.join(walletdir, wallet_rpc_path)
                     if os.path.exists(path):
                         shutil.rmtree(path)
-                        break
+                else:
+                    if chain != "main":
+                        bitcoin_datadir = os.path.join(bitcoin_datadir, chain)
+                    candidates = [
+                        os.path.join(bitcoin_datadir, wallet_rpc_path),
+                        os.path.join(bitcoin_datadir, "wallets", wallet_rpc_path),
+                    ]
+                    for path in candidates:
+                        if os.path.exists(path):
+                            shutil.rmtree(path)
+                            break
         except:
             pass  # We tried...
 
