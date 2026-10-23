@@ -1,4 +1,4 @@
-certifi==2024.7.4
+certifi==2026.10.19
 Click==8.1.7
 Flask==2.2.5
 # Flask 2.2.x test_client uses werkzeug.__version__, removed in Werkzeug 3.1.
