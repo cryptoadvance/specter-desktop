@@ -232,6 +232,8 @@ def der_to_bytes(derivation):
         if item[-1] == "h" or item[-1] == "'":
             index += 0x80000000
             item = item[:-1]
+        if not item.isdigit():
+            raise ValueError(f"Invalid derivation index: {item}")
         index += int(item)
         res += index.to_bytes(4, "little")
     return res
