@@ -58,6 +58,23 @@
         if(error.message !== undefined){
             error = error.message;
         }
+        if(typeof error === 'string'){
+            if(error.indexOf('This Specter-DIY is currently set to') !== -1){
+                // our own whitelist-built sentence; the JSON-RPC layer
+                // wraps every -32000 error as "Internal error: <msg>." so
+                // it reads like a crash and gets a doubled period. Left
+                // untouched for every other device/error.
+                error = error.replace(/^Internal error:\s*/, '').replace(/\.\.$/, '.');
+            }
+            // An HWI error string can carry text straight from a connected
+            // device (the firmware echoes "error: <...>" through, and HWI
+            // does the same for other wallets). showError() renders via
+            // innerHTML, so escape it here - this is the one place
+            // untrusted device text enters the notification system.
+            error = error.replace(/[&<>"']/g, function(c){
+                return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+            });
+        }
         showError(error, 10000);
         if(overlayIsActive()){
             hidePageOverlay();
@@ -65,21 +82,67 @@
     }
 
     var coldcardUsb = 0;
+    var coldcardNoticeAccepted = false;
+    var coldcardNoticeResolver = null;
+
+    function resolveColdcardNotice(accepted){
+        if(coldcardNoticeResolver){
+            let resolver = coldcardNoticeResolver;
+            coldcardNoticeResolver = null;
+            resolver(accepted);
+        }
+    }
+
     function coldCardNotice(){
         coldcardUsb = 1;
-        cancelOverlay();
+        coldcardNoticeAccepted = true;
+        hidePageOverlay();
+        resolveColdcardNotice(true);
     }
 
     function goToCoinkite(){
         parent.open("https://blog.coinkite.com/address-explorer/");
-        cancelOverlay();
+        coldcardNoticeAccepted = false;
+        hidePageOverlay();
+        resolveColdcardNotice(false);
+    }
+
+    async function confirmColdcardUsbNotice(){
+        if(coldcardUsb == 1){
+            return true;
+        }
+        // If the warning is already visible, chain onto the existing resolver so
+        // multiple callers can await the same user decision.
+        if(coldcardNoticeResolver != null){
+            return await new Promise((resolve) => {
+                const previousResolver = coldcardNoticeResolver;
+                coldcardNoticeResolver = (accepted) => {
+                    previousResolver(accepted);
+                    resolve(accepted);
+                };
+            });
+        }
+        coldcardNoticeAccepted = false;
+        return await new Promise((resolve) => {
+            coldcardNoticeResolver = resolve;
+            showPageOverlay('coldcard_warning');
+        });
     }
 
     async function enumerate(deviceTypes=null, devicePath=null, passphrase=''){
-        // special handling of coldcard 
-        if (deviceTypes == 'coldcard' && coldcardUsb == 0) {
-             document.getElementById("page_overlay_popup_content").appendChild(document.getElementById("coldcard_warning"));
-                }
+        // special handling of coldcard: ask before starting detection so the
+        // original enumerate/sign action can continue after consent.
+        let coldcardOnly = deviceTypes === 'coldcard' || (
+            Array.isArray(deviceTypes) &&
+            deviceTypes.length === 1 &&
+            deviceTypes[0] === 'coldcard'
+        );
+        if (coldcardOnly && coldcardUsb == 0) {
+            let acceptedColdcardUsb = await confirmColdcardUsbNotice();
+            if(!acceptedColdcardUsb){
+                return null;
+            }
+        }
         // detect device
         if (devicePath == null) {
             if (deviceTypes == 'ledger') {
@@ -203,6 +266,41 @@
         return result;
     }
 
+    async function beginXpubAuthorization(device, paths, passphrase="", chain=""){
+        // Ask the device to authorize a whole set of xpub paths (same
+        // network) with a single confirmation, instead of one per
+        // subsequent getXpub() call.
+        //
+        // Returns false when the device/firmware doesn't support this or
+        // rejected the scope (wrong network) - the RPC resolves to false
+        // without throwing, and the caller should fall back to individual
+        // getXpub() calls. Anything that *throws* here is a real failure
+        // or an explicit on-device Cancel: the toast is shown and the
+        // error re-raised so the caller aborts the whole operation
+        // instead of silently continuing with per-key prompts.
+        showHWIProgress(`{{ _("Requesting access to public keys...") }}`,
+            `{{ _("It may take a while.") }}<br><br>{{ _("Keep your") }} ${capitalize(device.type)} {{ _("connected") }}.`);
+        let authorized = false;
+        try {
+            authorized = await hwi.beginXpubAuthorization(device, paths, passphrase, chain);
+        } catch (error) {
+            handleHWIError(error);
+            throw error;
+        }
+        hidePageOverlay();
+        return authorized;
+    }
+
+    async function endXpubAuthorization(device, passphrase="", chain=""){
+        try {
+            await hwi.endXpubAuthorization(device, passphrase, chain);
+        } catch (error) {
+            // best effort - the authorization also self-expires on the
+            // device, so a failure to explicitly release it isn't fatal
+            console.warn("endXpubAuthorization failed:", error);
+        }
+    }
+
     async function getMasterBlindingKey(device, passphrase="", chain=""){
         // detect device
         showHWIProgress(`{{ _("Extracting master blinding key...") }}`, 
@@ -225,6 +323,8 @@
 
     // TODO: remove, legacy
     function onCancelOverlay(){
-
+        if(coldcardNoticeResolver && !coldcardNoticeAccepted){
+            resolveColdcardNotice(false);
+        }
     }
 </script>
