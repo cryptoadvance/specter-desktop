@@ -8,6 +8,7 @@ from embit import bip32
 from embit.liquid import networks
 from flask import current_app as app
 from hwilib.common import Chain
+from hwilib.errors import ActionCanceledError
 from hwilib.devices.bitbox02 import Bitbox02Client
 from hwilib.devices.bitbox02_lib.util import BitBoxAppNoiseConfig
 from hwilib.devices.trezorlib.transport import get_transport
@@ -75,6 +76,8 @@ class HWIBridge(JSONRPC):
             "send_pin": self.send_pin,
             "extract_xpub": self.extract_xpub,
             "extract_xpubs": self.extract_xpubs,
+            "begin_xpub_authorization": self.begin_xpub_authorization,
+            "end_xpub_authorization": self.end_xpub_authorization,
             "display_address": self.display_address,
             "sign_tx": self.sign_tx,
             "sign_message": self.sign_message,
@@ -267,11 +270,104 @@ class HWIBridge(JSONRPC):
                 if derivation == "m":
                     return "[{}]{}\n".format(master_fpr, xpub)
                 return "[{}/{}]{}\n".format(master_fpr, derivation.split("m/")[1], xpub)
-            except Exception as e:
-                logger.warning(
-                    f"Failed to import Nested Segwit singlesig mainnet key. Error: {e}"
-                )
-                logger.exception(e)
+            except ActionCanceledError:
+                # the user declined the export on the device - a None
+                # return is the caller's "cancelled, stop quietly" signal
+                logger.info("xpub export at %s cancelled on the device", derivation)
+                return None
+            except Exception:
+                # the network-mismatch error and every real failure carry
+                # something the user needs to see - propagate it so the
+                # JSON-RPC error reaches the UI (handleHWIError() escapes
+                # it before rendering) instead of vanishing into a log and
+                # leaving the caller with an ambiguous None
+                raise
+
+    @locked(hwilock)
+    def begin_xpub_authorization(
+        self,
+        paths=None,
+        device_type=None,
+        path=None,
+        fingerprint=None,
+        passphrase="",
+        chain="",
+    ):
+        """
+        Ask the device to authorize a whole set of xpub derivation ``paths``
+        (all on the same network) with a single on-device confirmation,
+        instead of one per subsequent extract_xpub() call. Currently only
+        Specter-DIY supports this.
+
+        Returns True if the device accepted the scope, False if this
+        device/firmware doesn't support it or rejected it (e.g. wrong
+        network) - callers should then just fall back to plain
+        extract_xpub() calls, which work either way. A cancellation on the
+        device propagates as an error, same as any other HWI call.
+
+        Lifecycle note: begin_xpub_authorization / end_xpub_authorization
+        are separate RPCs, and the HWI connection is reopened per call, so
+        between them the authorization lives on the device on its own. It
+        is deliberately narrow - RAM only, bound to the current network,
+        limited to the exact confirmed paths, each consumable once, and
+        dropped by the firmware on lock / re-init / network change. The
+        residual exposure is: if the host process dies mid-batch, the
+        still-unread authorized paths stay authorized until one of those
+        events. Acceptable given the one-shot scope; a fully atomic
+        server-side begin->reads->end (an extract_xpub_batch RPC) and/or a
+        short firmware TTL for unused authorizations would close it and
+        are worth a follow-up. The self-contained _extract_xpubs_from_
+        client() path already wraps begin/end in try/finally within one
+        RPC; only the new_device_keys.jinja "Get via USB" flow spans
+        several.
+        """
+        if not paths:
+            return False
+        # Don't trust the caller (the browser builds this list from DOM
+        # text, including user-entered custom derivations) to hand us
+        # clean BIP32 paths. Parse and re-serialise each one canonically
+        # here, at the RPC boundary, before it's joined into the firmware
+        # scope string - a stray ";" or range expression must not be able
+        # to ride in through a single list entry and widen the scope.
+        ders = [bip32.parse_path(p) for p in paths]
+        norm_paths = [bip32.path_to_str(d) for d in ders]
+        with self._get_client(
+            device_type=device_type,
+            fingerprint=fingerprint,
+            path=path,
+            passphrase=passphrase,
+            chain=chain,
+        ) as client:
+            der = ders[0]
+            client.chain = (
+                Chain.TEST if len(der) > 2 and der[1] == 0x80000001 else Chain.MAIN
+            )
+            begin = getattr(client, "begin_xpub_authorization", None)
+            if begin is None:
+                return False
+            return begin(norm_paths)
+
+    @locked(hwilock)
+    def end_xpub_authorization(
+        self,
+        device_type=None,
+        path=None,
+        fingerprint=None,
+        passphrase="",
+        chain="",
+    ):
+        """Release any xpub authorization left active on the device (best effort)."""
+        with self._get_client(
+            device_type=device_type,
+            fingerprint=fingerprint,
+            path=path,
+            passphrase=passphrase,
+            chain=chain,
+        ) as client:
+            end = getattr(client, "end_xpub_authorization", None)
+            if end is not None:
+                end()
+        return True
 
     @locked(hwilock)
     def display_address(
@@ -480,112 +576,146 @@ class HWIBridge(JSONRPC):
             # See:
             #   https://github.com/satoshilabs/slips/blob/master/slip-0132.md
 
-            # Extract nested Segwit
-            try:
-                xpub = client.get_pubkey_at_path(
-                    "m/49h/0h/{}h".format(account)
-                ).to_string()
-                ypub = convert_xpub_prefix(xpub, b"\x04\x9d\x7c\xb2")
-                xpubs += "[{}/49'/0'/{}']{}\n".format(master_fpr, account, ypub)
-            except Exception as e:
-                logger.warning(
-                    f"Failed to import Nested Segwit singlesig mainnet key. Error {e}"
-                )
-                logger.exception(e)
+            mainnet_paths = [
+                "m/49h/0h/{}h".format(account),
+                "m/84h/0h/{}h".format(account),
+                "m/48h/0h/{}h/1h".format(account),
+                "m/48h/0h/{}h/2h".format(account),
+            ]
+            testnet_paths = [
+                "m/49h/1h/{}h".format(account),
+                "m/84h/1h/{}h".format(account),
+                "m/48h/1h/{}h/1h".format(account),
+                "m/48h/1h/{}h/2h".format(account),
+            ]
+
+            # Some devices (Specter-DIY) ask the user to confirm every single
+            # xpub export on-device. Where the client supports it, authorize
+            # the whole set of standard account paths with one scoped request:
+            # the user confirms once instead of once per key, and - since the
+            # device only authorizes a scope for the network it is currently
+            # on - a rejection tells us the device is on the *other* network,
+            # so we don't ask it (and prompt the user) for keys of a network
+            # it isn't even set to. Clients without this run both groups with
+            # the usual per-request flow, unchanged.
+            begin_auth = getattr(client, "begin_xpub_authorization", None)
+            fetch_mainnet = True
+            fetch_testnet = True
+            scoped = False
+            if begin_auth is not None:
+                client.chain = Chain.MAIN
+                if begin_auth(mainnet_paths):
+                    scoped = True
+                    fetch_testnet = False
+                else:
+                    client.chain = Chain.TEST
+                    if begin_auth(testnet_paths):
+                        scoped = True
+                        fetch_mainnet = False
 
             try:
-                # native Segwit
-                xpub = client.get_pubkey_at_path(
-                    "m/84h/0h/{}h".format(account)
-                ).to_string()
-                zpub = convert_xpub_prefix(xpub, b"\x04\xb2\x47\x46")
-                xpubs += "[{}/84'/0'/{}']{}\n".format(master_fpr, account, zpub)
-            except Exception as e:
-                logger.warning(
-                    f"Failed to import native Segwit singlesig mainnet key: {e}"
-                )
-                logger.exception(e)
+                if fetch_mainnet:
+                    client.chain = Chain.MAIN
+                    # Nested Segwit
+                    try:
+                        xpub = client.get_pubkey_at_path(mainnet_paths[0]).to_string()
+                        ypub = convert_xpub_prefix(xpub, b"\x04\x9d\x7c\xb2")
+                        xpubs += "[{}/49'/0'/{}']{}\n".format(master_fpr, account, ypub)
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to import Nested Segwit singlesig mainnet key. Error {e}"
+                        )
+                        logger.exception(e)
 
-            try:
-                # Multisig nested Segwit
-                xpub = client.get_pubkey_at_path(
-                    "m/48h/0h/{}h/1h".format(account)
-                ).to_string()
-                Ypub = convert_xpub_prefix(xpub, b"\x02\x95\xb4\x3f")
-                xpubs += "[{}/48'/0'/{}'/1']{}\n".format(master_fpr, account, Ypub)
-            except Exception as e:
-                logger.warning(
-                    f"Failed to import Nested Segwit multisig mainnet key: {e}"
-                )
-                logger.exception(e)
+                    try:
+                        # native Segwit
+                        xpub = client.get_pubkey_at_path(mainnet_paths[1]).to_string()
+                        zpub = convert_xpub_prefix(xpub, b"\x04\xb2\x47\x46")
+                        xpubs += "[{}/84'/0'/{}']{}\n".format(master_fpr, account, zpub)
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to import native Segwit singlesig mainnet key: {e}"
+                        )
+                        logger.exception(e)
 
-            try:
-                # Multisig native Segwit
-                xpub = client.get_pubkey_at_path(
-                    "m/48h/0h/{}h/2h".format(account)
-                ).to_string()
-                Zpub = convert_xpub_prefix(xpub, b"\x02\xaa\x7e\xd3")
-                xpubs += "[{}/48'/0'/{}'/2']{}\n".format(master_fpr, account, Zpub)
-            except Exception as e:
-                logger.warning(
-                    f"Failed to import native Segwit multisig mainnet key {e}"
-                )
-                logger.exception(e)
+                    try:
+                        # Multisig nested Segwit
+                        xpub = client.get_pubkey_at_path(mainnet_paths[2]).to_string()
+                        Ypub = convert_xpub_prefix(xpub, b"\x02\x95\xb4\x3f")
+                        xpubs += "[{}/48'/0'/{}'/1']{}\n".format(
+                            master_fpr, account, Ypub
+                        )
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to import Nested Segwit multisig mainnet key: {e}"
+                        )
+                        logger.exception(e)
 
-            # And testnet
-            client.chain = Chain.TEST
+                    try:
+                        # Multisig native Segwit
+                        xpub = client.get_pubkey_at_path(mainnet_paths[3]).to_string()
+                        Zpub = convert_xpub_prefix(xpub, b"\x02\xaa\x7e\xd3")
+                        xpubs += "[{}/48'/0'/{}'/2']{}\n".format(
+                            master_fpr, account, Zpub
+                        )
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to import native Segwit multisig mainnet key {e}"
+                        )
+                        logger.exception(e)
 
-            try:
-                # Testnet nested Segwit
-                xpub = client.get_pubkey_at_path(
-                    "m/49h/1h/{}h".format(account)
-                ).to_string()
-                upub = convert_xpub_prefix(xpub, b"\x04\x4a\x52\x62")
-                xpubs += "[{}/49'/1'/{}']{}\n".format(master_fpr, account, upub)
-            except Exception as e:
-                logger.warning(
-                    f"Failed to import Nested Segwit singlesig testnet key: {e}"
-                )
-                logger.exception(e)
+                if fetch_testnet:
+                    client.chain = Chain.TEST
+                    try:
+                        # Testnet nested Segwit
+                        xpub = client.get_pubkey_at_path(testnet_paths[0]).to_string()
+                        upub = convert_xpub_prefix(xpub, b"\x04\x4a\x52\x62")
+                        xpubs += "[{}/49'/1'/{}']{}\n".format(master_fpr, account, upub)
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to import Nested Segwit singlesig testnet key: {e}"
+                        )
+                        logger.exception(e)
 
-            try:
-                # Testnet native Segwit
-                xpub = client.get_pubkey_at_path(
-                    "m/84h/1h/{}h".format(account)
-                ).to_string()
-                vpub = convert_xpub_prefix(xpub, b"\x04\x5f\x1c\xf6")
-                xpubs += "[{}/84'/1'/{}']{}\n".format(master_fpr, account, vpub)
-            except Exception as e:
-                logger.warning(
-                    f"Failed to import native Segwit singlesig testnet key: {e}"
-                )
-                logger.exception(e)
+                    try:
+                        # Testnet native Segwit
+                        xpub = client.get_pubkey_at_path(testnet_paths[1]).to_string()
+                        vpub = convert_xpub_prefix(xpub, b"\x04\x5f\x1c\xf6")
+                        xpubs += "[{}/84'/1'/{}']{}\n".format(master_fpr, account, vpub)
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to import native Segwit singlesig testnet key: {e}"
+                        )
+                        logger.exception(e)
 
-            try:
-                # Testnet multisig nested Segwit
-                xpub = client.get_pubkey_at_path(
-                    "m/48h/1h/{}h/1h".format(account)
-                ).to_string()
-                Upub = convert_xpub_prefix(xpub, b"\x02\x42\x89\xef")
-                xpubs += "[{}/48'/1'/{}'/1']{}\n".format(master_fpr, account, Upub)
-            except Exception as e:
-                logger.warning(
-                    f"Failed to import Nested Segwit multisigsig testnet key: {e}"
-                )
-                logger.exception(e)
+                    try:
+                        # Testnet multisig nested Segwit
+                        xpub = client.get_pubkey_at_path(testnet_paths[2]).to_string()
+                        Upub = convert_xpub_prefix(xpub, b"\x02\x42\x89\xef")
+                        xpubs += "[{}/48'/1'/{}'/1']{}\n".format(
+                            master_fpr, account, Upub
+                        )
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to import Nested Segwit multisigsig testnet key: {e}"
+                        )
+                        logger.exception(e)
 
-            try:
-                # Testnet multisig native Segwit
-                xpub = client.get_pubkey_at_path(
-                    "m/48h/1h/{}h/2h".format(account)
-                ).to_string()
-                Vpub = convert_xpub_prefix(xpub, b"\x02\x57\x54\x83")
-                xpubs += "[{}/48'/1'/{}'/2']{}\n".format(master_fpr, account, Vpub)
-            except Exception as e:
-                logger.warning(
-                    f"Failed to import native Segwit multisig testnet key: {e}"
-                )
-                logger.exception(e)
+                    try:
+                        # Testnet multisig native Segwit
+                        xpub = client.get_pubkey_at_path(testnet_paths[3]).to_string()
+                        Vpub = convert_xpub_prefix(xpub, b"\x02\x57\x54\x83")
+                        xpubs += "[{}/48'/1'/{}'/2']{}\n".format(
+                            master_fpr, account, Vpub
+                        )
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to import native Segwit multisig testnet key: {e}"
+                        )
+                        logger.exception(e)
+            finally:
+                if scoped:
+                    client.end_xpub_authorization()
 
             # Do proper cleanup otherwise have to reconnect device to access again
             client.close()

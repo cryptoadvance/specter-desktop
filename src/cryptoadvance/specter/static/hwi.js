@@ -167,6 +167,42 @@ class HWIBridge {
         });
     }
 
+    async beginXpubAuthorization(device, paths, passphrase="", chain=""){
+        /**
+            Asks the device to authorize a whole set of xpub derivation paths
+            (same network) with a single on-device confirmation. Returns
+            true if the device took the scope - subsequent getXpub() calls
+            for those paths then return without a further prompt. Returns
+            false if the device/firmware doesn't support this (callers
+            should just keep calling getXpub() per path as before).
+        **/
+        if(!('passphrase' in device)){
+            device.passphrase = passphrase;
+        }
+        return await this.requestToHwiBridge('begin_xpub_authorization', {
+            device_type: device.type,
+            paths: paths,
+            path: device.path,
+            passphrase: device.passphrase,
+            chain: chain,
+        });
+    }
+
+    async endXpubAuthorization(device, passphrase="", chain=""){
+        /**
+            Releases an authorization started with beginXpubAuthorization().
+        **/
+        if(!('passphrase' in device)){
+            device.passphrase = passphrase;
+        }
+        return await this.requestToHwiBridge('end_xpub_authorization', {
+            device_type: device.type,
+            path: device.path,
+            passphrase: device.passphrase,
+            chain: chain,
+        });
+    }
+
     async getMasterBlindingKey(device, passphrase="", chain=""){
         if(!('passphrase' in device)){
             device.passphrase = passphrase;
