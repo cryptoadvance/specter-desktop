@@ -6,6 +6,7 @@ class BitBox02(HWIDevice):
     name = "BitBox02"
     icon = "img/devices/bitbox02_icon.svg"
     supports_hwi_multisig_display_address = True
+    taproot_support = True
 
     @classmethod
     def get_client(cls, *args, **kwargs):
