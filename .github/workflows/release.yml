@@ -176,7 +176,7 @@ jobs:
             arch: x64
             arch_label: osx_x64
             file_arch: x86_64
-          - runner: macos-14      # Apple Silicon (free tier)
+          - runner: macos-15      # Apple Silicon (free tier); macos-14 was retired
             arch: arm64
             arch_label: osx_arm64
             file_arch: arm64
@@ -414,7 +414,7 @@ jobs:
     name: Build Electron (macOS)
     needs:
       - build-specterd-macos
-    runs-on: macos-14  # Apple Silicon for universal builds
+    runs-on: macos-15  # Apple Silicon for universal builds
     env:
       HAVE_APPLE_CERT: ${{ secrets.APPLE_CERTIFICATE_BASE64 != '' }}
     steps:

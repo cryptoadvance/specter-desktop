@@ -83,7 +83,7 @@ python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug
 | specterd Build Smoke | `test-specterd-build.yml` | PR touching `pyinstaller/`, `requirements*`, `src/**` | Builds specterd on Linux and runs `--help` |
 | Electron Smoke | `electron-smoketest.yml` | PR touching `pyinstaller/electron/**` | Smoke test Electron packaging |
 
-All workflows use public GitHub-hosted runners (`ubuntu-latest` / `ubuntu-22.04` / `windows-latest` / `macos-14`). **No private runners.**
+All workflows use public GitHub-hosted runners (`ubuntu-latest` / `ubuntu-22.04` / `windows-latest` / `macos-15` / `macos-15-intel`). **No private runners.**
 
 ### Test workflow — `test.yml`
 
@@ -105,10 +105,10 @@ Triggers on tags matching `v[0-9]+.[0-9]+.[0-9]+` (and `-*` suffixes for pre-rel
 1. **`release-pip`** — Builds the pip package and publishes to PyPI via **trusted publishing** (no `TWINE_PASSWORD` secret needed when configured on PyPI; falls back to token auth otherwise). Only publishes when `github.repository == 'cryptoadvance/specter-desktop'`. Version derived from tag with `-pre` → `rc` PEP 440 mapping.
 2. **`build-specterd-linux`** — PyInstaller build on `ubuntu-latest`. Produces `specterd-<version>-x86_64-linux-gnu.zip`.
 3. **`build-specterd-windows`** — PyInstaller build on `windows-latest`. Produces `specterd-<version>-win64.zip`. Installs `colorama` (Windows-only transitive dep of click that isn't in the lock file).
-4. **`build-specterd-macos`** — PyInstaller build on `macos-14` (Apple Silicon). Produces `specterd-<version>-osx_arm64.zip`. **x86_64 macOS build is commented out** — requires a paid runner (`macos-15-large`); will be enabled when the org has a paid plan.
+4. **`build-specterd-macos`** — PyInstaller build matrix: `macos-15` (Apple Silicon) produces `specterd-<version>-osx_arm64.zip`, `macos-15-intel` (Intel) produces `specterd-<version>-osx_x64.zip`. Both are standard free-tier runners. **`macos-14` was retired by GitHub** — using it fails instantly with `The configuration 'macos-14-arm64-us-default' is not supported`.
 5. **`build-electron-linux`** — Needs `build-specterd-linux`. Downloads specterd artifact, wraps in Electron, produces `specter_desktop-<version>-x86_64-linux-gnu.tar.gz`.
 6. **`build-electron-windows`** — Needs `build-specterd-windows`. Runs in `electronuserland/builder:wine` container on `ubuntu-latest`. Produces `Specter-Setup-<version>.exe`.
-7. **`build-electron-macos`** — Needs `build-specterd-macos`. Universal-ish build on `macos-14`. **Code signing is conditional**: if `APPLE_CERTIFICATE_BASE64` secret is set, imports cert into a temporary keychain and signs; otherwise builds unsigned. Removes hardcoded provisioning profile from `package.json` on the fly.
+7. **`build-electron-macos`** — Needs `build-specterd-macos`. Universal-ish build on `macos-15`. **Code signing is conditional**: if `APPLE_CERTIFICATE_BASE64` secret is set, imports cert into a temporary keychain and signs; otherwise builds unsigned. Removes hardcoded provisioning profile from `package.json` on the fly.
 8. **`create-release`** — Gathers all artifacts, computes combined `SHA256SUMS`, creates the GitHub Release, uploads binaries.
 9. **`trigger-docker`** — Triggers the `docker-tag.yml` workflow for the release tag (builds and pushes the Docker image).
 
