@@ -4,6 +4,11 @@ on:
   pull_request:
   push:
     branches: [master]
+  # Required for the merge queue: without this trigger the required checks
+  # (test, cypress, extension-smoketest) never report on a merge-group commit
+  # and queued pull requests time out instead of merging.
+  merge_group:
+    types: [checks_requested]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
