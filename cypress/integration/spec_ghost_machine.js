@@ -22,7 +22,7 @@ describe('Ghost machine', () => {
         // Advanced
         cy.get('#btn_settings').click()
         cy.get('#advanced_settings_tab_btn').click()
-        cy.contains("Import address labels")
+        cy.contains("Import wallet labels (BIP-329, Electrum or Specter)")
         // Export options
         cy.get('#export_settings_tab_btn').click()
         // Specter JSON

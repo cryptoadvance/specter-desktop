@@ -3,7 +3,11 @@ from typing import List
 
 from embit import ec
 from embit.descriptor.checksum import add_checksum
-from embit.liquid.addresses import to_unconfidential
+from embit.liquid.addresses import (
+    addr_decode,
+    address as liquid_address,
+    to_unconfidential,
+)
 from embit.liquid.descriptor import LDescriptor
 from embit.liquid.pset import PSET
 from embit.liquid.transaction import LTransaction
@@ -23,6 +27,57 @@ class LWallet(Wallet):
     TxCls = LTransaction
     PSBTCls = SpecterPSET
     DescriptorCls = LDescriptor
+
+    def _get_locked_utxo_address_amount(self, tx_from_core, vout):
+        """Resolve confidential values using wallet-aware Elements data."""
+        output = self.TxCls.from_string(tx_from_core["hex"]).vout[vout]
+
+        def belongs_to_output(address):
+            try:
+                script, _ = addr_decode(address)
+                return script == output.script_pubkey
+            except Exception:
+                return False
+
+        # Elements unblinds wallet transaction details. Check the actual script
+        # as an accounting SEND entry may also carry this vout index.
+        for detail in tx_from_core.get("details", []):
+            if not isinstance(detail, dict) or detail.get("vout") != vout:
+                continue
+            address = detail.get("address")
+            amount = detail.get("amount")
+            if (
+                detail.get("category") == "send"
+                or not isinstance(address, str)
+                or not isinstance(amount, (int, float))
+                or isinstance(amount, bool)
+                or amount < 0
+                or not belongs_to_output(address)
+            ):
+                continue
+            address_obj = self._addresses.get(address)
+            return amount, address_obj.address if address_obj else address
+
+        # Change outputs may be absent from details. LiquidRPC's decoder can
+        # unblind them, unlike the value commitment in the raw transaction.
+        decoded_output = self.rpc.decoderawtransaction(tx_from_core["hex"])["vout"][
+            vout
+        ]
+        amount = decoded_output.get("value")
+        if (
+            not isinstance(amount, (int, float))
+            or isinstance(amount, bool)
+            or amount <= 0
+        ):
+            raise ValueError("Could not unblind locked Liquid output")
+        addresses = decoded_output.get("scriptPubKey", {}).get("addresses", [])
+        for address in addresses:
+            if isinstance(address, str) and belongs_to_output(address):
+                address_obj = self._addresses.get(address)
+                return amount, address_obj.address if address_obj else address
+        address = liquid_address(output.script_pubkey, network=self.network)
+        address_obj = self._addresses.get(address)
+        return amount, address_obj.address if address_obj else address
 
     @classmethod
     def construct_descriptor(

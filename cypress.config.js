@@ -14,6 +14,7 @@ const specPattern = [
   'cypress/integration/spec_wallet_send.js',
   'cypress/integration/spec_wallet_utxo.js',
   'cypress/integration/spec_plugins.js',
+  'cypress/integration/spec_bip329_labels.js',
 ]
 
 module.exports = defineConfig({

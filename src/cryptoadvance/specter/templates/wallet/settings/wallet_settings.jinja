@@ -145,6 +145,10 @@
 			<p>{{ _("Create a JSON file containing all wallet data including labels.") }}</p>
 			<a download="{{ wallet.name }}.json" class="button mt-3" id="export_specter_format">Download Specter JSON file</a>
 
+			<h3 class="mt-8">{{ _("Wallet labels (BIP-329)") }}</h3>
+			<p>{{ _("Export wallet address and UTXO labels in the BIP-329 standard format for use with compatible wallet software. Frozen UTXOs are included. Keep this sensitive wallet metadata private.") }}</p>
+			<a href="{{ url_for('wallets_endpoint.settings_exportbip329labels', wallet_alias=wallet.alias) }}" download="{{ wallet.alias }}-labels.jsonl" class="button mt-3" id="export_bip329_labels">{{ _("Download BIP-329 labels") }}</a>
+
 			<h3 class="mt-8">{{ _("Printable PDF backup") }}</h3>
 			<p>
 				{{ _("It is recommended that you print this backup and save it with each of your devices.") }}
@@ -190,7 +194,7 @@
 
 	<div class="hidden" id="wallet_advanced_settings_tab">
 		<div>
-			<h3>{{ _("Import address labels (Electrum or Specter)") }}</h3>
+			<h3>{{ _("Import wallet labels (BIP-329, Electrum or Specter)") }}</h3>
 
 			<form action="./importaddresslabels" method="POST" class="padded" data-style="max-width: 500px">
 				<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -198,7 +202,7 @@
 					<dnd-textarea 
 						name="address_labels_data" 
 						id="address_labels_data" 
-						placeholder="{{ _('You can paste and drag & drop here: ') }}{{ _('Electrum JSON file, Specter addresses CSV or Specter JSON file') }}"  
+						placeholder="{{ _('You can paste and drag & drop here: ') }}{{ _('BIP-329 JSONL, Electrum JSON, Specter addresses CSV or Specter JSON file') }}"
 						textarea-style="margin-bottom: 10px;"
 					>
 					</dnd-textarea>
@@ -210,6 +214,9 @@
 						<button type="submit" name="action" value="import_address_labels" class="button bg-accent text-white" data-style="max-width: 130px; margin-left: 20px">{{ _("Import") }}
 							<tool-tip width="200px">
 								<span slot="paragraph">
+									{{ _('BIP-329 JSONL uses one JSON object per line, for example:') }}<br>
+									{{ _('{"type":"addr","ref":"bc1qj3...","label":"some label"}') }}<br><br>
+									{{ _('Specter imports BIP-329 address labels and frozen output state. Independent output labels cannot be represented by Specter and are reported without changing address labels.') }}<br><br>
 									{{ _('The expected format for Electrum contains:') }}<br>
 									{{ _('{"8a5e4...": "some tx id label", "bc1qj3...": "some address label"}') }}<br><br>
 									{{ _('The expected format for Specter JSON contains:') }}<br>

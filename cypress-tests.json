@@ -11,7 +11,8 @@
       "spec_balances_amounts.js",
       "spec_wallet_send.js",
       "spec_wallet_utxo.js",
-      "spec_plugins.js"
+      "spec_plugins.js",
+      "spec_bip329_labels.js"
     ],
     "baseUrl": "http://localhost:25444",
     "env": {

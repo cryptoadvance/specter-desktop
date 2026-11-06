@@ -6,7 +6,7 @@ from functools import wraps
 import requests
 from flask import Blueprint
 from flask import current_app as app
-from flask import jsonify, redirect, render_template, request, url_for
+from flask import Response, jsonify, redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_login import login_required
 
@@ -413,7 +413,10 @@ def history(wallet_alias):
     if request.method == "POST":
         action = request.form["action"]
         if action == "freezeutxo":
-            wallet.toggle_freeze_utxo(request.form.getlist("selected_utxo"))
+            try:
+                wallet.toggle_freeze_utxo(request.form.getlist("selected_utxo"))
+            except SpecterError as e:
+                flash(str(e), "error")
             tx_list_type = "utxo"
         elif action == "abandon_tx":
             txid = request.form["txid"]
@@ -782,18 +785,37 @@ def addresses(wallet_alias):
 ###### Wallet settings ######
 
 
-@wallets_endpoint.route("/wallet/<wallet_alias>/settings/", methods=["GET", "POST"])
+@wallets_endpoint.route(
+    "/wallet/<wallet_alias>/settings/",
+    methods=["GET", "POST"],
+)
 # In case of exceptions in the "subactions" POST method handlers, the error-handler
 # will redirect to the same endpoint but GET-method. Specifying them here:
 @wallets_endpoint.route(
-    "/wallet/<wallet_alias>/settings/importaddresslabels", methods=["GET"]
+    "/wallet/<wallet_alias>/settings/importaddresslabels",
+    methods=["GET"],
+    endpoint="settings_importaddresslabels_get",
 )
 @wallets_endpoint.route(
-    "/wallet/<wallet_alias>/settings/keypoolrefill", methods=["GET"]
+    "/wallet/<wallet_alias>/settings/keypoolrefill",
+    methods=["GET"],
+    endpoint="settings_keypoolrefill_get",
 )
-@wallets_endpoint.route("/wallet/<wallet_alias>/settings/rescan", methods=["GET"])
-@wallets_endpoint.route("/wallet/<wallet_alias>/settings/deletewallet", methods=["GET"])
-@wallets_endpoint.route("/wallet/<wallet_alias>/settings/clearcache", methods=["GET"])
+@wallets_endpoint.route(
+    "/wallet/<wallet_alias>/settings/rescan",
+    methods=["GET"],
+    endpoint="settings_rescan_get",
+)
+@wallets_endpoint.route(
+    "/wallet/<wallet_alias>/settings/deletewallet",
+    methods=["GET"],
+    endpoint="settings_deletewallet_get",
+)
+@wallets_endpoint.route(
+    "/wallet/<wallet_alias>/settings/clearcache",
+    methods=["GET"],
+    endpoint="settings_clearcache_get",
+)
 @login_required
 def settings(wallet_alias):
     wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
@@ -846,14 +868,60 @@ def settings_importaddresslabels(wallet_alias):
     wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
     action = request.form["action"]
     address_labels = request.form["address_labels_data"]
-    imported_addresses_len = wallet.import_address_labels(address_labels)
+    report = wallet.import_address_labels(address_labels, return_report=True)
+    imported_addresses_len = report.imported_address_labels
+    if report.is_bip329:
+        if imported_addresses_len or report.updated_frozen_utxos:
+            flash(
+                _(
+                    "Successfully imported {} address labels and updated {} frozen UTXOs."
+                ).format(imported_addresses_len, report.updated_frozen_utxos)
+            )
+        if report.has_warnings:
+            flash(
+                _(
+                    "Some BIP-329 metadata was not imported (ignored records: {}, unsupported output labels: {}, malformed records: {}, conflicting records: {}, failed records: {})."
+                ).format(
+                    report.ignored_records,
+                    report.unsupported_output_labels,
+                    report.malformed_records,
+                    report.conflicting_records,
+                    report.failed_records,
+                ),
+                "warning",
+            )
+        elif not imported_addresses_len and not report.updated_frozen_utxos:
+            flash(
+                _("No wallet labels or frozen UTXO states needed updating."),
+                "warning",
+            )
+        return redirect(url_for("wallets_endpoint.settings", wallet_alias=wallet_alias))
     if imported_addresses_len > 1:
         flash(f"Successfully imported {imported_addresses_len} address labels.")
     elif imported_addresses_len == 1:
         flash(f"Successfully imported {imported_addresses_len} address label.")
     else:
         flash("No address labels were imported.")
-    return redirect(url_for("wallets_endpoint.settings"))
+    return redirect(url_for("wallets_endpoint.settings", wallet_alias=wallet_alias))
+
+
+@wallets_endpoint.route(
+    "/wallet/<wallet_alias>/settings/exportbip329labels", methods=["GET"]
+)
+@login_required
+def settings_exportbip329labels(wallet_alias):
+    wallet: Wallet = app.specter.wallet_manager.get_by_alias(wallet_alias)
+    response = Response(
+        wallet.export_bip329_labels(),
+        content_type="application/x-ndjson; charset=utf-8",
+    )
+    response.headers.set(
+        "Content-Disposition",
+        "attachment",
+        filename=f"{wallet.alias}-labels.jsonl",
+    )
+    response.headers.set("Cache-Control", "no-store")
+    return response
 
 
 @wallets_endpoint.route(
