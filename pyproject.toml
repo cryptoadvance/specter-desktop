@@ -76,7 +76,7 @@ dependencies = {file = ["requirements.in"]}
 
 [project.optional-dependencies]
 test = [
-    "black==26.3.1",
+    "black==26.10.1",
     "pre-commit==2.13.0",
     "pip-tools==6.13",
     "pytest==9.0.3",
