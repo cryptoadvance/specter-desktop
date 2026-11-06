@@ -780,12 +780,12 @@ jobs:
     steps:
       - name: Trigger lncm/docker-specter-desktop
         env:
-          AARON_TOKEN: ${{ secrets.AARON_TRIGGER }}
+          AARON_TOKEN: ${{ secrets.AARON_TOKEN }}
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
 
           if [ -z "$AARON_TOKEN" ]; then
-            echo "AARON_TRIGGER secret not set, skipping Docker trigger"
+            echo "AARON_TOKEN secret not set, skipping Docker trigger"
             exit 0
           fi
 

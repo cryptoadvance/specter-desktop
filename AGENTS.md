@@ -132,7 +132,7 @@ Triggers on tags matching `v[0-9]+.[0-9]+.[0-9]+` (and `-*` suffixes for pre-rel
 | `APPLE_CERTIFICATE_BASE64` + `APPLE_CERTIFICATE_PASSWORD` | macOS signing cert | Optional — unsigned build if missing |
 | `APPLE_ID` + `APPLE_APP_SPECIFIC_PASSWORD` + `APPLE_TEAM_ID` | macOS notarization | Required with signing |
 | `APPLE_PROVISIONING_PROFILE_BASE64` | Provisioning profile | Optional |
-| `AARON_TRIGGER` | Trigger `lncm/docker-specter-desktop` build | Optional — skips Docker trigger if missing |
+| `AARON_TOKEN` | Trigger `lncm/docker-specter-desktop` build | Optional — skips Docker trigger if missing |
 | PyPI trusted publisher | Configured on PyPI side, not a GH secret | Required for `release-pip` upstream |
 
 ### Testing a release on a fork

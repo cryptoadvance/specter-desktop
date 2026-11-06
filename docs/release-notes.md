@@ -1,5 +1,22 @@
 # Release Notes
 
+## v2.3.0 November 06, 2026
+- Add backwards-compatible BIP-329 label import and export #2712 (Schnuartz AI)
+- Add Taproot support flag for BitBox02 #2705 (al-munazzim)
+- Bugfix: Fix Coldcard USB warning flow #2698 (al-munazzim)
+- Bugfix: Fix PyInstaller specterd backports import #2694 (al-munazzim)
+- Bugfix: Fix REST auth errors for Flask-HTTPAuth 4.8.1 #2697 (al-munazzim)
+- Bugfix: Reject underscores in derivation indexes #2714 (Sash)
+- Bugfix: Restore Intel macOS release compatibility #2692 (k9ert)
+- Chore: Bump Cypress to 13.17.0 #2646 (al-munazzim)
+- Chore: Bundle low-risk Dependabot updates #2693 #2696 (al-munazzim)
+- Chore: Pin Werkzeug below 3.1 for Flask 2.2 compatibility #2699 (al-munazzim)
+- Chore: Remove obsolete download page generator #2700 (al-munazzim)
+- Chore(deps): Dependabot bumps for black, follow-redirects, joi, js-yaml, @xmldom/xmldom, ip-address and pyasn1 #2709 #2711 #2715 #2725 #2727 #2728 #2729 (dependabot)
+- CI: Add merge_group support so the merge queue can gate master #2732 (k9ert)
+- Feature: Import xpubs in Specter-DIY without the 3s timeout, one confirmation per key set, wrong-network handling #2702 (Schnuartz AI)
+- Feature: Update specterext-timelockrecovery to v0.2.5 #2704 (Oren)
+
 ## v2.1.0 January 03, 2025
 - Blur modal background #2481 (Manolis Mandrapilias)
 - Bugfix: Download backup zip broken #2456 (k9ert)
