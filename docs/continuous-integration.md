@@ -6,15 +6,15 @@ Specter-Desktop runs all CI on **GitHub Actions**. Cirrus CI and GitLab CI were 
 
 | Workflow                       | File                                            | Trigger                                      |
 |--------------------------------|-------------------------------------------------|----------------------------------------------|
-| Lint (black)                   | `.github/workflows/zblack.yml`                  | PR, push                                     |
-| Tests (pytest + Cypress + extension smoketest) | `.github/workflows/test.yml`    | PR, push                                     |
+| Lint (black)                   | `.github/workflows/zblack.yml`                  | PR, push, merge queue                        |
+| Tests (pytest + Cypress + extension smoketest) | `.github/workflows/test.yml`    | PR, push, merge queue                        |
 | Release                        | `.github/workflows/release.yml`                 | Tag push (`v*`)                              |
 | Electron smoketest             | `.github/workflows/electron-smoketest.yml`      | PR and push to master on `pyinstaller/electron/**` |
 | Extension compatibility        | `.github/workflows/extension-compat.yml`        | PR; push on `requirements.*` / `pyproject.toml`; `workflow_dispatch` |
 | Specterd build smoke           | `.github/workflows/test-specterd-build.yml`     | PR                                           |
-| Docker image push              | `.github/workflows/docker-push.yml`             | Push to any branch                           |
+| Docker image push              | `.github/workflows/docker-push.yml`             | Push to any branch except `gh-readonly-queue/**` |
 | Docker image tag               | `.github/workflows/docker-tag.yml`              | Tag push (`v*`)                              |
-| Docs table of contents         | `.github/workflows/toc.yml`                     | Push                                         |
+| Docs table of contents         | `.github/workflows/toc.yml`                     | Push (branches except `gh-readonly-queue/**`, tags) |
 
 ## Test workflow
 
@@ -25,6 +25,22 @@ Specter-Desktop runs all CI on **GitHub Actions**. Cirrus CI and GitLab CI were 
 - **`extension-smoketest`** — byte-compatible port of the former Cirrus smoketest. 15 min. Smoke-tests `ext gen`, server boot, and log-line / curl assertion. Contract must stay stable — downstream extension developers depend on it.
 
 All three jobs use `actions/checkout@v4` with `fetch-depth: 0` so `git describe` resolves annotated tags for `tests/test_util_version.py`.
+
+## Merge queue
+
+`master` uses a GitHub merge queue. Every queued pull request is tested as part of a temporary `gh-readonly-queue/master/pr-<n>-<sha>` branch, so required checks must also be reported on that ref.
+
+Required status checks (branch protection): `test`, `cypress`, `extension-smoketest`, `black`. For those checks to appear on a merge-group commit, the workflows producing them must trigger on `merge_group`:
+
+- `test.yml` — `merge_group: types: [checks_requested]`
+- `zblack.yml` — `merge_group`
+
+Two workflows are explicitly excluded from `gh-readonly-queue/**` pushes because they react to *every* branch push:
+
+- `docker-push.yml` would otherwise push a throw-away ghcr.io image per queue entry.
+- `toc.yml` would otherwise commit generated TOCs onto a temporary queue ref.
+
+Path-filtered workflows (`extension-compat.yml`, `test-specterd-build.yml`, `electron-smoketest.yml`) intentionally carry no `merge_group` trigger: `paths` filtering is not supported for that event, and none of their jobs are required checks. If one of them is ever promoted to a required check, add the trigger and drop the `paths` filter — otherwise the queue stalls.
 
 ## Caching
 

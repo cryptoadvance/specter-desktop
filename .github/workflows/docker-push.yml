@@ -2,8 +2,11 @@ name: Build Docker container on push
 
 on:
   push:
-    branches:
-      - "*"
+    # The merge queue creates temporary `gh-readonly-queue/<base>/pr-<n>-<sha>`
+    # branches for every queue entry. Without this exclusion every queued PR
+    # would push a throw-away ghcr.io image tagged with that branch name.
+    branches-ignore:
+      - "gh-readonly-queue/**"
 
 jobs:
   build:

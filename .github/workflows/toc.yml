@@ -1,4 +1,12 @@
-on: push
+on:
+  push:
+    # The TOC generator commits back to the branch that was pushed. Merge-queue
+    # branches (`gh-readonly-queue/...`) are temporary GitHub-managed refs and
+    # must never be modified.
+    branches-ignore:
+      - "gh-readonly-queue/**"
+    tags:
+      - "**"
 name: TOC Generator
 jobs:
   generateTOC:

@@ -1,6 +1,11 @@
 name: Black Python Linter
 
-on: [push,pull_request]
+on:
+  push:
+  pull_request:
+  # `black` is a required status check, so it must also run on merge-group
+  # commits produced by the merge queue.
+  merge_group:
 
 jobs:
   black:
