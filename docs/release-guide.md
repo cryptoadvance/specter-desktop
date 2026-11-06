@@ -21,7 +21,7 @@ That's it. The `Release` workflow on GitHub Actions takes it from here:
 - **`build-specterd-{linux,windows,macos}`** — builds the `specterd` binary on each platform. macOS uses native `macos-15` (arm64) and `macos-15-intel` (x64) runners and smoke-tests each daemon before packaging. (`macos-14` was retired by GitHub — it now fails immediately with `The configuration 'macos-14-arm64-us-default' is not supported`.)
 - **`build-electron-{linux,windows,macos}`** — builds the Electron apps using each platform's `specterd` artifact. Windows uses the public `electronuserland/builder:wine` image; macOS signs + notarizes if `APPLE_CERTIFICATE_BASE64` et al. are configured.
 - **`create-release`** — collects all artifacts, generates `SHA256SUMS`, signs it with the GPG key from the `GPG_PRIVATE_KEY` secret, generates a release body (with auto-generated "What's Changed" via `gh api .../generate-notes`), and creates a **draft** GitHub release.
-- **`trigger-docker`** — POSTs a repository-dispatch to `lncm/docker-specter-desktop` so Aaron's Docker build picks up the new tag (needs `AARON_TOKEN` secret; skipped otherwise).
+- **`trigger-docker`** — POSTs a repository-dispatch to `lncm/docker-specter-desktop` so Aaron's Docker build picks up the new tag (needs `AARON_TOKEN`). A missing or invalid token only emits a `::warning::` plus a job summary — it never fails the release, because the `ghcr.io/cryptoadvance/specter-desktop` image comes from `docker-tag.yml`, which the tag push triggers directly.
 
 The release lands as a draft — review and publish it manually on GitHub.
 
