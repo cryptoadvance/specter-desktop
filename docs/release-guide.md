@@ -21,7 +21,7 @@ That's it. The `Release` workflow on GitHub Actions takes it from here:
 - **`build-specterd-{linux,windows,macos}`** — builds the `specterd` binary on each platform. macOS uses native `macos-14` (arm64) and `macos-15-intel` (x64) runners and smoke-tests each daemon before packaging.
 - **`build-electron-{linux,windows,macos}`** — builds the Electron apps using each platform's `specterd` artifact. Windows uses the public `electronuserland/builder:wine` image; macOS signs + notarizes if `APPLE_CERTIFICATE_BASE64` et al. are configured.
 - **`create-release`** — collects all artifacts, generates `SHA256SUMS`, signs it with the GPG key from the `GPG_PRIVATE_KEY` secret, generates a release body (with auto-generated "What's Changed" via `gh api .../generate-notes`), and creates a **draft** GitHub release.
-- **`trigger-docker`** — POSTs a repository-dispatch to `lncm/docker-specter-desktop` so Aaron's Docker build picks up the new tag (needs `AARON_TRIGGER` secret; skipped otherwise).
+- **`trigger-docker`** — POSTs a repository-dispatch to `lncm/docker-specter-desktop` so Aaron's Docker build picks up the new tag (needs `AARON_TOKEN` secret; skipped otherwise).
 
 The release lands as a draft — review and publish it manually on GitHub.
 
@@ -35,7 +35,7 @@ The release lands as a draft — review and publish it manually on GitHub.
 | `APPLE_CERTIFICATE_PASSWORD`       | p12 password                                                 |
 | `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID` | Apple notarization credentials          |
 | `APPLE_PROVISIONING_PROFILE_BASE64`| Optional provisioning profile                                |
-| `AARON_TRIGGER`                    | PAT for triggering `lncm/docker-specter-desktop`             |
+| `AARON_TOKEN`                      | PAT for triggering `lncm/docker-specter-desktop`             |
 
 PyPI publishing uses trusted publishing (OIDC) — no secret required.
 

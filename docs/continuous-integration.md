@@ -56,7 +56,7 @@ Path-filtered workflows (`extension-compat.yml`, `test-specterd-build.yml`, `ele
 
 ## Release pipeline
 
-See [`release-guide.md`](./release-guide.md). Pushing a tag matching `v[0-9]+.[0-9]+.[0-9]+[-*]?` triggers `release.yml`, which builds pip/specterd/Electron artifacts for Linux/Windows/macOS, signs `SHA256SUMS`, and creates a draft GitHub release. Docker images are built by `lncm/docker-specter-desktop` (triggered via `AARON_TRIGGER` secret).
+See [`release-guide.md`](./release-guide.md). Pushing a tag matching `v[0-9]+.[0-9]+.[0-9]+[-*]?` triggers `release.yml`, which builds pip/specterd/Electron artifacts for Linux/Windows/macOS, signs `SHA256SUMS`, and creates a draft GitHub release. Docker images are built by `lncm/docker-specter-desktop` (triggered via `AARON_TOKEN` secret).
 
 ## Flake policy
 
@@ -71,6 +71,6 @@ See [`release-guide.md`](./release-guide.md). Pushing a tag matching `v[0-9]+.[0
 | `GITHUB_TOKEN`            | (auto-provided)          | Checkout, artifact upload, ghcr.io push      |
 | `GPG_PRIVATE_KEY` + `GPG_PASSPHRASE` | `release.yml` | Sign `SHA256SUMS`                            |
 | `APPLE_*` (six)           | `release.yml` macOS      | Code signing + notarization (optional)       |
-| `AARON_TRIGGER`           | `release.yml`            | Trigger `lncm/docker-specter-desktop` build  |
+| `AARON_TOKEN`             | `release.yml`            | Trigger `lncm/docker-specter-desktop` build  |
 
 No GitLab secrets remain.
