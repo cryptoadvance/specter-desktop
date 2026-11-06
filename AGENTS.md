@@ -110,7 +110,7 @@ Triggers on tags matching `v[0-9]+.[0-9]+.[0-9]+` (and `-*` suffixes for pre-rel
 6. **`build-electron-windows`** — Needs `build-specterd-windows`. Runs in `electronuserland/builder:wine` container on `ubuntu-latest`. Produces `Specter-Setup-<version>.exe`.
 7. **`build-electron-macos`** — Needs `build-specterd-macos`. Universal-ish build on `macos-15`. **Code signing is conditional**: if `APPLE_CERTIFICATE_BASE64` secret is set, imports cert into a temporary keychain and signs; otherwise builds unsigned. Removes hardcoded provisioning profile from `package.json` on the fly.
 8. **`create-release`** — Gathers all artifacts, computes combined `SHA256SUMS`, creates the GitHub Release, uploads binaries.
-9. **`trigger-docker`** — Triggers the `docker-tag.yml` workflow for the release tag (builds and pushes the Docker image).
+9. **`trigger-docker`** — Dispatches to `lncm/docker-specter-desktop` so Aaron's Docker build picks up the tag. A missing or invalid `AARON_TOKEN` warns and is recorded in the job summary, but never fails the run — the `ghcr.io` image is built independently by `docker-tag.yml` on the tag push.
 
 **Release artifacts per version:**
 - `cryptoadvance.specter-<version>.tar.gz` (pip package, published to PyPI)
@@ -132,7 +132,7 @@ Triggers on tags matching `v[0-9]+.[0-9]+.[0-9]+` (and `-*` suffixes for pre-rel
 | `APPLE_CERTIFICATE_BASE64` + `APPLE_CERTIFICATE_PASSWORD` | macOS signing cert | Optional — unsigned build if missing |
 | `APPLE_ID` + `APPLE_APP_SPECIFIC_PASSWORD` + `APPLE_TEAM_ID` | macOS notarization | Required with signing |
 | `APPLE_PROVISIONING_PROFILE_BASE64` | Provisioning profile | Optional |
-| `AARON_TOKEN` | Trigger `lncm/docker-specter-desktop` build | Optional — skips Docker trigger if missing |
+| `AARON_TOKEN` | Trigger `lncm/docker-specter-desktop` build | Optional — a missing or invalid token warns, never fails the release |
 | PyPI trusted publisher | Configured on PyPI side, not a GH secret | Required for `release-pip` upstream |
 
 ### Testing a release on a fork

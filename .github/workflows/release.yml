@@ -779,20 +779,41 @@ jobs:
     if: ${{ !cancelled() && needs.create-release.result == 'success' }}
     steps:
       - name: Trigger lncm/docker-specter-desktop
+        continue-on-error: true
         env:
           AARON_TOKEN: ${{ secrets.AARON_TOKEN }}
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
 
           if [ -z "$AARON_TOKEN" ]; then
-            echo "AARON_TOKEN secret not set, skipping Docker trigger"
+            echo "::warning::AARON_TOKEN is not set — skipping the lncm Docker trigger"
             exit 0
           fi
 
-          curl -X POST \
+          BODY=$(mktemp)
+          STATUS=$(curl -sS -o "$BODY" -w '%{http_code}' \
+            -X POST \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${AARON_TOKEN}" \
             https://api.github.com/repos/lncm/docker-specter-desktop/actions/workflows/dispatch.yml/dispatches \
-            -d "{\"ref\":\"master\", \"inputs\": {\"tag\": \"${VERSION}\"}}"
+            -d "{\"ref\":\"master\", \"inputs\": {\"tag\": \"${VERSION}\"}}") || STATUS=000
+
+          if [ "$STATUS" != "204" ]; then
+            echo "::warning::lncm Docker dispatch FAILED for ${VERSION} — HTTP ${STATUS}"
+            cat "$BODY" 2>/dev/null || true
+            {
+              echo "### Docker dispatch failed"
+              echo ""
+              echo "\`lncm/docker-specter-desktop\` was **not** triggered for \`${VERSION}\` (HTTP \`${STATUS}\`)."
+              echo ""
+              echo '```json'
+              cat "$BODY" 2>/dev/null || echo "(no response body)"
+              echo '```'
+              echo ""
+              echo "Most likely cause: \`AARON_TOKEN\` is expired, revoked, or lacks access to \`lncm/docker-specter-desktop\`."
+              echo "The \`ghcr.io/cryptoadvance/specter-desktop\` image built by \`docker-tag.yml\` is unaffected."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
 
           echo "Triggered lncm/docker-specter-desktop build for ${VERSION}"
