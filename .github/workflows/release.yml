@@ -15,10 +15,14 @@ env:
 
 jobs:
   # ─── 1. Build pip package ──────────────────────────────────────────
-  release-pip:
-    name: Build & publish pip package
+  # Building and publishing are deliberately split: PyPI uploads cannot be
+  # overwritten, so publishing must only happen after every binary artifact and
+  # the GitHub release exist. In the v2.3.0 run the pip package was published
+  # first, which turned a failed release into a permanent partial release.
+  build-pip:
+    name: Build pip package
     runs-on: ubuntu-latest
-    environment: release  # for trusted PyPI publishing
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -46,16 +50,11 @@ jobs:
           name: pip-package
           path: dist/*
 
-      - name: Publish to PyPI
-        if: github.repository == 'cryptoadvance/specter-desktop'
-        uses: pypa/gh-action-pypi-publish@release/v1
-        # Uses trusted publishing — no token needed if configured on PyPI
-        # Fallback: set TWINE_PASSWORD secret and use username __token__
-
   # ─── 2. Build specterd binaries ────────────────────────────────────
   build-specterd-linux:
     name: Build specterd (Linux)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -66,7 +65,18 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libusb-1.0-0-dev libudev-dev
+        run: |
+          # apt-get on hosted runners occasionally fails DNS resolution
+          # (release run 43053742323: "Temporary failure resolving
+          # 'security.ubuntu.com'"). Retry before giving up.
+          for attempt in 1 2 3 4; do
+            if sudo apt-get update && sudo apt-get install -y libusb-1.0-0-dev libudev-dev; then
+              exit 0
+            fi
+            echo "apt attempt $attempt failed; retrying in $((attempt * 15))s..."
+            sleep $((attempt * 15))
+          done
+          echo "apt-get failed after 4 attempts"; exit 1
 
       - name: Create virtualenv and install
         run: |
@@ -112,6 +122,7 @@ jobs:
   build-specterd-windows:
     name: Build specterd (Windows)
     runs-on: windows-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -169,6 +180,7 @@ jobs:
   build-specterd-macos:
     name: Build specterd (macOS ${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
     strategy:
       matrix:
         include:
@@ -243,6 +255,7 @@ jobs:
     name: Build Electron (Linux)
     needs: build-specterd-linux
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -257,7 +270,15 @@ jobs:
           node-version: '18'
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libusb-1.0-0-dev libudev-dev
+        run: |
+          for attempt in 1 2 3 4; do
+            if sudo apt-get update && sudo apt-get install -y libusb-1.0-0-dev libudev-dev; then
+              exit 0
+            fi
+            echo "apt attempt $attempt failed; retrying in $((attempt * 15))s..."
+            sleep $((attempt * 15))
+          done
+          echo "apt-get failed after 4 attempts"; exit 1
 
       - name: Install Python packages
         run: |
@@ -334,22 +355,28 @@ jobs:
   build-electron-windows:
     name: Build Electron (Windows)
     needs: build-specterd-windows
-    runs-on: ubuntu-latest
-    container:
-      image: electronuserland/builder:wine
-    env:
-      # Shared HOME so `npm ci` (electron postinstall) and electron-builder
-      # write to the same ~/.cache/electron path — kept cacheable across runs.
-      HOME: /tmp/electron-home
+    # Built natively on Windows. Until 2026-11 the Windows installer was produced
+    # in the electronuserland/builder:wine container on ubuntu-latest, which hung
+    # for 6h during the rcedit step (release run 43053742323). Root cause, verified
+    # on a fork: ubuntu-latest now resolves to ubuntu-26.04 with
+    # vm.mmap_rnd_bits=32, and wine 11.0 cannot start there — the wine client dies
+    # while creating the wineprefix, wineserver keeps the inherited stdout pipe
+    # open, and app-builder waits forever (executeAppBuilder has no timeout).
+    # There is no in-container workaround (`setarch -R` is blocked by Docker
+    # seccomp, /proc/sys/vm is read-only). Native Windows drops the whole wine
+    # layer: no container, no wineprefix, no pipe-inheritance hang.
+    runs-on: windows-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install system dependencies
-        run: |
-          apt-get update && apt-get install -y unzip
-          mkdir -p $HOME
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: pyinstaller/electron/package-lock.json
 
       - name: Download specterd Windows artifact
         uses: actions/download-artifact@v4
@@ -361,35 +388,49 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            /tmp/electron-home/.cache/electron
-            /tmp/electron-home/.cache/electron-builder
+            ~/AppData/Local/electron/Cache
+            ~/AppData/Local/electron-builder/Cache
           key: electron-win-${{ hashFiles('pyinstaller/electron/package-lock.json') }}
           restore-keys: electron-win-
 
       - name: Prepare Electron build
+        shell: bash
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
           mkdir -p pyinstaller/dist
           cd release-artifacts
-          unzip specterd-${VERSION}-win64.zip -d ../pyinstaller/dist/
+          # 7-Zip ships with the windows runner image and is on PATH.
+          7z x "specterd-${VERSION}-win64.zip" -o../pyinstaller/dist -y
           cd ..
           cd pyinstaller/electron
           npm ci
-          node ./set-version.js $VERSION ../dist/specterd.exe
+          node ./set-version.js "$VERSION" ../dist/specterd.exe
+          # Fail fast if the version data does not point at this repository and
+          # version, so a fork build can never download upstream binaries.
+          node -e "
+            const data = require('./version-data.json');
+            const expectedRepo = process.env.GITHUB_REPOSITORY || 'cryptoadvance/specter-desktop';
+            if (data.version !== process.env.GITHUB_REF_NAME) throw new Error('version-data.json version mismatch: ' + data.version);
+            if (data.repository !== expectedRepo) throw new Error('version-data.json repository mismatch: ' + data.repository);
+            if (!/^[0-9a-f]{64}\$/.test(data.sha256.x64 || '')) throw new Error('version-data.json has no valid x64 sha256');
+          "
           cd ../..
 
       - name: Build Electron app
+        shell: bash
+        timeout-minutes: 20
         run: |
           cd pyinstaller/electron
           cp -R ../../src/cryptoadvance/specter/static/fonts \
                 ../../src/cryptoadvance/specter/static/output.css \
                 ../../src/cryptoadvance/specter/static/typography.css .
           # Retry: electron-builder downloads from github.com occasionally 502
-          # (see release run 24636274855).
+          # (see release run 24636274855). Windows has no `timeout` binary, so the
+          # step-level timeout-minutes is the hard per-build limit.
           attempt=0
           until npm run dist -- --win; do
             attempt=$((attempt + 1))
-            if [ $attempt -ge 3 ]; then
+            if [ "$attempt" -ge 3 ]; then
               echo "electron-builder failed after $attempt attempts"; exit 1
             fi
             echo "Attempt $attempt failed; retrying in $((attempt * 15))s..."
@@ -397,12 +438,42 @@ jobs:
           done
           cd ../..
 
+      - name: Verify packaged app metadata
+        shell: bash
+        run: |
+          # The installer is NSIS-packed; check the unpacked app instead.
+          node -e "
+            const asar = require('./pyinstaller/electron/node_modules/@electron/asar');
+            const crypto = require('crypto');
+            const fs = require('fs');
+            const data = JSON.parse(asar.extractFile('pyinstaller/electron/dist/win-unpacked/resources/app.asar', 'version-data.json').toString());
+            if (data.repository !== process.env.GITHUB_REPOSITORY) throw new Error('Incorrect packaged repository');
+            const binary = fs.readFileSync('pyinstaller/dist/specterd.exe');
+            const expected = crypto.createHash('sha256').update(binary).digest('hex');
+            if (data.sha256.x64 !== expected) throw new Error('Incorrect packaged specterd hash');
+          "
+
       - name: Package release
+        shell: bash
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
           mkdir -p release
-          cp pyinstaller/electron/dist/Specter\ Setup\ *.exe release/Specter-Setup-${VERSION}.exe 2>/dev/null || \
-          cp pyinstaller/electron/dist/*.exe release/Specter-Setup-${VERSION}.exe
+          SETUP="pyinstaller/electron/dist/Specter Setup ${VERSION}.exe"
+          if [ ! -s "$SETUP" ]; then
+            # electron-builder normalises the version string; fall back to the
+            # single installer it produced rather than failing on the name.
+            SETUP=""
+            for f in pyinstaller/electron/dist/*.exe; do
+              if [ -n "$SETUP" ]; then
+                echo "Expected exactly one installer, found more than one"
+                exit 1
+              fi
+              SETUP="$f"
+            done
+          fi
+          test -s "$SETUP"
+          cp "$SETUP" "release/Specter-Setup-${VERSION}.exe"
+          ls -l release/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -415,6 +486,7 @@ jobs:
     needs:
       - build-specterd-macos
     runs-on: macos-15  # Apple Silicon for universal builds
+    timeout-minutes: 40
     env:
       HAVE_APPLE_CERT: ${{ secrets.APPLE_CERTIFICATE_BASE64 != '' }}
     steps:
@@ -609,7 +681,7 @@ jobs:
   create-release:
     name: Create GitHub Release
     needs:
-      - release-pip
+      - build-pip
       - build-specterd-linux
       - build-specterd-windows
       - build-specterd-macos
@@ -617,6 +689,7 @@ jobs:
       - build-electron-windows
       - build-electron-macos
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       HAVE_GPG_KEY: ${{ secrets.GPG_PRIVATE_KEY != '' }}
     steps:
@@ -641,17 +714,27 @@ jobs:
           find artifacts/pip-package -type f -name "cryptoadvance_specter-*.tar.gz" \
             -exec cp {} release-files/ \; 2>/dev/null || true
 
-          # A universal macOS release is incomplete without both native daemons
-          # and the DMG that carries their hashes.
+          # A release is incomplete without the daemons and installers for every
+          # supported platform. Fail before the draft release is created instead
+          # of publishing a partial one (v2.3.0 had no Windows installer).
           for REQUIRED in \
             "specterd-${VERSION}-osx_x64.zip" \
             "specterd-${VERSION}-osx_arm64.zip" \
-            "Specter-${VERSION}.dmg"; do
+            "specterd-${VERSION}-win64.zip" \
+            "specterd-${VERSION}-x86_64-linux-gnu.zip" \
+            "specter_desktop-${VERSION}-x86_64-linux-gnu.tar.gz" \
+            "Specter-${VERSION}.dmg" \
+            "Specter-Setup-${VERSION}.exe"; do
             if [ ! -s "release-files/${REQUIRED}" ]; then
-              echo "Missing required macOS release artifact: ${REQUIRED}"
+              echo "Missing required release artifact: ${REQUIRED}"
               exit 1
             fi
           done
+
+          if ! ls release-files/cryptoadvance_specter-*.tar.gz >/dev/null 2>&1; then
+            echo "Missing required pip sdist artifact"
+            exit 1
+          fi
 
           # Generate SHA256SUMS
           cd release-files
@@ -772,10 +855,34 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  # ─── 5. Publish to PyPI — deliberately last ────────────────────────
+  # Runs only after create-release succeeded, i.e. after every binary was built
+  # and the draft GitHub release exists. A PyPI upload cannot be undone, so it
+  # must never happen before the rest of the release is known-good.
+  publish-pip:
+    name: Publish pip package to PyPI
+    needs: create-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: release  # for trusted PyPI publishing
+    if: github.repository == 'cryptoadvance/specter-desktop'
+    steps:
+      - name: Download pip artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: pip-package
+          path: dist
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        # Uses trusted publishing — no token needed if configured on PyPI
+        # Fallback: set TWINE_PASSWORD secret and use username __token__
+
   trigger-docker:
     name: Trigger lncm Docker build
     needs: create-release
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: ${{ !cancelled() && needs.create-release.result == 'success' }}
     steps:
       - name: Trigger lncm/docker-specter-desktop

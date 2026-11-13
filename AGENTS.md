@@ -100,17 +100,18 @@ Triggers on tags matching `v[0-9]+.[0-9]+.[0-9]+` (and `-*` suffixes for pre-rel
 
 **Python version:** pinned to `3.10` via the `PYTHON_VERSION` env var at the top of `release.yml`.
 
-**Jobs (10 total):**
+**Jobs (11 total):**
 
-1. **`release-pip`** — Builds the pip package and publishes to PyPI via **trusted publishing** (no `TWINE_PASSWORD` secret needed when configured on PyPI; falls back to token auth otherwise). Only publishes when `github.repository == 'cryptoadvance/specter-desktop'`. Version derived from tag with `-pre` → `rc` PEP 440 mapping.
+1. **`build-pip`** — Builds the pip package (sdist/wheel) and uploads it as an artifact. Version derived from tag with `-pre` → `rc` PEP 440 mapping.
 2. **`build-specterd-linux`** — PyInstaller build on `ubuntu-latest`. Produces `specterd-<version>-x86_64-linux-gnu.zip`.
 3. **`build-specterd-windows`** — PyInstaller build on `windows-latest`. Produces `specterd-<version>-win64.zip`. Installs `colorama` (Windows-only transitive dep of click that isn't in the lock file).
 4. **`build-specterd-macos`** — PyInstaller build matrix: `macos-15` (Apple Silicon) produces `specterd-<version>-osx_arm64.zip`, `macos-15-intel` (Intel) produces `specterd-<version>-osx_x64.zip`. Both are standard free-tier runners. **`macos-14` was retired by GitHub** — using it fails instantly with `The configuration 'macos-14-arm64-us-default' is not supported`.
 5. **`build-electron-linux`** — Needs `build-specterd-linux`. Downloads specterd artifact, wraps in Electron, produces `specter_desktop-<version>-x86_64-linux-gnu.tar.gz`.
-6. **`build-electron-windows`** — Needs `build-specterd-windows`. Runs in `electronuserland/builder:wine` container on `ubuntu-latest`. Produces `Specter-Setup-<version>.exe`.
+6. **`build-electron-windows`** — Needs `build-specterd-windows`. Builds **natively on `windows-latest`** (no wine, no container) and produces `Specter-Setup-<version>.exe`. The old `electronuserland/builder:wine` job hung for 6 h during the rcedit step once `ubuntu-latest` moved to ubuntu-26.04 (`vm.mmap_rnd_bits=32` breaks wine 11.0; see the comment in `release.yml`).
 7. **`build-electron-macos`** — Needs `build-specterd-macos`. Universal-ish build on `macos-15`. **Code signing is conditional**: if `APPLE_CERTIFICATE_BASE64` secret is set, imports cert into a temporary keychain and signs; otherwise builds unsigned. Removes hardcoded provisioning profile from `package.json` on the fly.
-8. **`create-release`** — Gathers all artifacts, computes combined `SHA256SUMS`, creates the GitHub Release, uploads binaries.
-9. **`trigger-docker`** — Dispatches to `lncm/docker-specter-desktop` so Aaron's Docker build picks up the tag. A missing or invalid `AARON_TOKEN` warns and is recorded in the job summary, but never fails the run — the `ghcr.io` image is built independently by `docker-tag.yml` on the tag push.
+8. **`create-release`** — Gathers all artifacts, **verifies every platform's daemon and installer is present**, computes combined `SHA256SUMS`, creates the GitHub Release, uploads binaries.
+9. **`publish-pip`** — Publishes the pip package to PyPI via **trusted publishing** (no `TWINE_PASSWORD` secret needed when configured on PyPI; falls back to token auth otherwise). Needs `create-release`, so PyPI is only touched after every binary and the draft release exist — PyPI uploads cannot be overwritten. Only publishes when `github.repository == 'cryptoadvance/specter-desktop'`.
+10. **`trigger-docker`** — Dispatches to `lncm/docker-specter-desktop` so Aaron's Docker build picks up the tag. A missing or invalid `AARON_TOKEN` warns and is recorded in the job summary, but never fails the run — the `ghcr.io` image is built independently by `docker-tag.yml` on the tag push.
 
 **Release artifacts per version:**
 - `cryptoadvance.specter-<version>.tar.gz` (pip package, published to PyPI)
@@ -133,13 +134,13 @@ Triggers on tags matching `v[0-9]+.[0-9]+.[0-9]+` (and `-*` suffixes for pre-rel
 | `APPLE_ID` + `APPLE_APP_SPECIFIC_PASSWORD` + `APPLE_TEAM_ID` | macOS notarization | Required with signing |
 | `APPLE_PROVISIONING_PROFILE_BASE64` | Provisioning profile | Optional |
 | `AARON_TOKEN` | Trigger `lncm/docker-specter-desktop` build | Optional — a missing or invalid token warns, never fails the release |
-| PyPI trusted publisher | Configured on PyPI side, not a GH secret | Required for `release-pip` upstream |
+| PyPI trusted publisher | Configured on PyPI side, not a GH secret | Required for `publish-pip` upstream |
 
 ### Testing a release on a fork
 
 1. Fork `cryptoadvance/specter-desktop` on GitHub.
 2. Push a tag matching `v*.*.*` or `v*.*.*-*` on your fork → `release.yml` fires automatically.
-3. The `release-pip` PyPI publish step is gated on `github.repository == 'cryptoadvance/specter-desktop'`, so forks build the pip package but don't publish.
+3. The `publish-pip` job is gated on `github.repository == 'cryptoadvance/specter-desktop'`, so forks build the pip package but never publish to PyPI.
 4. Unsigned macOS builds work out of the box; signing requires you to add your own Apple secrets.
 
 ## Testing
