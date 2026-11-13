@@ -18,6 +18,7 @@ jobs:
   release-pip:
     name: Build & publish pip package
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment: release  # for trusted PyPI publishing
     steps:
       - uses: actions/checkout@v4
@@ -56,6 +57,7 @@ jobs:
   build-specterd-linux:
     name: Build specterd (Linux)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -66,7 +68,18 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libusb-1.0-0-dev libudev-dev
+        run: |
+          # apt-get on hosted runners occasionally fails DNS resolution
+          # (release run 43053742323: "Temporary failure resolving
+          # 'security.ubuntu.com'"). Retry before giving up.
+          for attempt in 1 2 3 4; do
+            if sudo apt-get update && sudo apt-get install -y libusb-1.0-0-dev libudev-dev; then
+              exit 0
+            fi
+            echo "apt attempt $attempt failed; retrying in $((attempt * 15))s..."
+            sleep $((attempt * 15))
+          done
+          echo "apt-get failed after 4 attempts"; exit 1
 
       - name: Create virtualenv and install
         run: |
@@ -112,6 +125,7 @@ jobs:
   build-specterd-windows:
     name: Build specterd (Windows)
     runs-on: windows-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -169,6 +183,7 @@ jobs:
   build-specterd-macos:
     name: Build specterd (macOS ${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
     strategy:
       matrix:
         include:
@@ -243,6 +258,7 @@ jobs:
     name: Build Electron (Linux)
     needs: build-specterd-linux
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -257,7 +273,15 @@ jobs:
           node-version: '18'
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libusb-1.0-0-dev libudev-dev
+        run: |
+          for attempt in 1 2 3 4; do
+            if sudo apt-get update && sudo apt-get install -y libusb-1.0-0-dev libudev-dev; then
+              exit 0
+            fi
+            echo "apt attempt $attempt failed; retrying in $((attempt * 15))s..."
+            sleep $((attempt * 15))
+          done
+          echo "apt-get failed after 4 attempts"; exit 1
 
       - name: Install Python packages
         run: |
@@ -334,7 +358,17 @@ jobs:
   build-electron-windows:
     name: Build Electron (Windows)
     needs: build-specterd-windows
-    runs-on: ubuntu-latest
+    # NOT ubuntu-latest: that label now resolves to ubuntu-26.04, where wine
+    # hangs forever during the rcedit step. Root cause (verified 2026-11-13):
+    # ubuntu-26.04 ships vm.mmap_rnd_bits=32, ubuntu-24.04 pins it to 28.
+    # Wine 11.0 in electronuserland/builder:wine cannot map its loader with 32
+    # randomisation bits: the wine client dies while creating the wineprefix,
+    # but wineserver keeps the inherited stdout pipe open, so app-builder never
+    # sees EOF and waits forever (executeAppBuilder passes no timeout).
+    # Neither workaround is available inside a container job: `setarch -R` is
+    # blocked by Docker seccomp and /proc/sys/vm is read-only.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     container:
       image: electronuserland/builder:wine
     env:
@@ -348,8 +382,15 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          apt-get update && apt-get install -y unzip
           mkdir -p $HOME
+          for attempt in 1 2 3 4; do
+            if apt-get update && apt-get install -y unzip; then
+              exit 0
+            fi
+            echo "apt attempt $attempt failed; retrying in $((attempt * 15))s..."
+            sleep $((attempt * 15))
+          done
+          echo "apt-get failed after 4 attempts"; exit 1
 
       - name: Download specterd Windows artifact
         uses: actions/download-artifact@v4
@@ -378,6 +419,36 @@ jobs:
           node ./set-version.js $VERSION ../dist/specterd.exe
           cd ../..
 
+      - name: Verify wine works on this runner (fail fast, warms cache)
+        run: |
+          set +e
+          AB="$PWD/pyinstaller/electron/node_modules/app-builder-bin/linux/x64/app-builder"
+          export SZA_PATH="$PWD/pyinstaller/electron/node_modules/7zip-bin/linux/x64/7za"
+          echo "vm.mmap_rnd_bits=$(cat /proc/sys/vm/mmap_rnd_bits 2>/dev/null)"
+          echo "wine: $(wine --version 2>&1)"
+
+          # Pre-warm the cache so the build itself never depends on this download.
+          timeout 120 "$AB" download-artifact --name winCodeSign-2.6.0 \
+            --url https://github.com/electron-userland/electron-builder-binaries/releases/download/winCodeSign-2.6.0/winCodeSign-2.6.0.7z
+          rc=$?
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::winCodeSign download/unpack failed (exit $rc)"
+            exit 1
+          fi
+
+          # Wine hangs instead of erroring when the runner's ASLR settings are
+          # incompatible (see the runs-on comment). Catch that here, not 6h in.
+          V="$HOME/.cache/electron-builder/winCodeSign/winCodeSign-2.6.0"
+          cp "$V/rcedit-x64.exe" /tmp/rcedit-smoke.exe
+          timeout 120 "$AB" wine --ia32 "$V/rcedit-ia32.exe" --x64 "$V/rcedit-x64.exe" \
+            --args '["/tmp/rcedit-smoke.exe","--set-version-string","ProductName","Specter"]'
+          rc=$?
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::wine/rcedit failed or hung (exit $rc) on this runner image. Do not retry blindly: pin a runner with vm.mmap_rnd_bits<=28 or build natively on windows-latest."
+            exit 1
+          fi
+          echo "wine/rcedit OK"
+
       - name: Build Electron app
         run: |
           cd pyinstaller/electron
@@ -387,9 +458,18 @@ jobs:
           # Retry: electron-builder downloads from github.com occasionally 502
           # (see release run 24636274855).
           attempt=0
-          until npm run dist -- --win; do
+          # Hard per-attempt limit: a hung wine would otherwise sit until the
+          # job timeout (release run 43053742323 hung 6h). See the runs-on
+          # comment above for the root cause.
+          until timeout -k 30 480 npm run dist -- --win; do
+            rc=$?
             attempt=$((attempt + 1))
-            if [ $attempt -ge 3 ]; then
+            if [ "$rc" -eq 124 ] || [ "$rc" -eq 137 ]; then
+              echo "::warning::electron-builder hung (exit $rc) - wine process state:"
+              pgrep -a -f "wine|rcedit" || true
+              wineserver -k 2>/dev/null || true
+            fi
+            if [ "$attempt" -ge 3 ]; then
               echo "electron-builder failed after $attempt attempts"; exit 1
             fi
             echo "Attempt $attempt failed; retrying in $((attempt * 15))s..."
@@ -415,6 +495,7 @@ jobs:
     needs:
       - build-specterd-macos
     runs-on: macos-15  # Apple Silicon for universal builds
+    timeout-minutes: 40
     env:
       HAVE_APPLE_CERT: ${{ secrets.APPLE_CERTIFICATE_BASE64 != '' }}
     steps:
@@ -617,6 +698,7 @@ jobs:
       - build-electron-windows
       - build-electron-macos
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       HAVE_GPG_KEY: ${{ secrets.GPG_PRIVATE_KEY != '' }}
     steps:
@@ -776,6 +858,7 @@ jobs:
     name: Trigger lncm Docker build
     needs: create-release
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: ${{ !cancelled() && needs.create-release.result == 'success' }}
     steps:
       - name: Trigger lncm/docker-specter-desktop
