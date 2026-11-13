@@ -423,7 +423,11 @@ jobs:
         run: |
           set +e
           AB="$PWD/pyinstaller/electron/node_modules/app-builder-bin/linux/x64/app-builder"
-          export SZA_PATH="$PWD/pyinstaller/electron/node_modules/7zip-bin/linux/x64/7za"
+          SZA="$PWD/pyinstaller/electron/node_modules/7zip-bin/linux/x64/7za"
+          # npm does not preserve the exec bit for 7zip-bin; electron-builder
+          # chmods it itself (builder-util/out/7za.js), we have to as well.
+          chmod +x "$AB" "$SZA"
+          export SZA_PATH="$SZA"
           echo "vm.mmap_rnd_bits=$(cat /proc/sys/vm/mmap_rnd_bits 2>/dev/null)"
           echo "wine: $(wine --version 2>&1)"
 
