@@ -1,0 +1,203 @@
+name: Backfill v2.3.0 release
+
+# One-off recovery job. v2.3.0 was published to PyPI, but its tag run never
+# created the GitHub release: the Windows Electron job hung on ubuntu-26.04 and
+# the whole run was cancelled (see #2736, which replaced that job with a native
+# windows-latest build). This job rebuilds the release from the artifacts the
+# tag run did produce — everything except the Windows GUI installer, which
+# ships with v2.3.1 — signs SHA256SUMS with the Specter Signer key and creates a
+# DRAFT release.
+#
+# It runs here, not on a fork, because only this repository holds the real
+# GPG_PRIVATE_KEY/GPG_PASSPHRASE secrets.
+#
+# Remove this workflow again once v2.3.0 is published.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Tag/version to backfill (leading v)
+        default: 'v2.3.0'
+        required: true
+      run-id:
+        description: Run id holding the artifacts
+        default: '43053742323'
+        required: true
+
+permissions:
+  actions: read   # download artifacts from the tag run
+  contents: write # create the draft release
+
+jobs:
+  backfill:
+    name: Assemble and sign release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifacts from the tag run
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.run-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Collect release files and generate checksums
+        run: |
+          VERSION="${{ inputs.version }}"
+          mkdir -p release-files
+
+          find artifacts -type f \( \
+            -name "*.zip" -o -name "*.tar.gz" -o -name "*.exe" -o -name "*.dmg" \
+          \) -exec cp {} release-files/ \;
+
+          find artifacts/pip-package -type f -name "cryptoadvance_specter-*.tar.gz" \
+            -exec cp {} release-files/ \; 2>/dev/null || true
+
+          # Everything the cancelled run did produce. The Windows GUI installer is
+          # deliberately absent: it ships with v2.3.1.
+          for REQUIRED in \
+            "specterd-${VERSION}-x86_64-linux-gnu.zip" \
+            "specterd-${VERSION}-win64.zip" \
+            "specterd-${VERSION}-osx_x64.zip" \
+            "specterd-${VERSION}-osx_arm64.zip" \
+            "specter_desktop-${VERSION}-x86_64-linux-gnu.tar.gz" \
+            "Specter-${VERSION}.dmg"; do
+            if [ ! -s "release-files/${REQUIRED}" ]; then
+              echo "Missing required release artifact: ${REQUIRED}"
+              exit 1
+            fi
+          done
+
+          if ! ls release-files/cryptoadvance_specter-*.tar.gz >/dev/null 2>&1; then
+            echo "Missing required pip sdist artifact"
+            exit 1
+          fi
+
+          if [ -e "release-files/Specter-Setup-${VERSION}.exe" ]; then
+            echo "Windows installer unexpectedly present — this backfill must not ship it"
+            exit 1
+          fi
+
+          cd release-files
+          sha256sum -- * > SHA256SUMS
+          echo "=== SHA256SUMS ==="
+          cat SHA256SUMS
+          cd ..
+
+      - name: GPG sign checksums
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          FPR=$(gpg --list-secret-keys --with-colons --with-fingerprint 2>/dev/null | awk -F: '/^fpr/{print $10; exit}')
+          echo "Fingerprint: $FPR"
+          echo "${FPR}:6:" | gpg --import-ownertrust
+          KEY_ID=$(gpg --list-secret-keys --keyid-format long --with-colons 2>/dev/null | awk -F: '/^sec/{print $5; exit}')
+          echo "Signing with key: $KEY_ID"
+          cd release-files
+          if [ -n "$GPG_PASSPHRASE" ]; then
+            echo "$GPG_PASSPHRASE" | gpg --batch --yes --passphrase-fd 0 \
+              --pinentry-mode loopback --default-key "$KEY_ID" --detach-sign --armor SHA256SUMS
+          else
+            gpg --batch --yes --pinentry-mode loopback --default-key "$KEY_ID" --detach-sign --armor SHA256SUMS
+          fi
+          cd ..
+
+      - name: Generate release body
+        run: |
+          VERSION="${{ inputs.version }}"
+          DL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${VERSION}"
+
+          cat > release-body.md << EOF
+          *Please create a full backup* before migrating or any major internal changes like switching to an electrum based installation. You can easily create a backup in Settings --> Backup Specter (zip file).
+
+          ## Artifacts
+
+          Specter is available in several forms: as a GUI application, as a binary that can be executed like a web app, as a PyPI package, and as a Docker image.
+
+          Signed hashsum files are available for all binaries.
+
+          ## GUI Application
+
+          This is a GUI application with a windowed interface, which includes the Specter server.
+          Supported platforms: [MacOS](${DL}/Specter-${VERSION}.dmg), [Linux (x86_64)](${DL}/specter_desktop-${VERSION}-x86_64-linux-gnu.tar.gz)
+
+          **Windows:** the GUI installer is **not part of this release**. The Windows Electron job hung on the CI runner (ubuntu-26.04/wine) and the tag run was cancelled. The fixed pipeline builds it natively on Windows and ships it with **v2.3.1**. The Windows `specterd` daemon is included below.
+
+          **Note on Linux**: you need to set up udev rules (included in the archive). Check out the [readme](https://github.com/cryptoadvance/specter-desktop/blob/master/udev/README.md#usage).
+
+          **Note on macOS**: The macOS application is currently **not code-signed or notarized** by Apple. After downloading the DMG and installing, macOS Gatekeeper will block the app. To fix this, run in Terminal:
+          \`\`\`
+          cd /Applications
+          xattr -cr "Specter.app"
+          \`\`\`
+          The current build supports macOS Catalina (10.15) or higher. If you'd like to run Specter on an older macOS version, you can [install Specter from Pip](https://github.com/cryptoadvance/specter-desktop#installing-specter-from-pip). See [#2530](https://github.com/cryptoadvance/specter-desktop/issues/2530) for details.
+
+          ## specterd
+
+          Specterd is a command-line program that runs only the Specter server, behaving like a traditional web application.
+          Supported platforms: [Windows](${DL}/specterd-${VERSION}-win64.zip), [macOS (Apple Silicon)](${DL}/specterd-${VERSION}-osx_arm64.zip), [macOS (Intel)](${DL}/specterd-${VERSION}-osx_x64.zip), [Linux (x86_64)](${DL}/specterd-${VERSION}-x86_64-linux-gnu.zip)
+
+          ## PyPi Packages
+
+          If you're experienced Python user and/or developer, you might appreciate the [pypi-packages](https://pypi.org/project/cryptoadvance-specter/) which are also available on our github-release-page.
+
+          ## Docker
+
+          Official Docker images are published to GitHub Container Registry:
+
+          \`\`\`
+          docker pull ghcr.io/cryptoadvance/specter-desktop:${VERSION}
+          \`\`\`
+
+          See all available tags at [ghcr.io/cryptoadvance/specter-desktop](https://github.com/cryptoadvance/specter-desktop/pkgs/container/specter-desktop).
+
+          For releases prior to v2.1.2, Docker images were provided by the [Chiang Mai LN devs](https://github.com/lncm/docker-specter-desktop).
+
+          ## Signatures and hashes
+
+          [SHA256SUMS](${DL}/SHA256SUMS) file contains sha256 hashes of all binary files and signed with "Specter Signer 2026" GPG key.
+          You can get the public key from [here](http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x9dc33ca830589de3b3225c26eef5756b2ea42349).
+          Fingerprint of the key is \`9DC3 3CA8 3058 9DE3 B322 5C26 EEF5 756B 2EA4 2349\`
+          This key has been signed by @k9ert's key. For more information about Verifying signatures, see, e.g. [this video](https://www.youtube.com/watch?v=lYYsVkOplYc).
+
+          # Release notes
+
+          EOF
+
+      - name: Generate release notes
+        run: |
+          VERSION="${{ inputs.version }}"
+          NOTES=$(gh api "repos/${GITHUB_REPOSITORY}/releases/generate-notes" \
+            -f tag_name="${VERSION}" \
+            --jq '.body') || true
+          if [ -n "$NOTES" ]; then
+            echo "$NOTES" >> release-body.md
+          fi
+
+      - name: Create draft release
+        run: |
+          VERSION="${{ inputs.version }}"
+          gh release create "$VERSION" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --draft \
+            --title "$VERSION" \
+            --notes-file release-body.md \
+            release-files/*
+
+      - name: Summary
+        run: |
+          {
+            echo "### Backfill complete"
+            echo ""
+            echo "Draft release \`${{ inputs.version }}\` created (no Windows GUI installer)."
+            echo ""
+            ls -l release-files
+          } >> "$GITHUB_STEP_SUMMARY"
