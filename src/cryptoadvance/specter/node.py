@@ -21,6 +21,7 @@ from .rpc import (
     RpcError,
     autodetect_rpc_confs,
     get_default_datadir,
+    get_walletdir,
 )
 from .specter_error import SpecterError, BrokenCoreConnectionException
 from .device import Device
@@ -668,7 +669,11 @@ class Node(AbstractNode):
             )
         except RpcError:
             pass
-        if self.chain == "test":
+        # Check walletdir in bitcoin.conf; network-specific section takes precedence over default
+        walletdir = get_walletdir(datadir, self.chain)
+        if walletdir:
+            path = os.path.join(walletdir, wallet_rpc_path)
+        elif self.chain == "test":
             path = os.path.join(datadir, "testnet3/wallets", wallet_rpc_path)
         elif self.chain == "main":
             path = os.path.join(datadir, wallet_rpc_path)
