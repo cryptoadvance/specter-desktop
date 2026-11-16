@@ -1,14 +1,8 @@
 # Security Policy
 
-## Supported versions
-
-| Version | Supported |
-| ------- | --------- |
-| 2.3.x   | ✅        |
-| < 2.3   | ❌        |
-
-Only the latest release receives security fixes. Older releases are not
-patched; please reproduce issues on the current version before reporting.
+Only the latest release is supported and receives security fixes. Older
+releases are not patched; please reproduce an issue on the current version
+before reporting it.
 
 ## Reporting a vulnerability
 
@@ -43,10 +37,16 @@ asks for a private contact channel.
 
 ## What to expect
 
-- We aim to acknowledge a report within three business days.
+- We aim to acknowledge a report within five business days.
 - We confirm the issue, agree on a disclosure timeline with you, and prepare a
   fix plus a GitHub security advisory.
 - We credit reporters in the advisory unless you ask us not to.
+
+## Bounties
+
+We currently have no budget for bounty payments. Reports are still very much
+appreciated — a privately reported issue is what lets us fix it before it hurts
+anyone, and we will credit you in the advisory.
 
 ## Scope
 
