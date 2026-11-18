@@ -95,6 +95,8 @@ jobs:
           pip install -r pyinstaller/requirements.txt
 
       - name: Build specterd
+        env:
+          PYTHONHASHSEED: '0'
         run: |
           source .buildenv/bin/activate
           VERSION=${GITHUB_REF#refs/tags/}
