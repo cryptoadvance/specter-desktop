@@ -235,7 +235,18 @@ jobs:
           mkdir tmp && cd tmp
           mkdir testextension && cd testextension
           pwd
-          python3 -m cryptoadvance.specter ext gen --ext-id cicdtest --org cryptoadvance --no-isolated-client --devicename cicddevice
+          # `ext gen` renders templates it downloads from raw.githubusercontent.com,
+          # which occasionally answers 429/5xx (a 501 broke #2738). GithubUrlLoader
+          # already retries transient errors with backoff; this outer loop is the
+          # safety net for longer CDN hiccups.
+          ext_gen="python3 -m cryptoadvance.specter ext gen --ext-id cicdtest --org cryptoadvance --no-isolated-client --devicename cicddevice"
+          generated=""
+          for attempt in 1 2 3; do
+            if $ext_gen; then generated="yes"; break; fi
+            echo "::warning title=ext gen failed::attempt $attempt/3 hit a transient template download error, retrying"
+            sleep 30
+          done
+          if [ -z "$generated" ]; then echo "ext gen failed after 3 attempts"; exit 1; fi
           pip3 install -e .
           python3 -m cryptoadvance.specter server --config DevelopmentConfig --debug  2> specter.log &
           sleep 15

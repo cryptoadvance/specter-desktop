@@ -152,8 +152,22 @@ class ExtGen:
             shutil.copy(sourcepath, targetpath)
             print(f"    --> Created {targetpath} (copied)")
         else:
-            r = requests.get(self.env.loader.url_for_template(sourcepath), timeout=30)
-            open(targetpath, "wb").write(r.content)
+            url = self.env.loader.url_for_template(sourcepath)
+            # fetch() retries transient CDN errors and raises TemplateNotFound
+            # instead of writing an error page into the binary file.
+            try:
+                r = self.env.loader.fetch(url)
+            except TemplateNotFound as e:
+                if getattr(e, "status_code", None) == 404:
+                    # Some assets (e.g. the device icon) simply don't exist in
+                    # the upstream dummy extension. Skipping them is better
+                    # than writing an HTML error page into a binary file.
+                    logger.warning(
+                        f"Asset {sourcepath} is not available at {url}, skipping"
+                    )
+                    return
+                raise
+            targetpath.write_bytes(r.content)
             print(f"    --> Created {targetpath} (via Github)")
 
     def generate_preppub(self):
@@ -217,6 +231,16 @@ class GithubUrlLoader(BaseLoader):
 
     dummy_base_url = "https://raw.githubusercontent.com/cryptoadvance/specterext-dummy"
 
+    # GitHub's raw CDN answers 429 when it rate-limits anonymous traffic and
+    # occasionally 5xx/501 while it is degraded. A single such answer used to
+    # abort `ext gen` (and with it the extension-smoketest, see #2738), so all
+    # of these are retried with exponential backoff.
+    transient_statuses = frozenset({429, 500, 501, 502, 503, 504})
+    max_attempts = 5
+    timeout = 30
+    backoff_base = 1
+    max_backoff = 30
+
     def __init__(self, base_url=None, branch=None):
         if base_url == None:
             base_url = self.dummy_base_url
@@ -230,14 +254,51 @@ class GithubUrlLoader(BaseLoader):
         url = self.base_url + "/" + template
         return url
 
+    def retry_delay(self, attempt, response=None):
+        """seconds to wait before the next attempt (honours Retry-After)"""
+        if response is not None:
+            retry_after = response.headers.get("Retry-After")
+            if retry_after and retry_after.strip().isdigit():
+                return min(float(retry_after.strip()), self.max_backoff)
+        return min(self.backoff_base * 2**attempt, self.max_backoff)
+
+    def fetch(self, url):
+        """GET url, retrying transient failures. Returns the requests.Response
+        of the successful attempt and raises TemplateNotFound otherwise."""
+        problem = "no attempt was made"
+        status_code = None
+        for attempt in range(self.max_attempts):
+            response = None
+            try:
+                response = requests.get(url, timeout=self.timeout)
+            except requests.RequestException as e:
+                problem = f"{type(e).__name__}: {e}"
+            else:
+                if response.status_code == 200:
+                    return response
+                problem = f"HTTP {response.status_code}"
+                status_code = response.status_code
+                if response.status_code not in self.transient_statuses:
+                    raise self._not_found(url, problem, status_code)
+            if attempt < self.max_attempts - 1:
+                delay = self.retry_delay(attempt, response)
+                logger.warning(
+                    f"{url} failed ({problem}), attempt {attempt + 1}/"
+                    f"{self.max_attempts}, retrying in {delay}s"
+                )
+                time.sleep(delay)
+        raise self._not_found(
+            url, f"{problem} after {self.max_attempts} attempts", status_code
+        )
+
+    @staticmethod
+    def _not_found(url, problem, status_code):
+        """TemplateNotFound carrying the HTTP status code (if there was one) so
+        callers can tell a permanently missing template from a CDN outage."""
+        error = TemplateNotFound(f"{url} results in {problem}")
+        error.status_code = status_code
+        return error
+
     def get_source(self, environment, template):
         url = self.url_for_template(template)
-        for attempt in range(3):
-            r = requests.get(url, timeout=30)
-            if r.status_code == 200:
-                return r.text, url, None
-            if r.status_code == 429 and attempt < 2:
-                time.sleep(2 ** (attempt + 1))
-                continue
-            raise TemplateNotFound(f"{url} results in {r.status_code}")
-        raise TemplateNotFound(f"{url} results in {r.status_code}")
+        return self.fetch(url).text, url, None
