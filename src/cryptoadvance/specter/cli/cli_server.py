@@ -164,6 +164,9 @@ def server(
             app.specter.data_folder, "specter.log"
         )
         fh = logging.FileHandler(app.config["SPECTER_LOGFILE"])
+        # Older versions logged node credentials and wallet descriptors verbatim;
+        # keep the file readable for the owner only.
+        os.chmod(app.config["SPECTER_LOGFILE"], 0o600)
         formatter = logging.Formatter(app.config["SPECTER_LOGFORMAT"])
         fh.setFormatter(formatter)
         logging.getLogger().addHandler(fh)

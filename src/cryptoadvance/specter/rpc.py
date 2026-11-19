@@ -10,6 +10,7 @@ import urllib3
 
 from .helpers import is_ip_private
 from .specter_error import SpecterError, handle_exception, BrokenCoreConnectionException
+from .util.redact import redact_rpc_payload, redact_text
 from urllib3.exceptions import NewConnectionError
 from requests.exceptions import ConnectionError
 
@@ -445,7 +446,7 @@ class BitcoinRPC:
                     timeout,
                     self.__class__.__name__,
                     "/".join(url.split("/")[3:]),
-                    payload,
+                    redact_rpc_payload(payload),
                     to,
                 )
             )
@@ -455,13 +456,12 @@ class BitcoinRPC:
                     timeout,
                     self.__class__.__name__,
                     "/".join(url.split("/")[3:]),
-                    payload,
                 )
             )
         self.trace_call_after(url, payload, ts)
         self.r = r
         if r.status_code != 200:
-            logger.debug(f"last call FAILED: {r.text}")
+            logger.debug(f"last call FAILED: {redact_text(r.text)}")
             if r.text.startswith("Work queue depth exceeded"):
                 raise SpecterError(
                     "Your Bitcoind is running hot (Work queue depth exceeded)! Bitcoind gets more requests than it can process. Please refrain from doing anything for some minutes."
@@ -507,7 +507,9 @@ class BitcoinRPC:
                     cls.last_call_hash = current_hash
             logger.debug(
                 "call({: <28})({: >5}ms)  payload:{}".format(
-                    "/".join(url.split("/")[3:]), timediff_ms, payload
+                    "/".join(url.split("/")[3:]),
+                    timediff_ms,
+                    redact_rpc_payload(payload),
                 )
             )
 

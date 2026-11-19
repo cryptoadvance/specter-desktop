@@ -111,7 +111,7 @@ def login_method_rpcpasswordaspin():
     if orig_password == request.form["password"]:
         app.login("admin", request.form["password"])
         app.logger.info(
-            f"AUDIT: Successfull Login via RPC-credentials (node not reachable) {rpc.password}"
+            "AUDIT: Successfull Login via RPC-credentials (node not reachable)"
         )
         return redirect_login(request)
     return deny_login(comment="Pin")

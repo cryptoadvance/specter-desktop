@@ -14,6 +14,7 @@ from ..key import Key
 from ..managers.wallet_manager import WalletManager
 from ..server_endpoints import flash
 from ..specter_error import SpecterError
+from .redact import redact_wallet_document
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ class WalletImporter:
                 self.cosigners_types,
             ) = WalletImporter.parse_wallet_data_import(self.wallet_data)
         except Exception as e:
-            logger.warning(f"Trying to import: {wallet_json}")
+            logger.warning(f"Trying to import: {redact_wallet_document(wallet_json)}")
             raise SpecterError(f"Unsupported wallet import format:{e}")
         try:
             self.descriptor = DescriptorCls.from_string(recv_descriptor)
