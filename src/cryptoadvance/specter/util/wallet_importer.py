@@ -47,12 +47,12 @@ class WalletImporter:
             ) = WalletImporter.parse_wallet_data_import(self.wallet_data)
         except Exception as e:
             logger.warning(f"Trying to import: {redact_wallet_document(wallet_json)}")
-            raise SpecterError(f"Unsupported wallet import format:{e}")
+            raise SpecterError("Unsupported wallet import format") from None
         try:
             self.descriptor = DescriptorCls.from_string(recv_descriptor)
             self.check_descriptor()
         except ValueError as e:
-            raise SpecterError(f"{e}: {recv_descriptor}")
+            raise SpecterError("Invalid wallet descriptor") from None
         if self.wallet_name in specter.wallet_manager.wallets_names:
             raise SpecterError(f"Wallet with the same name already exists")
         (

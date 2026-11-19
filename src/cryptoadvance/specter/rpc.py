@@ -274,7 +274,7 @@ class RpcError(Exception):
             error = response
         try:
             self.error_code = error["error"]["code"]
-            self.error_msg = error["error"]["message"]
+            self.error_msg = redact_text(error["error"]["message"])
         except Exception:
             self.error_code = -99
             # Handle both Response objects and dicts
@@ -282,7 +282,9 @@ class RpcError(Exception):
                 response_text = response.text
             else:
                 response_text = str(response)
-            self.error_msg = str(self) + " - UNKNOWN API-ERROR:%s" % response_text
+            self.error_msg = redact_text(
+                str(self) + " - UNKNOWN API-ERROR:%s" % response_text
+            )
 
 
 class BitcoinRPC:
@@ -467,7 +469,9 @@ class BitcoinRPC:
                     "Your Bitcoind is running hot (Work queue depth exceeded)! Bitcoind gets more requests than it can process. Please refrain from doing anything for some minutes."
                 )
             raise RpcError(
-                "Server responded with error code %d: %s" % (r.status_code, r.text), r
+                "Server responded with error code %d: %s"
+                % (r.status_code, redact_text(r.text)),
+                r,
             )
         r = r.json()
         # Bitcoin Core should return a list for batch requests, but some

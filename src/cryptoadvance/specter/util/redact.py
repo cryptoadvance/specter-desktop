@@ -26,15 +26,21 @@ SENSITIVE_RPC_METHODS = frozenset(
         "dumpwallet",
         "importwallet",
         "signmessagewithprivkey",
+        "createwallet",
+        "importprivkey",
+        "sethdseed",
+        "signrawtransactionwithkey",
     }
 )
 
-# BIP32 private keys (xprv/tprv), WIF keys and SLIP77 descriptors.
+# BIP32/SLIP-132 private keys, WIF keys and SLIP77 descriptors.
 _SECRET_PATTERNS = (
-    re.compile(r"\b[xt]prv[1-9A-HJ-NP-Za-km-z]{20,}"),
-    re.compile(r"\b[5KL][1-9A-HJ-NP-Za-km-z]{50}\b"),
+    re.compile(r"\b[xtyzuvYZUV]prv[1-9A-HJ-NP-Za-km-z]{20,}"),
+    re.compile(r"\b[5KLc9][1-9A-HJ-NP-Za-km-z]{50,51}\b"),
     re.compile(r"slip77\([^)]*\)"),
-    re.compile(r"(?i)\b(?:mnemonic|seed|password|passphrase)\b\s*[:=]\s*\S+"),
+    re.compile(
+        r"""(?i)\b(?:mnemonic|seed|password|passphrase)\b["']?\s*[:=]\s*(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\S+)"""
+    ),
 )
 
 

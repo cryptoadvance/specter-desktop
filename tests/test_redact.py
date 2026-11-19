@@ -1,8 +1,6 @@
 """Unit tests for the log redaction helpers.
 
-These tests do not need a node: they prove that key material never reaches a
-log record, on the RPC timeout path, on the DEBUG trace path and on the wallet
-import path.
+These tests do not need a node: they exercise RPC logs and wallet import errors.
 """
 
 import json
@@ -12,7 +10,9 @@ from unittest.mock import MagicMock
 import pytest
 import requests
 
-from cryptoadvance.specter.rpc import BitcoinRPC
+from cryptoadvance.specter.rpc import BitcoinRPC, RpcError
+from cryptoadvance.specter.specter_error import SpecterError
+from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from cryptoadvance.specter.util.redact import (
     REDACTED,
     redact_rpc_payload,
@@ -28,13 +28,33 @@ PASSPHRASE = "my-hot-wallet-file-password"
 
 def test_redact_text_scrubs_xprv_and_wif():
     assert XPRV not in redact_text(f"wpkh({XPRV}/0/*)")
+    assert WIF not in redact_text(WIF)
     assert WIF not in redact_text(f"blinded(slip77({WIF}),wsh(...))")
+    for prefix in ("yprv", "zprv", "Yprv", "Zprv", "uprv", "vprv"):
+        secret = prefix + XPRV[4:]
+        assert secret not in redact_text(secret)
+    assert '"password": "with spaces"' not in redact_text('"password": "with spaces"')
     assert redact_text("getblockcount") == "getblockcount"
 
 
 def test_sensitive_rpc_method_is_redacted():
     payload = [{"method": "walletpassphrase", "params": [PASSPHRASE, 60], "id": 0}]
     assert PASSPHRASE not in json.dumps(redact_rpc_payload(payload))
+
+
+@pytest.mark.parametrize(
+    "method,params",
+    [
+        ("createwallet", ["wallet", False, True, PASSPHRASE, False, True]),
+        ("importprivkey", [WIF]),
+        ("sethdseed", [True, WIF]),
+        ("signrawtransactionwithkey", ["rawtx", [WIF]]),
+    ],
+)
+def test_rpc_methods_with_private_params(method, params):
+    assert redact_rpc_payload({"method": method, "params": params}) == [
+        {"method": method, "params": REDACTED}
+    ]
 
 
 def test_descriptor_with_xprv_is_redacted():
@@ -66,7 +86,7 @@ def test_wallet_document_is_reduced_to_its_shape():
     assert redact_wallet_document("not json at all") == "<unparsable wallet document>"
 
 
-def test_timeout_log_does_not_contain_the_wallet_passphrase(caplog):
+def test_timeout_log_does_not_contain_the_wallet_passphrase(caplog, monkeypatch):
     session = MagicMock()
     session.post.side_effect = requests.exceptions.Timeout("timed out")
     rpc = BitcoinRPC(
@@ -78,14 +98,62 @@ def test_timeout_log_does_not_contain_the_wallet_passphrase(caplog):
         timeout=1,
         session=session,
     )
-    BitcoinRPC.counter = 0
-    BitcoinRPC.last_call_hash = None
-    BitcoinRPC.last_call_hash_counter = 0
+    monkeypatch.setattr(BitcoinRPC, "counter", 0)
+    monkeypatch.setattr(BitcoinRPC, "last_call_hash", None)
+    monkeypatch.setattr(BitcoinRPC, "last_call_hash_counter", 0)
 
     logger = logging.getLogger("cryptoadvance.specter.rpc")
     with caplog.at_level(logging.ERROR, logger=logger.name):
-        with pytest.raises(Exception):
-            rpc.multi([("walletpassphrase", PASSPHRASE, 60)], timeout=15)
+        with pytest.raises(SpecterError):
+            rpc.multi([("createwallet", "w", False, True, PASSPHRASE)], timeout=15)
 
     assert PASSPHRASE not in caplog.text
-    assert "walletpassphrase" in caplog.text
+    assert "createwallet" in caplog.text
+
+
+def test_debug_trace_does_not_contain_private_key(caplog, monkeypatch):
+    from cryptoadvance.specter import rpc as rpc_module
+
+    monkeypatch.setattr(BitcoinRPC, "last_call_hash", None)
+    monkeypatch.setattr(BitcoinRPC, "last_call_hash_counter", 0)
+    monkeypatch.setattr(rpc_module.logger, "level", logging.DEBUG)
+    session = MagicMock()
+    session.post.return_value.status_code = 200
+    session.post.return_value.json.return_value = [{"result": True, "error": None}]
+    rpc = BitcoinRPC(session=session)
+    with caplog.at_level(logging.DEBUG, logger=rpc_module.logger.name):
+        rpc.multi([("importprivkey", WIF)])
+    assert "payload:" in caplog.text
+    assert WIF not in caplog.text
+
+
+def test_failed_rpc_response_does_not_echo_password(caplog):
+    response = MagicMock(status_code=500, text='{"password": "with spaces"}')
+    response.json.side_effect = ValueError("invalid JSON")
+    session = MagicMock()
+    session.post.return_value = response
+    rpc = BitcoinRPC(session=session)
+    with caplog.at_level(logging.DEBUG):
+        with pytest.raises(RpcError) as error:
+            rpc.multi([("getblockcount",)])
+    assert "with spaces" not in caplog.text
+    assert "with spaces" not in str(error.value)
+    assert "with spaces" not in error.value.error_msg
+
+
+def test_wallet_import_descriptor_error_does_not_echo_private_key(monkeypatch):
+    secret_descriptor = f"wpkh({XPRV}/0/*)"
+    monkeypatch.setattr(
+        WalletImporter,
+        "parse_wallet_data_import",
+        lambda data: ("wallet", secret_descriptor, []),
+    )
+    from embit.descriptor import Descriptor
+
+    def invalid_descriptor(value):
+        raise ValueError(f"Invalid descriptor: {value}")
+
+    monkeypatch.setattr(Descriptor, "from_string", invalid_descriptor)
+    with pytest.raises(SpecterError) as error:
+        WalletImporter("{}", MagicMock(is_liquid=False))
+    assert XPRV not in str(error.value)
