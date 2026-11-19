@@ -1,3 +1,4 @@
+import logging
 import random
 import time
 
@@ -13,8 +14,15 @@ from cryptoadvance.specter.specter import Specter
 from ..helpers import create_unique_id, is_relative_url
 from ..server_endpoints import flash
 from ..services import ExtensionException
-from ..user import User, hash_password, verify_password
+from ..user import (
+    User,
+    hash_password,
+    password_hash_needs_rehash,
+    verify_password,
+)
 from ..rpc import BitcoinRPC, _detect_rpc_confs_via_datadir
+
+logger = logging.getLogger(__name__)
 
 rand = random.randint(0, int(1e32))  # to force style refresh
 last_sensitive_request = 0  # to rate limit sensitive requests
@@ -111,15 +119,32 @@ def login_method_rpcpasswordaspin():
     if orig_password == request.form["password"]:
         app.login("admin", request.form["password"])
         app.logger.info(
-            f"AUDIT: Successfull Login via RPC-credentials (node not reachable) {rpc.password}"
+            "AUDIT: Successfull Login via RPC-credentials (node not reachable)"
         )
         return redirect_login(request)
     return deny_login(comment="Pin")
 
 
+def upgrade_password_hash(user, password):
+    """Rehash a legacy password hash after a successful login.
+
+    Only the login hash is rewritten - the user_secret keeps its own
+    encryption (which is already at a higher iteration count).
+    """
+    if not password_hash_needs_rehash(user.password_hash):
+        return
+    try:
+        user.password_hash = hash_password(password)
+        user.save_info()
+        logger.info(f"Upgraded password hash for user {user.username}")
+    except Exception as e:  # never block a login because of the upgrade
+        logger.warning(f"Could not upgrade password hash for {user.username}: {e}")
+
+
 def login_method_passwordonly():
     password = request.form["password"]
     if verify_password(app.specter.user_manager.admin.password_hash, password):
+        upgrade_password_hash(app.specter.user_manager.admin, password)
         app.login("admin", request.form["password"])
         return redirect_login(request)
     return deny_login(comment="passwordonly")
@@ -132,6 +157,7 @@ def login_method_usernamepassword():
     user = app.specter.user_manager.get_user_by_username(username)
     if user:
         if verify_password(user.password_hash, password):
+            upgrade_password_hash(user, password)
             app.login(user.id, request.form["password"])
             return redirect_login(request)
     return deny_login(comment="usernamepassword")

@@ -546,7 +546,7 @@ def auth():
                 if method in ["rpcpasswordaspin", "passwordonly", "usernamepassword"]:
                     if method == "passwordonly":
                         specter_password = request.form.get("specter_password_only")
-                        if specter_password and len(specter_password) < min_chars:
+                        if not specter_password or len(specter_password) < min_chars:
                             flash(
                                 _(
                                     "Please enter a password of a least {} characters"
@@ -566,10 +566,6 @@ def auth():
                                     current_user
                                 ),
                             )
-                        elif not specter_password:
-                            # Set to the default
-                            specter_password = "admin"
-
                         try:
                             current_user.set_password(specter_password)
                         except UserSecretException as e:
