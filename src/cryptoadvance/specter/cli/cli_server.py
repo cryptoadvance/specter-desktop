@@ -213,10 +213,8 @@ def server(
             app.tor_port = tor_port
             app.save_tor_address_to = toraddr_file
             if debug and (tor or os.getenv("CONNECT_TOR") == "True"):
-                print(
-                    " * Warning: Cannot use Tor in debug mode. \
-                      Starting in production mode instead."
-                )
+                print(" * Warning: Cannot use Tor in debug mode. \
+                      Starting in production mode instead.")
                 debug = False
             if (
                 tor
