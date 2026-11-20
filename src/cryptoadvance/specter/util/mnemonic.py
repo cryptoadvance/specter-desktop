@@ -82,18 +82,28 @@ def get_wordlist(mnemonic: str) -> list:
     return wordlist
 
 
-def mnemonic_to_seed(mnemonic: str, passphrase: str) -> bytes:
-    """Derive the BIP39 seed with NFKD-normalized inputs (including Liquid)."""
+def mnemonic_to_seed(
+    mnemonic: str, passphrase: str, legacy: bool = False, liquid: bool = False
+) -> bytes:
+    """Derive a BIP39 seed, or explicitly recover a pre-NFKD Specter seed.
+
+    Legacy Liquid used embit's default English wordlist rather than the detected
+    wordlist used for Bitcoin. Preserve that distinction for exact recovery.
+    """
+    if legacy and liquid:
+        return bip39.mnemonic_to_seed(mnemonic, passphrase)
     wordlist = get_wordlist(mnemonic)
     return bip39.mnemonic_to_seed(
-        unicodedata.normalize("NFKD", mnemonic),
-        unicodedata.normalize("NFKD", passphrase),
+        mnemonic if legacy else unicodedata.normalize("NFKD", mnemonic),
+        passphrase if legacy else unicodedata.normalize("NFKD", passphrase),
         wordlist=wordlist,
     )
 
 
-def mnemonic_to_root(mnemonic: str, passphrase: str) -> bip32.HDKey:
+def mnemonic_to_root(
+    mnemonic: str, passphrase: str, legacy: bool = False
+) -> bip32.HDKey:
     """Returns an embit BIP32 root key class"""
-    seed = mnemonic_to_seed(mnemonic, passphrase)
+    seed = mnemonic_to_seed(mnemonic, passphrase, legacy=legacy)
     root = bip32.HDKey.from_seed(seed)
     return root
