@@ -1,6 +1,6 @@
-""" Provides an API abstracting writes (and reads) on anything
-    happening on the ~/.specter-folder. Useful as we can then
-    call the call-back-method.
+"""Provides an API abstracting writes (and reads) on anything
+happening on the ~/.specter-folder. Useful as we can then
+call the call-back-method.
 """
 
 import csv
@@ -23,6 +23,43 @@ logger = logging.getLogger(__name__)
 
 fslock = threading.Lock()
 pclock = threading.Lock()
+
+
+def ensure_private_directory(path):
+    """Create or restrict a Specter data directory (not its parent directories)."""
+    os.makedirs(path, mode=0o700, exist_ok=True)
+    os.chmod(path, 0o700)
+
+
+def secure_json_files(data_folder):
+    """Restrict existing Specter JSON, without traversing node data or logs."""
+    # Only Specter's own JSON locations, never an internal node's datadir or
+    # arbitrary extension storage under this folder.
+    folders = [data_folder]
+    for name in ("devices", "nodes", "wallets"):
+        path = os.path.join(data_folder, name)
+        if os.path.isdir(path) and not os.path.islink(path):
+            folders.append(path)
+    wallets = os.path.join(data_folder, "wallets")
+    if wallets in folders:
+        for node_id in os.listdir(wallets):
+            path = os.path.join(wallets, node_id)
+            if os.path.isdir(path) and not os.path.islink(path):
+                folders.append(path)
+                for chain in os.listdir(path):
+                    chain_path = os.path.join(path, chain)
+                    if os.path.isdir(chain_path) and not os.path.islink(chain_path):
+                        folders.append(chain_path)
+    for folder in folders:
+        os.chmod(folder, 0o700)
+        for name in os.listdir(folder):
+            path = os.path.join(folder, name)
+            if (
+                (name.endswith(".json") or name.endswith(".json.bkp"))
+                and os.path.isfile(path)
+                and not os.path.islink(path)
+            ):
+                os.chmod(path, 0o600)
 
 
 class PersistentObject:
@@ -129,10 +166,12 @@ def _write_json_file(content, path, lock=None):
     if lock is None:
         lock = fslock
     with lock:
+        ensure_private_directory(os.path.dirname(os.path.abspath(path)))
         # backup file
         bkp = path + ".bkp"
         # check if file exists
         if os.path.isfile(path):
+            os.chmod(path, 0o600)
             # check if backup exists
             if os.path.isfile(bkp):
                 # remove backup file
@@ -140,7 +179,14 @@ def _write_json_file(content, path, lock=None):
             # move file to backup
             os.rename(path, bkp)
         try:
-            with open(path, "w") as f:
+            # Set permissions on the descriptor before writing any secrets, even
+            # when the process umask is permissive.
+            fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, "w") as f:
+                if hasattr(os, "fchmod"):
+                    os.fchmod(f.fileno(), 0o600)
+                else:
+                    os.chmod(path, 0o600)
                 json.dump(content, f, indent=4)
 
             # check if write was successful
