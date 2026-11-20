@@ -86,6 +86,42 @@ def test_mnemonic_to_root():
     )
 
 
+def test_liquid_seed_matches_bip39_reference():
+    from mnemonic import Mnemonic
+    from cryptoadvance.specter.util.mnemonic import mnemonic_to_seed
+
+    phrase = "abandon " * 11 + "about"
+    assert mnemonic_to_seed(phrase, "pässword") == Mnemonic("english").to_seed(
+        phrase, passphrase="pässword"
+    )
+
+
+def test_bip39_nfkd_mnemonic_and_passphrase_match_reference():
+    from mnemonic import Mnemonic
+    from embit import bip32
+    import unicodedata
+
+    mnemonic = "abandon " * 11 + "about"
+    reference = Mnemonic("english").to_seed(mnemonic, passphrase="pässword")
+    assert (
+        mnemonic_to_root(mnemonic, "pässword").to_string()
+        == bip32.HDKey.from_seed(reference).to_string()
+    )
+    assert (
+        mnemonic_to_root(mnemonic, "pässword").to_string()
+        == mnemonic_to_root(
+            mnemonic, unicodedata.normalize("NFKD", "pässword")
+        ).to_string()
+    )
+    # Japanese BIP39 mnemonic with a precomposed character.
+    composed = unicodedata.normalize("NFC", japanese)
+    # Also verify equivalent composed/decomposed mnemonic spellings when detected.
+    assert (
+        mnemonic_to_root(composed, "").to_string()
+        == mnemonic_to_root(japanese, "").to_string()
+    )
+
+
 def count_multi_occurrence_languages(word_lists_dict):
     # Create a Counter to store occurrences of words across different lists
     word_counter = Counter()

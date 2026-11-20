@@ -1,4 +1,5 @@
 import logging
+import unicodedata
 from mnemonic.mnemonic import ConfigurationError, Mnemonic
 from embit import bip32, bip39, networks
 from embit.wordlists.bip39 import WORDLIST
@@ -81,9 +82,18 @@ def get_wordlist(mnemonic: str) -> list:
     return wordlist
 
 
+def mnemonic_to_seed(mnemonic: str, passphrase: str) -> bytes:
+    """Derive the BIP39 seed with NFKD-normalized inputs (including Liquid)."""
+    wordlist = get_wordlist(mnemonic)
+    return bip39.mnemonic_to_seed(
+        unicodedata.normalize("NFKD", mnemonic),
+        unicodedata.normalize("NFKD", passphrase),
+        wordlist=wordlist,
+    )
+
+
 def mnemonic_to_root(mnemonic: str, passphrase: str) -> bip32.HDKey:
     """Returns an embit BIP32 root key class"""
-    wordlist = get_wordlist(mnemonic)
-    seed = bip39.mnemonic_to_seed(mnemonic, passphrase, wordlist=wordlist)
+    seed = mnemonic_to_seed(mnemonic, passphrase)
     root = bip32.HDKey.from_seed(seed)
     return root

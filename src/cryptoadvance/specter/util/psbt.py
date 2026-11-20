@@ -290,20 +290,63 @@ class SpecterPSBT(AbstractTxContext):
     def descriptor(self) -> Descriptor:
         return self._descriptor
 
-    def update(self, b64psbt: str, raw: dict = {}) -> None:
+    def update(self, b64psbt: str, raw: dict = None) -> None:
+        """Merge only signatures and key origins for the same unsigned transaction.
+
+        A finalized raw transaction may have a different txid due to scriptSig;
+        compare its unsigned fields instead of its txid.
         """
-        b64psbt - PSBT transaction with some extra data that we should take
-        raw dict can contain "hex" key with hex string of the finalized transaction. Or not.
-        """
+        psbt = self.PSBTCls.from_string(b64psbt) if b64psbt else None
+        if psbt:
+            if psbt.tx.serialize() != self.psbt.tx.serialize():
+                raise ValueError(
+                    "PSBT unsigned transaction does not match pending transaction"
+                )
+            for inp in psbt.inputs:
+                if inp.sighash_type not in (None, 1):
+                    raise ValueError("Unsupported PSBT sighash type")
+                if (
+                    inp.final_scriptsig is not None
+                    or inp.final_scriptwitness is not None
+                ):
+                    raise ValueError("Cannot merge unverified PSBT final fields")
+
+        finalized = None
         if raw and "hex" in raw:
-            self.raw = bytes.fromhex(raw["hex"])
-        if not b64psbt:
-            return
-        psbt = self.PSBTCls.from_string(b64psbt)
-        for inp1, inp2 in zip(self.psbt.inputs, psbt.inputs):
-            inp1.update(inp2)
-        for out1, out2 in zip(self.psbt.outputs, psbt.outputs):
-            out1.update(out2)
+            finalized = bytes.fromhex(raw["hex"])
+            tx = self.TxCls.TxCls.parse(finalized)
+            unsigned = self.psbt.tx
+            if (
+                tx.version != unsigned.version
+                or tx.locktime != unsigned.locktime
+                or len(tx.vin) != len(unsigned.vin)
+                or len(tx.vout) != len(unsigned.vout)
+                or any(
+                    vin.txid != original.txid
+                    or vin.vout != original.vout
+                    or vin.sequence != original.sequence
+                    or not (vin.script_sig.data or vin.witness.items)
+                    for vin, original in zip(tx.vin, unsigned.vin)
+                )
+                or any(
+                    out.value != original.value
+                    or out.script_pubkey != original.script_pubkey
+                    for out, original in zip(tx.vout, unsigned.vout)
+                )
+            ):
+                raise ValueError("Final transaction does not match pending transaction")
+
+        if psbt:
+            for dest, source in zip(self.psbt.inputs, psbt.inputs):
+                dest.partial_sigs.update(source.partial_sigs)
+                dest.bip32_derivations.update(source.bip32_derivations)
+                dest.taproot_bip32_derivations.update(source.taproot_bip32_derivations)
+                dest.taproot_sigs.update(source.taproot_sigs)
+            for dest, source in zip(self.psbt.outputs, psbt.outputs):
+                dest.bip32_derivations.update(source.bip32_derivations)
+                dest.taproot_bip32_derivations.update(source.taproot_bip32_derivations)
+        if finalized is not None:
+            self.raw = finalized
 
     def utxo_dict(self) -> dict:
         return [{"txid": inp.txid.hex(), "vout": inp.vout} for inp in self.psbt.inputs]

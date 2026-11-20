@@ -68,7 +68,8 @@
                     <br>
                     <br>
                     <label>{{ _("BIP39 passphrase (optional):") }} </label>
-                    <input type="password" name="passphrase" id="passphrase" class="inline" placeholder="passphrase">
+                    <input type="password" name="passphrase" id="passphrase" class="inline" placeholder="passphrase" oninput="document.getElementById('passphrase-unicode-warning').hidden = !/[^\x00-\x7F]/.test(this.value)">
+                    <p id="passphrase-unicode-warning" hidden>{{ _("Non-ASCII passphrases are normalized for BIP39. Older Specter versions derived a different wallet; verify your backup before restoring an existing wallet.") }}</p>
                     <br>
                     <p data-style="margin-bottom: 10px;">{{ _("Addresses range to import:") }} </p>
                     {{ _("From:") }} <input type="number" name="range_start" id="range_start" class="inline" placeholder="start" value=0 step=1 min=0 max=100000>
