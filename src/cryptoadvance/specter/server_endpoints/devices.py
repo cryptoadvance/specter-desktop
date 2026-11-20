@@ -197,9 +197,11 @@ def new_device_keys(device_type):
         range_end=range_end,
         device_name=request.form.get("device_name", ""),
         master_pub_key=request.form.get("master_pub_key", ""),
-        existing_device=app.specter.device_manager.get_by_alias(existing_device)
-        if existing_device
-        else None,
+        existing_device=(
+            app.specter.device_manager.get_by_alias(existing_device)
+            if existing_device
+            else None
+        ),
         error=err,
         specter=app.specter,
         rand=rand,
