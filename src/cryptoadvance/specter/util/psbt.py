@@ -291,7 +291,7 @@ class SpecterPSBT(AbstractTxContext):
     def descriptor(self) -> Descriptor:
         return self._descriptor
 
-    def update(self, b64psbt: str, raw: dict = None) -> None:
+    def update(self, b64psbt: str, raw: dict = None, trusted: bool = False) -> None:
         """Merge only signatures and key origins for the same unsigned transaction.
 
         A finalized raw transaction may have a different txid due to scriptSig;
@@ -339,13 +339,28 @@ class SpecterPSBT(AbstractTxContext):
 
         if psbt:
             for dest, source in zip(self.psbt.inputs, psbt.inputs):
-                dest.partial_sigs.update(source.partial_sigs)
-                dest.bip32_derivations.update(source.bip32_derivations)
-                dest.taproot_bip32_derivations.update(source.taproot_bip32_derivations)
-                dest.taproot_sigs.update(source.taproot_sigs)
+                if trusted:
+                    # Core fills UTXOs and scripts for transaction history.
+                    dest.update(source)
+                else:
+                    dest.partial_sigs.update(source.partial_sigs)
+                    dest.bip32_derivations.update(source.bip32_derivations)
+                    dest.taproot_bip32_derivations.update(
+                        source.taproot_bip32_derivations
+                    )
+                    # embit 0.6.1 has no taproot_sigs scope attribute.
+                    if hasattr(dest, "taproot_sigs") and hasattr(
+                        source, "taproot_sigs"
+                    ):
+                        dest.taproot_sigs.update(source.taproot_sigs)
             for dest, source in zip(self.psbt.outputs, psbt.outputs):
-                dest.bip32_derivations.update(source.bip32_derivations)
-                dest.taproot_bip32_derivations.update(source.taproot_bip32_derivations)
+                if trusted:
+                    dest.update(source)
+                else:
+                    dest.bip32_derivations.update(source.bip32_derivations)
+                    dest.taproot_bip32_derivations.update(
+                        source.taproot_bip32_derivations
+                    )
         if finalized is not None:
             self.raw = finalized
 

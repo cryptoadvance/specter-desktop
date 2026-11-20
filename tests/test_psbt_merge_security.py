@@ -44,6 +44,18 @@ def test_merge_rejects_changed_v2_output_scope():
     assert stored.psbt.outputs[0].value == 900
 
 
+def test_trusted_wallet_rpc_fills_utxo_but_cannot_change_unsigned_transaction():
+    stored = pending()
+    stored.psbt.inputs[0].witness_utxo = None
+    rpc_psbt = pending().psbt
+    stored.update(str(rpc_psbt), trusted=True)
+    assert stored.psbt.inputs[0].witness_utxo.value == 1000
+    changed_tx = Transaction.parse(stored.psbt.tx.serialize())
+    changed_tx.vout[0].value = 500
+    with pytest.raises(ValueError, match="unsigned transaction"):
+        stored.update(str(PSBT(changed_tx)), trusted=True)
+
+
 def test_merge_rejects_other_unsigned_transaction_without_mutation():
     stored = pending()
     tx = Transaction.parse(stored.psbt.tx.serialize())
