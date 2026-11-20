@@ -1,5 +1,6 @@
 """Backup privacy regressions without bitcoind, elementsd or browser fixtures."""
 
+import json
 import os
 import stat
 from pathlib import Path
@@ -38,7 +39,8 @@ def test_json_and_backup_permissions_are_private_with_permissive_umask(tmp_path)
     finally:
         os.umask(old_umask)
 
-    assert stat.S_IMODE(folder.stat().st_mode) == 0o700
+    # Generic JSON writes must not change pre-existing shared directories.
+    assert stat.S_IMODE(folder.stat().st_mode) == 0o777
     assert stat.S_IMODE(path.stat().st_mode) == 0o600
     assert stat.S_IMODE(Path(str(path) + ".bkp").stat().st_mode) == 0o600
 
@@ -74,6 +76,56 @@ def test_relative_json_path_is_private(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     _write_json_file({"blinding_key": "secret"}, "device.json")
     assert stat.S_IMODE((tmp_path / "device.json").stat().st_mode) == 0o600
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX symlinks")
+def test_json_writer_refuses_symlink_without_chmodding_external_target(tmp_path):
+    outside = tmp_path / "outside.json"
+    outside.write_text("unchanged")
+    outside.chmod(0o666)
+    link = tmp_path / "device.json"
+    link.symlink_to(outside)
+    with pytest.raises(ValueError, match="symbolic link"):
+        _write_json_file({"secret": "value"}, str(link))
+    assert outside.read_text() == "unchanged"
+    assert stat.S_IMODE(outside.stat().st_mode) == 0o666
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX permission bits")
+def test_non_admin_wallet_and_device_files_are_restricted(tmp_path):
+    data = tmp_path / "specter"
+    wallet_dir = data / "wallets_alice" / "node" / "liquid"
+    device_dir = data / "devices_alice"
+    wallet_dir.mkdir(parents=True)
+    device_dir.mkdir()
+    wallet = wallet_dir / "secret.json"
+    device = device_dir / "device.json"
+    for path in (wallet, device):
+        path.write_text("secret")
+        path.chmod(0o666)
+    for folder in (wallet_dir, wallet_dir.parent, wallet_dir.parent.parent, device_dir):
+        folder.chmod(0o777)
+    secure_json_files(str(data))
+    for path in (wallet, device):
+        assert stat.S_IMODE(path.stat().st_mode) == 0o600
+    for folder in (wallet_dir, wallet_dir.parent, wallet_dir.parent.parent, device_dir):
+        assert stat.S_IMODE(folder.stat().st_mode) == 0o700
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX permission bits")
+def test_failed_write_restores_backup_privately_even_with_permissive_umask(tmp_path):
+    from cryptoadvance.specter.specter_error import SpecterError
+
+    path = tmp_path / "secret.json"
+    _write_json_file({"old": "secret"}, str(path))
+    old_umask = os.umask(0)
+    try:
+        with pytest.raises(SpecterError):
+            _write_json_file({"new": object()}, str(path))
+    finally:
+        os.umask(old_umask)
+    assert json.loads(path.read_text()) == {"old": "secret"}
+    assert stat.S_IMODE(path.stat().st_mode) == 0o600
 
 
 def test_liquid_multisig_warning_only_on_creation_flow():
