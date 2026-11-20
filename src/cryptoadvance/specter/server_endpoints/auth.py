@@ -15,9 +15,7 @@ from ..helpers import create_unique_id, is_relative_url
 from ..server_endpoints import flash
 from ..services import ExtensionException
 from ..user import (
-    User,
-    hash_password,
-    password_hash_needs_rehash,
+    upgrade_password_hash,
     verify_password,
 )
 from ..rpc import BitcoinRPC, _detect_rpc_confs_via_datadir

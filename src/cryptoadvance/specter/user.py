@@ -30,6 +30,7 @@ from .util.password import (
     PASSWORD_HASH_ITERATIONS,
     hash_password,
     password_hash_needs_rehash,
+    upgrade_password_hash,
     verify_password,
 )
 
