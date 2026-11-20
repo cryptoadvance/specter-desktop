@@ -3,6 +3,7 @@ The goal of this module is to slowly migrate from json-like representation of PS
 to a normal PSBT class that does not require RPC calls and can do more things.
 to_dict and from_dict methods are maintained for backward-compatibility
 """
+
 import logging
 from cryptoadvance.specter.key import Key
 from embit.psbt import PSBT, InputScope, OutputScope, DerivationPath
@@ -66,9 +67,9 @@ class SpecterTx(AbstractTxContext):
             },
         }
         try:
-            if scope.script_pubkey.data.startswith(b"\x6a"):
+            if vout.script_pubkey.data.startswith(b"\x6a"):
                 obj["scriptPubKey"]["addresses"] = [
-                    "OP_RETURN " + scope.script_pubkey.data.hex()
+                    "OP_RETURN " + vout.script_pubkey.data.hex()
                 ]
             else:
                 obj["scriptPubKey"]["addresses"] = [

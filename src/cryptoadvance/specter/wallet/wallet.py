@@ -273,7 +273,7 @@ class Wallet(AbstractWallet):
         if change_descriptor is None and "/0/*" not in recv_descriptor:
             raise SpecterError("Receive descriptor has strange derivation path")
         if change_descriptor is None:
-            change_descriptor = recv_descriptor.split("#").replace("/0/*", "/1/*")
+            change_descriptor = recv_descriptor.split("#")[0].replace("/0/*", "/1/*")
         # remove checksums
         recv_descriptor = recv_descriptor.split("#")[0]
         change_descriptor = change_descriptor.split("#")[0]
@@ -419,9 +419,11 @@ class Wallet(AbstractWallet):
         return cls(
             name,
             alias,
-            "{} of {} {}".format(sigs_required, len(keys), purposes[key_type])
-            if len(keys) > 1
-            else purposes[key_type],
+            (
+                "{} of {} {}".format(sigs_required, len(keys), purposes[key_type])
+                if len(keys) > 1
+                else purposes[key_type]
+            ),
             addrtypes[key_type],
             "",
             -1,
@@ -741,7 +743,8 @@ class Wallet(AbstractWallet):
 
     def check_unused(self):
         """Check current receive address is unused and get new if needed
-        Used means: the given address having a non-zero amount received in transactions with zero confirmations."""
+        Used means: the given address having a non-zero amount received in transactions with zero confirmations.
+        """
         addr = self.address
         try:
             while self.rpc.getreceivedbyaddress(addr, 0) != 0:
@@ -1581,9 +1584,11 @@ class Wallet(AbstractWallet):
         MAX_BLOCKHEIGHT = 999999999999  # Replace before we reach this height
         first_tx = sorted(
             self._transactions.values(),
-            key=lambda tx: tx.get("blockheight", None)
-            if tx.get("blockheight", None)
-            else MAX_BLOCKHEIGHT,
+            key=lambda tx: (
+                tx.get("blockheight", None)
+                if tx.get("blockheight", None)
+                else MAX_BLOCKHEIGHT
+            ),
         )
         first_tx_blockheight = (
             first_tx[0].get("blockheight", None) if first_tx else None

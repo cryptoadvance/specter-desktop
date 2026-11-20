@@ -128,11 +128,13 @@ class PsbtCreator:
         else:
             # calculate new amount if we need to subtract
             if self.kwargs["subtract"]:
+                recipient_index = self.kwargs["subtract_from"]
+                recipient_address = self.addresses[recipient_index]
                 for v in self.psbt["tx"]["vout"]:
-                    if self.addresses[0] in v["scriptPubKey"].get(
-                        "addresses", [""]
-                    ) or self.addresses[0] == v["scriptPubKey"].get("address", ""):
-                        self.amounts[0] = v["value"]
+                    if recipient_address in v["scriptPubKey"].get(
+                        "addresses", []
+                    ) or recipient_address == v["scriptPubKey"].get("address"):
+                        self.amounts[recipient_index] = v["value"]
         return self.psbt
 
     @classmethod
@@ -197,7 +199,10 @@ class PsbtCreator:
                         f"Unknown recipients_amount_unit: {recipients_amount_unit}"
                     )
                 labels.append("")
-                amount_units.append(recipients_amount_unit)
+                unit = recipients_amount_unit
+                if specter.is_liquid and unit in ["sat", "btc"]:
+                    unit = specter.default_asset
+                amount_units.append(unit)
             except IndexError as ie:
                 logger.error(f"line does not match expected pattern: '{output}'")
         return addresses, labels, amounts, amount_units

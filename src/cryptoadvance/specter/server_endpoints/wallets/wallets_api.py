@@ -228,10 +228,22 @@ def broadcast_blockexplorer(wallet_alias):
                     ),
                 )
             requests_session = app.specter.requests_session(force_tor=use_tor)
-            requests_session.post(
+            response = requests_session.post(
                 f"{app.config['EXPLORERS_LIST'][explorer]['url']}{url_network}api/tx",
                 data=tx,
             )
+            txid = response.text.strip()
+            if (
+                response.status_code != 200
+                or len(txid) != 64
+                or any(char not in "0123456789abcdefABCDEF" for char in txid)
+            ):
+                return jsonify(
+                    success=False,
+                    error=_(
+                        "Failed to broadcast transaction: explorer returned {}: {}"
+                    ).format(response.status_code, response.text.strip()[:500]),
+                )
             wallet.delete_spent_pending_psbts([tx])
             return jsonify(success=True)
         except Exception as e:
@@ -845,6 +857,7 @@ def wallet_overview_utxo_csv():
 
 ################## Helpers #######################
 
+
 # Transactions list to user-friendly CSV format
 def txlist_to_csv(
     wallet: Wallet, _txlist, includePricesHistory=False, amount_logic="flow"
@@ -880,9 +893,11 @@ def txlist_to_csv(
         lazy_gettext("Category"),
         lazy_gettext("Amount ({})").format(app.specter.unit.upper()),
         lazy_gettext("Value ({})").format(symbol),
-        lazy_gettext("Rate (BTC/{})").format(symbol)
-        if app.specter.unit != "sat"
-        else lazy_gettext("Rate ({}/SAT)").format(symbol),
+        (
+            lazy_gettext("Rate (BTC/{})").format(symbol)
+            if app.specter.unit != "sat"
+            else lazy_gettext("Rate ({}/SAT)").format(symbol)
+        ),
         lazy_gettext("TxID"),
         lazy_gettext("Address"),
         lazy_gettext("Block Height"),
@@ -986,11 +1001,13 @@ def addresses_list_to_csv(wallet: Wallet):
         row = (
             address,
             address_info.label,
-            _("(external)")
-            if address_info.is_external
-            else (
-                str(address_info.index)
-                + (_(" (change)") if address_info.change else "")
+            (
+                _("(external)")
+                if address_info.is_external
+                else (
+                    str(address_info.index)
+                    + (_(" (change)") if address_info.change else "")
+                )
             ),
             address_info.used,
         )
