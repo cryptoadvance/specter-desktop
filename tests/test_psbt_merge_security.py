@@ -115,6 +115,17 @@ def test_finalized_raw_transaction_with_witness_is_accepted():
     assert stored.raw == tx.serialize()
 
 
+def test_finalized_psbt_with_matching_raw_keeps_untrusted_final_fields_out():
+    stored = pending()
+    incoming = PSBT.parse(stored.psbt.serialize())
+    incoming.inputs[0].final_scriptwitness = Witness([b"sig"])
+    tx = Transaction.parse(stored.psbt.tx.serialize())
+    tx.vin[0].witness = Witness([b"sig"])
+    stored.update(str(incoming), {"hex": tx.serialize().hex()})
+    assert stored.raw == tx.serialize()
+    assert stored.psbt.inputs[0].final_scriptwitness is None
+
+
 def test_recipient_reduction_warning_survives_psbt_serialization():
     stored = pending()
     stored.recipient_amount_reduced = True

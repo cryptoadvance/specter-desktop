@@ -310,7 +310,7 @@ class SpecterPSBT(AbstractTxContext):
                     if (
                         inp.final_scriptsig is not None
                         or inp.final_scriptwitness is not None
-                    ):
+                    ) and not (raw and "hex" in raw):
                         raise ValueError("Cannot merge unverified PSBT final fields")
 
         finalized = None
