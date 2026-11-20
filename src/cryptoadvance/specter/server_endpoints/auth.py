@@ -123,22 +123,6 @@ def login_method_rpcpasswordaspin():
     return deny_login(comment="Pin")
 
 
-def upgrade_password_hash(user, password):
-    """Rehash a legacy password hash after a successful login.
-
-    Only the login hash is rewritten - the user_secret keeps its own
-    encryption (which is already at a higher iteration count).
-    """
-    if not password_hash_needs_rehash(user.password_hash):
-        return
-    try:
-        user.password_hash = hash_password(password)
-        user.save_info()
-        logger.info(f"Upgraded password hash for user {user.username}")
-    except Exception as e:  # never block a login because of the upgrade
-        logger.warning(f"Could not upgrade password hash for {user.username}: {e}")
-
-
 def login_method_passwordonly():
     password = request.form["password"]
     if verify_password(app.specter.user_manager.admin.password_hash, password):
