@@ -163,7 +163,19 @@ def server(
         app.config["SPECTER_LOGFILE"] = os.path.join(
             app.specter.data_folder, "specter.log"
         )
-        fh = logging.FileHandler(app.config["SPECTER_LOGFILE"])
+        logfile = app.config["SPECTER_LOGFILE"]
+        # FileHandler creates files with the process umask; create ours privately.
+        fd = os.open(logfile, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+        os.close(fd)
+        # Older installations may have permissive logs. A shared-volume file
+        # owned by another user must not prevent the server from starting.
+        try:
+            os.chmod(logfile, 0o600)
+        except PermissionError:
+            logger.warning(
+                "Cannot restrict permissions on existing log file %s", logfile
+            )
+        fh = logging.FileHandler(logfile)
         formatter = logging.Formatter(app.config["SPECTER_LOGFORMAT"])
         fh.setFormatter(formatter)
         logging.getLogger().addHandler(fh)

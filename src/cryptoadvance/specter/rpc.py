@@ -10,6 +10,7 @@ import urllib3
 
 from .helpers import is_ip_private
 from .specter_error import SpecterError, handle_exception, BrokenCoreConnectionException
+from .util.redact import redact_rpc_payload, redact_text
 from urllib3.exceptions import NewConnectionError
 from requests.exceptions import ConnectionError
 
@@ -273,7 +274,7 @@ class RpcError(Exception):
             error = response
         try:
             self.error_code = error["error"]["code"]
-            self.error_msg = error["error"]["message"]
+            self.error_msg = redact_text(error["error"]["message"])
         except Exception:
             self.error_code = -99
             # Handle both Response objects and dicts
@@ -281,7 +282,9 @@ class RpcError(Exception):
                 response_text = response.text
             else:
                 response_text = str(response)
-            self.error_msg = str(self) + " - UNKNOWN API-ERROR:%s" % response_text
+            self.error_msg = redact_text(
+                str(self) + " - UNKNOWN API-ERROR:%s" % response_text
+            )
 
 
 class BitcoinRPC:
@@ -445,7 +448,7 @@ class BitcoinRPC:
                     timeout,
                     self.__class__.__name__,
                     "/".join(url.split("/")[3:]),
-                    payload,
+                    redact_rpc_payload(payload),
                     to,
                 )
             )
@@ -455,19 +458,20 @@ class BitcoinRPC:
                     timeout,
                     self.__class__.__name__,
                     "/".join(url.split("/")[3:]),
-                    payload,
                 )
             )
         self.trace_call_after(url, payload, ts)
         self.r = r
         if r.status_code != 200:
-            logger.debug(f"last call FAILED: {r.text}")
+            logger.debug(f"last call FAILED: {redact_text(r.text)}")
             if r.text.startswith("Work queue depth exceeded"):
                 raise SpecterError(
                     "Your Bitcoind is running hot (Work queue depth exceeded)! Bitcoind gets more requests than it can process. Please refrain from doing anything for some minutes."
                 )
             raise RpcError(
-                "Server responded with error code %d: %s" % (r.status_code, r.text), r
+                "Server responded with error code %d: %s"
+                % (r.status_code, redact_text(r.text)),
+                r,
             )
         r = r.json()
         # Bitcoin Core should return a list for batch requests, but some
@@ -507,7 +511,9 @@ class BitcoinRPC:
                     cls.last_call_hash = current_hash
             logger.debug(
                 "call({: <28})({: >5}ms)  payload:{}".format(
-                    "/".join(url.split("/")[3:]), timediff_ms, payload
+                    "/".join(url.split("/")[3:]),
+                    timediff_ms,
+                    redact_rpc_payload(payload),
                 )
             )
 

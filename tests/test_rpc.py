@@ -245,10 +245,8 @@ def test_BitcoinRpc_timeout(rpc, caplog):
         with pytest.raises(SpecterError) as se:
             rpc.createwallet("some_test_wallet_name_392")
         assert "Timeout after 0.001" in str(se.value)
-        assert (
-            "while BitcoinRPC call(                            ) payload:[{'method': 'createwallet', 'params': ['some_test_wallet_name_392'], 'jsonrpc': '2.0', 'id': 0}]"
-            in caplog.text
-        )
+        assert "'method': 'createwallet', 'params': '<redacted>'" in caplog.text
+        assert "some_test_wallet_name_392" not in caplog.text
 
         rpc.timeout = 0.0001
         with pytest.raises(SpecterError) as se:
