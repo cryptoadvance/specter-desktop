@@ -187,7 +187,6 @@ class LiquidRPC(BitcoinRPC):
                 # check if there are zero outputs
                 has_zero = len([out for out in tx.outputs if out.value == 0]) > 0
                 has_blinded = any([out.blinding_pubkey for out in tx.outputs])
-                logger.error(has_zer, has_blinded)
                 if has_blinded and has_zero:
                     tx.outputs = [out for out in tx.outputs if out.value > 0]
                     psbt = str(tx)
