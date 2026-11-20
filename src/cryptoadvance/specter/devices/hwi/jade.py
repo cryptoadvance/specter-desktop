@@ -200,7 +200,6 @@ class JadeClient(HardwareWalletClient):
         """
         Sign a transaction with the Blockstream Jade.
         """
-
         # Helper to get multisig record for change output
         def _parse_signers(
             hd_keypath_origins: List[KeyOriginInfo],
@@ -298,7 +297,9 @@ class JadeClient(HardwareWalletClient):
                         addr_type = (
                             AddressType.LEGACY
                             if not witness_input
-                            else AddressType.WIT if not p2sh else AddressType.SH_WIT
+                            else AddressType.WIT
+                            if not p2sh
+                            else AddressType.SH_WIT
                         )
                         script_variant = self._convertAddrType(addr_type, multisig=True)
                         threshold = parsed[0]
