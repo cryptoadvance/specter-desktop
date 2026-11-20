@@ -64,10 +64,11 @@ def test_SwanClient(app):
         assert not sc.is_access_token_valid()
         assert sc.calc_callback_url() == "http://a_hostname/svc/swan/oauth2/callback"
 
-        start_url = sc.get_oauth2_start_url("a_hostname")
-        start_url.startswith(
-            "https://dev-api.swanbitcoin.com/oidc/auth?client_id=specter-dev&redirect_uri=http://a_hostname/spc/ext/swan/oauth2/callback&response_type=code&response_mode=query"
-        )
+        with app.test_request_context("/spc/ext/swan/oauth2/start"):
+            start_url = sc.get_oauth2_start_url("a_hostname")
+            assert start_url.startswith(
+                "https://dev-api.swanbitcoin.com/oidc/auth?client_id=specter-dev&redirect_uri=http://a_hostname/spc/ext/swan/oauth2/callback&response_type=code&response_mode=query"
+            )
 
         fake_response = construct_access_token_fake_response()
         with mock.patch("requests.post", return_value=fake_response):

@@ -3,16 +3,23 @@ import datetime
 import hashlib
 import json
 import logging
+import os
 import secrets
+import sqlite3
+import time
+from contextlib import closing, contextmanager
 from decimal import Decimal
 from os import access
+from pathlib import Path
 from typing import List
 from urllib import request
 from urllib.parse import urlparse
 
 import pytz
 import requests
+from cryptography.fernet import Fernet
 from flask import current_app as app
+from flask import session
 from flask_babel import lazy_gettext as _
 
 logger = logging.getLogger(__name__)
@@ -20,7 +27,35 @@ logger = logging.getLogger(__name__)
 
 # TODO: Update with prod values
 
-code_verifier = "64fRjTuy6SKqdC1wSoInUNxX65dQUhVVKTqZXuQ7dqw"
+OAUTH_FLOW_LIFETIME = 600  # seconds
+OAUTH_FLOW_LIMIT = 8  # per browser; older tabs can be restarted
+OAUTH_SESSION_KEY = "swan_oauth_browser"
+
+
+@contextmanager
+def _oauth_flows():
+    """Shared server-side store: separate Gunicorn workers must see the same flows."""
+    path = app.config.get("SWAN_OAUTH_DB") or str(
+        Path(app.specter.data_folder) / "swan_oauth.sqlite"
+    )
+    try:
+        fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+    except FileExistsError:
+        pass
+    else:
+        os.close(fd)
+    conn = sqlite3.connect(path, timeout=10)
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS flows (state TEXT PRIMARY KEY, browser TEXT NOT NULL, "
+        "user_id TEXT, verifier TEXT NOT NULL, redirect_uri TEXT NOT NULL, expires REAL NOT NULL)"
+    )
+    with closing(conn), conn:
+        yield conn
+
+
+def _flow_cipher():
+    key = hashlib.sha256(app.secret_key.encode("utf-8")).digest()
+    return Fernet(base64.urlsafe_b64encode(key))
 
 
 class SwanApiException(Exception):
@@ -56,23 +91,46 @@ class SwanClient:
     def calc_callback_url(self):
         return f"http://{ self.hostname }{app.config['APP_URL_PREFIX']}{app.config['EXT_URL_PREFIX']}/swan/oauth2/callback"
 
-    def get_oauth2_start_url(self, callback_hostname):
+    def get_oauth2_start_url(self, callback_hostname, user_id=None):
         """
         Set up the Swan API integration by requesting our initial access_token and
         refresh_token.
         """
         # Let's start the PKCE-flow
-        global code_verifier
-
         self.hostname = callback_hostname
-
-        if code_verifier is None:
-            code_verifier = secrets.token_urlsafe(43)
+        code_verifier = secrets.token_urlsafe(32)
+        state = secrets.token_urlsafe(32)
+        browser = session.get(OAUTH_SESSION_KEY)
+        if not browser:
+            browser = secrets.token_urlsafe(32)
+            session[OAUTH_SESSION_KEY] = browser
+        with _oauth_flows() as flows:
+            flows.execute("BEGIN IMMEDIATE")
+            now = time.time()
+            flows.execute("DELETE FROM flows WHERE expires <= ?", (now,))
+            browser_flows = flows.execute(
+                "SELECT state FROM flows WHERE browser = ? ORDER BY expires", (browser,)
+            ).fetchall()
+            for (key,) in browser_flows[: -(OAUTH_FLOW_LIMIT - 1)]:
+                flows.execute("DELETE FROM flows WHERE state = ?", (key,))
+            flows.execute(
+                "INSERT INTO flows VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    state,
+                    browser,
+                    user_id,
+                    _flow_cipher()
+                    .encrypt(code_verifier.encode("ascii"))
+                    .decode("ascii"),
+                    self.calc_callback_url(),
+                    now + OAUTH_FLOW_LIFETIME,
+                ),
+            )
         # see specification: https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
         # and example impl: https://github.com/RomeoDespres/pkce/blob/master/pkce/__init__.py#L94-L96
         hashed = hashlib.sha256(code_verifier.encode("ascii")).digest()
         encoded = base64.urlsafe_b64encode(hashed)
-        code_challenge = encoded.decode("ascii")[:-1]
+        code_challenge = encoded.decode("ascii").rstrip("=")
 
         flow_url = f"{self.api_url}/oidc/auth?"
         query_params = [
@@ -82,7 +140,7 @@ class SwanClient:
             "response_mode=query",
             f"code_challenge={code_challenge}",
             "code_challenge_method=S256",
-            "state=kjkmdskdmsmmsmdslmdlsm",
+            f"state={state}",
             "scope=offline_access v1 write:vendor_wallet read:vendor_wallet write:automatic_withdrawal read:automatic_withdrawal",
             "prompt=consent",
         ]
@@ -91,7 +149,7 @@ class SwanClient:
         return flow_url
 
     def _get_access_token(
-        self, code: str = None, code_verifier: str = None, request_uri=None
+        self, code: str = None, code_verifier: str = None, request_uri=None, state=None
     ) -> str:
         """
         If code and code_verifier are specified, this is our initial request for an
@@ -111,7 +169,7 @@ class SwanClient:
                 "client_secret": self.client_secret,
                 "code_verifier": code_verifier,
                 "grant_type": "authorization_code",
-                "state": "kjkmdskdmsmmsmdslmdlsm",
+                "state": state,
                 "code": code,
                 "redirect_uri": request_uri,
             }
@@ -177,12 +235,48 @@ class SwanClient:
             logger.warning(response)
             raise SwanApiException(response.text)
 
-    def handle_oauth2_auth_callback(self, request):
+    def handle_oauth2_auth_callback(self, request, user_id=None):
+        state = request.args.get("state")
+        browser = session.get(OAUTH_SESSION_KEY)
+        if not state or not browser:
+            raise SwanApiException("Invalid or expired Swan OAuth state")
+        with _oauth_flows() as flows:
+            flows.execute("BEGIN IMMEDIATE")
+            flow = flows.execute(
+                "SELECT browser, user_id, verifier, redirect_uri, expires "
+                "FROM flows WHERE state = ?",
+                (state,),
+            ).fetchone()
+            if (
+                not flow
+                or not secrets.compare_digest(flow[0], browser)
+                or flow[1] != user_id
+            ):
+                raise SwanApiException("Invalid or expired Swan OAuth state")
+            # Consume before talking to Swan, including provider errors and failed exchanges.
+            flows.execute("DELETE FROM flows WHERE state = ?", (state,))
+        if flow[4] <= time.time():
+            raise SwanApiException("Invalid or expired Swan OAuth state")
+        if request.args.get("error"):
+            raise SwanApiException("Swan OAuth authorization was declined")
         code = request.args.get("code")
+        if not code:
+            raise SwanApiException(
+                "Swan OAuth callback is missing an authorization code"
+            )
         rp = urlparse(request.url)
         request_uri = f"{rp.scheme}://{rp.netloc}{rp.path}"
+        if request_uri != flow[3]:
+            raise SwanApiException(
+                "Swan OAuth callback URL does not match the authorization"
+            )
         self._get_access_token(
-            code=code, code_verifier=code_verifier, request_uri=request_uri
+            code=code,
+            code_verifier=_flow_cipher()
+            .decrypt(flow[2].encode("ascii"))
+            .decode("ascii"),
+            request_uri=flow[3],
+            state=state,
         )
 
     def authenticated_request(

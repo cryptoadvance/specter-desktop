@@ -147,7 +147,9 @@ def oauth2_start():
     # The oauth2-flow uses a whitelist. Is our hostname whitelisted?!
     if specter_used_hostname not in app.config["SWAN_ALLOWED_SPECTER_HOSTNAMES"]:
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.index"))
-    flow_url = SwanService.client().get_oauth2_start_url(specter_used_hostname)
+    flow_url = SwanService.client().get_oauth2_start_url(
+        specter_used_hostname, user_id=current_user.id
+    )
     sign_in_url = app.config["SWAN_FRONTEND_URL"]
 
     return render_template(
@@ -181,23 +183,13 @@ def integration_check():
 @swan_endpoint.route("/oauth2/callback")
 @login_required
 def oauth2_auth():
-    if request.args.get("error"):
-        logger.error(
-            f"OAuth2 flow error: {request.args.get('error')}, {request.args.get('error_description')}"
-        )
-        return render_template(
-            "500.jinja",
-            error=request.args.get("error"),
-            traceback=request.args.get(
-                "error_description"
-            ),  # Slightly misusing the traceback field
-        )
-
     user: User = app.specter.user_manager.get_user()
     error = None
 
     try:
-        SwanService.client().handle_oauth2_auth_callback(request)
+        SwanService.client().handle_oauth2_auth_callback(
+            request, user_id=current_user.id
+        )
         SwanService.store_new_api_access_data()
     except swan_client.SwanApiException as e:
         logger.exception(e)
