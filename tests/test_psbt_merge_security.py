@@ -56,6 +56,17 @@ def test_trusted_wallet_rpc_fills_utxo_but_cannot_change_unsigned_transaction():
         stored.update(str(PSBT(changed_tx)), trusted=True)
 
 
+def test_trusted_core_enrichment_accepts_finalized_history_metadata():
+    stored = pending()
+    rpc_psbt = PSBT.parse(stored.psbt.serialize())
+    rpc_psbt.inputs[0].final_scriptwitness = Witness([b"sig"])
+    stored.update(str(rpc_psbt), trusted=True)
+    assert stored.psbt.inputs[0].final_scriptwitness.items == [b"sig"]
+    untrusted = pending()
+    with pytest.raises(ValueError, match="final fields"):
+        untrusted.update(str(rpc_psbt))
+
+
 def test_merge_rejects_other_unsigned_transaction_without_mutation():
     stored = pending()
     tx = Transaction.parse(stored.psbt.tx.serialize())

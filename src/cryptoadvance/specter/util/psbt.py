@@ -303,14 +303,15 @@ class SpecterPSBT(AbstractTxContext):
                 raise ValueError(
                     "PSBT unsigned transaction does not match pending transaction"
                 )
-            for inp in psbt.inputs:
-                if inp.sighash_type not in (None, 1):
-                    raise ValueError("Unsupported PSBT sighash type")
-                if (
-                    inp.final_scriptsig is not None
-                    or inp.final_scriptwitness is not None
-                ):
-                    raise ValueError("Cannot merge unverified PSBT final fields")
+            if not trusted:
+                for inp in psbt.inputs:
+                    if inp.sighash_type not in (None, 1):
+                        raise ValueError("Unsupported PSBT sighash type")
+                    if (
+                        inp.final_scriptsig is not None
+                        or inp.final_scriptwitness is not None
+                    ):
+                        raise ValueError("Cannot merge unverified PSBT final fields")
 
         finalized = None
         if raw and "hex" in raw:
