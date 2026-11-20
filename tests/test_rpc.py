@@ -9,6 +9,7 @@ from cryptoadvance.specter.rpc import (
     RpcError,
     _detect_rpc_confs_via_datadir,
     get_rpcconfig,
+    get_walletdir,
 )
 from cryptoadvance.specter.specter_error import SpecterError
 
@@ -94,7 +95,50 @@ def test_get_rpcconfig2(empty_data_folder):
     }
 
 
-def test_detect_rpc_confs_via_datadir1(empty_data_folder):
+def test_get_walletdir_not_configured(empty_data_folder):
+    """get_walletdir returns None when walletdir is not set in bitcoin.conf."""
+    assert get_walletdir(empty_data_folder, "main") is None
+    assert get_walletdir(empty_data_folder, "regtest") is None
+
+
+def test_get_walletdir_default_section():
+    """get_walletdir returns the walletdir from the [default] section."""
+    datadir = "./tests/misc_testdata/rpc_autodetection/example_walletdir_default"
+    assert get_walletdir(datadir, "main") == "/custom/wallets"
+    assert get_walletdir(datadir, "regtest") == "/custom/wallets"
+    assert get_walletdir(datadir, "test") == "/custom/wallets"
+
+
+def test_get_walletdir_network_section_takes_precedence():
+    """Network-specific walletdir takes precedence over the [default] walletdir."""
+    datadir = "./tests/misc_testdata/rpc_autodetection/example_walletdir_network"
+    # regtest section overrides the default
+    assert get_walletdir(datadir, "regtest") == "/regtest/wallets"
+    # other chains fall back to default
+    assert get_walletdir(datadir, "main") == "/default/wallets"
+    assert get_walletdir(datadir, "test") == "/default/wallets"
+
+
+def test_get_walletdir_dot_notation_network_override(tmp_path):
+    """Dot-notation network walletdir overrides the default walletdir."""
+    bitcoin_conf = tmp_path / "bitcoin.conf"
+    bitcoin_conf.write_text(
+        "walletdir=/default/wallets\n" "regtest.walletdir=/regtest/wallets\n"
+    )
+    assert get_walletdir(str(tmp_path), "regtest") == "/regtest/wallets"
+    assert get_walletdir(str(tmp_path), "main") == "/default/wallets"
+    assert get_walletdir(str(tmp_path), "test") == "/default/wallets"
+
+
+def test_get_walletdir_expands_tilde(tmp_path, monkeypatch):
+    """get_walletdir expands ~ in the datadir path so user-entered paths work."""
+    monkeypatch.setenv("HOME", str(tmp_path))
+    bitcoin_conf = tmp_path / "bitcoin.conf"
+    bitcoin_conf.write_text("walletdir=/custom/wallets\n")
+    assert get_walletdir("~", "main") == "/custom/wallets"
+
+def test_detect_rpc_confs_via_datadir1():
+def test_detect_rpc_confs_via_datadir1():
     c = _detect_rpc_confs_via_datadir(
         datadir="./tests/misc_testdata/rpc_autodetection/example1"
     )
