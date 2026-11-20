@@ -200,6 +200,7 @@ class JadeClient(HardwareWalletClient):
         """
         Sign a transaction with the Blockstream Jade.
         """
+
         # Helper to get multisig record for change output
         def _parse_signers(
             hd_keypath_origins: List[KeyOriginInfo],
@@ -297,9 +298,7 @@ class JadeClient(HardwareWalletClient):
                         addr_type = (
                             AddressType.LEGACY
                             if not witness_input
-                            else AddressType.WIT
-                            if not p2sh
-                            else AddressType.SH_WIT
+                            else AddressType.WIT if not p2sh else AddressType.SH_WIT
                         )
                         script_variant = self._convertAddrType(addr_type, multisig=True)
                         threshold = parsed[0]
@@ -320,7 +319,8 @@ class JadeClient(HardwareWalletClient):
                             signers,
                         )
 
-                # Build the input and add to the list - include some host entropy for AE sigs (although we won't verify)
+                # Build the input without AE parameters: Specter does not verify
+                # anti-exfil commitments, so nonce-exfil protection is not provided.
                 jade_inputs.append(
                     {
                         "is_witness": witness_input,
@@ -328,8 +328,6 @@ class JadeClient(HardwareWalletClient):
                         "script": scriptcode,
                         "path": path,
                         "input_tx": input_txn_bytes,
-                        "ae_host_entropy": os.urandom(32),
-                        "ae_host_commitment": os.urandom(32),
                     }
                 )
 
@@ -459,14 +457,13 @@ class JadeClient(HardwareWalletClient):
             # Request Jade generate the signatures for our inputs.
             # Change details are passed to be validated on the hw (user does not confirm)
             signatures = self.jade.sign_tx(
-                self._network(), txn_bytes, jade_inputs, change, True
+                self._network(), txn_bytes, jade_inputs, change, use_ae_signatures=False
             )
 
             # Push sigs into PSBT structure as appropriate
-            for psbtin, signer_pubkey, sigdata in zip(
+            for psbtin, signer_pubkey, sig in zip(
                 tx.inputs, signing_pubkeys, signatures
             ):
-                signer_commitment, sig = sigdata
                 if signer_pubkey and sig:
                     psbtin.partial_sigs[signer_pubkey] = sig
 

@@ -26,6 +26,7 @@ Welcome to the Device Creation Guide for Specter Hardware Wallets. In this compr
 - **Supported Devices:**
   
   - Jade  <img src="../src/cryptoadvance/specter/static/img/devices/jade_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> A budget-friendly hardware wallet with QR code functionality for secure and offline transactions.
+    **Signing security note:** Specter's Jade HWI transaction signing does not enable or verify Jade anti-exfil signatures. It therefore provides **no nonce-exfiltration protection** against a compromised signer choosing malicious signing nonces. Check transaction details on the device and keep its firmware trustworthy; device confirmation does not replace nonce-exfiltration protection.
   - SeedSigner  <img src="../src/cryptoadvance/specter/static/img/devices/seedsigner_icon.svg" alt="BitBox02 Wallet" width="25" height="25"/> An open-source project that focuses on creating a secure, offline transaction signing device using QR codes.
 
 ### USB Wallets
