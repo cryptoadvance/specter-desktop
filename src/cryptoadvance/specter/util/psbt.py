@@ -66,9 +66,9 @@ class SpecterTx(AbstractTxContext):
             },
         }
         try:
-            if scope.script_pubkey.data.startswith(b"\x6a"):
+            if vout.script_pubkey.data.startswith(b"\x6a"):
                 obj["scriptPubKey"]["addresses"] = [
-                    "OP_RETURN " + scope.script_pubkey.data.hex()
+                    "OP_RETURN " + vout.script_pubkey.data.hex()
                 ]
             else:
                 obj["scriptPubKey"]["addresses"] = [
@@ -280,6 +280,7 @@ class SpecterPSBT(AbstractTxContext):
         self.devices = devices
         self.raw = bytes.fromhex(raw) if raw else None
         self.time = kwargs.get("time", time.time())
+        self.recipient_amount_reduced = kwargs.get("recipient_amount_reduced", False)
 
     @property
     def network(self) -> dict:
@@ -458,6 +459,8 @@ class SpecterPSBT(AbstractTxContext):
             ],
             "fee_rate": round(fee / full_size, 2),
         }
+        if self.recipient_amount_reduced:
+            obj["recipient_amount_reduced"] = True
         if self.raw:
             obj.update({"raw": self.raw.hex()})
         return obj
