@@ -237,6 +237,7 @@ def broadcast_blockexplorer(wallet_alias):
                 response.status_code != 200
                 or len(txid) != 64
                 or any(char not in "0123456789abcdefABCDEF" for char in txid)
+                or txid.lower() != wallet.rpc.decoderawtransaction(tx)["txid"].lower()
             ):
                 return jsonify(
                     success=False,

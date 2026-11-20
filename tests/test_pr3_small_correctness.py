@@ -119,6 +119,7 @@ def test_explorer_rejection_keeps_pending_psbts(status, body):
 def test_successful_explorer_broadcast_clears_pending_psbts():
     flask_app, wallets_api, wallet, session = explorer_app()
     session.post.return_value = MagicMock(status_code=200, text="a" * 64)
+    wallet.rpc.decoderawtransaction.return_value = {"txid": "a" * 64}
     with flask_app.test_request_context(
         "/wallet/w/broadcast_blockexplorer/",
         method="POST",
@@ -127,3 +128,18 @@ def test_successful_explorer_broadcast_clears_pending_psbts():
         result = wallets_api.broadcast_blockexplorer.__wrapped__("w").get_json()
     assert result["success"] is True
     wallet.delete_spent_pending_psbts.assert_called_once_with(["deadbeef"])
+
+
+def test_explorer_wrong_transaction_id_keeps_pending_psbts():
+    flask_app, wallets_api, wallet, session = explorer_app()
+    session.post.return_value = MagicMock(status_code=200, text="a" * 64)
+    wallet.rpc.decoderawtransaction.return_value = {"txid": "b" * 64}
+    with flask_app.test_request_context(
+        "/wallet/w/broadcast_blockexplorer/",
+        method="POST",
+        data={"tx": "deadbeef", "explorer": "mempool", "use_tor": "false"},
+    ):
+        with patch.object(wallets_api, "_", side_effect=lambda message: message):
+            result = wallets_api.broadcast_blockexplorer.__wrapped__("w").get_json()
+    assert result["success"] is False
+    wallet.delete_spent_pending_psbts.assert_not_called()

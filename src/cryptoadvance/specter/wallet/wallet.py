@@ -2189,9 +2189,9 @@ class Wallet(AbstractWallet):
             if new_value <= 546:
                 raise SpecterError("Not enough funds in the transaction to avoid dust")
             psbt.psbt.outputs[0].value = new_value
-            recipient_amount_reduced = True
+            psbt.recipient_amount_reduced = True
         else:
-            recipient_amount_reduced = False
+            psbt.recipient_amount_reduced = False
             # find change output
             change_index = None
             for i, out in enumerate(psbt.outputs):
@@ -2208,7 +2208,7 @@ class Wallet(AbstractWallet):
                 psbt.psbt.outputs.remove(psbt.psbt.outputs[change_index])
         self.save_pending_psbt(psbt)
         result = psbt.to_dict()
-        if recipient_amount_reduced:
+        if psbt.recipient_amount_reduced:
             result["recipient_amount_reduced"] = True
         return result
 

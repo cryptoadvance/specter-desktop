@@ -90,3 +90,12 @@ def test_finalized_raw_transaction_with_witness_is_accepted():
     tx.vin[0].witness = Witness([b"sig"])
     stored.update(None, {"hex": tx.serialize().hex()})
     assert stored.raw == tx.serialize()
+
+
+def test_recipient_reduction_warning_survives_psbt_serialization():
+    stored = pending()
+    stored.recipient_amount_reduced = True
+    reopened = SpecterPSBT.from_dict(
+        {"base64": str(stored.psbt), "recipient_amount_reduced": True}, None, {}
+    )
+    assert reopened.recipient_amount_reduced is True
