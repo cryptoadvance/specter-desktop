@@ -1,4 +1,5 @@
 import pytest
+import unicodedata
 from cryptoadvance.specter.util.mnemonic import *
 from collections import Counter, defaultdict
 from itertools import combinations
@@ -20,6 +21,13 @@ japanese = "ちほう そざい そんみん まもる いりょう ねだ
 czech = "poryv troska mozol poledne louka levobok kuna lump korpus zvesela lyra kauce"
 
 portuguese = "assador borbulha sorteio enguia castelo fanfarra vertente duplo legista aferir vazio apito"
+
+# "abandon abandon ... about" with passphrase "pässword".
+# Captured from the pre-NFKD Specter code path (embit, no normalization).
+LEGACY_ROOT_XPRV = "xprv9s21ZrQH143K3U7U1GbZ9VyEBpAr68HX8WnsYC5qWv8wwA2XrrtaWDXUJh4t7rMHvtaeswQqbSxT5FdTzUQHym9StxbPAY4cUC8rz4btPpr"
+# Same mnemonic and passphrase, normalized per BIP39 and cross-checked against
+# the python-mnemonic reference implementation.
+NFKD_ROOT_XPRV = "xprv9s21ZrQH143K4CD7VJ9DE5xYeKGUgxN8Hr94pJYcjrdLzFHUzTwjhzRDPfJM7towF42oZYmnvMppYC9jCwqpnjDmBkarrFwv2i1PtGuBNYC"
 
 
 def test_initialize_mnemonic(caplog):
@@ -84,6 +92,125 @@ def test_mnemonic_to_root():
         root_gravoso_mummia.to_string()
         == "xprv9s21ZrQH143K33VMWAAXEnZ6Sps5XB3YJxLsoDYUeb2Q3TFQdw2ZHF5BRoGA7aojGAyFk9D3EsWFneTN9JeZYo3tmigKkcWyTirRZGxmbB2"
     )
+
+
+def test_default_seed_matches_bip39_reference_for_non_ascii_passphrase():
+    """BIP39 requires NFKD normalization; the reference implementation agrees."""
+    from mnemonic import Mnemonic
+
+    phrase = "abandon " * 11 + "about"
+    passphrase = "pässword"
+    reference = Mnemonic("english").to_seed(phrase, passphrase=passphrase)
+    assert mnemonic_to_seed(phrase, passphrase) == reference
+    # NFKD is idempotent: an already decomposed passphrase derives the same seed.
+    assert (
+        mnemonic_to_seed(phrase, unicodedata.normalize("NFKD", passphrase)) == reference
+    )
+
+
+def test_default_root_is_nfkd_and_legacy_root_is_the_old_derivation():
+    phrase = "abandon " * 11 + "about"
+    passphrase = "pässword"
+    assert mnemonic_to_root(phrase, passphrase).to_string() == NFKD_ROOT_XPRV
+    assert (
+        mnemonic_to_root(phrase, passphrase, legacy=True).to_string()
+        == LEGACY_ROOT_XPRV
+    )
+    assert NFKD_ROOT_XPRV != LEGACY_ROOT_XPRV
+
+
+def test_default_normalizes_precomposed_mnemonic():
+    """A composed mnemonic must derive the same root as its NFKD spelling."""
+    from mnemonic import Mnemonic
+
+    composed = unicodedata.normalize("NFC", japanese)
+    assert composed != japanese
+    assert (
+        mnemonic_to_root(composed, "").to_string()
+        == mnemonic_to_root(japanese, "").to_string()
+    )
+    assert mnemonic_to_seed(composed, "") == Mnemonic("japanese").to_seed(
+        composed, passphrase=""
+    )
+
+
+def test_ascii_passphrase_derivation_is_unchanged():
+    """NFKD is a no-op for ASCII, so existing ASCII wallets keep their keys."""
+    phrase = "abandon " * 11 + "about"
+    assert (
+        mnemonic_to_root(phrase, "correct horse").to_string()
+        == mnemonic_to_root(phrase, "correct horse", legacy=True).to_string()
+    )
+
+
+def test_legacy_bitcoin_reproduces_pre_normalization_derivation():
+    from embit import bip32, bip39
+
+    phrase = "abandon " * 11 + "about"
+    passphrase = "pässword"
+    # Exactly what Specter derived before this change: no normalization, the
+    # detected wordlist.
+    old_seed = bip39.mnemonic_to_seed(phrase, passphrase, wordlist=get_wordlist(phrase))
+    assert mnemonic_to_seed(phrase, passphrase, legacy=True) == old_seed
+    assert (
+        mnemonic_to_root(phrase, passphrase, legacy=True).to_string()
+        == bip32.HDKey.from_seed(old_seed).to_string()
+        == LEGACY_ROOT_XPRV
+    )
+
+
+def test_legacy_liquid_reproduces_pre_normalization_blinding_key():
+    from embit import bip39
+    from embit.liquid.slip77 import master_blinding_from_seed
+
+    phrase = "abandon " * 11 + "about"
+    passphrase = "pässword"
+    # Exactly what Elements Core hot wallets derived before this change:
+    # embit's default English wordlist and no Unicode normalization.
+    old_seed = bip39.mnemonic_to_seed(phrase, passphrase)
+    legacy_seed = mnemonic_to_seed(phrase, passphrase, legacy=True, liquid=True)
+    assert legacy_seed == old_seed
+    old_blinding = master_blinding_from_seed(old_seed)
+    legacy_blinding = master_blinding_from_seed(legacy_seed)
+    assert legacy_blinding.secret == old_blinding.secret
+    assert legacy_blinding.wif() == old_blinding.wif()
+    # The default Liquid path is normalized and must not reproduce the old key.
+    default_liquid_seed = mnemonic_to_seed(phrase, passphrase, liquid=True)
+    assert default_liquid_seed != old_seed
+    assert master_blinding_from_seed(default_liquid_seed).secret != old_blinding.secret
+
+
+def test_legacy_derivation_requires_explicit_opt_in():
+    phrase = "abandon " * 11 + "about"
+    passphrase = "pässword"
+    assert mnemonic_to_seed(phrase, passphrase) == mnemonic_to_seed(
+        phrase, passphrase, legacy=False
+    )
+    assert mnemonic_to_seed(phrase, passphrase) != mnemonic_to_seed(
+        phrase, passphrase, legacy=True
+    )
+    # Liquid defaults to the normalized, detected-wordlist derivation too.
+    assert mnemonic_to_seed(phrase, passphrase, liquid=True) == mnemonic_to_seed(
+        phrase, passphrase
+    )
+
+
+def test_legacy_reproduces_old_failure_for_precomposed_mnemonic():
+    """Boundary: the old code rejected precomposed non-English mnemonics.
+
+    The legacy opt-in is an exact recovery of the old behaviour, including its
+    failure modes. It is not a fallback: the default path normalizes instead.
+    """
+    from embit import bip39
+
+    composed = unicodedata.normalize("NFC", japanese)
+    with pytest.raises(ValueError):
+        bip39.mnemonic_to_seed(composed, "", wordlist=get_wordlist(composed))
+    with pytest.raises(ValueError):
+        mnemonic_to_seed(composed, "", legacy=True)
+    with pytest.raises(ValueError):
+        mnemonic_to_seed(composed, "", legacy=True, liquid=True)
+    assert mnemonic_to_seed(composed, "") == mnemonic_to_seed(japanese, "")
 
 
 def count_multi_occurrence_languages(word_lists_dict):
