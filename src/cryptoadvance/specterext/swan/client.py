@@ -6,6 +6,7 @@ import logging
 import os
 import secrets
 import sqlite3
+import stat
 import time
 from contextlib import closing, contextmanager
 from decimal import Decimal
@@ -19,7 +20,7 @@ import pytz
 import requests
 from cryptography.fernet import Fernet
 from flask import current_app as app
-from flask import session
+from flask import has_request_context, request as flask_request, session
 from flask_babel import lazy_gettext as _
 
 logger = logging.getLogger(__name__)
@@ -38,12 +39,30 @@ def _oauth_flows():
     path = app.config.get("SWAN_OAUTH_DB") or str(
         Path(app.specter.data_folder) / "swan_oauth.sqlite"
     )
+    # SQLite can create a journal next to the database; protect the entire folder.
+    directory = Path(path).parent
+    dir_fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
     try:
-        fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
-    except FileExistsError:
-        pass
-    else:
-        os.close(fd)
+        os.fchmod(dir_fd, 0o700)
+        for name in (
+            Path(path).name,
+            *(Path(path).name + suffix for suffix in ("-journal", "-wal", "-shm")),
+        ):
+            flags = os.O_RDWR | os.O_NOFOLLOW
+            if name == Path(path).name:
+                flags |= os.O_CREAT
+            try:
+                fd = os.open(name, flags, 0o600, dir_fd=dir_fd)
+            except FileNotFoundError:
+                continue
+            try:
+                if not stat.S_ISREG(os.fstat(fd).st_mode):
+                    raise OSError("Swan OAuth store must be a regular file")
+                os.fchmod(fd, 0o600)
+            finally:
+                os.close(fd)
+    finally:
+        os.close(dir_fd)
     conn = sqlite3.connect(path, timeout=10)
     conn.execute(
         "CREATE TABLE IF NOT EXISTS flows (state TEXT PRIMARY KEY, browser TEXT NOT NULL, "
@@ -89,7 +108,8 @@ class SwanClient:
         )
 
     def calc_callback_url(self):
-        return f"http://{ self.hostname }{app.config['APP_URL_PREFIX']}{app.config['EXT_URL_PREFIX']}/swan/oauth2/callback"
+        scheme = flask_request.scheme if has_request_context() else "http"
+        return f"{scheme}://{self.hostname}{app.config['APP_URL_PREFIX']}{app.config['EXT_URL_PREFIX']}/swan/oauth2/callback"
 
     def get_oauth2_start_url(self, callback_hostname, user_id=None):
         """
@@ -98,6 +118,7 @@ class SwanClient:
         """
         # Let's start the PKCE-flow
         self.hostname = callback_hostname
+        callback_url = self.calc_callback_url()
         code_verifier = secrets.token_urlsafe(32)
         state = secrets.token_urlsafe(32)
         browser = session.get(OAUTH_SESSION_KEY)
@@ -122,7 +143,7 @@ class SwanClient:
                     _flow_cipher()
                     .encrypt(code_verifier.encode("ascii"))
                     .decode("ascii"),
-                    self.calc_callback_url(),
+                    callback_url,
                     now + OAUTH_FLOW_LIFETIME,
                 ),
             )
@@ -135,7 +156,7 @@ class SwanClient:
         flow_url = f"{self.api_url}/oidc/auth?"
         query_params = [
             f"client_id={self.client_id}",
-            f"redirect_uri={self.calc_callback_url()}",
+            f"redirect_uri={callback_url}",
             "response_type=code",
             "response_mode=query",
             f"code_challenge={code_challenge}",
@@ -235,7 +256,7 @@ class SwanClient:
             logger.warning(response)
             raise SwanApiException(response.text)
 
-    def handle_oauth2_auth_callback(self, request, user_id=None):
+    def handle_oauth2_auth_callback(self, request, user_id=None, callback_uri=None):
         state = request.args.get("state")
         browser = session.get(OAUTH_SESSION_KEY)
         if not state or not browser:
@@ -265,7 +286,7 @@ class SwanClient:
                 "Swan OAuth callback is missing an authorization code"
             )
         rp = urlparse(request.url)
-        request_uri = f"{rp.scheme}://{rp.netloc}{rp.path}"
+        request_uri = callback_uri or f"{rp.scheme}://{rp.netloc}{rp.path}"
         if request_uri != flow[3]:
             raise SwanApiException(
                 "Swan OAuth callback URL does not match the authorization"
