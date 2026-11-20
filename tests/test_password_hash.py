@@ -10,8 +10,11 @@ from cryptoadvance.specter.util.password import (
     PASSWORD_HASH_ITERATIONS,
     hash_password,
     password_hash_needs_rehash,
+    upgrade_password_hash,
     verify_password,
 )
+from types import SimpleNamespace
+from unittest.mock import Mock
 
 PASSWORD = "correct horse battery staple"
 
@@ -49,3 +52,18 @@ def test_salt_is_unique_per_hash():
     second = hash_password(PASSWORD)
     assert first["salt"] != second["salt"]
     assert first["pwdhash"] != second["pwdhash"]
+
+
+def test_upgrade_persists_legacy_hash_and_restores_it_on_storage_error():
+    previous = hash_password(PASSWORD, iterations=LEGACY_PASSWORD_HASH_ITERATIONS)
+    previous.pop("iterations")
+    user = SimpleNamespace(username="alice", password_hash=previous, save_info=Mock())
+    upgrade_password_hash(user, PASSWORD)
+    user.save_info.assert_called_once()
+    assert user.password_hash["iterations"] == PASSWORD_HASH_ITERATIONS
+    assert verify_password(user.password_hash, PASSWORD)
+
+    user.password_hash = previous
+    user.save_info.side_effect = OSError("disk full")
+    upgrade_password_hash(user, PASSWORD)
+    assert user.password_hash is previous

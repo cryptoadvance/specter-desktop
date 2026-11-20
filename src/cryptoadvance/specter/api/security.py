@@ -5,7 +5,6 @@ from functools import wraps
 
 from cryptoadvance.specter.user import User, verify_password as user_verify_password
 from cryptoadvance.specter.user import upgrade_password_hash
-from cryptoadvance.specter.util.password import SuccessfulPasswordCache
 from flask import current_app as app
 from flask import g
 from flask_restful import abort
@@ -15,7 +14,6 @@ from . import auth
 from flask import current_app as app
 
 logger = logging.getLogger(__name__)
-basic_password_cache = SuccessfulPasswordCache()
 
 
 @auth.error_handler
@@ -39,7 +37,7 @@ def verify_password(username, password):
     if not the_user:
         return abort(401)
     g.user = the_user
-    if basic_password_cache.verify(the_user, password, user_verify_password):
+    if user_verify_password(the_user.password_hash, password):
         upgrade_password_hash(the_user, password)
         logger.info(f"Rest-Request for user {username} PASSED password-test")
         return username
