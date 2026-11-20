@@ -612,7 +612,7 @@ def send_new(wallet_alias):
                     ).sign_psbt(b64psbt, wallet, passphrase)
                     raw = None
                     if signed_psbt["complete"]:
-                        raw = wallet.rpc.finalizepsbt(b64psbt)
+                        raw = wallet.rpc.finalizepsbt(signed_psbt["psbt"])
                     current_psbt.update(signed_psbt["psbt"], raw)
                     signed_psbt = signed_psbt["psbt"]
                     psbt = current_psbt.to_dict()
