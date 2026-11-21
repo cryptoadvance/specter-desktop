@@ -18,6 +18,7 @@ from embit.script import Script, Witness
 from embit.transaction import SIGHASH, Transaction, TransactionInput, TransactionOutput
 
 from cryptoadvance.specter.liquid.txlist import LTxList
+from cryptoadvance.specter.liquid.rpc import LiquidRPC
 from cryptoadvance.specter.liquid.util.pset import SpecterPSET
 from cryptoadvance.specter.util.psbt import SpecterPSBT, witness_items
 
@@ -75,6 +76,69 @@ def test_liquid_finalized_raw_transaction_without_witness_is_rejected():
     with pytest.raises(ValueError, match="Final transaction"):
         psbt.update(None, {"hex": final.serialize().hex()})
     assert psbt.raw is None
+
+
+def test_liquid_finalized_raw_uses_commitments_not_unblinded_output_values():
+    psbt = liquid_pending()
+    output = psbt.psbt.outputs[0]
+    output.asset_commitment = b"\x0a" + b"\x04" * 32
+    output.value_commitment = b"\x08" + b"\x05" * 32
+    output.ecdh_pubkey = b"\x02" + b"\x06" * 32
+    final = LTransaction.parse(psbt.psbt.tx.serialize())
+    final.vout[0] = output.blinded_vout
+    final.vin[0].witness = TxInWitness(script_witness=Witness([b"sig"]))
+    assert final.vout[0].value != output.value
+    psbt.update(None, {"hex": final.serialize().hex()})
+    assert psbt.raw == final.serialize()
+
+    # Confidential commitment/asset/nonce changes must not pass as the same output.
+    psbt.raw = None
+    final.vout[0].value = b"\x08" + b"\x07" * 32
+    with pytest.raises(ValueError, match="Final transaction"):
+        psbt.update(None, {"hex": final.serialize().hex()})
+    assert psbt.raw is None
+
+
+@pytest.mark.elm
+def test_elements_blind_sign_finalize_and_merge_raw(elements_elreg):
+    """Real confidential outputs and witness from Elements Core, not synthetic PSETs."""
+    rpc = elements_elreg.get_rpc()
+    rpc.createwallet("psbt_blind_sign_merge")
+    wallet = LiquidRPC(
+        user=rpc.user,
+        password=rpc.password,
+        port=rpc.port,
+        host=rpc.host,
+        protocol=rpc.protocol,
+    ).wallet("psbt_blind_sign_merge")
+    # Elements' initial free coins are OP_TRUE outputs. The controller's default
+    # descriptor wallet does not import them; a legacy wallet recognizes them.
+    rpc.createwallet("psbt_faucet", False, False, "", False, False, False)
+    faucet = rpc.wallet("psbt_faucet")
+    faucet.rescanblockchain()
+    faucet.sendtoaddress(wallet.getnewaddress(), 1)
+    faucet.generatetoaddress(
+        1, faucet.getaddressinfo(faucet.getnewaddress())["unconfidential"]
+    )
+    assert wallet.getbalance() >= 1
+    result = wallet.walletcreatefundedpsbt(
+        [], [{wallet.getnewaddress(): 0.1}], 0, {"includeWatching": True}
+    )
+    pending = SpecterPSET(result["psbt"], None, get_network("liquidregtest"))
+    assert any(out.is_blinded for out in pending.psbt.outputs)
+    assert any(
+        out.value is not None and out.value_commitment is not None
+        for out in pending.psbt.outputs
+    )
+    signed = wallet.walletprocesspsbt(result["psbt"])
+    finalized = wallet.finalizepsbt(signed["psbt"])
+    assert finalized["complete"]
+    assert finalized["hex"]
+    final_tx = LTransaction.parse(bytes.fromhex(finalized["hex"]))
+    assert any(not isinstance(out.value, int) for out in final_tx.vout)
+    assert all(witness_items(vin) for vin in final_tx.vin)
+    pending.update(signed["psbt"], raw=finalized, trusted=True)
+    assert pending.raw.hex() == finalized["hex"]
 
 
 def test_bitcoin_finalized_raw_transaction_with_witness_is_accepted():

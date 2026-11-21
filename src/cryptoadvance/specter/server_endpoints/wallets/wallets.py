@@ -612,7 +612,7 @@ def send_new(wallet_alias):
                     ).sign_psbt(b64psbt, wallet, passphrase)
                     raw = None
                     if signed_psbt["complete"]:
-                        raw = wallet.rpc.finalizepsbt(b64psbt)
+                        raw = wallet.rpc.finalizepsbt(signed_psbt["psbt"])
                     # This PSBT comes from our local hot-wallet signer, not an
                     # imported signer. Retain Core's final witness fields.
                     current_psbt.update(signed_psbt["psbt"], raw, trusted=True)

@@ -262,6 +262,16 @@ def witness_items(vin: TransactionInput) -> list:
     return witness.items
 
 
+def unsigned_transaction_bytes(psbt: PSBT) -> bytes:
+    """Compare on-chain output commitments, not PSET-only unblinded metadata."""
+    tx = psbt.tx
+    tx.vout = [
+        scope.blinded_vout if hasattr(scope, "blinded_vout") else scope.vout
+        for scope in psbt.outputs
+    ]
+    return tx.serialize()
+
+
 class SpecterPSBT(AbstractTxContext):
     """Specter's PSBT class with some handy functions"""
 
@@ -313,7 +323,9 @@ class SpecterPSBT(AbstractTxContext):
         """
         psbt = self.PSBTCls.from_string(b64psbt) if b64psbt else None
         if psbt:
-            if psbt.tx.serialize() != self.psbt.tx.serialize():
+            if unsigned_transaction_bytes(psbt) != unsigned_transaction_bytes(
+                self.psbt
+            ):
                 raise ValueError(
                     "PSBT unsigned transaction does not match pending transaction"
                 )
@@ -351,9 +363,13 @@ class SpecterPSBT(AbstractTxContext):
                     for vin, original in zip(tx.vin, unsigned.vin)
                 )
                 or any(
-                    out.value != original.value
-                    or out.script_pubkey != original.script_pubkey
-                    for out, original in zip(tx.vout, unsigned.vout)
+                    out.serialize()
+                    != (
+                        scope.blinded_vout
+                        if hasattr(scope, "blinded_vout")
+                        else scope.vout
+                    ).serialize()
+                    for out, scope in zip(tx.vout, self.psbt.outputs)
                 )
             ):
                 raise ValueError("Final transaction does not match pending transaction")
