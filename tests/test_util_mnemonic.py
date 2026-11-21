@@ -132,6 +132,23 @@ def test_default_normalizes_precomposed_mnemonic():
     assert mnemonic_to_seed(composed, "") == Mnemonic("japanese").to_seed(
         composed, passphrase=""
     )
+    assert validate_mnemonic(composed) == validate_mnemonic(japanese)
+
+
+def test_wordlist_detection_receives_normalized_mnemonic(monkeypatch):
+    from cryptoadvance.specter.util import mnemonic as module
+
+    composed = unicodedata.normalize("NFC", japanese)
+    original = module.get_wordlist
+    detected = []
+
+    def capture(phrase):
+        detected.append(phrase)
+        return original(phrase)
+
+    monkeypatch.setattr(module, "get_wordlist", capture)
+    module.mnemonic_to_seed(composed, "")
+    assert detected == [japanese]
 
 
 def test_ascii_passphrase_derivation_is_unchanged():

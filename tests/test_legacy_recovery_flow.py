@@ -7,10 +7,17 @@ that choice must survive every step of the import flow.
 
 import ast
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock
 
+from flask import Flask
 from jinja2 import Environment
 
-from cryptoadvance.specter.util.mnemonic import legacy_bip39_requested
+from cryptoadvance.specter.util.mnemonic import (
+    existing_device_root_matches,
+    legacy_bip39_requested,
+    mnemonic_to_root,
+)
 
 ROOT = Path(__file__).resolve().parents[1] / "src/cryptoadvance/specter"
 TEMPLATES = ROOT / "templates/device"
@@ -202,3 +209,82 @@ def test_derivation_change_is_warned_about_in_the_ui():
     assert "no Unicode normalization" in mnemonic_form
     keys_form = (TEMPLATES / "new_device/new_device_keys.jinja").read_text()
     assert "Legacy BIP39 derivation is enabled for this import" in keys_form
+
+
+def test_existing_device_matches_any_known_master_but_not_unknown_origins():
+    phrase = "abandon " * 11 + "about"
+    passphrase = "pässword"
+    legacy_root = mnemonic_to_root(phrase, passphrase, legacy=True)
+    legacy_fpr = legacy_root.child(0).fingerprint.hex()
+    normalized_fpr = mnemonic_to_root(phrase, passphrase).child(0).fingerprint.hex()
+    assert legacy_fpr != normalized_fpr
+    keys = [
+        SimpleNamespace(fingerprint="abcdef01", derivation="m/84h/0h/0h"),
+        SimpleNamespace(fingerprint=legacy_fpr.upper(), derivation="m/49h/0h/0h"),
+    ]
+    assert existing_device_root_matches(keys, phrase, passphrase, legacy=True)
+    assert not existing_device_root_matches(keys, phrase, passphrase)
+    keys.append(SimpleNamespace(fingerprint=normalized_fpr, derivation=""))
+    assert not existing_device_root_matches(keys, phrase, passphrase)
+    assert not existing_device_root_matches([], phrase, passphrase)
+
+
+def test_existing_hot_wallet_rejects_mismatched_root_before_any_mutation(monkeypatch):
+    from cryptoadvance.specter.server_endpoints import devices
+    from cryptoadvance.specter.devices.bitcoin_core import BitcoinCoreWatchOnly
+
+    phrase = "abandon " * 11 + "about"
+    passphrase = "pässword"
+    legacy_root = mnemonic_to_root(phrase, passphrase, legacy=True)
+    legacy_fpr = legacy_root.child(0).fingerprint.hex()
+    device = SimpleNamespace(
+        alias="existing",
+        keys=[SimpleNamespace(fingerprint=legacy_fpr, derivation="m/84h/0h/0h")],
+        setup_device=Mock(),
+        add_hot_wallet_keys=Mock(),
+    )
+    manager = SimpleNamespace(get_by_alias=lambda alias: device)
+    app = Flask(__name__)
+    app.specter = SimpleNamespace(
+        device_manager=manager, wallet_manager=object(), chain="main"
+    )
+    monkeypatch.setattr(devices, "render_template", lambda template, **kw: kw)
+    monkeypatch.setattr(devices, "flash", Mock())
+    monkeypatch.setattr(devices, "_", lambda message: message)
+    monkeypatch.setattr(devices, "url_for", lambda endpoint, **kw: "/device/existing")
+    monkeypatch.setattr(devices, "get_device_class", lambda _: BitcoinCoreWatchOnly)
+    form = {
+        "existing_device": "existing",
+        "mnemonic": phrase,
+        "passphrase": passphrase,
+        "xpubs-table-row-0-derivation-hidden": "m/84h/0h/0h",
+    }
+    with app.test_request_context("/new_device_keys/", method="POST", data=form):
+        rendered = devices.new_device_keys.__wrapped__(BitcoinCoreWatchOnly.device_type)
+    assert "do not match any existing key" in rendered["error"]
+    device.setup_device.assert_not_called()
+    device.add_hot_wallet_keys.assert_not_called()
+
+    form["legacy_bip39"] = "1"
+    with app.test_request_context("/new_device_keys/", method="POST", data=form):
+        result = devices.new_device_keys.__wrapped__(BitcoinCoreWatchOnly.device_type)
+    assert result.status_code == 302
+    device.setup_device.assert_called_once()
+    device.add_hot_wallet_keys.assert_called_once()
+    assert device.add_hot_wallet_keys.call_args.kwargs["legacy"] is True
+
+    device.setup_device.reset_mock()
+    device.add_hot_wallet_keys.reset_mock()
+    form["passphrase"] = "wrong passphrase"
+    with app.test_request_context("/new_device_keys/", method="POST", data=form):
+        rendered = devices.new_device_keys.__wrapped__(BitcoinCoreWatchOnly.device_type)
+    assert "No keys were added" in rendered["error"]
+    device.setup_device.assert_not_called()
+    device.add_hot_wallet_keys.assert_not_called()
+
+    # An empty existing device has no established root to protect.
+    device.keys = []
+    with app.test_request_context("/new_device_keys/", method="POST", data=form):
+        result = devices.new_device_keys.__wrapped__(BitcoinCoreWatchOnly.device_type)
+    assert result.status_code == 302
+    device.add_hot_wallet_keys.assert_called_once()

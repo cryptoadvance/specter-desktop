@@ -22,6 +22,7 @@ from ..managers.device_manager import get_device_class
 from ..server_endpoints import flash
 from ..specter_error import handle_exception
 from ..util.mnemonic import (
+    existing_device_root_matches,
     generate_mnemonic,
     legacy_bip39_requested,
     validate_mnemonic,
@@ -106,6 +107,17 @@ def new_device_keys(device_type):
             ]:
                 if not paths:
                     err = _("No paths were specified, please provide at least one.")
+                if (
+                    err is None
+                    and existing_device
+                    and device.keys
+                    and not existing_device_root_matches(
+                        device.keys, mnemonic, passphrase, legacy=legacy
+                    )
+                ):
+                    err = _(
+                        "The mnemonic and passphrase do not match any existing key's master fingerprint. No keys were added. If this device was created with an older Specter version and a non-ASCII passphrase, select legacy BIP39 recovery and try again."
+                    )
                 if err is None:
                     if existing_device:
                         if device_type == BitcoinCoreWatchOnly.device_type:

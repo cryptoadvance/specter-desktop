@@ -53,7 +53,7 @@ def get_language(mnemonic: str) -> str:
     """Returns the language based on the mnemonic provided, errors are raised if a language is not supported or not properly detected"""
     try:
         supported_language_found = False
-        language = Mnemonic.detect_language(mnemonic)
+        language = Mnemonic.detect_language(unicodedata.normalize("NFKD", mnemonic))
         words_as_list = mnemonic.split()
         for key, value in MNEMONIC_LANGUAGES.items():
             if value == language:
@@ -69,6 +69,7 @@ def get_language(mnemonic: str) -> str:
 
 def validate_mnemonic(mnemonic: str) -> bool:
     """Returns true if the length and the checksum of the mnemonic are correct"""
+    mnemonic = unicodedata.normalize("NFKD", mnemonic)
     language = get_language(mnemonic)
     mnemo = Mnemonic(language)
     return mnemo.check(mnemonic)
@@ -113,10 +114,25 @@ def mnemonic_to_seed(
         return bip39.mnemonic_to_seed(
             mnemonic, passphrase, wordlist=get_wordlist(mnemonic)
         )
+    normalized_mnemonic = unicodedata.normalize("NFKD", mnemonic)
     return bip39.mnemonic_to_seed(
-        unicodedata.normalize("NFKD", mnemonic),
+        normalized_mnemonic,
         unicodedata.normalize("NFKD", passphrase),
-        wordlist=get_wordlist(mnemonic),
+        wordlist=get_wordlist(normalized_mnemonic),
+    )
+
+
+def existing_device_root_matches(keys, mnemonic, passphrase, legacy=False) -> bool:
+    """Accept an existing root only when a key carries its master origin.
+
+    Devices can contain keys from multiple roots; a match against any known
+    master origin is sufficient. An xpub without an origin has only its own
+    fingerprint, not a trustworthy master fingerprint.
+    """
+    root = mnemonic_to_root(mnemonic, passphrase, legacy=legacy)
+    fingerprint = root.child(0).fingerprint.hex()
+    return any(
+        key.derivation and key.fingerprint.lower() == fingerprint for key in keys
     )
 
 
