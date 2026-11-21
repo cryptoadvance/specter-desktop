@@ -33,23 +33,153 @@ OAUTH_FLOW_LIMIT = 8  # per browser; older tabs can be restarted
 OAUTH_SESSION_KEY = "swan_oauth_browser"
 
 
-@contextmanager
-def _oauth_flows():
-    """Shared server-side store: separate Gunicorn workers must see the same flows."""
-    path = app.config.get("SWAN_OAUTH_DB") or str(
-        Path(app.specter.data_folder) / "swan_oauth.sqlite"
-    )
-    # SQLite can create a journal next to the database; protect the entire folder.
+def _secure_windows_path(path):
+    """Replace inherited/explicit ACLs with only this user, SYSTEM and admins.
+
+    os.chmod on Windows only changes the read-only attribute, not confidentiality.
+    Use the Windows security APIs instead; fail closed if the ACL cannot be set.
+    """
+    import ctypes
+    from ctypes import wintypes
+
+    advapi = ctypes.WinDLL("advapi32", use_last_error=True)
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.GetCurrentProcess.restype = wintypes.HANDLE
+    kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+    kernel.LocalFree.argtypes = [ctypes.c_void_p]
+    advapi.OpenProcessToken.argtypes = [
+        wintypes.HANDLE,
+        wintypes.DWORD,
+        ctypes.POINTER(wintypes.HANDLE),
+    ]
+    advapi.GetTokenInformation.argtypes = [
+        wintypes.HANDLE,
+        wintypes.DWORD,
+        ctypes.c_void_p,
+        wintypes.DWORD,
+        ctypes.POINTER(wintypes.DWORD),
+    ]
+    advapi.ConvertSidToStringSidW.argtypes = [
+        ctypes.c_void_p,
+        ctypes.POINTER(wintypes.LPWSTR),
+    ]
+    advapi.ConvertStringSecurityDescriptorToSecurityDescriptorW.argtypes = [
+        wintypes.LPCWSTR,
+        wintypes.DWORD,
+        ctypes.POINTER(ctypes.c_void_p),
+        ctypes.POINTER(wintypes.DWORD),
+    ]
+    advapi.GetSecurityDescriptorDacl.argtypes = [
+        ctypes.c_void_p,
+        ctypes.POINTER(wintypes.BOOL),
+        ctypes.POINTER(ctypes.c_void_p),
+        ctypes.POINTER(wintypes.BOOL),
+    ]
+    advapi.SetNamedSecurityInfoW.argtypes = [
+        wintypes.LPWSTR,
+        wintypes.DWORD,
+        wintypes.DWORD,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+    ]
+    advapi.SetNamedSecurityInfoW.restype = wintypes.DWORD
+    token = wintypes.HANDLE()
+    TOKEN_QUERY = 0x0008
+    if not advapi.OpenProcessToken(
+        kernel.GetCurrentProcess(), TOKEN_QUERY, ctypes.byref(token)
+    ):
+        raise ctypes.WinError(ctypes.get_last_error())
+    try:
+        size = wintypes.DWORD()
+        advapi.GetTokenInformation(token, 1, None, 0, ctypes.byref(size))
+        if not size.value:
+            raise ctypes.WinError(ctypes.get_last_error())
+        buffer = ctypes.create_string_buffer(size.value)
+        if not advapi.GetTokenInformation(token, 1, buffer, size, ctypes.byref(size)):
+            raise ctypes.WinError(ctypes.get_last_error())
+        sid = ctypes.c_void_p.from_buffer(
+            buffer
+        ).value  # TOKEN_USER starts with SID pointer
+        sid_string = wintypes.LPWSTR()
+        if not advapi.ConvertSidToStringSidW(sid, ctypes.byref(sid_string)):
+            raise ctypes.WinError(ctypes.get_last_error())
+        try:
+            inherit = "OICI" if Path(path).is_dir() else ""
+            sddl = (
+                f"D:P(A;{inherit};FA;;;SY)(A;{inherit};FA;;;BA)"
+                f"(A;{inherit};FA;;;{sid_string.value})"
+            )
+        finally:
+            kernel.LocalFree(sid_string)
+        descriptor = ctypes.c_void_p()
+        if not advapi.ConvertStringSecurityDescriptorToSecurityDescriptorW(
+            sddl, 1, ctypes.byref(descriptor), None
+        ):
+            raise ctypes.WinError(ctypes.get_last_error())
+        try:
+            present = wintypes.BOOL()
+            defaulted = wintypes.BOOL()
+            dacl = ctypes.c_void_p()
+            if (
+                not advapi.GetSecurityDescriptorDacl(
+                    descriptor,
+                    ctypes.byref(present),
+                    ctypes.byref(dacl),
+                    ctypes.byref(defaulted),
+                )
+                or not present.value
+            ):
+                raise ctypes.WinError(ctypes.get_last_error())
+            # PROTECTED_DACL_SECURITY_INFORMATION prevents inherited permissive ACEs.
+            status = advapi.SetNamedSecurityInfoW(
+                str(path), 1, 0x00000004 | 0x80000000, None, None, dacl, None
+            )
+            if status:
+                raise OSError(status, ctypes.FormatError(status), str(path))
+        finally:
+            kernel.LocalFree(descriptor)
+    finally:
+        kernel.CloseHandle(token)
+
+
+def _secure_oauth_store(path):
     directory = Path(path).parent
+    names = (Path(path).name,) + tuple(
+        Path(path).name + suffix for suffix in ("-journal", "-wal", "-shm")
+    )
+    if os.name == "nt":
+        # Reject symlinks/junctions, including in intermediate path components.
+        if os.path.normcase(os.path.realpath(directory)) != os.path.normcase(
+            os.path.abspath(directory)
+        ):
+            raise OSError("Swan OAuth store directory must not be a link")
+        _secure_windows_path(directory)
+        for name in names:
+            file_path = directory / name
+            if file_path.is_symlink() or (
+                file_path.exists()
+                and os.path.normcase(os.path.realpath(file_path))
+                != os.path.normcase(os.path.abspath(file_path))
+            ):
+                raise OSError("Swan OAuth store must not be a link")
+            if name == names[0]:
+                with open(file_path, "ab"):
+                    pass
+            if file_path.exists():
+                if not file_path.is_file():
+                    raise OSError("Swan OAuth store must be a regular file")
+                _secure_windows_path(file_path)
+        return
+
+    # SQLite can create a journal next to the database; protect the entire folder.
     dir_fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
     try:
         os.fchmod(dir_fd, 0o700)
-        for name in (
-            Path(path).name,
-            *(Path(path).name + suffix for suffix in ("-journal", "-wal", "-shm")),
-        ):
+        for name in names:
             flags = os.O_RDWR | os.O_NOFOLLOW
-            if name == Path(path).name:
+            if name == names[0]:
                 flags |= os.O_CREAT
             try:
                 fd = os.open(name, flags, 0o600, dir_fd=dir_fd)
@@ -63,6 +193,15 @@ def _oauth_flows():
                 os.close(fd)
     finally:
         os.close(dir_fd)
+
+
+@contextmanager
+def _oauth_flows():
+    """Shared server-side store: separate Gunicorn workers must see the same flows."""
+    path = app.config.get("SWAN_OAUTH_DB") or str(
+        Path(app.specter.data_folder) / "swan_oauth.sqlite"
+    )
+    _secure_oauth_store(path)
     conn = sqlite3.connect(path, timeout=10)
     conn.execute(
         "CREATE TABLE IF NOT EXISTS flows (state TEXT PRIMARY KEY, browser TEXT NOT NULL, "

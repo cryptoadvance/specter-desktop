@@ -19,6 +19,7 @@ from flask import Blueprint, Flask, session, request
 from flask_login import LoginManager, UserMixin
 
 from cryptoadvance.specterext.swan.client import SwanApiException, SwanClient
+from cryptoadvance.specterext.swan import client as swan_client
 
 
 @pytest.fixture
@@ -288,6 +289,58 @@ def test_store_restricts_existing_sidecars(app):
     os.chmod(sidecar, 0o644)
     start(app)
     assert stat.S_IMODE(os.stat(sidecar).st_mode) == 0o600
+
+
+def test_windows_store_uses_acl_path_without_posix_file_descriptors(app, monkeypatch):
+    # Simulate the Windows dispatch on Linux; native ACL API needs a Windows runner.
+    import types
+
+    calls = []
+    fake_os = types.SimpleNamespace(
+        name="nt",
+        path=os.path,
+        normcase=os.path.normcase,
+        realpath=os.path.realpath,
+        abspath=os.path.abspath,
+        open=lambda *args, **kwargs: pytest.fail("POSIX descriptor path used"),
+    )
+    monkeypatch.setattr(swan_client, "os", fake_os)
+    monkeypatch.setattr(
+        swan_client, "_secure_windows_path", lambda path: calls.append(Path(path))
+    )
+    params, cookie = start(app)
+    assert params["state"] and cookie
+    path = Path(app.config["SWAN_OAUTH_DB"])
+    assert calls[0] == path.parent
+    assert path in calls
+    with open(str(path) + "-wal", "wb"):
+        pass
+    start(app, cookie)
+    assert Path(str(path) + "-wal") in calls
+
+
+def test_windows_acl_failure_fails_closed_before_store_creation(app, monkeypatch):
+    import types
+
+    monkeypatch.setattr(
+        swan_client, "os", types.SimpleNamespace(name="nt", path=os.path)
+    )
+
+    def deny(path):
+        raise OSError("cannot restrict store ACL")
+
+    monkeypatch.setattr(swan_client, "_secure_windows_path", deny)
+    with pytest.raises(OSError, match="cannot restrict store ACL"):
+        start(app)
+    assert not Path(app.config["SWAN_OAUTH_DB"]).exists()
+
+
+def test_callback_scheme_is_not_silently_downgraded(app):
+    params, cookie = start(app, scheme="https")
+    with patch("cryptoadvance.specterext.swan.client.requests.post") as post:
+        with pytest.raises(SwanApiException, match="callback URL"):
+            callback(app, params["state"][0], cookie, scheme="http")
+        post.assert_not_called()
 
 
 def test_store_rejects_symlinked_parent(app, tmp_path):
