@@ -95,6 +95,10 @@ jobs:
           pip install -r pyinstaller/requirements.txt
 
       - name: Build specterd
+        # Only the Linux specterd binary is covered by the reproducibility report;
+        # Windows/macOS artifacts need separate verification before changing their jobs.
+        env:
+          PYTHONHASHSEED: '0'
         run: |
           source .buildenv/bin/activate
           VERSION=${GITHUB_REF#refs/tags/}
