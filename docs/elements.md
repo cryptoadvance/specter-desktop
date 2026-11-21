@@ -11,7 +11,7 @@ Specter derives a Liquid multisig wallet's master blinding key from public chain
 
 ## Backups and blinding keys
 
-The Specter backup ZIP (Settings → General → Backup Specter) is **not encrypted**. All secrets it exports are in plaintext: Liquid device files may contain the SLIP77 master blinding key, and Liquid wallet descriptors can embed it. Anyone with the ZIP or extracted files can unblind Liquid wallet history. Keep the backup private and remove unsecured downloaded/extracted copies; it does not contain hot-wallet spending keys or signing-device seeds, so back those up separately. Specter restricts its local data directories and newly written JSON files to owner access on POSIX systems; these permissions do not protect a copied ZIP.
+The Specter backup ZIP (Settings → General → Backup Specter) is **not encrypted**. It contains privacy-sensitive wallet descriptors and Liquid blinding keys in plaintext: Liquid device files may contain the SLIP77 master blinding key, and Liquid wallet descriptors can embed it. Anyone with the ZIP or extracted files can unblind Liquid wallet history. Keep the backup private and remove unsecured downloaded/extracted copies; it does not contain hot-wallet spending keys or signing-device seeds, so back those up separately. Local filesystem permissions do not protect a copied ZIP.
 
 ## Elements Installation
 The Elements installation process is highly dependent on your system. Choose a fitting [artifact](https://github.com/ElementsProject/elements/releases) and install it. 

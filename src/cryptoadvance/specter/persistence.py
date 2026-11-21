@@ -1,6 +1,6 @@
-"""Provides an API abstracting writes (and reads) on anything
-happening on the ~/.specter-folder. Useful as we can then
-call the call-back-method.
+""" Provides an API abstracting writes (and reads) on anything
+    happening on the ~/.specter-folder. Useful as we can then
+    call the call-back-method.
 """
 
 import csv
@@ -23,51 +23,6 @@ logger = logging.getLogger(__name__)
 
 fslock = threading.Lock()
 pclock = threading.Lock()
-
-
-def ensure_private_directory(path):
-    """Restrict the configured Specter data directory, including symlink targets."""
-    os.makedirs(path, mode=0o700, exist_ok=True)
-    os.chmod(path, 0o700)
-
-
-def secure_json_files(data_folder):
-    """Restrict existing Specter JSON, without traversing node data or logs."""
-    # Only Specter's own JSON locations, never an internal node's datadir or
-    # arbitrary extension storage under this folder.
-    folders = [data_folder]
-    for name in os.listdir(data_folder):
-        # Non-admin users store data in devices<folder_id>/wallets<folder_id>.
-        if not (
-            name in ("devices", "nodes", "wallets")
-            or name.startswith("devices_")
-            or name.startswith("wallets_")
-        ):
-            continue
-        path = os.path.join(data_folder, name)
-        if os.path.isdir(path) and not os.path.islink(path):
-            folders.append(path)
-    for wallets in [
-        folder for folder in folders if os.path.basename(folder).startswith("wallets")
-    ]:
-        for node_id in os.listdir(wallets):
-            path = os.path.join(wallets, node_id)
-            if os.path.isdir(path) and not os.path.islink(path):
-                folders.append(path)
-                for chain in os.listdir(path):
-                    chain_path = os.path.join(path, chain)
-                    if os.path.isdir(chain_path) and not os.path.islink(chain_path):
-                        folders.append(chain_path)
-    for folder in folders:
-        os.chmod(folder, 0o700)
-        for name in os.listdir(folder):
-            path = os.path.join(folder, name)
-            if (
-                (name.endswith(".json") or name.endswith(".json.bkp"))
-                and os.path.isfile(path)
-                and not os.path.islink(path)
-            ):
-                os.chmod(path, 0o600)
 
 
 class PersistentObject:
@@ -174,16 +129,10 @@ def _write_json_file(content, path, lock=None):
     if lock is None:
         lock = fslock
     with lock:
-        # This writer is also used outside Specter's data tree. Make *new*
-        # parent directories private, but do not chmod an existing shared one.
-        os.makedirs(os.path.dirname(os.path.abspath(path)), mode=0o700, exist_ok=True)
-        if os.path.islink(path):
-            raise ValueError("Refusing to write JSON through a symbolic link")
         # backup file
         bkp = path + ".bkp"
         # check if file exists
         if os.path.isfile(path):
-            os.chmod(path, 0o600)
             # check if backup exists
             if os.path.isfile(bkp):
                 # remove backup file
@@ -191,18 +140,7 @@ def _write_json_file(content, path, lock=None):
             # move file to backup
             os.rename(path, bkp)
         try:
-            # Set permissions on the descriptor before writing any secrets, even
-            # when the process umask is permissive.
-            fd = os.open(
-                path,
-                os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0),
-                0o600,
-            )
-            with os.fdopen(fd, "w") as f:
-                if hasattr(os, "fchmod"):
-                    os.fchmod(f.fileno(), 0o600)
-                else:
-                    os.chmod(path, 0o600)
+            with open(path, "w") as f:
                 json.dump(content, f, indent=4)
 
             # check if write was successful
@@ -215,14 +153,7 @@ def _write_json_file(content, path, lock=None):
             # remove damaged file
             if os.path.isfile(path):
                 os.remove(path)
-            # Atomic restore preserves 0600, unlike copyfile under a loose umask.
-            if os.path.isfile(bkp) and not os.path.islink(bkp):
-                os.chmod(bkp, 0o600)
-                os.replace(bkp, path)
-            else:
-                raise SpecterError(
-                    f"Error:{path} could not be saved; no backup exists"
-                ) from e
+            shutil.copyfile(bkp, path)
             raise SpecterError(
                 f"Error:{path} could not be saved. The old version has been restored. Check the logs for details. This is probably a bug."
             )

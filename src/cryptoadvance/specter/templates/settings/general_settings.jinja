@@ -55,7 +55,7 @@
 				{{ _("This backup doesn't include the private keys of any hot wallet or the BIP39 seed of your signing devices.") }}
 			</p>
 			<p role="alert">
-				{{ _("Warning: the backup ZIP is not encrypted. It contains all exported secrets in plaintext, including Liquid blinding keys in wallet descriptors and device files. Keep the ZIP and any extracted files secret; anyone with them can read your wallet history. It does not replace your signing seed backup.") }}
+				{{ _("Warning: the backup ZIP is not encrypted. It contains privacy-sensitive wallet descriptors and Liquid blinding keys in plaintext, but not hot-wallet spending keys or signing-device seeds. Keep the ZIP and any extracted files private; anyone with them can read your Liquid wallet history. Back up spending keys and signing seeds separately.") }}
 			</p>
 			<div class="flex space-x-3 mt-5">
 				<a href="{{ url_for('settings_endpoint.backup_file') }}" class="button mb-0" data-style="max-width: 500px">
