@@ -1,5 +1,8 @@
 # Release Notes
 
+## Unreleased
+- Specter refuses to write JSON through a symlink (including a symlinked `config.json`). Replace the link with a regular file in a private data directory before upgrading. Existing data paths owned by another user are not chmodded at startup; Specter logs a warning when it cannot restrict their permissions.
+
 ## v2.3.0 November 06, 2026
 - Add backwards-compatible BIP-329 label import and export #2712 (Schnuartz AI)
 - Add Taproot support flag for BitBox02 #2705 (al-munazzim)

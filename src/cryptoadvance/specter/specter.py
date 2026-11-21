@@ -37,7 +37,13 @@ from .managers.service_manager import ExtensionManager
 from .managers.user_manager import UserManager
 from .managers.wallet_manager import WalletManager
 from .node import Node
-from .persistence import read_json_file, write_json_file, write_node
+from .persistence import (
+    ensure_private_directory,
+    read_json_file,
+    secure_json_files,
+    write_json_file,
+    write_node,
+)
 from .process_controller.bitcoind_controller import BitcoindPlainController
 from .rpc import (
     BitcoinRPC,
@@ -82,9 +88,9 @@ class Specter:
             data_folder = os.path.expanduser(data_folder)
         data_folder = os.path.abspath(data_folder)
 
-        # creating folders if they don't exist
-        if not os.path.isdir(data_folder):
-            os.makedirs(data_folder)
+        # Restrict the data folder and existing JSON before loading secrets.
+        ensure_private_directory(data_folder)
+        secure_json_files(data_folder)
 
         self.call_functions_at_cleanup_on_exit = []
         self.data_folder = data_folder
@@ -125,9 +131,9 @@ class Specter:
             bitcoind_path=self.bitcoind_path,
             internal_bitcoind_version=self._internal_bitcoind_version,
             data_folder=os.path.join(self.data_folder, "nodes"),
-            service_manager=self.service_manager
-            if hasattr(self, "service_manager")
-            else None,
+            service_manager=(
+                self.service_manager if hasattr(self, "service_manager") else None
+            ),
         )
         try:
             logger.debug(
