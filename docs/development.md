@@ -212,6 +212,8 @@ pytest --capture=no --log-cli-level=DEBUG
 
 ### Hardware-attended Jade tests
 
+`tests/test_jade_ae_off.py` checks the Jade HWI transaction signing call with a mocked Jade device and a PSBT fixture. It asserts that anti-exfil is disabled, no AE host parameters are sent, and a normal signature is added to the PSBT. Run it without node fixtures using `pytest tests/test_jade_ae_off.py --noconftest -o addopts=""`. This does **not** validate signing against physical Jade hardware or provide nonce-exfiltration protection. The vendored `jadepy` upgrade is deferred to a separate change; upgrading it alone would not supply host-side anti-exfil verification.
+
 `tests/test_jade_hardware.py` exercises Specter's HWI integration end-to-end against a physical Blockstream Jade. It is gated by `--run-jade-hardware` and skipped by default, so GitHub Actions ignore it without any workflow change.
 
 Run with `-s` so operator prompts reach the terminal:
