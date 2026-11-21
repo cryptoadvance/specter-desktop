@@ -390,6 +390,7 @@ class SpecterPSBT(AbstractTxContext):
                         source, "taproot_sigs"
                     ):
                         dest.taproot_sigs.update(source.taproot_sigs)
+                    self._merge_unknown(dest, source)
             for dest, source in zip(self.psbt.outputs, psbt.outputs):
                 if trusted:
                     dest.update(source)
@@ -400,6 +401,32 @@ class SpecterPSBT(AbstractTxContext):
                     )
         if finalized is not None:
             self.raw = finalized
+
+    # embit 0.6.1 keeps BIP-371 signature fields in input.unknown.
+    TAPROOT_KEY_SIG_KEY = b"\x13"
+    TAPROOT_SCRIPT_SIG_PREFIX = 0x14
+    TAPROOT_SCRIPT_SIG_KEY_LENGTH = 65  # type + xonly pubkey + leaf hash
+
+    @classmethod
+    def _mergeable_unknown(cls, key: bytes, value: bytes) -> bool:
+        """Allow only well-sized taproot signature fields from external signers."""
+        if not isinstance(key, bytes) or not isinstance(value, bytes):
+            return False
+        if key == cls.TAPROOT_KEY_SIG_KEY:
+            return len(value) in (64, 65)
+        if (
+            len(key) == cls.TAPROOT_SCRIPT_SIG_KEY_LENGTH
+            and key[0] == cls.TAPROOT_SCRIPT_SIG_PREFIX
+        ):
+            return len(value) in (64, 65)
+        return False
+
+    @classmethod
+    def _merge_unknown(cls, dest, source) -> None:
+        """Keep existing signatures; copy allowed entries to the same input."""
+        for key, value in source.unknown.items():
+            if key not in dest.unknown and cls._mergeable_unknown(key, value):
+                dest.unknown[key] = value
 
     def utxo_dict(self) -> dict:
         return [{"txid": inp.txid.hex(), "vout": inp.vout} for inp in self.psbt.inputs]
