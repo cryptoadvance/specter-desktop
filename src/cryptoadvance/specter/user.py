@@ -1,8 +1,6 @@
 import base64
-import binascii
 from datetime import date, datetime
 import cryptography
-import hashlib
 import json
 import logging
 import os
@@ -25,34 +23,18 @@ from .managers.wallet_manager import WalletManager
 from .managers.device_manager import DeviceManager
 from .helpers import deep_update
 
+# Password hashing lives in util/password.py so it stays testable without the
+# full Specter stack; the names are re-exported here for existing callers.
+from .util.password import (
+    LEGACY_PASSWORD_HASH_ITERATIONS,
+    PASSWORD_HASH_ITERATIONS,
+    hash_password,
+    password_hash_needs_rehash,
+    upgrade_password_hash,
+    verify_password,
+)
 
 logger = logging.getLogger(__name__)
-
-
-def hash_password(plaintext_password):
-    """Hash a password for storing."""
-    salt = binascii.b2a_base64(hashlib.sha256(os.urandom(60)).digest()).strip()
-    pwdhash = (
-        binascii.b2a_base64(
-            hashlib.pbkdf2_hmac(
-                "sha256", plaintext_password.encode("utf-8"), salt, 10000
-            )
-        )
-        .strip()
-        .decode()
-    )
-    return {"salt": salt.decode(), "pwdhash": pwdhash}
-
-
-def verify_password(stored_password, provided_password):
-    """Verify a stored password against one provided by user"""
-    pwdhash = hashlib.pbkdf2_hmac(
-        "sha256",
-        provided_password.encode("utf-8"),
-        stored_password["salt"].encode(),
-        10000,
-    )
-    return pwdhash == binascii.a2b_base64(stored_password["pwdhash"])
 
 
 class UserSecretException(Exception):
