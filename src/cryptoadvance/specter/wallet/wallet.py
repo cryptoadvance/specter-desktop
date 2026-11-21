@@ -2063,7 +2063,7 @@ class Wallet(AbstractWallet):
         except:
             locktime = 0
 
-        # first run to get estimate
+        # Core funds at the requested rate using its signed-size estimate.
         r = self.rpc.walletcreatefundedpsbt(
             extra_inputs,  # inputs
             [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # outputs
@@ -2083,31 +2083,6 @@ class Wallet(AbstractWallet):
             devices=list(zip(self.keys, self._devices)),
         )
 
-        # Core's fee rate is wrong so we need to "adjust" it
-        if fee_rate > 0:
-            # scale by which Core misses the fee rate
-            scale = fee_rate / psbt.fee_rate
-            adjusted_fee_rate = fee_rate * scale
-            options["feeRate"] = round((adjusted_fee_rate * 1000) / 1e8, 8)
-
-            r = self.rpc.walletcreatefundedpsbt(
-                extra_inputs,  # inputs
-                [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # outputs
-                locktime,
-                options,
-                True,  # bip32-der
-            )
-
-            # Always explicitly fill psbt with any missing fields
-            # TODO: Re-evaluate if this is necessary if user is running Bitcoin Core w/BIP-371 support
-            b64psbt = self.fill_psbt(r["psbt"])
-
-            psbt: SpecterPSBT = self.PSBTCls(
-                b64psbt,
-                self.descriptor,
-                self.network,
-                devices=list(zip(self.keys, self._devices)),
-            )
         if not readonly:
             self.save_pending_psbt(psbt)
         return psbt
@@ -2203,8 +2178,12 @@ class Wallet(AbstractWallet):
                 "Fee difference is too small to relay the RBF transaction"
             )
         if len(psbt.outputs) == 1:
-            # On single-output transactions we just decrease the output value
-            psbt.psbt.outputs[0].value -= round(fee_delta)
+            # No change output: reduce the recipient, but never create dust.
+            new_value = psbt.psbt.outputs[0].value - round(fee_delta)
+            if new_value <= 546:
+                raise SpecterError("Not enough funds in the transaction to avoid dust")
+            psbt.psbt.outputs[0].value = new_value
+            psbt.recipient_amount_reduced = True
         else:
             # find change output
             change_index = None
@@ -2221,7 +2200,10 @@ class Wallet(AbstractWallet):
                 # if we went negative - just drop the change output
                 psbt.psbt.outputs.remove(psbt.psbt.outputs[i])
         self.save_pending_psbt(psbt)
-        return psbt.to_dict()
+        result = psbt.to_dict()
+        if getattr(psbt, "recipient_amount_reduced", False):
+            result["recipient_amount_reduced"] = True
+        return result
 
     @property
     def is_taproot(self):

@@ -276,31 +276,7 @@ class LWallet(Wallet):
             devices=list(zip(self.keys, self._devices)),
         )
 
-        if fee_rate > 0:
-            # scale by which Core misses the fee rate
-            scale = fee_rate / psbt.fee_rate
-            adjusted_fee_rate = fee_rate * scale
-            options["feeRate"] = round((adjusted_fee_rate * 1000) / 1e8, 8)
-
-            r = self.rpc.walletcreatefundedpsbt(
-                extra_inputs,  # inputs
-                [
-                    {addresses[i]: amounts[i], "asset": assets[i]}
-                    for i in range(len(addresses))
-                ],  # output
-                locktime,
-                options,  # options
-                True,  # bip32-der
-            )
-
-            b64psbt = r["psbt"]
-            psbt = self.PSBTCls(
-                b64psbt,
-                self.descriptor,
-                self.network,
-                devices=list(zip(self.keys, self._devices)),
-            )
-
+        # Core funds at the requested rate using its signed-size estimate.
         if not readonly:
             self.save_pending_psbt(psbt)
         return psbt
