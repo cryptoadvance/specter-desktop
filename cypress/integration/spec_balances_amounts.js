@@ -26,6 +26,7 @@ describe('Test the rendering of balances and amounts', () => {
         cy.get('#satoshis_hot_keys_tx_sign_btn').click()
         cy.get('#satoshis_hot_keys_hot_sign_btn').click()
         cy.get('#hot_enter_passphrase__submit').click()
+        cy.get('#send_tx_btn').click()
         cy.get('#broadcast_local_btn').click()
         cy.visit("/")
         cy.selectWallet('Ghost wallet')
