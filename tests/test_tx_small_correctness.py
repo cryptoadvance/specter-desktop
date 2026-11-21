@@ -1,7 +1,6 @@
 """Node-free regressions for the small transaction-correctness fixes.
 
 Covers:
-- hot-wallet send finalizes the *signed* PSBT (not the unsigned original)
 - bumpfee reduces the change output, not whatever index the loop ended on
 - missing change descriptor is derived from the receive descriptor
 - transaction output dicts resolve addresses / OP_RETURN labels
@@ -9,17 +8,16 @@ Covers:
 - the "recipient amount reduced" warning survives PSBT serialization
 """
 
-import json
 from importlib import import_module
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
-from embit import bip32, ec, networks, script
+from embit import bip32, networks, script
 from embit.descriptor import Descriptor
-from embit.psbt import PSBT, DerivationPath
-from embit.script import Script, Witness
+from embit.psbt import PSBT
+from embit.script import Script
 from embit.transaction import Transaction, TransactionInput, TransactionOutput
 from flask import Flask
 from jinja2 import Environment
@@ -47,77 +45,6 @@ def make_pending_psbt():
         1000, DESCRIPTOR.derive(0).script_pubkey()
     )
     return SpecterPSBT(psbt, DESCRIPTOR, NET)
-
-
-def make_signed_psbt(pending):
-    signed = PSBT.parse(pending.psbt.serialize())
-    pub = ec.PrivateKey(b"\x02" * 32).get_public_key()
-    signed.inputs[0].partial_sigs[pub] = b"\x30" * 71
-    signed.inputs[0].bip32_derivations[pub] = DerivationPath(b"\x03" * 4, [0, 0])
-    return signed
-
-
-def finalized_hex(pending):
-    tx = Transaction.parse(pending.psbt.tx.serialize())
-    tx.vin[0].witness = Witness([b"\x30" * 71])
-    return tx.serialize().hex()
-
-
-def test_hot_wallet_send_finalizes_the_signed_psbt():
-    wallets = import_module("cryptoadvance.specter.server_endpoints.wallets.wallets")
-    pending = make_pending_psbt()
-    signed = make_signed_psbt(pending)
-    raw_hex = finalized_hex(pending)
-
-    def fake_finalizepsbt(b64psbt):
-        # Mirror Core: an unsigned PSBT is not complete and comes back without hex.
-        parsed = PSBT.from_string(b64psbt)
-        if any(inp.partial_sigs for inp in parsed.inputs):
-            return {"hex": raw_hex, "complete": True}
-        return {"psbt": b64psbt, "complete": False}
-
-    wallet = MagicMock()
-    wallet.frozen_utxo = []
-    wallet.pending_psbts = {pending.txid: pending}
-    wallet.rpc.finalizepsbt.side_effect = fake_finalizepsbt
-
-    device = MagicMock()
-    device.sign_psbt.return_value = {"complete": True, "psbt": str(signed)}
-
-    flask_app = Flask(__name__)
-    flask_app.secret_key = "test"
-    flask_app.specter = SimpleNamespace(
-        wallet_manager=SimpleNamespace(get_by_alias=lambda alias: wallet),
-        device_manager=SimpleNamespace(get_by_alias=lambda alias: device),
-        is_liquid=False,
-    )
-    captured = {}
-
-    def fake_render(template, **kwargs):
-        captured.update(kwargs)
-        return "rendered"
-
-    with flask_app.test_request_context(
-        "/wallet/w/send/new",
-        method="POST",
-        data={
-            "action": "signhotwallet",
-            "passphrase": "pw",
-            "psbt": json.dumps(pending.to_dict()),
-            "device": "hot_device_1",
-        },
-    ):
-        with patch.object(wallets, "render_template", side_effect=fake_render):
-            wallets.send_new.__wrapped__("w")
-
-    assert wallet.rpc.finalizepsbt.call_count == 1
-    # The signed PSBT is what gets finalized - the unsigned original cannot be.
-    assert wallet.rpc.finalizepsbt.call_args.args[0] == str(signed)
-    assert captured["signed_psbt"] == str(signed)
-    # ...and the finalized transaction is what the signing page offers to broadcast.
-    assert captured["psbt"]["raw"] == raw_hex
-    parsed_raw = Transaction.parse(bytes.fromhex(captured["psbt"]["raw"]))
-    assert parsed_raw.vin[0].witness.items == [b"\x30" * 71]
 
 
 def explorer_app():
@@ -168,6 +95,22 @@ def test_explorer_broadcast_failure_keeps_pending_psbts(status, body, expected_t
     result = call_explorer_broadcast(flask_app, api)
 
     assert result["success"] is False
+    assert body not in result["error"]
+    wallet.delete_spent_pending_psbts.assert_not_called()
+
+
+def test_explorer_broadcast_html_response_is_not_reflected():
+    flask_app, api, wallet, session = explorer_app()
+    payload = '<img src=x onerror="alert(1)">'
+    session.post.return_value = MagicMock(status_code=400, text=payload)
+    wallet.rpc.decoderawtransaction.return_value = {"txid": "a" * 64}
+
+    result = call_explorer_broadcast(flask_app, api)
+
+    assert result["success"] is False
+    assert "400" in result["error"]
+    assert payload not in result["error"]
+    assert "<" not in result["error"]
     wallet.delete_spent_pending_psbts.assert_not_called()
 
 

@@ -6,7 +6,7 @@ to_dict and from_dict methods are maintained for backward-compatibility
 import logging
 from cryptoadvance.specter.key import Key
 from embit.psbt import PSBT, InputScope, OutputScope, DerivationPath
-from embit.transaction import Transaction, TransactionOutput, TransactionInput
+from embit.transaction import Transaction, TransactionOutput, TransactionInput, SIGHASH
 from embit.liquid.networks import get_network
 from embit import bip32
 from embit.descriptor import Descriptor
@@ -250,6 +250,28 @@ class SpecterOutputScope(SpecterScope):
         return self.out.value
 
 
+def witness_items(vin: TransactionInput) -> list:
+    """Script witness stack of a transaction input.
+
+    Bitcoin keeps it directly in vin.witness, Liquid wraps it in a TxInWitness
+    together with the amount, token and pegin proofs.
+    """
+    witness = vin.witness
+    if hasattr(witness, "script_witness"):
+        witness = witness.script_witness
+    return witness.items
+
+
+def unsigned_transaction_bytes(psbt: PSBT) -> bytes:
+    """Compare on-chain output commitments, not PSET-only unblinded metadata."""
+    tx = psbt.tx
+    tx.vout = [
+        scope.blinded_vout if hasattr(scope, "blinded_vout") else scope.vout
+        for scope in psbt.outputs
+    ]
+    return tx.serialize()
+
+
 class SpecterPSBT(AbstractTxContext):
     """Specter's PSBT class with some handy functions"""
 
@@ -290,20 +312,122 @@ class SpecterPSBT(AbstractTxContext):
     def descriptor(self) -> Descriptor:
         return self._descriptor
 
-    def update(self, b64psbt: str, raw: dict = {}) -> None:
-        """
+    def update(self, b64psbt: str, raw: dict = None, trusted: bool = False) -> None:
+        """Merge only signatures and key origins for the same unsigned transaction.
+
         b64psbt - PSBT transaction with some extra data that we should take
         raw dict can contain "hex" key with hex string of the finalized transaction. Or not.
+        trusted - only for PSBTs coming from the local Core wallet, which also fills
+        UTXO data and final fields of transactions already in the wallet history.
+        A finalized raw transaction may have a different txid due to scriptSig;
+        compare its unsigned fields instead of its txid.
         """
+        psbt = self.PSBTCls.from_string(b64psbt) if b64psbt else None
+        if psbt:
+            if unsigned_transaction_bytes(psbt) != unsigned_transaction_bytes(
+                self.psbt
+            ):
+                raise ValueError(
+                    "PSBT unsigned transaction does not match pending transaction"
+                )
+            if not trusted:
+                for inp in psbt.inputs:
+                    # SIGHASH_DEFAULT (0) is what taproot signers use and embit
+                    # signs non-taproot inputs with SIGHASH_ALL in that case.
+                    if inp.sighash_type not in (
+                        None,
+                        SIGHASH.DEFAULT,
+                        SIGHASH.ALL,
+                    ):
+                        raise ValueError("Unsupported PSBT sighash type")
+                    if (
+                        inp.final_scriptsig is not None
+                        or inp.final_scriptwitness is not None
+                    ) and not (raw and "hex" in raw):
+                        raise ValueError("Cannot merge unverified PSBT final fields")
+
+        finalized = None
         if raw and "hex" in raw:
-            self.raw = bytes.fromhex(raw["hex"])
-        if not b64psbt:
-            return
-        psbt = self.PSBTCls.from_string(b64psbt)
-        for inp1, inp2 in zip(self.psbt.inputs, psbt.inputs):
-            inp1.update(inp2)
-        for out1, out2 in zip(self.psbt.outputs, psbt.outputs):
-            out1.update(out2)
+            finalized = bytes.fromhex(raw["hex"])
+            tx = self.TxCls.TxCls.parse(finalized)
+            unsigned = self.psbt.tx
+            if (
+                tx.version != unsigned.version
+                or tx.locktime != unsigned.locktime
+                or len(tx.vin) != len(unsigned.vin)
+                or len(tx.vout) != len(unsigned.vout)
+                or any(
+                    vin.txid != original.txid
+                    or vin.vout != original.vout
+                    or vin.sequence != original.sequence
+                    or not (vin.script_sig.data or witness_items(vin))
+                    for vin, original in zip(tx.vin, unsigned.vin)
+                )
+                or any(
+                    out.serialize()
+                    != (
+                        scope.blinded_vout
+                        if hasattr(scope, "blinded_vout")
+                        else scope.vout
+                    ).serialize()
+                    for out, scope in zip(tx.vout, self.psbt.outputs)
+                )
+            ):
+                raise ValueError("Final transaction does not match pending transaction")
+
+        if psbt:
+            for dest, source in zip(self.psbt.inputs, psbt.inputs):
+                if trusted:
+                    # Core fills UTXOs and scripts for transaction history.
+                    dest.update(source)
+                else:
+                    dest.partial_sigs.update(source.partial_sigs)
+                    dest.bip32_derivations.update(source.bip32_derivations)
+                    dest.taproot_bip32_derivations.update(
+                        source.taproot_bip32_derivations
+                    )
+                    # embit 0.6.1 has no taproot_sigs scope attribute.
+                    if hasattr(dest, "taproot_sigs") and hasattr(
+                        source, "taproot_sigs"
+                    ):
+                        dest.taproot_sigs.update(source.taproot_sigs)
+                    self._merge_unknown(dest, source)
+            for dest, source in zip(self.psbt.outputs, psbt.outputs):
+                if trusted:
+                    dest.update(source)
+                else:
+                    dest.bip32_derivations.update(source.bip32_derivations)
+                    dest.taproot_bip32_derivations.update(
+                        source.taproot_bip32_derivations
+                    )
+        if finalized is not None:
+            self.raw = finalized
+
+    # embit 0.6.1 keeps BIP-371 signature fields in input.unknown.
+    TAPROOT_KEY_SIG_KEY = b"\x13"
+    TAPROOT_SCRIPT_SIG_PREFIX = 0x14
+    TAPROOT_SCRIPT_SIG_KEY_LENGTH = 65  # type + xonly pubkey + leaf hash
+
+    @classmethod
+    def _mergeable_unknown(cls, key: bytes, value: bytes) -> bool:
+        """Allow only well-sized taproot signature fields from external signers."""
+        if not isinstance(key, bytes) or not isinstance(value, bytes):
+            return False
+        if key == cls.TAPROOT_KEY_SIG_KEY:
+            return len(value) in (64, 65)
+        if (
+            len(key) == cls.TAPROOT_SCRIPT_SIG_KEY_LENGTH
+            and key[0] == cls.TAPROOT_SCRIPT_SIG_PREFIX
+        ):
+            return len(value) in (64, 65)
+        return False
+
+    @classmethod
+    def _merge_unknown(cls, dest, source) -> None:
+        """Keep existing signatures; copy allowed entries to the same input."""
+        for key, value in source.unknown.items():
+            if key not in dest.unknown and cls._mergeable_unknown(key, value):
+                dest.unknown[key] = value
 
     def utxo_dict(self) -> dict:
         return [{"txid": inp.txid.hex(), "vout": inp.vout} for inp in self.psbt.inputs]

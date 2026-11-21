@@ -244,9 +244,11 @@ def broadcast_blockexplorer(wallet_alias):
             ):
                 return jsonify(
                     success=False,
+                    # The explorer response is untrusted and the browser renders
+                    # errors as HTML. Never reflect its body into this message.
                     error=_(
-                        "Failed to broadcast transaction: explorer returned {}: {}"
-                    ).format(response.status_code, returned_txid[:500]),
+                        "Failed to broadcast transaction: explorer returned HTTP {}"
+                    ).format(response.status_code),
                 )
             wallet.delete_spent_pending_psbts([tx])
             return jsonify(success=True)
