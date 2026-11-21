@@ -197,7 +197,7 @@ class LTxList(TxList):
         # fill derivation paths etc
         updated = self.rpc.walletprocesspsbt(str(psbt), False).get("psbt", None)
         if updated:
-            psbt.update(updated)
+            psbt.update(updated, trusted=True)
         return psbt
 
     def _update_destinations(self, tx, outs):

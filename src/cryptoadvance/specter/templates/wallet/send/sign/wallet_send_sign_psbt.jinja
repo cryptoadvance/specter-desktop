@@ -74,6 +74,11 @@
 	<form action="{{ url_for('wallets_endpoint.send_pending',wallet_alias=wallet_alias) }}" method="POST" class="full-width" id="send_sign_psbt_form" data-style="margin: auto; margin-top: 0px; max-width: 96%;">
 		<input type="hidden" class="csrf-token" name="csrf_token" value="{{ csrf_token() }}"/>
 		<div class="tx_info">
+			{% if psbt.get('recipient_amount_reduced') %}
+				<div class="note mb-5" role="alert">
+					{{ _("Warning: This fee bump reduces the recipient's payment amount. Check the new amount before signing.") }}
+				</div>
+			{% endif %}
 			{% for i in range(psbt['address']|length) %}
 				<div class="flex items-center flex-wrap whitespace-nowrap">
 					{% if "asset" in psbt %}
