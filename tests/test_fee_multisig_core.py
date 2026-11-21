@@ -30,7 +30,7 @@ def test_multisig_real_signed_fee_rate(
     assert wallet.descriptor.is_basic_multisig
     bitcoin_regtest.testcoin_faucet(wallet.getnewaddress(), amount=1)
     wallet.update()
-    destination = bitcoin_regtest.get_rpc().getnewaddress()
+    destination = wallet.getnewaddress()
     psbt = wallet.createpsbt([destination], [0.1], fee_rate=10, readonly=True)
     signed = str(psbt)
     for device in devices[:2]:
