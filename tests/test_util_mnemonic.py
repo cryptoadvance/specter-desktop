@@ -86,6 +86,78 @@ def test_mnemonic_to_root():
     )
 
 
+def test_liquid_seed_matches_bip39_reference():
+    from mnemonic import Mnemonic
+    from cryptoadvance.specter.util.mnemonic import mnemonic_to_seed
+
+    phrase = "abandon " * 11 + "about"
+    assert mnemonic_to_seed(phrase, "pässword") == Mnemonic("english").to_seed(
+        phrase, passphrase="pässword"
+    )
+
+
+def test_bip39_nfkd_mnemonic_and_passphrase_match_reference():
+    from mnemonic import Mnemonic
+    from embit import bip32
+    import unicodedata
+
+    mnemonic = "abandon " * 11 + "about"
+    reference = Mnemonic("english").to_seed(mnemonic, passphrase="pässword")
+    assert (
+        mnemonic_to_root(mnemonic, "pässword").to_string()
+        == bip32.HDKey.from_seed(reference).to_string()
+    )
+    assert (
+        mnemonic_to_root(mnemonic, "pässword").to_string()
+        == mnemonic_to_root(
+            mnemonic, unicodedata.normalize("NFKD", "pässword")
+        ).to_string()
+    )
+    # Japanese BIP39 mnemonic with a precomposed character.
+    composed = unicodedata.normalize("NFC", japanese)
+    # Also verify equivalent composed/decomposed mnemonic spellings when detected.
+    assert (
+        mnemonic_to_root(composed, "").to_string()
+        == mnemonic_to_root(japanese, "").to_string()
+    )
+
+
+def test_legacy_bitcoin_root_reproduces_pre_normalization_derivation():
+    from embit import bip32, bip39
+
+    phrase = "abandon " * 11 + "about"
+    passphrase = "pässword"
+    old_seed = bip39.mnemonic_to_seed(phrase, passphrase, wordlist=get_wordlist(phrase))
+    assert (
+        mnemonic_to_root(phrase, passphrase, legacy=True).to_string()
+        == bip32.HDKey.from_seed(old_seed).to_string()
+    )
+    assert (
+        mnemonic_to_root(phrase, passphrase).to_string()
+        != mnemonic_to_root(phrase, passphrase, legacy=True).to_string()
+    )
+
+
+def test_legacy_liquid_seed_reproduces_pre_normalization_default_wordlist():
+    from embit import bip39
+    from embit.liquid.slip77 import master_blinding_from_seed
+
+    phrase = "abandon " * 11 + "about"
+    passphrase = "pässword"
+    assert mnemonic_to_seed(
+        phrase, passphrase, legacy=True, liquid=True
+    ) == bip39.mnemonic_to_seed(phrase, passphrase)
+    assert (
+        master_blinding_from_seed(
+            mnemonic_to_seed(phrase, passphrase, legacy=True, liquid=True)
+        ).secret
+        == master_blinding_from_seed(bip39.mnemonic_to_seed(phrase, passphrase)).secret
+    )
+    assert mnemonic_to_seed(phrase, passphrase) != mnemonic_to_seed(
+        phrase, passphrase, legacy=True, liquid=True
+    )
+
+
 def count_multi_occurrence_languages(word_lists_dict):
     # Create a Counter to store occurrences of words across different lists
     word_counter = Counter()

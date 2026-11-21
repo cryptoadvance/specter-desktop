@@ -1,6 +1,7 @@
 """
 Manages the list of transactions for the wallet
 """
+
 import json
 import logging
 import math
@@ -324,7 +325,7 @@ class WalletAwareTxItem(TxItem):
         # fill derivation paths etc
         updated = self.rpc.walletprocesspsbt(str(self._psbt), False).get("psbt", None)
         if updated:
-            self._psbt.update(updated)
+            self._psbt.update(updated, trusted=True)
         return self._psbt
 
     @property

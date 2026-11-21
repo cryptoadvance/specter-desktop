@@ -3,6 +3,7 @@ The goal of this module is to slowly migrate from json-like representation of PS
 to a normal PSBT class that does not require RPC calls and can do more things.
 to_dict and from_dict methods are maintained for backward-compatibility
 """
+
 import logging
 from cryptoadvance.specter.key import Key
 from embit.psbt import PSBT, InputScope, OutputScope, DerivationPath
@@ -66,9 +67,9 @@ class SpecterTx(AbstractTxContext):
             },
         }
         try:
-            if scope.script_pubkey.data.startswith(b"\x6a"):
+            if vout.script_pubkey.data.startswith(b"\x6a"):
                 obj["scriptPubKey"]["addresses"] = [
-                    "OP_RETURN " + scope.script_pubkey.data.hex()
+                    "OP_RETURN " + vout.script_pubkey.data.hex()
                 ]
             else:
                 obj["scriptPubKey"]["addresses"] = [
@@ -280,6 +281,7 @@ class SpecterPSBT(AbstractTxContext):
         self.devices = devices
         self.raw = bytes.fromhex(raw) if raw else None
         self.time = kwargs.get("time", time.time())
+        self.recipient_amount_reduced = kwargs.get("recipient_amount_reduced", False)
 
     @property
     def network(self) -> dict:
@@ -289,20 +291,79 @@ class SpecterPSBT(AbstractTxContext):
     def descriptor(self) -> Descriptor:
         return self._descriptor
 
-    def update(self, b64psbt: str, raw: dict = {}) -> None:
+    def update(self, b64psbt: str, raw: dict = None, trusted: bool = False) -> None:
+        """Merge only signatures and key origins for the same unsigned transaction.
+
+        A finalized raw transaction may have a different txid due to scriptSig;
+        compare its unsigned fields instead of its txid.
         """
-        b64psbt - PSBT transaction with some extra data that we should take
-        raw dict can contain "hex" key with hex string of the finalized transaction. Or not.
-        """
+        psbt = self.PSBTCls.from_string(b64psbt) if b64psbt else None
+        if psbt:
+            if psbt.tx.serialize() != self.psbt.tx.serialize():
+                raise ValueError(
+                    "PSBT unsigned transaction does not match pending transaction"
+                )
+            if not trusted:
+                for inp in psbt.inputs:
+                    if inp.sighash_type not in (None, 1):
+                        raise ValueError("Unsupported PSBT sighash type")
+                    if (
+                        inp.final_scriptsig is not None
+                        or inp.final_scriptwitness is not None
+                    ) and not (raw and "hex" in raw):
+                        raise ValueError("Cannot merge unverified PSBT final fields")
+
+        finalized = None
         if raw and "hex" in raw:
-            self.raw = bytes.fromhex(raw["hex"])
-        if not b64psbt:
-            return
-        psbt = self.PSBTCls.from_string(b64psbt)
-        for inp1, inp2 in zip(self.psbt.inputs, psbt.inputs):
-            inp1.update(inp2)
-        for out1, out2 in zip(self.psbt.outputs, psbt.outputs):
-            out1.update(out2)
+            finalized = bytes.fromhex(raw["hex"])
+            tx = self.TxCls.TxCls.parse(finalized)
+            unsigned = self.psbt.tx
+            if (
+                tx.version != unsigned.version
+                or tx.locktime != unsigned.locktime
+                or len(tx.vin) != len(unsigned.vin)
+                or len(tx.vout) != len(unsigned.vout)
+                or any(
+                    vin.txid != original.txid
+                    or vin.vout != original.vout
+                    or vin.sequence != original.sequence
+                    or not (vin.script_sig.data or vin.witness.items)
+                    for vin, original in zip(tx.vin, unsigned.vin)
+                )
+                or any(
+                    out.value != original.value
+                    or out.script_pubkey != original.script_pubkey
+                    for out, original in zip(tx.vout, unsigned.vout)
+                )
+            ):
+                raise ValueError("Final transaction does not match pending transaction")
+
+        if psbt:
+            for dest, source in zip(self.psbt.inputs, psbt.inputs):
+                if trusted:
+                    # Core fills UTXOs and scripts for transaction history.
+                    dest.update(source)
+                else:
+                    dest.partial_sigs.update(source.partial_sigs)
+                    dest.bip32_derivations.update(source.bip32_derivations)
+                    dest.taproot_bip32_derivations.update(
+                        source.taproot_bip32_derivations
+                    )
+                    # embit 0.6.1 has no taproot_sigs scope attribute.
+                    if hasattr(dest, "taproot_sigs") and hasattr(
+                        source, "taproot_sigs"
+                    ):
+                        dest.taproot_sigs.update(source.taproot_sigs)
+            for dest, source in zip(self.psbt.outputs, psbt.outputs):
+                if trusted:
+                    dest.update(source)
+                else:
+                    dest.bip32_derivations.update(source.bip32_derivations)
+                    dest.taproot_bip32_derivations.update(
+                        source.taproot_bip32_derivations
+                    )
+        if finalized is not None:
+            self.raw = finalized
 
     def utxo_dict(self) -> dict:
         return [{"txid": inp.txid.hex(), "vout": inp.vout} for inp in self.psbt.inputs]
@@ -458,6 +519,8 @@ class SpecterPSBT(AbstractTxContext):
             ],
             "fee_rate": round(fee / full_size, 2),
         }
+        if self.recipient_amount_reduced:
+            obj["recipient_amount_reduced"] = True
         if self.raw:
             obj.update({"raw": self.raw.hex()})
         return obj

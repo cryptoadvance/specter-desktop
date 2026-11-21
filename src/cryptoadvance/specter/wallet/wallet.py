@@ -273,7 +273,7 @@ class Wallet(AbstractWallet):
         if change_descriptor is None and "/0/*" not in recv_descriptor:
             raise SpecterError("Receive descriptor has strange derivation path")
         if change_descriptor is None:
-            change_descriptor = recv_descriptor.split("#").replace("/0/*", "/1/*")
+            change_descriptor = recv_descriptor.split("#")[0].replace("/0/*", "/1/*")
         # remove checksums
         recv_descriptor = recv_descriptor.split("#")[0]
         change_descriptor = change_descriptor.split("#")[0]
@@ -419,9 +419,11 @@ class Wallet(AbstractWallet):
         return cls(
             name,
             alias,
-            "{} of {} {}".format(sigs_required, len(keys), purposes[key_type])
-            if len(keys) > 1
-            else purposes[key_type],
+            (
+                "{} of {} {}".format(sigs_required, len(keys), purposes[key_type])
+                if len(keys) > 1
+                else purposes[key_type]
+            ),
             addrtypes[key_type],
             "",
             -1,
@@ -741,7 +743,8 @@ class Wallet(AbstractWallet):
 
     def check_unused(self):
         """Check current receive address is unused and get new if needed
-        Used means: the given address having a non-zero amount received in transactions with zero confirmations."""
+        Used means: the given address having a non-zero amount received in transactions with zero confirmations.
+        """
         addr = self.address
         try:
             while self.rpc.getreceivedbyaddress(addr, 0) != 0:
@@ -1581,9 +1584,11 @@ class Wallet(AbstractWallet):
         MAX_BLOCKHEIGHT = 999999999999  # Replace before we reach this height
         first_tx = sorted(
             self._transactions.values(),
-            key=lambda tx: tx.get("blockheight", None)
-            if tx.get("blockheight", None)
-            else MAX_BLOCKHEIGHT,
+            key=lambda tx: (
+                tx.get("blockheight", None)
+                if tx.get("blockheight", None)
+                else MAX_BLOCKHEIGHT
+            ),
         )
         first_tx_blockheight = (
             first_tx[0].get("blockheight", None) if first_tx else None
@@ -2063,7 +2068,7 @@ class Wallet(AbstractWallet):
         except:
             locktime = 0
 
-        # first run to get estimate
+        # Let Core fund at the requested rate using its signed-size estimate.
         r = self.rpc.walletcreatefundedpsbt(
             extra_inputs,  # inputs
             [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # outputs
@@ -2083,31 +2088,6 @@ class Wallet(AbstractWallet):
             devices=list(zip(self.keys, self._devices)),
         )
 
-        # Core's fee rate is wrong so we need to "adjust" it
-        if fee_rate > 0:
-            # scale by which Core misses the fee rate
-            scale = fee_rate / psbt.fee_rate
-            adjusted_fee_rate = fee_rate * scale
-            options["feeRate"] = round((adjusted_fee_rate * 1000) / 1e8, 8)
-
-            r = self.rpc.walletcreatefundedpsbt(
-                extra_inputs,  # inputs
-                [{addresses[i]: amounts[i]} for i in range(len(addresses))],  # outputs
-                locktime,
-                options,
-                True,  # bip32-der
-            )
-
-            # Always explicitly fill psbt with any missing fields
-            # TODO: Re-evaluate if this is necessary if user is running Bitcoin Core w/BIP-371 support
-            b64psbt = self.fill_psbt(r["psbt"])
-
-            psbt: SpecterPSBT = self.PSBTCls(
-                b64psbt,
-                self.descriptor,
-                self.network,
-                devices=list(zip(self.keys, self._devices)),
-            )
         if not readonly:
             self.save_pending_psbt(psbt)
         return psbt
@@ -2203,9 +2183,15 @@ class Wallet(AbstractWallet):
                 "Fee difference is too small to relay the RBF transaction"
             )
         if len(psbt.outputs) == 1:
-            # On single-output transactions we just decrease the output value
-            psbt.psbt.outputs[0].value -= round(fee_delta)
+            # With no change output, this reduces the recipient's payment.
+            # Use the conservative standard P2PKH dust threshold for all scripts.
+            new_value = psbt.psbt.outputs[0].value - round(fee_delta)
+            if new_value <= 546:
+                raise SpecterError("Not enough funds in the transaction to avoid dust")
+            psbt.psbt.outputs[0].value = new_value
+            psbt.recipient_amount_reduced = True
         else:
+            psbt.recipient_amount_reduced = False
             # find change output
             change_index = None
             for i, out in enumerate(psbt.outputs):
@@ -2216,12 +2202,15 @@ class Wallet(AbstractWallet):
                 raise SpecterError(
                     "Can't bump fee in a transaction without change outputs"
                 )
-            psbt.psbt.outputs[i].value -= round(fee_delta)
-            if psbt.psbt.outputs[i].value <= 0:
+            psbt.psbt.outputs[change_index].value -= round(fee_delta)
+            if psbt.psbt.outputs[change_index].value <= 0:
                 # if we went negative - just drop the change output
-                psbt.psbt.outputs.remove(psbt.psbt.outputs[i])
+                psbt.psbt.outputs.remove(psbt.psbt.outputs[change_index])
         self.save_pending_psbt(psbt)
-        return psbt.to_dict()
+        result = psbt.to_dict()
+        if psbt.recipient_amount_reduced:
+            result["recipient_amount_reduced"] = True
+        return result
 
     @property
     def is_taproot(self):
