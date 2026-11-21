@@ -2,7 +2,7 @@ import json
 import logging
 from decimal import Decimal
 from functools import wraps
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 from cryptoadvance.specter.services.service_encrypted_storage import (
     ServiceEncryptedStorageError,
@@ -10,7 +10,7 @@ from cryptoadvance.specter.services.service_encrypted_storage import (
 from cryptoadvance.specter.user import User
 from cryptoadvance.specter.wallet import Wallet
 from flask import current_app as app
-from flask import redirect, render_template, request, url_for
+from flask import make_response, redirect, render_template, request, url_for
 from flask.json import jsonify
 from flask_babel import lazy_gettext as _
 from flask_login import current_user, login_required
@@ -147,7 +147,9 @@ def oauth2_start():
     # The oauth2-flow uses a whitelist. Is our hostname whitelisted?!
     if specter_used_hostname not in app.config["SWAN_ALLOWED_SPECTER_HOSTNAMES"]:
         return redirect(url_for(f"{SwanService.get_blueprint_name()}.index"))
-    flow_url = SwanService.client().get_oauth2_start_url(specter_used_hostname)
+    flow_url = SwanService.client().get_oauth2_start_url(
+        specter_used_hostname, user_id=current_user.id
+    )
     sign_in_url = app.config["SWAN_FRONTEND_URL"]
 
     return render_template(
@@ -171,33 +173,34 @@ def integration_check():
     return jsonify(success=False)
 
 
-"""
-    Note: the callback from Swan will be treated by Flask as an AnonymousUserMixin request
-    but we need the user logged in and their user_secret decrypted. So we must require
-    @login_required here which will interrupt the return flow with the login prompt.
-"""
-
-
 @swan_endpoint.route("/oauth2/callback")
+def oauth2_landing():
+    """Swan's cross-site navigation omits Strict cookies; navigate again from our origin."""
+    completion_url = url_for(".oauth2_auth")
+    if request.query_string:
+        # Preserve provider parameters without allowing meta-refresh delimiters.
+        completion_url += "?" + quote(request.query_string, safe="=&%+/?")
+    response = make_response(
+        render_template("swan/oauth2_callback.jinja", completion_url=completion_url)
+    )
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Content-Security-Policy"] = "default-src 'none'; base-uri 'none'"
+    return response
+
+
+@swan_endpoint.route("/oauth2/complete")
 @login_required
 def oauth2_auth():
-    if request.args.get("error"):
-        logger.error(
-            f"OAuth2 flow error: {request.args.get('error')}, {request.args.get('error_description')}"
-        )
-        return render_template(
-            "500.jinja",
-            error=request.args.get("error"),
-            traceback=request.args.get(
-                "error_description"
-            ),  # Slightly misusing the traceback field
-        )
-
     user: User = app.specter.user_manager.get_user()
     error = None
 
     try:
-        SwanService.client().handle_oauth2_auth_callback(request)
+        SwanService.client().handle_oauth2_auth_callback(
+            request,
+            user_id=current_user.id,
+            callback_uri=url_for(".oauth2_landing", _external=True),
+        )
         SwanService.store_new_api_access_data()
     except swan_client.SwanApiException as e:
         logger.exception(e)
