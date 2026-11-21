@@ -94,12 +94,13 @@ class BitcoinCore(Device):
         testnet,
         keys_range=[0, 1000],
         keys_purposes=[],
+        legacy=False,
     ):
         if type(keys_range[0]) == str:
             keys_range[0] = int(keys_range[0])
         if type(keys_range[1]) == str:
             keys_range[1] = int(keys_range[1])
-        root = mnemonic_to_root(mnemonic, passphrase)
+        root = mnemonic_to_root(mnemonic, passphrase, legacy=legacy)
         network = networks.NETWORKS["test" if testnet else "main"]
         root.version = network["xprv"]
         xprv = root.to_base58()
@@ -298,6 +299,7 @@ class BitcoinCoreWatchOnly(BitcoinCore):
         testnet,
         keys_range=[0, 1000],
         keys_purposes=[],
+        legacy=False,
     ):
         # Convert the watch-only wallet to a hot wallet then fix up its internal attrs to
         # match.
@@ -310,6 +312,7 @@ class BitcoinCoreWatchOnly(BitcoinCore):
             testnet,
             keys_range,
             keys_purposes,
+            legacy=legacy,
         )
 
         # Change type (also triggers write to file)

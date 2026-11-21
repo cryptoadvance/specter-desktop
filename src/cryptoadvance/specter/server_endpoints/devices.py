@@ -21,7 +21,12 @@ from ..key import Key
 from ..managers.device_manager import get_device_class
 from ..server_endpoints import flash
 from ..specter_error import handle_exception
-from ..util.mnemonic import generate_mnemonic, validate_mnemonic
+from ..util.mnemonic import (
+    existing_device_root_matches,
+    generate_mnemonic,
+    legacy_bip39_requested,
+    validate_mnemonic,
+)
 from ..wallet import purposes
 
 logger = logging.getLogger(__name__)
@@ -52,6 +57,7 @@ def new_device_keys(device_type):
     err = None
     mnemonic = ""
     passphrase = ""
+    legacy = False
     file_password = ""
     range_start = 0
     range_end = 1000
@@ -59,6 +65,7 @@ def new_device_keys(device_type):
     if request.method == "POST":
         mnemonic = request.form.get("mnemonic", "")
         passphrase = request.form.get("passphrase", "")
+        legacy = legacy_bip39_requested(request.form)
         file_password = request.form.get("file_password", "")
         range_start = int(request.form.get("range_start", "0"))
         range_end = int(request.form.get("range_end", "1000"))
@@ -100,6 +107,17 @@ def new_device_keys(device_type):
             ]:
                 if not paths:
                     err = _("No paths were specified, please provide at least one.")
+                if (
+                    err is None
+                    and existing_device
+                    and device.keys
+                    and not existing_device_root_matches(
+                        device.keys, mnemonic, passphrase, legacy=legacy
+                    )
+                ):
+                    err = _(
+                        "The mnemonic and passphrase do not match any existing key's master fingerprint. No keys were added. If this device was created with an older Specter version and a non-ASCII passphrase, select legacy BIP39 recovery and try again."
+                    )
                 if err is None:
                     if existing_device:
                         if device_type == BitcoinCoreWatchOnly.device_type:
@@ -115,6 +133,7 @@ def new_device_keys(device_type):
                             is_testnet(app.specter.chain),
                             keys_range=[range_start, range_end],
                             keys_purposes=keys_purposes,
+                            legacy=legacy,
                         )
                         flash(_("{} keys were added successfully").format(len(paths)))
                         return redirect(
@@ -136,6 +155,7 @@ def new_device_keys(device_type):
                             is_testnet(app.specter.chain),
                             keys_range=[range_start, range_end],
                             keys_purposes=keys_purposes,
+                            legacy=legacy,
                         )
                         flash(_("{} was added successfully!").format(device_name))
                         return redirect(
@@ -189,6 +209,7 @@ def new_device_keys(device_type):
         device_class=device_class,
         mnemonic=mnemonic,
         passphrase=passphrase,
+        legacy=legacy,
         file_password=file_password,
         range_start=range_start,
         range_end=range_end,
@@ -208,6 +229,7 @@ def new_device_keys(device_type):
 def new_device_mnemonic(device_type):
     err = None
     strength = 128
+    legacy = False
     mnemonic = generate_mnemonic(
         strength=strength, language_code=app.get_language_code()
     )
@@ -225,6 +247,7 @@ def new_device_mnemonic(device_type):
             err = _("Invalid address range selected.")
         mnemonic = request.form["mnemonic"]
         passphrase = request.form["passphrase"]
+        legacy = legacy_bip39_requested(request.form)
         file_password = request.form["file_password"]
         existing_device = request.form.get("existing_device", None)
         if existing_device:
@@ -235,6 +258,7 @@ def new_device_mnemonic(device_type):
                 device_class=get_device_class(device_type),
                 mnemonic=mnemonic,
                 passphrase=passphrase,
+                legacy=legacy,
                 file_password=file_password,
                 range_start=range_start,
                 range_end=range_end,
@@ -249,6 +273,7 @@ def new_device_mnemonic(device_type):
         device_type=device_type,
         strength=strength,
         mnemonic=mnemonic,
+        legacy=legacy,
         existing_device=existing_device,
         error=err,
         specter=app.specter,
@@ -304,6 +329,7 @@ def new_device_manual():
     device_name = ""
     xpubs = ""
     strength = 128
+    legacy = False
     mnemonic = generate_mnemonic(
         strength=strength, language_code=app.get_language_code()
     )
@@ -353,6 +379,7 @@ def new_device_manual():
                     if len(l) > 0
                 ]
                 passphrase = request.form["passphrase"]
+                legacy = legacy_bip39_requested(request.form)
                 file_password = request.form["file_password"]
                 device = app.specter.device_manager.add_device(
                     name=device_name, device_type=device_type, keys=[]
@@ -367,6 +394,7 @@ def new_device_manual():
                         app.specter.wallet_manager,
                         is_testnet(app.specter.chain),
                         keys_range=[range_start, range_end],
+                        legacy=legacy,
                     )
                     return redirect(
                         url_for("devices_endpoint.device", device_alias=device.alias)
@@ -392,6 +420,7 @@ def new_device_manual():
         xpubs=xpubs,
         mnemonic=mnemonic,
         strength=strength,
+        legacy=legacy,
         error=err,
         specter=app.specter,
         rand=rand,
@@ -474,6 +503,7 @@ def device(device_alias):
                     "device/new_device/new_device_mnemonic.jinja",
                     mnemonic=mnemonic,
                     strength=strength,
+                    legacy=False,
                     existing_device=device,
                     device_alias=device_alias,
                     device_class=get_device_class(device.device_type),
@@ -487,6 +517,7 @@ def device(device_alias):
                     existing_device=device,
                     device_alias=device_alias,
                     device_class=get_device_class(device.device_type),
+                    legacy=False,
                     specter=app.specter,
                     rand=rand,
                 )
