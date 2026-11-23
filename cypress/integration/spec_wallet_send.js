@@ -18,6 +18,7 @@ describe('Test sending transactions', () => {
         cy.get('#hot_device_1_tx_sign_btn').click()
         cy.get('#hot_device_1_hot_sign_btn').click()
         cy.get('#hot_enter_passphrase__submit').click()
+        cy.get('#send_tx_btn').click()
         cy.get('#broadcast_local_btn').click()
         cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
         .should(($div) => {
@@ -256,6 +257,7 @@ describe('Test sending transactions', () => {
         cy.get('#hot_device_2_tx_sign_btn').click()
         cy.get('#hot_device_2_hot_sign_btn').click()
         cy.get('#hot_enter_passphrase__submit').click()
+        cy.get('#send_tx_btn').click()
         cy.get('#broadcast_local_btn').click()
         cy.get('#fullbalance_amount', { timeout: Cypress.env("broadcast_timeout") })
         .should(($div) => {
