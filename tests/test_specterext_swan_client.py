@@ -2,6 +2,7 @@ from ast import Call
 from datetime import datetime
 import json
 import logging
+from urllib.parse import parse_qs, urlparse
 from unittest.mock import MagicMock
 import pytest
 import mock
@@ -64,10 +65,15 @@ def test_SwanClient(app):
         assert not sc.is_access_token_valid()
         assert sc.calc_callback_url() == "http://a_hostname/svc/swan/oauth2/callback"
 
-        start_url = sc.get_oauth2_start_url("a_hostname")
-        start_url.startswith(
-            "https://dev-api.swanbitcoin.com/oidc/auth?client_id=specter-dev&redirect_uri=http://a_hostname/spc/ext/swan/oauth2/callback&response_type=code&response_mode=query"
-        )
+        with app.test_request_context("/spc/ext/swan/oauth2/start"):
+            start_url = sc.get_oauth2_start_url("a_hostname")
+            parsed = urlparse(start_url)
+            params = parse_qs(parsed.query)
+            assert start_url.startswith(f"{app.config['SWAN_API_URL']}/oidc/auth?")
+            assert params["redirect_uri"] == [sc.calc_callback_url()]
+            assert params["response_type"] == ["code"]
+            assert params["code_challenge_method"] == ["S256"]
+            assert len(params["state"][0]) >= 32
 
         fake_response = construct_access_token_fake_response()
         with mock.patch("requests.post", return_value=fake_response):

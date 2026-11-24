@@ -3,16 +3,24 @@ import datetime
 import hashlib
 import json
 import logging
+import os
 import secrets
+import sqlite3
+import stat
+import time
+from contextlib import closing, contextmanager
 from decimal import Decimal
 from os import access
+from pathlib import Path
 from typing import List
 from urllib import request
 from urllib.parse import urlparse
 
 import pytz
 import requests
+from cryptography.fernet import Fernet
 from flask import current_app as app
+from flask import has_request_context, request as flask_request, session
 from flask_babel import lazy_gettext as _
 
 logger = logging.getLogger(__name__)
@@ -20,7 +28,192 @@ logger = logging.getLogger(__name__)
 
 # TODO: Update with prod values
 
-code_verifier = "64fRjTuy6SKqdC1wSoInUNxX65dQUhVVKTqZXuQ7dqw"
+OAUTH_FLOW_LIFETIME = 600  # seconds
+OAUTH_FLOW_LIMIT = 8  # per browser; older tabs can be restarted
+OAUTH_SESSION_KEY = "swan_oauth_browser"
+
+
+def _secure_windows_path(path):
+    """Replace inherited/explicit ACLs with only this user, SYSTEM and admins.
+
+    os.chmod on Windows only changes the read-only attribute, not confidentiality.
+    Use the Windows security APIs instead; fail closed if the ACL cannot be set.
+    """
+    import ctypes
+    from ctypes import wintypes
+
+    advapi = ctypes.WinDLL("advapi32", use_last_error=True)
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.GetCurrentProcess.restype = wintypes.HANDLE
+    kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+    kernel.LocalFree.argtypes = [ctypes.c_void_p]
+    advapi.OpenProcessToken.argtypes = [
+        wintypes.HANDLE,
+        wintypes.DWORD,
+        ctypes.POINTER(wintypes.HANDLE),
+    ]
+    advapi.GetTokenInformation.argtypes = [
+        wintypes.HANDLE,
+        wintypes.DWORD,
+        ctypes.c_void_p,
+        wintypes.DWORD,
+        ctypes.POINTER(wintypes.DWORD),
+    ]
+    advapi.ConvertSidToStringSidW.argtypes = [
+        ctypes.c_void_p,
+        ctypes.POINTER(wintypes.LPWSTR),
+    ]
+    advapi.ConvertStringSecurityDescriptorToSecurityDescriptorW.argtypes = [
+        wintypes.LPCWSTR,
+        wintypes.DWORD,
+        ctypes.POINTER(ctypes.c_void_p),
+        ctypes.POINTER(wintypes.DWORD),
+    ]
+    advapi.GetSecurityDescriptorDacl.argtypes = [
+        ctypes.c_void_p,
+        ctypes.POINTER(wintypes.BOOL),
+        ctypes.POINTER(ctypes.c_void_p),
+        ctypes.POINTER(wintypes.BOOL),
+    ]
+    advapi.SetNamedSecurityInfoW.argtypes = [
+        wintypes.LPWSTR,
+        wintypes.DWORD,
+        wintypes.DWORD,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+    ]
+    advapi.SetNamedSecurityInfoW.restype = wintypes.DWORD
+    token = wintypes.HANDLE()
+    TOKEN_QUERY = 0x0008
+    if not advapi.OpenProcessToken(
+        kernel.GetCurrentProcess(), TOKEN_QUERY, ctypes.byref(token)
+    ):
+        raise ctypes.WinError(ctypes.get_last_error())
+    try:
+        size = wintypes.DWORD()
+        advapi.GetTokenInformation(token, 1, None, 0, ctypes.byref(size))
+        if not size.value:
+            raise ctypes.WinError(ctypes.get_last_error())
+        buffer = ctypes.create_string_buffer(size.value)
+        if not advapi.GetTokenInformation(token, 1, buffer, size, ctypes.byref(size)):
+            raise ctypes.WinError(ctypes.get_last_error())
+        sid = ctypes.c_void_p.from_buffer(
+            buffer
+        ).value  # TOKEN_USER starts with SID pointer
+        sid_string = wintypes.LPWSTR()
+        if not advapi.ConvertSidToStringSidW(sid, ctypes.byref(sid_string)):
+            raise ctypes.WinError(ctypes.get_last_error())
+        try:
+            inherit = "OICI" if Path(path).is_dir() else ""
+            sddl = (
+                f"D:P(A;{inherit};FA;;;SY)(A;{inherit};FA;;;BA)"
+                f"(A;{inherit};FA;;;{sid_string.value})"
+            )
+        finally:
+            kernel.LocalFree(sid_string)
+        descriptor = ctypes.c_void_p()
+        if not advapi.ConvertStringSecurityDescriptorToSecurityDescriptorW(
+            sddl, 1, ctypes.byref(descriptor), None
+        ):
+            raise ctypes.WinError(ctypes.get_last_error())
+        try:
+            present = wintypes.BOOL()
+            defaulted = wintypes.BOOL()
+            dacl = ctypes.c_void_p()
+            if (
+                not advapi.GetSecurityDescriptorDacl(
+                    descriptor,
+                    ctypes.byref(present),
+                    ctypes.byref(dacl),
+                    ctypes.byref(defaulted),
+                )
+                or not present.value
+            ):
+                raise ctypes.WinError(ctypes.get_last_error())
+            # PROTECTED_DACL_SECURITY_INFORMATION prevents inherited permissive ACEs.
+            status = advapi.SetNamedSecurityInfoW(
+                str(path), 1, 0x00000004 | 0x80000000, None, None, dacl, None
+            )
+            if status:
+                raise OSError(status, ctypes.FormatError(status), str(path))
+        finally:
+            kernel.LocalFree(descriptor)
+    finally:
+        kernel.CloseHandle(token)
+
+
+def _secure_oauth_store(path):
+    directory = Path(path).parent
+    names = (Path(path).name,) + tuple(
+        Path(path).name + suffix for suffix in ("-journal", "-wal", "-shm")
+    )
+    if os.name == "nt":
+        # Reject symlinks/junctions, including in intermediate path components.
+        if os.path.normcase(os.path.realpath(directory)) != os.path.normcase(
+            os.path.abspath(directory)
+        ):
+            raise OSError("Swan OAuth store directory must not be a link")
+        _secure_windows_path(directory)
+        for name in names:
+            file_path = directory / name
+            if file_path.is_symlink() or (
+                file_path.exists()
+                and os.path.normcase(os.path.realpath(file_path))
+                != os.path.normcase(os.path.abspath(file_path))
+            ):
+                raise OSError("Swan OAuth store must not be a link")
+            if name == names[0]:
+                with open(file_path, "ab"):
+                    pass
+            if file_path.exists():
+                if not file_path.is_file():
+                    raise OSError("Swan OAuth store must be a regular file")
+                _secure_windows_path(file_path)
+        return
+
+    # SQLite can create a journal next to the database; protect the entire folder.
+    dir_fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        os.fchmod(dir_fd, 0o700)
+        for name in names:
+            flags = os.O_RDWR | os.O_NOFOLLOW
+            if name == names[0]:
+                flags |= os.O_CREAT
+            try:
+                fd = os.open(name, flags, 0o600, dir_fd=dir_fd)
+            except FileNotFoundError:
+                continue
+            try:
+                if not stat.S_ISREG(os.fstat(fd).st_mode):
+                    raise OSError("Swan OAuth store must be a regular file")
+                os.fchmod(fd, 0o600)
+            finally:
+                os.close(fd)
+    finally:
+        os.close(dir_fd)
+
+
+@contextmanager
+def _oauth_flows():
+    """Shared server-side store: separate Gunicorn workers must see the same flows."""
+    path = app.config.get("SWAN_OAUTH_DB") or str(
+        Path(app.specter.data_folder) / "swan_oauth.sqlite"
+    )
+    _secure_oauth_store(path)
+    conn = sqlite3.connect(path, timeout=10)
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS flows (state TEXT PRIMARY KEY, browser TEXT NOT NULL, "
+        "user_id TEXT, verifier TEXT NOT NULL, redirect_uri TEXT NOT NULL, expires REAL NOT NULL)"
+    )
+    with closing(conn), conn:
+        yield conn
+
+
+def _flow_cipher():
+    key = hashlib.sha256(app.secret_key.encode("utf-8")).digest()
+    return Fernet(base64.urlsafe_b64encode(key))
 
 
 class SwanApiException(Exception):
@@ -54,35 +247,60 @@ class SwanClient:
         )
 
     def calc_callback_url(self):
-        return f"http://{ self.hostname }{app.config['APP_URL_PREFIX']}{app.config['EXT_URL_PREFIX']}/swan/oauth2/callback"
+        scheme = flask_request.scheme if has_request_context() else "http"
+        return f"{scheme}://{self.hostname}{app.config['APP_URL_PREFIX']}{app.config['EXT_URL_PREFIX']}/swan/oauth2/callback"
 
-    def get_oauth2_start_url(self, callback_hostname):
+    def get_oauth2_start_url(self, callback_hostname, user_id=None):
         """
         Set up the Swan API integration by requesting our initial access_token and
         refresh_token.
         """
         # Let's start the PKCE-flow
-        global code_verifier
-
         self.hostname = callback_hostname
-
-        if code_verifier is None:
-            code_verifier = secrets.token_urlsafe(43)
+        callback_url = self.calc_callback_url()
+        code_verifier = secrets.token_urlsafe(32)
+        state = secrets.token_urlsafe(32)
+        browser = session.get(OAUTH_SESSION_KEY)
+        if not browser:
+            browser = secrets.token_urlsafe(32)
+            session[OAUTH_SESSION_KEY] = browser
+        with _oauth_flows() as flows:
+            flows.execute("BEGIN IMMEDIATE")
+            now = time.time()
+            flows.execute("DELETE FROM flows WHERE expires <= ?", (now,))
+            browser_flows = flows.execute(
+                "SELECT state FROM flows WHERE browser = ? ORDER BY expires", (browser,)
+            ).fetchall()
+            for (key,) in browser_flows[: -(OAUTH_FLOW_LIMIT - 1)]:
+                flows.execute("DELETE FROM flows WHERE state = ?", (key,))
+            flows.execute(
+                "INSERT INTO flows VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    state,
+                    browser,
+                    user_id,
+                    _flow_cipher()
+                    .encrypt(code_verifier.encode("ascii"))
+                    .decode("ascii"),
+                    callback_url,
+                    now + OAUTH_FLOW_LIFETIME,
+                ),
+            )
         # see specification: https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
         # and example impl: https://github.com/RomeoDespres/pkce/blob/master/pkce/__init__.py#L94-L96
         hashed = hashlib.sha256(code_verifier.encode("ascii")).digest()
         encoded = base64.urlsafe_b64encode(hashed)
-        code_challenge = encoded.decode("ascii")[:-1]
+        code_challenge = encoded.decode("ascii").rstrip("=")
 
         flow_url = f"{self.api_url}/oidc/auth?"
         query_params = [
             f"client_id={self.client_id}",
-            f"redirect_uri={self.calc_callback_url()}",
+            f"redirect_uri={callback_url}",
             "response_type=code",
             "response_mode=query",
             f"code_challenge={code_challenge}",
             "code_challenge_method=S256",
-            "state=kjkmdskdmsmmsmdslmdlsm",
+            f"state={state}",
             "scope=offline_access v1 write:vendor_wallet read:vendor_wallet write:automatic_withdrawal read:automatic_withdrawal",
             "prompt=consent",
         ]
@@ -91,7 +309,7 @@ class SwanClient:
         return flow_url
 
     def _get_access_token(
-        self, code: str = None, code_verifier: str = None, request_uri=None
+        self, code: str = None, code_verifier: str = None, request_uri=None, state=None
     ) -> str:
         """
         If code and code_verifier are specified, this is our initial request for an
@@ -111,7 +329,7 @@ class SwanClient:
                 "client_secret": self.client_secret,
                 "code_verifier": code_verifier,
                 "grant_type": "authorization_code",
-                "state": "kjkmdskdmsmmsmdslmdlsm",
+                "state": state,
                 "code": code,
                 "redirect_uri": request_uri,
             }
@@ -177,12 +395,48 @@ class SwanClient:
             logger.warning(response)
             raise SwanApiException(response.text)
 
-    def handle_oauth2_auth_callback(self, request):
+    def handle_oauth2_auth_callback(self, request, user_id=None, callback_uri=None):
+        state = request.args.get("state")
+        browser = session.get(OAUTH_SESSION_KEY)
+        if not state or not browser:
+            raise SwanApiException("Invalid or expired Swan OAuth state")
+        with _oauth_flows() as flows:
+            flows.execute("BEGIN IMMEDIATE")
+            flow = flows.execute(
+                "SELECT browser, user_id, verifier, redirect_uri, expires "
+                "FROM flows WHERE state = ?",
+                (state,),
+            ).fetchone()
+            if (
+                not flow
+                or not secrets.compare_digest(flow[0], browser)
+                or flow[1] != user_id
+            ):
+                raise SwanApiException("Invalid or expired Swan OAuth state")
+            # Consume before talking to Swan, including provider errors and failed exchanges.
+            flows.execute("DELETE FROM flows WHERE state = ?", (state,))
+        if flow[4] <= time.time():
+            raise SwanApiException("Invalid or expired Swan OAuth state")
+        if request.args.get("error"):
+            raise SwanApiException("Swan OAuth authorization was declined")
         code = request.args.get("code")
+        if not code:
+            raise SwanApiException(
+                "Swan OAuth callback is missing an authorization code"
+            )
         rp = urlparse(request.url)
-        request_uri = f"{rp.scheme}://{rp.netloc}{rp.path}"
+        request_uri = callback_uri or f"{rp.scheme}://{rp.netloc}{rp.path}"
+        if request_uri != flow[3]:
+            raise SwanApiException(
+                "Swan OAuth callback URL does not match the authorization"
+            )
         self._get_access_token(
-            code=code, code_verifier=code_verifier, request_uri=request_uri
+            code=code,
+            code_verifier=_flow_cipher()
+            .decrypt(flow[2].encode("ascii"))
+            .decode("ascii"),
+            request_uri=flow[3],
+            state=state,
         )
 
     def authenticated_request(
