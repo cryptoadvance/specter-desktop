@@ -200,7 +200,7 @@ def _write_json_file(content, path, lock=None):
         bkp = path + ".bkp"
         # check if file exists
         if os.path.isfile(path):
-            os.chmod(path, 0o600)
+            _restrict_owned_path(path, 0o600)
             # check if backup exists
             if os.path.isfile(bkp):
                 # remove backup file

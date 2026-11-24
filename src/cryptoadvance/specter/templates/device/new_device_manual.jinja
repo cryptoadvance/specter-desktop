@@ -159,6 +159,7 @@ upub5En4f7k8gaG2KDHvBeEYox...rFpJRHpiZ4DE
 				<div id="advanced_settings" class="hidden">
 					<label>{{ _("BIP39 passphrase (optional)") }}: </label>
 					<input type="password" name="passphrase" class="inline" placeholder="passphrase">
+					<label><input type="checkbox" name="legacy_bip39" value="1" {% if legacy %}checked{% endif %}> {{ _("Recover an older Specter wallet with a non-ASCII BIP39 passphrase (legacy, no Unicode normalization). Only enable this for an existing wallet; it derives different keys.") }}</label>
 					<p>{{ _("Derivation paths") }}:
 					<span class="note">
 					{{ _("Enter each derivation path as a separate line. Start each path with an ")}}<code>m</code>{{ _('. No trailing slash.')}}</span>

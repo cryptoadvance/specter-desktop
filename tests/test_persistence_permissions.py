@@ -175,3 +175,40 @@ def test_startup_chmod_permission_denied_warns_and_continues(
     secure_json_files(str(data))
     assert "permission denied" in caplog.text
     assert str(secret) in caplog.text
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX ownership")
+@pytest.mark.parametrize("write_fails", [False, True])
+def test_existing_nonowned_json_can_be_backed_up_and_replaced(
+    tmp_path, monkeypatch, caplog, write_fails
+):
+    from cryptoadvance.specter.specter_error import SpecterError
+
+    path = tmp_path / "secret.json"
+    backup = tmp_path / "secret.json.bkp"
+    path.write_text('{"old": "secret"}')
+    path.chmod(0o666)
+    backup.write_text('{"stale": true}')
+    old_inode = path.stat().st_ino
+    # Model a writable shared directory with a pre-existing file owned by
+    # another uid, without requiring root or changing actual file ownership.
+    monkeypatch.setattr(os, "getuid", lambda: -1)
+    real_chmod = os.chmod
+
+    def deny_existing_chmod(target, mode):
+        if os.fspath(target) == str(path):
+            raise PermissionError("cannot chmod non-owned file")
+        return real_chmod(target, mode)
+
+    monkeypatch.setattr(os, "chmod", deny_existing_chmod)
+    if write_fails:
+        with pytest.raises(SpecterError, match="old version has been restored"):
+            _write_json_file({"new": object()}, str(path))
+        assert json.loads(path.read_text()) == {"old": "secret"}
+    else:
+        _write_json_file({"new": "secret"}, str(path))
+        assert json.loads(path.read_text()) == {"new": "secret"}
+    assert backup.stat().st_ino == old_inode
+    assert json.loads(backup.read_text()) == {"old": "secret"}
+    assert stat.S_IMODE(path.stat().st_mode) == 0o600
+    assert "not owned by this user" in caplog.text

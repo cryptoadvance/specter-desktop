@@ -493,6 +493,28 @@ def auth():
                 registration_link_timeout = request.form["registration_link_timeout"]
 
             min_chars = int(auth["password_min_chars"])
+            if current_user.is_admin and method == "passwordonly":
+                specter_password_only = request.form.get("specter_password_only")
+                if not specter_password_only or len(specter_password_only) < min_chars:
+                    flash(
+                        _("Please enter a password of a least {} characters").format(
+                            min_chars
+                        ),
+                        "error",
+                    )
+                    return render_template(
+                        "settings/auth_settings.jinja",
+                        method=method,
+                        rate_limit=rate_limit,
+                        registration_link_timeout=registration_link_timeout,
+                        users=users,
+                        specter=app.specter,
+                        current_version=current_version,
+                        rand=rand,
+                        has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(
+                            current_user
+                        ),
+                    )
             if specter_username:
 
                 if current_user.username != specter_username:
@@ -542,36 +564,10 @@ def auth():
                 current_user.save_info()
 
             if current_user.is_admin:
-                app.specter.update_auth(method, rate_limit, registration_link_timeout)
                 if method in ["rpcpasswordaspin", "passwordonly", "usernamepassword"]:
                     if method == "passwordonly":
-                        specter_password = request.form.get("specter_password_only")
-                        if specter_password and len(specter_password) < min_chars:
-                            flash(
-                                _(
-                                    "Please enter a password of a least {} characters"
-                                ).format(min_chars),
-                                "error",
-                            )
-                            return render_template(
-                                "settings/auth_settings.jinja",
-                                method=method,
-                                rate_limit=rate_limit,
-                                registration_link_timeout=registration_link_timeout,
-                                users=users,
-                                specter=app.specter,
-                                current_version=current_version,
-                                rand=rand,
-                                has_service_encrypted_storage=app.specter.service_manager.user_has_encrypted_storage(
-                                    current_user
-                                ),
-                            )
-                        elif not specter_password:
-                            # Set to the default
-                            specter_password = "admin"
-
                         try:
-                            current_user.set_password(specter_password)
+                            current_user.set_password(specter_password_only)
                         except UserSecretException as e:
                             # Most likely the admin User is logged in but the
                             # plaintext_user_secret is not available in memory (happens
@@ -623,6 +619,7 @@ def auth():
                         app.specter.service_manager.delete_services_with_encrypted_storage(
                             user
                         )
+                app.specter.update_auth(method, rate_limit, registration_link_timeout)
 
             # Redirect if a URL was given via the next variable
             if request.form.get("next") and request.form.get("next") != "":
