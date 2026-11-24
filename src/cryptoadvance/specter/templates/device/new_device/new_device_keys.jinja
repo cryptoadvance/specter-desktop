@@ -14,9 +14,13 @@
         {% if device_class.hot_wallet %}
             <input type="hidden" name="mnemonic" value="{{ mnemonic }}"/>
             <input type="hidden" name="passphrase" value="{{ passphrase }}"/>
+            <input type="hidden" name="legacy_bip39" value="{{ '1' if legacy else '0' }}"/>
             <input type="hidden" name="file_password" value="{{ file_password }}"/>
             <input type="hidden" name="range_start" value="{{ range_start }}"/>
             <input type="hidden" name="range_end" value="{{ range_end }}"/>
+            {% if legacy %}
+                <p class="note">{{ _("Legacy BIP39 derivation is enabled for this import: keys are derived without Unicode (NFKD) normalization to recover an existing wallet. New wallets must use the default derivation.") }}</p>
+            {% endif %}
         {% endif %}
 
         <div>
