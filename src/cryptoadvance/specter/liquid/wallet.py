@@ -140,7 +140,7 @@ class LWallet(Wallet):
         # check if address was used already
         try:
             value_on_address = self.rpc.getreceivedbyaddress(
-                self.change_address, assetlabel=None
+                self.change_address, minconf=0, assetlabel=None
             )
         except Exception as e:
             handle_exception(e)

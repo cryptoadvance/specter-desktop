@@ -69,6 +69,14 @@
 			</div>
 		{% endif %}
 
+		<!-- Liquid multisig privacy warning -->
+		{% if wallet_type == 'multisig' and specter.is_liquid %}
+			<div class="flex p-4 mt-3 bg-dark-600 rounded-lg" role="alert">
+				{{ _("Privacy warning: Liquid multisig blinding keys are derived from public chaincodes. Amounts and assets are not confidential from cosigners or anyone with the wallet descriptor, including coordinators.") }}
+			</div>
+		{% endif %}
+		<!-- End Liquid multisig privacy warning -->
+
 		<div class="space-y-3 mt-3">
 			<label for="rescan" class="checkbox-wrapper-inline inline-flex pr-8">
 				<input form="keysform" type="checkbox" name="rescanblockchain" id="rescan" class="checkbox-input peer" onchange="toggleScanOptions(this)">
