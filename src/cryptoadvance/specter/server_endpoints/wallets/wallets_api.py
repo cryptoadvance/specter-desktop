@@ -228,17 +228,37 @@ def broadcast_blockexplorer(wallet_alias):
                     ),
                 )
             requests_session = app.specter.requests_session(force_tor=use_tor)
-            requests_session.post(
+            response = requests_session.post(
                 f"{app.config['EXPLORERS_LIST'][explorer]['url']}{url_network}api/tx",
                 data=tx,
             )
+            returned_txid = response.text.strip()
+            expected_txid = wallet.rpc.decoderawtransaction(tx)["txid"]
+            # Only treat the broadcast as successful if the explorer accepted it
+            # and echoed the txid of the transaction we actually submitted.
+            if (
+                response.status_code != 200
+                or len(returned_txid) != 64
+                or any(char not in "0123456789abcdefABCDEF" for char in returned_txid)
+                or returned_txid.lower() != expected_txid.lower()
+            ):
+                return jsonify(
+                    success=False,
+                    # The explorer response is untrusted and the browser renders
+                    # errors as HTML. Never reflect its body into this message.
+                    error=_(
+                        "Failed to broadcast transaction: explorer returned HTTP {}"
+                    ).format(response.status_code),
+                )
             wallet.delete_spent_pending_psbts([tx])
             return jsonify(success=True)
         except Exception as e:
             handle_exception(e)
+            # Network exceptions may include untrusted explorer response text.
+            # The notification UI inserts this message as HTML.
             return jsonify(
                 success=False,
-                error=_("Failed to broadcast transaction with error: {}").format(e),
+                error=_("Failed to broadcast transaction with block explorer."),
             )
     else:
         return jsonify(

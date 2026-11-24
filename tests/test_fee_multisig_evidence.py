@@ -101,4 +101,26 @@ def test_bumpfee_single_output_refuses_dust_or_negative_remainder(value):
         wallet.bumpfee("txid", FEE_RATE * 2)
 
     assert psbt.psbt.outputs[0].value == value
+    assert not getattr(psbt, "recipient_amount_reduced", False)
     wallet.save_pending_psbt.assert_not_called()
+
+
+def test_combined_single_output_guard_and_persisted_warning():
+    """An accepted bump persists its warning; a rejected bump changes nothing."""
+    descriptor = descriptor_for("wsh")
+    psbt = make_pending_psbt(descriptor, [99_000], change_index=None)
+    wallet = bump_wallet(psbt)
+
+    result = wallet.bumpfee("txid", FEE_RATE * 2)
+    wallet.save_pending_psbt.assert_called_once_with(psbt)
+    assert result["recipient_amount_reduced"] is True
+    restored = SpecterPSBT.from_dict(result, descriptor, networks.NETWORKS["main"])
+    assert restored.recipient_amount_reduced is True
+    assert restored.to_dict()["recipient_amount_reduced"] is True
+
+    unsafe = make_pending_psbt(descriptor, [600], change_index=None)
+    unsafe_wallet = bump_wallet(unsafe)
+    with pytest.raises(SpecterError, match="Not enough funds"):
+        unsafe_wallet.bumpfee("txid", FEE_RATE * 2)
+    assert unsafe.psbt.outputs[0].value == 600
+    unsafe_wallet.save_pending_psbt.assert_not_called()

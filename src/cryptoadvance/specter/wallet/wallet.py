@@ -273,7 +273,7 @@ class Wallet(AbstractWallet):
         if change_descriptor is None and "/0/*" not in recv_descriptor:
             raise SpecterError("Receive descriptor has strange derivation path")
         if change_descriptor is None:
-            change_descriptor = recv_descriptor.split("#").replace("/0/*", "/1/*")
+            change_descriptor = recv_descriptor.split("#")[0].replace("/0/*", "/1/*")
         # remove checksums
         recv_descriptor = recv_descriptor.split("#")[0]
         change_descriptor = change_descriptor.split("#")[0]
@@ -2185,6 +2185,7 @@ class Wallet(AbstractWallet):
             psbt.psbt.outputs[0].value = new_value
             psbt.recipient_amount_reduced = True
         else:
+            psbt.recipient_amount_reduced = False
             # find change output
             change_index = None
             for i, out in enumerate(psbt.outputs):
@@ -2195,10 +2196,10 @@ class Wallet(AbstractWallet):
                 raise SpecterError(
                     "Can't bump fee in a transaction without change outputs"
                 )
-            psbt.psbt.outputs[i].value -= round(fee_delta)
-            if psbt.psbt.outputs[i].value <= 0:
+            psbt.psbt.outputs[change_index].value -= round(fee_delta)
+            if psbt.psbt.outputs[change_index].value <= 0:
                 # if we went negative - just drop the change output
-                psbt.psbt.outputs.remove(psbt.psbt.outputs[i])
+                psbt.psbt.outputs.remove(psbt.psbt.outputs[change_index])
         self.save_pending_psbt(psbt)
         result = psbt.to_dict()
         if getattr(psbt, "recipient_amount_reduced", False):
