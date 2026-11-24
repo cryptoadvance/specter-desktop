@@ -2,6 +2,7 @@
 
 ## Unreleased
 - BIP39 imports now NFKD-normalize the mnemonic and passphrase. Re-importing a wallet created by an older Specter version with a non-ASCII passphrase will derive different keys unless you select the explicit legacy BIP39 recovery option (no Unicode normalization). ASCII passphrases are unaffected. When adding keys to an existing hot-wallet device, the new root must match an existing master fingerprint; no keys are added on a mismatch. #2752
+- Specter refuses to write JSON through a symlink (including a symlinked `config.json`). Replace the link with a regular file in a private data directory before upgrading. Existing data paths owned by another user are not chmodded at startup; Specter logs a warning when it cannot restrict their permissions.
 
 ## v2.3.0 November 06, 2026
 - Add backwards-compatible BIP-329 label import and export #2712 (Schnuartz AI)
