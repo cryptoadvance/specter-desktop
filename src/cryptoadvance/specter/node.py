@@ -223,7 +223,9 @@ class AbstractNode(NonExistingNode):
             chain_value = self.chain
             network_params = get_network(chain_value)
             # Validate network parameters match the chain
-            is_valid, error_msg = validate_network_for_chain(chain_value, network_params)
+            is_valid, error_msg = validate_network_for_chain(
+                chain_value, network_params
+            )
             if not is_valid:
                 logger.warning(
                     f"Unsupported chain '{chain_value}' detected. {error_msg} "
@@ -557,7 +559,9 @@ class Node(AbstractNode):
                 # Get and validate network parameters
                 chain_value = self.chain
                 network_params = get_network(chain_value)
-                is_valid, error_msg = validate_network_for_chain(chain_value, network_params)
+                is_valid, error_msg = validate_network_for_chain(
+                    chain_value, network_params
+                )
                 if not is_valid:
                     logger.warning(
                         f"Unsupported chain '{chain_value}' detected. {error_msg} "
