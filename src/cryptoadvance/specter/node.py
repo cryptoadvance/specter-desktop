@@ -223,16 +223,16 @@ class AbstractNode(NonExistingNode):
             chain_value = self.chain
             network_params = get_network(chain_value)
             # Validate network parameters match the chain
-            is_valid, error_msg = validate_network_for_chain(chain_value, network_params)
+            is_valid, error_msg = validate_network_for_chain(
+                chain_value, network_params
+            )
             if not is_valid:
                 logger.warning(
                     f"Unsupported chain '{chain_value}' detected. {error_msg} "
                     "Wallet operations may fail with this chain configuration."
                 )
-                # Return safe fallback to prevent crashes during node info display
-                # Use 'main' as it's the most stable/tested network in the codebase
-                # Actual wallet operations will fail with clear error from Wallet.network
-                return get_network("main")
+                # Never offer mainnet derivation paths for an unsupported node.
+                raise SpecterError(error_msg)
             return network_params
         # Default to 'main' when node is not running - safe, stable fallback
         return get_network("main")
@@ -559,14 +559,17 @@ class Node(AbstractNode):
                 # Get and validate network parameters
                 chain_value = self.chain
                 network_params = get_network(chain_value)
-                is_valid, error_msg = validate_network_for_chain(chain_value, network_params)
+                is_valid, error_msg = validate_network_for_chain(
+                    chain_value, network_params
+                )
                 if not is_valid:
                     logger.warning(
                         f"Unsupported chain '{chain_value}' detected. {error_msg} "
                         "Node info will display but wallet operations will fail."
                     )
-                    # Use safe fallback for node display, but wallets will enforce validation
-                    self._network_parameters = get_network("main")
+                    # Keep node info available (it displays the RPC chain), but
+                    # reject uses of network parameters such as device derivation.
+                    self._network_parameters = None
                 else:
                     self._network_parameters = network_params
                 self._is_running = True
@@ -735,10 +738,14 @@ class Node(AbstractNode):
     @property
     def network_parameters(self):
         try:
-            return self._network_parameters
-        except Exception as e:
-            logger.exception(e)
+            params = self._network_parameters
+        except AttributeError:
             return get_network("main")
+        if params is None and self.is_running:
+            raise SpecterError(
+                validate_network_for_chain(self.chain, get_network(self.chain))[1]
+            )
+        return params
 
     @property
     def bitcoin_core_version(self):
