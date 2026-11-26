@@ -2,6 +2,8 @@ import json
 import logging
 import pytest
 import time
+from embit.descriptor import Descriptor as EmbitDescriptor
+from embit.descriptor.checksum import add_checksum
 
 from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.managers.device_manager import DeviceManager
@@ -73,6 +75,33 @@ def test_WalletImporter_parse_wallet_data_import():
     assert cosigners_types[0]["label"] == "MyColdcard"
     assert cosigners_types[1]["type"] == "trezor"
     assert cosigners_types[1]["label"] == "MyTestTrezor"
+
+
+def test_multipath_multisig_import_rechecks_checksum_and_converts_all_keys():
+    old = json.loads(wallet_coldcardtrezor_json)
+    old_descriptor = old["descriptor"]
+    name, parsed_old, devices = WalletImporter.parse_wallet_data_import(old)
+    assert parsed_old == old_descriptor  # Existing /0/* backups still import.
+    assert len(EmbitDescriptor.from_string(parsed_old).keys) == 2
+
+    old_body = old_descriptor.split("#", 1)[0]
+    multipath = add_checksum(old_body.replace("/0/*", "/<0;1>/*"))
+    assert multipath.count("/<0;1>/*") == 2
+    # Pinned embit cannot parse BIP 389 sets until after conversion.
+    name, receive, devices = WalletImporter.parse_wallet_data_import(
+        {**old, "descriptor": multipath}
+    )
+    assert receive.count("/0/*") == 2
+    assert "<0;1>" not in receive
+    assert EmbitDescriptor.from_string(receive).num_branches == 1
+    assert receive == add_checksum(old_body)
+    assert name == old["label"]
+    assert len(devices) == 2
+
+    with pytest.raises(ValueError):
+        WalletImporter.parse_wallet_data_import(
+            {**old, "descriptor": multipath[:-1] + ("q" if multipath[-1] != "q" else "p")}
+        )
 
 
 @patch("cryptoadvance.specter.util.wallet_importer.flash", print)

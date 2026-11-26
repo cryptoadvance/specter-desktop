@@ -6,6 +6,7 @@ import requests
 from embit.descriptor import Descriptor
 from embit.descriptor import Key as DescriptorKey
 from embit.descriptor.arguments import AllowedDerivation
+from embit.descriptor.checksum import add_checksum, checksum
 from embit.liquid.descriptor import LDescriptor
 from flask_babel import lazy_gettext as _
 
@@ -518,12 +519,17 @@ class WalletImporter:
 
             wallet_name = wallet_data.get("label", "Imported Wallet")
             recv_descriptor = wallet_data.get("descriptor", None)
-            
             # Handle combined descriptors with <0;1> syntax (BIP 389 multipath)
-            # Convert to receive-only descriptor for backward compatibility with import logic
-            # Only replace <0;1> in the final derivation path (before /*), not in key paths
+            # Convert every key's receive branch and recalculate the checksum:
+            # the original checksum authenticates the *multipath* descriptor.
             if recv_descriptor and "<0;1>" in recv_descriptor:
-                recv_descriptor = re.sub(r'<0;1>(/\*)', r'0\1', recv_descriptor)
+                body = recv_descriptor.split("#", 1)[0]
+                # Pinned embit 0.6.1 cannot parse BIP 389 angle-bracket sets;
+                # check the source checksum before converting to its /0/* form.
+                if "#" in recv_descriptor and recv_descriptor.split("#", 1)[1] != checksum(body):
+                    raise ValueError("Invalid descriptor checksum")
+                body = re.sub(r"<0;1>(/\*)", r"0\1", body)
+                recv_descriptor = add_checksum(body)
 
         if wallet_name is None:
             raise SpecterError(
