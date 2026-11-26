@@ -414,9 +414,13 @@ def test_account_map_combined_descriptor(funded_hot_wallet_1: Wallet):
         f"Descriptor should have a checksum, got: {descriptor_str}"
     )
     
-    # Verify the descriptor can be parsed and has 2 branches
-    parsed_desc = EmbitDescriptor.from_string(descriptor_str)
-    assert parsed_desc.num_branches == 2, (
-        f"Descriptor should have 2 branches (receive and change), "
-        f"got {parsed_desc.num_branches}"
+    # embit 0.6.1 uses {0,1} internally and cannot parse BIP 389 <0;1>.
+    # Convert only for this internal parser; retain the exported BIP 389 form.
+    from embit.descriptor.checksum import checksum
+
+    body, exported_checksum = descriptor_str.rsplit("#", 1)
+    assert exported_checksum == checksum(body)
+    parsed_desc = EmbitDescriptor.from_string(
+        body.replace("/<0;1>/*", "/{0,1}/*")
     )
+    assert parsed_desc.num_branches == 2

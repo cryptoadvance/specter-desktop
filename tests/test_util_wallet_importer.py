@@ -2,6 +2,8 @@ import json
 import logging
 import pytest
 import time
+from embit.descriptor import Descriptor as EmbitDescriptor
+from embit.descriptor.checksum import add_checksum
 
 from cryptoadvance.specter.key import Key
 from cryptoadvance.specter.managers.device_manager import DeviceManager
@@ -9,6 +11,7 @@ from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.user import User
 from cryptoadvance.specter.util.descriptor import Descriptor
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
+from cryptoadvance.specter.wallet.wallet import Wallet
 from mock import MagicMock, call, patch
 
 # coldcard, trezor import
@@ -73,6 +76,54 @@ def test_WalletImporter_parse_wallet_data_import():
     assert cosigners_types[0]["label"] == "MyColdcard"
     assert cosigners_types[1]["type"] == "trezor"
     assert cosigners_types[1]["label"] == "MyTestTrezor"
+
+
+def test_multipath_multisig_import_rechecks_checksum_and_converts_all_keys():
+    old = json.loads(wallet_coldcardtrezor_json)
+    old_descriptor = old["descriptor"]
+    name, parsed_old, devices = WalletImporter.parse_wallet_data_import(old)
+    assert parsed_old == old_descriptor  # Existing /0/* backups still import.
+    assert len(EmbitDescriptor.from_string(parsed_old).keys) == 2
+
+    old_body = old_descriptor.split("#", 1)[0]
+    multipath = add_checksum(old_body.replace("/0/*", "/<0;1>/*"))
+    assert multipath.count("/<0;1>/*") == 2
+    # Pinned embit cannot parse BIP 389 sets until after conversion.
+    name, receive, devices = WalletImporter.parse_wallet_data_import(
+        {**old, "descriptor": multipath}
+    )
+    assert receive.count("/0/*") == 2
+    assert "<0;1>" not in receive
+    assert EmbitDescriptor.from_string(receive).num_branches == 1
+    assert receive == add_checksum(old_body)
+    assert name == old["label"]
+    assert len(devices) == 2
+
+    with pytest.raises(ValueError):
+        WalletImporter.parse_wallet_data_import(
+            {**old, "descriptor": multipath[:-1] + ("q" if multipath[-1] != "q" else "p")}
+        )
+
+
+def test_multisig_export_uses_bip389_and_roundtrips_to_receive_descriptor():
+    old = json.loads(wallet_coldcardtrezor_json)
+    old_body = old["descriptor"].split("#", 1)[0]
+    internal = EmbitDescriptor.from_string(
+        add_checksum(old_body.replace("/0/*", "/{0,1}/*"))
+    )
+    wallet = MagicMock()
+    wallet.name = old["label"]
+    wallet.blockheight = 0
+    wallet.descriptor = internal
+    wallet.devices = []
+    exported = json.loads(Wallet.account_map.fget(wallet))["descriptor"]
+    assert exported.count("/<0;1>/*") == 2
+    assert exported == add_checksum(old_body.replace("/0/*", "/<0;1>/*"))
+    _, receive, _ = WalletImporter.parse_wallet_data_import(
+        {"label": old["label"], "descriptor": exported, "devices": []}
+    )
+    assert EmbitDescriptor.from_string(receive).num_branches == 1
+    assert receive == add_checksum(old_body)
 
 
 @patch("cryptoadvance.specter.util.wallet_importer.flash", print)
