@@ -1148,7 +1148,11 @@ class Wallet(AbstractWallet):
         account_map_dict = {
             "label": self.name,
             "blockheight": self.blockheight,
-            "descriptor": add_checksum(self.descriptor.to_string()),
+            # embit 0.6.1 serializes branch sets as /{0,1}/*, while BIP 389
+            # export consumers expect /<0;1>/*; checksum the exported syntax.
+            "descriptor": add_checksum(
+                self.descriptor.to_string().replace("/{0,1}/*", "/<0;1>/*")
+            ),
             "devices": [{"type": d.device_type, "label": d.name} for d in self.devices],
         }
         return json.dumps(account_map_dict)

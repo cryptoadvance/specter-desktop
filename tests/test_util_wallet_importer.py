@@ -11,6 +11,7 @@ from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.user import User
 from cryptoadvance.specter.util.descriptor import Descriptor
 from cryptoadvance.specter.util.wallet_importer import WalletImporter
+from cryptoadvance.specter.wallet.wallet import Wallet
 from mock import MagicMock, call, patch
 
 # coldcard, trezor import
@@ -102,6 +103,27 @@ def test_multipath_multisig_import_rechecks_checksum_and_converts_all_keys():
         WalletImporter.parse_wallet_data_import(
             {**old, "descriptor": multipath[:-1] + ("q" if multipath[-1] != "q" else "p")}
         )
+
+
+def test_multisig_export_uses_bip389_and_roundtrips_to_receive_descriptor():
+    old = json.loads(wallet_coldcardtrezor_json)
+    old_body = old["descriptor"].split("#", 1)[0]
+    internal = EmbitDescriptor.from_string(
+        add_checksum(old_body.replace("/0/*", "/{0,1}/*"))
+    )
+    wallet = MagicMock()
+    wallet.name = old["label"]
+    wallet.blockheight = 0
+    wallet.descriptor = internal
+    wallet.devices = []
+    exported = json.loads(Wallet.account_map.fget(wallet))["descriptor"]
+    assert exported.count("/<0;1>/*") == 2
+    assert exported == add_checksum(old_body.replace("/0/*", "/<0;1>/*"))
+    _, receive, _ = WalletImporter.parse_wallet_data_import(
+        {"label": old["label"], "descriptor": exported, "devices": []}
+    )
+    assert EmbitDescriptor.from_string(receive).num_branches == 1
+    assert receive == add_checksum(old_body)
 
 
 @patch("cryptoadvance.specter.util.wallet_importer.flash", print)

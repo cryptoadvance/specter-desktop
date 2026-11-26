@@ -526,7 +526,9 @@ class WalletImporter:
                 body = recv_descriptor.split("#", 1)[0]
                 # Pinned embit 0.6.1 cannot parse BIP 389 angle-bracket sets;
                 # check the source checksum before converting to its /0/* form.
-                if "#" in recv_descriptor and recv_descriptor.split("#", 1)[1] != checksum(body):
+                if "#" in recv_descriptor and recv_descriptor.split("#", 1)[
+                    1
+                ] != checksum(body):
                     raise ValueError("Invalid descriptor checksum")
                 body = re.sub(r"<0;1>(/\*)", r"0\1", body)
                 recv_descriptor = add_checksum(body)
