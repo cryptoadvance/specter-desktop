@@ -32,8 +32,9 @@ def index():
 def _raw_request_host():
     """Host header as sent by the client, before ProxyFix applied X-Forwarded-Host.
 
-    Browsers do not let web pages set Host, but they may set X-Forwarded-Host
-    (CORS allows it), so only the raw Host can prove a same-origin request.
+    Used for the same-host shortcut. Web pages can set X-Forwarded-Host (CORS
+    allows it) but not Host, so this prevents X-Forwarded-Host spoofing. It does
+    not protect against DNS rebinding or authenticate direct HTTP clients.
     """
     environ = request.environ
     if "werkzeug.proxy_fix.orig" in environ:
