@@ -178,3 +178,56 @@ def test_hwi_api_remains_csrf_exempt(tmp_path, hwibridge):
 
     assert response.status_code == 200
     assert response.get_json() == {"id": 1, "jsonrpc": "2.0", "result": []}
+
+
+def hwi_enumerate(client, **headers):
+    return client.post(
+        "/hwi/api/",
+        json={
+            "jsonrpc": "2.0",
+            "method": "enumerate",
+            "id": 1,
+            "params": {},
+            "forwarded_request": True,
+        },
+        headers=headers,
+    )
+
+
+@pytest.mark.parametrize("hwibridge", [False, True])
+def test_hwi_api_ignores_forwarded_host_for_origin_check(tmp_path, hwibridge):
+    app = make_scoped_app(tmp_path, hwibridge=hwibridge)
+    app.specter.hwi.exposed_rpc["enumerate"] = lambda **kwargs: []
+    client = app.test_client()
+
+    # cross-origin, not whitelisted: rejected
+    response = hwi_enumerate(client, Origin="http://attacker.example")
+    assert response.status_code == 500
+    assert "Unauthorized request origin" in response.get_json()["error"]["message"]
+
+    # spoofed X-Forwarded-Host must not make it same-origin
+    response = hwi_enumerate(
+        client,
+        Origin="http://attacker.example",
+        **{"X-Forwarded-Host": "attacker.example"},
+    )
+    assert response.status_code == 500
+    assert "Unauthorized request origin" in response.get_json()["error"]["message"]
+    assert "result" not in response.get_json()
+
+    # opaque origin: rejected, not a crash
+    response = hwi_enumerate(client, Origin="null")
+    assert response.status_code == 500
+    assert "Unauthorized request origin" in response.get_json()["error"]["message"]
+
+    # same-origin by raw Host header (e.g. LAN access): allowed
+    response = hwi_enumerate(
+        client, Origin="http://specter.lan:25441", Host="specter.lan:25441"
+    )
+    assert response.status_code == 200
+    assert response.get_json()["result"] == []
+
+    # whitelisted origin: allowed
+    response = hwi_enumerate(client, Origin="http://127.0.0.1:25441")
+    assert response.status_code == 200
+    assert response.get_json()["result"] == []

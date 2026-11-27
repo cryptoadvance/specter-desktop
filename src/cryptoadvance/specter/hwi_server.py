@@ -29,16 +29,24 @@ def index():
     return redirect(url_for("hwi_server_settings.hwi_bridge_settings"))
 
 
+def _raw_request_host():
+    """Host header as sent by the client, before ProxyFix applied X-Forwarded-Host.
+
+    Browsers do not let web pages set Host, but they may set X-Forwarded-Host
+    (CORS allows it), so only the raw Host can prove a same-origin request.
+    """
+    environ = request.environ
+    if "werkzeug.proxy_fix.orig" in environ:
+        return environ["werkzeug.proxy_fix.orig"].get("HTTP_HOST")
+    return environ.get("HTTP_HOST")
+
+
 @hwi_server.route("/api/", methods=["POST"])
 def api():
     """JSON-RPC for HWI Bridge"""
+    origin = request.environ.get("HTTP_ORIGIN")
     # if cross-origin
-    if (
-        "HTTP_HOST" in request.environ
-        and "HTTP_ORIGIN" in request.environ
-        and request.environ["HTTP_HOST"]
-        != request.environ["HTTP_ORIGIN"].split("://")[1]
-    ):
+    if origin is not None and origin.split("://", 1)[-1] != _raw_request_host():
         whitelisted_domains = hwi_get_config(app.specter)["whitelisted_domains"].split()
         for i, url in enumerate(whitelisted_domains):
             # might be https as well
